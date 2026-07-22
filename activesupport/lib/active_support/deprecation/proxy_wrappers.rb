@@ -23,6 +23,7 @@ module ActiveSupport
           warn caller_locations, called, args
           target.__send__(called, *args, &block)
         end
+        ruby2_keywords :method_missing
     end
 
     # DeprecatedObjectProxy transforms an object into a deprecated one. It takes an object, a deprecation message, and
@@ -40,6 +41,10 @@ module ActiveSupport
         @object = object
         @message = message
         @deprecator = deprecator
+      end
+
+      def target=(object)
+        @object = object
       end
 
       private

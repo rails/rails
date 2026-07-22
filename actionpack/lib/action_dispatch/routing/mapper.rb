@@ -21,7 +21,7 @@ module ActionDispatch
         end
       end
 
-      URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port]
+      URL_OPTIONS = [:protocol, :subdomain, :domain, :host, :port].freeze
 
       cattr_accessor :route_source_locations, instance_accessor: false, default: false
       cattr_accessor :backtrace_cleaner, instance_accessor: false, default: BacktraceCleaner.new
@@ -29,8 +29,8 @@ module ActionDispatch
       class Constraints < Routing::Endpoint # :nodoc:
         attr_reader :app, :constraints
 
-        SERVE = ->(app, req) { app.serve req }
-        CALL  = ->(app, req) { app.call req.env }
+        SERVE = ActiveSupport::Ractors.shareable_lambda { |app, req| app.serve req }
+        CALL  = ActiveSupport::Ractors.shareable_lambda { |app, req| app.call req.env }
 
         def initialize(app, constraints, strategy)
           # Unwrap Constraints objects. I don't actually think it's possible to pass a
@@ -178,7 +178,7 @@ module ActionDispatch
           @path = Journey::Path::Pattern.new(ast, @requirements, JOINED_SEPARATORS, @anchor)
         end
 
-        JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
+        JOINED_SEPARATORS = "/.?" # :nodoc:
 
         def make_route(name, precedence)
           Journey::Route.new(name: name, app: application, path: path, constraints: conditions,
@@ -665,11 +665,11 @@ module ActionDispatch
 
         private
           def assign_deprecated_option(deprecated_options, key, method_name)
-            if (deprecated_value = deprecated_options.delete(key))
+            if deprecated_options.key?(key)
               ActionDispatch.deprecator.warn(<<~MSG.squish)
                 #{method_name} received a hash argument #{key}. Please use a keyword instead. Support to hash argument will be removed in Rails 8.2.
               MSG
-              deprecated_value
+              deprecated_options.delete(key)
             end
           end
 
@@ -989,7 +989,7 @@ module ActionDispatch
         def scope(*args, only: nil, except: nil, **options)
           if args.grep(Hash).any? && (deprecated_options = args.extract_options!)
             only ||= assign_deprecated_option(deprecated_options, :only, :scope)
-            only ||= assign_deprecated_option(deprecated_options, :except, :scope)
+            except ||= assign_deprecated_option(deprecated_options, :except, :scope)
             assign_deprecated_options(deprecated_options, options, :scope)
           end
 
@@ -1042,7 +1042,7 @@ module ActionDispatch
           @scope = @scope.parent
         end
 
-        POISON = Object.new # :nodoc:
+        POISON = Object.new.freeze # :nodoc:
 
         # Scopes routes to a specific controller
         #
@@ -1097,9 +1097,9 @@ module ActionDispatch
         def namespace(name, deprecated_options = nil, as: DEFAULT, path: DEFAULT, shallow_path: DEFAULT, shallow_prefix: DEFAULT, **options, &block)
           if deprecated_options.is_a?(Hash)
             as = assign_deprecated_option(deprecated_options, :as, :namespace) if deprecated_options.key?(:as)
-            path ||= assign_deprecated_option(deprecated_options, :path, :namespace)  if deprecated_options.key?(:path)
-            shallow_path ||= assign_deprecated_option(deprecated_options, :shallow_path, :namespace) if deprecated_options.key?(:shallow_path)
-            shallow_prefix ||= assign_deprecated_option(deprecated_options, :shallow_prefix, :namespace)  if deprecated_options.key?(:shallow_prefix)
+            path = assign_deprecated_option(deprecated_options, :path, :namespace) if deprecated_options.key?(:path)
+            shallow_path = assign_deprecated_option(deprecated_options, :shallow_path, :namespace) if deprecated_options.key?(:shallow_path)
+            shallow_prefix = assign_deprecated_option(deprecated_options, :shallow_prefix, :namespace) if deprecated_options.key?(:shallow_prefix)
             assign_deprecated_options(deprecated_options, options, :namespace)
           end
 
@@ -1299,9 +1299,9 @@ module ActionDispatch
       module Resources
         # CANONICAL_ACTIONS holds all actions that does not need a prefix or a path
         # appended since they fit properly in their scope level.
-        VALID_ON_OPTIONS  = [:new, :collection, :member]
-        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns]
-        CANONICAL_ACTIONS = %w(index create new show update destroy)
+        VALID_ON_OPTIONS  = [:new, :collection, :member].freeze
+        RESOURCE_OPTIONS  = [:as, :controller, :path, :only, :except, :param, :concerns].freeze
+        CANONICAL_ACTIONS = %w(index create new show update destroy).freeze
 
         class Resource # :nodoc:
           class << self
@@ -2440,10 +2440,10 @@ module ActionDispatch
       class Scope # :nodoc:
         OPTIONS = [:path, :shallow_path, :as, :shallow_prefix, :module,
                    :controller, :action, :path_names, :constraints,
-                   :shallow, :blocks, :defaults, :via, :format, :options, :to]
+                   :shallow, :blocks, :defaults, :via, :format, :options, :to].freeze
 
-        RESOURCE_SCOPES = [:resource, :resources]
-        RESOURCE_METHOD_SCOPES = [:collection, :member, :new]
+        RESOURCE_SCOPES = [:resource, :resources].freeze
+        RESOURCE_METHOD_SCOPES = [:collection, :member, :new].freeze
 
         attr_reader :parent, :scope_level
 
@@ -2525,7 +2525,7 @@ module ActionDispatch
         ROOT = Scope.new({}, nil)
       end
 
-      DEFAULT = Object.new # :nodoc:
+      DEFAULT = Object.new.freeze # :nodoc:
 
       def initialize(set) # :nodoc:
         @set = set

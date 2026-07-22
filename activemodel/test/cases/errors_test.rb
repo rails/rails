@@ -717,6 +717,36 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["is invalid"], errors.delete(:name)
   end
 
+  test "delete with type removes only errors matching attribute and type" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+    errors.add(:name, :invalid)
+
+    errors.delete(:name, :blank)
+
+    assert_not errors.added?(:name, :blank)
+    assert errors.added?(:name, :invalid)
+  end
+
+  test "delete with type and options removes only exact matches" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :too_short, count: 5)
+    errors.add(:name, :too_short, count: 10)
+
+    errors.delete(:name, :too_short, count: 5)
+
+    assert_equal 1, errors.where(:name, :too_short).size
+    assert errors.added?(:name, :too_short, count: 10)
+  end
+
+  test "delete with type returns deleted messages" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :blank)
+    errors.add(:name, :invalid)
+
+    assert_equal ["can't be blank"], errors.delete(:name, :blank)
+  end
+
   test "clear removes details" do
     person = Person.new
     person.errors.add(:name, :invalid)
@@ -744,6 +774,57 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.each do |error|
       assert_same person, error.base
     end
+  end
+
+  test "import wraps error as NestedError" do
+    person = Person.new
+    original_error = ActiveModel::Error.new(Person.new, :name, :invalid)
+
+    person.errors.import(original_error)
+
+    assert_equal 1, person.errors.size
+    assert_instance_of ActiveModel::NestedError, person.errors.first
+  end
+
+  test "import retains reference to inner error" do
+    person = Person.new
+    original_error = ActiveModel::Error.new(Person.new, :name, :invalid)
+
+    person.errors.import(original_error)
+
+    assert_equal original_error, person.errors.first.inner_error
+  end
+
+  test "import with attribute override" do
+    person = Person.new
+    original_error = ActiveModel::Error.new(Person.new, :name, :invalid)
+
+    person.errors.import(original_error, attribute: "age")
+
+    imported = person.errors.first
+    assert_equal :age, imported.attribute
+    assert_equal :invalid, imported.type
+  end
+
+  test "import with type override" do
+    person = Person.new
+    original_error = ActiveModel::Error.new(Person.new, :name, :invalid)
+
+    person.errors.import(original_error, type: "blank")
+
+    imported = person.errors.first
+    assert_equal :name, imported.attribute
+    assert_equal :blank, imported.type
+  end
+
+  test "import does not mutate the override options passed in" do
+    person = Person.new
+    original_error = ActiveModel::Error.new(Person.new, :name, :invalid)
+
+    options = { attribute: "age", type: "blank" }
+    person.errors.import(original_error, options)
+
+    assert_equal({ attribute: "age", type: "blank" }, options)
   end
 
   test "merge errors" do
@@ -801,6 +882,23 @@ class ErrorsTest < ActiveModel::TestCase
     errors.clear
     assert_equal({}, errors.messages)
     assert_equal({}, errors.details)
+  end
+
+  test "to_hash with full_messages" do
+    person = Person.new
+    person.errors.add(:name, "cannot be blank")
+
+    assert_equal({ name: ["name cannot be blank"] }, person.errors.to_hash(true))
+  end
+
+  test "uniq! removes duplicate errors" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+    errors.add(:name, :invalid)
+
+    assert_equal 2, errors.size
+    errors.uniq!
+    assert_equal 1, errors.size
   end
 
   test "inspect" do

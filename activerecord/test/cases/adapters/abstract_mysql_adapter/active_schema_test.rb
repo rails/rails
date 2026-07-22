@@ -36,7 +36,7 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   teardown do
-    reset_connection
+    reset_pool
   end
 
   def test_add_index

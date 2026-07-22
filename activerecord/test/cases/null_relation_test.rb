@@ -40,6 +40,8 @@ class NullRelationTest < ActiveRecord::TestCase
   def test_none_chained_to_methods_firing_queries_straight_to_db
     assert_no_queries do
       assert_equal [],    Developer.none.pluck(:id, :name)
+      assert_equal [],    Developer.none.ids
+      assert_equal [],    Developer.none.async_ids.value
       assert_equal 0,     Developer.none.delete_all
       assert_equal 0,     Developer.none.update_all(name: "David")
       assert_equal 0,     Developer.none.delete(1)

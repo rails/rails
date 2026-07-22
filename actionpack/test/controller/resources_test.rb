@@ -1433,13 +1433,6 @@ class ResourcesTest < ActionController::TestCase
       assert_equal expected, actual, "Error on route: #{route}(#{options.inspect})"
     end
 
-    def assert_resource_methods(expected, resource, action_method, method)
-      assert_equal expected.length, resource.send("#{action_method}_methods")[method].size, "#{resource.send("#{action_method}_methods")[method].inspect}"
-      expected.each do |action|
-        assert_includes resource.send("#{action_method}_methods")[method], action,
-          "#{method} not in #{action_method} methods: #{resource.send("#{action_method}_methods")[method].inspect}"
-      end
-    end
 
     def assert_resource_allowed_routes(controller, options, shallow_options, allowed, not_allowed, path = controller)
       shallow_path = "#{path}/#{shallow_options[:id]}"

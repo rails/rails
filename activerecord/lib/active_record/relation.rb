@@ -52,17 +52,18 @@ module ActiveRecord
     end
 
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :left_outer_joins, :references,
-                            :extending, :unscope, :optimizer_hints, :annotate,
-                            :with]
+                            :order, :default_order, :joins, :left_outer_joins,
+                            :references, :extending, :unscope, :optimizer_hints,
+                            :annotate,
+                            :with].freeze
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering, :strict_loading,
-                            :reverse_order, :distinct, :create_with, :skip_query_cache]
+                            :reverse_order, :distinct, :create_with, :skip_query_cache].freeze
 
-    CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive]
+    CLAUSE_METHODS = [:where, :having, :from].freeze
+    INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL = [:distinct, :with, :with_recursive].freeze
 
-    VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
+    VALUE_METHODS = (MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS).freeze
 
     include Enumerable
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
@@ -280,9 +281,9 @@ module ActiveRecord
         record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
-          where(attributes).lock.find_by!(attributes)
+          rewhere(attributes).lock.take!
         else
-          find_by!(attributes)
+          rewhere(attributes).take!
         end
       end
     end
@@ -300,9 +301,9 @@ module ActiveRecord
         record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
-          where(attributes).lock.find_by!(attributes)
+          rewhere(attributes).lock.take!
         else
-          find_by!(attributes)
+          rewhere(attributes).take!
         end
       end
     end
@@ -381,10 +382,11 @@ module ActiveRecord
 
     # Returns true if there are no records.
     #
-    # When a pattern argument is given, this method checks whether elements in
-    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
+    # When an argument is given, returns true if no records match the argument
+    # via the case-equality operator (<tt>===</tt>).
     #
-    #   posts.none?(Comment) # => true or false
+    #   posts.none?(Post)    # => true if posts is empty
+    #   posts.none?(Comment) # => true
     def none?(*args)
       return true if @none
 
@@ -394,10 +396,11 @@ module ActiveRecord
 
     # Returns true if there are any records.
     #
-    # When a pattern argument is given, this method checks whether elements in
-    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
+    # When an argument is given, returns true if at least one record matches
+    # the argument via the case-equality operator (<tt>===</tt>).
     #
-    #    posts.any?(Post) # => true or false
+    #    posts.any?(Post)    # => true if at least one record
+    #    posts.any?(Comment) # => false
     def any?(*args)
       return false if @none
 
@@ -407,10 +410,11 @@ module ActiveRecord
 
     # Returns true if there is exactly one record.
     #
-    # When a pattern argument is given, this method checks whether elements in
-    # the Enumerable match the pattern via the case-equality operator (<tt>===</tt>).
+    # When an argument is given, returns true if exactly one record matches the
+    # argument via the case-equality operator (<tt>===</tt>).
     #
-    #    posts.one?(Post) # => true or false
+    #    posts.one?(Post)    # => true if exactly one record
+    #    posts.one?(Comment) # => false
     def one?(*args)
       return false if @none
 
@@ -485,7 +489,7 @@ module ActiveRecord
       if loaded?
         size = records.size
         if size > 0
-          timestamp = records.map { |record| record.read_attribute(timestamp_column) }.max
+          timestamp = records.filter_map { |record| record.read_attribute(timestamp_column) }.max
         end
       else
         collection = eager_loading? ? apply_join_dependency : self
@@ -614,8 +618,7 @@ module ActiveRecord
 
       if updates.is_a?(Hash)
         if model.locking_enabled? &&
-            !updates.key?(model.locking_column) &&
-            !updates.key?(model.locking_column.to_sym)
+            updates.keys.none? { |key| (model.attribute_alias(key) || key.to_s) == model.locking_column }
           attr = table[model.locking_column]
           updates[attr.name] = _increment_attribute(attr)
         end
@@ -628,11 +631,7 @@ module ActiveRecord
         arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
-        key = if model.composite_primary_key?
-          primary_key.map { |pk| table[pk] }
-        else
-          table[primary_key]
-        end
+        key = model.primary_key_definition.arel_columns(table)
         stmt = arel.compile_update(values, key)
         c.update(stmt, "#{model} Update All").tap { reset }
       end
@@ -750,8 +749,8 @@ module ActiveRecord
     # go through Active Record's type casting and serialization.
     #
     # See #insert_all! for more.
-    def insert!(attributes, returning: nil, record_timestamps: nil)
-      insert_all!([ attributes ], returning: returning, record_timestamps: record_timestamps)
+    def insert!(attributes, returning: nil, unique_by: nil, record_timestamps: nil)
+      insert_all!([ attributes ], returning: returning, unique_by: unique_by, record_timestamps: record_timestamps)
     end
 
     # Inserts multiple records into the database in a single SQL INSERT
@@ -951,7 +950,7 @@ module ActiveRecord
     #
     # * +counter+ - A Hash containing the names of the fields to update as keys and the amount to update as values.
     # * <tt>:touch</tt> option - Touch the timestamp columns when updating.
-    # * If attributes names are passed, they are updated along with update_at/on attributes.
+    # * If attributes names are passed, they are updated along with updated_at/on attributes.
     #
     # ==== Examples
     #
@@ -1057,11 +1056,7 @@ module ActiveRecord
         arel = eager_loading? ? apply_join_dependency.arel : arel()
         arel.source.left = table
 
-        key = if model.composite_primary_key?
-          primary_key.map { |pk| table[pk] }
-        else
-          table[primary_key]
-        end
+        key = model.primary_key_definition.arel_columns(table)
         stmt = arel.compile_delete(key)
 
         c.delete(stmt, "#{model} Delete All").tap { reset }
@@ -1089,6 +1084,10 @@ module ActiveRecord
     def delete(id_or_array)
       return 0 if id_or_array.nil? || (id_or_array.is_a?(Array) && id_or_array.empty?)
 
+      if model.composite_primary_key? && !id_or_array.first.is_a?(Array)
+        id_or_array = [id_or_array]
+      end
+
       where(model.primary_key => id_or_array).delete_all
     end
 
@@ -1113,13 +1112,7 @@ module ActiveRecord
     #   todos = [1,2,3]
     #   Todo.destroy(todos)
     def destroy(id)
-      multiple_ids = if model.composite_primary_key?
-        id.first.is_a?(Array)
-      else
-        id.is_a?(Array)
-      end
-
-      if multiple_ids
+      if model.primary_key_definition.expects_multiple_ids?(id)
         find(id).each(&:destroy)
       else
         find(id).destroy

@@ -10,7 +10,7 @@ module ActiveRecord
       ##
       # :singleton-method:
       # Indicates the format used to generate the timestamp in the cache key, if
-      # versioning is off. Accepts any of the symbols in +Time::DATE_FORMATS+.
+      # versioning is off. Accepts any of the symbols in +ActiveSupport::TimeFormats+.
       #
       # This is +:usec+, by default.
       class_attribute :cache_timestamp_format, instance_writer: false, default: :usec
@@ -34,7 +34,7 @@ module ActiveRecord
 
     # Returns a +String+, which Action Pack uses for constructing a URL to this
     # object. The default implementation returns this record's id as a +String+,
-    # or +nil+ if this record's unsaved.
+    # or +nil+ if this record is unsaved.
     #
     # For example, suppose that you have a User model, and that you have a
     # <tt>resources :users</tt> route. Normally, +user_path+ will

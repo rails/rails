@@ -11,7 +11,7 @@ require "active_support/core_ext/module/remove_method"
 class Time
   include DateAndTime::Calculations
 
-  COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31].freeze
 
   class << self
     # Overriding case equality method so that it returns true for ActiveSupport::TimeWithZone instances
@@ -47,7 +47,7 @@ class Time
         if time_or_number.is_a?(ActiveSupport::TimeWithZone)
           at_without_coercion(time_or_number.to_r).getlocal
         elsif time_or_number.is_a?(DateTime)
-          at_without_coercion(time_or_number.to_f).getlocal
+          at_without_coercion(time_or_number.to_i + time_or_number.sec_fraction).getlocal
         else
           at_without_coercion(time_or_number)
         end
@@ -192,6 +192,7 @@ class Time
   # largest to smallest. This order can affect the result around the end of a
   # month.
   def advance(options)
+    options = options.dup
     unless options[:weeks].nil?
       options[:weeks], partial_weeks = options[:weeks].divmod(1)
       options[:days] = options.fetch(:days, 0) + 7 * partial_weeks

@@ -179,7 +179,8 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
 
     assert_enqueued_jobs 0, only: DeletingJob do
       assert_raises StandardError do
-        queue_adapter.with(stopping: ->() { raise StandardError if during_step?(DeletingJob, :delete) }) do
+        stopping = ->(job) { raise StandardError if job.is_a?(DeletingJob) && during_step?(job, :delete) }
+        queue_adapter.with(stopping: stopping) do
           perform_enqueued_jobs
         end
       end
@@ -212,7 +213,8 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
 
     IteratingJob.perform_later
 
-    queue_adapter.with(stopping: ->() { raise StandardError if during_step?(IteratingJob, :rename, cursor: 433) }) do
+    stopping = ->(job) { raise StandardError if job.is_a?(IteratingJob) && during_step?(job, :rename, cursor: 433) }
+    queue_adapter.with(stopping: stopping) do
       assert_enqueued_jobs 1, only: IteratingJob do
         perform_enqueued_jobs
       end
@@ -246,6 +248,43 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
       assert_raises StandardError do
         perform_enqueued_jobs
       end
+    end
+  end
+
+  test "records the exception message as the exception_executions key when resuming after an error" do
+    IteratingRecord.records = [ 123, 432, 6565, 3243, 234, 13, 22 ].map { |i| IteratingRecord.new(i, "item_#{i}") }
+
+    IteratingJob.perform_later(raise_when_cursor: 433)
+
+    assert_enqueued_jobs 1, only: IteratingJob do
+      perform_enqueued_jobs
+    end
+
+    job = queue_adapter.enqueued_jobs.first
+    assert_equal({ "Cursor error" => 1 }, job["exception_executions"])
+  end
+
+  test "passes the job to the queue adapter stopping predicate" do
+    LinearJob.items = []
+    LinearJob.perform_later
+
+    jobs = []
+    queue_adapter.with(stopping: ->(job) { jobs << job; false }) do
+      perform_enqueued_jobs
+    end
+
+    assert_operator jobs.length, :>, 0
+    assert jobs.all? { |job| job.is_a?(LinearJob) }
+  end
+
+  test "uses queue adapter stopping reason when interrupting" do
+    LinearJob.items = []
+    LinearJob.perform_later
+
+    interrupt_job_after_step LinearJob, :step_one, reason: :queue_paused do
+      perform_enqueued_jobs
+
+      assert_match(/Interrupted ActiveJob::TestContinuation::LinearJob \(Job ID: [0-9a-f-]{36}\) after 'step_one' \(queue_paused\)/, @logger.messages)
     end
   end
 
@@ -598,19 +637,22 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
   test "limits resumes due to errors" do
     LimitedResumesJob.perform_later(10)
 
-    queue_adapter.with(stopping: ->() { raise StandardError if during_step?(LimitedResumesJob, :iterate, cursor: 1) }) do
+    stopping = ->(job) { raise StandardError if job.is_a?(LimitedResumesJob) && during_step?(job, :iterate, cursor: 1) }
+    queue_adapter.with(stopping: stopping) do
       assert_enqueued_jobs 1, only: LimitedResumesJob do
         perform_enqueued_jobs
       end
     end
 
-    queue_adapter.with(stopping: ->() { raise StandardError if during_step?(LimitedResumesJob, :iterate, cursor: 2) }) do
+    stopping = ->(job) { raise StandardError if job.is_a?(LimitedResumesJob) && during_step?(job, :iterate, cursor: 2) }
+    queue_adapter.with(stopping: stopping) do
       assert_enqueued_jobs 1, only: LimitedResumesJob do
         perform_enqueued_jobs
       end
     end
 
-    queue_adapter.with(stopping: ->() { raise StandardError if during_step?(LimitedResumesJob, :iterate, cursor: 3) }) do
+    stopping = ->(job) { raise StandardError if job.is_a?(LimitedResumesJob) && during_step?(job, :iterate, cursor: 3) }
+    queue_adapter.with(stopping: stopping) do
       assert_enqueued_jobs 0, only: LimitedResumesJob do
         exception = assert_raises ActiveJob::Continuation::ResumeLimitError do
           perform_enqueued_jobs
@@ -625,7 +667,8 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     LimitedResumesJob.with(resume_errors_after_advancing: false) do
       LimitedResumesJob.perform_later(10)
 
-      queue_adapter.with(stopping: ->() { raise StandardError, "boom" if during_step?(LimitedResumesJob, :iterate, cursor: 5) }) do
+      stopping = ->(job) { raise StandardError, "boom" if job.is_a?(LimitedResumesJob) && during_step?(job, :iterate, cursor: 5) }
+      queue_adapter.with(stopping: stopping) do
         assert_enqueued_jobs 0, only: LimitedResumesJob do
           exception = assert_raises StandardError do
             perform_enqueued_jobs
@@ -717,11 +760,4 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
 
     assert_equal [ "step_one", "step_two", "step_three", "step_four" ], IsolatedStepsJob.items
   end
-
-  private
-    def capture_info_stdout(&block)
-      ActiveJob::Base.logger.with(level: :info) do
-        capture(:stdout, &block)
-      end
-    end
 end

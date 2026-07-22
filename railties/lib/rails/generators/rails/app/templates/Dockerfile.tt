@@ -72,7 +72,7 @@ RUN bundle install && \
 <% if using_node? -%>
 # Install node modules
 COPY package.json yarn.lock ./
-RUN yarn install --immutable
+RUN yarn install --<%= yarn_through_corepack? ? "immutable" : "frozen-lockfile" %>
 
 <% end -%>
 <% if using_bun? -%>

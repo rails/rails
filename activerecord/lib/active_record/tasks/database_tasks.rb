@@ -60,7 +60,7 @@ module ActiveRecord
       attr_writer :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
       attr_accessor :database_configuration
 
-      LOCAL_HOSTS = ["127.0.0.1", "localhost"]
+      LOCAL_HOSTS = ["127.0.0.1", "localhost"].freeze
 
       def check_protected_environments!(environment = env)
         return if ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
@@ -448,7 +448,7 @@ module ActiveRecord
       end
 
       def dump_schema(db_config, format = db_config.schema_format) # :nodoc:
-        return unless db_config.schema_dump
+        return unless db_config.schema_dump(format)
 
         require "active_record/schema_dumper"
         filename = schema_dump_path(db_config, format)

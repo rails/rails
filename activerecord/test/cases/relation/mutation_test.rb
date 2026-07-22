@@ -5,7 +5,7 @@ require "models/post"
 
 module ActiveRecord
   class RelationMutationTest < ActiveRecord::TestCase
-    (Relation::MULTI_VALUE_METHODS - [:extending, :order, :unscope, :select, :with]).each do |method|
+    (Relation::MULTI_VALUE_METHODS - [:extending, :order, :default_order, :unscope, :select, :with]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal [:foo], relation.public_send("#{method}_values")
@@ -36,6 +36,11 @@ module ActiveRecord
       assert_equal [obj], relation.order_values
     end
 
+    test "#default_order!" do
+      assert relation.default_order!("name ASC").equal?(relation)
+      assert_equal ["name ASC"], relation.default_order_values
+    end
+
     test "extending!" do
       mod, mod2 = Module.new, Module.new
 
@@ -57,7 +62,12 @@ module ActiveRecord
       assert_equal 5, relation.limit_value
     end
 
-    (Relation::SINGLE_VALUE_METHODS - [:limit, :lock, :reordering, :reverse_order, :create_with, :skip_query_cache, :strict_loading]).each do |method|
+    test "#offset!" do
+      assert relation.offset!(5).equal?(relation)
+      assert_equal 5, relation.offset_value
+    end
+
+    (Relation::SINGLE_VALUE_METHODS - [:limit, :offset, :lock, :reordering, :reverse_order, :create_with, :skip_query_cache, :strict_loading]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal :foo, relation.public_send("#{method}_value")

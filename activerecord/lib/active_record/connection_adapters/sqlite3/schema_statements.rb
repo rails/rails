@@ -53,7 +53,10 @@ module ActiveRecord
           end
         end
 
-        def add_foreign_key(from_table, to_table, **options)
+        def add_foreign_key(from_table, to_table, if_not_exists: false, **options)
+          options = foreign_key_options(from_table, to_table, options)
+          return if if_not_exists && foreign_key_exists?(from_table, to_table, **options.slice(:column, :primary_key))
+
           assert_valid_deferrable(options[:deferrable])
 
           alter_table(from_table) do |definition|
@@ -63,10 +66,10 @@ module ActiveRecord
         end
 
         def remove_foreign_key(from_table, to_table = nil, **options)
-          return if options.delete(:if_exists) && !foreign_key_exists?(from_table, to_table, **options.slice(:column))
-
           to_table ||= options[:to_table]
-          options = options.except(:name, :to_table, :validate)
+          return if options.delete(:if_exists) && !foreign_key_exists?(from_table, to_table, **options.slice(:column, :name))
+
+          options = options.except(:to_table, :validate)
           fkey = foreign_key_for!(from_table, to_table: to_table, **options)
 
           foreign_keys = foreign_keys(from_table)
@@ -94,14 +97,16 @@ module ActiveRecord
           end
         end
 
-        def add_check_constraint(table_name, expression, **options)
+        def add_check_constraint(table_name, expression, if_not_exists: false, **options)
+          return if if_not_exists && check_constraint_exists?(table_name, expression: expression, **options)
+
           alter_table(table_name) do |definition|
             definition.check_constraint(expression, **options)
           end
         end
 
         def remove_check_constraint(table_name, expression = nil, if_exists: false, **options)
-          return if if_exists && !check_constraint_exists?(table_name, **options)
+          return if if_exists && !check_constraint_exists?(table_name, expression: expression, **options)
 
           check_constraints = check_constraints(table_name)
           chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name

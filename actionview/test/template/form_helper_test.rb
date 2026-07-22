@@ -1137,19 +1137,30 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_color_field_with_valid_hex_color_string
-    expected = %{<input id="car_color" name="car[color]" type="color" value="#000fff" />}
+    expected = %{<input type="color" value="#000fff" name="car[color]" id="car_color" />}
     assert_dom_equal(expected, color_field("car", "color"))
   end
 
   def test_color_field_with_invalid_hex_color_string
-    expected = %{<input id="car_color" name="car[color]" type="color" value="#000000" />}
+    expected = %{<input type="color" value="#000000" name="car[color]" id="car_color" />}
     @car.color = "#1234TR"
     assert_dom_equal(expected, color_field("car", "color"))
   end
 
+  def test_color_field_with_string_containing_hex_color_substring
+    expected = %{<input type="color" value="#000000" name="car[color]" id="car_color"  />}
+    @car.color = "Not a color #123456 at all"
+    assert_dom_equal(expected, color_field("car", "color"))
+  end
+
   def test_color_field_with_value_attr
-    expected = %{<input id="car_color" name="car[color]" type="color" value="#00FF00" />}
+    expected = %{<input type="color" value="#00FF00" name="car[color]" id="car_color" />}
     assert_dom_equal(expected, color_field("car", "color", value: "#00FF00"))
+  end
+
+  def test_color_field_with_explicit_nil_value
+    expected = %{<input id="car_color" name="car[color]" type="color" />}
+    assert_dom_equal(expected, color_field("car", "color", value: nil))
   end
 
   def test_search_field
@@ -1465,6 +1476,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, week_field("post", "written_on"))
   end
 
+  def test_week_field_with_iso_week_year_boundary
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2015-W53" />}
+    @post.written_on = DateTime.new(2016, 1, 1, 1, 2, 3)
+    assert_dom_equal(expected, week_field("post", "written_on"))
+  end
+
   def test_url_field
     expected = %{<input id="user_homepage" name="user[homepage]" type="url" />}
     assert_dom_equal(expected, url_field("user", "homepage"))
@@ -1480,6 +1497,16 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, number_field("order", "quantity", in: 1...10))
     expected = %{<input name="order[quantity]" size="30" max="9" id="order_quantity" type="number" min="1" />}
     assert_dom_equal(expected, number_field("order", "quantity", size: 30, in: 1...10))
+  end
+
+  def test_number_field_with_endless_range
+    expected = %{<input name="order[quantity]" id="order_quantity" type="number" min="18" />}
+    assert_dom_equal(expected, number_field("order", "quantity", in: 18..))
+  end
+
+  def test_number_field_with_beginless_range
+    expected = %{<input name="order[quantity]" max="10" id="order_quantity" type="number" />}
+    assert_dom_equal(expected, number_field("order", "quantity", in: ..10))
   end
 
   def test_range_input
@@ -4111,6 +4138,17 @@ class FormHelperTest < ActionView::TestCase
 
   class LabelledFormBuilderSubclass < LabelledFormBuilder; end
 
+  def test_to_partial_path_for_subclass_without_builder_suffix
+    path = nil
+
+    form_for(@post, builder: LabelledFormBuilderSubclass) do |f|
+      path = f.to_partial_path
+      ""
+    end
+
+    assert_equal "labelled_form_builder_subclass", path
+  end
+
   def test_form_for_with_labelled_builder_with_nested_fields_for_with_custom_builder
     klass = nil
 
@@ -4216,6 +4254,12 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post, data: { behavior: "stuff" }, remote: true) { }
     assert_match %r|data-behavior="stuff"|, @rendered
     assert_match %r|data-remote="true"|, @rendered
+  end
+
+  def test_form_for_nested_html_attributes
+    form_for(@post, html: { hx: { post: "/path", data: { open: false } } }) { }
+
+    assert_dom "form[hx-post=?][hx-data=?]", "/path", { open: false }.to_json
   end
 
   def test_fields_for_returns_block_result

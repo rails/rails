@@ -25,8 +25,8 @@ class ActiveStorage::Blob < ActiveStorage::Record
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
 
   # FIXME: these property should never have been stored in the metadata.
-  # The blob table should be migrated to have dedicated columns for theses.
-  PROTECTED_METADATA = %w(analyzed identified composed)
+  # The blob table should be migrated to have dedicated columns for these.
+  PROTECTED_METADATA = %w(analyzed identified composed).freeze
   private_constant :PROTECTED_METADATA
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
 
@@ -57,7 +57,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   after_update :touch_attachments
 
-  after_update_commit :update_service_metadata, if: -> { content_type_previously_changed? || metadata_previously_changed? }
+  after_update_commit :sync_metadata_later, if: -> { content_type_previously_changed? || metadata_previously_changed? }
 
   before_destroy(prepend: true) do
     raise ActiveRecord::InvalidForeignKey if attachments.exists?
@@ -185,6 +185,23 @@ class ActiveStorage::Blob < ActiveStorage::Record
   include Representable
   include Servable
 
+  ##
+  # :method: content_type
+  #
+  # Returns the content type of the associated file:
+  #
+  #   ActiveStorage::Blob.first.content_type
+  #   => "image/png"
+
+  ##
+  # :method: metadata
+  #
+  # Returns a Hash of metadata extracted from the associated file.
+  # ActiveStorage also stores whether the file has been identified and analyzed:
+  #
+  #   ActiveStorage::Blob.first.metadata
+  #   => {"identified" => true, "width" => 763, "height" => 588, "analyzed" => true}
+
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
   def signed_id(purpose: :blob_id, expires_in: nil, expires_at: nil)
     super
@@ -206,10 +223,18 @@ class ActiveStorage::Blob < ActiveStorage::Record
     ActiveStorage::Filename.new(self[:filename])
   end
 
+  # Returns a Hash of the custom metadata to be stored on the cloud storage provider.
   def custom_metadata
     self[:metadata][:custom] || {}
   end
 
+  # Sets custom metadata to be stored on the cloud storage provider.
+  # Keys should not contain the cloud storage provider prefix as these get added automatically.
+  #
+  #   blob = ActiveStorage::Blob.new
+  #   blob.custom_metadata = { optimized: true }
+  #   blob.service_headers_for_direct_upload["x-amz-meta-optimized"]
+  #   => true
   def custom_metadata=(metadata)
     self[:metadata] = self[:metadata].merge(custom: metadata)
   end
@@ -288,6 +313,16 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.compose(keys, key, **service_metadata)
   end
 
+  def service_metadata # :nodoc:
+    if forcibly_serve_as_binary?
+      { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
+    elsif !allowed_inline?
+      { content_type: content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
+    else
+      { content_type: content_type, custom_metadata: custom_metadata }
+    end
+  end
+
   # Downloads the file associated with this blob. If no block is given, the entire file is read into memory and returned.
   # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
   def download(&block)
@@ -353,6 +388,10 @@ class ActiveStorage::Blob < ActiveStorage::Record
     ActiveStorage::PurgeJob.perform_later(self)
   end
 
+  def sync_metadata # :nodoc:
+    service.update_metadata key, **service_metadata if service_metadata.any?
+  end
+
   # Returns an instance of service, which can be configured globally or per attachment
   def service
     services.fetch(service_name) if service_name
@@ -386,30 +425,25 @@ class ActiveStorage::Blob < ActiveStorage::Record
       ActiveStorage.web_image_content_types.include?(content_type)
     end
 
-    def service_metadata
-      if forcibly_serve_as_binary?
-        { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
-      elsif !allowed_inline?
-        { content_type: content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }
-      else
-        { content_type: content_type, custom_metadata: custom_metadata }
-      end
-    end
-
     def touch_attachments
-      attachments.then do |relation|
-        if ActiveStorage.touch_attachment_records
-          relation.includes(:record)
-        else
-          relation
+      # The cascade exists to invalidate cache keys; it must not bump
+      # +lock_version+ on parents, since blob analysis does not modify any
+      # field of theirs and would otherwise race with concurrent edits.
+      ActiveRecord::Locking::Optimistic.preserve_lock_version_on_touch do
+        attachments.then do |relation|
+          if ActiveStorage.touch_attachment_records
+            relation.includes(:record)
+          else
+            relation
+          end
+        end.each do |attachment|
+          attachment.touch unless attachment.new_record?
         end
-      end.each do |attachment|
-        attachment.touch
       end
     end
 
-    def update_service_metadata
-      service.update_metadata key, **service_metadata if service_metadata.any?
+    def sync_metadata_later
+      ActiveStorage::SyncMetadataJob.perform_later(self)
     end
 end
 

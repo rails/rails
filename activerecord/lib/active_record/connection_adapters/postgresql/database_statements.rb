@@ -29,21 +29,6 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        # Executes an SQL statement, returning a PG::Result object on success
-        # or raising a PG::Error exception otherwise.
-        #
-        # Setting +allow_retry+ to true causes the db to reconnect and retry
-        # executing the SQL statement in case of a connection-related exception.
-        # This option should only be enabled for known idempotent queries.
-        #
-        # Note: the PG::Result object is manually memory managed; if you don't
-        # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
-        def execute(...) # :nodoc:
-          super
-        ensure
-          @notice_receiver_sql_warnings = []
-        end
-
         def _exec_insert(intent, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
           if use_insert_returning? || pk == false
             super
@@ -145,7 +130,7 @@ module ActiveRecord
         end
 
         private
-          IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR]
+          IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR].freeze
           private_constant :IDLE_TRANSACTION_STATUSES
 
           def cancel_any_running_query
@@ -164,11 +149,19 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, intent)
-            result = if intent.prepare
+            if fatal = consume_notice_receiver_fatal_error
+              raise fatal
+            end
+
+            raw_connection.discard_results
+
+            if intent.prepare
               begin
                 stmt_key = prepare_statement(intent.processed_sql, intent.binds, raw_connection)
                 intent.notification_payload[:statement_name] = stmt_key
-                raw_connection.exec_prepared(stmt_key, intent.type_casted_binds)
+                raw_connection.send_query_prepared(stmt_key, intent.type_casted_binds)
+                result = get_result(raw_connection)
+                result&.check
               rescue PG::FeatureNotSupported => error
                 if is_cached_plan_failure?(error)
                   # Nothing we can do if we are in a transaction because all commands
@@ -186,10 +179,15 @@ module ActiveRecord
 
                 raise
               end
-            elsif intent.has_binds?
-              raw_connection.exec_params(intent.processed_sql, intent.type_casted_binds)
             else
-              raw_connection.async_exec(intent.processed_sql)
+              if intent.has_binds?
+                raw_connection.send_query_params(intent.processed_sql, intent.type_casted_binds)
+              else
+                raw_connection.send_query(intent.processed_sql)
+              end
+
+              result = get_result(raw_connection)
+              result&.check
             end
 
             verified!
@@ -205,8 +203,28 @@ module ActiveRecord
             else
               fields = result.fields
               types = Array.new(fields.size)
+              field_types = Array.new(fields.size)
+              missing_oids = []
+
               fields.size.times do |index|
                 ftype = result.ftype(index)
+                field_types[index] = ftype
+                missing_oids << ftype unless type_map.key?(ftype)
+              end
+
+              if missing_oids.any?
+                load_additional_types(missing_oids)
+
+                fields.size.times do |index|
+                  ftype = field_types[index]
+                  next if type_map.key?(ftype)
+
+                  register_unknown_oid_type(ftype, fields[index])
+                end
+              end
+
+              fields.size.times do |index|
+                ftype = field_types[index]
                 fmod  = result.fmod(index)
                 types[index] = get_oid_type(ftype, fmod, fields[index])
               end
@@ -237,7 +255,9 @@ module ActiveRecord
           end
 
           def handle_warnings(result, sql)
-            @notice_receiver_sql_warnings.each do |warning|
+            warnings, @notice_receiver_sql_warnings = @notice_receiver_sql_warnings, []
+
+            warnings.each do |warning|
               next if warning_ignored?(warning)
 
               warning.sql = sql
@@ -247,6 +267,19 @@ module ActiveRecord
 
           def warning_ignored?(warning)
             ["WARNING", "ERROR", "FATAL", "PANIC"].exclude?(warning.level) || super
+          end
+
+          def get_result(raw_connection)
+            result = nil
+            while incoming = raw_connection.get_result
+              result&.clear
+              result = incoming
+
+              if result.result_status == PG::PGRES_FATAL_ERROR
+                result.check if connection_terminating_severity?(result)
+              end
+            end
+            result
           end
       end
     end

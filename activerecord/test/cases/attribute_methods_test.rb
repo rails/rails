@@ -41,8 +41,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   teardown do
-    ActiveRecord::Base.send(:attribute_method_patterns).clear
-    ActiveRecord::Base.send(:attribute_method_patterns).concat(@old_matchers)
+    ActiveRecord::Base.attribute_method_patterns = @old_matchers
   end
 
   test "#id_value alias is defined if id column exist" do
@@ -53,6 +52,21 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     new_topic_model.define_attribute_methods
     assert_includes new_topic_model.attribute_names, "id"
     assert_includes new_topic_model.attribute_aliases, "id_value"
+  end
+
+  test "#id_value alias does not accumulate duplicates when table_name is reassigned" do
+    klass = Class.new(ActiveRecord::Base)
+
+    klass.table_name = "topics"
+    klass.first
+
+    klass.table_name = "authors"
+    klass.first
+
+    klass.table_name = "topics"
+    klass.first
+
+    assert_equal ["id_value"], klass.send(:aliases_by_attribute_name)["id"]
   end
 
   test "#id_value alias is not defined if id_value column exist" do

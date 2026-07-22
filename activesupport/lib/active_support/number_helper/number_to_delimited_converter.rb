@@ -7,14 +7,14 @@ module ActiveSupport
     class NumberToDelimitedConverter < NumberConverter # :nodoc:
       self.validate_float = true
 
-      DEFAULT_DELIMITER_REGEX = /(\d)(?=(\d\d\d)+(?!\d))/
-
       def convert
         parts.join(options[:separator])
       end
 
       private
         def parts
+          return [number.to_s] if number.respond_to?(:finite?) && !number.finite?
+
           left, right = number.to_s.split(".")
           if delimiter_pattern
             left.gsub!(delimiter_pattern) do |digit_to_delimit|
@@ -22,6 +22,7 @@ module ActiveSupport
             end
           else
             left_parts = []
+            sign = left.slice!(0) if left.start_with?("-", "+")
             offset = left.size % 3
             if offset > 0
               left_parts << left[0, offset]
@@ -31,14 +32,14 @@ module ActiveSupport
               left_parts << left[offset + (i * 3), 3]
             end
 
-            left = left_parts.join(options[:delimiter])
+            left = "#{sign}#{left_parts.join(options[:delimiter])}"
           end
 
           [left, right].compact
         end
 
         def delimiter_pattern
-          options.fetch(:delimiter_pattern, DEFAULT_DELIMITER_REGEX)
+          options[:delimiter_pattern]
         end
     end
   end

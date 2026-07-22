@@ -1,3 +1,11 @@
+*   Dispatch all Active Storage `direct-upload:`-prefixed events
+
+    Add support for `direct-upload:before-blob-request` and `direct-upload:before-storage-request`.
+
+    Add `id` and `file` properties for parity with Active Storage.
+
+    *Sean Doyle*
+
 *   Support block children in editor elements alongside value.
 
     Blocks were introduced in #55827, but only as an alternative to the value

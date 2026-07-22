@@ -41,6 +41,8 @@ module ActiveRecord
     config.active_record.generate_secure_token_on = :create
     config.active_record.use_legacy_signed_id_verifier = :generate_and_verify
     config.active_record.deprecated_associations_options = { mode: :warn, backtrace: false }
+    config.active_record.dump_schema_migrations = false
+    config.active_record.dump_schema_migrations_sort_by = :reverse
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
@@ -351,12 +353,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
       ActiveRecord.message_verifiers = app.message_verifiers
 
       use_legacy_signed_id_verifier = app.config.active_record.use_legacy_signed_id_verifier
-      legacy_options = { digest: "SHA256", serializer: JSON, url_safe: true }
+      legacy_options = { digest: "SHA256", serializer: JSON, url_safe: true }.freeze
 
       if use_legacy_signed_id_verifier == :generate_and_verify
-        app.message_verifiers.prepend { |salt| legacy_options if salt == "active_record/signed_id" }
+        app.message_verifiers.prepend(&ActiveSupport::Ractors.shareable_proc { |salt| legacy_options if salt == "active_record/signed_id" })
       elsif use_legacy_signed_id_verifier == :verify
-        app.message_verifiers.rotate { |salt| legacy_options if salt == "active_record/signed_id" }
+        app.message_verifiers.rotate(&ActiveSupport::Ractors.shareable_proc { |salt| legacy_options if salt == "active_record/signed_id" })
       elsif use_legacy_signed_id_verifier
         raise ArgumentError, "Unrecognized value for config.active_record.use_legacy_signed_id_verifier: #{use_legacy_signed_id_verifier.inspect}"
       end
@@ -373,9 +375,9 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record_encryption.configuration" do |app|
       ActiveSupport.on_load(:active_record_encryption) do
         ActiveRecord::Encryption.configure(
-          primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
-          deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
-          key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
+          primary_key: app.creds.option(:active_record_encryption, :primary_key),
+          deterministic_key: app.creds.option(:active_record_encryption, :deterministic_key),
+          key_derivation_salt: app.creds.option(:active_record_encryption, :key_derivation_salt),
           **app.config.active_record.encryption
         )
 

@@ -75,7 +75,7 @@ Notice that for the search form we are using the `url` option of `form_with`. Se
 
 In general, passing `url: my_path` to `form_with` tells the form where to make the request. The other option is to pass Active Model objects to the form, as you will learn [below](#creating-forms-with-model-objects). You can also use [URL helpers](routing.html#path-and-url-helpers).
 
-The search form example above also shows the [form builder](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html) object. You will learn about the many helpers provided by the form builder object (like`form.label` and `form.text_field`) in the next section.
+The search form example above also shows the [form builder](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html) object. You will learn about the many helpers provided by the form builder object (like `form.label` and `form.text_field`) in the next section.
 
 TIP: For every form `input` element, an `id` attribute is generated from its name (`"query"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
@@ -424,7 +424,7 @@ Rails works around this limitation by emulating other methods over POST with a h
 form_with(url: search_path, method: "patch")
 ```
 
-The above form Will generate this HTML output:
+The above form will generate this HTML output:
 
 ```html
 <form action="/search" accept-charset="UTF-8" method="post">
@@ -469,7 +469,7 @@ In this case, the "Update" button will be treated as `PATCH` and the "Delete" bu
 Making Select Boxes with Ease
 -----------------------------
 
-Select boxes, also known as drop-down list, allow users to select from a list of options. The HTML for select boxes requires a decent amount of markup - one `<option>` element for each option to choose from. Rails provides helper methods to help generate that markup.
+Select boxes, also known as drop-down lists, allow users to select from a list of options. The HTML for select boxes requires a decent amount of markup - one `<option>` element for each option to choose from. Rails provides helper methods to help generate that markup.
 
 For example, let's say we have a list of cities for the user to choose from. We can use the [`select`](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-select) helper:
 
@@ -631,9 +631,9 @@ Will output select boxes like:
 </select>
 <select name="person[birth_date(3i)]" id="person_birth_date_3i">
   <option value="1">1</option>
-  ...
+  <!-- ... -->
   <option value="21" selected="selected">21</option>
-  ...
+  <!-- ... -->
   <option value="31">31</option>
 </select>
 ```
@@ -689,7 +689,7 @@ Output:
   <option value="Midway Island">(GMT-11:00) Midway Island</option>
   <option value="Hawaii">(GMT-10:00) Hawaii</option>
   <option value="Alaska">(GMT-09:00) Alaska</option>
-  ...
+  <!-- ... -->
   <option value="Samoa">(GMT+13:00) Samoa</option>
   <option value="Tokelau Is.">(GMT+13:00) Tokelau Is.</option>
 </select>
@@ -1001,7 +1001,7 @@ This would result in `params[:person][:phone_number]` being an array containing 
 
 ### Combining Arrays and Hashes
 
-You can mix and match these two concepts. One element of a hash might be an array as in the previous example `params[:person]` hash has a key called `[:phone_number]` whose value is an array.
+You can mix and match these two concepts. One element of a hash might be an array, as in the previous example: the `params[:person]` hash has a key called `[:phone_number]` whose value is an array.
 
 You also can have an array of hashes. For example, you can create any number of addresses by repeating the following form fragment:
 
@@ -1128,7 +1128,7 @@ The following form allows a user to create a `Person` and its associated address
 
         <%= addresses_form.label :street %>
         <%= addresses_form.text_field :street %>
-        ...
+        <!-- ... -->
       </li>
     <% end %>
   </ul>
@@ -1160,7 +1160,7 @@ Will output the following HTML:
 
         <label for="person_addresses_attributes_0_street">Street</label>
         <input type="text" name="person[addresses_attributes][0][street]" id="person_addresses_attributes_0_street">
-        ...
+        <!-- ... -->
       </li>
 
       <li>
@@ -1169,7 +1169,7 @@ Will output the following HTML:
 
         <label for="person_addresses_attributes_1_street">Street</label>
         <input type="text" name="person[addresses_attributes][1][street]" id="person_addresses_attributes_1_street">
-        ...
+        <!-- ... -->
       </li>
   </ul>
 </form>
@@ -1207,7 +1207,7 @@ If the associated object is already saved, `fields_for` autogenerates a hidden i
     "name" => "John Doe",
     "addresses_attributes" => {
       "0" => {
-        "id" => 1,
+        "id" => "1",
         "kind" => "Home",
         "street" => "221b Baker Street"
       },
@@ -1263,7 +1263,7 @@ destroyed. This form allows users to remove addresses:
         <%= addresses_form.checkbox :_destroy %>
         <%= addresses_form.label :kind %>
         <%= addresses_form.text_field :kind %>
-        ...
+        <!-- ... -->
       </li>
     <% end %>
   </ul>

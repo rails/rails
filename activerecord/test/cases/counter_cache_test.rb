@@ -20,8 +20,11 @@ require "models/subscription"
 require "models/book"
 require "models/cpk"
 require "active_support/core_ext/enumerable"
+require "active_support/testing/ractors_assertions"
 
 class CounterCacheTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers, :people, :friendships, :subscribers, :subscriptions, :books,
     :cpk_orders, :cpk_books
 
@@ -127,6 +130,15 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "reset counters with string id" do
+    assert @topic.replies_count > 0, "Must have replies"
+    Topic.increment_counter("replies_count", @topic.id)
+
+    assert_difference "@topic.reload.replies_count", -1 do
+      Topic.reset_counters(@topic.id.to_s, :replies)
+    end
+  end
+
   test "reset counters with modularized and camelized classnames" do
     special = SpecialTopic.create!(title: "Special")
     SpecialTopic.increment_counter(:replies_count, special.id)
@@ -188,6 +200,19 @@ class CounterCacheTest < ActiveRecord::TestCase
     # check that it gets reset
     assert_difference -> { order.reload.books_count }, -1 do
       Cpk::Order.reset_counters(order.id, :books)
+    end
+  end
+
+  test "reset counters for cpk model with string ids" do
+    order = cpk_orders(:cpk_book_order_1)
+    assert order.books_count > 0, "Must have books"
+
+    Cpk::Order.increment_counter(:books_count, order.id)
+
+    # check that it gets reset
+    assert_difference -> { order.reload.books_count }, -1 do
+      string_id = order.id.map(&:to_s)
+      Cpk::Order.reset_counters(string_id, :books)
     end
   end
 
@@ -487,6 +512,11 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_queries_count(1) do
       assert_equal 2, car.tires.count
     end
+  end
+
+  test "counter cache configuration is ractor shareable" do
+    assert_ractor_shareable SpecialReply.counter_cached_association_names
+    assert_ractor_shareable SpecialReply._counter_cache_columns
   end
 
   private

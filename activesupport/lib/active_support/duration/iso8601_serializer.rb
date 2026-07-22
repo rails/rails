@@ -4,7 +4,7 @@ module ActiveSupport
   class Duration
     # Serializes duration to string according to ISO 8601 Duration format.
     class ISO8601Serializer # :nodoc:
-      DATE_COMPONENTS = %i(years months days)
+      DATE_COMPONENTS = %i(years months days).freeze
 
       def initialize(duration, precision: nil)
         @duration = duration

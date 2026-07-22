@@ -140,8 +140,9 @@ module ActiveRecord
 
               # add info on sort order (only desc order is explicitly specified, asc is the default)
               # and non-default opclasses
-              expressions.scan(/(?<column>\w+)"?\s?(?<opclass>\w+_ops(_\w+)?)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
-                opclasses[column] = opclass.to_sym if opclass
+              expressions.scan(/(?<column>\w+)"?\s?(?<opclass>(?:\w+\.)?\w+_ops(_\w+)?)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
+                opclasses[column] = opclass.split(".").last.to_sym if opclass
+
                 if nulls
                   orders[column] = [desc, nulls].compact.join(" ")
                 else
@@ -307,7 +308,12 @@ module ActiveRecord
         def schema_search_path=(schema_csv)
           return if schema_csv == @schema_search_path
           if schema_csv
-            query_command("SET search_path TO #{schema_csv}", "SCHEMA")
+            # Check parameter_status to skip redundant SET when the server
+            # already has the desired search_path (e.g. on initial connection).
+            current = with_raw_connection(materialize_transactions: false) { |conn| conn.parameter_status("search_path") }
+            unless current == schema_csv
+              query_command("SET search_path TO #{schema_csv}", "SCHEMA")
+            end
             @schema_search_path = schema_csv
           end
         end
@@ -364,7 +370,7 @@ module ActiveRecord
 
           def initialize(adapter, tables)
             @adapter = adapter
-            @tables = tables.to_h { |table, data| [table.to_s, Data.new(*data)] }
+            @tables = tables.to_h { |table, data| [Utils.extract_schema_qualified_name(table.to_s).to_s, Data.new(*data)] }
           end
 
           def reset
@@ -397,7 +403,7 @@ module ActiveRecord
               primary_key_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
 
               primary_key_column_and_sequences.rows.each do |table, column, namespace, sequence|
-                table = table.delete_prefix('"').delete_suffix('"')
+                table = Utils.extract_schema_qualified_name(table).to_s
                 @tables[table].column = column
                 @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
               end
@@ -414,7 +420,7 @@ module ActiveRecord
               uuid_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
 
               uuid_column_and_sequences.rows.each do |table, column, namespace, sequence|
-                table = table.delete_prefix('"').delete_suffix('"')
+                table = Utils.extract_schema_qualified_name(table).to_s
                 @tables[table].column = column
                 @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
               end
@@ -503,11 +509,7 @@ module ActiveRecord
 
             def select_min_column_value_sql(sequence)
               quoted_sequence = @adapter.quote_table_name(sequence)
-              if @adapter.database_version >= 10_00_00
-                "SELECT seqmin FROM pg_sequence WHERE seqrelid = #{@adapter.quote(quoted_sequence)}::regclass"
-              else
-                "SELECT min_value FROM #{quoted_sequence}"
-              end
+              "SELECT seqmin FROM pg_sequence WHERE seqrelid = #{@adapter.quote(quoted_sequence)}::regclass"
             end
 
             def reset_sequence_sql(sequence, max_value, min_value)
@@ -698,7 +700,7 @@ module ActiveRecord
           result = execute schema_creation.accept(create_index)
 
           index = create_index.index
-          execute change_index_comment_sql(index) if index.comment
+          execute change_index_comment_sql(index, table_name) if index.comment
           result
         end
 
@@ -745,13 +747,18 @@ module ActiveRecord
         def add_foreign_key(from_table, to_table, **options)
           assert_valid_deferrable(options[:deferrable])
 
+          if options.key?(:enforced) && !supports_enforced_foreign_keys?
+            raise ArgumentError, "NOT ENFORCED foreign key constraints require PostgreSQL 18.4+ (got #{database_version})"
+          end
+
           super
         end
 
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
+          conenforced_column = supports_enforced_foreign_keys? ? ", c.conenforced AS enforced" : ""
           fk_info = query_all(<<~SQL)
-            SELECT t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid,
+            SELECT t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid#{conenforced_column},
               (
                 SELECT array_agg(a.attname ORDER BY idx)
                 FROM (
@@ -781,7 +788,7 @@ module ActiveRecord
           SQL
 
           fk_info.map do |row|
-            to_table = Utils.unquote_identifier(row["to_table"])
+            to_table = Utils.extract_schema_qualified_name(row["to_table"]).to_s
 
             column = decode_string_array(row["conkey_names"])
             primary_key = decode_string_array(row["confkey_names"])
@@ -797,6 +804,7 @@ module ActiveRecord
             options[:deferrable] = extract_constraint_deferrable(row["deferrable"], row["deferred"])
 
             options[:validate] = row["valid"]
+            options[:enforced] = row["enforced"] if supports_enforced_foreign_keys?
 
             ForeignKeyDefinition.new(table_name, to_table, options)
           end
@@ -955,6 +963,17 @@ module ActiveRecord
           remove_constraint(table_name, excl_name_to_delete)
         end
 
+        # Checks to see if an exclusion constraint exists on a table for a given exclusion constraint definition.
+        #
+        #   exclusion_constraint_exists?(:invoices, name: "invoices_date_overlap")
+        #
+        def exclusion_constraint_exists?(table_name, **options)
+          if !options.key?(:name) && !options.key?(:expression)
+            raise ArgumentError, "At least one of :name or :expression must be supplied"
+          end
+          exclusion_constraint_for(table_name, **options).present?
+        end
+
         # Adds a new unique constraint to the table.
         #
         #   add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position", nulls_not_distinct: true
@@ -1008,6 +1027,17 @@ module ActiveRecord
           unique_name_to_delete = unique_constraint_for!(table_name, column: column_name, **options).name
 
           remove_constraint(table_name, unique_name_to_delete)
+        end
+
+        # Checks to see if a unique constraint exists on a table for a given unique constraint definition.
+        #
+        #   unique_constraint_exists?(:sections, name: "unique_position")
+        #
+        def unique_constraint_exists?(table_name, **options)
+          if !options.key?(:name) && !options.key?(:column)
+            raise ArgumentError, "At least one of :name or :column must be supplied"
+          end
+          unique_constraint_for(table_name, **options).present?
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.
@@ -1100,6 +1130,47 @@ module ActiveRecord
           fk_name_to_validate = foreign_key_for!(from_table, to_table: to_table, **options).name
 
           validate_constraint from_table, fk_name_to_validate
+        end
+
+        # Changes an existing foreign key constraint on a table.
+        #
+        # The +enforced+ option toggles whether PostgreSQL checks referential integrity
+        # during DML. Requires PostgreSQL 18.4+.
+        #
+        # Like +validate_foreign_key+, this is a runtime helper rather than a migration
+        # command: it is not registered as reversible, so use it from application code
+        # or explicit +up+/+down+ methods. Accepted options are +:enforced+ plus
+        # identifying keys (+:column+, +:name+, +:to_table+).
+        #
+        # Changes the foreign key on +accounts.branch_id+ to NOT ENFORCED.
+        #
+        #   change_foreign_key :accounts, :branches, enforced: false
+        #
+        # Changes the foreign key on +accounts.branch_id+ back to ENFORCED.
+        #
+        #   change_foreign_key :accounts, :branches, enforced: true
+        #
+        # Changes the foreign key on +accounts.owner_id+.
+        #
+        #   change_foreign_key :accounts, column: :owner_id, enforced: false
+        #
+        # Changes the foreign key named +special_fk_name+ on the +accounts+ table.
+        #
+        #   change_foreign_key :accounts, name: :special_fk_name, enforced: false
+        #
+        def change_foreign_key(from_table, to_table = nil, **options)
+          unless supports_enforced_foreign_keys?
+            raise ArgumentError, "change_foreign_key requires PostgreSQL 18.4+ (got #{database_version})"
+          end
+
+          unless options.key?(:enforced)
+            raise ArgumentError, "change_foreign_key requires at least one option (e.g. enforced:)"
+          end
+
+          enforced = options[:enforced]
+          fk_name = foreign_key_for!(from_table, to_table: to_table, **options.except(:enforced)).name
+
+          execute "ALTER TABLE #{quote_table_name(from_table)} ALTER CONSTRAINT #{quote_column_name(fk_name)} #{enforced ? 'ENFORCED' : 'NOT ENFORCED'}"
         end
 
         # Validates the given check constraint.
@@ -1260,6 +1331,11 @@ module ActiveRecord
             super
           end
 
+          def validate_table_length!(table_name)
+            _schema, table_name = extract_schema_qualified_name(table_name)
+            super
+          end
+
           def exclusion_constraint_name(table_name, **options)
             options.fetch(:name) do
               expression = options.fetch(:expression)
@@ -1272,7 +1348,7 @@ module ActiveRecord
 
           def exclusion_constraint_for(table_name, **options)
             excl_name = exclusion_constraint_name(table_name, **options)
-            exclusion_constraints(table_name).detect { |excl| excl.name == excl_name }
+            exclusion_constraints(table_name).detect { |excl| excl.defined_for?(name: excl_name, **options) }
           end
 
           def exclusion_constraint_for!(table_name, expression: nil, **options)
@@ -1356,8 +1432,11 @@ module ActiveRecord
             "DROP TABLE#{exists} #{quoted_table_names}#{cascade}"
           end
 
-          def change_index_comment_sql(index)
-            "COMMENT ON INDEX #{quote_column_name(index.name)} IS #{quote(index.comment)}"
+          def change_index_comment_sql(index, table_name)
+            name = Utils.extract_schema_qualified_name(table_name.to_s)
+            index_name = name.schema ? PostgreSQL::Name.new(name.schema, index.name).to_s : index.name
+
+            "COMMENT ON INDEX #{quote_table_name(index_name)} IS #{quote(index.comment)}"
           end
       end
     end

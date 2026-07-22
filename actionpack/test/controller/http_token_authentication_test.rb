@@ -42,7 +42,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
       end
   end
 
-  AUTH_HEADERS = ["HTTP_AUTHORIZATION", "X-HTTP_AUTHORIZATION", "X_HTTP_AUTHORIZATION", "REDIRECT_X_HTTP_AUTHORIZATION"]
+  AUTH_HEADERS = ["HTTP_AUTHORIZATION", "X-HTTP_AUTHORIZATION", "X_HTTP_AUTHORIZATION", "REDIRECT_X_HTTP_AUTHORIZATION"].freeze
 
   tests DummyController
 
@@ -103,6 +103,15 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     get :index
 
     assert_response :success
+  end
+
+  test "successful authentication request with case-insensitive scheme" do
+    ["bearer lifo", "BEARER lifo", "token lifo", "TOKEN lifo"].each do |header|
+      @request.env["HTTP_AUTHORIZATION"] = header
+      get :index
+
+      assert_response :success, "expected #{header.inspect} to authenticate"
+    end
   end
 
   test "authentication request with tab in header" do

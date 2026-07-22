@@ -30,6 +30,20 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal "foo", @response.body
   end
 
+  def test_stream_write_returns_bytesize
+    result = @response.stream.write "foo"
+    @response.stream.close
+    assert_equal 3, result
+  end
+
+  def test_stream_write_dups_string_for_io_copy_stream_safety
+    sio = StringIO.new("Ho")
+    IO.copy_stream(sio, @response.stream)
+    @response.stream.write "me"
+    @response.stream.close
+    assert_equal "Home", @response.body
+  end
+
   def test_write_after_close
     @response.stream.close
 

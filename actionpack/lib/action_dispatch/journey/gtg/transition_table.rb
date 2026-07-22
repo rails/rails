@@ -22,6 +22,18 @@ module ActionDispatch
           @memos           = Hash.new { |h, k| h[k] = [] }
         end
 
+        def freeze
+          return self if frozen?
+
+          @memos.default_proc = nil
+          @stdparam_states.freeze
+          @regexp_states.freeze
+          @string_states.freeze
+          @accepting.freeze
+          @memos.freeze
+          super
+        end
+
         def add_accepting(state)
           @accepting[state] = true
         end
@@ -40,10 +52,6 @@ module ActionDispatch
 
         def memo(idx)
           @memos[idx]
-        end
-
-        def eclosure(t)
-          Array(t)
         end
 
         def move(t, full_string, token, start_index, token_matches_default)
@@ -182,13 +190,6 @@ module ActionDispatch
           else
             raise ArgumentError, "unknown symbol: %s" % sym.class
           end
-        end
-
-        def states
-          ss = @string_states.keys + @string_states.values.flat_map(&:values)
-          ps = @stdparam_states.keys + @stdparam_states.values
-          rs = @regexp_states.keys + @regexp_states.values.flat_map(&:values)
-          (ss + ps + rs).uniq
         end
 
         def transitions

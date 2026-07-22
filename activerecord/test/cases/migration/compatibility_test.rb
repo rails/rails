@@ -742,6 +742,8 @@ module ActiveRecord
         def precision_implicit_default
           if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
             { precision: 0 }
+          elsif current_adapter?(:PostgreSQLAdapter)
+            { precision: 6 }
           else
             { precision: nil }
           end
@@ -849,6 +851,8 @@ module DefaultPrecisionImplicitTestCases
     def precision_implicit_default
       if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         { precision: 0 }
+      elsif current_adapter?(:PostgreSQLAdapter)
+        { precision: 6 }
       else
         { precision: nil }
       end

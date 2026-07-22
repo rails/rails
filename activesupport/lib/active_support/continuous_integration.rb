@@ -20,7 +20,7 @@ module ActiveSupport
   #     end
   #   end
   #
-  # Starting with Rails 8.1, a default `bin/ci` and `config/ci.rb` file are created to provide out-of-the-box CI.
+  # Starting with Rails 8.1, a default +bin/ci+ and +config/ci.rb+ file are created to provide out-of-the-box CI.
   class ContinuousIntegration
     COLORS = {
       banner: "\033[1;32m",   # Green
@@ -29,7 +29,7 @@ module ActiveSupport
       error: "\033[1;31m",    # Red
       success: "\033[1;32m",  # Green
       progress: "\033[1;36m"  # Cyan
-    }
+    }.freeze
 
     attr_reader :results
 
@@ -72,7 +72,7 @@ module ActiveSupport
     end
 
     # Declare a step with a title and a command. The command can either be given as a single string or as multiple
-    # strings that will be passed to `system` as individual arguments (and therefore correctly escaped for paths etc).
+    # strings that will be passed to +system+ as individual arguments (and therefore correctly escaped for paths etc).
     #
     # Examples:
     #
