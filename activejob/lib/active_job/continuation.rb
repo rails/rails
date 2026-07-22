@@ -313,7 +313,7 @@ module ActiveJob
         end
       end
 
-      def run_step_inline(name, start:, **options, &block)
+      def run_step_inline(name, start:, &block)
         @running_step = true
         @current ||= new_step(name, start, resumed: false)
 
