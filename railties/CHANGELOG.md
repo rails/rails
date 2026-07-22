@@ -1,3 +1,14 @@
+*   Make lazy route loading thread-safe.
+
+    Since routes are drawn on the first request in environments where
+    `config.eager_load` is `false` (development and test by default),
+    concurrent first requests could dispatch against an empty or half-drawn
+    route set, resulting in a 404 for a perfectly valid route. Route drawing
+    is now synchronized: concurrent requests wait for the initial draw to
+    complete and are then dispatched against the fully drawn route set.
+
+    *grk*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"
