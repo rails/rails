@@ -5,7 +5,7 @@ module ActiveRecord
   module Transactions
     extend ActiveSupport::Concern
     ACTIONS = [:create, :destroy, :update].freeze # :nodoc:
-    TransactionChangeFrame = Struct.new(:owner_state, :root_state, :attributes, :persisted) # :nodoc:
+    TransactionChangeFrame = Struct.new(:owner_state, :written_attributes) # :nodoc:
 
     included do
       define_callbacks :commit, :rollback,
@@ -392,6 +392,11 @@ module ActiveRecord
       with_transaction_returning_status { super }
     end
 
+    def changes_applied # :nodoc:
+      super
+      refresh_transaction_record_state
+    end
+
     def before_committed! # :nodoc:
       _run_before_commit_callbacks
     end
@@ -420,8 +425,8 @@ module ActiveRecord
       end
     ensure
       @_full_rollback = false
-      transaction_state_count = restore_transaction_record_state(force_restore_state)
-      clear_transaction_record_state(transaction_state_count)
+      restore_transaction_record_state(force_restore_state)
+      clear_transaction_record_state
       @_trigger_update_callback = @_trigger_destroy_callback = false if force_restore_state
     end
 
@@ -442,7 +447,6 @@ module ActiveRecord
             remember_transaction_record_state(connection.current_transaction.state)
 
             status = yield
-            refresh_transaction_record_state if status
             raise ActiveRecord::Rollback unless status
           end
           @_last_transaction_return_status = status
@@ -471,8 +475,6 @@ module ActiveRecord
       def remember_transaction_record_state(owner_state = nil)
         # Zero-argument compatibility remains until bulk persistence callers migrate to the staged session API.
         owner_state ||= self.class.with_connection { |connection| connection.current_transaction.state }
-        # The next rollout stage uses root identity to prevent one bulk session from mixing transactions.
-        root_state = owner_state&.root
 
         @_start_transaction_state ||= {
           id: id,
@@ -485,12 +487,7 @@ module ActiveRecord
           level: 0
         }
         @_start_transaction_state[:level] += 1
-        @_start_transaction_state[:transaction_frames] << TransactionChangeFrame.new(
-          owner_state,
-          root_state,
-          @attributes.deep_dup,
-          false,
-        )
+        @_start_transaction_state[:transaction_frames] << TransactionChangeFrame.new(owner_state)
 
         if _committed_already_called
           @_new_record_before_last_commit = false
@@ -499,14 +496,16 @@ module ActiveRecord
         end
       end
 
-      # After a successful save, update the top transaction frame to capture the actual persisted state.
+      # After a successful save, record only the attributes written by that save.
       def refresh_transaction_record_state
         return unless @_start_transaction_state
         frame = @_start_transaction_state[:transaction_frames]&.last
         return unless frame
 
-        frame.attributes = @attributes.deep_dup
-        frame.persisted = true
+        frame.written_attributes ||= {}
+        mutations_before_last_save.changed_attribute_names.each do |attr_name|
+          frame.written_attributes[attr_name] = @attributes[attr_name].dup
+        end
       end
 
       # Compute cumulative changes by comparing the initial transaction
@@ -540,30 +539,32 @@ module ActiveRecord
         changes
       end
 
+      def _transaction_written_attributes
+        @_start_transaction_state[:transaction_frames].each_with_object({}) do |frame, attributes|
+          next unless transaction_frame_survived?(frame)
+
+          attributes.update(frame.written_attributes) if frame.written_attributes
+        end
+      end
+
       # Cache the transaction diff for +transaction_changes+ / +after_commit+.
-      #
-      # Uses the last persisted transaction frame rather than live +@attributes+ so rolled-back changes are excluded.
       def _compute_committed_changes
         return if @_full_rollback
         return unless @_start_transaction_state
 
-        committed_frame = @_start_transaction_state[:transaction_frames]&.reverse_each&.find(&:persisted)
-        committed = committed_frame&.attributes || @attributes
-        @_committed_changes = _changes_between(@_start_transaction_state[:attributes], committed)
+        snapshot_attributes = @_start_transaction_state[:attributes]
+        @_committed_changes = _changes_between(snapshot_attributes, _transaction_written_attributes)
       end
 
       # Like +_compute_committed_changes+ but computed on-the-fly for
-      # +transaction_changes+ during save callbacks.
-      #
-      # Compares against live +@attributes+ (which is refreshed by
-      # +forget_attribute_assignments+ after each save) and overlays
-      # pending unsaved changes for +before_save+ / +before_update+.
+      # +transaction_changes+ during save callbacks. Pending unsaved changes
+      # are overlaid for +before_save+ / +before_update+.
       def _compute_transaction_changes
         return if @_full_rollback
         return unless @_start_transaction_state
 
         snapshot_attributes = @_start_transaction_state[:attributes]
-        changes = _changes_between(snapshot_attributes, @attributes)
+        changes = _changes_between(snapshot_attributes, _transaction_written_attributes)
 
         changes_to_save.each do |attr_name, (_, pending_new_value)|
           snapshot_attr = snapshot_attributes[attr_name]
@@ -582,18 +583,17 @@ module ActiveRecord
       end
 
       # Clear the new record state and id of a record.
-      def clear_transaction_record_state(transaction_state_count = 1)
+      def clear_transaction_record_state
         return unless @_start_transaction_state
-        @_start_transaction_state[:level] -= transaction_state_count
+        @_start_transaction_state[:level] -= 1
         @_start_transaction_state = nil if @_start_transaction_state[:level] < 1
       end
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
       def restore_transaction_record_state(force_restore_state = false)
-        return 0 unless restore_state = @_start_transaction_state
+        return unless restore_state = @_start_transaction_state
 
-        frames = restore_state[:transaction_frames]
-        restore_entire_state = force_restore_state || frames.none? { |frame| transaction_frame_survived?(frame) }
+        restore_entire_state = force_restore_state || restore_state[:level] <= 1
 
         if restore_entire_state
           @new_record = restore_state[:new_record]
@@ -629,9 +629,8 @@ module ActiveRecord
             end
           end
           freeze if restore_state[:frozen?]
-          0
         else
-          removed_frames = restore_savepoint_attributes(restore_state)
+          restore_savepoint_attributes(restore_state)
           if self.class.locking_enabled?
             # Nested savepoint rollback. The full restore above only runs at the
             # outermost level, but the same `_update_row` mutation that bumps the
@@ -646,15 +645,11 @@ module ActiveRecord
               @attributes.write_from_database(locking_column, attr.original_value)
             end
           end
-          removed_frames
         end
       end
 
       def restore_savepoint_attributes(restore_state)
-        frames = restore_state[:transaction_frames]
-        original_size = frames.size
-        frames.reject! { |frame| !transaction_frame_survived?(frame) }
-        original_size - frames.size
+        restore_state[:transaction_frames].reject! { |frame| !transaction_frame_survived?(frame) }
       end
 
       def transaction_frame_survived?(frame)

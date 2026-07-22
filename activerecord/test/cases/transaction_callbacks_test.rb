@@ -1388,6 +1388,129 @@ class TransactionChangesInAfterCommitCallbacksTest < ActiveRecord::TestCase
     assert_equal ["Alice", "Committed child"], topic.transaction_changes_log["author_name"]
   end
 
+  def test_rolled_back_first_save_is_not_rewritten_by_later_outer_update
+    nested_transaction_classes = {
+      clean_parent: ActiveRecord::ConnectionAdapters::RestartParentTransaction,
+      dirty_parent: ActiveRecord::ConnectionAdapters::SavepointTransaction,
+    }
+
+    nested_transaction_classes.each do |parent_state, expected_transaction_class|
+      topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+      nested_transaction_class = nil
+
+      TopicWithTransactionChanges.transaction do
+        TopicWithTransactionChanges.create!(title: "Dirty parent", written_on: Date.today) if parent_state == :dirty_parent
+
+        TopicWithTransactionChanges.transaction(requires_new: true) do
+          nested_transaction_class = TopicWithTransactionChanges.lease_connection.current_transaction.class
+          topic.update!(author_name: "Discarded")
+          raise ActiveRecord::Rollback
+        end
+
+        topic.update!(title: "Outer")
+      end
+
+      assert_equal expected_transaction_class, nested_transaction_class
+      assert_equal ["Outer", "Alice"], TopicWithTransactionChanges.where(id: topic.id).pick(:title, :author_name)
+      assert_equal ["Original", "Outer"], topic.transaction_changes_log["title"]
+      assert_nil topic.transaction_changes_log["author_name"]
+    end
+  end
+
+  def test_transaction_changes_uses_original_value_when_rolled_back_attribute_is_rewritten
+    topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+
+    TopicWithTransactionChanges.transaction do
+      TopicWithTransactionChanges.transaction(requires_new: true) do
+        topic.update!(author_name: "Discarded")
+        raise ActiveRecord::Rollback
+      end
+
+      topic.update!(author_name: "Final")
+    end
+
+    assert_equal "Final", TopicWithTransactionChanges.where(id: topic.id).pick(:author_name)
+    assert_equal ["Alice", "Final"], topic.transaction_changes_log["author_name"]
+  end
+
+  def test_live_transaction_changes_excludes_rolled_back_first_save
+    transaction_changes_before_save = nil
+
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :topics
+
+      before_save do
+        transaction_changes_before_save = transaction_changes.dup
+      end
+    end
+
+    topic = klass.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+    transaction_changes_before_save = nil
+    transaction_changes_after_rollback = nil
+
+    klass.transaction do
+      klass.transaction(requires_new: true) do
+        topic.update!(author_name: "Discarded")
+        raise ActiveRecord::Rollback
+      end
+
+      transaction_changes_after_rollback = topic.transaction_changes.dup
+      topic.update!(title: "Outer")
+    end
+
+    assert_nil transaction_changes_after_rollback["author_name"]
+    assert_equal ["Original", "Outer"], transaction_changes_before_save["title"]
+    assert_nil transaction_changes_before_save["author_name"]
+  end
+
+  def test_plain_save_rewrites_rolled_back_first_save_and_reports_it
+    topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+
+    TopicWithTransactionChanges.transaction do
+      TopicWithTransactionChanges.transaction(requires_new: true) do
+        topic.author_name = "Discarded"
+        assert topic.save
+        raise ActiveRecord::Rollback
+      end
+
+      topic.update!(title: "Outer")
+    end
+
+    assert_equal ["Outer", "Discarded"], TopicWithTransactionChanges.where(id: topic.id).pick(:title, :author_name)
+    assert_equal ["Original", "Outer"], topic.transaction_changes_log["title"]
+    assert_equal ["Alice", "Discarded"], topic.transaction_changes_log["author_name"]
+  end
+
+  def test_savepoint_first_persisted_values_match_existing_save_and_update_behavior
+    expected_values = {
+      save: "Discarded",
+      update!: "Alice",
+    }
+
+    [:clean_parent, :dirty_parent].product(expected_values.to_a).each do |parent_state, (operation, expected_author_name)|
+      topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+
+      TopicWithTransactionChanges.transaction do
+        TopicWithTransactionChanges.create!(title: "Dirty parent", written_on: Date.today) if parent_state == :dirty_parent
+
+        TopicWithTransactionChanges.transaction(requires_new: true) do
+          if operation == :save
+            topic.author_name = "Discarded"
+            assert topic.save
+          else
+            topic.update!(author_name: "Discarded")
+          end
+          raise ActiveRecord::Rollback
+        end
+
+        topic.update!(title: "Outer")
+      end
+
+      assert_equal expected_author_name, TopicWithTransactionChanges.where(id: topic.id).pick(:author_name),
+        "#{operation} with a #{parent_state.to_s.tr("_", " ")}"
+    end
+  end
+
   def test_transaction_changes_is_empty_inside_after_rollback_callback
     transaction_changes_in_rollback = nil
     transaction_changes_present_in_rollback = nil
