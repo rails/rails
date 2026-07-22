@@ -128,6 +128,7 @@ module ActiveStorage
         ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
 
         ActiveStorage.supported_image_processing_methods += app.config.active_storage.supported_image_processing_methods || []
+        ActiveStorage.supported_vips_image_processing_methods += app.config.active_storage.supported_vips_image_processing_methods || []
         ActiveStorage.unsupported_image_processing_arguments = app.config.active_storage.unsupported_image_processing_arguments || %w(
           -debug
           -display

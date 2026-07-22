@@ -45,7 +45,7 @@ module ActiveStorage
 
           method_name = name.to_s.tr("-", "_")
 
-          unless ActiveStorage.supported_image_processing_methods.include?(method_name)
+          unless supported_image_processing_methods.include?(method_name)
             raise UnsupportedImageProcessingMethod, <<~ERROR.squish
               The provided transformation method is not supported: #{method_name}.
             ERROR
@@ -60,6 +60,13 @@ module ActiveStorage
               validate_arg_hash(argument)
             end
           end
+        end
+
+        # Returns the list of allowed transformation methods for the backend, as
+        # method names use different vocabularies depending on the image processing
+        # library (e.g. ImageMagick options vs. libvips operations).
+        def supported_image_processing_methods
+          raise NotImplementedError
         end
 
         def validate_arg_string(argument)

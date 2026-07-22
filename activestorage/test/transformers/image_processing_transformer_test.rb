@@ -1,138 +1,116 @@
 # frozen_string_literal: true
 
-require "bundler/setup"
-require "active_support"
-require "active_support/test_case"
-require "active_support/testing/autorun"
-require "active_storage"
-require "active_storage/transformers/image_processing_transformer"
+require "test_helper"
 
-# Ensure validation config is loaded
-ActiveStorage.supported_image_processing_methods = %w[resize resize_to_limit resize_to_fit crop]
-ActiveStorage.unsupported_image_processing_arguments = %w[-debug -display -distribute-cache -help -path -print -set -verbose -version -write -write-mask]
+class ActiveStorage::Transformers::ImageProcessingTransformerTest < ActiveSupport::TestCase
+  UnsupportedImageProcessingMethod = ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingMethod
+  UnsupportedImageProcessingArgument = ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument
 
-class ActiveStorage::Transformers::ImageProcessingTransformerValidationTest < ActiveSupport::TestCase
-  UnsupportedMethod = ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingMethod
-  UnsupportedArgument = ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument
+  TRANSFORMERS = {
+    vips: ActiveStorage::Transformers::Vips,
+    mini_magick: ActiveStorage::Transformers::ImageMagick
+  }
 
-  setup do
-    @transformer_class = Class.new(ActiveStorage::Transformers::ImageProcessingTransformer) do
-      public :validate_transformation, :validate_arg_string, :validate_arg_array, :validate_arg_hash
+  TRANSFORMERS.each do |name, transformer|
+    test "#{name} rejects Ruby reflection methods (CVE-2025-24293)" do
+      %w[instance_eval instance_exec class_eval eval system exec send public_send __send__ method tap].each do |method|
+        assert_raises(UnsupportedImageProcessingMethod, "expected #{method} to be rejected") do
+          validate transformer, method => "`id > /tmp/pwned`"
+        end
+      end
     end
-    @transformer = @transformer_class.allocate
+
+    test "#{name} rejects ImageProcessing pipeline methods that would bypass validation" do
+      assert_raises(UnsupportedImageProcessingMethod) do
+        validate transformer, apply: { instance_eval: "`id > /tmp/pwned`" }
+      end
+
+      assert_raises(UnsupportedImageProcessingMethod) do
+        validate transformer, custom: "anything"
+      end
+    end
+
+    test "#{name} rejects combine_options" do
+      assert_raises(ArgumentError) do
+        validate transformer, combine_options: { resize: "100x100" }
+      end
+    end
+
+    test "#{name} rejects dangerous argument strings" do
+      assert_raises(UnsupportedImageProcessingArgument) do
+        validate transformer, resize: "-write /tmp/file.erb"
+      end
+
+      assert_raises(UnsupportedImageProcessingArgument) do
+        validate transformer, resize: "-PaTh /tmp/file.erb"
+      end
+    end
+
+    test "#{name} rejects dangerous arguments nested in arrays" do
+      assert_raises(UnsupportedImageProcessingArgument) do
+        validate transformer, resize: [ 123, "-write", "/tmp/file.erb" ]
+      end
+
+      assert_raises(UnsupportedImageProcessingArgument) do
+        validate transformer, resize: [ 123, [ "-write", "/tmp/file.erb" ] ]
+      end
+    end
+
+    test "#{name} rejects dangerous arguments nested in hashes" do
+      assert_raises(UnsupportedImageProcessingArgument) do
+        validate transformer, resize: { "-write": "/tmp/file.erb" }
+      end
+
+      assert_raises(UnsupportedImageProcessingArgument) do
+        validate transformer, resize: { something: "-write /tmp/file.erb" }
+      end
+
+      assert_raises(UnsupportedImageProcessingArgument) do
+        validate transformer, resize: { something: { "-write": "/tmp/file.erb" } }
+      end
+
+      assert_raises(UnsupportedImageProcessingArgument) do
+        validate transformer, resize: { something: [ "-write", "/tmp/file.erb" ] }
+      end
+    end
+
+    test "#{name} allows common transformations" do
+      assert_nothing_raised do
+        validate transformer, resize_to_limit: [ 100, 100 ], colourspace: "b-w", rotate: 90, convert: "png"
+      end
+    end
   end
 
-  # --- Unsupported method name ---
-
-  test "rejects unsupported transformation method" do
-    assert_raises(UnsupportedMethod) do
-      @transformer.validate_transformation(:instance_eval, "`id > /tmp/pwned`")
-    end
-  end
-
-  test "rejects system method" do
-    assert_raises(UnsupportedMethod) do
-      @transformer.validate_transformation(:system, "touch /tmp/dangerous")
-    end
-  end
-
-  test "rejects send method" do
-    assert_raises(UnsupportedMethod) do
-      @transformer.validate_transformation(:send, "system")
-    end
-  end
-
-  test "rejects public_send method" do
-    assert_raises(UnsupportedMethod) do
-      @transformer.validate_transformation(:public_send, "system")
-    end
-  end
-
-  test "allows supported transformation method" do
+  test "vips allows libvips operations absent from the ImageMagick allowlist" do
     assert_nothing_raised do
-      @transformer.validate_transformation(:resize, "100x100")
+      validate ActiveStorage::Transformers::Vips,
+        thumbnail_image: 100,
+        saver: { optimize_gif_frames: true, optimize_gif_transparency: true }
     end
   end
 
-  # --- Dangerous argument strings ---
-
-  test "rejects dangerous -write argument string" do
-    assert_raises(UnsupportedArgument) do
-      @transformer.validate_transformation(:resize, "-write /tmp/file.erb")
+  test "vips rejects libvips operations that read from or write to the filesystem" do
+    %w[thumbnail jpegload pngsave dzsave magickload profile_load remosaic].each do |method|
+      assert_raises(UnsupportedImageProcessingMethod, "expected #{method} to be rejected") do
+        validate ActiveStorage::Transformers::Vips, method => "/tmp/file.erb"
+      end
     end
   end
 
-  test "rejects dangerous -path argument string" do
-    assert_raises(UnsupportedArgument) do
-      @transformer.validate_transformation(:resize, "-PaTh /tmp/file.erb")
+  test "mini_magick rejects libvips operation names" do
+    assert_raises(UnsupportedImageProcessingMethod) do
+      validate ActiveStorage::Transformers::ImageMagick, thumbnail_image: 100
     end
   end
 
-  # --- Dangerous argument arrays ---
-
-  test "rejects dangerous argument in array" do
-    assert_raises(UnsupportedArgument) do
-      @transformer.validate_transformation(:resize, [123, "-write", "/tmp/file.erb"])
+  test "vips rejects ImageMagick option names" do
+    assert_raises(UnsupportedImageProcessingMethod) do
+      validate ActiveStorage::Transformers::Vips, annotate: "text"
     end
   end
 
-  test "rejects dangerous argument in nested array" do
-    assert_raises(UnsupportedArgument) do
-      @transformer.validate_transformation(:resize, [123, ["-write", "/tmp/file.erb"]])
+  private
+    def validate(transformer, transformations)
+      transformer.new(transformations).send(:operations)
     end
-  end
-
-  # --- Dangerous argument hashes ---
-
-  test "rejects dangerous argument in hash key" do
-    assert_raises(UnsupportedArgument) do
-      @transformer.validate_transformation(:resize, { "-write": "/tmp/file.erb" })
-    end
-  end
-
-  test "rejects dangerous argument in hash value" do
-    assert_raises(UnsupportedArgument) do
-      @transformer.validate_transformation(:resize, { something: "-write /tmp/file.erb" })
-    end
-  end
-
-  test "rejects dangerous argument in nested hash" do
-    assert_raises(UnsupportedArgument) do
-      @transformer.validate_transformation(:resize, { something: { "-write": "/tmp/file.erb" } })
-    end
-  end
-
-  test "rejects dangerous argument in array inside hash" do
-    assert_raises(UnsupportedArgument) do
-      @transformer.validate_transformation(:resize, { something: ["-write", "/tmp/file.erb"] })
-    end
-  end
-
-  # --- RCE via instance_eval (CVE-2025-24293) ---
-
-  test "rejects instance_eval method (RCE vector)" do
-    assert_raises(UnsupportedMethod) do
-      @transformer.validate_transformation(:instance_eval, "`id > /tmp/pwned`")
-    end
-  end
-
-  test "rejects __send__ method" do
-    assert_raises(UnsupportedMethod) do
-      @transformer.validate_transformation(:__send__, "system")
-    end
-  end
-
-  # --- Valid transformations pass ---
-
-  test "allows resize_to_limit with valid dimensions" do
-    assert_nothing_raised do
-      @transformer.validate_transformation(:resize_to_limit, [100, 100])
-    end
-  end
-
-  test "allows crop with valid string" do
-    assert_nothing_raised do
-      @transformer.validate_transformation(:crop, "100x100+0+0")
-    end
-  end
 end

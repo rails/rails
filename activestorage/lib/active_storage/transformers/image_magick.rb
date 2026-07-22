@@ -7,6 +7,10 @@ module ActiveStorage
         def processor
           ImageProcessing::MiniMagick
         end
+
+        def supported_image_processing_methods
+          ActiveStorage.supported_image_processing_methods
+        end
     end
   end
 end
