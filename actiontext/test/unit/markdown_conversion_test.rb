@@ -593,6 +593,128 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_converted_to("click here", '<a href="&#10;javascript:alert(1)">click here</a>')
   end
 
+  test "<a> tags preserve boundary whitespace in link text" do
+    assert_converted_to(
+      "before[ link ](/x)after",
+      'before<a href="/x"> link </a>after'
+    )
+  end
+
+  test "<a> tags containing <pre> are flattened into an inline code span" do
+    assert_converted_to(
+      "[``` puts 1 ``` ](https://example.com)",
+      '<a href="https://example.com"><pre>puts 1</pre></a>'
+    )
+  end
+
+  test "<a> tags containing multiline <pre> are flattened into an inline code span" do
+    assert_converted_to(
+      "[``` line one line two ``` ](https://example.com)",
+      "<a href=\"https://example.com\"><pre>line one\nline two</pre></a>"
+    )
+  end
+
+  test "<a> tags containing <pre> with backticks are flattened into an inline code span" do
+    assert_converted_to(
+      "[```` a ``` b ```` ](https://example.com)",
+      '<a href="https://example.com"><pre>a ``` b</pre></a>'
+    )
+  end
+
+  test "<a> tags containing <p> are flattened into link text" do
+    assert_converted_to(
+      "[text ](https://example.com)",
+      '<a href="https://example.com"><p>text</p></a>'
+    )
+  end
+
+  test "<a> tags containing multiple <p> are flattened into link text" do
+    assert_converted_to(
+      "[one two ](https://example.com)",
+      '<a href="https://example.com"><p>one</p><p>two</p></a>'
+    )
+  end
+
+  test "<a> tags containing <h1> are flattened into link text" do
+    assert_converted_to(
+      "[# heading ](https://example.com)",
+      '<a href="https://example.com"><h1>heading</h1></a>'
+    )
+  end
+
+  test "<a> tags containing <blockquote> are flattened into link text" do
+    assert_converted_to(
+      "[> quoted ](https://example.com)",
+      '<a href="https://example.com"><blockquote>quoted</blockquote></a>'
+    )
+  end
+
+  test "<a> tags containing <ul> are flattened into link text" do
+    assert_converted_to(
+      "[- item ](https://example.com)",
+      '<a href="https://example.com"><ul><li>item</li></ul></a>'
+    )
+  end
+
+  test "<a> tags containing <ul> with multiple items are flattened into link text" do
+    assert_converted_to(
+      "[- one - two ](https://example.com)",
+      '<a href="https://example.com"><ul><li>one</li><li>two</li></ul></a>'
+    )
+  end
+
+  test "<a> tags containing <ol> are flattened into link text" do
+    assert_converted_to(
+      "[1. item ](https://example.com)",
+      '<a href="https://example.com"><ol><li>item</li></ol></a>'
+    )
+  end
+
+  test "<a> tags containing <pre> with CRLF line endings are flattened into an inline code span" do
+    assert_converted_to(
+      "[``` line one line two ``` ](https://example.com)",
+      "<a href=\"https://example.com\"><pre>line one\r\nline two</pre></a>"
+    )
+  end
+
+  test "<a> tags containing <pre> with CR line endings are flattened into an inline code span" do
+    assert_converted_to(
+      "[``` line one line two ``` ](https://example.com)",
+      "<a href=\"https://example.com\"><pre>line one\rline two</pre></a>"
+    )
+  end
+
+  test "<a> tags containing <pre> with CR line endings from an HTML4-parsed fragment are flattened" do
+    fragment = Nokogiri::HTML4.fragment("<a href=\"https://example.com\"><pre>line one\rline two</pre></a>")
+    assert_equal "[``` line one line two ``` ](https://example.com)", ActionText::MarkdownConversion.node_to_markdown(fragment)
+  end
+
+  test "<a> tags containing <pre> with CRLF line endings from an HTML4-parsed fragment are flattened" do
+    fragment = Nokogiri::HTML4.fragment("<a href=\"https://example.com\"><pre>line one\r\nline two</pre></a>")
+    assert_equal "[``` line one line two ``` ](https://example.com)", ActionText::MarkdownConversion.node_to_markdown(fragment)
+  end
+
+  test "<a> tags containing <br> are flattened into link text" do
+    assert_converted_to(
+      "[one two](https://example.com)",
+      '<a href="https://example.com">one<br>two</a>'
+    )
+  end
+
+  test "<a> tags with javascript: href containing <p> pass through content without flattening" do
+    assert_converted_to(
+      "one\n\ntwo",
+      '<a href="javascript:alert(1)"><p>one</p><p>two</p></a>'
+    )
+  end
+
+  test "<a> tags without href containing <p> pass through content without flattening" do
+    assert_converted_to(
+      "one\n\ntwo",
+      "<a><p>one</p><p>two</p></a>"
+    )
+  end
+
   test "<table> with <thead> is converted to markdown table" do
     assert_converted_to(
       "| Name | Age |\n| --- | --- |\n| Alice | 30 |",
