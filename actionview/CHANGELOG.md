@@ -1,3 +1,12 @@
+*   Carry `form` and `disabled` onto a multiple `file_field`'s hidden field.
+
+    A multiple file field with `include_hidden: true` renders a companion empty
+    hidden input so that clearing all files still submits a blank value. That
+    hidden input now mirrors the file field's `form` and `disabled` attributes,
+    matching `check_box` and multiple `select`.
+
+    *Said Kaldybaev*
+
 *   Extract `current_page?`, `button_to`, and `link_to` methods to
     `ActionView::Helpers::NavigationHelper`
 

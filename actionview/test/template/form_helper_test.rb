@@ -607,6 +607,18 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
+  def test_file_field_with_multiple_include_hidden_carries_form
+    expected = '<input type="hidden" name="import[file][]" value="" autocomplete="off" form="my_form">' \
+               '<input id="import_file" multiple="multiple" name="import[file][]" type="file" form="my_form" />'
+    assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true, form: "my_form")
+  end
+
+  def test_file_field_with_multiple_include_hidden_carries_disabled
+    expected = '<input type="hidden" name="import[file][]" value="" autocomplete="off" disabled="disabled">' \
+               '<input id="import_file" multiple="multiple" name="import[file][]" type="file" disabled="disabled" />'
+    assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true, disabled: true)
+  end
+
   def test_file_field_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
     expected = '<input type="file" name="import[file]" id="import_file" />'
     assert_dom_equal expected, file_field("import", "file", direct_upload: true)
