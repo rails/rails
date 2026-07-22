@@ -39,7 +39,7 @@ module ActionDispatch
       if req.get?
         path = req.path_info.chomp("/")
         if path == @path
-          return render_details(req)
+          return render_details
         end
       end
 
@@ -47,7 +47,7 @@ module ActionDispatch
     end
 
     private
-      def render_details(req)
+      def render_details
         owners = ActiveSupport::Dependencies.interlock.raw_state do |raw_owners|
           # The Interlock itself comes to a complete halt as long as this block is
           # executing. That gives us a more consistent picture of everything, but creates
