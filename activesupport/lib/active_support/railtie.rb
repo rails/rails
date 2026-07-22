@@ -31,10 +31,10 @@ module ActiveSupport
       end
     end
 
-    initializer "active_support.raise_on_invalid_parse_string" do |app|
+    initializer "active_support.raise_on_invalid_time_zone_parse" do |app|
       config.after_initialize do
-        if app.config.active_support.raise_on_invalid_parse_string
-          ActiveSupport::TimeZone.raise_on_invalid_parse_string = true
+        if app.config.active_support.raise_on_invalid_time_zone_parse
+          ActiveSupport::TimeZone.raise_on_invalid_time_zone_parse = true
         end
       end
     end

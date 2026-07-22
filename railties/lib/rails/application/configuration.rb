@@ -399,7 +399,7 @@ module Rails
           end
 
           if respond_to?(:active_support)
-            active_support.raise_on_invalid_parse_string = true
+            active_support.raise_on_invalid_time_zone_parse = true
           end
         else
           raise "Unknown version #{target_version.to_s.inspect}"

@@ -4890,31 +4890,31 @@ module ApplicationTests
       assert_equal true, ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
     end
 
-    test "raise_on_invalid_parse_string is false with 8.1 defaults" do
+    test "raise_on_invalid_time_zone_parse is false with 8.1 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "8.1"'
       app "development"
 
-      assert_equal false, ActiveSupport::TimeZone.raise_on_invalid_parse_string
+      assert_equal false, ActiveSupport::TimeZone.raise_on_invalid_time_zone_parse
     end
 
-    test "raise_on_invalid_parse_string is true with 8.2 defaults" do
+    test "raise_on_invalid_time_zone_parse is true with 8.2 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "8.2"'
       app "development"
 
-      assert_equal true, ActiveSupport::TimeZone.raise_on_invalid_parse_string
+      assert_equal true, ActiveSupport::TimeZone.raise_on_invalid_time_zone_parse
     end
 
-    test "raise_on_invalid_parse_string can be set via new framework defaults" do
+    test "raise_on_invalid_time_zone_parse can be set via new framework defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "8.1"'
       app_file "config/initializers/new_framework_defaults_8_2.rb", <<-RUBY
-        Rails.application.config.active_support.raise_on_invalid_parse_string = true
+        Rails.application.config.active_support.raise_on_invalid_time_zone_parse = true
       RUBY
       app "development"
 
-      assert_equal true, ActiveSupport::TimeZone.raise_on_invalid_parse_string
+      assert_equal true, ActiveSupport::TimeZone.raise_on_invalid_time_zone_parse
     end
 
     test "adds a time zone aware type if using PostgreSQL" do

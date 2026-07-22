@@ -117,4 +117,4 @@
 # `"9000"`) raised `ArgumentError`. When enabled, both cases raise
 # `ArgumentError`, matching the Ruby standard library's `Time.parse`.
 #++
-# Rails.application.config.active_support.raise_on_invalid_parse_string = true
+# Rails.application.config.active_support.raise_on_invalid_time_zone_parse = true

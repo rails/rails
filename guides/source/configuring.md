@@ -69,7 +69,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
-- [`config.active_support.raise_on_invalid_parse_string`](#config-active-support-raise-on-invalid-parse-string): `true`
+- [`config.active_support.raise_on_invalid_time_zone_parse`](#config-active-support-raise-on-invalid-time-zone-parse): `true`
 
 #### Default Values for Target Version 8.1
 
@@ -3283,7 +3283,7 @@ The default value depends on the `config.load_defaults` target version:
 [ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
 [ActiveSupport::Cache::Store#write]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-write
 
-#### `config.active_support.raise_on_invalid_parse_string`
+#### `config.active_support.raise_on_invalid_time_zone_parse`
 
 Specifies whether [`ActiveSupport::TimeZone#parse`][] raises `ArgumentError`
 for strings that contain no recognizable date information (e.g. `"foobar"`).
