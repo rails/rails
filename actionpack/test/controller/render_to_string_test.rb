@@ -24,11 +24,6 @@ class RenderToStringTest < ActionController::TestCase
       render plain: render_to_string(json: "[]")
     end
 
-    def test_render_json_render_to_string
-      get :render_json_render_to_string
-      assert_equal "[]", @response.body
-    end
-
     def render_plain_text_response_with_inline_template_and_xml_format
       render_to_string(inline: "<language>Ruby</language>", formats: [:xml])
       render plain: "Hello"
@@ -54,8 +49,9 @@ class RenderToStringTest < ActionController::TestCase
     assert_equal "application/json", @response.media_type
   end
 
-  def render_json_render_to_string
-    render plain: render_to_string(json: "[]")
+  def test_render_json_render_to_string
+    get :render_json_render_to_string
+    assert_equal "[]", @response.body
     assert_equal "text/plain", @response.media_type
   end
 

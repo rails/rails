@@ -182,7 +182,14 @@ module ActionController
     # instead of setting `self.response_body`.
     #--
     # Override render_to_string because body can now be set to a Rack body.
+    #
+    # Renderers such as +:json+ set the response's +Content-Type+ as a side
+    # effect. Since +render_to_string+ only returns a string and must not mutate
+    # the response, snapshot and restore the +Content-Type+ header around the
+    # render so the leaked type does not carry over to a subsequent +render+.
     def render_to_string(*)
+      rendering_response = response
+      original_content_type = rendering_response&.get_header(ActionDispatch::Response::CONTENT_TYPE)
       result = super
       if result.respond_to?(:each)
         string = +""
@@ -190,6 +197,14 @@ module ActionController
         string
       else
         result
+      end
+    ensure
+      if rendering_response
+        if original_content_type
+          rendering_response.set_header(ActionDispatch::Response::CONTENT_TYPE, original_content_type)
+        else
+          rendering_response.delete_header(ActionDispatch::Response::CONTENT_TYPE)
+        end
       end
     end
 
