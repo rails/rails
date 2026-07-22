@@ -1055,6 +1055,40 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal book2, klass.where(status: "-9223372036854775809").last
   end
 
+  test "serializable? is false for values outside the enum mapping" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :cover, { hard: "hard", soft: "soft" }, validate: true
+    end
+
+    type = klass.type_for_attribute(:cover)
+
+    assert type.serializable?("hard")
+    assert type.serializable?(:soft)
+    assert type.serializable?(nil)
+    assert type.serializable?("")
+    assert_not type.serializable?("velvet")
+    assert_not type.serializable?(:velvet)
+
+    assert_empty klass.where(cover: "velvet")
+  end
+
+  test "uniqueness validation with invalid enum scope does not raise" do
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; "Book"; end
+      self.table_name = "books"
+      enum :cover, { hard: "hard", soft: "soft" }, validate: true
+      validates :name, uniqueness: { scope: :cover }
+    end
+
+    book = klass.new(name: "Rails Guide", cover: "velvet")
+
+    assert_nothing_raised { book.valid? }
+    assert_not_predicate book, :valid?
+    assert_includes book.errors[:cover], "is not included in the list"
+    assert_empty book.errors[:name]
+  end
+
   test "enum logs a warning if auto-generated negative scopes would clash with other enum names" do
     old_logger = ActiveRecord::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
