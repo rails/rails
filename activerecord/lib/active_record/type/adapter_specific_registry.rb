@@ -115,7 +115,8 @@ module ActiveRecord
       end
 
       def call(registry, *args, **kwargs)
-        subtype = registry.lookup(*args, **kwargs.except(*options.keys))
+        kwargs = kwargs.except(*options.keys)
+        subtype = registry.lookup(*args, **kwargs)
         klass.new(subtype)
       end
 
