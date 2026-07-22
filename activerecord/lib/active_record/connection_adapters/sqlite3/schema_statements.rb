@@ -21,7 +21,7 @@ module ActiveRecord
               WHERE name = #{quote(row['name'])} AND type = 'index'
             SQL
 
-            /\bON\b\s*"?(\w+?)"?\s*\((?<expressions>.+?)\)(?:\s*WHERE\b\s*(?<where>.+))?(?:\s*\/\*.*\*\/)?\z/i =~ index_sql
+            /\bON\b\s*"?(\w+?)"?\s*\((?<expressions>.+?)\)(?:\s*WHERE\b\s*(?<where>.+?))?(?:\s*\/\*.*\*\/)?\s*\z/im =~ index_sql
 
             columns = query_all("PRAGMA index_info(#{quote(row['name'])})").map do |col|
               col["name"]
