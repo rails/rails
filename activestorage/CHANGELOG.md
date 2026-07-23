@@ -1,3 +1,14 @@
+*   Fix `Cache-Control` header of files served by `DiskController`
+
+    Matches `Cache-Control` lifetime of files served by the `DiskController`
+    with the lifetime of the redirect response by
+    `ActiveStorage::Blobs::RedirectController`. This fixes an issue with
+    Safari-based browsers purging the blob from its cache before the
+
+    Fixes #57950.
+
+    *Matthias Link*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
