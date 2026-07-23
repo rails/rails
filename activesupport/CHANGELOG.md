@@ -1,4 +1,4 @@
-*   Add `ActiveSupport::TimeZone.raise_on_invalid_time_zone_parse`.
+*   Add `ActiveSupport.raise_on_invalid_time_zone_parse`.
 
     Raise `ArgumentError` on `ActiveSupport::TimeZone#parse` for any invalid
     string. Historically, strings without recognizable date information

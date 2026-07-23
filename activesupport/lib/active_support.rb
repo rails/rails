@@ -162,6 +162,15 @@ module ActiveSupport
   #   zone.utc_to_local(Time.utc(2000, 1)) # => 1999-12-31 19:00:00 -0500
   singleton_class.attr_accessor :utc_to_local_returns_utc_offset_times
   @utc_to_local_returns_utc_offset_times = false
+
+  # When +true+, <tt>ActiveSupport::TimeZone#parse</tt> raises +ArgumentError+
+  # for strings with no recognizable date information (e.g. +"foobar"+),
+  # instead of returning +nil+. Out-of-range components always raise.
+  #
+  # Defaults to +false+. Set via +config.active_support.raise_on_invalid_time_zone_parse+
+  # (enabled by default with <tt>config.load_defaults "8.2"</tt>).
+  singleton_class.attr_accessor :raise_on_invalid_time_zone_parse
+  @raise_on_invalid_time_zone_parse = false
 end
 
 autoload :I18n, "active_support/i18n"

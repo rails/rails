@@ -506,7 +506,7 @@ class TimeZoneTest < ActiveSupport::TestCase
   def test_parse_raises_on_unparseable_string_when_strict
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
 
-    ActiveSupport::TimeZone.with(raise_on_invalid_time_zone_parse: true) do
+    ActiveSupport.with(raise_on_invalid_time_zone_parse: true) do
       exception = assert_raises(ArgumentError) { zone.parse("foobar") }
       assert_equal "invalid date", exception.message
 
@@ -518,7 +518,7 @@ class TimeZoneTest < ActiveSupport::TestCase
   def test_parse_raises_on_out_of_range_date_when_strict
     zone = ActiveSupport::TimeZone["UTC"]
 
-    ActiveSupport::TimeZone.with(raise_on_invalid_time_zone_parse: true) do
+    ActiveSupport.with(raise_on_invalid_time_zone_parse: true) do
       exception = assert_raises(ArgumentError) { zone.parse("9000") }
       assert_equal "argument out of range", exception.message
     end
@@ -527,7 +527,7 @@ class TimeZoneTest < ActiveSupport::TestCase
   def test_parse_still_accepts_valid_strings_when_strict
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
 
-    ActiveSupport::TimeZone.with(raise_on_invalid_time_zone_parse: true) do
+    ActiveSupport.with(raise_on_invalid_time_zone_parse: true) do
       twz = zone.parse("1999-12-31 19:00:00")
       assert_equal Time.utc(2000, 1, 1), twz.utc
       assert_equal zone, twz.time_zone

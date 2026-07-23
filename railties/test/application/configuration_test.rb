@@ -4895,7 +4895,7 @@ module ApplicationTests
       add_to_config 'config.load_defaults "8.1"'
       app "development"
 
-      assert_equal false, ActiveSupport::TimeZone.raise_on_invalid_time_zone_parse
+      assert_equal false, ActiveSupport.raise_on_invalid_time_zone_parse
     end
 
     test "raise_on_invalid_time_zone_parse is true with 8.2 defaults" do
@@ -4903,7 +4903,7 @@ module ApplicationTests
       add_to_config 'config.load_defaults "8.2"'
       app "development"
 
-      assert_equal true, ActiveSupport::TimeZone.raise_on_invalid_time_zone_parse
+      assert_equal true, ActiveSupport.raise_on_invalid_time_zone_parse
     end
 
     test "raise_on_invalid_time_zone_parse can be set via new framework defaults" do
@@ -4914,7 +4914,7 @@ module ApplicationTests
       RUBY
       app "development"
 
-      assert_equal true, ActiveSupport::TimeZone.raise_on_invalid_time_zone_parse
+      assert_equal true, ActiveSupport.raise_on_invalid_time_zone_parse
     end
 
     test "adds a time zone aware type if using PostgreSQL" do

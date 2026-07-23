@@ -2,7 +2,6 @@
 
 require "tzinfo"
 require "concurrent/map"
-require "active_support/core_ext/class/attribute"
 
 module ActiveSupport
   # = Active Support \Time Zone
@@ -189,8 +188,6 @@ module ActiveSupport
     UTC_OFFSET_WITH_COLON = "%s%02d:%02d" # :nodoc:
     UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(":", "") # :nodoc:
     private_constant :UTC_OFFSET_WITH_COLON, :UTC_OFFSET_WITHOUT_COLON
-
-    class_attribute :raise_on_invalid_time_zone_parse, instance_accessor: false, default: false
 
     @lazy_zones_map = Concurrent::Map.new
     @country_zones  = Concurrent::Map.new
@@ -465,7 +462,7 @@ module ActiveSupport
     #   Time.zone.parse('foobar') # => nil
     #   Time.zone.parse('9000')   # => ArgumentError: argument out of range
     #
-    # Set ActiveSupport::TimeZone.raise_on_invalid_time_zone_parse to +true+ to
+    # Set ActiveSupport.raise_on_invalid_time_zone_parse to +true+ to
     # raise +ArgumentError+ in both cases.
     def parse(str, now = now())
       parts_to_time(Date._parse(str, false), now)
@@ -602,7 +599,7 @@ module ActiveSupport
       def parts_to_time(parts, now)
         raise ArgumentError, "invalid date" if parts.nil?
         if parts.empty?
-          raise ArgumentError, "invalid date" if TimeZone.raise_on_invalid_time_zone_parse
+          raise ArgumentError, "invalid date" if ActiveSupport.raise_on_invalid_time_zone_parse
           return
         end
 
