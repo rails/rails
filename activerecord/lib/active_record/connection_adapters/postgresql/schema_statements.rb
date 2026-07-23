@@ -223,6 +223,7 @@ module ActiveRecord
             WHERE child.relname = #{scope[:name]}
               AND child.relkind IN (#{scope[:type]})
               AND n.nspname = #{scope[:schema]}
+            ORDER BY i.inhseqno
           SQL
         end
 
