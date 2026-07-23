@@ -67,6 +67,13 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "increment counter via the association when the composite foreign key is set directly" do
+    order = Cpk::Order.create!(id: [1, 100], status: "paid")
+    assert_difference -> { order.reload.books_count }, +1 do
+      Cpk::Book.create!(id: [1, 100], shop_id: order.shop_id, order_id: order.id_value, title: "New Book", revision: 1)
+    end
+  end
+
   test "decrement counter" do
     assert_difference "@topic.reload.replies_count", -1 do
       Topic.decrement_counter(:replies_count, @topic.id)
@@ -83,6 +90,16 @@ class CounterCacheTest < ActiveRecord::TestCase
     order = Cpk::Order.first
     assert_difference -> { order.reload.books_count }, -1 do
       Cpk::Order.decrement_counter(:books_count, order.id)
+    end
+  end
+
+  test "decrement counter via the association when destroying a record with a composite foreign key" do
+    order = Cpk::Order.create!(id: [1, 100], status: "paid")
+    Cpk::Book.create!(id: [1, 100], shop_id: order.shop_id, order_id: order.id_value, title: "New Book", revision: 1)
+    book = Cpk::Book.find([1, 100])
+
+    assert_difference -> { order.reload.books_count }, -1 do
+      book.destroy
     end
   end
 
