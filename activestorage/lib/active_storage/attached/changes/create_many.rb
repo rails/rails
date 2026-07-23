@@ -4,9 +4,11 @@ module ActiveStorage
   class Attached::Changes::CreateMany # :nodoc:
     attr_reader :name, :attachables, :pending_uploads
     attr_accessor :record
+    attr_writer :append
 
     def initialize(name, record, attachables, pending_uploads: [])
       @name, @record, @attachables = name, record, Array(attachables)
+      @append = false
       blobs.each(&:identify_without_saving)
       @pending_uploads = Array(pending_uploads) + subchanges_without_blobs
       attachments
@@ -28,6 +30,10 @@ module ActiveStorage
       pending_uploads.each(&:upload)
     end
 
+    def append?
+      @append
+    end
+
     def save
       assign_associated_attachments
       reset_associated_blobs
@@ -47,11 +53,19 @@ module ActiveStorage
       end
 
       def assign_associated_attachments
-        record.public_send("#{name}_attachments=", persisted_or_new_attachments)
+        if append?
+          record.public_send("#{name}_attachments").concat(new_attachments)
+        else
+          record.public_send("#{name}_attachments=", persisted_or_new_attachments)
+        end
       end
 
       def reset_associated_blobs
         record.public_send("#{name}_blobs").reset
+      end
+
+      def new_attachments
+        attachments.select(&:new_record?)
       end
 
       def persisted_or_new_attachments
