@@ -1,3 +1,11 @@
+*   Fix `render_to_string` changing the content type of a subsequent render.
+
+    Renderers such as the JSON renderer set the response content type while
+    producing their body. `render_to_string` now restores the original
+    `Content-Type` header after rendering.
+
+    *Nikita Vasilevsky*
+
 *   Deprecate `ActionDispatch::Cookies::HTTP_HEADER`.
 
     Use `Rack::SET_COOKIE` instead.
