@@ -1268,6 +1268,14 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal 86_400.0, Time.utc(2000, 1, 2) - DateTime.civil(2000, 1, 1)
   end
 
+  def test_minus_with_datetime_sub_second_precision
+    dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(1, 1_000_000), "+0") # .000001s
+    assert_equal Rational(999_999, 1_000_000), Time.utc(2000, 1, 1, 0, 0, 1) - dt
+
+    dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(123_457, 1_000_000), "+0")
+    assert_equal Rational(876_543, 1_000_000), Time.utc(2000, 1, 1, 0, 0, 1) - dt
+  end
+
   def test_time_created_with_local_constructor_cannot_represent_times_during_hour_skipped_by_dst
     with_env_tz "US/Eastern" do
       # On Apr 2 2006 at 2:00AM in US, clocks were moved forward to 3:00AM.

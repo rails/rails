@@ -1,3 +1,12 @@
+*   Preserve sub-second precision when subtracting a `DateTime` from a `Time`.
+
+    `Time - DateTime` converted both sides via `to_f`, so microsecond-level
+    `DateTime` values lost precision. The difference is now computed from exact
+    rational timestamps, matching `Time.at(DateTime)` and
+    `ActiveSupport::TimeWithZone - DateTime`.
+
+    *Said Kaldybaev*
+
 *   Deprecate `ActiveSupport::Cache::RedisCacheStore::DEFAULT_REDIS_OPTIONS`.
 
     The `redis-client` implementation no longer reads this constant. Pass
