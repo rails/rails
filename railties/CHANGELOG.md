@@ -1,3 +1,8 @@
+*   Support engine routes in `rails routes --unused` and add `--brief` to
+    quiet output of sections with no matching routes.
+
+    *Bruno Carvalho*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"

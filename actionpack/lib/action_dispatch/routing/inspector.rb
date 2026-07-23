@@ -107,31 +107,47 @@ module ActionDispatch
     # executes `bin/rails routes` or looks at the RoutingError page. People should
     # not use this class.
     class RoutesInspector # :nodoc:
-      def initialize(routes)
+      def initialize(routes, filter = {})
+        @filter = filter
         @routes = wrap_routes(routes)
         @engines = load_engines_routes
+        apply_filter!
       end
 
-      def format(formatter, filter = {})
+      def filter_routes!(&block)
+        @routes.select!(&block)
+        @engines.transform_values! { |routes| routes.select(&block) }
+      end
+
+      def no_routes?
+        @routes.none? && @engines.all? { |_, routes| routes.none? }
+      end
+
+      def format(formatter, options = {})
         all_routes = { nil => @routes }.merge(@engines)
 
         all_routes.each do |engine_name, routes|
-          format_routes(formatter, filter, engine_name, routes)
+          next if options[:brief] && routes.none?
+          format_routes(formatter, engine_name, routes)
+        end
+
+        if options[:brief] && no_routes?
+          formatter.no_routes(nil, [], @filter)
         end
 
         formatter.result
       end
 
       private
-        def format_routes(formatter, filter, engine_name, routes)
-          routes = filter_routes(routes, normalize_filter(filter)).map(&:to_h)
+        def format_routes(formatter, engine_name, routes)
+          routes = routes.map(&:to_h)
 
           formatter.section_title "Routes for #{engine_name || "application"}" if @engines.any?
           if routes.any?
             formatter.header routes
             formatter.section routes
           else
-            formatter.no_routes engine_name, routes, filter
+            formatter.no_routes engine_name, routes, @filter
           end
           formatter.footer routes
         end
@@ -141,15 +157,20 @@ module ActionDispatch
         end
 
         def load_engines_routes
-          engine_routes = @routes.select(&:engine?)
+          collect_engine_routes(@routes, {})
+        end
 
-          engines = engine_routes.to_h do |engine_route|
+        def collect_engine_routes(routes, engines)
+          routes.select(&:engine?).each do |engine_route|
+            next if engines.key?(engine_route.endpoint)
+
             engine_app_routes = engine_route.rack_app.routes
             engine_app_routes = engine_app_routes.routes if engine_app_routes.is_a?(ActionDispatch::Routing::RouteSet)
 
-            [engine_route.endpoint, wrap_routes(engine_app_routes)]
+            wrapped = wrap_routes(engine_app_routes)
+            engines[engine_route.endpoint] = wrapped
+            collect_engine_routes(wrapped, engines)
           end
-
           engines
         end
 
@@ -172,13 +193,12 @@ module ActionDispatch
           end
         end
 
-        def filter_routes(routes, filter)
-          if filter
-            routes.select do |route|
-              filter.any? { |filter_type, value| route.matches_filter?(filter_type, value) }
-            end
-          else
-            routes
+        def apply_filter!
+          filter = normalize_filter(@filter)
+          return unless filter
+
+          filter_routes! do |route|
+            filter.any? { |filter_type, value| route.matches_filter?(filter_type, value) }
           end
         end
     end
