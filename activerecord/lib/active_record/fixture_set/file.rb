@@ -53,7 +53,7 @@ module ActiveRecord
             data = ActiveSupport::ConfigurationFile.parse(@file, freeze: true, context:
               ActiveRecord::FixtureSet::RenderContext.create_subclass.new.get_binding)
             data ? validate(data).to_a : []
-          rescue RuntimeError => error
+          rescue ActiveSupport::ConfigurationFile::FormatError => error
             raise Fixture::FormatError, error.message
           end
         end

@@ -1,3 +1,7 @@
+*   Raise `ActiveSupport::ConfigurationFile::FormatError` when parsing malformed YAML.
+
+    *Nikita Vasilevsky*
+
 *   Preserve sub-second precision when subtracting a `DateTime` from a `Time`.
 
     `Time - DateTime` converted both sides via `to_f`, so microsecond-level
