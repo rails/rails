@@ -1,3 +1,15 @@
+*   Don't raise when previewing a video blob that has no video stream.
+
+    An audio-only file with a `video/*` content type (e.g. an `.mp4` containing
+    only an audio track) raised `ActiveStorage::PreviewError` because FFmpeg
+    can't extract a frame from a container without a video stream. The
+    `VideoPreviewer` now detects this with `ffprobe`, as `VideoAnalyzer` does,
+    and produces no preview instead of raising.
+
+    Fixes #54301.
+
+    *Augusto Xavier*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
