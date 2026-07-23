@@ -18,6 +18,12 @@ module RailsGuides
   class Generator
     GUIDES_RE = /\.(?:erb|md)\z/
 
+    AnchorLink = Data.define(:file, :fragment, :source) do
+      def link
+        [file, fragment].join("#")
+      end
+    end
+
     def initialize(edge:, version:, all:, only:, epub:, language:, direction: nil, lint:, guides_dir: nil)
       @edge         = edge
       @version      = version
@@ -28,6 +34,8 @@ module RailsGuides
       @direction    = direction || "ltr"
       @digest_paths = {}
       @lint         = lint
+      @anchors      = {}
+      @anchor_links = Hash.new { |h, k| h[k] = [] }
       @warnings     = []
 
       if @epub
@@ -107,6 +115,8 @@ module RailsGuides
           output_file = output_file_for(guide)
           generate_guide(guide, output_file) if generate?(guide, output_file)
         end
+
+        warn_about_broken_anchor_links
       end
 
       def guides_to_generate
@@ -214,9 +224,15 @@ module RailsGuides
             epub:    @epub
           ).render(body)
 
-          broken = warn_about_broken_links(result)
-          if broken.any?
-            @warnings << "[WARN] BROKEN LINK(s): #{guide}: #{broken.join(", ")}"
+          # Extract anchors per guide.
+          @anchors[output_file] = extract_anchors(result)
+
+          # Extract anchor links per target guide.
+          extract_anchor_links(result).each do |file, fragment|
+            anchor_link = AnchorLink.new(file: file, fragment: fragment, source: output_file)
+            # If the link is internal, the target is the output_file.
+            target_file = file || output_file
+            @anchor_links[target_file] << anchor_link
           end
         end
 
@@ -225,9 +241,21 @@ module RailsGuides
         end if !dry_run?
       end
 
-      def warn_about_broken_links(html)
-        anchors = extract_anchors(html)
-        check_fragment_identifiers(html, anchors)
+      def warn_about_broken_anchor_links
+        # Loop over all anchor links and check if the anchor exists.
+        @anchor_links.each do |output_file, anchor_links|
+          existing_anchors = @anchors[output_file]
+          anchor_links.each do |anchor_link|
+            if existing_anchors&.exclude?(anchor_link.fragment)
+              warning = "[WARN] BROKEN LINK in #{anchor_link.source}: #{anchor_link.link}."
+              if guess = DidYouMean::SpellChecker.new(dictionary: existing_anchors).correct(anchor_link.fragment).first
+                guess_link = AnchorLink.new(file: anchor_link.file, fragment: guess, source: nil)
+                warning << "\n       Perhaps you meant #{guess_link.link}."
+              end
+              @warnings << warning
+            end
+          end
+        end
       end
 
       def extract_anchors(html)
@@ -247,20 +275,14 @@ module RailsGuides
         anchors
       end
 
-      def check_fragment_identifiers(html, anchors)
-        broken_links = []
-
-        html.scan(/<a\s+href="#([^"]+)/).flatten.each do |fragment_identifier|
-          next if fragment_identifier == "column-main" # in layout
-          next if fragment_identifier == "main-skip-link" # in layout
-          unless anchors.member?(CGI.unescape(fragment_identifier))
-            guess = DidYouMean::SpellChecker.new(dictionary: anchors).correct(fragment_identifier).first
-            puts "*** BROKEN LINK: ##{fragment_identifier}, perhaps you meant ##{guess}."
-            broken_links << "##{fragment_identifier}"
-          end
+      def extract_anchor_links(html)
+        anchor_links = []
+        html.scan(/<a\s+href="([a-z_]+.html)?#([^"]+)/).map do |file, fragment|
+          next if fragment == "column-main" # in layout
+          next if fragment == "main-skip-link" # in layout
+          anchor_links << [file, fragment]
         end
-
-        broken_links
+        anchor_links
       end
   end
 end
