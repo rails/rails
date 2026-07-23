@@ -298,7 +298,19 @@ module ActiveRecord
               scope.where!(reflection.type => model.polymorphic_name)
             end
 
-            scope.merge!(reflection_scope) unless reflection_scope.empty_scope?
+            unless reflection_scope.empty_scope?
+              # For singular associations (has_one, belongs_to), we must not apply
+              # LIMIT/OFFSET from the scope when preloading multiple records, as these
+              # clauses would be applied globally rather than per-parent-record.
+              # For example, `has_one :last_comment, -> { order(id: :desc).limit(1) }`
+              # would result in `WHERE post_id IN (1,2,3) LIMIT 1` returning only
+              # one record total instead of one per post.
+              if reflection.collection?
+                scope.merge!(reflection_scope)
+              else
+                scope.merge!(reflection_scope.except(:limit, :offset))
+              end
+            end
 
             if preload_scope && !preload_scope.empty_scope?
               scope.merge!(preload_scope)
