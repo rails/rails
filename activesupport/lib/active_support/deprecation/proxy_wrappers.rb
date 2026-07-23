@@ -133,7 +133,6 @@ module ActiveSupport
       def initialize(old_const, new_const, deprecator, message: "#{old_const} is deprecated! Use #{new_const} instead.")
         Kernel.require "active_support/inflector/methods"
 
-        @old_const = old_const
         @new_const = new_const
         @deprecator = deprecator
         @message = message
