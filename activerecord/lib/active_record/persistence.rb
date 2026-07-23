@@ -525,6 +525,12 @@ module ActiveRecord
         becoming.errors.copy!(errors)
       end
 
+      @association_cache.each do |name, assoc|
+        next unless assoc.loaded? && assoc.reflection.strict_loading?
+        next unless assoc.reflection.equal?(klass.reflect_on_association(name))
+        became.association(name).target = assoc.target
+      end
+
       became
     end
 
