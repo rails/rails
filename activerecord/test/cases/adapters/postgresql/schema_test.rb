@@ -1018,7 +1018,7 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
       t.string :kind
     end
 
-    options = "INHERITS (transportation_modes, vehicles)"
+    options = "INHERITS (vehicles, transportation_modes)"
 
     @connection.create_table "trains", options: options
 
