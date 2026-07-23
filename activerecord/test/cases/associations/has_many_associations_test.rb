@@ -311,6 +311,23 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal car, bulb.car
   end
 
+  def test_build_from_association_sets_inverse_before_assigning_attributes
+    the_car = Car.new(name: "honda")
+    inverse_during_init = nil
+
+    Bulb.define_method(:name=) do |value|
+      inverse_during_init = self.car
+      super(value)
+    end
+
+    the_car.bulbs.build(name: "my_bulb")
+    assert_not_nil inverse_during_init,
+      "inverse instance should be set before attributes are assigned during build"
+    assert_equal the_car, inverse_during_init
+  ensure
+    Bulb.remove_method(:name=) if Bulb.method_defined?(:name=, false)
+  end
+
   def test_do_not_call_callbacks_for_delete_all
     car = Car.create(name: "honda")
     car.funky_bulbs.create!
