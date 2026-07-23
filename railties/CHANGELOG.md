@@ -1,3 +1,8 @@
+*   Fix `bin/rails credentials:fetch` raising `Psych::AliasesNotEnabled` when
+    the credentials file contains YAML aliases.
+
+    *Leon Vogt*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"
