@@ -585,6 +585,15 @@
 
     *Joshua Young*
 
+*   Fix `insert_all` raising `ArgumentError: No unique index found for id`
+    when `unique_by` is not provided. `insert_all` uses `ON CONFLICT DO NOTHING`
+    which does not require a conflict target, so the unique index lookup is
+    skipped when `unique_by` is not specified.
+
+    Fixes #56953.
+
+    *Hammad Khan*
+
 *   Accept encryption credentials as ENV
 
     Taking advantage of Rails.apps.creds (#56455), the `primary_key`, `deterministic_key` and
