@@ -204,6 +204,11 @@ module ActionView
       end
 
       def find_best_by_details(templates, details)
+        if templates.size == 1
+          template = templates.first
+          return details.template_match?(template) ? template : nil
+        end
+
         best = best_rank = nil
         templates.each do |template|
           rank = details.template_rank(template) or next

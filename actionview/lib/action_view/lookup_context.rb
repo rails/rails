@@ -132,6 +132,15 @@ module ActionView
         [format, locale, variant, handler]
       end
 
+      # Same match semantics as +template_rank+ without computing a rank and skips the ranks cache.
+      def template_match?(template)
+        d = template.details
+        (d.format.nil? || formats.include?(d.format)) &&
+          (d.locale.nil? || locale.include?(d.locale)) &&
+          (variants == :any || d.variant.nil? || variants.include?(d.variant)) &&
+          (d.handler.nil? || handlers.include?(d.handler))
+      end
+
       def to_h
         { locale: locale, formats: formats, variants: variants, handlers: handlers }
       end
