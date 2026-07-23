@@ -1,3 +1,7 @@
+*   Preserve SQLite partial and expression indexes when their stored SQL contains newlines.
+
+    *Javi Ramírez*
+
 *   Mark a connection unverified when a non-`StandardError` interrupts a query.
 
     A query interrupted by a non-`StandardError`, such as a fiber scheduler's
