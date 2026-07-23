@@ -67,7 +67,7 @@ module ActiveSupport
 
     included do
       extend ActiveSupport::DescendantsTracker
-      class_attribute :__callbacks, instance_writer: false, instance_predicate: false, default: {}
+      class_attribute :__callbacks, instance_writer: false, instance_predicate: false, default: {}.freeze
     end
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around].freeze
@@ -153,7 +153,8 @@ module ActiveSupport
       module Conditionals # :nodoc: all
         class Value
           def initialize(&block)
-            @block = block
+            @block = Ractors.shareable_proc(&block)
+            freeze
           end
           def call(target, value); @block.call(value); end
         end
@@ -245,11 +246,12 @@ module ActiveSupport
 
         def initialize(name, filter, kind, options, chain_config)
           @chain_config = chain_config
-          @name    = name
-          @kind    = kind
-          @filter  = filter
-          @if      = check_conditionals(options[:if])
-          @unless  = check_conditionals(options[:unless])
+          @name            = name
+          @kind            = kind
+          @original_filter = filter
+          @filter          = try_shareable_proc(filter)
+          @if              = check_conditionals(options[:if])
+          @unless          = check_conditionals(options[:unless])
 
           compiled
         end
@@ -267,7 +269,7 @@ module ActiveSupport
         end
 
         def matches?(_kind, _filter)
-          @kind == _kind && filter == _filter
+          @kind == _kind && (filter == _filter || (@original_filter  == _filter.object_id))
         end
 
         def duplicates?(other)
@@ -296,6 +298,19 @@ module ActiveSupport
             end
         end
 
+        def freeze # :nodoc:
+          return self if frozen?
+
+          @filter = Ractors.make_shareable(@filter)
+          @if = make_conditionals_ractor_shareable(@if)
+          @unless = make_conditionals_ractor_shareable(@unless)
+          @compiled = nil
+
+          compiled
+          super
+          self
+        end
+
         # Wraps code with filter
         def apply(callback_sequence)
           compiled.apply(callback_sequence)
@@ -321,14 +336,24 @@ module ActiveSupport
               MSG
             end
 
-            conditionals.freeze
+            conditionals.map! { |conditional| try_shareable_proc(conditional) }
           end
 
           def conditions_lambdas
             conditions =
               @if.map { |c| CallTemplate.build(c, self).make_lambda } +
               @unless.map { |c| CallTemplate.build(c, self).inverted_lambda }
-            conditions.empty? ? EMPTY_ARRAY : conditions
+            conditions.empty? ? EMPTY_ARRAY : conditions.freeze
+          end
+
+          def try_shareable_proc(object)
+            object.is_a?(Proc) ? Ractors.try_shareable_proc(object) : object
+          end
+
+          def make_conditionals_ractor_shareable(conditionals)
+            return conditionals if conditionals.empty?
+
+            Ractors.make_shareable(conditionals)
           end
       end
 
@@ -358,14 +383,16 @@ module ActiveSupport
           end
 
           def make_lambda
-            lambda do |target, value, &block|
-              target.send(@method_name, &block)
+            method_name = @method_name
+            Ractors.shareable_proc do |target, value, &block|
+              target.send(method_name, &block)
             end
           end
 
           def inverted_lambda
-            lambda do |target, value, &block|
-              !target.send(@method_name, &block)
+            method_name = @method_name
+            Ractors.shareable_proc do |target, value, &block|
+              !target.send(method_name, &block)
             end
           end
         end
@@ -381,14 +408,18 @@ module ActiveSupport
           end
 
           def make_lambda
-            lambda do |target, value, &block|
-              (@override_target || target).send(@method_name, target, &block)
+            override_target = @override_target
+            method_name = @method_name
+            Ractors.try_shareable_proc do |target, value, &block|
+              (override_target || target).send(method_name, target, &block)
             end
           end
 
           def inverted_lambda
-            lambda do |target, value, &block|
-              !(@override_target || target).send(@method_name, target, &block)
+            override_target = @override_target
+            method_name = @method_name
+            Ractors.try_shareable_proc do |target, value, &block|
+              !(override_target || target).send(method_name, target, &block)
             end
           end
         end
@@ -403,14 +434,16 @@ module ActiveSupport
           end
 
           def make_lambda
-            lambda do |target, value, &block|
-              target.instance_exec(&@override_block)
+            override_block = @override_block
+            Ractors.try_shareable_proc do |target, value, &block|
+              target.instance_exec(&override_block)
             end
           end
 
           def inverted_lambda
-            lambda do |target, value, &block|
-              !target.instance_exec(&@override_block)
+            override_block = @override_block
+            Ractors.try_shareable_proc do |target, value, &block|
+              !target.instance_exec(&override_block)
             end
           end
         end
@@ -425,14 +458,16 @@ module ActiveSupport
           end
 
           def make_lambda
-            lambda do |target, value, &block|
-              target.instance_exec(target, &@override_block)
+            override_block = @override_block
+            Ractors.try_shareable_proc do |target, value, &block|
+              target.instance_exec(target, &override_block)
             end
           end
 
           def inverted_lambda
-            lambda do |target, value, &block|
-              !target.instance_exec(target, &@override_block)
+            override_block = @override_block
+            Ractors.try_shareable_proc do |target, value, &block|
+              !target.instance_exec(target, &override_block)
             end
           end
         end
@@ -448,16 +483,18 @@ module ActiveSupport
           end
 
           def make_lambda
-            lambda do |target, value, &block|
+            override_block = @override_block
+            Ractors.try_shareable_proc do |target, value, &block|
               raise ArgumentError unless block
-              target.instance_exec(target, block, &@override_block)
+              target.instance_exec(target, block, &override_block)
             end
           end
 
           def inverted_lambda
-            lambda do |target, value, &block|
+            override_block = @override_block
+            Ractors.try_shareable_proc do |target, value, &block|
               raise ArgumentError unless block
-              !target.instance_exec(target, block, &@override_block)
+              !target.instance_exec(target, block, &override_block)
             end
           end
         end
@@ -472,14 +509,16 @@ module ActiveSupport
           end
 
           def make_lambda
-            lambda do |target, value, &block|
-              (@override_target || target).call(target, value, &block)
+            override_target = @override_target
+            Ractors.shareable_proc do |target, value, &block|
+              (override_target || target).call(target, value, &block)
             end
           end
 
           def inverted_lambda
-            lambda do |target, value, &block|
-              !(@override_target || target).call(target, value, &block)
+            override_target = @override_target
+            Ractors.shareable_proc do |target, value, &block|
+              !(override_target || target).call(target, value, &block)
             end
           end
         end
@@ -563,6 +602,12 @@ module ActiveSupport
         def invoke_after(arg)
           @after&.each { |a| a.call(arg) }
         end
+
+        def freeze
+          @before&.freeze
+          @after&.freeze
+          super
+        end
       end
 
       class CallbackChain # :nodoc:
@@ -576,6 +621,7 @@ module ActiveSupport
             scope: [:kind],
             terminator: DEFAULT_TERMINATOR
           }.merge!(config)
+          @config[:terminator] = Ractors.try_shareable_proc(@config[:terminator]) if @config[:terminator].is_a?(Proc)
           @chain = []
           @all_callbacks = nil
           @single_callbacks = {}
@@ -613,19 +659,15 @@ module ActiveSupport
         end
 
         def compile(type)
-          if type.nil?
+          if frozen?
+            type.nil? ? (@all_callbacks || compile_sequence(nil)) : (@single_callbacks[type] || compile_sequence(type))
+          elsif type.nil?
             @all_callbacks || @mutex.synchronize do
-              final_sequence = CallbackSequence.new
-              @all_callbacks ||= @chain.reverse.inject(final_sequence) do |callback_sequence, callback|
-                callback.apply(callback_sequence)
-              end
+              @all_callbacks ||= compile_sequence(nil)
             end
           else
             @single_callbacks[type] || @mutex.synchronize do
-              final_sequence = CallbackSequence.new
-              @single_callbacks[type] ||= @chain.reverse.inject(final_sequence) do |callback_sequence, callback|
-                type == callback.kind ? callback.apply(callback_sequence) : callback_sequence
-              end
+              @single_callbacks[type] ||= compile_sequence(type)
             end
           end
         end
@@ -638,10 +680,30 @@ module ActiveSupport
           callbacks.each { |c| prepend_one(c) }
         end
 
+        def freeze
+          return self if frozen?
+
+          @chain.each(&:freeze)
+          compile(nil)
+          CALLBACK_FILTER_TYPES.each { |type| compile(type) }
+          @chain.freeze
+          @config.freeze
+          @single_callbacks.freeze
+          @mutex = nil
+          super
+        end
+
         protected
           attr_reader :chain
 
         private
+          def compile_sequence(type)
+            final_sequence = CallbackSequence.new
+            @chain.reverse.inject(final_sequence) do |callback_sequence, callback|
+              type.nil? || type == callback.kind ? callback.apply(callback_sequence) : callback_sequence
+            end
+          end
+
           def append_one(callback)
             @all_callbacks = nil
             @single_callbacks.clear
@@ -940,20 +1002,27 @@ module ActiveSupport
             __callbacks[name.to_sym]
           end
 
-          def set_callbacks(name, callbacks) # :nodoc:
-            # HACK: We're making assumption on how `class_attribute` is implemented
-            # to save constantly duping the callback hash. If this desync with class_attribute
-            # we'll lose the optimization, but won't cause an actual behavior bug.
-            unless singleton_class.private_method_defined?(:__class_attr__callbacks_owner, false)
-              self.__callbacks = __callbacks.dup
+          def freeze # :nodoc:
+            descendants.prepend(self).each do |target|
+              target.__callbacks = Ractors.make_shareable(target.__callbacks)
             end
+          end
+
+          def set_callbacks(name, callbacks) # :nodoc:
             name = name.to_sym
-            callbacks_was = self.__callbacks[name.to_sym]
+            callback_sets = __callbacks.dup
+            callbacks_was = callback_sets[name]
             if (callbacks_was.nil? || callbacks_was.empty?) && !callbacks.empty?
               alias_method("_run_#{name}_callbacks", "_run_#{name}_callbacks!")
             end
-            self.__callbacks[name.to_sym] = callbacks
-            self.__callbacks
+            callback_sets[name] = callbacks
+            ractor_shareable = Ractors.unshareable_proc_action == :raise ||
+              (!__callbacks.empty? && Ractors.shareable?(__callbacks))
+            self.__callbacks = if ractor_shareable
+              Ractors.make_shareable(callback_sets)
+            else
+              callback_sets
+            end
           end
       end
   end

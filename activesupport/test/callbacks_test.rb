@@ -2,6 +2,8 @@
 
 require_relative "abstract_unit"
 require "active_support/core_ext/kernel/singleton_class"
+require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 
 module CallbacksTest
   class Record
@@ -579,6 +581,8 @@ module CallbacksTest
   end
 
   class CallbacksTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
     def test_save_person
       person = Person.new
       assert_equal [], person.history
@@ -595,6 +599,85 @@ module CallbacksTest
         [:after_save, :proc],
         [:after_save, :symbol]
       ], person.history
+    end
+
+    if RUBY_VERSION >= "4.0"
+      def test_callbacks_are_ractor_shareable
+        ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+          klass = Class.new do
+            include ActiveSupport::Callbacks
+
+            define_callbacks :save, terminator: ->(_target, result_lambda) { result_lambda.call == false }
+
+            set_callback :save, :before, -> { events << :before }, if: -> { true }
+            set_callback :save, :around, ->(_record, block) {
+              events << :around_before
+              block.call
+              events << :around_after
+            }
+            set_callback :save, :after, ->(record) { record.events << :after }, unless: -> { false }
+
+            attr_reader :events
+
+            def initialize
+              @events = []
+            end
+
+            def save
+              run_callbacks(:save) { events << :save }
+            end
+          end
+
+          assert_ractor_shareable klass
+
+          assert_equal [:before, :around_before, :save, :after, :around_after], Ractor.new(klass) { |callback_class|
+            record = callback_class.new
+            record.save
+            record.events
+          }.value
+        end
+      end
+
+      def test_user_supplied_callback_procs_use_unshareable_proc_action
+        ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+          object = Object.new
+
+          assert_raises(Ractor::IsolationError) do
+            Class.new do
+              include ActiveSupport::Callbacks
+              define_callbacks :save
+              set_callback :save, :before, -> { object }
+            end
+          end
+        end
+      end
+
+      def test_user_supplied_callback_condition_procs_use_unshareable_proc_action
+        ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+          object = Object.new
+
+          assert_raises(Ractor::IsolationError) do
+            Class.new do
+              include ActiveSupport::Callbacks
+              define_callbacks :save
+              set_callback :save, :before, :save, if: -> { object }
+            end
+          end
+        end
+      end
+
+      def test_user_supplied_callback_terminator_procs_use_unshareable_proc_action
+        ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+          object = Object.new
+
+          assert_raises(Ractor::IsolationError) do
+            Class.new do
+              include ActiveSupport::Callbacks
+              define_callbacks :save, terminator: ->(_target, _result_lambda) { object }
+            end
+          end
+        end
+      end
     end
   end
 
