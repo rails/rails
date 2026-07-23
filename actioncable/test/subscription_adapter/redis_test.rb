@@ -270,6 +270,10 @@ class RedisAdapterTest::ListenerReconnection < ActionCable::TestCase
     def post(task = nil, &block)
       (task || block).call
     end
+
+    def schedule(&block)
+      Thread.new(&block)
+    end
   end
 
   test "an in-flight subscription confirmation is delivered after a reconnect" do

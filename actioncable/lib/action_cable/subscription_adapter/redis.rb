@@ -57,7 +57,7 @@ module ActionCable
 
       private
         def listener
-          @listener || @mutex.synchronize { @listener ||= Listener.new(self, config_options, executor) }
+          @listener || @mutex.synchronize { @listener ||= Listener.new(self, config_options, server) }
         end
 
         def redis_connection_for_broadcasts
@@ -84,8 +84,8 @@ module ActionCable
           # zero and stops the listener.
           INTERNAL_CHANNEL = "_action_cable_internal"
 
-          def initialize(adapter, config_options, executor)
-            super(executor)
+          def initialize(adapter, config_options, server)
+            super(server)
 
             @adapter = adapter
 
@@ -122,7 +122,7 @@ module ActionCable
               when "subscribe", "psubscribe"
                 if callbacks = @subscribe_callbacks[chan]
                   next_callback = callbacks.shift
-                  @executor.post(&next_callback) if next_callback
+                  @server.post(&next_callback) if next_callback
                   @subscribe_callbacks.delete(chan) if callbacks.empty?
                 end
               when "message", "pmessage"
@@ -178,21 +178,17 @@ module ActionCable
                 @reconnect_attempt = 0
               end
 
-              @thread ||= Thread.new do
-                Thread.current.abort_on_exception = true
-
-                begin
-                  conn = @adapter.redis_connection_for_subscriptions
-                  listen conn
-                rescue RedisClient::ConnectionError => e
-                  reset
-                  if retry_connecting?
-                    logger&.warn "Redis connection failed: #{e.message}. Trying to reconnect..."
-                    when_connected { resubscribe }
-                    retry
-                  else
-                    logger&.error "Failed to reconnect to Redis after #{@reconnect_attempt} attempts."
-                  end
+              @thread ||= @server.schedule do
+                conn = @adapter.redis_connection_for_subscriptions
+                listen conn
+              rescue RedisClient::ConnectionError => e
+                reset
+                if retry_connecting?
+                  logger&.warn "Redis connection failed: #{e.message}. Trying to reconnect..."
+                  when_connected { resubscribe }
+                  retry
+                else
+                  logger&.error "Failed to reconnect to Redis after #{@reconnect_attempt} attempts."
                 end
               end
             end
