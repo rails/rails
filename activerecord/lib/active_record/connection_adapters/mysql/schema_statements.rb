@@ -191,8 +191,6 @@ module ActiveRecord
             elsif type_metadata.type == :text && default&.start_with?("'")
               # strip and unescape quotes
               default = default[1...-1].gsub("\\'", "'")
-            elsif default&.match?(/\A\d/)
-              # Its a number so we can skip the query to check if it is a function
             end
 
             MySQL::Column.new(
