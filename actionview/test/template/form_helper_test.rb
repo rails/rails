@@ -2030,6 +2030,13 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, @rendered
   end
 
+  def test_datetime_field_does_not_try_to_look_up_value_dynamically_when_explicitly_provided
+    @template_object = Post.new
+    expected = '<input value="2026-04-29T00:00:00" type="datetime-local" id="template_object_foo" name="template_object[foo]">'
+    actual = datetime_field("template_object", "foo", value: Date.parse("2026-04-29"))
+    assert_dom_equal expected, actual
+  end
+
   def test_form_for_with_nested_attributes_field_id
     post, comment, tag = Post.new, Comment.new, Tag.new
     comment.relevances = [tag]
