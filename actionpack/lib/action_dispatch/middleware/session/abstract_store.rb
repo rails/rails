@@ -19,8 +19,11 @@ module ActionDispatch
     end
 
     module Compatibility
+      DEFAULT_SAME_SITE = ActiveSupport::Ractors.shareable_proc { |request| request.cookies_same_site_protection } # :nodoc:
+
       def initialize(app, options = {})
         options[:key] ||= "_session_id"
+        options[:same_site] = DEFAULT_SAME_SITE if !options.key?(:same_site)
         super
       end
 

@@ -1,3 +1,8 @@
+*   Respect `config.action_dispatch.cookies_same_site_protection` for session
+    cookies written by Rails session stores.
+
+    *Bart de Water*
+
 *   Deprecate `ActionDispatch::Cookies::HTTP_HEADER`.
 
     Use `Rack::SET_COOKIE` instead.

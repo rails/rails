@@ -3,6 +3,10 @@
 require "abstract_unit"
 
 class CacheStoreTest < ActionDispatch::IntegrationTest
+  SameSite = proc { :lax }
+
+  include CookieAssertions
+
   class TestController < ActionController::Base
     def no_session_access
       head :ok
@@ -251,7 +255,42 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
     assert_not_nil store.delete_session({}, sid, {})
   end
 
+  test "default same_site derives SameSite from env" do
+    with_test_route_set do
+      get "/set_session_value"
+      assert_set_cookie_attributes("_session_id", "SameSite=Lax")
+    end
+  end
+
+  test "explicit same_site sets SameSite" do
+    cache_store_options(same_site: :strict)
+
+    with_test_route_set do
+      get "/set_session_value"
+      assert_set_cookie_attributes("_session_id", "SameSite=Strict")
+    end
+  end
+
+  test "explicit nil same_site omits SameSite" do
+    cache_store_options(same_site: nil)
+
+    with_test_route_set do
+      get "/set_session_value"
+      assert_not_set_cookie_attributes("_session_id", "SameSite")
+    end
+  end
+
   private
+    # Overwrite `get` to set env hash
+    def get(path, **options)
+      options[:headers] ||= {}
+      options[:headers].tap do |config|
+        config["action_dispatch.cookies_same_site_protection"] ||= SameSite
+      end
+
+      super
+    end
+
     def cache_store_options(options = {})
       @cache_store_options ||= options
     end
