@@ -36,8 +36,7 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
   if available_pty?
     def test_console_command_work_inside_engine
       primary, replica = PTY.open
-      cmd = "console"
-      spawn_command(cmd, replica, env: { "TERM" => "dumb" })
+      spawn_command("console", replica, env: { "TERM" => "dumb" })
       assert_output(">", primary)
     ensure
       primary.puts "quit"
@@ -50,33 +49,42 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
     ensure
       primary.puts ".exit"
     end
+  end
 
-    def test_server_command_work_inside_engine
-      primary, replica = PTY.open
-      pid = spawn_command("server", replica)
-      assert_output("Listening on", primary)
-    ensure
-      kill(pid)
+  def test_server_command_work_inside_engine
+    io_read, io_write = IO.pipe
+    pid = spawn_command("server", io_write)
+    assert_output("Listening on", io_read)
+  ensure
+    io_read.close
+    io_write.close
+    kill(pid) if pid
+  end
+
+  def test_server_command_broadcast_logs
+    io_read, io_write = IO.pipe
+    pid = spawn_command("server", io_write, env: { "RAILS_ENV" => "development" })
+
+    assert_output("Listening on", io_read)
+
+    request_thread = Thread.new do
+      Net::HTTP.get("127.0.0.1", "/", 3000)
     end
 
-    def test_server_command_broadcast_logs
-      primary, replica = PTY.open
-      pid = spawn_command("server", replica, env: { "RAILS_ENV" => "development" })
-      assert_output("Listening on", primary)
+    assert_output("Processing by Rails::WelcomeController", io_read)
 
-      Net::HTTP.new("127.0.0.1", 3000).tap do |net|
-        net.get("/")
-      end
+    # Wait for the request thread to complete and reraise any errors.
+    request_thread.value
 
-      in_plugin_context(plugin_path) do
-        logs = File.read("test/dummy/log/development.log")
-        assert_match("Processing by Rails::WelcomeController", logs)
-      end
-
-      assert_output("Processing by Rails::WelcomeController", primary)
-    ensure
-      kill(pid)
+    in_plugin_context(plugin_path) do
+      logs = File.read("test/dummy/log/development.log")
+      assert_match("Processing by Rails::WelcomeController", logs)
     end
+  ensure
+    request_thread.kill if request_thread
+    io_read.close
+    io_write.close
+    kill(pid) if pid
   end
 
   private
