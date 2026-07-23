@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/try"
@@ -64,8 +65,8 @@ module DateAndTime
     end
 
     # Returns true if the date/time falls within the current week.
-    # Week is assumed to start on +start_day+, default is
-    # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
+    # Week is assumed to start on `start_day`, default is
+    # `Date.beginning_of_week` or `config.beginning_of_week` when set.
     def this_week?(start_day = Date.beginning_of_week)
       ::Date.current.all_week(start_day).cover?(to_date)
     end
@@ -85,12 +86,12 @@ module DateAndTime
       ::Date.current.all_year.cover?(to_date)
     end
 
-    # Returns true if the date/time falls before <tt>date_or_time</tt>.
+    # Returns true if the date/time falls before `date_or_time`.
     def before?(date_or_time)
       self < date_or_time
     end
 
-    # Returns true if the date/time falls after <tt>date_or_time</tt>.
+    # Returns true if the date/time falls after `date_or_time`.
     def after?(date_or_time)
       self > date_or_time
     end
@@ -137,13 +138,17 @@ module DateAndTime
 
     # Returns a new date/time at the start of the month.
     #
-    #   today = Date.today # => Thu, 18 Jun 2015
-    #   today.beginning_of_month # => Mon, 01 Jun 2015
+    # ```ruby
+    # today = Date.today # => Thu, 18 Jun 2015
+    # today.beginning_of_month # => Mon, 01 Jun 2015
+    # ```
     #
-    # +DateTime+ objects will have a time set to 0:00.
+    # `DateTime` objects will have a time set to 0:00.
     #
-    #   now = DateTime.current # => Thu, 18 Jun 2015 15:23:13 +0000
-    #   now.beginning_of_month # => Mon, 01 Jun 2015 00:00:00 +0000
+    # ```ruby
+    # now = DateTime.current # => Thu, 18 Jun 2015 15:23:13 +0000
+    # now.beginning_of_month # => Mon, 01 Jun 2015 00:00:00 +0000
+    # ```
     def beginning_of_month
       first_hour(change(day: 1))
     end
@@ -151,13 +156,17 @@ module DateAndTime
 
     # Returns a new date/time at the start of the quarter.
     #
-    #   today = Date.today # => Fri, 10 Jul 2015
-    #   today.beginning_of_quarter # => Wed, 01 Jul 2015
+    # ```ruby
+    # today = Date.today # => Fri, 10 Jul 2015
+    # today.beginning_of_quarter # => Wed, 01 Jul 2015
+    # ```
     #
-    # +DateTime+ objects will have a time set to 0:00.
+    # `DateTime` objects will have a time set to 0:00.
     #
-    #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
-    #   now.beginning_of_quarter # => Wed, 01 Jul 2015 00:00:00 +0000
+    # ```ruby
+    # now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+    # now.beginning_of_quarter # => Wed, 01 Jul 2015 00:00:00 +0000
+    # ```
     def beginning_of_quarter
       first_quarter_month = month - (2 + month) % 3
       beginning_of_month.change(month: first_quarter_month)
@@ -166,13 +175,17 @@ module DateAndTime
 
     # Returns a new date/time at the end of the quarter.
     #
-    #   today = Date.today # => Fri, 10 Jul 2015
-    #   today.end_of_quarter # => Wed, 30 Sep 2015
+    # ```ruby
+    # today = Date.today # => Fri, 10 Jul 2015
+    # today.end_of_quarter # => Wed, 30 Sep 2015
+    # ```
     #
-    # +DateTime+ objects will have a time set to 23:59:59.
+    # `DateTime` objects will have a time set to 23:59:59.
     #
-    #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
-    #   now.end_of_quarter # => Wed, 30 Sep 2015 23:59:59 +0000
+    # ```ruby
+    # now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+    # now.end_of_quarter # => Wed, 30 Sep 2015 23:59:59 +0000
+    # ```
     def end_of_quarter
       last_quarter_month = month + (12 - month) % 3
       beginning_of_month.change(month: last_quarter_month).end_of_month
@@ -181,23 +194,29 @@ module DateAndTime
 
     # Returns the quarter for a date/time.
     #
-    #   Date.new(2010, 1, 31).quarter  # => 1
-    #   Date.new(2010, 4, 12).quarter  # => 2
-    #   Date.new(2010, 9, 15).quarter  # => 3
-    #   Date.new(2010, 12, 25).quarter # => 4
+    # ```ruby
+    # Date.new(2010, 1, 31).quarter  # => 1
+    # Date.new(2010, 4, 12).quarter  # => 2
+    # Date.new(2010, 9, 15).quarter  # => 3
+    # Date.new(2010, 12, 25).quarter # => 4
+    # ```
     def quarter
       (month / 3.0).ceil
     end
 
     # Returns a new date/time at the beginning of the year.
     #
-    #   today = Date.today # => Fri, 10 Jul 2015
-    #   today.beginning_of_year # => Thu, 01 Jan 2015
+    # ```ruby
+    # today = Date.today # => Fri, 10 Jul 2015
+    # today.beginning_of_year # => Thu, 01 Jan 2015
+    # ```
     #
-    # +DateTime+ objects will have a time set to 0:00.
+    # `DateTime` objects will have a time set to 0:00.
     #
-    #   now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
-    #   now.beginning_of_year # => Thu, 01 Jan 2015 00:00:00 +0000
+    # ```ruby
+    # now = DateTime.current # => Fri, 10 Jul 2015 18:41:29 +0000
+    # now.beginning_of_year # => Thu, 01 Jan 2015 00:00:00 +0000
+    # ```
     def beginning_of_year
       change(month: 1).beginning_of_month
     end
@@ -205,20 +224,26 @@ module DateAndTime
 
     # Returns a new date/time representing the given day in the next week.
     #
-    #   today = Date.today # => Thu, 07 May 2015
-    #   today.next_week    # => Mon, 11 May 2015
+    # ```ruby
+    # today = Date.today # => Thu, 07 May 2015
+    # today.next_week    # => Mon, 11 May 2015
+    # ```
     #
-    # The +given_day_in_next_week+ defaults to the beginning of the week
-    # which is determined by +Date.beginning_of_week+ or +config.beginning_of_week+
+    # The `given_day_in_next_week` defaults to the beginning of the week
+    # which is determined by `Date.beginning_of_week` or `config.beginning_of_week`
     # when set.
     #
-    #   today = Date.today       # => Thu, 07 May 2015
-    #   today.next_week(:friday) # => Fri, 15 May 2015
+    # ```ruby
+    # today = Date.today       # => Thu, 07 May 2015
+    # today.next_week(:friday) # => Fri, 15 May 2015
+    # ```
     #
-    # +DateTime+ objects have their time set to 0:00 unless +same_time+ is true.
+    # `DateTime` objects have their time set to 0:00 unless `same_time` is true.
     #
-    #   now = DateTime.current # => Thu, 07 May 2015 13:31:16 +0000
-    #   now.next_week      # => Mon, 11 May 2015 00:00:00 +0000
+    # ```ruby
+    # now = DateTime.current # => Thu, 07 May 2015 13:31:16 +0000
+    # now.next_week      # => Mon, 11 May 2015 00:00:00 +0000
+    # ```
     def next_week(given_day_in_next_week = Date.beginning_of_week, same_time: false)
       result = first_hour(weeks_since(1).beginning_of_week.days_since(days_span(given_day_in_next_week)))
       same_time ? copy_time_to(result) : result
@@ -233,15 +258,15 @@ module DateAndTime
       end
     end
 
-    # Short-hand for <tt>months_since(3)</tt>.
+    # Short-hand for `months_since(3)`.
     def next_quarter
       months_since(3)
     end
 
     # Returns a new date/time representing the given day in the previous week.
-    # Week is assumed to start on +start_day+, default is
-    # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
-    # DateTime objects have their time set to 0:00 unless +same_time+ is true.
+    # Week is assumed to start on `start_day`, default is
+    # `Date.beginning_of_week` or `config.beginning_of_week` when set.
+    # DateTime objects have their time set to 0:00 unless `same_time` is true.
     def prev_week(start_day = Date.beginning_of_week, same_time: false)
       result = first_hour(weeks_ago(1).beginning_of_week.days_since(days_span(start_day)))
       same_time ? copy_time_to(result) : result
@@ -258,34 +283,34 @@ module DateAndTime
     end
     alias_method :last_weekday, :prev_weekday
 
-    # Short-hand for <tt>months_ago(1)</tt>.
+    # Short-hand for `months_ago(1)`.
     def last_month
       months_ago(1)
     end
 
-    # Short-hand for <tt>months_ago(3)</tt>.
+    # Short-hand for `months_ago(3)`.
     def prev_quarter
       months_ago(3)
     end
     alias_method :last_quarter, :prev_quarter
 
-    # Short-hand for <tt>years_ago(1)</tt>.
+    # Short-hand for `years_ago(1)`.
     def last_year
       years_ago(1)
     end
 
     # Returns the number of days to the start of the week on the given day.
-    # Week is assumed to start on +start_day+, default is
-    # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
+    # Week is assumed to start on `start_day`, default is
+    # `Date.beginning_of_week` or `config.beginning_of_week` when set.
     def days_to_week_start(start_day = Date.beginning_of_week)
       start_day_number = DAYS_INTO_WEEK.fetch(start_day)
       (wday - start_day_number) % 7
     end
 
     # Returns a new date/time representing the start of this week on the given day.
-    # Week is assumed to start on +start_day+, default is
-    # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
-    # +DateTime+ objects have their time set to 0:00.
+    # Week is assumed to start on `start_day`, default is
+    # `Date.beginning_of_week` or `config.beginning_of_week` when set.
+    # `DateTime` objects have their time set to 0:00.
     def beginning_of_week(start_day = Date.beginning_of_week)
       result = days_ago(days_to_week_start(start_day))
       acts_like?(:time) ? result.midnight : result
@@ -293,14 +318,14 @@ module DateAndTime
     alias :at_beginning_of_week :beginning_of_week
 
     # Returns Monday of this week assuming that week starts on Monday.
-    # +DateTime+ objects have their time set to 0:00.
+    # `DateTime` objects have their time set to 0:00.
     def monday
       beginning_of_week(:monday)
     end
 
     # Returns a new date/time representing the end of this week on the given day.
-    # Week is assumed to start on +start_day+, default is
-    # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
+    # Week is assumed to start on `start_day`, default is
+    # `Date.beginning_of_week` or `config.beginning_of_week` when set.
     # DateTime objects have their time set to 23:59:59.
     def end_of_week(start_day = Date.beginning_of_week)
       last_hour(days_since(6 - days_to_week_start(start_day)))
@@ -308,7 +333,7 @@ module DateAndTime
     alias :at_end_of_week :end_of_week
 
     # Returns Sunday of this week assuming that week starts on Monday.
-    # +DateTime+ objects have their time set to 23:59:59.
+    # `DateTime` objects have their time set to 23:59:59.
     def sunday
       end_of_week(:monday)
     end
@@ -334,7 +359,7 @@ module DateAndTime
     end
 
     # Returns a Range representing the whole week of the current date/time.
-    # Week starts on start_day, default is <tt>Date.beginning_of_week</tt> or <tt>config.beginning_of_week</tt> when set.
+    # Week starts on start_day, default is `Date.beginning_of_week` or `config.beginning_of_week` when set.
     def all_week(start_day = Date.beginning_of_week)
       beginning_of_week(start_day)..end_of_week(start_day)
     end
@@ -356,9 +381,11 @@ module DateAndTime
 
     # Returns a new date/time representing the next occurrence of the specified day of week.
     #
-    #   today = Date.today               # => Thu, 14 Dec 2017
-    #   today.next_occurring(:monday)    # => Mon, 18 Dec 2017
-    #   today.next_occurring(:thursday)  # => Thu, 21 Dec 2017
+    # ```ruby
+    # today = Date.today               # => Thu, 14 Dec 2017
+    # today.next_occurring(:monday)    # => Mon, 18 Dec 2017
+    # today.next_occurring(:thursday)  # => Thu, 21 Dec 2017
+    # ```
     def next_occurring(day_of_week)
       from_now = DAYS_INTO_WEEK.fetch(day_of_week) - wday
       from_now += 7 unless from_now > 0
@@ -367,9 +394,11 @@ module DateAndTime
 
     # Returns a new date/time representing the previous occurrence of the specified day of week.
     #
-    #   today = Date.today               # => Thu, 14 Dec 2017
-    #   today.prev_occurring(:monday)    # => Mon, 11 Dec 2017
-    #   today.prev_occurring(:thursday)  # => Thu, 07 Dec 2017
+    # ```ruby
+    # today = Date.today               # => Thu, 14 Dec 2017
+    # today.prev_occurring(:monday)    # => Mon, 11 Dec 2017
+    # today.prev_occurring(:thursday)  # => Thu, 07 Dec 2017
+    # ```
     def prev_occurring(day_of_week)
       ago = wday - DAYS_INTO_WEEK.fetch(day_of_week)
       ago += 7 unless ago > 0
