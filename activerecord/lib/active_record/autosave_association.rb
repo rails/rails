@@ -448,7 +448,9 @@ module ActiveRecord
                 association.set_inverse_instance(record)
 
                 if autosave
-                  saved = association.insert_record(record, false)
+                  validate = autosave_uniqueness_validation?(reflection, record)
+                  saved = association.insert_record(record, validate)
+                  association_valid?(association, record) if validate && !saved
                 elsif !reflection.nested?
                   association_saved = association.insert_record(record)
 
@@ -465,6 +467,12 @@ module ActiveRecord
             end
           end
         end
+      end
+
+      def autosave_uniqueness_validation?(reflection, record)
+        reflection.validate? &&
+          !autosave_association_validations_skipped? &&
+          record.class.validators.any? { |validator| validator.kind == :uniqueness }
       end
 
       # Saves the associated record if it's new or <tt>:autosave</tt> is enabled
