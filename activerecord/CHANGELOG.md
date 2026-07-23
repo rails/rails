@@ -1,3 +1,7 @@
+*   Preserve SQLite partial and expression indexes when their stored SQL contains newlines.
+
+    *Javi Ramírez*
+
 *   Only use multi statement for `SET TRANSACTION ISOLATION LEVEL; BEGIN` if
     MySQL connection is configured to use multi statement.
 
