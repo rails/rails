@@ -88,8 +88,8 @@ module ActionMailbox
           end
         end
       rescue => exception
-        # TODO: Include a reference to the inbound_email in the exception raised so error handling becomes easier
-        rescue_with_handler(exception) || raise
+        exception = append_inbound_email_to(exception)
+        rescue_with_handler(exception) || raise(exception)
       end
     end
 
@@ -129,6 +129,25 @@ module ActionMailbox
         inbound_email.failed!
         raise
       end
+
+      def append_inbound_email_to(exception)
+        exception.extend InboundEmailExceptionContext
+        exception.action_mailbox_inbound_email_reference ||= inbound_email_reference
+        exception
+      end
+
+      def inbound_email_reference
+        inbound_email.to_gid_param || inbound_email.to_sgid_param || inbound_email.id || "unknown"
+      end
+
+      module InboundEmailExceptionContext # :nodoc:
+        attr_accessor :action_mailbox_inbound_email_reference
+
+        def to_s
+          "#{super} [ActionMailbox::InboundEmail##{action_mailbox_inbound_email_reference}]"
+        end
+      end
+      private_constant :InboundEmailExceptionContext
   end
 end
 
