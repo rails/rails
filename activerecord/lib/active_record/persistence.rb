@@ -972,18 +972,23 @@ module ActiveRecord
 
           returning_values = result.rows.first
 
+          returned_attribute_names = []
           returning_columns.zip(returning_values).each do |column, value|
             _write_attribute(column, value)
+            returned_attribute_names << column
           end if returning_values.present?
 
-          result.affected_rows
+          affected_rows = result.affected_rows
+          record_transaction_written_attributes(attribute_names | returned_attribute_names) if affected_rows == 1
+          affected_rows
         else
-          result = self.class._update_record(
+          affected_rows = self.class._update_record(
             attributes_with_values(attribute_names),
             _query_constraints_hash,
           )
 
-          result
+          record_transaction_written_attributes(attribute_names) if affected_rows == 1
+          affected_rows
         end
       end
 
@@ -1019,6 +1024,7 @@ module ActiveRecord
       def _create_record(attribute_names = self.attribute_names)
         attribute_names = attributes_for_create(attribute_names)
 
+        returned_attribute_names = []
         self.class.with_connection do |connection|
           returning_columns = self.class._returning_columns_for_insert(connection)
 
@@ -1029,9 +1035,13 @@ module ActiveRecord
           )
 
           returning_columns.zip(returning_values).each do |column, value|
-            _write_attribute(column, type_for_attribute(column).deserialize(value)) if !_read_attribute(column)
+            if !_read_attribute(column)
+              _write_attribute(column, type_for_attribute(column).deserialize(value))
+              returned_attribute_names << column
+            end
           end if returning_values
         end
+        record_transaction_written_attributes(attribute_names | returned_attribute_names)
 
         @new_record = false
         @previously_new_record = true

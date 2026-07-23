@@ -5,6 +5,7 @@ module ActiveRecord
   module Transactions
     extend ActiveSupport::Concern
     ACTIONS = [:create, :destroy, :update].freeze # :nodoc:
+    TransactionChangeFrame = Struct.new(:owner_state, :written_attributes) # :nodoc:
 
     included do
       define_callbacks :commit, :rollback,
@@ -391,6 +392,13 @@ module ActiveRecord
       with_transaction_returning_status { super }
     end
 
+    def changes_applied # :nodoc:
+      super
+      refresh_transaction_record_state
+    ensure
+      clear_transaction_written_attributes
+    end
+
     def before_committed! # :nodoc:
       _run_before_commit_callbacks
     end
@@ -400,6 +408,7 @@ module ActiveRecord
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) # :nodoc:
+      _compute_committed_changes
       @_start_transaction_state = nil
       if should_run_callbacks
         @_committed_already_called = true
@@ -412,10 +421,12 @@ module ActiveRecord
     # Call the #after_rollback callbacks. The +force_restore_state+ argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
     def rolledback!(force_restore_state: false, should_run_callbacks: true) # :nodoc:
+      @_full_rollback = force_restore_state
       if should_run_callbacks
         _run_rollback_callbacks
       end
     ensure
+      @_full_rollback = false
       restore_transaction_record_state(force_restore_state)
       clear_transaction_record_state
       @_trigger_update_callback = @_trigger_destroy_callback = false if force_restore_state
@@ -435,7 +446,7 @@ module ActiveRecord
 
           implicit_persistence_transaction(connection) do
             add_to_transaction(ensure_finalize || has_transactional_callbacks?)
-            remember_transaction_record_state
+            remember_transaction_record_state(connection.current_transaction.state)
 
             status = yield
             raise ActiveRecord::Rollback unless status
@@ -463,23 +474,160 @@ module ActiveRecord
       end
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
-      def remember_transaction_record_state
+      def remember_transaction_record_state(owner_state = nil)
+        # Zero-argument compatibility remains until bulk persistence callers migrate to the staged session API.
+        owner_state ||= self.class.with_connection { |connection| connection.current_transaction.state }
+
         @_start_transaction_state ||= {
           id: id,
           new_record: @new_record,
           previously_new_record: @previously_new_record,
           destroyed: @destroyed,
           attributes: @attributes,
+          transaction_change_original_attributes: @_deferred_touch_original_attributes&.dup,
+          transaction_frames: [],
           frozen?: frozen?,
           level: 0
         }
         @_start_transaction_state[:level] += 1
+        @_start_transaction_state[:transaction_frames] << TransactionChangeFrame.new(owner_state)
 
         if _committed_already_called
           @_new_record_before_last_commit = false
         else
           @_new_record_before_last_commit = @_start_transaction_state[:new_record]
         end
+      end
+
+      # After a successful save, record only the attributes written by that save.
+      def refresh_transaction_record_state
+        snapshot_transaction_written_attributes do |attr_name|
+          @attributes[attr_name].dup
+        end
+      end
+
+      # TouchLater deliberately skips +changes_applied+ so its deferred touch does
+      # not alter the saved-change state. Preserve that behavior while snapshotting
+      # the exact serialized values successfully written by the touch.
+      def refresh_transaction_record_state_without_dirty_tracking
+        snapshot_transaction_written_attributes do |attr_name|
+          @attributes[attr_name].forgetting_assignment
+        end
+      end
+
+      def snapshot_transaction_written_attributes
+        written_attribute_names = @_transaction_written_attribute_names
+        return unless written_attribute_names && @_start_transaction_state
+        frame = @_start_transaction_state[:transaction_frames]&.last
+        return unless frame
+
+        frame.written_attributes ||= {}
+        written_attribute_names.each do |attr_name|
+          frame.written_attributes[attr_name] = yield attr_name
+        end
+      end
+
+      def record_transaction_written_attributes(attribute_names)
+        @_transaction_written_attribute_names ||= []
+        @_transaction_written_attribute_names |= attribute_names
+      end
+
+      def clear_transaction_written_attributes
+        @_transaction_written_attribute_names = nil
+      end
+
+      # Compute cumulative changes by comparing the initial transaction
+      # snapshot against a set of "current" attributes.
+      #
+      # We intentionally use +original_value_for_database+ on both sides
+      # rather than +value+ / +value_for_database+ because the latter
+      # triggers +has_been_read?+ and a deserialize round-trip that
+      # corrupts nil values for custom types. After +changes_applied+
+      # calls +forget_attribute_assignments+, +@attributes+ is replaced
+      # with fresh +FromDatabase+ attributes whose
+      # +original_value_for_database+ reflects the newly committed state.
+      def _changes_between(snapshot_attributes, current_attributes, original_written_attributes = nil)
+        changes = {}.with_indifferent_access
+
+        current_attributes.keys.each do |attr_name|
+          snapshot_attr = original_written_attributes&.fetch(attr_name, nil) || snapshot_attributes[attr_name]
+          current_attr = current_attributes[attr_name]
+
+          old_raw = snapshot_attr.original_value_for_database
+          new_raw = current_attr.original_value_for_database
+
+          unless old_raw == new_raw
+            type = current_attr.type
+            old_value = old_raw.nil? ? nil : type.deserialize(old_raw)
+            new_value = new_raw.nil? ? nil : type.deserialize(new_raw)
+            changes[attr_name] = [old_value, new_value] unless old_value == new_value
+          end
+        end
+
+        changes
+      end
+
+      def _transaction_written_attributes
+        @_start_transaction_state[:transaction_frames].each_with_object({}) do |frame, attributes|
+          next unless transaction_frame_survived?(frame)
+
+          attributes.update(frame.written_attributes) if frame.written_attributes
+        end
+      end
+
+      def _transaction_original_written_attributes(written_attributes = _transaction_written_attributes)
+        original_attributes = @_start_transaction_state[:transaction_change_original_attributes]
+        original_attributes&.slice(*written_attributes.keys)
+      end
+
+      # Cache raw transaction state for +transaction_changes+ / +after_commit+.
+      # Presentation values are materialized only if a public reader asks.
+      def _compute_committed_changes
+        return if @_full_rollback
+        return unless @_start_transaction_state
+
+        written_attributes = _transaction_written_attributes
+        @_committed_changes = nil
+        @_committed_transaction_state = [
+          @_start_transaction_state[:attributes],
+          written_attributes,
+          _transaction_original_written_attributes(written_attributes),
+        ]
+      end
+
+      def _committed_transaction_changes
+        return @_committed_changes if @_committed_changes
+        return unless @_committed_transaction_state
+
+        @_committed_changes = _changes_between(*@_committed_transaction_state)
+      end
+
+      # Like +_compute_committed_changes+ but computed on-the-fly for
+      # +transaction_changes+ during save callbacks. Pending unsaved changes
+      # are overlaid for +before_save+ / +before_update+.
+      def _compute_transaction_changes
+        return if @_full_rollback
+        return unless @_start_transaction_state
+
+        snapshot_attributes = @_start_transaction_state[:attributes]
+        written_attributes = _transaction_written_attributes
+        original_written_attributes = _transaction_original_written_attributes(written_attributes)
+        changes = _changes_between(snapshot_attributes, written_attributes, original_written_attributes)
+
+        changes_to_save.each do |attr_name, (_, pending_new_value)|
+          snapshot_attr = original_written_attributes&.fetch(attr_name, nil) || snapshot_attributes[attr_name]
+          old_raw = snapshot_attr.original_value_for_database
+          pending_raw = snapshot_attr.type.serialize(pending_new_value)
+
+          if old_raw == pending_raw
+            changes.delete(attr_name)
+          else
+            old_value = old_raw.nil? ? nil : snapshot_attr.type.deserialize(old_raw)
+            changes[attr_name] = [old_value, pending_new_value]
+          end
+        end
+
+        changes
       end
 
       # Clear the new record state and id of a record.
@@ -491,40 +639,48 @@ module ActiveRecord
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
       def restore_transaction_record_state(force_restore_state = false)
-        if restore_state = @_start_transaction_state
-          if force_restore_state || restore_state[:level] <= 1
-            @new_record = restore_state[:new_record]
-            @previously_new_record = restore_state[:previously_new_record]
-            @destroyed = restore_state[:destroyed]
-            locking_column = self.class.locking_column if self.class.locking_enabled?
-            @attributes = restore_state[:attributes].map do |attr|
-              if attr.name == locking_column
-                # The locking column is bumped by `_update_row` itself, not the caller, and
-                # `_update_row` writes the new value into the same `@attributes` object that
-                # the snapshot is holding a reference to (because the snapshot wraps the
-                # `AttributeSet` rather than deep-duping it). After a successful save,
-                # `forget_attribute_assignments` reassigns `@attributes`, so subsequent
-                # operations see a clean attribute, but the snapshot retains the dirty one.
-                # Forcibly rebuild the locking column attribute from its (still-correct)
-                # original value so the next save uses the pristine value in the WHERE
-                # clause and doesn't raise `StaleObjectError` after a rollback.
-                next attr.with_value_from_database(attr.original_value)
-              end
-              value = @attributes.fetch_value(attr.name)
-              attr = attr.with_value_from_user(value) if attr.value != value
-              attr
+        return unless restore_state = @_start_transaction_state
+
+        restore_entire_state = force_restore_state || restore_state[:level] <= 1
+
+        if restore_entire_state
+          @new_record = restore_state[:new_record]
+          @previously_new_record = restore_state[:previously_new_record]
+          @destroyed = restore_state[:destroyed]
+          locking_column = self.class.locking_column if self.class.locking_enabled?
+          @attributes = restore_state[:attributes].map do |attr|
+            if attr.name == locking_column
+              # The locking column is bumped by `_update_row` itself, not the caller, and
+              # `_update_row` writes the new value into the same `@attributes` object that
+              # the snapshot is holding a reference to (because the snapshot wraps the
+              # `AttributeSet` rather than deep-duping it). After a successful save,
+              # `forget_attribute_assignments` reassigns `@attributes`, so subsequent
+              # operations see a clean attribute, but the snapshot retains the dirty one.
+              # Forcibly rebuild the locking column attribute from its (still-correct)
+              # original value so the next save uses the pristine value in the WHERE
+              # clause and doesn't raise `StaleObjectError` after a rollback.
+              next attr.with_value_from_database(attr.original_value)
             end
-            @mutations_from_database = nil
-            @mutations_before_last_save = nil
-            columns = self.class.primary_key_definition.columns
-            restored_id = Array(restore_state[:id])
-            if columns.map { |col| @attributes.fetch_value(col) } != restored_id
-              columns.zip(restored_id).each do |col, val|
-                @attributes.write_from_user(col, val)
-              end
+            value = @attributes.fetch_value(attr.name)
+            attr = attr.with_value_from_user(value) if attr.value != value
+            attr
+          end
+          @mutations_from_database = nil
+          @mutations_before_last_save = nil
+          @_committed_changes = nil
+          @_committed_transaction_state = nil
+          @_start_transaction_state = nil
+          columns = self.class.primary_key_definition.columns
+          restored_id = Array(restore_state[:id])
+          if columns.map { |col| @attributes.fetch_value(col) } != restored_id
+            columns.zip(restored_id).each do |col, val|
+              @attributes.write_from_user(col, val)
             end
-            freeze if restore_state[:frozen?]
-          elsif self.class.locking_enabled?
+          end
+          freeze if restore_state[:frozen?]
+        else
+          restore_savepoint_attributes(restore_state)
+          if self.class.locking_enabled?
             # Nested savepoint rollback. The full restore above only runs at the
             # outermost level, but the same `_update_row` mutation that bumps the
             # in-memory locking column happens for saves performed inside the
@@ -539,6 +695,15 @@ module ActiveRecord
             end
           end
         end
+      end
+
+      def restore_savepoint_attributes(restore_state)
+        restore_state[:transaction_frames].reject! { |frame| !transaction_frame_survived?(frame) }
+      end
+
+      def transaction_frame_survived?(frame)
+        state = frame.owner_state
+        !state || !(state.rolledback? || state.invalidated?)
       end
 
       # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
