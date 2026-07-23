@@ -261,9 +261,9 @@ module SharedTrackerTests
   def test_dependencies_with_interpolation_are_resolved_with_view_paths
     view_paths = ActionView::PathSet.new([File.expand_path("../fixtures/digestor", __dir__)])
 
-    template = FakeTemplate.new(%q{
+    template = FakeTemplate.new('
       <%= render "events/#{quote}" %>
-    }, :erb)
+    ', :erb)
 
     tracker = make_tracker("interpolation/_string", template, view_paths)
 
@@ -273,9 +273,9 @@ module SharedTrackerTests
   def test_dependencies_with_interpolation_non_trailing
     view_paths = ActionView::PathSet.new([File.expand_path("../fixtures/digestor", __dir__)])
 
-    template = FakeTemplate.new(%q{
+    template = FakeTemplate.new('
       <%= render "#{type}/comments" %>
-    }, :erb)
+    ', :erb)
 
     tracker = make_tracker("interpolation/_string", template, view_paths)
 
@@ -285,9 +285,9 @@ module SharedTrackerTests
   def test_dependencies_with_interpolation_expr
     view_paths = ActionView::PathSet.new([File.expand_path("../fixtures/digestor", __dir__)])
 
-    template = FakeTemplate.new(%q{
+    template = FakeTemplate.new('
       <%= render "orders/#{variable || "default"}" %>
-    }, :erb)
+    ', :erb)
 
     tracker = make_tracker("interpolation/_string", template, view_paths)
 

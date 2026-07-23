@@ -180,11 +180,11 @@ class I18nValidationTest < ActiveModel::TestCase
   #
   COMMON_CASES = [
     # [ case,                              validation_options,            generate_message_options]
-    [ "given no options",                  {},                            {}],
-    [ "given custom message",              { message: "custom" },         { message: "custom" }],
-    [ "given if condition",                { if: lambda { true } },       {}],
-    [ "given unless condition",            { unless: lambda { false } },  {}],
-    [ "given option that is not reserved", { format: "jpg" },             { format: "jpg" }]
+    [ "given no options",                  {}.freeze,                            {}.freeze].freeze,
+    [ "given custom message",              { message: "custom" }.freeze,         { message: "custom" }.freeze].freeze,
+    [ "given if condition",                { if: lambda { true } }.freeze,       {}.freeze].freeze,
+    [ "given unless condition",            { unless: lambda { false } }.freeze,  {}.freeze].freeze,
+    [ "given option that is not reserved", { format: "jpg" }.freeze,             { format: "jpg" }.freeze].freeze
   ].freeze
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|

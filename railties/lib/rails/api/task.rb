@@ -12,8 +12,8 @@ module Rails
             README.rdoc
             lib/active_support.rb
             lib/active_support/**/*.rb
-          )
-        },
+          ).freeze
+        }.freeze,
 
         "activerecord" => {
           include: %w(
@@ -21,16 +21,16 @@ module Rails
             lib/active_record.rb
             lib/active_record/**/*.rb
             lib/arel.rb
-          )
-        },
+          ).freeze
+        }.freeze,
 
         "activemodel" => {
           include: %w(
             README.rdoc
             lib/active_model.rb
             lib/active_model/**/*.rb
-          )
-        },
+          ).freeze
+        }.freeze,
 
         "actionpack" => {
           include: %w(
@@ -40,41 +40,41 @@ module Rails
             lib/action_controller/**/*.rb
             lib/action_dispatch.rb
             lib/action_dispatch/**/*.rb
-          )
-        },
+          ).freeze
+        }.freeze,
 
         "actionview" => {
           include: %w(
             README.rdoc
             lib/action_view.rb
             lib/action_view/**/*.rb
-          ),
+          ).freeze,
           exclude: "lib/action_view/vendor/*"
-        },
+        }.freeze,
 
         "actionmailer" => {
           include: %w(
             README.rdoc
             lib/action_mailer.rb
             lib/action_mailer/**/*.rb
-          )
-        },
+          ).freeze
+        }.freeze,
 
         "activejob" => {
           include: %w(
             README.md
             lib/active_job.rb
             lib/active_job/**/*.rb
-          )
-        },
+          ).freeze
+        }.freeze,
 
         "actioncable" => {
           include: %w(
             README.md
             lib/action_cable.rb
             lib/action_cable/**/*.rb
-          )
-        },
+          ).freeze
+        }.freeze,
 
         "activestorage" => {
           include: %w(
@@ -82,8 +82,8 @@ module Rails
             app/**/active_storage/**/*.rb
             lib/active_storage.rb
             lib/active_storage/**/*.rb
-          )
-        },
+          ).freeze
+        }.freeze,
 
         "actionmailbox" => {
           include: %w(
@@ -91,8 +91,8 @@ module Rails
             app/**/action_mailbox/**/*.rb
             lib/action_mailbox.rb
             lib/action_mailbox/**/*.rb
-          )
-        },
+          ).freeze
+        }.freeze,
 
         "actiontext" => {
           include: %w(
@@ -100,20 +100,20 @@ module Rails
             app/**/action_text/**/*.rb
             lib/action_text.rb
             lib/action_text/**/*.rb
-          )
-        },
+          ).freeze
+        }.freeze,
 
         "railties" => {
           include: %w(
             README.rdoc
             lib/**/*.rb
-          ),
+          ).freeze,
           exclude: %w(
             lib/rails/generators/**/templates/**/*.rb
             lib/rails/test_unit/*
             lib/rails/api/generator.rb
-          )
-        }
+          ).freeze
+        }.freeze
       }.freeze
 
       def initialize(name)
