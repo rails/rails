@@ -307,7 +307,7 @@ module ActionView
         end
       end
     rescue => e
-      handle_render_error(view, e)
+      handle_render_error(e)
     end
 
     def type
@@ -573,7 +573,7 @@ module ActionView
         end
       end
 
-      def handle_render_error(view, e)
+      def handle_render_error(e)
         if e.is_a?(Template::Error)
           e.sub_template_of(self)
           raise e
