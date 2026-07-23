@@ -12,4 +12,14 @@ class ActionMailbox::InboundEmail::MessageIdTest < ActiveSupport::TestCase
     inbound_email = create_inbound_email_from_source "Date: Fri, 28 Sep 2018 11:08:55 -0700\r\nTo: a@example.com\r\nMime-Version: 1.0\r\nContent-Type: text/plain\r\nContent-Transfer-Encoding: 7bit\r\n\r\nHello!"
     assert_not_nil inbound_email.message_id
   end
+
+  test "duplicate delivery is a no-op and does not leak an orphaned raw_email blob" do
+    source = "Message-ID: <dup@example.com>\r\nFrom: a@example.com\r\nTo: b@example.com\r\nSubject: hello\r\n\r\nbody"
+
+    ActionMailbox::InboundEmail.create_and_extract_message_id!(source)
+
+    assert_no_difference -> { ActiveStorage::Blob.count } do
+      assert_nil ActionMailbox::InboundEmail.create_and_extract_message_id!(source)
+    end
+  end
 end
