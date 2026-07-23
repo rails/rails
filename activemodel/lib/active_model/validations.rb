@@ -460,10 +460,6 @@ module ActiveModel
     end
 
   private
-    def validation_context=(context)
-      context_for_validation.context = context
-    end
-
     def context_for_validation
       @context_for_validation ||= ValidationContext.new
     end
