@@ -46,10 +46,10 @@ module ActiveSupport
       #
       # :raise - The error is raised
       # :warn  - A deprecation warning is triggered and the original unshareable object is returned.
-      def try_make_shareable(obj)
+      def try_make_shareable(obj, copy: false)
         return obj unless unshareable_proc_action
 
-        make_shareable(obj)
+        make_shareable(obj, copy: copy)
       rescue Ractor::IsolationError
         case unshareable_proc_action
         when :raise

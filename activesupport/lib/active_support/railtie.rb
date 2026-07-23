@@ -184,5 +184,11 @@ module ActiveSupport
         ActiveSupport::Inflector::Inflections.all_instances.each(&:freeze)
       end
     end
+
+    initializer "active_support.ractor_compatibility_notification" do
+      config.after_initialize do
+        ActiveSupport::Notifications::RactorCompatibility.record_subscriptions(ActiveSupport::Notifications.notifier)
+      end
+    end
   end
 end
