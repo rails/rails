@@ -45,6 +45,16 @@ class ActiveStorage::Variation
 
   def initialize(transformations)
     @transformations = transformations.deep_symbolize_keys
+
+    if @transformations.key?(:format)
+      # Normalize the format to a UTF-8 String so that a variation referenced
+      # with a Symbol (e.g. +format: :webp+, as kept in memory for named
+      # variants) and the same variation decoded from a signed key (where the
+      # JSON message serializer turns it into a String) produce the same
+      # #digest. Otherwise the variant is stored under one digest but looked up
+      # under another, causing it to be re-processed on every request.
+      @transformations[:format] = @transformations[:format].to_s.encode(Encoding::UTF_8)
+    end
   end
 
   def default_to(defaults)
