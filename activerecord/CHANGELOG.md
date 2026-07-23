@@ -1,3 +1,17 @@
+*   Allow `ActiveRecord::Relation#preload!` to work on an already loaded relation.
+
+    Previously, calling `preload!` on a relation that had already been loaded
+    raised `ActiveRecord::UnmodifiableRelation`. Now it immediately preloads
+    the requested associations onto the already-loaded records instead.
+
+    ```ruby
+    posts = Post.all.load
+    posts.preload!(:comments) # => preloads comments onto the loaded posts
+    posts.first.comments # no additional query
+    ```
+
+    *Bogdan Gusiev*
+
 *   Remove unused `rest` parameter from merge and merge!
 
     *Aaron Patterson*

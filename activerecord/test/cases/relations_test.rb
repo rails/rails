@@ -694,6 +694,20 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_bang_on_loaded_relation_preloads_immediately
+    posts = Post.all.load
+    assert_predicate posts, :loaded?
+    post = posts.first
+    assert_not_predicate post.association(:comments), :loaded?
+
+    assert_queries_count(1) do
+      posts.preload!(:comments)
+    end
+
+    assert_predicate post.association(:comments), :loaded?
+    assert_no_queries { post.comments.to_a }
+  end
+
   def test_preload_applies_to_all_chained_preloaded_scopes
     assert_queries_count(3) do
       post = Post.with_comments.with_tags.first
