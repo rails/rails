@@ -543,4 +543,10 @@
 
     *Ruben Arakelyan*
 
+*   `ActionController::Live`: copy thread-local variables to stream controller thread
+
+    Previously it was only copying fiber-local (stored in `Thread#[]`) variables, now it'll also copy thread-local (accessbible via `Thread#thread_variable_get|set`) variables.
+
+    *Tiago Cardoso*
+
 Please check [8-1-stable](https://github.com/rails/rails/blob/8-1-stable/actionpack/CHANGELOG.md) for previous changes.
