@@ -22,6 +22,17 @@ module Rails
         boot_application!
         load_generators
 
+        if generator == "model" && args.first
+          model_name = args.first
+          model_path = model_name.underscore
+          model_file = File.join(Rails::Command.root, "app/models/#{model_path}.rb")
+
+          unless File.exist?(model_file)
+            puts "Could not find model '#{model_name}' (expected #{model_file}). Nothing was removed."
+            exit(1)
+          end
+        end
+
         Rails::Generators.invoke generator, args, behavior: :revoke, destination_root: Rails::Command.root
       end
     end
