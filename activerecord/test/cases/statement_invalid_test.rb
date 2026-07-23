@@ -17,15 +17,25 @@ module ActiveRecord
       end
     end
 
+    def with_failing_query(connection)
+      singleton_class = connection.singleton_class
+      singleton_class.define_method(:perform_query) do |_raw_connection, _intent|
+        raise MockDatabaseError
+      end
+
+      yield
+    ensure
+      singleton_class.remove_method(:perform_query) if singleton_class&.instance_methods(false)&.include?(:perform_query)
+    end
+
     test "message contains no sql" do
       sql = Book.where(author_id: 96, cover: "hard").to_sql
       connection = Book.lease_connection
       intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(adapter: connection, processed_sql: sql, name: Book.name)
       error = assert_raises(ActiveRecord::StatementInvalid) do
-        connection.send(:log, intent) do
-          connection.send(:with_raw_connection) do
-            raise MockDatabaseError
-          end
+        with_failing_query(connection) do
+          intent.execute!
+          intent.cast_result
         end
       end
       assert_not error.message.include?("SELECT")
@@ -37,10 +47,9 @@ module ActiveRecord
       connection = Book.lease_connection
       intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(adapter: connection, processed_sql: sql, name: Book.name, binds: binds)
       error = assert_raises(ActiveRecord::StatementInvalid) do
-        connection.send(:log, intent) do
-          connection.send(:with_raw_connection) do
-            raise MockDatabaseError
-          end
+        with_failing_query(connection) do
+          intent.execute!
+          intent.cast_result
         end
       end
       assert_equal error.sql, sql

@@ -613,11 +613,9 @@ module ActiveRecord
       end
 
       # Lowest-level abstract execution of a query, called only from the intent itself.
-      # Final wrapper around the subclass-specific +perform_query+. Populates the calling
-      # intent's raw_result.
+      # Final wrapper around the subclass-specific +perform_query+. Delivers the outcome
+      # back to the calling intent.
       def execute_intent(intent) # :nodoc:
-        should_dirty = false
-
         if intent.materialize_transactions
           # These can raise locally (e.g., ReadOnlyError). Validate before BEGIN.
           intent.processed_sql
@@ -625,29 +623,107 @@ module ActiveRecord
           materialize_transactions
         end
 
-        log(intent) do |notification_payload|
-          intent.notification_payload = notification_payload
-          with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: false) do |conn|
-            should_dirty = intent.materialize_transactions
-            begin
-              result = perform_query(conn, intent)
-              intent.raw_result = result
+        start_intent_log(intent)
+        begin
+          @lock.synchronize do
+            reconnectable = ensure_connection_ready(
+              allow_retry: intent.allow_retry,
+              materialize_transactions: false
+            )
 
-              query_completed = true
-            ensure
-              begin
-                handle_warnings(result, intent.processed_sql)
-              rescue
-                raise if query_completed
+            intent.retry_budget ||= build_retry_budget(
+              allow_retry: intent.allow_retry, reconnectable: reconnectable
+            )
 
-                # The query failed, so we need to swallow this exception
-                # from handle_warnings to avoid masking the original.
-              end
-            end
+            perform_sync_attempt(intent)
+          end
+        rescue Exception => error
+          intent.finish_log(exception: error) unless intent.raw_result_available?
+          raise
+        end
+      end
+
+      def perform_sync_attempt(intent) # :nodoc:
+        result = perform_query(@raw_connection, intent)
+        query_completed = true
+        warnings = collect_warnings(result)
+      rescue ::RangeError
+        raise
+      rescue => error
+        translated = translate_exception_class(error, intent.processed_sql, intent.binds)
+        invalidate_transaction(translated)
+
+        unless query_completed
+          begin
+            warnings = collect_warnings(nil)
+          rescue
+            # The query failed, so we need to swallow this exception
+            # from collect_warnings to avoid masking the original.
           end
         end
-      ensure
-        dirty_current_transaction if should_dirty
+
+        intent.deliver_failure(translated, warnings: warnings)
+      rescue Exception
+        # A non-StandardError (a Timeout, or a fiber scheduler's cancel) abandoned
+        # the query partway through, so we mark the connection unverified, just as
+        # a failed query would, forcing a reconnect before it's used again.
+        @last_activity = nil
+        @verified = false
+        dirty_current_transaction if intent.materialize_transactions
+        raise
+      else
+        intent.deliver_result(result, warnings: warnings)
+      end
+
+      def start_intent_log(intent) # :nodoc:
+        return if intent.log_handle
+
+        payload = {
+          sql:               intent.processed_sql,
+          name:              intent.name,
+          binds:             intent.binds,
+          type_casted_binds: intent.type_casted_binds,
+          async:             intent.ran_async,
+          allow_retry:       intent.allow_retry,
+          connection:        self,
+          transaction:       current_transaction.user_transaction.presence,
+          affected_rows:     0,
+          row_count:         0,
+        }
+        intent.notification_payload = payload
+
+        active_record_instrumenter = intent.event_buffer || instrumenter
+        handle = active_record_instrumenter.build_handle("sql.active_record", payload)
+        handle.start
+        intent.log_handle = handle
+        @unfinalized_intents << intent
+      end
+
+      def finish_intent_log(intent, exception: nil) # :nodoc:
+        handle = intent.log_handle
+        return unless handle
+
+        intent.log_handle = nil
+        @unfinalized_intents.delete(intent)
+
+        if exception
+          payload = intent.notification_payload
+          payload[:exception] = [exception.class.name, exception.message]
+          payload[:exception_object] = exception
+        end
+
+        handle.finish
+      end
+
+      def finalize_remaining_intents # :nodoc:
+        intents = @unfinalized_intents
+        @unfinalized_intents = []
+
+        intents.each do |intent|
+          next if intent.finalized?
+
+          intent.finish_log(exception: intent.error)
+        end
       end
 
       # Executes SQL statements in the context of this connection without
@@ -669,6 +745,17 @@ module ActiveRecord
         end
       end
 
+      def handle_warnings(intent, warnings) # :nodoc:
+        return unless action = ActiveRecord.db_warnings_action
+
+        warnings&.each do |warning|
+          next if warning_ignored?(warning)
+
+          warning.sql = intent.processed_sql
+          action.call(warning)
+        end
+      end
+
       private
         DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
         private_constant :DEFAULT_INSERT_VALUE
@@ -677,7 +764,8 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        def handle_warnings(raw_result, sql)
+        def collect_warnings(raw_result)
+          []
         end
 
         # Receive a native adapter result object and returns an ActiveRecord::Result object.
