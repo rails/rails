@@ -3974,6 +3974,31 @@ development:
 
 Many useful features can be added to SQLite through extensions. You may wish to browse the [SQLite extension hub](https://sqlpkg.org/) or use gems like [`sqlpkg-ruby`](https://github.com/fractaledmind/sqlpkg-ruby) and [`sqlean-ruby`](https://github.com/flavorjones/sqlean-ruby) that simplify extension management.
 
+Rails sets the following SQLite [pragmas](https://www.sqlite.org/pragma.html) by default to optimize performance and reliability:
+
+| Pragma | Default | Purpose |
+|--------|---------|---------|
+| `auto_vacuum` | `incremental` | Tracks freed pages for on-demand space reclamation |
+| `foreign_keys` | `true` | Enforces foreign key constraints |
+| `journal_mode` | `wal` | Enables concurrent reads during writes |
+| `synchronous` | `normal` | Balances safety with write performance |
+| `mmap_size` | `134217728` (128 MB) | Memory-maps the database file for faster reads |
+| `journal_size_limit` | `67108864` (64 MB) | Caps the WAL file size after checkpoints |
+| `cache_size` | `2000` | Number of pages held in memory |
+
+You can override any of these or add new pragmas via the `pragmas` key in `config/database.yml`:
+
+```yaml
+production:
+  adapter: sqlite3
+  database: storage/production.sqlite3
+  pragmas:
+    synchronous: full
+    cache_size: 5000
+```
+
+NOTE: The `auto_vacuum: incremental` pragma only takes effect on newly created databases. Existing databases require a one-time `VACUUM` to switch modes. See `db:maintenance:vacuum` for ongoing space reclamation.
+
 Other configuration options are described in the [SQLite3Adapter documentation]( https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html).
 
 #### Configuring a MySQL or MariaDB Database
