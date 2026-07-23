@@ -30,3 +30,5 @@ class ActiveStorage::CreateVariantsJob < ActiveStorage::BaseJob
       (@process == :immediately) ? :perform_now : :perform_later
     end
 end
+
+ActiveSupport.run_load_hooks :active_storage_create_variants_job, ActiveStorage::CreateVariantsJob

@@ -10,3 +10,5 @@ class ActiveStorage::SyncMetadataJob < ActiveStorage::BaseJob
     blob.sync_metadata
   end
 end
+
+ActiveSupport.run_load_hooks :active_storage_sync_metadata_job, ActiveStorage::SyncMetadataJob

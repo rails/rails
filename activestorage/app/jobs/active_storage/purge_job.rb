@@ -11,3 +11,5 @@ class ActiveStorage::PurgeJob < ActiveStorage::BaseJob
     blob.purge
   end
 end
+
+ActiveSupport.run_load_hooks :active_storage_purge_job, ActiveStorage::PurgeJob

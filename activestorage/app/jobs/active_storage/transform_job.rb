@@ -10,3 +10,5 @@ class ActiveStorage::TransformJob < ActiveStorage::BaseJob
     blob.representation(transformations).processed
   end
 end
+
+ActiveSupport.run_load_hooks :active_storage_transform_job, ActiveStorage::TransformJob
