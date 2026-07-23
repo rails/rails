@@ -1,3 +1,11 @@
+*   Preserve the declared parent order when dumping PostgreSQL `INHERITS` table options.
+
+    The schema dumper read a table's inherited parents without an `ORDER BY`, so the
+    `INHERITS (...)` clause in `schema.rb` could be emitted in a nondeterministic order.
+    Parents are now ordered by `pg_inherits.inhseqno`.
+
+    *viralpraxis*
+
 *   Preserve SQLite partial and expression indexes when their stored SQL contains newlines.
 
     *Javi Ramírez*
