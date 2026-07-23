@@ -14,3 +14,8 @@
 # ActiveSupport::Inflector.inflections(:en) do |inflect|
 #   inflect.acronym "RESTful"
 # end
+
+# WARNING: Custom inflection rules are global — they affect the
+# entire Ruby process, including third-party gems. Avoid them
+# unless absolutely necessary, especially for common terms.
+# For autoloading, use Zeitwerk's inflector instead.
