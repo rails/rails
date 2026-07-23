@@ -338,6 +338,8 @@ class Time
       else
         compare_without_coercion(other.to_time)
       end
+    elsif other.is_a?(Numeric)
+      compare_without_coercion(other)
     else
       to_datetime <=> other
     end
