@@ -9,6 +9,7 @@
 </header>
 
 <main role="main" id="container">
+  <%= render "rescues/ai_prompt" %>
   <%= render "rescues/message_and_suggestions", exception: @exception, exception_wrapper: @exception_wrapper %>
   <%= render "rescues/actions", exception: @exception, request: @request, exception_wrapper: @exception_wrapper %>
 
