@@ -1,3 +1,4 @@
+<% security_checks = !options.skip_bundler_audit? || using_node? || using_importmap? || !options.skip_brakeman? -%>
 # Run using bin/ci
 
 CI.run do
@@ -7,7 +8,9 @@ CI.run do
 <% unless options.skip_rubocop? -%>
     step "Style: Ruby", "bin/rubocop"
 <% end -%>
+<% if !options.skip_rubocop? && security_checks -%>
 
+<% end -%>
 <% unless options.skip_bundler_audit? -%>
     step "Security: Gem audit", "bin/bundler-audit"
 <% end -%>
@@ -20,8 +23,10 @@ CI.run do
 <% unless options.skip_brakeman? -%>
     step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
 <% end -%>
-
 <% unless options[:skip_test] -%>
+<% if !options.skip_rubocop? || security_checks -%>
+
+<% end -%>
     group "Tests" do
       step "Tests: Rails", "bin/rails test"
 <% unless options.skip_active_record? -%>
