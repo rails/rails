@@ -6,7 +6,7 @@ require "abstract_controller/rendering"
 class LookupContextTest < ActiveSupport::TestCase
   def setup
     @lookup_context = build_lookup_context(FIXTURE_LOAD_PATH, {})
-    ActionView::LookupContext::DetailsKey.clear
+    ActionView::LookupContext.clear
   end
 
   def build_lookup_context(paths, details)
@@ -127,28 +127,6 @@ class LookupContextTest < ActiveSupport::TestCase
     end
   end
 
-  test "generates a new details key for each details hash" do
-    keys = []
-    keys << @lookup_context.details_key
-    assert_equal 1, keys.uniq.size
-
-    @lookup_context.locale = :da
-    keys << @lookup_context.details_key
-    assert_equal 2, keys.uniq.size
-
-    @lookup_context.locale = :en
-    keys << @lookup_context.details_key
-    assert_equal 2, keys.uniq.size
-
-    @lookup_context.formats = [:html]
-    keys << @lookup_context.details_key
-    assert_equal 3, keys.uniq.size
-
-    @lookup_context.formats = nil
-    keys << @lookup_context.details_key
-    assert_equal 3, keys.uniq.size
-  end
-
   test "uses details as part of cache key" do
     fixtures = {
       "test/_foo.erb" => "Foo",
@@ -236,8 +214,7 @@ class TestMissingTemplate < ActiveSupport::TestCase
 
   test "if a single prefix is passed as a string and the lookup fails, MissingTemplate accepts it" do
     e = assert_raise ActionView::MissingTemplate do
-      details = { handlers: [], formats: [], variants: [], locale: [] }
-      @lookup_context.view_paths.find!("foo", "parent", true, details, nil, [])
+      @lookup_context.find!("foo", "parent", true)
     end
     assert_match %r{Missing partial parent/_foo with .*\n\nSearched in:\n  \* "/Path/to/views"\n}, e.message
   end

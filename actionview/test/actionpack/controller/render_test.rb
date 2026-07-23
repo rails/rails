@@ -1510,11 +1510,11 @@ class RenderTest < ActionController::TestCase
 
   def with_annotations_enabled
     ActionView::Base.annotate_rendered_view_with_filenames = true
-    ActionView::LookupContext::DetailsKey.clear
+    ActionView::LookupContext.clear
     yield
   ensure
     ActionView::Base.annotate_rendered_view_with_filenames = false
-    ActionView::LookupContext::DetailsKey.clear
+    ActionView::LookupContext.clear
   end
 
   def test_template_annotations

@@ -54,7 +54,7 @@ class RenderPartialWithRecordIdentificationTest < ActiveRecordTestCase
 
   def setup
     super
-    ActionView::LookupContext::DetailsKey.clear
+    ActionView::LookupContext.clear
   end
 
   def test_rendering_partial_with_has_many_and_belongs_to_association

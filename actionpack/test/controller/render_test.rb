@@ -354,11 +354,11 @@ module TemplateModificationHelper
       key = name + ".erb"
       original = hash[key]
       hash[key] = "#{original} Modified!"
-      ActionView::LookupContext::DetailsKey.clear
+      ActionView::LookupContext.clear
       yield
     ensure
       hash[key] = original
-      ActionView::LookupContext::DetailsKey.clear
+      ActionView::LookupContext.clear
     end
 end
 

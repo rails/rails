@@ -284,7 +284,7 @@ module ActionView
         silence_redefinition_of_method(:_layout)
 
         prefixes = /\blayouts/.match?(_implied_layout_name) ? [] : ["layouts"]
-        default_behavior = "lookup_context.find('#{_implied_layout_name}', #{prefixes.inspect}, false, keys, { formats: formats }) || super"
+        default_behavior = "lookup_context.find('#{_implied_layout_name}', #{prefixes.inspect}, false, keys, lookup_context.details_for(formats: formats)) || super"
         name_clause = if name
           default_behavior
         else
