@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 module MiddlewareTest
   class MyMiddleware
@@ -70,7 +71,12 @@ module MiddlewareTest
     end
   end
 
+  class RactorController < ActionController::Metal
+  end
+
   class TestMiddleware < ActiveSupport::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
     def setup
       @app = MyController.action(:index)
     end
@@ -97,6 +103,22 @@ module MiddlewareTest
 
       result = ActionsController.action(:index).call(env_for("/"))
       assert_nil result[1]["Middleware-Order"]
+    end
+
+    test "middleware stack is frozen" do
+      old = ActiveSupport::Ractors.unshareable_proc_action
+      ActiveSupport::Ractors.unshareable_proc_action = :raise
+
+      RactorController.use(ExclaimerMiddleware)
+      RactorController.middleware.unshift(BlockMiddleware)
+      RactorController.middleware.insert(0, ExclaimerMiddleware)
+      RactorController.middleware.swap(ExclaimerMiddleware, MyMiddleware)
+      RactorController.middleware.move(0, MyMiddleware)
+      RactorController.middleware.move_after(ExclaimerMiddleware, MyMiddleware)
+
+      assert_ractor_shareable(RactorController.middleware_stack)
+    ensure
+      ActiveSupport::Ractors.unshareable_proc_action = old
     end
 
     def env_for(url)
