@@ -1,3 +1,12 @@
+*   Add a 7-day cooldown to the generated `bin/brakeman` binstub.
+
+    Brakeman 8.0.3 added an age parameter to `--ensure-latest` so the check
+    only fails when the most recent release is at least the given number of
+    days old. This protects against supply chain attacks in case the
+    Brakeman gems are compromised.
+
+    *Rene van Lieshout*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"
