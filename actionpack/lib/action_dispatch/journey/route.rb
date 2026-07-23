@@ -123,10 +123,6 @@ module ActionDispatch
         path.names
       end
 
-      def required_keys
-        required_parts + required_defaults.keys
-      end
-
       def score(supplied_keys)
         path.required_names.each do |k|
           return -1 unless supplied_keys.include?(k)

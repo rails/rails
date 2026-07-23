@@ -186,10 +186,6 @@ module ActionController
     end
 
     module ClassMethods
-      def _set_wrapper_options(options)
-        self._wrapper_options = Options.from_hash(options)
-      end
-
       # Sets the name of the wrapper key, or the model which `ParamsWrapper` would use
       # to determine the attribute names from.
       #
