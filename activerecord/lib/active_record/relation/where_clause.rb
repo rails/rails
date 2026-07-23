@@ -116,12 +116,6 @@ module ActiveRecord
       protected
         attr_reader :predicates
 
-        def referenced_columns
-          hash = {}
-          each_attributes { |attr, node| hash[attr] = node }
-          hash
-        end
-
       private
         def each_attributes
           predicates.each do |node|
