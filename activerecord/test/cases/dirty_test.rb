@@ -1028,7 +1028,29 @@ class TransactionChangesDirtyTest < ActiveRecord::TestCase
   # that assume each save/transaction block is independent.
   self.use_transactional_tests = false
 
+  class ShardedBase < ActiveRecord::Base
+    self.abstract_class = true
+  end
+
+  class ShardedPerson < ShardedBase
+    self.table_name = :transaction_change_people
+
+    attr_accessor :transaction_changes_log
+
+    after_commit do
+      self.transaction_changes_log = transaction_changes.dup
+    end
+  end
+
   setup do
+    # Re-establish shard connections in setup because the shared connection
+    # pool setup performed by other test cases in a full suite run overwrites
+    # connections established at file load time. See shard_keys_test.rb.
+    ShardedBase.connects_to shards: {
+      default: { writing: :arunit },
+      secondary: { writing: :arunit2 },
+    }
+
     Person.delete_all
     Parrot.delete_all
     Topic.delete_all
@@ -1113,6 +1135,533 @@ class TransactionChangesDirtyTest < ActiveRecord::TestCase
 
     assert_equal ["Sean", "Jim"], person.transaction_changes[:first_name]
     assert_equal %w(first_name lock_version updated_at).sort, person.transaction_changes.keys.sort
+  end
+
+  test "partial updates do not change the net transaction diff" do
+    transaction_changes = [true, false].map do |partial_updates|
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = :topics
+        self.partial_updates = partial_updates
+        self.record_timestamps = false
+      end
+
+      topic = klass.create!(title: "Original", author_name: "Alice", written_on: Date.today).reload
+      topic.update!(title: "Updated")
+      topic.transaction_changes
+    end
+
+    expected = { "title" => ["Original", "Updated"] }.with_indifferent_access
+    assert_equal expected, transaction_changes.first
+    assert_equal transaction_changes.first, transaction_changes.last
+  end
+
+  test "pending readonly and virtual attributes are excluded after a successful save" do
+    transaction_changes_before_save = nil
+    previous_raise_on_readonly = ActiveRecord.raise_on_assign_to_attr_readonly
+    begin
+      ActiveRecord.raise_on_assign_to_attr_readonly = false
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = :topics
+        attribute :virtual_candidate, :string
+        attr_readonly :author_name
+
+        before_save do
+          transaction_changes_before_save = transaction_changes.dup
+        end
+      end
+    ensure
+      ActiveRecord.raise_on_assign_to_attr_readonly = previous_raise_on_readonly
+    end
+
+    topic = klass.create!(title: "Original", author_name: "Alice", written_on: Date.today).reload
+    transaction_changes_before_save = nil
+    topic.assign_attributes(title: "Updated", author_name: "Bob", virtual_candidate: "pending")
+    topic.save!
+
+    assert_equal ["Alice", "Bob"], transaction_changes_before_save["author_name"]
+    assert_equal [nil, "pending"], transaction_changes_before_save["virtual_candidate"]
+    assert_equal ["Original", "Updated"], topic.transaction_changes["title"]
+    assert_not topic.transaction_changes.key?("author_name")
+    assert_not topic.transaction_changes.key?("virtual_candidate")
+  end
+
+  test "in-place and forced transaction changes require a different final value" do
+    changed_in_place = Person.create!(first_name: "Sean").reload
+    changed_in_place.first_name << " Jr"
+    changed_in_place.save!
+    assert_equal ["Sean", "Sean Jr"], changed_in_place.transaction_changes["first_name"]
+
+    restored_in_place = Person.create!(first_name: "Sean").reload
+    Person.transaction do
+      restored_in_place.first_name.replace("Jim")
+      restored_in_place.save!
+      restored_in_place.first_name.replace("Sean")
+      restored_in_place.save!
+    end
+    assert_not restored_in_place.transaction_changes.key?("first_name")
+
+    forced_same = Person.create!(first_name: "Sean").reload
+    forced_same.first_name_will_change!
+    forced_same.save!
+    assert_not forced_same.transaction_changes.key?("first_name")
+
+    forced_different = Person.create!(first_name: "Sean").reload
+    forced_different.first_name_will_change!
+    forced_different.first_name = "Jim"
+    forced_different.save!
+    assert_equal ["Sean", "Jim"], forced_different.transaction_changes["first_name"]
+  end
+
+  test "transaction_changes includes touch timestamps and optimistic lock writes" do
+    person = Person.create!(first_name: "Sean").reload
+
+    travel 1.second do
+      person.touch
+    end
+
+    assert_equal [0, 1], person.transaction_changes["lock_version"]
+    assert person.transaction_changes.key?("updated_at")
+  end
+
+  test "transaction_changes includes a deferred touch and optimistic lock write" do
+    klass = deferred_touch_person_class
+    person = klass.create!(first_name: "Sean").reload
+    original_updated_at = person.updated_at
+
+    travel 1.second do
+      klass.transaction do
+        person.touch_later
+      end
+    end
+
+    assert_equal [original_updated_at, person.updated_at], person.transaction_changes_log["updated_at"]
+    assert_equal [0, 1], person.transaction_changes_log["lock_version"]
+    assert_empty person.saved_changes
+    assert_nil person.instance_variable_get(:@_transaction_written_attribute_names)
+    assert_nil person.instance_variable_get(:@_deferred_touch_original_attributes)
+    assert_equal person.transaction_changes_log, person.transaction_changes
+    assert_same person.transaction_changes, person.transaction_changes
+  end
+
+  test "transaction_changes keeps the database original when a deferred touch precedes an update" do
+    klass = deferred_touch_person_class
+    person = klass.create!(first_name: "Sean").reload
+    original_updated_at = person.updated_at
+    deferred_time = (original_updated_at + 1.hour).change(usec: 0)
+
+    travel_to(deferred_time) do
+      klass.transaction do
+        person.touch_later
+        person.update!(first_name: "Jim")
+      end
+    end
+
+    assert_equal ["Jim", deferred_time, 2], klass.where(id: person.id).pick(:first_name, :updated_at, :lock_version)
+    assert_equal ["Sean", "Jim"], person.transaction_changes_log["first_name"]
+    assert_equal [original_updated_at, deferred_time], person.transaction_changes_log["updated_at"]
+    assert_equal [0, 2], person.transaction_changes_log["lock_version"]
+  end
+
+  test "transaction_changes keeps the database original when an immediate touch flushes a deferred touch" do
+    klass = deferred_touch_person_class
+    person = klass.create!(first_name: "Sean").reload
+    original_updated_at = person.updated_at
+    deferred_time = (original_updated_at + 1.hour).change(usec: 0)
+    immediate_time = (original_updated_at + 2.hours).change(usec: 0)
+
+    klass.transaction do
+      travel_to(deferred_time) { person.touch_later }
+      person.touch(time: immediate_time)
+    end
+
+    assert_equal [immediate_time, 1], klass.where(id: person.id).pick(:updated_at, :lock_version)
+    assert_equal [original_updated_at, immediate_time], person.transaction_changes_log["updated_at"]
+    assert_equal [0, 1], person.transaction_changes_log["lock_version"]
+  end
+
+  test "transaction_changes folds repeated deferred touches from the earliest database values" do
+    klass = deferred_touch_person_class
+    person = klass.create!(first_name: "Sean").reload
+    original_created_at = person.created_at
+    original_updated_at = person.updated_at
+    first_time = (original_updated_at + 1.hour).change(usec: 0)
+    last_time = (original_updated_at + 2.hours).change(usec: 0)
+    saved_changes_after_update = nil
+
+    klass.transaction do
+      travel_to(first_time) { person.touch_later }
+      travel_to(last_time) do
+        person.touch_later(:created_at)
+        person.update!(first_name: "Jim")
+        saved_changes_after_update = person.saved_changes.deep_dup
+      end
+    end
+
+    assert_equal ["Jim", last_time, last_time, 2], klass.where(id: person.id).pick(:first_name, :created_at, :updated_at, :lock_version)
+    assert_equal ["Sean", "Jim"], person.transaction_changes_log["first_name"]
+    assert_equal [original_created_at, last_time], person.transaction_changes_log["created_at"]
+    assert_equal [original_updated_at, last_time], person.transaction_changes_log["updated_at"]
+    assert_equal [0, 2], person.transaction_changes_log["lock_version"]
+    assert_equal saved_changes_after_update, person.saved_changes
+  end
+
+  test "an aborted immediate touch after touch_later does not leak its baseline into a later transaction" do
+    klass = deferred_touch_person_class
+    person = klass.create!(first_name: "Sean").reload
+    person.transaction_changes_log = nil
+    original_updated_at = person.updated_at
+    deferred_time = (original_updated_at + 1.hour).change(usec: 0)
+    immediate_time = (original_updated_at + 2.hours).change(usec: 0)
+
+    touch_result = nil
+    row_after_abort = nil
+    state_after_abort = nil
+
+    klass.transaction do
+      travel_to(deferred_time) { person.touch_later }
+      person.abort_touch = true
+      touch_result = person.touch(time: immediate_time)
+      person.abort_touch = false
+      row_after_abort = klass.where(id: person.id).pick(:updated_at, :lock_version)
+      state_after_abort = touch_later_internal_state(person)
+    end
+
+    assert_nil person.transaction_changes_log
+    assert_empty person.transaction_changes
+    assert_equal [original_updated_at, 0], klass.where(id: person.id).pick(:updated_at, :lock_version)
+
+    advanced_time = (original_updated_at + 3.hours).change(usec: 0)
+    final_time = (original_updated_at + 4.hours).change(usec: 0)
+    klass.find(person.id).touch(time: advanced_time)
+
+    person.reload
+    person.touch(time: final_time)
+
+    # The successful touch must report the externally advanced database
+    # values as originals, not the pre-abort baseline (original/0).
+    assert_equal [final_time, 2], klass.where(id: person.id).pick(:updated_at, :lock_version)
+    assert_equal [advanced_time, final_time], person.transaction_changes["updated_at"]
+    assert_equal [1, 2], person.transaction_changes["lock_version"]
+    assert_equal person.transaction_changes, person.transaction_changes_log
+
+    # The halted touch consumed the deferred names without reaching
+    # `_touch_row`, so no SQL ran and no baseline may have survived them.
+    assert_equal false, touch_result
+    assert_equal [original_updated_at, 0], row_after_abort
+    assert_equal({ defer_touch_attrs: nil, deferred_touch_original_attributes: nil, transaction_written_attribute_names: nil }, state_after_abort)
+  end
+
+  test "an aborted immediate touch after touch_later cancels the deferred baseline under nested transactions" do
+    nested_transaction_classes.each do |parent_state, expected_transaction_class|
+      klass = deferred_touch_person_class
+      person = klass.create!(first_name: "Sean").reload
+      person.transaction_changes_log = nil
+      original_updated_at = person.updated_at
+      deferred_time = (original_updated_at + 1.hour).change(usec: 0)
+      immediate_time = (original_updated_at + 2.hours).change(usec: 0)
+      nested_transaction_class = nil
+      live_changes_after_child = nil
+      touch_result = nil
+
+      klass.transaction do
+        klass.create!(first_name: "Dirty parent") if parent_state == :dirty_parent
+
+        klass.transaction(requires_new: true) do
+          nested_transaction_class = klass.lease_connection.current_transaction.class
+          travel_to(deferred_time) { person.touch_later }
+          person.abort_touch = true
+          touch_result = person.touch(time: immediate_time)
+          person.abort_touch = false
+        end
+
+        live_changes_after_child = person.transaction_changes.dup
+      end
+
+      assert_equal expected_transaction_class, nested_transaction_class
+      assert_empty live_changes_after_child
+      assert_nil person.transaction_changes_log
+      assert_empty person.transaction_changes
+      assert_equal [original_updated_at, 0], klass.where(id: person.id).pick(:updated_at, :lock_version)
+      assert_nil person.instance_variable_get(:@_start_transaction_state)
+
+      advanced_time = (original_updated_at + 3.hours).change(usec: 0)
+      final_time = (original_updated_at + 4.hours).change(usec: 0)
+      klass.find(person.id).touch(time: advanced_time)
+
+      person.reload
+      person.touch(time: final_time)
+
+      assert_equal [final_time, 2], klass.where(id: person.id).pick(:updated_at, :lock_version)
+      assert_equal [advanced_time, final_time], person.transaction_changes["updated_at"]
+      assert_equal [1, 2], person.transaction_changes["lock_version"]
+      assert_equal person.transaction_changes, person.transaction_changes_log
+      assert_same person.transaction_changes, person.transaction_changes
+      assert_equal false, touch_result
+      assert_equal({ defer_touch_attrs: nil, deferred_touch_original_attributes: nil, transaction_written_attribute_names: nil }, touch_later_internal_state(person))
+    end
+  end
+
+  test "a raised touch callback keeps the deferred names pending and reload discards the stale baseline" do
+    klass = deferred_touch_person_class
+    person = klass.create!(first_name: "Sean").reload
+    original_updated_at = person.updated_at
+    deferred_time = (original_updated_at + 1.hour).change(usec: 0)
+    immediate_time = (original_updated_at + 2.hours).change(usec: 0)
+
+    person.raise_touch = true
+    error = assert_raises(RuntimeError) do
+      klass.transaction do
+        travel_to(deferred_time) { person.touch_later }
+        person.touch(time: immediate_time)
+      end
+    end
+    assert_equal "touch callback failure", error.message
+    person.raise_touch = false
+
+    # A raised (rather than halted) touch keeps the deferred names pending so
+    # the touch can be retried; the baseline stays owned by those names.
+    assert_equal [original_updated_at, 0], klass.where(id: person.id).pick(:updated_at, :lock_version)
+    assert_predicate person.instance_variable_get(:@_defer_touch_attrs), :present?
+    assert_includes person.instance_variable_get(:@_deferred_touch_original_attributes), "updated_at"
+    assert_nil person.instance_variable_get(:@_transaction_written_attribute_names)
+
+    advanced_time = (original_updated_at + 3.hours).change(usec: 0)
+    final_time = (original_updated_at + 4.hours).change(usec: 0)
+    klass.find(person.id).touch(time: advanced_time)
+
+    # Reload replaces the attributes with fresh database state, so the stale
+    # pre-raise baseline must not survive into the next transaction.
+    person.reload
+    baseline_after_reload = person.instance_variable_get(:@_deferred_touch_original_attributes)
+
+    # The explicit transaction commits after the merged deferred names are
+    # consumed, so `before_committed!` does not flush a second touch.
+    klass.transaction { person.touch(time: final_time) }
+
+    # The retried touch must report the externally advanced database values
+    # as originals, not the pre-raise baseline (original/0).
+    assert_equal [final_time, 2], klass.where(id: person.id).pick(:updated_at, :lock_version)
+    assert_equal [advanced_time, final_time], person.transaction_changes["updated_at"]
+    assert_equal [1, 2], person.transaction_changes["lock_version"]
+    assert_nil baseline_after_reload
+    assert_equal({ defer_touch_attrs: nil, deferred_touch_original_attributes: nil, transaction_written_attribute_names: nil }, touch_later_internal_state(person))
+  end
+
+  test "an exception before update names are captured leaves no transient state" do
+    raise_before_update = false
+    extension = Module.new do
+      define_method(:_update_row) do |attribute_names, attempted_action = "update"|
+        raise "before captured #{attempted_action}" if raise_before_update
+        super(attribute_names, attempted_action)
+      end
+    end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :people
+      self.lock_optimistically = false
+      prepend extension
+    end
+    person = klass.create!(first_name: "Sean").reload
+    original_updated_at = person.updated_at
+
+    raise_before_update = true
+    error = assert_raises(RuntimeError) { person.update!(first_name: "Aborted") }
+    assert_equal "before captured update", error.message
+    assert_nil person.instance_variable_get(:@_transaction_written_attribute_names)
+
+    error = assert_raises(RuntimeError) { travel(1.second) { person.touch } }
+    assert_equal "before captured touch", error.message
+    assert_nil person.instance_variable_get(:@_transaction_written_attribute_names)
+    assert_equal ["Sean", original_updated_at], klass.where(id: person.id).pick(:first_name, :updated_at)
+
+    raise_before_update = false
+    person.update!(first_name: "Recovered")
+
+    assert_equal ["Sean", "Recovered"], person.transaction_changes["first_name"]
+    assert_equal "Recovered", klass.where(id: person.id).pick(:first_name)
+  end
+
+  test "compatible persistence prepends that alter or forward name lists preserve finalized transaction writes" do
+    calls = []
+    extension = Module.new do
+      define_method(:_create_record) do
+        calls << :create
+        super()
+      end
+
+      define_method(:_update_record) do
+        calls << :update
+        super()
+      end
+
+      # Alter the explicit touch name list before forwarding, the way
+      # optimistic locking alters `_update_row`'s list below this seam.
+      define_method(:_touch_row) do |attribute_names, time|
+        calls << :touch
+        super(attribute_names | ["created_at"], time)
+      end
+
+      define_method(:_update_row) do |attribute_names, attempted_action = "update"|
+        if attempted_action == "update"
+          _write_attribute("comments", "extension write")
+          attribute_names |= ["comments"]
+        end
+        super(attribute_names, attempted_action)
+      end
+    end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :people
+      prepend extension
+    end
+
+    person = klass.create!(first_name: "Sean").reload
+    assert_equal [:create], calls
+    calls.clear
+    original_created_at = person.created_at
+    original_updated_at = person.updated_at
+    touch_time = (original_updated_at + 1.hour).change(usec: 0)
+
+    klass.transaction do
+      person.update!(first_name: "Jim")
+      person.touch(time: touch_time)
+    end
+
+    assert_equal [:update, :touch], calls
+    assert_equal ["Jim", "extension write", touch_time, touch_time, 2],
+      klass.where(id: person.id).pick(:first_name, :comments, :created_at, :updated_at, :lock_version)
+    assert_equal ["Sean", "Jim"], person.transaction_changes["first_name"]
+    assert_equal [nil, "extension write"], person.transaction_changes["comments"]
+    assert_equal [original_created_at, touch_time], person.transaction_changes["created_at"]
+    assert_equal [original_updated_at, touch_time], person.transaction_changes["updated_at"]
+    assert_equal [0, 2], person.transaction_changes["lock_version"]
+    assert_nil person.instance_variable_get(:@_transaction_written_attribute_names)
+  end
+
+  test "transaction changes remain isolated across shards" do
+    ShardedBase.connected_to(shard: :default) do
+      ShardedBase.lease_connection.create_table(:transaction_change_people, force: true) do |t|
+        t.string :first_name
+        t.timestamps
+      end
+    end
+    ShardedBase.connected_to(shard: :secondary) do
+      ShardedBase.lease_connection.create_table(:transaction_change_people, force: true) do |t|
+        t.string :first_name
+        t.timestamps
+      end
+    end
+
+    primary_person = ShardedBase.connected_to(shard: :default) do
+      ShardedPerson.create!(first_name: "Primary").reload
+    end
+    secondary_person = ShardedBase.connected_to(shard: :secondary) do
+      ShardedPerson.create!(first_name: "Secondary").reload
+    end
+
+    ShardedBase.connected_to(shard: :default) do
+      ShardedPerson.transaction do
+        primary_person.update!(first_name: "Primary final")
+        ShardedBase.connected_to(shard: :secondary) do
+          ShardedPerson.transaction do
+            secondary_person.update!(first_name: "Secondary final")
+          end
+        end
+      end
+    end
+
+    assert_equal ["Primary", "Primary final"], primary_person.transaction_changes["first_name"]
+    assert_equal ["Secondary", "Secondary final"], secondary_person.transaction_changes["first_name"]
+    assert_equal ["Primary", "Primary final"], primary_person.transaction_changes_log["first_name"]
+    assert_equal ["Secondary", "Secondary final"], secondary_person.transaction_changes_log["first_name"]
+    assert_not_includes primary_person.transaction_changes.values.flatten, "Secondary final"
+    assert_not_includes secondary_person.transaction_changes.values.flatten, "Primary final"
+
+    ShardedBase.connected_to(shard: :default) do
+      assert_equal "Primary final", ShardedPerson.where(id: primary_person.id).pick(:first_name)
+    end
+    ShardedBase.connected_to(shard: :secondary) do
+      assert_equal "Secondary final", ShardedPerson.where(id: secondary_person.id).pick(:first_name)
+    end
+
+    [primary_person, secondary_person].each do |record|
+      assert_nil record.instance_variable_get(:@_transaction_written_attribute_names)
+      assert_nil record.instance_variable_get(:@_start_transaction_state)
+    end
+  ensure
+    [:default, :secondary].each do |shard|
+      ShardedBase.connected_to(shard: shard) do
+        ShardedBase.lease_connection.drop_table(:transaction_change_people, if_exists: true)
+      end
+    end
+  end
+
+  test "a stale update does not leak captured write names into a later save" do
+    current = Person.create!(first_name: "Sean")
+    stale = Person.find(current.id)
+    current.update!(first_name: "Jim")
+
+    assert_raises(ActiveRecord::StaleObjectError) { stale.update!(gender: "F") }
+    assert_nil stale.instance_variable_get(:@_transaction_written_attribute_names)
+
+    stale.reload
+    stale.update!(comments: "saved")
+
+    assert_equal [nil, "saved"], stale.transaction_changes["comments"]
+    assert_not stale.transaction_changes.key?("gender")
+  end
+
+  test "an exception after update names are captured does not leak them" do
+    raise_after_update = false
+    extension = Module.new do
+      define_method(:_update_row) do |attribute_names, attempted_action = "update"|
+        affected_rows = super(attribute_names, attempted_action)
+        raise "after captured update" if raise_after_update
+        affected_rows
+      end
+    end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :people
+      self.lock_optimistically = false
+      prepend extension
+    end
+    person = klass.create!(first_name: "Sean").reload
+    raise_after_update = true
+
+    error = assert_raises(RuntimeError) { person.update!(first_name: "Aborted") }
+    assert_equal "after captured update", error.message
+    assert_nil person.instance_variable_get(:@_transaction_written_attribute_names)
+    assert_equal "Sean", klass.where(id: person.id).pick(:first_name)
+
+    raise_after_update = false
+    person.assign_attributes(first_name: "Sean", gender: "M")
+    person.save!
+
+    assert_equal [nil, "M"], person.transaction_changes["gender"]
+    assert_not person.transaction_changes.key?("first_name")
+    assert_equal ["Sean", "M"], klass.where(id: person.id).pick(:first_name, :gender)
+  end
+
+  test "an exception after touch names are captured clears transient state" do
+    raise_after_update = false
+    extension = Module.new do
+      define_method(:_update_row) do |attribute_names, attempted_action = "update"|
+        affected_rows = super(attribute_names, attempted_action)
+        raise "after captured touch" if raise_after_update
+        affected_rows
+      end
+    end
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = :people
+      self.lock_optimistically = false
+      prepend extension
+    end
+    person = klass.create!(first_name: "Sean").reload
+    original_updated_at = person.updated_at
+    raise_after_update = true
+
+    error = assert_raises(RuntimeError) { travel(1.second) { person.touch } }
+    assert_equal "after captured touch", error.message
+    assert_nil person.instance_variable_get(:@_transaction_written_attribute_names)
+    assert_equal original_updated_at, klass.where(id: person.id).pick(:updated_at)
   end
 
   test "transaction_changes tracks cumulative changes across multiple saves in a transaction" do
@@ -1230,4 +1779,40 @@ class TransactionChangesDirtyTest < ActiveRecord::TestCase
     # transaction_changes spans the full transaction: Sean -> Final
     assert_equal ["Sean", "Final"], person.transaction_changes[:first_name]
   end
+
+  private
+    # Shared anonymous TouchLater/after_commit model used by the deferred-touch
+    # sequence and the abort/raise record-reuse regressions. The touch toggles
+    # stay inert unless a test sets them.
+    def deferred_touch_person_class
+      Class.new(ActiveRecord::Base) do
+        self.table_name = :people
+
+        attr_accessor :abort_touch, :raise_touch, :transaction_changes_log
+
+        set_callback(:touch, :before) do
+          throw :abort if abort_touch
+          raise "touch callback failure" if raise_touch
+        end
+
+        after_commit do
+          self.transaction_changes_log = transaction_changes.dup
+        end
+      end
+    end
+
+    def nested_transaction_classes
+      {
+        clean_parent: ActiveRecord::ConnectionAdapters::RestartParentTransaction,
+        dirty_parent: ActiveRecord::ConnectionAdapters::SavepointTransaction,
+      }
+    end
+
+    def touch_later_internal_state(record)
+      {
+        defer_touch_attrs: record.instance_variable_get(:@_defer_touch_attrs),
+        deferred_touch_original_attributes: record.instance_variable_get(:@_deferred_touch_original_attributes),
+        transaction_written_attribute_names: record.instance_variable_get(:@_transaction_written_attribute_names),
+      }
+    end
 end

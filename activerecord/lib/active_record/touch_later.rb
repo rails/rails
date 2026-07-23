@@ -38,10 +38,33 @@ module ActiveRecord
     def touch(*names, time: nil) # :nodoc:
       if has_defer_touch_attrs?
         names |= @_defer_touch_attrs
-        super(*names, time: time)
+        result = super(*names, time: time)
+        # A normal return means the deferred touch was either persisted by
+        # +_touch_row+ or cancelled by a halted touch callback, so the deferred
+        # names are consumed either way. The transaction-change baseline
+        # captured by +surreptitiously_touch+ and any transient written-name
+        # capture must not outlive the deferred names: an orphaned baseline
+        # would be copied into a later transaction's state and report values
+        # from before this touch. When a touch callback raises instead, the
+        # deferred names stay pending and retain ownership of the baseline so
+        # the touch can still be retried or flushed by +before_committed!+.
         @_defer_touch_attrs, @_touch_time = nil, nil
+        @_deferred_touch_original_attributes = nil
+        clear_transaction_written_attributes
+        result
       else
         super
+      end
+    end
+
+    def reload(*) # :nodoc:
+      super.tap do
+        # Reload replaces +@attributes+ with fresh database state, so a
+        # baseline captured before the reload no longer predates the current
+        # attributes. Pending deferred names survive so an in-flight
+        # +touch_later+ can still be flushed; that flush captures its
+        # originals from the reloaded attributes.
+        @_deferred_touch_original_attributes = nil
       end
     end
 
@@ -49,18 +72,40 @@ module ActiveRecord
       def init_internals
         super
         @_defer_touch_attrs = nil
+        @_deferred_touch_original_attributes = nil
       end
 
+      # Captures the database originals of the deferred touch so transaction
+      # change tracking can report them if the touch survives. Invariant:
+      # +@_deferred_touch_original_attributes+ may remain non-nil only while
+      # +@_defer_touch_attrs+ is still pending or while an active transaction
+      # state owns an independent copy (made by
+      # +remember_transaction_record_state+). Consuming or cancelling the
+      # deferred names — +_touch_row+, +touch_deferred_attributes+, a halted
+      # immediate touch, or +reload+ — must clear the baseline with them.
       def surreptitiously_touch(attr_names)
+        @_deferred_touch_original_attributes ||= {}
         attr_names.each do |attr_name|
+          attr = @attributes[attr_name]
+          @_deferred_touch_original_attributes[attr_name] ||= attr.with_value_from_database(attr.original_value_for_database)
           _write_attribute(attr_name, @_touch_time)
           clear_attribute_change(attr_name)
+        end
+
+        if locking_enabled?
+          locking_column = self.class.locking_column
+          lock_attr = @attributes[locking_column]
+          @_deferred_touch_original_attributes[locking_column] ||= lock_attr.with_value_from_database(lock_attr.original_value_for_database)
         end
       end
 
       def touch_deferred_attributes
         @_skip_dirty_tracking = true
         touch(time: @_touch_time)
+      ensure
+        @_skip_dirty_tracking = nil
+        @_deferred_touch_original_attributes = nil
+        clear_transaction_written_attributes
       end
 
       def has_defer_touch_attrs?

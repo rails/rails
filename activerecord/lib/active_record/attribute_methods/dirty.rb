@@ -87,6 +87,7 @@ module ActiveRecord
           @mutations_before_last_save = nil
           @mutations_from_database = nil
           @_committed_changes = nil
+          @_committed_transaction_state = nil
         end
       end
 
@@ -213,10 +214,11 @@ module ActiveRecord
         attr_name = attr_name.to_s
 
         if @_start_transaction_state
-          @_start_transaction_state[:attributes][attr_name]&.original_value
-        elsif @_committed_changes
-          if @_committed_changes.key?(attr_name)
-            @_committed_changes[attr_name].first
+          original_attributes = _transaction_original_written_attributes
+          (original_attributes&.fetch(attr_name, nil) || @_start_transaction_state[:attributes][attr_name])&.original_value
+        elsif committed_changes = _committed_transaction_changes
+          if committed_changes.key?(attr_name)
+            committed_changes[attr_name].first
           else
             _read_attribute(attr_name)
           end
@@ -241,7 +243,7 @@ module ActiveRecord
       # committed changes. Returns an empty hash when called outside any
       # transaction context.
       def transaction_changes
-        _compute_transaction_changes || @_committed_changes || EMPTY_HASH
+        _compute_transaction_changes || _committed_transaction_changes || EMPTY_HASH
       end
 
       # Will this attribute change the next time we save?
@@ -323,6 +325,7 @@ module ActiveRecord
           @mutations_before_last_save = nil
           @mutations_from_database = nil
           @_committed_changes = nil
+          @_committed_transaction_state = nil
           @_touch_attr_names = nil
           @_skip_dirty_tracking = nil
         end
@@ -337,6 +340,7 @@ module ActiveRecord
           affected_rows = super
 
           if @_skip_dirty_tracking ||= false
+            refresh_transaction_record_state_without_dirty_tracking
             clear_attribute_changes(@_touch_attr_names)
             return affected_rows
           end
@@ -358,18 +362,24 @@ module ActiveRecord
           affected_rows
         ensure
           @_touch_attr_names, @_skip_dirty_tracking = nil, nil
+          @_deferred_touch_original_attributes = nil
+          clear_transaction_written_attributes
         end
 
         def _update_record(attribute_names = attribute_names_for_partial_updates)
           affected_rows = super
           changes_applied
           affected_rows
+        ensure
+          clear_transaction_written_attributes
         end
 
         def _create_record(attribute_names = attribute_names_for_partial_inserts)
           id = super
           changes_applied
           id
+        ensure
+          clear_transaction_written_attributes
         end
 
         def attribute_names_for_partial_updates

@@ -1102,6 +1102,17 @@ class TransactionChangesInAfterCommitCallbacksTest < ActiveRecord::TestCase
     end
   end
 
+  class TopicWithDeferredTouchTransactionChanges < ActiveRecord::Base
+    self.table_name = :topics
+    self.record_timestamps = false
+
+    attr_accessor :transaction_changes_log
+
+    after_commit do
+      self.transaction_changes_log = transaction_changes.dup
+    end
+  end
+
   def test_transaction_changes_tracks_full_transaction_with_multiple_saves
     topic = TopicWithTransactionChanges.create!(title: "Original", written_on: Date.today)
 
@@ -1367,39 +1378,226 @@ class TransactionChangesInAfterCommitCallbacksTest < ActiveRecord::TestCase
     assert_nil topic.transaction_changes_log["author_name"]
   end
 
-  def test_transaction_changes_preserves_committed_savepoint_before_rolled_back_sibling
-    topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
-
-    TopicWithTransactionChanges.transaction do
-      topic.update!(title: "Outer")
-
-      TopicWithTransactionChanges.transaction(requires_new: true) do
-        topic.update!(author_name: "Committed child")
-      end
-
-      TopicWithTransactionChanges.transaction(requires_new: true) do
-        topic.update!(author_name: "Rolled back once")
-        topic.update!(author_name: "Rolled back twice")
-        raise ActiveRecord::Rollback
-      end
-    end
-
-    assert_equal "Committed child", TopicWithTransactionChanges.where(id: topic.id).pick(:author_name)
-    assert_equal ["Alice", "Committed child"], topic.transaction_changes_log["author_name"]
-  end
-
-  def test_rolled_back_first_save_is_not_rewritten_by_later_outer_update
-    nested_transaction_classes = {
-      clean_parent: ActiveRecord::ConnectionAdapters::RestartParentTransaction,
-      dirty_parent: ActiveRecord::ConnectionAdapters::SavepointTransaction,
-    }
-
+  def test_transaction_changes_preserves_committed_child_before_rolled_back_sibling
     nested_transaction_classes.each do |parent_state, expected_transaction_class|
       topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
       nested_transaction_class = nil
 
       TopicWithTransactionChanges.transaction do
-        TopicWithTransactionChanges.create!(title: "Dirty parent", written_on: Date.today) if parent_state == :dirty_parent
+        dirty_transaction_parent if parent_state == :dirty_parent
+
+        TopicWithTransactionChanges.transaction(requires_new: true) do
+          nested_transaction_class = TopicWithTransactionChanges.lease_connection.current_transaction.class
+          topic.update!(author_name: "Committed child")
+        end
+
+        TopicWithTransactionChanges.transaction(requires_new: true) do
+          topic.update!(author_name: "Rolled back sibling")
+          raise ActiveRecord::Rollback
+        end
+      end
+
+      assert_equal expected_transaction_class, nested_transaction_class
+      assert_equal "Committed child", TopicWithTransactionChanges.where(id: topic.id).pick(:author_name)
+      assert_equal ["Alice", "Committed child"], topic.transaction_changes_log["author_name"]
+    end
+  end
+
+  def test_transaction_changes_discards_committed_child_when_parent_rolls_back
+    nested_transaction_classes.each do |parent_state, expected_transaction_class|
+      topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today).reload
+      nested_transaction_class = nil
+
+      TopicWithTransactionChanges.transaction do
+        dirty_transaction_parent if parent_state == :dirty_parent
+
+        TopicWithTransactionChanges.transaction(requires_new: true) do
+          nested_transaction_class = TopicWithTransactionChanges.lease_connection.current_transaction.class
+          topic.update!(author_name: "Committed child")
+        end
+
+        raise ActiveRecord::Rollback
+      end
+
+      assert_equal expected_transaction_class, nested_transaction_class
+      assert_equal "Alice", TopicWithTransactionChanges.where(id: topic.id).pick(:author_name)
+      assert_empty topic.transaction_changes
+    end
+  end
+
+  def test_deferred_touch_changes_are_discarded_with_a_rolled_back_child
+    nested_transaction_classes.each do |parent_state, expected_transaction_class|
+      original_time = Time.utc(2020, 1, 1)
+      deferred_time = original_time + 1.hour
+      immediate_time = original_time + 2.hours
+      topic = TopicWithDeferredTouchTransactionChanges.create!(
+        title: "Original", author_name: "Alice", created_at: original_time, updated_at: original_time
+      ).reload
+      topic.transaction_changes_log = nil
+      nested_transaction_class = nil
+      live_changes_in_child = nil
+      live_changes_after_rollback = nil
+
+      TopicWithDeferredTouchTransactionChanges.transaction do
+        dirty_transaction_parent if parent_state == :dirty_parent
+
+        TopicWithDeferredTouchTransactionChanges.transaction(requires_new: true) do
+          nested_transaction_class = TopicWithDeferredTouchTransactionChanges.lease_connection.current_transaction.class
+          travel_to(deferred_time) { topic.touch_later }
+          topic.touch(time: immediate_time)
+          live_changes_in_child = topic.transaction_changes.dup
+          raise ActiveRecord::Rollback
+        end
+
+        live_changes_after_rollback = topic.transaction_changes.dup
+      end
+
+      assert_equal expected_transaction_class, nested_transaction_class
+      assert_equal [original_time, immediate_time], live_changes_in_child["updated_at"]
+      assert_not live_changes_after_rollback.key?("updated_at")
+      assert_equal ["Original", "Alice", original_time], TopicWithDeferredTouchTransactionChanges.where(id: topic.id).pick(:title, :author_name, :updated_at)
+      assert_empty topic.transaction_changes
+    end
+  end
+
+  def test_deferred_touch_from_a_committed_child_survives_an_outer_save
+    nested_transaction_classes.each do |parent_state, expected_transaction_class|
+      original_time = Time.utc(2020, 1, 1)
+      deferred_time = original_time + 1.hour
+      topic = TopicWithDeferredTouchTransactionChanges.create!(
+        title: "Original", author_name: "Alice", created_at: original_time, updated_at: original_time
+      ).reload
+      nested_transaction_class = nil
+      live_changes_after_child = nil
+
+      TopicWithDeferredTouchTransactionChanges.transaction do
+        dirty_transaction_parent if parent_state == :dirty_parent
+
+        TopicWithDeferredTouchTransactionChanges.transaction(requires_new: true) do
+          nested_transaction_class = TopicWithDeferredTouchTransactionChanges.lease_connection.current_transaction.class
+          travel_to(deferred_time) { topic.touch_later }
+          topic.update!(author_name: "Child")
+        end
+
+        live_changes_after_child = topic.transaction_changes.dup
+        topic.update!(title: "Outer")
+      end
+
+      assert_equal expected_transaction_class, nested_transaction_class
+      assert_equal ["Alice", "Child"], live_changes_after_child["author_name"]
+      assert_not live_changes_after_child.key?("updated_at")
+      assert_equal ["Outer", "Child", deferred_time], TopicWithDeferredTouchTransactionChanges.where(id: topic.id).pick(:title, :author_name, :updated_at)
+      assert_equal ["Original", "Outer"], topic.transaction_changes_log["title"]
+      assert_equal ["Alice", "Child"], topic.transaction_changes_log["author_name"]
+      assert_equal [original_time, deferred_time], topic.transaction_changes_log["updated_at"]
+    end
+  end
+
+  def test_deferred_touch_from_a_committed_child_is_discarded_with_its_parent
+    nested_transaction_classes.each do |parent_state, expected_transaction_class|
+      original_time = Time.utc(2020, 1, 1)
+      immediate_time = original_time + 2.hours
+      topic = TopicWithDeferredTouchTransactionChanges.create!(
+        title: "Original", author_name: "Alice", created_at: original_time, updated_at: original_time
+      ).reload
+      nested_transaction_class = nil
+
+      TopicWithDeferredTouchTransactionChanges.transaction do
+        dirty_transaction_parent if parent_state == :dirty_parent
+
+        TopicWithDeferredTouchTransactionChanges.transaction(requires_new: true) do
+          nested_transaction_class = TopicWithDeferredTouchTransactionChanges.lease_connection.current_transaction.class
+          travel_to(original_time + 1.hour) { topic.touch_later }
+          topic.touch(time: immediate_time)
+        end
+
+        raise ActiveRecord::Rollback
+      end
+
+      assert_equal expected_transaction_class, nested_transaction_class
+      assert_equal ["Original", "Alice", original_time], TopicWithDeferredTouchTransactionChanges.where(id: topic.id).pick(:title, :author_name, :updated_at)
+      assert_empty topic.transaction_changes
+    end
+  end
+
+  def test_repeated_deferred_touch_survives_a_rolled_back_sibling
+    nested_transaction_classes.each do |parent_state, expected_transaction_class|
+      original_time = Time.utc(2020, 1, 1)
+      first_time = original_time + 1.hour
+      last_time = original_time + 2.hours
+      topic = TopicWithDeferredTouchTransactionChanges.create!(
+        title: "Original", author_name: "Alice", created_at: original_time, updated_at: original_time
+      ).reload
+      nested_transaction_class = nil
+      live_changes_after_sibling = nil
+
+      TopicWithDeferredTouchTransactionChanges.transaction do
+        dirty_transaction_parent if parent_state == :dirty_parent
+
+        TopicWithDeferredTouchTransactionChanges.transaction(requires_new: true) do
+          nested_transaction_class = TopicWithDeferredTouchTransactionChanges.lease_connection.current_transaction.class
+          travel_to(first_time) { topic.touch_later }
+          travel_to(last_time) do
+            topic.touch_later(:created_at)
+            topic.update!(author_name: "Child")
+          end
+        end
+
+        TopicWithDeferredTouchTransactionChanges.transaction(requires_new: true) do
+          topic.update!(title: "Rolled back sibling")
+          raise ActiveRecord::Rollback
+        end
+        live_changes_after_sibling = topic.transaction_changes.dup
+      end
+
+      assert_equal expected_transaction_class, nested_transaction_class
+      assert_equal ["Alice", "Child"], live_changes_after_sibling["author_name"]
+      assert_not live_changes_after_sibling.key?("title")
+      assert_equal ["Original", "Child", last_time, last_time], TopicWithDeferredTouchTransactionChanges.where(id: topic.id).pick(:title, :author_name, :created_at, :updated_at)
+      assert_equal ["Alice", "Child"], topic.transaction_changes_log["author_name"]
+      assert_equal [original_time, last_time], topic.transaction_changes_log["created_at"]
+      assert_equal [original_time, last_time], topic.transaction_changes_log["updated_at"]
+      assert_not topic.transaction_changes_log.key?("title")
+    end
+  end
+
+  def test_transaction_change_frames_filter_an_internally_invalidated_child
+    # This directly exercises the frame-survival invariant. Public transaction
+    # errors roll back their database writes; here the invalidated write remains
+    # committed so the tracking filter can be observed independently.
+    nested_transaction_classes.each do |parent_state, expected_transaction_class|
+      topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+      child_state = nil
+      nested_transaction_class = nil
+
+      TopicWithTransactionChanges.transaction do
+        dirty_transaction_parent if parent_state == :dirty_parent
+
+        TopicWithTransactionChanges.transaction(requires_new: true) do
+          transaction = TopicWithTransactionChanges.lease_connection.current_transaction
+          nested_transaction_class = transaction.class
+          child_state = transaction.state
+          topic.update!(author_name: "Invalidated child")
+        end
+        child_state.invalidate!
+
+        topic.update!(title: "Outer")
+      end
+
+      assert_equal expected_transaction_class, nested_transaction_class
+      assert_equal ["Outer", "Invalidated child"], TopicWithTransactionChanges.where(id: topic.id).pick(:title, :author_name)
+      assert_equal ["Original", "Outer"], topic.transaction_changes_log["title"]
+      assert_not topic.transaction_changes_log.key?("author_name")
+    end
+  end
+
+  def test_rolled_back_first_save_is_not_rewritten_by_later_outer_update
+    nested_transaction_classes.each do |parent_state, expected_transaction_class|
+      topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+      nested_transaction_class = nil
+
+      TopicWithTransactionChanges.transaction do
+        dirty_transaction_parent if parent_state == :dirty_parent
 
         TopicWithTransactionChanges.transaction(requires_new: true) do
           nested_transaction_class = TopicWithTransactionChanges.lease_connection.current_transaction.class
@@ -1418,67 +1616,88 @@ class TransactionChangesInAfterCommitCallbacksTest < ActiveRecord::TestCase
   end
 
   def test_transaction_changes_uses_original_value_when_rolled_back_attribute_is_rewritten
-    topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+    nested_transaction_classes.each do |parent_state, expected_transaction_class|
+      topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+      nested_transaction_class = nil
 
-    TopicWithTransactionChanges.transaction do
-      TopicWithTransactionChanges.transaction(requires_new: true) do
-        topic.update!(author_name: "Discarded")
-        raise ActiveRecord::Rollback
+      TopicWithTransactionChanges.transaction do
+        dirty_transaction_parent if parent_state == :dirty_parent
+
+        TopicWithTransactionChanges.transaction(requires_new: true) do
+          nested_transaction_class = TopicWithTransactionChanges.lease_connection.current_transaction.class
+          topic.update!(author_name: "Discarded")
+          raise ActiveRecord::Rollback
+        end
+
+        topic.update!(author_name: "Final")
       end
 
-      topic.update!(author_name: "Final")
+      assert_equal expected_transaction_class, nested_transaction_class
+      assert_equal "Final", TopicWithTransactionChanges.where(id: topic.id).pick(:author_name)
+      assert_equal ["Alice", "Final"], topic.transaction_changes_log["author_name"]
     end
-
-    assert_equal "Final", TopicWithTransactionChanges.where(id: topic.id).pick(:author_name)
-    assert_equal ["Alice", "Final"], topic.transaction_changes_log["author_name"]
   end
 
   def test_live_transaction_changes_excludes_rolled_back_first_save
-    transaction_changes_before_save = nil
+    nested_transaction_classes.each do |parent_state, expected_transaction_class|
+      transaction_changes_before_save = nil
+      transaction_changes_after_rollback = nil
+      nested_transaction_class = nil
 
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = :topics
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = :topics
 
-      before_save do
-        transaction_changes_before_save = transaction_changes.dup
-      end
-    end
-
-    topic = klass.create!(title: "Original", author_name: "Alice", written_on: Date.today)
-    transaction_changes_before_save = nil
-    transaction_changes_after_rollback = nil
-
-    klass.transaction do
-      klass.transaction(requires_new: true) do
-        topic.update!(author_name: "Discarded")
-        raise ActiveRecord::Rollback
+        before_save do
+          transaction_changes_before_save = transaction_changes.dup
+        end
       end
 
-      transaction_changes_after_rollback = topic.transaction_changes.dup
-      topic.update!(title: "Outer")
-    end
+      topic = klass.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+      transaction_changes_before_save = nil
 
-    assert_nil transaction_changes_after_rollback["author_name"]
-    assert_equal ["Original", "Outer"], transaction_changes_before_save["title"]
-    assert_nil transaction_changes_before_save["author_name"]
+      klass.transaction do
+        dirty_transaction_parent if parent_state == :dirty_parent
+
+        klass.transaction(requires_new: true) do
+          nested_transaction_class = klass.lease_connection.current_transaction.class
+          topic.update!(author_name: "Discarded")
+          raise ActiveRecord::Rollback
+        end
+
+        transaction_changes_after_rollback = topic.transaction_changes.dup
+        topic.update!(title: "Outer")
+      end
+
+      assert_equal expected_transaction_class, nested_transaction_class
+      assert_nil transaction_changes_after_rollback["author_name"]
+      assert_equal ["Original", "Outer"], transaction_changes_before_save["title"]
+      assert_nil transaction_changes_before_save["author_name"]
+    end
   end
 
   def test_plain_save_rewrites_rolled_back_first_save_and_reports_it
-    topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+    nested_transaction_classes.each do |parent_state, expected_transaction_class|
+      topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
+      nested_transaction_class = nil
 
-    TopicWithTransactionChanges.transaction do
-      TopicWithTransactionChanges.transaction(requires_new: true) do
-        topic.author_name = "Discarded"
-        assert topic.save
-        raise ActiveRecord::Rollback
+      TopicWithTransactionChanges.transaction do
+        dirty_transaction_parent if parent_state == :dirty_parent
+
+        TopicWithTransactionChanges.transaction(requires_new: true) do
+          nested_transaction_class = TopicWithTransactionChanges.lease_connection.current_transaction.class
+          topic.author_name = "Discarded"
+          assert topic.save
+          raise ActiveRecord::Rollback
+        end
+
+        topic.update!(title: "Outer")
       end
 
-      topic.update!(title: "Outer")
+      assert_equal expected_transaction_class, nested_transaction_class
+      assert_equal ["Outer", "Discarded"], TopicWithTransactionChanges.where(id: topic.id).pick(:title, :author_name)
+      assert_equal ["Original", "Outer"], topic.transaction_changes_log["title"]
+      assert_equal ["Alice", "Discarded"], topic.transaction_changes_log["author_name"]
     end
-
-    assert_equal ["Outer", "Discarded"], TopicWithTransactionChanges.where(id: topic.id).pick(:title, :author_name)
-    assert_equal ["Original", "Outer"], topic.transaction_changes_log["title"]
-    assert_equal ["Alice", "Discarded"], topic.transaction_changes_log["author_name"]
   end
 
   def test_savepoint_first_persisted_values_match_existing_save_and_update_behavior
@@ -1487,11 +1706,11 @@ class TransactionChangesInAfterCommitCallbacksTest < ActiveRecord::TestCase
       update!: "Alice",
     }
 
-    [:clean_parent, :dirty_parent].product(expected_values.to_a).each do |parent_state, (operation, expected_author_name)|
+    nested_transaction_classes.keys.product(expected_values.to_a).each do |parent_state, (operation, expected_author_name)|
       topic = TopicWithTransactionChanges.create!(title: "Original", author_name: "Alice", written_on: Date.today)
 
       TopicWithTransactionChanges.transaction do
-        TopicWithTransactionChanges.create!(title: "Dirty parent", written_on: Date.today) if parent_state == :dirty_parent
+        dirty_transaction_parent if parent_state == :dirty_parent
 
         TopicWithTransactionChanges.transaction(requires_new: true) do
           if operation == :save
@@ -1567,6 +1786,18 @@ class TransactionChangesInAfterCommitCallbacksTest < ActiveRecord::TestCase
     assert transaction_changes_in_callback.key?("title"),
       "transaction_changes should include title inside after_update_commit"
   end
+
+  private
+    def nested_transaction_classes
+      {
+        clean_parent: ActiveRecord::ConnectionAdapters::RestartParentTransaction,
+        dirty_parent: ActiveRecord::ConnectionAdapters::SavepointTransaction,
+      }
+    end
+
+    def dirty_transaction_parent
+      TopicWithTransactionChanges.create!(title: "Dirty parent", written_on: Date.today)
+    end
 end
 
 class TransactionChangesTest < ActiveRecord::TestCase
@@ -1705,6 +1936,67 @@ class TransactionChangesTest < ActiveRecord::TestCase
       "cross-model transaction_changes should reflect the other model's saved changes"
   end
 
+  def test_tracking_does_not_cast_unwritten_readonly_binary_attribute
+    binary_type = Class.new(ActiveRecord::Type::Binary) do
+      attr_accessor :armed
+
+      def cast(value)
+        raise "readonly nil was cast during save" if armed && value.nil?
+
+        super
+      end
+    end.new
+
+    previous_raise_on_readonly = ActiveRecord.raise_on_assign_to_attr_readonly
+    begin
+      ActiveRecord.raise_on_assign_to_attr_readonly = false
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = :topics
+        self.partial_updates = false
+        attribute :author_name, binary_type
+        attr_readonly :author_name
+      end
+    ensure
+      ActiveRecord.raise_on_assign_to_attr_readonly = previous_raise_on_readonly
+    end
+
+    topic = klass.create!(title: "Original", written_on: Date.today).reload
+    binary_type.armed = true
+    topic.author_name = "not persisted"
+    topic.title = "Updated"
+
+    assert_nothing_raised { topic.save! }
+    assert_equal "Updated", klass.where(id: topic.id).pick(:title)
+  end
+
+  def test_commit_does_not_deserialize_transaction_changes_without_a_reader
+    type = transaction_deserialize_counting_type
+    klass = transaction_deserialize_counting_model(type)
+    topic = klass.create!(title: "Original", written_on: Date.today).reload
+
+    topic.arm_transaction_type_after_save = true
+    topic.update!(title: "Updated")
+
+    assert_equal 0, type.deserialize_count
+  end
+
+  def test_transaction_changes_deserializes_lazily_when_read
+    type = transaction_deserialize_counting_type
+    klass = transaction_deserialize_counting_model(type)
+    topic = klass.create!(title: "Original", written_on: Date.today).reload
+
+    topic.arm_transaction_type_after_save = true
+    topic.update!(title: "Updated")
+
+    assert_equal 0, type.deserialize_count
+    assert_equal ["Original", "Updated"], topic.transaction_changes["title"]
+    assert_operator type.deserialize_count, :>, 0
+
+    deserialize_count = type.deserialize_count
+    assert_equal ["Original", "Updated"], topic.transaction_changes["title"]
+    assert_equal deserialize_count, type.deserialize_count
+  end
+
   def test_transaction_changes_does_not_deserialize_nil_database_values
     sentinel_type = Class.new(ActiveModel::Type::String) do
       def deserialize(value)
@@ -1735,4 +2027,40 @@ class TransactionChangesTest < ActiveRecord::TestCase
     assert_equal ["default_author", nil], topic.transaction_changes_log["author_name"],
       "a nil new database value should not be passed through deserialize"
   end
+
+  private
+    def transaction_deserialize_counting_type
+      Class.new(ActiveModel::Type::String) do
+        attr_reader :deserialize_count
+
+        def initialize
+          @armed = false
+          @deserialize_count = 0
+          super
+        end
+
+        def arm!
+          @armed = true
+          @deserialize_count = 0
+        end
+
+        def deserialize(value)
+          @deserialize_count += 1 if @armed
+          super
+        end
+      end.new
+    end
+
+    def transaction_deserialize_counting_model(type)
+      Class.new(ActiveRecord::Base) do
+        self.table_name = :topics
+        attribute :title, type
+        attr_accessor :arm_transaction_type_after_save
+
+        after_save do
+          type.arm! if arm_transaction_type_after_save
+        end
+        after_commit { }
+      end
+    end
 end

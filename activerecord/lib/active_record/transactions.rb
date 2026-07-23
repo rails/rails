@@ -395,6 +395,8 @@ module ActiveRecord
     def changes_applied # :nodoc:
       super
       refresh_transaction_record_state
+    ensure
+      clear_transaction_written_attributes
     end
 
     def before_committed! # :nodoc:
@@ -482,6 +484,7 @@ module ActiveRecord
           previously_new_record: @previously_new_record,
           destroyed: @destroyed,
           attributes: @attributes,
+          transaction_change_original_attributes: @_deferred_touch_original_attributes&.dup,
           transaction_frames: [],
           frozen?: frozen?,
           level: 0
@@ -498,14 +501,39 @@ module ActiveRecord
 
       # After a successful save, record only the attributes written by that save.
       def refresh_transaction_record_state
-        return unless @_start_transaction_state
+        snapshot_transaction_written_attributes do |attr_name|
+          @attributes[attr_name].dup
+        end
+      end
+
+      # TouchLater deliberately skips +changes_applied+ so its deferred touch does
+      # not alter the saved-change state. Preserve that behavior while snapshotting
+      # the exact serialized values successfully written by the touch.
+      def refresh_transaction_record_state_without_dirty_tracking
+        snapshot_transaction_written_attributes do |attr_name|
+          @attributes[attr_name].forgetting_assignment
+        end
+      end
+
+      def snapshot_transaction_written_attributes
+        written_attribute_names = @_transaction_written_attribute_names
+        return unless written_attribute_names && @_start_transaction_state
         frame = @_start_transaction_state[:transaction_frames]&.last
         return unless frame
 
         frame.written_attributes ||= {}
-        mutations_before_last_save.changed_attribute_names.each do |attr_name|
-          frame.written_attributes[attr_name] = @attributes[attr_name].dup
+        written_attribute_names.each do |attr_name|
+          frame.written_attributes[attr_name] = yield attr_name
         end
+      end
+
+      def record_transaction_written_attributes(attribute_names)
+        @_transaction_written_attribute_names ||= []
+        @_transaction_written_attribute_names |= attribute_names
+      end
+
+      def clear_transaction_written_attributes
+        @_transaction_written_attribute_names = nil
       end
 
       # Compute cumulative changes by comparing the initial transaction
@@ -518,11 +546,11 @@ module ActiveRecord
       # calls +forget_attribute_assignments+, +@attributes+ is replaced
       # with fresh +FromDatabase+ attributes whose
       # +original_value_for_database+ reflects the newly committed state.
-      def _changes_between(snapshot_attributes, current_attributes)
+      def _changes_between(snapshot_attributes, current_attributes, original_written_attributes = nil)
         changes = {}.with_indifferent_access
 
         current_attributes.keys.each do |attr_name|
-          snapshot_attr = snapshot_attributes[attr_name]
+          snapshot_attr = original_written_attributes&.fetch(attr_name, nil) || snapshot_attributes[attr_name]
           current_attr = current_attributes[attr_name]
 
           old_raw = snapshot_attr.original_value_for_database
@@ -532,7 +560,7 @@ module ActiveRecord
             type = current_attr.type
             old_value = old_raw.nil? ? nil : type.deserialize(old_raw)
             new_value = new_raw.nil? ? nil : type.deserialize(new_raw)
-            changes[attr_name] = [old_value, new_value]
+            changes[attr_name] = [old_value, new_value] unless old_value == new_value
           end
         end
 
@@ -547,13 +575,31 @@ module ActiveRecord
         end
       end
 
-      # Cache the transaction diff for +transaction_changes+ / +after_commit+.
+      def _transaction_original_written_attributes(written_attributes = _transaction_written_attributes)
+        original_attributes = @_start_transaction_state[:transaction_change_original_attributes]
+        original_attributes&.slice(*written_attributes.keys)
+      end
+
+      # Cache raw transaction state for +transaction_changes+ / +after_commit+.
+      # Presentation values are materialized only if a public reader asks.
       def _compute_committed_changes
         return if @_full_rollback
         return unless @_start_transaction_state
 
-        snapshot_attributes = @_start_transaction_state[:attributes]
-        @_committed_changes = _changes_between(snapshot_attributes, _transaction_written_attributes)
+        written_attributes = _transaction_written_attributes
+        @_committed_changes = nil
+        @_committed_transaction_state = [
+          @_start_transaction_state[:attributes],
+          written_attributes,
+          _transaction_original_written_attributes(written_attributes),
+        ]
+      end
+
+      def _committed_transaction_changes
+        return @_committed_changes if @_committed_changes
+        return unless @_committed_transaction_state
+
+        @_committed_changes = _changes_between(*@_committed_transaction_state)
       end
 
       # Like +_compute_committed_changes+ but computed on-the-fly for
@@ -564,10 +610,12 @@ module ActiveRecord
         return unless @_start_transaction_state
 
         snapshot_attributes = @_start_transaction_state[:attributes]
-        changes = _changes_between(snapshot_attributes, _transaction_written_attributes)
+        written_attributes = _transaction_written_attributes
+        original_written_attributes = _transaction_original_written_attributes(written_attributes)
+        changes = _changes_between(snapshot_attributes, written_attributes, original_written_attributes)
 
         changes_to_save.each do |attr_name, (_, pending_new_value)|
-          snapshot_attr = snapshot_attributes[attr_name]
+          snapshot_attr = original_written_attributes&.fetch(attr_name, nil) || snapshot_attributes[attr_name]
           old_raw = snapshot_attr.original_value_for_database
           pending_raw = snapshot_attr.type.serialize(pending_new_value)
 
@@ -620,6 +668,7 @@ module ActiveRecord
           @mutations_from_database = nil
           @mutations_before_last_save = nil
           @_committed_changes = nil
+          @_committed_transaction_state = nil
           @_start_transaction_state = nil
           columns = self.class.primary_key_definition.columns
           restored_id = Array(restore_state[:id])
