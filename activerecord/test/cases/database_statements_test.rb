@@ -22,9 +22,47 @@ class DatabaseStatementsTest < ActiveRecord::TestCase
     assert_not_nil return_the_inserted_id(method: :create)
   end
 
-  def test_extract_table_ref_from_insert_sql_with_hyphen_in_table_name
-    sql = "INSERT INTO \"table-with-hyphen\" (column1, column2) VALUES (value1, value2)"
-    assert_equal "table-with-hyphen", @connection.send(:extract_table_ref_from_insert_sql, sql)
+  def test_extract_table_ref_from_insert_sql_with_quoting
+    [
+      "table-name",
+      "table with space",
+      "a" * 120, # long name
+      "таблица",
+      "日本語テーブル",
+      "clientes_ñ",
+      "select",
+      "table""with""quotes",
+      "table/with\\special",
+    ].each do |valid_table_name|
+      sql = "INSERT INTO \"#{valid_table_name}\" (column1, column2) VALUES (value1, value2)"
+
+      assert_equal valid_table_name, @connection.send(:extract_table_ref_from_insert_sql, sql)
+    end
+  end
+
+  def test_extract_table_ref_from_insert_sql_without_quoting
+    [
+      "table_name",
+      "[dbo].[users]",
+      "[users]",
+      "[My Table]",
+      "[dbo].[My Table]",
+      "[catalog].[schema].[table]",
+      "[test-table]",
+      "[select]",
+      "[таблица]",
+      "[table[with]]brackets]",
+      "[dbo].[test-table with spaces]",
+      "[dbo].[bracket]]name]",
+      "dbo.users",
+      "catalog.schema.table",
+      "schema1.table123",
+      '"public"."table"'
+    ].each do |valid_table_name|
+      sql = "INSERT INTO #{valid_table_name} (column1, column2) VALUES (value1, value2)"
+
+      assert_equal valid_table_name, @connection.send(:extract_table_ref_from_insert_sql, sql)
+    end
   end
 
   private
