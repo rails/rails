@@ -120,6 +120,7 @@ module ActionView
     #
     module AssetUrlHelper
       URI_REGEXP = %r{^[-a-z]+://|^(?:cid|data):|^//}i
+      UNRESERVED_PATH_NOT_SLASH = /[^#{URI::RFC2396_Parser::PATTERN::UNRESERVED}\/]/
 
       # This is the entry point for all assets.
       # When using an asset pipeline gem (e.g. propshaft or sprockets-rails), the
@@ -184,6 +185,7 @@ module ActionView
       #
       #     asset_path("foo", skip_pipeline: true, extname: ".js")     # => "/foo.js"
       #     asset_path("foo.css", skip_pipeline: true, extname: ".js") # => "/foo.css.js"
+      #     asset_path("foo+bar", skip_pipeline: true, extname: ".js") # => "/foo%2Bbar.js"
       def asset_path(source, options = {})
         raise ArgumentError, "nil is not a valid asset source" if source.nil?
 
@@ -209,6 +211,8 @@ module ActionView
         if relative_url_root
           source = File.join(relative_url_root, source) unless source.start_with?("#{relative_url_root}/")
         end
+
+        source = escape_asset_path(source)
 
         if host = compute_asset_host(source, options)
           source = File.join(host, source)
@@ -468,6 +472,11 @@ module ActionView
         url_to_asset(source, { type: :font }.merge!(options))
       end
       alias_method :url_to_font, :font_url # aliased to avoid conflicts with a font_url named route
+
+      private
+        def escape_asset_path(path)
+          URI::RFC2396_PARSER.escape(path, UNRESERVED_PATH_NOT_SLASH)
+        end
     end
   end
 end
