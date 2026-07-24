@@ -79,6 +79,25 @@ module ActiveModel
         attribute_types.keys
       end
 
+      # Returns true if the given attribute exists, otherwise false.
+      #
+      #   class Person
+      #     include ActiveModel::Attributes
+      #
+      #     attribute :name, :string
+      #     alias_attribute :new_name, :name
+      #   end
+      #
+      #   Person.has_attribute?('name')     # => true
+      #   Person.has_attribute?('new_name') # => true
+      #   Person.has_attribute?(:age)       # => false
+      #   Person.has_attribute?(:nothing)   # => false
+      def has_attribute?(attr_name)
+        attr_name = attr_name.to_s
+        attr_name = attribute_aliases[attr_name] || attr_name
+        attribute_types.key?(attr_name)
+      end
+
       ##
       # :method: type_for_attribute
       # :call-seq: type_for_attribute(attribute_name, &block)
@@ -149,6 +168,26 @@ module ActiveModel
     #   person.attribute_names # => ["name", "age"]
     def attribute_names
       @attributes.keys
+    end
+
+    # Returns +true+ if the given attribute is present, otherwise +false+.
+    #
+    #   class Person
+    #     include ActiveModel::Attributes
+    #
+    #     attribute :name, :string
+    #     alias_attribute :new_name, :name
+    #   end
+    #
+    #   person = Person.new
+    #   person.has_attribute?(:name)     # => true
+    #   person.has_attribute?(:new_name) # => true
+    #   person.has_attribute?('age')     # => false
+    #   person.has_attribute?(:nothing)  # => false
+    def has_attribute?(attr_name)
+      attr_name = attr_name.to_s
+      attr_name = self.class.attribute_aliases[attr_name] || attr_name
+      @attributes.key?(attr_name)
     end
 
     def freeze # :nodoc:
