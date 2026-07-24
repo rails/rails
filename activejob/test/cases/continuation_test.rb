@@ -6,6 +6,7 @@ require "active_support/testing/stream"
 require "active_support/core_ext/object/with"
 require "support/test_logger"
 require "support/do_not_perform_enqueued_jobs"
+require "models/person"
 
 return unless adapter_is?(:test)
 
@@ -759,5 +760,85 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     end
 
     assert_equal [ "step_one", "step_two", "step_three", "step_four" ], IsolatedStepsJob.items
+  end
+
+  class SerializableCursorJob < ContinuableJob
+    cattr_accessor :cursor_value
+    cattr_accessor :serialized_job
+    cattr_accessor :resumed_cursor
+
+    def perform
+      step :scan do |step|
+        if step.resumed?
+          self.class.resumed_cursor = step.cursor
+        else
+          step.set! self.class.cursor_value
+          self.class.serialized_job = serialize
+        end
+      end
+    end
+  end
+
+  class DiscardableCursorJob < ContinuableJob
+    cattr_accessor :discarded_error
+
+    discard_on ActiveJob::DeserializationError do |job, error|
+      job.class.discarded_error = error
+    end
+
+    def perform
+      step :scan do |step|
+      end
+    end
+  end
+
+  test "round-trips a non-primitive step cursor through Active Job argument serialization" do
+    SerializableCursorJob.cursor_value = Date.new(2026, 7, 6)
+    SerializableCursorJob.resumed_cursor = nil
+    SerializableCursorJob.perform_now
+
+    round_tripped = JSON.parse(JSON.generate(SerializableCursorJob.serialized_job))
+    ActiveJob::Base.execute(round_tripped)
+
+    assert_instance_of Date, SerializableCursorJob.resumed_cursor
+    assert_equal Date.new(2026, 7, 6), SerializableCursorJob.resumed_cursor
+  end
+
+  test "round-trips a primitive step cursor without altering its serialized form" do
+    SerializableCursorJob.cursor_value = 42
+    SerializableCursorJob.perform_now
+    assert_equal [ "scan", 42 ], SerializableCursorJob.serialized_job["continuation"]["current"]
+
+    SerializableCursorJob.cursor_value = [ 1, 2, 3 ]
+    SerializableCursorJob.resumed_cursor = nil
+    SerializableCursorJob.perform_now
+    assert_equal [ "scan", [ 1, 2, 3 ] ], SerializableCursorJob.serialized_job["continuation"]["current"]
+
+    ActiveJob::Base.execute(JSON.parse(JSON.generate(SerializableCursorJob.serialized_job)))
+    assert_equal [ 1, 2, 3 ], SerializableCursorJob.resumed_cursor
+  end
+
+  test "serializes the continuation unchanged when deserialized and serialized without performing" do
+    job_data = SerializableCursorJob.new.serialize.merge(
+      "continuation" => { "completed" => [], "current" => [ "scan", { "_aj_globalid" => Person.new(404).to_gid.to_s } ] },
+      "resumptions" => 1
+    )
+
+    job = SerializableCursorJob.new
+    job.deserialize(job_data)
+
+    assert_equal job_data["continuation"], job.serialize["continuation"]
+    assert_equal 1, job.serialize["resumptions"]
+  end
+
+  test "cursor deserialization errors can be handled by the job's error handlers" do
+    DiscardableCursorJob.discarded_error = nil
+    job_data = DiscardableCursorJob.new.serialize.merge(
+      "continuation" => { "completed" => [], "current" => [ "scan", { "_aj_globalid" => Person.new(404).to_gid.to_s } ] }
+    )
+
+    ActiveJob::Base.execute(JSON.parse(JSON.generate(job_data)))
+
+    assert_kind_of ActiveJob::DeserializationError, DiscardableCursorJob.discarded_error
   end
 end

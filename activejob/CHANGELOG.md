@@ -1,3 +1,12 @@
+*   Fix continuation step cursors losing their type when a job is interrupted
+    and resumed.
+
+    Cursors are now serialized like job arguments, so a resumed step sees the
+    same object it set before the interruption — for example a `Date`, `Time`,
+    or an Active Record object — instead of a raw JSON string.
+
+    *Kenta Ishizaki*
+
 *   Add `ActiveJob::DeserializationError::RecordNotFound`, raised when argument
     deserialization fails because a referenced record could not be found, and not
     for any other reason.
