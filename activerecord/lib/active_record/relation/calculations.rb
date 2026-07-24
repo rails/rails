@@ -595,10 +595,16 @@ module ActiveRecord
             end
 
             key_types = group_columns.each_with_object({}) do |(aliaz, col_name), types|
-              types[aliaz] = col_name.try(:type_caster) ||
-                type_for(col_name) do
+              type = col_name.try(:type_caster)
+              if type.nil? || type == Type.default_value
+                # A do-nothing type caster means the column belongs to a table
+                # the schema doesn't know about (e.g. a raw SQL join alias), so
+                # the result set is the only source of type information.
+                type = type_for(col_name) do
                   calculated_data.column_types.fetch(aliaz, Type.default_value)
                 end
+              end
+              types[aliaz] = type
             end
 
             hash_rows = calculated_data.cast_values(key_types).map! do |row|
