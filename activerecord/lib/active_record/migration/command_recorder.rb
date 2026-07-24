@@ -127,11 +127,11 @@ module ActiveRecord
 
       ReversibleAndIrreversibleMethods.each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{method}(*args, &block)          # def create_table(*args, &block)
-            record(:"#{method}", args, &block)  #   record(:create_table, args, &block)
-          end                                   # end
+          def #{method}(*args, **kwargs, &block)                          # def create_table(*args, **kwargs, &block)
+            args << Hash.ruby2_keywords_hash(kwargs) unless kwargs.empty? #   args << Hash.ruby2_keywords_hash(kwargs) unless kwargs.empty?
+            record(:"#{method}", args, &block)                            #   record(:create_table, args, &block)
+          end                                                             # end
         EOV
-        ruby2_keywords(method)
       end
       alias :add_belongs_to :add_reference
       alias :remove_belongs_to :remove_reference
