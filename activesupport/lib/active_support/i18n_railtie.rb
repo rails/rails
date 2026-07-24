@@ -49,7 +49,7 @@ module I18n
         case setting
         when :railties_load_path
           reloadable_paths = value
-          app.config.i18n.load_path.unshift(*value.flat_map(&:existent))
+          app.config.i18n.load_path.unshift(*value.flat_map(&:expanded_files))
         when :load_path
           I18n.load_path += value
         when :raise_on_missing_translations
