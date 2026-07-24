@@ -7,9 +7,11 @@ gem "capybara", ">= 3.26"
 require "capybara/dsl"
 require "capybara/minitest"
 require "action_controller"
+require "rack/builder"
 require "action_dispatch/system_testing/driver"
 require "action_dispatch/system_testing/browser"
 require "action_dispatch/system_testing/server"
+require "action_dispatch/system_testing/url_helpers_proxy"
 require "action_dispatch/system_testing/test_helpers/screenshot_helper"
 require "action_dispatch/system_testing/test_helpers/setup_and_teardown"
 
@@ -111,9 +113,15 @@ module ActionDispatch
   # Because `ActionDispatch::SystemTestCase` is a shim between Capybara and Rails,
   # any driver that is supported by Capybara is supported by system tests as long
   # as you include the required gems and files.
+  #
+  # `ActionDispatch::SystemTestCase` is the Capybara-based system testing class.
+  # `ActionDispatch::ServerSystemTestCase` provides a Capybara-agnostic
+  # alternative for browser automation tools that want Rails to boot a test
+  # server directly.
   class SystemTestCase < ActiveSupport::TestCase
     include Capybara::DSL
     include Capybara::Minitest::Assertions
+    include SystemTesting::UrlHelpersProxy
     include SystemTesting::TestHelpers::SetupAndTeardown
     include SystemTesting::TestHelpers::ScreenshotHelper
 
@@ -186,18 +194,6 @@ module ActionDispatch
               end
             end.new
           end
-      end
-
-      def method_missing(name, ...)
-        if url_helpers.respond_to?(name)
-          url_helpers.public_send(name, ...)
-        else
-          super
-        end
-      end
-
-      def respond_to_missing?(name, include_private = false)
-        url_helpers.respond_to?(name)
       end
   end
 end

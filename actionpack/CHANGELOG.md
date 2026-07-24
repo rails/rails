@@ -54,6 +54,17 @@
 
     *Étienne Barrié*
 
+*   Introduce `ActionDispatch::ServerSystemTestCase`, a base class for system
+    tests that boots the application as a real server without depending on
+    Capybara.
+
+    It only boots the server and exposes its `base_url`, generating URL helpers
+    against it. You are then free to interact with the application using any
+    browser automation tool, such as Playwright or Ferrum.
+    `ActionDispatch::SystemTestCase` remains the Capybara-based default.
+
+    *YusukeIwaki*
+
 *   Add `config.action_dispatch.strict_accept_header` to stop forcing an
     HTML response when the `Accept` header contains the `*/*` wildcard.
 
