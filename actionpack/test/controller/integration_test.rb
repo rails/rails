@@ -972,7 +972,7 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
 
     get "/bar"
     assert_response :success
-    assert_equal "http://foobar.com/foo", foos_url
+    assert_equal "http://bar.com/foo", foos_url
   ensure
     ActionDispatch::Integration::Session.default_url_options = self.default_url_options = original_host
   end
