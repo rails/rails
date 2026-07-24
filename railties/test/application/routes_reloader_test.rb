@@ -36,6 +36,6 @@ class RoutesReloaderTest < ActiveSupport::TestCase
     draw_resume << true if draw_started.pop(timeout: 5)
 
     assert_equal(true, waiting.value)
-    assert_predicate(reloader, :loaded)
+    assert_equal(false, reloader.execute_unless_loaded)
   end
 end

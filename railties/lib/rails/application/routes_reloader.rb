@@ -7,7 +7,7 @@ module Rails
     class RoutesReloader
       include ActiveSupport::Callbacks
 
-      attr_reader :route_sets, :paths, :external_routes, :loaded
+      attr_reader :route_sets, :paths, :external_routes
       attr_accessor :eager_load
       attr_writer :run_once_after_load_paths # :nodoc:
       delegate :execute_if_updated, :updated?, to: :updater
@@ -17,32 +17,26 @@ module Rails
         @route_sets = []
         @external_routes = []
         @eager_load = false
-        @loaded = false
+        @loading = false
         @load_completed = false
         @load_lock = Monitor.new
         @file_watcher = file_watcher
       end
 
       def reload!
-        clear!
-        load_paths
-        finalize!
-        route_sets.each(&:eager_load!) if eager_load
-      ensure
-        revert
-      end
-
-      # Kept in sync with the fast path in #execute_unless_loaded: assigning
-      # false makes the next lazy loading trigger draw the routes again.
-      def loaded=(loaded) # :nodoc:
         @load_lock.synchronize do
-          @loaded = loaded
-          @load_completed = loaded
+          @loading = true
+          clear!
+          load_paths
+          finalize!
+          route_sets.each(&:eager_load!) if eager_load
+        ensure
+          @loading = false
+          revert
         end
       end
 
       def execute
-        @loaded = true
         updater.execute
       end
 
@@ -57,24 +51,14 @@ module Rails
           # defined now.
           return true if @load_completed
 
-          # @loaded is set before drawing so that lazy loading triggers hit
-          # while drawing the routes (e.g. url helpers used in config/routes.rb)
-          # re-enter the Monitor and return here instead of recursing into
-          # another draw. Being true mid-draw, it can't serve as the lock-free
-          # fast path — that is @load_completed, set only once the draw is done.
-          return false if @loaded
+          # Drawing the routes re-enters this method on the same thread
+          # (through the reentrant Monitor): config/routes.rb calls
+          # routes.draw and may use url helpers. @loading turns those
+          # nested calls into no-ops instead of recursive draws.
+          return false if @loading
 
-          begin
-            execute
-            ActiveSupport.run_load_hooks(:after_routes_loaded, Rails.application)
-          rescue Exception
-            # Roll back so that waiting threads and subsequent requests retry
-            # the draw and surface its error, rather than dispatching against
-            # a half-drawn route set.
-            @loaded = false
-            raise
-          end
-
+          execute
+          ActiveSupport.run_load_hooks(:after_routes_loaded, Rails.application)
           @load_completed = true
           true
         end
