@@ -1,42 +1,63 @@
 # frozen_string_literal: true
 
+require "monitor"
 
 module Rails
   class Application
     class RoutesReloader
       include ActiveSupport::Callbacks
 
-      attr_reader :route_sets, :paths, :external_routes, :loaded
+      attr_reader :route_sets, :paths, :external_routes
       attr_accessor :eager_load
-      attr_writer :run_once_after_load_paths, :loaded # :nodoc:
+      attr_writer :run_once_after_load_paths # :nodoc:
       delegate :execute_if_updated, :updated?, to: :updater
 
-      def initialize
+      def initialize(file_watcher: ActiveSupport::FileUpdateChecker)
         @paths      = []
         @route_sets = []
         @external_routes = []
         @eager_load = false
-        @loaded = false
+        @load_state = nil # nil (not loaded yet) | :loading | :loaded
+        @load_lock = Monitor.new
+        @file_watcher = file_watcher
       end
 
       def reload!
-        clear!
-        load_paths
-        finalize!
-        route_sets.each(&:eager_load!) if eager_load
-      ensure
-        revert
+        @load_lock.synchronize do
+          previous_state, @load_state = @load_state, :loading
+          clear!
+          load_paths
+          finalize!
+          route_sets.each(&:eager_load!) if eager_load
+        ensure
+          @load_state = previous_state
+          revert
+        end
       end
 
       def execute
-        @loaded = true
         updater.execute
       end
 
       def execute_unless_loaded
-        unless @loaded
+        return false if @load_state == :loaded
+
+        @load_lock.synchronize do
+          # Another thread finished the load while this one was blocked on
+          # @load_lock. Return true so callers like
+          # LazyRouteSet#method_missing retry the url helper that was
+          # missing when they were called.
+          return true if @load_state == :loaded
+
+          # Drawing the routes re-enters this method on the same thread —
+          # config/routes.rb itself calls routes.draw — through the
+          # reentrant Monitor; without this check the nested call would
+          # recurse into another draw.
+          return false if @load_state == :loading
+
           execute
           ActiveSupport.run_load_hooks(:after_routes_loaded, Rails.application)
+          @load_state = :loaded
           true
         end
       end
