@@ -1,4 +1,4 @@
-*   Make lazy route loading thread-safe. 
+*   Make lazy route loading thread-safe.
 
     Since routes are drawn on the first request in environments where
     `config.eager_load` is `false` (development and test by default),
