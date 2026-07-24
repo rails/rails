@@ -211,6 +211,27 @@ module ApplicationTests
       assert_policy "default-src 'self' https:", report_only: true
     end
 
+    test "rails health check endpoint does not set a content security policy" do
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |p|
+          p.default_src :self, :https
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "up" => "rails/health#show", as: :rails_health_check
+        end
+      RUBY
+
+      app("development")
+
+      get "/up"
+      assert_equal 200, last_response.status
+      assert_nil last_response.headers["Content-Security-Policy"]
+      assert_nil last_response.headers["Content-Security-Policy-Report-Only"]
+    end
+
     test "global content security policy added to rack app" do
       app_file "config/initializers/content_security_policy.rb", <<-RUBY
         Rails.application.config.content_security_policy do |p|

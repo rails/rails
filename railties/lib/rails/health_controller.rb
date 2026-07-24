@@ -34,7 +34,14 @@ module Rails
   # where your application is being restarted due to a third-party service going
   # bad. Ideally, you should design your application to handle those outages
   # gracefully.
+  #
+  # The response body is fixed and entirely controlled by the framework, so
+  # this controller disables the app's Content-Security-Policy rather than
+  # inheriting it, which would otherwise make browsers reject the inline
+  # +style+ attribute used to color the page.
   class HealthController < ActionController::Base
+    content_security_policy false
+
     rescue_from(Exception) { render_down }
 
     def show
