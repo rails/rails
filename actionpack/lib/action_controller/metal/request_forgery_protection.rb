@@ -140,8 +140,8 @@ module ActionController # :nodoc:
     end
 
     module ClassMethods
-      # Turn on request forgery protection. Bear in mind that GET and HEAD requests
-      # are not checked.
+      # Turn on request forgery protection. Bear in mind that GET, HEAD, and QUERY
+      # requests are not checked.
       #
       #     class ApplicationController < ActionController::Base
       #       protect_from_forgery
@@ -604,10 +604,13 @@ module ActionController # :nodoc:
       # *   `:header_only` - Uses Sec-Fetch-Site header only (default)
       # *   `:header_or_legacy_token` - Uses Sec-Fetch-Site header with fallback to token
       #
-      # For all strategies, GET and HEAD requests are allowed without verification.
+      # For all strategies, GET, HEAD, and QUERY requests are allowed without
+      # verification. HTML forms cannot issue QUERY requests, and cross-origin
+      # QUERY requests always require a CORS preflight, so they cannot be forged
+      # through a victim's browser.
       #
       def verified_request? # :doc:
-        request.get? || request.head? || !protect_against_forgery? ||
+        request.get? || request.head? || request.query? || !protect_against_forgery? ||
           (valid_request_origin? && verified_request_for_forgery_protection?)
       end
 

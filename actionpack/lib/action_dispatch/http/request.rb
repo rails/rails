@@ -129,8 +129,10 @@ module ActionDispatch
     RFC4791 = %w(MKCALENDAR).freeze
     # HTTP methods from [RFC 5789: PATCH Method for HTTP](https://www.ietf.org/rfc/rfc5789.txt)
     RFC5789 = %w(PATCH).freeze
+    # HTTP methods from [RFC 10008: The HTTP QUERY Method](https://www.ietf.org/rfc/rfc10008.txt)
+    RFC10008 = %w(QUERY).freeze
 
-    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789
+    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789 + RFC10008
 
     # Populate the HTTP method lookup cache.
     HTTP_METHOD_LOOKUP = HTTP_METHODS.each.with_object({}) { |method, hash|
@@ -203,6 +205,13 @@ module ActionDispatch
     # Returns a symbol form of the #request_method.
     def request_method_symbol
       HTTP_METHOD_LOOKUP[request_method]
+    end
+
+    # Checks the HTTP request method (or verb) to see if it was of type `QUERY`.
+    # QUERY is a safe and idempotent HTTP method for queries with a request body,
+    # defined in [RFC 10008: The HTTP QUERY Method](https://www.ietf.org/rfc/rfc10008.txt).
+    def query?
+      request_method == "QUERY"
     end
 
     # Returns the original value of the environment's REQUEST_METHOD, even if it was

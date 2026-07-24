@@ -478,6 +478,8 @@ The HTTP protocol basically provides two main types of requests - GET and POST (
 
 If your web application is RESTful, you might be used to additional HTTP verbs, such as PATCH, PUT, or DELETE. Some legacy web browsers, however, do not support them - only GET and POST. Rails uses a hidden `_method` field to handle these cases.
 
+The HTTP QUERY method ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html)) is safe and idempotent like GET, but conveys the query in the request body. Like GET and HEAD, QUERY requests are not checked for the security token: HTML forms cannot issue QUERY requests, and cross-origin QUERY requests from scripts always require a CORS preflight. As with GET, never change state in response to a QUERY request.
+
 _POST requests can be sent automatically, too_. In this example, the link www.harmless.com is shown as the destination in the browser's status bar. But it has actually dynamically created a new form that sends a POST request.
 
 ```html
