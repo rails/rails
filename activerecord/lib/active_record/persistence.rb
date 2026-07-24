@@ -298,7 +298,7 @@ module ActiveRecord
         def inherited(subclass)
           super
           subclass.class_eval do
-            @_query_constraints_list = nil
+            @query_constraints_list = nil
             @has_query_constraints = false
           end
         end
