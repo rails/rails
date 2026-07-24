@@ -150,6 +150,16 @@ module ActiveRecord
     #   member.posts.first.title # => 'Kari, the awesome Ruby documentation browser!'
     #   member.posts.second.title # => 'The egalitarian assumption of the modern citizen'
     #
+    # The +:reject_if+ proc is evaluated in the context of the owner record,
+    # so +self+ refers to that record and you can call its methods from within
+    # the proc:
+    #
+    #   class Member < ActiveRecord::Base
+    #     has_many :posts
+    #     accepts_nested_attributes_for :posts,
+    #       reject_if: proc { |attributes| attributes['author_id'] != id }
+    #   end
+    #
     # Alternatively, +:reject_if+ also accepts a symbol for using methods:
     #
     #   class Member < ActiveRecord::Base
@@ -598,6 +608,10 @@ module ActiveRecord
       # rejected by calling the reject_if Symbol or Proc (if defined).
       # The reject_if option is defined by +accepts_nested_attributes_for+.
       #
+      # Both a Symbol and a Proc are evaluated in the context of the record
+      # instance, so +self+ refers to the record and its methods and other
+      # attributes are available from within the callback.
+      #
       # Returns false if there is a +destroy_flag+ on the attributes.
       def call_reject_if(association_name, attributes)
         return false if will_be_destroyed?(association_name, attributes)
@@ -606,7 +620,7 @@ module ActiveRecord
         when Symbol
           method(callback).arity == 0 ? send(callback) : send(callback, attributes)
         when Proc
-          callback.call(attributes)
+          instance_exec(attributes, &callback)
         end
       end
 

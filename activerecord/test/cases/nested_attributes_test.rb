@@ -116,6 +116,21 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     assert_difference("Ship.count") { pirate.save! }
   end
 
+  def test_reject_if_proc_is_evaluated_in_the_context_of_the_record
+    # catchphrase is an attribute of the Pirate instance. It is not available
+    # on the Pirate class nor on this test case, so the proc only resolves it if
+    # it is evaluated with the record as self.
+    Pirate.accepts_nested_attributes_for :ship, reject_if: proc { |attributes| catchphrase != "Aye" }
+
+    accepting_pirate = Pirate.new(catchphrase: "Aye")
+    accepting_pirate.ship_attributes = { name: "Black Pearl" }
+    assert_difference("Ship.count") { accepting_pirate.save! }
+
+    rejecting_pirate = Pirate.new(catchphrase: "Nay")
+    rejecting_pirate.ship_attributes = { name: "Flying Dutchman" }
+    assert_no_difference("Ship.count") { rejecting_pirate.save! }
+  end
+
   def test_reject_if_with_indifferent_keys
     Pirate.accepts_nested_attributes_for :ship, reject_if: proc { |attributes| attributes[:name].blank? }
 
