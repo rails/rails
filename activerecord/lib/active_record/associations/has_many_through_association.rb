@@ -33,6 +33,10 @@ module ActiveRecord
         record
       end
 
+      def persisted_through_record_for?(record)
+        through_records_for(record).any?(&:persisted?)
+      end
+
       private
         def concat_records(records)
           ensure_not_nested
