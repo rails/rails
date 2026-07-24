@@ -86,7 +86,7 @@ module ActionText
     #     content.attachables # => [attachable]
     def attachables
       @attachables ||= attachment_nodes.map do |node|
-        ActionText::Attachable.from_node(node)
+        attachable_for_node(node)
       end
     end
 
@@ -215,8 +215,24 @@ module ActionText
       end
 
       def attachment_for_node(node, with_full_attributes: true)
-        attachment = ActionText::Attachment.from_node(node)
+        attachment = ActionText::Attachment.from_node(node, attachable_for_node(node))
         with_full_attributes ? attachment.with_full_attributes : attachment
+      end
+
+      def attachable_for_node(node)
+        sgid = node["sgid"]
+
+        if sgid.present? && attachables_by_sgid.key?(sgid)
+          attachables_by_sgid[sgid]
+        else
+          ActionText::Attachable.from_node(node)
+        end
+      end
+
+      def attachables_by_sgid
+        @attachables_by_sgid ||= ActionText::Attachable.from_attachable_sgids(
+          attachment_nodes.filter_map { |node| node["sgid"].presence }
+        )
       end
 
       def attachment_gallery_for_node(node)
