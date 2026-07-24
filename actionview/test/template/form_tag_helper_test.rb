@@ -412,6 +412,13 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>", file_field_tag("picsplz", class: "pix")
   end
 
+  def test_file_field_tag_with_accept_array
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" accept=\"image/png,image/gif\"/>",
+      file_field_tag("picsplz", accept: ["image/png", "image/gif"])
+    )
+  end
+
   def test_file_field_tag_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
     assert_dom_equal(
       "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>",
