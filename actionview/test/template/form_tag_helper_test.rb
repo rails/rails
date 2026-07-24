@@ -991,9 +991,29 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, number_field_tag("quantity", nil, in: 1...10))
   end
 
+  def test_number_field_tag_with_endless_range
+    expected = %{<input name="quantity" id="quantity" type="number" min="18" />}
+    assert_dom_equal(expected, number_field_tag("quantity", nil, in: 18..))
+  end
+
+  def test_number_field_tag_with_beginless_range
+    expected = %{<input name="quantity" max="10" id="quantity" type="number" />}
+    assert_dom_equal(expected, number_field_tag("quantity", nil, in: ..10))
+  end
+
   def test_range_input_tag
     expected = %{<input name="volume" step="0.1" max="11" id="volume" type="range" min="0" />}
     assert_dom_equal(expected, range_field_tag("volume", nil, in: 0..11, step: 0.1))
+  end
+
+  def test_range_input_tag_with_endless_range
+    expected = %{<input name="volume" id="volume" type="range" min="0" />}
+    assert_dom_equal(expected, range_field_tag("volume", nil, in: 0..))
+  end
+
+  def test_range_input_tag_with_beginless_range
+    expected = %{<input name="volume" max="11" id="volume" type="range" />}
+    assert_dom_equal(expected, range_field_tag("volume", nil, in: ..11))
   end
 
   def test_empty_datalist

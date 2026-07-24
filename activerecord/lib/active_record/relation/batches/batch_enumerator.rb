@@ -15,14 +15,23 @@ module ActiveRecord
         @use_ranges = use_ranges
       end
 
-      # The primary key value from which the BatchEnumerator starts, inclusive of the value.
+      # The cursor column value from which the BatchEnumerator starts, inclusive of the value.
       attr_reader :start
 
-      # The primary key value at which the BatchEnumerator ends, inclusive of the value.
+      # The cursor column value at which the BatchEnumerator ends, inclusive of the value.
       attr_reader :finish
 
       # The relation from which the BatchEnumerator yields batches.
       attr_reader :relation
+
+      # The column to use for batching.
+      attr_reader :cursor
+
+      # The cursor column order.
+      attr_reader :order
+
+      # Specifies whether to use range iteration (id >= x AND id <= y).
+      attr_reader :use_ranges
 
       # The size of the batches yielded by the BatchEnumerator.
       def batch_size

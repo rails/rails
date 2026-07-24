@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/notifications"
+require "active_support/core_ext/string/inflections"
 
 module ActiveSupport
   # Raised when ActiveSupport::Deprecation::Behavior#behavior is set with <tt>:raise</tt>.

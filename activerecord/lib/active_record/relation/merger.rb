@@ -49,11 +49,11 @@ module ActiveRecord
         @other    = other
       end
 
-      NORMAL_VALUES = Relation::VALUE_METHODS - Relation::CLAUSE_METHODS -
+      NORMAL_VALUES = (Relation::VALUE_METHODS - Relation::CLAUSE_METHODS -
                       [
                         :select, :includes, :preload, :joins, :left_outer_joins,
                         :order, :reverse_order, :lock, :create_with, :reordering
-                      ]
+                      ]).freeze
 
       def merge
         NORMAL_VALUES.each do |name|

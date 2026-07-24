@@ -57,7 +57,7 @@ module ActionView
     config.after_initialize do |app|
       button_to_generates_button_tag = app.config.action_view.delete(:button_to_generates_button_tag)
       unless button_to_generates_button_tag.nil?
-        ActionView::Helpers::UrlHelper.button_to_generates_button_tag = button_to_generates_button_tag
+        ActionView::Helpers::NavigationHelper.button_to_generates_button_tag = button_to_generates_button_tag
       end
     end
 
@@ -80,10 +80,6 @@ module ActionView
     end
 
     config.after_initialize do |app|
-      config.after_initialize do
-        ActionView.render_tracker = config.action_view.render_tracker
-      end
-
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k, v|
           next if k == :render_tracker
@@ -106,6 +102,10 @@ module ActionView
           ActionView::Resolver.caching = !app.config.reloading_enabled?
         end
       end
+    end
+
+    initializer "action_view.set_render_tracker" do |app|
+      ActionView.render_tracker = app.config.action_view.render_tracker
     end
 
     initializer "action_view.setup_action_pack" do |app|

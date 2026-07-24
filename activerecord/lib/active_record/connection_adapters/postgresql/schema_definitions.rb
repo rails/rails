@@ -196,6 +196,11 @@ module ActiveRecord
         def export_name_on_schema_dump?
           !ActiveRecord::SchemaDumper.excl_ignore_pattern.match?(name) if name
         end
+
+        def defined_for?(name:, expression: nil, **options)
+          self.name == name.to_s &&
+            options.all? { |k, v| self.options[k].to_s == v.to_s }
+        end
       end
 
       UniqueConstraintDefinition = Struct.new(:table_name, :column, :options) do
@@ -308,6 +313,17 @@ module ActiveRecord
           @base.remove_exclusion_constraint(name, ...)
         end
 
+        # Checks if an exclusion constraint exists on a table.
+        #
+        #  unless t.exclusion_constraint_exists?(name: "invoices_date_overlap")
+        #    t.exclusion_constraint("daterange(start_date, end_date) WITH &&", using: :gist, name: "invoices_date_overlap")
+        #  end
+        #
+        # See {connection.exclusion_constraint_exists?}[rdoc-ref:SchemaStatements#exclusion_constraint_exists?]
+        def exclusion_constraint_exists?(*args, **options)
+          @base.exclusion_constraint_exists?(name, *args, **options)
+        end
+
         # Adds a unique constraint.
         #
         #  t.unique_constraint(:position, name: 'unique_position', deferrable: :deferred, nulls_not_distinct: true)
@@ -344,6 +360,17 @@ module ActiveRecord
         # See {connection.validate_check_constraint}[rdoc-ref:SchemaStatements#validate_check_constraint]
         def validate_check_constraint(...)
           @base.validate_check_constraint(name, ...)
+        end
+
+        # Checks if a unique constraint exists on a table.
+        #
+        #  unless t.unique_constraint_exists?(name: "unique_position")
+        #    t.unique_constraint(:position, name: "unique_position", deferrable: :deferred)
+        #  end
+        #
+        # See {connection.unique_constraint_exists?}[rdoc-ref:SchemaStatements#unique_constraint_exists?]
+        def unique_constraint_exists?(*args, **options)
+          @base.unique_constraint_exists?(name, *args, **options)
         end
       end
 

@@ -27,9 +27,6 @@ module ControllerLayouts
     def layout_false
       render layout: false
     end
-
-    def builder_override
-    end
   end
 
   class ImplicitNameController < ::ApplicationController

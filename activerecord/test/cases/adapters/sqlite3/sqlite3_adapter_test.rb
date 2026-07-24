@@ -729,12 +729,34 @@ module ActiveRecord
         end
       end
 
+      def test_partial_index_with_multiline_where
+        with_example_table do
+          predicate = <<~SQL
+            number > 0 AND
+              'two  spaces' = 'two  spaces'
+          SQL
+          @conn.add_index "ex", :id, name: "fun", where: predicate
+
+          index = @conn.indexes("ex").find { |idx| idx.name == "fun" }
+          assert_equal ["id"], index.columns
+          assert_equal predicate.chomp, index.where
+        end
+      end
+
       if ActiveRecord::Base.lease_connection.supports_expression_index?
         def test_expression_index
           with_example_table do
             @conn.add_index "ex", "max(id, number)", name: "expression"
             index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
             assert_equal "max(id, number)", index.columns
+          end
+        end
+
+        def test_expression_index_with_trailing_newline
+          with_example_table do
+            @conn.execute "CREATE INDEX expression ON ex (number % 10)\n"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "number % 10", index.columns
           end
         end
 
@@ -752,6 +774,37 @@ module ActiveRecord
             index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
             assert_equal "id % 10, max(id, number)", index.columns
             assert_equal "id > 1000", index.where
+          end
+        end
+
+        def test_multiline_expression_index_with_where
+          with_example_table do
+            @conn.execute <<~SQL
+              CREATE INDEX expression
+              ON ex (id % 10,
+                max(id, number))
+              WHERE number > 0
+            SQL
+
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "id % 10,\n  max(id, number)", index.columns
+            assert_equal "number > 0", index.where
+          end
+        end
+
+        def test_schema_dump_with_multiline_expression_index
+          with_example_table do
+            @conn.execute <<~SQL
+              CREATE INDEX expression
+              ON ex (number % 10)
+            SQL
+
+            stream = StringIO.new
+            @conn.create_schema_dumper({}).dump(stream)
+
+            assert_match(/create_table "ex"/, stream.string)
+            assert_includes stream.string, 't.index "number % 10", name: "expression"'
+            assert_no_match(/Could not dump table "ex"/, stream.string)
           end
         end
 
@@ -1129,6 +1182,22 @@ module ActiveRecord
         virtual_column = SQLite3::Column.new("name", cast_type, nil, type_metadata, true, nil, generated_type: :virtual)
 
         assert_not_equal stored_column, virtual_column
+      end
+
+      def test_native_database_types_is_mutable
+        assert_not_predicate SQLite3Adapter::NATIVE_DATABASE_TYPES, :frozen?
+      end
+
+      def test_native_database_types_allows_custom_type
+        original = SQLite3Adapter::NATIVE_DATABASE_TYPES.dup
+
+        assert_nothing_raised do
+          SQLite3Adapter::NATIVE_DATABASE_TYPES[:vector] = { name: "F32_BLOB" }
+        end
+
+        assert_equal({ name: "F32_BLOB" }, SQLite3Adapter::NATIVE_DATABASE_TYPES[:vector])
+      ensure
+        SQLite3Adapter::NATIVE_DATABASE_TYPES.replace(original)
       end
 
       def test_sqlite_extensions_are_constantized_for_the_client_constructor

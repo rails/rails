@@ -650,7 +650,7 @@ class is initialized.
 
 NOTE: The `find_by_*` and `find_by_*!` methods are dynamic finders generated
 automatically for every attribute. Learn more about them in the [Dynamic finders
-section](active_record_querying.html#dynamic-finders).
+section](active_record_querying.html#dynamic-finder-methods).
 
 Conditional Callbacks
 ---------------------

@@ -21,7 +21,16 @@ module Rails
       class_option :no_rc, desc: "Skip evaluating .railsrc."
 
       def perform(type = nil, *plugin_args)
-        plugin_args << "--help" unless type == "new"
+        if type
+          unless type == "new"
+            error "'#{type}' is not a valid plugin subcommand. Valid subcommand: new."
+            error "Run '#{self.class.executable} -h' for help."
+            exit 1
+          end
+        else
+          plugin_args << "--help"
+        end
+
 
         unless options.key?("no_rc") # Thor's not so indifferent access hash.
           railsrc = File.expand_path(options[:rc])

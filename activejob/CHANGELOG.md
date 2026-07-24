@@ -1,3 +1,49 @@
+*   Add `ActiveJob::DeserializationError::RecordNotFound`, raised when argument
+    deserialization fails because a referenced record could not be found, and not
+    for any other reason.
+
+    Its parent class, `ActiveJob::DeserializationError` is raised when any error
+    happens during argument deserialization, including transient database errors,
+    and discarding a job based only on this exception might lead to losing
+    relevant, perfectly fine jobs.
+
+    Instead, `ActiveJob::DeserializationError::RecordNotFound` is raised only when
+    a record referenced by the arguments through a Global ID no longer exists, so
+    jobs can discard on missing records specifically:
+
+    ```ruby
+    discard_on ActiveJob::DeserializationError::RecordNotFound
+    ```
+
+    Existing handlers for the parent class continue to work as before.
+
+    Note that a record that is missing when arguments are deserialized is no
+    longer reported as `ActiveRecord::RecordNotFound`, so jobs that relied on
+    `discard_on ActiveRecord::RecordNotFound` to discard it should discard
+    `ActiveJob::DeserializationError::RecordNotFound` instead. `ActiveRecord::RecordNotFound`
+    still applies to records that go missing while the job runs.
+
+    *Rosa Gutiérrez*
+
+*   Allow `retry_on` to accept a Float for `:wait`.
+
+    Similar to `ActiveJob.set(wait: 1.5)`, allow a Float to be passed.
+    Also, passing an unsupported `:wait` type will now raise when loading the
+    job class.
+
+    *Kenta Ishizaki, Petrik de Heus*
+
+*   Allow queue adapters to inspect a job when deciding whether to interrupt at
+    a checkpoint, and to optionally return a specific interruption reason.
+
+    Queue adapters that implement `stopping?` must accept the job as an
+    optional positional argument, i.e. `def stopping?(job = nil)`, in order to
+    work with this version and older versions of Rails. A `true` return value
+    will use 'stopping' as the interruption reason, any other truthy value will
+    be used as-is.
+
+    *Bart de Water*
+
 *   Add `ActiveJob::Attributes` for declaring typed attributes that persist across
     job serialization and deserialization. It is included by `ActiveJob::Continuable`
     but can also be used standalone.

@@ -223,11 +223,11 @@ module ActiveSupport
     # Accepts an optional <tt>format</tt>:
     # * <tt>:default</tt> - default value, mimics Ruby Time#to_s format.
     # * <tt>:db</tt> - format outputs time in UTC :db time. See Time#to_fs(:db).
-    # * Any key in +Time::DATE_FORMATS+ can be used. See active_support/core_ext/time/conversions.rb.
+    # * Any key in +ActiveSupport::TimeFormats+ can be used. See active_support/core_ext/time/conversions.rb.
     def to_fs(format = :default)
       if format == :db
         utc.to_fs(format)
-      elsif formatter = ::Time::DATE_FORMATS[format]
+      elsif formatter = ::ActiveSupport::TimeFormats.lookup(format)
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
       else
         to_s

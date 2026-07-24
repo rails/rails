@@ -886,6 +886,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "replies#unmark_as_answer", @response.body
   end
 
+  def test_scope_with_deprecated_except_hash_option
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        scope({ except: :destroy }) do
+          resources :posts
+        end
+      end
+    end
+
+    get "/posts"
+    assert_equal "posts#index", @response.body
+
+    delete "/posts/1"
+    assert_equal "pass", @response.headers["x-cascade"]
+  end
+
   def test_resource_routes_with_only_and_except
     draw do
       resources :posts, only: [:index, :show] do
@@ -1182,6 +1198,52 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get "/usuarios"
     assert_equal "/usuarios", users_root_path
     assert_equal "users/home#index", @response.body
+  end
+
+  def test_namespace_with_deprecated_path_hash_option
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        namespace :users, { path: "usuarios" } do
+          root to: "home#index"
+        end
+      end
+    end
+
+    get "/usuarios"
+    assert_equal "/usuarios", users_root_path
+    assert_equal "users/home#index", @response.body
+  end
+
+  def test_namespace_with_deprecated_shallow_path_hash_option
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        namespace :foo, { shallow_path: "bar" } do
+          resources :posts, only: [:index, :show] do
+            resources :comments, only: [:index, :show], shallow: true
+          end
+        end
+      end
+    end
+
+    get "/bar/comments/2"
+    assert_equal "/bar/comments/2", foo_comment_path("2")
+    assert_equal "foo/comments#show", @response.body
+  end
+
+  def test_namespace_with_deprecated_shallow_prefix_hash_option
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        namespace :foo, { shallow_prefix: "bar" } do
+          resources :posts, only: [:index, :show] do
+            resources :comments, only: [:index, :show], shallow: true
+          end
+        end
+      end
+    end
+
+    get "/foo/comments/2"
+    assert_equal "/foo/comments/2", bar_comment_path("2")
+    assert_equal "foo/comments#show", @response.body
   end
 
   def test_namespaced_shallow_routes_with_module_option

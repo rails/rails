@@ -203,7 +203,7 @@ module ActiveRecord
         return unless @_raise_on_invalid_values
 
         unless value.blank? || mapping.has_key?(value) || mapping.has_value?(value)
-          raise ArgumentError, "'#{value}' is not a valid #{name}"
+          raise ArgumentError, "'#{value}' is not a valid #{name}. Valid values are: #{mapping.keys.map(&:inspect).join(", ")}"
         end
       end
 
@@ -225,7 +225,7 @@ module ActiveRecord
 
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
-        name = name.to_s
+        name = name.to_s.freeze
 
         # def self.statuses() statuses end
         detect_enum_conflict!(name, name.pluralize, true)

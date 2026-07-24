@@ -14,7 +14,7 @@ module ActiveSupport
     #    # => "AEroskobing"
     #
     # Default approximations are provided for Western/Latin characters,
-    # e.g, "ø", "ñ", "é", "ß", etc.
+    # e.g., "ø", "ñ", "é", "ß", etc.
     #
     # This method is I18n aware, so you can set up custom approximations for a
     # locale. This can be useful, for example, to transliterate German's "ü"
@@ -66,7 +66,10 @@ module ActiveSupport
       raise ArgumentError, "Cannot transliterate strings with #{string.encoding} encoding" unless ALLOWED_ENCODINGS_FOR_TRANSLITERATE.include?(string.encoding)
 
       return string.dup if string.ascii_only?
-      string = string.dup if string.frozen?
+
+      # Operate on a copy so the in-place force_encoding/encode! below never
+      # mutate the caller's (possibly non-frozen) string.
+      string = string.dup
 
       input_encoding = string.encoding
 

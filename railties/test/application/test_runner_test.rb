@@ -889,18 +889,18 @@ module ApplicationTests
     def test_parallel_testing_when_schema_is_not_up_to_date
       require "#{app_path}/config/environment"
       Dir.chdir(app_path) do
-        use_mysql2
+        use_mysql2 do
+          exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
-        exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+          rails "generate", "scaffold", "User", "name:string"
+          rails "db:create"
+          rails "db:migrate"
 
-        rails "generate", "scaffold", "User", "name:string"
-        rails "db:create"
-        rails "db:migrate"
+          output = rails "test"
 
-        output = rails "test"
-
-        assert_match(/Finished in.*7 runs, 11 assertions, 0 failures, 0 errors, 0 skips/m, output)
-        assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
+          assert_match(/Finished in.*7 runs, 11 assertions, 0 failures, 0 errors, 0 skips/m, output)
+          assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
+        end
       end
     end
 

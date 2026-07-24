@@ -153,3 +153,47 @@ class AssertMultipartSelectEmailTest < ActionMailer::TestCase
     end
   end
 end
+
+class AssertMultipartWithAttachmentEmailTest < ActionMailer::TestCase
+  class AssertMultipartWithAttachmentMailer < ActionMailer::Base
+    def test(options)
+      attachments["example.png"] = { mime_type: "image/png", content: "PNGDATA" }
+      mail subject: "Test e-mail", from: "test@test.host", to: "test <test@test.host>" do |format|
+        format.text { render plain: options[:text] } if options.key?(:text)
+        format.html { render plain: options[:html] } if options.key?(:html)
+      end
+    end
+  end
+
+  tests AssertMultipartWithAttachmentMailer
+
+  # With an attachment and both a text and an html body, Action Mailer nests the
+  # body parts inside a multipart/alternative container that itself sits under
+  # the top-level multipart/mixed alongside the attachment. The body parts must
+  # still be found.
+  def test_assert_part_finds_body_parts_nested_under_attachment
+    AssertMultipartWithAttachmentMailer.test(html: "<div><p>foo</p></div>", text: "foo bar").deliver_now
+
+    assert_part :text do |text|
+      assert_includes text, "foo bar"
+    end
+    assert_part :html do |html|
+      assert_kind_of Rails::Dom::Testing.html_document, html
+
+      assert_dom html, "div" do
+        assert_dom "p", "foo"
+      end
+    end
+  end
+
+  def test_assert_no_part_detects_body_parts_nested_under_attachment
+    mail = AssertMultipartWithAttachmentMailer.test(html: "<p>foo</p>", text: "foo bar")
+
+    assert_raises Minitest::Assertion, match: "expected no part matching text/html" do
+      assert_no_part :html, mail
+    end
+    assert_raises Minitest::Assertion, match: "expected no part matching text/plain" do
+      assert_no_part :text, mail
+    end
+  end
+end

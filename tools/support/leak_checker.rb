@@ -15,6 +15,8 @@ module LeakChecker
   def after_teardown
     super
 
+    return unless @__leak_checker_before_env
+
     after = ENV.to_h
     before = @__leak_checker_before_env
 

@@ -57,6 +57,7 @@ module ActiveRecord
   autoload :Inheritance
   autoload :Integration
   autoload :InternalMetadata
+  autoload :Key
   autoload :LogSubscriber
   autoload :Marshalling
   autoload :Migration
@@ -123,7 +124,7 @@ module ActiveRecord
     end
   end
 
-  module Coders
+  module Coders # :nodoc:
     autoload :ColumnSerializer, "active_record/coders/column_serializer"
     autoload :JSON, "active_record/coders/json"
     autoload :YAMLColumn, "active_record/coders/yaml_column"
@@ -192,7 +193,7 @@ module ActiveRecord
   self.lazily_load_schema_cache = false
 
   ##
-  # :singlton-method: protected_environments
+  # :singleton-method: protected_environments
   # The array of names of environments where destructive actions should be
   # prohibited. By default, the value is <tt>["production"]</tt>.
   singleton_class.attr_reader :protected_environments
@@ -448,6 +449,20 @@ module ActiveRecord
   # custom list.
   singleton_class.attr_accessor :dump_schemas
   self.dump_schemas = :schema_search_path
+
+  ##
+  # :singleton-method: dump_schema_migrations
+  # Specifies whether to dump the +schema_migrations+ table when dumping
+  # the database schema in the +:ruby+ format.
+  singleton_class.attr_accessor :dump_schema_migrations
+  self.dump_schema_migrations = false
+
+  ##
+  # :singleton-method: dump_schema_migrations_sort_by
+  # Specifies the proc used to order versions when dumping the +schema_migrations+
+  # table in the +:ruby+ format.
+  singleton_class.attr_accessor :dump_schema_migrations_sort_by
+  self.dump_schema_migrations_sort_by = :reverse
 
   ##
   # :singleton-method: verify_foreign_keys_for_fixtures

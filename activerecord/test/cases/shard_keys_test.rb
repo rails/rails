@@ -83,16 +83,19 @@ module ActiveRecord
     end
 
     def test_connected_to_all_shards
-      unsharded_results = UnshardedBase.connected_to_all_shards do
-        UnshardedBase.connection_pool.db_config.name
-      end
-
       sharded_results = ShardedBase.connected_to_all_shards do
         ShardedBase.connection_pool.db_config.name
       end
 
-      assert_empty unsharded_results
       assert_equal(["shard_one", "shard_two"], sharded_results)
+    end
+
+    def test_connected_to_all_shards_raises_when_not_sharded
+      error = assert_raises ArgumentError do
+        UnshardedBase.connected_to_all_shards { }
+      end
+
+      assert_equal "`connected_to_all_shards` cannot be called on a model that is not connected to any shards.", error.message
     end
 
     def test_connected_to_all_shards_can_switch_each_to_reading_role

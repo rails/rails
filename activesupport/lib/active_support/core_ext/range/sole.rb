@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/enumerable"
+
 class Range
   # Returns the sole item in the range. If there are no items, or more
   # than one item, raises Enumerable::SoleItemExpectedError.

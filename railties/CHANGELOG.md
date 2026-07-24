@@ -1,3 +1,38 @@
+*   Don't filter nonexistent i18n paths on initialize. This negatively impacts
+    applications with lots of translation files.
+
+    *Gannon McGibbon*
+
+*   Validate subcommand in `rails plugin` command.
+
+    `rails plugin foo bar` silently ignored the invalid subcommand "foo"
+    and proceeded to create a plugin named "bar". Now it prints an error
+    and exits with status 1.
+
+    Fixes #57430.
+
+    *Ruy Rocha*
+
+*   Prevent the internal development welcome route from being duplicated on route reloads.
+
+    *Elliot Temple*
+
+*   Remove `new_framework_defaults` during `app:update` when `config.load_defaults`
+    already targets the current Rails version.
+
+    *Rune Philosof*
+
+*   Enable `config.asset_host` to read from environment by default
+
+    This makes it so no code changes are needed in order to setup a CDN to
+    serve static assets.
+
+    ```
+    config.asset_host = ENV["CDN_HOST"]
+    ```
+
+    *Steve Polito*
+
 *   Skip `CreateUsers` migration when the User model already exists in the authentication generator.
 
     *John Topley*
@@ -15,7 +50,7 @@
 
     It is also possible to enable it for dependencies for reduce allocations, but
     some older gems may not yet be compatible. If you do attempt this and run into
-    incompatibilites please do report it on the corresponding gem bug tracker.
+    incompatibilities please do report it on the corresponding gem bug tracker.
 
     Additionally, `.rubocop.yml` is configured to assume frozen string literals
     are enabled, if you decide not to enable frozen string literals for your application,

@@ -52,8 +52,34 @@ module ActiveRecord
     module Optimistic
       extend ActiveSupport::Concern
 
+      # Captures the +preserve_lock_version_on_touch+ intent on the record at
+      # +touch_later+ time, since the actual touch is deferred until the
+      # transaction commits — by which point the surrounding block has already
+      # exited.
+      module DeferredTouch # :nodoc:
+        def touch_later(*)
+          if Optimistic.preserving_lock_version_on_touch?
+            @_skip_locking_column_on_touch = true
+          end
+          super
+        end
+      end
+
       included do
         class_attribute :lock_optimistically, instance_writer: false, default: true
+        prepend DeferredTouch
+      end
+
+      def self.preserve_lock_version_on_touch # :nodoc:
+        prior = ActiveSupport::IsolatedExecutionState[:active_record_preserve_lock_version_on_touch]
+        ActiveSupport::IsolatedExecutionState[:active_record_preserve_lock_version_on_touch] = true
+        yield
+      ensure
+        ActiveSupport::IsolatedExecutionState[:active_record_preserve_lock_version_on_touch] = prior
+      end
+
+      def self.preserving_lock_version_on_touch? # :nodoc:
+        ActiveSupport::IsolatedExecutionState[:active_record_preserve_lock_version_on_touch]
       end
 
       def locking_enabled? # :nodoc:
@@ -85,12 +111,17 @@ module ActiveRecord
         end
 
         def _touch_row(attribute_names, time)
-          @_touch_attr_names << self.class.locking_column if locking_enabled?
+          if locking_enabled? && !_skip_locking_column_on_touch?
+            @_touch_attr_names << self.class.locking_column
+          end
           super
+        ensure
+          @_skip_locking_column_on_touch = nil
         end
 
         def _update_row(attribute_names, attempted_action = "update")
           return super unless locking_enabled?
+          return super if attempted_action == "touch" && _skip_locking_column_on_touch?
 
           begin
             locking_column = self.class.locking_column
@@ -126,6 +157,10 @@ module ActiveRecord
             @attributes[locking_column] = lock_attribute_was
             raise
           end
+        end
+
+        def _skip_locking_column_on_touch?
+          @_skip_locking_column_on_touch || Optimistic.preserving_lock_version_on_touch?
         end
 
         def destroy_row

@@ -101,6 +101,11 @@ module ActionDispatch
     autoload :Parameters
     autoload :UploadedFile, "action_dispatch/http/upload"
     autoload :URL
+
+    eager_autoload do
+      autoload :Session
+      autoload :Utils
+    end
   end
 
   module Session
@@ -146,16 +151,17 @@ module ActionDispatch
   singleton_class.attr_accessor :verbose_redirect_logs
   self.verbose_redirect_logs = false
 
-  def eager_load!
+  def self.eager_load!
     super
     Routing.eager_load!
+    Http.eager_load!
   end
 end
 
 autoload :Mime, "action_dispatch/http/mime_type"
 
 ActiveSupport.on_load(:action_view) do
-  ActionView::Base.default_formats ||= Mime::SET.symbols
+  ActionView::Base.default_formats ||= Mime.symbols
   ActionView::Template.mime_types_implementation = Mime
   ActionView::LookupContext::DetailsKey.clear
 end

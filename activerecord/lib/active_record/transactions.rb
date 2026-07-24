@@ -495,26 +495,48 @@ module ActiveRecord
           if force_restore_state || restore_state[:level] <= 1
             @new_record = restore_state[:new_record]
             @previously_new_record = restore_state[:previously_new_record]
-            @destroyed  = restore_state[:destroyed]
+            @destroyed = restore_state[:destroyed]
+            locking_column = self.class.locking_column if self.class.locking_enabled?
             @attributes = restore_state[:attributes].map do |attr|
+              if attr.name == locking_column
+                # The locking column is bumped by `_update_row` itself, not the caller, and
+                # `_update_row` writes the new value into the same `@attributes` object that
+                # the snapshot is holding a reference to (because the snapshot wraps the
+                # `AttributeSet` rather than deep-duping it). After a successful save,
+                # `forget_attribute_assignments` reassigns `@attributes`, so subsequent
+                # operations see a clean attribute, but the snapshot retains the dirty one.
+                # Forcibly rebuild the locking column attribute from its (still-correct)
+                # original value so the next save uses the pristine value in the WHERE
+                # clause and doesn't raise `StaleObjectError` after a rollback.
+                next attr.with_value_from_database(attr.original_value)
+              end
               value = @attributes.fetch_value(attr.name)
               attr = attr.with_value_from_user(value) if attr.value != value
               attr
             end
             @mutations_from_database = nil
             @mutations_before_last_save = nil
-            if self.class.composite_primary_key?
-              if restore_state[:id] != @primary_key.map { |col| @attributes.fetch_value(col) }
-                @primary_key.zip(restore_state[:id]).each do |col, val|
-                  @attributes.write_from_user(col, val)
-                end
-              end
-            else
-              if @attributes.fetch_value(@primary_key) != restore_state[:id]
-                @attributes.write_from_user(@primary_key, restore_state[:id])
+            columns = self.class.primary_key_definition.columns
+            restored_id = Array(restore_state[:id])
+            if columns.map { |col| @attributes.fetch_value(col) } != restored_id
+              columns.zip(restored_id).each do |col, val|
+                @attributes.write_from_user(col, val)
               end
             end
             freeze if restore_state[:frozen?]
+          elsif self.class.locking_enabled?
+            # Nested savepoint rollback. The full restore above only runs at the
+            # outermost level, but the same `_update_row` mutation that bumps the
+            # in-memory locking column happens for saves performed inside the
+            # savepoint too. Leaving the bumped value in memory after the
+            # savepoint reverts those rows raises `StaleObjectError` on the next
+            # save in the surrounding transaction. Reset just the locking column
+            # so subsequent saves can match the row that the savepoint restored.
+            locking_column = self.class.locking_column
+            attr = restore_state[:attributes][locking_column]
+            if attr
+              @attributes.write_from_database(locking_column, attr.original_value)
+            end
           end
         end
       end

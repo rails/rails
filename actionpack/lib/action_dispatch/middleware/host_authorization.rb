@@ -73,10 +73,11 @@ module ActionDispatch
         end
 
         def sanitize_string(host)
+          port = "#{PORT_REGEX}?" unless host.match?(/:\d+\z/)
           if host.start_with?(".")
-            /\A#{SUBDOMAIN_REGEX}?#{Regexp.escape(host[1..-1])}#{PORT_REGEX}?\z/i
+            /\A#{SUBDOMAIN_REGEX}?#{Regexp.escape(host[1..-1])}#{port}\z/i
           else
-            /\A#{Regexp.escape host}#{PORT_REGEX}?\z/i
+            /\A#{Regexp.escape host}#{port}\z/i
           end
         end
 

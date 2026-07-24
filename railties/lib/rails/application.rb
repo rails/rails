@@ -162,11 +162,7 @@ module Rails
 
     # Reload application routes regardless if they changed or not.
     def reload_routes!
-      if routes_reloader.execute_unless_loaded
-        routes_reloader.loaded = false
-      else
-        routes_reloader.reload!
-      end
+      routes_reloader.reload!
     end
 
     def reload_routes_unless_loaded # :nodoc:
@@ -215,8 +211,8 @@ module Rails
     #
     def message_verifiers
       @message_verifiers ||=
-        ActiveSupport::MessageVerifiers.new do |salt, secret_key_base: self.secret_key_base|
-          key_generator(secret_key_base).generate_key(salt)
+        ActiveSupport::MessageVerifiers.new do |salt, secret_key_base: Rails.application.secret_key_base|
+          Rails.application.key_generator(secret_key_base).generate_key(salt)
         end.rotate_defaults
     end
 
@@ -554,7 +550,7 @@ module Rails
     #
     # Examples:
     #
-    #   Rails.app.envs.require(:db_password) # ENV,fetch("DB_PASSWORD")
+    #   Rails.app.envs.require(:db_password) # ENV.fetch("DB_PASSWORD")
     #   Rails.app.envs.require(:aws, :access_key_id) # ENV.fetch("AWS__ACCESS_KEY_ID")
     #   Rails.app.envs.option(:cache_host) # ENV["CACHE_HOST"]
     #   Rails.app.envs.option(:cache_host, default: "cache-host-1") # ENV.fetch("CACHE_HOST", "cache-host-1")
@@ -586,7 +582,8 @@ module Rails
     #
     # In development mode, this configuration backend is automatically part of `Rails.app.creds`.
     def dotenvs(path = Rails.root.join(".env"))
-      @dotenvs ||= ActiveSupport::DotEnvConfiguration.new(path)
+      @dotenvs ||= {}
+      @dotenvs[path] ||= ActiveSupport::DotEnvConfiguration.new(path)
     end
 
     # Returns an ActiveSupport::EncryptedConfiguration instance for the
@@ -665,6 +662,21 @@ module Rails
     # Eager loads the application code.
     def eager_load!
       Rails.autoloaders.each(&:eager_load)
+    end
+
+    def ractorize! # :nodoc:
+      warn "Ractor support in Rails is experimental and subject to change.", category: :experimental, uplevel: 1
+
+      env_config
+      revision
+      routes
+
+      @autoloaders, @reloaders, @routes_reloader = nil, nil, nil
+
+      Ractor.make_shareable(self)
+      Ractor.make_shareable(Rails.event)
+      Ractor.make_shareable(Rails.error)
+      Ractor.make_shareable(Rails.backtrace_cleaner)
     end
 
   protected
@@ -771,7 +783,7 @@ module Rails
       end
 
       def coerce_same_site_protection(protection)
-        protection.respond_to?(:call) ? protection : proc { protection }
+        protection.respond_to?(:call) ? protection : ActiveSupport::Ractors.shareable_proc { protection }
       end
 
       def filter_parameters

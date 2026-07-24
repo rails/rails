@@ -346,8 +346,8 @@ module ActionDispatch
       end
 
       # strategy for building URLs to send to the client
-      PATH    = ->(options) { ActionDispatch::Http::URL.path_for(options) }
-      UNKNOWN = ->(options) { ActionDispatch::Http::URL.url_for(options) }
+      PATH    = ActiveSupport::Ractors.shareable_lambda { |options| ActionDispatch::Http::URL.path_for(options) }
+      UNKNOWN = ActiveSupport::Ractors.shareable_lambda { |options| ActionDispatch::Http::URL.url_for(options) }
 
       attr_accessor :formatter, :set, :named_routes, :router
       attr_accessor :disable_clear_and_finalize, :resources_path_names
@@ -685,7 +685,7 @@ module ActionDispatch
         def initialize(name, defaults, &block)
           @name = name
           @defaults = defaults
-          @block = block
+          @block = ActiveSupport::Ractors.try_shareable_proc(block)
         end
 
         def call(t, args, only_path = false)
@@ -830,7 +830,7 @@ module ActionDispatch
         [URI(path_info).path, generator.params.except(:_recall).keys]
       end
 
-      def generate(route_name, options, recall = {}, method_name = nil)
+      def generate(route_name, options, recall = {})
         Generator.new(route_name, options, recall, self).generate
       end
       private :generate

@@ -140,7 +140,7 @@ database only if the object is valid:
 
 The bang versions (methods that end with an exclamation mark, like `save!`)
 raise an exception if the record is invalid. The non-bang versions - `save` and
-`update` returns `false`, and `create` returns the object.
+`update` return `false`, and `create` returns the object.
 
 [`create`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-create
@@ -451,8 +451,8 @@ also need to use `validates_associated`. More on that in the
 [validates_associated section](#validates-associated).
 
 If you validate the absence of an object associated via a
-[`has_one`](association_basics.html#the-has-one-association) or
-[`has_many`](association_basics.html#the-has-many-association) relationship, it
+[`has_one`](association_basics.html#has-one) or
+[`has_many`](association_basics.html#has-many) relationship, it
 will check that the object is neither `present?` nor `marked_for_destruction?`.
 
 Since `false.present?` is false, if you want to validate the absence of a
@@ -837,8 +837,8 @@ also need to use `validates_associated`. More on that
 [below](#validates-associated).
 
 If you validate the presence of an object associated via a
-[`has_one`](association_basics.html#the-has-one-association) or
-[`has_many`](association_basics.html#the-has-many-association) relationship, it
+[`has_one`](association_basics.html#has-one) or
+[`has_many`](association_basics.html#has-many) relationship, it
 will check that the object is neither `blank?` nor `marked_for_destruction?`.
 
 Since `false.blank?` is true, if you want to validate the presence of a boolean

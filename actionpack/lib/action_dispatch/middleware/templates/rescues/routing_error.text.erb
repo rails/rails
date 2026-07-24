@@ -4,7 +4,7 @@ Routing Error
 <% unless @exception.failures.empty? %>
 Failure reasons:
 <% @exception.failures.each do |route, reason| %>
-  - <%= route.inspect.delete('\\') %></code> failed because <%= reason.downcase %>
+  - <%= route.inspect.delete('\\') %> failed because <%= reason.downcase %>
 <% end %>
 <% end %>
 

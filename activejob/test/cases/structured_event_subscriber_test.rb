@@ -129,7 +129,8 @@ module ActiveJob
     def test_perform_start_job
       event = assert_event_reported("active_job.started", payload: {
         job_class: TestJob.name,
-        queue: "default"
+        queue: "default",
+        adapter: ActiveJob.adapter_name(ActiveJob::Base.queue_adapter)
       }) do
         TestJob.perform_now
       end

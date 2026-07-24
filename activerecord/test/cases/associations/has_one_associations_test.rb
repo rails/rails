@@ -25,6 +25,15 @@ require "models/room"
 require "models/user"
 require "models/dats"
 
+class HasOneStaleTypeChild < ActiveRecord::Base
+  self.table_name = "faces"
+end
+
+class HasOneStaleTypeOwner < ActiveRecord::Base
+  self.table_name = "humans"
+  has_one :stale_type_child, class_name: "HasOneStaleTypeChild", as: :poly_human_without_inverse
+end
+
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -139,6 +148,22 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nil chef.employable_type
   end
 
+  def test_replacing_a_polymorphic_has_one_nullifies_the_type_column
+    owner = HasOneStaleTypeOwner.create!
+    child = HasOneStaleTypeChild.create!
+    owner.stale_type_child = child
+
+    child.reload
+    assert_equal owner.id, child.poly_human_without_inverse_id
+    assert_equal "HasOneStaleTypeOwner", child.poly_human_without_inverse_type
+
+    owner.stale_type_child = nil
+
+    child.reload
+    assert_nil child.poly_human_without_inverse_id
+    assert_nil child.poly_human_without_inverse_type
+  end
+
   def test_nullification_on_destroyed_association
     developer = Developer.create!(name: "Someone")
     ship = Ship.create!(name: "Planet Caravan", developer: developer)
@@ -156,6 +181,27 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_nil book.order_id
     assert_nil book.shop_id
+  end
+
+  def test_has_one_for_new_record_owner_with_composite_primary_key_present
+    order = Cpk::Order.create!(id: [1, 10])
+    book = order.create_book!(id: [1, 100], title: "Some book")
+
+    new_order = Cpk::Order.new(id: [1, 10])
+    assert_predicate new_order, :new_record?
+
+    assert_equal book, new_order.book
+  end
+
+  def test_has_one_for_new_record_owner_with_composite_primary_key_missing
+    order = Cpk::Order.create!(id: [1, 10])
+    order.create_book!(id: [1, 100], title: "Some book")
+
+    new_order = Cpk::Order.new(shop_id: 1)
+    assert_predicate new_order, :new_record?
+    assert_not new_order.attribute_present?(:id)
+
+    assert_nil new_order.book
   end
 
   def test_natural_assignment_to_nil_after_destroy

@@ -426,7 +426,7 @@ module ActionController
     #     RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
     module Token
       TOKEN_KEY = "token="
-      TOKEN_REGEX = /^(Token|Bearer)\s+/
+      TOKEN_REGEX = /^(Token|Bearer)\s+/i
       AUTHN_PAIR_DELIMITERS = /(?:,|;|\t)/
       extend self
 
@@ -516,7 +516,7 @@ module ActionController
       end
 
       # This method takes an authorization body and splits up the key-value pairs by
-      # the standardized `:`, `;`, or `\t` delimiters defined in
+      # the standardized `,`, `;`, or `\t` delimiters defined in
       # `AUTHN_PAIR_DELIMITERS`.
       def raw_params(auth)
         _raw_params = auth.sub(TOKEN_REGEX, "").split(AUTHN_PAIR_DELIMITERS).map(&:strip)

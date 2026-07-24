@@ -202,7 +202,6 @@ module ActionController
       @id = id
       @data = stringify_keys(session)
       @loaded = true
-      @initially_empty = @data.empty?
     end
 
     def exists?

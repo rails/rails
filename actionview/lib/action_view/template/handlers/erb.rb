@@ -6,7 +6,7 @@ require "active_support/core_ext/erb/util"
 module ActionView
   class Template
     module Handlers
-      class ERB
+      class ERB # :nodoc:
         autoload :Erubi, "action_view/template/handlers/erb/erubi"
 
         # Specify trim mode for the ERB compiler. Defaults to '-'.

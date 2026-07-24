@@ -448,7 +448,7 @@ module ActiveRecord
       end
 
       def dump_schema(db_config, format = db_config.schema_format) # :nodoc:
-        return unless db_config.schema_dump
+        return unless db_config.schema_dump(format)
 
         require "active_record/schema_dumper"
         filename = schema_dump_path(db_config, format)

@@ -30,6 +30,10 @@ class CacheCoderTest < ActiveSupport::TestCase
       assert_nil coder.load(payload.byteslice(1..-1))
     end
 
+    assert_error_reported do
+      assert_nil coder.load(payload.byteslice(0, 2))
+    end
+
     lazy_entry = coder.load(payload.byteslice(0..-2))
     assert_raises ActiveSupport::Cache::DeserializationError do
       lazy_entry.value

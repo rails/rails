@@ -571,14 +571,16 @@ module ActiveRecord
     private
       def reset_fixtures(*fixture_names)
         ActiveRecord::FixtureSet.reset_cache
-
-        fixture_names.each do |fixture_name|
-          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, fixture_name)
-        end
+        # Pass all fixtures at once: on PostgreSQL 18.4+, switching back to `ENFORCED` checks
+        # existing rows against the constraint, so loading child fixtures before parents
+        # would raise a FK violation.
+        ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, fixture_names)
       end
   end
 
   class AdapterConnectionTest < ActiveRecord::TestCase
+    include ConnectionHelper
+
     unless in_memory_db?
       self.use_transactional_tests = false
 
@@ -720,6 +722,34 @@ module ActiveRecord
         assert_raises(ActiveRecord::AdapterError) do
           Post.delete_all
         end
+      end
+
+      test "querying a connection marked for reconnect replaces it first" do
+        previous_connection_id = connection_id_from_server(@connection)
+        @connection.instance_variable_set(:@needs_reconnect, true)
+        @connection.clean! # this simulates a fresh checkout from the pool
+
+        assert_predicate @connection, :needs_reconnect?
+        assert_predicate Post, :exists?
+        assert_not_equal previous_connection_id, connection_id_from_server(@connection)
+        assert_not_predicate @connection, :needs_reconnect?
+      end
+
+      test "a non-StandardError interrupt marks the connection for re-verification" do
+        # A recently-used, verified connection is the state a mid-query interrupt poisons.
+        @connection.execute("SELECT 1")
+        error = Class.new(Exception)
+
+        assert_raises error do
+          @connection.send(:with_raw_connection) do
+            raise error
+          end
+        end
+
+        # It can't be reused on the "verified" flag or the recently-used shortcut, so both
+        # are cleared and the connection is re-verified before its next use.
+        assert_not_predicate @connection, :verified?
+        assert_nil @connection.instance_variable_get(:@last_activity)
       end
 
       test "quoting a string on a 'clean' failed connection will not prevent reconnecting" do
@@ -972,6 +1002,28 @@ module ActiveRecord
         assert_empty slow
       ensure
         connection&.disconnect!
+      end
+    end
+
+    unless in_memory_db?
+      test "suppresses notifications when sql_notifications=false" do
+        run_without_connection do |orig_connection|
+          ActiveRecord::Base.establish_connection(orig_connection.merge(sql_notifications: false))
+
+          notifications = capture_notifications("sql.active_record") do
+            Post.first
+          end
+
+          assert_empty notifications
+        end
+      end
+
+      test "sql_notifications are enabled by default" do
+        notifications = capture_notifications("sql.active_record") do
+          Post.first
+        end
+
+        assert_not_empty notifications
       end
     end
   end

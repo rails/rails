@@ -22,6 +22,28 @@ module TestHelpersTests
       assert_not File.exist?(app_path)
     end
 
+    def test_build_app_after_teardown_app
+      build_app
+      previous_app_path = app_path
+      teardown_app
+
+      build_app
+
+      assert_not_equal previous_app_path, app_path
+      assert File.exist?("#{app_path}/config/database.yml")
+    end
+
+    def test_build_app_after_tmp_path_is_removed
+      build_app
+      previous_app_path = app_path
+      FileUtils.rm_rf(tmp_path)
+
+      build_app
+
+      assert_not_equal previous_app_path, app_path
+      assert File.exist?("#{app_path}/config/database.yml")
+    end
+
     def test_add_to_config
       build_app
 
