@@ -193,10 +193,16 @@ module ActionText
       def visit_a(node, child_values)
         inner = join_children(child_values)
         if (href = node["href"]) && Rails::HTML::Sanitizer.allowed_uri?(href)
-          "[#{inner}](#{encode_href(href)})"
+          "[#{flatten_to_inline(inner)}](#{encode_href(href)})"
         else
           inner
         end
+      end
+
+      def flatten_to_inline(text)
+        return text unless text.match?(/[\r\n]/)
+
+        text.gsub(/[\r\n]+/, " ")
       end
 
       def visit_tr(node, child_values)
