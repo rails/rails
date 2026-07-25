@@ -31,7 +31,7 @@ module ActionDispatch
 
           unless path == "/"
             path.delete_suffix!("/")
-            path.gsub!(/(%[a-f0-9]{2})/) { $1.upcase }
+            path.gsub!(/(%[a-f0-9]{2})/i) { $1.upcase }
           end
 
           path.force_encoding(encoding)
