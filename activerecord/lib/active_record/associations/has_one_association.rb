@@ -59,7 +59,7 @@ module ActiveRecord
         def replace(record, save = true)
           raise_on_type_mismatch!(record) if record
 
-          return target unless load_target || record
+          return target unless record || load_target
 
           assigning_another_record = target != record
           if assigning_another_record || record.has_changes_to_save?
