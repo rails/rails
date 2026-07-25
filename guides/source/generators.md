@@ -121,8 +121,8 @@ generators. Let's build a generator that creates an initializer file named
 `hello_generator.rb` inside `config/initializers` folder. We will do this
 manually first and then see how to do it using a `generator` command as well.
 
-NOTE: Generators are built on top of [Thor](https://github.com/rails/thor),
-which provides useful options for parsing and an API for manipulating files.
+NOTE: Generators are built on top of [Thor][], which provides useful options
+for parsing and an API for manipulating files.
 
 The first step in manually creating a generator is to create a file named
 `initializer_generator.rb` inside `lib/generators` with the following content:
@@ -180,12 +180,16 @@ Now we can see the description by invoking `--help` on the new generator.
 The second way to add a description is by creating a file named `USAGE` in the
 same directory as our generator. We are going to do that in the next step.
 
+[Thor]:
+  https://github.com/rails/thor
 [`Rails::Generators::Base`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Base.html
-[`Thor::Actions`]: https://www.rubydoc.info/gems/thor/Thor/Actions
+  https://api.rubyonrails.org/classes/Rails/Generators/Base.html
+[`Thor::Actions`]:
+  https://www.rubydoc.info/gems/thor/Thor/Actions
 [`create_file`]:
-    https://www.rubydoc.info/gems/thor/Thor/Actions#create_file-instance_method
-[`desc`]: https://www.rubydoc.info/gems/thor/Thor#desc-class_method
+  https://www.rubydoc.info/gems/thor/Thor/Actions#create_file-instance_method
+[`desc`]:
+  https://www.rubydoc.info/gems/thor/Thor#desc-class_method
 
 ### Creating Generators by Using a Generator
 
@@ -268,11 +272,11 @@ with the contents of our template. (The `file_name` method used in the
 destination path is inherited from `Rails::Generators::NamedBase`.)
 
 [`Rails::Generators::NamedBase`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/NamedBase.html
+  https://api.rubyonrails.org/classes/Rails/Generators/NamedBase.html
 [`copy_file`]:
-    https://www.rubydoc.info/gems/thor/Thor/Actions#copy_file-instance_method
+  https://www.rubydoc.info/gems/thor/Thor/Actions#copy_file-instance_method
 [`source_root`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Base.html#method-c-source_root
+  https://api.rubyonrails.org/classes/Rails/Generators/Base.html#method-c-source_root
 
 ### Generator Command Line Options
 
@@ -306,9 +310,9 @@ Now with the scope option set, the file `theme.rb` is generated at
 `config/initializers/dashboard/`.
 
 [`class_option`]:
-    https://www.rubydoc.info/gems/thor/Thor/Base/ClassMethods#class_option-instance_method
+  https://www.rubydoc.info/gems/thor/Thor/Base/ClassMethods#class_option-instance_method
 [`options`]:
-    https://www.rubydoc.info/gems/thor/Thor/Base#options-instance_method
+  https://www.rubydoc.info/gems/thor/Thor/Base#options-instance_method
 
 Generator Resolution
 --------------------
@@ -443,9 +447,10 @@ provide a hook to do so using [`hook_for`][]. We can do the same by including
 `hook_for :test_framework, as: :helper` in the `MyHelperGenerator` class. See
 the [`hook_for`][] documentation for more information.
 
-[`config.generators`]: configuring.html#configuring-generators
+[`config.generators`]:
+  configuring.html#configuring-generators
 [`hook_for`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Base.html#method-c-hook_for
+  https://api.rubyonrails.org/classes/Rails/Generators/Base.html#method-c-hook_for
 
 ### Overriding Generators with Fallbacks
 
@@ -538,8 +543,8 @@ When resolving generator template files, Rails looks first in the application's
 `lib/templates/` directory, then falls back to the generator's own `source_root`
 directory. This means we can override the templates used by Rails' built-in
 generators by placing our own versions in `lib/templates/`. For example, we
-could override the [scaffold controller template][] or the [scaffold view
-templates][].
+could override the [scaffold controller template][scaffold_controller_template]
+or the [scaffold view templates][scaffold_view_templates].
 
 To see this in action, let's create a
 `lib/templates/erb/scaffold/index.html.erb.tt` file with the content shown
@@ -570,10 +575,10 @@ The content of `app/views/posts/index.html.erb` is:
 <%= @posts.count %> Posts
 ```
 
-[scaffold controller template]:
-    https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/scaffold_controller/templates/controller.rb.tt
-[scaffold view templates]:
-    https://github.com/rails/rails/tree/main/railties/lib/rails/generators/erb/scaffold/templates
+[scaffold_controller_template]:
+  https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/scaffold_controller/templates/controller.rb.tt
+[scaffold_view_templates]:
+  https://github.com/rails/rails/tree/main/railties/lib/rails/generators/erb/scaffold/templates
 
 Application Templates
 ---------------------
@@ -646,17 +651,16 @@ upload your private files to a server).
 The above `template.rb` file uses helper methods such as `after_bundle` and
 `rails_command` and also adds user interactivity with methods like `yes?`. All
 of these methods are part of the [Rails Template
-API](https://edgeapi.rubyonrails.org/classes/Rails/Generators/Actions.html). The
-following sections shows how to use more of these methods with examples.
+API][`Rails::Generators::Actions`]. The following sections shows how to use
+more of these methods with examples.
 
 Rails Generators API
 --------------------
 
 Generators and the template Ruby scripts have access to several helper methods
-using a [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) (Domain
+using a [DSL][] (Domain
 Specific Language). These methods are part of the Rails Generators API and you
-can find more details at [`Thor::Actions`][] and
-[`Rails::Generators::Actions`][] API documentation.
+can find more details at [`Thor::Actions`][] and [`Rails::Generators::Actions`][] API documentation.
 
 Here's another example of a typical Rails template that scaffolds a model, runs
 migrations, and commits the changes with git:
@@ -676,6 +680,9 @@ end
 
 NOTE: All code snippets in the examples below can be used in a template file,
 such as the `template.rb` file above.
+
+[DSL]:
+  https://en.wikipedia.org/wiki/Domain-specific_language
 
 ### add_source
 
@@ -884,9 +891,11 @@ route "root to: 'person#index'"
 
 There are also many helper methods that can manipulate the local file system,
 such as [`copy_file`][], [`create_file`][], [`insert_into_file`][], and
-[`inside`][]. You can see the [Thor API
-documentation](https://www.rubydoc.info/gems/thor/Thor/Actions) for details.
+[`inside`][]. You can see the [Thor API documentation][thor_api] for details.
 Here is an example of one such method:
+
+[thor_api]:
+  https://www.rubydoc.info/gems/thor/Thor/Actions
 
 ### inside
 
@@ -902,9 +911,11 @@ end
 
 There are also methods that allow you to interact with the user from the Ruby
 template, such as [`ask`][], [`yes`][], and [`no`][]. You can learn about all
-user interactivity methods in the [Thor Shell
-documentation](https://www.rubydoc.info/gems/thor/Thor/Shell/Basic). Let's see
-examples of using `ask`, `yes?` and `no?`:
+user interactivity methods in the [Thor Shell documentation][thor_shell]. Let's
+see examples of using `ask`, `yes?` and `no?`:
+
+[thor_shell]:
+  https://www.rubydoc.info/gems/thor/Thor/Shell/Basic
 
 ### ask
 
@@ -951,55 +962,57 @@ In addition to those, Rails also provides additional assertions via
 [`Rails::Generators::Testing::Assertions`][].
 
 [`Rails::Generators::Actions`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html
 [`environment`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-environment
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-environment
 [`gem`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-gem
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-gem
 [`generate`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-generate
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-generate
 [`git`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-git
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-git
 [`gsub_file`]:
-    https://www.rubydoc.info/gems/thor/Thor/Actions#gsub_file-instance_method
+  https://www.rubydoc.info/gems/thor/Thor/Actions#gsub_file-instance_method
 [`initializer`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-initializer
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-initializer
 [`insert_into_file`]:
-    https://www.rubydoc.info/gems/thor/Thor/Actions#insert_into_file-instance_method
+  https://www.rubydoc.info/gems/thor/Thor/Actions#insert_into_file-instance_method
 [`inside`]:
-    https://www.rubydoc.info/gems/thor/Thor/Actions#inside-instance_method
+  https://www.rubydoc.info/gems/thor/Thor/Actions#inside-instance_method
 [`lib`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-lib
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-lib
 [`rails_command`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rails_command
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rails_command
 [`rake`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rake
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rake
 [`route`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-route
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-route
 [`Rails::Generators::Testing::Behavior`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html
+  https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html
 [`run_generator`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html#method-i-run_generator
+  https://api.rubyonrails.org/classes/Rails/Generators/Testing/Behavior.html#method-i-run_generator
 [`Rails::Generators::Testing::Assertions`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Testing/Assertions.html
+  https://api.rubyonrails.org/classes/Rails/Generators/Testing/Assertions.html
 [`add_source`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-add_source
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-add_source
 [`after_bundle`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/AppGenerator.html#method-i-after_bundle
+  https://api.rubyonrails.org/classes/Rails/Generators/AppGenerator.html#method-i-after_bundle
 [`gem_group`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-gem_group
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-gem_group
 [`vendor`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-vendor
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-vendor
 [`rakefile`]:
-    https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rakefile
-[`run`]: https://www.rubydoc.info/gems/thor/Thor/Actions#run-instance_method
+  https://api.rubyonrails.org/classes/Rails/Generators/Actions.html#method-i-rakefile
+[`run`]:
+  https://www.rubydoc.info/gems/thor/Thor/Actions#run-instance_method
 [`copy_file`]:
-    https://www.rubydoc.info/gems/thor/Thor/Actions#copy_file-instance_method
+  https://www.rubydoc.info/gems/thor/Thor/Actions#copy_file-instance_method
 [`create_file`]:
-    https://www.rubydoc.info/gems/thor/Thor/Actions#create_file-instance_method
-[`ask`]: https://www.rubydoc.info/gems/thor/Thor/Shell/Basic#ask-instance_method
+  https://www.rubydoc.info/gems/thor/Thor/Actions#create_file-instance_method
+[`ask`]:
+  https://www.rubydoc.info/gems/thor/Thor/Shell/Basic#ask-instance_method
 [`yes`]:
-    https://www.rubydoc.info/gems/thor/Thor/Shell/Basic#yes%3F-instance_method
+  https://www.rubydoc.info/gems/thor/Thor/Shell/Basic#yes%3F-instance_method
 [`no`]:
-    https://www.rubydoc.info/gems/thor/Thor/Shell/Basic#no%3F-instance_method
+  https://www.rubydoc.info/gems/thor/Thor/Shell/Basic#no%3F-instance_method
 
