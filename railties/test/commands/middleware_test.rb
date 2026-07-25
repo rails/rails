@@ -27,7 +27,6 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
 
     assert_equal [
       "ActionDispatch::HostAuthorization",
-      "Rack::Sendfile",
       "ActionDispatch::Static",
       "Propshaft::Server",
       "ActionDispatch::Executor",
@@ -63,7 +62,6 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
 
     assert_equal [
       "ActionDispatch::HostAuthorization",
-      "Rack::Sendfile",
       "ActionDispatch::Static",
       "Propshaft::Server",
       "ActionDispatch::Executor",
@@ -98,7 +96,6 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
 
     assert_equal [
       "ActionDispatch::HostAuthorization",
-      "Rack::Sendfile",
       "ActionDispatch::Static",
       "Propshaft::Server",
       "ActionDispatch::Executor",
@@ -137,7 +134,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
       %w(ActionDispatch::Reloader ActionDispatch::ShowExceptions ActionDispatch::DebugExceptions),
 
       # Outright dependencies
-      %w(ActionDispatch::Static Rack::Sendfile),
+      %w(ActionDispatch::Static),
       %w(ActionDispatch::Flash ActionDispatch::Session::CookieStore),
       %w(ActionDispatch::Session::CookieStore ActionDispatch::Cookies),
     ]
@@ -303,9 +300,9 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
   end
 
   test "insert middleware after" do
-    add_to_config "config.middleware.insert_after Rack::Sendfile, Rack::Config"
+    add_to_config "config.middleware.insert_after Rack::Runtime, Rack::Config"
     boot!
-    assert_equal "Rack::Config", middleware.third
+    assert_equal middleware.index("Rack::Runtime") + 1, middleware.index("Rack::Config")
   end
 
   test "unshift middleware" do
@@ -317,20 +314,20 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
   test "Rails.cache does not respond to middleware" do
     add_to_config "config.cache_store = :file_store, '/tmp/cache'"
     boot!
-    assert_equal "Rack::Runtime", middleware[5]
+    assert_equal "Rack::Runtime", middleware[4]
     assert_instance_of ActiveSupport::Cache::FileStore, Rails.cache
   end
 
   test "Rails.cache does respond to middleware" do
     boot!
-    assert_equal "ActiveSupport::Cache::Strategy::LocalCache", middleware[5]
-    assert_equal "Rack::Runtime", middleware[6]
+    assert_equal "ActiveSupport::Cache::Strategy::LocalCache", middleware[4]
+    assert_equal "Rack::Runtime", middleware[5]
   end
 
   test "insert middleware before" do
-    add_to_config "config.middleware.insert_before Rack::Sendfile, Rack::Config"
+    add_to_config "config.middleware.insert_before Rack::Runtime, Rack::Config"
     boot!
-    assert_equal "Rack::Config", middleware.second
+    assert_operator middleware.index("Rack::Runtime"), :>, middleware.index("Rack::Config")
   end
 
   test "can't change middleware after it's built" do

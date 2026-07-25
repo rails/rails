@@ -6,7 +6,7 @@ module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
       class Pattern # :nodoc:
-        REGEXP_CACHE = {}
+        REGEXP_CACHE = {} # rubocop:disable Style/MutableConstant
 
         class << self
           def dedup_regexp(regexp)
@@ -140,10 +140,6 @@ module ActionDispatch
 
           def captures
             Array.new(length - 1) { |i| self[i + 1] }
-          end
-
-          def named_captures
-            @names.zip(captures).to_h
           end
 
           def [](x)

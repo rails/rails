@@ -189,13 +189,6 @@ module ActiveRecord
         assert_equal "'lo\\\\l'", @quoter.quote('lo\l')
       end
 
-      def test_quote_as_mb_chars_no_column
-        assert_deprecated(ActiveSupport.deprecator) do
-          string = ActiveSupport::Multibyte::Chars.new('lo\l')
-          assert_equal "'lo\\\\l'", @quoter.quote(string)
-        end
-      end
-
       def test_quote_duration
         exception = assert_raises(TypeError) { @quoter.quote(30.minutes) }
         assert_equal "can't quote ActiveSupport::Duration", exception.message

@@ -31,9 +31,9 @@ module ActiveRecord
   # be triggered. In that case, it'll work just like normal subclasses with no special magic
   # for differentiating between them or reloading the right type with find.
   #
-  # Note, all the attributes for all the cases are kept in the same table.
-  # Read more:
-  # * https://www.martinfowler.com/eaaCatalog/singleTableInheritance.html
+  # All subclasses share the same database table. See the
+  # {Single Table Inheritance pattern}[https://www.martinfowler.com/eaaCatalog/singleTableInheritance.html]
+  # for more background.
   #
   module Inheritance
     extend ActiveSupport::Concern
@@ -67,10 +67,12 @@ module ActiveRecord
           if subclass.nil? && base_class?
             subclass = subclass_from_attributes(column_defaults)
           end
-        end
 
-        if subclass && subclass != self
-          subclass.new(attributes, &block)
+          if subclass && subclass != self
+            subclass.new(attributes, &block)
+          else
+            super
+          end
         else
           super
         end
@@ -236,6 +238,20 @@ module ActiveRecord
       end
 
       protected
+        def load_schema! # :nodoc:
+          super
+          optimize_new_allocation
+        end
+
+        def reload_schema_from_cache(*) # :nodoc:
+          @finder_needs_type_condition = nil
+          if @_new_optimized
+            singleton_class.remove_method(:new)
+            @_new_optimized = false
+          end
+          super
+        end
+
         # Returns the class type of the record using the current module as a prefix. So descendants of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
@@ -267,6 +283,7 @@ module ActiveRecord
         end
 
         def set_base_class # :nodoc:
+          @_new_optimized = false
           @base_class = if self == Base
             self
           else
@@ -283,6 +300,14 @@ module ActiveRecord
         end
 
       private
+        def optimize_new_allocation
+          return if _has_attribute?(inheritance_column)
+          return if method(:new).unbind != ActiveRecord::Base.method(:new).unbind
+
+          @_new_optimized = true
+          define_singleton_method(:new, Class.instance_method(:new))
+        end
+
         def inherited(subclass)
           super
           subclass.set_base_class

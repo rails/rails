@@ -247,10 +247,6 @@ module ActiveRecord
           connection_name_to_pool_manager[connection_descriptor.name] ||= PoolManager.new
         end
 
-        def pool_managers
-          connection_name_to_pool_manager.values
-        end
-
         def disconnect_pool_from_pool_manager(pool_manager, role, shard)
           pool_config = pool_manager.remove_pool_config(role, shard)
 

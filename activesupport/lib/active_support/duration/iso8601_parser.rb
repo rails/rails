@@ -22,11 +22,11 @@ module ActiveSupport
       DATE_COMPONENT = /(-?\d+(?:[.,]\d+)?)(Y|M|D|W)/
       TIME_COMPONENT = /(-?\d+(?:[.,]\d+)?)(H|M|S)/
 
-      DATE_TO_PART = { "Y" => :years, "M" => :months, "W" => :weeks, "D" => :days }
-      TIME_TO_PART = { "H" => :hours, "M" => :minutes, "S" => :seconds }
+      DATE_TO_PART = { "Y" => :years, "M" => :months, "W" => :weeks, "D" => :days }.freeze
+      TIME_TO_PART = { "H" => :hours, "M" => :minutes, "S" => :seconds }.freeze
 
-      DATE_COMPONENTS = [:years, :months, :days]
-      TIME_COMPONENTS = [:hours, :minutes, :seconds]
+      DATE_COMPONENTS = [:years, :months, :days].freeze
+      TIME_COMPONENTS = [:hours, :minutes, :seconds].freeze
 
       attr_reader :parts, :scanner
       attr_accessor :mode, :sign

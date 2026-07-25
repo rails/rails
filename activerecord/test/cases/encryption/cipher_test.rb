@@ -8,7 +8,7 @@ class ActiveRecord::Encryption::CipherTest < ActiveRecord::EncryptionTestCase
     @key = ActiveRecord::Encryption.key_generator.generate_random_key
   end
 
-  test "encrypts returns a encrypted test that can be decrypted with the same key" do
+  test "encrypts returns an encrypted test that can be decrypted with the same key" do
     encrypted_text = @cipher.encrypt("clean text", key: @key)
     assert_equal "clean text", @cipher.decrypt(encrypted_text, key: @key)
   end
@@ -61,5 +61,10 @@ class ActiveRecord::Encryption::CipherTest < ActiveRecord::EncryptionTestCase
   test "can encode unicode strings with emojis" do
     encrypted_text = @cipher.encrypt("Getting around with the ⚡️Go Menu", key: @key)
     assert_equal "Getting around with the ⚡️Go Menu", @cipher.decrypt(encrypted_text, key: @key)
+  end
+
+  test "inspect does not show secrets" do
+    aes_cipher = ActiveRecord::Encryption::Cipher::Aes256Gcm.new(@key)
+    assert_match(/\A#<ActiveRecord::Encryption::Cipher::Aes256Gcm:0x[0-9a-f]+>\z/, aes_cipher.inspect)
   end
 end

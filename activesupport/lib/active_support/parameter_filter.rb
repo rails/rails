@@ -54,17 +54,23 @@ module ActiveSupport
     #
     def self.precompile_filters(filters)
       filters, patterns = filters.partition { |filter| filter.is_a?(Proc) }
+      regexps, patterns = patterns.partition { |filter| filter.is_a?(Regexp) }
 
-      patterns.map! do |pattern|
-        pattern.is_a?(Regexp) ? pattern : "(?i:#{Regexp.escape pattern.to_s})"
+      patterns.map! do |p|
+        p.is_a?(Symbol) ? p.name : p.to_s
       end
 
-      deep_patterns = patterns.extract! { |pattern| pattern.to_s.include?("\\.") }
+      patterns.sort_by! { |p| [p.count("."), p.size] }
 
-      filters << Regexp.new(patterns.join("|")) if patterns.any?
-      filters << Regexp.new(deep_patterns.join("|")) if deep_patterns.any?
+      patterns.each do |pattern|
+        # Remove redundant patterns, e.g. it's pointless to search for `user.password` or `user.password_confirmation`
+        # if `password` is already a filter.
+        unless regexps.any? { |r| r.match?(pattern) }
+          regexps << Regexp.new(Regexp.escape(pattern), Regexp::IGNORECASE)
+        end
+      end
 
-      filters
+      filters << Regexp.union(regexps)
     end
 
     # Create instance with given filters. Supported type of filters are +String+, +Regexp+, and +Proc+.
@@ -97,6 +103,8 @@ module ActiveSupport
       @regexps, strings = [], []
       @deep_regexps, deep_strings = nil, nil
       @blocks = nil
+      @exact_string_keys = nil
+      @exact_line_keys = nil
 
       filters.each do |item|
         case item
@@ -105,6 +113,10 @@ module ActiveSupport
         when Regexp
           if item.to_s.include?("\\.")
             (@deep_regexps ||= []) << item
+          elsif (literal = extract_exact_string_key(item))
+            (@exact_string_keys ||= {})[literal] = true
+          elsif (literal = extract_exact_line_key(item))
+            (@exact_line_keys ||= {})[literal] = true
           else
             @regexps << item
           end
@@ -122,6 +134,31 @@ module ActiveSupport
       (@deep_regexps ||= []) << Regexp.new(deep_strings.join("|"), true) if deep_strings
     end
 
+    # If the regexp is a string-anchored exact match like /\Atoken\z/,
+    # returns the literal string. A match is semantically equivalent to an
+    # exact string comparison against the full key.
+    def extract_exact_string_key(regexp)
+      extract_exact_key(regexp, "\\A", "\\z")
+    end
+
+    # If the regexp is a line-anchored exact match like /^token$/, returns
+    # the literal string. A match is equivalent to an exact comparison
+    # against any individual line of the key. Mixed anchors such as
+    # /\Atoken$/ have asymmetric semantics and are not accepted - they fall
+    # through to full regexp matching.
+    def extract_exact_line_key(regexp)
+      extract_exact_key(regexp, "^", "$")
+    end
+
+    def extract_exact_key(regexp, prefix, suffix)
+      return if regexp.casefold?
+      source = regexp.source
+      return unless source.start_with?(prefix) && source.end_with?(suffix)
+
+      literal = source.delete_prefix(prefix).delete_suffix(suffix)
+      literal if literal.match?(/\A[a-zA-Z0-9_]+\z/)
+    end
+
     def call(params, full_parent_key = nil, original_params = params)
       filtered_params = params.class.new
 
@@ -133,11 +170,20 @@ module ActiveSupport
     end
 
     def value_for_key(key, value, full_parent_key = nil, original_params = nil)
+      key_s = key.to_s
+
       if @deep_regexps
-        full_key = full_parent_key ? "#{full_parent_key}.#{key}" : key.to_s
+        full_key = full_parent_key ? "#{full_parent_key}.#{key_s}" : key_s
       end
 
-      if @regexps.any? { |r| r.match?(key.to_s) }
+      if @exact_string_keys && @exact_string_keys[key_s]
+        value = @mask
+      elsif @exact_line_keys && @exact_line_keys[key_s]
+        value = @mask
+      elsif @exact_line_keys && key_s.include?("\n") &&
+            key_s.split("\n").any? { |line| @exact_line_keys[line] }
+        value = @mask
+      elsif @regexps.any? { |r| r.match?(key_s) }
         value = @mask
       elsif @deep_regexps&.any? { |r| r.match?(full_key) }
         value = @mask

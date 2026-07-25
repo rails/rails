@@ -291,7 +291,7 @@ class ComparisonValidationTest < ActiveModel::TestCase
   def test_validates_comparison_of_incomparables
     Topic.validates_comparison_of :approved, less_than: "cat"
 
-    assert_invalid_values([12], "comparison of Integer with String failed")
+    assert_invalid_values([12], /\Acomparison of Integer with String failed/)
     assert_invalid_values([nil])
     assert_valid_values([])
   end
@@ -316,7 +316,7 @@ class ComparisonValidationTest < ActiveModel::TestCase
       with_each_topic_approved_value(values) do |topic, value|
         assert_predicate topic, :invalid?, "#{value.inspect} failed comparison"
         assert_predicate topic.errors[:approved], :any?, "FAILED for #{value.inspect}"
-        assert_equal error, topic.errors[:approved].first if error
+        assert_match error, topic.errors[:approved].first if error
       end
     end
 

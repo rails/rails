@@ -205,7 +205,7 @@ module ActiveRecord
           attribute(attr_name, **options)
 
           decorate_attributes([attr_name]) do |attr_name, cast_type|
-            if type_incompatible_with_serialize?(cast_type, coder, type)
+            if type_incompatible_with_serialize?(cast_type, column_serializer, type)
               raise ColumnNotSerializableError.new(attr_name, cast_type)
             end
 
@@ -236,7 +236,7 @@ module ActiveRecord
           end
 
           def type_incompatible_with_serialize?(cast_type, coder, type)
-            cast_type.is_a?(ActiveRecord::Type::Json) && coder == ::JSON ||
+            cast_type.is_a?(ActiveRecord::Type::Json) && Coders::JSON === coder ||
               cast_type.respond_to?(:type_cast_array, true) && type == ::Array
           end
       end

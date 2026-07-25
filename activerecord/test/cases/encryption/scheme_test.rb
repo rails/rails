@@ -15,7 +15,7 @@ class ActiveRecord::Encryption::SchemeTest < ActiveRecord::EncryptionTestCase
     assert_valid_declaration key_provider: ActiveRecord::Encryption::DerivedSecretKeyProvider.new("my secret")
   end
 
-  test "should create a encryptor well when compressor is given" do
+  test "should create an encryptor well when compressor is given" do
     MyCompressor = Class.new do
       def self.deflate(data)
         "deflated #{data}"
@@ -31,7 +31,7 @@ class ActiveRecord::Encryption::SchemeTest < ActiveRecord::EncryptionTestCase
     assert_equal MyCompressor, type.scheme.to_h[:encryptor].compressor
   end
 
-  test "should create a encryptor well when compress is false" do
+  test "should create an encryptor well when compress is false" do
     type = declare_encrypts_with compress: false
 
     assert_not type.scheme.to_h[:encryptor].compress?

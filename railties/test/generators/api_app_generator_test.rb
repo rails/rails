@@ -49,6 +49,8 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/gem "selenium-webdriver"/, content)
       assert_match(/# gem "jbuilder"/, content)
       assert_match(/# gem "rack-cors"/, content)
+      assert_match(/group :development do\n  # Deploy this application anywhere as a Docker container \[https:\/\/kamal-deploy\.org\]\n  gem "kamal", require: false\nend/, content)
+      assert_equal 1, content.scan(/^group :development do$/).size
     end
 
     assert_file "config/application.rb", /config\.api_only = true/

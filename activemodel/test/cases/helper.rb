@@ -4,7 +4,7 @@ require_relative "../../../tools/strict_warnings"
 require "active_model"
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActiveModel.deprecator.debug = true
+ActiveModel.deprecator.behavior = :raise
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false

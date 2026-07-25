@@ -83,14 +83,16 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
+      header "Sec-Fetch-Site", "cross-site"
+
       get "/foo/write_session"
       get "/foo/read_session"
       assert_equal "1", last_response.body
 
-      post "/foo/read_session"               # Read session using POST request without CSRF token
+      post "/foo/read_session"               # Read session using POST request failing CSRF check
       assert_equal "nil", last_response.body # Stored value shouldn't be accessible
 
-      post "/foo/write_session" # Write session using POST request without CSRF token
+      post "/foo/write_session" # Write session using POST request failing CSRF check
       get "/foo/read_session"   # Session shouldn't be changed
       assert_equal "1", last_response.body
     end
@@ -124,14 +126,16 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
+      header "Sec-Fetch-Site", "cross-site"
+
       get "/foo/write_cookie"
       get "/foo/read_cookie"
       assert_equal '"1"', last_response.body
 
-      post "/foo/read_cookie"                # Read cookie using POST request without CSRF token
+      post "/foo/read_cookie"                # Read cookie using POST request failing CSRF check
       assert_equal "nil", last_response.body # Stored value shouldn't be accessible
 
-      post "/foo/write_cookie" # Write cookie using POST request without CSRF token
+      post "/foo/write_cookie" # Write cookie using POST request failing CSRF check
       get "/foo/read_cookie"   # Cookie shouldn't be changed
       assert_equal '"1"', last_response.body
     end

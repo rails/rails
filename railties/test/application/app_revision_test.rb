@@ -47,6 +47,37 @@ module ApplicationTests
       assert_equal "config-wins", Rails.app.revision
     end
 
+    test "revision reads from ENV['REVISION'] when present" do
+      ENV["REVISION"] = "env-revision-123"
+      require "#{app_path}/config/environment"
+      assert_equal "env-revision-123", Rails.app.revision
+    ensure
+      ENV.delete("REVISION")
+    end
+
+    test "ENV['REVISION'] takes precedence over REVISION file" do
+      File.write("#{app_path}/REVISION", "file-revision")
+      ENV["REVISION"] = "env-wins"
+
+      require "#{app_path}/config/environment"
+      assert_equal "env-wins", Rails.app.revision
+    ensure
+      ENV.delete("REVISION")
+    end
+
+    test "config.revision takes precedence over ENV['REVISION']" do
+      ENV["REVISION"] = "env-revision"
+
+      add_to_config <<-RUBY
+        config.revision = "config-wins"
+      RUBY
+
+      require "#{app_path}/config/environment"
+      assert_equal "config-wins", Rails.app.revision
+    ensure
+      ENV.delete("REVISION")
+    end
+
     test "Rails::Info includes revision when present" do
       File.write("#{app_path}/REVISION", "deadbeef123")
 

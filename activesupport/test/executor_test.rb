@@ -72,6 +72,18 @@ class ExecutorTest < ActiveSupport::TestCase
     assert_equal [:run, :body, :complete], called
   end
 
+  def test_run_with_reset_invokes_callbacks_within_wrap
+    called = []
+    executor.to_run { called << :run }
+    executor.to_complete { called << :complete }
+    executor.wrap do
+      called << :before_reset
+      executor.run!(reset: true)
+      called << :after_reset
+    end
+    assert_equal [:run, :before_reset, :complete, :run, :after_reset, :complete], called
+  end
+
   def test_exceptions_unwind
     called = []
     executor.to_run { called << :run_1 }

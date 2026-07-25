@@ -68,25 +68,45 @@ module ApplicationTests
       assert_includes Rails.application.config.filter_parameters, "message.special_attr"
     end
 
+    test "filter_parameters omit Proc and Regexp filter_attributes" do
+      app "development"
+
+      class Post < ActiveRecord::Base
+        self.table_name = "posts"
+        self.filter_attributes += [:special_attr, /secret/i, ->(key, value) { value.reverse! }]
+      end
+
+      assert_includes Rails.application.config.filter_parameters, "post.special_attr"
+
+      garbage = Rails.application.config.filter_parameters.grep(String).select do |filter|
+        filter.include?("#<Proc") || filter.include?("(?i-mx:")
+      end
+      assert_empty garbage
+    end
+
     test "filter_parameters are inherited from AR parent classes" do
       app "development"
 
-      ActiveRecord::Base.filter_attributes += [ "expires_at" ]
+      previous_attributes = ActiveRecord::Base.filter_attributes.dup
+      previous_filter_parameters = Rails.application.config.filter_parameters.dup
 
-      class ApplicationRecord < ActiveRecord::Base
-        self.abstract_class = true
-        self.filter_attributes += [ "expires_at" ]
+      Rails.application.config.filter_parameters = ActiveRecord::Base.filter_attributes = ["generic_filtered"]
+      begin
+        class ApplicationRecord < ActiveRecord::Base
+          self.abstract_class = true
+          self.filter_attributes += [ "expires_at" ]
+        end
+
+        class CreditCard < ApplicationRecord
+          self.table_name = "credit_cards"
+          self.filter_attributes += [ "digits" ]
+        end
+
+        assert_equal ["generic_filtered", "credit_card.expires_at", "credit_card.digits"], Rails.application.config.filter_parameters
+      ensure
+        ActiveRecord::Base.filter_attributes = previous_attributes
+        Rails.application.config.filter_parameters = previous_filter_parameters
       end
-
-      class CreditCard < ApplicationRecord
-        self.table_name = "credit_cards"
-        self.filter_attributes += [ "digits" ]
-      end
-
-      assert_includes Rails.application.config.filter_parameters, "credit_card.expires_at"
-      assert_includes Rails.application.config.filter_parameters, "credit_card.digits"
-      assert_not_includes Rails.application.config.filter_parameters, "application_record.expires_at"
-      assert_not_includes Rails.application.config.filter_parameters, "base.expires_at"
     end
   end
 end

@@ -31,9 +31,6 @@ activestorage:
 activesupport:
 - changed-files:
   - any-glob-to-any-file: "activesupport/**/*"
-rails-ujs:
-- changed-files:
-  - any-glob-to-any-file: "actionview/app/assets/javascripts/rails-ujs/**/*"
 railties:
 - changed-files:
   - any-glob-to-any-file: "railties/**/*"

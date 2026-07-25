@@ -208,7 +208,7 @@ module ActionController # :nodoc:
     #       format.html.none
     #       format.html.phone # this gets rendered
     #     end
-    def respond_to(*mimes)
+    def respond_to(*mimes, &block)
       raise ArgumentError, "respond_to takes either types or a block, never both" if mimes.any? && block_given?
 
       collector = Collector.new(mimes, request.variant)

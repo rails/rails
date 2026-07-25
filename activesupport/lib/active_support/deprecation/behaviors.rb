@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/notifications"
+require "active_support/core_ext/string/inflections"
 
 module ActiveSupport
   # Raised when ActiveSupport::Deprecation::Behavior#behavior is set with <tt>:raise</tt>.
@@ -51,7 +52,7 @@ module ActiveSupport
         error.set_backtrace(callstack.map(&:to_s))
         ActiveSupport.error_reporter.report(error)
       end
-    }
+    }.freeze
 
     # Behavior module allows to determine how to display deprecation messages.
     # You can create a custom behavior or set any from the +DEFAULT_BEHAVIORS+

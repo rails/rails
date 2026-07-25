@@ -15,8 +15,8 @@ require "models/edge"
 require "models/book"
 require "models/citation"
 require "models/aircraft"
-require "models/engine"
 require "models/car"
+require "models/engine"
 
 class AssociationsJoinModelTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?

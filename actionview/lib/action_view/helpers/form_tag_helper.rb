@@ -951,7 +951,7 @@ module ActionView
         options = options.stringify_keys
         options["type"] ||= "number"
         if range = options.delete("in") || options.delete("within")
-          options.update("min" => range.min, "max" => range.max)
+          options.update("min" => range.begin, "max" => (range.max if range.end))
         end
         text_field_tag(name, value, options)
       end
@@ -974,6 +974,24 @@ module ActionView
       #   # => <input id="quantity" name="quantity" min="1" max="10" step="2" type="range"
       def range_field_tag(name, value = nil, options = {})
         number_field_tag(name, value, options.merge(type: :range))
+      end
+
+      # Creates a datalist form element.
+      #
+      # The option_tags parameter has the same format as the container parameter from #options_for_select.
+      #
+      # ==== Examples
+      #
+      #   datalist_tag('countries_datalist', ['Argentina', ['Brazil', { class: 'brazilian_option' }],
+      #                ['Chile', 'CL', { disabled: true }]], { class: 'sa-countries-sample' })
+      #   # => <datalist id="countries_datalist" class="sa-countries-sample">
+      #          <option value="Argentina">Argentina</option>
+      #          <option value="Brazil" class="brazilian_option">Brazil</option>
+      #          <option value="CL" disabled="disabled">Chile</option>
+      #        </datalist>
+      def datalist_tag(id, option_tags = nil, html_options = {})
+        option_tags ||= ""
+        content_tag("datalist", options_for_select(option_tags), { "id" => id }.update(html_options.stringify_keys))
       end
 
       # Creates the hidden UTF-8 enforcer tag. Override this method in a helper

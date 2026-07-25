@@ -44,13 +44,15 @@ module AbstractController
       delegate :enable_fragment_cache_logging, :enable_fragment_cache_logging=, to: :config
       self.enable_fragment_cache_logging = false
 
-      class_attribute :_view_cache_dependencies, default: []
+      class_attribute :_view_cache_dependencies, default: [].freeze
       helper_method :view_cache_dependencies if respond_to?(:helper_method)
     end
 
     module ClassMethods
       def view_cache_dependency(&dependency)
-        self._view_cache_dependencies += [dependency]
+        self._view_cache_dependencies = [
+          *_view_cache_dependencies, ActiveSupport::Ractors.try_shareable_proc(dependency)
+        ].freeze
       end
     end
 

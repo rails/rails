@@ -9,3 +9,7 @@ cpk_groceries_order_2:
 
 cpk_coffee_order_1:
   status: "cancelled"
+
+cpk_book_order_1:
+  status: "paid"
+  books_count: 1

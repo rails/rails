@@ -196,6 +196,7 @@ module ActionView
       #
       # See also #time_ago_in_words
       def relative_time_in_words(from_time, options = {})
+        from_time = normalize_distance_of_time_argument_to_time(from_time)
         now = Time.now
         time = distance_of_time_in_words(from_time, now, options.except(:scope))
         key = from_time > now ? :future : :past

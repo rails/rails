@@ -21,7 +21,7 @@ module ActiveRecord
         # * <tt>:key_provider</tt> - A key provider to provide encryption and decryption keys. Defaults to
         #   +ActiveRecord::Encryption.key_provider+.
         # * <tt>:key</tt> - A password to derive the key from. It's a shorthand for a +:key_provider+ that
-        #   serves derivated keys. Both options can't be used at the same time.
+        #   serves derived keys. Both options can't be used at the same time.
         # * <tt>:deterministic</tt> - By default, encryption is not deterministic. It will use a random
         #   initialization vector for each encryption operation. This means that encrypting the same content
         #   with the same key twice will generate different ciphertexts. When set to +true+, it will generate the
@@ -61,7 +61,7 @@ module ActiveRecord
           end
         end
 
-        # Given a attribute name, it returns the name of the source attribute when it's a preserved one.
+        # Given an attribute name, it returns the name of the source attribute when it's a preserved one.
         def source_attribute_from_preserved_attribute(attribute_name)
           attribute_name.to_s.sub(ORIGINAL_ATTRIBUTE_PREFIX, "") if attribute_name.start_with?(ORIGINAL_ATTRIBUTE_PREFIX)
         end

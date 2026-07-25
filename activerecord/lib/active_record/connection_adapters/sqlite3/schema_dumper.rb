@@ -6,7 +6,7 @@ module ActiveRecord
       class SchemaDumper < ConnectionAdapters::SchemaDumper # :nodoc:
         private
           def virtual_tables(stream)
-            virtual_tables = @connection.virtual_tables
+            virtual_tables = @connection.virtual_tables.reject { |name, _| ignored?(name) }
             if virtual_tables.any?
               stream.puts
               stream.puts "  # Virtual tables defined in this database."

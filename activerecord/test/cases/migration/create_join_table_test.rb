@@ -91,6 +91,12 @@ module ActiveRecord
         assert_equal video_id.sql_type, music_id.sql_type
       end
 
+      def test_create_join_table_can_set_primary_key
+        connection.create_join_table :artists, :musics, primary_key: [:artist_id, :music_id]
+
+        assert_equal %w(artist_id music_id), connection.primary_key(:artists_musics)
+      end
+
       def test_drop_join_table
         connection.create_join_table :artists, :musics
         connection.drop_join_table :artists, :musics
@@ -136,6 +142,13 @@ module ActiveRecord
       def test_drop_join_table_with_column_options
         connection.create_join_table :artists, :musics, column_options: { null: true }
         connection.drop_join_table :artists, :musics, column_options: { null: true }
+
+        assert_not connection.table_exists?("artists_musics")
+      end
+
+      def test_drop_join_table_with_primary_key
+        connection.create_join_table :artists, :musics, primary_key: [:artist_id, :music_id]
+        connection.drop_join_table :artists, :musics, primary_key: [:artist_id, :music_id]
 
         assert_not connection.table_exists?("artists_musics")
       end

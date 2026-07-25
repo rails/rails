@@ -314,6 +314,7 @@ module ApplicationTests
       assets = ActiveSupport::JSON.decode(File.read(manifest))
       asset_path = assets["assets"]["application.css"]
 
+      sleep 1
       app_file "app/assets/images/rails.png", "p { url: change }"
 
       precompile!

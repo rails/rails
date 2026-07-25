@@ -9,7 +9,7 @@ require "concurrent/atomic/count_down_latch"
 
 module ActiveRecord
   class LoadAsyncTest < ActiveRecord::TestCase
-    include WaitForAsyncTestHelper
+    include WaitForTestHelper
 
     fixtures :posts, :comments, :categories, :categories_posts
 
@@ -55,15 +55,10 @@ module ActiveRecord
         deferred_comments = post.comments.load_async
         assert_predicate deferred_comments, :scheduled?
 
-        events = []
-        callback = -> (event) do
-          events << event unless event.payload[:name] == "SCHEMA"
-        end
-
         wait_for_async_query
-        ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        events = capture_notifications("sql.active_record") do
           deferred_comments.to_a
-        end
+        end.reject { |e| e.payload[:name] == "SCHEMA" }
 
         assert_equal [["Comment Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }
         assert_not_predicate post.comments, :loaded?
@@ -75,15 +70,10 @@ module ActiveRecord
         deferred_categories = post.scategories.load_async
         assert_predicate deferred_categories, :scheduled?
 
-        events = []
-        callback = -> (event) do
-          events << event unless event.payload[:name] == "SCHEMA"
-        end
-
         wait_for_async_query
-        ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        events = capture_notifications("sql.active_record") do
           deferred_categories.to_a
-        end
+        end.reject { |e| e.payload[:name] == "SCHEMA" }
 
         assert_equal [["Category Load", true]], events.map { |e| [e.payload[:name], e.payload[:async]] }
         assert_not_predicate post.scategories, :loaded?
@@ -181,16 +171,42 @@ module ActiveRecord
         Post.async_count
         latch1.wait
 
-        notification_called = false
-        ActiveSupport::Notifications.subscribed(->(*) { notification_called = true }, "sql.active_record") do
+        assert_notification("sql.active_record") do
           Post.count
         end
-
-        assert(notification_called)
       ensure
         latch2.count_down
         ActiveRecord::Base.connection.singleton_class.undef_method(:log)
         ActiveRecord::Base.connection.singleton_class.define_method(:log, old_log)
+      end
+    end
+
+    def test_execute_or_skip_does_not_contaminate_caller_thread_instrumenter
+      skip unless ActiveRecord::Base.connection.async_enabled?
+
+      begin
+        # Intercept schedule_query to run execute_or_skip on the current thread,
+        # simulating what happens when the async executor's caller_runs fallback
+        # policy triggers due to a saturated thread pool.
+        pool = Post.connection_pool
+        old_schedule_query = pool.method(:schedule_query)
+        pool.singleton_class.undef_method(:schedule_query)
+        pool.singleton_class.define_method(:schedule_query) do |future_result|
+          future_result.execute_or_skip
+        end
+
+        # This async query runs execute_or_skip on the current thread
+        Post.async_count
+
+        # After the async query completes, synchronous queries must still
+        # publish sql.active_record notifications
+        assert_notification("sql.active_record") do
+          Post.count
+        end
+      ensure
+        pool.singleton_class.undef_method(:schedule_query)
+        pool.singleton_class.define_method(:schedule_query, old_schedule_query)
+        ActiveSupport::IsolatedExecutionState.delete(:active_record_instrumenter)
       end
     end
 
@@ -308,7 +324,6 @@ module ActiveRecord
 
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Load"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
         end
@@ -342,7 +357,6 @@ module ActiveRecord
 
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "SQL"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
         end
@@ -357,7 +371,7 @@ module ActiveRecord
         end
 
         assert_predicate Post.lease_connection, :supports_concurrent_connections?
-        assert_not status[:async], "Expected status[:async] to be false with NullExecutor"
+        assert_not status[:async], "Expected async to be false with NullExecutor"
       ensure
         ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
       end
@@ -395,11 +409,11 @@ module ActiveRecord
 
   class LoadAsyncMultiThreadPoolExecutorTest < ActiveRecord::TestCase
     unless in_memory_db?
-      include WaitForAsyncTestHelper
+      include WaitForTestHelper
 
       fixtures :posts, :comments
 
-      def setup
+      def before_setup
         @old_config = ActiveRecord.async_query_executor
         ActiveRecord.async_query_executor = :multi_thread_pool
 
@@ -408,9 +422,12 @@ module ActiveRecord
 
         ActiveRecord::Base.establish_connection(config_hash1)
         ARUnit2Model.establish_connection(config_hash2)
+
+        super
       end
 
-      def teardown
+      def after_teardown
+        super
         ActiveRecord.async_query_executor = @old_config
         clean_up_connection_handler
         ActiveRecord::Base.establish_connection(:arunit)
@@ -446,9 +463,9 @@ module ActiveRecord
         expected_records = Post.where(author_id: 1).to_a
 
         status = {}
+
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Load"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
         end
@@ -480,9 +497,9 @@ module ActiveRecord
         expected_records = Post.where(author_id: 1).eager_load(:comments).to_a
 
         status = {}
+
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Eager Load"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
         end
@@ -534,11 +551,11 @@ module ActiveRecord
 
   class LoadAsyncMixedThreadPoolExecutorTest < ActiveRecord::TestCase
     unless in_memory_db?
-      include WaitForAsyncTestHelper
+      include WaitForTestHelper
 
       fixtures :posts, :comments, :other_dogs
 
-      def setup
+      def before_setup
         @previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
         @old_config = ActiveRecord.async_query_executor
         ActiveRecord.async_query_executor = :multi_thread_pool
@@ -554,9 +571,12 @@ module ActiveRecord
 
         ActiveRecord::Base.establish_connection(:primary)
         ARUnit2Model.establish_connection(:animals)
+
+        super
       end
 
-      def teardown
+      def after_teardown
+        super
         ENV["RAILS_ENV"] = @previous_env
         ActiveRecord::Base.configurations = @prev_configs
         ActiveRecord.async_query_executor = @old_config
@@ -584,12 +604,10 @@ module ActiveRecord
 
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Load"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
 
           if event.payload[:name] == "OtherDog Load"
-            dog_status[:executed] = true
             dog_status[:async] = event.payload[:async]
           end
         end

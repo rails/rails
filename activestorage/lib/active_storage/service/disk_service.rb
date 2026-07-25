@@ -60,7 +60,16 @@ module ActiveStorage
 
     def delete_prefixed(prefix)
       instrument :delete_prefixed, prefix: prefix do
-        Dir.glob(path_for("#{prefix}*")).each do |path|
+        prefix_path = path_for(prefix)
+
+        # File.expand_path (called within path_for) strips trailing slashes.
+        # Restore trailing separator if the original prefix had one, so that
+        # the glob "prefix/*" matches files inside the directory, not siblings
+        # whose names start with the prefix string.
+        prefix_path += "/" if prefix.end_with?("/")
+
+        escaped = escape_glob_metacharacters(prefix_path)
+        Dir.glob("#{escaped}*").each do |path|
           FileUtils.rm_rf(path)
         end
       end
@@ -98,8 +107,39 @@ module ActiveStorage
       { "Content-Type" => content_type }
     end
 
+    # Every filesystem operation in DiskService resolves paths through this method (or through
+    # make_path_for, which delegates here). This is the primary filesystem security check: all
+    # path-traversal protection is enforced here. New methods that touch the filesystem MUST use
+    # path_for or make_path_for -- never construct paths from +root+ directly.
     def path_for(key) # :nodoc:
-      File.join root, folder_for(key), key
+      if key.blank?
+        raise ActiveStorage::InvalidKeyError, "key is blank"
+      end
+
+      # Reject keys with dot segments as defense in depth. This prevents path traversal both outside
+      # and within the storage root. The root containment check below is a more fundamental check on
+      # path traversal outside of the disk service root.
+      begin
+        if key.split("/").intersect?(%w[. ..])
+          raise ActiveStorage::InvalidKeyError, "key has path traversal segments"
+        end
+      rescue Encoding::CompatibilityError
+        raise ActiveStorage::InvalidKeyError, "key has incompatible encoding"
+      end
+
+      begin
+        path = File.expand_path(File.join(root, folder_for(key), key))
+      rescue ArgumentError
+        # ArgumentError catches null bytes
+        raise ActiveStorage::InvalidKeyError, "key is an invalid string"
+      end
+
+      # The resolved path must be inside the root directory.
+      unless path.start_with?(File.expand_path(root) + "/")
+        raise ActiveStorage::InvalidKeyError, "key is outside of disk service root"
+      end
+
+      path
     end
 
     def compose(source_keys, destination_key, **)
@@ -154,6 +194,10 @@ module ActiveStorage
 
       def folder_for(key)
         [ key[0..1], key[2..3] ].join("/")
+      end
+
+      def escape_glob_metacharacters(path)
+        path.gsub(/[\[\]*?{}\\]/) { |c| "\\#{c}" }
       end
 
       def make_path_for(key)

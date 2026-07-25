@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/class/attribute"
+
 module ActiveSupport
   # = Actionable Errors
   #
@@ -43,7 +45,7 @@ module ActiveSupport
       #     end
       #   end
       def action(name, &block)
-        _actions[name] = block
+        self._actions = _actions.merge(name => block)
       end
     end
   end

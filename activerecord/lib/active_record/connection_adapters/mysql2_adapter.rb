@@ -56,7 +56,6 @@ module ActiveRecord
       def initialize(...)
         super
 
-        @affected_rows_before_warnings = nil
         @config[:flags] ||= 0
 
         if @config[:flags].kind_of? Array
@@ -130,6 +129,7 @@ module ActiveRecord
       def discard! # :nodoc:
         @lock.synchronize do
           super
+          IO.for_fd(@raw_connection.socket, autoclose: false).reopen(IO::NULL) if @raw_connection rescue nil
           @raw_connection&.automatic_close = false
           @raw_connection = nil
         end

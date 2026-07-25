@@ -29,11 +29,12 @@ require "models/drink_designer"
 require "models/recipe"
 require "models/user_with_invalid_relation"
 require "models/hardback"
-require "models/sharded/comment"
+require "models/sharded"
 require "models/admin"
 require "models/admin/user"
 require "models/user"
 require "models/dats"
+require "models/cpk/book"
 
 class ReflectionTest < ActiveRecord::TestCase
   include ActiveRecord::Reflection
@@ -70,6 +71,10 @@ class ReflectionTest < ActiveRecord::TestCase
     content_column_names   = content_columns.map(&:name)
     assert_equal 14, content_columns.length
     assert_equal %w(title author_name author_email_address written_on bonus_time last_read content important binary_content group approved parent_title created_at updated_at).sort, content_column_names.sort
+  end
+
+  def test_content_columns_excludes_all_composite_primary_key_components
+    assert_equal %w(title revision), Cpk::Book.content_columns.map(&:name)
   end
 
   def test_column_string_type_and_limit
@@ -684,12 +689,32 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "id", actual
   end
 
+  def test_through_reflection_association_primary_key_with_composite_key
+    reflection = Sharded::Blog.reflect_on_association(:comments_via_posts)
+    actual = reflection.association_primary_key
+
+    assert_kind_of Array, actual
+    assert_equal ["blog_id", "id"], actual
+  end
+
   def test_belongs_to_reflection_with_query_constraints_infers_correct_foreign_key
     blog_foreign_key = Sharded::Comment.reflect_on_association(:blog).foreign_key
     blog_post_foreign_key = Sharded::Comment.reflect_on_association(:blog_post).foreign_key
 
     assert_equal "blog_id", blog_foreign_key
     assert_equal ["blog_id", "blog_post_id"], blog_post_foreign_key
+  end
+
+  def test_has_many_foreign_key_derived_from_inverse_with_composite_foreign_key
+    reflection = Sharded::BlogPost.reflect_on_association(:comments_with_inverse)
+    assert_equal ["blog_id", "blog_post_id"], reflection.foreign_key
+  end
+
+  def test_habtm_composite_keys_are_returned_as_arrays
+    reflection = Sharded::BlogPost.reflect_on_association(:tags_with_composite_fk)
+
+    assert_equal ["blog_id", "blog_post_id"], reflection.foreign_key
+    assert_equal ["blog_id", "tag_id"], reflection.association_foreign_key
   end
 
   def test_using_query_constraints_warns_about_changing_behavior
@@ -719,6 +744,26 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::ConfigurationError, match: belongs_to_expected_message) do
       ActiveRecord::Reflection.create(:belongs_to, :client, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
     end
+  end
+
+  def test_counter_cache_column_defaults_when_counter_cache_is_true
+    model = Class.new(ActiveRecord::Base) do
+      def self.name = "CounterCacheTrueAuthor"
+      self.table_name = "authors"
+      has_many :books, foreign_key: "author_id", counter_cache: true
+    end
+
+    assert_equal "books_count", model.reflect_on_association(:books).counter_cache_column
+  end
+
+  def test_counter_cache_column_defaults_when_counter_cache_hash_omits_column
+    model = Class.new(ActiveRecord::Base) do
+      def self.name = "CounterCacheActiveFalseAuthor"
+      self.table_name = "authors"
+      has_many :books, foreign_key: "author_id", counter_cache: { active: false }
+    end
+
+    assert_equal "books_count", model.reflect_on_association(:books).counter_cache_column
   end
 
   private

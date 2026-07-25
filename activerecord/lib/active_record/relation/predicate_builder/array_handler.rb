@@ -31,7 +31,9 @@ module ActiveRecord
           values_predicate
         else
           array_predicates = ranges.map! { |range| predicate_builder.build(attribute, range) }
-          array_predicates.inject(values_predicate, &:or)
+          values_predicate.or(
+            Arel::Nodes::Grouping.new Arel::Nodes::Or.new(array_predicates)
+          )
         end
       end
 

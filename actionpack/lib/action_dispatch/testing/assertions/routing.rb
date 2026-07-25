@@ -269,15 +269,6 @@ module ActionDispatch
         assert_generates(path.is_a?(Hash) ? path[:path] : path, generate_options, defaults, extras, message)
       end
 
-      # ROUTES TODO: These assertions should really work in an integration context
-      def method_missing(selector, ...)
-        if @controller && @routes&.named_routes&.route_defined?(selector)
-          @controller.public_send(selector, ...)
-        else
-          super
-        end
-      end
-
       private
         def create_routes(config = nil)
           @routes = ActionDispatch::Routing::RouteSet.new(config || ActionDispatch::Routing::RouteSet::DEFAULT_CONFIG)

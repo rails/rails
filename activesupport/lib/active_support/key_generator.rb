@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/inspect_backport"
 require "concurrent/map"
 require "openssl"
 
@@ -42,9 +43,12 @@ module ActiveSupport
       OpenSSL::PKCS5.pbkdf2_hmac(@secret, salt, @iterations, key_size, @hash_digest_class.new)
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-    end
+    ActiveSupport::InspectBackport.apply(self)
+
+    private
+      def instance_variables_to_inspect
+        [].freeze
+      end
   end
 
   # = Caching Key Generator
@@ -56,11 +60,24 @@ module ActiveSupport
     def initialize(key_generator)
       @key_generator = key_generator
       @cache_keys = Concurrent::Map.new
+      @ractor_key = nil
+    end
+
+    def freeze
+      @ractor_key = "_caching_key_generator_#{object_id}".to_sym
+      Ractor[@ractor_key] = @cache_keys
+      @cache_keys = nil
+      super
     end
 
     # Returns a derived key suitable for use.
     def generate_key(*args)
-      @cache_keys[args.join("|")] ||= @key_generator.generate_key(*args)
+      cache_keys[args.join("|")] ||= @key_generator.generate_key(*args)
     end
+
+    private
+      def cache_keys
+        @cache_keys || (Ractor[@ractor_key] ||= Concurrent::Map.new)
+      end
   end
 end

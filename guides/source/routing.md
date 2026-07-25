@@ -39,7 +39,7 @@ get "/users/:id", to: "users#show"
 
 The request is matched to the `UsersController` class's `show` action with `{ id: '17' }` in the `params` hash.
 
-The `to:` option expects a `controller#action` format when passed a string. Alternatively, You can pass a symbol and use the `action:` option, instead of `to:`. You can also pass a string without a `#`, in which case the `controller:` option is used instead to `to:`. For example:
+The `to:` option expects a `controller#action` format when passed a string. Alternatively, you can pass a symbol and use the `action:` option, instead of `to:`. You can also pass a string without a `#`, in which case the `controller:` option is used instead of `to:`. For example:
 
 ```ruby
 get "/users/:id", controller: "users", action: :show
@@ -159,7 +159,7 @@ For example, adding `resources :photos` to the route file will generate these `_
 | --------- | ---------------- |
 | `photos_path` | /photos |
 | `new_photo_path` | /photos/new |
-| `edit_photo_path(:id)` | /photos/:id/edit` |
+| `edit_photo_path(:id)` | /photos/:id/edit |
 | `photo_path(:id)` | /photos/:id |
 
 Parameters to the path helpers, such as `:id` above, are passed to the generated URL, such that `edit_photo_path(10)` will return `/photos/10/edit`.
@@ -327,7 +327,7 @@ In addition to the routes for magazines, this declaration will also route ads to
 | PATCH/PUT | /magazines/:magazine_id/ads/:id      | ads#update        | update a specific ad belonging to a specific magazine                      |
 | DELETE    | /magazines/:magazine_id/ads/:id      | ads#destroy       | delete a specific ad belonging to a specific magazine                      |
 
-This will also create the usual path and url routing helpers such as `magazine_ads_url` and `edit_magazine_ad_path`. Since the `ads` resource is nested below `magazines`, The ad URLs require a magazine. The helpers can take an instance of `Magazine` as the first parameter (`edit_magazine_ad_path(@magazine, @ad)`).
+This will also create the usual path and url routing helpers such as `magazine_ads_url` and `edit_magazine_ad_path`. Since the `ads` resource is nested below `magazines`, the ad URLs require a magazine. The helpers can take an instance of `Magazine` as the first parameter (`edit_magazine_ad_path(@magazine, @ad)`).
 
 #### Limits to Nesting
 
@@ -546,7 +546,7 @@ You can also use [`url_for`][ActionView::RoutingUrlFor#url_for] with an array of
 <%= link_to 'Ad details', url_for([@magazine, @ad]) %>
 ```
 
-In this case, Rails will see that `@magazine` is a `Magazine` and `@ad` is an `Ad` and will therefore use the `magazine_ad_path` helper. An even shorter way to write that [`link_to`](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to) is to specify just the object instead of the full [`url_for`](https://api.rubyonrails.org/classes/ActionDispatch/Routing/UrlFor.html) call:
+In this case, Rails will see that `@magazine` is a `Magazine` and `@ad` is an `Ad` and will therefore use the `magazine_ad_path` helper. An even shorter way to write that [`link_to`](https://api.rubyonrails.org/classes/ActionView/Helpers/NavigationHelper.html#method-i-link_to) is to specify just the object instead of the full [`url_for`](https://api.rubyonrails.org/classes/ActionDispatch/Routing/UrlFor.html) call:
 
 ```erb
 <%= link_to 'Ad details', [@magazine, @ad] %>
@@ -869,7 +869,7 @@ Rails.application.routes.draw do
 end
 ```
 
-Both the `matches?` method and the lambda gets the `request` object as an argument.
+Both the `matches?` method and the lambda get the `request` object as an argument.
 
 #### Constraints in a Block Form
 
@@ -1213,7 +1213,7 @@ resources :photos
 ```
 
 This changes the route helpers for `/admin/photos` from `photos_path`,
-`new_photos_path`, etc. to `admin_photos_path`, `new_admin_photo_path`, etc.
+`new_photo_path`, etc. to `admin_photos_path`, `new_admin_photo_path`, etc.
 Without the addition of `as: 'admin_photos'` on the scoped `resources :photos`,
 the non-scoped `resources :photos` will not have any route helpers.
 
@@ -1464,7 +1464,7 @@ edit_person GET    /people/:id/edit(.:format) people#edit
 
 ### Routes in Rails Console
 
-You can access route helpers using `Rails.application.routes.url_helpers` within the [Rails Console](command_line.html#bin-rails-console). They are also available via the [app](command_line.html#the-app-and-helper-objects) object. For example:
+You can access route helpers using `Rails.application.routes.url_helpers` within the [Rails Console](command_line.html#bin-rails-console). They are also available via the [app](command_line.html#the-app-object) object. For example:
 
 ```irb
 irb> Rails.application.routes.url_helpers.users_path
@@ -1555,4 +1555,4 @@ NOTE: You can use the normal routing DSL inside a secondary routing file such as
 
 [`draw`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Resources.html#method-i-draw
 
-NOTE: Don't use this feature unless you really need it. Having multiple routing files make it harder to discover routes in one place. For most applications - even those with a few hundred routes - it's easier for developers to have a single routing file. The Rails routing DSL already offers a way to break routes in an organized manner with `namespace` and `scope`.
+NOTE: Don't use this feature unless you really need it. Having multiple routing files makes it harder to discover routes in one place. For most applications - even those with a few hundred routes - it's easier for developers to have a single routing file. The Rails routing DSL already offers a way to break routes in an organized manner with `namespace` and `scope`.

@@ -64,9 +64,12 @@ module ActiveRecord
         list.each do |attribute|
           next if klass.abstract_class? || klass == Base
 
-          klass_name = klass.name ? klass.model_name.element : nil
-          filter = [klass_name, attribute.to_s].compact.join(".")
-          app.config.filter_parameters << filter unless app.config.filter_parameters.include?(filter)
+          case attribute
+          when Symbol, String
+            klass_name = klass.name ? klass.model_name.element : nil
+            filter = [klass_name, attribute.to_s].compact.join(".")
+            app.config.filter_parameters << filter unless app.config.filter_parameters.include?(filter)
+          end
         end
       end
   end

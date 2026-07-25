@@ -19,6 +19,12 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :queue_classic
     class QueueClassicAdapter < AbstractAdapter
+      def check_adapter
+        ActiveJob.deprecator.warn <<~MSG.squish
+          The built-in `queue_classic` adapter is deprecated and will be removed in Rails 9.0.
+        MSG
+      end
+
       def enqueue(job) # :nodoc:
         qc_job = build_queue(job.queue_name).enqueue("#{JobWrapper.name}.perform", job.serialize)
         job.provider_job_id = qc_job["id"] if qc_job.is_a?(Hash)

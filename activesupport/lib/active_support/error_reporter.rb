@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/deep_dup"
+
 module ActiveSupport
   # = Active Support \Error Reporter
   #
@@ -24,7 +26,7 @@ module ActiveSupport
   #   maybe_tags = Rails.error.handle(Redis::BaseError) { redis.get("tags") }
   #
   class ErrorReporter
-    SEVERITIES = %i(error warning info)
+    SEVERITIES = %i(error warning info).freeze
     DEFAULT_SOURCE = "application"
     DEFAULT_RESCUE = [StandardError].freeze
 
@@ -251,7 +253,7 @@ module ActiveSupport
       disabled_subscribers = ActiveSupport::IsolatedExecutionState[self]
       @subscribers.each do |subscriber|
         unless disabled_subscribers&.any? { |s| s === subscriber }
-          subscriber.report(error, handled: handled, severity: severity, context: full_context, source: source)
+          subscriber.report(error, handled: handled, severity: severity, context: full_context.deep_dup, source: source)
         end
       rescue => subscriber_error
         if logger

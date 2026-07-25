@@ -12,4 +12,8 @@ class Rails::PwaController < Rails::ApplicationController # :nodoc:
   def manifest
     render template: "pwa/manifest", layout: false
   end
+
+  def offline
+    render template: "pwa/offline", layout: false
+  end
 end

@@ -24,6 +24,7 @@ module ActiveRecord
           def visit_ForeignKeyDefinition(o)
             super.dup.tap do |sql|
               sql << " DEFERRABLE INITIALLY #{o.deferrable.to_s.upcase}" if o.deferrable
+              sql << " NOT ENFORCED" unless o.enforced?
             end
           end
 

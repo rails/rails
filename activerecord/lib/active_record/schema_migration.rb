@@ -13,14 +13,29 @@ module ActiveRecord
 
     def initialize(pool)
       @pool = pool
-      @arel_table = Arel::Table.new(table_name)
+      @arel_table = Arel::Table.new(name: table_name)
     end
 
+    #--
+    # This method cannot delegate to create_versions because callers expect
+    # the return value to be the inserted version.
+    #++
     def create_version(version)
       im = Arel::InsertManager.new(arel_table)
       im.insert(arel_table[primary_key] => version)
       @pool.with_connection do |connection|
         connection.insert(im, "#{self.class} Create", primary_key, version)
+      end
+    end
+
+    def create_versions(versions) # :nodoc:
+      return if versions.empty?
+
+      im = Arel::InsertManager.new(arel_table)
+      im.columns << arel_table[primary_key]
+      im.values = im.create_values_list(versions.map { |version| [version] })
+      @pool.with_connection do |connection|
+        connection.execute(connection.to_sql(im), "#{self.class} Create")
       end
     end
 

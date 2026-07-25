@@ -3,6 +3,7 @@
 require "openssl"
 require "base64"
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/inspect_backport"
 require "active_support/messages/codec"
 require "active_support/messages/rotator"
 require "active_support/message_verifier"
@@ -90,9 +91,11 @@ module ActiveSupport
   class MessageEncryptor < Messages::Codec
     prepend Messages::Rotator
 
-    cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
+    @use_authenticated_message_encryption = false
 
     class << self
+      attr_accessor :use_authenticated_message_encryption
+
       def default_cipher # :nodoc:
         if use_authenticated_message_encryption
           "aes-256-gcm"
@@ -261,11 +264,13 @@ module ActiveSupport
       deserialize_with_metadata(decrypt(verify(message)), **options)
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-    end
+    ActiveSupport::InspectBackport.apply(self)
 
     private
+      def instance_variables_to_inspect
+        [].freeze
+      end
+
       def sign(data)
         @verifier ? @verifier.create_message(data) : data
       end

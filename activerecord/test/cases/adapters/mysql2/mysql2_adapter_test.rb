@@ -11,6 +11,32 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     @original_db_warnings_action = :ignore
   end
 
+  def test_configure_connection_skips_wait_timeout_when_false
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+    connection = ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(
+      db_config.configuration_hash.merge(wait_timeout: false)
+    )
+    connection.connect!
+
+    # When wait_timeout is false, the server's default wait_timeout should
+    # be preserved instead of being overridden to 2147483.
+    wait_timeout = connection.query_value("SELECT @@SESSION.wait_timeout").to_i
+    assert_not_equal 2147483, wait_timeout
+  ensure
+    connection&.disconnect!
+  end
+
+  def test_configure_connection_sets_default_wait_timeout
+    db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+    connection = ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(db_config.configuration_hash)
+    connection.connect!
+
+    wait_timeout = connection.query_value("SELECT @@SESSION.wait_timeout").to_i
+    assert_equal 2147483, wait_timeout
+  ensure
+    connection&.disconnect!
+  end
+
   def test_connection_error
     error = assert_raises ActiveRecord::ConnectionNotEstablished do
       ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(socket: File::NULL, prepared_statements: false).connect!
@@ -293,6 +319,16 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
     error = assert_raises(ActiveRecord::StatementTimeout) do
       raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new("fail", 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_QUERY_TIMEOUT) }) {
+        @conn.execute("SELECT 1")
+      }
+    end
+    assert_equal @conn.pool, error.connection_pool
+  end
+
+  def test_no_database_selected_error_translates_to_connection_failed
+    raw_conn = @conn.raw_connection
+    error = assert_raises(ActiveRecord::ConnectionFailed) do
+      raw_conn.stub(:query, ->(_sql) { raise Mysql2::Error.new("No database selected", 50700, ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter::ER_NO_DB_ERROR) }) {
         @conn.execute("SELECT 1")
       }
     end

@@ -31,7 +31,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
         if authenticate_with_http_token { |token, options| token == '"quote" pretty' && options[:algorithm] == "test" }
           @logged_in = true
         else
-          request_http_token_authentication("SuperSecret", "Authentication Failed\n")
+          request_http_token_authentication("SuperSecret", "Authentication Failed\n", "application/json")
         end
       end
 
@@ -42,7 +42,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
       end
   end
 
-  AUTH_HEADERS = ["HTTP_AUTHORIZATION", "X-HTTP_AUTHORIZATION", "X_HTTP_AUTHORIZATION", "REDIRECT_X_HTTP_AUTHORIZATION"]
+  AUTH_HEADERS = ["HTTP_AUTHORIZATION", "X-HTTP_AUTHORIZATION", "X_HTTP_AUTHORIZATION", "REDIRECT_X_HTTP_AUTHORIZATION"].freeze
 
   tests DummyController
 
@@ -105,6 +105,15 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "successful authentication request with case-insensitive scheme" do
+    ["bearer lifo", "BEARER lifo", "token lifo", "TOKEN lifo"].each do |header|
+      @request.env["HTTP_AUTHORIZATION"] = header
+      get :index
+
+      assert_response :success, "expected #{header.inspect} to authenticate"
+    end
+  end
+
   test "authentication request with tab in header" do
     @request.env["HTTP_AUTHORIZATION"] = "Token\ttoken=\"lifo\""
     get :index
@@ -118,6 +127,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
     assert_response :unauthorized
     assert_equal "Authentication Failed\n", @response.body
+    assert_equal "application/json", @response.media_type
     assert_equal 'Token realm="SuperSecret"', @response.headers["WWW-Authenticate"]
   end
 
@@ -127,6 +137,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
     assert_response :unauthorized
     assert_equal "Authentication Failed\n", @response.body
+    assert_equal "application/json", @response.media_type
     assert_equal 'Token realm="SuperSecret"', @response.headers["WWW-Authenticate"]
   end
 

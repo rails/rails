@@ -47,6 +47,13 @@ module ActiveRecord
   # ActiveSupport::CurrentAttributes can be used to store application values. Tags with +nil+ values are
   # omitted from the query comment.
   #
+  # +context+ includes the following keys:
+  #
+  # * +controller+ - current Action Controller instance, if available
+  # * +job+ - current Active Job instance, if available
+  # * +connection+ - current database connection
+  # * +sql+ - current SQL query
+  #
   # Escaping is performed on the string returned, however untrusted user input should not be used.
   #
   # Example:
@@ -63,13 +70,55 @@ module ActiveRecord
   #       },
   #     ]
   #
+  # WARNING: SQL query can contain sensitive data and using +:sql+ directly as a query log tag
+  # is unsafe because it will log the query unfiltered.
+  #
+  # Example:
+  #
+  #     # unsafe
+  #     config.active_record.query_log_tags = [:sql]
+  #
+  #     # safe
+  #     config.active_record.query_log_tags = [sql_length: ->(context) { context[:sql].length } ]
+  #
   # By default the name of the application, the name and action of the controller, or the name of the job are logged
   # using the {SQLCommenter}[https://open-telemetry.github.io/opentelemetry-sqlcommenter/] format. This can be changed
   # via {config.active_record.query_log_tags_format}[https://guides.rubyonrails.org/configuring.html#config-active-record-query-log-tags-format]
   #
+  # The format can also be overridden per connection pool through the +query_log_tags+
+  # key of a +database.yml+ entry. Connections checked out from that pool use the
+  # configured +format+, while setting +query_log_tags+ to +false+ instead opts the
+  # pool out of tagging entirely. Pools without any explicit configuration fall back
+  # to the global defaults:
+  #
+  #     production:
+  #       primary:
+  #         database: primary
+  #       analytics:
+  #         database: analytics
+  #         query_log_tags:
+  #           format: sqlcommenter
+  #       replica:
+  #         database: replica
+  #         replica: true
+  #         query_log_tags: false
+  #
   # Tag comments can be prepended to the query:
   #
   #     config.active_record.query_log_tags_prepend_comment = true
+  #
+  # Whether the comment is prepended can also be overridden per connection pool with a
+  # +prepend_comment+ key under +query_log_tags+ in a +database.yml+ entry. Connections
+  # checked out from that pool use the configured value, while pools without any explicit
+  # configuration fall back to the global default:
+  #
+  #     production:
+  #       primary:
+  #         database: primary
+  #       analytics:
+  #         database: analytics
+  #         query_log_tags:
+  #           prepend_comment: true
   #
   # For applications where the content will not change during the lifetime of
   # the request or job execution, the tags can be cached for reuse in every query:
@@ -112,7 +161,7 @@ module ActiveRecord
     @cache_query_log_tags = false
     @tags_formatter = false
 
-    thread_mattr_accessor :cached_comment, instance_accessor: false
+    thread_mattr_accessor :cached_comments, instance_accessor: false
 
     class << self
       attr_reader :tags, :taggings, :tags_formatter # :nodoc:
@@ -129,23 +178,18 @@ module ActiveRecord
       end
 
       def tags_formatter=(format) # :nodoc:
-        @formatter = case format
-        when :legacy
-          LegacyFormatter
-        when :sqlcommenter
-          SQLCommenter
-        else
-          raise ArgumentError, "Formatter is unsupported: #{format}"
-        end
+        @formatter = formatter_for(format)
         @tags_formatter = format
       end
 
       def call(sql, connection) # :nodoc:
-        comment = self.comment(connection)
+        return sql if connection.pool.db_config.query_log_tags_config == false
+
+        comment = self.comment(sql: sql, connection: connection)
 
         if comment.blank?
           sql
-        elsif prepend_comment
+        elsif resolve_prepend_comment(connection)
           "#{comment} #{sql}"
         else
           "#{sql} #{comment}"
@@ -153,16 +197,40 @@ module ActiveRecord
       end
 
       def clear_cache # :nodoc:
-        self.cached_comment = nil
+        self.cached_comments = nil
       end
 
       def query_source_location # :nodoc:
         LogSubscriber.backtrace_cleaner.first_clean_frame
       end
 
-      ActiveSupport::ExecutionContext.after_change { ActiveRecord::QueryLogs.clear_cache }
+      ActiveSupport::ExecutionContext.after_change(&ActiveSupport::Ractors.shareable_proc { ActiveRecord::QueryLogs.clear_cache })
 
       private
+        def formatter_for(format)
+          case format
+          when :legacy
+            LegacyFormatter
+          when :sqlcommenter
+            SQLCommenter
+          else
+            raise ArgumentError, "Formatter is unsupported: #{format}"
+          end
+        end
+
+        def resolve_formatter(connection)
+          if (format = connection.pool.db_config.query_log_tags_format)
+            formatter_for(format)
+          else
+            @formatter
+          end
+        end
+
+        def resolve_prepend_comment(connection)
+          prepend = connection.pool.db_config.query_log_tags_prepend_comment
+          prepend.nil? ? prepend_comment : prepend
+        end
+
         def rebuild_handlers
           handlers = []
           @tags.each do |i|
@@ -194,16 +262,21 @@ module ActiveRecord
 
         # Returns an SQL comment +String+ containing the query log tags.
         # Sets and returns a cached comment if <tt>cache_query_log_tags</tt> is +true+.
-        def comment(connection)
+        def comment(extra_context)
+          formatter = resolve_formatter(extra_context[:connection])
+
           if cache_query_log_tags
-            self.cached_comment ||= uncached_comment(connection)
+            cache = (self.cached_comments ||= {})
+            cache.fetch(formatter) do
+              cache[formatter] = uncached_comment(extra_context, formatter)
+            end
           else
-            uncached_comment(connection)
+            uncached_comment(extra_context, formatter)
           end
         end
 
-        def uncached_comment(connection)
-          content = tag_content(connection)
+        def uncached_comment(extra_context, formatter)
+          content = tag_content(extra_context, formatter)
 
           if content.present?
             "/*#{escape_sql_comment(content)}*/"
@@ -223,15 +296,15 @@ module ActiveRecord
           comment
         end
 
-        def tag_content(connection)
+        def tag_content(extra_context, formatter)
           context = ActiveSupport::ExecutionContext.to_h
-          context[:connection] ||= connection
+          context.reverse_merge!(extra_context)
 
           pairs = @handlers.filter_map do |(key, handler)|
             val = handler.call(context)
-            @formatter.format(key, val) unless val.nil?
+            formatter.format(key, val) unless val.nil?
           end
-          @formatter.join(pairs)
+          formatter.join(pairs)
         end
     end
 

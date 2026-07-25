@@ -2,6 +2,7 @@
 
 require_relative "abstract_unit"
 require "active_support/time"
+require "active_support/core_ext/object/with"
 require_relative "time_zone_test_helpers"
 require "yaml"
 
@@ -502,6 +503,37 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "argument out of range", exception.message
   end
 
+  def test_parse_raises_on_unparseable_string_when_strict
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    ActiveSupport.with(raise_on_invalid_time_zone_parse: true) do
+      exception = assert_raises(ArgumentError) { zone.parse("foobar") }
+      assert_equal "invalid date", exception.message
+
+      exception = assert_raises(ArgumentError) { zone.parse("   ") }
+      assert_equal "invalid date", exception.message
+    end
+  end
+
+  def test_parse_raises_on_out_of_range_date_when_strict
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    ActiveSupport.with(raise_on_invalid_time_zone_parse: true) do
+      exception = assert_raises(ArgumentError) { zone.parse("9000") }
+      assert_equal "argument out of range", exception.message
+    end
+  end
+
+  def test_parse_still_accepts_valid_strings_when_strict
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    ActiveSupport.with(raise_on_invalid_time_zone_parse: true) do
+      twz = zone.parse("1999-12-31 19:00:00")
+      assert_equal Time.utc(2000, 1, 1), twz.utc
+      assert_equal zone, twz.time_zone
+    end
+  end
+
   def test_parse_with_ambiguous_time
     zone = ActiveSupport::TimeZone["Moscow"]
     assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.parse("2014-10-26 01:00:00")
@@ -696,6 +728,15 @@ class TimeZoneTest < ActiveSupport::TestCase
       time_str = "1470272280000"
       time = zone.strptime(time_str, "%Q")
       assert_equal Time.at(1470272280), time
+    end
+  end
+
+  def test_strptime_with_timestamp_seconds_and_fractional_seconds
+    with_env_tz "US/Eastern" do
+      zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+      time = zone.strptime("1470272280.123456789", "%s.%N")
+      assert_equal 123456789, time.nsec
+      assert_equal Time.strptime("1470272280.123456789", "%s.%N"), time
     end
   end
 

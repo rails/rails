@@ -60,15 +60,9 @@ These values can be stored by copying and pasting the generated values into your
 existing [Rails credentials](/security.html#custom-credentials) file using
 `bin/rails credentials:edit`.
 
-Alternatively, the encryption keys can also be configured from other sources,
-such as environment variables:
-
-```ruby
-# config/application.rb
-config.active_record.encryption.primary_key = ENV["ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY"]
-config.active_record.encryption.deterministic_key = ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"]
-config.active_record.encryption.key_derivation_salt = ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"]
-```
+Alternatively, they can be stored in environment variables with these exact names (with a
+double underscore): `ACTIVE_RECORD_ENCRYPTION__PRIMARY_KEY`,
+`ACTIVE_RECORD_ENCRYPTION__DETERMINISTIC_KEY`, `ACTIVE_RECORD_ENCRYPTION__KEY_DERIVATION_SALT`.
 
 WARNING: It's recommended to use Rails built-in credentials support to store
 keys. If you set them manually via configuration properties, make sure you don't
@@ -251,7 +245,7 @@ You might want to ignore the case when querying deterministically encrypted
 data. There are two options for achieving this - `:downcase` and `:ignore_case`.
 
 When you use the `:downcase` option when declaring the encrypted attribute, it
-converts the data to downcase before encryption occurs. This allows to
+converts the data to downcase before encryption occurs. This allows you to
 effectively ignore case when querying data.
 
 ```ruby
@@ -379,8 +373,8 @@ automatic filtering, you can use this configuration:
 config.active_record.encryption.excluded_from_filter_parameters = [:catchphrase]
 ```
 
-NOTE: When generating the filter parameter, Rails will use the model name as a
-prefix. E.g: For `User#email`, the filter parameter will be `user.email`.
+NOTE: When generating the filter parameter, Rails uses the model name as a
+prefix. For example, for `User#email`, the filter parameter is `user.email`.
 
 ### Action Text
 
@@ -651,7 +645,7 @@ config.active_record.encryption.encryptor = MyEncryptor.new
 ```
 
 You can use
-[`with_encryption_context`](`https://api.rubyonrails.org/classes/ActiveRecord/Encryption/Contexts.html#method-i-with_encryption_context`)
+[`with_encryption_context`](https://api.rubyonrails.org/classes/ActiveRecord/Encryption/Contexts.html#method-i-with_encryption_context)
 to override any of the properties of the encryption context.
 
 ### Encryption Context with a Block of Code

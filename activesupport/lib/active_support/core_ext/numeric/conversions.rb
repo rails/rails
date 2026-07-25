@@ -87,7 +87,7 @@ module ActiveSupport
     #  1234567890123456.to_fs(:human_size)                       # => "1.1 PB"
     #  1234567890123456789.to_fs(:human_size)                    # => "1.07 EB"
     #  1234567.to_fs(:human_size, precision: 2)                  # => "1.2 MB"
-    #  1234567.to_fs(:human_size, precision: 2, round_mode: :up) # => "1.3 MB"
+    #  1234567.to_fs(:human_size, precision: 2, round_mode: :down) # => "1.1 MB"
     #  483989.to_fs(:human_size, precision: 2)                   # => "470 KB"
     #  1234567.to_fs(:human_size, precision: 2, separator: ',')  # => "1,2 MB"
     #  1234567890123.to_fs(:human_size, precision: 5)            # => "1.1228 TB"

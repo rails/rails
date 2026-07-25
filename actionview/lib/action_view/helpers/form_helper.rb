@@ -1528,7 +1528,7 @@ module ActionView
       #
       #   @user.born_on = Date.new(1984, 1, 27)
       #   month_field("user", "born_on")
-      #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-01" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="month" value="1984-01" />
       #
       def month_field(object_name, method, options = {})
         Tags::MonthField.new(object_name, method, self, options).render
@@ -1545,7 +1545,7 @@ module ActionView
       #
       #   @user.born_on = Date.new(1984, 5, 12)
       #   week_field("user", "born_on")
-      #   # => <input id="user_born_on" name="user[born_on]" type="date" value="1984-W19" />
+      #   # => <input id="user_born_on" name="user[born_on]" type="week" value="1984-W19" />
       #
       def week_field(object_name, method, options = {})
         Tags::WeekField.new(object_name, method, self, options).render
@@ -1706,7 +1706,7 @@ module ActionView
       end
 
       def self._to_partial_path
-        @_to_partial_path ||= name.demodulize.underscore.sub!(/_builder$/, "")
+        @_to_partial_path ||= name.demodulize.underscore.sub(/_builder$/, "")
       end
 
       def to_partial_path
@@ -2620,7 +2620,7 @@ module ActionView
       #
       # ==== Examples
       #   button("Create article")
-      #   # => <button name='button' type='submit'>Create article</button>
+      #   # => <button name="button" type="submit">Create article</button>
       #
       #   button(:draft, value: true)
       #   # => <button id="article_draft" name="article[draft]" value="true" type="submit">Create article</button>
@@ -2628,14 +2628,14 @@ module ActionView
       #   button do
       #     content_tag(:strong, 'Ask me!')
       #   end
-      #   # => <button name='button' type='submit'>
+      #   # => <button name="button" type="submit">
       #   #      <strong>Ask me!</strong>
       #   #    </button>
       #
       #   button do |text|
       #     content_tag(:strong, text)
       #   end
-      #   # => <button name='button' type='submit'>
+      #   # => <button name="button" type="submit">
       #   #      <strong>Create article</strong>
       #   #    </button>
       #

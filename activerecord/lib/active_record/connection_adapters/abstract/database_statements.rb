@@ -219,8 +219,8 @@ module ActiveRecord
 
       deprecate :exec_insert, :exec_delete, :exec_update, deprecator: ActiveRecord.deprecator
 
-      def exec_insert_all(sql, name) # :nodoc:
-        intent = internal_build_intent(sql, name)
+      def exec_insert_all(inserter, name) # :nodoc:
+        intent = internal_build_intent(inserter.to_sql, name)
         intent.execute!
         intent.cast_result
       end
@@ -257,6 +257,17 @@ module ActiveRecord
 
         intent.execute!
         intent.affected_rows
+      end
+
+      # Executes the update statement and returns an ActiveRecord::Result
+      # Some adapters support the `returning` keyword argument
+      def update_with_result(arel, name = nil, binds = [], returning:) # :nodoc:
+        arel.returning(returning.map { |column| Arel.sql(quote_column_name(column)) })
+
+        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
+
+        intent.execute!
+        intent.cast_result
       end
 
       # Executes the delete statement and returns the number of rows affected.
@@ -605,14 +616,38 @@ module ActiveRecord
       # Final wrapper around the subclass-specific +perform_query+. Populates the calling
       # intent's raw_result.
       def execute_intent(intent) # :nodoc:
+        should_dirty = false
+
+        if intent.materialize_transactions
+          # These can raise locally (e.g., ReadOnlyError). Validate before BEGIN.
+          intent.processed_sql
+          intent.type_casted_binds
+          materialize_transactions
+        end
+
         log(intent) do |notification_payload|
           intent.notification_payload = notification_payload
-          with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: intent.materialize_transactions) do |conn|
-            result = perform_query(conn, intent)
-            intent.raw_result = result
-            handle_warnings(result, intent.processed_sql)
+          with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: false) do |conn|
+            should_dirty = intent.materialize_transactions
+            begin
+              result = perform_query(conn, intent)
+              intent.raw_result = result
+
+              query_completed = true
+            ensure
+              begin
+                handle_warnings(result, intent.processed_sql)
+              rescue
+                raise if query_completed
+
+                # The query failed, so we need to swallow this exception
+                # from handle_warnings to avoid masking the original.
+              end
+            end
           end
         end
+      ensure
+        dirty_current_transaction if should_dirty
       end
 
       # Executes SQL statements in the context of this connection without
@@ -686,7 +721,7 @@ module ActiveRecord
             end
           end
 
-          table = Arel::Table.new(table_name)
+          table = Arel::Table.new(name: table_name)
           manager = Arel::InsertManager.new(table)
 
           if values_list.size == 1
@@ -739,7 +774,7 @@ module ActiveRecord
             if pk.nil?
               # Extract the table from the insert sql. Yuck.
               table_ref = extract_table_ref_from_insert_sql(sql)
-              pk = primary_key(table_ref) if table_ref
+              pk = schema_cache.primary_keys(table_ref) if table_ref
             end
 
             returning_columns = returning || Array(pk)
@@ -773,7 +808,7 @@ module ActiveRecord
         end
 
         def extract_table_ref_from_insert_sql(sql)
-          if sql =~ /into\s("[A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im
+          if sql =~ /into\s("[-A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im
             $1.delete('"').strip
           end
         end

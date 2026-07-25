@@ -5,6 +5,7 @@
 require "stringio"
 
 require "active_support/inflector"
+require "active_support/core_ext/enumerable"
 require "action_dispatch/http/headers"
 require "action_controller/metal/exceptions"
 require "rack/request"
@@ -26,9 +27,6 @@ module ActionDispatch
     include ActionDispatch::Http::URL
     include ActionDispatch::ContentSecurityPolicy::Request
     include Rack::Request::Env
-
-    autoload :Session, "action_dispatch/request/session"
-    autoload :Utils,   "action_dispatch/request/utils"
 
     LOCALHOST   = Regexp.union [/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
 
@@ -116,30 +114,28 @@ module ActionDispatch
     end
 
     # HTTP methods from [RFC 2616: Hypertext Transfer Protocol -- HTTP/1.1](https://www.ietf.org/rfc/rfc2616.txt)
-    RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT)
+    RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT).freeze
     # HTTP methods from [RFC 2518: HTTP Extensions for Distributed Authoring -- WEBDAV](https://www.ietf.org/rfc/rfc2518.txt)
-    RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK)
+    RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK).freeze
     # HTTP methods from [RFC 3253: Versioning Extensions to WebDAV](https://www.ietf.org/rfc/rfc3253.txt)
-    RFC3253 = %w(VERSION-CONTROL REPORT CHECKOUT CHECKIN UNCHECKOUT MKWORKSPACE UPDATE LABEL MERGE BASELINE-CONTROL MKACTIVITY)
+    RFC3253 = %w(VERSION-CONTROL REPORT CHECKOUT CHECKIN UNCHECKOUT MKWORKSPACE UPDATE LABEL MERGE BASELINE-CONTROL MKACTIVITY).freeze
     # HTTP methods from [RFC 3648: WebDAV Ordered Collections Protocol](https://www.ietf.org/rfc/rfc3648.txt)
-    RFC3648 = %w(ORDERPATCH)
+    RFC3648 = %w(ORDERPATCH).freeze
     # HTTP methods from [RFC 3744: WebDAV Access Control Protocol](https://www.ietf.org/rfc/rfc3744.txt)
-    RFC3744 = %w(ACL)
+    RFC3744 = %w(ACL).freeze
     # HTTP methods from [RFC 5323: WebDAV SEARCH](https://www.ietf.org/rfc/rfc5323.txt)
-    RFC5323 = %w(SEARCH)
+    RFC5323 = %w(SEARCH).freeze
     # HTTP methods from [RFC 4791: Calendaring Extensions to WebDAV](https://www.ietf.org/rfc/rfc4791.txt)
-    RFC4791 = %w(MKCALENDAR)
+    RFC4791 = %w(MKCALENDAR).freeze
     # HTTP methods from [RFC 5789: PATCH Method for HTTP](https://www.ietf.org/rfc/rfc5789.txt)
-    RFC5789 = %w(PATCH)
+    RFC5789 = %w(PATCH).freeze
 
     HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789
 
-    HTTP_METHOD_LOOKUP = {}
-
     # Populate the HTTP method lookup cache.
-    HTTP_METHODS.each { |method|
-      HTTP_METHOD_LOOKUP[method] = method.downcase.tap { |m| m.tr!("-", "_") }.to_sym
-    }
+    HTTP_METHOD_LOOKUP = HTTP_METHODS.each.with_object({}) { |method, hash|
+      hash[method] = method.downcase.tap { |m| m.tr!("-", "_") }.to_sym
+    }.freeze
 
     alias raw_request_method request_method # :nodoc:
 
@@ -389,17 +385,17 @@ module ActionDispatch
     end
 
     def session=(session) # :nodoc:
-      Session.set self, session
+      Http::Session.set self, session
     end
 
     def session_options=(options)
-      Session::Options.set self, options
+      Http::Session::Options.set self, options
     end
 
     # Override Rack's GET method to support indifferent access.
     def GET
       fetch_header("action_dispatch.request.query_parameters") do |k|
-        encoding_template = Request::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
+        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
         rack_query_params = ActionDispatch::ParamBuilder.from_query_string(rack_request.query_string, encoding_template: encoding_template)
 
         set_header k, rack_query_params
@@ -412,7 +408,7 @@ module ActionDispatch
     # Override Rack's POST method to support indifferent access.
     def POST
       fetch_header("action_dispatch.request.request_parameters") do
-        encoding_template = Request::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
+        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
 
         param_list = nil
         pr = parse_formatted_parameters(params_parsers) do
@@ -471,7 +467,18 @@ module ActionDispatch
 
     # Returns the bearer token embedded in the authorization header or nil if missing.
     def bearer_token
-      authorization.to_s[/\ABearer (.+)\z/, 1]
+      authorization.to_s[/\ABearer (.+)\z/i, 1]
+    end
+
+    # True if the request method is safe per RFC 9110 §9.2.1
+    # (GET, HEAD, OPTIONS, or TRACE).
+    def safe_method?
+      get? || head? || options? || trace?
+    end
+
+    # True if the request method may modify resources. Inverse of #safe_method?.
+    def unsafe_method?
+      !safe_method?
     end
 
     # True if the request came from localhost, 127.0.0.1, or ::1.
@@ -513,7 +520,7 @@ module ActionDispatch
       end
 
       def default_session
-        Session.disabled(self)
+        Http::Session.disabled(self)
       end
 
       def read_body_stream

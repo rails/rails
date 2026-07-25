@@ -10,7 +10,19 @@ class QueuePriorityTest < ActiveSupport::TestCase
   end
 
   test "priority unset by default" do
-    assert_nil HelloJob.priority
+    assert_nil HelloJob.new.priority
+  end
+
+  test "using a custom default_priority" do
+    original_default_priority = ActiveJob::Base.default_priority
+
+    begin
+      ActiveJob::Base.default_priority = 8
+
+      assert_equal 8, HelloJob.new.priority
+    ensure
+      ActiveJob::Base.default_priority = original_default_priority
+    end
   end
 
   test "uses given priority" do

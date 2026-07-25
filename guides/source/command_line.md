@@ -181,12 +181,12 @@ The main difference is the content of the `config/database.yml` file. With the
 PostgreSQL option, it looks like this:
 
 ```yaml
-# PostgreSQL. Versions 9.3 and up are supported.
+# PostgreSQL. Versions 10.0 and up are supported.
 #
 # Install the pg driver:
 #   gem install pg
 # On macOS with Homebrew:
-#   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
+#   gem install pg -- --with-pg-config=/opt/homebrew/bin/pg_config
 # On Windows:
 #   gem install pg
 #       Choose the win32 build.
@@ -200,7 +200,7 @@ default: &default
   encoding: unicode
   # For details on connection pooling, see Rails configuration guide
   # https://guides.rubyonrails.org/configuring.html#database-pooling
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 3 } %>
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
 
 development:
@@ -739,6 +739,57 @@ primary database by default. You can specify which database to connect to using
 
 ```bash
 $ bin/rails dbconsole --database=animals
+```
+
+### `bin/rails query`
+
+`query` runs read-only database queries and returns structured JSON output. It connects to the reading replica role by default and prevents database writes. The `--sql` flag restricts execution to SQL only. ActiveRecord expressions are evaluated as Ruby, with the same trust model as `bin/rails runner` and `bin/rails console`.
+
+```bash
+$ bin/rails query "Account.where(plan: 'premium').limit(10)"
+```
+
+You can run raw SQL with the `--sql` flag:
+
+```bash
+$ bin/rails query --sql "SELECT * FROM accounts LIMIT 10"
+```
+
+Results are paginated. Use `--page` and `--per` to navigate:
+
+```bash
+$ bin/rails query "Account.all" --page 2 --per 50
+```
+
+Pipe through `jq` for human-readable formatting:
+
+```bash
+$ bin/rails query "Account.first" | jq
+```
+
+The `schema` subcommand lists tables or shows detail for a specific table, including columns, indexes, enums, and associations:
+
+```bash
+$ bin/rails query schema
+$ bin/rails query schema accounts
+```
+
+The `models` subcommand lists all ActiveRecord models with their table names and associations:
+
+```bash
+$ bin/rails query models
+```
+
+The `explain` subcommand shows the query plan for an expression:
+
+```bash
+$ bin/rails query explain "Account.where(plan: 'premium')"
+```
+
+If you are using multiple databases, you can specify which database configuration to use with `--database` or `--db`:
+
+```bash
+$ bin/rails query "Account.count" --database primary_replica
 ```
 
 ### `bin/rails runner`

@@ -51,11 +51,11 @@ module ActiveStorage
           {}
         end
       rescue ::Vips::Error => error
-        logger.error "Skipping image analysis due to an Vips error: #{error.message}"
+        logger.error "Skipping image analysis due to a Vips error: #{error.message}"
         {}
       end
 
-      ROTATIONS = /Right-top|Left-bottom|Top-right|Bottom-left/
+      ROTATIONS = /Left-top|Right-top|Right-bottom|Left-bottom/
       def rotated_image?(image)
         ROTATIONS === image.get("exif-ifd0-Orientation")
       rescue ::Vips::Error

@@ -15,6 +15,7 @@ After reading this guide, you will know:
 * How to change existing migrations and update your schema.
 * How migrations relate to `schema.rb`.
 * How to maintain referential integrity.
+* How to customize migration behavior with swappable strategies.
 
 --------------------------------------------------------------------------------
 
@@ -551,7 +552,7 @@ end
 
 You can pass the `:comment` option with any description for the table that will
 be stored in the database itself and can be viewed with database administration
-tools, such as MySQL Workbench or PgAdmin III. Comments can help team members to
+tools, such as MySQL Workbench or pgAdmin. Comments can help team members to
 better understand the data model and to generate documentation in applications
 with large databases. Currently only the MySQL and PostgreSQL adapters support
 comments.
@@ -568,7 +569,7 @@ end
 ### Creating a Join Table
 
 The migration method [`create_join_table`][] creates an [HABTM (has and belongs
-to many)](association_basics.html#the-has-and-belongs-to-many-association) join
+to many)](association_basics.html#has-and-belongs-to-many) join
 table. A typical use would be:
 
 ```ruby
@@ -721,6 +722,24 @@ They need to be added separately using `add_index`.
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
 
+For example, MySQL supports `algorithm` and `lock` options on column operations
+(`add_column`, `remove_column`, `change_column`, `rename_column`) and index
+operations (`add_index`, `remove_index`) to control how DDL statements are
+executed. This enables online schema changes without blocking reads or writes:
+
+```ruby
+add_column :users, :name, :string, algorithm: :instant, lock: :none
+add_index :users, :email, algorithm: :inplace, lock: :none
+```
+
+The MySQL `algorithm` option accepts `:default`, `:copy`, `:inplace`, or `:instant`.
+The `lock` option accepts `:default`, `:none`, `:shared`, or `:exclusive`.
+See the [MySQL documentation on Online DDL](https://dev.mysql.com/doc/refman/en/innodb-online-ddl-operations.html)
+for details on which algorithms and lock modes are supported for each operation.
+
+NOTE: PostgreSQL also supports the `algorithm` option on `add_index` and
+`remove_index` (e.g., `algorithm: :concurrently`), but does not support `lock`.
+
 NOTE: `default` cannot be specified via command line when generating migrations.
 
 ### References
@@ -779,7 +798,7 @@ add_foreign_key :articles, :authors
 
 The [`add_foreign_key`][] call adds a new constraint to the `articles` table.
 The constraint guarantees that a row in the `authors` table exists where the
-`id` column matches the `articles.author_id` to ensure all reviewers listed in
+`id` column matches the `articles.author_id` to ensure all authors listed in
 the articles table are valid authors listed in the authors table.
 
 NOTE: When using `references` in a migration, you are creating a new column in
@@ -1289,13 +1308,12 @@ The `bin/rails db:prepare` command is similar to `bin/rails db:setup`, but it
 operates idempotently, so it can safely be called several times, but it will
 only perform the necessary tasks once.
 
-* If the database has not been created yet, the command will run as the
-  `bin/rails db:setup` does.
-* If the database exists but the tables have not been created, the command will
-  load the schema, run any pending migrations, dump the updated schema, and
-  finally load the seed data. See the [Seeding Data
-  documentation](#migrations-and-seed-data) for more details.
-* If the database and tables exist, the command will do nothing.
+* If the database has not been created yet, the command behaves the same as
+  `bin/rails db:setup`.
+* If the database exists but the tables are missing, the command additionally
+  loads the schema.
+* If tables already exist, the command runs any pending migrations and dumps the
+  updated schema.
 
 Once the database and tables exist, the `db:prepare` task will not try to reload
 the seed data, even if the previously loaded seed data or the existing seed file
@@ -1464,6 +1482,47 @@ This will show you a list of all migration version numbers that have been
 applied to the database. Rails uses this information to determine which
 migrations need to be run when you run rails db:migrate or rails db:migrate:up
 commands.
+
+#### Recording Migration Versions in Schema Dumps
+
+By default, Ruby schema dumps record only the current schema version. That is
+simple and may be enough in some projects, but it does not fully capture the
+state in some edge cases, and it is a source of merge conflicts in busy repos.
+
+You can alternatively dump the `schema_migrations` table into `db/schema.rb` by
+setting:
+
+```ruby
+config.active_record.dump_schema_migrations = true
+```
+
+The `:dump_schema_migrations` database configuration key allows you to override
+the global flag per database.
+
+The dump includes only versions with an existing migration file, so projects
+that prune old migrations keep the table in sync automatically just by
+regenerating the schema with `bin/rails db:schema:dump`.
+
+By default, versions are ordered by their reversed strings to help avoid merge
+conflicts, but this can be customized:
+
+```ruby
+# Linear order.
+config.active_record.dump_schema_migrations_sort_by = :itself
+
+# Hash-based ordering.
+require "digest/md5"
+
+config.active_record.dump_schema_migrations_sort_by = ->(version) {
+  Digest::MD5.hexdigest(version)
+}
+```
+
+The value has to be a proc (or respond to `to_proc`) which is called with a
+string as argument.
+
+Please note that the order of the versions does not matter for Active Record,
+the `schema_migrations` table acts as a set.
 
 Changing Existing Migrations
 ----------------------------
@@ -1811,8 +1870,135 @@ files. Here’s why:
 - **Performance**: Data migrations can take a long time to run and may lock your
   tables, affecting application performance and availability.
 
-Instead, consider using the
-[`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks) gem. This
-gem provides a framework for creating and managing data migrations and other
-maintenance tasks in a way that is safe and easy to manage without interfering
-with schema migrations.
+Instead consider using the built-in `script/` directory or a dedicated gem
+such as [`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks).
+
+Scripts can be generated using the `rails generate script my_script` syntax. These are placed
+within the `script/` folder and can be run with `rails runner script/my_script.rb`. This offers a
+dedicated location for one-off scripts and data migrations.
+
+If you require more functionality, then the
+[`maintenance_tasks`](https://github.com/Shopify/maintenance_tasks) gem provides a framework for
+creating and managing data migrations and other maintenance tasks in a way that is safe and easy to
+manage without interfering with schema migrations.
+
+Customizing Migration Behavior with Swappable Strategies
+--------------------------------------------------------
+
+Rails allows you to customize how migrations execute by using **migration
+strategies**. A migration strategy is an object that sits between your migration
+and the connection, giving you control over how schema changes are applied to
+the database.
+
+By default, Rails uses [`ActiveRecord::Migration::DefaultStrategy`][], which
+executes migrations by sending method calls directly to the connection.
+However, you can replace this with your own strategy to modify, validate,
+or even prevent certain migration operations. Migration strategies are
+especially useful when you need different migration behavior across
+environments. For example, production migrations may require:
+
+* **Safety and Validation**: Prevent dangerous operations like dropping tables
+  or removing columns in production environments.
+* **Online Schema Changes**: Integrate with tools that perform schema
+  changes without downtime (e.g., `pt-online-schema-change`, `gh-ost`).
+* **Centralized Management**: Submit migrations to a centralized service
+  rather than executing them directly, useful in large-scale deployments.
+
+### Configuring a Global Migration Strategy
+
+To customize how migrations are executed, you can define your own migration
+strategy by subclassing [`ActiveRecord::Migration::DefaultStrategy`][]. This
+default class automatically forwards all migration methods to the underlying
+database connection, so you only need to override the methods you want to
+customize.
+
+For example, to prevent dropping tables in production:
+
+```ruby
+class CustomMigrationStrategy < ActiveRecord::Migration::DefaultStrategy
+  def drop_table(table_name, **options)
+    raise "Dropping tables is not allowed in production!"
+  end
+end
+```
+
+You can override any schema statement method your application needs, such as:
+
+- `create_table`
+- `drop_table`
+- `add_column`
+- `remove_column`
+- `add_index`
+- `remove_index`
+- Or any other method from
+  [`ActiveRecord::ConnectionAdapters::SchemaStatements`][]
+
+You can also subclass [`ActiveRecord::Migration::ExecutionStrategy`][], the base
+strategy class. This is useful if you want to define all migration behavior from
+scratch, without having any methods forwarded to the connection.
+
+Once you've defined your custom strategy, make it the default for migrations across
+all database connections by setting [`config.active_record.migration_strategy`][].
+For example, to set a custom strategy in production:
+
+```ruby
+# config/environments/production.rb
+Rails.application.configure do
+  config.active_record.migration_strategy = CustomMigrationStrategy
+end
+```
+
+All migrations methods will be sent to your custom strategy in production.
+
+### Configuring Per-Adapter Migration Strategies
+
+If you're working with multiple database systems, a single global strategy is
+likely insufficient: you may need to tailor migration behavior according to the
+database. Active Record allows you to configure migration strategies on a
+per-adapter basis. For example, suppose your application has a MySQL database,
+`primary`, and a PostgreSQL database, `animals`:
+
+```yaml
+  primary:
+    database: my_primary_database
+    username: root
+    password: <%= ENV['ROOT_PASSWORD'] %>
+    adapter: trilogy
+  animals:
+    database: my_animals_database
+    username: animals_root
+    password: <%= ENV['ANIMALS_ROOT_PASSWORD'] %>
+    adapter: postgresql
+    migrations_paths: db/animals_migrate
+```
+
+You can configure a `migration_strategy` on each adapter class:
+
+```ruby
+# config/initializers/migration_strategies.rb
+if Rails.env.production?
+  ActiveSupport.on_load(:active_record_trilogyadapter) do
+    ActiveRecord::ConnectionAdapters::Trilogy.migration_strategy =
+      MySQLMigrationStrategy
+  end
+
+  ActiveSupport.on_load(:active_record_postgresqladapter) do
+    ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy =
+      PostgreSQLMigrationStrategy
+  end
+end
+```
+
+Migrations running against `primary` will use `MySQLMigrationStrategy`, and
+migrations running against `animals` will use `PostgreSQLMigrationStrategy`.
+The adapter-specific strategy takes precedence over any globally-configured
+strategy.
+
+[`ActiveRecord::Migration::DefaultStrategy`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Migration/DefaultStrategy.html
+[`ActiveRecord::Migration::ExecutionStrategy`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Migration/ExecutionStrategy.html
+[`config.active_record.migration_strategy`]:
+    configuring.html#config-active-record-migration-strategy
+[`ActiveRecord::ConnectionAdapters::SchemaStatements`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html

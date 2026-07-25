@@ -565,6 +565,18 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
     ActiveRecord::Base.lease_connection.change_column_default :companies, :type, original_type
     Company.reset_column_information
   end
+
+  def test_inheritance_new_with_subclass_after_adding_type_column_and_resetting_schema_cache
+    ActiveRecord::Base.lease_connection.rename_column :companies, :type, :old_type
+    Company.reset_column_information
+    _firm = Firm.new # populate the cache
+
+    ActiveRecord::Base.lease_connection.rename_column :companies, :old_type, :type
+    Company.reset_column_information
+
+    firm = Firm.new
+    assert_equal "Firm", firm.type
+  end
 end
 
 class InheritanceAttributeTest < ActiveRecord::TestCase

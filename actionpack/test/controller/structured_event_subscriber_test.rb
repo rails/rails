@@ -157,9 +157,22 @@ module ActionController
     def test_rescue_from_callback
       assert_event_reported("action_controller.rescue_from_handled", payload: {
         exception_class: "StandardError",
-        exception_message: "Something went wrong"
+        exception_message: "Something went wrong",
+        exception_backtrace: /structured_event_subscriber_test.rb.*raise_error/
       }) do
         get :raise_error
+      end
+    end
+
+    def test_rescue_from_callback_with_exception_backtrace
+      ActionController::StructuredEventSubscriber.with(_rescue_from_event_backtrace: :array) do
+        assert_event_reported("action_controller.rescue_from_handled", payload: {
+          exception_class: "StandardError",
+          exception_message: "Something went wrong",
+          exception_backtrace: /structured_event_subscriber_test.rb.*raise_error/
+        }) do
+          get :raise_error
+        end
       end
     end
 

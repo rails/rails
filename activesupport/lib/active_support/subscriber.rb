@@ -36,7 +36,6 @@ module ActiveSupport
         @namespace  = namespace
         @subscriber = subscriber
         @notifier   = notifier
-        @inherit_all = inherit_all
 
         subscribers << subscriber
 

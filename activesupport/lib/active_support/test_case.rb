@@ -62,7 +62,7 @@ module ActiveSupport
         ActiveSupport.test_order ||= :random
       end
 
-      if Minitest.respond_to? :run_order # MT6 API change
+      if Minitest::Runnable.respond_to? :run_order # MT6 API change
         def run_order # :nodoc:
           test_order
         end
@@ -337,6 +337,17 @@ module ActiveSupport
 
     #
     alias :assert_not_operator :refute_operator
+
+    ##
+    # :method: assert_not_pattern
+    #
+    # :call-seq:
+    #   assert_not_pattern() { || ... }
+    #
+    # Alias for: refute_pattern[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_pattern]
+
+    #
+    alias :assert_not_pattern :refute_pattern
 
     ##
     # :method: assert_not_predicate

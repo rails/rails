@@ -373,6 +373,14 @@ module ActiveRecord
     #   Person.ids # SELECT people.id FROM people
     #   Person.joins(:company).ids # SELECT people.id FROM people INNER JOIN companies ON companies.id = people.company_id
     def ids
+      if @none
+        if @async
+          return Promise::Complete.new([])
+        else
+          return []
+        end
+      end
+
       primary_key_array = Array(primary_key)
 
       if loaded?
@@ -396,7 +404,7 @@ module ActiveRecord
       relation.select_values = columns
 
       result = if relation.where_clause.contradiction?
-        ActiveRecord::Result.empty
+        ActiveRecord::Result.empty(async: @async)
       else
         skip_query_cache_if_necessary do
           model.with_connection do |c|
@@ -483,7 +491,7 @@ module ActiveRecord
       def execute_simple_calculation(operation, column_name, distinct) # :nodoc:
         if build_count_subquery?(operation, column_name, distinct)
           # Shortcut when limit is zero.
-          return 0 if limit_value == 0
+          return @async ? Promise::Complete.new(0) : 0 if limit_value == 0
 
           relation = self
           query_builder = build_count_subquery(spawn, column_name, distinct)
@@ -493,7 +501,7 @@ module ActiveRecord
 
           column = relation.aggregate_column(column_name)
           select_value = operation_over_aggregate_column(column, operation, distinct)
-          select_value.distinct = true if operation == "sum" && distinct
+          select_value.distinct = true if distinct && (operation == "sum" || operation == "average")
 
           relation.select_values = [select_value]
 
@@ -526,6 +534,10 @@ module ActiveRecord
       end
 
       def execute_grouped_calculation(operation, column_name, distinct) # :nodoc:
+        if where_clause.contradiction?
+          return @async ? Promise::Complete.new({}) : {}
+        end
+
         group_fields = group_values
 
         if group_fields.size == 1 && group_fields.first.respond_to?(:to_sym)
@@ -549,6 +561,7 @@ module ActiveRecord
           column = relation.aggregate_column(column_name)
           column_alias = column_alias_tracker.alias_for("#{operation} #{column_name.to_s.downcase}")
           select_value = operation_over_aggregate_column(column, operation, distinct)
+          select_value.distinct = true if distinct && (operation == "sum" || operation == "average")
           select_value = select_value.as(model.adapter_class.quote_column_name(column_alias))
 
           select_values = [select_value]
@@ -572,7 +585,11 @@ module ActiveRecord
 
           result.then do |calculated_data|
             if association
-              key_ids     = calculated_data.collect { |row| row[group_aliases.first] }
+              key_ids = if association.klass.base_class.composite_primary_key?
+                calculated_data.collect { |row| group_aliases.map { |group_alias| row[group_alias] } }
+              else
+                calculated_data.collect { |row| row[group_aliases.first] }
+              end
               key_records = association.klass.base_class.where(association.klass.base_class.primary_key => key_ids)
               key_records = key_records.index_by(&:id)
             end

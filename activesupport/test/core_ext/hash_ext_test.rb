@@ -337,6 +337,32 @@ class HashExtTest < ActiveSupport::TestCase
     assert_equal expected, merged
   end
 
+  def test_reverse_merge_takes_default_from_other_hash
+    hash = { a: 1 }.reverse_merge(Hash.new(0))
+
+    assert_equal 0, hash[:missing]
+  end
+
+  def test_reverse_merge_takes_default_proc_from_other_hash
+    hash = { a: 1 }.reverse_merge(Hash.new { |h, k| h[k] = [] })
+
+    assert_equal [], hash[:missing]
+  end
+
+  def test_reverse_merge_bang_takes_default_from_other_hash
+    hash = { a: 1 }
+    hash.reverse_merge!(Hash.new(0))
+
+    assert_equal 0, hash[:missing]
+  end
+
+  def test_reverse_merge_bang_takes_default_proc_from_other_hash
+    hash = { a: 1 }
+    hash.reverse_merge!(Hash.new { |h, k| h[k] = [] })
+
+    assert_equal [], hash[:missing]
+  end
+
   def test_slice_inplace
     original = { a: "x", b: "y", c: 10 }
     expected_return = { c: 10 }
@@ -878,6 +904,18 @@ class HashToXmlTest < ActiveSupport::TestCase
     }.stringify_keys
 
     assert_equal expected_bacon_hash, Hash.from_xml(bacon_xml)["bacon"]
+  end
+
+  def test_date_type_from_xml_with_surrounding_whitespace
+    xml = <<-EOT
+    <event>
+      <starts-on type="date">
+        2020-01-01
+      </starts-on>
+    </event>
+    EOT
+
+    assert_equal({ "starts_on" => Date.new(2020, 1, 1) }, Hash.from_xml(xml)["event"])
   end
 
   def test_type_trickles_through_when_unknown

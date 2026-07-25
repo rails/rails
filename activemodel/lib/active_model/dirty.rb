@@ -230,7 +230,7 @@ module ActiveModel
       #
       # This method is generated for each attribute.
       #
-      # Clears all dirty data of the attribute: current changes and previous changes.
+      # Clears the current changes of the attribute.
       #
       #   person = Person.new(name: 'Chris')
       #   person.name = 'Jason'

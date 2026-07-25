@@ -168,7 +168,7 @@ module ActionController # :nodoc:
       #     be added at the position of the protect_from_forgery call in your
       #     application. This means any callbacks added before are run first. This is
       #     useful when you want your forgery protection to depend on other callbacks,
-      #     like authentication methods (Oauth vs Cookie auth).
+      #     like authentication methods (OAuth vs Cookie auth).
       #
       #     If you need to add verification to the beginning of the callback chain,
       #     use `prepend: true`.
@@ -200,7 +200,7 @@ module ActionController # :nodoc:
       #       end
       #
       #       def handle_unverified_request
-      #         # Custom behavior for unverfied request
+      #         # Custom behavior for unverified request
       #       end
       #     end
       #
@@ -541,12 +541,6 @@ module ActionController # :nodoc:
         protection_strategy.handle_unverified_request
       end
 
-      def cross_origin_request?
-        !valid_request_origin? ||
-          sec_fetch_site_value == "cross-site" ||
-          using_header_only_for_forgery_protection?
-      end
-
       def unverified_request_warning_message
         if !valid_request_origin?
           "HTTP Origin header (#{request.origin}) didn't match request.base_url (#{request.base_url})"
@@ -604,11 +598,6 @@ module ActionController # :nodoc:
 
       AUTHENTICITY_TOKEN_LENGTH = 32
 
-      # Safe values for Sec-Fetch-Site header that indicate the request
-      # originated from the same site.
-      SAFE_FETCH_SITES = %w[ same-origin same-site ].freeze
-      private_constant :SAFE_FETCH_SITES
-
       # Returns true or false if a request is verified. The verification method
       # depends on the configured `forgery_protection_verification_strategy`:
       #
@@ -635,8 +624,16 @@ module ActionController # :nodoc:
       end
 
       def verified_via_header_only?
-        SAFE_FETCH_SITES.include?(sec_fetch_site_value) ||
-          (sec_fetch_site_value == "cross-site" && origin_trusted?)
+        case sec_fetch_site_value
+        when "same-origin", "same-site"
+          true
+        when "cross-site"
+          origin_trusted?
+        when nil
+          !request.ssl? && !ActionDispatch::Http::URL.secure_protocol
+        else
+          false
+        end
       end
 
       def verified_with_legacy_token?
@@ -681,7 +678,9 @@ module ActionController # :nodoc:
 
       # Returns the normalized value of the Sec-Fetch-Site header.
       def sec_fetch_site_value # :doc:
-        request.headers["Sec-Fetch-Site"].to_s.downcase.presence
+        if value = request.headers["Sec-Fetch-Site"]
+          value.to_s.downcase.presence
+        end
       end
 
       # Checks if any of the authenticity tokens from the request are valid.

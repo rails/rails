@@ -118,18 +118,22 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
 
   def test_mysql_strict_mode_disabled
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.merge(strict: false))
-      result = ActiveRecord::Base.lease_connection.select_value("SELECT @@SESSION.sql_mode")
-      assert_no_match %r(STRICT_ALL_TABLES), result
+      assert_deprecated(ActiveRecord.deprecator) do
+        ActiveRecord::Base.establish_connection(orig_connection.merge(strict: false))
+        result = ActiveRecord::Base.lease_connection.select_value("SELECT @@SESSION.sql_mode")
+        assert_no_match %r(STRICT_ALL_TABLES), result
+      end
     end
   end
 
   def test_mysql_strict_mode_specified_default
     run_without_connection do |orig_connection|
-      ActiveRecord::Base.establish_connection(orig_connection.merge(strict: :default))
-      global_sql_mode = ActiveRecord::Base.lease_connection.select_value("SELECT @@GLOBAL.sql_mode")
-      session_sql_mode = ActiveRecord::Base.lease_connection.select_value("SELECT @@SESSION.sql_mode")
-      assert_equal global_sql_mode, session_sql_mode
+      assert_deprecated(ActiveRecord.deprecator) do
+        ActiveRecord::Base.establish_connection(orig_connection.merge(strict: :default))
+        global_sql_mode = ActiveRecord::Base.lease_connection.select_value("SELECT @@GLOBAL.sql_mode")
+        session_sql_mode = ActiveRecord::Base.lease_connection.select_value("SELECT @@SESSION.sql_mode")
+        assert_equal global_sql_mode, session_sql_mode
+      end
     end
   end
 

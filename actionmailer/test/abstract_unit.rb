@@ -26,7 +26,7 @@ require "action_view"
 ActionMailer::Base.include(ActionView::Layouts)
 
 # Show backtraces for deprecated behavior for quicker cleanup.
-ActionMailer.deprecator.debug = true
+ActionMailer.deprecator.behavior = :raise
 
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false

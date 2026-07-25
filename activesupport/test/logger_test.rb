@@ -9,7 +9,9 @@ require "tmpdir"
 require "concurrent/atomics"
 
 class LoggerTest < ActiveSupport::TestCase
-  include MultibyteTestHelpers
+  # We use Symbol#to_s to create these strings so warnings are emitted if they are mutated
+  UNICODE_STRING = :"こにちわ".to_s
+  BYTE_STRING = "\270\236\010\210\245".b.freeze
 
   Logger = ActiveSupport::Logger
 
@@ -380,6 +382,15 @@ class LoggerTest < ActiveSupport::TestCase
     assert_level(Logger::DEBUG)
   ensure
     ActiveSupport::IsolatedExecutionState.isolation_level = previous_isolation_level
+  end
+
+  def test_copied_logger_has_an_independent_local_level
+    copy = @logger.clone
+
+    copy.log_at(:fatal) do
+      assert_equal Logger::FATAL, copy.level
+      assert_equal Logger::DEBUG, @logger.level
+    end
   end
 
   def test_logger_freeze
