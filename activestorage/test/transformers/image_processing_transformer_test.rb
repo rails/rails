@@ -90,7 +90,7 @@ class ActiveStorage::Transformers::ImageProcessingTransformerTest < ActiveSuppor
   end
 
   test "vips rejects libvips operations that read from or write to the filesystem" do
-    %w[thumbnail jpegload pngsave dzsave magickload profile_load remosaic].each do |method|
+    %w[thumbnail jpegload pngsave dzsave magickload profile_load remosaic icc_import icc_export].each do |method|
       assert_raises(UnsupportedImageProcessingMethod, "expected #{method} to be rejected") do
         validate ActiveStorage::Transformers::Vips, method => "/tmp/file.erb"
       end

@@ -487,8 +487,6 @@ module ActiveStorage
     "hist_plot",
     "hough_circle",
     "hough_line",
-    "icc_export",
-    "icc_import",
     "icc_transform",
     "identity",
     "ifthenelse",
