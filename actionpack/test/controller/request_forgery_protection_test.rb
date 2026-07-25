@@ -221,6 +221,15 @@ end
 # action-specific skip already registered on the child.
 ReprotectedParentController.protect_from_forgery with: :exception
 
+class ProtectedOnlyIndexParentController < ActionController::Base
+  protect_from_forgery with: :exception
+end
+
+class ProtectsOnlyIndexController < ProtectedOnlyIndexParentController
+  include RequestForgeryProtectionActions
+  protect_from_forgery only: :index, with: :exception
+end
+
 # Controller using the deprecated skip_before_action :verify_authenticity_token
 class DeprecatedSkipVerifyAuthenticityTokenController < ActionController::Base
   include RequestForgeryProtectionActions
@@ -1349,12 +1358,23 @@ end
 
 class SkipsProtectionForOneActionControllerTest < ActionController::TestCase
   test "keeps action-specific skip after protect_from_forgery is reapplied on an ancestor" do
-    assert_nothing_raised { post :index }
+    post :index
     assert_response :success
   end
 
   test "still protects other actions after protect_from_forgery is reapplied on an ancestor" do
     assert_raises(ActionController::InvalidCrossOriginRequest) { post :unsafe }
+  end
+end
+
+class ProtectsOnlyIndexControllerTest < ActionController::TestCase
+  test "protects only the specified action when child re-applies protect_from_forgery" do
+    assert_raises(ActionController::InvalidCrossOriginRequest) { post :index }
+  end
+
+  test "does not protect other actions when child re-applies protect_from_forgery with only" do
+    post :unsafe
+    assert_response :success
   end
 end
 

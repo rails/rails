@@ -299,7 +299,10 @@ module ActionController # :nodoc:
         self.forgery_protection_verification_strategy = verification_strategy(options[:using] || forgery_protection_verification_strategy)
         self.forgery_protection_trusted_origins = Array(options[:trusted_origins]) if options.key?(:trusted_origins)
 
-        install_forgery_protection_callbacks(options) unless forgery_protection_callbacks_installed?
+        unless @forgery_protection_callbacks_installed
+          install_forgery_protection_callbacks(options)
+          @forgery_protection_callbacks_installed = true
+        end
       end
 
       # Turn off request forgery protection. This is a wrapper for:
@@ -315,10 +318,6 @@ module ActionController # :nodoc:
       end
 
       private
-        def forgery_protection_callbacks_installed?
-          _process_action_callbacks.any? { |callback| callback.filter == :verify_request_for_forgery_protection }
-        end
-
         def install_forgery_protection_callbacks(options)
           if options[:prepend]
             prepend_before_action :verify_request_for_forgery_protection, options
