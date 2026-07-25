@@ -682,7 +682,7 @@ DEPENDENCIES
   aws-sdk-s3
   aws-sdk-sns
   backburner
-  bcrypt (~> 3.1.11)
+  bcrypt (~> 3.1.22)
   bootsnap (>= 1.4.4)
   brakeman
   bundler-audit
