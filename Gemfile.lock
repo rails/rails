@@ -145,7 +145,7 @@ GEM
       concurrent-ruby (~> 1.0, >= 1.0.1)
       dante (> 0.1.5)
     base64 (0.3.0)
-    bcrypt (3.1.20)
+    bcrypt (3.1.22)
     bcrypt_pbkdf (1.1.1)
     beaneater (1.1.3)
     bigdecimal (4.1.2)
@@ -787,7 +787,7 @@ CHECKSUMS
   aws-sigv4 (1.12.1) sha256=6973ff95cb0fd0dc58ba26e90e9510a2219525d07620c8babeb70ef831826c00
   backburner (1.7.0) sha256=8e1d0f7ee64720bc68713a33784e94c76c8caa2fddc0559b4c81c8499a0565b0
   base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
-  bcrypt (3.1.20) sha256=8410f8c7b3ed54a3c00cd2456bf13917d695117f033218e2483b2e40b0784099
+  bcrypt (3.1.22) sha256=1f0072e88c2d705d94aff7f2c5cb02eb3f1ec4b8368671e19112527489f29032
   bcrypt_pbkdf (1.1.1) sha256=2f9077dde837d1f0dd2eb0f9e5327c6871c68ebc8eba88870fb6b7956e1e2b13
   beaneater (1.1.3) sha256=3dbe673d4df984d85a486bccdfa5d5ac61754b094e19bf0a8a30bb27ac2d8acb
   bigdecimal (4.1.2) sha256=53d217666027eab4280346fba98e7d5b66baaae1b9c3c1c0ffe89d48188a3fbd
