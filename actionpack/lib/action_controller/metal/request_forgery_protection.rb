@@ -139,6 +139,8 @@ module ActionController # :nodoc:
       helper_method :protect_against_forgery?
     end
 
+    FORGERY_PROTECTION_CALLBACK_OPTIONS = [:only, :except, :if, :unless, :prepend].freeze
+
     module ClassMethods
       # Turn on request forgery protection. Bear in mind that GET and HEAD requests
       # are not checked.
@@ -299,9 +301,10 @@ module ActionController # :nodoc:
         self.forgery_protection_verification_strategy = verification_strategy(options[:using] || forgery_protection_verification_strategy)
         self.forgery_protection_trusted_origins = Array(options[:trusted_origins]) if options.key?(:trusted_origins)
 
-        unless @forgery_protection_callbacks_installed
+        callback_options = options.slice(*FORGERY_PROTECTION_CALLBACK_OPTIONS)
+        unless forgery_protection_callbacks_installed?(callback_options)
           install_forgery_protection_callbacks(options)
-          @forgery_protection_callbacks_installed = true
+          @forgery_protection_callback_options = callback_options
         end
       end
 
@@ -318,6 +321,10 @@ module ActionController # :nodoc:
       end
 
       private
+        def forgery_protection_callbacks_installed?(callback_options)
+          @forgery_protection_callback_options == callback_options
+        end
+
         def install_forgery_protection_callbacks(options)
           if options[:prepend]
             prepend_before_action :verify_request_for_forgery_protection, options

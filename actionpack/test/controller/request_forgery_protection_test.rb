@@ -230,6 +230,15 @@ class ProtectsOnlyIndexController < ProtectedOnlyIndexParentController
   protect_from_forgery only: :index, with: :exception
 end
 
+class ProtectedExceptIndexParentController < ActionController::Base
+  protect_from_forgery with: :exception
+end
+
+class ProtectsExceptIndexController < ProtectedExceptIndexParentController
+  include RequestForgeryProtectionActions
+  protect_from_forgery except: :index, with: :exception
+end
+
 # Controller using the deprecated skip_before_action :verify_authenticity_token
 class DeprecatedSkipVerifyAuthenticityTokenController < ActionController::Base
   include RequestForgeryProtectionActions
@@ -1374,6 +1383,25 @@ class ProtectsOnlyIndexControllerTest < ActionController::TestCase
 
   test "does not protect other actions when child re-applies protect_from_forgery with only" do
     post :unsafe
+    assert_response :success
+  end
+end
+
+class ProtectsExceptIndexControllerTest < ActionController::TestCase
+  test "allows excepted action when child re-applies protect_from_forgery with except" do
+    assert_not_blocked { post :index }
+  end
+
+  test "still protects non-excepted actions when child re-applies protect_from_forgery with except" do
+    assert_blocked { post :unsafe }
+  end
+
+  def assert_blocked(&block)
+    assert_raises(ActionController::InvalidCrossOriginRequest, &block)
+  end
+
+  def assert_not_blocked(&block)
+    assert_nothing_raised(&block)
     assert_response :success
   end
 end
