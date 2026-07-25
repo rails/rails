@@ -144,7 +144,7 @@
 
 *   Configurable maximum streaming chunk size
 
-    Makes sure that byte ranges for blobs don't exceed 100mb by default.
+    Ensures that byte ranges for blobs don't exceed 100mb by default.
     Content ranges that are too big can result in denial of service.
 
     *Gannon McGibbon*
