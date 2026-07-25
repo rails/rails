@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/encryption/helper"
+require "models/author_encrypted"
 
 class ActiveRecord::Encryption::EnvelopeEncryptionKeyProviderTest < ActiveRecord::EncryptionTestCase
   setup do
@@ -27,6 +28,27 @@ class ActiveRecord::Encryption::EnvelopeEncryptionKeyProviderTest < ActiveRecord
     encrypted_encoded_message = ActiveRecord::Encryption.encryptor.encrypt("some message", key_provider: ActiveRecord::Encryption::KeyProvider.new(key))
     encrypted_message = ActiveRecord::Encryption.message_serializer.load encrypted_encoded_message
     assert_equal key.secret, @key_provider.decryption_keys(encrypted_message).first.secret
+  end
+
+  test "decryption_keys raises Errors::Decryption if encrypted message has no DEK" do
+    previous_key_provider = ActiveRecord::Encryption::KeyProvider.new(build_keys)
+    previously_encrypted_encoded_message = ActiveRecord::Encryption.encryptor.encrypt("some message", key_provider: previous_key_provider)
+    encrypted_message = ActiveRecord::Encryption.message_serializer.load previously_encrypted_encoded_message
+    assert_raise ActiveRecord::Encryption::Errors::Decryption do
+      @key_provider.decryption_keys(encrypted_message)
+    end
+  end
+
+  test "decrypts when previously encrypted with non-envelope" do
+    ActiveRecord::Encryption.config.support_unencrypted_data = false
+    ActiveRecord::Encryption.config.extend_queries = true
+
+    author = EnvelopeEncryptedAuthor.create!(name: "david")
+    old_type = EnvelopeEncryptedAuthor.type_for_attribute(:name).previous_types.first
+    old_value = old_type.serialize("dhh")
+    ActiveRecord::Encryption.without_encryption { author.update!(name: old_value) }
+
+    assert_equal "dhh", author.reload.name
   end
 
   test "work with multiple keys when config.store_key_references is false" do
