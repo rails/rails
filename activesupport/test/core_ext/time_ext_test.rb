@@ -1168,13 +1168,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_at_with_datetime
     assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0))
-
-    # Only test this if the underlying Time.at raises a TypeError
-    begin
-      Time.at_without_coercion(Time.now, 0)
-    rescue TypeError
-      assert_raise(TypeError) { assert_equal(Time.utc(2000, 1, 1, 0, 0, 0), Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0), 0)) }
-    end
+    assert_raise(TypeError) { Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0), 0) }
   end
 
   def test_at_with_datetime_sub_second_precision
@@ -1201,14 +1195,9 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_at_with_time_with_zone
-    assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"]))
-
-    # Only test this if the underlying Time.at raises a TypeError
-    begin
-      Time.at_without_coercion(Time.now, 0)
-    rescue TypeError
-      assert_raise(TypeError) { assert_equal(Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"]), 0)) }
-    end
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
+    assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(twz)
+    assert_raise(TypeError) { Time.at(twz, 0) }
   end
 
   def test_at_with_in_option
