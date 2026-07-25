@@ -208,6 +208,19 @@ class SkipsInheritedProtectionController < ProtectedParentController
   skip_forgery_protection
 end
 
+class ReprotectedParentController < ActionController::Base
+  protect_from_forgery with: :exception
+end
+
+class SkipsProtectionForOneActionController < ReprotectedParentController
+  include RequestForgeryProtectionActions
+  skip_forgery_protection only: :index
+end
+
+# Re-applying protect_from_forgery on the parent must not remove the
+# action-specific skip already registered on the child.
+ReprotectedParentController.protect_from_forgery with: :exception
+
 # Controller using the deprecated skip_before_action :verify_authenticity_token
 class DeprecatedSkipVerifyAuthenticityTokenController < ActionController::Base
   include RequestForgeryProtectionActions
@@ -1331,6 +1344,17 @@ class SkipsInheritedProtectionControllerTest < ActionController::TestCase
     @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
     post :index
     assert_response :success
+  end
+end
+
+class SkipsProtectionForOneActionControllerTest < ActionController::TestCase
+  test "keeps action-specific skip after protect_from_forgery is reapplied on an ancestor" do
+    assert_nothing_raised { post :index }
+    assert_response :success
+  end
+
+  test "still protects other actions after protect_from_forgery is reapplied on an ancestor" do
+    assert_raises(ActionController::InvalidCrossOriginRequest) { post :unsafe }
   end
 end
 
