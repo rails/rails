@@ -37,7 +37,7 @@ module ActionMailbox
   #        # config/environments/production.rb
   #        config.action_mailbox.ingress = :mailgun
   #
-  # 3. {Configure Mailgun}[https://documentation.mailgun.com/en/latest/user_manual.html#receiving-forwarding-and-storing-messages]
+  # 3. {Configure Mailgun}[https://documentation.mailgun.com/docs/mailgun/user-manual/receive-forward-store/receive-http]
   #    to forward inbound emails to +/rails/action_mailbox/mailgun/inbound_emails/mime+.
   #
   #    If your application lived at <tt>https://example.com</tt>, you would specify the fully-qualified URL
