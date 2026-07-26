@@ -1,3 +1,7 @@
+*   Allow Mailgun inbound email payloads larger than Rack's query parser limit.
+
+    *Nicolas Vaillancourt*
+
 *   Return `422 Unprocessable Content` for malformed Mailgun, Postmark, and SendGrid raw email parameters.
 
     *Andrii Furmanets*

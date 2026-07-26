@@ -2824,6 +2824,14 @@ Accepts an `ActiveSupport::Duration` indicating how long after processing `Actio
 config.action_mailbox.incinerate_after = 14.days
 ```
 
+#### `config.action_mailbox.mailgun_payload_size_limit`
+
+Sets the maximum size, in bytes, of the URL-encoded payload accepted by the Mailgun ingress. It defaults to `25.megabytes`. This limit applies only to the Mailgun ingress and does not change Rack's query parser limit for other requests.
+
+```ruby
+config.action_mailbox.mailgun_payload_size_limit = 50.megabytes
+```
+
 #### `config.action_mailbox.queues.incineration`
 
 Accepts a symbol indicating the Active Job queue to use for incineration jobs.

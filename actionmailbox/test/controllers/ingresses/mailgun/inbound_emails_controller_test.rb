@@ -49,6 +49,20 @@ class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDis
     assert_equal "05988AA6EC0D44318855A5E39E3B6F9E@jansterba.com", inbound_email.message_id
   end
 
+  test "receiving a Mailgun payload larger than Rack's query parser limit" do
+    body = [
+      "timestamp=1",
+      "token=test-token",
+      "signature=test-signature",
+      "body-mime=#{"a" * 5.megabytes}"
+    ].join("&")
+
+    post rails_mailgun_inbound_emails_url, params: body,
+      headers: { "CONTENT_TYPE" => "application/x-www-form-urlencoded" }
+
+    assert_response :unauthorized
+  end
+
   test "add X-Original-To to email from Mailgun" do
     assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
       travel_to "2018-10-09 15:15:00 EDT"
