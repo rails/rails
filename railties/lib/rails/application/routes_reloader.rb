@@ -55,10 +55,18 @@ module Rails
           # recurse into another draw.
           return false if @load_state == :loading
 
-          execute
-          ActiveSupport.run_load_hooks(:after_routes_loaded, Rails.application)
-          @load_state = :loaded
-          true
+          # Hold :loading across after_routes_loaded as well. reload! restores
+          # the previous state when it finishes, so if we left that as nil a
+          # hook that touched routes would re-enter and draw again.
+          @load_state = :loading
+          begin
+            execute
+            ActiveSupport.run_load_hooks(:after_routes_loaded, Rails.application)
+            @load_state = :loaded
+            true
+          ensure
+            @load_state = nil if @load_state == :loading
+          end
         end
       end
 
