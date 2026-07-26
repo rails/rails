@@ -325,7 +325,12 @@ module ActiveRecord
     end
 
     def preload!(*args) # :nodoc:
-      self.preload_values |= args
+      # Preloading doesn't affect the query itself, so it's safe to mutate
+      # +preload_values+ even after the relation has been loaded or its
+      # Arel has been built, unlike the other query methods guarded by
+      # +assert_modifiable!+.
+      @values[:preload] = preload_values | args
+      preload_associations(records) if loaded?
       self
     end
 
