@@ -85,9 +85,16 @@ module ActiveRecord
       # immediate touch, or +reload+ — must clear the baseline with them.
       def surreptitiously_touch(attr_names)
         @_deferred_touch_original_attributes ||= {}
+        transaction_original_attributes =
+          if @_start_transaction_state && @_start_transaction_state[:attributes].equal?(@attributes)
+            @_start_transaction_state[:transaction_change_original_attributes] ||= {}
+          end
+
         attr_names.each do |attr_name|
           attr = @attributes[attr_name]
-          @_deferred_touch_original_attributes[attr_name] ||= attr.with_value_from_database(attr.original_value_for_database)
+          original_attr = attr.with_value_from_database(attr.original_value_for_database)
+          @_deferred_touch_original_attributes[attr_name] ||= original_attr
+          transaction_original_attributes[attr_name] ||= original_attr if transaction_original_attributes
           _write_attribute(attr_name, @_touch_time)
           clear_attribute_change(attr_name)
         end
@@ -95,7 +102,9 @@ module ActiveRecord
         if locking_enabled?
           locking_column = self.class.locking_column
           lock_attr = @attributes[locking_column]
-          @_deferred_touch_original_attributes[locking_column] ||= lock_attr.with_value_from_database(lock_attr.original_value_for_database)
+          original_lock_attr = lock_attr.with_value_from_database(lock_attr.original_value_for_database)
+          @_deferred_touch_original_attributes[locking_column] ||= original_lock_attr
+          transaction_original_attributes[locking_column] ||= original_lock_attr if transaction_original_attributes
         end
       end
 

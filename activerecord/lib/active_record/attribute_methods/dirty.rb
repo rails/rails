@@ -41,11 +41,13 @@ module ActiveRecord
     #   person.name_before_transaction       # => "Allison"
     #   person.transaction_changes           # => {"name"=>["Allison", "Alice"]}
     #
-    # The +transaction_change_to_*+ methods track cumulative changes across
-    # all saves within the current transaction, making them available in any
-    # callback phase (+before_save+, +after_save+, +after_commit+) and for
-    # cross-model access. The +saved_change_to_*+ methods, by contrast,
-    # only reflect the most recent save.
+    # The +transaction_change_to_*+ methods track cumulative successful writes
+    # across all saves within the current transaction, making them available in
+    # any callback phase (+before_save+, +after_save+, +after_commit+) and for
+    # cross-model access. While the target record is inside a create or update
+    # attempt that has not reached persistence, its pending values are included
+    # too. The +saved_change_to_*+ methods, by contrast, only reflect the most
+    # recent save.
     #
     # Similar to ActiveModel::Dirty, methods can be invoked as
     # +saved_change_to_name?+ or by passing an argument to the generic method
@@ -148,12 +150,13 @@ module ActiveRecord
       # This method tracks cumulative changes across all saves within the
       # current database transaction. It works in any callback phase:
       # +before_save+, +after_save+, +before_update+, +after_update+, and
-      # +after_commit+. During +before_save+ / +before_update+, pending
-      # unsaved changes are included.
+      # +after_commit+. Pending values are included while the target record has
+      # an active create or update attempt that has not reached persistence.
       #
-      # It can also be used cross-model: one model's callback can read
-      # another model's +transaction_change_to_attribute?+ within the same
-      # transaction.
+      # The target record's phase controls this behavior, not the callback from
+      # which the method is called. One model's callback can read another model's
+      # transaction changes, and a touch or destroy nested before the target's
+      # persistence still sees its pending values.
       #
       # It can be invoked as +transaction_change_to_name?+ instead of
       # <tt>transaction_change_to_attribute?("name")</tt>.
@@ -188,7 +191,9 @@ module ActiveRecord
       # Returns the change to an attribute during the current transaction.
       # If the attribute was changed, the result will be an array containing
       # the original value at the start of the transaction and the current
-      # effective value (including pending unsaved changes).
+      # effective value. The effective value includes a pending value only while
+      # the target record is in the pre-persistence part of a create or update
+      # attempt.
       #
       # This method is useful in any callback phase during a transaction. It
       # can be invoked as +transaction_change_to_name+ instead of
@@ -236,12 +241,25 @@ module ActiveRecord
       # values are arrays containing the original value at the start of the
       # transaction and the current effective value.
       #
-      # This includes changes from all saves within the transaction. During
-      # +before_save+ / +before_update+, pending unsaved changes are also
-      # included. During +after_commit+ callbacks (where the transaction
-      # snapshot has already been cleared), falls back to the cached
-      # committed changes. Returns an empty hash when called outside any
-      # transaction context.
+      # This includes successful writes from all saves within the transaction.
+      # Pending values are also included while the target record has an active
+      # create or update attempt that has not reached persistence. This remains
+      # true in nested touch or destroy callbacks and for cross-model readers.
+      # A nested save has its own phase; after it finishes, the enclosing save's
+      # phase resumes. Deferred touches flush after the save attempt and report
+      # their successful writes without reviving its pending values.
+      #
+      # If an attempt halts or raises before persistence, entered around callback
+      # code may see pending values while it unwinds, but they are excluded once
+      # the attempt exits. If persistence has completed, unwind and after
+      # callbacks report only successful writes. Custom create or update
+      # persistence overrides must call +changes_applied+ after a successful
+      # write to establish this boundary; arbitrary pre-save calls to
+      # +changes_applied+ are not supported.
+      #
+      # During +after_commit+ callbacks (where the transaction snapshot has
+      # already been cleared), this falls back to the cached committed changes.
+      # Returns an empty hash when called outside any transaction context.
       def transaction_changes
         _compute_transaction_changes || _committed_transaction_changes || EMPTY_HASH
       end
@@ -335,6 +353,8 @@ module ActiveRecord
         end
 
         def _touch_row(attribute_names, time)
+          # A nested touch snapshots its write without finalizing the enclosing save.
+          @_transaction_changes_touch_finalization_depth = (@_transaction_changes_touch_finalization_depth || 0) + 1
           @_touch_attr_names = Set.new(attribute_names)
 
           affected_rows = super
@@ -361,9 +381,14 @@ module ActiveRecord
 
           affected_rows
         ensure
-          @_touch_attr_names, @_skip_dirty_tracking = nil, nil
-          @_deferred_touch_original_attributes = nil
-          clear_transaction_written_attributes
+          begin
+            @_touch_attr_names, @_skip_dirty_tracking = nil, nil
+            @_deferred_touch_original_attributes = nil
+            clear_transaction_written_attributes
+          ensure
+            @_transaction_changes_touch_finalization_depth -= 1
+            @_transaction_changes_touch_finalization_depth = nil if @_transaction_changes_touch_finalization_depth.zero?
+          end
         end
 
         def _update_record(attribute_names = attribute_names_for_partial_updates)

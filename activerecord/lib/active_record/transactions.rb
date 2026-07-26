@@ -376,6 +376,12 @@ module ActiveRecord
       self.class.transaction(**options, &block)
     end
 
+    def initialize_dup(other) # :nodoc:
+      @_transaction_changes_save_attempts = nil
+      @_transaction_changes_touch_finalization_depth = nil
+      super
+    end
+
     def destroy # :nodoc:
       with_transaction_returning_status { super }
     end
@@ -395,6 +401,11 @@ module ActiveRecord
     def changes_applied # :nodoc:
       super
       refresh_transaction_record_state
+
+      unless @_transaction_changes_touch_finalization_depth
+        save_attempt = @_transaction_changes_save_attempts&.last
+        save_attempt[:persistence_finalized] = true if save_attempt
+      end
     ensure
       clear_transaction_written_attributes
     end
@@ -471,6 +482,8 @@ module ActiveRecord
         @_last_transaction_return_status = nil
         @_committed_already_called = nil
         @_new_record_before_last_commit = nil
+        @_transaction_changes_save_attempts = nil
+        @_transaction_changes_touch_finalization_depth = nil
       end
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
@@ -614,16 +627,19 @@ module ActiveRecord
         original_written_attributes = _transaction_original_written_attributes(written_attributes)
         changes = _changes_between(snapshot_attributes, written_attributes, original_written_attributes)
 
-        changes_to_save.each do |attr_name, (_, pending_new_value)|
-          snapshot_attr = original_written_attributes&.fetch(attr_name, nil) || snapshot_attributes[attr_name]
-          old_raw = snapshot_attr.original_value_for_database
-          pending_raw = snapshot_attr.type.serialize(pending_new_value)
+        save_attempt = @_transaction_changes_save_attempts&.last
+        if save_attempt && !save_attempt[:persistence_finalized]
+          changes_to_save.each do |attr_name, (_, pending_new_value)|
+            snapshot_attr = original_written_attributes&.fetch(attr_name, nil) || snapshot_attributes[attr_name]
+            old_raw = snapshot_attr.original_value_for_database
+            pending_raw = snapshot_attr.type.serialize(pending_new_value)
 
-          if old_raw == pending_raw
-            changes.delete(attr_name)
-          else
-            old_value = old_raw.nil? ? nil : snapshot_attr.type.deserialize(old_raw)
-            changes[attr_name] = [old_value, pending_new_value]
+            if old_raw == pending_raw
+              changes.delete(attr_name)
+            else
+              old_value = old_raw.nil? ? nil : snapshot_attr.type.deserialize(old_raw)
+              changes[attr_name] = [old_value, pending_new_value]
+            end
           end
         end
 

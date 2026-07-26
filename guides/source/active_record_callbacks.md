@@ -1272,9 +1272,24 @@ transaction:
 * `saved_change_to_name` returns `["Bob", "Carol"]` (the most recent save only)
 * `transaction_change_to_name` returns `["Alice", "Carol"]` (the full transaction)
 
-NOTE: During `before_save` and `before_update` callbacks, pending unsaved changes
-are included in `transaction_changes`. In `after_save`, `after_commit`, and other
-post-save callbacks, only persisted changes are reflected.
+NOTE: `transaction_changes` always includes the target record's successful
+writes in the transaction. It also includes that record's pending values while
+the record has an active create or update attempt that has not reached
+persistence. The target record's phase controls the result: a cross-model
+reader, or a touch or destroy nested before persistence, still sees those
+pending values. A nested save has its own phase, and the enclosing phase resumes
+when it returns. Deferred touches flush after the save attempt and add only
+their successful writes.
+
+In `after_save`, `after_update`, `after_commit`, and other post-persistence
+callbacks, only successful writes are reflected. If a save halts or raises
+before persistence, entered `around_save` code can still see pending values as
+it unwinds, but they are excluded after the save attempt exits. An exception
+after persistence remains in the post-persistence phase while it unwinds.
+Custom create or update persistence overrides must call `changes_applied` after
+a successful write to establish this boundary. Calling `changes_applied` from
+arbitrary pre-save code, or bypassing the standard touch implementation, is not
+a supported persistence protocol.
 
 NOTE: If an attribute is changed and then changed back to its original value
 within the same transaction, it will not appear in `transaction_changes`.

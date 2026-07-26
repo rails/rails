@@ -1262,6 +1262,25 @@ class TransactionChangesDirtyTest < ActiveRecord::TestCase
     assert_equal [0, 2], person.transaction_changes_log["lock_version"]
   end
 
+  test "transaction_changes keeps transaction-start originals when a deferred touch follows an update" do
+    klass = deferred_touch_person_class
+    person = klass.create!(first_name: "Sean").reload
+    original_updated_at = person.updated_at
+    saved_time = (original_updated_at + 1.hour).change(usec: 0)
+    deferred_time = (original_updated_at + 2.hours).change(usec: 0)
+
+    klass.transaction do
+      travel_to(saved_time) { person.update!(first_name: "Jim") }
+      assert_equal [saved_time, 1], [person.updated_at, person.lock_version]
+      travel_to(deferred_time) { person.touch_later }
+    end
+
+    assert_equal ["Jim", deferred_time, 2], klass.where(id: person.id).pick(:first_name, :updated_at, :lock_version)
+    assert_equal ["Sean", "Jim"], person.transaction_changes_log["first_name"]
+    assert_equal [original_updated_at, deferred_time], person.transaction_changes_log["updated_at"]
+    assert_equal [0, 2], person.transaction_changes_log["lock_version"]
+  end
+
   test "transaction_changes keeps the database original when an immediate touch flushes a deferred touch" do
     klass = deferred_touch_person_class
     person = klass.create!(first_name: "Sean").reload
