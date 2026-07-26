@@ -1,3 +1,9 @@
+*   Ensure the main autoloader is configured after all engine autoload paths.
+
+    Fixes #58069.
+
+    *Nicolas Vandenbogaerde*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"

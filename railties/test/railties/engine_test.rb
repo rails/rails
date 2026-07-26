@@ -315,6 +315,17 @@ module RailtiesTest
       assert_includes $test_autoload_paths, "#{app_path}/app/controllers"
     end
 
+    test "the main autoloader setup runs after the bootstrap hook" do
+      require "#{app_path}/config/application"
+
+      application = Rails.app_class.instance
+      initializers = Rails::Initializable::Collection.new(application.initializers.to_a.reverse)
+      initializer_names = initializers.tsort.map(&:name)
+
+      assert_operator initializer_names.index(:bootstrap_hook), :<, initializer_names.index(:setup_main_autoloader)
+      assert_operator initializer_names.index(:add_generator_templates), :<, initializer_names.index(:setup_main_autoloader)
+    end
+
     test "puts its models directory on autoload path" do
       @plugin.write "app/models/my_bukkit.rb", "class MyBukkit ; end"
       boot_rails

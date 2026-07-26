@@ -10,11 +10,11 @@ module Rails
     module Finisher
       include Initializable
 
-      initializer :add_generator_templates do
+      initializer :add_generator_templates, before: :setup_main_autoloader do
         ensure_generator_templates_added
       end
 
-      initializer :setup_main_autoloader do
+      initializer :setup_main_autoloader, after: :bootstrap_hook do
         autoloader = Rails.autoloaders.main
 
         # Normally empty, but if the user already defined some, we won't
