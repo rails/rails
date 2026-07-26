@@ -38,7 +38,7 @@ module ActiveRecord
           t.column :another_col, :string
         end
 
-        assert_equal :comments_posts, join_td.name
+        assert_equal "comments_posts", join_td.name
         assert_equal ["another_col", "comment_id", "post_id"], join_td.columns.map(&:name).sort
       end
 
@@ -48,7 +48,7 @@ module ActiveRecord
 
         join_td = connection.build_create_join_table_definition(:posts, :comments)
 
-        assert_equal :comments_posts, join_td.name
+        assert_equal "comments_posts", join_td.name
         assert_equal ["comment_id", "post_id"], join_td.columns.map(&:name).sort
       end
 
