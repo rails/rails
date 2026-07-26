@@ -1,3 +1,11 @@
+*   SQLite3: altering tables inside `ActiveRecord::Base.connection.transaction` was silently cascade removing child records.
+
+    SQLite silently ignores `PRAGMA foreign_keys = OFF` inside a transaction, causing `CASCADE` to delete child rows
+    and `SET NULL` to corrupt foreign key columns during table alteration. The transaction is now temporarily committed
+    before `disable_referential_integrity` runs so the `PRAGMA` takes effect.
+
+    *Eugene Mironichev*
+
 *   Remove unused `rest` parameter from merge and merge!
 
     *Aaron Patterson*
