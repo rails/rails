@@ -1209,6 +1209,95 @@ database record. It can influence the flow and predictability of callback
 sequences, leading to potential inconsistencies in application logic following
 the transaction.
 
+### Tracking Changes Across a Transaction
+
+You can use the `transaction_changes` methods to inspect what changed during
+an entire transaction. These methods track cumulative changes across all saves
+within the transaction, and work in any callback phase (`before_save`,
+`after_save`, `after_commit`), as well as for cross-model access within the
+same transaction. Unlike the `saved_change_to_*` methods which only reflect
+the most recent save, `transaction_change_to_*` methods reflect all saves
+within the transaction.
+
+The available methods are:
+
+| Method | Purpose |
+|---|---|
+| `transaction_changes` | Hash of all cumulative changes across the transaction |
+| `transaction_changes?` | Whether the transaction changed any attributes |
+| `transaction_change_to_attribute(attr)` | The `[old, new]` pair for a specific attribute |
+| `transaction_change_to_attribute?(attr)` | Whether the attribute changed during the transaction |
+| `attribute_before_transaction(attr)` | The pre-transaction value of any attribute (even unchanged ones) |
+
+Like `saved_change_to_*`, per-attribute convenience methods are also generated
+for every attribute. For example, an `email` attribute generates
+`transaction_change_to_email?`, `transaction_change_to_email`, and
+`email_before_transaction`.
+
+The distinction between `saved_change_to_*` and `transaction_change_to_*` matters
+when a transaction includes multiple saves. Consider a scenario where a user's
+email is updated in one save, and then an unrelated attribute is updated in a
+second save within the same transaction:
+
+```ruby
+class User < ApplicationRecord
+  after_commit :sync_email, on: :update
+
+  private
+    def sync_email
+      # saved_change_to_email? would be FALSE here because the last save
+      # only changed the name, not the email. But the email DID change
+      # earlier in the same transaction.
+      if transaction_change_to_email?
+        old_email, new_email = transaction_change_to_email
+        ExternalService.update_email(old_email, new_email)
+      end
+    end
+end
+```
+
+```ruby
+User.transaction do
+  user.update!(email: "new@example.com")
+  user.update!(name: "New Name")
+end
+# saved_change_to_email? => false (last save only changed name)
+# transaction_change_to_email? => true (email changed during the transaction)
+```
+
+More generally, if a record's `name` changes from `"Alice"` to `"Bob"` in one
+save, then from `"Bob"` to `"Carol"` in a second save within the same
+transaction:
+
+* `saved_change_to_name` returns `["Bob", "Carol"]` (the most recent save only)
+* `transaction_change_to_name` returns `["Alice", "Carol"]` (the full transaction)
+
+NOTE: `transaction_changes` always includes the target record's successful
+writes in the transaction. It also includes that record's pending values while
+the record has an active create or update attempt that has not reached
+persistence. The target record's phase controls the result: a cross-model
+reader, or a touch or destroy nested before persistence, still sees those
+pending values. A nested save has its own phase, and the enclosing phase resumes
+when it returns. Deferred touches flush after the save attempt and add only
+their successful writes.
+
+In `after_save`, `after_update`, `after_commit`, and other post-persistence
+callbacks, only successful writes are reflected. If a save halts or raises
+before persistence, entered `around_save` code can still see pending values as
+it unwinds, but they are excluded after the save attempt exits. An exception
+after persistence remains in the post-persistence phase while it unwinds.
+Custom create or update persistence overrides must call `changes_applied` after
+a successful write to establish this boundary. Calling `changes_applied` from
+arbitrary pre-save code, or bypassing the standard touch implementation, is not
+a supported persistence protocol.
+
+NOTE: If an attribute is changed and then changed back to its original value
+within the same transaction, it will not appear in `transaction_changes`.
+
+NOTE: `attribute_before_transaction` returns the pre-transaction value for _any_
+attribute, not just ones that changed. For unchanged attributes, this is the same
+as the current value.
+
 ### Aliases for `after_commit`
 
 Using the `after_commit` callback only on create, update, or destroy is common.

@@ -437,7 +437,14 @@ module ActiveRecord
 
   private
     def create_or_update(**)
+      save_attempt = { persistence_finalized: false }
+      (@_transaction_changes_save_attempts ||= []) << save_attempt
       _run_save_callbacks { super }
+    ensure
+      if save_attempt
+        @_transaction_changes_save_attempts.pop
+        @_transaction_changes_save_attempts = nil if @_transaction_changes_save_attempts.empty?
+      end
     end
 
     def _create_record

@@ -150,6 +150,7 @@ module ActiveRecord
               raise ActiveRecord::StaleObjectError.new(self, attempted_action)
             end
 
+            record_transaction_written_attributes(attribute_names)
             affected_rows
 
           # If something went wrong, revert the locking_column value.
