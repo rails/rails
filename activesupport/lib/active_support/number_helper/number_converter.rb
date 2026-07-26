@@ -84,7 +84,10 @@ module ActiveSupport
               kb: "KB",
               mb: "MB",
               gb: "GB",
-              tb: "TB"
+              tb: "TB",
+              pb: "PB",
+              eb: "EB",
+              zb: "ZB"
             }.freeze
           }.freeze,
           # Used in number_to_human
