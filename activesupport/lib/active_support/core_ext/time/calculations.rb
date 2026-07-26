@@ -42,20 +42,18 @@ class Time
 
     # Layers additional behavior on Time.at so that ActiveSupport::TimeWithZone and DateTime
     # instances can be used when called with a single argument
-    def at_with_coercion(time_or_number, *args)
-      if args.empty?
-        if time_or_number.is_a?(ActiveSupport::TimeWithZone)
-          at_without_coercion(time_or_number.to_r).getlocal
-        elsif time_or_number.is_a?(DateTime)
-          at_without_coercion(time_or_number.to_i + time_or_number.sec_fraction).getlocal
-        else
-          at_without_coercion(time_or_number)
-        end
+    def at_with_coercion(time_or_number, *args, **kwargs)
+      return at_without_coercion(time_or_number, *args, **kwargs) unless args.empty? && kwargs.empty?
+
+      case time_or_number
+      when ActiveSupport::TimeWithZone
+        at_without_coercion(time_or_number.to_r).getlocal
+      when DateTime
+        at_without_coercion(time_or_number.to_i + time_or_number.sec_fraction).getlocal
       else
-        at_without_coercion(time_or_number, *args)
+        at_without_coercion(time_or_number)
       end
     end
-    ruby2_keywords :at_with_coercion
     alias_method :at_without_coercion, :at
     alias_method :at, :at_with_coercion
 

@@ -601,14 +601,13 @@ module ActionController
       end
 
       private
-        def method_missing(selector, *args, &block)
+        def method_missing(selector, ...)
           if defined?(@controller) && @controller && defined?(@routes) && @routes && @routes.named_routes.route_defined?(selector)
-            @controller.public_send(selector, *args, &block)
+            @controller.public_send(selector, ...)
           else
             super
           end
         end
-        ruby2_keywords(:method_missing)
 
         def setup_request(controller_class_name, action, parameters, session, flash, xhr)
           generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action))

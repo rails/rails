@@ -172,15 +172,15 @@ module ActiveRecord
           scope_method =
             if body.respond_to?(:to_proc)
               scope_body = ActiveSupport::Ractors.try_shareable_proc(&body)
-              proc do |*args|
-                scope = all._exec_scope(*args, &scope_body)
+              proc do |*args, **kwargs|
+                scope = all._exec_scope(*args, **kwargs, &scope_body)
                 scope = scope.extending(extension) if extension
                 scope
               end
             else
               callable = body
-              proc do |*args|
-                scope = callable.call(*args) || all
+              proc do |*args, **kwargs|
+                scope = callable.call(*args, **kwargs) || all
                 scope = scope.extending(extension) if extension
                 scope
               end
@@ -188,7 +188,6 @@ module ActiveRecord
           scope_method = ActiveSupport::Ractors.try_shareable_proc(&scope_method)
 
           singleton_class.define_method(name, &scope_method)
-          singleton_class.send(:ruby2_keywords, name)
 
           generate_relation_method(name)
         end
