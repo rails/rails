@@ -1,3 +1,12 @@
+*   Make `ActiveRecord::Migration::CommandRecorder#record` and
+    `#inverse_of` private.
+
+    These are internal APIs. Callers should use the public migration
+    methods (`create_table`, `add_column`, etc.) directly to record
+    commands, and combine them with `revert` to record inverted commands.
+
+    *Ryuta Kamizono*
+
 *   Deprecate passing `binds` to `#insert`, `#update`, and `#delete` on
     `ActiveRecord::ConnectionAdapters::DatabaseStatements`.
 
