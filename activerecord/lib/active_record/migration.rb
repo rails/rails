@@ -571,7 +571,6 @@ module ActiveRecord
     autoload :CommandRecorder, "active_record/migration/command_recorder"
     autoload :Compatibility, "active_record/migration/compatibility"
     autoload :DefaultSchemaVersionsFormatter, "active_record/migration/default_schema_versions_formatter"
-    autoload :JoinTable, "active_record/migration/join_table"
     autoload :ExecutionStrategy, "active_record/migration/execution_strategy"
     autoload :DefaultStrategy, "active_record/migration/default_strategy"
 
