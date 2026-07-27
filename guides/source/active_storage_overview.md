@@ -962,13 +962,56 @@ can use the `process: :later` option (with both `has_one_attached` and
 
 WARNING: It should be considered unsafe to provide arbitrary user supplied
 transformations or parameters to variant processors. This can potentially enable
-command injection vulnerabilities in your app. It is also recommended to
-implement a strict [ImageMagick security
-policy](https://imagemagick.org/script/security-policy.php) when MiniMagick is
-the variant processor of choice. With ruby-vips, you can
-[block untrusted formats][https://www.libvips.org/2022/05/28/What's-new-in-8.13.html#blocking-of-unfuzzed-loaders]
-by setting `VIPS_BLOCK_UNTRUSTED` environment variable or calling
-`Vips.block_untrusted(true)` in an initializer.
+command injection vulnerabilities in your app.
+
+WARNING: It is also recommended to implement a strict [ImageMagick security
+policy](https://imagemagick.org/script/security-policy.php) when MiniMagick is the variant processor
+of choice, or when libvips is delegating to ImageMagick (run `vips -l` on your platform).
+
+#### Disabled Vips Image Loaders and Savers
+
+libvips marks some of its image loaders and savers as
+[unfuzzed](https://www.libvips.org/2022/05/28/What's-new-in-8.13.html#blocking-of-unfuzzed-loaders),
+meaning they should not be used to process untrusted content. Active Storage disables all of them
+while your application boots, before any initializer runs.
+
+Doing so requires libvips 8.13 or later and ruby-vips 2.2.1 or later, which are Active Storage's
+minimum supported versions. When ruby-vips is installed and either minimum is not met, Active
+Storage raises a `RuntimeError` while booting rather than run in an unsecurable environment. Upgrade
+libvips and ruby-vips.
+
+Notably, ImageMagick is marked as an unfuzzed loader and is disabled by default. On many platforms,
+libvips relies on ImageMagick to read BMP, ICO, and PSD files, so attachments in those formats
+cannot be transformed by default on those platforms. Attaching, storing, and downloading them is
+unaffected, but generating a variant raises `Vips::Error`, and analysis does not record their
+`width` and `height`.
+
+Analysis also does not record dimensions for other types that libvips reads with an unfuzzed
+loader, such as SVG, JPEG XL, JPEG 2000, and Netpbm. Those types are not in the default
+`ActiveStorage.variable_content_types`, so they are not variable in the first place.
+
+The savers marked unfuzzed are typically FITS, JXL, and ImageMagick, so requesting one of those as
+a variant's output format, such as `variant(format: :jxl)`, also raises `Vips::Error`.
+
+An application that needs BMP, ICO, or PSD variants of trusted inputs can re-enable the ImageMagick
+loader in an initializer:
+
+```ruby
+# config/initializers/vips.rb
+Vips.block("VipsForeignLoadMagick", false) # Note this is dangerous for untrusted content!
+```
+
+Operation names and which of them are marked unfuzzed are both platform-dependent, so run `vips -l`
+to see the class hierarchy for your build.
+
+WARNING: Re-enabling unfuzzed image loaders and savers is dangerous. You should only attempt this
+after researching how your distribution builds libvips and which library delegates are enabled.
+
+WARNING: Even re-enabling only the ImageMagick loader, as illustrated above, is dangerous. libvips
+delegates many more file types to ImageMagick than just BMP, ICO, and PSD, so re-enabling it exposes
+a much larger attack surface. Do this only when all image uploads are trusted content, and only
+alongside a strict [ImageMagick security
+policy](https://imagemagick.org/script/security-policy.php).
 
 ### Non-image Previews
 
