@@ -32,6 +32,7 @@ require "models/cpk"
 require "concurrent/atomic/count_down_latch"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/kernel/reporting"
+require "active_support/testing/ractors_assertions"
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -103,6 +104,8 @@ class LintTest < ActiveRecord::TestCase
 end
 
 class BasicsTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts,
     :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories,
     :posts, :cpk_books
@@ -194,6 +197,12 @@ class BasicsTest < ActiveRecord::TestCase
   def test_invalid_limit
     assert_raises(ArgumentError) do
       Topic.limit("asdfadf")
+    end
+  end
+
+  def test_invalid_offset
+    assert_raises(ArgumentError) do
+      Topic.offset("asdfadf")
     end
   end
 
@@ -875,6 +884,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::ReadonlyAttributeError) do
       post_without_reload2.update(author: author2)
     end
+  end
+
+  def test_readonly_attributes_are_ractor_safe
+    assert_ractor_shareable ReadonlyAuthorPost._attr_readonly
   end
 
   def test_unicode_column_name

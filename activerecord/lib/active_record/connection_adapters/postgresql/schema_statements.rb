@@ -230,6 +230,7 @@ module ActiveRecord
             WHERE child.relname = #{scope[:name]}
               AND child.relkind IN (#{scope[:type]})
               AND n.nspname = #{scope[:schema]}
+            ORDER BY i.inhseqno
           SQL
         end
 
@@ -1034,8 +1035,8 @@ module ActiveRecord
         #   unique_constraint_exists?(:sections, name: "unique_position")
         #
         def unique_constraint_exists?(table_name, **options)
-          if !options.key?(:name) && !options.key?(:expression)
-            raise ArgumentError, "At least one of :name or :expression must be supplied"
+          if !options.key?(:name) && !options.key?(:column)
+            raise ArgumentError, "At least one of :name or :column must be supplied"
           end
           unique_constraint_for(table_name, **options).present?
         end

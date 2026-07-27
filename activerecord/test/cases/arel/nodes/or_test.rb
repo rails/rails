@@ -6,7 +6,7 @@ module Arel
   module Nodes
     class OrTest < Arel::Test
       test "#or makes an OR node" do
-        attr = Table.new(:users)[:id]
+        attr = Table.new(name: :users)[:id]
         left  = attr.eq(10)
         right = attr.eq(11)
         node  = left.or right

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
-  module Coders # :nodoc:
+  module Coders
     class ColumnSerializer # :nodoc:
       attr_reader :object_class
       attr_reader :coder

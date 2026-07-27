@@ -11,6 +11,8 @@ module ActiveRecord
     include ActiveModel::Access
 
     included do
+      @arel_table = Arel::Table.new(klass: self)
+
       ##
       # :singleton-method:
       #
@@ -389,7 +391,7 @@ module ActiveRecord
         elsif abstract_class?
           "#{super}(abstract)"
         elsif !schema_loaded? && !connected?
-          "#{super} (call '#{super}.load_schema' to load schema informations)"
+          "#{super} (call '#{super}.load_schema' to load schema information)"
         elsif table_exists?
           attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ", "
           "#{super}(#{attr_list})"
@@ -400,11 +402,13 @@ module ActiveRecord
 
       # Returns an instance of +Arel::Table+ loaded with the current table name.
       def arel_table # :nodoc:
-        @arel_table ||= Arel::Table.new(table_name, klass: self)
+        @arel_table
       end
 
       def predicate_builder # :nodoc:
-        @predicate_builder ||= PredicateBuilder.new(TableMetadata.new(self, arel_table))
+        @predicate_builder || ActiveSupport::Ractors.on_main(self) do
+          @predicate_builder ||= PredicateBuilder.new(TableMetadata.new(self, arel_table))
+        end
       end
 
       def type_caster # :nodoc:
@@ -431,7 +435,7 @@ module ActiveRecord
           end
 
           subclass.class_eval do
-            @arel_table = nil
+            @arel_table = Arel::Table.new(klass: self)
             @predicate_builder = nil
             @inspection_filter = nil
             @filter_attributes ||= nil
@@ -574,11 +578,7 @@ module ActiveRecord
     def init_attributes(_) # :nodoc:
       attrs = @attributes.deep_dup
 
-      if self.class.composite_primary_key?
-        @primary_key.each { |key| attrs.reset(key) }
-      else
-        attrs.reset(@primary_key)
-      end
+      self.class.primary_key_definition.each { |key| attrs.reset(key) }
 
       attrs
     end

@@ -119,6 +119,8 @@ module ActionCable
 
       # Unsubscribes streams from the named `broadcasting`.
       def stop_stream_from(broadcasting)
+        broadcasting = String(broadcasting)
+
         callback = streams.delete(broadcasting)
         if callback
           pubsub.unsubscribe(broadcasting, callback)

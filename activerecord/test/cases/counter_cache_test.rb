@@ -20,8 +20,11 @@ require "models/subscription"
 require "models/book"
 require "models/cpk"
 require "active_support/core_ext/enumerable"
+require "active_support/testing/ractors_assertions"
 
 class CounterCacheTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers, :people, :friendships, :subscribers, :subscriptions, :books,
     :cpk_orders, :cpk_books
 
@@ -509,6 +512,11 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_queries_count(1) do
       assert_equal 2, car.tires.count
     end
+  end
+
+  test "counter cache configuration is ractor shareable" do
+    assert_ractor_shareable SpecialReply.counter_cached_association_names
+    assert_ractor_shareable SpecialReply._counter_cache_columns
   end
 
   private

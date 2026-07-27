@@ -100,7 +100,7 @@ module ActionText
     #     class Person < ApplicationRecord
     #       include ActionText::Attachable
     #
-    #       def attachable_plain_text_representation
+    #       def attachable_plain_text_representation(caption)
     #         "[#{name}]"
     #       end
     #     end

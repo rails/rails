@@ -248,12 +248,6 @@ module ActiveRecord
       end
 
       class V6_0 < V6_1
-        class ReferenceDefinition < ConnectionAdapters::ReferenceDefinition
-          def index_options(table_name)
-            as_options(index)
-          end
-        end
-
         module TableDefinition
           def references(*args, **options)
             options[:_uses_legacy_reference_index_name] = true

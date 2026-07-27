@@ -664,6 +664,18 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal t, t.advance(months: 0)
   end
 
+  def test_advance_does_not_mutate_options
+    options = { weeks: 1, days: 2 }
+    Time.new(2024, 1, 1).advance(options)
+    assert_equal({ weeks: 1, days: 2 }, options)
+  end
+
+  def test_advance_with_frozen_options
+    assert_nothing_raised do
+      Time.new(2024, 1, 1).advance({ weeks: 1, days: 2 }.freeze)
+    end
+  end
+
   def test_advance_gregorian_proleptic
     assert_equal Time.local(1582, 10, 14, 15, 15, 10), Time.local(1582, 10, 15, 15, 15, 10).advance(days: -1)
     assert_equal Time.local(1582, 10, 15, 15, 15, 10), Time.local(1582, 10, 14, 15, 15, 10).advance(days: 1)
@@ -1156,13 +1168,15 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_at_with_datetime
     assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0))
+    assert_raise(TypeError) { Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0), 0) }
+  end
 
-    # Only test this if the underlying Time.at raises a TypeError
-    begin
-      Time.at_without_coercion(Time.now, 0)
-    rescue TypeError
-      assert_raise(TypeError) { assert_equal(Time.utc(2000, 1, 1, 0, 0, 0), Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0), 0)) }
-    end
+  def test_at_with_datetime_sub_second_precision
+    dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(1, 1_000_000), "+0") # .000001s
+    assert_equal 1, Time.at(dt).usec
+
+    dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(123_457, 1_000_000), "+0")
+    assert_equal 123_457, Time.at(dt).usec
   end
 
   def test_at_with_datetime_returns_local_time
@@ -1181,14 +1195,9 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_at_with_time_with_zone
-    assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"]))
-
-    # Only test this if the underlying Time.at raises a TypeError
-    begin
-      Time.at_without_coercion(Time.now, 0)
-    rescue TypeError
-      assert_raise(TypeError) { assert_equal(Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"]), 0)) }
-    end
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
+    assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(twz)
+    assert_raise(TypeError) { Time.at(twz, 0) }
   end
 
   def test_at_with_in_option
@@ -1246,6 +1255,14 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_minus_with_datetime
     assert_equal 86_400.0, Time.utc(2000, 1, 2) - DateTime.civil(2000, 1, 1)
+  end
+
+  def test_minus_with_datetime_sub_second_precision
+    dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(1, 1_000_000), "+0") # .000001s
+    assert_equal Rational(999_999, 1_000_000), Time.utc(2000, 1, 1, 0, 0, 1) - dt
+
+    dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(123_457, 1_000_000), "+0")
+    assert_equal Rational(876_543, 1_000_000), Time.utc(2000, 1, 1, 0, 0, 1) - dt
   end
 
   def test_time_created_with_local_constructor_cannot_represent_times_during_hour_skipped_by_dst

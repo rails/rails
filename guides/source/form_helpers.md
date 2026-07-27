@@ -631,9 +631,9 @@ Will output select boxes like:
 </select>
 <select name="person[birth_date(3i)]" id="person_birth_date_3i">
   <option value="1">1</option>
-  ...
+  <!-- ... -->
   <option value="21" selected="selected">21</option>
-  ...
+  <!-- ... -->
   <option value="31">31</option>
 </select>
 ```
@@ -689,7 +689,7 @@ Output:
   <option value="Midway Island">(GMT-11:00) Midway Island</option>
   <option value="Hawaii">(GMT-10:00) Hawaii</option>
   <option value="Alaska">(GMT-09:00) Alaska</option>
-  ...
+  <!-- ... -->
   <option value="Samoa">(GMT+13:00) Samoa</option>
   <option value="Tokelau Is.">(GMT+13:00) Tokelau Is.</option>
 </select>
@@ -1128,7 +1128,7 @@ The following form allows a user to create a `Person` and its associated address
 
         <%= addresses_form.label :street %>
         <%= addresses_form.text_field :street %>
-        ...
+        <!-- ... -->
       </li>
     <% end %>
   </ul>
@@ -1160,7 +1160,7 @@ Will output the following HTML:
 
         <label for="person_addresses_attributes_0_street">Street</label>
         <input type="text" name="person[addresses_attributes][0][street]" id="person_addresses_attributes_0_street">
-        ...
+        <!-- ... -->
       </li>
 
       <li>
@@ -1169,7 +1169,7 @@ Will output the following HTML:
 
         <label for="person_addresses_attributes_1_street">Street</label>
         <input type="text" name="person[addresses_attributes][1][street]" id="person_addresses_attributes_1_street">
-        ...
+        <!-- ... -->
       </li>
   </ul>
 </form>
@@ -1263,7 +1263,7 @@ destroyed. This form allows users to remove addresses:
         <%= addresses_form.checkbox :_destroy %>
         <%= addresses_form.label :kind %>
         <%= addresses_form.text_field :kind %>
-        ...
+        <!-- ... -->
       </li>
     <% end %>
   </ul>

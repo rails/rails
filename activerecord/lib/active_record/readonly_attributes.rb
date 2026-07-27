@@ -28,7 +28,7 @@ module ActiveRecord
       #   post.title = "a different title" # raises ActiveRecord::ReadonlyAttributeError
       #   post.update(title: "a different title") # raises ActiveRecord::ReadonlyAttributeError
       def attr_readonly(*attributes)
-        self._attr_readonly |= attributes.map(&:to_s)
+        self._attr_readonly = ActiveSupport::Ractors.make_shareable(_attr_readonly | attributes.map(&:to_s))
 
         if ActiveRecord.raise_on_assign_to_attr_readonly
           include(HasReadonlyAttributes)

@@ -32,7 +32,7 @@ module ActiveModel
     #   bag.weight # => nil
     #
     #   bag.weight = :arbitrary
-    #   bag.weight # => nil (the result of `.to_s.to_d`)
+    #   bag.weight # => 0.0 (the result of `.to_s.to_d`)
     #
     # Decimal precision defaults to 18, and can be customized when declaring an
     # attribute:

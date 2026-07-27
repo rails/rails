@@ -120,6 +120,14 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_bang_accepts_unique_by
+    skip unless supports_insert_conflict_target?
+
+    assert_difference "Book.count", +1 do
+      Book.insert!({ name: "UniqueBy", author_id: 1, isbn: "unique-by-insert-bang" }, unique_by: :isbn)
+    end
+  end
+
   def test_insert_all_bang_with_unique_by_raises_on_duplicate
     skip unless supports_insert_conflict_target?
 

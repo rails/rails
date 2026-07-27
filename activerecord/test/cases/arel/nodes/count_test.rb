@@ -4,14 +4,14 @@ require_relative "../helper"
 
 class Arel::Nodes::CountTest < Arel::Test
   test "as should alias the count" do
-    table = Arel::Table.new :users
+    table = Arel::Table.new name: :users
     assert_like %{
       COUNT("users"."id") AS foo
     }, table[:id].count.as("foo").to_sql
   end
 
   test "eq should compare the count" do
-    table = Arel::Table.new :users
+    table = Arel::Table.new name: :users
     assert_like %{
       COUNT("users"."id") = 2
     }, table[:id].count.eq(2).to_sql

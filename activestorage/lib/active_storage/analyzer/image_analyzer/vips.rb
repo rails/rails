@@ -51,7 +51,7 @@ module ActiveStorage
           {}
         end
       rescue ::Vips::Error => error
-        logger.error "Skipping image analysis due to an Vips error: #{error.message}"
+        logger.error "Skipping image analysis due to a Vips error: #{error.message}"
         {}
       end
 

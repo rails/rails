@@ -8,7 +8,7 @@ module Arel
     include TreeManagerBehavior
 
     test "should not quote sql literals" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       um = Arel::UpdateManager.new
       um.table table
       um.set [[table[:name], Arel::Nodes::BindParam.new(1)]]
@@ -16,7 +16,7 @@ module Arel
     end
 
     test "handles limit properly" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       um = Arel::UpdateManager.new
       um.key = "id"
       um.take 10
@@ -26,8 +26,8 @@ module Arel
     end
 
     test "having sets having" do
-      users_table = Table.new(:users)
-      posts_table = Table.new(:posts)
+      users_table = Table.new(name: :users)
+      posts_table = Table.new(name: :posts)
       join_source = Arel::Nodes::InnerJoin.new(users_table, posts_table)
 
       update_manager = Arel::UpdateManager.new
@@ -39,8 +39,8 @@ module Arel
     end
 
     test "group adds columns to the AST when group value is a String" do
-      users_table = Table.new(:users)
-      posts_table = Table.new(:posts)
+      users_table = Table.new(name: :users)
+      posts_table = Table.new(name: :posts)
       join_source = Arel::Nodes::InnerJoin.new(users_table, posts_table)
 
       update_manager = Arel::UpdateManager.new
@@ -56,8 +56,8 @@ module Arel
     end
 
     test "group adds columns to the AST when group value is a Symbol" do
-      users_table = Table.new(:users)
-      posts_table = Table.new(:posts)
+      users_table = Table.new(name: :users)
+      posts_table = Table.new(name: :posts)
       join_source = Arel::Nodes::InnerJoin.new(users_table, posts_table)
 
       update_manager = Arel::UpdateManager.new
@@ -73,7 +73,7 @@ module Arel
     end
 
     test "set updates with null" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       um = Arel::UpdateManager.new
       um.table table
       um.set [[table[:name], nil]]
@@ -81,7 +81,7 @@ module Arel
     end
 
     test "set takes a string" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       um = Arel::UpdateManager.new
       um.table table
       um.set Nodes::SqlLiteral.new "foo = bar"
@@ -89,7 +89,7 @@ module Arel
     end
 
     test "set takes a list of lists" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       um = Arel::UpdateManager.new
       um.table table
       um.set [[table[:id], 1], [table[:name], "hello"]]
@@ -99,29 +99,29 @@ module Arel
     end
 
     test "set chains" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       um = Arel::UpdateManager.new
       assert_equal um, um.set([[table[:id], 1], [table[:name], "hello"]])
     end
 
     test "table generates an update statement" do
       um = Arel::UpdateManager.new
-      um.table Table.new(:users)
+      um.table Table.new(name: :users)
       assert_like %{ UPDATE "users" }, um.to_sql
     end
 
     test "table chains" do
       um = Arel::UpdateManager.new
-      assert_equal um, um.table(Table.new(:users))
+      assert_equal um, um.table(Table.new(name: :users))
     end
 
     test "table generates an update statement with joins" do
       um = Arel::UpdateManager.new
 
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       join_source = Arel::Nodes::JoinSource.new(
         table,
-        [table.create_join(Table.new(:posts))]
+        [table.create_join(Table.new(name: :posts))]
       )
 
       um.table join_source
@@ -129,7 +129,7 @@ module Arel
     end
 
     test "where generates a where clause" do
-      table = Table.new :users
+      table = Table.new name: :users
       um = Arel::UpdateManager.new
       um.table table
       um.where table[:id].eq(1)
@@ -139,28 +139,28 @@ module Arel
     end
 
     test "where chains" do
-      table = Table.new :users
+      table = Table.new name: :users
       um = Arel::UpdateManager.new
       um.table table
       assert_equal um, um.where(table[:id].eq(1))
     end
 
     test "key can be set" do
-      table = Table.new :users
+      table = Table.new name: :users
       um = Arel::UpdateManager.new
       um.key = table[:foo]
       assert_equal table[:foo], um.ast.key
     end
 
     test "key can be accessed" do
-      table = Table.new :users
+      table = Table.new name: :users
       um = Arel::UpdateManager.new
       um.key = table[:foo]
       assert_equal table[:foo], um.key
     end
 
     test "#returning accepts a returning clause" do
-      users   = Table.new :users
+      users   = Table.new name: :users
       manager = Arel::UpdateManager.new
       manager.table users
       manager.returning Arel.star
@@ -171,7 +171,7 @@ module Arel
     end
 
     test "#returning accepts multiple values as returning clause" do
-      users   = Table.new :users
+      users   = Table.new name: :users
       manager = Arel::UpdateManager.new
       manager.table users
       manager.returning Arel.star

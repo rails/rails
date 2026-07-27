@@ -2,10 +2,11 @@
 
 # :markup: markdown
 
+require "active_support/core_ext/hash/keys"
 require "rack/session/abstract/id"
 
 module ActionDispatch
-  class Request
+  module Http
     # Session is responsible for lazily loading the session from store.
     class Session # :nodoc:
       DisabledSessionError    = Class.new(StandardError)
@@ -18,17 +19,17 @@ module ActionDispatch
       # Creates a session hash, merging the properties of the previous session if any.
       def self.create(store, req, default_options)
         session_was = find req
-        session     = Request::Session.new(store, req)
+        session     = new(store, req)
         session.merge! session_was if session_was
 
         set(req, session)
-        Options.set(req, Request::Session::Options.new(store, default_options))
+        Options.set(req, Options.new(store, default_options))
         session
       end
 
       def self.disabled(req)
         new(nil, req, enabled: false).tap do
-          Session::Options.set(req, Session::Options.new(nil, { id: nil }))
+          Options.set(req, Options.new(nil, { id: nil }))
         end
       end
 

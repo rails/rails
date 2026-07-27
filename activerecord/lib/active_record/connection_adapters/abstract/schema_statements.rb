@@ -7,8 +7,6 @@ require "openssl"
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module SchemaStatements
-      include ActiveRecord::Migration::JoinTable
-
       # Returns a hash of mappings from the abstract data types to the native
       # database types. See TableDefinition#column for details on the recognized
       # abstract data types.
@@ -429,8 +427,8 @@ module ActiveRecord
       #  ALTER TABLE ONLY "assemblies_parts"
       #      ADD CONSTRAINT assemblies_parts_pkey PRIMARY KEY (assembly_id, part_id);
       #
-      def create_join_table(table_1, table_2, column_options: {}, **options)
-        join_table_name = find_join_table_name(table_1, table_2, options)
+      def create_join_table(table_1, table_2, table_name: nil, column_options: {}, **options)
+        join_table_name = table_name || ModelSchema.derive_join_table_name(table_1, table_2)
 
         column_options.reverse_merge!(null: false, index: false)
         options.reverse_merge!(id: options[:primary_key] ? :primary_key : false)
@@ -449,8 +447,8 @@ module ActiveRecord
       # This definition object contains information about the table that would be created
       # if the same arguments were passed to #create_join_table. See #create_join_table for
       # information about what arguments should be passed.
-      def build_create_join_table_definition(table_1, table_2, column_options: {}, **options) # :nodoc:
-        join_table_name = find_join_table_name(table_1, table_2, options)
+      def build_create_join_table_definition(table_1, table_2, table_name: nil, column_options: {}, **options) # :nodoc:
+        join_table_name = table_name || ModelSchema.derive_join_table_name(table_1, table_2)
         column_options.reverse_merge!(null: false, index: false)
         options.reverse_merge!(id: options[:primary_key] ? :primary_key : false)
 
@@ -469,8 +467,8 @@ module ActiveRecord
       # Although this command ignores the block if one is given, it can be helpful
       # to provide one in a migration's +change+ method so it can be reverted.
       # In that case, the block will be used by #create_join_table.
-      def drop_join_table(table_1, table_2, **options)
-        join_table_name = find_join_table_name(table_1, table_2, options)
+      def drop_join_table(table_1, table_2, table_name: nil, **options)
+        join_table_name = table_name || ModelSchema.derive_join_table_name(table_1, table_2)
         drop_table(join_table_name, **options)
       end
 
@@ -1327,7 +1325,8 @@ module ActiveRecord
       #   The name of the table that contains the referenced primary key.
       def remove_foreign_key(from_table, to_table = nil, **options)
         return unless use_foreign_keys?
-        return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table, **options.slice(:column))
+        to_table ||= options[:to_table]
+        return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table, **options.slice(:column, :name))
 
         fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
 
@@ -1445,7 +1444,7 @@ module ActiveRecord
       def remove_check_constraint(table_name, expression = nil, if_exists: false, **options)
         return unless supports_check_constraints?
 
-        return if if_exists && !check_constraint_exists?(table_name, **options)
+        return if if_exists && !check_constraint_exists?(table_name, expression: expression, **options)
 
         chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
 
@@ -1484,22 +1483,25 @@ module ActiveRecord
 
       def assume_migrated_upto_version(version)
         version = version.to_i
-        sm_table = quote_table_name(pool.schema_migration.table_name)
-
         migration_context = pool.migration_context
-        migrated = migration_context.get_all_versions
-        versions = migration_context.migrations.map(&:version)
 
-        unless migrated.include?(version)
-          execute "INSERT INTO #{sm_table} (version) VALUES (#{quote(version)})"
+        schema_migrations_table       = migration_context.schema_migration.table_name
+        versions_in_schema_migrations = migration_context.get_all_versions
+        versions_in_db_migrate        = migration_context.migrations.map(&:version)
+
+        unless versions_in_schema_migrations.include?(version)
+          execute "INSERT INTO #{quote_table_name(schema_migrations_table)} (version) VALUES (#{quote(version)})"
         end
 
-        inserting = (versions - migrated).select { |v| v < version }
-        if inserting.any?
-          if (duplicate = inserting.detect { |v| inserting.count(v) > 1 })
+        versions_to_insert = (versions_in_db_migrate - versions_in_schema_migrations).select { |v| v < version }
+
+        if versions_to_insert.any?
+          if (duplicate = versions_to_insert.detect { |v| versions_to_insert.count(v) > 1 })
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
-          execute insert_versions_sql(inserting)
+
+          versions_to_insert.map!(&:to_s)
+          migration_context.schema_migration.create_versions(versions_to_insert)
         end
       end
 

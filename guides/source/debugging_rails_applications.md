@@ -234,7 +234,7 @@ WARNING: We recommend against using this setting in production environments. It 
 
 ### Verbose Enqueue Logs
 
-Similar to the "Verbose Query Logs" above, allows to print source locations of methods that enqueue background jobs.
+Similar to the "Verbose Query Logs" above, allows printing source locations of methods that enqueue background jobs.
 
 Verbose enqueue logs are [enabled by default](/7_1_release_notes.html#active-job-notable-changes) in the development environment logs.
 

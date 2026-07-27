@@ -72,6 +72,18 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
     assert_empty @subscriptions.identifiers
   end
 
+  test "subscribe command without a channel" do
+    setup_connection
+
+    identifier = ActiveSupport::JSON.encode(id: 1)
+
+    assert_raises ActionCable::Connection::Subscriptions::ChannelNotFound do
+      @subscriptions.execute_command "command" => "subscribe", "identifier" => identifier
+    end
+
+    assert_empty @subscriptions.identifiers
+  end
+
   test "double subscribe command" do
     setup_connection
 

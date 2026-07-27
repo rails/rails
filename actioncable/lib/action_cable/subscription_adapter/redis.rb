@@ -6,6 +6,7 @@ gem "redis-client"
 require "redis-client"
 
 require "active_support/core_ext/hash/except"
+require "active_support/core_ext/hash/keys"
 
 module ActionCable
   module SubscriptionAdapter
@@ -17,7 +18,7 @@ module ActionCable
       # using Makara proxies for distributed Redis.
       cattr_accessor :redis_connector, default: ->(config) do
         config = config.except(:adapter, :channel_prefix)
-        config[:id] ||= "ActionCable-PID-#{$$}"
+        config[:id] = "ActionCable-PID-#{$$}" unless config.key?(:id)
 
         redis_config = if config.key?(:sentinels)
           ::RedisClient.sentinel(**config)
@@ -76,6 +77,13 @@ module ActionCable
         class Listener < SubscriberMap::Async
           delegate :logger, to: :@adapter
 
+          # A permanent internal subscription keeps the Redis subscription count
+          # above zero while any user channel comes and goes, so removing the
+          # last user channel doesn't end the listen loop. Only an explicit
+          # shutdown (which unsubscribes from everything) drives the count to
+          # zero and stops the listener.
+          INTERNAL_CHANNEL = "_action_cable_internal"
+
           def initialize(adapter, config_options, executor)
             super(executor)
 
@@ -101,6 +109,8 @@ module ActionCable
 
             @reconnect_attempt = 0
             @subscribed_client = pubsub_client
+
+            pubsub_client.call("subscribe", INTERNAL_CHANNEL)
 
             until @when_connected.empty?
               @when_connected.shift.call
@@ -157,6 +167,17 @@ module ActionCable
 
           private
             def ensure_listener_running
+              # The internal sentinel subscription keeps the listener alive in
+              # normal operation, but the thread can still die for other reasons
+              # (e.g. exhausting the Redis reconnect attempts). Since this method
+              # memoizes with `||=`, a dead thread would never be replaced and
+              # every later subscribe would queue forever. Drop a dead thread so
+              # the next subscribe spawns a fresh listener.
+              if @thread && !@thread.alive?
+                @thread = nil
+                @reconnect_attempt = 0
+              end
+
               @thread ||= Thread.new do
                 Thread.current.abort_on_exception = true
 
@@ -206,7 +227,6 @@ module ActionCable
             def reset
               @subscription_lock.synchronize do
                 @subscribed_client = nil
-                @subscribe_callbacks.clear
                 @when_connected.clear
               end
             end

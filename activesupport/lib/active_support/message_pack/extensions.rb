@@ -9,6 +9,7 @@ require "msgpack/bigint"
 require "active_support/hash_with_indifferent_access"
 require "active_support/core_ext/string/output_safety"
 require "active_support/time"
+require "active_support/core_ext/object/json"
 
 module ActiveSupport
   module MessagePack

@@ -28,9 +28,6 @@ module ActionDispatch
     include ActionDispatch::ContentSecurityPolicy::Request
     include Rack::Request::Env
 
-    autoload :Session, "action_dispatch/request/session"
-    autoload :Utils,   "action_dispatch/request/utils"
-
     LOCALHOST   = Regexp.union [/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
 
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
@@ -135,12 +132,10 @@ module ActionDispatch
 
     HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789
 
-    HTTP_METHOD_LOOKUP = {} # rubocop:disable Style/MutableConstant
-
     # Populate the HTTP method lookup cache.
-    HTTP_METHODS.each { |method|
-      HTTP_METHOD_LOOKUP[method] = method.downcase.tap { |m| m.tr!("-", "_") }.to_sym
-    }
+    HTTP_METHOD_LOOKUP = HTTP_METHODS.each.with_object({}) { |method, hash|
+      hash[method] = method.downcase.tap { |m| m.tr!("-", "_") }.to_sym
+    }.freeze
 
     alias raw_request_method request_method # :nodoc:
 
@@ -215,8 +210,8 @@ module ActionDispatch
     #
     # For debugging purposes, when called with arguments this method will fall back
     # to Object#method
-    def method(*args)
-      if args.empty?
+    def method(*args, **kwargs)
+      if args.empty? && kwargs.empty?
         @method ||= check_method(
           get_header("rack.methodoverride.original_method") ||
           get_header("REQUEST_METHOD")
@@ -225,7 +220,6 @@ module ActionDispatch
         super
       end
     end
-    ruby2_keywords(:method)
 
     # Returns a symbol form of the #method.
     def method_symbol
@@ -390,17 +384,17 @@ module ActionDispatch
     end
 
     def session=(session) # :nodoc:
-      Session.set self, session
+      Http::Session.set self, session
     end
 
     def session_options=(options)
-      Session::Options.set self, options
+      Http::Session::Options.set self, options
     end
 
     # Override Rack's GET method to support indifferent access.
     def GET
       fetch_header("action_dispatch.request.query_parameters") do |k|
-        encoding_template = Request::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
+        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
         rack_query_params = ActionDispatch::ParamBuilder.from_query_string(rack_request.query_string, encoding_template: encoding_template)
 
         set_header k, rack_query_params
@@ -413,7 +407,7 @@ module ActionDispatch
     # Override Rack's POST method to support indifferent access.
     def POST
       fetch_header("action_dispatch.request.request_parameters") do
-        encoding_template = Request::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
+        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
 
         param_list = nil
         pr = parse_formatted_parameters(params_parsers) do
@@ -472,7 +466,7 @@ module ActionDispatch
 
     # Returns the bearer token embedded in the authorization header or nil if missing.
     def bearer_token
-      authorization.to_s[/\ABearer (.+)\z/, 1]
+      authorization.to_s[/\ABearer (.+)\z/i, 1]
     end
 
     # True if the request method is safe per RFC 9110 §9.2.1
@@ -525,7 +519,7 @@ module ActionDispatch
       end
 
       def default_session
-        Session.disabled(self)
+        Http::Session.disabled(self)
       end
 
       def read_body_stream

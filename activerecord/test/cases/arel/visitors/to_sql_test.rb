@@ -9,7 +9,7 @@ module Arel
       setup do
         @conn = Table.engine
         @visitor = ToSql.new @conn.lease_connection
-        @table = Table.new(:users)
+        @table = Table.new(name: :users)
         @attr = @table[:id]
       end
 
@@ -185,14 +185,14 @@ module Arel
       end
 
       test "Nodes::Equality should escape strings" do
-        test = Table.new(:users)[:name].eq "Aaron Patterson"
+        test = Table.new(name: :users)[:name].eq "Aaron Patterson"
         assert_like %{
           "users"."name" = 'Aaron Patterson'
         }, compile(test)
       end
 
       test "Nodes::Equality should handle false" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         val = Nodes.build_quoted(false, table[:active])
         sql = compile Nodes::Equality.new(val, val)
         assert_like %{ 'f' = 'f' }, sql
@@ -221,14 +221,14 @@ module Arel
       end
 
       test "Nodes::IsNotDistinctFrom should construct a valid generic SQL statement" do
-        test = Table.new(:users)[:name].is_not_distinct_from "Aaron Patterson"
+        test = Table.new(name: :users)[:name].is_not_distinct_from "Aaron Patterson"
         assert_like %{
           CASE WHEN "users"."name" = 'Aaron Patterson' OR ("users"."name" IS NULL AND 'Aaron Patterson' IS NULL) THEN 0 ELSE 1 END = 0
         }, compile(test)
       end
 
       test "Nodes::IsNotDistinctFrom should handle column names on both sides" do
-        test = Table.new(:users)[:first_name].is_not_distinct_from Table.new(:users)[:last_name]
+        test = Table.new(name: :users)[:first_name].is_not_distinct_from Table.new(name: :users)[:last_name]
         assert_like %{
           CASE WHEN "users"."first_name" = "users"."last_name" OR ("users"."first_name" IS NULL AND "users"."last_name" IS NULL) THEN 0 ELSE 1 END = 0
         }, compile(test)
@@ -241,7 +241,7 @@ module Arel
       end
 
       test "Nodes::IsDistinctFrom should handle column names on both sides" do
-        test = Table.new(:users)[:first_name].is_distinct_from Table.new(:users)[:last_name]
+        test = Table.new(name: :users)[:first_name].is_distinct_from Table.new(name: :users)[:last_name]
         assert_like %{
           CASE WHEN "users"."first_name" = "users"."last_name" OR ("users"."first_name" IS NULL AND "users"."last_name" IS NULL) THEN 0 ELSE 1 END = 1
         }, compile(test)
@@ -275,21 +275,21 @@ module Arel
       end
 
       test "should contain a single space before ORDER BY" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         test = table.order(table[:name])
         sql = compile test
         assert_match(/"users" ORDER BY/, sql)
       end
 
       test "should quote LIMIT without column type coercion" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         sc = table.where(table[:name].eq(0)).take(1).ast
         assert_match(/WHERE "users"."name" = 0 LIMIT 1/, compile(sc))
       end
 
       test "should visit_DateTime" do
         dt = DateTime.now
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         test = table[:created_at].eq dt
         sql = compile test
 
@@ -297,7 +297,7 @@ module Arel
       end
 
       test "should visit_Float" do
-        test = Table.new(:products)[:price].eq 2.14
+        test = Table.new(name: :products)[:price].eq 2.14
         sql = compile test
         assert_like %{"products"."price" = 2.14}, sql
       end
@@ -337,7 +337,7 @@ module Arel
 
       test "should visit_Date" do
         dt = Date.today
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         test = table[:created_at].eq dt
         sql = compile test
 
@@ -354,7 +354,7 @@ module Arel
       end
 
       test "should visit_Arel_SelectManager, which is a subquery" do
-        mgr = Table.new(:foo).project(:bar)
+        mgr = Table.new(name: :foo).project(:bar)
         assert_like '(SELECT bar FROM "foo")', compile(mgr)
       end
 
@@ -384,7 +384,7 @@ module Arel
       end
 
       test "should visit_TrueClass" do
-        test = Table.new(:users)[:bool].eq(true)
+        test = Table.new(name: :users)[:bool].eq(true)
         assert_like %{ "users"."bool" = 't' }, compile(test)
       end
 
@@ -514,7 +514,7 @@ module Arel
       end
 
       test "Nodes::In can handle subqueries" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         subquery = table.project(:id).where(table[:name].eq("Aaron"))
         node = @attr.in subquery
         assert_like %{
@@ -531,7 +531,7 @@ module Arel
       end
 
       test "Nodes::In is preparable when a subselect" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         subquery = table.project(table[:id]).where(table[:name].eq("Aaron"))
         node = @attr.in subquery
 
@@ -541,84 +541,84 @@ module Arel
       end
 
       test "Nodes::InfixOperation should handle Multiplication" do
-        node = Arel::Attribute.new(Table.new(:products), :price) * Arel::Attribute.new(Table.new(:currency_rates), :rate)
+        node = Arel::Attribute.new(Table.new(name: :products), :price) * Arel::Attribute.new(Table.new(name: :currency_rates), :rate)
         assert_equal %("products"."price" * "currency_rates"."rate"), compile(node)
       end
 
       test "Nodes::InfixOperation should handle Division" do
-        node = Arel::Attribute.new(Table.new(:products), :price) / 5
+        node = Arel::Attribute.new(Table.new(name: :products), :price) / 5
         assert_equal %("products"."price" / 5), compile(node)
       end
 
       test "Nodes::InfixOperation should handle Addition" do
-        node = Arel::Attribute.new(Table.new(:products), :price) + 6
+        node = Arel::Attribute.new(Table.new(name: :products), :price) + 6
         assert_equal %(("products"."price" + 6)), compile(node)
       end
 
       test "Nodes::InfixOperation should handle Subtraction" do
-        node = Arel::Attribute.new(Table.new(:products), :price) - 7
+        node = Arel::Attribute.new(Table.new(name: :products), :price) - 7
         assert_equal %(("products"."price" - 7)), compile(node)
       end
 
       test "Nodes::InfixOperation should handle Concatenation" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         node = table[:name].concat(table[:name])
         assert_equal %("users"."name" || "users"."name"), compile(node)
       end
 
       test "Nodes::InfixOperation should handle Contains" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         node = table[:name].contains(table[:name])
         assert_equal %("users"."name" @> "users"."name"), compile(node)
       end
 
       test "Nodes::InfixOperation should handle Overlaps" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         node = table[:name].overlaps(table[:name])
         assert_equal %("users"."name" && "users"."name"), compile(node)
       end
 
       test "Nodes::InfixOperation should handle BitwiseAnd" do
-        node = Arel::Attribute.new(Table.new(:products), :bitmap) & 16
+        node = Arel::Attribute.new(Table.new(name: :products), :bitmap) & 16
         assert_equal %(("products"."bitmap" & 16)), compile(node)
       end
 
       test "Nodes::InfixOperation should handle BitwiseOr" do
-        node = Arel::Attribute.new(Table.new(:products), :bitmap) | 16
+        node = Arel::Attribute.new(Table.new(name: :products), :bitmap) | 16
         assert_equal %(("products"."bitmap" | 16)), compile(node)
       end
 
       test "Nodes::InfixOperation should handle BitwiseXor" do
-        node = Arel::Attribute.new(Table.new(:products), :bitmap) ^ 16
+        node = Arel::Attribute.new(Table.new(name: :products), :bitmap) ^ 16
         assert_equal %(("products"."bitmap" ^ 16)), compile(node)
       end
 
       test "Nodes::InfixOperation should handle BitwiseShiftLeft" do
-        node = Arel::Attribute.new(Table.new(:products), :bitmap) << 4
+        node = Arel::Attribute.new(Table.new(name: :products), :bitmap) << 4
         assert_equal %(("products"."bitmap" << 4)), compile(node)
       end
 
       test "Nodes::InfixOperation should handle BitwiseShiftRight" do
-        node = Arel::Attribute.new(Table.new(:products), :bitmap) >> 4
+        node = Arel::Attribute.new(Table.new(name: :products), :bitmap) >> 4
         assert_equal %(("products"."bitmap" >> 4)), compile(node)
       end
 
       test "Nodes::InfixOperation should handle arbitrary operators" do
         node = Arel::Nodes::InfixOperation.new(
           "&&",
-          Arel::Attribute.new(Table.new(:products), :name),
-          Arel::Attribute.new(Table.new(:products), :name)
+          Arel::Attribute.new(Table.new(name: :products), :name),
+          Arel::Attribute.new(Table.new(name: :products), :name)
         )
         assert_equal %("products"."name" && "products"."name"), compile(node)
       end
 
       test "Nodes::UnaryOperation should handle BitwiseNot" do
-        node = ~ Arel::Attribute.new(Table.new(:products), :bitmap)
+        node = ~ Arel::Attribute.new(Table.new(name: :products), :bitmap)
         assert_equal %( ~ "products"."bitmap"), compile(node)
       end
 
       test "Nodes::UnaryOperation should handle arbitrary operators" do
-        node = Arel::Nodes::UnaryOperation.new("!", Arel::Attribute.new(Table.new(:products), :active))
+        node = Arel::Nodes::UnaryOperation.new("!", Arel::Attribute.new(Table.new(name: :products), :active))
         assert_equal %( ! "products"."active"), compile(node)
       end
 
@@ -633,7 +633,7 @@ module Arel
       end
 
       test "Nodes::Union encloses SELECT statements with parentheses" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         left = table.where(table[:name].eq(0)).take(1).ast
         right = table.where(table[:name].eq(1)).take(1).ast
         node = Nodes::Union.new left, right
@@ -651,7 +651,7 @@ module Arel
       end
 
       test "Nodes::UnionAll encloses SELECT statements with parentheses" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         left = table.where(table[:name].eq(0)).take(1).ast
         right = table.where(table[:name].eq(1)).take(1).ast
         node = Nodes::UnionAll.new left, right
@@ -701,7 +701,7 @@ module Arel
       end
 
       test "Nodes::NotIn can handle subqueries" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         subquery = table.project(:id).where(table[:name].eq("Aaron"))
         node = @attr.not_in subquery
         assert_like %{
@@ -718,7 +718,7 @@ module Arel
       end
 
       test "Nodes::NotIn is preparable when a subselect" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         subquery = table.project(table[:id]).where(table[:name].eq("Aaron"))
         node = @attr.not_in subquery
 
@@ -728,14 +728,14 @@ module Arel
       end
 
       test "Constants should handle true" do
-        test = Table.new(:users).create_true
+        test = Table.new(name: :users).create_true
         assert_like %{
           TRUE
         }, compile(test)
       end
 
       test "Constants should handle false" do
-        test = Table.new(:users).create_false
+        test = Table.new(name: :users).create_false
         assert_like %{
           FALSE
         }, compile(test)
@@ -822,14 +822,14 @@ module Arel
       end
 
       test "Table should compile node names" do
-        test = Table.new(:users).alias("zomgusers")[:id].eq "3"
+        test = Table.new(name: :users).alias("zomgusers")[:id].eq "3"
         assert_like %{
           "zomgusers"."id" = '3'
         }, compile(test)
       end
 
       test "Table should compile literal SQL" do
-        test = Table.new Arel.sql("generate_series(4, 2)")
+        test = Table.new name: Arel.sql("generate_series(4, 2)")
         assert_like %{ generate_series(4, 2) }, compile(test)
       end
 
@@ -845,7 +845,7 @@ module Arel
       end
 
       test "TableAlias should use the underlying table for checking columns" do
-        test = Table.new(:users).alias("zomgusers")[:id].eq "3"
+        test = Table.new(name: :users).alias("zomgusers")[:id].eq "3"
         assert_like %{
           "zomgusers"."id" = '3'
         }, compile(test)
@@ -935,9 +935,9 @@ module Arel
       end
 
       test "Nodes::With handles table aliases" do
-        manager = Table.new(:foo).project(Arel.star).from(Arel.sql("expr2"))
-        expr1 = Table.new(:bar).project(Arel.star).as("expr1")
-        expr2 = Table.new(:baz).project(Arel.star).as("expr2")
+        manager = Table.new(name: :foo).project(Arel.star).from(Arel.sql("expr2"))
+        expr1 = Table.new(name: :bar).project(Arel.star).as("expr1")
+        expr2 = Table.new(name: :baz).project(Arel.star).as("expr2")
         manager.with(expr1, expr2)
 
         assert_like %{
@@ -946,8 +946,8 @@ module Arel
       end
 
       test "Nodes::With handles Cte nodes" do
-        cte = Arel::Nodes::Cte.new("expr1", Table.new(:bar).project(Arel.star))
-        manager = Table.new(:foo).
+        cte = Arel::Nodes::Cte.new("expr1", Table.new(name: :bar).project(Arel.star))
+        manager = Table.new(name: :foo).
           project(Arel.star).
           with(cte).
           from(cte.to_table).
@@ -959,8 +959,8 @@ module Arel
       end
 
       test "Nodes::WithRecursive handles table aliases" do
-        manager = Table.new(:foo).project(Arel.star).from(Arel.sql("expr1"))
-        expr1 = Table.new(:bar).project(Arel.star).as("expr1")
+        manager = Table.new(name: :foo).project(Arel.star).from(Arel.sql("expr1"))
+        expr1 = Table.new(name: :bar).project(Arel.star).as("expr1")
         manager.with(:recursive, expr1)
 
         assert_like %{
@@ -969,7 +969,7 @@ module Arel
       end
 
       test "Nodes::Cte handles CTEs with no MATERIALIZED modifier" do
-        cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star))
+        cte = Nodes::Cte.new("foo", Table.new(name: :bar).project(Arel.star))
 
         assert_like %{
           "foo" AS (SELECT * FROM "bar")
@@ -977,7 +977,7 @@ module Arel
       end
 
       test "Nodes::Cte handles CTEs with a MATERIALIZED modifier" do
-        cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), materialized: true)
+        cte = Nodes::Cte.new("foo", Table.new(name: :bar).project(Arel.star), materialized: true)
 
         assert_like %{
           "foo" AS MATERIALIZED (SELECT * FROM "bar")
@@ -985,7 +985,7 @@ module Arel
       end
 
       test "Nodes::Cte handles CTEs with a NOT MATERIALIZED modifier" do
-        cte = Nodes::Cte.new("foo", Table.new(:bar).project(Arel.star), materialized: false)
+        cte = Nodes::Cte.new("foo", Table.new(name: :bar).project(Arel.star), materialized: false)
 
         assert_like %{
           "foo" AS NOT MATERIALIZED (SELECT * FROM "bar")

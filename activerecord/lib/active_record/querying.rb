@@ -17,11 +17,23 @@ module ActiveRecord
       :and, :or, :annotate, :optimizer_hints, :extending,
       :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
       :count, :average, :minimum, :maximum, :sum, :calculate,
-      :pluck, :pick, :ids, :async_ids, :strict_loading, :excluding, :without, :with, :with_recursive,
+      :pluck, :pick, :ids, :async_ids, :strict_loading, :excluding, :without, :with_recursive,
       :async_count, :async_average, :async_minimum, :async_maximum, :async_sum, :async_pluck, :async_pick,
       :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all
     ].freeze # :nodoc:
     delegate(*QUERYING_METHODS, to: :all)
+
+    # Add a Common Table Expression (CTE) that you can then reference within another SELECT statement.
+    #
+    # See ActiveRecord::QueryMethods#with for more information.
+    #
+    # When given a block, and the Object#with core extension is loaded, this
+    # delegates to it instead, temporarily setting the given attributes on the
+    # class for the duration of the block and restoring them afterwards.
+    def with(...)
+      return super if block_given? && defined?(super)
+      all.with(...)
+    end
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array, with the requested columns encapsulated as attributes of the model you call

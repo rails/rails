@@ -6,8 +6,8 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_counter_cache_columns, instance_accessor: false, default: []
-      class_attribute :counter_cached_association_names, instance_writer: false, default: []
+      class_attribute :_counter_cache_columns, instance_accessor: false, default: [].freeze
+      class_attribute :counter_cached_association_names, instance_writer: false, default: [].freeze
     end
 
     module ClassMethods
@@ -35,17 +35,9 @@ module ActiveRecord
       #   # attributes.
       #   Post.reset_counters(1, :comments, touch: true)
       def reset_counters(id, *counters, touch: nil)
-        if composite_primary_key?
-          ids = id.first.is_a?(Array) ? id : [id]
-          types = primary_key.map { |column| type_for_attribute(column) }
-          ids = ids.map do |id_value|
-            id_value.map.with_index { |id, i| types[i].cast(id) }
-          end
-        else
-          ids = Array(id)
-          type = type_for_attribute(primary_key)
-          ids = ids.map { |id| type.cast(id) }
-        end
+        pk = primary_key_definition
+        ids = pk.expects_multiple_ids?(id) ? id : [id]
+        ids = ids.map { |id_value| pk.cast(id_value, self) }
 
         updates = Hash.new { |h, k| h[k] = {} }
 
@@ -140,7 +132,8 @@ module ActiveRecord
       #   #    `updated_at` = '2016-10-13T09:59:23-05:00'
       #   #  WHERE id IN (10, 15)
       def update_counters(id, counters)
-        id = [id] if composite_primary_key? && id.is_a?(Array) && !id[0].is_a?(Array)
+        pk = primary_key_definition
+        id = [id] if pk.composite? && id.is_a?(Array) && !pk.expects_multiple_ids?(id)
         unscoped.where!(primary_key => id).update_counters(counters)
       end
 
@@ -219,7 +212,7 @@ module ActiveRecord
           name.to_sym
         end
 
-        self.counter_cached_association_names |= association_names
+        self.counter_cached_association_names = (counter_cached_association_names | association_names).freeze
       end
     end
 

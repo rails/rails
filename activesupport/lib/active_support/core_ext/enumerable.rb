@@ -196,7 +196,7 @@ module Enumerable
   # the +filter+ option is set to +false+.
   def in_order_of(key, series, filter: true)
     if filter
-      group_by(&key).values_at(*series).flatten(1).compact
+      group_by(&key).values_at(*series).compact.flatten(1)
     else
       sort_by { |v| series.index(v.public_send(key)) || series.size }
     end

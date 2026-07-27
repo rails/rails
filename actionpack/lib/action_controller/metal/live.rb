@@ -262,6 +262,12 @@ module ActionController
         synchronize do
           @aborted = true
           @buf.clear
+          # Wake a reader parked in each_chunk's `@buf.pop`. Without a terminator
+          # the reader can never observe @aborted and would block forever, wedging
+          # the request thread. A duplicate terminator (when #close ran too) is
+          # harmless: each_chunk stops at the first one.
+          @buf.push nil
+          @cv.broadcast
         end
       end
 

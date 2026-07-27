@@ -17,7 +17,7 @@ module Arel
 
     test "insert allows sql literals" do
       manager = Arel::InsertManager.new
-      manager.into Table.new(:users)
+      manager.into Table.new(name: :users)
       manager.values = manager.create_values([Arel.sql("*")])
 
       assert_like %{
@@ -26,7 +26,7 @@ module Arel
     end
 
     test "insert works with multiple values" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       manager = Arel::InsertManager.new
       manager.into table
 
@@ -45,7 +45,7 @@ module Arel
     end
 
     test "insert literals in multiple values are not escaped" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       manager = Arel::InsertManager.new
       manager.into table
 
@@ -62,7 +62,7 @@ module Arel
     end
 
     test "insert works with multiple single values" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       manager = Arel::InsertManager.new
       manager.into table
 
@@ -80,7 +80,7 @@ module Arel
     end
 
     test "insert inserts false" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       manager = Arel::InsertManager.new
 
       manager.insert [[table[:bool], false]]
@@ -90,7 +90,7 @@ module Arel
     end
 
     test "insert inserts null" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       manager = Arel::InsertManager.new
       manager.insert [[table[:id], nil]]
 
@@ -100,7 +100,7 @@ module Arel
     end
 
     test "insert inserts time" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       manager = Arel::InsertManager.new
 
       time = Time.now
@@ -113,7 +113,7 @@ module Arel
     end
 
     test "insert takes a list of lists" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       manager = Arel::InsertManager.new
       manager.into table
       manager.insert [[table[:id], 1], [table[:name], "aaron"]]
@@ -124,7 +124,7 @@ module Arel
     end
 
     test "insert defaults the table" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       manager = Arel::InsertManager.new
       manager.insert [[table[:id], 1], [table[:name], "aaron"]]
 
@@ -134,7 +134,7 @@ module Arel
     end
 
     test "insert noop for empty list" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       manager = Arel::InsertManager.new
       manager.insert [[table[:id], 1]]
       manager.insert []
@@ -145,7 +145,7 @@ module Arel
     end
 
     test "insert is chainable" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       manager = Arel::InsertManager.new
       insert_result = manager.insert [[table[:id], 1]]
 
@@ -155,11 +155,11 @@ module Arel
     test "into takes a Table and chains" do
       manager = Arel::InsertManager.new
 
-      assert_equal manager, manager.into(Table.new(:users))
+      assert_equal manager, manager.into(Table.new(name: :users))
     end
 
     test "into converts to sql" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::InsertManager.new
       manager.into table
 
@@ -169,7 +169,7 @@ module Arel
     end
 
     test "columns converts to sql" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::InsertManager.new
       manager.into table
       manager.columns << table[:id]
@@ -180,7 +180,7 @@ module Arel
     end
 
     test "values converts to sql" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::InsertManager.new
       manager.into table
       manager.values = Nodes::ValuesList.new([[1], [2]])
@@ -191,7 +191,7 @@ module Arel
     end
 
     test "values accepts sql literals" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::InsertManager.new
       manager.into table
       manager.values = Arel.sql("DEFAULT VALUES")
@@ -202,7 +202,7 @@ module Arel
     end
 
     test "combo combines columns and values list in order" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::InsertManager.new
       manager.into table
 
@@ -216,7 +216,7 @@ module Arel
     end
 
     test "select accepts a select query in place of a VALUES clause" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::InsertManager.new
       manager.into table
 
@@ -234,7 +234,7 @@ module Arel
     end
 
     test "#returning accepts a returning clause" do
-      users   = Table.new :users
+      users   = Table.new name: :users
       manager = Arel::InsertManager.new
       manager.into users
       manager.returning Arel.star
@@ -245,7 +245,7 @@ module Arel
     end
 
     test "#returning accepts multiple values as returning clause" do
-      users   = Table.new :users
+      users   = Table.new name: :users
       manager = Arel::InsertManager.new
       manager.into users
       manager.returning Arel.star

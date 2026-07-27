@@ -226,6 +226,15 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal k.lease_connection.quote_column_name("foo"), k.quoted_primary_key
   end
 
+  def test_primary_key_inherited
+    k = Class.new(ActiveRecord::Base)
+    k.primary_key = "foo"
+    subclass = Class.new(k)
+
+    assert_equal "foo", k._primary_key_definition&.name
+    assert_equal "foo", subclass._primary_key_definition&.name
+  end
+
   def test_auto_detect_primary_key_from_schema
     MixedCaseMonkey.reset_primary_key
     assert_equal "monkeyID", MixedCaseMonkey.primary_key
@@ -267,7 +276,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_not_predicate klass, :composite_primary_key?
   end
 
-  def composite_primary_key_is_false_for_a_non_cpk_model
+  def test_composite_primary_key_is_false_for_a_non_cpk_model
     assert_not_predicate Dashboard, :composite_primary_key?
   end
 
@@ -423,6 +432,13 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     Cpk::Book.delete_all
   end
 
+  def test_reading_composite_primary_key_after_partial_select_returns_nil
+    book = Cpk::Book.select(:title).first
+
+    assert_nil book.author_id
+    assert_equal [nil, nil], book.id
+  end
+
   def test_assigning_a_non_array_value_to_model_with_composite_primary_key_raises
     book = Cpk::Book.new
 
@@ -490,7 +506,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     assert_equal(["shop_id", "id"], Cpk::Order.primary_key)
   end
 
-  def composite_primary_key_is_true_for_a_cpk_model
+  def test_composite_primary_key_is_true_for_a_cpk_model
     assert_predicate Cpk::Book, :composite_primary_key?
   end
 

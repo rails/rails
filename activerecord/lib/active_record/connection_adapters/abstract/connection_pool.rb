@@ -129,14 +129,14 @@ module ActiveRecord
     class ConnectionPool
       # Prior to 3.3.5, WeakKeyMap had a use after free bug
       # https://bugs.ruby-lang.org/issues/20688
-      if ObjectSpace.const_defined?(:WeakKeyMap) && Gem::Version.new(RUBY_VERSION) >= "3.3.5"
+      if ObjectSpace.const_defined?(:WeakKeyMap) && Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.3.5")
         WeakThreadKeyMap = ObjectSpace::WeakKeyMap
       else
         class WeakThreadKeyMap # :nodoc:
           # FIXME: On 3.3 we could use ObjectSpace::WeakKeyMap
           # but it currently causes GC crashes: https://github.com/byroot/rails/pull/3
           def initialize
-            @map = {}
+            @map = Concurrent::Map.new
           end
 
           def clear
@@ -148,7 +148,9 @@ module ActiveRecord
           end
 
           def []=(key, value)
-            @map.select! { |c, _| c&.alive? }
+            @map.each_pair do |thread, _|
+              @map.delete(thread) unless thread&.alive?
+            end
             @map[key] = value
           end
         end
@@ -521,9 +523,15 @@ module ActiveRecord
               @connections.each do |conn|
                 if conn.in_use?
                   conn.steal!
-                  checkin conn
+
+                  ActiveSupport.error_reporter.handle(source: "active_record.connection_pool") do
+                    checkin conn
+                  end
                 end
-                conn.disconnect!
+
+                ActiveSupport.error_reporter.handle(source: "active_record.connection_pool") do
+                  conn.disconnect!
+                end
               end
               @connections = @pinned_connection ? [@pinned_connection] : []
               @leases.clear
@@ -984,8 +992,8 @@ module ActiveRecord
 
         # Directly check a specific connection out of the pool. Skips callbacks.
         #
-        # The connection must later either #return_from_maintenance or
-        # #remove_from_maintenance, or the pool will hang.
+        # The connection must later be returned with #return_from_maintenance, or
+        # the pool will hang.
         def checkout_for_maintenance(conn)
           synchronize do
             @maintaining += 1
@@ -1011,15 +1019,6 @@ module ActiveRecord
           end
         end
 
-        # Remove a connection from the pool after it has been checked out for
-        # maintenance. It will be automatically replaced with a new connection if
-        # necessary.
-        def remove_from_maintenance(conn)
-          synchronize do
-            @maintaining -= 1
-            remove conn
-          end
-        end
 
         #--
         # this is unfortunately not concurrent

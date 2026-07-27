@@ -14,6 +14,14 @@ module ActiveSupport
     define_callbacks :run
     define_callbacks :complete
 
+    class << self
+      attr_reader :active_key # :nodoc:
+    end
+
+    def self.inherited(subclass)
+      subclass.class_eval { @active_key = :"active_execution_wrapper_#{object_id}" }
+    end
+
     def self.to_run(*args, &block)
       set_callback(:run, *args, &block)
     end
@@ -109,10 +117,6 @@ module ActiveSupport
 
     def self.error_reporter # :nodoc:
       ActiveSupport.error_reporter
-    end
-
-    def self.active_key # :nodoc:
-      @active_key ||= :"active_execution_wrapper_#{object_id}"
     end
 
     def self.active? # :nodoc:

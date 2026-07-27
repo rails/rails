@@ -245,7 +245,7 @@ You might want to ignore the case when querying deterministically encrypted
 data. There are two options for achieving this - `:downcase` and `:ignore_case`.
 
 When you use the `:downcase` option when declaring the encrypted attribute, it
-converts the data to downcase before encryption occurs. This allows to
+converts the data to downcase before encryption occurs. This allows you to
 effectively ignore case when querying data.
 
 ```ruby

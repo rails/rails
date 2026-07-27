@@ -39,6 +39,13 @@ module Cpk
     belongs_to :non_cpk_order, foreign_key: [:order_id]
   end
 
+  class BookWithNonCpkOrder < ActiveRecord::Base
+    self.table_name = :cpk_books
+
+    belongs_to :non_cpk_order, class_name: "Cpk::NonCpkOrder",
+      foreign_key: [:shop_id, :order_id], primary_key: [:shop_id, :id], inverse_of: :books_with_composite_primary_key
+  end
+
   class NullifiedBook < Book
     has_one :chapter, foreign_key: [:author_id, :book_id], dependent: :nullify
   end

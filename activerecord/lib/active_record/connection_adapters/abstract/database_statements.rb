@@ -261,10 +261,10 @@ module ActiveRecord
 
       # Executes the update statement and returns an ActiveRecord::Result
       # Some adapters support the `returning` keyword argument
-      def update_with_result(arel, name = nil, binds = [], returning:) # :nodoc:
+      def update_with_result(arel, name = nil, returning:) # :nodoc:
         arel.returning(returning.map { |column| Arel.sql(quote_column_name(column)) })
 
-        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
+        intent = QueryIntent.new(adapter: self, arel: arel, name: name)
 
         intent.execute!
         intent.cast_result
@@ -721,7 +721,7 @@ module ActiveRecord
             end
           end
 
-          table = Arel::Table.new(table_name)
+          table = Arel::Table.new(name: table_name)
           manager = Arel::InsertManager.new(table)
 
           if values_list.size == 1

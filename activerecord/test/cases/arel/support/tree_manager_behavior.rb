@@ -26,7 +26,7 @@ module Arel
 
     included do
       test "to_sql uses given table's engine if available" do
-        table = Table.new(:users, klass: MyEngine)
+        table = Table.new(name: :users, klass: MyEngine)
         manager = build_manager(table)
 
         assert_includes manager.to_sql, "@users@"

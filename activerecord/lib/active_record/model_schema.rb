@@ -274,12 +274,12 @@ module ActiveRecord
         if defined?(@table_name)
           return if value == @table_name
           reset_column_information if connected?
+          @predicate_builder = nil
         end
 
         @table_name        = value
-        @arel_table        = nil
+        @arel_table        = Arel::Table.new(klass: self)
         @sequence_name     = nil unless @explicit_sequence_name
-        @predicate_builder = nil
       end
 
       # Returns a quoted version of the table name.
@@ -448,10 +448,8 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        @attributes_builder ||= begin
-          defaults = _default_attributes.except(*(column_names - [primary_key]))
-          ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
-        end
+        defaults = _default_attributes.except(*(column_names - Array(primary_key)))
+        ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
       end
 
       def columns_hash # :nodoc:
@@ -508,7 +506,7 @@ module ActiveRecord
 
       # Returns an array of column names as strings.
       def column_names
-        @column_names ||= columns.map(&:name).freeze
+        columns.map(&:name).freeze
       end
 
       def symbol_column_to_string(name_symbol) # :nodoc:
@@ -520,7 +518,7 @@ module ActiveRecord
       # and columns used for single table inheritance have been removed.
       def content_columns
         @content_columns ||= columns.reject do |c|
-          c.name == primary_key ||
+          Array(primary_key).include?(c.name) ||
           c.name == inheritance_column ||
           c.name.end_with?("_id", "_count")
         end.freeze
@@ -585,12 +583,10 @@ module ActiveRecord
         def reload_schema_from_cache(recursive = true)
           @_returning_columns_for_insert = nil
           @_returning_columns_for_update = nil
-          @arel_table = nil
-          @column_names = nil
+          @arel_table = Arel::Table.new(klass: self)
           @symbol_column_to_string_name_hash = nil
           @content_columns = nil
           @column_defaults = nil
-          @attributes_builder = nil
           @columns = nil
           @columns_hash = nil
           @schema_loaded = false

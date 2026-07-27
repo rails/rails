@@ -206,7 +206,8 @@ module ActionDispatch # :nodoc:
           if context.nil?
             raise RuntimeError, "Missing context for the dynamic permissions policy source: #{source.inspect}"
           else
-            context.instance_exec(&source)
+            resolved = context.instance_exec(&source)
+            apply_mappings(Array.wrap(resolved))
           end
         else
           raise RuntimeError, "Unexpected permissions policy source: #{source.inspect}"

@@ -4,7 +4,7 @@ require "abstract_unit"
 require "action_dispatch/middleware/session/abstract_store"
 
 module ActionDispatch
-  class Request
+  module Http
     class SessionTest < ActiveSupport::TestCase
       attr_reader :req
 

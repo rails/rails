@@ -10,6 +10,7 @@ class Author < ActiveRecord::Base
   has_many :posts_with_comments_sorted_by_comment_id, -> { includes(:comments).order("comments.id") }, class_name: "Post"
   has_many :posts_sorted_by_id, -> { order(:id) }, class_name: "Post"
   has_many :posts_sorted_by_id_limited, -> { order("posts.id").limit(1) }, class_name: "Post"
+  has_many :posts_with_default_order, class_name: "Post", default_order: "posts.id DESC"
   has_many :posts_with_categories, -> { includes(:categories) }, class_name: "Post"
   has_many :posts_with_comments_and_categories, -> { includes(:comments, :categories).order("posts.id") }, class_name: "Post"
   has_many :posts_with_special_categorizations, class_name: "PostWithSpecialCategorization"
@@ -180,6 +181,8 @@ class Author < ActiveRecord::Base
   has_many :subscriptions,        through: :books
   has_many :subscribers, -> { order("subscribers.nick") }, through: :subscriptions
   has_many :distinct_subscribers, -> { select("DISTINCT subscribers.*").order("subscribers.nick") }, through: :subscriptions, source: :subscriber
+
+  has_many :polymorphic_comments, as: :person, primary_key: :author_code
 
   has_one :essay, primary_key: :name, as: :writer
   has_one :essay_category, through: :essay, source: :category

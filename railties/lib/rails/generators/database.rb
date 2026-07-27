@@ -16,7 +16,7 @@ module Rails
 
         def service
           {
-            "image" => "mysql/mysql-server:8.0",
+            "image" => "mysql:9.7",
             "restart" => "unless-stopped",
             "environment" => {
               "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",

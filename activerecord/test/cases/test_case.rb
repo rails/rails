@@ -39,13 +39,13 @@ module ActiveRecord
       check_connection_leaks
     end
 
-    def check_connection_leaks
+    def check_connection_leaks(connection_pools = nil)
       return if in_memory_db?
 
       # Make sure tests didn't leave a connection owned by some background thread
       # which could lead to some slow wait in a subsequent thread.
       leaked_conn = []
-      ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
+      (connection_pools || ActiveRecord::Base.connection_handler.each_connection_pool).each do |pool|
         # Ensure all in flights tasks are completed.
         # Otherwise they may still hold a connection.
         if pool.async_executor
@@ -62,6 +62,8 @@ module ActiveRecord
 
         # Avoid racing the pool reaper while it is performing maintenance.
         pool.reaper_lock do
+          wait_for_pool_maintenance(pool)
+
           pool.reap
           pool.connections.each do |conn|
             if conn.in_use?
@@ -84,6 +86,21 @@ module ActiveRecord
           puts
         end
         raise "Found #{leaked_conn.size} leaked connection after #{self.class.name}##{name}"
+      end
+    end
+
+    def wait_for_pool_maintenance(pool)
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
+
+      while Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+        pool.synchronize do
+          executor = pool.async_executor
+
+          return if pool.instance_variable_get(:@maintaining).zero? &&
+            executor&.completed_task_count == executor&.scheduled_task_count
+        end
+
+        sleep 0.05
       end
     end
 

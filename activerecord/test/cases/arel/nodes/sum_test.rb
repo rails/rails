@@ -4,7 +4,7 @@ require_relative "../helper"
 
 class Arel::Nodes::SumTest < Arel::Test
   test "as should alias the sum" do
-    table = Arel::Table.new :users
+    table = Arel::Table.new name: :users
     assert_like %{
       SUM("users"."id") AS foo
     }, table[:id].sum.as("foo").to_sql
@@ -21,7 +21,7 @@ class Arel::Nodes::SumTest < Arel::Test
   end
 
   test "order should order the sum" do
-    table = Arel::Table.new :users
+    table = Arel::Table.new name: :users
     assert_like %{
       SUM("users"."id") DESC
     }, table[:id].sum.desc.to_sql

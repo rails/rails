@@ -1,3 +1,165 @@
+*   Deprecate the `insert_returning` option in PostgreSQL database
+    configurations, and the `PostgreSQLAdapter#use_insert_returning?` method.
+
+    The option only affected single-row INSERT statements. Other paths such
+    as `insert_all`, `upsert_all`, and RETURNING for `update` already use
+    RETURNING when the database supports it, so the option cannot fully
+    disable RETURNING and has become vestigial.
+
+    *Ryuta Kamizono*
+
+*   Remove unused `rest` parameter from merge and merge!
+
+    *Aaron Patterson*
+
+*   Support dumping `schema_migrations` in `db/schema.rb`.
+
+    When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`
+    schema dumps include the versions recorded in the `schema_migrations` table,
+    and the `ActiveRecord::Schema.define` call is made with no arguments.
+
+    Rails applications have `config.active_record.dump_schema_migrations` too,
+    which can be overridden per database, using the new `dump_schema_migrations`
+    database configuration option.
+
+    Versions are ordered by their reversed strings by default, to help avoid
+    merge conflicts, but `dump_schema_migrations_sort_by` gives you a way to
+    customize this.
+
+    `ActiveRecord.dump_schema_migrations` is false by default.
+
+    *Xavier Noria*
+
+*   Only use multi statement for `SET TRANSACTION ISOLATION LEVEL; BEGIN` if
+    MySQL connection is configured to use multi statement.
+
+    *Eliseu Daroit*, *Hartley McGuire*, *Matthew Draper*
+
+*   `connected_to_all_shards` now raises `ArgumentError` when called on a model
+    that is not connected to any shards, rather than silently doing nothing.
+
+    *Eileen M. Alayce*
+
+*   Honor foreign key names on SQLite3.
+
+    SQLite3 did not read foreign key names, so `remove_foreign_key(name:)`
+    removed an arbitrary foreign key rather than the named one, and custom
+    names were lost when a later schema change rebuilt the table or the
+    schema was dumped. Names are now honored, matching the other adapters.
+
+    *Kenta Ishizaki*
+
+*   Honor `if_not_exists:` in SQLite3 `add_check_constraint` and `add_foreign_key`.
+
+    *Kenta Ishizaki*
+
+*   Fix MySQL `POINT` and `MULTIPOINT` columns being misreported as integer columns.
+
+    Both type names contain the substring "int", so they matched the generic
+    `%r(int)i` rule in the abstract adapter's type map and came back with
+    `type: :integer`, instead of being treated as an unknown type like the
+    other spatial types (`GEOMETRY`, `POLYGON`, `LINESTRING`, ...).
+
+    *Ryosuke Okazuka*
+
+*   Report PostgreSQL default timestamp and time precision as 6.
+
+    Bare PostgreSQL `timestamp` and `time` columns now use their effective
+    microsecond precision in Active Record type metadata, matching the
+    database's persisted precision.
+
+    *Adrianna Chang*
+
+*   Fix inverse association matching for `has_many` and `has_one` associations
+    with association-specific composite primary keys.
+
+    *Hugo Vacher*
+
+*   Support polymorphic associations with custom primary keys through `:inverse_of`.
+
+    When using polymorphic associations with `:inverse_of`, ActiveRecord now respects
+    custom `:primary_key` options defined on the inverse association. This allows
+    different associated models to use different primary key columns.
+
+    ```ruby
+    class Post < ActiveRecord::Base
+      has_many :comments, as: :commentable, primary_key: :uuid
+    end
+
+    class Article < ActiveRecord::Base
+      has_many :comments, as: :commentable, primary_key: :slug
+    end
+
+    class Comment < ActiveRecord::Base
+      belongs_to :commentable, polymorphic: true, inverse_of: :comments
+    end
+
+    post = Post.create!(uuid: "post-uuid-123")
+    comment = Comment.new(content: "Great post!")
+    comment.commentable = post  # This now correctly uses :uuid as the foreign key
+    comment.save!
+    comment.commentable_id # => "post-uuid-123" (not the post.id)
+
+    article = Article.create!(slug: "article-slug-456")
+    comment = Comment.new(content: "Nice article!")
+    comment.commentable = article  # This now correctly uses :slug as the foreign key
+    comment.save!
+    comment.commentable_id # => "article-slug-456" (not the article.id)
+    ```
+
+    *Ryuta Kamizono*
+
+*   Make `ActiveRecord::Base.primary_key` inheritable.
+
+    Previously setting `primary_key` on a model wouldn't impact child
+    classes. Now the property is inherited by subclasses as well.
+
+    ``` ruby
+    class AbstractShardedModel < ApplicationRecord
+        self.abstract_class = true
+        self.primary_key = ["tenant_id", "id"]
+    end
+
+    class Invoice < AbstractShardedModel
+    end
+
+    Invoice.primary_key # => ["tenant_id", "id"]
+    ```
+
+    *Iliana Hadzhiatanasova*
+
+*   Fix `has_many` and `has_one` associations on a new record returning an empty
+    result when the owner has a composite primary key, even when every primary
+    key column is populated.
+
+    *Jean-Samuel Aubry-Guzzi*
+
+*   Fix `increment!` / `decrement!` on models with query constraints to include
+    every query constraint column in the counter update.
+
+    *Jean-Samuel Aubry-Guzzi*
+
+*   Fix bug with reloading models with all-queries default scopes. The previous
+    implementation allowed non-all-queries on the current scope to leak into
+    the scope used for reloading.
+
+    *Andrew Novoselac* and *Matthew Draper*
+
+*   `insert!` now accepts the `:unique_by` option, consistent with `insert`.
+
+    *Kenta Ishizaki*
+
+*   Fix reading a `store_accessor` on a `NULL` structured column (`json`, `jsonb`,
+    or `hstore`) marking the record as changed and overwriting the `NULL` with an
+    empty hash on the next save.
+
+    *Kenta Ishizaki*
+
+*   Fix `update_all` corrupting the optimistic locking column when it is set
+    through an `alias_attribute`.
+
+    *Kenta Ishizaki*
+
 *   Fix `serialize` with `coder: ActiveRecord::Coders::JSON` silently double-encoding
     a native `json`/`jsonb` column.
 
@@ -41,11 +203,15 @@
 
     *Rosa Gutierrez*
 
-*   Allow the query log tags format to be configured per connection pool.
+*   Allow query log tags to be configured per connection pool.
 
-    A `query_log_tags_format` key in a `database.yml` entry overrides the global
-    `config.active_record.query_log_tags_format` for connections in that pool, so
-    different databases can emit `:legacy` or `:sqlcommenter` formatted comments.
+    Several query log tag settings can be overridden per pool with a `query_log_tags`
+    key in a `database.yml` entry. Its `format` and `prepend_comment` options override
+    the global `config.active_record.query_log_tags_format` and
+    `config.active_record.query_log_tags_prepend_comment`, so different databases can
+    emit `:legacy` or `:sqlcommenter` comments and prepend or append them. Setting
+    `query_log_tags` to `false` instead opts a pool out of tagging entirely, even when
+    tags are enabled globally.
 
     ```yaml
     production:
@@ -53,7 +219,13 @@
         database: primary
       analytics:
         database: analytics
-        query_log_tags_format: sqlcommenter
+        query_log_tags:
+          format: sqlcommenter
+          prepend_comment: false
+      replica:
+        database: replica
+        replica: true
+        query_log_tags: false
     ```
 
     *Hartley McGuire*
@@ -282,8 +454,10 @@
     `FixtureSet.create_fixtures` to ensure all referenced rows are present when
     enforcement is restored.
 
-    `check_all_foreign_keys_valid!` skips `NOT ENFORCED` constraints on PostgreSQL 18.4+,
-    as `VALIDATE CONSTRAINT` cannot be applied to them.
+    `check_all_foreign_keys_valid!` revalidates foreign keys with the same
+    `NOT ENFORCED`/`ENFORCED` toggle on PostgreSQL 18.4+, likewise requiring only
+    table ownership rather than superuser privileges. Intentionally `NOT ENFORCED`
+    constraints are left unchecked.
 
     Unlike `SET CONSTRAINTS ALL DEFERRED` (the approach attempted in rails/rails#27636
     and reverted), `NOT ENFORCED` also suppresses referential actions such as
@@ -480,7 +654,7 @@
     Use `schema_search_path` instead. The `schema_order` alias will be
     removed in Rails 8.3.
 
-    *Eileen M. Uchitelle*
+    *Eileen M. Alayce*
 
 *   Deprecate the `strict` option in MySQL database configurations.
 
@@ -491,7 +665,7 @@
 
     `strict: false` can be replaced with `variables: { sql_mode: "" }`, and `strict: :default` can be replaced with `variables: { sql_mode: :default }`.
 
-    *Eileen M. Uchitelle*
+    *Eileen M. Alayce*
 
 *   Allow configuring `SET` queriers for the PostgreSQL and MySQL adapters.
 
@@ -523,7 +697,7 @@
     Also deprecates `set_standard_conforming_strings` — it is now handled
     automatically through the consolidated settings hash.
 
-    *Eileen M. Uchitelle*, *Matthew Draper*
+    *Eileen M. Alayce*, *Matthew Draper*
 
 *   MySQL error 1046 (`ER_NO_DB_ERROR: No database selected`) is now retryable as a `ConnectionFailed` exception
 

@@ -204,6 +204,9 @@ if ActiveRecord::Base.lease_connection.supports_unique_constraints?
           assert_not @connection.unique_constraint_exists?(:non_sections, name: "unique_constraint")
           assert_not @connection.unique_constraint_exists?(:sections, column: :non_position, name: "unique_constraint")
           assert_not @connection.unique_constraint_exists?(:sections, name: "other_check")
+
+          assert @connection.unique_constraint_exists?(:sections, column: :position)
+          assert_not @connection.unique_constraint_exists?(:sections, column: :non_position)
         end
 
         def test_remove_unique_constraint

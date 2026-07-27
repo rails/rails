@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "models/post"
 require "models/topic"
 require "models/comment"
@@ -46,6 +47,30 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal Topic.first,                   Topic.base.first
     assert_equal Topic.count,                   Topic.base.count
     assert_equal Topic.average(:replies_count), Topic.base.average(:replies_count)
+  end
+
+  def test_scope_defined_with_shareable_proc_is_ractor_safe
+    scope_class = Class.new(Topic)
+    ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+      assert_nothing_raised do
+        scope_class.scope :ractor_approved, -> { where(approved: true) }
+      end
+    end
+    assert scope_class.respond_to?(:ractor_approved)
+    assert_kind_of ActiveRecord::Relation, scope_class.ractor_approved
+    assert_match(/approved/, scope_class.ractor_approved.to_sql)
+  end
+
+  if RUBY_VERSION >= "4"
+    def test_scope_with_unshareable_proc_is_rejected_when_ractor_safe
+      scope_class = Class.new(Topic)
+      unshareable = +"approved"
+      ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+        assert_raises(Ractor::IsolationError) do
+          scope_class.scope :ractor_unsafe, -> { where(unshareable => true) }
+        end
+      end
+    end
   end
 
   def test_calling_merge_at_first_in_scope

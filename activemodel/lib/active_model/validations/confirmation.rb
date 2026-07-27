@@ -10,7 +10,7 @@ module ActiveModel
 
       def validate_each(record, attribute, value)
         unless (confirmed = record.public_send("#{attribute}_confirmation")).nil?
-          unless confirmation_value_equal?(record, attribute, value, confirmed)
+          unless confirmation_value_equal?(value, confirmed)
             human_attribute_name = record.class.human_attribute_name(attribute)
             record.errors.add(:"#{attribute}_confirmation", :confirmation, **options.except(:case_sensitive).merge!(attribute: human_attribute_name))
           end
@@ -28,7 +28,7 @@ module ActiveModel
           end)
         end
 
-        def confirmation_value_equal?(record, attribute, value, confirmed)
+        def confirmation_value_equal?(value, confirmed)
           if !options[:case_sensitive] && value.is_a?(String)
             value.casecmp(confirmed) == 0
           else

@@ -691,7 +691,7 @@ module RenderTestCases
     assert_not ActionView::Template::Handlers.extensions.include?(:foo)
     assert_equal "Hello, World!", @view.render(inline: "Hello, World!", type: :foo)
   ensure
-    ActionView::Template::Handlers.class_variable_get(:@@template_handlers).delete(:foo)
+    ActionView::Template.unregister_template_handler :foo
   end
 
   def test_render_ignores_templates_with_malformed_template_handlers

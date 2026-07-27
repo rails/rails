@@ -7,7 +7,7 @@ module ActiveStorage
   # Wraps a set of mirror services and provides a single ActiveStorage::Service object that will all
   # have the files uploaded to them. A +primary+ service is designated to answer calls to:
   # * +download+
-  # * +exists?+
+  # * +exist?+
   # * +url+
   # * +url_for_direct_upload+
   # * +headers_for_direct_upload+
@@ -68,12 +68,14 @@ module ActiveStorage
       instrument :mirror, key: key, checksum: checksum do
         mirrors_in_need_of_mirroring = mirrors_needing_mirroring(key)
         if mirrors_in_need_of_mirroring.any?
+          metadata = ActiveStorage::Blob.find_by(key: key)&.service_metadata || {}
+
           primary.open(key, checksum: checksum, verify: checksum.present?) do |io|
             io.rewind
             content = io.read.freeze
             tasks = mirrors_in_need_of_mirroring.map do |service|
               Concurrent::Promise.execute(executor: @executor) do
-                service.upload key, StringIO.new(content), checksum: checksum
+                service.upload key, StringIO.new(content), checksum: checksum, **metadata
               end
             end
             tasks.each(&:value!)

@@ -225,7 +225,7 @@ _SQL
       CREATE TRIGGER before_insert_trigger
       BEFORE INSERT ON pk_autopopulated_by_a_trigger_records
       FOR EACH ROW
-      EXECUTE FUNCTION populate_column();
+      EXECUTE PROCEDURE populate_column();
     SQL
   end
 end

@@ -3,13 +3,13 @@
 module ActionView
   module CacheExpiry # :nodoc: all
     class ViewReloader
-      def self.create(watcher:, &block)
-        reloader = new(watcher: watcher, &block)
+      def self.create(watcher:)
+        reloader = new(watcher: watcher)
         ActionView::PathRegistry.file_system_resolver_hooks << reloader.hook
         reloader
       end
 
-      def initialize(watcher:, &block)
+      def initialize(watcher:)
         @mutex = Mutex.new
         @watcher_class = watcher
         @watched_dirs = nil

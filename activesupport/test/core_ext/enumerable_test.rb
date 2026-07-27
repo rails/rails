@@ -416,6 +416,11 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_equal [ 1, 2, 3, nil ], values.in_order_of(:itself, [ 1, 2, 3 ], filter: false)
   end
 
+  def test_in_order_of_preserves_nil_elements_named_in_series
+    values = [ 3, nil, 1, 2 ]
+    assert_equal [ 1, nil, 2, 3 ], values.in_order_of(:itself, [ 1, nil, 2, 3 ])
+  end
+
   def test_sole
     expected_raise = Enumerable::SoleItemExpectedError
 

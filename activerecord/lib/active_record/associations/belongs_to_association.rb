@@ -80,11 +80,11 @@ module ActiveRecord
       end
 
       def target_changed?
-        owner.attribute_changed?(reflection.foreign_key) || (!foreign_key_present? && target&.new_record?)
+        Array(reflection.foreign_key).any? { |fk| owner.attribute_changed?(fk) } || (!foreign_key_present? && target&.new_record?)
       end
 
       def target_previously_changed?
-        owner.attribute_previously_changed?(reflection.foreign_key)
+        Array(reflection.foreign_key).any? { |fk| owner.attribute_previously_changed?(fk) }
       end
 
       def saved_change_to_target?

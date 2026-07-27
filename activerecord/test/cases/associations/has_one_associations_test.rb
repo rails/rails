@@ -183,6 +183,27 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nil book.shop_id
   end
 
+  def test_has_one_for_new_record_owner_with_composite_primary_key_present
+    order = Cpk::Order.create!(id: [1, 10])
+    book = order.create_book!(id: [1, 100], title: "Some book")
+
+    new_order = Cpk::Order.new(id: [1, 10])
+    assert_predicate new_order, :new_record?
+
+    assert_equal book, new_order.book
+  end
+
+  def test_has_one_for_new_record_owner_with_composite_primary_key_missing
+    order = Cpk::Order.create!(id: [1, 10])
+    order.create_book!(id: [1, 100], title: "Some book")
+
+    new_order = Cpk::Order.new(shop_id: 1)
+    assert_predicate new_order, :new_record?
+    assert_not new_order.attribute_present?(:id)
+
+    assert_nil new_order.book
+  end
+
   def test_natural_assignment_to_nil_after_destroy
     firm = companies(:rails_core)
     old_account_id = firm.account.id

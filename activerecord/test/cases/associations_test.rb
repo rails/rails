@@ -163,6 +163,18 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_same book.order, book.order.books.first.order
   end
 
+  def test_belongs_to_a_model_with_composite_association_primary_key_sets_inverse_of
+    cpk_order = cpk_orders(:cpk_groceries_order_1)
+    store_id, order_id = cpk_order.id
+    order = Cpk::NonCpkOrder.find(order_id)
+    book = order.books_with_composite_primary_key.create!(id: [store_id, 4], title: "Book")
+    book = Cpk::BookWithNonCpkOrder.find(book.id)
+    associated_order = book.non_cpk_order
+    associated_book = associated_order.books_with_composite_primary_key.to_a.find { |record| record.id == book.id }
+
+    assert_same associated_order, associated_book.non_cpk_order
+  end
+
   def test_belongs_to_a_cpk_model_by_id_attribute
     order = cpk_orders(:cpk_groceries_order_1)
     _order_shop_id, order_id = order.id
@@ -945,10 +957,13 @@ class PreloaderTest < ActiveRecord::TestCase
       body: "this post is also about David"
     )
 
+    loaders = nil
     assert_queries_count(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :posts_mentioning_author)
-      preloader.call
+      loaders = preloader.call
     end
+
+    assert_equal 2, loaders.size
 
     assert_predicate david.posts_mentioning_author, :loaded?
     assert_predicate david2.posts_mentioning_author, :loaded?

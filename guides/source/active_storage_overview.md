@@ -13,7 +13,7 @@ After reading this guide, you will know:
 * How to use variants to transform images.
 * How to generate an image representation of a non-image file (e.g. PDF).
 * How to send file uploads directly from browsers to a storage service.
-* How to setup cloud storage services to work with Active Storage.
+* How to set up cloud storage services to work with Active Storage.
 
 --------------------------------------------------------------------------------
 
@@ -78,7 +78,7 @@ Various features of Active Storage depend on third-party software. Rails does
 not install these by default so you will need to do so separately:
 
 * [libvips](https://github.com/libvips/libvips) or
-  [ImageMagick](https://imagemagick.org/index.php) - for image analysis and
+  [ImageMagick](https://imagemagick.org/) - for image analysis and
   transformations.
 * [ffmpeg](http://ffmpeg.org/) - for video previews and ffprobe for video/audio
   analysis.
@@ -118,7 +118,7 @@ config.active_storage.service = :local
 ```
 
 The `config/storage.yml` file is also where cloud services can be configured.
-For example, assuming there is a serviced called `amazon` in the
+For example, assuming there is a service called `amazon` in the
 `config/storage.yml` file, in order to use that service in production:
 
 ```yml
@@ -348,7 +348,7 @@ https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-signed_id
 ### Attaching Files From Disk
 
 Active Storage allows you to attach files that are not uploaded via a form. In
-order to attach a file that you generated on disk or downloaded from an URL, you
+order to attach a file that you generated on disk or downloaded from a URL, you
 can use the `io` and `filename` options with the `attach` method. You may also
 use this method to attach fixture files during testing.
 
@@ -893,7 +893,7 @@ end
 NOTE: Since [Direct uploads](#direct-uploads) bypass the server, files aren't
 locally available for analysis. In this case, `:immediately` falls back to
 `:later`, analyzing via background job after upload completes. So model
-validations using metadata isn't possible. You can validate on the client side
+validations using metadata aren't possible. You can validate on the client side
 using JavaScript instead.
 
 [`metadata`][]:
@@ -1211,7 +1211,7 @@ limits, and upload options - that can be included:
 
 ```yaml
 amazon:
-  ...
+  # ...
   http_open_timeout: 0
   http_read_timeout: 0
   retry_limit: 0
@@ -1315,7 +1315,7 @@ for more information.
 ```yaml
 google:
   service: GCS
-  ...
+  # ...
   iam: true
 ```
 
@@ -1328,7 +1328,7 @@ present (e.g. local tests) and you may wish to use a non-default GSA.
 ```yaml
 google:
   service: GCS
-  ...
+  # ...
   iam: true
   gsa_email: "foobar@baz.iam.gserviceaccount.com"
 ```

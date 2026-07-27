@@ -27,6 +27,7 @@ module ActiveRecord
 
         scope.extending! reflection.extensions
         scope = add_constraints(scope, owner, chain)
+        scope.default_order!(reflection.options[:default_order]) if reflection.options[:default_order].present?
         scope.limit!(1) unless reflection.collection?
         scope
       end

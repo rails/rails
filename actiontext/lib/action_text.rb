@@ -18,7 +18,6 @@ module ActionText
   autoload :Attachment
   autoload :Attribute
   autoload :BottomUpReducer
-  autoload :Configurator
   autoload :Content
   autoload :Editor
   autoload :Encryption
@@ -27,7 +26,6 @@ module ActionText
   autoload :HtmlConversion
   autoload :MarkdownConversion
   autoload :PlainTextConversion
-  autoload :Registry
   autoload :Rendering
   autoload :Serialization
   autoload :TrixAttachment

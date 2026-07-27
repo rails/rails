@@ -81,7 +81,7 @@ module ActiveRecord
         attribute_method_patterns.each do |pattern|
           alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
         end
-        attribute_method_patterns_cache.clear
+        @attribute_method_patterns_cache.clear
       end
 
       def alias_attribute_method_definition(code_generator, pattern, new_name, old_name) # :nodoc:

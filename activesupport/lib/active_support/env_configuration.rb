@@ -80,10 +80,6 @@ module ActiveSupport
     end
 
     private
-      def lookup(env_key)
-        @envs[env_key]
-      end
-
       def envify(*key)
         key.collect { |part| part.to_s.upcase }.join("__")
       end

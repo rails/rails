@@ -95,7 +95,7 @@ module ActiveModel
       private
         def define_method_attribute=(canonical_name, owner:, as: canonical_name)
           ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
-            owner, canonical_name, writer: true,
+            canonical_name, writer: true,
           ) do |temp_method_name, attr_name_expr|
             owner.define_cached_method(temp_method_name, as: "#{as}=", namespace: :active_model) do |batch|
               batch <<

@@ -266,6 +266,26 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_match "Unable to serialize Person without an id.", err.message
   end
 
+  test "wraps a missing record referenced by a Global ID in a DeserializationError::RecordNotFound" do
+    serialized = ActiveJob::Arguments.serialize [Person.new(404)]
+
+    error = assert_raises ActiveJob::DeserializationError::RecordNotFound do
+      ActiveJob::Arguments.deserialize serialized
+    end
+    assert_kind_of ActiveJob::DeserializationError, error
+    assert_instance_of GlobalID::Locator::RecordNotFound, error.cause
+  end
+
+  test "wraps other errors raised during deserialization in a plain DeserializationError" do
+    serialized = ActiveJob::Arguments.serialize [Person.new(500)]
+
+    error = assert_raises ActiveJob::DeserializationError do
+      ActiveJob::Arguments.deserialize serialized
+    end
+    assert_instance_of ActiveJob::DeserializationError, error
+    assert_instance_of GlobalID::Locator::RecordUnavailable, error.cause
+  end
+
   private
     def assert_arguments_unchanged(*args)
       assert_arguments_roundtrip args

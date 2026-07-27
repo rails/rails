@@ -9,7 +9,7 @@ module Arel
     include TreeManagerBehavior
 
     test "handles limit properly" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       dm = Arel::DeleteManager.new
       dm.take 10
       dm.from table
@@ -18,20 +18,20 @@ module Arel
     end
 
     test "from uses from" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       dm = Arel::DeleteManager.new
       dm.from table
       assert_like %{ DELETE FROM "users" }, dm.to_sql
     end
 
     test "from chains" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       dm = Arel::DeleteManager.new
       assert_equal dm, dm.from(table)
     end
 
     test "where uses where values" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       dm = Arel::DeleteManager.new
       dm.from table
       dm.where table[:id].eq(10)
@@ -39,13 +39,13 @@ module Arel
     end
 
     test "where chains" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       dm = Arel::DeleteManager.new
       assert_equal dm, dm.where(table[:id].eq(10))
     end
 
     test "#returning accepts a returning clause" do
-      users   = Table.new :users
+      users   = Table.new name: :users
       manager = Arel::DeleteManager.new
       manager.from users
       manager.returning Arel.star
@@ -56,7 +56,7 @@ module Arel
     end
 
     test "#returning accepts multiple values as returning clause" do
-      users   = Table.new :users
+      users   = Table.new name: :users
       manager = Arel::DeleteManager.new
       manager.from users
       manager.returning Arel.star

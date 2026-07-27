@@ -5,7 +5,7 @@ require_relative "helper"
 module Arel
   class AttributesTest < Arel::Test
     test "responds to lower" do
-      relation  = Table.new(:users)
+      relation  = Table.new(name: :users)
       attribute = relation[:foo]
       node      = attribute.lower
       assert_equal "LOWER", node.name

@@ -9,7 +9,7 @@ module ActiveModel
         include ActiveModel::Dirty
         include ActiveModel::Validations::Callbacks
 
-        class_attribute :normalized_attributes, default: Set.new
+        class_attribute :normalized_attributes, default: Set.new.freeze
 
         before_validation :normalize_changed_in_place_attributes
 
@@ -145,7 +145,7 @@ module ActiveModel
               normalize_nil: apply_to_nil, record_aware: record)
           end
 
-          self.normalized_attributes += names.map(&:to_sym)
+          self.normalized_attributes = (normalized_attributes + names.map(&:to_sym)).freeze
         end
 
         # Normalizes a given +value+ using normalizations declared for +name+.
@@ -172,20 +172,13 @@ module ActiveModel
         def normalize_changed_in_place_attributes
           attributes = @attributes
           self.class.normalized_attributes.each do |name|
-            attribute = attributes[name.to_s]
-
-            # +changed_in_place?+ is a cheap gate, but on an unpersisted record
-            # it reports any attribute that has been read as changed.
-            # Confirm a real in-place mutation before re-normalizing, or
-            # the normalizer compounds on every validation.
-            next unless attribute.changed_in_place?
-
-            if attribute.value == attribute.type.cast(attribute.value_before_type_cast)
-              attributes[name.to_s] = attribute.with_value_from_user(attribute.value_before_type_cast)
-            else
-              normalize_attribute(name)
-            end
+            attribute = @attributes[name.to_s]
+            normalize_attribute(name) if normalized_attribute_changed_in_place?(attribute)
           end
+        end
+
+        def normalized_attribute_changed_in_place?(attribute)
+          attribute.changed_in_place? && attribute.value != attribute.type_cast(attribute.value_before_type_cast)
         end
 
         class NormalizedValueType < ActiveSupport::Delegation::DelegateClass(ActiveModel::Type::Value) # :nodoc:
