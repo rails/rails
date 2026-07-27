@@ -42,7 +42,7 @@ module ActiveRecord
     config.active_record.use_legacy_signed_id_verifier = :generate_and_verify
     config.active_record.deprecated_associations_options = { mode: :warn, backtrace: false }
     config.active_record.dump_schema_migrations = false
-    config.active_record.dump_schema_migrations_sort_by = :itself
+    config.active_record.dump_schema_migrations_sort_by = :reverse
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 

@@ -30,7 +30,7 @@ module ActiveRecord
         end
 
         def _exec_insert(intent, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
-          if use_insert_returning? || pk == false
+          if @use_insert_returning || pk == false
             super
           else
             intent.execute!

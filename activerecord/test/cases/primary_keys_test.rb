@@ -276,7 +276,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_not_predicate klass, :composite_primary_key?
   end
 
-  def composite_primary_key_is_false_for_a_non_cpk_model
+  def test_composite_primary_key_is_false_for_a_non_cpk_model
     assert_not_predicate Dashboard, :composite_primary_key?
   end
 
@@ -506,7 +506,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     assert_equal(["shop_id", "id"], Cpk::Order.primary_key)
   end
 
-  def composite_primary_key_is_true_for_a_cpk_model
+  def test_composite_primary_key_is_true_for_a_cpk_model
     assert_predicate Cpk::Book, :composite_primary_key?
   end
 

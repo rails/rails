@@ -427,15 +427,6 @@ class TransactionTest < ActiveRecord::TestCase
     assert_not_predicate Topic.find(2), :approved?, "Second should have been unapproved"
   end
 
-  def transaction_with_return
-    Topic.transaction do
-      @first.approved  = true
-      @second.approved = false
-      @first.save
-      @second.save
-      return
-    end
-  end
 
   def transaction_with_shallow_return
     Topic.transaction do

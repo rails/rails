@@ -162,11 +162,7 @@ module Rails
 
     # Reload application routes regardless if they changed or not.
     def reload_routes!
-      if routes_reloader.execute_unless_loaded
-        routes_reloader.loaded = false
-      else
-        routes_reloader.reload!
-      end
+      routes_reloader.reload!
     end
 
     def reload_routes_unless_loaded # :nodoc:

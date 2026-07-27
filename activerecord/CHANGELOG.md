@@ -10,6 +10,20 @@
 
     *Said Kaldybaev*
 
+*   Deprecate the `insert_returning` option in PostgreSQL database
+    configurations, and the `PostgreSQLAdapter#use_insert_returning?` method.
+
+    The option only affected single-row INSERT statements. Other paths such
+    as `insert_all`, `upsert_all`, and RETURNING for `update` already use
+    RETURNING when the database supports it, so the option cannot fully
+    disable RETURNING and has become vestigial.
+
+    *Ryuta Kamizono*
+
+*   Remove unused `rest` parameter from merge and merge!
+
+    *Aaron Patterson*
+
 *   Support dumping `schema_migrations` in `db/schema.rb`.
 
     When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`
@@ -20,16 +34,9 @@
     which can be overridden per database, using the new `dump_schema_migrations`
     database configuration option.
 
-    The versions are listed in lexicographic order by default, but this can be
-    changed to reduce the likelihood of merge conflicts:
-
-    ```ruby
-    config.active_record.dump_schema_migrations_sort_by = \
-      ->(version) { version.reverse }
-
-    # Same, via to_proc.
-    config.active_record.dump_schema_migrations_sort_by = :reverse
-    ```
+    Versions are ordered by their reversed strings by default, to help avoid
+    merge conflicts, but `dump_schema_migrations_sort_by` gives you a way to
+    customize this.
 
     `ActiveRecord.dump_schema_migrations` is false by default.
 

@@ -1372,8 +1372,8 @@ You can enable additional logging to figure out where jobs are coming from with
 
 A failed job will not be retried, unless configured otherwise.
 
-It's possible to either retry or discard a failed job by using [`retry_on`] or
-[`discard_on`], respectively. For example:
+It's possible to either retry or discard a failed job by using [`retry_on`][] or
+[`discard_on`][], respectively. For example:
 
 ```ruby
 class RemoteServiceJob < ApplicationJob

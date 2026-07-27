@@ -760,11 +760,4 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
 
     assert_equal [ "step_one", "step_two", "step_three", "step_four" ], IsolatedStepsJob.items
   end
-
-  private
-    def capture_info_stdout(&block)
-      ActiveJob::Base.logger.with(level: :info) do
-        capture(:stdout, &block)
-      end
-    end
 end

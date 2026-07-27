@@ -41,8 +41,6 @@ module ActiveRecord
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
     # * <tt>:variables</tt> - An optional hash of additional parameters that
     #   will be used in <tt>SET SESSION key = val</tt> calls on the connection.
-    # * <tt>:insert_returning</tt> - An optional boolean to control the use of <tt>RETURNING</tt> for <tt>INSERT</tt> statements
-    #   defaults to true.
     #
     # Any further options are used as connection parameters to libpq. See
     # https://www.postgresql.org/docs/current/static/libpq-connect.html for the
@@ -403,7 +401,18 @@ module ActiveRecord
         @notice_receiver_sql_warnings = []
         @notice_receiver_fatal_error = nil
 
-        @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
+        @use_insert_returning = if @config.key?(:insert_returning)
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            The `insert_returning` option in database configurations is deprecated
+            and will be removed in Rails 8.3. The option only affects single-row
+            INSERT statements; other paths such as `insert_all`, `upsert_all`, and
+            RETURNING for `update` already use RETURNING when the database supports
+            it, so the option cannot fully disable RETURNING.
+          MSG
+          self.class.type_cast_config_to_boolean(@config[:insert_returning])
+        else
+          true
+        end
       end
 
       def connected?
@@ -703,6 +712,7 @@ module ActiveRecord
       def use_insert_returning?
         @use_insert_returning
       end
+      deprecate :use_insert_returning?, deprecator: ActiveRecord.deprecator
 
       # Returns the version of the connected PostgreSQL server.
       def get_database_version # :nodoc:

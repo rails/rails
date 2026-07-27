@@ -63,7 +63,6 @@ module ActiveRecord
         :create_virtual_table, :drop_virtual_table,
         :enable_index, :disable_index
       ].freeze
-      include JoinTable
 
       attr_accessor :commands, :delegate, :reverting
 
@@ -107,11 +106,6 @@ module ActiveRecord
       #   recorder.inverse_of(:rename_table, [:old, :new])
       #   # => [:rename_table, [:new, :old]]
       #
-      # If the inverse of a command requires several commands, returns array of commands.
-      #
-      #   recorder.inverse_of(:remove_columns, [:some_table, :foo, :bar, type: :string])
-      #   # => [[:add_column, :some_table, :foo, :string], [:add_column, :some_table, :bar, :string]]
-      #
       # This method will raise an +IrreversibleMigration+ exception if it cannot
       # invert the +command+.
       def inverse_of(command, args, &block)
@@ -127,11 +121,11 @@ module ActiveRecord
 
       ReversibleAndIrreversibleMethods.each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{method}(*args, &block)          # def create_table(*args, &block)
-            record(:"#{method}", args, &block)  #   record(:create_table, args, &block)
-          end                                   # end
+          def #{method}(*args, **kwargs, &block)                          # def create_table(*args, **kwargs, &block)
+            args << Hash.ruby2_keywords_hash(kwargs) unless kwargs.empty? #   args << Hash.ruby2_keywords_hash(kwargs) unless kwargs.empty?
+            record(:"#{method}", args, &block)                            #   record(:create_table, args, &block)
+          end                                                             # end
         EOV
-        ruby2_keywords(method)
       end
       alias :add_belongs_to :add_reference
       alias :remove_belongs_to :remove_reference

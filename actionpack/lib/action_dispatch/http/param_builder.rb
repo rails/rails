@@ -164,10 +164,6 @@ module ActionDispatch
         ActiveSupport::HashWithIndifferentAccess.new
       end
 
-      def new_depth_limit(param_depth_limit)
-        self.class.new @params_class, param_depth_limit
-      end
-
       def params_hash_type?(obj)
         Hash === obj
       end

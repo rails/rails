@@ -19,11 +19,10 @@ module ActiveSupport
       end
 
       private
-        def method_missing(called, *args, &block)
-          warn caller_locations, called, args
-          target.__send__(called, *args, &block)
+        def method_missing(called, ...)
+          warn(caller_locations, called, ...)
+          target.__send__(called, ...)
         end
-        ruby2_keywords :method_missing
     end
 
     # DeprecatedObjectProxy transforms an object into a deprecated one. It takes an object, a deprecation message, and
@@ -52,7 +51,7 @@ module ActiveSupport
           @object
         end
 
-        def warn(callstack, called, args)
+        def warn(callstack, called, *, **)
           @deprecator.warn(@message, callstack)
         end
     end
@@ -102,7 +101,8 @@ module ActiveSupport
           @instance.__send__(@method)
         end
 
-        def warn(callstack, called, args)
+        def warn(callstack, called, *args, **kwargs)
+          args << kwargs unless kwargs.empty?
           @deprecator.warn("#{@var} is deprecated! Call #{@method}.#{called} instead of #{@var}.#{called}. Args: #{args.inspect}", callstack)
         end
     end
@@ -133,7 +133,6 @@ module ActiveSupport
       def initialize(old_const, new_const, deprecator, message: "#{old_const} is deprecated! Use #{new_const} instead.")
         Kernel.require "active_support/inflector/methods"
 
-        @old_const = old_const
         @new_const = new_const
         @deprecator = deprecator
         @message = message

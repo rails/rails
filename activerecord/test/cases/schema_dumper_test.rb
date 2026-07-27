@@ -61,7 +61,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
       dump_all_table_schema
     end
 
-    expected_versions = versions.map(&:to_s).sort
+    expected_versions = versions.map(&:to_s).sort_by(&:reverse)
     expected = [
       "ActiveRecord::Schema.load_schema_migrations(__FILE__)",
       "__END__",
@@ -84,19 +84,19 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     versions = ActiveRecord::Base.connection_pool.migration_context.migrations.map(&:version)
     versions_seen_by_sorter = []
-    sort_by_reversed_string = ->(version) {
+    sort_by_version = ->(version) {
       versions_seen_by_sorter << version
-      version.reverse
+      version
     }
 
     @schema_migration.delete_all_versions
     @schema_migration.create_versions(versions.map(&:to_s))
 
     ActiveRecord.dump_schema_migrations = true
-    ActiveRecord.dump_schema_migrations_sort_by = sort_by_reversed_string
+    ActiveRecord.dump_schema_migrations_sort_by = sort_by_version
     output = dump_all_table_schema
 
-    expected_versions = versions.map(&:to_s).sort_by(&:reverse)
+    expected_versions = versions.map(&:to_s).sort
     expected = [
       "ActiveRecord::Schema.load_schema_migrations(__FILE__)",
       "__END__",

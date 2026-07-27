@@ -37,6 +37,13 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_equal "redis://localhost:6379", @cache.redis.config.server_url
     end
 
+    test "default Redis options constant is deprecated" do
+      options = assert_deprecated(/RedisCacheStore::DEFAULT_REDIS_OPTIONS is deprecated/, ActiveSupport.deprecator) do
+        ActiveSupport::Cache::RedisCacheStore::DEFAULT_REDIS_OPTIONS.to_h
+      end
+      assert_equal({ connect_timeout: 1, read_timeout: 1, write_timeout: 1 }, options)
+    end
+
     test "no URLs uses Redis client with default settings" do
       @cache = ActiveSupport::Cache::RedisCacheStore.new(url: [])
       assert_equal 1, @cache.redis.connect_timeout

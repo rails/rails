@@ -1,3 +1,8 @@
+*   Don't filter nonexistent i18n paths on initialize. This negatively impacts
+    applications with lots of translation files.
+
+    *Gannon McGibbon*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"

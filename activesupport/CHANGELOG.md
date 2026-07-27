@@ -1,3 +1,33 @@
+*   Add `ActiveSupport.raise_on_invalid_time_zone_parse`.
+
+    Raise `ArgumentError` on `ActiveSupport::TimeZone#parse` for any invalid
+    string. Historically, strings without recognizable date information
+    (e.g. `"foobar"`) returned `nil`, while strings with out-of-range date
+    components (e.g. `"9000"`) raised `ArgumentError`. When enabled, both
+    cases raise `ArgumentError`, matching the Ruby standard library's `Time.parse`.
+
+    *Said Kaldybaev*
+
+*   Raise `ActiveSupport::ConfigurationFile::FormatError` when parsing malformed YAML.
+
+    *Nikita Vasilevsky*
+
+*   Preserve sub-second precision when subtracting a `DateTime` from a `Time`.
+
+    `Time - DateTime` converted both sides via `to_f`, so microsecond-level
+    `DateTime` values lost precision. The difference is now computed from exact
+    rational timestamps, matching `Time.at(DateTime)` and
+    `ActiveSupport::TimeWithZone - DateTime`.
+
+    *Said Kaldybaev*
+
+*   Deprecate `ActiveSupport::Cache::RedisCacheStore::DEFAULT_REDIS_OPTIONS`.
+
+    The `redis-client` implementation no longer reads this constant. Pass
+    timeout options to `RedisCacheStore` or a configured `RedisClient` instead.
+
+    *Nikita Vasilevsky*
+
 *   Add `#this_quarter?` to Date/Time.
 
     It returns true if the date/time falls within the current quarter.

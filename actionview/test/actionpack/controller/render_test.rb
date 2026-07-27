@@ -68,10 +68,6 @@ class TestController < ActionController::Base
     render "test/hello_world"
   end
 
-  def render_hello_world_with_last_modified_set
-    response.last_modified = Date.new(2008, 10, 10).to_time
-    render "test/hello_world"
-  end
 
   # :ported: compatibility
   def render_hello_world_with_forward_slash
@@ -228,10 +224,6 @@ class TestController < ActionController::Base
     # let's just rely on the template
   end
 
-  # :ported:
-  def blank_response
-    render plain: " "
-  end
 
   # :ported:
   def layout_test
@@ -300,9 +292,6 @@ class TestController < ActionController::Base
     end
   end
 
-  def render_action_hello_world_as_symbol
-    render action: :hello_world
-  end
 
   def layout_test_with_different_layout
     render action: "hello_world", layout: "standard"
@@ -564,9 +553,6 @@ class TestController < ActionController::Base
     render partial: "customer", collection: []
   end
 
-  def partial_collection_shorthand_with_different_types_of_records_with_counter
-    partial_collection_shorthand_with_different_types_of_records
-  end
 
   def missing_partial
     render partial: "thisFileIsntHere"
@@ -592,10 +578,6 @@ class TestController < ActionController::Base
     render partial: "hash_greeting", collection: [ { first_name: "Pratik" }, { first_name: "Amy" } ], locals: { greeting: "Hola" }
   end
 
-  def partial_with_implicit_local_assignment
-    @customer = Customer.new("Marcel")
-    render partial: "customer"
-  end
 
   def render_call_to_partial_with_layout
     render action: "calling_partial_with_layout"

@@ -237,7 +237,7 @@ module ActiveSupport
       class Handle
         include FanoutIteration
 
-        def initialize(notifier, name, id, groups, payload) # :nodoc:
+        def initialize(name, id, groups, payload) # :nodoc:
           @name = name
           @id = id
           @payload = payload
@@ -298,7 +298,7 @@ module ActiveSupport
         if groups.empty?
           NullHandle
         else
-          Handle.new(self, name, id, groups, payload)
+          Handle.new(name, id, groups, payload)
         end
       end
 

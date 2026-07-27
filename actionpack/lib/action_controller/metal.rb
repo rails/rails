@@ -2,7 +2,6 @@
 
 # :markup: markdown
 
-require "active_support/core_ext/array/extract_options"
 require "action_dispatch/middleware/stack"
 
 module ActionController
@@ -41,11 +40,10 @@ module ActionController
       EXCLUDE = ActiveSupport::Ractors.shareable_lambda { |list, action| !list.include? action }
       NULL    = ActiveSupport::Ractors.shareable_lambda { |list, action| true }
 
-      def build_middleware(klass, args, block)
-        options = args.extract_options!
-        only   = Array(options.delete(:only)).map(&:to_s)
-        except = Array(options.delete(:except)).map(&:to_s)
-        args << options unless options.empty?
+      def build_middleware(klass, args, kwargs, block)
+        only   = Array(kwargs.delete(:only)).map(&:to_s)
+        except = Array(kwargs.delete(:except)).map(&:to_s)
+        args << Hash.ruby2_keywords_hash(kwargs) unless kwargs.empty?
 
         strategy = NULL
         list     = nil

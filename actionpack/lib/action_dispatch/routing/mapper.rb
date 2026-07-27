@@ -178,7 +178,7 @@ module ActionDispatch
           @path = Journey::Path::Pattern.new(ast, @requirements, JOINED_SEPARATORS, @anchor)
         end
 
-        JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
+        JOINED_SEPARATORS = "/.?" # :nodoc:
 
         def make_route(name, precedence)
           Journey::Route.new(name: name, app: application, path: path, constraints: conditions,
