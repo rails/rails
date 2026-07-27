@@ -60,9 +60,6 @@ module ActiveRecord
       end
     end
 
-    attr_reader :arel_table
-
-    private
-      attr_reader :klass
+    attr_reader :arel_table, :klass
   end
 end

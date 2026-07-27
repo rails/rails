@@ -10,6 +10,19 @@ class EncryptedBook < ActiveRecord::Base
   encrypts :name, deterministic: true
 end
 
+class EncryptedBookAuthor < ActiveRecord::Base
+  self.table_name = "authors"
+
+  has_many :encrypted_books, class_name: "EncryptedBook", foreign_key: "author_id"
+  has_many :kept_books, class_name: "EncryptedBook", foreign_key: "author_id"
+end
+
+class EncryptedBookCategorization < ActiveRecord::Base
+  self.table_name = "categorizations"
+
+  belongs_to :author, class_name: "EncryptedBookAuthor", optional: true
+end
+
 class EncryptedBookWithUniquenessValidation < ActiveRecord::Base
   self.table_name = "encrypted_books"
 

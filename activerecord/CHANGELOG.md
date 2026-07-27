@@ -1,3 +1,19 @@
+*   Expand deterministically encrypted values in nested hash conditions.
+
+    When `config.active_record.encryption.extend_queries` is enabled, queries on
+    deterministically encrypted attributes that support unencrypted data are
+    expanded to match both the encrypted and the unencrypted values. This now
+    also happens for the nested hash form of `where`, so mid-migration queries
+    like the following no longer miss records that are not encrypted yet:
+
+    ```ruby
+    Author.joins(:books).where(books: { title: "Dune" })
+    ```
+
+    Both association names and table names are supported as the nested key.
+
+    *Eric Barendt*
+
 *   Deprecate the `insert_returning` option in PostgreSQL database
     configurations, and the `PostgreSQLAdapter#use_insert_returning?` method.
 
