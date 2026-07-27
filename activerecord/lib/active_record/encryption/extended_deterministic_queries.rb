@@ -72,7 +72,7 @@ module ActiveRecord
               return value if check_for_additional_values && value.is_a?(Array) && value.last.is_a?(AdditionalValue)
 
               case value
-              when String, Array
+              when String, Array, Set
                 list = Array(value)
                 list + list.flat_map do |each_value|
                   if check_for_additional_values && each_value.is_a?(AdditionalValue)
