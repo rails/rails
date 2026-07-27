@@ -100,10 +100,6 @@ module ActiveRecord
       end
 
       def test_yaml_column_permitted_classes_are_consumed_by_safe_dump
-        if Gem::Version.new(Psych::VERSION) < Gem::Version.new("5.1")
-          skip "YAML.safe_dump is either missing on unavailable on #{Psych::VERSION}"
-        end
-
         coder = YAMLColumn.new("attr_name")
         assert_raises(Psych::DisallowedClass) do
           coder.dump([Time.new])

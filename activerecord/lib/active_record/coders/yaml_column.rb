@@ -11,21 +11,15 @@ module ActiveRecord
           @unsafe_load = unsafe_load
         end
 
-        if Gem::Version.new(Psych::VERSION) >= Gem::Version.new("5.1")
-          def dump(object)
-            if @unsafe_load.nil? ? ActiveRecord.use_yaml_unsafe_load : @unsafe_load
-              ::YAML.dump(object)
-            else
-              ::YAML.safe_dump(
-                object,
-                permitted_classes: @permitted_classes + ActiveRecord.yaml_column_permitted_classes,
-                aliases: true,
-              )
-            end
-          end
-        else
-          def dump(object)
-            YAML.dump(object)
+        def dump(object)
+          if @unsafe_load.nil? ? ActiveRecord.use_yaml_unsafe_load : @unsafe_load
+            ::YAML.dump(object)
+          else
+            ::YAML.safe_dump(
+              object,
+              permitted_classes: @permitted_classes + ActiveRecord.yaml_column_permitted_classes,
+              aliases: true,
+            )
           end
         end
 
