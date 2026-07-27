@@ -11,18 +11,18 @@ module ActiveRecord
         when :destroy
           raise ActiveRecord::Rollback unless target.destroy
         when :destroy_async
-          if reflection.foreign_key.is_a?(Array)
-            primary_key_column = reflection.active_record_primary_key
-            id = reflection.foreign_key.map { |col| owner.public_send(col) }
-          else
-            primary_key_column = reflection.active_record_primary_key
-            id = owner.public_send(reflection.foreign_key)
-          end
-
           association_class = if reflection.polymorphic?
-            owner.public_send(reflection.foreign_type)
+            target.class
           else
             reflection.klass
+          end
+
+          primary_key_column = reflection.join_query_constraints_primary_key(association_class)
+          foreign_key = reflection.join_query_constraints_foreign_key
+          id = if foreign_key.is_a?(Array)
+            foreign_key.map { |col| owner.public_send(col) }
+          else
+            owner.public_send(foreign_key)
           end
 
           enqueue_destroy_association(
@@ -132,7 +132,15 @@ module ActiveRecord
         def replace_keys(record, force: false)
           reflection_fk = reflection.foreign_key
           if reflection_fk.is_a?(Array)
-            target_key_values = record ? Array(primary_key(record.class)).map { |key| record._read_attribute(key) } : []
+            target_key_values = if record
+              primary_keys = Array(primary_key(record.class))
+              if primary_keys.size != reflection_fk.size
+                primary_keys = Array(reflection.join_query_constraints_primary_key(record.class))
+              end
+              primary_keys.map { |key| record._read_attribute(key) }
+            else
+              []
+            end
 
             if force || reflection_fk.map { |fk| owner._read_attribute(fk) } != target_key_values
               owner_pk = Array(owner.class.primary_key)
@@ -164,14 +172,14 @@ module ActiveRecord
         end
 
         def stale_state
-          foreign_key = reflection.foreign_key
-          if foreign_key.is_a?(Array)
-            attributes = foreign_key.map do |fk|
-              owner._read_attribute(fk) { |n| owner.send(:missing_attribute, n, caller) }
+          keys = reflection.join_query_constraints_foreign_key
+          if keys.is_a?(Array)
+            attributes = keys.map do |key|
+              owner._read_attribute(key) { |n| owner.send(:missing_attribute, n, caller) }
             end
             attributes if attributes.any?
           else
-            owner._read_attribute(foreign_key) { |n| owner.send(:missing_attribute, n, caller) }
+            owner._read_attribute(keys) { |n| owner.send(:missing_attribute, n, caller) }
           end
         end
     end

@@ -36,7 +36,7 @@ module ActiveRecord
         binds = []
         last_reflection = chain.last
 
-        binds.push(*last_reflection.join_id_for(owner))
+        binds.push(*last_reflection.join_query_constraints_id_for(owner))
         if last_reflection.type
           binds << owner.class.polymorphic_name
         end
@@ -57,8 +57,8 @@ module ActiveRecord
         end
 
         def last_chain_scope(scope, reflection, owner)
-          primary_key = Array(reflection.join_primary_key)
-          foreign_key = Array(reflection.join_foreign_key)
+          primary_key = Array(reflection.join_query_constraints_primary_key)
+          foreign_key = Array(reflection.join_query_constraints_foreign_key)
 
           table = reflection.aliased_table
           primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
@@ -80,8 +80,8 @@ module ActiveRecord
         end
 
         def next_chain_scope(scope, reflection, next_reflection)
-          primary_key = Array(reflection.join_primary_key)
-          foreign_key = Array(reflection.join_foreign_key)
+          primary_key = Array(reflection.join_query_constraints_primary_key)
+          foreign_key = Array(reflection.join_query_constraints_foreign_key)
 
           table = reflection.aliased_table
           foreign_table = next_reflection.aliased_table

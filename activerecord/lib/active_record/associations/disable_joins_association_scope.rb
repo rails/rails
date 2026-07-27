@@ -11,19 +11,18 @@ module ActiveRecord
 
         last_reflection, last_ordered, last_join_ids = last_scope_chain(reverse_chain, owner)
 
-        add_constraints(last_reflection, last_reflection.join_primary_key, last_join_ids, owner, last_ordered)
+        add_constraints(last_reflection, Array(last_reflection.join_query_constraints_primary_key), last_join_ids, owner, last_ordered)
       end
 
       private
         def last_scope_chain(reverse_chain, owner)
           first_item = reverse_chain.shift
-          first_scope = [first_item, false, [owner._read_attribute(first_item.join_foreign_key)]]
+          first_scope = [first_item, false, [owner_query_constraint_values(first_item, owner)]]
 
           reverse_chain.inject(first_scope) do |(reflection, ordered, join_ids), next_reflection|
-            key = reflection.join_primary_key
+            key = Array(reflection.join_query_constraints_primary_key)
             records = add_constraints(reflection, key, join_ids, owner, ordered)
-            foreign_key = next_reflection.join_foreign_key
-            record_ids = records.pluck(foreign_key)
+            record_ids = pluck_query_constraint_values(records, next_reflection)
             records_ordered = records && records.order_values.any?
 
             [next_reflection, records_ordered, record_ids]
@@ -52,6 +51,33 @@ module ActiveRecord
             split_scope
           else
             scope
+          end
+        end
+
+        # Reads the owner's values for every column the reflection needs to query
+        # against (foreign key plus any additive +query_constraints+), returning a
+        # composite tuple. Uses +join_query_constraints_foreign_key+ (delegated on
+        # every chain reflection) rather than the scalar +join_foreign_key+ so
+        # decoupled query constraints participate in each hop.
+        def owner_query_constraint_values(reflection, owner)
+          Array(reflection.join_query_constraints_foreign_key).map do |key|
+            owner._read_attribute(key)
+          end
+        end
+
+        # Plucks the columns the next hop will query on (its
+        # +join_query_constraints_foreign_key+) from the records just loaded,
+        # returning a list of composite tuples. Single-column hops return
+        # one-element tuples so +where(key => join_ids)+ and the ordered
+        # +DisableJoinsAssociationRelation+ grouping stay shape-consistent with
+        # multi-column (decoupled query constraint) hops.
+        def pluck_query_constraint_values(records, reflection)
+          foreign_keys = Array(reflection.join_query_constraints_foreign_key)
+
+          if foreign_keys.size == 1
+            records.pluck(foreign_keys.first).map { |id| [id] }
+          else
+            records.pluck(*foreign_keys)
           end
         end
     end

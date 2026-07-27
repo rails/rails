@@ -544,9 +544,11 @@ module ActiveRecord
       # In addition, it will destroy the association if it was marked for destruction.
       def save_belongs_to_association(reflection)
         association = association_instance_get(reflection.name)
-        return unless association && association.loaded? && !association.stale_target?
+        return unless association && association.loaded?
+        stale_target = association.stale_target?
+        return if stale_target && !association.target&.new_record?
 
-        record = association.load_target
+        record = stale_target ? association.target : association.load_target
         if record && !record.destroyed?
           autosave = reflection.options[:autosave]
 
@@ -566,8 +568,11 @@ module ActiveRecord
             end
 
             if association.updated?
-              primary_key = Array(reflection.association_primary_key(record.class)).map(&:to_s)
+              primary_key = Array(reflection.association_primary_key(record.class))
               foreign_key = Array(reflection.foreign_key)
+              if primary_key.size != foreign_key.size
+                primary_key = Array(reflection.join_query_constraints_primary_key(record.class))
+              end
 
               primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
               primary_key_foreign_key_pairs.each do |primary_key, foreign_key|

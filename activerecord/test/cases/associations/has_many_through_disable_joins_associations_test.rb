@@ -19,9 +19,11 @@ require "models/department"
 require "models/cpk/author"
 require "models/cpk/book"
 require "models/cpk/order"
+require "models/sharded"
 
 class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
-  fixtures :posts, :authors, :comments, :pirates, :author_addresses
+  fixtures :posts, :authors, :comments, :pirates, :author_addresses,
+           :sharded_blogs, :sharded_blog_posts, :sharded_tags, :sharded_blog_posts_tags
 
   def setup
     @author = authors(:mary)
@@ -208,5 +210,58 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
 
     assert_equal author.orders.to_a, author.no_joins_orders.to_a
     assert_equal [order2, order1], author.no_joins_orders.to_a
+  end
+  # Regression: a disable_joins has_many :through whose through and source
+  # reflections use explicit foreign_key plus decoupled query_constraints
+  # (tenant column). The pre-fix DisableJoinsAssociationScope queried each
+  # split hop on the scalar foreign key alone, dropping the tenant column and
+  # leaking records from another tenant that collided on that scalar key.
+  # The fix routes every hop through join_query_constraints_* so the tenant
+  # column survives in both split queries.
+  def test_disable_joins_through_with_decoupled_query_constraints_retains_tenant_in_both_split_queries
+    blog_one_id = ActiveRecord::FixtureSet.identify(:sharded_blog_one)
+    blog_two_id = ActiveRecord::FixtureSet.identify(:sharded_blog_two)
+
+    post = sharded_blog_posts(:great_post_blog_one)
+    expected_tag_ids = [
+      sharded_tags(:short_read_blog_one).id,
+      sharded_tags(:technical_blog_one).id,
+    ].sort
+
+    # A join-model row from another tenant that collides on the scalar
+    # foreign key (blog_post_id) but belongs to blog_two. Pre-fix, the first
+    # split query hit sharded_blog_posts_tags on blog_post_id alone and
+    # matched this row, then the second split query loaded its blog_two tag
+    # by id alone -- leaking a record across tenants. Post-fix both queries
+    # carry blog_id, so the row is excluded.
+    impostor_tag = Sharded::Tag.create!(blog_id: blog_two_id, name: "impostor")
+    Sharded::BlogPostTag.create!(blog_id: blog_two_id, blog_post_id: post.id, tag_id: impostor_tag.id)
+
+    loaded = nil
+    queries = capture_sql do
+      loaded = post.tags_with_decoupled_qc_without_joins.to_a
+    end
+
+    # Returned records: only this post's blog_one tags, no cross-tenant leak.
+    assert_equal expected_tag_ids, loaded.map(&:id).sort
+    assert(loaded.all? { |tag| tag.blog_id == blog_one_id },
+      "disable_joins through leaked a tag from another tenant")
+    assert_not_includes loaded.map(&:id), impostor_tag.id
+
+    # disable_joins issues one query per hop: through, then source.
+    assert_equal 2, queries.size
+
+    posts_tags_table = Regexp.escape(quote_table_name("sharded_blog_posts_tags"))
+    tags_table = Regexp.escape(quote_table_name("sharded_tags"))
+    blog_id_col = Regexp.escape(Sharded::Tag.lease_connection.quote_column_name("blog_id"))
+
+    through_query = queries.find { |sql| sql.match?(/FROM #{posts_tags_table}/) }
+    source_query  = queries.find { |sql| sql.match?(/FROM #{tags_table}/) }
+    assert(through_query, "expected a through query against sharded_blog_posts_tags")
+    assert(source_query,  "expected a source query against sharded_tags")
+
+    # Both split queries must retain the tenant column; pre-fix dropped it.
+    assert_match(/#{blog_id_col}/, through_query)
+    assert_match(/#{blog_id_col}/, source_query)
   end
 end
