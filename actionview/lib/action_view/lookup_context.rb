@@ -56,22 +56,19 @@ module ActionView
     class DetailsKey # :nodoc:
       alias :eql? :equal?
 
-      @details_keys = Concurrent::Map.new
-      @digest_cache = Concurrent::Map.new
-
       def self.digest_cache(details)
-        @digest_cache[details_cache_key(details)] ||= Concurrent::Map.new
+        digest_cache_store.compute_if_absent(details_cache_key(details)) { Concurrent::Map.new }
       end
 
       def self.details_cache_key(details)
-        @details_keys.fetch(details) do
+        details_keys.fetch(details) do
           if formats = details[:formats]
             if normalized = Template.normalized_formats(formats)
               details = details.dup
               details[:formats] = normalized
             end
           end
-          @details_keys[details] ||= TemplateDetails::Requested.new(**details)
+          details_keys[details] ||= TemplateDetails::Requested.new(**details)
         end
       end
 
@@ -80,13 +77,23 @@ module ActionView
           resolver.clear_cache
         end
         ActionView::LookupContext.reset_view_context_class
-        @details_keys.clear
-        @digest_cache.clear
+        details_keys.clear
+        digest_cache_store.clear
       end
 
       def self.digest_caches
-        @digest_cache.values
+        digest_cache_store.values
       end
+
+      def self.details_keys
+        ActiveSupport::Ractors.store_if_absent(:action_view_details_keys) { Concurrent::Map.new }
+      end
+      private_class_method :details_keys
+
+      def self.digest_cache_store
+        ActiveSupport::Ractors.store_if_absent(:action_view_digest_caches) { Concurrent::Map.new }
+      end
+      private_class_method :digest_cache_store
     end
 
     def self.reset_view_context_class
