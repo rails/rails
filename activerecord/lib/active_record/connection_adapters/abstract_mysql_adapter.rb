@@ -410,15 +410,9 @@ module ActiveRecord
       end
 
       def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
-        execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_default_for_alter(table_name, column_name, default_or_changes)}"
-      end
-
-      def build_change_column_default_definition(table_name, column_name, default_or_changes) # :nodoc:
-        column = column_for(table_name, column_name)
-        return unless column
-
-        default = extract_new_default_value(default_or_changes)
-        ChangeColumnDefaultDefinition.new(column, default)
+        at = create_alter_table(table_name)
+        at.change_column_default(column_name, default_or_changes)
+        execute_alter_table(at)
       end
 
       def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
@@ -437,11 +431,13 @@ module ActiveRecord
       end
 
       def add_column(table_name, column_name, type, **options) # :nodoc:
+        return if options[:if_not_exists] == true && column_exists?(table_name, column_name)
+
         algorithm = index_algorithm(options.delete(:algorithm))
         lock = lock_clause(options.delete(:lock))
-        add_column_def = build_add_column_definition(table_name, column_name, type, **options)
-        return unless add_column_def
-        sql = schema_creation.accept(add_column_def)
+        at = create_alter_table(table_name)
+        at.add_column(column_name, type, **options)
+        sql = +schema_creation.accept(at)
         sql << ", #{algorithm}" if algorithm
         sql << ", #{lock}" if lock
         execute(sql)
@@ -450,56 +446,20 @@ module ActiveRecord
       def change_column(table_name, column_name, type, **options) # :nodoc:
         algorithm = index_algorithm(options.delete(:algorithm))
         lock = lock_clause(options.delete(:lock))
-        sql = +"ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, **options)}"
+        at = create_alter_table(table_name)
+        at.change_column(column_name, type, **options)
+        sql = +schema_creation.accept(at)
         sql << ", #{algorithm}" if algorithm
         sql << ", #{lock}" if lock
         execute(sql)
       end
 
-      # Builds a ChangeColumnDefinition object.
-      #
-      # This definition object contains information about the column change that would occur
-      # if the same arguments were passed to #change_column. See #change_column for information about
-      # passing a +table_name+, +column_name+, +type+ and other options that can be passed.
-      def build_change_column_definition(table_name, column_name, type, **options) # :nodoc:
-        column = column_for(table_name, column_name)
-        type ||= column.sql_type
-
-        unless options.key?(:default)
-          options[:default] = if column.default_function
-            -> { column.default_function }
-          else
-            column.default
-          end
-        end
-
-        unless options.key?(:null)
-          options[:null] = column.null
-        end
-
-        unless options.key?(:comment)
-          options[:comment] = column.comment
-        end
-
-        if options[:collation] == :no_collation
-          options.delete(:collation)
-        else
-          options[:collation] ||= column.collation if text_type?(type)
-        end
-
-        unless options.key?(:auto_increment)
-          options[:auto_increment] = column.auto_increment?
-        end
-
-        td = create_table_definition(table_name)
-        cd = td.new_column_definition(column.name, type, **options)
-        ChangeColumnDefinition.new(cd, column.name)
-      end
-
       def rename_column(table_name, column_name, new_column_name, **options) # :nodoc:
         algorithm = index_algorithm(options.delete(:algorithm))
         lock = lock_clause(options.delete(:lock))
-        sql = +"ALTER TABLE #{quote_table_name(table_name)} #{rename_column_for_alter(table_name, column_name, new_column_name)}"
+        at = create_alter_table(table_name)
+        at.rename_column(column_name, new_column_name)
+        sql = +schema_creation.accept(at)
         sql << ", #{algorithm}" if algorithm
         sql << ", #{lock}" if lock
         execute(sql)
@@ -989,47 +949,6 @@ module ActiveRecord
           else
             super
           end
-        end
-
-        def change_column_for_alter(table_name, column_name, type, **options)
-          cd = build_change_column_definition(table_name, column_name, type, **options)
-          schema_creation.accept(cd)
-        end
-
-        def rename_column_for_alter(table_name, column_name, new_column_name)
-          return rename_column_sql(table_name, column_name, new_column_name) if supports_rename_column?
-
-          column  = column_for(table_name, column_name)
-          options = {
-            default: column.default,
-            null: column.null,
-            auto_increment: column.auto_increment?,
-            comment: column.comment
-          }
-
-          current_type = query_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}")["Type"]
-          td = create_table_definition(table_name)
-          cd = td.new_column_definition(new_column_name, current_type, **options)
-          schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
-        end
-
-        def add_index_for_alter(table_name, column_name, **options)
-          lock = lock_clause(options.delete(:lock))
-          index, algorithm, _ = add_index_options(table_name, column_name, **options)
-          algorithm = ", #{algorithm}" if algorithm
-          lock = ", #{lock}" if lock
-
-          "ADD #{schema_creation.accept(index)}#{algorithm}#{lock}"
-        end
-
-        def remove_index_for_alter(table_name, column_name = nil, **options)
-          algorithm = index_algorithm(options.delete(:algorithm))
-          lock = lock_clause(options.delete(:lock))
-          index_name = index_name_for_remove(table_name, column_name, options)
-          sql = +"DROP INDEX #{quote_column_name(index_name)}"
-          sql << ", #{algorithm}" if algorithm
-          sql << ", #{lock}" if lock
-          sql
         end
 
         def supports_insert_raw_alias_syntax?

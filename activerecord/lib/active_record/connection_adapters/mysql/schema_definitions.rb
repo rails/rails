@@ -112,6 +112,82 @@ module ActiveRecord
           end
       end
 
+      AddIndex = Data.define(:index, :algorithm, :lock) # :nodoc:
+      DropIndex = Data.define(:name, :algorithm, :lock) # :nodoc:
+
+      # = Active Record MySQL Adapter Alter \Table
+      class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable # :nodoc:
+        COMBINABLE_COMMANDS = (superclass::COMBINABLE_COMMANDS + %i[change_column rename_column add_index remove_index]).freeze
+
+        def add_index(column_name, **options)
+          conn = @td.conn
+          lock = conn.lock_clause(options.delete(:lock))
+          index, algorithm, _ = conn.add_index_options(name, column_name, **options)
+          @operations << AddIndex.new(index, algorithm, lock)
+        end
+
+        def remove_index(column_name = nil, **options)
+          conn = @td.conn
+          algorithm = conn.index_algorithm(options.delete(:algorithm))
+          lock = conn.lock_clause(options.delete(:lock))
+          index_name = conn.send(:index_name_for_remove, name, column_name, options)
+          @operations << DropIndex.new(index_name, algorithm, lock)
+        end
+
+        def change_column(column_name, type, **options)
+          conn = @td.conn
+          column = conn.send(:column_for, name, column_name)
+          type ||= column.sql_type
+
+          unless options.key?(:default)
+            options[:default] = if column.default_function
+              -> { column.default_function }
+            else
+              column.default
+            end
+          end
+
+          unless options.key?(:null)
+            options[:null] = column.null
+          end
+
+          unless options.key?(:comment)
+            options[:comment] = column.comment
+          end
+
+          if options[:collation] == :no_collation
+            options.delete(:collation)
+          else
+            options[:collation] ||= column.collation if conn.send(:text_type?, type)
+          end
+
+          unless options.key?(:auto_increment)
+            options[:auto_increment] = column.auto_increment?
+          end
+
+          cd = @td.new_column_definition(column.name, type, **options)
+          @operations << ChangeColumnDefinition.new(cd, column.name)
+        end
+
+        def rename_column(from_name, to_name)
+          conn = @td.conn
+          if conn.send(:supports_rename_column?)
+            super
+          else
+            column = conn.send(:column_for, name, from_name)
+            options = {
+              default: column.default,
+              null: column.null,
+              auto_increment: column.auto_increment?,
+              comment: column.comment
+            }
+            current_type = conn.query_one("SHOW COLUMNS FROM #{conn.quote_table_name(name)} LIKE #{conn.quote(from_name)}")["Type"]
+            cd = @td.new_column_definition(to_name, current_type, **options)
+            @operations << ChangeColumnDefinition.new(cd, column.name)
+          end
+        end
+      end
+
       # = Active Record MySQL Adapter \Table
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
