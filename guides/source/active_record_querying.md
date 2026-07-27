@@ -204,6 +204,8 @@ The primary operation of `ActiveRecord::Relation` can be summarized as:
     https://api.rubyonrails.org/classes/ActiveRecord/QueryMethods.html#method-i-where
 [`with_lock`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Locking/Pessimistic.html#method-i-with_lock
+[`ActiveRecord::Locking::Pessimistic`]:
+    https://api.rubyonrails.org/classes/ActiveRecord/Locking/Pessimistic.html
 [`sqlcourse`]: https://www.khanacademy.org/computing/computer-programming/sql
 [`rdbmsinfo`]: https://www.devart.com/what-is-rdbms/
 
@@ -2383,6 +2385,34 @@ end
 WARNING: Your database needs to support the raw SQL that you pass in to the
 `lock` method, otherwise an `ActiveRecord::StatementInvalid` exception will be
 raised.
+
+Instead of raw SQL, you can request a named lock strength as a symbol, which
+the database adapter resolves to the correct clause — raising `ArgumentError`
+when the database doesn't support that strength:
+
+```ruby
+Book.transaction do
+  book = Book.lock(:no_key_update).find(1)  # SELECT ... FOR NO KEY UPDATE
+  book.increment!(:views)
+end
+```
+
+The available strengths are `:update` (`FOR UPDATE` — the default, all
+adapters), `:share` (`FOR SHARE` on PostgreSQL, `LOCK IN SHARE MODE` on
+MySQL), and, on PostgreSQL only, `:no_key_update` (`FOR NO KEY UPDATE`) and
+`:key_share` (`FOR KEY SHARE`).
+
+NOTE: On PostgreSQL, `FOR UPDATE` blocks more than other writers. Inserting a
+row whose foreign key references a locked row takes `FOR KEY SHARE` on the
+referenced row for the integrity check, and `FOR KEY SHARE` conflicts with
+`FOR UPDATE` — so while a transaction holds `FOR UPDATE` on a parent row,
+every insert of a child row referencing it waits, even though those inserts
+never modify the parent. If the critical section only updates non-key columns
+(balances, counters, state), `:no_key_update` gives the same mutual exclusion
+between writers without blocking child inserts. Keep the default `:update`
+strength when the section deletes the row, changes unique-indexed columns, or
+relies on child inserts being blocked. See
+[`ActiveRecord::Locking::Pessimistic`][] for details.
 
 If you already have an instance of your model, you can start a transaction and
 acquire the lock in one go using the [`with_lock`][] method. The block receives

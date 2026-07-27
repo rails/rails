@@ -19,6 +19,16 @@ module Arel
         assert_like "?", sql
       end
 
+      test "locking resolves the :update lock strength" do
+        assert_like "FOR UPDATE", compile(Nodes::Lock.new(:update))
+      end
+
+      test "locking raises for an unknown lock strength" do
+        error = assert_raises(ArgumentError) { compile(Nodes::Lock.new(:nonsense)) }
+        assert_match(/Unknown lock strength :nonsense/, error.message)
+        assert_match(/:update/, error.message)
+      end
+
       test "the to_sql visitor does not quote BindParams used as part of a ValuesList" do
         bp = Nodes::BindParam.new(1)
         values = Nodes::ValuesList.new([[bp]])

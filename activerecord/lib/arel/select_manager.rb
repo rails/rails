@@ -55,7 +55,9 @@ module Arel # :nodoc: all
       case locking
       when true
         locking = Arel.sql("FOR UPDATE")
-      when Arel::Nodes::SqlLiteral
+      when Arel::Nodes::SqlLiteral, Symbol
+        # Symbols are lock strengths (:update, :share, ...) resolved by the
+        # database-specific visitor when the SQL is generated.
       when String
         locking = Arel.sql locking
       end

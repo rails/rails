@@ -44,6 +44,17 @@ module Arel
         assert_like "LOCK IN SHARE MODE", compile(node)
       end
 
+      test "locking resolves lock strength symbols" do
+        assert_like "FOR UPDATE", compile(Nodes::Lock.new(:update))
+        assert_like "LOCK IN SHARE MODE", compile(Nodes::Lock.new(:share))
+      end
+
+      test "locking raises for a lock strength the database does not support" do
+        error = assert_raises(ArgumentError) { compile(Nodes::Lock.new(:no_key_update)) }
+        assert_match(/Unknown lock strength :no_key_update/, error.message)
+        assert_match(/:share/, error.message)
+      end
+
       test "concat concats columns" do
         table = Table.new(name: :users)
         query = table[:name].concat(table[:name])

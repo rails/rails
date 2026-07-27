@@ -3,6 +3,13 @@
 module Arel # :nodoc: all
   module Visitors
     class PostgreSQL < Arel::Visitors::ToSql
+      LOCK_CLAUSES = {
+        update: "FOR UPDATE",
+        no_key_update: "FOR NO KEY UPDATE",
+        share: "FOR SHARE",
+        key_share: "FOR KEY SHARE",
+      }.freeze
+
       private
         def visit_Arel_Nodes_UpdateStatement(o, collector)
           collector.retryable = false
