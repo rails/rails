@@ -1,3 +1,13 @@
+*   Deprecate the `insert_returning` option in PostgreSQL database
+    configurations, and the `PostgreSQLAdapter#use_insert_returning?` method.
+
+    The option only affected single-row INSERT statements. Other paths such
+    as `insert_all`, `upsert_all`, and RETURNING for `update` already use
+    RETURNING when the database supports it, so the option cannot fully
+    disable RETURNING and has become vestigial.
+
+    *Ryuta Kamizono*
+
 *   Remove unused `rest` parameter from merge and merge!
 
     *Aaron Patterson*
