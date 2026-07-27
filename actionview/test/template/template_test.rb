@@ -82,6 +82,34 @@ class TestERBTemplate < ActiveSupport::TestCase
     super
   end
 
+  def test_render_instrumentation_fires_with_payload_when_subscribed
+    @template = new_template
+    events = []
+    callback = ->(_name, _start, _finish, _id, payload) { events << payload }
+
+    ActiveSupport::Notifications.subscribed(callback, "!render_template.action_view") do
+      render
+    end
+
+    assert_equal 1, events.size
+    assert_equal "hello", events.first[:virtual_path]
+    assert_equal "hello template", events.first[:identifier]
+  end
+
+  def test_instrument_render_template_without_block_does_not_raise
+    @template = new_template
+    assert_nil @template.send(:instrument_render_template)
+  end
+
+  def test_render_does_not_build_instrumentation_payload_without_subscribers
+    @template = new_template
+    render # first render compiles; compile instrumentation is out of scope here
+
+    @template.stub(:instrument_payload, -> { flunk "payload built with no subscribers" }) do
+      assert_equal "Hello", render
+    end
+  end
+
   def test_basic_template
     @template = new_template
     assert_equal "Hello", render

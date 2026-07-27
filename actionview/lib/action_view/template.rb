@@ -607,7 +607,11 @@ module ActionView
       end
 
       def instrument_render_template(&block)
-        ActiveSupport::Notifications.instrument("!render_template.action_view", instrument_payload, &block)
+        if ActiveSupport::Notifications.notifier.listening?("!render_template.action_view")
+          ActiveSupport::Notifications.instrument("!render_template.action_view", instrument_payload, &block)
+        else
+          yield if block_given?
+        end
       end
 
       def instrument_payload

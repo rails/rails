@@ -1,3 +1,9 @@
+*   Skip building the `!render_template.action_view` instrumentation payload
+    when nothing subscribes to it, avoiding a Hash allocation on every
+    template render.
+
+    *Paul Ericksen*
+
 *   Extract `current_page?`, `button_to`, and `link_to` methods to
     `ActionView::Helpers::NavigationHelper`
 
