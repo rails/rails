@@ -93,15 +93,10 @@ module ActiveRecord
           if foreign_key_exists?(table_name, column: column_name)
             remove_foreign_key(table_name, column: column_name)
           end
-          algorithm = index_algorithm(options.delete(:algorithm))
-          lock = lock_clause(options.delete(:lock))
           return if options[:if_exists] == true && !column_exists?(table_name, column_name)
           at = create_alter_table(table_name)
-          at.remove_column(column_name)
-          sql = +schema_creation.accept(at)
-          sql << ", #{algorithm}" if algorithm
-          sql << ", #{lock}" if lock
-          execute(sql)
+          at.remove_column(column_name, type, **options)
+          execute_alter_table(at)
         end
 
         def create_table(table_name, options: default_row_format, **)

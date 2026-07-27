@@ -112,29 +112,47 @@ module ActiveRecord
           end
       end
 
-      AddIndex = Data.define(:index, :algorithm, :lock) # :nodoc:
-      DropIndex = Data.define(:name, :algorithm, :lock) # :nodoc:
+      AddIndex = Data.define(:index) # :nodoc:
+      DropIndex = Data.define(:name) # :nodoc:
 
       # = Active Record MySQL Adapter Alter \Table
       class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable # :nodoc:
         COMBINABLE_COMMANDS = (superclass::COMBINABLE_COMMANDS + %i[change_column rename_column add_index remove_index]).freeze
 
+        attr_reader :algorithm, :lock
+
+        def algorithm=(value)
+          @algorithm = @td.conn.index_algorithm(value) if value
+        end
+
+        def lock=(value)
+          @lock = @td.conn.lock_clause(value) if value
+        end
+
+        def add_column(column_name, type, **options)
+          extract_algorithm_and_lock!(options)
+          super
+        end
+
+        def remove_column(column_name, _type = nil, **options)
+          extract_algorithm_and_lock!(options)
+          super
+        end
+
         def add_index(column_name, **options)
-          conn = @td.conn
-          lock = conn.lock_clause(options.delete(:lock))
-          index, algorithm, _ = conn.add_index_options(name, column_name, **options)
-          @operations << AddIndex.new(index, algorithm, lock)
+          extract_algorithm_and_lock!(options)
+          index, _ = @td.conn.add_index_options(name, column_name, **options)
+          @operations << AddIndex.new(index)
         end
 
         def remove_index(column_name = nil, **options)
-          conn = @td.conn
-          algorithm = conn.index_algorithm(options.delete(:algorithm))
-          lock = conn.lock_clause(options.delete(:lock))
-          index_name = conn.send(:index_name_for_remove, name, column_name, options)
-          @operations << DropIndex.new(index_name, algorithm, lock)
+          extract_algorithm_and_lock!(options)
+          index_name = @td.conn.send(:index_name_for_remove, name, column_name, options)
+          @operations << DropIndex.new(index_name)
         end
 
         def change_column(column_name, type, **options)
+          extract_algorithm_and_lock!(options)
           conn = @td.conn
           column = conn.send(:column_for, name, column_name)
           type ||= column.sql_type
@@ -169,23 +187,30 @@ module ActiveRecord
           @operations << ChangeColumnDefinition.new(cd, column.name)
         end
 
-        def rename_column(from_name, to_name)
+        def rename_column(from_name, to_name, **options)
+          extract_algorithm_and_lock!(options)
           conn = @td.conn
           if conn.send(:supports_rename_column?)
-            super
+            super(from_name, to_name)
           else
             column = conn.send(:column_for, name, from_name)
-            options = {
+            column_options = {
               default: column.default,
               null: column.null,
               auto_increment: column.auto_increment?,
               comment: column.comment
             }
             current_type = conn.query_one("SHOW COLUMNS FROM #{conn.quote_table_name(name)} LIKE #{conn.quote(from_name)}")["Type"]
-            cd = @td.new_column_definition(to_name, current_type, **options)
+            cd = @td.new_column_definition(to_name, current_type, **column_options)
             @operations << ChangeColumnDefinition.new(cd, column.name)
           end
         end
+
+        private
+          def extract_algorithm_and_lock!(options)
+            self.algorithm = options.delete(:algorithm)
+            self.lock = options.delete(:lock)
+          end
       end
 
       # = Active Record MySQL Adapter \Table

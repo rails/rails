@@ -430,39 +430,16 @@ module ActiveRecord
         change_column table_name, column_name, nil, comment: comment
       end
 
-      def add_column(table_name, column_name, type, **options) # :nodoc:
-        return if options[:if_not_exists] == true && column_exists?(table_name, column_name)
-
-        algorithm = index_algorithm(options.delete(:algorithm))
-        lock = lock_clause(options.delete(:lock))
-        at = create_alter_table(table_name)
-        at.add_column(column_name, type, **options)
-        sql = +schema_creation.accept(at)
-        sql << ", #{algorithm}" if algorithm
-        sql << ", #{lock}" if lock
-        execute(sql)
-      end
-
       def change_column(table_name, column_name, type, **options) # :nodoc:
-        algorithm = index_algorithm(options.delete(:algorithm))
-        lock = lock_clause(options.delete(:lock))
         at = create_alter_table(table_name)
         at.change_column(column_name, type, **options)
-        sql = +schema_creation.accept(at)
-        sql << ", #{algorithm}" if algorithm
-        sql << ", #{lock}" if lock
-        execute(sql)
+        execute_alter_table(at)
       end
 
       def rename_column(table_name, column_name, new_column_name, **options) # :nodoc:
-        algorithm = index_algorithm(options.delete(:algorithm))
-        lock = lock_clause(options.delete(:lock))
         at = create_alter_table(table_name)
-        at.rename_column(column_name, new_column_name)
-        sql = +schema_creation.accept(at)
-        sql << ", #{algorithm}" if algorithm
-        sql << ", #{lock}" if lock
-        execute(sql)
+        at.rename_column(column_name, new_column_name, **options)
+        execute_alter_table(at)
         rename_column_indexes(table_name, column_name, new_column_name)
       end
 
