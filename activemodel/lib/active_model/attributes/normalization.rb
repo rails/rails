@@ -170,7 +170,6 @@ module ActiveModel
 
       private
         def normalize_changed_in_place_attributes
-          attributes = @attributes
           self.class.normalized_attributes.each do |name|
             attribute = @attributes[name.to_s]
             normalize_attribute(name) if normalized_attribute_changed_in_place?(attribute)
