@@ -1,3 +1,8 @@
+*   Avoid loading `ActionController::Live` early in initializer, and introduce
+    `action_controller_live` load hook.
+
+    *Adrianna Chang*
+
 *   Set the browser binary when preloading the Selenium driver for system tests.
 
     Selenium 4.45 stopped setting it as a side effect of getting the driver path,

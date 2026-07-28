@@ -439,5 +439,7 @@ module ActionController
           "#{message}\n\n"
         end
       end
+
+      ActiveSupport.run_load_hooks(:action_controller_live, self)
   end
 end
