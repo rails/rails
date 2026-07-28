@@ -9,7 +9,12 @@ module Rails
 
     def create
       inbound_email = ActionMailbox::InboundEmail.create_and_extract_message_id! params[:source]
-      redirect_to main_app.rails_conductor_inbound_email_url(inbound_email)
+      if inbound_email
+        redirect_to main_app.rails_conductor_inbound_email_url(inbound_email)
+      else
+        flash.now[:alert] = "This exact email has already been delivered"
+        render :new, status: :unprocessable_entity
+      end
     end
   end
 end
