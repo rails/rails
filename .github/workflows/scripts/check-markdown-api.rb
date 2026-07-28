@@ -17,7 +17,7 @@ added_files.each do |path|
     if line == "# :markup: markdown"
       markdown = true
       break
-    elsif !line.start_with?("#")
+    elsif !line.empty? && !line.start_with?("#")
       break
     end
   end
