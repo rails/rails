@@ -20,6 +20,12 @@ class Ship < ActiveRecord::Base
   def cancel_save_callback_method
     throw(:abort)
   end
+
+  def raise_unless_pirate_present=(should_assert)
+    return unless should_assert
+
+    raise Exception, "Pirate is not present" unless pirate.present?
+  end
 end
 
 class ShipWithoutNestedAttributes < ActiveRecord::Base
