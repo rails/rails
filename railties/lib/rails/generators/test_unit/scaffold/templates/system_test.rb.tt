@@ -28,7 +28,7 @@ class <%= class_name.pluralize %>Test < ApplicationSystemTestCase
     click_on "Back"
   end
 
-  test "should update <%= human_name %>" do
+  test "should update <%= human_name.downcase %>" do
     visit <%= singular_table_name %>_url(@<%= singular_table_name %>)
     click_on "Edit this <%= human_name.downcase %>", match: :first
 
@@ -47,7 +47,7 @@ class <%= class_name.pluralize %>Test < ApplicationSystemTestCase
     click_on "Back"
   end
 
-  test "should destroy <%= human_name %>" do
+  test "should destroy <%= human_name.downcase %>" do
     visit <%= singular_table_name %>_url(@<%= singular_table_name %>)
     click_on "Destroy this <%= human_name.downcase %>", match: :first
 
