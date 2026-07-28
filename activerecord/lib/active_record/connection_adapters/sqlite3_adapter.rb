@@ -243,11 +243,11 @@ module ActiveRecord
       end
 
       def supports_insert_returning?
-        database_version >= "3.35.0"
+        true
       end
 
       def supports_insert_on_conflict?
-        database_version >= "3.24.0"
+        true
       end
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
@@ -258,7 +258,7 @@ module ActiveRecord
       end
 
       def supports_virtual_columns?
-        database_version >= "3.31.0"
+        true
       end
 
       def connected?
@@ -536,8 +536,8 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < "3.23.0"
-          raise "Your version of SQLite (#{database_version}) is too old. Active Record supports SQLite >= 3.23.0."
+        if database_version < "3.35.0"
+          raise "Your version of SQLite (#{database_version}) is too old. Active Record supports SQLite >= 3.35.0."
         end
       end
 
