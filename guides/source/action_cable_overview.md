@@ -27,6 +27,13 @@ client-side JavaScript framework and a server-side Ruby framework. You have
 access to your entire domain model written with Active Record or your ORM of
 choice.
 
+Turbo Streams, part of [Hotwire](https://hotwired.dev/), provides a higher-level
+abstraction of many common ActionCable uses, such as delivering real-time UI
+updates. Depending on an app's needs, it may not be necessary to work directly
+with ActionCable. Learn more in the
+[Turbo Handbook](https://turbo.hotwired.dev/handbook/streams)
+and [turbo-rails](https://github.com/hotwired/turbo-rails/) docs.
+
 Terminology
 -----------
 
