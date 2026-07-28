@@ -321,6 +321,7 @@ module ActiveRecord
         def run_query!
           adapter.execute_intent(self)
         rescue ::RangeError
+          raise if write_query?
           @cast_result = ActiveRecord::Result.empty
           @raw_result_available = true
         end
