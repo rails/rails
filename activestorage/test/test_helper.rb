@@ -214,6 +214,7 @@ class SpecialUser < User; end
 
 class Group < ActiveRecord::Base
   has_one_attached :avatar
+  has_many_attached :files
   has_many :users, autosave: true
 
   accepts_nested_attributes_for :users

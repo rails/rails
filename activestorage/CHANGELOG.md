@@ -1,3 +1,15 @@
+*   Fix `has_many_attached` `attach` deleting files attached concurrently.
+
+    On a persisted record, `attach` read the current set of blobs and reassigned
+    the whole collection, so two concurrent `attach` calls working from the same
+    snapshot would each replace the collection and delete the other's file. The
+    Guides document that `attach` always appends and never replaces, so `attach`
+    now inserts only the new attachments instead of reassigning the collection.
+
+    Fixes #42941.
+
+    *Willian Tenfen Wazilewski*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
