@@ -42,6 +42,24 @@ module Rails
         assert_operator(engine_url_helpers, :respond_to?, :root_path)
       end
 
+      test "including url_helpers into Object does not load routes on unrelated methods" do
+        require "#{app_path}/config/environment"
+
+        Object.include Rails.application.routes.url_helpers
+
+        # Protocols like to_ary/to_hash must not trigger a routes load. Otherwise
+        # every respond_to? in the process re-enters the reloader while routes
+        # are drawing and the process appears hung.
+        assert_not Object.new.respond_to?(:to_ary)
+        assert_not_operator(:root_path, :in?, app_url_helpers.methods)
+
+        assert_raises(NoMethodError) { Object.new.not_a_route }
+        assert_not_operator(:root_path, :in?, app_url_helpers.methods)
+
+        assert_operator Object.new, :respond_to?, :root_path
+        assert_equal "/", Object.new.root_path
+      end
+
       test "app lazily loads routes when making a request" do
         require "#{app_path}/config/environment"
 
