@@ -246,10 +246,6 @@ module ActiveRecord
             ["TRUNCATE TABLE #{table_names.map(&method(:quote_table_name)).join(", ")}"]
           end
 
-          def returning_column_values(result)
-            result.rows.first
-          end
-
           def suppress_composite_primary_key(pk)
             pk unless pk.is_a?(Array)
           end

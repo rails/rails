@@ -791,7 +791,11 @@ module ActiveRecord
         end
 
         def returning_column_values(result)
-          [last_inserted_id(result)]
+          if supports_insert_returning?
+            result.rows.first
+          else
+            [last_inserted_id(result)]
+          end
         end
 
         def single_value_from_rows(rows)
