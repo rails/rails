@@ -23,3 +23,5 @@ class ActiveStorage::PreviewImageJob < ActiveStorage::BaseJob
     end
   end
 end
+
+ActiveSupport.run_load_hooks :active_storage_preview_image_job, ActiveStorage::PreviewImageJob

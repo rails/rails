@@ -11,3 +11,5 @@ class ActiveStorage::AnalyzeJob < ActiveStorage::BaseJob
     blob.analyze
   end
 end
+
+ActiveSupport.run_load_hooks :active_storage_analyze_job, ActiveStorage::AnalyzeJob

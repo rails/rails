@@ -13,3 +13,5 @@ class ActiveStorage::MirrorJob < ActiveStorage::BaseJob
     ActiveStorage::Blob.service.try(:mirror, key, checksum: checksum)
   end
 end
+
+ActiveSupport.run_load_hooks :active_storage_mirror_job, ActiveStorage::MirrorJob
