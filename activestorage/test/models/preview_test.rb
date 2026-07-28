@@ -118,4 +118,30 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
 
     assert_equal "local_public", preview.image.blob.service_name
   end
+
+  test "filename falls back to the blob filename until the preview is processed" do
+    blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
+    preview = blob.preview(resize_to_limit: [640, 280])
+
+    assert_not_predicate preview, :processed?
+    assert_equal "report.pdf", preview.filename.to_s
+
+    preview.processed
+    assert_equal "report.png", preview.filename.to_s
+  end
+
+  test "filename does not process the variant" do
+    blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
+    blob.preview_image.attach(
+      io: file_fixture("racecar.jpg").open, filename: "report.png",
+      content_type: "image/png", identify: false
+    )
+    preview = blob.preview(resize_to_limit: [640, 280])
+
+    assert_predicate preview, :processed?
+    assert_not_predicate preview.send(:variant), :processed?
+
+    assert_equal "report.png", preview.filename.to_s
+    assert_not_predicate preview.send(:variant), :processed?
+  end
 end
