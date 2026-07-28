@@ -7,8 +7,9 @@ require "active_storage/previewer/video_previewer"
 
 class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
   setup do
-    if !ENV["BUILDKITE"] && !system("command", "-v", ActiveStorage.paths[:ffmpeg] || "ffmpeg")
-      skip("ffmpeg isn't available")
+    unless ENV["BUILDKITE"]
+      skip("ffmpeg isn't available") unless system("command", "-v", ActiveStorage.paths[:ffmpeg] || "ffmpeg")
+      skip("ffprobe isn't available") unless system("command", "-v", ActiveStorage.paths[:ffprobe] || "ffprobe")
     end
   end
 
@@ -32,5 +33,15 @@ class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
     assert_raises ActiveStorage::PreviewError do
       ActiveStorage::Previewer::VideoPreviewer.new(blob).preview
     end
+  end
+
+  test "previewing an audio-only video file does not raise and yields no preview" do
+    blob = create_file_blob(filename: "video_without_video_stream.mp4", content_type: "video/mp4")
+
+    yielded = false
+    assert_nothing_raised do
+      ActiveStorage::Previewer::VideoPreviewer.new(blob).preview { yielded = true }
+    end
+    assert_not yielded
   end
 end
