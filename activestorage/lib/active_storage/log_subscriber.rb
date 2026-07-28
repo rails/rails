@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/log_subscriber"
-
 module ActiveStorage
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     self.namespace = "active_storage"

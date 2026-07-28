@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require "fileutils"
-require "pathname"
-require "openssl"
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
