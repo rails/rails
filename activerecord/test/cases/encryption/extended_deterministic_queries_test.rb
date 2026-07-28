@@ -21,6 +21,22 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
     assert EncryptedBook.where("id > 0").find_by(name: "Dune") # relation
   end
 
+  test "Finds records with an array of values, both encrypted and unencrypted" do
+    UnencryptedBook.create!(name: "Dune")
+    EncryptedBook.create!(name: "Ubik")
+
+    assert_equal 2, EncryptedBook.where(name: [ "Dune", "Ubik" ]).count # relation
+    assert EncryptedBook.find_by(name: [ "Dune" ]) # core
+  end
+
+  test "Finds records with a set of values, both encrypted and unencrypted" do
+    UnencryptedBook.create!(name: "Dune")
+    EncryptedBook.create!(name: "Ubik")
+
+    assert_equal 2, EncryptedBook.where(name: Set["Dune", "Ubik"]).count # relation
+    assert EncryptedBook.find_by(name: Set["Dune"]) # core
+  end
+
   test "Works well with downcased attributes" do
     EncryptedBookWithDowncaseName.create! name: "Dune"
     assert EncryptedBookWithDowncaseName.find_by(name: "DUNE")

@@ -1,3 +1,17 @@
+*   Expand `Set` values in queries on deterministically encrypted attributes.
+
+    When `config.active_record.encryption.extend_queries` is enabled, queries on
+    deterministic attributes that support unencrypted data are expanded to match
+    both the encrypted and the unencrypted values. `String` and `Array` values
+    were expanded, but a `Set` was passed through untouched, so such queries only
+    matched already encrypted records:
+
+    ```ruby
+    Contact.where(email_address: Set["jorge@hey.com"])
+    ```
+
+    *Eric Barendt*
+
 *   Deprecate the `insert_returning` option in PostgreSQL database
     configurations, and the `PostgreSQLAdapter#use_insert_returning?` method.
 
