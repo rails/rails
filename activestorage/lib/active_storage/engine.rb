@@ -157,6 +157,12 @@ module ActiveStorage
           -version
           -write
           -write-mask
+          caption:
+          ephemeral:
+          label:
+          msl:
+          pango:
+          text:
         )
 
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []

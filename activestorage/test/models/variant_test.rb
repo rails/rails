@@ -231,6 +231,25 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
   end
 
+  test "variations with a file-reading pseudo-format argument raise UnsupportedImageProcessingArgument" do
+    process_variants_with :mini_magick do
+      blob = create_file_blob(filename: "racecar.jpg")
+      [
+        "text:/etc/passwd",
+        "TEXT:/etc/passwd",
+        "label:@/etc/passwd",
+        "caption:@/etc/passwd",
+        "msl:/tmp/exploit.msl",
+        "pango:@/etc/passwd",
+        "ephemeral:/etc/passwd",
+      ].each do |dangerous_argument|
+        assert_raise(ActiveStorage::Transformers::ImageProcessingTransformer::UnsupportedImageProcessingArgument, "expected #{dangerous_argument} to be rejected") do
+          blob.variant(composite: dangerous_argument).processed
+        end
+      end
+    end
+  end
+
   test "variations with dangerous argument array raise UnsupportedImageProcessingArgument" do
     process_variants_with :mini_magick do
       blob = create_file_blob(filename: "racecar.jpg")
