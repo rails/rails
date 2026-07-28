@@ -148,7 +148,7 @@
       user: { email: "  ALICE@EXAMPLE.COM  ", profile: { bio: "  Hello world  " } }
     )
     params.deep_transform_values { |v| v.is_a?(String) ? v.strip.downcase : v }
-    # => #<ActionController::Parameters {"user"=>#<ActionController::Parameters {"email"=>"alice@example.com", "profile"=>#<ActionController::Parameters {"bio"=>"hello world"} permitted: false>} permitted: false>} permitted: false>
+    # => #<ActionController::Parameters {"user"=>{"email"=>"alice@example.com", "profile"=>{"bio"=>"hello world"}}} permitted: false>
     ```
 
     *Edil Talantbek uulu*
