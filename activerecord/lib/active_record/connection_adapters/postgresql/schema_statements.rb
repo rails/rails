@@ -351,6 +351,10 @@ module ActiveRecord
           query_value("SELECT pg_get_serial_sequence(#{quote(table)}, #{quote(column)})")
         end
 
+        def next_sequence_value(sequence_name) # :nodoc:
+          query_value("SELECT nextval(#{quote(sequence_name)})", "SQL")
+        end
+
         # Sets the sequence of a table's primary key to the specified value.
         def set_pk_sequence!(table, value) # :nodoc:
           pk, sequence = pk_and_sequence_for(table)
