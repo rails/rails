@@ -263,9 +263,31 @@ module ActiveRecord
         assert_not_nil error.cause
       end
 
-      def test_numeric_value_out_of_ranges_are_translated_to_specific_exception
+      def test_numeric_value_out_of_ranges_on_model_create_are_translated_to_specific_exception
+        assert_raises(ActiveModel::RangeError) do
+          Book.create(author_id: 9223372036854775808)
+        end
+      end
+
+      def test_numeric_value_out_of_ranges_on_model_update_are_translated_to_specific_exception
+        book = Book.create!
+        assert_raises(ActiveModel::RangeError) do
+          book.update(author_id: 9223372036854775808)
+        end
+      end
+
+      def test_numeric_value_out_of_ranges_on_connection_insert_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::RangeError) do
-          Book.lease_connection.create("INSERT INTO books(author_id) VALUES (9223372036854775808)")
+          Book.lease_connection.insert("INSERT INTO books(author_id) VALUES (9223372036854775808)")
+        end
+
+        assert_not_nil error.cause
+      end
+
+      def test_numeric_value_out_of_ranges_on_connection_update_are_translated_to_specific_exception
+        book = Book.create!
+        error = assert_raises(ActiveRecord::RangeError) do
+          Book.lease_connection.update("UPDATE books SET author_id = 9223372036854775808 WHERE id = #{book.id}")
         end
 
         assert_not_nil error.cause
