@@ -84,7 +84,7 @@ module ActiveRecord
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
       mock = Minitest::Mock.new
-      mock.expect(:call, nil, [{ adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
+      mock.expect(:call, nil, [{ adapter: "postgresql", database: "my-app-db", schema_search_path: "public" }])
       mock.expect(:call, nil, [db_config])
 
       ActiveRecord::Base.stub(:lease_connection, @connection) do
@@ -259,7 +259,7 @@ module ActiveRecord
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration)
 
       mock = Minitest::Mock.new
-      mock.expect(:call, nil, [{ adapter: "postgresql", database: "postgres", schema_search_path: "public" }])
+      mock.expect(:call, nil, [{ adapter: "postgresql", database: "my-app-db", schema_search_path: "public" }])
       mock.expect(:call, nil, [db_config])
 
       with_stubbed_connection do
