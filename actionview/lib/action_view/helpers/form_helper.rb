@@ -1775,6 +1775,7 @@ module ActionView
       # element, sharing a common <tt>id</tt> root (<tt>article_title</tt>, in this
       # case).
       def field_id(method, *suffixes, namespace: @options[:namespace], index: @options[:index])
+        index ||= @auto_index
         @template.field_id(@object_name, method, *suffixes, namespace: namespace, index: index)
       end
 
