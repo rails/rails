@@ -1009,7 +1009,7 @@ class BlobRecord {
     }));
   }
   requestDidLoad(event) {
-    if (this.status >= 200 && this.status < 300) {
+    if (this.status >= 200 && this.status < 300 && this.response) {
       const {response: response} = this;
       const {direct_upload: direct_upload} = response;
       delete response.direct_upload;
