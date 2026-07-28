@@ -23,8 +23,6 @@ db_namespace = namespace :db do
     if ActiveRecord::Base.configurations.empty?
       ActiveRecord::Base.configurations = ActiveRecord::Tasks::DatabaseTasks.database_configuration
     end
-
-    ActiveRecord::Migrator.migrations_paths = ActiveRecord::Tasks::DatabaseTasks.migrations_paths
   end
 
   namespace :create do
