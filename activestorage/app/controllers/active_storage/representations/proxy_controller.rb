@@ -25,7 +25,9 @@ class ActiveStorage::Representations::ProxyController < ActiveStorage::Represent
   include ActiveStorage::DisableSession
 
   def show
-    http_cache_forever public: true do
+    expires_in ActiveStorage.urls_expire_in || 100.years, public: true, immutable: true
+
+    if stale?(etag: request.fullpath, last_modified: @blob.created_at, public: true)
       send_blob_stream @representation, disposition: params[:disposition]
     end
   end
