@@ -898,19 +898,17 @@ module ActiveRecord
           end
         end
 
-        def handle_warnings(_initial_result, sql)
-          return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
+        def collect_warnings(_initial_result)
+          return [] if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
 
           warning_count = @raw_connection.warning_count
           result = @raw_connection.query("SHOW WARNINGS")
           result = [
             ["Warning", nil, "Query had warning_count=#{warning_count} but `SHOW WARNINGS` did not return the warnings. Check MySQL logs or database configuration."],
           ] if result.count == 0
-          result.each do |level, code, message|
-            warning = SQLWarning.new(message, code, level, sql, @pool)
-            next if warning_ignored?(warning)
 
-            ActiveRecord.db_warnings_action.call(warning)
+          result.map do |level, code, message|
+            SQLWarning.new(message, code, level, nil, @pool)
           end
         end
 

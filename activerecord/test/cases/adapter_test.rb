@@ -293,6 +293,25 @@ module ActiveRecord
       assert_kind_of Exception, error.cause
     end
 
+    class MockDatabaseError < StandardError
+      def result
+        0
+      end
+
+      def error_number
+        0
+      end
+    end
+
+    def test_translated_exceptions_carry_their_cause_without_an_enclosing_rescue
+      native = MockDatabaseError.new("boom")
+
+      translated = @connection.send(:translate_exception_class, native, "SELECT 1", [])
+
+      assert_kind_of ActiveRecord::StatementInvalid, translated
+      assert_same native, translated.cause
+    end
+
     def test_select_all_always_return_activerecord_result
       result = @connection.select_all "SELECT * FROM posts"
       assert result.is_a?(ActiveRecord::Result)

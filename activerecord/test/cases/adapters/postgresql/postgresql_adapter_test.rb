@@ -1465,6 +1465,73 @@ module ActiveRecord
         end
       end
 
+      def test_delivered_query_intent_warnings_are_handled_when_result_is_observed
+        warning_sql = "do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$"
+        warnings = []
+        warning_action = ->(warning) do
+          warnings << [warning.message, warning.sql]
+          raise warning
+        end
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: @connection,
+          raw_sql: warning_sql,
+          name: "WARNING"
+        )
+
+        with_db_warnings_action(warning_action) do
+          assert_nothing_raised do
+            intent.execute!
+          end
+          assert_equal [], warnings
+          assert intent.raw_result_available?
+
+          error = assert_raises(ActiveRecord::SQLWarning) do
+            intent.cast_result
+          end
+          assert_equal "PostgreSQL SQL warning", error.message
+          assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+
+          assert_same error, assert_raises(ActiveRecord::SQLWarning) { intent.cast_result }
+          assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+        end
+      ensure
+        raw_result = intent&.instance_variable_get(:@raw_result)
+        if raw_result.respond_to?(:clear) && (!raw_result.respond_to?(:cleared?) || !raw_result.cleared?)
+          raw_result.clear
+        end
+      end
+
+      def test_delivered_query_intent_warnings_do_not_mask_query_failure
+        warning_sql = "do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; " \
+          "RAISE EXCEPTION 'PostgreSQL SQL error'; END; $$"
+        warnings = []
+        warning_action = ->(warning) do
+          warnings << [warning.message, warning.sql]
+          raise warning
+        end
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: @connection,
+          raw_sql: warning_sql,
+          name: "WARNING FAILURE"
+        )
+
+        with_db_warnings_action(warning_action) do
+          assert_nothing_raised do
+            intent.execute!
+          end
+          assert_equal [], warnings
+
+          error = assert_raises(ActiveRecord::StatementInvalid) do
+            intent.cast_result
+          end
+          assert_match(/PostgreSQL SQL error/, error.message)
+          assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+
+          assert_raises(ActiveRecord::StatementInvalid) { intent.cast_result }
+          assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+        end
+      end
+
       def test_allowlist_of_warnings_to_ignore
         with_db_warnings_action(:raise, [/PostgreSQL SQL warning/]) do
           result = @connection.execute("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$")
