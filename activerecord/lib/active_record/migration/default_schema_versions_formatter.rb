@@ -13,14 +13,10 @@ module ActiveRecord
       def format(versions)
         sm_table = connection.quote_table_name(connection.pool.schema_migration.table_name)
 
-        if versions.is_a?(Array)
-          sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
-          sql << versions.reverse.map { |v| "(#{connection.quote(v)})" }.join(",\n")
-          sql << ";"
-          sql
-        else
-          "INSERT INTO #{sm_table} (version) VALUES (#{connection.quote(versions)});"
-        end
+        sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
+        sql << versions.reverse.map { |v| "(#{connection.quote(v)})" }.join(",\n")
+        sql << ";"
+        sql
       end
 
       private
