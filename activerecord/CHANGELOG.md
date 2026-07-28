@@ -1,3 +1,23 @@
+*   Allow requesting a named row-lock strength with `lock`, `lock!`, and
+    `with_lock` by passing a symbol, resolved by the database adapter:
+
+    ```ruby
+    Account.lock(:no_key_update).find(1)  # SELECT ... FOR NO KEY UPDATE
+    account.with_lock(:share) { ... }     # FOR SHARE / LOCK IN SHARE MODE
+    ```
+
+    Supported strengths are `:update` (all adapters), `:share` (PostgreSQL
+    and MySQL), and `:no_key_update` / `:key_share` (PostgreSQL). An
+    `ArgumentError` is raised when the adapter does not support the requested
+    strength. Previously, passing a symbol silently disabled locking.
+
+    On PostgreSQL, `:no_key_update` provides the same mutual exclusion
+    between writers as `FOR UPDATE` without blocking the `FOR KEY SHARE`
+    locks taken by foreign-key checks — so inserts into tables referencing
+    the locked row no longer queue behind it.
+
+    *Mikael Henriksson*
+
 *   Deprecate the `insert_returning` option in PostgreSQL database
     configurations, and the `PostgreSQLAdapter#use_insert_returning?` method.
 

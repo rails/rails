@@ -335,8 +335,27 @@ module Arel # :nodoc: all
           visit o.expr, collector
         end
 
+        # Row-lock strengths that may be requested as symbols through
+        # ActiveRecord::QueryMethods#lock (and Base#lock! / #with_lock).
+        # Adapter visitors override this constant with the clauses their
+        # database supports.
+        LOCK_CLAUSES = { update: "FOR UPDATE" }.freeze
+
         def visit_Arel_Nodes_Lock(o, collector)
-          visit o.expr, collector
+          if o.expr.is_a?(Symbol)
+            collector << lock_clause_for(o.expr)
+          else
+            visit o.expr, collector
+          end
+        end
+
+        def lock_clause_for(strength)
+          self.class::LOCK_CLAUSES.fetch(strength) do
+            supported = self.class::LOCK_CLAUSES.keys.map(&:inspect).join(", ")
+            raise ArgumentError,
+              "Unknown lock strength #{strength.inspect} for this database adapter. " \
+              "Supported lock strengths: #{supported}."
+          end
         end
 
         def visit_Arel_Nodes_Grouping(o, collector)

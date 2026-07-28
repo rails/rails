@@ -24,6 +24,19 @@ module Arel
         }, compile(node)
       end
 
+      test "locking resolves lock strength symbols" do
+        assert_like "FOR UPDATE", compile(Nodes::Lock.new(:update))
+        assert_like "FOR NO KEY UPDATE", compile(Nodes::Lock.new(:no_key_update))
+        assert_like "FOR SHARE", compile(Nodes::Lock.new(:share))
+        assert_like "FOR KEY SHARE", compile(Nodes::Lock.new(:key_share))
+      end
+
+      test "locking raises for an unknown lock strength" do
+        error = assert_raises(ArgumentError) { compile(Nodes::Lock.new(:nonsense)) }
+        assert_match(/Unknown lock strength :nonsense/, error.message)
+        assert_match(/:no_key_update/, error.message)
+      end
+
       test "should escape LIMIT" do
         sc = Arel::Nodes::SelectStatement.new
         sc.limit = Nodes::Limit.new(Nodes.build_quoted("omg"))

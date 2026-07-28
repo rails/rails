@@ -771,6 +771,40 @@ class PessimisticLockingTest < ActiveRecord::TestCase
       end
     end
 
+    def test_find_with_lock_strength_symbol
+      assert_nothing_raised do
+        Person.transaction do
+          Person.lock(:update).find(1)
+        end
+      end
+    end
+
+    if current_adapter?(:PostgreSQLAdapter)
+      def test_find_with_no_key_update_lock_strength
+        assert_match(/FOR NO KEY UPDATE\z/, Person.lock(:no_key_update).to_sql)
+
+        assert_nothing_raised do
+          Person.transaction do
+            Person.lock(:no_key_update).find(1)
+          end
+        end
+      end
+
+      def test_lock_bang_with_lock_strength_symbol
+        person = Person.find 1
+        assert_queries_match(/FOR NO KEY UPDATE/) do
+          Person.transaction { person.lock!(:no_key_update) }
+        end
+      end
+
+      def test_with_lock_with_lock_strength_symbol
+        person = Person.find 1
+        assert_queries_match(/FOR NO KEY UPDATE/) do
+          person.with_lock(:no_key_update) { }
+        end
+      end
+    end
+
     # PostgreSQL protests SELECT ... FOR UPDATE on an outer join.
     unless current_adapter?(:PostgreSQLAdapter)
       # Test locked eager find.

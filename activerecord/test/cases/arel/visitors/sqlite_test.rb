@@ -21,6 +21,11 @@ module Arel
         assert_equal "", @visitor.accept(node, Collectors::SQLString.new).value
       end
 
+      test "ignores lock strength symbols like every other lock" do
+        node = Nodes::Lock.new(:no_key_update)
+        assert_equal "", @visitor.accept(node, Collectors::SQLString.new).value
+      end
+
       test "Nodes::IsNotDistinctFrom should construct a valid generic SQL statement" do
         test = Table.new(name: :users)[:name].is_not_distinct_from "Aaron Patterson"
         assert_like %{

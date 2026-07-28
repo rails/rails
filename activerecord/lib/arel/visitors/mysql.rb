@@ -3,6 +3,13 @@
 module Arel # :nodoc: all
   module Visitors
     class MySQL < Arel::Visitors::ToSql
+      # LOCK IN SHARE MODE rather than FOR SHARE: identical semantics on
+      # MySQL 8.0+, and it also works on MySQL 5.7 and MariaDB.
+      LOCK_CLAUSES = {
+        update: "FOR UPDATE",
+        share: "LOCK IN SHARE MODE",
+      }.freeze
+
       private
         def visit_Arel_Nodes_Bin(o, collector)
           collector << "CAST("

@@ -1301,15 +1301,40 @@ module ActiveRecord
       self
     end
 
-    # Specifies locking settings (default to +true+). For more information
-    # on locking, please see ActiveRecord::Locking.
+    # Specifies locking settings (default to +true+).
+    #
+    #   Account.lock.find(1)                    # SELECT ... FOR UPDATE
+    #   Account.lock("FOR UPDATE NOWAIT")       # database-specific SQL clause
+    #   Account.lock(:no_key_update).find(1)    # SELECT ... FOR NO KEY UPDATE
+    #
+    # Passing a Symbol requests a named lock strength, resolved by the
+    # database adapter when the SQL is generated:
+    #
+    # [+:update+]
+    #   <tt>FOR UPDATE</tt> — an exclusive row lock (all adapters; the
+    #   default).
+    # [+:no_key_update+]
+    #   <tt>FOR NO KEY UPDATE</tt> — exclusive against other writers, but
+    #   does not block <tt>FOR KEY SHARE</tt>, so +INSERT+s into tables with
+    #   a foreign key referencing the locked row are not blocked
+    #   (\PostgreSQL only).
+    # [+:share+]
+    #   <tt>FOR SHARE</tt> / <tt>LOCK IN SHARE MODE</tt> — shared lock,
+    #   blocks writers (\PostgreSQL, \MySQL).
+    # [+:key_share+]
+    #   <tt>FOR KEY SHARE</tt> — the weakest lock, blocks only key-modifying
+    #   writes and +DELETE+ (\PostgreSQL only).
+    #
+    # An ArgumentError is raised when the adapter does not support the
+    # requested strength. For more information on locking, please see
+    # ActiveRecord::Locking.
     def lock(locks = true)
       spawn.lock!(locks)
     end
 
     def lock!(locks = true) # :nodoc:
       case locks
-      when String, TrueClass, NilClass
+      when String, Symbol, TrueClass, NilClass
         self.lock_value = locks || true
       else
         self.lock_value = false
