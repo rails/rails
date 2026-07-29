@@ -535,7 +535,9 @@ module ActiveRecord
         with_example_table do
           sql = "INSERT INTO ex (number) VALUES (10)"
           idval = "vuvuzela"
-          id = @conn.insert(sql, nil, nil, idval)
+          id = assert_deprecated(ActiveRecord.deprecator) do
+            @conn.insert(sql, nil, nil, idval)
+          end
           assert_equal idval, id
         end
       end

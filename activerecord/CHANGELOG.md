@@ -1,3 +1,17 @@
+*   Deprecate the `pk`, `id_value`, and `sequence_name` positional arguments to
+    `ActiveRecord::ConnectionAdapters::DatabaseStatements#insert`.
+
+    * `pk` — pass `returning:` instead. `insert(arel, name, "id")` becomes
+      `insert(arel, name, returning: "id")` (still a single value return).
+
+    * `id_value` — the caller usually already knows this value and can use it
+      directly rather than reading it back from `insert`'s return value.
+
+    * `sequence_name` — only used by PostgreSQL's `use_insert_returning?`
+      currval fallback, which is deprecated on its own.
+
+    *Ryuta Kamizono*
+
 *   Allow for prepared statements to remain enabled with query logs tags.
 
     To keep prepared_statements enabled in conjunction with query log tags,
