@@ -256,10 +256,9 @@ class Range # :nodoc:
     else
       actual_last = exclude_end? ? (last - 1) : last
       if actual_last >= first
-        sum = initial_value || 0
-        sum + (actual_last - first + 1) * (actual_last + first) / 2
+        initial_value + (actual_last - first + 1) * (actual_last + first) / 2
       else
-        initial_value || 0
+        initial_value
       end
     end
   end

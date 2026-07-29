@@ -1,3 +1,11 @@
+*   Fix `Range#sum` with a falsey initial value.
+
+    Summing an integer range with a falsey starting value (such as nil or false)
+    treated that value as zero. It now keeps the starting value as given, matching
+    array and enumerable sum.
+
+    *Said Kaldybaev*
+
 *   Add `ActiveSupport.raise_on_invalid_time_zone_parse`.
 
     Raise `ArgumentError` on `ActiveSupport::TimeZone#parse` for any invalid
