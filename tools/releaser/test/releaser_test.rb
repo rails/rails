@@ -236,7 +236,9 @@ class TestReleaser < Minitest::Test
     sha = "abcdef"
     path = "pkg/activesupport-5.0.0.gem"
 
-    assert_equal "abcdef  pkg/activesupport-5.0.0.gem", releaser.checksum_line(sha, path)
+    with_env("GITHUB_ACTIONS" => "false") do
+      assert_equal "abcdef  pkg/activesupport-5.0.0.gem", releaser.checksum_line(sha, path)
+    end
   end
 
   def test_checksum_line_returns_a_notice_annotation_when_in_github_actions
