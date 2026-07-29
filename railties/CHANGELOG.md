@@ -3,6 +3,11 @@
     *Zhong Sheng*
 
 
+## Rails 7.2.3.2 (July 29, 2026) ##
+
+*   No changes.
+
+
 ## Rails 7.2.3.1 (March 23, 2026) ##
 
 *   No changes.
