@@ -43,6 +43,11 @@
     *Eldin Guzin*
 
 
+## Rails 8.0.5.1 (July 29, 2026) ##
+
+*   No changes.
+
+
 ## Rails 8.0.5 (March 24, 2026) ##
 
 *   Fix inflections to better handle overlapping acronyms.
