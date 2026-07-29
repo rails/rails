@@ -1,3 +1,10 @@
+*   Honor `exclude_end?` in `Range#to_fs(:db)`.
+
+    Exclusive ranges were formatted with inclusive `BETWEEN` / `<=` bounds.
+    Exclusive ends now use `>= ... AND < ...` or `< ...`.
+
+    *Said Kaldybaev*
+
 *   Add `Pacific Time (Canada)` and `Alberta` to `ActiveSupport::TimeZone::MAPPING`.
 
     British Columbia and Alberta no longer share winter clocks with US Pacific
