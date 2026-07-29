@@ -230,4 +230,32 @@ class TestReleaser < Minitest::Test
     assert_equal "Active Record", releaser.framework_name("activerecord")
     assert_equal "Railties", releaser.framework_name("railties")
   end
+
+  def test_checksum_line_returns_sha256_and_path_when_not_in_github_actions
+    releaser = Releaser.new(__dir__, "5.0.0")
+    sha = "abcdef"
+    path = "pkg/activesupport-5.0.0.gem"
+
+    assert_equal "abcdef  pkg/activesupport-5.0.0.gem", releaser.checksum_line(sha, path)
+  end
+
+  def test_checksum_line_returns_a_notice_annotation_when_in_github_actions
+    releaser = Releaser.new(__dir__, "5.0.0")
+    sha = "abcdef"
+    path = "pkg/activesupport-5.0.0.gem"
+
+    with_env("GITHUB_ACTIONS" => "true") do
+      expected = "::notice file=#{File.expand_path(path)},title=SHA-256::#{sha}  #{path}"
+      assert_equal expected, releaser.checksum_line(sha, path)
+    end
+  end
+
+  private
+    def with_env(env)
+      previous = env.keys.to_h { |key| [key, ENV[key]] }
+      env.each { |key, value| ENV[key] = value }
+      yield
+    ensure
+      previous.each { |key, value| ENV[key] = value }
+    end
 end
