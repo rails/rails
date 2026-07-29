@@ -12,6 +12,13 @@ class RangeTest < ActiveSupport::TestCase
     assert_equal "BETWEEN '2005-12-10' AND '2005-12-12'", date_range.to_formatted_s(:db)
   end
 
+  def test_to_fs_db_exclusive_end
+    assert_equal ">= '1' AND < '5'", (1...5).to_fs(:db)
+    assert_equal ">= 'a' AND < 'z'", ("a"..."z").to_fs(:db)
+    assert_equal "< '100'", (...100).to_fs(:db)
+    assert_equal "BETWEEN '1' AND '5'", (1..5).to_fs(:db)
+  end
+
   def test_to_fs_from_times
     date_range = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     assert_equal "BETWEEN '2005-12-10 15:30:00' AND '2005-12-10 17:30:00'", date_range.to_fs(:db)
