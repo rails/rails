@@ -17,6 +17,7 @@ module Arel # :nodoc: all
         @bind_index += 1
         self
       end
+      alias_method :add_bind_param, :add_bind
 
       def add_binds(binds, proc_for_binds = nil, &block)
         self << (@bind_index...@bind_index += binds.size).map(&block).join(", ")

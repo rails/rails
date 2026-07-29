@@ -67,6 +67,22 @@ module Arel
     sql("*", retryable: true)
   end
 
+  # Wrap an array of values for an IN/NOT IN query so it is sent to the
+  # database as a single array bind parameter rather than being expanded into
+  # one placeholder (or inlined literal) per element:
+  #
+  #   Post.where(id: Arel.array_bind([1, 2, 3]))
+  #   # => SELECT ... WHERE "posts"."id" = ANY($1)
+  #
+  # On PostgreSQL this produces +col = ANY($1)+ (or +col <> ALL($1)+ when
+  # negated), keeping the SQL text a constant size no matter how many values
+  # are matched. This avoids oversized statements and per-element parameter
+  # limits for large lists. Adapters without array-bind support fall back to a
+  # regular +IN (...)+ expansion.
+  def self.array_bind(values)
+    Arel::Nodes::ArrayBind.new(values)
+  end
+
   def self.arel_node?(value) # :nodoc:
     value.is_a?(Arel::Nodes::Node) || value.is_a?(Arel::Attribute) || value.is_a?(Arel::Nodes::SqlLiteral)
   end
