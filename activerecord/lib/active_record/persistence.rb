@@ -237,13 +237,9 @@ module ActiveRecord
 
       def _insert_record(connection, values, returning) # :nodoc:
         primary_key = self.primary_key
-        primary_key_value = nil
 
         if prefetch_primary_key? && primary_key
-          values[primary_key] ||= begin
-            primary_key_value = next_sequence_value
-            _default_attributes[primary_key].with_cast_value(primary_key_value)
-          end
+          values[primary_key] ||= _default_attributes[primary_key].with_cast_value(next_sequence_value)
         end
 
         im = Arel::InsertManager.new(arel_table)
@@ -254,10 +250,7 @@ module ActiveRecord
           im.insert(values.transform_keys { |name| arel_table[name] })
         end
 
-        connection.insert(
-          im, "#{self} Create", primary_key || false, primary_key_value,
-          returning: returning
-        )
+        connection.insert(im, "#{self} Create", returning: returning)
       end
 
       def _update_record(values, constraints) # :nodoc:
