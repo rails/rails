@@ -1,3 +1,12 @@
+*   Dispatch `direct-upload:success` with `blob` and `hiddenInput`
+
+    The `direct-upload:success` event is dispatched after the final
+    `direct-upload:progress` and before `direct-upload:end`. The `blob` is the
+    response from `ActiveStorage::DirectUploadsController#create`. The `hiddenInput`
+    is the `<input type="hidden">` element created by the upload.
+
+    *Sean Doyle*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`

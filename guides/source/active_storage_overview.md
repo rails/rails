@@ -1588,6 +1588,7 @@ The JavaScript library supports events that can be used for the upload form:
 | `direct-upload:before-blob-request` | `<input>` | `{id, file, xhr}` | Before making a request to your application for direct upload metadata. |
 | `direct-upload:before-storage-request` | `<input>` | `{id, file, xhr}` | Before making a request to store a file. |
 | `direct-upload:progress` | `<input>` | `{id, file, progress}` | As requests to store files progress. |
+| `direct-upload:success` | `<input>` | `{id, file, blob, hiddenInput}` | A request succeeded. The `blob` contains upload metadata. The `hiddenInput` is an `<input type="hidden">` element whose `value` stores the signed id. |
 | `direct-upload:error` | `<input>` | `{id, file, error}` | An error occurred. An `alert` will display unless this event is canceled. |
 | `direct-upload:end` | `<input>` | `{id, file}` | A direct upload has ended. |
 | `direct-uploads:end` | `<form>` | None | All direct uploads have ended. |
@@ -1633,6 +1634,13 @@ addEventListener("direct-upload:error", event => {
   const element = document.getElementById(`direct-upload-${id}`)
   element.classList.add("direct-upload--error")
   element.setAttribute("title", error)
+})
+
+addEventListener("direct-upload:success", event => {
+  const { id, blob } = event.detail
+  const element = document.getElementById(`direct-upload-${id}`)
+  element.classList.add("direct-upload--success")
+  element.setAttribute("title", `Uploaded ${blob.signed_id}`)
 })
 
 addEventListener("direct-upload:end", event => {
