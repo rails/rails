@@ -1,3 +1,11 @@
+*   Deprecate `ActiveRecord::ConnectionAdapters::TransactionState#fully_committed?`,
+    `#fully_rolledback?`, `#fully_completed?`, and `#nullify!`.
+
+    These methods are no longer used by the framework. Use `#committed?`,
+    `#rolledback?`, and `#completed?` to inspect the transaction state instead.
+
+    *Kenta Ishizaki*
+
 *   Bump the minimum supported SQLite version to 3.35.0.
 
     SQLite 3.35.0 introduced the `RETURNING` clause, which the SQLite3 adapter
