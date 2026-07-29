@@ -15,6 +15,12 @@
     RETURNING when the database supports it, so the option cannot fully
     disable RETURNING and has become vestigial.
 
+    `insert_returning: false` was originally added in #5698 to support
+    trigger-based partitioning tables where a `BEFORE INSERT` trigger
+    makes `RETURNING` yield no rows. Use `prefetch_primary_key?` (also
+    used by the Oracle enhanced adapter) — which issues `SELECT nextval`
+    before the INSERT — as a replacement.
+
     *Ryuta Kamizono*
 
 *   Remove unused `rest` parameter from merge and merge!
