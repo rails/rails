@@ -252,7 +252,7 @@ class TestReleaser < Minitest::Test
 
   private
     def with_env(env)
-      previous = env.keys.to_h { |key| [key, ENV[key]] }
+      previous = env.keys.index_with { |key| ENV[key] }
       env.each { |key, value| ENV[key] = value }
       yield
     ensure
