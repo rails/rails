@@ -1,3 +1,8 @@
+## Rails 8.0.5.1 (July 29, 2026) ##
+
+*   No changes.
+
+
 ## Rails 8.0.5 (March 24, 2026) ##
 
 *   Fixed the `rails notes` command to properly extract notes in CSS files.
