@@ -1,3 +1,10 @@
+*   Fix `Range#sum` with a falsey initial value.
+
+    The integer-range optimization used `initial_value || 0`, so `sum(nil)` and
+    `sum(false)` treated the identity as `0` instead of matching `Array#sum`.
+
+    *Said Kaldybaev*
+
 *   Add `ActiveSupport.raise_on_invalid_time_zone_parse`.
 
     Raise `ArgumentError` on `ActiveSupport::TimeZone#parse` for any invalid

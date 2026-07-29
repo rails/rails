@@ -174,6 +174,11 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_typed_equal 10.0, (1..4).sum(0.0), Float
     assert_typed_equal 20.0, (1..4).sum(10.0), Float
     assert_typed_equal 5.0, (10..0).sum(5.0), Float
+    # Falsey identities must not be coerced to 0 (matches Array#sum / Enumerable#sum).
+    assert_raises(NoMethodError) { (1..4).sum(nil) }
+    assert_raises(NoMethodError) { (1..4).sum(false) }
+    assert_nil (10..0).sum(nil)
+    assert_equal false, (10..0).sum(false)
   end
 
   def test_array_sums
