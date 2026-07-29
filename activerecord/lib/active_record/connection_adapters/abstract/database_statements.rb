@@ -185,13 +185,22 @@ module ActiveRecord
       # `nil` is the default value and maintains default behavior. If an array of column names is passed -
       # the result will contain values of the specified columns from the inserted row.
       def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil)
+        # The `pk` positional argument is really the RETURNING column name.
+        # Translate it to `returning:` — including the legacy `false` sentinel
+        # meaning "no primary key / skip RETURNING".
+        if pk == false
+          returning ||= []
+        elsif pk
+          returning ||= pk
+        end
+
         intent = QueryIntent.new(adapter: self, raw_sql: sql, name: name, binds: binds)
 
-        _exec_insert(intent, pk, sequence_name, returning: returning)
+        _exec_insert(intent, sequence_name, returning: returning)
       end
 
-      def _exec_insert(intent, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
-        sql, binds = sql_for_insert(intent.raw_sql, pk, intent.binds, returning)
+      def _exec_insert(intent, sequence_name = nil, returning: nil) # :nodoc:
+        sql, binds = sql_for_insert(intent.raw_sql, intent.binds, returning)
         intent.raw_sql = sql
         intent.binds = binds
 
@@ -237,17 +246,33 @@ module ActiveRecord
       #
       # If the next id was calculated in advance (as in Oracle), it should be
       # passed in as +id_value+.
-      # Some adapters support the `returning` keyword argument which allows defining the return value of the method:
-      # `nil` is the default value and maintains default behavior. If an array of column names is passed -
-      # an array of is returned from the method representing values of the specified columns from the inserted row.
+      #
+      # Some adapters support the `returning` keyword argument, which controls
+      # what the method returns: +nil+ (default) returns the id via
+      # +last_inserted_id+; a column name returns that column as a single
+      # value; an array of column names returns an Array of column values.
       def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil)
+        # The `pk` positional argument is really the RETURNING column name.
+        # Translate it to `returning:` — including the legacy `false` sentinel
+        # meaning "no primary key / skip RETURNING".
+        if pk == false
+          returning ||= []
+        elsif pk
+          returning ||= pk
+        end
+
         intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
 
-        value = _exec_insert(intent, pk, sequence_name, returning: returning)
+        value = _exec_insert(intent, sequence_name, returning: returning)
 
-        return returning_column_values(value) unless returning.nil?
-
-        id_value || last_inserted_id(value)
+        case returning
+        when nil
+          id_value || last_inserted_id(value)
+        when Array
+          returning_column_values(value)
+        else
+          returning_column_values(value)&.first
+        end
       end
       alias create insert
 
@@ -769,15 +794,15 @@ module ActiveRecord
           total_sql.join(";\n")
         end
 
-        def sql_for_insert(sql, pk, binds, returning) # :nodoc:
+        def sql_for_insert(sql, binds, returning) # :nodoc:
           if supports_insert_returning?
-            if returning.nil? && pk.nil?
+            if returning.nil?
               # Extract the table from the insert sql. Yuck.
               table_ref = extract_table_ref_from_insert_sql(sql)
-              pk = schema_cache.primary_keys(table_ref) if table_ref
+              returning = schema_cache.primary_keys(table_ref) if table_ref
             end
 
-            returning_columns = returning || Array(pk)
+            returning_columns = Array(returning)
 
             returning_columns_statement = returning_columns.map { |c| quote_column_name(c) }.join(", ")
             sql = "#{sql} RETURNING #{returning_columns_statement}" if returning_columns.any?
