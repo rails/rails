@@ -1,3 +1,5 @@
+## Rails 8.1.3.1 (July 29, 2026) ##
+
 *   Disable libvips's unfuzzed image loaders and savers.
 
     libvips flags some of its loaders and savers as "unfuzzed" or "untrusted", meaning they are only

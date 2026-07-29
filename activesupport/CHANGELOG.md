@@ -1,3 +1,8 @@
+## Rails 8.1.3.1 (July 29, 2026) ##
+
+*   No changes.
+
+
 ## Rails 8.1.3 (March 24, 2026) ##
 
 *   Fix `JSONGemCoderEncoder` to correctly serialize custom object hash keys.
