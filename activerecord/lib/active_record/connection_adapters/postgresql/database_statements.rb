@@ -146,17 +146,9 @@ module ActiveRecord
             return [sequence_name, pk] if @use_insert_returning
             return [sequence_name, pk] if !returning.nil? || pk == false
 
-            if sequence_name.nil?
-              table_ref = if arel_or_sql.is_a?(String)
-                extract_table_ref_from_insert_sql(arel_or_sql)
-              elsif arel_or_sql.respond_to?(:ast) && arel_or_sql.ast.respond_to?(:relation)
-                arel_or_sql.ast.relation.name
-              end
-              if table_ref
-                effective_pk = pk || schema_cache.primary_keys(table_ref)
-                effective_pk = suppress_composite_primary_key(effective_pk)
-                sequence_name = default_sequence_name(table_ref, effective_pk) if effective_pk
-              end
+            if sequence_name.nil? && (table_ref = table_ref_for_insert(arel_or_sql))
+              effective_pk = pk || schema_cache.primary_keys(table_ref)
+              sequence_name = default_sequence_name(table_ref, effective_pk) if effective_pk
             end
 
             [sequence_name, nil]
@@ -273,10 +265,6 @@ module ActiveRecord
 
           def build_truncate_statements(table_names)
             ["TRUNCATE TABLE #{table_names.map(&method(:quote_table_name)).join(", ")}"]
-          end
-
-          def suppress_composite_primary_key(pk)
-            pk unless pk.is_a?(Array)
           end
 
           def handle_warnings(result, sql)
