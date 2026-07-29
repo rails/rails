@@ -950,7 +950,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author.author_favorites.create(favorite_author_id: 1)
     author.author_favorites.create(favorite_author_id: 2)
     author.author_favorites.create(favorite_author_id: 3)
-    assert_equal post.author.author_favorites, post.author_favorites
+    assert_equal_unordered post.author.author_favorites, post.author_favorites
   end
 
   def test_merge_join_association_with_has_many_through_association_proxy

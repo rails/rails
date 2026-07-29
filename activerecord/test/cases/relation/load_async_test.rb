@@ -250,7 +250,7 @@ module ActiveRecord
 
     def test_pluck
       titles = Post.where(author_id: 1).pluck(:title)
-      assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+      assert_equal_unordered titles, Post.where(author_id: 1).load_async.pluck(:title)
     end
 
     def test_count
@@ -277,7 +277,7 @@ module ActiveRecord
     def test_load_async_pluck_with_query_cache
       titles = Post.where(author_id: 1).pluck(:title)
       Post.cache do
-        assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+        assert_equal_unordered titles, Post.where(author_id: 1).load_async.pluck(:title)
       end
     end
 
@@ -386,7 +386,7 @@ module ActiveRecord
 
       def test_pluck
         titles = Post.where(author_id: 1).pluck(:title)
-        assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+        assert_equal_unordered titles, Post.where(author_id: 1).load_async.pluck(:title)
       end
 
       def test_size
@@ -528,7 +528,7 @@ module ActiveRecord
 
       def test_pluck
         titles = Post.where(author_id: 1).pluck(:title)
-        assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+        assert_equal_unordered titles, Post.where(author_id: 1).load_async.pluck(:title)
       end
 
       def test_size

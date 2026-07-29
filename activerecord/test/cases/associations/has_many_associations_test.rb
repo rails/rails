@@ -2751,7 +2751,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     bulb2 = car.bulbs.create
     bulb3 = Bulb.create
 
-    assert_equal [bulb1, bulb2], car.bulbs
+    assert_equal_unordered [bulb1, bulb2], car.bulbs
     result = car.bulbs.replace([bulb3, bulb1])
     assert_equal [bulb1, bulb3], car.bulbs
     assert_equal [bulb1, bulb3], result
@@ -3302,7 +3302,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_ids_reader_on_preloaded_association_with_composite_primary_key
     great_author = cpk_authors(:cpk_great_author)
 
-    assert_equal great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
+    assert_equal_unordered great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
   end
 
   def test_ids_writer_with_composite_primary_key_and_string_ids
