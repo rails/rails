@@ -236,7 +236,9 @@ class TestReleaser < Minitest::Test
     sha = "abcdef"
     path = "pkg/activesupport-5.0.0.gem"
 
-    assert_equal "abcdef  pkg/activesupport-5.0.0.gem", releaser.checksum_line(sha, path)
+    with_env("GITHUB_ACTIONS" => nil) do
+      assert_equal "abcdef  pkg/activesupport-5.0.0.gem", releaser.checksum_line(sha, path)
+    end
   end
 
   def test_checksum_line_returns_a_notice_annotation_when_in_github_actions
@@ -252,10 +254,11 @@ class TestReleaser < Minitest::Test
 
   private
     def with_env(env)
-      previous = env.keys.index_with { |key| ENV[key] }
-      env.each { |key, value| ENV[key] = value }
+      # tools/releaser does not load Active Support, so index_with is unavailable.
+      previous = env.keys.to_h { |key| [key, ENV[key]] } # rubocop:disable Rails/IndexWith
+      env.each { |key, value| value.nil? ? ENV.delete(key) : ENV[key] = value }
       yield
     ensure
-      previous.each { |key, value| ENV[key] = value }
+      previous.each { |key, value| value.nil? ? ENV.delete(key) : ENV[key] = value }
     end
 end
