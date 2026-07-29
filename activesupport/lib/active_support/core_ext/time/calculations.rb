@@ -314,8 +314,9 @@ class Time
     if other.is_a?(DateTime)
       # Prefer an exact rational difference: Float (to_f) cannot represent every
       # microsecond, so sub-second DateTime values lost precision (same class of
-      # issue as Time.at with DateTime).
-      to_r - other.to_i - other.sec_fraction
+      # issue as Time.at with DateTime). The difference is returned as a Float
+      # to match Time#-(Time) and ActiveSupport::TimeWithZone#-(DateTime).
+      (to_r - other.to_i - other.sec_fraction).to_f
     else
       minus_without_coercion(other)
     end
