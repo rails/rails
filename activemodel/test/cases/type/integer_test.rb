@@ -44,6 +44,12 @@ module ActiveModel
         assert_equal 0, type.serialize(false)
       end
 
+      test "deserializing booleans" do
+        type = Type::Integer.new
+        assert_equal 1, type.deserialize(true)
+        assert_equal 0, type.deserialize(false)
+      end
+
       test "casting duration" do
         type = Type::Integer.new
         assert_equal 1800, type.cast(30.minutes)

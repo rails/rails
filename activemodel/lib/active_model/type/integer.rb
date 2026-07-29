@@ -60,8 +60,12 @@ module ActiveModel
       end
 
       def deserialize(value)
-        return if value.blank?
-        value.to_i
+        case value
+        when true then 1
+        when false then 0
+        else
+          value.to_i unless value.blank?
+        end
       end
 
       def serialize(value)

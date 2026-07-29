@@ -1,3 +1,15 @@
+*   Fix `ActiveModel::Type::Integer` raising `NoMethodError` when deserializing
+    a boolean value.
+
+    Overriding an attribute to `:integer` on a column whose database default is
+    a boolean (such as a MySQL `tinyint(1)`) raised `undefined method 'to_i' for
+    true` when reading the default. `true` and `false` now deserialize to `1`
+    and `0`, matching how the type already casts and serializes them.
+
+    Fixes #58292.
+
+    *Lazizbek Ergashev*
+
 *   Fix `normalizes` re-applying normalizations on every validation of an
     unpersisted record, and speed up validation of normalized attributes.
 
