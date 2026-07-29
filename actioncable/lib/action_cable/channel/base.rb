@@ -4,6 +4,7 @@
 
 require "active_support/rescuable"
 require "active_support/parameter_filter"
+require "concurrent"
 
 module ActionCable
   module Channel
