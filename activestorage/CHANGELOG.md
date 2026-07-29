@@ -1,3 +1,44 @@
+*   Disable libvips's unfuzzed image loaders and savers.
+
+    libvips flags some of its loaders and savers as "unfuzzed" or "untrusted", meaning they are only
+    safe for trusted content. Active Storage will call `Vips.block_untrusted(true)` to disable them
+    while booting. An application that needs a specific loader or saver may re-enable it in an
+    initializer.
+
+    This is a breaking change for applications that process image types with an unfuzzed loader or
+    saver. Variant transformation of BMP, ICO, and PSD attachments will raise `Vips::Error`, and
+    analysis of these and other types such as SVG, JPEG XL, JPEG 2000, and Netpbm will no longer
+    record `width` and `height`. Requesting an unfuzzed output format, typically FITS, JXL, or
+    anything delegated to ImageMagick, will also raise `Vips::Error`. Attaching, storing, and
+    downloading are unchanged.
+
+    An application seeing `Vips::Error` raised during image transformation may wish to remove the
+    affected content types from `config.active_storage.variable_content_types` in an initializer.
+    Active Storage will then treat those attachments as not variable and will not generate variants
+    for them. This most often matters to an application that transforms images during a request
+    rather than in a background job, where the failure surfaces as an error response instead of a
+    failed job.
+
+    ```ruby
+    Rails.application.config.active_storage.variable_content_types -=
+      %w[ image/bmp image/vnd.microsoft.icon image/vnd.adobe.photoshop ]
+    ```
+
+    Applications using the `:mini_magick` variant processor will see no change in how their
+    attachments are processed, but the loaders and savers will be disabled process-wide whenever
+    ruby-vips is installed, and the version requirements below will still apply. Such an application
+    may remove ruby-vips from its Gemfile to avoid both.
+
+    The minimum supported version of libvips is now 8.13, and the minimum supported version of
+    ruby-vips is now 2.2.1. These are the earliest versions that are capable of disabling untrusted
+    operations. When ruby-vips is installed and either minimum is not met, Active Storage will raise
+    a `RuntimeError` while booting rather than run in an unsecurable environment.
+
+    [GHSA-xr9x-r78c-5hrm]
+    [CVE-2026-66066]
+
+    *Mike Dalessio*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
