@@ -1,3 +1,17 @@
+*   Fix variants being re-processed on every request when a `format` is given as a Symbol.
+
+    A variation's digest is derived from its transformations via `Marshal.dump`,
+    which encodes a Symbol (e.g. `format: :webp`, as kept in memory for named
+    variants) differently from the String the message serializer produces when
+    decoding a signed variation key. The variant was therefore stored under one
+    digest but looked up under another, silently missing the cache and
+    re-processing the image on every request. The `format` is now normalized to a
+    UTF-8 String so both forms resolve to the same variant.
+
+    Fixes #57302.
+
+    *Hans Canonico*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
