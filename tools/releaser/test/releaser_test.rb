@@ -251,11 +251,11 @@ class TestReleaser < Minitest::Test
   end
 
   private
-    def with_env(env)
-      previous = env.keys.to_h { |key| [key, ENV[key]] }
-      env.each { |key, value| ENV[key] = value }
+    def with_env(kv)
+      old_values = {}
+      kv.each { |key, value| old_values[key], ENV[key] = ENV[key], value }
       yield
     ensure
-      previous.each { |key, value| ENV[key] = value }
+      old_values.each { |key, value| ENV[key] = value }
     end
 end
