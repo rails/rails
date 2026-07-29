@@ -27,7 +27,7 @@ module ActionView
         def render_dependencies
           return [] unless template.source.include?("render")
 
-          compiled_source = template.handler.call(template, template.source)
+          compiled_source = template.handler.call(template, template.encode!)
 
           RenderParser.new(@name, compiled_source).render_calls.filter_map do |render_call|
             render_call.gsub(%r|/_|, "/")
