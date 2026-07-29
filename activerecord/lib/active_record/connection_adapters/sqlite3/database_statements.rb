@@ -163,10 +163,6 @@ module ActiveRecord
           def build_truncate_statement(table_name)
             "DELETE FROM #{quote_table_name(table_name)}"
           end
-
-          def returning_column_values(result)
-            result.rows.first
-          end
       end
     end
   end
