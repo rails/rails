@@ -209,6 +209,13 @@ module ActiveModel
       @uncountable
     end
 
+    def freeze
+      i18n_keys
+      i18n_scope
+
+      super
+    end
+
     private
       MISSING_TRANSLATION = -(2**60) # :nodoc:
 
@@ -267,12 +274,13 @@ module ActiveModel
     #   Person.model_name.singular # => "person"
     #   Person.model_name.plural   # => "people"
     def model_name
-      @_model_name ||= begin
-        namespace = module_parents.detect do |n|
-          n.respond_to?(:use_relative_model_naming?) && n.use_relative_model_naming?
-        end
-        ActiveModel::Name.new(self, namespace)
+      return @_model_name if @_model_name
+
+      namespace = module_parents.detect do |n|
+        n.respond_to?(:use_relative_model_naming?) && n.use_relative_model_naming?
       end
+      @_model_name = ActiveModel::Name.new(self, namespace)
+      ActiveSupport::Ractors.make_shareable(@_model_name)
     end
 
     # Returns the plural class name of a record or class.

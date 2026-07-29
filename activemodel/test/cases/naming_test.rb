@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/testing/ractors_assertions"
 require "cases/helper"
 require "models/contact"
 require "models/sheep"
@@ -181,6 +182,8 @@ class NamingWithSuppliedLocaleTest < ActiveModel::TestCase
 end
 
 class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def setup
     @model_name = Blog::Post.model_name
   end
@@ -215,6 +218,29 @@ class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
 
   def test_i18n_key
     assert_equal :"blog/post", @model_name.i18n_key
+  end
+
+  def test_accessible_from_a_ractor
+    fake_model = Class.new do
+      extend ActiveModel::Translation
+
+      def self.name
+        "FakePost"
+      end
+    end
+
+    fake_model.model_name
+
+    assert_nothing_raised do
+      on_ractor do
+        model_name = fake_model.model_name
+
+        # TODO: Unstub I18n once it is ractor safe.
+        I18n.stub(:translate, ->(*) { }) do
+          model_name.human
+        end
+      end
+    end
   end
 end
 
