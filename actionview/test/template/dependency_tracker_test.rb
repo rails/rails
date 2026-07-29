@@ -27,6 +27,10 @@ class FakeTemplate
   def type
     ["text/html"]
   end
+
+  def encode!
+    source
+  end
 end
 
 Neckbeard = lambda { |template, source| source }
@@ -300,6 +304,30 @@ module RubyTrackerTests
     tracker = make_tracker("messages/show", template)
 
     assert_equal [], tracker.dependencies
+  end
+
+  def test_dependencies_encode_binary_non_ascii_source_before_handler
+    handler = lambda do |_template, source|
+      # Mimic Temple::Filters::StaticMerger concatenating a UTF-8 literal with
+      # template content. This raises Encoding::CompatibilityError when +source+
+      # is still tagged ASCII-8BIT and contains bytes > 0x7F.
+      _ = source + "介護"
+      'render "posts/child"'
+    end
+
+    binary_source = (+"= render \"posts/child\"\n介護").force_encoding(Encoding::BINARY)
+    template = ActionView::Template.new(
+      binary_source,
+      "posts/show",
+      handler,
+      virtual_path: "posts/show",
+      format: :html,
+      locals: []
+    )
+
+    tracker = make_tracker("posts/show", template)
+
+    assert_equal ["posts/child"], tracker.dependencies
   end
 end
 

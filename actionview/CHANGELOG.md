@@ -1,3 +1,13 @@
+*   Fix `Encoding::CompatibilityError` when digesting templates with non-ASCII
+    content via `DependencyTracker::RubyTracker`.
+
+    File-backed templates are loaded as ASCII-8BIT. `RubyTracker` now passes
+    `template.encode!` to the handler (matching `Template#compiled_source`) so
+    handlers such as Haml/Temple can concatenate static UTF-8 strings without
+    raising. Fixes #58203.
+
+    *Edil Talantbek uulu*
+
 *   Fix `week_field` to not emit invalid  week strings at ISO year boundaries.
 
     *Kenta Ishizaki*
