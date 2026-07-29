@@ -1,3 +1,7 @@
+*   Fix path normalization to handle mixed-case percent-encoding.
+
+    *Andrii Furmanets*
+
 *   Avoid loading `ActionController::Live` early in initializer, and introduce
     `action_controller_live` load hook.
 
