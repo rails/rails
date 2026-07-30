@@ -111,13 +111,25 @@ module ActiveRecord
             if target && !stale_target?
               target.increment!(reflection.counter_cache_column, by, touch: reflection.options[:touch])
             else
-              update_counters_via_scope(klass, owner._read_attribute(reflection.foreign_key), by)
+              foreign_key = reflection.foreign_key
+              value = if foreign_key.is_a?(Array)
+                foreign_key.map { |fk| owner._read_attribute(fk) }
+              else
+                owner._read_attribute(foreign_key)
+              end
+              update_counters_via_scope(klass, value, by)
             end
           end
         end
 
         def update_counters_via_scope(klass, foreign_key, by)
-          scope = klass.unscoped.where!(primary_key(klass) => foreign_key)
+          primary_key = primary_key(klass)
+          where_constraints = if primary_key.is_a?(Array)
+            primary_key.zip(foreign_key).to_h
+          else
+            { primary_key => foreign_key }
+          end
+          scope = klass.unscoped.where!(where_constraints)
           scope.update_counters(reflection.counter_cache_column => by, touch: reflection.options[:touch])
         end
 
