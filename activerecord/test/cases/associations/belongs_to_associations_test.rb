@@ -1807,6 +1807,40 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert book.order_previously_changed?
   end
 
+  test "composite foreign key touch skips the previous-parent lookup when there is no previous parent" do
+    order = Cpk::Order.create!(id: [1, 2])
+
+    assert_no_queries_match(/FROM #{Regexp.escape(Cpk::Order.quoted_table_name)}.*IS NULL/i) do
+      Cpk::TouchableBook.create!(id: [3, 4], order: order)
+    end
+  end
+
+  test "composite foreign key touch skips the previous-parent lookup when only some key columns were set" do
+    order = Cpk::Order.create!(id: [1, 2])
+    book = Cpk::TouchableBook.create!(id: [3, 4], shop_id: order.shop_id)
+    book.reload
+
+    assert_no_queries_match(/FROM #{Regexp.escape(Cpk::Order.quoted_table_name)}.*IS NULL/i) do
+      book.order = order
+      book.save!
+    end
+  end
+
+  test "composite foreign key touch still touches a genuine previous parent on reparent" do
+    old_order = Cpk::Order.create!(id: [1, 2])
+    new_order = Cpk::Order.create!(id: [1, 3])
+    book = Cpk::TouchableBook.create!(id: [3, 4], order: old_order)
+    book.reload
+
+    time = 1.day.ago
+    old_order.touch(time: time)
+
+    book.order = new_order
+    book.save!
+
+    assert_operator old_order.reload.updated_at, :>, time
+  end
+
   class ShipRequired < ActiveRecord::Base
     self.table_name = "ships"
     belongs_to :developer, required: true

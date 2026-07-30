@@ -59,4 +59,10 @@ module Cpk
     self.table_name = :cpk_books
     belongs_to :order, class_name: "Cpk::Order", foreign_key: [:shop_id, :order_id], primary_key: [:shop_id, :id], optional: false
   end
+
+  class TouchableBook < ActiveRecord::Base
+    self.table_name = :cpk_books
+    belongs_to :order, class_name: "Cpk::Order", foreign_key: [:shop_id, :order_id],
+      primary_key: [:shop_id, :id], touch: true, optional: true
+  end
 end
