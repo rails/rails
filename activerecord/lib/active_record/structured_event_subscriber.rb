@@ -30,16 +30,8 @@ module ActiveRecord
 
         binds = []
         payload[:binds].each_with_index do |attr, i|
-          attribute_name = if attr.respond_to?(:name)
-            attr.name
-          elsif attr.respond_to?(:[]) && attr[i].respond_to?(:name)
-            attr[i].name
-          else
-            nil
-          end
-
+          attribute_name = attr.name if attr.is_a?(ActiveModel::Attribute)
           filtered_params = filter(attribute_name, casted_params[i])
-
           binds << render_bind(attr, filtered_params)
         end
       end
@@ -62,13 +54,10 @@ module ActiveRecord
       end
 
       def render_bind(attr, value)
-        case attr
-        when ActiveModel::Attribute
+        if attr.is_a?(ActiveModel::Attribute)
           if attr.type.binary? && attr.value
             value = "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
           end
-        when Array
-          attr = attr.first
         else
           attr = nil
         end
