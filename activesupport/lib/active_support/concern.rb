@@ -207,9 +207,15 @@ module ActiveSupport
     #   Buzz.foo # => "foo"
     #   Buzz.bar # => private method 'bar' called for Buzz:Class(NoMethodError)
     def class_methods(&class_methods_module_definition)
-      mod = const_defined?(:ClassMethods, false) ?
-        const_get(:ClassMethods) :
-        const_set(:ClassMethods, Module.new)
+      mod = if const_defined?(:ClassMethods, false)
+        const_get(:ClassMethods)
+      else
+        new_mod = Module.new
+        if const_defined?(:ClassMethods)
+          new_mod.include(const_get(:ClassMethods))
+        end
+        const_set(:ClassMethods, new_mod)
+      end
 
       mod.module_eval(&class_methods_module_definition)
     end
