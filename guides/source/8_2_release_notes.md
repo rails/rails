@@ -94,6 +94,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Deprecations
 
+*  Deprecate `:remote` option for `form_for` and `:local` option for `form_with`
+
 ### Notable changes
 
 *   Add ability to pass a block when rendering a collection. The block is executed
