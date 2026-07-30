@@ -74,6 +74,20 @@ module ActionView
     end
 
     config.after_initialize do |app|
+      if app.config.content_security_policy_nonce_auto
+        if app.config.content_security_policy_nonce_directives.nil?
+          raise ArgumentError, "Set config.content_security_policy_nonce_directives when " \
+            "using config.content_security_policy_nonce_auto. " \
+            "See config/initializers/content_security_policy.rb for more information."
+        end
+
+        if app.config.content_security_policy_nonce_generator.nil?
+          raise ArgumentError, "Set config.content_security_policy_nonce_generator when " \
+            "using config.content_security_policy_nonce_auto. " \
+            "See config/initializers/content_security_policy.rb for more information."
+        end
+      end
+
       ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_scripts = app.config.content_security_policy_nonce_auto && app.config.content_security_policy_nonce_directives.intersect?(["script-src", "script-src-elem", "script-src-attr"]) && app.config.content_security_policy_nonce_generator.present?
       ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles = app.config.content_security_policy_nonce_auto && app.config.content_security_policy_nonce_directives.intersect?(["style-src", "style-src-elem", "style-src-attr"]) && app.config.content_security_policy_nonce_generator.present?
       ActionView::Helpers::JavaScriptHelper.auto_include_nonce = app.config.content_security_policy_nonce_auto && app.config.content_security_policy_nonce_directives.intersect?(["script-src", "script-src-elem", "script-src-attr"]) && app.config.content_security_policy_nonce_generator.present?
