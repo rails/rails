@@ -159,6 +159,23 @@ if ActiveRecord::Base.lease_connection.supports_explain?
       assert_match(/cars/i, message)
     end
 
+    def test_exec_explain_with_casted_binds
+      sqls    = ["foo", "bar"]
+      binds   = [[1, "abcd"], [2]]
+      queries = sqls.zip(binds)
+
+      stub_explain_for_query_plans(["query plan foo\n", "query plan bar\n"]) do
+        expected = <<~SQL
+          #{expected_explain_clause} #{sqls[0]} [["$1", 1], ["$2", "abcd"]]
+          query plan foo
+
+          #{expected_explain_clause} #{sqls[1]} [["$1", 2]]
+          query plan bar
+        SQL
+        assert_equal expected, base.exec_explain(queries)
+      end
+    end
+
     private
       def stub_explain_for_query_plans(query_plans = ["query plan foo", "query plan bar"])
         explain_called = 0
