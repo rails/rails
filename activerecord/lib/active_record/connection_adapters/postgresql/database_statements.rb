@@ -5,7 +5,8 @@ module ActiveRecord
     module PostgreSQL
       module DatabaseStatements
         def explain(arel_or_sql, binds = [], options = [])
-          sql    = build_explain_clause(options) + " " + to_sql(arel_or_sql)
+          sql, binds = to_sql_and_binds(arel_or_sql, binds)
+          sql = build_explain_clause(options) + " " + sql
           result = select_all(sql, "EXPLAIN", binds)
           PostgreSQL::ExplainPrettyPrinter.new.pp(result)
         end
