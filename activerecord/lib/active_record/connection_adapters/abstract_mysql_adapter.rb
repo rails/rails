@@ -932,6 +932,7 @@ module ActiveRecord
         ER_NO_REFERENCED_ROW_2  = 1452
         ER_DATA_TOO_LONG        = 1406
         ER_OUT_OF_RANGE         = 1264
+        ER_CHECKREAD            = 1020
         ER_LOCK_DEADLOCK        = 1213
         ER_CANNOT_ADD_FOREIGN   = 1215
         ER_CANNOT_CREATE_TABLE  = 1005
@@ -978,6 +979,8 @@ module ActiveRecord
             NotNullViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_CHECK_CONSTRAINT_VIOLATED, ER_CONSTRAINT_FAILED
             CheckViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          when ER_CHECKREAD
+            SerializationFailure.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_DEADLOCK
             Deadlocked.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_LOCK_WAIT_TIMEOUT
