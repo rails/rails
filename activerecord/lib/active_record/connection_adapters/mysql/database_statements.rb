@@ -24,8 +24,8 @@ module ActiveRecord
           HIGH_PRECISION_CURRENT_TIMESTAMP
         end
 
-        def explain(arel, binds = [], options = [])
-          sql     = build_explain_clause(options) + " " + to_sql(arel, binds)
+        def explain(arel_or_sql, binds = [], options = [])
+          sql     = build_explain_clause(options) + " " + to_sql(arel_or_sql, binds)
           start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           result  = select_all(sql, "EXPLAIN", binds)
           elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start

@@ -4,8 +4,8 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module DatabaseStatements
-        def explain(arel, binds = [], options = [])
-          sql    = build_explain_clause(options) + " " + to_sql(arel, binds)
+        def explain(arel_or_sql, binds = [], options = [])
+          sql    = build_explain_clause(options) + " " + to_sql(arel_or_sql, binds)
           result = select_all(sql, "EXPLAIN", binds)
           PostgreSQL::ExplainPrettyPrinter.new.pp(result)
         end
@@ -29,8 +29,8 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil) # :nodoc:
-          sequence_name, pk = resolve_currval_for_insert(arel, pk, sequence_name, returning)
+        def insert(arel_or_sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil) # :nodoc:
+          sequence_name, pk = resolve_currval_for_insert(arel_or_sql, pk, sequence_name, returning)
           super
         end
 
