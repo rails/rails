@@ -40,6 +40,13 @@ class DatabaseStatementsTest < ActiveRecord::TestCase
     assert_equal "table-with-hyphen", @connection.send(:extract_table_ref_from_insert_sql, sql)
   end
 
+  def test_to_sql_binds_arg_is_deprecated
+    sql = "SELECT 1"
+    assert_deprecated(/Passing `binds` to `to_sql`/, ActiveRecord.deprecator) do
+      assert_equal sql, @connection.to_sql(sql, [])
+    end
+  end
+
   private
     def return_the_inserted_id(method:)
       @connection.send(method, "INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)")
