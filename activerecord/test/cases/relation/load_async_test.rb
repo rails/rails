@@ -383,7 +383,7 @@ module ActiveRecord
 
       fixtures :posts, :comments
 
-      def setup
+      def before_setup
         @old_config = ActiveRecord.async_query_executor
         ActiveRecord.async_query_executor = :multi_thread_pool
 
@@ -392,9 +392,12 @@ module ActiveRecord
 
         ActiveRecord::Base.establish_connection(config_hash1)
         ARUnit2Model.establish_connection(config_hash2)
+
+        super
       end
 
-      def teardown
+      def after_teardown
+        super
         ActiveRecord.async_query_executor = @old_config
         clean_up_connection_handler
         ActiveRecord::Base.establish_connection(:arunit)
@@ -524,7 +527,7 @@ module ActiveRecord
 
       fixtures :posts, :comments, :other_dogs
 
-      def setup
+      def before_setup
         @previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
         @old_config = ActiveRecord.async_query_executor
         ActiveRecord.async_query_executor = :multi_thread_pool
@@ -540,9 +543,12 @@ module ActiveRecord
 
         ActiveRecord::Base.establish_connection(:primary)
         ARUnit2Model.establish_connection(:animals)
+
+        super
       end
 
-      def teardown
+      def after_teardown
+        super
         ENV["RAILS_ENV"] = @previous_env
         ActiveRecord::Base.configurations = @prev_configs
         ActiveRecord.async_query_executor = @old_config

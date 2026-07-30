@@ -126,7 +126,7 @@ module ActiveRecord
 
       if Process.respond_to?(:fork)
         def test_connection_pool_starts_reaper_in_fork
-          pool_config = duplicated_pool_config(reaping_frequency: "0.0001")
+          pool_config = duplicated_pool_config(reaping_frequency: "0.0001", gssencmode: "disable")
           pool = ConnectionPool.new(pool_config)
           pool.checkout
 
