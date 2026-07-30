@@ -236,7 +236,7 @@ module Rails
       end
 
       initializer :enable_gc do
-        GC.enable unless config.eager_load
+        GC.enable if config.disable_gc
       end
     end
   end

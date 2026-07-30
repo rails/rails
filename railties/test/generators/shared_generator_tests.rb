@@ -88,6 +88,7 @@ module SharedGeneratorTests
     assert_file "#{application_path}/config/environments/development.rb" do |content|
       assert_match(/config\.action_mailer\.raise_delivery_errors = false/, content)
       assert_match(/config\.active_storage/, content)
+      assert_match(/config\.disable_gc = true/, content)
     end
     assert_file "#{application_path}/config/environments/test.rb" do |content|
       assert_match(/config\.action_mailer\.delivery_method = :test/, content)

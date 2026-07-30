@@ -9,6 +9,9 @@ Rails.application.configure do
   # Do not eager load code on boot.
   config.eager_load = false
 
+  # Disable garbage collection during boot to reduce boot time.
+  config.disable_gc = true
+
   # Show full error reports.
   config.consider_all_requests_local = true
 

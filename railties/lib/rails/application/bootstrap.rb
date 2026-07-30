@@ -30,9 +30,10 @@ module Rails
         end
       end
 
-      # Disable garbage collection during boot for autoloaded environments.
+      # Disable garbage collection during boot to reduce boot time by avoiding
+      # GC. Disabled by default; enable with +config.disable_gc = true+.
       initializer :disable_gc, after: :set_eager_load, before: :bootstrap_hook do
-        GC.disable unless config.eager_load
+        GC.disable if config.disable_gc
       end
 
       # Initialize the logger early in the stack in case we need to log some deprecation.

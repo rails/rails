@@ -346,6 +346,10 @@ it must be set in `config/application.rb` or `config/environments/#{Rails.env}.r
 
 Sets the format used in responses when errors occur in the development environment. Defaults to `:api` for API only apps and `:default` for normal apps.
 
+#### `config.disable_gc`
+
+Disables garbage collection during initialization to reduce boot time, then re-enables it after initialization completes. Defaults to `true` in local environments, and `false` in `production`.
+
 #### `config.disable_sandbox`
 
 Controls whether or not someone can start a console in sandbox mode. This is helpful to avoid a long running session of sandbox console, that could lead a database server to run out of memory. Defaults to `false`.

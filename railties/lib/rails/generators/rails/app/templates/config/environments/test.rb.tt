@@ -19,6 +19,9 @@ Rails.application.configure do
   # from config.rake_eager_load.
   config.rake_eager_load = ENV["CI"].present?
 
+  # Disable garbage collection during boot to reduce boot time.
+  config.disable_gc = ENV["CI"].present?
+
   # Configure public file server for tests with cache-control for performance.
   config.public_file_server.headers = { "cache-control" => "public, max-age=3600" }
 

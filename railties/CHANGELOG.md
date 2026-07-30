@@ -1,6 +1,7 @@
-*   Disable garbage collection during initialization when the application is
-    autoloaded, and re-enable it after initialization
-    completes. This reduces boot time by avoiding GC.
+*   Add `config.disable_gc` to disable garbage collection during
+    initialization, and re-enable it after initialization completes. This
+    reduces boot time by avoiding GC. Disabled by default; enable with
+    `config.disable_gc = true`.
 
     *Gannon McGibbon*
 
