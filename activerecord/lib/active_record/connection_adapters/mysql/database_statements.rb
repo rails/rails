@@ -25,7 +25,7 @@ module ActiveRecord
         end
 
         def explain(arel_or_sql, binds = [], options = [])
-          sql     = build_explain_clause(options) + " " + to_sql(arel_or_sql, binds)
+          sql     = build_explain_clause(options) + " " + to_sql(arel_or_sql)
           start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           result  = select_all(sql, "EXPLAIN", binds)
           elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start

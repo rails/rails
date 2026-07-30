@@ -1,3 +1,12 @@
+*   Deprecate passing `binds` to
+    `ActiveRecord::ConnectionAdapters::DatabaseStatements#to_sql`.
+
+    The argument has been unused since bind parameters were moved into the
+    Arel AST in Rails 5.2 (rails/rails@213796fb49). `to_sql(arel)` returns
+    the same SQL regardless of what is passed as `binds`.
+
+    *Ryuta Kamizono*
+
 *   Deprecate `ActiveRecord::ConnectionAdapters::TransactionState#fully_committed?`,
     `#fully_rolledback?`, `#fully_completed?`, and `#nullify!`.
 

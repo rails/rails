@@ -8,9 +8,15 @@ module ActiveRecord
         reset_transaction
       end
 
-      # Converts an arel AST to SQL
-      def to_sql(arel_or_sql, binds = [])
-        sql, _ = to_sql_and_binds(arel_or_sql, binds)
+      def to_sql(arel_or_sql, binds = nil)
+        unless binds.nil?
+          ActiveRecord.deprecator.warn(<<~MSG)
+            Passing `binds` to `to_sql` is deprecated and will be removed in Rails 8.3.
+            The `binds` argument has been unused since bind parameters were moved into
+            the Arel AST in Rails 5.2.
+          MSG
+        end
+        sql, _ = to_sql_and_binds(arel_or_sql)
         sql
       end
 
