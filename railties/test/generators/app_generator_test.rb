@@ -1586,6 +1586,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
       expected_selenium_config = {
         "image" => "selenium/standalone-chromium",
         "restart" => "unless-stopped",
+        "environment" => [
+          "SE_NODE_MAX_SESSIONS=3",
+          "SE_NODE_OVERRIDE_MAX_SESSIONS=true",
+          "SE_START_VNC=false"
+        ]
       }
 
       assert_equal expected_selenium_config, compose_config["services"]["selenium"]
