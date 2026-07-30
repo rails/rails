@@ -1,3 +1,28 @@
+*   Add `debounce`, a class macro for debouncing job enqueues.
+
+    A burst of `perform_later` calls collapses into at most two jobs per
+    window: a leading job that runs immediately and a trailing job that
+    sweeps up whatever happened during the window. Callers just enqueue
+    at will.
+
+    ```ruby
+    class BadgeCountPushJob < ApplicationJob
+      debounce within: 30.seconds, by: ->(user) { user.id }
+
+      def perform(user)
+        user.push_badge_count
+      end
+    end
+    ```
+
+    Claims are won through an adapter-agnostic store, defaulting to
+    `Rails.cache.write(..., unless_exist: true)`, and debouncing fails
+    open when the store is unavailable. Each decision emits a
+    `debounce.active_job` event with a `:leading`, `:trailing`,
+    `:suppressed`, or `:failed_open` outcome.
+
+    *Jeremy Daer*
+
 *   Add `ActiveJob::DeserializationError::RecordNotFound`, raised when argument
     deserialization fails because a referenced record could not be found, and not
     for any other reason.

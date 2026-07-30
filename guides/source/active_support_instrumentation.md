@@ -496,6 +496,14 @@ The `:cache_hits` key is only included if the collection is rendered with `cache
 | `:error`     | The error that caused the retry        |
 | `:wait`      | The delay of the retry                 |
 
+#### `debounce.active_job`
+
+| Key        | Value                                                          |
+| ---------- | -------------------------------------------------------------- |
+| `:job`     | Job object                                                     |
+| `:key`     | The claim key the debounce decision was made against           |
+| `:outcome` | `:leading`, `:trailing`, `:suppressed`, or `:failed_open`      |
+
 #### `enqueue_all.active_job`
 
 | Key          | Value                                  |
