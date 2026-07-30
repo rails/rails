@@ -30,6 +30,11 @@ module Rails
         end
       end
 
+      # Disable garbage collection during boot for autoloaded environments.
+      initializer :disable_gc, after: :set_eager_load, before: :bootstrap_hook do
+        GC.disable unless config.eager_load
+      end
+
       # Initialize the logger early in the stack in case we need to log some deprecation.
       initializer :initialize_logger, group: :all do
         Rails.logger ||= config.logger || begin

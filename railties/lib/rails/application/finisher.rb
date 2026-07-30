@@ -234,6 +234,10 @@ module Rails
           RubyVM::YJIT.enable(**options)
         end
       end
+
+      initializer :enable_gc do
+        GC.enable unless config.eager_load
+      end
     end
   end
 end

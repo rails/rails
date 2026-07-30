@@ -1497,6 +1497,32 @@ module ApplicationTests
       end
     end
 
+    test "gc is disabled during autoload init" do
+      add_to_config <<-RUBY
+        initializer :check_gc_enabled, after: :disable_gc do
+          ::GC_WAS_DISABLED = GC.disable
+        end
+      RUBY
+
+      app "development"
+
+      assert GC_WAS_DISABLED
+    end
+
+    test "gc is enabled during eager load init" do
+      add_to_config <<-RUBY
+        config.eager_load = true
+
+        initializer :check_gc_enabled, after: :disable_gc do
+          ::GC_WAS_ENABLED = !GC.enable
+        end
+      RUBY
+
+      app "development"
+
+      assert GC_WAS_ENABLED
+    end
+
     test "valid beginning of week is setup correctly" do
       add_to_config <<-RUBY
         config.root = "#{app_path}"

@@ -1,3 +1,9 @@
+*   Disable garbage collection during initialization when the application is
+    autoloaded, and re-enable it after initialization
+    completes. This reduces boot time by avoiding GC.
+
+    *Gannon McGibbon*
+
 *   Don't filter nonexistent i18n paths on initialize. This negatively impacts
     applications with lots of translation files.
 
