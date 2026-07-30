@@ -1961,67 +1961,75 @@ To use delegated types, we need to model our data as follows:
 This eliminates the need to define attributes in a single table that are
 unintentionally shared among all subclasses.
 
+NOTE: The delegated types examples below are independent of the STI “Vehicle” example in the previous section.
+These examples start from scratch with an `Post` model(the delegator) and three concrete types: `TextPost`, `ImagePost` and `VideoPost`.
+
 ### Generating Models
 
-In order to apply this to our example above, we need to regenerate our models.
+Generate these models as follows:
 
-First, let's generate the base `Entry` model which will act as our superclass:
-
-```bash
-$ bin/rails generate model entry entryable_type:string entryable_id:integer
-```
-
-Then, we will generate new `Message` and `Comment` models for delegation:
+First, let's generate the base `Post` model which will act as our superclass:
 
 ```bash
-$ bin/rails generate model message subject:string body:string
-$ bin/rails generate model comment content:string
+$ bin/rails generate model post postable_type:string postable_id:integer
 ```
 
-NOTE: If you don't specify a type for a field (e.g., `subject` instead of `subject:string`), Rails will default to type `string`.
+Then, we will generate new `TextPost`, `ImagePost` and `VideoPost` models for delegation:
+
+```bash
+$ bin/rails generate model text_post title:string body:string
+$ bin/rails generate model image_post title:string url:string
+$ bin/rails generate model video_post title:string url:string
+```
+
+NOTE: If you don't specify a type for a field (e.g., `title` instead of `title:string`), Rails will default to type `string`.
 
 After running the generators, our models should look like this:
 
 ```ruby
-# Schema: entries[ id, entryable_type, entryable_id, created_at, updated_at ]
-class Entry < ApplicationRecord
+# Schema: posts[ id, postable_type, postable_id, created_at, updated_at ]
+class Post < ApplicationRecord
 end
 
-# Schema: messages[ id, subject, body, created_at, updated_at ]
-class Message < ApplicationRecord
+# Schema: text_posts[ id, title, body, created_at, updated_at ]
+class TextPost < ApplicationRecord
 end
 
-# Schema: comments[ id, content, created_at, updated_at ]
-class Comment < ApplicationRecord
+# Schema: image_posts[ id, title, url, created_at, updated_at ]
+class ImagePost < ApplicationRecord
+end
+
+# Schema: video_posts[ id, title, url, created_at, updated_at ]
+class VideoPost < ApplicationRecord
 end
 ```
 
 ### Declaring `delegated_type`
 
-First, declare a `delegated_type` in the superclass `Entry`.
+First, declare a `delegated_type` in the superclass `Post`.
 
 ```ruby
-class Entry < ApplicationRecord
-  delegated_type :entryable, types: %w[ Message Comment ], dependent: :destroy
+class Post < ApplicationRecord
+  delegated_type :postable, types: %w[ TextPost ImagePost VideoPost ], dependent: :destroy
 end
 ```
 
-The `entryable` parameter specifies the field to use for delegation, and include
-the types `Message` and `Comment` as the delegate classes. The `entryable_type`
-and `entryable_id` fields store the subclass name and the record ID of the
+The `postable` parameter specifies the field to use for delegation, and include
+the types `TextPost`, `ImagePost` and `VideoPost` as the delegate classes. The `postable_type`
+and `postable_id` fields store the subclass name and the record ID of the
 delegate subclass, respectively.
 
-### Defining the `Entryable` Module
+### Defining the `Postable` Module
 
 Next, define a module to implement those delegated types by declaring the `as:
-:entryable` parameter in the `has_one` association.
+:postable` parameter in the `has_one` association.
 
 ```ruby
-module Entryable
+module Postable
   extend ActiveSupport::Concern
 
   included do
-    has_one :entry, as: :entryable, touch: true
+    has_one :post, as: :postable, touch: true
   end
 end
 ```
@@ -2029,73 +2037,89 @@ end
 Include the created module in your subclass:
 
 ```ruby
-class Message < ApplicationRecord
-  include Entryable
+class TextPost < ApplicationRecord
+  include Postable
 end
 
-class Comment < ApplicationRecord
-  include Entryable
+class ImagePost < ApplicationRecord
+  include Postable
+end
+
+class VideoPost < ApplicationRecord
+  include Postable
 end
 ```
 
-With this definition complete, our `Entry` delegator now provides the following
+With this definition complete, our `Post` delegator now provides the following
 methods:
 
-| Method                  | Return                                                                          |
-| ----------------------- | ------------------------------------------------------------------------------- |
-| `Entry.entryable_types` | ["Message", "Comment"]                                                          |
-| `Entry#entryable_class` | Message or Comment                                                              |
-| `Entry#entryable_name`  | "message" or "comment"                                                          |
-| `Entry.messages`        | `Entry.where(entryable_type: "Message")`                                        |
-| `Entry#message?`        | Returns true when `entryable_type == "Message"`                                 |
-| `Entry#message`         | Returns the message record, when `entryable_type == "Message"`, otherwise `nil` |
-| `Entry#message_id`      | Returns `entryable_id`, when `entryable_type == "Message"`, otherwise `nil`     |
-| `Entry.comments`        | `Entry.where(entryable_type: "Comment")`                                        |
-| `Entry#comment?`        | Returns true when `entryable_type == "Comment"`                                 |
-| `Entry#comment`         | Returns the comment record, when `entryable_type == "Comment"`, otherwise `nil` |
-| `Entry#comment_id`      | Returns entryable_id, when `entryable_type == "Comment"`, otherwise `nil`       |
+| Method                | Return                                                                              |
+|-----------------------|-------------------------------------------------------------------------------------|
+| `Post.postable_types` | ["TextPost", "ImagePost", "VideoPost"]                                              |
+| `Post#postable_class` | TextPost, ImagePost, or VideoPost                                                   |
+| `Post#postable_name`  | "text_post", "image_post", or "video_post"                                          |
+| `Post.text_posts`     | `Post.where(postable_type: "TextPost")`                                             |
+| `Post#text_post?`     | Returns true when `postable_type == "TextPost"`                                     |
+| `Post#text_post`      | Returns the text_post record, when `postable_type == "TextPost"`, otherwise `nil`   |
+| `Post#text_post_id`   | Returns `postable_id`, when `postable_type == "TextPost"`, otherwise `nil`          |
+| `Post.image_posts`    | `Post.where(postable_type: "ImagePost")`                                            |
+| `Post#image_post?`    | Returns true when `postable_type == "ImagePost"`                                    |
+| `Post#image_post`     | Returns the image_post record, when `postable_type == "ImagePost"`, otherwise `nil` |
+| `Post#image_post_id`  | Returns postable_id, when `postable_type == "ImagePost"`, otherwise `nil`           |
+| `Post.video_posts`    | `Post.where(postable_type: "VideoPost")`                                            |
+| `Post#video_post?`    | Returns true when `postable_type == "VideoPost"`                                    |
+| `Post#video_post`     | Returns the video_post record, when `postable_type == "VideoPost"`, otherwise `nil` |
+| `Post#video_post_id`  | Returns `postable_id`, when `postable_type == "VideoPost"`, otherwise `nil`         |
 
 ### Object creation
 
-When creating a new `Entry` object, we can specify the `entryable` subclass at
+When creating a new `Post` object, we can specify the `postable` subclass at
 the same time.
 
 ```ruby
-Entry.create! entryable: Message.new(subject: "hello!")
+Post.create! postable: TextPost.new(title: "Hello World", body: "Example")
 ```
 
 ### Adding further delegation
 
-We can enhance our `Entry` delegator by defining `delegate` and using
-polymorphism on the subclasses. For example, to delegate the `title` method from
-`Entry` to its subclasses:
+We can enhance our `Post` delegator by defining `delegate` and using
+polymorphism on the subclasses. For example, to delegate the `headline` method from
+`Post` to its subclasses:
 
 ```ruby
-class Entry < ApplicationRecord
-  delegated_type :entryable, types: %w[ Message Comment ]
-  delegate :title, to: :entryable
+class Post < ApplicationRecord
+  delegated_type :postable, types: %w[ TextPost ImagePost VideoPost ]
+  delegate :headline, to: :postable
 end
 
-class Message < ApplicationRecord
-  include Entryable
+class TextPost < ApplicationRecord
+  include Postable
 
-  def title
-    subject
+  def headline
+    title
   end
 end
 
-class Comment < ApplicationRecord
-  include Entryable
+class ImagePost < ApplicationRecord
+  include Postable
 
-  def title
-    content.truncate(20)
+  def headline
+    title.truncate(20)
+  end
+end
+
+class VideoPost < ApplicationRecord
+  include Postable
+
+  def headline
+    title.truncate(20)
   end
 end
 ```
 
-This setup allows `Entry` to delegate the `title` method to its subclasses,
-where `Message` uses `subject` and `Comment` uses a truncated version of
-`content`.
+This setup allows `Post` to delegate the `headline` method to its subclasses,
+where each subclass defines how to present its title — for example,
+`TextPost` uses the full title, while `ImagePost` and `VideoPost` return truncated, media-specific versions.
 
 Tips, Tricks, and Warnings
 --------------------------
