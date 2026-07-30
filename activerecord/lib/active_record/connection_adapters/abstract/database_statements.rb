@@ -200,10 +200,7 @@ module ActiveRecord
       end
 
       def _exec_insert(intent, sequence_name = nil, returning: nil) # :nodoc:
-        sql, binds = sql_for_insert(intent.raw_sql, intent.binds, returning)
-        intent.raw_sql = sql
-        intent.binds = binds
-
+        apply_returning_to!(intent, returning)
         intent.execute!
         intent.cast_result
       end
@@ -794,21 +791,35 @@ module ActiveRecord
           total_sql.join(";\n")
         end
 
-        def sql_for_insert(sql, binds, returning) # :nodoc:
-          if supports_insert_returning?
-            if returning.nil?
-              # Extract the table from the insert sql. Yuck.
-              table_ref = extract_table_ref_from_insert_sql(sql)
-              returning = schema_cache.primary_keys(table_ref) if table_ref
-            end
+        def apply_returning_to!(intent, returning)
+          return unless supports_insert_returning?
 
-            returning_columns = Array(returning)
+          arel_or_sql = intent.arel || intent.raw_sql
 
-            returning_columns_statement = returning_columns.map { |c| quote_column_name(c) }.join(", ")
-            sql = "#{sql} RETURNING #{returning_columns_statement}" if returning_columns.any?
+          returning ||= primary_key_for_insert(arel_or_sql)
+          returning = Array(returning)
+          return if returning.empty?
+
+          if arel_or_sql.is_a?(String)
+            returning_statement = returning.map { |c| quote_column_name(c) }.join(", ")
+            intent.raw_sql = "#{arel_or_sql} RETURNING #{returning_statement}"
+          else
+            arel_or_sql.returning(returning.map { |column| Arel.sql(quote_column_name(column)) })
           end
+        end
 
-          [sql, binds]
+        def primary_key_for_insert(arel_or_sql)
+          table_ref = table_ref_for_insert(arel_or_sql)
+          pk = schema_cache.primary_keys(table_ref) if table_ref
+          pk unless pk.is_a?(Array)
+        end
+
+        def table_ref_for_insert(arel_or_sql)
+          if arel_or_sql.is_a?(String)
+            extract_table_ref_from_insert_sql(arel_or_sql)
+          elsif arel_or_sql.respond_to?(:ast) && arel_or_sql.ast.respond_to?(:relation)
+            arel_or_sql.ast.relation.name
+          end
         end
 
         def last_inserted_id(result)

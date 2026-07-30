@@ -5,9 +5,7 @@ module ActiveRecord
     module Trilogy
       module DatabaseStatements
         def _exec_insert(intent, sequence_name = nil, returning: nil) # :nodoc:
-          sql, binds = sql_for_insert(intent.raw_sql, intent.binds, returning)
-          intent.raw_sql = sql
-          intent.binds = binds
+          apply_returning_to!(intent, returning)
 
           # AbstractAdapter calls cast_result (returning an AR::Result), but
           # our last_inserted_id needs the raw Trilogy result object
