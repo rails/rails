@@ -408,6 +408,23 @@ module ActionView
       strict_locals!
     end
 
+    def freeze # :nodoc:
+      unless @compiled
+        raise ArgumentError, "Cannot freeze #{short_identifier.inspect}: the template must be compiled first. " \
+          "Frozen templates cannot compile, so an uncompiled one could never render."
+      end
+      strict_locals!
+      method_name.freeze
+      @source.freeze
+      @identifier.freeze
+      @virtual_path&.freeze
+      @locals&.freeze
+      @strict_locals.freeze if @strict_locals.is_a?(String)
+      @variant.freeze if @variant.is_a?(String)
+      @compile_mutex = nil
+      super
+    end
+
     # Exceptions are marshalled when using the parallel test runner with DRb, so we need
     # to ensure that references to the template object can be marshalled as well. This means forgoing
     # the marshalling of the compiler mutex and instantiating that again on unmarshalling.

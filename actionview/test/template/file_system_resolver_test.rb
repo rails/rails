@@ -2,9 +2,11 @@
 
 require "abstract_unit"
 require "template/resolver_shared_tests"
+require "active_support/testing/ractors_assertions"
 
 class FileSystemResolverTest < ActiveSupport::TestCase
   include ResolverSharedTests
+  include ActiveSupport::Testing::RactorsAssertions
 
   def resolver
     ActionView::FileSystemResolver.new(tmpdir)
@@ -14,6 +16,19 @@ class FileSystemResolverTest < ActiveSupport::TestCase
 
   def find_all(resolver, name = "hello_world", prefix = "test", partial = false, locals = [])
     resolver.find_all(name, prefix, partial, DETAILS, nil, locals)
+  end
+
+  def compile_view
+    ActionView::Base.with_empty_template_cache.empty
+  end
+
+  def test_freeze_raises_for_uncompiled_template
+    with_file "test/hello_world.html.erb", "<%# locals: () %>Hi"
+    resolver = ActionView::FileSystemResolver.new(tmpdir)
+    resolver.eager_load_templates
+
+    error = assert_raises(ArgumentError) { resolver.freeze }
+    assert_match "must be compiled first", error.message
   end
 
   def test_eager_load_templates_populates_cache_without_freezing
@@ -47,5 +62,49 @@ class FileSystemResolverTest < ActiveSupport::TestCase
 
     assert_not_same a, b
     assert_not resolver.frozen?
+  end
+
+  def test_freeze_after_eager_load_makes_resolver_shareable
+    with_file "test/hello_world.html.erb", "<%# locals: () %>Hi"
+    ActiveSupport::Ractors.make_shareable(Mime[:html])
+    resolver = ActionView::FileSystemResolver.new(tmpdir)
+    resolver.eager_load_templates(compile_view)
+    resolver.freeze
+
+    assert_predicate resolver, :frozen?
+    assert_ractor_shareable resolver
+
+    templates = find_all(resolver)
+    assert_equal 1, templates.size
+    assert_predicate templates[0], :frozen?
+  end
+
+  def test_freeze_raises_for_non_strict_partial
+    with_file "test/_card.html.erb", "<%= post %>"
+    resolver = ActionView::FileSystemResolver.new(tmpdir)
+    resolver.eager_load_templates
+
+    error = assert_raises(ArgumentError) { resolver.freeze }
+    assert_match "test/_card", error.message
+    assert_match "strict locals", error.message
+  end
+
+  def test_freeze_raises_for_non_strict_template
+    with_file "test/hello_world.html.erb", "no locals here"
+    resolver = ActionView::FileSystemResolver.new(tmpdir)
+    resolver.eager_load_templates
+
+    error = assert_raises(ArgumentError) { resolver.freeze }
+    assert_match "test/hello_world", error.message
+    assert_match "strict locals", error.message
+  end
+
+  def test_frozen_resolver_returns_empty_for_missing_template
+    with_file "test/hello_world.html.erb", "<%# locals: () %>Hi"
+    resolver = ActionView::FileSystemResolver.new(tmpdir)
+    resolver.eager_load_templates(compile_view)
+    resolver.freeze
+
+    assert_empty find_all(resolver, "nonexistent")
   end
 end
