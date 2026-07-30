@@ -46,9 +46,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
       old_foreign_id =
         if foreign_key.is_a?(Array)
           if foreign_key.any? { |fk| changes[fk] }
-            foreign_key.map do |fk|
+            old_ids = foreign_key.map do |fk|
               changes[fk] ? changes[fk].first : o.read_attribute(fk)
             end
+            old_ids unless old_ids.any?(&:nil?)
           end
         elsif changes[foreign_key]
           changes[foreign_key].first

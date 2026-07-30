@@ -1,3 +1,16 @@
+*   Fix previous-parent lookup in a composite-key `belongs_to ..., touch: true`
+    callback when there was no previous parent.
+
+    For a composite foreign key, the touch callback built the previous
+    key out of the old attribute values and issued a lookup whenever any foreign
+    key column changed. A first-time association produces a key with `nil`
+    components (e.g. `[nil, shop_id]`), which is a non-empty and therefore truthy
+    Array, so Rails ran a `WHERE ... IS NULL` query for a parent that cannot exist
+    on every insert of such an association. This mirrors the scalar branch, which
+    already skips the lookup when the previous value is `nil`.
+
+    *Martin Samson*
+
 *   Deprecate passing `binds` to
     `ActiveRecord::ConnectionAdapters::DatabaseStatements#to_sql`.
 
