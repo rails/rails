@@ -15,6 +15,7 @@ class UrlHelperTest < ActiveSupport::TestCase
     get "/other" => "foo#other"
   end
 
+  include ActionView::Helpers::FormTagHelper
   include ActionView::Helpers::UrlHelper
   include routes.url_helpers
 

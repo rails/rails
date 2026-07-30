@@ -14,16 +14,13 @@ module ActionView
     # This allows you to use the same format for links in views
     # and controllers.
     module NavigationHelper
-      BUTTON_TAG_METHOD_VERBS = %w{patch put delete}.freeze
-
       # Some methods provided here will only work in the context of a request
       # (link_to_unless_current, for instance), which must be provided as a
       # method called #request on the context.
       extend ActiveSupport::Concern
 
       include UrlHelper
-      include TagHelper
-      include ContentExfiltrationPreventionHelper
+      include FormTagHelper
 
       mattr_accessor :button_to_generates_button_tag, default: false
 
@@ -372,23 +369,14 @@ module ActionView
         authenticity_token = html_options.delete("authenticity_token")
 
         method     = (html_options.delete("method").presence || method_for_options(options)).to_s
-        method_tag = BUTTON_TAG_METHOD_VERBS.include?(method) ? method_tag(method) : "".html_safe
 
-        form_method  = method == "get" ? "get" : "post"
         form_options = html_options.delete("form") || {}
         form_options[:class] ||= html_options.delete("form_class") || "button_to"
-        form_options[:method] = form_method
-        form_options[:action] = url
+        form_options[:method] = method
         form_options[:'data-remote'] = true if remote
+        form_options[:enforce_utf8] = false
+        form_options[:authenticity_token] = authenticity_token
 
-        request_token_tag = if form_method == "post"
-          request_method = method.empty? ? "post" : method
-          token_tag(authenticity_token, form_options: { action: url, method: request_method })
-        else
-          ""
-        end
-
-        html_options = convert_options_to_data_attributes(options, html_options)
         html_options["type"] = "submit"
 
         button = if block_given?
@@ -400,16 +388,13 @@ module ActionView
           tag("input", html_options)
         end
 
-        inner_tags = method_tag.safe_concat(button).safe_concat(request_token_tag)
+        inner_tags = button
         if params
           to_form_params(params).each do |param|
-            options = { type: "hidden", name: param[:name], value: param[:value] }
-            options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
-            inner_tags.safe_concat tag(:input, **options)
+            inner_tags.safe_concat hidden_field_tag(param[:name], param[:value], id: nil)
           end
         end
-        html = content_tag("form", inner_tags, form_options)
-        prevent_content_exfiltration(html)
+        form_tag(options, form_options) { inner_tags }
       end
 
       # Creates a link tag of the given +name+ using a URL created by the set of
