@@ -2,7 +2,7 @@
 
 module ActiveSupport
   module ExecutionContext # :nodoc:
-    class Record
+    class Record # :nodoc:
       attr_reader :store, :current_attributes_instances
 
       def initialize
