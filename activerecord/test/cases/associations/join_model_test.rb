@@ -778,6 +778,19 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     end
   end
 
+  def test_warn_if_duplicate_column_names_detected
+    previous_logger = ActiveRecord::Base.logger
+    ActiveRecord::Base.logger = ActiveSupport::Logger.new(nil)
+
+    expected_message = "Duplicate column names detected: id. " \
+                       "Use explicit column selection (e.g., 'posts.*') to avoid ambiguous results."
+    assert_called_with(ActiveRecord::Base.logger, :warn, [expected_message]) do
+      Post.joins(:author).select("*").first
+    end
+  ensure
+    ActiveRecord::Base.logger = previous_logger
+  end
+
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)
