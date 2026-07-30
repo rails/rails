@@ -411,6 +411,31 @@ class EnumTest < ActiveRecord::TestCase
     assert_predicate Book.illustrator_visibility_invisible.build, :illustrator_visibility_invisible?
   end
 
+  test "building from association scope overrides enum default" do
+    Object.const_set(:AssociationEnumDefaultBook, Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+
+      belongs_to :author
+      enum :status, [:proposed, :written, :published], default: :published
+    end)
+
+    author_class = Class.new(Author) do
+      has_many :written_books, -> { written }, class_name: "AssociationEnumDefaultBook", foreign_key: :author_id
+
+      def self.name
+        "Author"
+      end
+    end
+
+    book = author_class.new.written_books.build
+
+    assert_predicate book, :written?
+    assert_equal "written", book.status
+    assert_equal 1, book.status_before_type_cast
+  ensure
+    Object.send(:remove_const, :AssociationEnumDefaultBook) if Object.const_defined?(:AssociationEnumDefaultBook)
+  end
+
   test "creating new objects with enum scopes" do
     assert_predicate Book.written.create, :written?
     assert_predicate Book.read.create, :read?
