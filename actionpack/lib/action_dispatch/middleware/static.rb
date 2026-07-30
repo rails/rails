@@ -28,9 +28,22 @@ module ActionDispatch
     end
   end
 
+  # # ActionDispath Files
+  #
+  # `ActionDispatch::Files` serves files with support for setting headers dynamically with callables.
+  class Files < Rack::Files
+    private
+      def assign_headers(headers, request)
+        computed = @headers.transform_values do |value|
+          value.respond_to?(:call) ? value.call(request) : value
+        end
+        headers.merge!(computed)
+      end
+  end
+
   # # Action Dispatch FileHandler
   #
-  # This endpoint serves static files from disk using `Rack::Files`.
+  # This endpoint serves static files from disk using `ActionDispatch::Files`.
   #
   # URL paths are matched with static files according to expected conventions:
   # `path`, `path`.html, `path`/index.html.
@@ -55,11 +68,12 @@ module ActionDispatch
     def initialize(root, index: "index", headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript|image\/svg\+xml)/)
       @root = root.chomp("/").b
       @index = index
+      @headers = headers
 
       @precompressed = Array(precompressed).map(&:to_s) | %w[ identity ]
       @compressible_content_types = compressible_content_types
 
-      @file_server = ::Rack::Files.new(@root, headers)
+      @file_server = ::ActionDispatch::Files.new(@root, headers)
     end
 
     def call(env)
