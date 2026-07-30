@@ -1,3 +1,14 @@
+*   Allow `ActiveSupport::ProxyLogger` to ignore messages matching given patterns.
+
+    Useful to silence noisy logs from gems that your application may not care
+    about, without needing to change the log level and losing other useful logs.
+
+    ```ruby
+    SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger).ignore(/Noisy/)
+    ```
+
+    *Federico Carrocera*
+
 *   Add `#this_quarter?` to Date/Time.
 
     It returns true if the date/time falls within the current quarter.
