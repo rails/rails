@@ -1606,6 +1606,29 @@ module ActiveRecord
         end
       end
 
+      def test_bytea_preserves_decoded_value_when_marker_is_stripped_under_decode_bytea
+        type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Bytea.new
+
+        PostgreSQLAdapter.with(decode_bytea: true) do
+          decoded = "Hello\0world".b
+          decoded.instance_variable_set(:@ar_pg_bytea_decoded, true)
+
+          # Simulate a serialization boundary that preserves the bytes and
+          # encoding but drops Active Record's per-string instance variable
+          # (e.g. msgpack, a JSON binary encoder, or any String rebuild such
+          # as String#b, String.new(s), or interpolation).
+          unmarked = String.new(decoded)
+          assert_equal Encoding::BINARY, unmarked.encoding
+          assert_not unmarked.instance_variable_defined?(:@ar_pg_bytea_decoded)
+
+          result = type.deserialize(unmarked)
+
+          assert_equal decoded, result
+          assert_equal Encoding::BINARY, result.encoding
+          assert_not result.instance_variable_defined?(:@ar_pg_bytea_decoded)
+        end
+      end
+
       def test_bytea_marked_true_skips_decode
         type = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Bytea.new
 
