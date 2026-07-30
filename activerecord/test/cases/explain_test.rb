@@ -153,6 +153,12 @@ if ActiveRecord::Base.lease_connection.supports_explain?
       end
     end
 
+    def test_explain_with_arel
+      message = lease_connection.explain(Car.where(name: "honda").arel)
+      assert_not_empty message
+      assert_match(/cars/i, message)
+    end
+
     private
       def stub_explain_for_query_plans(query_plans = ["query plan foo", "query plan bar"])
         explain_called = 0
