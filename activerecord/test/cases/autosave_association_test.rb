@@ -996,7 +996,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     order.save
     order.reload
 
-    assert_equal order_agreements, order.order_agreement_ids
+    assert_equal_unordered order_agreements, order.order_agreement_ids
     assert_equal 2, order.order_agreements.length
     assert_includes order.order_agreements, cpk_order_agreements(:order_agreement_two)
   end
