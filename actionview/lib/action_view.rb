@@ -64,6 +64,7 @@ module ActionView
     end
 
     autoload_under "testing" do
+      autoload :CapybaraAssertions
       autoload :RailsDomTestingAssertions
     end
 
