@@ -108,6 +108,11 @@ module ActiveSupport
     #   parameterize("Donald E. Knuth", separator: '_') # => "donald_e_knuth"
     #   parameterize("^très|Jolie__ ", separator: '_')  # => "tres_jolie"
     #
+    # To remove the unwanted characters instead of replacing them, pass an
+    # empty separator. +nil+ is treated the same way.
+    #
+    #   parameterize("Donald E. Knuth", separator: '') # => "donaldeknuth"
+    #
     # To preserve the case of the characters in a string, use the +preserve_case+ argument.
     #
     #   parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
@@ -124,13 +129,15 @@ module ActiveSupport
     # By default, this parameter is set to <tt>nil</tt> and it will use
     # the configured <tt>I18n.locale</tt>.
     def parameterize(string, separator: "-", preserve_case: false, locale: nil)
+      separator ||= ""
+
       # Replace accented chars with their ASCII equivalents.
       parameterized_string = transliterate(string, locale: locale)
 
       # Turn unwanted chars into the separator.
       parameterized_string.gsub!(/[^a-z0-9\-_]+/i, separator)
 
-      unless separator.nil? || separator.empty?
+      unless separator.empty?
         # No more than one of the separator in a row.
         if separator.length == 1
           parameterized_string.squeeze!(separator)
