@@ -251,9 +251,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
     end
 
     def test_casted_binds_logging_uses_parameter_marker
-      bind_param = Arel::Nodes::BindParam.new(nil)
-      sql = "SELECT id FROM developers WHERE name = #{bind_param.to_sql}"
-      ActiveRecord::Base.lease_connection.select_all(sql, "SQL", ["David"])
+      Developer.where("name = ?", "David").load
       assert_match(%{[["$1", "David"]]}, @logger.logged(:debug).last)
     end
 
