@@ -1,3 +1,10 @@
+*   Allow for prepared statements to remain enabled with query logs tags.
+
+    To keep prepared_statements enabled in conjunction with query log tags,
+    `config.active_record.disable_prepared_statements = false`.
+
+    *Brad Schrag*
+
 *   When `dump_schema_migrations` is enabled, the trailer gets now exactly the
     versions present in the `schema_migrations` table, without filtering by
     what's on disk.
