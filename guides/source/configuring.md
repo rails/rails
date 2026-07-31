@@ -1559,10 +1559,9 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.active_record.query_log_tags_enabled`
 
-Specifies whether or not to enable adapter-level query comments. Defaults to
-`false`, but is set to `true` in the default generated `config/environments/development.rb` file.
+Specifies whether or not to enable adapter-level query comments. Defaults to `false`, but is set to `true` in the default generated `config/environments/development.rb` file.When this is set to `true` database prepared statements will be automatically disabled. If prepared statements are desired in conjunction with `query_log_tags` you must explicitly opt-out of ActiveRecords disabling mechanism: `config.active_record.disable_preprared_statments = false`.
 
-NOTE: When this is set to `true` database prepared statements will be automatically disabled.
+Note: High cardinality comments can cause degraded db performance as the database may not be able to rely on a query plan cache. If forcing prepared statements with query log tags high cardinality values should be avoided. For example, `:request_id` or `admin_id`. Even basic `controller#action` tags can cause high cardinality on basic queries such as a current_user lookup since it will happen across many endpoints.
 
 #### `config.active_record.query_log_tags`
 
