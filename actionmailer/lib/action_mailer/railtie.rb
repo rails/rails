@@ -27,6 +27,8 @@ module ActionMailer
 
       ActiveSupport.on_load(:action_mailer_test_case) do
         case dom_testing_assertions
+        when :capybara
+          include ActionView::CapybaraAssertions
         when :rails_dom_testing
           include ActionView::RailsDomTestingAssertions
         when :none

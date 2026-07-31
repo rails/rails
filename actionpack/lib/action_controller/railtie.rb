@@ -158,6 +158,8 @@ module ActionController
         ActionController::TestCase.executor_around_each_request = app.config.active_support.executor_around_test_case
 
         case dom_testing_assertions
+        when :capybara
+          include ActionView::CapybaraAssertions
         when :rails_dom_testing
           include ActionView::RailsDomTestingAssertions
         when :none
