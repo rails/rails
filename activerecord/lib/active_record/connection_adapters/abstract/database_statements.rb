@@ -273,6 +273,16 @@ module ActiveRecord
             `insert_returning` option is removed.
           MSG
         end
+        if binds.any?
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            Passing `binds` as a positional argument to `insert` is
+            deprecated and will be removed in Rails 8.3. Use
+            `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
+            inside the arel node instead —
+            `insert(sql, name, nil, nil, nil, binds)` becomes
+            `insert(Arel.sql(sql, *binds), name)`.
+          MSG
+        end
 
         # The `pk` positional argument is really the RETURNING column name.
         # Translate it to `returning:` — including the legacy `false` sentinel
@@ -300,6 +310,17 @@ module ActiveRecord
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel_or_sql, name = nil, binds = [])
+        if binds.any?
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            Passing `binds` as a positional argument to `update` is
+            deprecated and will be removed in Rails 8.3. Use
+            `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
+            inside the arel node instead —
+            `update(sql, name, binds)` becomes
+            `update(Arel.sql(sql, *binds), name)`.
+          MSG
+        end
+
         intent = QueryIntent.new(adapter: self, arel: arel_or_sql, name: name, binds: binds)
 
         intent.execute!
@@ -319,6 +340,17 @@ module ActiveRecord
 
       # Executes the delete statement and returns the number of rows affected.
       def delete(arel_or_sql, name = nil, binds = [])
+        if binds.any?
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            Passing `binds` as a positional argument to `delete` is
+            deprecated and will be removed in Rails 8.3. Use
+            `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
+            inside the arel node instead —
+            `delete(sql, name, binds)` becomes
+            `delete(Arel.sql(sql, *binds), name)`.
+          MSG
+        end
+
         intent = QueryIntent.new(adapter: self, arel: arel_or_sql, name: name, binds: binds)
 
         intent.execute!
@@ -819,7 +851,10 @@ module ActiveRecord
         def apply_returning_to!(intent, returning)
           return unless supports_insert_returning?
 
-          arel_or_sql = intent.arel || intent.raw_sql
+          # Only `Arel::InsertManager` has `#returning` on the AST; other arel
+          # nodes (e.g. `Arel::Nodes::BoundSqlLiteral` from `Arel.sql("... ?", value)`)
+          # are compiled to raw SQL first and take the string append path.
+          arel_or_sql = intent.arel.is_a?(Arel::InsertManager) ? intent.arel : intent.raw_sql
 
           returning ||= primary_key_for_insert(arel_or_sql)
           returning = Array(returning)

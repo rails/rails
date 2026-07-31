@@ -325,16 +325,22 @@ module ActiveRecord
         binds = [Event.type_for_attribute("id").serialize(1)]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
-        id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        id = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        end
         assert_equal 1, id
 
-        updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        updated = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        end
         assert_equal 1, updated
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
 
-        deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        deleted = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        end
         assert_equal 1, deleted
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
@@ -345,16 +351,22 @@ module ActiveRecord
         binds = [Relation::QueryAttribute.new("id", 1, Event.type_for_attribute("id"))]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
-        id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        id = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        end
         assert_equal 1, id
 
-        updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        updated = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        end
         assert_equal 1, updated
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
 
-        deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        deleted = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        end
         assert_equal 1, deleted
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
