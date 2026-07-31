@@ -118,13 +118,20 @@ module ActiveRecord
       end
 
       def versions(stream)
-        if (versions = @connection.pool.schema_migration.versions).any?
-          versions.sort_by!(&ActiveRecord.dump_schema_migrations_sort_by)
+        pool = @connection.pool
+
+        versions_in_schema_migrations = pool.migration_context.get_all_versions
+        versions_in_db_migrate = pool.migration_context.migrations.map(&:version)
+        versions_to_dump = versions_in_schema_migrations & versions_in_db_migrate
+
+        if versions_to_dump.any?
+          versions_to_dump.map!(&:to_s)
+          versions_to_dump.sort_by!(&ActiveRecord.dump_schema_migrations_sort_by)
 
           stream.puts
           stream.puts "ActiveRecord::Schema.load_schema_migrations(__FILE__)"
           stream.puts "__END__"
-          stream.puts versions
+          stream.puts versions_to_dump
         end
       end
 

@@ -47,25 +47,21 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_match %r{ActiveRecord::Schema\[#{ActiveRecord::Migration.current_version}\]\.define}, output
   end
 
-  def test_schema_dump_includes_all_recorded_migrations_when_configured
+  def test_schema_dump_includes_applied_migrations_when_configured
     original_migrations_paths = ActiveRecord::Migrator.migrations_paths
     ActiveRecord::Migrator.migrations_paths = File.expand_path("../migrations/valid", __dir__)
 
-    migrations_on_disk = ActiveRecord::Base.connection_pool.migration_context.migrations.map(&:version)
-
-    # By introducing this version we ensure that schema_migrations is dumped as
-    # is, including versions that are not on disk.
-    version_without_file = (migrations_on_disk.max || 0) + 1
-    versions = (migrations_on_disk + [version_without_file]).map(&:to_s)
+    versions = ActiveRecord::Base.connection_pool.migration_context.migrations.first(2).map(&:version)
+    version_without_file = 4
 
     @schema_migration.delete_all_versions
-    @schema_migration.create_versions(versions)
+    @schema_migration.create_versions((versions + [version_without_file]).map(&:to_s))
 
     output = ActiveRecord.stub(:dump_schema_migrations, true) do
       dump_all_table_schema
     end
 
-    expected_versions = versions.sort_by(&ActiveRecord.dump_schema_migrations_sort_by)
+    expected_versions = versions.map(&:to_s).sort_by(&:reverse)
     expected = [
       "ActiveRecord::Schema.load_schema_migrations(__FILE__)",
       "__END__",
@@ -74,6 +70,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     assert_match %r{ActiveRecord::Schema\[.+\]\.define do}, output
     assert_includes output, expected
+    assert_no_match(/^#{version_without_file}$/, output)
   ensure
     @schema_migration.delete_all_versions
     ActiveRecord::Migrator.migrations_paths = original_migrations_paths
