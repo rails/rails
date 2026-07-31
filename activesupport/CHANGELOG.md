@@ -1,3 +1,11 @@
+*   Add group and step filtering to `ActiveSupport::ContinuousIntegration`.
+
+    Use `bin/ci --group NAME` (`-g`) to run a named group or
+    `bin/ci --step NAME` (`-s`) to run a named step. Names match exactly and
+    case-insensitively. Use `bin/ci --help` (`-h`) to see all options.
+
+    *Thibaud Guillaume-Gentil*
+
 *   Fix `Range#sum` with a falsey initial value.
 
     Summing an integer range with a falsey starting value (such as nil or false)
