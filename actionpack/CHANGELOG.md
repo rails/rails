@@ -1,3 +1,16 @@
+*   Add `:capybara` support for `config.action_controller.dom_testing_assertions` and `config.action_dispatch.dom_testing_assertions`
+
+    Setting `:capybara` integrates with `Capybara::Minitest::Assertions`
+
+    *Sean Doyle*
+
+*   Introduce `config.action_controller.dom_testing_assertions` and `config.action_dispatch.dom_testing_assertions`
+
+    Adds support for `:rails_dom_testing` to support `Rails::Dom::Testing::Assertions` and `:none`.
+    Defaults to with `:rails_dom_testing`.
+
+    *Sean Doyle*
+
 *   Allow HTTP token authentication to require specific authentication schemes.
 
     Pass `scheme:` to `authenticate_or_request_with_http_token` (and the other

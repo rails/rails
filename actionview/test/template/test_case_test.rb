@@ -374,11 +374,7 @@ module ActionView
   end
 
   class CapybaraHTMLEncoderTest < ActionView::TestCase
-    include ::Capybara::Minitest::Assertions
-
-    def page
-      Capybara.string(rendered)
-    end
+    include ActionView::CapybaraAssertions
 
     test "document_root_element can be configured to utilize Capybara" do
       developer = DeveloperStruct.new("Eloy")
