@@ -55,6 +55,45 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
            :sharded_blog_posts, :sharded_tags, :sharded_blog_posts_tags, :cpk_orders, :cpk_tags,
            :cpk_order_tags
 
+  class PlusOneThousandInteger < ActiveRecord::Type::Integer
+    def serialize(value)
+      value = super
+      value + 1000 if value
+    end
+  end
+
+  class BlogPostWithCustomTypedThroughFk < ActiveRecord::Base
+    self.table_name = :sharded_blog_posts
+    query_constraints :blog_id, :id
+
+    has_many :blog_post_tags,
+      class_name: "HasManyThroughAssociationsTest::BlogPostTagWithCustomTypedPostId",
+      primary_key: [:blog_id, :id],
+      foreign_key: [:blog_id, :blog_post_id]
+    has_many :tags, through: :blog_post_tags, source: :tag
+  end
+
+  class BlogPostTagWithCustomTypedPostId < ActiveRecord::Base
+    self.table_name = :sharded_blog_posts_tags
+    query_constraints :blog_id, :id
+
+    attribute :blog_post_id, PlusOneThousandInteger.new
+
+    belongs_to :blog_post,
+      class_name: "HasManyThroughAssociationsTest::BlogPostWithCustomTypedThroughFk",
+      primary_key: [:blog_id, :id],
+      foreign_key: [:blog_id, :blog_post_id]
+    belongs_to :tag,
+      class_name: "HasManyThroughAssociationsTest::TagWithCustomTypedThroughFk",
+      primary_key: [:blog_id, :id],
+      foreign_key: [:blog_id, :tag_id]
+  end
+
+  class TagWithCustomTypedThroughFk < ActiveRecord::Base
+    self.table_name = :sharded_tags
+    query_constraints :blog_id, :id
+  end
+
   # Dummies to force column loads so query counts are clean.
   def setup
     Person.create first_name: "gummy"
@@ -1681,6 +1720,19 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_not_empty(tag_ids)
     assert_equal(expected_tag_ids.sort, tag_ids.sort)
+  end
+
+  def test_has_many_through_association_scope_uses_through_model_type_for_owner_key
+    fixture = sharded_blog_posts(:great_post_blog_one)
+    blog_post = BlogPostWithCustomTypedThroughFk.find_by!(blog_id: fixture.blog_id, id: fixture.id)
+
+    queries = capture_sql_and_binds do
+      blog_post.tags.to_a
+    end
+    association_query = queries.find { |sql, _| sql.include?("sharded_blog_posts_tags") }
+
+    assert_not_nil association_query
+    assert_includes association_query.second, blog_post.id + 1000
   end
 
   def test_tags_has_manu_posts_through_association_with_composite_query_constraints
