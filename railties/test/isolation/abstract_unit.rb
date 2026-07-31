@@ -140,6 +140,8 @@ module TestHelpers
         config.session_store :cookie_store, key: "_myapp_session"
         config.cache_store = :mem_cache_store
         config.active_support.deprecation = :log
+        # The test process may have loaded components before the generated application exists.
+        config.action_on_early_load_hook = nil
         config.action_controller.allow_forgery_protection = false
       RUBY
 

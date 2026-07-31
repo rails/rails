@@ -1,3 +1,10 @@
+*   Report guarded load hooks that run before `Rails.application` exists once
+    application configuration is available.
+
+    Fixes #58327.
+
+    *Jose Solás Moreno*
+
 *   Don't filter nonexistent i18n paths on initialize. This negatively impacts
     applications with lots of translation files.
 
