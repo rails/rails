@@ -973,4 +973,28 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "America/Montevideo", ActiveSupport::TimeZone["Montevideo"].standard_name
     assert_equal "America/Toronto", ActiveSupport::TimeZone["America/Toronto"].standard_name
   end
+
+  def test_pacific_time_canada_and_alberta_time_mappings
+    pacific_canada = ActiveSupport::TimeZone["Pacific Time (Canada)"]
+    alberta_time = ActiveSupport::TimeZone["Alberta Time"]
+    pacific_us = ActiveSupport::TimeZone["Pacific Time (US & Canada)"]
+    mountain_us = ActiveSupport::TimeZone["Mountain Time (US & Canada)"]
+
+    assert_equal "America/Vancouver", pacific_canada.standard_name
+    assert_equal "America/Edmonton", alberta_time.standard_name
+    assert_equal "America/Los_Angeles", pacific_us.standard_name
+    assert_equal "America/Denver", mountain_us.standard_name
+
+    assert_equal "America/Vancouver", pacific_canada.tzinfo.name
+    assert_equal "America/Edmonton", alberta_time.tzinfo.name
+  end
+
+  def test_country_zones_include_pacific_time_canada_and_alberta_time
+    ca_zones = ActiveSupport::TimeZone.country_zones(:ca)
+
+    assert_includes ca_zones, ActiveSupport::TimeZone["Pacific Time (Canada)"]
+    assert_includes ca_zones, ActiveSupport::TimeZone["Alberta Time"]
+    assert_not_includes ca_zones.map(&:name), "America/Vancouver"
+    assert_not_includes ca_zones.map(&:name), "America/Edmonton"
+  end
 end
