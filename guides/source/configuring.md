@@ -1993,7 +1993,7 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_controller.dom_testing_assertions`
 
-Specifies which assertions are available in `ActionController::TestCase` tests. Set to `:rails_dom_testing` to include assertions provided by the [rails-dom-testing](https://github.com/rails/rails-dom-testing) gem. Set to `:none` to omit built-in assertions. Defaults to `:rails_dom_testing`.
+Specifies which assertions are available in `ActionController::TestCase` tests. Set to `:rails_dom_testing` to include assertions provided by the [rails-dom-testing](https://github.com/rails/rails-dom-testing) gem. Set to `:capybara` to include assertions provided by the [capybara](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions) gem. Set to `:none` to omit built-in assertions. Defaults to `:rails_dom_testing`.
 
 #### `config.action_controller.asset_host`
 
@@ -2277,7 +2277,7 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_dispatch.dom_testing_assertions`
 
-Specifies which assertions are available in `ActionDispatch::IntegrationTest` tests. Set to `:rails_dom_testing` to include assertions provided by the [rails-dom-testing](https://github.com/rails/rails-dom-testing) gem. Set to `:none` to omit built-in assertions. Defaults to `:rails_dom_testing`.
+Specifies which assertions are available in `ActionDispatch::IntegrationTest` tests. Set to `:rails_dom_testing` to include assertions provided by the [rails-dom-testing](https://github.com/rails/rails-dom-testing) gem. Set to `:capybara` to include assertions provided by the [capybara](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions) gem. Set to `:none` to omit built-in assertions. Defaults to `:rails_dom_testing`.
 
 #### `config.action_dispatch.cookies_serializer`
 
@@ -2624,7 +2624,7 @@ Takes a block of code to run after the request.
 
 #### `config.action_view.dom_testing_assertions`
 
-Specifies which assertions are available in `ActionView::TestCase` tests. Set to `:rails_dom_testing` to include assertions provided by the [rails-dom-testing](https://github.com/rails/rails-dom-testing) gem. Set to `:none` to omit built-in assertions. Defaults to `:rails_dom_testing`.
+Specifies which assertions are available in `ActionView::TestCase` tests. Set to `:rails_dom_testing` to include assertions provided by the [rails-dom-testing](https://github.com/rails/rails-dom-testing) gem. Set to `:capybara` to include assertions provided by the [capybara](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions) gem. Set to `:none` to omit built-in assertions. Defaults to `:rails_dom_testing`.
 
 #### `config.action_view.cache_template_loading`
 
@@ -2888,7 +2888,7 @@ Sets the host for the assets. Useful when CDNs are used for hosting assets rathe
 
 #### `config.action_mailer.dom_testing_assertions`
 
-Specifies which assertions are available in `ActionMailer::TestCase` tests. Set to `:rails_dom_testing` to include assertions provided by the [rails-dom-testing](https://github.com/rails/rails-dom-testing) gem. Set to `:none` to omit built-in assertions. Defaults to `:rails_dom_testing`.
+Specifies which assertions are available in `ActionMailer::TestCase` tests. Set to `:rails_dom_testing` to include assertions provided by the [rails-dom-testing](https://github.com/rails/rails-dom-testing) gem. Set to `:capybara` to include assertions provided by the [capybara](https://rubydoc.info/github/teamcapybara/capybara/master/Capybara/Minitest/Assertions) gem. Set to `:none` to omit built-in assertions. Defaults to `:rails_dom_testing`.
 
 #### `config.action_mailer.logger`
 

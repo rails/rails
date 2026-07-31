@@ -135,6 +135,8 @@ module ActionView
 
       ActiveSupport.on_load(:action_view_test_case) do
         case dom_testing_assertions
+        when :capybara
+          include ActionView::CapybaraAssertions
         when :rails_dom_testing
           include ActionView::RailsDomTestingAssertions
         when :none
