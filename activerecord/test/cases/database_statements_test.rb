@@ -35,6 +35,29 @@ class DatabaseStatementsTest < ActiveRecord::TestCase
     assert_equal 1, values.length
   end
 
+  def test_insert_pk_positional_argument_is_deprecated
+    sql = "INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)"
+    id = assert_deprecated(/Passing `pk`/, ActiveRecord.deprecator) do
+      @connection.insert(sql, nil, "id")
+    end
+    assert_kind_of Integer, id
+  end
+
+  def test_insert_id_value_positional_argument_is_deprecated
+    sql = "INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)"
+    id = assert_deprecated(/Passing `id_value`/, ActiveRecord.deprecator) do
+      @connection.insert(sql, nil, nil, 12345)
+    end
+    assert_equal 12345, id
+  end
+
+  def test_insert_sequence_name_positional_argument_is_deprecated
+    sql = "INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)"
+    assert_deprecated(/Passing `sequence_name`/, ActiveRecord.deprecator) do
+      @connection.insert(sql, nil, nil, nil, "accounts_id_seq")
+    end
+  end
+
   def test_extract_table_ref_from_insert_sql_with_hyphen_in_table_name
     sql = "INSERT INTO \"table-with-hyphen\" (column1, column2) VALUES (value1, value2)"
     assert_equal "table-with-hyphen", @connection.send(:extract_table_ref_from_insert_sql, sql)

@@ -241,20 +241,39 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      # Executes an INSERT query and returns the new record's ID
-      #
-      # +id_value+ will be returned unless the value is +nil+, in
-      # which case the database will attempt to calculate the last inserted
-      # id and return that value.
-      #
-      # If the next id was calculated in advance (as in Oracle), it should be
-      # passed in as +id_value+.
+      # Executes an INSERT query and returns the new record's ID.
       #
       # Some adapters support the `returning` keyword argument, which controls
       # what the method returns: +nil+ (default) returns the id via
       # +last_inserted_id+; a column name returns that column as a single
       # value; an array of column names returns an Array of column values.
       def insert(arel_or_sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil)
+        unless pk.nil?
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            Passing `pk` as a positional argument to `insert` is deprecated
+            and will be removed in Rails 8.3. Pass `returning:` instead —
+            `insert(arel, name, "id")` becomes `insert(arel, name, returning: "id")`.
+          MSG
+        end
+        unless id_value.nil?
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            Passing `id_value` as a positional argument to `insert` is
+            deprecated and will be removed in Rails 8.3. `id_value` was
+            returned when the database couldn't compute the last inserted id;
+            callers that pass it already know the value and can use it
+            directly rather than reading it back from `insert`.
+          MSG
+        end
+        unless sequence_name.nil?
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            Passing `sequence_name` as a positional argument to `insert` is
+            deprecated and will be removed in Rails 8.3. It was only used by
+            PostgreSQL's `use_insert_returning?` currval fallback, which is
+            deprecated on its own — drop the argument once the
+            `insert_returning` option is removed.
+          MSG
+        end
+
         # The `pk` positional argument is really the RETURNING column name.
         # Translate it to `returning:` — including the legacy `false` sentinel
         # meaning "no primary key / skip RETURNING".
