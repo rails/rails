@@ -101,6 +101,12 @@ class MemoryStoreTest < StoreTest
     assert_equal true, @cache.write(1, "bbbb", expires_in: 1.second, unless_exist: true)
   end
 
+  def test_can_be_instantiated_from_an_anonymous_subclass
+    store = Class.new(ActiveSupport::Cache::MemoryStore).new
+    store.write("foo", "bar")
+    assert_equal "bar", store.read("foo")
+  end
+
   private
     def compression_always_disabled_by_default?
       true
