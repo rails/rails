@@ -1499,9 +1499,8 @@ config.active_record.dump_schema_migrations = true
 The `:dump_schema_migrations` database configuration key allows you to override
 the global flag per database.
 
-The dump includes only versions with an existing migration file, so projects
-that prune old migrations keep the table in sync automatically just by
-regenerating the schema with `bin/rails db:schema:dump`.
+The dump includes every version recorded in the `schema_migrations` table,
+whether or not its migration file still exists on disk.
 
 By default, versions are ordered by their reversed strings to help avoid merge
 conflicts, but this can be customized:
