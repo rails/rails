@@ -225,7 +225,11 @@ module ActiveModel
 
       def i18n_keys
         @i18n_keys ||= if @klass.respond_to?(:lookup_ancestors)
-          @klass.lookup_ancestors.map { |klass| klass.model_name.i18n_key }
+          # Anonymous ancestors have no model name to derive a key from, so
+          # skip them rather than letting Name.new raise on their blank name.
+          @klass.lookup_ancestors.filter_map do |klass|
+            klass.model_name.i18n_key unless klass.name.blank?
+          end
         else
           []
         end
