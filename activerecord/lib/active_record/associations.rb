@@ -118,6 +118,7 @@ module ActiveRecord
       #
       #   project = Project.first
       #   project.portfolio
+      #   project.portfolio!
       #   project.portfolio = Portfolio.first
       #   project.reload_portfolio
       #
@@ -157,6 +158,7 @@ module ActiveRecord
       #   generated methods                 | belongs_to | :polymorphic | has_one
       #   ----------------------------------+------------+--------------+---------
       #   other                             |     X      |      X       |    X
+      #   other!                            |     X      |      X       |    X
       #   other=(other)                     |     X      |      X       |    X
       #   build_other(attributes={})        |     X      |              |    X
       #   create_other(attributes={})       |     X      |              |    X
@@ -1442,6 +1444,11 @@ module ActiveRecord
         #
         # [<tt>association</tt>]
         #   Returns the associated object. +nil+ is returned if none is found.
+        # [<tt>association!</tt>]
+        #   Does the same as <tt>association</tt>, but raises ActiveRecord::RecordNotFound
+        #   if there is no associated object. Because it uses the same reader, a record
+        #   excluded by the association's scope or by a default scope on the associated
+        #   model raises as well, even though the row exists.
         # [<tt>association=(associate)</tt>]
         #   Assigns the associate object, extracts the primary key, sets it as the foreign key,
         #   and saves the associate object. To avoid database inconsistencies, permanently deletes an existing
@@ -1474,6 +1481,7 @@ module ActiveRecord
         #   beneficiary = Beneficiary.find(8)
         #
         #   account.beneficiary               # similar to Beneficiary.find_by(account_id: 5)
+        #   account.beneficiary!              # similar to Beneficiary.find_by!(account_id: 5)
         #   account.beneficiary = beneficiary # similar to beneficiary.update(account_id: 5)
         #   account.build_beneficiary         # similar to Beneficiary.new(account_id: 5)
         #   account.create_beneficiary        # similar to Beneficiary.create(account_id: 5)
@@ -1644,6 +1652,11 @@ module ActiveRecord
         #
         # [<tt>association</tt>]
         #   Returns the associated object. +nil+ is returned if none is found.
+        # [<tt>association!</tt>]
+        #   Does the same as <tt>association</tt>, but raises ActiveRecord::RecordNotFound
+        #   if there is no associated object. Because it uses the same reader, a record
+        #   excluded by the association's scope or by a default scope on the associated
+        #   model raises as well, even though the row exists.
         # [<tt>association=(associate)</tt>]
         #   Assigns the associate object, extracts the primary key, and sets it as the foreign key.
         #   No modification or deletion of existing records takes place.
@@ -1677,7 +1690,8 @@ module ActiveRecord
         #   post = Post.find(7)
         #   author = Author.find(19)
         #
-        #   post.author           # similar to Author.find(post.author_id)
+        #   post.author           # similar to Author.find_by(id: post.author_id)
+        #   post.author!          # similar to Author.find(post.author_id)
         #   post.author = author  # similar to post.author_id = author.id
         #   post.build_author     # similar to post.author = Author.new
         #   post.create_author    # similar to post.author = Author.new; post.author.save; post.author
