@@ -70,6 +70,41 @@ class DatabaseStatementsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_with_arel_sql_carrying_binds
+    arel = Arel.sql("INSERT INTO accounts (firm_id,credit_limit) VALUES (?,?)", 42, 5000)
+    id = @connection.insert(arel)
+    assert_kind_of Integer, id
+  end
+
+  if ActiveRecord::Base.lease_connection.prepared_statements
+    def test_insert_binds_arg_is_deprecated
+      sub = Arel::Nodes::BindParam.new(nil).to_sql
+      sql = "INSERT INTO accounts (firm_id) VALUES (#{sub})"
+      id = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+        @connection.insert(sql, nil, nil, nil, nil, [42])
+      end
+      assert_kind_of Integer, id
+    end
+
+    def test_update_binds_arg_is_deprecated
+      id = @connection.insert("INSERT INTO accounts (firm_id) VALUES (42)")
+      sub = Arel::Nodes::BindParam.new(nil).to_sql
+      affected = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+        @connection.update("UPDATE accounts SET firm_id = 99 WHERE id = #{sub}", nil, [id])
+      end
+      assert_equal 1, affected
+    end
+
+    def test_delete_binds_arg_is_deprecated
+      id = @connection.insert("INSERT INTO accounts (firm_id) VALUES (42)")
+      sub = Arel::Nodes::BindParam.new(nil).to_sql
+      affected = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+        @connection.delete("DELETE FROM accounts WHERE id = #{sub}", nil, [id])
+      end
+      assert_equal 1, affected
+    end
+  end
+
   private
     def return_the_inserted_id(method:)
       @connection.send(method, "INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)")
