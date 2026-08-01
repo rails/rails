@@ -77,7 +77,7 @@ module ActiveSupport
         if options[:redis]
           ActiveSupport.deprecator.warn(<<~MSG.squish)
             Passing a Redis or ConnectionPool instance via the `:redis` configuration to ActiveSupport::Cache::RedisCacheStore
-            is deprecated and will be removed in Rails 8.3.
+            is deprecated and will be removed in Rails 9.0.
 
             RedisCacheStore no longer depends on the `redis` gem, but use the simpler `redis-client`.
 

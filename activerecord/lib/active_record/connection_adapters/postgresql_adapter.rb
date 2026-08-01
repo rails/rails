@@ -404,7 +404,7 @@ module ActiveRecord
         @use_insert_returning = if @config.key?(:insert_returning)
           ActiveRecord.deprecator.warn(<<~MSG.squish)
             The `insert_returning` option in database configurations is deprecated
-            and will be removed in Rails 8.3. The option only affects single-row
+            and will be removed in Rails 9.0. The option only affects single-row
             INSERT statements; other paths such as `insert_all`, `upsert_all`, and
             RETURNING for `update` already use RETURNING when the database supports
             it, so the option cannot fully disable RETURNING.
@@ -1212,7 +1212,7 @@ module ActiveRecord
             if @config[:schema_order]
               ActiveRecord.deprecator.warn(<<~MSG.squish)
                 The `schema_order` option in PostgreSQL database configurations is
-                deprecated and will be removed in Rails 8.3. Use `schema_search_path` instead.
+                deprecated and will be removed in Rails 9.0. Use `schema_search_path` instead.
               MSG
             end
             self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]

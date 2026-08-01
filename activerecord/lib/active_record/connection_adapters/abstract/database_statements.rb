@@ -11,7 +11,7 @@ module ActiveRecord
       def to_sql(arel_or_sql, binds = nil)
         unless binds.nil?
           ActiveRecord.deprecator.warn(<<~MSG)
-            Passing `binds` to `to_sql` is deprecated and will be removed in Rails 8.3.
+            Passing `binds` to `to_sql` is deprecated and will be removed in Rails 9.0.
             The `binds` argument has been unused since bind parameters were moved into
             the Arel AST in Rails 5.2.
           MSG
@@ -251,14 +251,14 @@ module ActiveRecord
         unless pk.nil?
           ActiveRecord.deprecator.warn(<<~MSG.squish)
             Passing `pk` as a positional argument to `insert` is deprecated
-            and will be removed in Rails 8.3. Pass `returning:` instead —
+            and will be removed in Rails 9.0. Pass `returning:` instead —
             `insert(arel, name, "id")` becomes `insert(arel, name, returning: "id")`.
           MSG
         end
         unless id_value.nil?
           ActiveRecord.deprecator.warn(<<~MSG.squish)
             Passing `id_value` as a positional argument to `insert` is
-            deprecated and will be removed in Rails 8.3. `id_value` was
+            deprecated and will be removed in Rails 9.0. `id_value` was
             returned when the database couldn't compute the last inserted id;
             callers that pass it already know the value and can use it
             directly rather than reading it back from `insert`.
@@ -267,7 +267,7 @@ module ActiveRecord
         unless sequence_name.nil?
           ActiveRecord.deprecator.warn(<<~MSG.squish)
             Passing `sequence_name` as a positional argument to `insert` is
-            deprecated and will be removed in Rails 8.3. It was only used by
+            deprecated and will be removed in Rails 9.0. It was only used by
             PostgreSQL's `use_insert_returning?` currval fallback, which is
             deprecated on its own — drop the argument once the
             `insert_returning` option is removed.
@@ -276,7 +276,7 @@ module ActiveRecord
         if binds.any?
           ActiveRecord.deprecator.warn(<<~MSG.squish)
             Passing `binds` as a positional argument to `insert` is
-            deprecated and will be removed in Rails 8.3. Use
+            deprecated and will be removed in Rails 9.0. Use
             `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
             inside the arel node instead —
             `insert(sql, name, nil, nil, nil, binds)` becomes
@@ -313,7 +313,7 @@ module ActiveRecord
         if binds.any?
           ActiveRecord.deprecator.warn(<<~MSG.squish)
             Passing `binds` as a positional argument to `update` is
-            deprecated and will be removed in Rails 8.3. Use
+            deprecated and will be removed in Rails 9.0. Use
             `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
             inside the arel node instead —
             `update(sql, name, binds)` becomes
@@ -343,7 +343,7 @@ module ActiveRecord
         if binds.any?
           ActiveRecord.deprecator.warn(<<~MSG.squish)
             Passing `binds` as a positional argument to `delete` is
-            deprecated and will be removed in Rails 8.3. Use
+            deprecated and will be removed in Rails 9.0. Use
             `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
             inside the arel node instead —
             `delete(sql, name, binds)` becomes

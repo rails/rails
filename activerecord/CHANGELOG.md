@@ -752,13 +752,13 @@
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be
-    removed in Rails 8.3.
+    removed in Rails 9.0.
 
     *Eileen M. Alayce*
 
 *   Deprecate the `strict` option in MySQL database configurations.
 
-    The `strict` option for MySQL will be removed in Rails 8.3 because it is the default behavior.
+    The `strict` option for MySQL will be removed in Rails 9.0 because it is the default behavior.
 
     To change the default behavior of `strict`, use `variables: { sql_mode: "..." }` to configure `sql_mode` directly.
 
