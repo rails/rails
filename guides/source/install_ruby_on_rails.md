@@ -25,27 +25,16 @@ TIP: Any commands prefaced with a dollar sign `$` should be run in the terminal.
 
 You'll need macOS Catalina 10.15 or newer to follow these instructions.
 
-For macOS, you'll need Xcode Command Line Tools and Homebrew to install dependencies needed to compile Ruby.
-
 Open Terminal and run the following commands:
 
 ```bash
-# Install Xcode Command Line Tools
-$ xcode-select --install
-
-# Install Homebrew and dependencies
-$ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-$ echo 'export PATH="/opt/homebrew/bin:$PATH"' >> ~/.zshrc
-$ source ~/.zshrc
-$ brew install openssl@3 libyaml gmp rust
-
 # Install Mise version manager
 $ curl https://mise.run | sh
 $ echo 'eval "$(~/.local/bin/mise activate)"' >> ~/.zshrc
 $ source ~/.zshrc
 
 # Install Ruby globally with Mise
-$ mise use -g ruby@3
+$ mise use -g ruby@4
 ```
 
 ### Install Ruby on Ubuntu
@@ -55,17 +44,13 @@ You'll need Ubuntu Jammy 22.04 or newer to follow these instructions.
 Open Terminal and run the following commands:
 
 ```bash
-# Install dependencies with apt
-$ sudo apt update
-$ sudo apt install build-essential rustc libssl-dev libyaml-dev zlib1g-dev libgmp-dev git
-
 # Install Mise version manager
 $ curl https://mise.run | sh
 $ echo 'eval "$(~/.local/bin/mise activate)"' >> ~/.bashrc
 $ source ~/.bashrc
 
 # Install Ruby globally with Mise
-$ mise use -g ruby@3
+$ mise use -g ruby@4
 ```
 
 ### Install Ruby on Windows
@@ -77,7 +62,7 @@ You will need Windows 11 or Windows 10 version 2004 and higher (Build 19041 and 
 Open PowerShell or Windows Command Prompt and run:
 
 ```bash
-$ wsl --install --distribution Ubuntu-24.04
+$ wsl --install --distribution Ubuntu-26.04
 ```
 
 You may need to reboot during the installation process.
@@ -87,17 +72,13 @@ Once installed, you can open Ubuntu from the Start menu. Enter a username and pa
 Then run the following commands:
 
 ```bash
-# Install dependencies with apt
-$ sudo apt update
-$ sudo apt install build-essential rustc libssl-dev libyaml-dev zlib1g-dev libgmp-dev
-
 # Install Mise version manager
 $ curl https://mise.run | sh
 $ echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
 $ source ~/.bashrc
 
 # Install Ruby globally with Mise
-$ mise use -g ruby@3
+$ mise use -g ruby@4
 ```
 
 Verifying Your Ruby Install
@@ -107,7 +88,7 @@ Once Ruby is installed, you can verify it works by running:
 
 ```bash
 $ ruby --version
-ruby 3.3.6
+ruby 4.0.6
 ```
 
 Installing Rails
@@ -125,7 +106,7 @@ To verify that Rails is installed correctly, run the following and you should se
 
 ```bash
 $ rails --version
-Rails 8.0.0
+Rails 8.1.0
 ```
 
 NOTE: If the `rails` command is not found, try restarting your terminal.
