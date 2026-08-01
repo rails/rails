@@ -1,3 +1,15 @@
+*   Fix `String#parameterize` raising `TypeError` when `separator` is `nil`.
+
+    `parameterize` already treats a `nil` separator the same as an empty one when
+    squeezing and trimming separators, but raised `TypeError` before reaching that
+    point. A `nil` separator now behaves like `""`, removing the unwanted characters.
+
+    ```ruby
+    "Donald E. Knuth".parameterize(separator: nil) # => "donaldeknuth"
+    ```
+
+    *Hammad Khan*
+
 *   Add `RedisClient::Error` to `ActiveSupport::Cache::RedisCacheStore`'s failsafe rescue list.
 
     The redis-rb gem normally translates `RedisClient::*` errors into `Redis::*` errors but in
