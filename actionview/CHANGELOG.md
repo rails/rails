@@ -1,3 +1,7 @@
+*   Fix `search_field` raising `NameError` when passed `autosave: true`.
+
+    *Hammad Khan*
+
 *   Deprecate registering dependency trackers after application initialization.
 
     Calling `ActionView::DependencyTracker.register_tracker` after application initialization will

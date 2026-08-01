@@ -1189,6 +1189,26 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, search_field("contact", "notes_query", onsearch: true))
   end
 
+  def test_search_field_with_autosave_true_uses_the_reversed_host
+    expected = %{<input autosave="host.test" results="10" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: true))
+  end
+
+  def test_search_field_with_autosave_string_is_left_alone
+    expected = %{<input autosave="com.example.www" results="10" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: "com.example.www"))
+  end
+
+  def test_search_field_with_autosave_does_not_override_given_results
+    expected = %{<input autosave="host.test" results="3" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: true, results: 3))
+  end
+
+  def test_search_field_with_autosave_false_omits_results
+    expected = %{<input autosave="false" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: false))
+  end
+
   def test_telephone_field
     expected = %{<input id="user_cell" name="user[cell]" type="tel" />}
     assert_dom_equal(expected, telephone_field("user", "cell"))
