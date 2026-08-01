@@ -327,6 +327,23 @@ class NamingMethodDelegationTest < ActiveModel::TestCase
   def test_model_name
     assert_equal Blog::Post.model_name, Blog::Post.new.model_name
   end
+
+  def test_model_name_can_be_frozen_with_an_anonymous_ancestor
+    anonymous = Class.new do
+      extend ActiveModel::Naming
+      extend ActiveModel::Translation
+    end
+    named = Class.new(anonymous) do
+      def self.name
+        "NamedModelWithAnonymousAncestor"
+      end
+    end
+
+    # Freezing eagerly computes the i18n keys by walking lookup_ancestors,
+    # which includes the anonymous ancestor. That must not raise.
+    assert_nothing_raised { named.model_name.freeze }
+    assert_equal "NamedModelWithAnonymousAncestor", named.model_name.name
+  end
 end
 
 class OverridingAccessorsTest < ActiveModel::TestCase
