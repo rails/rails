@@ -252,6 +252,7 @@ when it's not NULL, it must still reference a valid record in the authors table.
 When you declare a `belongs_to` association, the declaring class automatically
 gains numerous methods related to the association. Some of these are:
 
+* `association!`
 * `association=(associate)`
 * `build_association(attributes = {})`
 * `create_association(attributes = {})`
@@ -284,6 +285,7 @@ end
 An instance of the `Book` model will have the following methods:
 
 * `author`
+* `author!`
 * `author=`
 * `build_author`
 * `create_author`
@@ -306,6 +308,20 @@ object is found, it returns `nil`.
 ```ruby
 @author = @book.author
 ```
+
+The `association!` method behaves the same way, except that it raises
+`ActiveRecord::RecordNotFound` when there is no associated object, which saves
+you from a `nil` check when the association is expected to be present.
+
+```ruby
+@author = @book.author! # raises ActiveRecord::RecordNotFound if the book has no author
+```
+
+NOTE: `association!` goes through the same reader as `association`, so it raises
+in every case where the reader would return `nil`. That includes a record
+excluded by a [scope on the association](#scopes) or by a `default_scope` on the
+associated model: the row can exist in the database and `association!` will
+still raise.
 
 If the associated object has already been retrieved from the database for this
 object, the cached version will be returned. To override this behavior (and
@@ -479,6 +495,7 @@ When you declare a `has_one` association,  the declaring class automatically
 gains numerous methods related to the association. Some of these are:
 
 * `association`
+* `association!`
 * `association=(associate)`
 * `build_association(attributes = {})`
 * `create_association(attributes = {})`
@@ -510,6 +527,7 @@ end
 Each instance of the `Supplier` model will have these methods:
 
 * `account`
+* `account!`
 * `account=`
 * `build_account`
 * `create_account`
@@ -530,6 +548,19 @@ object is found, it returns `nil`.
 ```ruby
 @account = @supplier.account
 ```
+
+The `association!` method behaves the same way, except that it raises
+`ActiveRecord::RecordNotFound` when there is no associated object.
+
+```ruby
+@account = @supplier.account! # raises ActiveRecord::RecordNotFound if the supplier has no account
+```
+
+NOTE: `association!` goes through the same reader as `association`, so it raises
+in every case where the reader would return `nil`. That includes a record
+excluded by a [scope on the association](#scopes) or by a `default_scope` on the
+associated model: the row can exist in the database and `association!` will
+still raise.
 
 If the associated object has already been retrieved from the database for this
 object, the cached version will be returned. To override this behavior (and

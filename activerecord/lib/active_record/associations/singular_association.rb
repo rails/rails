@@ -14,6 +14,12 @@ module ActiveRecord
         target
       end
 
+      # Implements the bang reader method, e.g. foo.bar! for Foo.has_one :bar.
+      # Raises ActiveRecord::RecordNotFound when there is no associated record.
+      def reader!
+        reader || raise_association_not_found
+      end
+
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
       def reset
         super
@@ -40,6 +46,16 @@ module ActiveRecord
       end
 
       private
+        def raise_association_not_found
+          message = +"Couldn't find the #{reflection.name} association for #{owner.class.name}"
+
+          if (primary_key = owner.class.primary_key) && !(id = owner.id).nil?
+            message << " with #{primary_key}=#{id.inspect}"
+          end
+
+          raise RecordNotFound.new(message, klass&.name, klass&.primary_key)
+        end
+
         def scope_for_create
           super.except!(*Array(klass.primary_key))
         end

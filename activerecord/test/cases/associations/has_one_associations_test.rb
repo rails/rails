@@ -52,6 +52,44 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_has_one_bang
+    firm = companies(:first_firm)
+    assert_equal Account.find(1), firm.account!
+  end
+
+  def test_has_one_bang_raises_record_not_found_when_there_is_no_associated_record
+    firm = companies(:another_firm)
+
+    error = assert_raises(ActiveRecord::RecordNotFound) { firm.account! }
+    assert_equal "Couldn't find the account association for Firm with id=#{firm.id}", error.message
+    assert_equal "Account", error.model
+    assert_equal "id", error.primary_key
+  end
+
+  def test_has_one_bang_on_new_record
+    error = assert_raises(ActiveRecord::RecordNotFound) { Firm.new.account! }
+    assert_equal "Couldn't find the account association for Firm", error.message
+  end
+
+  def test_has_one_bang_raises_when_the_association_scope_excludes_an_existing_record
+    firm = companies(:first_firm)
+
+    # The row exists, but its credit_limit is outside the association's scope.
+    assert_equal Account.find(1), firm.account
+    assert_nil firm.account_limit_500_with_hash_conditions
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      firm.account_limit_500_with_hash_conditions!
+    end
+  end
+
+  def test_has_one_bang_does_not_reload_a_loaded_association
+    firm = companies(:first_firm)
+    firm.account
+
+    assert_no_queries { firm.account! }
+  end
+
   def test_has_one_does_not_use_order_by
     sql_log = capture_sql { companies(:first_firm).account }
     assert sql_log.all? { |sql| !/order by/i.match?(sql) }, "ORDER BY was used in the query: #{sql_log}"
@@ -1075,6 +1113,18 @@ class DeprecatedHasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_deprecated_association(:deprecated_bulb, context: context_for_method(:deprecated_bulb)) do
       assert_equal @bulb, @car.deprecated_bulb
+    end
+  end
+
+  test "<association>!" do
+    create_bulb!
+
+    assert_not_deprecated_association(:bulb) do
+      @car.bulb!
+    end
+
+    assert_deprecated_association(:deprecated_bulb, context: context_for_method(:deprecated_bulb!)) do
+      assert_equal @bulb, @car.deprecated_bulb!
     end
   end
 

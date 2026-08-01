@@ -57,6 +57,55 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_belongs_to_bang
+    client = Client.find(3)
+    assert_equal companies(:first_firm), client.firm!
+  end
+
+  def test_belongs_to_bang_raises_record_not_found_when_the_foreign_key_is_nil
+    client = Client.create!(name: "Without a firm")
+
+    error = assert_raises(ActiveRecord::RecordNotFound) { client.firm! }
+    assert_equal "Couldn't find the firm association for Client with id=#{client.id}", error.message
+    assert_equal "Firm", error.model
+    assert_equal "id", error.primary_key
+  end
+
+  def test_belongs_to_bang_raises_record_not_found_when_the_record_is_missing
+    client = Client.find(3)
+    client.update_columns(client_of: 0)
+
+    assert_raises(ActiveRecord::RecordNotFound) { client.reload.firm! }
+  end
+
+  def test_belongs_to_bang_does_not_reload_a_loaded_association
+    client = Client.find(3)
+    client.firm
+
+    assert_no_queries { client.firm! }
+  end
+
+  def test_belongs_to_bang_with_composite_primary_key_owner
+    book = Cpk::Book.create!(id: [100, 200], title: "Ruby on Rails")
+
+    error = assert_raises(ActiveRecord::RecordNotFound) { book.order! }
+    assert_equal %(Couldn't find the order association for Cpk::Book with ["author_id", "id"]=[100, 200]), error.message
+    assert_equal ["shop_id", "id"], error.primary_key
+  end
+
+  def test_polymorphic_belongs_to_bang_raises_record_not_found_when_the_foreign_key_is_nil
+    sponsor = Sponsor.new
+
+    error = assert_raises(ActiveRecord::RecordNotFound) { sponsor.sponsorable! }
+    assert_equal "Couldn't find the sponsorable association for Sponsor", error.message
+    assert_nil error.model
+  end
+
+  def test_polymorphic_belongs_to_bang
+    sponsor = sponsors(:moustache_club_sponsor_for_groucho)
+    assert_equal sponsor.sponsorable, sponsor.sponsorable!
+  end
+
   def test_where_with_custom_primary_key
     assert_equal [authors(:david)], Author.where(owned_essay: essays(:david_modest_proposal))
   end
@@ -1989,6 +2038,16 @@ class DeprecatedBelongsToAssociationsTest < ActiveRecord::TestCase
 
     assert_deprecated_association(:deprecated_car, context: context_for_method(:deprecated_car)) do
       assert_equal @car, @bulb.deprecated_car
+    end
+  end
+
+  test "<association>!" do
+    assert_not_deprecated_association(:car) do
+      @bulb.car!
+    end
+
+    assert_deprecated_association(:deprecated_car, context: context_for_method(:deprecated_car!)) do
+      assert_equal @car, @bulb.deprecated_car!
     end
   end
 

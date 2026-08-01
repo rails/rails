@@ -1,3 +1,21 @@
+*   Add a bang reader to `has_one` and `belongs_to` associations.
+
+    Singular associations now generate an `association!` method that returns the
+    associated record, or raises `ActiveRecord::RecordNotFound` when there is
+    none. This removes the need for a `nil` check when the association is
+    expected to be present.
+
+    ```ruby
+    class Order < ActiveRecord::Base
+      belongs_to :account
+    end
+
+    order.account  # => nil
+    order.account! # => raises ActiveRecord::RecordNotFound
+    ```
+
+    *Alex Tan*
+
 *   Deprecate passing `binds` to `#insert`, `#update`, and `#delete` on
     `ActiveRecord::ConnectionAdapters::DatabaseStatements`.
 

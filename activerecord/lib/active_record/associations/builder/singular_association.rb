@@ -30,6 +30,22 @@ module ActiveRecord::Associations::Builder # :nodoc:
       CODE
     end
 
+    # Defines the reader methods for belongs_to or has_one association, e.g.
+    # +account+ and +account!+ for <tt>belongs_to :account</tt>. The bang
+    # version raises ActiveRecord::RecordNotFound when there is no
+    # associated record.
+    def self.define_readers(mixin, name)
+      super
+
+      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def #{name}!
+          association = association(:#{name})
+          deprecated_associations_api_guard(association, __method__)
+          association.reader!
+        end
+      CODE
+    end
+
     # Defines the (build|create)_association methods for belongs_to or has_one association
     def self.define_constructors(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
@@ -71,6 +87,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
     end
 
-    private_class_method :valid_options, :define_accessors, :define_constructors
+    private_class_method :valid_options, :define_accessors, :define_readers, :define_constructors
   end
 end

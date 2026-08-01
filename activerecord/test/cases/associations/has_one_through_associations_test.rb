@@ -38,6 +38,18 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:boring_club), @member.club
   end
 
+  def test_has_one_through_bang_with_has_one
+    assert_equal clubs(:boring_club), @member.club!
+  end
+
+  def test_has_one_through_bang_raises_record_not_found_when_there_is_no_associated_record
+    member = Member.create!(name: "Solo")
+
+    error = assert_raises(ActiveRecord::RecordNotFound) { member.club! }
+    assert_equal "Couldn't find the club association for Member with id=#{member.id}", error.message
+    assert_equal "Club", error.model
+  end
+
   def test_has_one_through_executes_limited_query
     boring_club = clubs(:boring_club)
     assert_queries_match(/LIMIT|ROWNUM <=|FETCH FIRST/) do
