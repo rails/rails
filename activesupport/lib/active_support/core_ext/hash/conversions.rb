@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/blank"
@@ -11,66 +12,68 @@ require "active_support/core_ext/string/inflections"
 class Hash
   # Returns a string containing an XML representation of its receiver:
   #
-  #   { foo: 1, bar: 2 }.to_xml
-  #   # =>
-  #   # <?xml version="1.0" encoding="UTF-8"?>
-  #   # <hash>
-  #   #   <foo type="integer">1</foo>
-  #   #   <bar type="integer">2</bar>
-  #   # </hash>
+  # ```
+  # { foo: 1, bar: 2 }.to_xml
+  # # =>
+  # # <?xml version="1.0" encoding="UTF-8"?>
+  # # <hash>
+  # #   <foo type="integer">1</foo>
+  # #   <bar type="integer">2</bar>
+  # # </hash>
+  # ```
   #
   # To do so, the method loops over the pairs and builds nodes that depend on
-  # the _values_. Given a pair +key+, +value+:
+  # the _values_. Given a pair `key`, `value`:
   #
-  # * If +value+ is a hash there's a recursive call with +key+ as <tt>:root</tt>.
+  # * If `value` is a hash there's a recursive call with `key` as `:root`.
   #
-  # * If +value+ is an array there's a recursive call with +key+ as <tt>:root</tt>,
-  #   and +key+ singularized as <tt>:children</tt>.
+  # * If `value` is an array there's a recursive call with `key` as `:root`,
+  #   and `key` singularized as `:children`.
   #
-  # * If +value+ is a callable object it must expect one or two arguments. Depending
-  #   on the arity, the callable is invoked with the +options+ hash as first argument
-  #   with +key+ as <tt>:root</tt>, and +key+ singularized as second argument. The
-  #   callable can add nodes by using <tt>options[:builder]</tt>.
+  # * If `value` is a callable object it must expect one or two arguments. Depending
+  #   on the arity, the callable is invoked with the `options` hash as first argument
+  #   with `key` as `:root`, and `key` singularized as second argument. The
+  #   callable can add nodes by using `options[:builder]`.
   #
-  #     {foo: lambda { |options, key| options[:builder].b(key) }}.to_xml
-  #     # => "<b>foo</b>"
+  #         {foo: lambda { |options, key| options[:builder].b(key) }}.to_xml
+  #         # => "<b>foo</b>"
   #
-  # * If +value+ responds to +to_xml+ the method is invoked with +key+ as <tt>:root</tt>.
+  # * If `value` responds to `to_xml` the method is invoked with `key` as `:root`.
   #
-  #     class Foo
-  #       def to_xml(options)
-  #         options[:builder].bar 'fooing!'
-  #       end
-  #     end
+  #         class Foo
+  #           def to_xml(options)
+  #             options[:builder].bar 'fooing!'
+  #           end
+  #         end
   #
-  #     { foo: Foo.new }.to_xml(skip_instruct: true)
-  #     # =>
-  #     # <hash>
-  #     #   <bar>fooing!</bar>
-  #     # </hash>
+  #         { foo: Foo.new }.to_xml(skip_instruct: true)
+  #         # =>
+  #         # <hash>
+  #         #   <bar>fooing!</bar>
+  #         # </hash>
   #
-  # * Otherwise, a node with +key+ as tag is created with a string representation of
-  #   +value+ as text node. If +value+ is +nil+ an attribute "nil" set to "true" is added.
-  #   Unless the option <tt>:skip_types</tt> exists and is true, an attribute "type" is
+  # * Otherwise, a node with `key` as tag is created with a string representation of
+  #   `value` as text node. If `value` is `nil` an attribute "nil" set to "true" is added.
+  #   Unless the option `:skip_types` exists and is true, an attribute "type" is
   #   added as well according to the following mapping:
   #
-  #     XML_TYPE_NAMES = {
-  #       "Symbol"     => "symbol",
-  #       "Integer"    => "integer",
-  #       "BigDecimal" => "decimal",
-  #       "Float"      => "float",
-  #       "TrueClass"  => "boolean",
-  #       "FalseClass" => "boolean",
-  #       "Date"       => "date",
-  #       "DateTime"   => "dateTime",
-  #       "Time"       => "dateTime"
-  #     }
+  #         XML_TYPE_NAMES = {
+  #           "Symbol"     => "symbol",
+  #           "Integer"    => "integer",
+  #           "BigDecimal" => "decimal",
+  #           "Float"      => "float",
+  #           "TrueClass"  => "boolean",
+  #           "FalseClass" => "boolean",
+  #           "Date"       => "date",
+  #           "DateTime"   => "dateTime",
+  #           "Time"       => "dateTime"
+  #         }
   #
-  # By default the root node is "hash", but that's configurable via the <tt>:root</tt> option.
+  # By default the root node is "hash", but that's configurable via the `:root` option.
   #
-  # The default XML builder is a fresh instance of +Builder::XmlMarkup+. You can
-  # configure your own builder with the +:builder+ option. The method also accepts
-  # options like <tt>:dasherize</tt> and friends, they are forwarded to the builder.
+  # The default XML builder is a fresh instance of `Builder::XmlMarkup`. You can
+  # configure your own builder with the `:builder` option. The method also accepts
+  # options like `:dasherize` and friends, they are forwarded to the builder.
   def to_xml(options = {})
     require "active_support/builder" unless defined?(Builder::XmlMarkup)
 
@@ -94,34 +97,38 @@ class Hash
     # Returns a Hash containing a collection of pairs when the key is the node name and the value is
     # its content
     #
-    #   xml = <<~XML
-    #     <?xml version="1.0" encoding="UTF-8"?>
-    #       <hash>
-    #         <foo type="integer">1</foo>
-    #         <bar type="integer">2</bar>
-    #       </hash>
-    #   XML
+    # ```
+    # xml = <<~XML
+    #   <?xml version="1.0" encoding="UTF-8"?>
+    #     <hash>
+    #       <foo type="integer">1</foo>
+    #       <bar type="integer">2</bar>
+    #     </hash>
+    # XML
     #
-    #   hash = Hash.from_xml(xml)
-    #   # => {"hash"=>{"foo"=>1, "bar"=>2}}
+    # hash = Hash.from_xml(xml)
+    # # => {"hash"=>{"foo"=>1, "bar"=>2}}
+    # ```
     #
-    # +DisallowedType+ is raised if the XML contains attributes with <tt>type="yaml"</tt> or
-    # <tt>type="symbol"</tt>. Use <tt>Hash.from_trusted_xml</tt> to
+    # `DisallowedType` is raised if the XML contains attributes with `type="yaml"` or
+    # `type="symbol"`. Use `Hash.from_trusted_xml` to
     # parse this XML.
     #
-    # Custom +disallowed_types+ can also be passed in the form of an
+    # Custom `disallowed_types` can also be passed in the form of an
     # array.
     #
-    #   xml = <<~XML
-    #     <?xml version="1.0" encoding="UTF-8"?>
-    #       <hash>
-    #         <foo type="integer">1</foo>
-    #         <bar type="string">"David"</bar>
-    #       </hash>
-    #   XML
+    # ```
+    # xml = <<~XML
+    #   <?xml version="1.0" encoding="UTF-8"?>
+    #     <hash>
+    #       <foo type="integer">1</foo>
+    #       <bar type="string">"David"</bar>
+    #     </hash>
+    # XML
     #
-    #   hash = Hash.from_xml(xml, ['integer'])
-    #   # => ActiveSupport::XMLConverter::DisallowedType: Disallowed type attribute: "integer"
+    # hash = Hash.from_xml(xml, ['integer'])
+    # # => ActiveSupport::XMLConverter::DisallowedType: Disallowed type attribute: "integer"
+    # ```
     #
     # Note that passing custom disallowed types will override the default types,
     # which are Symbol and YAML.
@@ -129,7 +136,7 @@ class Hash
       ActiveSupport::XMLConverter.new(xml, disallowed_types).to_h
     end
 
-    # Builds a Hash from XML just like <tt>Hash.from_xml</tt>, but also allows Symbol and YAML.
+    # Builds a Hash from XML just like `Hash.from_xml`, but also allows Symbol and YAML.
     def from_trusted_xml(xml)
       from_xml xml, []
     end
