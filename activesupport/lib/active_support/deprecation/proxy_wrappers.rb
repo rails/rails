@@ -57,14 +57,14 @@ module ActiveSupport
     end
 
     # DeprecatedInstanceVariableProxy transforms an instance variable into a deprecated one. It takes an instance of a
-    # class, a method on that class, an instance variable, and a deprecator as the last argument.
+    # class, a method on that class, an instance variable, and a deprecator as a keyword argument.
     #
     # Trying to use the deprecated instance variable will result in a deprecation warning, pointing to the method as a
     # replacement.
     #
     #   class Example
     #     def initialize
-    #       @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request, :@request, ActiveSupport::Deprecation.new)
+    #       @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request, :@request, deprecator: ActiveSupport::Deprecation.new)
     #       @_request = :special_request
     #     end
     #
@@ -153,7 +153,7 @@ module ActiveSupport
       # Returns the class of the new constant.
       #
       #   PLANETS_POST_2006 = %w(mercury venus earth mars jupiter saturn uranus neptune)
-      #   PLANETS = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('PLANETS', 'PLANETS_POST_2006')
+      #   PLANETS = ActiveSupport::Deprecation::DeprecatedConstantProxy.new('PLANETS', 'PLANETS_POST_2006', ActiveSupport::Deprecation.new)
       #   PLANETS.class # => Array
       def class
         target.class
