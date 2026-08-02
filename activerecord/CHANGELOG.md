@@ -1,3 +1,17 @@
+*   Append `TRADITIONAL` instead of `STRICT_ALL_TABLES` to MySQL's `sql_mode`
+    by default.
+
+    On environments whose global `sql_mode` is empty — most notably Amazon
+    RDS and Aurora MySQL default parameter groups — appending only
+    `STRICT_ALL_TABLES` leaves out `NO_ZERO_IN_DATE`, `NO_ZERO_DATE`, and
+    `ERROR_FOR_DIVISION_BY_ZERO`, which MySQL 5.7+ has otherwise made part
+    of its own default. Appending `TRADITIONAL` closes the gap.
+
+    Reproducing the previous behavior is possible via
+    `variables: { sql_mode: "STRICT_ALL_TABLES" }` in `database.yml`.
+
+    *Ryuta Kamizono*
+
 *   Restore `alias_attribute` support in associations.
 
     Since Rails 4.2, association reads have bypassed the public

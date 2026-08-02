@@ -963,7 +963,7 @@ module ActiveRecord
           defaults = [":default", :default].to_set
 
           # Make MySQL reject illegal values rather than truncating or blanking them, see
-          # https://dev.mysql.com/doc/refman/en/sql-mode.html#sqlmode_strict_all_tables
+          # https://dev.mysql.com/doc/refman/en/sql-mode.html#sqlmode_traditional
           # If the user has provided another value for sql_mode, don't replace it.
           # Set sql_mode to false or :default in variables to skip.
           if variables.key?("sql_mode")
@@ -973,7 +973,7 @@ module ActiveRecord
             end
           elsif !defaults.include?(strict_mode?)
             if strict_mode?
-              sql_mode = "CONCAT(@@sql_mode, ',STRICT_ALL_TABLES')"
+              sql_mode = "CONCAT(@@sql_mode, ',TRADITIONAL')"
             else
               sql_mode = "REPLACE(@@sql_mode, 'STRICT_TRANS_TABLES', '')"
               sql_mode = "REPLACE(#{sql_mode}, 'STRICT_ALL_TABLES', '')"
