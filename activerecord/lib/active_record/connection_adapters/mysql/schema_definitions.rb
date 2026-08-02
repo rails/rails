@@ -136,6 +136,11 @@ module ActiveRecord
 
         def remove_column(column_name, _type = nil, **options)
           extract_algorithm_and_lock!(options)
+          # MySQL rejects `DROP COLUMN` on a column referenced by a foreign key,
+          # so drop the FK in the same `ALTER TABLE` statement as the column.
+          if fk = @td.conn.send(:foreign_key_for, name, column: column_name)
+            @operations << DropForeignKey.new(fk.name)
+          end
           super
         end
 

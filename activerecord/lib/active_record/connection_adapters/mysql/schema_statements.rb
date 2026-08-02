@@ -89,16 +89,6 @@ module ActiveRecord
           [index, algorithm, if_not_exists]
         end
 
-        def remove_column(table_name, column_name, type = nil, **options)
-          if foreign_key_exists?(table_name, column: column_name)
-            remove_foreign_key(table_name, column: column_name)
-          end
-          return if options[:if_exists] == true && !column_exists?(table_name, column_name)
-          at = create_alter_table(table_name)
-          at.remove_column(column_name, type, **options)
-          execute_alter_table(at)
-        end
-
         def create_table(table_name, options: default_row_format, **)
           super
         end
