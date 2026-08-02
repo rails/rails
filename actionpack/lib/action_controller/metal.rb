@@ -25,7 +25,7 @@ module ActionController
         @stack = @controller.middleware_stack
       end
 
-      %w(unshift insert swap delete move move_after use).each do |method|
+      %w(unshift insert insert_before insert_after swap delete delete! move move_before move_after use).each do |method|
         class_eval(<<~CODE, __FILE__, __LINE__ + 1)
           def #{method}(...)
             @controller.middleware_stack = @controller.middleware_stack.dup
