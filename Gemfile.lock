@@ -709,7 +709,7 @@ DEPENDENCIES
   rake (>= 13)
   rdoc (~> 6.7)
   redcarpet (~> 3.2.3)
-  redis (>= 4.0.1)
+  redis (>= 4.0.1, < 6)
   redis-namespace
   releaser!
   resque
