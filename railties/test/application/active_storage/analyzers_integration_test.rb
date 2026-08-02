@@ -3,7 +3,7 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class ActiveStorageEngineTest < ActiveSupport::TestCase
+  class AnalyzersIntegrationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     include ActiveJob::TestHelper
