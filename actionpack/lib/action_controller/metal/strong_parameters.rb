@@ -960,7 +960,7 @@ module ActionController
     # This includes the keys from the root hash and from all nested hashes and
     # arrays. The values are unchanged.
     def deep_transform_keys!(&block)
-      @parameters = _deep_transform_keys_in_object(@parameters, &block).to_unsafe_h
+      @parameters = _deep_transform_keys_in_object!(@parameters, &block)
       self
     end
 
