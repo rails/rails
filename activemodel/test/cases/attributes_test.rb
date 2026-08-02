@@ -176,6 +176,93 @@ module ActiveModel
       end
     end
 
+    test "attribute names must generate usable readers, writers, and dirty tracking methods" do
+      invalid_names = [
+        :"wat?", :"oof!", :"oh:my:gaw", # names from the original report
+        :"foo bar", :"with-dash", :"with/slash", :"foo=", :"1abc", :"", :"🤔"
+      ]
+
+      invalid_names.each do |name|
+        error = assert_raises(ArgumentError, "expected #{name.inspect} to be rejected") do
+          Class.new do
+            include ActiveModel::Model
+            include ActiveModel::Attributes
+            include ActiveModel::Dirty
+
+            attribute name, :string
+          end
+        end
+
+        assert_equal "#{name.to_s.inspect} is not a valid attribute name for ActiveModel::Attributes", error.message
+      end
+    end
+
+    test "attribute names are validated when given as strings" do
+      error = assert_raises(ArgumentError) do
+        Class.new do
+          include ActiveModel::Model
+          include ActiveModel::Attributes
+
+          attribute "wat?", :string
+        end
+      end
+
+      assert_equal "\"wat?\" is not a valid attribute name for ActiveModel::Attributes", error.message
+    end
+
+    test "attribute names that are valid Ruby identifiers are accepted" do
+      model = Class.new do
+        include ActiveModel::Model
+        include ActiveModel::Attributes
+        include ActiveModel::Dirty
+
+        attribute :café, :string
+        attribute :def, :string
+        attribute :_private, :string
+        attribute :Name, :string
+        attribute :name123, :string
+      end
+
+      assert_equal ["café", "def", "_private", "Name", "name123"], model.attribute_names
+    end
+
+    test "valid attribute names generate dirty tracking methods callable with regular syntax" do
+      model = Class.new do
+        include ActiveModel::Model
+        include ActiveModel::Attributes
+        include ActiveModel::Dirty
+
+        attribute :café, :string
+        attribute :def, :string
+      end
+
+      record = model.new
+      record.café = "before"
+      record.def = "before"
+      record.changes_applied
+      record.café = "after"
+      record.def = "after"
+
+      assert_equal "after", record.café
+      assert_equal "after", record.def
+      assert_equal "before", record.café_was
+      assert_equal "before", record.def_was
+      assert_equal({ "café" => ["before", "after"], "def" => ["before", "after"] }, record.changes)
+    end
+
+    test "attributes can be redefined within the same class" do
+      model = Class.new do
+        include ActiveModel::Model
+        include ActiveModel::Attributes
+
+        attribute :redefined_field, :string
+        attribute :redefined_field, :integer
+      end
+
+      assert_instance_of Type::Integer, model.attribute_types["redefined_field"]
+      assert_equal 4, model.new(redefined_field: "4.4").redefined_field
+    end
+
     test ".type_for_attribute supports attribute aliases" do
       with_alias = Class.new(ModelForAttributesTest) do
         alias_attribute :integer_field, :x
