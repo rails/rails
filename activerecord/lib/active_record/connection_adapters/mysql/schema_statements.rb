@@ -96,7 +96,9 @@ module ActiveRecord
           algorithm = index_algorithm(options.delete(:algorithm))
           lock = lock_clause(options.delete(:lock))
           return if options[:if_exists] == true && !column_exists?(table_name, column_name)
-          sql = +"ALTER TABLE #{quote_table_name(table_name)} #{remove_column_for_alter(table_name, column_name, type, **options)}"
+          at = create_alter_table(table_name)
+          at.remove_column(column_name)
+          sql = +schema_creation.accept(at)
           sql << ", #{algorithm}" if algorithm
           sql << ", #{lock}" if lock
           execute(sql)
@@ -192,6 +194,10 @@ module ActiveRecord
 
           def create_table_definition(name, **options)
             MySQL::TableDefinition.new(self, name, **options)
+          end
+
+          def create_alter_table(name)
+            MySQL::AlterTable.new create_table_definition(name)
           end
 
           def new_column_from_field(table_name, field, _definitions)

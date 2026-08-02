@@ -636,38 +636,20 @@ module ActiveRecord
         def add_column(table_name, column_name, type, **options) # :nodoc:
           clear_cache!
           super
-          change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
         end
 
         def change_column(table_name, column_name, type, **options) # :nodoc:
           clear_cache!
-          sqls, procs = Array(change_column_for_alter(table_name, column_name, type, **options)).partition { |v| v.is_a?(String) }
-          execute "ALTER TABLE #{quote_table_name(table_name)} #{sqls.join(", ")}"
-          procs.each(&:call)
-        end
-
-        # Builds a ChangeColumnDefinition object.
-        #
-        # This definition object contains information about the column change that would occur
-        # if the same arguments were passed to #change_column. See #change_column for information about
-        # passing a +table_name+, +column_name+, +type+ and other options that can be passed.
-        def build_change_column_definition(table_name, column_name, type, **options) # :nodoc:
-          td = create_table_definition(table_name)
-          cd = td.new_column_definition(column_name, type, **options)
-          ChangeColumnDefinition.new(cd, column_name)
+          at = create_alter_table(table_name)
+          at.change_column(column_name, type, **options)
+          execute_alter_table(at)
         end
 
         # Changes the default value of a table column.
         def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
-          execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_default_for_alter(table_name, column_name, default_or_changes)}"
-        end
-
-        def build_change_column_default_definition(table_name, column_name, default_or_changes) # :nodoc:
-          column = column_for(table_name, column_name)
-          return unless column
-
-          default = extract_new_default_value(default_or_changes)
-          ChangeColumnDefaultDefinition.new(column, default)
+          at = create_alter_table(table_name)
+          at.change_column_default(column_name, default_or_changes)
+          execute_alter_table(at)
         end
 
         def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
@@ -696,7 +678,9 @@ module ActiveRecord
         # Renames a column in a table.
         def rename_column(table_name, column_name, new_column_name) # :nodoc:
           clear_cache!
-          execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_sql(table_name, column_name, new_column_name)}")
+          at = create_alter_table(table_name)
+          at.rename_column(column_name, new_column_name)
+          execute_alter_table(at)
           rename_column_indexes(table_name, column_name, new_column_name)
         end
 
@@ -944,7 +928,7 @@ module ActiveRecord
           at = create_alter_table(table_name)
           at.add_exclusion_constraint(expression, options)
 
-          execute schema_creation.accept(at)
+          execute_alter_table(at)
         end
 
         def exclusion_constraint_options(table_name, expression, options) # :nodoc:
@@ -1006,7 +990,7 @@ module ActiveRecord
           at = create_alter_table(table_name)
           at.add_unique_constraint(column_name, options)
 
-          execute schema_creation.accept(at)
+          execute_alter_table(at)
         end
 
         def unique_constraint_options(table_name, column_name, options) # :nodoc:
@@ -1113,7 +1097,7 @@ module ActiveRecord
           at = create_alter_table table_name
           at.validate_constraint constraint_name
 
-          execute schema_creation.accept(at)
+          execute_alter_table(at)
         end
 
         # Validates the given foreign key.
@@ -1302,26 +1286,6 @@ module ActiveRecord
           def reference_name_for_table(table_name)
             _schema, table_name = extract_schema_qualified_name(table_name.to_s)
             table_name.singularize
-          end
-
-          def add_column_for_alter(table_name, column_name, type, **options)
-            return super unless options.key?(:comment)
-            [super, Proc.new { change_column_comment(table_name, column_name, options[:comment]) }]
-          end
-
-          def change_column_for_alter(table_name, column_name, type, **options)
-            change_col_def = build_change_column_definition(table_name, column_name, type, **options)
-            sqls = [schema_creation.accept(change_col_def)]
-            sqls << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
-            sqls
-          end
-
-          def change_column_null_for_alter(table_name, column_name, null, default = nil)
-            if default.nil?
-              "ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
-            else
-              Proc.new { change_column_null(table_name, column_name, null, default) }
-            end
           end
 
           def add_index_opclass(quoted_columns, **options)

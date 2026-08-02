@@ -78,28 +78,31 @@ module ActiveRecord
       end
 
       unless current_adapter?(:SQLite3Adapter)
-        def test_build_change_column_definition
+        def test_change_column_via_alter_table
           connection.create_table(:test) do |t|
             t.column :foo, :string
           end
 
-          change_cd = connection.build_change_column_definition(:test, :foo, :integer)
-          change_col = change_cd.column
-          assert_equal "foo", change_col.name.to_s
+          at = connection.send(:create_alter_table, :test)
+          at.change_column(:foo, :integer)
+
+          op = at.operations.first
+          assert_equal "foo", op.column.name.to_s
         ensure
           connection.drop_table(:test) if connection.table_exists?(:test)
         end
 
-        def test_build_change_column_default_definition
+        def test_change_column_default_via_alter_table
           connection.create_table(:test) do |t|
             t.column :foo, :string
           end
 
-          change_default_cd = connection.build_change_column_default_definition(:test, :foo, "new")
-          assert_equal "new", change_default_cd.default
+          at = connection.send(:create_alter_table, :test)
+          at.change_column_default(:foo, "new")
 
-          change_col = change_default_cd.column
-          assert_equal "foo", change_col.name.to_s
+          op = at.operations.first
+          assert_equal "new", op.default
+          assert_equal "foo", op.column.name.to_s
         ensure
           connection.drop_table(:test) if connection.table_exists?(:test)
         end
