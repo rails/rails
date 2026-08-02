@@ -47,6 +47,10 @@ module ActiveSupport # :nodoc:
         yield if block
       end
 
+      def permit_concurrent_unloads(&block)
+        @lock.yield_shares(compatible: [:unload], &block)
+      end
+
       def raw_state(&block) # :nodoc:
         @lock.raw_state(&block)
       end
