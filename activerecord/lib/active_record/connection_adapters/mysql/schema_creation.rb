@@ -7,6 +7,13 @@ module ActiveRecord
         delegate :add_sql_comment!, :mariadb?, to: :@conn, private: true
 
         private
+          def visit_AlterTable(o)
+            sql = +super
+            sql << ", #{o.algorithm}" if o.algorithm
+            sql << ", #{o.lock}" if o.lock
+            sql
+          end
+
           def visit_DropForeignKey(o)
             "DROP FOREIGN KEY #{o.name}"
           end
@@ -16,17 +23,11 @@ module ActiveRecord
           end
 
           def visit_AddIndex(o)
-            sql = +"ADD #{accept(o.index)}"
-            sql << ", #{o.algorithm}" if o.algorithm
-            sql << ", #{o.lock}" if o.lock
-            sql
+            "ADD #{accept(o.index)}"
           end
 
           def visit_DropIndex(o)
-            sql = +"DROP INDEX #{quote_column_name(o.name)}"
-            sql << ", #{o.algorithm}" if o.algorithm
-            sql << ", #{o.lock}" if o.lock
-            sql
+            "DROP INDEX #{quote_column_name(o.name)}"
           end
 
           def visit_AddColumnDefinition(o)
