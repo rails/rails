@@ -26,7 +26,8 @@ module ActiveRecord
       end
 
       module ClassMethods
-        # Returns a scope for the model without the previously set scopes.
+        # Returns a scope with previous relation scoping and selected default
+        # scopes removed.
         #
         # When called with no arguments, +unscoped+ removes only unnamed default
         # scopes. Named default scopes (see #default_scope) are durable and
@@ -50,8 +51,8 @@ module ActiveRecord
         #   User.find(1).posts                        # Fires "SELECT * FROM posts WHERE published = true AND posts.user_id = 1"
         #   User.find(1).posts.unscoped               # Fires "SELECT * FROM posts"
         #
-        # This method also accepts a block. All queries inside the block will
-        # not use the previously set scopes.
+        # This method also accepts a block. Queries inside the block use the
+        # same default-scope exclusions.
         #
         #   Post.unscoped {
         #     Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"

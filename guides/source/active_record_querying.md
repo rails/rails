@@ -1957,16 +1957,18 @@ SELECT books.* FROM books
 
 ### `unscoped`
 
-If we wish to remove all scoping for any reason we can use the [`unscoped`][]
-method. This is especially useful if a `default_scope` is specified in the model
-but should not be applied for this particular query. However, `unscoped` can be
-used even when no scopes are present.
+The [`unscoped`][] method removes relation scoping and unnamed default scopes.
+This is especially useful if a `default_scope` is specified in the model but
+should not be applied for a particular query. Named default scopes are retained
+unless explicitly removed by name. `unscoped` can also be used when no scopes
+are present.
 
 ```ruby
 Book.unscoped.load
 ```
 
-This method removes all scoping and will do a normal query on the table.
+When the model has no named default scopes, this performs a normal query on the
+entire table.
 
 ```ruby
 Book.unscoped.all
@@ -1982,7 +1984,8 @@ Both of the above will generate the following SQL:
 SELECT books.* FROM books
 ```
 
-`unscoped` can also accept a block:
+`unscoped` can also accept a block. The same default-scope exclusions apply to
+queries inside the block:
 
 ```ruby
 Book.unscoped { Book.out_of_print }
@@ -3036,6 +3039,27 @@ like this:
 SELECT * FROM books WHERE (out_of_print = false)
 ```
 
+A default scope can be given a name, making it durable against a bare
+`unscoped` call:
+
+```ruby
+class Book < ApplicationRecord
+  default_scope :available, -> { where(out_of_print: false) }
+end
+```
+
+```irb
+store(dev)> Book.unscoped.all
+SELECT books.* FROM books WHERE books.out_of_print = false
+
+store(dev)> Book.unscoped(:available).all
+SELECT books.* FROM books
+```
+
+Passing names to `unscoped` removes only those named default scopes and leaves
+unnamed default scopes intact. A bare call removes only unnamed default scopes.
+Calls can be chained to remove both.
+
 If you need to do more complex things with a default scope, you can
 alternatively define it as a class method:
 
@@ -3216,11 +3240,12 @@ end
 [`scoping`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-scoping
 
-### Removing All Scoping
+### Removing Scoping
 
-If we wish to remove scoping for any reason we can use the [`unscoped`][]
-method. This is especially useful if a `default_scope` is specified in the model
-and should not be applied for this particular query.
+The [`unscoped`][] method removes relation scoping and unnamed default scopes.
+This is especially useful if a `default_scope` is specified in the model and
+should not be applied for a particular query. Named default scopes remain in
+place unless explicitly passed to `unscoped`.
 
 ```ruby
 class Book < ApplicationRecord
@@ -3231,7 +3256,8 @@ class Book < ApplicationRecord
 end
 ```
 
-This method removes all scoping and will do a normal query on the table.
+Because this model has only an unnamed default scope, these calls perform a
+normal query on the entire table.
 
 ```irb
 store(dev)> Book.unscoped.all
@@ -3241,8 +3267,8 @@ store(dev)> Book.where(out_of_print: true).unscoped.all
 SELECT books.* FROM books
 ```
 
-`unscoped` can also accept a block. All queries inside the block will not use
-the previously set scopes.
+`unscoped` can also accept a block. The same default-scope exclusions apply to
+queries inside the block.
 
 ```irb
 store(dev)> Book.in_print.unscoped { Book.out_of_print }

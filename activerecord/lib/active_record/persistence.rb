@@ -745,10 +745,14 @@ module ActiveRecord
     #     end
     #   end
     #
-    # The <tt>:unscoped</tt> option allows you to reload the record without default scopes that apply to all queries:
-    #   reload(unscoped: true) # reload without unnamed default scopes
-    #   reload(unscoped: [:foo, :bar]) # reload without the default scopes named :foo and :bar
-    #   reload(unscoped: [:foo, :bar, true]) # reload without the default scopes named :foo and :bar and unnamed default scopes
+    # The <tt>:unscoped</tt> option removes default scopes that would otherwise
+    # apply to reload. Only default scopes marked with <tt>all_queries: true</tt>
+    # participate. Named default scopes survive <tt>unscoped: true</tt> unless
+    # explicitly listed:
+    #
+    #   reload(unscoped: true)              # Without unnamed all-query default scopes
+    #   reload(unscoped: :foo)              # Without the all-query default scope named :foo
+    #   reload(unscoped: [:foo, :bar, true]) # Without :foo, :bar, or unnamed all-query default scopes
     def reload(options = nil)
       self.class.connection_pool.clear_query_cache
 

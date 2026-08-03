@@ -103,6 +103,9 @@ module ActiveRecord
       reset
     end
 
+    # Removes previous relation scoping and selected default scopes.
+    #
+    # See ActiveRecord::Scoping::Default::ClassMethods#unscoped for details.
     def unscoped(*names, &block)
       scoping { model.unscoped(*names, &block) }
     end
