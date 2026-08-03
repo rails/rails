@@ -443,3 +443,10 @@ class PostRecord < ActiveRecord::Base
     end
   end
 end
+
+class PostWithAliasedAuthorId < ActiveRecord::Base
+  self.table_name = "posts"
+  self.inheritance_column = nil
+  alias_attribute :writer_id, :author_id
+  belongs_to :author, foreign_key: :writer_id, inverse_of: :posts_with_aliased_author_id
+end

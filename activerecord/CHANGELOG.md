@@ -1,3 +1,19 @@
+*   Restore `alias_attribute` support in associations.
+
+    Since Rails 4.2, association reads have bypassed the public
+    `read_attribute` in favor of an internal fast path that skips
+    alias resolution. An `alias_attribute` on the owner's foreign key
+    or on the target's primary key was silently ignored; production
+    applications worked around this by overriding `_read_attribute`
+    itself.
+
+    The performance gap that justified the bypass has since closed
+    enough that association FK/PK reads and writes can go through the
+    public methods again — and `alias_attribute` declarations are now
+    honored.
+
+    *Ryuta Kamizono*
+
 *   Deprecate `write_attribute(:id, value)` writing to the primary key.
 
     `read_attribute(:id)` was deprecated in Rails 7.1 and removed in

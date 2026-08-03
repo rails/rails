@@ -109,6 +109,11 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:first_firm).name, client.firm_with_primary_key.name
   end
 
+  def test_belongs_to_with_alias_attribute_foreign_key
+    post = PostWithAliasedAuthorId.find(posts(:welcome).id)
+    assert_equal authors(:david), post.author
+  end
+
   def test_belongs_to_with_primary_key_joins_on_correct_column
     sql = Client.joins(:firm_with_primary_key).to_sql
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)

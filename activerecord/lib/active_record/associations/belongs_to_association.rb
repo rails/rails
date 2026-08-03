@@ -111,7 +111,7 @@ module ActiveRecord
             if target && !stale_target?
               target.increment!(reflection.counter_cache_column, by, touch: reflection.options[:touch])
             else
-              update_counters_via_scope(klass, owner._read_attribute(reflection.foreign_key), by)
+              update_counters_via_scope(klass, owner.read_attribute(reflection.foreign_key), by)
             end
           end
         end
@@ -132,20 +132,20 @@ module ActiveRecord
         def replace_keys(record, force: false)
           reflection_fk = reflection.foreign_key
           if reflection_fk.is_a?(Array)
-            target_key_values = record ? Array(primary_key(record.class)).map { |key| record._read_attribute(key) } : []
+            target_key_values = record ? Array(primary_key(record.class)).map { |key| record.read_attribute(key) } : []
 
-            if force || reflection_fk.map { |fk| owner._read_attribute(fk) } != target_key_values
+            if force || reflection_fk.map { |fk| owner.read_attribute(fk) } != target_key_values
               owner_pk = Array(owner.class.primary_key)
               reflection_fk.each_with_index do |key, index|
                 next if record.nil? && owner_pk.include?(key)
-                owner[key] = target_key_values[index]
+                owner.write_attribute(key, target_key_values[index])
               end
             end
           else
-            target_key_value = record ? record._read_attribute(primary_key(record.class)) : nil
+            target_key_value = record ? record.read_attribute(primary_key(record.class)) : nil
 
-            if force || owner._read_attribute(reflection_fk) != target_key_value
-              owner[reflection_fk] = target_key_value
+            if force || owner.read_attribute(reflection_fk) != target_key_value
+              owner.write_attribute(reflection_fk, target_key_value)
             end
           end
         end
@@ -155,7 +155,7 @@ module ActiveRecord
         end
 
         def foreign_key_present?
-          Array(reflection.foreign_key).all? { |fk| owner._read_attribute(fk) }
+          Array(reflection.foreign_key).all? { |fk| owner.read_attribute(fk) }
         end
 
         def invertible_for?(record)
@@ -167,11 +167,11 @@ module ActiveRecord
           foreign_key = reflection.foreign_key
           if foreign_key.is_a?(Array)
             attributes = foreign_key.map do |fk|
-              owner._read_attribute(fk) { |n| owner.send(:missing_attribute, n, caller) }
+              owner.read_attribute(fk) { |n| owner.send(:missing_attribute, n, caller) }
             end
             attributes if attributes.any?
           else
-            owner._read_attribute(foreign_key) { |n| owner.send(:missing_attribute, n, caller) }
+            owner.read_attribute(foreign_key) { |n| owner.send(:missing_attribute, n, caller) }
           end
         end
     end

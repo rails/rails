@@ -30,12 +30,12 @@ module ActiveRecord::Associations
         primary_key_foreign_key_pairs = primary_key_attribute_names.zip(foreign_key_attribute_names)
 
         primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
-          value = owner._read_attribute(foreign_key)
-          record._write_attribute(primary_key, value)
+          value = owner.read_attribute(foreign_key)
+          record.write_attribute(primary_key, value)
         end
 
         if reflection.type
-          record._write_attribute(reflection.type, owner.class.polymorphic_name)
+          record.write_attribute(reflection.type, owner.class.polymorphic_name)
         end
       end
   end
