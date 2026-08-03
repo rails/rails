@@ -380,11 +380,12 @@ class NamedScopingTest < ActiveRecord::TestCase
     subklass = Class.new(klass)
 
     conflicts = [
-      :create,        # public class method on AR::Base
-      :raw_relation,  # private class method on AR::Base
-      :new,           # redefined class method on AR::Base
-      :all,           # a default scope
-      :public,        # some important methods on Module and Class
+      :create,         # public class method on AR::Base
+      :raw_relation,   # public class method on AR::Base
+      :type_condition, # private class method on AR::Base
+      :new,            # redefined class method on AR::Base
+      :all,            # a default scope
+      :public,         # some important methods on Module and Class
       :protected,
       :private,
       :name,
