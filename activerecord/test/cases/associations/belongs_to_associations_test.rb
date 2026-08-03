@@ -114,6 +114,83 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal authors(:david), post.author
   end
 
+  def test_belongs_to_with_alias_attribute_foreign_key_change_tracking
+    post = PostWithAliasedAuthorId.find(posts(:welcome).id)
+    post.writer_id = authors(:mary).id
+
+    assert_predicate post, :author_changed?
+
+    post.save!
+
+    assert_not_predicate post, :author_changed?
+    assert_predicate post, :author_previously_changed?
+  end
+
+  def test_belongs_to_counter_with_alias_attribute_foreign_key
+    debate = Topic.create!(title: "debate")
+    debate2 = Topic.create!(title: "debate2")
+    reply = ReplyWithAliasedParentId.create!(title: "blah!", content: "world around!", topic: debate)
+
+    assert_equal 1, debate.reload.replies_count
+    assert_equal 0, debate2.reload.replies_count
+
+    reply.update!(topic: debate2)
+
+    assert_equal 0, debate.reload.replies_count
+    assert_equal 1, debate2.reload.replies_count
+
+    reply.destroy!
+
+    assert_equal 0, debate.reload.replies_count
+    assert_equal 0, debate2.reload.replies_count
+  end
+
+  def test_belongs_to_touch_with_alias_attribute_foreign_key
+    debate = Topic.create!(title: "debate")
+    debate2 = Topic.create!(title: "debate2")
+    reply = ReplyWithAliasedTouchParentId.create!(title: "blah!", content: "world around!", topic: debate)
+
+    time = 1.day.ago
+    debate.touch(time: time)
+    debate2.touch(time: time)
+
+    reply.update!(topic: debate2)
+
+    assert_operator debate.reload.updated_at, :>, time
+    assert_operator debate2.reload.updated_at, :>, time
+  end
+
+  def test_belongs_to_required_validation_with_alias_attribute_foreign_key
+    original_value = ActiveRecord.belongs_to_required_validates_foreign_key
+    ActiveRecord.belongs_to_required_validates_foreign_key = false
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      self.inheritance_column = nil
+
+      def self.name; "TempPost"; end
+
+      alias_attribute :writer_id, :author_id
+
+      belongs_to :author, foreign_key: :writer_id, required: true
+    end
+
+    post = model.create!(title: "Title", body: "Body", author: authors(:david))
+    post.reload
+
+    post.writer_id = 987_654_321
+    assert_not_predicate post, :valid?
+    assert_includes post.errors.full_messages, "Author must exist"
+
+    post.reload
+
+    post.author_id = 987_654_321
+    assert_not_predicate post, :valid?
+    assert_includes post.errors.full_messages, "Author must exist"
+  ensure
+    ActiveRecord.belongs_to_required_validates_foreign_key = original_value
+  end
+
   def test_belongs_to_with_primary_key_joins_on_correct_column
     sql = Client.joins(:firm_with_primary_key).to_sql
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)

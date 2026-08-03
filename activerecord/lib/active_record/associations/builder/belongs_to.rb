@@ -43,6 +43,15 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.touch_record(o, changes, foreign_key, name, touch) # :nodoc:
+      # +changes+ is keyed by real attribute names, so any +alias_attribute+
+      # name in the reflection must be resolved before looking it up.
+      aliases = o.class.attribute_aliases
+      foreign_key = if foreign_key.is_a?(Array)
+        foreign_key.map { |fk| aliases[fk] || fk }
+      else
+        aliases[foreign_key] || foreign_key
+      end
+
       old_foreign_id =
         if foreign_key.is_a?(Array)
           if foreign_key.any? { |fk| changes[fk] }
@@ -58,7 +67,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         association = o.association(name)
         reflection = association.reflection
         if reflection.polymorphic?
-          foreign_type = reflection.foreign_type
+          foreign_type = aliases[reflection.foreign_type] || reflection.foreign_type
           klass = changes[foreign_type] && changes[foreign_type].first || o.public_send(foreign_type)
           klass = o.class.polymorphic_class_for(klass)
         else
@@ -146,10 +155,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
           model.validates_presence_of reflection.name, message: :required
         else
           condition = lambda { |record|
-            foreign_key = reflection.foreign_key
-            foreign_type = reflection.foreign_type
+            aliases = record.class.attribute_aliases
+            foreign_key = Array(reflection.foreign_key).map { |fk| aliases[fk] || fk }
+            foreign_type = aliases[reflection.foreign_type] || reflection.foreign_type
 
-            fk_missing_or_changed = Array(foreign_key).any? do |fk|
+            fk_missing_or_changed = foreign_key.any? do |fk|
               record.read_attribute(fk).nil? || record.attribute_changed?(fk)
             end
 

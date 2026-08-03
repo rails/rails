@@ -66,13 +66,13 @@ module ActiveRecord
 
       def decrement_counters_before_last_save
         if reflection.polymorphic?
-          model_type_was = owner.attribute_before_last_save(reflection.foreign_type)
+          model_type_was = owner.attribute_before_last_save(resolve_attribute_alias(reflection.foreign_type))
           model_was = owner.class.polymorphic_class_for(model_type_was) if model_type_was
         else
           model_was = klass
         end
 
-        foreign_key_was = owner.attribute_before_last_save(reflection.foreign_key)
+        foreign_key_was = owner.attribute_before_last_save(resolve_attribute_alias(reflection.foreign_key))
 
         if foreign_key_was && model_was < ActiveRecord::Base
           update_counters_via_scope(model_was, foreign_key_was, -1)
@@ -80,15 +80,15 @@ module ActiveRecord
       end
 
       def target_changed?
-        Array(reflection.foreign_key).any? { |fk| owner.attribute_changed?(fk) } || (!foreign_key_present? && target&.new_record?)
+        Array(reflection.foreign_key).any? { |fk| owner.attribute_changed?(resolve_attribute_alias(fk)) } || (!foreign_key_present? && target&.new_record?)
       end
 
       def target_previously_changed?
-        Array(reflection.foreign_key).any? { |fk| owner.attribute_previously_changed?(fk) }
+        Array(reflection.foreign_key).any? { |fk| owner.attribute_previously_changed?(resolve_attribute_alias(fk)) }
       end
 
       def saved_change_to_target?
-        owner.saved_change_to_attribute?(reflection.foreign_key)
+        owner.saved_change_to_attribute?(resolve_attribute_alias(reflection.foreign_key))
       end
 
       private
@@ -172,6 +172,17 @@ module ActiveRecord
             attributes if attributes.any?
           else
             owner.read_attribute(foreign_key) { |n| owner.send(:missing_attribute, n, caller) }
+          end
+        end
+
+        # The reflection's foreign key (or foreign type) may be declared with an
+        # +alias_attribute+ name, while change tracking is keyed by the real
+        # attribute name, so aliases must be resolved before querying it.
+        def resolve_attribute_alias(name)
+          if name.is_a?(Array)
+            name.map { |n| owner.class.attribute_aliases[n] || n }
+          else
+            owner.class.attribute_aliases[name] || name
           end
         end
     end

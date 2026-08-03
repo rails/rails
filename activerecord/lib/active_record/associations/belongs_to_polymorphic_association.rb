@@ -10,15 +10,15 @@ module ActiveRecord
       end
 
       def target_changed?
-        super || owner.attribute_changed?(reflection.foreign_type)
+        super || owner.attribute_changed?(resolve_attribute_alias(reflection.foreign_type))
       end
 
       def target_previously_changed?
-        super || owner.attribute_previously_changed?(reflection.foreign_type)
+        super || owner.attribute_previously_changed?(resolve_attribute_alias(reflection.foreign_type))
       end
 
       def saved_change_to_target?
-        super || owner.saved_change_to_attribute?(reflection.foreign_type)
+        super || owner.saved_change_to_attribute?(resolve_attribute_alias(reflection.foreign_type))
       end
 
       private
