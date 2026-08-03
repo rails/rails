@@ -2642,6 +2642,18 @@ Accepts a logger conforming to the interface of Log4r or the default Ruby Logger
 
 Controls if certain ERB syntax should trim. It defaults to `'-'`, which turns on trimming of tail spaces and newline when using `<%= -%>` or `<%= =%>`. Setting this to anything else will turn off trimming support.
 
+#### `config.action_view.erb_implementation`
+
+Controls the default ERB implementation to use. It defaults to `Erubi`.
+
+#### `config.action_view.escape_ignore_list`
+
+Control whether template should be escaped based on the mime type. Defaults to `["text/plain"]`.
+
+#### `config.action_view.strip_trailing_newlines`
+
+Strip trailing newlines from rendered output. Defaults to `false`.
+
 #### `config.action_view.frozen_string_literal`
 
 Compiles the ERB template with the `# frozen_string_literal: true` magic comment, making all string literals frozen and saving allocations. Set to `true` to enable it for all views.
