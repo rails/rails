@@ -5,20 +5,20 @@ module ActiveRecord
     # = Active Record Belongs To Polymorphic Association
     class BelongsToPolymorphicAssociation < BelongsToAssociation # :nodoc:
       def klass
-        type = owner.read_attribute(reflection.foreign_type)
+        type = owner.read_attribute(@foreign_type)
         type.presence && owner.class.polymorphic_class_for(type)
       end
 
       def target_changed?
-        super || owner.attribute_changed?(reflection.foreign_type)
+        super || owner.attribute_changed?(@foreign_type)
       end
 
       def target_previously_changed?
-        super || owner.attribute_previously_changed?(reflection.foreign_type)
+        super || owner.attribute_previously_changed?(@foreign_type)
       end
 
       def saved_change_to_target?
-        super || owner.saved_change_to_attribute?(reflection.foreign_type)
+        super || owner.saved_change_to_attribute?(@foreign_type)
       end
 
       private
@@ -27,8 +27,8 @@ module ActiveRecord
 
           target_type = record ? record.class.polymorphic_name : nil
 
-          if force || owner.read_attribute(reflection.foreign_type) != target_type
-            owner.write_attribute(reflection.foreign_type, target_type)
+          if force || owner.read_attribute(@foreign_type) != target_type
+            owner.write_attribute(@foreign_type, target_type)
           end
         end
 
@@ -42,7 +42,7 @@ module ActiveRecord
 
         def stale_state
           if foreign_key = super
-            [foreign_key, owner.read_attribute(reflection.foreign_type)]
+            [foreign_key, owner.read_attribute(@foreign_type)]
           end
         end
     end
