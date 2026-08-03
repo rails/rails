@@ -63,6 +63,30 @@ module ApplicationTests
       assert_includes(output, "ActiveStorage::Transformers::NullTransformer")
     end
 
+    def test_custom_transformer_without_image_gems_no_warning
+      app_file "config/initializers/custom_transformer.rb", <<~RUBY
+        class CustomTransformer < ActiveStorage::Transformers::Transformer
+        end
+
+        Rails.application.config.active_storage.variant_processor = CustomTransformer
+      RUBY
+
+      output = run_command("puts ActiveStorage.variant_transformer")
+
+      assert_not_includes(output, 'Generating image variants require the image_processing gem. Please add `gem "image_processing", "~> 2.0"` to your Gemfile')
+      assert_includes(output, "CustomTransformer")
+    end
+
+    def test_unknown_transformer_raises
+      add_to_config "config.active_storage.variant_processor = :nope"
+
+      output = run_command("puts ActiveStorage.variant_transformer")
+
+      assert_not_predicate $?, :success?
+      assert_includes(output, "ArgumentError")
+      assert_includes(output, "Unknown variant processor :nope")
+    end
+
     private
       def run_command(cmd)
         Dir.chdir(app_path) do

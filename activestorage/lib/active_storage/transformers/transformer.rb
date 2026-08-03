@@ -10,6 +10,10 @@ module ActiveStorage
     #
     # * ActiveStorage::Transformers::ImageProcessingTransformer:
     #   backed by ImageProcessing, a common interface for MiniMagick and ruby-vips
+    #
+    # An application can set +config.active_storage.variant_processor+ to a class. The class must
+    # implement the interface defined by Transformer. Active Storage then uses it for variant
+    # processing.
     class Transformer
       attr_reader :transformations
 
