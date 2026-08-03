@@ -875,6 +875,26 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_not_includes wheres, "salary"
   end
 
+  def test_unscoped_exclusions_survive_merge
+    relation = DeveloperWithNamedDefaultScopes.unscoped(:mentor)
+      .merge(DeveloperWithNamedDefaultScopes.unscoped(:firm))
+    wheres = relation.unscoped.where_values_hash
+
+    assert_not_includes wheres, "mentor_id"
+    assert_not_includes wheres, "firm_id"
+    assert_not_includes wheres, "salary"
+  end
+
+  def test_building_default_scope_does_not_mutate_relation
+    relation = DeveloperWithNamedDefaultScopes.raw_relation
+    scoped = DeveloperWithNamedDefaultScopes.unscoped(:firm) do
+      DeveloperWithNamedDefaultScopes.default_scoped(relation)
+    end
+
+    assert_empty relation.excluded_default_scopes
+    assert_not_includes scoped.where_values_hash, "firm_id"
+  end
+
   def test_unscoped_removes_multiple_named_default_scopes_in_one_call
     wheres = DeveloperWithNamedDefaultScopes.unscoped(:mentor, :firm).where_values_hash
     assert_not_includes wheres, "mentor_id"
