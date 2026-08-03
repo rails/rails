@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/testing/ractors_assertions"
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
@@ -40,6 +41,7 @@ class ::MyOldKeyProvider; end
 module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
     include Rack::Test::Methods
     include EnvHelpers
 
@@ -3571,6 +3573,17 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
+    end
+
+    test "ActionView::Template::Handlers::ERB.escape_ignore_list is frozen after boot" do
+      app "development"
+
+      escape_ignore_list = on_ractor do
+        ActionView::Template::Handlers::ERB.escape_ignore_list
+      end
+
+      assert_equal(["text/plain"], escape_ignore_list)
+      assert_predicate(escape_ignore_list, :frozen?)
     end
 
     test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is true by default" do
