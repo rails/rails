@@ -60,7 +60,7 @@ module ActiveRecord
           scope = if default_scopes?(all_queries: true)
             default_scoped(all_queries: true)
           else
-            relation
+            raw_relation
           end
 
           if current_scope = global_current_scope
