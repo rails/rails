@@ -160,6 +160,20 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match(/mentor_id/, update_sql)
   end
 
+  def test_named_default_scope_with_all_queries_can_be_explicitly_unscoped_on_update
+    dev = DeveloperWithNamedAllQueriesDefaultScope.create!(name: "David")
+
+    update_sql = DeveloperWithNamedAllQueriesDefaultScope.unscoped do
+      capture_sql { dev.update!(name: "David Unscoped") }.find { |sql| sql.start_with?("UPDATE") }
+    end
+    assert_match(/mentor_id/, update_sql)
+
+    update_sql = DeveloperWithNamedAllQueriesDefaultScope.unscoped(:mentor) do
+      capture_sql { dev.update!(name: "David Explicitly Unscoped") }.find { |sql| sql.start_with?("UPDATE") }
+    end
+    assert_no_match(/mentor_id/, update_sql)
+  end
+
   def test_nilable_default_scope_with_all_queries_runs_on_update
     dev = DeveloperWithDefaultNilableFirmScopeAllQueries.create!(name: "Nikita")
     update_sql = capture_sql { dev.update!(name: "Not Nikita") }.first
