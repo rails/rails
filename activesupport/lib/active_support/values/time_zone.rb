@@ -187,7 +187,7 @@ module ActiveSupport
     }
 
     UTC_OFFSET_WITH_COLON = "%s%02d:%02d" # :nodoc:
-    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(":", "") # :nodoc:
+    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(":", "").freeze # :nodoc:
     private_constant :UTC_OFFSET_WITH_COLON, :UTC_OFFSET_WITHOUT_COLON
 
     @lazy_zones_map = Concurrent::Map.new
