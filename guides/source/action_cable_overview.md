@@ -520,6 +520,28 @@ The rebroadcast will be received by all connected clients, _including_ the
 client that sent the message. Note that params are the same as they were when
 you subscribed to the channel.
 
+### Transmiting To A Subscriber
+
+In certain scenarios, there may be a need to send data exclusively to the subscriber who initiated a subscription request or sent a message.
+
+In these cases, [`transmit`][] can be utilized to send a hash of data to the subscriber. The hash will automatically be encapsulated in a JSON envelope with the appropriate channel identifier designated as the recipient.
+
+```ruby
+class ChatChannel < ApplicationCable::Channel
+  def subscribed
+    stream_from "chat_#{params[:room]}"
+    transmit({ body: "Important data for new subscriber" })
+  end
+
+  def receive(data)
+    ActionCable.server.broadcast("chat_#{params[:room]}", data)
+    transmit({ body: "Important data for sender of message" })
+  end
+end
+```
+
+[`transmit`]: https://api.rubyonrails.org/classes/ActionCable/Channel/Base.html#method-i-transmit
+
 ## Full-Stack Examples
 
 The following setup steps are common to both examples:
