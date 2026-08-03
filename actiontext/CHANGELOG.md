@@ -1,3 +1,7 @@
+*   Fix concurrent saves of `has_rich_text` raising `ActiveRecord::RecordNotUnique`.
+
+    *Ruy Rocha*
+
 *   Dispatch all Active Storage `direct-upload:`-prefixed events
 
     Add support for `direct-upload:before-blob-request` and `direct-upload:before-storage-request`.
