@@ -190,6 +190,21 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_no_match(/AND$/, update_sql)
   end
 
+  def test_increment_ignores_named_default_scopes_without_all_queries
+    dev = DeveloperWithNamedDefaultScopes.create!(name: "David", mentor_id: 1, firm_id: 1)
+    update_sql = capture_sql { dev.increment!(:salary) }.first
+
+    assert_no_match(/mentor_id/, update_sql)
+    assert_no_match(/firm_id/, update_sql)
+  end
+
+  def test_increment_respects_unnamed_default_scopes_with_all_queries
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
+    update_sql = capture_sql { dev.increment!(:salary) }.first
+
+    assert_match(/mentor_id/, update_sql)
+  end
+
   def test_default_scope_doesnt_run_on_destroy
     Mentor.create!
     dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")

@@ -700,7 +700,7 @@ module ActiveRecord
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
       counters = { attribute => change, touch: touch }
 
-      self.class.unscoped.where!(_query_constraints_hash).update_counters(counters)
+      self.class.all_queries_scope.where!(_query_constraints_hash).update_counters(counters)
       public_send(:"clear_#{attribute}_change")
       self
     end
