@@ -138,14 +138,14 @@ module ActiveRecord
               owner_pk = Array(owner.class.primary_key)
               reflection_fk.each_with_index do |key, index|
                 next if record.nil? && owner_pk.include?(key)
-                owner[key] = target_key_values[index]
+                owner.write_attribute(key, target_key_values[index])
               end
             end
           else
             target_key_value = record ? record.read_attribute(primary_key(record.class)) : nil
 
             if force || owner.read_attribute(reflection_fk) != target_key_value
-              owner[reflection_fk] = target_key_value
+              owner.write_attribute(reflection_fk, target_key_value)
             end
           end
         end

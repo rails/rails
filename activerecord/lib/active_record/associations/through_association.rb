@@ -82,14 +82,14 @@ module ActiveRecord
         def stale_state
           if through_reflection.belongs_to?
             Array(through_reflection.foreign_key).filter_map do |foreign_key_column|
-              owner[foreign_key_column]
+              owner.read_attribute(foreign_key_column)
             end.presence
           end
         end
 
         def foreign_key_present?
           through_reflection.belongs_to? && Array(through_reflection.foreign_key).all? do |foreign_key_column|
-            !owner[foreign_key_column].nil?
+            !owner.read_attribute(foreign_key_column).nil?
           end
         end
 

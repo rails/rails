@@ -497,7 +497,7 @@ module ActiveRecord
 
             primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
               association_id = read_attribute(primary_key)
-              record[foreign_key] = association_id unless record[foreign_key] == association_id
+              record.write_attribute(foreign_key, association_id) unless record.read_attribute(foreign_key) == association_id
             end
             association.set_inverse_instance(record)
           end
@@ -552,7 +552,7 @@ module ActiveRecord
 
           if autosave && record.marked_for_destruction?
             foreign_key = Array(reflection.foreign_key)
-            foreign_key.each { |key| self[key] = nil }
+            foreign_key.each { |key| write_attribute(key, nil) }
             record.destroy
           elsif autosave != false
             saved = if record.new_record? || (autosave && record.changed_for_autosave?)
@@ -572,7 +572,7 @@ module ActiveRecord
               primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
               primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
                 association_id = record.read_attribute(primary_key)
-                self[foreign_key] = association_id unless self[foreign_key] == association_id
+                write_attribute(foreign_key, association_id) unless read_attribute(foreign_key) == association_id
               end
               association.loaded!
             end
