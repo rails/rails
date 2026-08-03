@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "strscan"
+require "prism"
 require "active_support/core_ext/erb/util"
 
 module ActionView
@@ -62,6 +63,27 @@ module ActionView
           nil
         end
 
+        def syntax_error_line_number(compiled_source, source)
+          result = Prism.parse(compiled_source)
+          compiled_lines = compiled_source.lines
+          last_compiled_line = compiled_lines.length
+          location = unmatched_end_location(result, last_compiled_line) ||
+            unclosed_delimiter_location(result.value) ||
+            result.errors.find { |error| error.location.length > 0 }&.location
+          return unless location
+
+          spot = {
+            first_lineno: location.start_line,
+            last_lineno: location.end_line,
+            first_column: location.start_column + 1,
+            last_column: location.end_column,
+            script_lines: compiled_lines,
+            snippet: compiled_lines[location.start_line - 1],
+          }
+
+          translate_location(spot, nil, source)&.dig(:first_lineno)
+        end
+
         def call(template, source)
           # First, convert to BINARY, so in case the encoding is
           # wrong, we can still find an encoding tag
@@ -94,6 +116,33 @@ module ActionView
         end
 
       private
+        def unmatched_end_location(result, last_compiled_line)
+          error_location = result.errors.first&.location
+          return unless error_location&.slice == "end"
+          return unless error_location.start_line == last_compiled_line
+
+          definition = result.value.statements.body.find { |node| node.is_a?(Prism::DefNode) }
+          location = definition&.end_keyword_loc
+          location if location && location.start_line < error_location.start_line
+        end
+
+        # Prism reports an unclosed delimiter at the end of the input rather
+        # than where it was opened, so the error locations all point at the
+        # generated method. Find the node that was never closed instead.
+        def unclosed_delimiter_location(root)
+          queue = [root]
+
+          while (node = queue.shift)
+            if node.respond_to?(:opening_loc) && node.respond_to?(:closing_loc)
+              return node.opening_loc if node.opening_loc && node.closing_loc&.length == 0
+            end
+
+            queue.concat(node.compact_child_nodes)
+          end
+
+          nil
+        end
+
         def valid_encoding(string, encoding)
           # If a magic encoding comment was found, tag the
           # String with this encoding. This is for a case

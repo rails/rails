@@ -1,3 +1,11 @@
+*   Fix ERB syntax errors pointing to generated method wrapper lines instead of the original template source.
+
+    The reported line number, the annotated source, and the leading backtrace
+    frame now all point at the offending line of the template, so the debug
+    page renders an "Extracted source" pane around it instead of an empty one.
+
+    *David Paluy*
+
 *   Configuring ERB options is now to be made on the ActionView::Base class.
 
     The `ActionView::Template::Handlers::ERB` class is now private API. Applications
