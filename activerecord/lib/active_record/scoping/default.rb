@@ -265,9 +265,10 @@ module ActiveRecord
                 relation.scoping { default_scope }
               end
             elsif default_scopes.any?
-              already_excluded = current_scope&.excluded_default_scopes || []
+              already_excluded = relation.excluded_default_scopes | Array(current_scope&.excluded_default_scopes)
               excluded_scopes = already_excluded | excluded
               scopes = default_scopes - excluded_scopes
+              relation = relation.spawn
               relation.excluded_default_scopes = excluded_scopes
 
               return relation if scopes.empty?

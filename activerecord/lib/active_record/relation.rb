@@ -71,7 +71,7 @@ module ActiveRecord
 
     attr_reader :table, :model, :loaded, :predicate_builder
     attr_accessor :skip_preloading_value
-    attr_accessor :excluded_default_scopes
+    attr_accessor :excluded_default_scopes # :nodoc:
     alias :klass :model
     alias :loaded? :loaded
     alias :locked? :lock_value
