@@ -61,6 +61,34 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal 2, id
   end
 
+  def test_write_attribute_id
+    topic = Topic.find(1)
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      topic.write_attribute(:id, 2)
+    end
+
+    assert_equal 2, topic.id
+  end
+
+  def test_write_attribute_with_custom_primary_key
+    keyboard = Keyboard.create!
+    msg = "Using write_attribute(:id, value) to write the primary key value is deprecated and will be removed in Rails 9.0. Use #id= instead."
+    assert_deprecated(msg, ActiveRecord.deprecator) do
+      keyboard.write_attribute(:id, 42)
+    end
+
+    assert_equal 42, keyboard.key_number
+  end
+
+  def test_write_attribute_with_composite_primary_key
+    book = Cpk::Book.new
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      book.write_attribute(:id, 42)
+    end
+
+    assert_equal 42, book.read_attribute(:id)
+  end
+
   def test_to_key_with_primary_key_after_destroy
     topic = Topic.find(1)
     topic.destroy

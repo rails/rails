@@ -1,3 +1,12 @@
+*   Deprecate `write_attribute(:id, value)` writing to the primary key.
+
+    `read_attribute(:id)` was deprecated in Rails 7.1 and removed in
+    Rails 7.2 to make `:id` refer to the `id` column, not the primary
+    key. Apply the same deprecation to `write_attribute`; use `#id=` on
+    a model whose primary key is not named `id`.
+
+    *Ryuta Kamizono*
+
 *   Make `ActiveRecord::Migration::CommandRecorder#record` and
     `#inverse_of` private.
 
