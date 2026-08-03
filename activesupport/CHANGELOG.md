@@ -1,3 +1,13 @@
+*   Don't rely on `::Logger`'s Fiber keyed level overrides in `ActiveSupport::Ractors::Logger`.
+
+    `::Logger#level` looks up a hash keyed by `Fiber.current`, which can't be used from a
+    non-main Ractor and crashed a shareable logger used inside one. The Ractor logger now
+    resolves its level through `ActiveSupport::LoggerThreadSafeLevel` only.
+
+    Fixes #57954.
+
+    *Nicolas Vandenbogaerde*
+
 *   Deprecate `ActiveSupport::Cache::RedisCacheStore::DEFAULT_REDIS_OPTIONS`.
 
     The `redis-client` implementation no longer reads this constant. Pass

@@ -192,6 +192,27 @@ class RactorLoggerTest < ActiveSupport::TestCase
       logger&.close
     end
 
+    test "log level is honored from a non-main Ractor" do
+      path = log_path("ractor_level.log")
+      logger = ActiveSupport::TaggedLogging.ractor_logger(path)
+      logger.level = ::Logger::WARN
+      Ractor.make_shareable(logger)
+
+      Ractor.new(logger) do |lg|
+        lg.info("below-threshold")
+        lg.warn("above-threshold")
+        :done
+      end.value
+
+      logger.flush
+
+      contents = File.read(path)
+      assert_includes contents, "above-threshold"
+      assert_not_includes contents, "below-threshold"
+    ensure
+      logger&.close
+    end
+
     test "a failing log device does not kill the consumer or raise in the caller" do
       device = FailingDevice.new(fail_writes: true, fail_flush: true)
       logger = ActiveSupport::TaggedLogging.ractor_logger(device)
@@ -224,6 +245,77 @@ class RactorLoggerTest < ActiveSupport::TestCase
     end
   end
 
+  # ActiveSupport::Ractors::Logger#initialize builds a Writer, which requires Ractor::Port. Only the
+  # level resolution is exercised below, so build the logger without its Ractor backed device to keep
+  # the test running on every supported Ruby.
+  class LevelOnlyLogger < ActiveSupport::Ractors::Logger
+    def initialize
+      ActiveSupport::Logger.instance_method(:initialize).bind_call(self, IO::NULL)
+    end
+  end
+
+  test "level reads the base level without ::Logger's Fiber keyed overrides" do
+    logger = level_only_logger
+    assert_equal ::Logger::DEBUG, logger.level
+
+    logger.level = ::Logger::INFO
+    assert_equal ::Logger::INFO, logger.level
+  ensure
+    logger&.close
+  end
+
+  test "log_at uses local level storage without ::Logger's Fiber keyed overrides" do
+    logger = level_only_logger
+    logger.level = ::Logger::INFO
+
+    logger.log_at(::Logger::WARN) do
+      assert_equal ::Logger::WARN, logger.level
+    end
+
+    assert_equal ::Logger::INFO, logger.level
+  ensure
+    logger&.close
+  end
+
+  test "with_level coerces severity like ::Logger without using Fiber keyed overrides" do
+    logger = level_only_logger
+    logger.level = ::Logger::INFO
+
+    logger.with_level(::Logger::ERROR) { assert_equal ::Logger::ERROR, logger.level }
+    logger.with_level(:debug) { assert_equal ::Logger::DEBUG, logger.level }
+    logger.with_level("fatal") { assert_equal ::Logger::FATAL, logger.level }
+
+    assert_equal ::Logger::INFO, logger.level
+  ensure
+    logger&.close
+  end
+
+  test "with_level restores nested local levels" do
+    logger = level_only_logger
+    logger.level = ::Logger::INFO
+
+    logger.with_level(:warn) do
+      assert_equal ::Logger::WARN, logger.level
+      logger.with_level(:error) { assert_equal ::Logger::ERROR, logger.level }
+      assert_equal ::Logger::WARN, logger.level
+    end
+
+    assert_equal ::Logger::INFO, logger.level
+  ensure
+    logger&.close
+  end
+
+  test "with_level rejects invalid severities" do
+    logger = level_only_logger
+
+    error = assert_raises(ArgumentError) do
+      logger.with_level("invalid") { true }
+    end
+    assert_equal "invalid log level: invalid", error.message
+  ensure
+    logger&.close
+  end
+
   class FailingDevice
     attr_reader :written
 
@@ -251,6 +343,16 @@ class RactorLoggerTest < ActiveSupport::TestCase
   end
 
   private
+    def level_only_logger
+      LevelOnlyLogger.new.tap do |logger|
+        # ::Logger#level reads level_override[level_key], and level_key is Fiber.current, which can't be
+        # used from a non-main Ractor. See https://bugs.ruby-lang.org/issues/22173.
+        logger.define_singleton_method(:level_key) do
+          raise "::Logger#level_key relies on Fiber.current and must not be used"
+        end
+      end
+    end
+
     def log_path(name)
       tmp_dir = File.join(__dir__, "tmp", "ractor_logger_test")
       FileUtils.mkdir_p(tmp_dir)
