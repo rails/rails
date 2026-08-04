@@ -1,3 +1,10 @@
+*   Honor `exclude_end?` in `Range#to_fs(:db)`.
+
+    Exclusive ranges were formatted with inclusive `BETWEEN` / `<=` bounds.
+    Exclusive ends now use `>= ... AND < ...` or `< ...`.
+
+    *Said Kaldybaev*
+
 *   Fix `Range#sum` with a falsey initial value.
 
     Summing an integer range with a falsey starting value (such as nil or false)
