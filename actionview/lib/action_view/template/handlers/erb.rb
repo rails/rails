@@ -22,7 +22,7 @@ module ActionView
         # Strip trailing newlines from rendered output
         class_attribute :strip_trailing_newlines, default: false
 
-        ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
+        ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*").freeze
 
         LocationParsingError = Class.new(StandardError) # :nodoc:
 
