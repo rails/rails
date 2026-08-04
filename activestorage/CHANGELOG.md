@@ -1,3 +1,7 @@
+*   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
+
+    *Niklas Häusele*
+
 *   Disable libvips's unfuzzed image loaders and savers.
 
     libvips flags some of its loaders and savers as "unfuzzed" or "untrusted", meaning they are only
