@@ -677,6 +677,7 @@ module Rails
         view = ActionView::LookupContext.view_context_class.new(ActionView::LookupContext.new([]), {}, nil)
         ActionView::PathRegistry.all_file_system_resolvers.each do |resolver|
           resolver.eager_load_templates(view)
+          resolver.freeze
         end
       end
 
