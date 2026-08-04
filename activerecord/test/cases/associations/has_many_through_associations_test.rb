@@ -1727,6 +1727,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal(chapter.book, book)
   end
 
+  def test_delete_all_nullify_on_through_with_composite_source_foreign_key
+    author = Cpk::Author.create!(name: "author")
+    order = Cpk::Order.create!(id: [9999, 30001], status: "open")
+    book = Cpk::Book.create!(id: [author.id, 30001], title: "Book", order: order)
+
+    assert_equal 1, author.orders.count
+
+    author.orders.delete_all(:nullify)
+
+    book.reload
+    assert_nil book.shop_id
+    assert_nil book.order_id
+  end
+
   def test_ids_reader_with_composite_primary_key_on_source
     blog = Sharded::Blog.create!
     post = Sharded::BlogPost.create!(blog_id: blog.id)
