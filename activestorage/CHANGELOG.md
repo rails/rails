@@ -1,3 +1,7 @@
+*   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
+
+    *Niklas Häusele*
+
 *   Boot when libvips is missing.
 
     An application with the ruby-vips gem installed but no libvips could not start. Active Storage
