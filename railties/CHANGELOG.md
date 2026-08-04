@@ -1,3 +1,7 @@
+*   Load every matching command/generator file found across `$LOAD_PATH`, not just the first.
+
+    *Ben Sheldon*
+
 *   Stop probing for a local MySQL socket when generating `config/database.yml`.
 
     *Ryuta Kamizono*
