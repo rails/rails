@@ -46,17 +46,13 @@ module ActiveRecord::Associations::Builder # :nodoc:
       association = o.association(name)
       foreign_key = association.foreign_key
 
-      old_foreign_id =
-        if foreign_key.is_a?(Array)
-          if foreign_key.any? { |fk| o.public_send(change_method, fk) }
-            foreign_key.map do |fk|
-              change = o.public_send(change_method, fk)
-              change ? change.first : o.read_attribute(fk)
-            end
-          end
-        elsif change = o.public_send(change_method, foreign_key)
-          change.first
+      old_foreign_id = if foreign_key.any? { |fk| o.public_send(change_method, fk) }
+        values = foreign_key.map do |fk|
+          change = o.public_send(change_method, fk)
+          change ? change.first : o.read_attribute(fk)
         end
+        foreign_key.composite? ? values : values.first
+      end
 
       if old_foreign_id
         reflection = association.reflection
@@ -150,9 +146,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
         else
           condition = lambda { |record|
             association = record.association(reflection.name)
-            foreign_key = Array(association.foreign_key)
 
-            fk_missing_or_changed = foreign_key.any? do |fk|
+            fk_missing_or_changed = association.foreign_key.any? do |fk|
               record.read_attribute(fk).nil? || record.attribute_changed?(fk)
             end
 
