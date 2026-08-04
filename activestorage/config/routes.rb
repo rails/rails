@@ -12,7 +12,7 @@ Rails.application.routes.draw do
 
     get  "/disk/:encoded_key/*filename" => "active_storage/disk#show", as: :rails_disk_service
     put  "/disk/:encoded_token" => "active_storage/disk#update", as: :update_rails_disk_service
-    post "/direct_uploads" => "active_storage/direct_uploads#create", as: :rails_direct_uploads
+    post "/direct_uploads" => "active_storage/direct_uploads#create", as: :rails_direct_uploads if ActiveStorage.draw_direct_upload_route
   end
 
   direct :rails_representation do |representation, options|

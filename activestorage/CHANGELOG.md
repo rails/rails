@@ -1,3 +1,7 @@
+*   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
+
+    *Niklas Häusele*
+
 *   Allow ffmpeg and ffprobe input arguments to be configured.
 
     Two new configuration parameters are introduced.
