@@ -72,7 +72,15 @@ module ActiveRecord
           model_was = klass
         end
 
-        foreign_key_was = owner.attribute_before_last_save(reflection.foreign_key)
+        foreign_key = reflection.foreign_key
+
+        foreign_key_was =
+          if foreign_key.is_a?(Array)
+            values = foreign_key.map { |fk| owner.attribute_before_last_save(fk) }
+            values if values.all?
+          else
+            owner.attribute_before_last_save(foreign_key)
+          end
 
         if foreign_key_was && model_was < ActiveRecord::Base
           update_counters_via_scope(model_was, foreign_key_was, -1)
@@ -88,7 +96,7 @@ module ActiveRecord
       end
 
       def saved_change_to_target?
-        owner.saved_change_to_attribute?(reflection.foreign_key)
+        Array(reflection.foreign_key).any? { |fk| owner.saved_change_to_attribute?(fk) }
       end
 
       private
@@ -111,13 +119,21 @@ module ActiveRecord
             if target && !stale_target?
               target.increment!(reflection.counter_cache_column, by, touch: reflection.options[:touch])
             else
-              update_counters_via_scope(klass, owner._read_attribute(reflection.foreign_key), by)
+              foreign_key = reflection.foreign_key
+              foreign_key_value =
+                if foreign_key.is_a?(Array)
+                  foreign_key.map { |fk| owner.read_attribute(fk) }
+                else
+                  owner.read_attribute(foreign_key)
+                end
+              update_counters_via_scope(klass, foreign_key_value, by)
             end
           end
         end
 
         def update_counters_via_scope(klass, foreign_key, by)
-          scope = klass.all_queries_scope.where!(primary_key(klass) => foreign_key)
+          primary_key = ActiveRecord::Key.for(reflection.association_primary_key(klass))
+          scope = klass.all_queries_scope.where!(primary_key.where_hash(foreign_key))
           scope.update_counters(reflection.counter_cache_column => by, touch: reflection.options[:touch])
         end
 

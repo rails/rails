@@ -224,6 +224,40 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "belongs_to counter cache is maintained on create/update/destroy for cpk model" do
+    order1 = Cpk::Order.create!(id: [9999, 10001], status: "open")
+    order2 = Cpk::Order.create!(id: [9999, 10002], status: "open")
+
+    book = nil
+    assert_difference -> { order1.reload.books_count }, 1 do
+      book = Cpk::Book.create!(id: [9999, 10001], title: "Book", order: order1)
+    end
+
+    assert_difference(
+      { -> { order1.reload.books_count } => -1,
+        -> { order2.reload.books_count } => 1 }
+    ) do
+      book.update!(order: order2)
+    end
+
+    assert_difference -> { order2.reload.books_count }, -1 do
+      book.destroy!
+    end
+  end
+
+  test "belongs_to counter cache is maintained when composite foreign key is manually set" do
+    author = Cpk::Author.create!(name: "author")
+    book = Cpk::Book.create!(id: [author.id, 9999], title: "Book")
+    assert_nil book.shop_id
+    assert_nil book.order_id
+
+    order = Cpk::Order.create!(id: [1, 200], status: "open")
+
+    assert_difference -> { order.reload.books_count }, 1 do
+      book.update!(order: order)
+    end
+  end
+
   test "reset counters for cpk model with string ids" do
     order = cpk_orders(:cpk_book_order_1)
     assert order.books_count > 0, "Must have books"

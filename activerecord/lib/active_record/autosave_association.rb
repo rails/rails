@@ -516,7 +516,7 @@ module ActiveRecord
         record.new_record? ||
           (association_foreign_key_changed?(reflection, record, key) ||
           inverse_polymorphic_association_changed?(reflection, record)) ||
-          record.will_save_change_to_attribute?(reflection.foreign_key)
+          Array(reflection.foreign_key).any? { |fk| record.will_save_change_to_attribute?(record.class.attribute_aliases[fk] || fk) }
       end
 
       def association_foreign_key_changed?(reflection, record, key)

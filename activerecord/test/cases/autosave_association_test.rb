@@ -1304,6 +1304,22 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_nil Cpk::Order.find_by(id: 4, shop_id: 3)
   end
 
+  def test_autosave_has_one_cpk_association_when_composite_foreign_key_is_manually_set
+    author = Cpk::Author.create!(name: "author")
+    book = Cpk::Book.create!(id: [author.id, 9999], title: "Book")
+    assert_nil book.shop_id
+    assert_nil book.order_id
+
+    order = Cpk::Order.new(id: [1, 100], status: "open")
+    order.book = book
+
+    order.save!
+
+    book.reload
+    assert_equal 1, book.shop_id
+    assert_equal 100, book.order_id
+  end
+
   def test_should_skip_validation_on_a_parent_association_if_marked_for_destruction
     @ship.pirate.catchphrase = ""
     assert_not_predicate @ship, :valid?
