@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 gemspec
 
-gem "time", github: "bdewater-thatch/time", branch: "fix-rfc3339-require-offset"
+gem "time", github: "ruby/time"
 
 gem "minitest", "~> 6.0"
 gem "minitest-mock"
