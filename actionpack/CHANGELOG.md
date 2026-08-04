@@ -1,3 +1,18 @@
+*   Deprecate registering and unregistering MIME types after application initialization.
+
+    `Mime::Type.register`, `Mime::Type.register_alias`, and `Mime::Type.unregister` will raise
+    a `FrozenError` when called after application initialization in the next version of Rails.
+    Instead, register or unregister MIME types during initialization (e.g. in
+    `config/initializers/mime_types.rb` or a Railtie `initializer` block).
+
+    *Étienne Barrié*
+
+*   Deprecate `Mime::Type.register_callback`.
+
+    It was never intended as a public API and has no replacement.
+
+    *Étienne Barrié*
+
 *   Allow HTTP token authentication to require specific authentication schemes.
 
     Pass `scheme:` to `authenticate_or_request_with_http_token` (and the other
