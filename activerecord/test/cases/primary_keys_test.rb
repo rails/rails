@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/testing/ractors_assertions"
 require "cases/helper"
 require "support/schema_dumping_helper"
 require "models/topic"
@@ -13,7 +14,24 @@ require "models/non_primary_key"
 require "models/cpk"
 
 class PrimaryKeysTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
+
+  def test_primary_key_can_be_read_from_a_ractor_when_single
+    Topic.primary_key
+    assert_equal "id", on_ractor { Topic.primary_key }
+  end
+
+  def test_primary_key_can_be_read_from_a_ractor_when_composite
+    Cpk::Order.primary_key
+    assert_equal ["shop_id", "id"], on_ractor { Cpk::Order.primary_key }
+  end
+
+  def test_primary_key_can_be_read_from_a_ractor_when_absent
+    NonPrimaryKey.primary_key
+    assert_nil on_ractor { NonPrimaryKey.primary_key }
+  end
 
   def test_to_key_with_default_primary_key
     topic = Topic.new
