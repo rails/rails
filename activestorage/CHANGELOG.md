@@ -1,3 +1,7 @@
+*   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
+
+    *Niklas Häusele*
+
 *   Marcel 2 for content type detection
 
     Broader and more precise MIME type detection, security hardening, and uses canonical types
