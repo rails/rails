@@ -234,6 +234,13 @@ module Rails
           RubyVM::YJIT.enable(**options)
         end
       end
+
+      initializer :enable_zjit do
+        if config.zjit && defined?(RubyVM::ZJIT.enable)
+          # If YJIT is already enabled, this will print a warning but is safe to run.
+          RubyVM::ZJIT.enable
+        end
+      end
     end
   end
 end

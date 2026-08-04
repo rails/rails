@@ -652,6 +652,17 @@ Additionally, you can pass a hash to configure YJIT options such as `{ stats: tr
 | 7.2                   | `true`               |
 | 8.1                   | `!Rails.env.local?`  |
 
+#### `config.zjit`
+
+Enables ZJIT as of Ruby 4.0, to bring sizeable performance improvements. If you are
+deploying to a memory constrained environment you may want to set this to `false`.
+If YJIT is enabled, ZJIT will not be enabled.
+
+| Starting with version | The default value is                 |
+| --------------------- | ------------------------------------ |
+| (original)            | `false`                              |
+| TBD                   | `!Rails.env.local? && !config.yjit`  |
+
 ### Configuring Assets
 
 #### `config.assets.css_compressor`
