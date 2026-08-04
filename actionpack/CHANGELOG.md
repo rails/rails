@@ -1,3 +1,7 @@
+*   Require Rack 3.1 or newer.
+
+    *Samuel Williams*
+
 *   Allow HTTP token authentication to require specific authentication schemes.
 
     Pass `scheme:` to `authenticate_or_request_with_http_token` (and the other

@@ -36,8 +36,6 @@ module RackParsingOverride
       caller_locations.any? do |loc|
         # Our parser calls Rack's to prepopulate caches
         loc.path.end_with?("lib/action_dispatch/http/request.rb") && loc.base_label == "request_parameters_list" ||
-          # and as a fallback for older Rack versions
-          loc.path.end_with?("lib/action_dispatch/http/request.rb") && loc.base_label == "fallback_request_parameters" ||
           # This specifically tests that a "pure" Rack middleware
           # doesn't interfere with our parsing
           (loc.path.end_with?("test/dispatch/request/query_string_parsing_test.rb") && loc.base_label == "populate_rack_cache") ||

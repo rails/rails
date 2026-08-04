@@ -159,11 +159,7 @@ class RequestIP < BaseRequestTest
     }
     assert_match(/IP spoofing attack/, e.message)
     assert_match(/HTTP_X_FORWARDED_FOR="1\.1\.1\.1"/, e.message)
-    if Rack.release < "3"
-      assert_match(/HTTP_FORWARDED="for=1\.1\.1\.1"/, e.message)
-    else
-      assert_match(/HTTP_FORWARDED="for=2\.2\.2\.2, for=3\.3\.3\.3"/, e.message)
-    end
+    assert_match(/HTTP_FORWARDED="for=2\.2\.2\.2, for=3\.3\.3\.3"/, e.message)
     assert_match(/HTTP_CLIENT_IP="127\.0\.0\.1"/, e.message)
   end
 
@@ -715,35 +711,6 @@ class RequestParamsParsing < BaseRequestTest
   end
 end
 
-if Rack.release < "3"
-  class RequestRewind < BaseRequestTest
-    test "body should be rewound" do
-      data = "rewind"
-      env = {
-        :input => data,
-        "CONTENT_LENGTH" => data.length.to_s,
-        "CONTENT_TYPE" => "application/x-www-form-urlencoded; charset=utf-8"
-      }
-
-      # Read the request body by parsing params.
-      request = stub_request(env)
-      request.request_parameters
-
-      # Should have rewound the body.
-      assert_equal "rewind", request.body.read
-    end
-
-    test "raw_post rewinds rack.input if RAW_POST_DATA is nil" do
-      request = stub_request(
-        :input => "raw",
-        "CONTENT_LENGTH" => "3"
-      )
-      assert_equal "raw", request.raw_post
-      assert_equal "raw", request.env["rack.input"].read
-    end
-  end
-end
-
 class RequestProtocol < BaseRequestTest
   test "server software" do
     assert_equal "lighttpd", stub_request("SERVER_SOFTWARE" => "lighttpd/1.4.5").server_software
@@ -1286,8 +1253,7 @@ class RequestParameters < BaseRequestTest
   test "raw_post does not raise when rack.input is nil" do
     request = stub_request
 
-    # "" on Rack < 3.1, nil on Rack 3.1+
-    assert_predicate request.raw_post, :blank?
+    assert_nil request.raw_post
   end
 end
 

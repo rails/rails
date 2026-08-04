@@ -84,7 +84,7 @@ gem "jbuilder", require: false
 gem "web-console", require: false
 
 # Action Pack and railties
-rack_version = ENV.fetch("RACK", "~> 3.0")
+rack_version = ENV.fetch("RACK", "~> 3.1")
 if rack_version != "head"
   gem "rack", rack_version
 else

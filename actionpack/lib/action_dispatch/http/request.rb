@@ -411,13 +411,8 @@ module ActionDispatch
 
         param_list = nil
         pr = parse_formatted_parameters(params_parsers) do
-          if param_list = request_parameters_list
-            ActionDispatch::ParamBuilder.from_pairs(param_list, encoding_template: encoding_template)
-          else
-            # We're not using a version of Rack that provides raw form
-            # pairs; we must use its hash (and thus post-process it below).
-            fallback_request_parameters
-          end
+          param_list = request_parameters_list
+          ActionDispatch::ParamBuilder.from_pairs(param_list, encoding_template: encoding_template)
         end
 
         # If the request body was parsed by a custom parser like JSON
@@ -437,7 +432,7 @@ module ActionDispatch
     def request_parameters_list
       # We don't use Rack's parse result, but we must call it so Rack
       # can populate the rack.request.* keys we need.
-      rack_post = rack_request.POST
+      rack_request.POST
 
       if form_pairs = get_header("rack.request.form_pairs")
         # Multipart
@@ -445,10 +440,6 @@ module ActionDispatch
       elsif form_vars = get_header("rack.request.form_vars")
         # URL-encoded
         ActionDispatch::QueryParser.each_pair(form_vars)
-      elsif rack_post && !rack_post.empty?
-        # It was multipart, but Rack did not preserve a pair list
-        # (probably too old). Flat parameter list is not available.
-        nil
       else
         # No request body, or not a format Rack knows
         []
@@ -546,10 +537,6 @@ module ActionDispatch
         else
           yield
         end
-      end
-
-      def fallback_request_parameters
-        rack_request.POST
       end
   end
 end

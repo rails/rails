@@ -1,3 +1,7 @@
+*   Require `rackup` 2.0 or newer.
+
+    *Samuel Williams*
+
 *   Don't filter nonexistent i18n paths on initialize. This negatively impacts
     applications with lots of translation files.
 

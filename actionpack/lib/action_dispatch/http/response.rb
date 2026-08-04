@@ -36,27 +36,13 @@ module ActionDispatch # :nodoc:
   #       end
   #     end
   class Response
-    begin
-      # For `Rack::Headers` (Rack 3+):
-      require "rack/headers"
-      Headers = ::Rack::Headers
-    rescue LoadError
-      # For `Rack::Utils::HeaderHash`:
-      require "rack/utils"
-      Headers = ::Rack::Utils::HeaderHash
-    end
+    require "rack/headers"
+    Headers = ::Rack::Headers
 
     class << self
-      if ActionDispatch::Constants::UNPROCESSABLE_CONTENT == :unprocessable_content
-        def rack_status_code(status) # :nodoc:
-          status = :unprocessable_content if status == :unprocessable_entity
-          Rack::Utils.status_code(status)
-        end
-      else
-        def rack_status_code(status) # :nodoc:
-          status = :unprocessable_entity if status == :unprocessable_content
-          Rack::Utils.status_code(status)
-        end
+      def rack_status_code(status) # :nodoc:
+        status = :unprocessable_content if status == :unprocessable_entity
+        Rack::Utils.status_code(status)
       end
     end
 
