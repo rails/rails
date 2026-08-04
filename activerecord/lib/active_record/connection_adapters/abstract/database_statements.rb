@@ -81,7 +81,7 @@ module ActiveRecord
           arel: arel,
           name: name,
           binds: binds,
-          prepare: preparable,
+          prepare: prepared_statements && preparable,
           allow_async: async,
           allow_retry: allow_retry
         )
