@@ -23,6 +23,7 @@ module ActionView
     end
 
     def self.register_detail(name, &block)
+      block = ActiveSupport::Ractors.shareable_proc(&block)
       self.default_procs = self.default_procs.merge(name => block).freeze
 
       Accessors.define_method(:"default_#{name}", &block)
