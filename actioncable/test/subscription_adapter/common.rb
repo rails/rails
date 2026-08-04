@@ -133,7 +133,8 @@ module CommonSubscriptionAdapterTest
 
   def wait_for_pubsub_executor(adapter)
     # We use a wrapper over ConcurrentRuby::ThreadPoolExecutor, so we need to dig deeper
-    executor = adapter.instance_variable_get(:@executor).instance_variable_get(:@executor)
-    wait_for_executor(executor)
+    server = adapter.instance_variable_get(:@server)
+    executor = server.instance_variable_get(:@executor)
+    wait_for_executor(executor.instance_variable_get(:@executor)) if executor
   end
 end
