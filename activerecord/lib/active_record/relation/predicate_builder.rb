@@ -40,7 +40,7 @@ module ActiveRecord
     # for any value that <tt>===</tt> the class given. For example:
     #
     #     MyCustomDateRange = Struct.new(:start, :end)
-    #     handler = proc do |column, range|
+    #     handler = proc do |column, range, type|
     #       Arel::Nodes::Between.new(column,
     #         Arel::Nodes::And.new([range.start, range.end])
     #       )
@@ -55,37 +55,31 @@ module ActiveRecord
     end
 
     def build(attribute, value, operator = nil)
-      value = value.id if value.respond_to?(:id)
       type = table.type(attribute.name)
+
+      predicate_for(attribute, value, operator, type)
+    end
+
+    def predicate_for(attribute, value, operator, type)
+      value = value.id if value.respond_to?(:id)
 
       if operator ||= type.force_equality?(value) && :eq
         if type.transforms_query_predicates?
-          build_predicate(attribute, value, operator, type, true)
+          right = query_value(attribute, value, type)
+          left = right.nil? ? attribute : type.query_attribute(attribute)
         else
-          bind = build_bind_attribute(attribute.name, value, type)
-          attribute.public_send(operator, bind)
+          right = build_bind_attribute(attribute.name, value, type)
+          left = attribute
         end
+
+        left.public_send(operator, right)
       else
-        handler_for(value).call(attribute, value)
+        handler_for(value).call(attribute, value, type)
       end
     end
 
-    def build_predicate(attribute, value, operator = :eq, type = table.type(attribute.name), transformable = type.transforms_query_predicates?)
+    def array_predicate_for(attribute, values, type, transformable)
       if transformable
-        right = query_value(attribute, value, type)
-        left = right.nil? ? attribute : type.query_attribute(attribute)
-      else
-        right = build_bind_attribute(attribute.name, value, type)
-        left = attribute
-      end
-
-      left.public_send(operator, right)
-    end
-
-    def build_array_predicate(attribute, values)
-      type = table.type(attribute.name)
-
-      if type.transforms_query_predicates?
         type.query_attribute(attribute).in(
           values.map { |value| query_value(attribute, value, type) }
         )
@@ -94,9 +88,7 @@ module ActiveRecord
       end
     end
 
-    def build_range_predicate(attribute, range)
-      type = table.type(attribute.name)
-
+    def range_predicate_for(attribute, range, type)
       type.query_attribute(attribute).between(
         RangeHandler::RangeWithBinds.new(
           query_value(attribute, range.begin, type),
@@ -106,15 +98,8 @@ module ActiveRecord
       )
     end
 
-    def build_bind_attribute(column_name, value, type = table.type(column_name))
+    def build_bind_attribute(column_name, value, type)
       Relation::QueryAttribute.new(column_name, value, type)
-    end
-
-    def query_value(attribute, value, type = table.type(attribute.name))
-      bind = build_bind_attribute(attribute.name, value, type)
-      return bind if bind.nil? || bind.infinite? || bind.unboundable?
-
-      type.query_value(attribute, value, predicate_builder: self)
     end
 
     def resolve_arel_attribute(table_name, column_name, &block)
@@ -235,6 +220,13 @@ module ActiveRecord
 
       def handler_for(object)
         @handlers.detect { |klass, _| klass === object }.last
+      end
+
+      def query_value(attribute, value, type)
+        bind = build_bind_attribute(attribute.name, value, type)
+        return bind if bind.nil? || bind.infinite? || bind.unboundable?
+
+        type.query_value(attribute, value, predicate_builder: self)
       end
   end
 end

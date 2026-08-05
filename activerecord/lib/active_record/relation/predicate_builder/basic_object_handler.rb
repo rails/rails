@@ -7,8 +7,8 @@ module ActiveRecord
         @predicate_builder = predicate_builder
       end
 
-      def call(attribute, value)
-        predicate_builder.build_predicate(attribute, value)
+      def call(attribute, value, type)
+        predicate_builder.predicate_for(attribute, value, :eq, type)
       end
 
       private

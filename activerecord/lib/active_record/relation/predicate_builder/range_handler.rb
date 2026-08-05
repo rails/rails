@@ -9,8 +9,8 @@ module ActiveRecord
         @predicate_builder = predicate_builder
       end
 
-      def call(attribute, value)
-        predicate_builder.build_range_predicate(attribute, value)
+      def call(attribute, value, type)
+        predicate_builder.range_predicate_for(attribute, value, type)
       end
 
       private
