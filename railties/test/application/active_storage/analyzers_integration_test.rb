@@ -8,7 +8,7 @@ module ApplicationTests
 
     include ActiveJob::TestHelper
 
-    self.file_fixture_path = "#{RAILS_FRAMEWORK_ROOT}/activestorage/test/fixtures/files"
+    self.file_fixture_path = "test/fixtures/files"
 
     def app(...)
       super
