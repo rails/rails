@@ -21,6 +21,12 @@ class Time
 
     # Returns the number of days in the given month.
     # If no year is specified, it will use the current year.
+    #
+    # This method assumes the proleptic Gregorian calendar and does not
+    # account for the {Gregorian Calendar Reform}[https://en.wikipedia.org/wiki/Gregorian_calendar#Adoption_by_country].
+    # For such historical dates, use Ruby's +Date+ class directly instead:
+    #
+    #   (Date.new(1582, 10, 1)..Date.new(1582, 10, -1)).count  # => 21
     def days_in_month(month, year = current.year)
       if month == 2 && ::Date.gregorian_leap?(year)
         29
@@ -31,6 +37,9 @@ class Time
 
     # Returns the number of days in the given year.
     # If no year is specified, it will use the current year.
+    #
+    # Like +days_in_month+, this assumes the proleptic Gregorian calendar
+    # and does not account for the historical Gregorian Calendar Reform.
     def days_in_year(year = current.year)
       days_in_month(2, year) + 337
     end
