@@ -10,14 +10,15 @@ module ActiveModel
   class ReadOnlyAttributeSet # :nodoc:
     delegate :each_value, :fetch, :except, to: :attributes
 
-    def initialize(attributes)
+    def initialize(attributes, model_class = nil)
       @attributes = attributes
+      @model_class = model_class
       raise ArgumentError, "all attributes should be initialized" unless all_initialized?
       freeze
     end
 
     def [](name)
-      @attributes[name] || default_attribute(name)
+      @attributes[name] || virtual_attribute(name) || default_attribute(name)
     end
 
     def cast_types
@@ -38,7 +39,7 @@ module ActiveModel
     end
 
     def writable
-      AttributeSet.new(attributes.transform_values(&:dup))
+      AttributeSet.new(attributes.transform_values(&:dup), @model_class)
     end
 
     def to_hash
@@ -49,11 +50,11 @@ module ActiveModel
 
     def map(&block)
       new_attributes = attributes.transform_values(&block)
-      self.class.new(new_attributes)
+      self.class.new(new_attributes, @model_class)
     end
 
     def deep_dup
-      self.class.new(attributes.transform_values(&:deep_dup))
+      self.class.new(attributes.transform_values(&:deep_dup), @model_class)
     end
 
     def ==(other)
@@ -74,23 +75,29 @@ module ActiveModel
       def default_attribute(name)
         Attribute.null(name)
       end
+
+      def virtual_attribute(name)
+        return unless @model_class && (definition = @model_class.store_attribute_definitions[name])
+        definition.build_attribute(name, self)
+      end
   end
 
   class AttributeSet # :nodoc:
     delegate :each_value, :fetch, :except, to: :attributes
 
-    def initialize(attributes)
+    def initialize(attributes, model_class = nil)
       @attributes = attributes
+      @model_class = model_class
     end
 
     def read_only
       attributes.values.each(&:freeze)
       attributes.freeze
-      ReadOnlyAttributeSet.new(attributes)
+      ReadOnlyAttributeSet.new(attributes, @model_class)
     end
 
     def [](name)
-      @attributes[name] || default_attribute(name)
+      @attributes[name] || virtual_attribute(name) || default_attribute(name)
     end
 
     def []=(name, value)
@@ -134,17 +141,20 @@ module ActiveModel
     end
 
     def write_from_database(name, value)
-      @attributes[name] = self[name].with_value_from_database(value)
+      new_attribute = self[name].with_value_from_database(value)
+      @attributes[name] = new_attribute if @attributes.key?(name)
     end
 
     def write_from_user(name, value)
       raise FrozenError, "can't modify frozen attributes" if frozen?
-      @attributes[name] = self[name].with_value_from_user(value)
+      new_attribute = self[name].with_value_from_user(value)
+      @attributes[name] = new_attribute if @attributes.key?(name)
       value
     end
 
     def write_cast_value(name, value)
-      @attributes[name] = self[name].with_cast_value(value)
+      new_attribute = self[name].with_cast_value(value)
+      @attributes[name] = new_attribute if @attributes.key?(name)
     end
 
     def freeze
@@ -153,7 +163,7 @@ module ActiveModel
     end
 
     def deep_dup
-      AttributeSet.new(attributes.transform_values(&:dup_or_share))
+      AttributeSet.new(attributes.transform_values(&:dup_or_share), @model_class)
     end
 
     def initialize_dup(_)
@@ -178,7 +188,7 @@ module ActiveModel
 
     def map(&block)
       new_attributes = attributes.transform_values(&block)
-      AttributeSet.new(new_attributes)
+      AttributeSet.new(new_attributes, @model_class)
     end
 
     def values
@@ -204,11 +214,16 @@ module ActiveModel
       def default_attribute(name)
         Attribute.null(name)
       end
+
+      def virtual_attribute(name)
+        return unless @model_class && (definition = @model_class.store_attribute_definitions[name])
+        definition.build_attribute(name, self)
+      end
   end
 
   class LazyAttributeSet < AttributeSet # :nodoc:
-    def initialize(values, types, additional_types, default_attributes, attributes, default_keys)
-      super(attributes)
+    def initialize(values, types, additional_types, default_attributes, attributes, default_keys, model_class = nil)
+      super(attributes, model_class)
       @values = values
       @types = types
       @additional_types = additional_types
@@ -228,7 +243,7 @@ module ActiveModel
     end
 
     def fetch_value(name, &block)
-      if attr = @attributes[name]
+      if attr = @attributes[name] || virtual_attribute(name)
         return attr.value(&block)
       end
 
@@ -247,7 +262,7 @@ module ActiveModel
     end
 
     def fetch_value!(name)
-      if attr = @attributes[name]
+      if attr = @attributes[name] || virtual_attribute(name)
         return attr.value!
       end
 
@@ -271,7 +286,8 @@ module ActiveModel
         additional_types.dup,
         default_attributes.dup,
         attributes.transform_values(&:deep_dup),
-        @default_keys
+        @default_keys,
+        @model_class
       )
     end
 
@@ -282,7 +298,8 @@ module ActiveModel
         additional_types,
         default_attributes,
         attributes.transform_values(&block),
-        @default_keys
+        @default_keys,
+        @model_class
       )
     end
 

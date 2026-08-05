@@ -18,7 +18,7 @@ module ActiveModel
         end
       end
 
-      def decode(coder, default_types)
+      def decode(coder, default_types, model_class = nil)
         if coder["attributes"]
           coder["attributes"]
         else
@@ -28,7 +28,7 @@ module ActiveModel
             end
             [attr.name, attr]
           end]
-          AttributeSet.new(attributes_hash)
+          AttributeSet.new(attributes_hash, model_class)
         end
       end
     end
