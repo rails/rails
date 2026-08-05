@@ -123,6 +123,44 @@ class CombinedConfigurationTest < ActiveSupport::TestCase
     assert_equal false, @combined.option(:false)
   end
 
+  test "optional missing key returns nil" do
+    assert_nil @combined.option(:gone)
+  end
+
+  test "optional missing key with default value returns default" do
+    assert_equal "there", @combined.option(:gone, default: "there")
+  end
+
+  test "optional missing key with default block returns default" do
+    assert_equal "there", @combined.option(:gone, default: -> { "there" })
+  end
+
+  test "optional present key with default block returns value without triggering default" do
+    called = false
+    assert_equal "cred", @combined.option(:only_in_credentials, default: -> { called = true; "there" })
+    assert_equal false, called
+  end
+
+  test "keys returns the symbolized keys of every backend" do
+    keys = @combined.keys
+
+    assert_includes keys, :only_in_env
+    assert_includes keys, :only_in_dotenv
+    assert_includes keys, :only_in_credentials
+    assert_equal keys, keys.uniq
+  end
+
+  test "cached reads can be reloaded" do
+    assert_nil @combined.option(:added_later)
+
+    ENV["ADDED_LATER"] = "env"
+    @combined.reload
+
+    assert_equal "env", @combined.require(:added_later)
+  ensure
+    ENV.delete("ADDED_LATER")
+  end
+
   test "require with missing key raises key error" do
     assert_raise(KeyError, match: "Missing key: [:gone]") do
       @combined.require(:gone)
