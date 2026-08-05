@@ -460,7 +460,15 @@ module ActionView
       # Compile a template. This method ensures a template is compiled
       # just once and removes the source after it is compiled.
       def compile!(view)
-        return if @compiled
+        if @compiled
+          if @compiled_method_container && view.compiled_method_container != @compiled_method_container
+            raise ArgumentError, "Template #{short_identifier.inspect} was compiled to render with " \
+              "#{@compiled_method_container.inspect} but is being rendered with a view whose compiled " \
+              "method container is #{view.compiled_method_container.inspect}. A template compiles into " \
+              "a single container; render it with the view class it was compiled with."
+          end
+          return
+        end
 
         # Templates can be used concurrently in threaded environments
         # so compilation and any instance variable modification must
@@ -477,6 +485,7 @@ module ActionView
             compile(mod)
           end
 
+          @compiled_method_container = mod
           @compiled = true
         end
       end
