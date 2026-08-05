@@ -194,6 +194,28 @@ class StoreTest < ActiveRecord::TestCase
     assert_equal "Dallas", @john.partner_name_before_last_save
   end
 
+  test "query predicate for accessors" do
+    assert_not_predicate @john, :homepage?
+    @john.homepage = "37signals.com"
+    assert_predicate @john, :homepage?
+  end
+
+  test "previous changes tracking for accessors after save" do
+    @john.color = "red"
+    @john.save!
+
+    assert_predicate @john, :color_previously_changed?
+    assert_equal ["black", "red"], @john.color_previous_change
+  end
+
+  test "pending change tracking for accessors before save" do
+    @john.color = "red"
+
+    assert_predicate @john, :will_save_change_to_color?
+    assert_equal ["black", "red"], @john.color_change_to_be_saved
+    assert_equal "black", @john.color_in_database
+  end
+
   test "saved changes tracking for accessors with json column" do
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter) && ActiveRecord::Base.lease_connection.mariadb?
       skip "MariaDB doesn't support JSON store_accessor"
@@ -340,7 +362,7 @@ class StoreTest < ActiveRecord::TestCase
   end
 
   test "all stored attributes are returned" do
-    assert_equal [:color, :homepage, :favorite_food], Admin::User.stored_attributes[:settings]
+    assert_equal [:color, :homepage, :favorite_food, :phone_number], Admin::User.stored_attributes[:settings]
   end
 
   test "stored_attributes are tracked per class" do
@@ -431,6 +453,18 @@ class StoreTest < ActiveRecord::TestCase
 
     assert_raises ActiveRecord::ConfigurationError do
       user.color = "blue"
+    end
+  end
+
+  test "read_store_attribute is deprecated" do
+    assert_deprecated(/read_store_attribute/, ActiveRecord.deprecator) do
+      @john.send(:read_store_attribute, :settings, :color)
+    end
+  end
+
+  test "write_store_attribute is deprecated" do
+    assert_deprecated(/write_store_attribute/, ActiveRecord.deprecator) do
+      @john.send(:write_store_attribute, :settings, :color, "purple")
     end
   end
 end

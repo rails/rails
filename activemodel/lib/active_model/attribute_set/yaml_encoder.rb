@@ -17,16 +17,15 @@ module ActiveModel
         end
       end
 
-      def decode(coder, default_types)
+      def decode(coder, default_types, store_attribute_definitions = {})
         if coder["attributes"]
           coder["attributes"]
         else
-          attributes_hash = Hash[coder["concise_attributes"].map do |attr|
-            if attr.type.nil?
-              attr = attr.with_type(default_types[attr.name])
-            end
-            [attr.name, attr]
-          end]
+          attributes_hash = AttributeHash.new(store_attribute_definitions)
+          coder["concise_attributes"].each do |attr|
+            attr = attr.with_type(default_types[attr.name]) if attr.type.nil?
+            attributes_hash[attr.name] = attr
+          end
           AttributeSet.new(attributes_hash)
         end
       end

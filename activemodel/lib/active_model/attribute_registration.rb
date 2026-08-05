@@ -3,6 +3,7 @@
 require "active_support/core_ext/class/subclasses"
 require "active_model/attribute_set"
 require "active_model/attribute/user_provided_default"
+require "active_model/store_attribute"
 
 module ActiveModel
   module AttributeRegistration # :nodoc:
@@ -12,6 +13,7 @@ module ActiveModel
       def inherited(base)
         super
         base.instance_variable_set(:@pending_attribute_modifications, nil)
+        base.instance_variable_set(:@_store_attribute_definitions, nil)
       end
 
       def attribute(name, type = nil, default: (no_default = true), **options)
@@ -25,6 +27,16 @@ module ActiveModel
         reset_default_attributes
       end
 
+      def store_attribute(name, backed_by:, key: nil, definition: StoreAttribute::Definition) # :nodoc:
+        name = resolve_attribute_name(name)
+        key = (key || name).to_s
+        backed_by = backed_by.to_s
+
+        _store_attribute_definitions[name] = definition.new(backed_by, key)
+
+        reset_default_attributes
+      end
+
       def decorate_attributes(names = nil, &decorator) # :nodoc:
         names = names&.map { |name| resolve_attribute_name(name) }
 
@@ -33,8 +45,12 @@ module ActiveModel
         reset_default_attributes
       end
 
+      def store_attribute_definitions # :nodoc:
+        apply_store_attribute_definitions
+      end
+
       def _default_attributes # :nodoc:
-        @default_attributes ||= AttributeSet.new({}).tap do |attribute_set|
+        @default_attributes ||= AttributeSet.new(AttributeSet::AttributeHash.new(store_attribute_definitions)).tap do |attribute_set|
           apply_pending_attribute_modifications(attribute_set)
         end
       end
@@ -92,6 +108,18 @@ module ActiveModel
           pending_attribute_modifications.each do |modification|
             modification.apply_to(attribute_set)
           end
+        end
+
+        def _store_attribute_definitions
+          @_store_attribute_definitions ||= {}
+        end
+
+        def apply_store_attribute_definitions(collected = {})
+          if superclass.respond_to?(:apply_store_attribute_definitions, true)
+            superclass.send(:apply_store_attribute_definitions, collected)
+          end
+
+          collected.merge!(_store_attribute_definitions)
         end
 
         def reset_default_attributes

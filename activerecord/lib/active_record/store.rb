@@ -13,11 +13,11 @@ module ActiveRecord
   # of the model. This is very helpful for easily exposing store keys to a form or elsewhere that's
   # already built around just accessing attributes on the model.
   #
-  # Every accessor comes with dirty tracking methods (+key_changed?+, +key_was+ and +key_change+) and
-  # methods to access the changes made during the last save (+saved_change_to_key?+, +saved_change_to_key+ and
-  # +key_before_last_save+).
-  #
-  # NOTE: There is no +key_will_change!+ method for accessors, use +store_will_change!+ instead.
+  # Every accessor comes with the full set of standard attribute methods: a query predicate (+key?+),
+  # dirty tracking (+key_changed?+, +key_was+, +key_change+), post-save inspection
+  # (+saved_change_to_key?+, +saved_change_to_key+, +key_before_last_save+, +key_previously_changed?+,
+  # +key_previous_change+), and pending-change helpers for use in +before_save+ callbacks
+  # (+will_save_change_to_key?+, +key_change_to_be_saved+, +key_in_database+).
   #
   # Make sure that you declare the database column used for the serialized store as a text, so there's
   # plenty of room.
@@ -108,13 +108,13 @@ module ActiveRecord
         subclass.instance_variable_set(:@local_stored_attributes, nil)
       end
 
-      def store(store_attribute, options = {})
-        coder = build_column_serializer(store_attribute, options[:coder], Object, options[:yaml])
-        serialize store_attribute, coder: IndifferentCoder.new(store_attribute, coder)
-        store_accessor(store_attribute, options[:accessors], **options.slice(:prefix, :suffix)) if options.has_key? :accessors
+      def store(store_name, options = {})
+        coder = build_column_serializer(store_name, options[:coder], Object, options[:yaml])
+        serialize store_name, coder: IndifferentCoder.new(store_name, coder)
+        store_accessor(store_name, options[:accessors], **options.slice(:prefix, :suffix)) if options.has_key? :accessors
       end
 
-      def store_accessor(store_attribute, *keys, prefix: nil, suffix: nil)
+      def store_accessor(store_name, *keys, prefix: nil, suffix: nil)
         keys = keys.flatten
 
         accessor_prefix =
@@ -122,7 +122,7 @@ module ActiveRecord
           when String, Symbol
             "#{prefix}_"
           when TrueClass
-            "#{store_attribute}_"
+            "#{store_name}_"
           else
             ""
           end
@@ -131,82 +131,21 @@ module ActiveRecord
           when String, Symbol
             "_#{suffix}"
           when TrueClass
-            "_#{store_attribute}"
+            "_#{store_name}"
           else
             ""
           end
 
-        mod = if const_defined?(:GeneratedStoreMethods, false)
-          const_get(:GeneratedStoreMethods, false)
-        else
-          mod = const_set(:GeneratedStoreMethods, Module.new)
-          include mod
-          mod
-        end
-
-        mod.module_eval do
-          keys.each do |key|
-            accessor_key = "#{accessor_prefix}#{key}#{accessor_suffix}"
-
-            define_method("#{accessor_key}=") do |value|
-              write_store_attribute(store_attribute, key, value)
-            end
-
-            define_method(accessor_key) do
-              read_store_attribute(store_attribute, key)
-            end
-
-            define_method("#{accessor_key}_changed?") do
-              return false unless attribute_changed?(store_attribute)
-              prev_store, new_store = changes[store_attribute]
-              accessor = store_accessor_for(store_attribute)
-              accessor.get(prev_store, key) != accessor.get(new_store, key)
-            end
-
-            define_method("#{accessor_key}_change") do
-              return unless attribute_changed?(store_attribute)
-              prev_store, new_store = changes[store_attribute]
-              accessor = store_accessor_for(store_attribute)
-              prev_value, new_value = accessor.get(prev_store, key), accessor.get(new_store, key)
-              [prev_value, new_value] unless prev_value == new_value
-            end
-
-            define_method("#{accessor_key}_was") do
-              return read_store_attribute(store_attribute, key) unless attribute_changed?(store_attribute)
-              prev_store, _new_store = changes[store_attribute]
-              accessor = store_accessor_for(store_attribute)
-              accessor.get(prev_store, key)
-            end
-
-            define_method("saved_change_to_#{accessor_key}?") do
-              return false unless saved_change_to_attribute?(store_attribute)
-              prev_store, new_store = saved_changes[store_attribute]
-              accessor = store_accessor_for(store_attribute)
-              accessor.get(prev_store, key) != accessor.get(new_store, key)
-            end
-
-            define_method("saved_change_to_#{accessor_key}") do
-              return unless saved_change_to_attribute?(store_attribute)
-              prev_store, new_store = saved_changes[store_attribute]
-              accessor = store_accessor_for(store_attribute)
-              prev_value, new_value = accessor.get(prev_store, key), accessor.get(new_store, key)
-              [prev_value, new_value] unless prev_value == new_value
-            end
-
-            define_method("#{accessor_key}_before_last_save") do
-              return unless saved_change_to_attribute?(store_attribute)
-              prev_store, _new_store = saved_changes[store_attribute]
-              accessor = store_accessor_for(store_attribute)
-              accessor.get(prev_store, key)
-            end
-          end
+        keys.each do |key|
+          accessor_name = "#{accessor_prefix}#{key}#{accessor_suffix}"
+          store_attribute(accessor_name, backed_by: store_name, key: key.to_s, definition: StoreAccessorDefinition)
         end
 
         # assign new store attribute and create new hash to ensure that each class in the hierarchy
         # has its own hash of stored attributes.
         self.local_stored_attributes ||= {}
-        self.local_stored_attributes[store_attribute] ||= []
-        self.local_stored_attributes[store_attribute] |= keys
+        self.local_stored_attributes[store_name] ||= []
+        self.local_stored_attributes[store_name] |= keys
       end
 
       def stored_attributes
@@ -218,21 +157,42 @@ module ActiveRecord
       end
     end
 
+    class StoreAccessorDefinition < ActiveModel::StoreAttribute::Definition # :nodoc:
+      def validate!(parent)
+        return if parent.type.respond_to?(:accessor)
+        raise ConfigurationError, "the column '#{backed_by}' has not been configured as a store. Please make sure the column is declared serializable via 'ActiveRecord.store' or, if your database supports it, use a structured column type like hstore or json."
+      end
+    end
+
     private
-      def read_store_attribute(store_attribute, key) # :doc:
-        accessor = store_accessor_for(store_attribute)
-        accessor.read(self, store_attribute, key)
+      def read_store_attribute(store_name, key)
+        ActiveRecord.deprecator.warn(<<~MSG)
+          `read_store_attribute` is deprecated. Override the accessor and call `super` instead:
+
+              def #{key}
+                super&.gsub(...)
+              end
+        MSG
+        accessor = store_accessor_for(store_name)
+        accessor.read(self, store_name, key)
       end
 
-      def write_store_attribute(store_attribute, key, value) # :doc:
-        accessor = store_accessor_for(store_attribute)
-        accessor.write(self, store_attribute, key, value)
+      def write_store_attribute(store_name, key, value)
+        ActiveRecord.deprecator.warn(<<~MSG)
+          `write_store_attribute` is deprecated. Override the accessor and call `super` instead:
+
+              def #{key}=(value)
+                super(...)
+              end
+        MSG
+        accessor = store_accessor_for(store_name)
+        accessor.write(self, store_name, key, value)
       end
 
-      def store_accessor_for(store_attribute)
-        type_for_attribute(store_attribute).tap do |type|
+      def store_accessor_for(store_name)
+        type_for_attribute(store_name).tap do |type|
           unless type.respond_to?(:accessor)
-            raise ConfigurationError, "the column '#{store_attribute}' has not been configured as a store. Please make sure the column is declared serializable via 'ActiveRecord.store' or, if your database supports it, use a structured column type like hstore or json."
+            raise ConfigurationError, "the column '#{store_name}' has not been configured as a store. Please make sure the column is declared serializable via 'ActiveRecord.store' or, if your database supports it, use a structured column type like hstore or json."
           end
         end.accessor
       end
