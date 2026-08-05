@@ -20,7 +20,7 @@ class Admin::User < ActiveRecord::Base
   store :params, accessors: [ :token ], coder: YAML
 
   store :settings, accessors: [ :color, :homepage ]
-  store_accessor :settings, :favorite_food
+  store_accessor :settings, :favorite_food, :phone_number
 
   store :parent, accessors: [:birthday, :name], prefix: true
 
@@ -41,11 +41,11 @@ class Admin::User < ActiveRecord::Base
   store_accessor :json_options, :enable_friend_requests
 
   def phone_number
-    read_store_attribute(:settings, :phone_number).gsub(/(\d{3})(\d{3})(\d{4})/, '(\1) \2-\3')
+    super&.gsub(/(\d{3})(\d{3})(\d{4})/, '(\1) \2-\3')
   end
 
   def phone_number=(value)
-    write_store_attribute(:settings, :phone_number, value && value.gsub(/[^\d]/, ""))
+    super(value&.gsub(/[^\d]/, ""))
   end
 
   def color

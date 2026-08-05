@@ -27,6 +27,10 @@ module ActiveRecord
             {}
           end
 
+          def self.store_attribute_definitions
+            {}
+          end
+
           def self.primary_key
           end
 

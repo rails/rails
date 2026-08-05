@@ -28,7 +28,7 @@ module ActiveRecord
 
         def builder
           primary_key_defaults = defaults.except(*(context.model_class.column_names - Array(context.model_class.primary_key)))
-          ActiveModel::AttributeSet::Builder.new(types, primary_key_defaults)
+          ActiveModel::AttributeSet::Builder.new(types, primary_key_defaults, context.model_class)
         end
 
         def column_defaults
@@ -96,7 +96,7 @@ module ActiveRecord
         attributes_hash = model_class.columns_hash.transform_values do |column|
           ActiveModel::Attribute.from_database(column.name, column.default, model_class.type_for_column(column))
         end
-        ActiveModel::AttributeSet.new(attributes_hash)
+        ActiveModel::AttributeSet.new(attributes_hash, model_class)
       end
 
       def freeze
@@ -133,6 +133,7 @@ module ActiveRecord
         @all_timestamp_attributes_in_model = (@timestamp_attributes_for_create_in_model + @timestamp_attributes_for_update_in_model).freeze
 
         model_class.make_pending_attribute_modifications_shareable
+        model_class.make_store_attribute_definitions_shareable
         attributes
 
         @schema_loaded = true

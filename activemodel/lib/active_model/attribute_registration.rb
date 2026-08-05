@@ -3,6 +3,7 @@
 require "active_support/core_ext/class/subclasses"
 require "active_model/attribute_set"
 require "active_model/attribute/user_provided_default"
+require "active_model/store_attribute"
 
 module ActiveModel
   module AttributeRegistration # :nodoc:
@@ -10,12 +11,14 @@ module ActiveModel
 
     included do
       @pending_attribute_modifications = []
+      @_store_attribute_definitions = {}
     end
 
     module ClassMethods # :nodoc:
       def inherited(base)
         super
         base.instance_variable_set(:@pending_attribute_modifications, [])
+        base.instance_variable_set(:@_store_attribute_definitions, {})
       end
 
       def attribute(name, type = nil, default: (no_default = true), **options)
@@ -29,6 +32,16 @@ module ActiveModel
         reset_default_attributes
       end
 
+      def store_attribute(name, backed_by:, key: nil, definition: StoreAttribute::Definition) # :nodoc:
+        name = resolve_attribute_name(name)
+        key = (key || name).to_s
+        backed_by = backed_by.to_s
+
+        add_store_attribute_definition(name, definition.new(backed_by, key))
+
+        reset_default_attributes
+      end
+
       def decorate_attributes(names = nil, &decorator) # :nodoc:
         names = names&.map { |name| resolve_attribute_name(name) }
 
@@ -37,8 +50,14 @@ module ActiveModel
         reset_default_attributes
       end
 
+      def store_attribute_definitions # :nodoc:
+        @store_attribute_definitions ||= apply_store_attribute_definitions.tap do |hash|
+          ActiveSupport::Ractors.try_make_shareable(hash)
+        end
+      end
+
       def _default_attributes # :nodoc:
-        @default_attributes ||= AttributeSet.new({}).tap do |attribute_set|
+        @default_attributes ||= AttributeSet.new({}, self).tap do |attribute_set|
           apply_pending_attribute_modifications(attribute_set)
         end
       end
@@ -78,6 +97,23 @@ module ActiveModel
         @pending_attribute_modifications = ActiveSupport::Ractors.try_make_shareable(@pending_attribute_modifications)
       end
 
+      def apply_store_attribute_definitions(collected = {}) # :nodoc:
+        if superclass.respond_to?(:apply_store_attribute_definitions, true)
+          superclass.send(:apply_store_attribute_definitions, collected)
+        end
+
+        collected.merge!(_store_attribute_definitions)
+      end
+
+      def make_store_attribute_definitions_shareable # :nodoc:
+        if superclass.respond_to?(:make_store_attribute_definitions_shareable, true)
+          superclass.send(:make_store_attribute_definitions_shareable)
+        end
+
+        @_store_attribute_definitions = ActiveSupport::Ractors.try_make_shareable(@_store_attribute_definitions)
+        store_attribute_definitions
+      end
+
       private
         PendingType = Struct.new(:name, :type) do # :nodoc:
           def apply_to(attribute_set)
@@ -108,6 +144,12 @@ module ActiveModel
           @pending_attribute_modifications = [*@pending_attribute_modifications, modification]
         end
 
+        attr_reader :_store_attribute_definitions
+
+        def add_store_attribute_definition(name, definition)
+          @_store_attribute_definitions = { **@_store_attribute_definitions, name => definition }
+        end
+
         def reset_default_attributes
           reset_default_attributes!
           subclasses.each { |subclass| subclass.send(:reset_default_attributes) }
@@ -116,6 +158,7 @@ module ActiveModel
         def reset_default_attributes!
           @default_attributes = nil
           @attribute_types = nil
+          @store_attribute_definitions = nil
         end
 
         def resolve_attribute_name(name)
