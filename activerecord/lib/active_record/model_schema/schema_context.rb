@@ -36,7 +36,7 @@ module ActiveRecord
         slot = ActiveSupport::Ractors[@attributes_key]
         return slot[1] if slot && slot[0].equal?(self)
 
-        attributes = Attributes.new(mapped_table, build_default_attributes)
+        attributes = Attributes.new(mapped_table, build_default_attributes, model_class)
         ActiveSupport::Ractors[@attributes_key] = [self, attributes].freeze
         attributes
       end
@@ -136,9 +136,9 @@ module ActiveRecord
 
         if attributes.each_value.all?(&:freezable?)
           attributes.each_value(&:freeze)
-          ActiveModel::ReadOnlyAttributeSet.new(attributes.freeze)
+          ActiveModel::ReadOnlyAttributeSet.new(attributes.freeze, model_class)
         else
-          ActiveModel::AttributeSet.new(attributes)
+          ActiveModel::AttributeSet.new(attributes, model_class)
         end
       end
 
@@ -184,7 +184,8 @@ module ActiveRecord
         yield mapped_table
         mapped_table.resolve_model_hooks(self)
         model_class.make_pending_attribute_modifications_shareable
-        attributes = Attributes.new(mapped_table, build_default_attributes)
+        model_class.make_store_attribute_definitions_shareable
+        attributes = Attributes.new(mapped_table, build_default_attributes, model_class)
         if attributes.defaults.read_only? && ActiveSupport::Ractors.shareable?(attributes.defaults)
           mapped_table.attributes = attributes
         else

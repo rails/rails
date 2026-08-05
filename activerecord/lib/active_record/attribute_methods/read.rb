@@ -17,6 +17,9 @@ module ActiveRecord
           def define_method_attribute(canonical_name, owner:, as: canonical_name)
             slot = attributes_builder.indexes[canonical_name]
             unless slot
+              if store_attribute_definitions.key?(canonical_name)
+                return define_method_store_attribute(canonical_name, owner: owner, as: as)
+              end
               raise ArgumentError, "#{self.name} has no attribute `#{canonical_name}` to define a reader for"
             end
 
@@ -27,6 +30,22 @@ module ActiveRecord
                 batch <<
                   "def #{temp_method_name}" <<
                   "  _read_attribute_at!(#{slot})" <<
+                  "end"
+              end
+            end
+          end
+
+          # A store attribute has no slot of its own: it's synthesized from
+          # the attribute backing it, so its reader looks it up by name.
+          #: (String, owner: ActiveSupport::CodeGenerator, ?as: String) -> void
+          def define_method_store_attribute(canonical_name, owner:, as: canonical_name)
+            ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
+              canonical_name
+            ) do |temp_method_name, attr_name_expr|
+              owner.define_cached_method(temp_method_name, as: as, namespace: :active_record) do |batch|
+                batch <<
+                  "def #{temp_method_name}" <<
+                  "  _read_attribute!(#{attr_name_expr})" <<
                   "end"
               end
             end

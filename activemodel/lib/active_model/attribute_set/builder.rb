@@ -85,15 +85,16 @@ module ActiveModel
       class FromInitContext < Context # :nodoc:
       end
 
-      attr_reader :types, :default_attributes, :default_keys, :indexes
+      attr_reader :types, :default_attributes, :default_keys, :indexes, :model_class
 
       # +default_keys+ limits which of +default_attributes+ records loaded from
       # the database fall back to (anything responding to <tt>include?</tt>).
-      #: (Hash[String, Type::Value], AttributeSet, untyped) -> void
-      def initialize(types, default_attributes, default_keys)
+      #: (Hash[String, Type::Value], AttributeSet, untyped, ?Class?) -> void
+      def initialize(types, default_attributes, default_keys, model_class = nil)
         @types = types
         @default_attributes = default_attributes
         @default_keys = default_keys
+        @model_class = model_class
         # Rows loaded from the database are laid out with these, so a row has
         # an index for every attribute of the model: the columns first, then
         # the other attributes, then any typed names the defaults lack.
@@ -131,12 +132,12 @@ module ActiveModel
       # #indexes, such as aliases (see #typed_indexes).
       #: (Array[untyped], Hash[String, Integer] | IndexedRow::ExtendedIndexes) -> LazyIndexedAttributeSet
       def build_from_row(row, indexes)
-        LazyIndexedAttributeSet.new(row, indexes, @from_db_context)
+        LazyIndexedAttributeSet.new(row, indexes, @from_db_context, model_class)
       end
 
       #: () -> LazyIndexedAttributeSet
       def build_from_initialize
-        LazyIndexedAttributeSet.new(EMPTY_ROW, @indexes, @from_init_context)
+        LazyIndexedAttributeSet.new(EMPTY_ROW, @indexes, @from_init_context, model_class)
       end
 
       # Lays +hash+ out like a row loaded from the database: each name at
@@ -170,7 +171,7 @@ module ActiveModel
       def relayout_attributes(attribute_set)
         attributes = IndexedRow::Mutable.new(@indexes)
         attribute_set.each_value { |attribute| attributes[attribute.name] = attribute }
-        AttributeSet.new(attributes)
+        AttributeSet.new(attributes, model_class)
       end
 
       # A copy of this builder that uses +types+ (a Hash by name) for the

@@ -10,14 +10,15 @@ module ActiveModel
   class ReadOnlyAttributeSet # :nodoc:
     delegate :each_value, :fetch, :except, :indexes, to: :attributes
 
-    def initialize(attributes)
+    def initialize(attributes, model_class = nil)
       @attributes = attributes
+      @model_class = model_class
       raise ArgumentError, "all attributes should be initialized" unless all_initialized?
       freeze
     end
 
     def [](name)
-      @attributes[name] || default_attribute(name)
+      @attributes[name] || virtual_attribute(name) || default_attribute(name)
     end
 
     def cast_types
@@ -39,7 +40,7 @@ module ActiveModel
 
     #: () -> ActiveModel::AttributeSet
     def writable
-      AttributeSet.new(attributes.transform_row(&:dup))
+      AttributeSet.new(attributes.transform_row(&:dup), @model_class)
     end
 
     def to_hash
@@ -51,12 +52,12 @@ module ActiveModel
     #: () { (ActiveModel::Attribute) -> ActiveModel::Attribute } -> instance
     def map(&block)
       new_attributes = attributes.transform_row(&block)
-      self.class.new(new_attributes)
+      self.class.new(new_attributes, @model_class)
     end
 
     #: () -> instance
     def deep_dup
-      self.class.new(attributes.transform_row(&:deep_dup))
+      self.class.new(attributes.transform_row(&:deep_dup), @model_class)
     end
 
     def ==(other)
@@ -77,14 +78,20 @@ module ActiveModel
       def default_attribute(name)
         Attribute.null(name)
       end
+
+      def virtual_attribute(name)
+        return unless @model_class && (definition = @model_class.store_attribute_definitions[name])
+        definition.build_attribute(name, self)
+      end
   end
 
   # +attributes+ is an IndexedRow::Mutable of Attribute objects.
   class AttributeSet # :nodoc:
     delegate :each_value, :fetch, :except, to: :attributes
 
-    def initialize(attributes)
+    def initialize(attributes, model_class = nil)
       @attributes = attributes
+      @model_class = model_class
     end
 
     #: () -> (Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes)
@@ -95,12 +102,12 @@ module ActiveModel
     def read_only
       attributes.values.each(&:freeze)
       attributes.freeze
-      ReadOnlyAttributeSet.new(attributes)
+      ReadOnlyAttributeSet.new(attributes, @model_class)
     end
 
     #: (String) -> ActiveModel::Attribute
     def [](name)
-      lookup(name) || default_attribute(name)
+      lookup(name) || virtual_attribute(name) || default_attribute(name)
     end
 
     #: (String, ActiveModel::Attribute) -> ActiveModel::Attribute
@@ -176,19 +183,19 @@ module ActiveModel
 
     #: (String, untyped) -> ActiveModel::Attribute
     def write_from_database(name, value)
-      store(name, self[name].with_value_from_database(value))
+      write(name) { |attribute| attribute.with_value_from_database(value) }
     end
 
     #: (String, untyped) -> untyped
     def write_from_user(name, value)
       raise FrozenError, "can't modify frozen attributes" if frozen?
-      store(name, self[name].with_value_from_user(value))
+      write(name) { |attribute| attribute.with_value_from_user(value) }
       value
     end
 
     #: (String, untyped) -> ActiveModel::Attribute
     def write_cast_value(name, value)
-      store(name, self[name].with_cast_value(value))
+      write(name) { |attribute| attribute.with_cast_value(value) }
     end
 
     #: () -> self
@@ -199,7 +206,7 @@ module ActiveModel
 
     #: () -> ActiveModel::AttributeSet
     def deep_dup
-      AttributeSet.new(attributes.transform_row(&:dup_or_share))
+      AttributeSet.new(attributes.transform_row(&:dup_or_share), @model_class)
     end
 
     def initialize_dup(_)
@@ -225,7 +232,7 @@ module ActiveModel
     #: () { (ActiveModel::Attribute) -> ActiveModel::Attribute } -> ActiveModel::AttributeSet
     def map(&block)
       new_attributes = attributes.transform_row(&block)
-      AttributeSet.new(new_attributes)
+      AttributeSet.new(new_attributes, @model_class)
     end
 
     def values
@@ -252,6 +259,28 @@ module ActiveModel
       #: (String, ActiveModel::Attribute) -> ActiveModel::Attribute
       def store(name, attribute)
         @attributes[name] = attribute
+      end
+
+      # Stores the block's result for the attribute +name+. A virtual
+      # attribute writes through to the attribute backing it, so there is
+      # nothing of its own to store.
+      #: (String) { (ActiveModel::Attribute) -> ActiveModel::Attribute } -> ActiveModel::Attribute
+      def write(name)
+        if attribute = lookup(name)
+          store(name, yield(attribute))
+        elsif virtual = virtual_attribute(name)
+          yield(virtual)
+        else
+          store(name, yield(default_attribute(name)))
+        end
+      end
+
+      # The attribute for a name the model declares as a store attribute,
+      # synthesized on lookup rather than held in +@attributes+.
+      #: (String) -> ActiveModel::Attribute?
+      def virtual_attribute(name)
+        return unless @model_class && (definition = @model_class.store_attribute_definitions[name])
+        definition.build_attribute(name, self)
       end
 
       #: () -> void
@@ -296,10 +325,10 @@ module ActiveModel
     # doesn't have (like from `select count(*) as blah`). +ctx+ is a
     # Builder::Context, for looking up the model's attributes by index.
     #: (Array[untyped], Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes, ActiveModel::AttributeSet::Builder::Context) -> void
-    def initialize(row, indexes, ctx)
+    def initialize(row, indexes, ctx, model_class = nil)
       # Attributes are only built when something needs one (a write, a
       # default, or #materialize), so +@attributes+ starts out +nil+.
-      super(nil)
+      super(nil, model_class)
       @row = row
       @ctx = ctx
       # Values cast from +row+, by the same index. Only values in the row
@@ -321,7 +350,7 @@ module ActiveModel
       if index = index_for_name(name)
         attribute_at(name, index)
       else
-        Attribute.null(name)
+        virtual_attribute(name) || Attribute.null(name)
       end
     end
 
@@ -373,7 +402,7 @@ module ActiveModel
     #: (String) ?{ (String) -> untyped } -> untyped
     def fetch_value(name, &block)
       index = index_for_name(name)
-      return unless index
+      return virtual_attribute(name)&.value(&block) unless index
 
       value_at(index, name, &block)
     end
@@ -381,7 +410,7 @@ module ActiveModel
     #: (String) -> untyped
     def fetch_value!(name)
       index = index_for_name(name)
-      return unless index
+      return virtual_attribute(name)&.value! unless index
 
       value_at!(index, name)
     end
@@ -423,6 +452,7 @@ module ActiveModel
       raise FrozenError, "can't modify frozen attributes" if frozen?
       index = index_for_name(name)
       attribute = write(name) { |attr| attr.with_value_from_user(value) }
+      return value unless index
       # Cast now so the first read of the attribute stays on the fast path.
       # A mutable type's cast can copy the value (deserialize(serialize(v))
       # for a serialized column) or run a coder that rejects it, so those
@@ -555,8 +585,15 @@ module ActiveModel
       #: (String) { (ActiveModel::Attribute) -> ActiveModel::Attribute } -> ActiveModel::Attribute
       def write(name)
         index = index_for_name(name)
-        attribute = index ? attribute_at(name, index) : Attribute.null(name)
-        store(index, yield(attribute))
+        return store(index, yield(attribute_at(name, index))) if index
+
+        # A virtual attribute writes through to the attribute backing it, so
+        # it has no slot of its own to store.
+        if virtual = virtual_attribute(name)
+          yield(virtual)
+        else
+          store(index, yield(Attribute.null(name)))
+        end
       end
 
       # The value at +index+ for an attribute that hasn't been built or cast
