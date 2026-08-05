@@ -205,6 +205,17 @@ if RUBY_VERSION >= "4.0"
     include ActiveSupport::Testing::Isolation
     include ActiveSupport::Testing::RactorsAssertions
 
+    test "view_context_class's compiled method container is readable from a non-main Ractor" do
+      klass = ActionView::LookupContext.view_context_class
+
+      singleton_container, instance_container = on_ractor(klass) do |k|
+        [k.compiled_method_container, k.allocate.compiled_method_container]
+      end
+
+      assert_same klass, singleton_container
+      assert_same klass, instance_container
+    end
+
     test "view_context_class is Ractor-shareable" do
       ActionView::LookupContext.view_context_class # needs to be eager-loaded to be ractor-shareable
       assert_same ActionView::LookupContext.view_context_class,
