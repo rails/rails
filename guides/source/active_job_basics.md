@@ -553,6 +553,54 @@ bulk enqueuing with the `GoodJob::Bulk.enqueue` method.
 If the queue backend does *not* support bulk enqueuing, `perform_all_later` will
 enqueue jobs one by one.
 
+### Debouncing Jobs
+
+Some jobs are enqueued far more often than their work needs doing: pushing a
+badge count on every notification, reindexing a record on every save. Use
+`debounce` to collapse a burst of `perform_later` calls into at most two jobs
+per window of time — a leading job that runs immediately, so the effect feels
+instant, and a trailing job scheduled a full window out that sweeps up whatever
+happened during the burst. Callers just enqueue at will:
+
+```ruby
+class BadgeCountPushJob < ApplicationJob
+  debounce within: 30.seconds, by: ->(user) { user.id }
+
+  def perform(user)
+    user.push_badge_count
+  end
+end
+
+BadgeCountPushJob.perform_later(user) # enqueued immediately (leading)
+BadgeCountPushJob.perform_later(user) # scheduled 30 seconds out (trailing)
+BadgeCountPushJob.perform_later(user) # suppressed; returns false
+```
+
+Enqueues are debounced per the identity given by `by:` — a callable evaluated
+in the context of the job and passed the job's arguments, or a method name (as
+a symbol) called on the job. Without `by:`, the whole class shares one
+debounce.
+
+Pass `leading: false` for a classic trailing debounce, where the first call is
+itself scheduled a full window out, or `trailing: false` to suppress everything
+after the leading enqueue until the window expires.
+
+Debouncing works at enqueue time, so it is queue-backend agnostic. Claims are
+won through a store, defaulting to `Rails.cache.write(..., unless_exist: true)`;
+supply any object responding to `claim(key, expires_in:)` with the `store:`
+option. A store that returns `nil` (for example, when its backing service is
+unreachable) makes debouncing fail open: the job enqueues immediately rather
+than risk being lost.
+
+Suppressed calls abort the enqueue, so their `perform_later` returns `false` —
+except when [`enqueue_after_transaction_commit`](#transactional-integrity-on-jobs)
+defers the enqueue, in which case the debounce decision happens at commit time,
+after `perform_later` has already returned the job. Jobs enqueued with an
+explicit `set(wait:)` or `set(wait_until:)` bypass debouncing, as do retries. Every decision emits a
+[`debounce.active_job`](active_support_instrumentation.html#debounce-active-job)
+event with its outcome: `:leading`, `:trailing`, `:suppressed`, or
+`:failed_open`.
+
 Callbacks
 ---------
 
