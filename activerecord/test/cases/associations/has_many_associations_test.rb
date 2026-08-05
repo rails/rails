@@ -2223,6 +2223,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, firm.clients.size
   end
 
+  def test_ids_reader_on_loaded_association_of_new_record
+    client = Client.create!(name: "Client")
+    firm = Firm.new(name: "Startup")
+    firm.clients = [client]
+
+    assert_predicate firm.clients, :loaded?
+    assert_equal [client.id], firm.clients.ids
+  end
+
+  def test_pluck_on_loaded_association_of_new_record
+    client = Client.create!(name: "Client")
+    firm = Firm.new(name: "Startup")
+    firm.clients = [client]
+
+    assert_equal ["Client"], firm.clients.pluck(:name)
+  end
+
+  def test_pluck_on_unloaded_association_of_new_record
+    Client.create!(name: "Client")
+    firm = Firm.new(name: "Startup")
+
+    assert_equal [], firm.clients.pluck(:name)
+  end
+
   def test_ids_reader_cache_should_be_cleared_when_collection_is_deleted
     firm = companies(:first_firm)
     assert_equal [2, 3, 11], firm.client_ids

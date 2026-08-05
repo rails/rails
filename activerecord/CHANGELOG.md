@@ -1,3 +1,23 @@
+*   Fix `pluck` ignoring records assigned to a new record's association.
+
+    ```ruby
+    # Before
+    post = Post.new
+    post.tags = [Tag.create!(name: "ruby")]
+
+    post.tags.pluck(:name) # => []
+    post.save!
+    post.tags.pluck(:name) # => ["ruby"]
+
+    # After
+    post = Post.new
+    post.tags = [Tag.create!(name: "ruby")]
+
+    post.tags.pluck(:name) # => ["ruby"]
+    ```
+
+    *Donal McBreen*
+
 *   Restore `alias_attribute` support in associations.
 
     Since Rails 4.2, association reads have bypassed the public
