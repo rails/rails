@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "fileutils"
 require "action_view/dependency_tracker"
+require "active_support/testing/ractors_assertions"
 
 class FixtureFinder < ActionView::LookupContext
   FIXTURES_DIR = File.expand_path("../fixtures/digestor", __dir__)
@@ -404,4 +405,47 @@ class TemplateDigestorTest < ActionView::TestCase
     def remove_template(template_name)
       File.delete("digestor/#{template_name}.html.erb")
     end
+end
+
+class DigestorRactorTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::RactorsAssertions
+
+  TEMPLATES = {
+    "messages/show.html.erb" => %(<%= render "messages/message" %>),
+    "messages/_message.html.erb" => "Message",
+  }.freeze
+
+  setup do
+    Mime.eager_load!
+    # OpenSSL::Digest per-algorithm class methods are defined with
+    # unshareable closures until a Ruby ships with ruby/openssl@502bc6c
+    require "digest"
+    ActiveSupport::Digest.hash_digest_class = ::Digest::MD5
+    ActionView::DependencyTracker.eager_load!
+    ActionView::DependencyTracker.share_registry
+
+    # The i18n gem keeps its configuration in class variables.
+    I18n::Config.prepend(Module.new do
+      def available_locales = [:en].freeze
+    end)
+  end
+
+  test "digests are computed inside a non-main Ractor" do
+    digest_in_ractor = on_ractor do
+      finder = ActionView::LookupContext.new(
+        [ActionView::FixtureResolver.new(TEMPLATES.dup)],
+        { locale: [:en], formats: [:html], variants: [], handlers: [:erb] }
+      )
+      ActionView::Digestor.digest(name: "messages/show", format: :html, finder: finder)
+    end
+
+    finder = ActionView::LookupContext.new(
+      [ActionView::FixtureResolver.new(TEMPLATES.dup)],
+      { locale: [:en], formats: [:html], variants: [], handlers: [:erb] }
+    )
+    digest = ActionView::Digestor.digest(name: "messages/show", format: :html, finder: finder)
+
+    assert_equal digest, digest_in_ractor
+  end
 end
