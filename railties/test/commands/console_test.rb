@@ -89,6 +89,20 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_equal("#{magenta}custom_env#{clear}", irb_console.colorized_env)
   end
 
+  def test_show_startup_banner
+    app = build_app(nil)
+    irb_console = Rails::Console.new(app).console
+
+    IRB.conf[:SHOW_BANNER] = true
+    out = capture(:stdout) { irb_console.show_startup_banner }
+    assert_match(/Rails v#{Regexp.escape(Rails.version)}/, out)
+    assert_match(/Ruby #{Regexp.escape(RUBY_VERSION)}/, out)
+
+    IRB.conf[:SHOW_BANNER] = false
+    out = capture(:stdout) { irb_console.show_startup_banner }
+    assert_empty out
+  end
+
   def test_default_environment_with_no_rails_env
     with_rails_env nil do
       start

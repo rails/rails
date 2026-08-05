@@ -69,6 +69,23 @@ module Rails
     IRB::HelperMethod.register(:reload!, ReloadHelper)
 
     class IRBConsole
+      TIPS = [
+        '"app" opens an ActionDispatch::Integration::Session for the app',
+        '"helper" gives access to ApplicationController\'s helper methods',
+        '"controller" gives you a new ApplicationController instance',
+        '"reload!" reloads the application',
+        '"--sandbox" rolls back database changes when the console exits',
+        '"_" holds the value of the last evaluated expression',
+        '"source_location" shows where a method was defined, e.g. method(:reload!).source_location',
+      ].freeze
+
+      LOGO = [
+        '⠀⠀⠀⠀⠀⠰⣀⣤⠥⠒⠀⠀',
+        '⠀⠀⠀⠚⣶⣿⡟⠡⠈⠀⠀⠀',
+        '⠀⠀⠆⣾⣿⣿⠐⠀⠀⠀⠀⠀',
+        '⠀⠀⠸⠿⠿⠿⠐⠀⠀⠀⠀⠀'
+      ].freeze
+
       def initialize(app)
         @app = app
 
@@ -112,7 +129,45 @@ module Rails
 
         # Respect user's choice of prompt mode.
         IRB.conf[:PROMPT_MODE] = :RAILS_PROMPT if IRB.conf[:PROMPT_MODE] == :DEFAULT
+        show_startup_banner
         IRB::Irb.new.run(IRB.conf)
+      end
+
+      def show_startup_banner
+        return unless IRB.conf[:SHOW_BANNER]
+
+        logo_lines = unicode_logo
+        info_lines = [
+          "#{IRB::Color.colorize('Rails', [:BOLD])} v#{Rails.version} - Ruby #{RUBY_VERSION}  (#{colorized_env})",
+          colorize_tip(TIPS.sample),
+          IRB::Color.colorize(short_rails_root, [:CYAN]),
+        ]
+
+        output = if logo_lines
+          max = [logo_lines.size, info_lines.size].max
+          max.times.map { |i| "#{IRB::Color.colorize(logo_lines[i].to_s, [:RED, :BOLD])}  #{info_lines[i]}" }.join("\n")
+        else
+          info_lines.join("\n")
+        end
+
+        puts
+        puts output
+        puts
+      end
+
+      def unicode_logo
+        return nil unless (STDOUT.external_encoding || Encoding.default_external) == Encoding::UTF_8
+        LOGO
+      end
+
+      def colorize_tip(tip)
+        tip.gsub(/"[^"]*"/) { |match| IRB::Color.colorize(match, [:YELLOW]) }
+      end
+
+      def short_rails_root
+        root = Rails.root.to_s
+        home = ENV["HOME"]
+        home && (root == home || root.start_with?("#{home}/")) ? "~#{root[home.size..]}" : root
       end
 
       def colorized_env
