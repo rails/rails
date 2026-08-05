@@ -20,8 +20,11 @@ module AbstractController
     end
 
     Mime::Type.on_change do |mime, registered|
-      next unless registered
-      generate_method_for_mime(mime) unless instance_methods.include?(mime.to_sym)
+      if registered
+        generate_method_for_mime(mime) unless instance_methods.include?(mime.to_sym)
+      elsif instance_methods.include?(mime.to_sym)
+        remove_method(mime.to_sym)
+      end
     end
 
   private

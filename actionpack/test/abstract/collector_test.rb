@@ -43,6 +43,38 @@ module AbstractController
         end
       end
 
+      test "removes the generated method when a mime type is unregistered" do
+        Mime::Type.register "text/foobar", :foobar
+        collector = MyCollector.new
+        assert_respond_to collector, :foobar
+
+        Mime::Type.unregister :foobar
+        assert_not_respond_to collector, :foobar
+
+        error = assert_raise(NoMethodError) { collector.foobar }
+        assert_match(/register it as a MIME type first/, error.message)
+      ensure
+        Mime::Type.unregister(:foobar) if Mime[:foobar]
+        if AbstractController::Collector.method_defined?(:foobar)
+          AbstractController::Collector.remove_method(:foobar)
+        end
+      end
+
+      test "re-registering a mime type restores the collector method" do
+        Mime::Type.register "text/foobar", :foobar
+        Mime::Type.unregister :foobar
+        Mime::Type.register "text/foobar", :foobar
+
+        collector = MyCollector.new
+        collector.foobar
+        assert_equal [Mime[:foobar], [], {}, nil], collector.responses[0]
+      ensure
+        Mime::Type.unregister(:foobar) if Mime[:foobar]
+        if AbstractController::Collector.method_defined?(:foobar)
+          AbstractController::Collector.remove_method(:foobar)
+        end
+      end
+
       test "does not register unknown mime types" do
         collector = MyCollector.new
         assert_raise NoMethodError do
