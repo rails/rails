@@ -673,6 +673,13 @@ module Rails
 
       @autoloaders, @reloaders, @routes_reloader = nil, nil, nil
 
+      if defined?(ActionView::PathRegistry)
+        view = ActionView::LookupContext.view_context_class.new(ActionView::LookupContext.new([]), {}, nil)
+        ActionView::PathRegistry.all_file_system_resolvers.each do |resolver|
+          resolver.eager_load_templates(view)
+        end
+      end
+
       Ractor.make_shareable(self)
       Ractor.make_shareable(Rails.event)
       Ractor.make_shareable(Rails.error)
