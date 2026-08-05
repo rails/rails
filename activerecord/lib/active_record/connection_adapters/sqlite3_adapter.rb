@@ -602,6 +602,14 @@ module ActiveRecord
           end
         end
 
+        def normalize_boolean_default(default)
+          case default
+          when "TRUE" then "1"
+          when "FALSE" then "0"
+          else default
+          end
+        end
+
         def extract_default_function(default_value, default)
           default if has_default_function?(default_value, default)
         end
@@ -694,7 +702,7 @@ module ActiveRecord
                 column_options[:stored] = column.virtual_stored?
                 column_options[:type] = column.type
               elsif column.has_default?
-                default = column.cast_type.deserialize(column.default)
+                default = column.cast_type.deserialize(column.default_before_type_cast)
                 default = -> { column.default_function } if default.nil?
 
                 unless column.auto_increment?

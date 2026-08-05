@@ -1,3 +1,29 @@
+*   Fix overriding the type of a column that has a default value.
+
+    Column defaults are deserialized when the schema is loaded, so overriding
+    the type of such a column with `attribute` would type cast the already
+    deserialized default a second time, with the wrong type. On a boolean
+    column redefined as an integer this raised
+    `NoMethodError: undefined method 'to_i' for true`:
+
+    ```ruby
+    # A tinyint(1) column with `DEFAULT '1'`, mapped to :boolean.
+    class Post < ActiveRecord::Base
+      attribute :status, :integer
+    end
+
+    Post.new.status # => NoMethodError: undefined method 'to_i' for true
+    ```
+
+    Columns now also keep the default as the database reported it, in
+    `Column#default_before_type_cast`, and an overriding type (including the
+    one `enum` installs) deserializes that value instead. Defaults of columns
+    whose type is not overridden are unaffected.
+
+    Fixes #58292.
+
+    *Jokūbas Lekevičius*, *Nicolas Vandenbogaerde*
+
 *   Restore `alias_attribute` support in associations.
 
     Since Rails 4.2, association reads have bypassed the public

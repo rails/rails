@@ -140,6 +140,7 @@ module ActiveRecord
 
             type_metadata = fetch_type_metadata(field["type"])
             default_value = extract_value_from_default(default)
+            default_value = normalize_boolean_default(default_value) if type_metadata.type == :boolean
             generated_type = extract_generated_type(field)
 
             if generated_type.present?

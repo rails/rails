@@ -86,7 +86,7 @@ module ActiveRecord
         def schema_default(column)
           return unless column.has_default?
           type = column.cast_type
-          default = type.deserialize(column.default)
+          default = type.deserialize(column.default_before_type_cast)
           if default.nil?
             schema_expression(column)
           else

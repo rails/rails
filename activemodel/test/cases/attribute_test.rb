@@ -328,5 +328,41 @@ module ActiveModel
 
       assert_equal 1, attribute.with_type(Type::Integer.new).value
     end
+
+    test "from_database_default type casts from the raw value" do
+      attribute = Attribute.from_database_default(:foo, "1", Type::Boolean.new)
+
+      assert_equal true, attribute.value
+      assert_equal true, attribute.value_before_type_cast
+    end
+
+    test "from_database_default keeps mutable values serialized" do
+      attribute = Attribute.from_database_default(:foo, "[]", Type::Value.new)
+
+      assert_equal "[]", attribute.value_before_type_cast
+    end
+
+    test "with_type re-casts from_database_default from the raw value" do
+      attribute = Attribute.from_database_default(:foo, "1", Type::Boolean.new)
+
+      assert_equal true, attribute.value
+      assert_equal 1, attribute.with_type(Type::Integer.new).value
+    end
+
+    test "with_type preserves from_database_default mutations" do
+      attribute = Attribute.from_database_default(:foo, +"", Type::Value.new)
+      attribute.value << "1"
+
+      assert_equal 1, attribute.with_type(Type::Integer.new).value
+    end
+
+    test "from_database_default round trips through YAML" do
+      attribute = Attribute.from_database_default(:foo, "1", Type::Boolean.new)
+      permitted = [Symbol, ActiveModel::Type::Boolean, attribute.class]
+      attribute = YAML.load(YAML.dump(attribute), permitted_classes: permitted)
+
+      assert_equal true, attribute.value
+      assert_equal 1, attribute.with_type(Type::Integer.new).value
+    end
   end
 end

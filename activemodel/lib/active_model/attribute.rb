@@ -9,6 +9,10 @@ module ActiveModel
         FromDatabase.new(name, value_before_type_cast, type, nil, value)
       end
 
+      def from_database_default(name, value_before_type_cast, type) # :nodoc:
+        FromDatabaseDefault.new(name, value_before_type_cast, type)
+      end
+
       def from_user(name, value_before_type_cast, type, original_attribute = nil)
         FromUser.new(name, value_before_type_cast, type, original_attribute)
       end
@@ -202,6 +206,78 @@ module ActiveModel
           end
       end
 
+      # Column defaults are read from the schema as raw database values, and are
+      # deserialized so that +*_before_type_cast+ returns the same thing as
+      # reading the column back from the database.
+      #
+      # The raw value is kept around because a model can override the type of a
+      # column with ActiveModel::AttributeRegistration::ClassMethods#attribute.
+      # When that happens the default has to be deserialized again, with the
+      # overridden type rather than with the type of the column.
+      class FromDatabaseDefault < FromDatabase # :nodoc:
+        def value
+          @value = type_cast(raw_value_before_type_cast) unless defined?(@value)
+          @value
+        end
+
+        def value_before_type_cast
+          # A mutable type is left serialized, otherwise mutations of the shared
+          # default would leak from one record to the next.
+          if raw_value_before_type_cast.nil? || type.nil? || type.mutable?
+            raw_value_before_type_cast
+          else
+            value
+          end
+        end
+
+        def original_value
+          if assigned?
+            original_attribute.original_value
+          else
+            # Deserialize again rather than reuse +value+, so that in place
+            # mutations of +value+ aren't reflected here.
+            type_cast(raw_value_before_type_cast)
+          end
+        end
+
+        def with_type(type)
+          if changed_in_place?
+            with_value_from_user(value).with_type(type)
+          else
+            self.class.new(name, raw_value_before_type_cast, type, original_attribute)
+          end
+        end
+
+        def forgetting_assignment
+          if !defined?(@value_for_database) && !changed_in_place?
+            with_value_from_database(raw_value_before_type_cast)
+          else
+            super
+          end
+        end
+
+        def init_with(coder)
+          super
+          @value_before_type_cast = coder["raw_value_before_type_cast"]
+        end
+
+        def encode_with(coder)
+          super
+          unless raw_value_before_type_cast.nil?
+            coder["raw_value_before_type_cast"] = raw_value_before_type_cast
+          end
+        end
+
+        def raw_value_before_type_cast # :nodoc:
+          @value_before_type_cast
+        end
+
+        private
+          def _original_value_for_database
+            raw_value_before_type_cast
+          end
+      end
+
       class FromUser < Attribute # :nodoc:
         def type_cast(value)
           type.cast(value)
@@ -280,6 +356,6 @@ module ActiveModel
         end
       end
 
-      private_constant :FromDatabase, :FromUser, :Null, :Uninitialized, :WithCastValue
+      private_constant :FromDatabase, :FromDatabaseDefault, :FromUser, :Null, :Uninitialized, :WithCastValue
   end
 end

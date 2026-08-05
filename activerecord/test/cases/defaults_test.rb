@@ -58,6 +58,176 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   end
 end
 
+class DefaultsWithOverriddenAttributeTypeTest < ActiveRecord::TestCase
+  # A custom type is expected to receive the raw value from the database, so it
+  # can be used to assert what the default is deserialized from.
+  class RawValueType < ActiveModel::Type::Value
+    def deserialize(value)
+      value.class.name
+    end
+  end
+
+  class StringNumber < ActiveRecord::Base
+    self.table_name = "overridden_defaults"
+    attribute :number, :string
+  end
+
+  class RawNumber < ActiveRecord::Base
+    self.table_name = "overridden_defaults"
+    attribute :number, RawValueType.new
+  end
+
+  class DatetimePublishedOn < ActiveRecord::Base
+    self.table_name = "overridden_defaults"
+    attribute :published_on, :datetime
+  end
+
+  class RawPrice < ActiveRecord::Base
+    self.table_name = "overridden_defaults"
+    attribute :price, RawValueType.new
+  end
+
+  class IntegerFlag < ActiveRecord::Base
+    self.table_name = "overridden_defaults"
+    attribute :flag, :integer
+  end
+
+  class StringFlag < ActiveRecord::Base
+    self.table_name = "overridden_defaults"
+    attribute :flag, :string
+  end
+
+  class IntegerFlagWithDefault < ActiveRecord::Base
+    self.table_name = "overridden_defaults"
+    attribute :flag, :integer, default: 3
+  end
+
+  class NumberEnum < ActiveRecord::Base
+    self.table_name = "overridden_defaults"
+    enum :number, { seven: 7, eight: 8 }
+  end
+
+  class PlainDefaults < ActiveRecord::Base
+    self.table_name = "overridden_defaults"
+  end
+
+  MODELS = [StringNumber, RawNumber, DatetimePublishedOn, RawPrice, IntegerFlag,
+            StringFlag, IntegerFlagWithDefault, NumberEnum, PlainDefaults].freeze
+
+  setup do
+    @connection = ActiveRecord::Base.lease_connection
+    @connection.create_table :overridden_defaults, force: true do |t|
+      t.integer :number, default: 7
+      t.boolean :flag, default: true
+      t.date :published_on, default: "2020-01-02"
+      t.decimal :price, default: 1.5, precision: 8, scale: 2
+    end
+    MODELS.each(&:reset_column_information)
+  end
+
+  teardown do
+    @connection.drop_table :overridden_defaults, if_exists: true
+  end
+
+  def test_default_is_deserialized_with_the_overridden_type
+    record = StringNumber.new
+    assert_equal "7", record.number
+    assert_equal "7", record.number_before_type_cast
+  end
+
+  def test_overridden_type_receives_the_raw_default
+    assert_equal "String", RawNumber.new.number
+    assert_equal "String", RawPrice.new.price
+  end
+
+  def test_mutable_overridden_type_deserializes_the_raw_default
+    published_on = DatetimePublishedOn.new.published_on
+    assert_kind_of Time, published_on
+    assert_equal [2020, 1, 2], [published_on.year, published_on.month, published_on.day]
+  end
+
+  # Deserializing the default with the overridden type must not change anything
+  # for the columns whose type is not overridden.
+  def test_defaults_of_columns_that_are_not_overridden_are_unaffected
+    record = PlainDefaults.new
+
+    assert_equal 7, record.number
+    assert_equal 7, record.number_before_type_cast
+    assert_equal Date.new(2020, 1, 2), record.published_on
+    assert_equal BigDecimal("1.5"), record.price
+    assert_equal BigDecimal("1.5"), record.price_before_type_cast
+  end
+
+  # The column type deserializes the default into `true`, which an integer type
+  # cannot deserialize. The overridden type has to be given the raw default.
+  def test_overriding_the_type_of_a_column_the_default_is_not_valid_for
+    assert_kind_of Integer, IntegerFlag.new.flag
+  end
+
+  if current_adapter?(:SQLite3Adapter)
+    def test_sqlite_boolean_default_is_deserialized_with_the_overridden_type
+      assert_equal 1, IntegerFlag.new.flag
+      assert_equal "1", StringFlag.new.flag
+    end
+  end
+
+  def test_overridden_type_is_used_to_round_trip_values
+    record = StringNumber.create!(number: "9")
+    assert_equal "9", record.reload.number
+  end
+
+  def test_partial_inserts_with_an_overridden_type
+    original_partial_inserts = IntegerFlag.partial_inserts?
+    IntegerFlag.partial_inserts = true
+
+    record = IntegerFlag.create!(flag: 2)
+    assert_equal 2, record.reload.flag
+  ensure
+    IntegerFlag.partial_inserts = original_partial_inserts
+  end
+
+  def test_overridden_type_with_a_user_provided_default
+    assert_equal 3, IntegerFlagWithDefault.new.flag
+    assert_equal 3, IntegerFlagWithDefault.create!.reload.flag
+  end
+
+  # `enum` overrides the type of the column it is declared on, so a column with
+  # a default reaches the same code path as an explicit `attribute` override.
+  def test_enum_on_a_column_with_a_default
+    assert_equal "seven", NumberEnum.new.number
+    assert_equal "seven", NumberEnum.create!.reload.number
+  end
+
+  def test_column_keeps_the_default_before_type_cast
+    column = PlainDefaults.columns_hash["number"]
+
+    assert_equal 7, column.default
+    assert_equal "7", column.default_before_type_cast
+  end
+
+  def test_column_default_before_type_cast_survives_serialization
+    column = YAML.unsafe_load(YAML.dump(StringNumber.columns_hash["number"]))
+
+    assert_equal 7, column.default
+    assert_equal "7", column.default_before_type_cast
+  end
+
+  def test_column_default_before_type_cast_falls_back_for_an_older_schema_cache
+    column = ActiveRecord::ConnectionAdapters::Column.allocate
+    column.init_with("name" => "number", "cast_type" => ActiveRecord::Type::Integer.new, "default" => 7)
+
+    assert_equal 7, column.default_before_type_cast
+  end
+
+  def test_column_default_before_type_cast_falls_back_for_an_older_marshal_schema_cache
+    column = StringNumber.columns_hash["number"].dup
+    column.remove_instance_variable(:@default_before_type_cast)
+    column = Marshal.load(Marshal.dump(column))
+
+    assert_equal column.default, column.default_before_type_cast
+  end
+end
+
 class DefaultStringsTest < ActiveRecord::TestCase
   class DefaultString < ActiveRecord::Base; end
 
