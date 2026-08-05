@@ -6,25 +6,26 @@ require "active_model/attribute"
 module ActiveModel
   class AttributeSet # :nodoc:
     class Builder # :nodoc:
-      attr_reader :types, :default_attributes, :default_keys
+      attr_reader :types, :default_attributes, :default_keys, :model_class
 
       # +default_keys+ limits which of +default_attributes+ records loaded from
       # the database fall back to (anything responding to <tt>include?</tt>).
       # When nil, all of them do.
-      def initialize(types, default_attributes, default_keys)
+      def initialize(types, default_attributes, default_keys, model_class = nil)
         @types = types
         @default_attributes = default_attributes
         @default_keys = default_keys
+        @model_class = model_class
       end
 
       def build_from_database(values = {}, additional_types = {})
-        LazyAttributeSet.new(values, types, additional_types, default_attributes, {}, default_keys)
+        LazyAttributeSet.new(values, types, additional_types, default_attributes, {}, default_keys, model_class)
       end
 
       EMPTY = {}.freeze
 
       def build_from_initialize(default_attributes)
-        LazyAttributeSet.new(EMPTY, types, EMPTY, default_attributes, {}, nil)
+        LazyAttributeSet.new(EMPTY, types, EMPTY, default_attributes, {}, nil, model_class)
       end
     end
   end
