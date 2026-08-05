@@ -1203,6 +1203,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.delete
     Cpk::Book.delete_all
     Cpk::Order.delete_all
+    Cpk::Author.delete_all
   end
 
   # reload
