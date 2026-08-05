@@ -5,7 +5,7 @@ module ActiveRecord
     include Enumerable
 
     def self.for(name)
-      case name
+      key = case name
       when Array
         Composite.new(name)
       when nil, false
@@ -13,6 +13,8 @@ module ActiveRecord
       else
         Single.new(name)
       end
+
+      key.freeze
     end
 
     attr_reader :name, :columns
