@@ -6,30 +6,37 @@ require "active_model/attribute"
 module ActiveModel
   module StoreAttribute # :nodoc:
     # Describes how a store-attribute maps into a parent Hash-valued attribute.
-    Definition = Data.define(:backed_by, :key) do # :nodoc:
+    Definition = Data.define(:backed_by, :key, :type, :default) do # :nodoc:
       def build_attribute(name, attribute_set)
         Attribute.new(name, self, attribute_set)
       end
 
       def read(store)
-        return nil if store.nil?
-        if store.key?(key)
-          store[key]
-        elsif store.key?(key.to_sym)
-          store[key.to_sym]
-        end
+        raw = read_raw(store)
+        raw.nil? ? default : type.cast(raw)
       end
 
       def write(store, value)
+        cast_value = type.cast(value)
         store ||= {}
-        return store if read(store) == value
+        return store if read_raw(store) == cast_value
         new_store = store.dup
-        new_store[key] = value
+        new_store[key] = cast_value
         new_store
       end
 
       def validate!(_parent)
       end
+
+      private
+        def read_raw(store)
+          return nil if store.nil?
+          if store.key?(key)
+            store[key]
+          elsif store.key?(key.to_sym)
+            store[key.to_sym]
+          end
+        end
     end
 
     # Virtual attribute synthesized on lookup from a `Definition`;
@@ -38,7 +45,7 @@ module ActiveModel
       def initialize(name, definition, attribute_set)
         @definition = definition
         @attribute_set = attribute_set
-        super(name, nil, Type.default_value)
+        super(name, nil, definition.type)
       end
 
       def value(&)
