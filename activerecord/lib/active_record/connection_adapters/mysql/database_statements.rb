@@ -54,6 +54,24 @@ module ActiveRecord
           super unless column.auto_increment?
         end
 
+        def execute_batch(statements, name = nil, **kwargs) # :nodoc:
+          combine_multi_statements(statements).each do |statement|
+            intent = QueryIntent.new(
+              adapter: self,
+              processed_sql: statement,
+              name: name,
+              batch: true,
+              binds: kwargs[:binds] || [],
+              prepare: kwargs[:prepare] || false,
+              allow_async: kwargs[:async] || false,
+              allow_retry: kwargs[:allow_retry] || false,
+              materialize_transactions: kwargs[:materialize_transactions] != false
+            )
+            intent.execute!
+            intent.finish
+          end
+        end
+
         private
           # https://mariadb.com/kb/en/analyze-statement/
           def analyze_without_explain?
