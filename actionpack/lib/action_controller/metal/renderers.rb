@@ -2,8 +2,6 @@
 
 # :markup: markdown
 
-require "active_support/deprecation"
-
 module ActionController
   # See Renderers.add
   def self.add_renderer(key, &block)
