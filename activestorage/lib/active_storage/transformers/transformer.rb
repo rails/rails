@@ -17,6 +17,12 @@ module ActiveStorage
     class Transformer
       attr_reader :transformations
 
+      # Implement this method in a transformer registered in +ActiveStorage.transformers+. Have it
+      # return true when given a blob the transformer can transform.
+      def self.accept?(blob)
+        false
+      end
+
       def initialize(transformations)
         @transformations = transformations
       end
