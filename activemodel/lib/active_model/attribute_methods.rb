@@ -338,7 +338,7 @@ module ActiveModel
           return unless override
         end
 
-        generate_method = "define_method_#{pattern.proxy_target}"
+        generate_method = pattern.define_method_proxy_target
 
         if respond_to?(generate_method, true)
           send(generate_method, attr_name.to_s, owner: owner, as: as)
@@ -466,7 +466,7 @@ module ActiveModel
         end
 
         class AttributeMethodPattern # :nodoc:
-          attr_reader :prefix, :suffix, :proxy_target, :parameters
+          attr_reader :prefix, :suffix, :define_method_proxy_target, :proxy_target, :parameters
 
           AttributeMethod = Struct.new(:proxy_target, :attr_name)
 
@@ -476,6 +476,7 @@ module ActiveModel
             @parameters = parameters.nil? ? "..." : (parameters.is_a?(String) ? -parameters : parameters)
             @regex = /\A(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})\z/
             @proxy_target = "#{@prefix}attribute#{@suffix}".freeze
+            @define_method_proxy_target = :"define_method_#{@proxy_target}"
             @method_name = "#{prefix}%s#{suffix}".freeze
             freeze
           end
