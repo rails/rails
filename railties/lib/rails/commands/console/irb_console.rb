@@ -79,12 +79,7 @@ module Rails
         '"source_location" shows where a method was defined, e.g. method(:reload!).source_location',
       ].freeze
 
-      LOGO = [
-        '⠀⢀⠀⢡⣶⣿⠟⡛⠢',
-        '⠠⠀⣰⣿⣿⠁⠄⠀⠀',
-        '⠶⢠⣿⣿⣿⠰⠆⠀⠀',
-        '⠶⢸⣿⣿⣿⡄⠰⠆⠀'
-      ].freeze
+      LOGO = %w[⠀⢀⠀⢡⣶⣿⠟⡛⠢ ⠠⠀⣰⣿⣿⠁⠄⠀⠀ ⠶⢠⣿⣿⣿⠰⠆⠀⠀ ⠶⢸⣿⣿⣿⡄⠰⠆⠀].freeze
 
       def initialize(app)
         @app = app
