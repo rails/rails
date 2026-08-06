@@ -1,6 +1,8 @@
 # :markup: markdown
 # frozen_string_literal: true
 
+require "time"
+
 require "active_support/duration"
 require "active_support/core_ext/time/conversions"
 require "active_support/time_with_zone"
@@ -58,31 +60,43 @@ class Time
     alias_method :at_without_coercion, :at
     alias_method :at, :at_with_coercion
 
-    # Creates a `Time` instance from an RFC 3339 string.
-    #
-    # ```
-    # Time.rfc3339('1999-12-31T14:00:00-10:00') # => 2000-01-01 00:00:00 -1000
-    # ```
-    #
-    # If the time or offset components are missing then an `ArgumentError` will be raised.
-    #
-    # ```
-    # Time.rfc3339('1999-12-31') # => ArgumentError: invalid date
-    # ```
-    def rfc3339(str)
-      parts = Date._rfc3339(str)
+    unless ::Time.respond_to?(:rfc3339)
+      # Creates a `Time` instance from an RFC 3339 string.
+      #
+      # ```
+      # Time.rfc3339('1999-12-31T14:00:00-10:00') # => 2000-01-01 00:00:00 -1000
+      # ```
+      #
+      # If the time or offset components are missing then an `ArgumentError` will be raised.
+      #
+      # ```
+      # Time.rfc3339('1999-12-31') # => ArgumentError: invalid date
+      # ```
+      #
+      # Strings with the "Z" UTC designator return a UTC time, matching Ruby's
+      # `Time.rfc3339`.
+      #
+      # ```
+      # Time.rfc3339('1999-12-31T14:00:00Z').utc? # => true
+      # ```
+      def rfc3339(str)
+        parts = Date._rfc3339(str)
 
-      raise ArgumentError, "invalid date" if parts.empty?
+        raise ArgumentError, "invalid date" if parts.empty?
 
-      Time.new(
-        parts.fetch(:year),
-        parts.fetch(:mon),
-        parts.fetch(:mday),
-        parts.fetch(:hour),
-        parts.fetch(:min),
-        parts.fetch(:sec) + parts.fetch(:sec_fraction, 0),
-        parts.fetch(:offset)
-      )
+        time = Time.new(
+          parts.fetch(:year),
+          parts.fetch(:mon),
+          parts.fetch(:mday),
+          parts.fetch(:hour),
+          parts.fetch(:min),
+          parts.fetch(:sec) + parts.fetch(:sec_fraction, 0),
+          parts.fetch(:offset)
+        )
+
+        # "Z" denotes UTC, which the integer offset alone cannot represent.
+        parts[:zone].casecmp?("Z") ? time.utc : time
+      end
     end
   end
 
