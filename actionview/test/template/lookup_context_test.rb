@@ -211,6 +211,30 @@ if RUBY_VERSION >= "4.0"
         on_ractor { ActionView::LookupContext.view_context_class }
     end
 
+    if RUBY_VERSION >= "4.0"
+      test "builds lookup contexts and interns their details keys inside a non-main Ractor" do
+        Mime.eager_load!
+
+        same_key, worker_key_id, defaulted_variants = on_ractor do
+          details = { locale: [:en], formats: [:html], variants: [], handlers: [:erb] }
+          a = ActionView::LookupContext.new([], details)
+          b = ActionView::LookupContext.new([], details.dup)
+          interned_same = a.details_key.equal?(b.details_key)
+          key_id = a.details_key.object_id
+          # check default_ methods can be called (defaulted_variants in this case)
+          a.variants = nil
+          [interned_same, key_id, a.variants]
+        end
+
+        assert same_key
+        assert_equal [], defaulted_variants
+
+        details = { locale: [:en], formats: [:html], variants: [], handlers: [:erb] }
+        main_key_id = ActionView::LookupContext.new([], details).details_key.object_id
+        assert_not_equal main_key_id, worker_key_id
+      end
+    end
+
     test "interns details keys and builds digest caches inside a non-main Ractor" do
       interned, digest_cache = on_ractor do
         details = { locale: [:en], formats: nil, variants: [], handlers: [:erb] }
