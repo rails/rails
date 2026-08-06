@@ -1,3 +1,14 @@
+*   Add `Pacific Time (Canada)` and `Alberta Time` to `ActiveSupport::TimeZone::MAPPING`.
+
+    British Columbia and Alberta no longer share winter clocks with US Pacific
+    and Mountain time. The existing `Pacific Time (US & Canada)` and
+    `Mountain Time (US & Canada)` entries remain mapped to `America/Los_Angeles`
+    and `America/Denver` for compatibility. Prefer `Pacific Time (Canada)` /
+    `Alberta Time` (or the IANA identifiers `America/Vancouver` /
+    `America/Edmonton`) for users in those regions.
+
+    *Said Kaldybaev*
+
 *   Fix `Range#sum` with a falsey initial value.
 
     Summing an integer range with a falsey starting value (such as nil or false)
