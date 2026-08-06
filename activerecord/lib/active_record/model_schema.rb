@@ -512,7 +512,9 @@ module ActiveRecord
       end
 
       def symbol_column_to_string(name_symbol) # :nodoc:
-        @symbol_column_to_string_name_hash ||= column_names.index_by(&:to_sym)
+        @symbol_column_to_string_name_hash || ActiveSupport::Ractors.on_main(self) do
+          @symbol_column_to_string_name_hash ||= column_names.index_by(&:to_sym).freeze
+        end
         @symbol_column_to_string_name_hash[name_symbol]
       end
 
