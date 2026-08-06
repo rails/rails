@@ -462,7 +462,7 @@ module ActiveRecord
   # Specifies the proc used to order versions when dumping the +schema_migrations+
   # table in the +:ruby+ format.
   singleton_class.attr_accessor :dump_schema_migrations_sort_by
-  self.dump_schema_migrations_sort_by = :itself
+  self.dump_schema_migrations_sort_by = :reverse
 
   ##
   # :singleton-method: verify_foreign_keys_for_fixtures

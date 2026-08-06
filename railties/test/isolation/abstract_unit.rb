@@ -64,9 +64,6 @@ module TestHelpers
       end
     end
 
-    def framework_path
-      RAILS_FRAMEWORK_ROOT
-    end
 
     def rails_root
       app_path
@@ -559,7 +556,7 @@ module TestHelpers
     end
 
     def use_frameworks(arr)
-      to_remove = [:actionmailer, :activerecord, :activestorage, :activejob, :actionmailbox] - arr
+      to_remove = [:actionmailer, :activerecord, :activestorage, :activejob, :actionmailbox, :actiontext] - arr
 
       if to_remove.include?(:activerecord)
         remove_from_config "config.active_record.*"

@@ -17,7 +17,7 @@ module ActiveSupport
   #
   # Almost all of the standard Logger interface is supported.
   #
-  # Note that the proxy logger can only surpress some logs, if the proxy severity is lower
+  # Note that the proxy logger can only suppress some logs, if the proxy severity is lower
   # than the severity of the proxied logger, the logs won't be emitted.
   class ProxyLogger
     include LoggerSilence

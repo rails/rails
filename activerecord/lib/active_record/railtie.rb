@@ -42,7 +42,7 @@ module ActiveRecord
     config.active_record.use_legacy_signed_id_verifier = :generate_and_verify
     config.active_record.deprecated_associations_options = { mode: :warn, backtrace: false }
     config.active_record.dump_schema_migrations = false
-    config.active_record.dump_schema_migrations_sort_by = :itself
+    config.active_record.dump_schema_migrations_sort_by = :reverse
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
@@ -413,7 +413,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
             database:     ->(context) { context[:connection].pool.db_config.database },
             source_location: -> { QueryLogs.query_source_location }
           )
-          ActiveRecord.disable_prepared_statements = true
+          ActiveRecord.disable_prepared_statements = true if config.active_record.disable_prepared_statements.nil?
 
           if app.config.active_record.query_log_tags.present?
             ActiveRecord::QueryLogs.tags = app.config.active_record.query_log_tags

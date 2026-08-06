@@ -112,6 +112,112 @@ module ActiveRecord
           end
       end
 
+      AddIndex = Data.define(:index) # :nodoc:
+      DropIndex = Data.define(:name) # :nodoc:
+
+      # = Active Record MySQL Adapter Alter \Table
+      class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable # :nodoc:
+        COMBINABLE_COMMANDS = (superclass::COMBINABLE_COMMANDS + %i[change_column rename_column add_index remove_index]).freeze
+
+        attr_reader :algorithm, :lock
+
+        def algorithm=(value)
+          @algorithm = @td.conn.index_algorithm(value) if value
+        end
+
+        def lock=(value)
+          @lock = @td.conn.lock_clause(value) if value
+        end
+
+        def add_column(column_name, type, **options)
+          extract_algorithm_and_lock!(options)
+          super
+        end
+
+        def remove_column(column_name, _type = nil, **options)
+          extract_algorithm_and_lock!(options)
+          # MySQL rejects `DROP COLUMN` on a column referenced by a foreign key,
+          # so drop the FK in the same `ALTER TABLE` statement as the column.
+          if fk = @td.conn.send(:foreign_key_for, name, column: column_name)
+            @operations << DropForeignKey.new(fk.name)
+          end
+          super
+        end
+
+        def add_index(column_name, **options)
+          extract_algorithm_and_lock!(options)
+          index, _ = @td.conn.add_index_options(name, column_name, **options)
+          @operations << AddIndex.new(index)
+        end
+
+        def remove_index(column_name = nil, **options)
+          extract_algorithm_and_lock!(options)
+          index_name = @td.conn.send(:index_name_for_remove, name, column_name, options)
+          @operations << DropIndex.new(index_name)
+        end
+
+        def change_column(column_name, type, **options)
+          extract_algorithm_and_lock!(options)
+          conn = @td.conn
+          column = conn.send(:column_for, name, column_name)
+          type ||= column.sql_type
+
+          unless options.key?(:default)
+            options[:default] = if column.default_function
+              -> { column.default_function }
+            else
+              column.default
+            end
+          end
+
+          unless options.key?(:null)
+            options[:null] = column.null
+          end
+
+          unless options.key?(:comment)
+            options[:comment] = column.comment
+          end
+
+          if options[:collation] == :no_collation
+            options.delete(:collation)
+          else
+            options[:collation] ||= column.collation if conn.send(:text_type?, type)
+          end
+
+          unless options.key?(:auto_increment)
+            options[:auto_increment] = column.auto_increment?
+          end
+
+          cd = @td.new_column_definition(column.name, type, **options)
+          @operations << ChangeColumnDefinition.new(cd, column.name)
+        end
+
+        def rename_column(from_name, to_name, **options)
+          extract_algorithm_and_lock!(options)
+          conn = @td.conn
+          if conn.send(:supports_rename_column?)
+            super(from_name, to_name)
+          else
+            column = conn.send(:column_for, name, from_name)
+            column_options = {
+              default: column.default,
+              null: column.null,
+              auto_increment: column.auto_increment?,
+              comment: column.comment
+            }
+            current_type = conn.query_one("SHOW COLUMNS FROM #{conn.quote_table_name(name)} LIKE #{conn.quote(from_name)}")["Type"]
+            cd = @td.new_column_definition(to_name, current_type, **column_options)
+            @operations << ChangeColumnDefinition.new(cd, column.name)
+          end
+        end
+
+        private
+          def extract_algorithm_and_lock!(options)
+            self.algorithm = options.delete(:algorithm)
+            self.lock = options.delete(:lock)
+          end
+      end
+
       # = Active Record MySQL Adapter \Table
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods

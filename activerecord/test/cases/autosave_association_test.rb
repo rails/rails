@@ -996,7 +996,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     order.save
     order.reload
 
-    assert_equal order_agreements, order.order_agreement_ids
+    assert_equal_unordered order_agreements, order.order_agreement_ids
     assert_equal 2, order.order_agreements.length
     assert_includes order.order_agreements, cpk_order_agreements(:order_agreement_two)
   end
@@ -1203,6 +1203,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.delete
     Cpk::Book.delete_all
     Cpk::Order.delete_all
+    Cpk::Author.delete_all
   end
 
   # reload
@@ -1302,6 +1303,22 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert book.save
     assert_nil book.reload.order
     assert_nil Cpk::Order.find_by(id: 4, shop_id: 3)
+  end
+
+  def test_autosave_has_one_cpk_association_when_composite_foreign_key_is_manually_set
+    author = Cpk::Author.create!(name: "author")
+    book = Cpk::Book.create!(id: [author.id, 9999], title: "Book")
+    assert_nil book.shop_id
+    assert_nil book.order_id
+
+    order = Cpk::Order.new(id: [1, 100], status: "open")
+    order.book = book
+
+    order.save!
+
+    book.reload
+    assert_equal 1, book.shop_id
+    assert_equal 100, book.order_id
   end
 
   def test_should_skip_validation_on_a_parent_association_if_marked_for_destruction

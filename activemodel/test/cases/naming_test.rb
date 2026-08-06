@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/testing/ractors_assertions"
 require "cases/helper"
 require "models/contact"
 require "models/sheep"
@@ -181,6 +182,8 @@ class NamingWithSuppliedLocaleTest < ActiveModel::TestCase
 end
 
 class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def setup
     @model_name = Blog::Post.model_name
   end
@@ -215,6 +218,29 @@ class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
 
   def test_i18n_key
     assert_equal :"blog/post", @model_name.i18n_key
+  end
+
+  def test_accessible_from_a_ractor
+    fake_model = Class.new do
+      extend ActiveModel::Translation
+
+      def self.name
+        "FakePost"
+      end
+    end
+
+    fake_model.model_name
+
+    assert_nothing_raised do
+      on_ractor do
+        model_name = fake_model.model_name
+
+        # TODO: Unstub I18n once it is ractor safe.
+        I18n.stub(:translate, ->(*) { }) do
+          model_name.human
+        end
+      end
+    end
   end
 end
 
@@ -300,6 +326,23 @@ end
 class NamingMethodDelegationTest < ActiveModel::TestCase
   def test_model_name
     assert_equal Blog::Post.model_name, Blog::Post.new.model_name
+  end
+
+  def test_model_name_can_be_frozen_with_an_anonymous_ancestor
+    anonymous = Class.new do
+      extend ActiveModel::Naming
+      extend ActiveModel::Translation
+    end
+    named = Class.new(anonymous) do
+      def self.name
+        "NamedModelWithAnonymousAncestor"
+      end
+    end
+
+    # Freezing eagerly computes the i18n keys by walking lookup_ancestors,
+    # which includes the anonymous ancestor. That must not raise.
+    assert_nothing_raised { named.model_name.freeze }
+    assert_equal "NamedModelWithAnonymousAncestor", named.model_name.name
   end
 end
 

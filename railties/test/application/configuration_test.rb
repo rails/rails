@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/testing/ractors_assertions"
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
@@ -40,6 +41,7 @@ class ::MyOldKeyProvider; end
 module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
     include Rack::Test::Methods
     include EnvHelpers
 
@@ -621,6 +623,31 @@ module ApplicationTests
       app "development"
 
       assert_equal [:password, :foo, "bar"], Rails.application.env_config["action_dispatch.parameter_filter"]
+    end
+
+    test "config.action_dispatch.default_headers can be set in an initializer and is applied to responses" do
+      app_file "config/initializers/default_headers.rb", <<-RUBY
+        Rails.application.config.action_dispatch.default_headers = { "X-Custom-Header" => "custom" }
+      RUBY
+
+      app_file "app/controllers/pages_controller.rb", <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render plain: "OK"
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          get "/pages", to: "pages#index"
+        end
+      RUBY
+
+      app "development"
+
+      get "/pages"
+      assert_equal "custom", last_response.headers["X-Custom-Header"]
     end
 
     test "filter_parameters is precompiled when config.precompile_filter_parameters is true" do
@@ -2096,17 +2123,17 @@ module ApplicationTests
       assert ActiveRecord.dump_schema_migrations
     end
 
-    test "config.active_record.dump_schema_migrations_sort_by is :itself by default" do
-      app "development"
-
-      assert_equal :itself, ActiveRecord.dump_schema_migrations_sort_by
-    end
-
-    test "config.active_record.dump_schema_migrations_sort_by can be configured" do
-      add_to_config "config.active_record.dump_schema_migrations_sort_by = :reverse"
+    test "config.active_record.dump_schema_migrations_sort_by is :reverse by default" do
       app "development"
 
       assert_equal :reverse, ActiveRecord.dump_schema_migrations_sort_by
+    end
+
+    test "config.active_record.dump_schema_migrations_sort_by can be configured" do
+      add_to_config "config.active_record.dump_schema_migrations_sort_by = :itself"
+      app "development"
+
+      assert_equal :itself, ActiveRecord.dump_schema_migrations_sort_by
     end
 
     test "config.active_record.verbose_query_logs is false by default in development" do
@@ -2800,7 +2827,7 @@ module ApplicationTests
           key: foo:
       RUBY
 
-      error = assert_raises RuntimeError do
+      error = assert_raises ActiveSupport::ConfigurationFile::FormatError do
         app "development"
       end
       assert_match "YAML syntax error occurred while parsing", error.message
@@ -3546,6 +3573,17 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
+    end
+
+    test "ActionView::Template::Handlers::ERB.escape_ignore_list is frozen after boot" do
+      app "development"
+
+      escape_ignore_list = on_ractor do
+        ActionView::Template::Handlers::ERB.escape_ignore_list
+      end
+
+      assert_equal(["text/plain"], escape_ignore_list)
+      assert_predicate(escape_ignore_list, :frozen?)
     end
 
     test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is true by default" do
@@ -4863,6 +4901,33 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+    end
+
+    test "raise_on_invalid_time_zone_parse is false with 8.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app "development"
+
+      assert_equal false, ActiveSupport.raise_on_invalid_time_zone_parse
+    end
+
+    test "raise_on_invalid_time_zone_parse is true with 8.2 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.2"'
+      app "development"
+
+      assert_equal true, ActiveSupport.raise_on_invalid_time_zone_parse
+    end
+
+    test "raise_on_invalid_time_zone_parse can be set via new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app_file "config/initializers/new_framework_defaults_8_2.rb", <<-RUBY
+        ActiveSupport.raise_on_invalid_time_zone_parse = true
+      RUBY
+      app "development"
+
+      assert_equal true, ActiveSupport.raise_on_invalid_time_zone_parse
     end
 
     test "adds a time zone aware type if using PostgreSQL" do

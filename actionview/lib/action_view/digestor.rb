@@ -4,7 +4,8 @@ require "action_view/dependency_tracker"
 
 module ActionView
   class Digestor
-    @@digest_mutex = Mutex.new
+    MUTEX = Mutex.new
+    private_constant :MUTEX
 
     class << self
       # Supported options:
@@ -23,7 +24,7 @@ module ActionView
 
         # this is a correctly done double-checked locking idiom
         # (Concurrent::Map's lookups have volatile semantics)
-        finder.digest_cache[cache_key] || @@digest_mutex.synchronize do
+        finder.digest_cache[cache_key] || MUTEX.synchronize do
           finder.digest_cache.fetch(cache_key) do # re-check under lock
             path = TemplatePath.parse(name)
             root = tree(path.to_s, finder, path.partial?)

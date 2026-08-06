@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/log_subscriber"
-
 module ActionView
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     VIEWS_PATTERN = /^app\/views\//

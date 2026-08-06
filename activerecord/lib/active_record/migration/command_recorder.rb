@@ -63,7 +63,6 @@ module ActiveRecord
         :create_virtual_table, :drop_virtual_table,
         :enable_index, :disable_index
       ].freeze
-      include JoinTable
 
       attr_accessor :commands, :delegate, :reverting
 
@@ -78,8 +77,8 @@ module ActiveRecord
       # and in reverse order.
       # For example:
       #
-      #   recorder.revert{ recorder.record(:rename_table, [:old, :new]) }
-      #   # same effect as recorder.record(:rename_table, [:new, :old])
+      #   recorder.revert { recorder.rename_table(:old, :new) }
+      #   # same effect as recorder.rename_table(:new, :old)
       def revert
         @reverting = !@reverting
         previous = @commands
@@ -90,48 +89,13 @@ module ActiveRecord
         @reverting = !@reverting
       end
 
-      # Record +command+. +command+ should be a method name and arguments.
-      # For example:
-      #
-      #   recorder.record(:method_name, [:arg1, :arg2])
-      def record(*command, &block)
-        if @reverting
-          @commands << inverse_of(*command, &block)
-        else
-          @commands << (command << block)
-        end
-      end
-
-      # Returns the inverse of the given command. For example:
-      #
-      #   recorder.inverse_of(:rename_table, [:old, :new])
-      #   # => [:rename_table, [:new, :old]]
-      #
-      # If the inverse of a command requires several commands, returns array of commands.
-      #
-      #   recorder.inverse_of(:remove_columns, [:some_table, :foo, :bar, type: :string])
-      #   # => [[:add_column, :some_table, :foo, :string], [:add_column, :some_table, :bar, :string]]
-      #
-      # This method will raise an +IrreversibleMigration+ exception if it cannot
-      # invert the +command+.
-      def inverse_of(command, args, &block)
-        method = :"invert_#{command}"
-        raise IrreversibleMigration, <<~MSG unless respond_to?(method, true)
-          This migration uses #{command}, which is not automatically reversible.
-          To make the migration reversible you can either:
-          1. Define #up and #down methods in place of the #change method.
-          2. Use the #reversible method to define reversible behavior.
-        MSG
-        send(method, args, &block)
-      end
-
       ReversibleAndIrreversibleMethods.each do |method|
         class_eval <<-EOV, __FILE__, __LINE__ + 1
-          def #{method}(*args, &block)          # def create_table(*args, &block)
-            record(:"#{method}", args, &block)  #   record(:create_table, args, &block)
-          end                                   # end
+          def #{method}(*args, **kwargs, &block)                          # def create_table(*args, **kwargs, &block)
+            args << Hash.ruby2_keywords_hash(kwargs) unless kwargs.empty? #   args << Hash.ruby2_keywords_hash(kwargs) unless kwargs.empty?
+            record(:"#{method}", args, &block)                            #   record(:create_table, args, &block)
+          end                                                             # end
         EOV
-        ruby2_keywords(method)
       end
       alias :add_belongs_to :add_reference
       alias :remove_belongs_to :remove_reference
@@ -155,6 +119,25 @@ module ActiveRecord
       end
 
       private
+        def record(*command, &block)
+          if @reverting
+            @commands << inverse_of(*command, &block)
+          else
+            @commands << (command << block)
+          end
+        end
+
+        def inverse_of(command, args, &block)
+          method = :"invert_#{command}"
+          raise IrreversibleMigration, <<~MSG unless respond_to?(method, true)
+            This migration uses #{command}, which is not automatically reversible.
+            To make the migration reversible you can either:
+            1. Define #up and #down methods in place of the #change method.
+            2. Use the #reversible method to define reversible behavior.
+          MSG
+          send(method, args, &block)
+        end
+
         module StraightReversions # :nodoc:
           private
             {

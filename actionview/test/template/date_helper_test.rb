@@ -2772,7 +2772,7 @@ class DateHelperTest < ActionView::TestCase
     # The love zone is UTC+0
     mytz = Class.new(ActiveSupport::TimeZone) {
       attr_accessor :now
-    }.create("tenderlove", 0, ActiveSupport::TimeZone.find_tzinfo("UTC"))
+    }.create("tenderlove", 0, ActiveSupport::TimeZone.find_tzinfo("UTC")).dup
 
     now       = Time.mktime(2004, 6, 15, 16, 35, 0)
     mytz.now  = now

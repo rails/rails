@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 class Thread::Backtrace::Location # :nodoc:

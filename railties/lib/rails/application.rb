@@ -162,11 +162,7 @@ module Rails
 
     # Reload application routes regardless if they changed or not.
     def reload_routes!
-      if routes_reloader.execute_unless_loaded
-        routes_reloader.loaded = false
-      else
-        routes_reloader.reload!
-      end
+      routes_reloader.reload!
     end
 
     def reload_routes_unless_loaded # :nodoc:
@@ -681,6 +677,7 @@ module Rails
       Ractor.make_shareable(Rails.event)
       Ractor.make_shareable(Rails.error)
       Ractor.make_shareable(Rails.backtrace_cleaner)
+      ActionView::DependencyTracker.share_registry if defined?(ActionView)
     end
 
   protected

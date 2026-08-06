@@ -204,7 +204,7 @@ module ActionMailer
     #   end
     #
     # If the +:queue+ option is specified,
-    # then only the emails(s) enqueued to a specific queue will be performed.
+    # then only the email(s) enqueued to a specific queue will be performed.
     #
     #   def test_deliver_enqueued_emails_with_queue
     #     deliver_enqueued_emails queue: :external_mailers do

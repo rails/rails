@@ -223,7 +223,7 @@ module ActiveRecord
             if $1 == ":" # skip PostgreSQL casts
               match # return the whole match
             elsif $1 == "\\" # escaped literal colon
-              match[1..-1] # return match with escaping backlash char removed
+              match[1..-1] # return match with escaping backslash char removed
             elsif bind_vars.include?(match = $2.to_sym)
               replace_bind_variable(connection, bind_vars[match])
             else

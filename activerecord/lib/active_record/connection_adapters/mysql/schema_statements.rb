@@ -89,19 +89,6 @@ module ActiveRecord
           [index, algorithm, if_not_exists]
         end
 
-        def remove_column(table_name, column_name, type = nil, **options)
-          if foreign_key_exists?(table_name, column: column_name)
-            remove_foreign_key(table_name, column: column_name)
-          end
-          algorithm = index_algorithm(options.delete(:algorithm))
-          lock = lock_clause(options.delete(:lock))
-          return if options[:if_exists] == true && !column_exists?(table_name, column_name)
-          sql = +"ALTER TABLE #{quote_table_name(table_name)} #{remove_column_for_alter(table_name, column_name, type, **options)}"
-          sql << ", #{algorithm}" if algorithm
-          sql << ", #{lock}" if lock
-          execute(sql)
-        end
-
         def create_table(table_name, options: default_row_format, **)
           super
         end
@@ -194,6 +181,10 @@ module ActiveRecord
             MySQL::TableDefinition.new(self, name, **options)
           end
 
+          def create_alter_table(name)
+            MySQL::AlterTable.new create_table_definition(name)
+          end
+
           def new_column_from_field(table_name, field, _definitions)
             type_metadata = fetch_type_metadata(field["Type"], field["Extra"])
             default, default_function = field["Default"], nil
@@ -212,8 +203,6 @@ module ActiveRecord
             elsif type_metadata.type == :text && default&.start_with?("'")
               # strip and unescape quotes
               default = default[1...-1].gsub("\\'", "'")
-            elsif default&.match?(/\A\d/)
-              # Its a number so we can skip the query to check if it is a function
             end
 
             MySQL::Column.new(

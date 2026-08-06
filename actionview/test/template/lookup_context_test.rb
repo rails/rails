@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "abstract_controller/rendering"
+require "active_support/testing/ractors_assertions"
 
 class LookupContextTest < ActiveSupport::TestCase
   def setup
@@ -202,15 +203,24 @@ end
 if RUBY_VERSION >= "4.0"
   class LookupContextRactorTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
 
     test "view_context_class is Ractor-shareable" do
-      @original_experimental_warning = Warning[:experimental]
-      Warning[:experimental] = false
       ActionView::LookupContext.view_context_class # needs to be eager-loaded to be ractor-shareable
       assert_same ActionView::LookupContext.view_context_class,
-        Ractor.new { ActionView::LookupContext.view_context_class }.value
-    ensure
-      Warning[:experimental] = @original_experimental_warning
+        on_ractor { ActionView::LookupContext.view_context_class }
+    end
+
+    test "interns details keys and builds digest caches inside a non-main Ractor" do
+      interned, digest_cache = on_ractor do
+        details = { locale: [:en], formats: nil, variants: [], handlers: [:erb] }
+        key = ActionView::LookupContext::DetailsKey.details_cache_key(details)
+        cache = ActionView::LookupContext::DetailsKey.digest_cache(details)
+        [key.class.name, cache.class.name]
+      end
+
+      assert_equal "ActionView::TemplateDetails::Requested", interned
+      assert_equal "Concurrent::Map", digest_cache
     end
   end
 end

@@ -42,20 +42,18 @@ class Time
 
     # Layers additional behavior on Time.at so that ActiveSupport::TimeWithZone and DateTime
     # instances can be used when called with a single argument
-    def at_with_coercion(time_or_number, *args)
-      if args.empty?
-        if time_or_number.is_a?(ActiveSupport::TimeWithZone)
-          at_without_coercion(time_or_number.to_r).getlocal
-        elsif time_or_number.is_a?(DateTime)
-          at_without_coercion(time_or_number.to_i + time_or_number.sec_fraction).getlocal
-        else
-          at_without_coercion(time_or_number)
-        end
+    def at_with_coercion(time_or_number, *args, **kwargs)
+      return at_without_coercion(time_or_number, *args, **kwargs) unless args.empty? && kwargs.empty?
+
+      case time_or_number
+      when ActiveSupport::TimeWithZone
+        at_without_coercion(time_or_number.to_r).getlocal
+      when DateTime
+        at_without_coercion(time_or_number.to_i + time_or_number.sec_fraction).getlocal
       else
-        at_without_coercion(time_or_number, *args)
+        at_without_coercion(time_or_number)
       end
     end
-    ruby2_keywords :at_with_coercion
     alias_method :at_without_coercion, :at
     alias_method :at, :at_with_coercion
 
@@ -313,7 +311,15 @@ class Time
   # are coerced into values that Time#- will recognize
   def minus_with_coercion(other)
     other = other.comparable_time if other.respond_to?(:comparable_time)
-    other.is_a?(DateTime) ? to_f - other.to_f : minus_without_coercion(other)
+    if other.is_a?(DateTime)
+      # Prefer an exact rational difference: Float (to_f) cannot represent every
+      # microsecond, so sub-second DateTime values lost precision (same class of
+      # issue as Time.at with DateTime). The difference is returned as a Float
+      # to match Time#-(Time) and ActiveSupport::TimeWithZone#-(DateTime).
+      (to_r - other.to_i - other.sec_fraction).to_f
+    else
+      minus_without_coercion(other)
+    end
   end
   alias_method :minus_without_coercion, :-
   alias_method :-, :minus_with_coercion # rubocop:disable Lint/DuplicateMethods

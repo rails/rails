@@ -30,6 +30,25 @@ module ActionDispatch
         assert_not_empty @set
       end
 
+      class FooController < ActionController::Base
+      end
+
+      test "recognize_path does not recognize routes removed by a redraw" do
+        controller = "action_dispatch/routing/route_set_test/foo"
+
+        draw do
+          get "foo", to: "action_dispatch/routing/route_set_test/foo#index"
+        end
+
+        assert_equal({ controller: controller, action: "index" }, @set.recognize_path("/foo"))
+
+        draw { }
+
+        assert_raises ActionController::RoutingError do
+          @set.recognize_path("/foo")
+        end
+      end
+
       test "URL helpers are added when route is added" do
         draw do
           get "foo", to: SimpleApp.new("foo#index")

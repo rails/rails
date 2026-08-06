@@ -830,7 +830,7 @@ module ActionDispatch
         [URI(path_info).path, generator.params.except(:_recall).keys]
       end
 
-      def generate(route_name, options, recall = {}, method_name = nil)
+      def generate(route_name, options, recall = {})
         Generator.new(route_name, options, recall, self).generate
       end
       private :generate

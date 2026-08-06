@@ -3,12 +3,12 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class ActiveStorageEngineTest < ActiveSupport::TestCase
+  class AnalyzersIntegrationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     include ActiveJob::TestHelper
 
-    self.file_fixture_path = "#{RAILS_FRAMEWORK_ROOT}/activestorage/test/fixtures/files"
+    self.file_fixture_path = "test/fixtures/files"
 
     def app(...)
       super

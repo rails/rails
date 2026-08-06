@@ -250,6 +250,13 @@ class LogSubscriberTest < ActiveRecord::TestCase
       assert_match(%{["id", 1], ["id", 2], ["id", 3], ["id", 4], ["id", 5]}, @logger.logged(:debug).last)
     end
 
+    def test_casted_binds_logging_uses_parameter_marker
+      bind_param = Arel::Nodes::BindParam.new(nil)
+      sql = "SELECT id FROM developers WHERE name = #{bind_param.to_sql}"
+      ActiveRecord::Base.lease_connection.select_all(sql, "SQL", ["David"])
+      assert_match(%{[["$1", "David"]]}, @logger.logged(:debug).last)
+    end
+
     def test_binary_data_is_not_logged
       Binary.create(data: "some binary data")
       assert_match(/<16 bytes of binary data>/, @logger.logged(:debug).join)

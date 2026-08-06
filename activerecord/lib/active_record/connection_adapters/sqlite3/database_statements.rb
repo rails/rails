@@ -15,8 +15,9 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        def explain(arel, binds = [], _options = [])
-          sql    = "EXPLAIN QUERY PLAN " + to_sql(arel, binds)
+        def explain(arel_or_sql, binds = [], _options = [])
+          sql, _ = to_sql_and_binds(arel_or_sql, binds)
+          sql = "EXPLAIN QUERY PLAN " + sql
           result = query_rows(sql, "EXPLAIN")
           SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
@@ -162,10 +163,6 @@ module ActiveRecord
 
           def build_truncate_statement(table_name)
             "DELETE FROM #{quote_table_name(table_name)}"
-          end
-
-          def returning_column_values(result)
-            result.rows.first
           end
       end
     end
