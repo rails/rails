@@ -269,7 +269,7 @@ module ActiveRecord
       #     self.table_name = "project"
       #   end
       def table_name=(value)
-        value = value && value.to_s
+        value = (value && value.to_s).freeze
 
         if defined?(@table_name)
           return if value == @table_name
@@ -289,14 +289,16 @@ module ActiveRecord
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name # :nodoc:
-        self.table_name = if self == Base
-          nil
-        elsif abstract_class?
-          superclass.table_name
-        elsif superclass.abstract_class?
-          superclass.table_name || compute_table_name
-        else
-          compute_table_name
+        ActiveSupport::Ractors.on_main(self) do
+          self.table_name = if self == Base
+            nil
+          elsif abstract_class?
+            superclass.table_name
+          elsif superclass.abstract_class?
+            superclass.table_name || compute_table_name
+          else
+            compute_table_name
+          end
         end
       end
 
@@ -645,7 +647,7 @@ module ActiveRecord
               contained += "_"
             end
 
-            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(model_name)}#{full_table_name_suffix}"
+            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(model_name)}#{full_table_name_suffix}".freeze
           else
             # STI subclasses always use their superclass's table.
             base_class.table_name
