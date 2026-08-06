@@ -65,13 +65,13 @@ module ActionCable
       ping: "ping",
       confirmation: "confirm_subscription",
       rejection: "reject_subscription"
-    },
+    }.freeze,
     disconnect_reasons: {
       unauthorized: "unauthorized",
       invalid_request: "invalid_request",
       server_restart: "server_restart",
       remote: "remote"
-    },
+    }.freeze,
     default_mount_path: "/cable",
     protocols: ["actioncable-v1-json", "actioncable-unsupported"].freeze
   }.freeze

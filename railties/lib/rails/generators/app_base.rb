@@ -205,10 +205,10 @@ module Rails
       end
 
       OPTION_IMPLICATIONS = { # :nodoc:
-        skip_active_job:     [:skip_action_mailer, :skip_active_storage],
-        skip_active_record:  [:skip_active_storage, :skip_solid],
-        skip_active_storage: [:skip_action_mailbox, :skip_action_text],
-        skip_javascript:     [:skip_hotwire],
+        skip_active_job:     [:skip_action_mailer, :skip_active_storage].freeze,
+        skip_active_record:  [:skip_active_storage, :skip_solid].freeze,
+        skip_active_storage: [:skip_action_mailbox, :skip_action_text].freeze,
+        skip_javascript:     [:skip_hotwire].freeze,
       }.freeze
 
       # ==== Options

@@ -45,7 +45,7 @@ gem "uri", ">= 0.13.1", require: false
 gem "prism"
 
 group :rubocop do
-  gem "rubocop", "1.79.2", require: false
+  gem "rubocop", "1.88.0", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false

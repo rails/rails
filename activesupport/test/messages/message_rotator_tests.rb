@@ -100,7 +100,7 @@ module MessageRotatorTests
   end
 
   private
-    DATA = [{ "a_boolean" => true, "a_number" => 123, "a_string" => "abc" }].freeze
+    DATA = [{ "a_boolean" => true, "a_number" => 123, "a_string" => "abc" }.freeze].freeze
 
     def secret(key)
       key
