@@ -203,16 +203,17 @@ module ActionView # :nodoc:
 
       def with_empty_template_cache # :nodoc:
         subclass = Class.new(self) {
-          # We can't implement these as self.class because subclasses will
-          # share the same template cache as superclasses, so "changed?" won't work
-          # correctly.
-          define_method(:compiled_method_container)           { subclass }
-          define_singleton_method(:compiled_method_container) { subclass }
-
           def inspect
             "#<ActionView::Base:#{'%#016x' % (object_id << 1)}>"
           end
         }
+
+        # We can't implement these as self.class because subclasses will share the same
+        # template cache as superclasses, so "changed?" won't work correctly.
+        reader = ActiveSupport::Ractors.shareable_lambda { subclass }
+        subclass.define_method(:compiled_method_container, reader)
+        subclass.define_singleton_method(:compiled_method_container, reader)
+        subclass
       end
 
       def changed?(other) # :nodoc:
