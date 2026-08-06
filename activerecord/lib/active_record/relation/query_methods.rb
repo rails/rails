@@ -1755,17 +1755,7 @@ module ActiveRecord
       end
 
       def build_named_bound_sql_literal(statement, values)
-        bound_values = values.transform_values do |value|
-          if ActiveRecord::Relation === value
-            Arel.sql(value.to_sql)
-          elsif value.respond_to?(:map) && !value.acts_like?(:string)
-            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
-            values.empty? ? nil : values
-          else
-            value = value.id_for_database if value.respond_to?(:id_for_database)
-            value
-          end
-        end
+        bound_values = values.transform_values { bind_value_for_sql_literal(_1) }
 
         begin
           Arel::Nodes::BoundSqlLiteral.new("(#{statement})", nil, bound_values)
@@ -1774,18 +1764,19 @@ module ActiveRecord
         end
       end
 
-      def build_bound_sql_literal(statement, values)
-        bound_values = values.map do |value|
-          if ActiveRecord::Relation === value
-            Arel.sql(value.to_sql)
-          elsif value.respond_to?(:map) && !value.acts_like?(:string)
-            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
-            values.empty? ? nil : values
-          else
-            value = value.id_for_database if value.respond_to?(:id_for_database)
-            value
-          end
+      def bind_value_for_sql_literal(value)
+        if ActiveRecord::Relation === value
+          Arel.sql(value.to_sql)
+        elsif value.respond_to?(:map) && !value.acts_like?(:string)
+          values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
+          values.empty? ? nil : values
+        else
+          value.respond_to?(:id_for_database) ? value.id_for_database : value
         end
+      end
+
+      def build_bound_sql_literal(statement, values)
+        bound_values = values.map { bind_value_for_sql_literal(_1) }
 
         begin
           Arel::Nodes::BoundSqlLiteral.new("(#{statement})", bound_values, nil)
