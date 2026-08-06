@@ -23,8 +23,11 @@ module ActiveRecord
       end
 
       def self.empty
-        @empty ||= new(nil, nil).freeze
+        EMPTY
       end
+
+      EMPTY = new(nil, nil).freeze
+      private_constant :EMPTY
     end
   end
 end
