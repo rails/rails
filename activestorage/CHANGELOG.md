@@ -1,3 +1,27 @@
+*   Allow variants of blobs the image processor cannot transform.
+
+    Transformers registered in `ActiveStorage.transformers` are asked whether they accept a blob,
+    the way previewers already are. A blob accepted by one is variable, so `variant` and
+    `representation` work for media types that are not images.
+
+        class AudioTransformer < ActiveStorage::Transformers::Transformer
+          def self.accept?(blob)
+            blob.content_type.start_with?("audio/")
+          end
+
+          private
+            def process(file, format:)
+              # ...
+            end
+        end
+
+        ActiveStorage.transformers += [ AudioTransformer ]
+
+    Images are unaffected: they remain governed by `ActiveStorage.variable_content_types` and the
+    transformer configured by `config.active_storage.variant_processor`.
+
+    *Julian Rubisch*
+
 *   Marcel 2 for content type detection
 
     Broader and more precise MIME type detection, security hardening, and uses canonical types
