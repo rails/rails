@@ -33,6 +33,19 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_nil on_ractor { NonPrimaryKey.primary_key }
   end
 
+  def test_query_constraints_list_is_ractor_shareable
+    assert_ractor_shareable Topic.query_constraints_list
+  end
+
+  def test_cpk_query_constraints_list_is_ractor_shareable
+    assert_ractor_shareable Cpk::Order.query_constraints_list
+  end
+
+  def test_returning_columns_for_insert_is_ractor_shareable
+    columns = Topic._returning_columns_for_insert(ActiveRecord::Base.lease_connection)
+    assert_ractor_shareable columns
+  end
+
   def test_to_key_with_default_primary_key
     topic = Topic.new
     assert_nil topic.to_key

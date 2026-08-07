@@ -2,9 +2,13 @@
 
 require "cases/helper"
 require "models/reply"
+require "active_support/testing/ractors_assertions"
+require "active_support/core_ext/object/with"
 
 module ActiveRecord
   class PredicateBuilderTest < ActiveRecord::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
     class UnaccentedString < ActiveRecord::Type::String
       def transforms_query_predicates?
         true
@@ -40,10 +44,19 @@ module ActiveRecord
       end
     end
 
+    class RegexpPredicateBuilder < PredicateBuilder
+      def register_handlers
+        super
+
+        register_handler(Regexp, ActiveSupport::Ractors.shareable_proc do |column, value, _type|
+          Arel::Nodes::InfixOperation.new("~", column, Arel::Nodes.build_quoted(value.source))
+        end)
+      end
+    end
+
     def setup
-      Topic.predicate_builder.register_handler(Regexp, proc do |column, value, _type|
-        Arel::Nodes::InfixOperation.new("~", column, Arel::Nodes.build_quoted(value.source))
-      end)
+      builder = RegexpPredicateBuilder.new(TableMetadata.new(Topic, Topic.arel_table))
+      Topic.class_eval { @predicate_builder = builder }
     end
 
     def teardown
@@ -76,6 +89,10 @@ module ActiveRecord
       defaults = { topics: { title: "rails" }, "topics.approved" => true }
       Topic.where(defaults).to_sql
       assert_equal({ topics: { title: "rails" }, "topics.approved" => true }, defaults)
+    end
+
+    def test_is_ractor_shareable
+      assert_ractor_shareable Topic.predicate_builder
     end
 
     def test_attribute_type_can_transform_query_attribute_and_value

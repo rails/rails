@@ -269,7 +269,7 @@ module ActiveRecord
       #     self.table_name = "project"
       #   end
       def table_name=(value)
-        value = value && value.to_s
+        value = (value && value.to_s).freeze
 
         if defined?(@table_name)
           return if value == @table_name
@@ -289,14 +289,16 @@ module ActiveRecord
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name # :nodoc:
-        self.table_name = if self == Base
-          nil
-        elsif abstract_class?
-          superclass.table_name
-        elsif superclass.abstract_class?
-          superclass.table_name || compute_table_name
-        else
-          compute_table_name
+        ActiveSupport::Ractors.on_main(self) do
+          self.table_name = if self == Base
+            nil
+          elsif abstract_class?
+            superclass.table_name
+          elsif superclass.abstract_class?
+            superclass.table_name || compute_table_name
+          else
+            compute_table_name
+          end
         end
       end
 
@@ -462,12 +464,14 @@ module ActiveRecord
       end
 
       def _returning_columns_for_insert(connection) # :nodoc:
-        @_returning_columns_for_insert ||= begin
-          auto_populated_columns = columns.filter_map do |c|
-            c.name if connection.return_value_after_insert?(c)
-          end
+        @_returning_columns_for_insert || ActiveSupport::Ractors.on_main(self) do
+          @_returning_columns_for_insert ||= begin
+            auto_populated_columns = columns.filter_map do |c|
+              -c.name if connection.return_value_after_insert?(c)
+            end
 
-          auto_populated_columns.empty? ? Array(primary_key) : auto_populated_columns
+            (auto_populated_columns.empty? ? Array(primary_key) : auto_populated_columns).freeze
+          end
         end
       end
 
@@ -510,7 +514,9 @@ module ActiveRecord
       end
 
       def symbol_column_to_string(name_symbol) # :nodoc:
-        @symbol_column_to_string_name_hash ||= column_names.index_by(&:to_sym)
+        @symbol_column_to_string_name_hash || ActiveSupport::Ractors.on_main(self) do
+          @symbol_column_to_string_name_hash ||= column_names.index_by(&:to_sym).freeze
+        end
         @symbol_column_to_string_name_hash[name_symbol]
       end
 
@@ -645,7 +651,7 @@ module ActiveRecord
               contained += "_"
             end
 
-            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(model_name)}#{full_table_name_suffix}"
+            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(model_name)}#{full_table_name_suffix}".freeze
           else
             # STI subclasses always use their superclass's table.
             base_class.table_name
