@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "optparse"
+
 module ActiveSupport
   # Provides a DSL for declaring a continuous integration workflow that can be run either locally or in the cloud.
   # Each step is timed, reports success/error, and is aggregated into a collective report that reports total runtime,
@@ -39,7 +41,12 @@ module ActiveSupport
     #
     # Sets the CI environment variable to "true" to allow for conditional behavior in the app, like enabling eager loading and disabling logging.
     #
-    # A 'fail fast' option can be passed as a CLI argument (-f or --fail-fast). This exits with a non-zero status directly after a step fails.
+    # Use +-g+ or +--group+ to run all steps in a named group, and +-s+ or +--step+ to run a named step.
+    # Names are matched exactly and case-insensitively. Options can be repeated, and group and step filters can be combined.
+    # A filtered run exits with a non-zero status if no steps match.
+    #
+    # A 'fail fast' option can be passed as a CLI argument (+-f+ or +--fail-fast+). This exits with a non-zero status directly after a step fails.
+    # Use +-h+ or +--help+ to see all available options.
     #
     # Example:
     #
@@ -61,14 +68,23 @@ module ActiveSupport
     end
 
     def run(title, subtitle, &block)
+      options = parse_options
+      return puts(options) if @show_help
+
       heading title, subtitle, padding: false
       success, seconds = execute(title, &block)
+      ensure_steps_ran!
       result_line(title, success, seconds)
       abort unless success?
     end
 
     def initialize
       @results = []
+      @groups = []
+      @steps = []
+      @fail_fast = false
+      @show_help = false
+      @group_selected = false
     end
 
     # Declare a step with a title and a command. The command can either be given as a single string or as multiple
@@ -79,14 +95,18 @@ module ActiveSupport
     #   step "Setup", "bin/setup"
     #   step "Single test", "bin/rails", "test", "--name", "test_that_is_one"
     def step(title, *command)
+      return unless selected_step?(title, group_selected: @group_selected)
+
       previous_trap = Signal.trap("INT") { abort colorize("\n❌ #{title} interrupted", :error) }
-      report_step(title, command) do
-        started = Time.now.to_f
-        [system(*command), Time.now.to_f - started]
+      begin
+        report_step(title, command) do
+          started = Time.now.to_f
+          [system(*command), Time.now.to_f - started]
+        end
+        abort if failing_fast?
+      ensure
+        Signal.trap("INT", previous_trap || "-")
       end
-      abort if failing_fast?
-    ensure
-      Signal.trap("INT", previous_trap || "-")
     end
 
     # Declare a group of steps that can be run in parallel. Steps within the group are collected first,
@@ -110,10 +130,11 @@ module ActiveSupport
     #     step "System tests", "bin/rails test:system"
     #   end
     def group(name, parallel: 1, &block)
+      group_selected = selected_group?(name, parent_selected: @group_selected)
       if parallel <= 1
-        instance_eval(&block)
+        within_group(group_selected, &block)
       else
-        Group.new(self, name, parallel: parallel, &block).run
+        Group.new(self, name, parallel: parallel, group_selected: group_selected, &block).run
       end
       abort if failing_fast?
     end
@@ -168,8 +189,18 @@ module ActiveSupport
     end
 
     # :nodoc:
+    def selected_group?(name, parent_selected:)
+      parent_selected || @groups.empty? || selected?(@groups, name)
+    end
+
+    # :nodoc:
+    def selected_step?(name, group_selected:)
+      (@groups.empty? || group_selected) && (@steps.empty? || selected?(@steps, name))
+    end
+
+    # :nodoc:
     def fail_fast?
-      ARGV.include?("-f") || ARGV.include?("--fail-fast")
+      @fail_fast
     end
 
     # :nodoc:
@@ -178,6 +209,53 @@ module ActiveSupport
     end
 
     private
+      def parse_options
+        @groups = []
+        @steps = []
+        @fail_fast = false
+        @show_help = false
+
+        parser = OptionParser.new do |options|
+          options.banner = "Usage: bin/ci [options]"
+          options.on("-g", "--group NAME", "Run all steps in the named group (case-insensitive).") { |name| @groups << name }
+          options.on("-s", "--step NAME", "Run the named step (case-insensitive).") { |name| @steps << name }
+          options.on("-f", "--fail-fast", "Abort after the first failure.") { @fail_fast = true }
+          options.on("-h", "--help", "Show this help.") { @show_help = true }
+        end
+        parser.parse!(ARGV.dup)
+        parser
+      rescue OptionParser::ParseError => error
+        abort "#{error.message}\n\n#{parser}"
+      end
+
+      def ensure_steps_ran!
+        if filtered? && results.empty?
+          abort colorize("No CI steps matched #{selection}.", :error)
+        end
+      end
+
+      def filtered?
+        @groups.any? || @steps.any?
+      end
+
+      def selected?(names, candidate)
+        names.any? { |name| candidate.to_s.casecmp?(name) }
+      end
+
+      def selection
+        selectors = @groups.map { |group| "--group #{group.inspect}" }
+        selectors.concat @steps.map { |step| "--step #{step.inspect}" }
+        selectors.join(" and ")
+      end
+
+      def within_group(group_selected, &block)
+        previous_group_selected = @group_selected
+        @group_selected = group_selected
+        instance_eval(&block)
+      ensure
+        @group_selected = previous_group_selected
+      end
+
       def failures
         results.reject(&:first)
       end
