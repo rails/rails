@@ -1120,14 +1120,14 @@ and there is an `ensure` block in the callback. (This is different from
 In addition to `before_action`, `after_action`, or `around_action`, there are
 two less common ways to register callbacks.
 
-The first is to use a block directly with the `*_action` methods. The block
-receives the controller as an argument. For example, the `require_login` action
+The first way is to use a block directly with the `*_action` methods. The block runs
+in the scope of the controller instance. For example, the `require_login` action
 callback from above could be rewritten to use a block:
 
 ```ruby
 class ApplicationController < ActionController::Base
-  before_action do |controller|
-    unless controller.send(:logged_in?)
+  before_action do
+    unless logged_in?
       flash[:error] = "You must be logged in to access this section"
       redirect_to new_login_url
     end
@@ -1135,16 +1135,17 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-Note that the action callback, in this case, uses `send` because the
-`logged_in?` method is private, and the action callback does not run in the
-scope of the controller. This is not the recommended way to implement this
-particular action callback, but in simpler cases, it might be useful.
+This is not the recommended way to implement this particular action callback, 
+but in simpler cases, it might be useful.
 
-Specifically for `around_action`, the block also yields in the `action`:
+Specifically for `around_action`, the block also yields the `action`:
 
 ```ruby
 around_action { |_controller, action| time(&action) }
 ```
+
+Note that the `controller` is also passed to the block, but it can often 
+be ignored because the block is already executed in that controller's scope.
 
 The second way is to specify a class (or any object that responds to the
 expected methods) for the callback action. This can be useful in cases that are
