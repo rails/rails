@@ -87,7 +87,50 @@ module ApplicationTests
       assert_includes(output, "Unknown variant processor :nope")
     end
 
+    def test_mini_magick_transformer_does_not_load_vips
+      add_to_config "config.active_storage.variant_processor = :mini_magick"
+      add_ruby_vips_without_block_untrusted
+
+      output = run_command('puts "booted"')
+
+      assert_includes(output, "booted")
+      assert_not_includes(output, "Active Storage cannot disable them")
+    end
+
+    def test_vips_transformer_requires_block_untrusted
+      add_to_config "config.active_storage.variant_processor = :vips"
+      add_ruby_vips_without_block_untrusted
+
+      output = run_command('puts "booted"')
+
+      assert_not_includes(output, "booted")
+      assert_includes(output, "Active Storage cannot disable them")
+    end
+
     private
+      def add_ruby_vips_without_block_untrusted
+        FileUtils.mkdir_p app_path("ruby-vips", "lib")
+
+        File.write app_path("ruby-vips", "ruby-vips.gemspec"), <<~RUBY
+          Gem::Specification.new do |spec|
+            spec.name = "ruby-vips"
+            spec.version = "2.3.0"
+            spec.summary = "ruby-vips without block_untrusted"
+            spec.authors = [ "Rails test" ]
+            spec.files = [ "lib/ruby-vips.rb" ]
+          end
+        RUBY
+
+        File.write app_path("ruby-vips", "lib", "ruby-vips.rb"), <<~RUBY
+          module Vips
+          end
+        RUBY
+
+        File.open app_path("Gemfile"), "a" do |f|
+          f.puts %(gem "ruby-vips", path: "#{app_path("ruby-vips")}")
+        end
+      end
+
       def run_command(cmd)
         Dir.chdir(app_path) do
           Bundler.with_original_env do
