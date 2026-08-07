@@ -282,7 +282,7 @@ module ActionDispatch
 
     # The `String` MIME type of the request.
     #
-    #     # get "/articles"
+    #     # post "/articles", params: { title: "Rails" }
     #     request.media_type # => "application/x-www-form-urlencoded"
     def media_type
       content_mime_type&.to_s
