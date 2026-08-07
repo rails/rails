@@ -202,6 +202,10 @@ module ActiveRecord
       assert_predicate Cpk::Book.where.missing(:author), :any?
     end
 
+    def test_missing_with_self_reference_has_many
+      assert_equal 1, Author.where(id: 2).where.missing(:favorite_authors).count
+    end
+
     def test_not_inverts_where_clause
       relation = Post.where.not(title: "hello")
       expected_where_clause = Post.where(title: "hello").where_clause.invert

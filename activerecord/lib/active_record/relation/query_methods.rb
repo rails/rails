@@ -126,7 +126,7 @@ module ActiveRecord
           reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
           association_conditions = Array(reflection.association_primary_key).index_with(nil)
-          if reflection.options[:class_name]
+          if reflection.options[:class_name] || @scope.table_name == reflection.table_name
             @scope.where!(association => association_conditions)
           else
             @scope.where!(reflection.table_name => association_conditions)
