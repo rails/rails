@@ -7,7 +7,7 @@ module ActiveStorage
   # the {libvips}[https://libvips.github.io/libvips/] system library.
   class Analyzer::ImageAnalyzer::Vips < Analyzer::ImageAnalyzer
     def self.accept?(blob)
-      super && ActiveStorage.variant_processor == :vips
+      super && (ActiveStorage.variant_processor == :vips || (ActiveStorage.variant_processor == :disabled && VIPS_AVAILABLE))
     end
 
     private
