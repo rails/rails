@@ -1,3 +1,11 @@
+*   Add query predicate expressions for Active Record types.
+
+    Types can include `ActiveRecord::Type::QueryPredicates` to define the SQL
+    expression through which query predicates compare stored attributes and
+    serialized query values. Ordering sorts through the same expression.
+
+    *Kir Shatrov*, *Jean-Samuel Aubry-Guzzi*, *Matthew Draper*
+
 *   Deprecate `ActiveRecord::Relation#uniq!`.
 
     The method was added in Rails 6.1 (#39358) as part of the migration path

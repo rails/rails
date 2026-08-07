@@ -106,8 +106,8 @@ module ActiveRecord
         value = value.read_attribute(reflection.association_primary_key) unless value.nil?
       end
 
-      attr = table[name]
-      bind = predicate_builder.build_bind_attribute(attr.name, value)
+      attr = predicate_builder.predicate_attribute(table[name])
+      bind = predicate_builder.build_bind_attribute(attr, value)
       yield attr, bind
     end
 
@@ -1456,14 +1456,14 @@ module ActiveRecord
             end
           else
             type = model.type_for_attribute(attr.name)
-            value = predicate_builder.build_bind_attribute(attr.name, type.cast(value))
+            value = predicate_builder.build_bind_attribute(attr, type.cast(value))
           end
           [attr, value]
         end
       end
 
       def _increment_attribute(attribute, value = 1)
-        bind = predicate_builder.build_bind_attribute(attribute.name, value.abs)
+        bind = predicate_builder.build_bind_attribute(attribute, value.abs)
         expr = table.coalesce(attribute, 0)
         expr = value < 0 ? expr - bind : expr + bind
         expr.expr

@@ -739,6 +739,9 @@ module ActiveRecord
 
         unless arel_column.is_a?(Arel::Nodes::SqlLiteral)
           values = cast_values_for_in_order_of(values, arel_column.type_caster)
+          if arel_column.is_a?(PredicateBuilder::ComparisonAttribute)
+            values = comparison_values_for_in_order_of(values, arel_column)
+          end
         end
         return spawn.none! if values.empty?
       end
@@ -2052,7 +2055,7 @@ module ActiveRecord
       def reverse_sql_order(order_query)
         if order_query.empty?
           if !_order_columns.empty?
-            return _order_columns.map { |column| table[column].desc }
+            return _order_columns.map { |column| predicate_builder.predicate_attribute(table[column]).desc }
           end
 
           raise IrreversibleOrderError, <<~MSG.squish
@@ -2195,12 +2198,18 @@ module ActiveRecord
       end
 
       def order_column(field)
-        arel_column(field) do |attr_name|
+        column = arel_column(field) do |attr_name|
           if attr_name == "count" && !group_values.empty?
             table[attr_name]
           else
             Arel.sql(model.adapter_class.quote_table_name(attr_name), retryable: true)
           end
+        end
+
+        if column.is_a?(Arel::Attributes::Attribute)
+          predicate_builder.predicate_attribute(column)
+        else
+          column
         end
       end
 
@@ -2307,6 +2316,18 @@ module ActiveRecord
         end
 
         values.reject { |v| v == bad_value || (v.is_a?(Array) && v.empty?) }
+      end
+
+      def comparison_values_for_in_order_of(values, column)
+        values.map do |value|
+          if value.is_a?(Array)
+            comparison_values_for_in_order_of(value, column)
+          elsif value.nil?
+            nil
+          else
+            column.comparison_expression(Arel::Nodes.build_quoted(value))
+          end
+        end
       end
 
       def arel_column_aliases_from_hash(fields)
