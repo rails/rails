@@ -3,6 +3,18 @@
 require "abstract_unit"
 
 class RoutesReloaderTest < ActiveSupport::TestCase
+  test "loaded reports whether the initial load completed" do
+    reloader = Rails::Application::RoutesReloader.new
+    updater = Object.new
+    updater.define_singleton_method(:execute) {}
+    reloader.instance_variable_set(:@updater, updater)
+
+    assert_not reloader.loaded
+
+    assert_equal true, reloader.execute_unless_loaded
+    assert reloader.loaded
+  end
+
   test "a failed initial load is surfaced to waiting threads and retried" do
     reloader = Rails::Application::RoutesReloader.new
     draw_started = Queue.new
