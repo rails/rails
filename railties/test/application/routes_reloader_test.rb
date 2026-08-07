@@ -3,11 +3,22 @@
 require "abstract_unit"
 
 class RoutesReloaderTest < ActiveSupport::TestCase
-  test "loaded reports whether the initial load completed" do
-    reloader = Rails::Application::RoutesReloader.new
-    updater = Object.new
-    updater.define_singleton_method(:execute) {}
-    reloader.instance_variable_set(:@updater, updater)
+  class FakeFileWatcher
+    def initialize(&execute)
+      @execute = execute
+    end
+
+    def new(*)
+      self
+    end
+
+    def execute
+      @execute.call
+    end
+  end
+
+  test "loaded reports whether the routes are loaded" do
+    reloader = build_reloader { }
 
     assert_not reloader.loaded
 
@@ -16,19 +27,16 @@ class RoutesReloaderTest < ActiveSupport::TestCase
   end
 
   test "a failed initial load is surfaced to waiting threads and retried" do
-    reloader = Rails::Application::RoutesReloader.new
     draw_started = Queue.new
     draw_resume = Queue.new
     draws = 0
 
-    updater = Object.new
-    updater.define_singleton_method(:execute) do
+    reloader = build_reloader do
       draws += 1
       draw_started << true
       draw_resume.pop
       raise "invalid routes" if draws == 1
     end
-    reloader.instance_variable_set(:@updater, updater)
 
     failing = Thread.new do
       reloader.execute_unless_loaded
@@ -50,4 +58,10 @@ class RoutesReloaderTest < ActiveSupport::TestCase
     assert_equal(true, waiting.value)
     assert_equal(false, reloader.execute_unless_loaded)
   end
+
+  private
+    def build_reloader(&execute)
+      file_watcher = FakeFileWatcher.new(&execute)
+      Rails::Application::RoutesReloader.new(file_watcher: file_watcher)
+    end
 end
