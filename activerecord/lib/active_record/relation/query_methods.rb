@@ -126,7 +126,8 @@ module ActiveRecord
           reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
           association_conditions = Array(reflection.association_primary_key).index_with(nil)
-          if reflection.options[:class_name]
+          # Use association name for self-referential associations to reference the aliased join table.
+          if reflection.options[:class_name] || @scope.table_name == reflection.table_name
             @scope.where!(association => association_conditions)
           else
             @scope.where!(reflection.table_name => association_conditions)
