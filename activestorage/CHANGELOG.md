@@ -1,3 +1,22 @@
+*   Allow `config.active_storage.variant_processor` to be set to a transformer class.
+
+    `config.active_storage.variant_processor` now accepts a class, in addition to `:vips`,
+    `:mini_magick`, and `:disabled`. The class must implement the interface defined by
+    `ActiveStorage::Transformers::Transformer`. Active Storage then uses it for variant processing.
+
+    ```ruby
+    config.active_storage.variant_processor = CustomTransformer
+    ```
+
+    Note that the built-in image analyzers accept a blob only when `variant_processor` is `:vips` or
+    `:mini_magick`, so setting this configuration to a custom class requires adding a custom
+    analyzer to `config.active_storage.analyzers` as well.
+
+    An unrecognized value now raises `ArgumentError` while booting, instead of failing later with
+    `NoMethodError` when a variant is generated.
+
+    *Mike Dalessio*
+
 *   Disable libvips's unfuzzed image loaders and savers.
 
     libvips flags some of its loaders and savers as "unfuzzed" or "untrusted", meaning they are only

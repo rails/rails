@@ -3516,7 +3516,19 @@ The default value is `/https?:\/\/localhost:\d+/` in the `development` environme
 
 #### `config.active_storage.variant_processor`
 
-Accepts a symbol `:mini_magick`, `:vips`, or `:disabled` specifying whether or not variant transformations and blob analysis will be performed with MiniMagick or ruby-vips.
+Accepts a symbol `:mini_magick`, `:vips`, or `:disabled` specifying whether or not variant
+processing and blob analysis will be performed with MiniMagick or ruby-vips.
+
+It also accepts a class. The class must implement the interface defined by
+`ActiveStorage::Transformers::Transformer`. Active Storage then uses it for variant processing:
+
+```ruby
+config.active_storage.variant_processor = CustomTransformer
+```
+
+Note that the built-in image analyzers accept a blob only when `variant_processor` is `:vips` or
+`:mini_magick`, so setting this configuration to a custom class requires adding a custom analyzer to
+[`config.active_storage.analyzers`](#config-active-storage-analyzers) as well.
 
 The default value depends on the `config.load_defaults` target version:
 
