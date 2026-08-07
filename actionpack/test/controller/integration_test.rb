@@ -84,6 +84,13 @@ class SessionTest < ActiveSupport::TestCase
     end
   end
 
+  def test_query
+    path = "/index"; params = "blah"; headers = { location: "blah" }
+    assert_called_with @session, :process, [:query, path], params: params, headers: headers do
+      @session.query(path, params: params, headers: headers)
+    end
+  end
+
   def test_xml_http_request_get
     path = "/index"; params = "blah"; headers = { location: "blah" }
     assert_called_with @session, :process, [:get, path], params: params, headers: headers, xhr: true do
@@ -519,6 +526,14 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_query
+    with_test_route_set do
+      query "/method"
+      assert_equal 200, status
+      assert_equal "method: query", body
+    end
+  end
+
   def test_generate_url_with_controller
     assert_equal "http://www.example.com/foo", url_for(controller: "foo")
   end
@@ -652,7 +667,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
           get "moved" => redirect("/method")
 
           ActionDispatch.deprecator.silence do
-            match ":action", to: controller, via: [:get, :post], as: :action
+            match ":action", to: controller, via: [:get, :post, :query], as: :action
             get "get/:action", to: controller, as: :get_action
           end
         end
