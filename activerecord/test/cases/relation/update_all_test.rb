@@ -83,6 +83,25 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal "updated", posts[2].reload.title
   end
 
+  def test_update_all_with_group_by_without_having_is_scoped_by_a_subquery
+    posts = [
+      Post.create!(title: "one", body: "x", legacy_comments_count: 0),
+      Post.create!(title: "two", body: "x", legacy_comments_count: 0),
+    ]
+    relation = Post.where(id: posts).group("posts.id")
+
+    sqls = capture_sql do
+      # The GROUP BY must be honored instead of being dropped from the query,
+      # which would update every row of the table.
+      assert_equal 2, relation.update_all(title: "updated")
+    end
+
+    assert_match(/IN \(SELECT/i, sqls.last)
+    assert_match(/GROUP BY/i, sqls.last)
+    assert_equal ["updated", "updated"], posts.map { |post| post.reload.title }
+    assert_not_equal "updated", Post.where.not(id: posts).first.title
+  end
+
   def test_update_all_with_joins_and_limit
     pets = Pet.joins(:toys).where(toys: { name: "Bone" }).limit(2)
 

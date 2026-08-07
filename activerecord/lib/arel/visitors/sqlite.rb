@@ -35,7 +35,7 @@ module Arel # :nodoc: all
         def prepare_update_statement(o)
           # Sqlite need to be built with the SQLITE_ENABLE_UPDATE_DELETE_LIMIT compile-time option
           # to support LIMIT/OFFSET/ORDER in UPDATE and DELETE statements.
-          if o.key && has_join_sources?(o) && !has_group_by_and_having?(o) && !has_limit_or_offset_or_orders?(o)
+          if o.key && has_join_sources?(o) && !has_group_by_or_having?(o) && !has_limit_or_offset_or_orders?(o)
             prepare_update_statement_with_self_join(o)
           else
             super

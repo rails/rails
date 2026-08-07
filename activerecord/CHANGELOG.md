@@ -1,3 +1,23 @@
+*   Honor `group` and `having` in `update_all` and `delete_all` when either one
+    is used on its own.
+
+    The clause was previously dropped from the generated statement unless both
+    `group` and `having` were present, so every row of the table was updated or
+    deleted:
+
+        Post.group(:author_id).delete_all
+        # => DELETE FROM "posts"
+
+    The statement is now scoped by a primary key subquery, the same way it
+    already was for `group` combined with `having`, `joins`, `limit` or `order`:
+
+        Post.group(:author_id).delete_all
+        # => DELETE FROM "posts" WHERE "posts"."id" IN (SELECT "posts"."id" FROM "posts" GROUP BY "posts"."author_id")
+
+    Fixes #54177.
+
+    *Juan Vásquez*
+
 *   Add query predicate hooks for Active Model types.
 
     Types can override `transforms_query_predicates?`, `query_attribute`, and

@@ -931,15 +931,15 @@ module Arel # :nodoc: all
           o.limit || o.offset || !o.orders.empty?
         end
 
-        def has_group_by_and_having?(o)
-          !o.groups.empty? && !o.havings.empty?
+        def has_group_by_or_having?(o)
+          !o.groups.empty? || !o.havings.empty?
         end
 
         # The default strategy for an UPDATE with joins is to use a subquery. This doesn't work
         # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
         # an UPDATE statement, so in the MySQL visitor we redefine this to do that.
         def prepare_update_statement(o)
-          if o.key && (has_limit_or_offset_or_orders?(o) || has_join_sources?(o) || has_group_by_and_having?(o))
+          if o.key && (has_limit_or_offset_or_orders?(o) || has_join_sources?(o) || has_group_by_or_having?(o))
             stmt = o.clone
             stmt.limit = nil
             stmt.offset = nil

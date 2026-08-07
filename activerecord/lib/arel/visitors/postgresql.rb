@@ -43,7 +43,7 @@ module Arel # :nodoc: all
         # query. However, this does not allow for LIMIT, OFFSET and ORDER. To support
         # these, we must use a subquery.
         def prepare_update_statement(o)
-          if o.key && has_join_sources?(o) && !has_group_by_and_having?(o) && !has_limit_or_offset_or_orders?(o)
+          if o.key && has_join_sources?(o) && !has_group_by_or_having?(o) && !has_limit_or_offset_or_orders?(o)
             prepare_update_statement_with_self_join(o)
           else
             super

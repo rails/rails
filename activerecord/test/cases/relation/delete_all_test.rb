@@ -96,6 +96,24 @@ class DeleteAllTest < ActiveRecord::TestCase
     assert_not Post.exists?(posts[2].id)
   end
 
+  def test_delete_all_with_group_by_without_having_is_scoped_by_a_subquery
+    posts = [
+      Post.create!(title: "one", body: "x", legacy_comments_count: 0),
+      Post.create!(title: "two", body: "x", legacy_comments_count: 0),
+    ]
+    relation = Post.where(id: posts).group("posts.id")
+
+    sqls = capture_sql do
+      # The GROUP BY must be honored instead of being dropped from the query,
+      # which would delete every row of the table.
+      assert_equal 2, relation.delete_all
+    end
+
+    assert_match(/IN \(SELECT/i, sqls.last)
+    assert_match(/GROUP BY/i, sqls.last)
+    assert_not_predicate Post, :none?
+  end
+
   def test_delete_all_with_unpermitted_relation_raises_error
     assert_raises(ActiveRecord::ActiveRecordError) { Author.distinct.delete_all }
     assert_raises(ActiveRecord::ActiveRecordError) { Author.with(limited: Author.limit(2)).delete_all }
