@@ -132,26 +132,7 @@ module ActiveSupport
           options = names.extract_options!
           options = merged_options(options)
 
-          keys_to_names = names.index_by { |name| normalize_key(name, options) }
-
-          local_entries = local_cache.read_multi_entries(keys_to_names.keys)
-          results = local_entries.each_with_object({}) do |(key, value), result|
-            # If we recorded a miss in the local cache, `#fetch_multi` will forward
-            # that key to the real store, and the entry will be replaced
-            # local_cache.delete_entry(key)
-            next if value.nil?
-
-            entry = deserialize_entry(value, **options)
-
-            normalized_key = keys_to_names[key]
-            if entry.nil?
-              result[normalized_key] = nil
-            elsif entry.expired? || entry.mismatched?(normalize_version(normalized_key, options))
-              local_cache.delete_entry(key)
-            else
-              result[normalized_key] = entry.value
-            end
-          end
+          results = read_multi_entries_from_local_cache(names, options)
 
           if results.size < names.size
             results.merge!(super(*(names - results.keys), options, &block))
@@ -183,15 +164,15 @@ module ActiveSupport
             end
           end
 
-          def read_multi_entries(names, **options)
-            return super unless local_cache
-
+          def read_multi_entries_from_local_cache(names, options)
             keys_to_names = names.index_by { |name| normalize_key(name, options) }
 
             local_entries = local_cache.read_multi_entries(keys_to_names.keys)
 
-            results = local_entries.each_with_object({}) do |(key, value), result|
-              next if value.nil? # recorded cache miss
+            local_entries.each_with_object({}) do |(key, value), result|
+              # If we recorded a miss in the local cache, the caller will forward
+              # that key to the real store, and the entry will be replaced
+              next if value.nil?
 
               entry = deserialize_entry(value, **options)
 
@@ -204,6 +185,12 @@ module ActiveSupport
                 result[normalized_key] = entry.value
               end
             end
+          end
+
+          def read_multi_entries(names, **options)
+            return super unless local_cache
+
+            results = read_multi_entries_from_local_cache(names, options)
 
             if results.size < names.size
               results.merge!(super(names - results.keys, **options))
