@@ -956,6 +956,21 @@ module Arel # :nodoc: all
         end
         alias :prepare_delete_statement :prepare_update_statement
 
+        # Used by dialects that support `UPDATE ... FROM` (PostgreSQL, SQLite).
+        # Join clauses cannot reference the target table, so alias the updated
+        # table, place the entire relation in the FROM clause, and add a
+        # self-join (which requires the primary key).
+        def prepare_update_statement_with_self_join(o)
+          stmt = o.clone
+          stmt.relation, stmt.wheres = o.relation.clone, o.wheres.clone
+          stmt.relation.right = [stmt.relation.left, *stmt.relation.right]
+          stmt.relation.left = stmt.relation.left.alias("__active_record_update_alias")
+          Array.wrap(o.key).each do |key|
+            stmt.wheres << key.eq(stmt.relation.left[key.name])
+          end
+          stmt
+        end
+
         # FIXME: we should probably have a 2-pass visitor for this
         def build_subselect(key, o)
           stmt             = Nodes::SelectStatement.new

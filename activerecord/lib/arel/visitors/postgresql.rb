@@ -44,17 +44,7 @@ module Arel # :nodoc: all
         # these, we must use a subquery.
         def prepare_update_statement(o)
           if o.key && has_join_sources?(o) && !has_group_by_and_having?(o) && !has_limit_or_offset_or_orders?(o)
-            # Join clauses cannot reference the target table, so alias the
-            # updated table, place the entire relation in the FROM clause, and
-            # add a self-join (which requires the primary key)
-            stmt = o.clone
-            stmt.relation, stmt.wheres = o.relation.clone, o.wheres.clone
-            stmt.relation.right = [stmt.relation.left, *stmt.relation.right]
-            stmt.relation.left = stmt.relation.left.alias("__active_record_update_alias")
-            Array.wrap(o.key).each do |key|
-              stmt.wheres << key.eq(stmt.relation.left[key.name])
-            end
-            stmt
+            prepare_update_statement_with_self_join(o)
           else
             super
           end
