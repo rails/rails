@@ -64,7 +64,7 @@ module ActiveRecord
       if operator ||= type.force_equality?(value) && :eq
         if type.transforms_query_predicates?
           right = query_value(attribute, value, type)
-          left = right.nil? ? attribute : type.query_attribute(attribute)
+          left = type.query_attribute(attribute)
         else
           right = build_bind_attribute(attribute.name, value, type)
           left = attribute

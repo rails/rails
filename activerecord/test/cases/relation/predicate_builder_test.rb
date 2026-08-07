@@ -132,8 +132,35 @@ module ActiveRecord
       assert_equal expected_sql, sql
     end
 
-    def test_attribute_type_query_transform_keeps_nil_predicates_unwrapped
+    def test_attribute_type_query_transform_applies_to_nil_predicates
       topic = topic_model_with_title_type(UnaccentedString.new)
+      sql = topic.where(title: nil).to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE #{normalized_title} IS NULL"
+
+      assert_equal expected_sql, sql
+    end
+
+    def test_attribute_type_query_transform_applies_to_negated_nil_predicates
+      topic = topic_model_with_title_type(UnaccentedString.new)
+      sql = topic.where.not(title: nil).to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE #{normalized_title} IS NOT NULL"
+
+      assert_equal expected_sql, sql
+    end
+
+    def test_attribute_type_query_transform_applies_to_nil_values_in_arrays
+      topic = topic_model_with_title_type(UnaccentedString.new)
+      sql = topic.where(title: ["CAFE", nil]).to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE (#{normalized_title} = #{normalized_value("CAFE")} OR #{normalized_title} IS NULL)"
+
+      assert_equal expected_sql, sql
+    end
+
+    def test_attribute_type_query_transform_with_default_query_attribute_keeps_nil_predicates_unwrapped
+      topic = topic_model_with_title_type(UuidToBinString.new)
       sql = topic.where(title: nil).to_sql
       expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
         "WHERE #{quote_table_name("topics.title")} IS NULL"

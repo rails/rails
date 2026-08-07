@@ -118,11 +118,13 @@ module ActiveModel
       # rendered in hash-based +where+ predicates. When this method returns
       # true, equality, array (+IN+), and range (+BETWEEN+) predicates are
       # built by passing the attribute through Value#query_attribute and each
-      # value through Value#query_value. Returns +false+ by default. Types
-      # whose read-side SQL differs from what +cast+ and +serialize+ produce
-      # (e.g. a UUID stored as binary comparing as
-      # <tt>id = UUID_TO_BIN(?)</tt>) should override this method to return
-      # +true+.
+      # value through Value#query_value. +NULL+ checks compare the transformed
+      # attribute (<tt>f(column) IS NULL</tt>), so they can keep using an index
+      # on the transformed expression; +nil+ values are not passed to
+      # Value#query_value. Returns +false+ by default. Types whose read-side
+      # SQL differs from what +cast+ and +serialize+ produce (e.g. a UUID
+      # stored as binary comparing as <tt>id = UUID_TO_BIN(?)</tt>) should
+      # override this method to return +true+.
       def transforms_query_predicates?
         false
       end
@@ -140,9 +142,9 @@ module ActiveModel
 
       # Returns the Arel node used for the value side of a +where+
       # predicate. Only called when Value#transforms_query_predicates?
-      # returns +true+. The default implementation returns a bind parameter
-      # for +value+. Override this method to wrap the bind parameter, for
-      # example in a SQL function call.
+      # returns +true+ and +value+ is not +nil+. The default implementation
+      # returns a bind parameter for +value+. Override this method to wrap
+      # the bind parameter, for example in a SQL function call.
       #
       # +attribute+ The Arel attribute for the column being compared.
       #

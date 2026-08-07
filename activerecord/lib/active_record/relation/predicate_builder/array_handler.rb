@@ -25,7 +25,8 @@ module ActiveRecord
           end
 
         if nils
-          values_predicate = values_predicate.or(attribute.eq(nil))
+          null_attribute = transformable ? type.query_attribute(attribute) : attribute
+          values_predicate = values_predicate.or(null_attribute.eq(nil))
         end
 
         if ranges.empty?
