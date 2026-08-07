@@ -1,3 +1,25 @@
+*   Support `query_constraints` on associations, decoupled from `foreign_key`.
+
+    `query_constraints` declares *additional* columns to match when querying an
+    association's targets (loading, preloading, eager loading, joins, and
+    association predicates), layered on top of the foreign key. When both
+    `foreign_key` and `query_constraints` are given, only the foreign key is
+    written, while queries match on the foreign key plus the extra columns.
+
+    A column may map to a different name on the other side using a Hash, and
+    listing the foreign key itself is allowed (it is de-duplicated):
+
+    ``` ruby
+    class BlogPost < ApplicationRecord
+      # match blog_id on both tables, and BlogPost#id -> Comment#blog_post_id
+      belongs_to :featured_comment,
+        class_name: "Comment",
+        foreign_key: :featured_comment_id,
+        query_constraints: [:blog_id, { id: :blog_post_id }]
+    end
+    ```
+
+    *Nikita Vasilevsky*
 *   Add query predicate hooks for Active Model types.
 
     Types can override `transforms_query_predicates?`, `query_attribute`, and

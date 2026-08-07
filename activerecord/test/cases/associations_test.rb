@@ -485,27 +485,76 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_empty(blog_post.reload.tags)
     assert_not_predicate Sharded::BlogPostTag.where(blog_post_id: blog_post.id, blog_id: blog_post.blog_id), :exists?
   end
+  def test_has_many_through_with_decoupled_query_constraints_uses_all_constraints_in_join
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    expected_tag_ids = [
+      sharded_tags(:short_read_blog_one).id,
+      sharded_tags(:technical_blog_one).id,
+    ].sort
 
-  def test_using_query_constraints_warns_about_changing_behavior
-    has_many_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Sharded::BlogPost.has_many :qc_deprecated_comments` is not allowed.
-      To get the same behavior, use the `foreign_key` option instead.
-    MSG
+    sql = capture_sql do
+      loaded_tags = blog_post.tags_with_decoupled_qc.to_a
+      assert_equal expected_tag_ids, loaded_tags.map(&:id).sort
+    end.first
 
-    assert_raises(ActiveRecord::ConfigurationError, match: has_many_expected_message) do
-      Sharded::BlogPost.has_many :qc_deprecated_comments,
-        class_name: "Sharded::Comment", query_constraints: [:blog_id, :blog_post_id]
+    # The through join between sharded_tags and sharded_blog_posts_tags must
+    # scope on blog_id (the decoupled query constraint), not just tag_id —
+    # otherwise tags from other blogs could match on tag_id alone.
+    tags_col = Regexp.escape(Sharded::Tag.lease_connection.quote_table_name("sharded_tags.blog_id"))
+    join_col = Regexp.escape(Sharded::BlogPostTag.lease_connection.quote_table_name("sharded_blog_posts_tags.blog_id"))
+    assert_match(/#{tags_col} = #{join_col}/, sql)
+
+    tags_col = Regexp.escape(Sharded::Tag.lease_connection.quote_table_name("sharded_tags.id"))
+    join_col = Regexp.escape(Sharded::BlogPostTag.lease_connection.quote_table_name("sharded_blog_posts_tags.tag_id"))
+    assert_match(/#{tags_col} = #{join_col}/, sql)
+  end
+
+  def test_has_many_through_with_decoupled_query_constraints_disable_joins_uses_all_constraints_in_each_hop
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    expected_tag_ids = [
+      sharded_tags(:short_read_blog_one).id,
+      sharded_tags(:technical_blog_one).id,
+    ].sort
+
+    sqls = capture_sql do
+      loaded_tags = blog_post.tags_with_decoupled_qc_without_joins.to_a
+      assert_equal expected_tag_ids, loaded_tags.map(&:id).sort
     end
 
-    belongs_to_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Sharded::Comment.belongs_to :qc_deprecated_blog_post` is not allowed.
-      To get the same behavior, use the `foreign_key` option instead.
-    MSG
+    # disable_joins issues one query per hop: the through table, then the target.
+    assert_equal 2, sqls.size
 
-    assert_raises(ActiveRecord::ConfigurationError, match: belongs_to_expected_message) do
-      Sharded::Comment.belongs_to :qc_deprecated_blog_post,
+    join_blog_id_col   = Sharded::BlogPostTag.lease_connection.quote_table_name("sharded_blog_posts_tags.blog_id")
+    join_blog_post_col = Sharded::BlogPostTag.lease_connection.quote_table_name("sharded_blog_posts_tags.blog_post_id")
+    tags_blog_id_col   = Sharded::Tag.lease_connection.quote_table_name("sharded_tags.blog_id")
+    tags_id_col        = Sharded::Tag.lease_connection.quote_table_name("sharded_tags.id")
+
+    through_sql = sqls.find { |sql| sql.include?(join_blog_id_col) }
+    target_sql  = sqls.find { |sql| sql.include?(tags_blog_id_col) }
+    assert(through_sql, "through-table query missing blog_id constraint in: #{sqls.inspect}")
+    assert(target_sql,  "target query missing blog_id constraint in: #{sqls.inspect}")
+
+    # The through-table hop must scope on blog_id (the decoupled query
+    # constraint) in addition to blog_post_id, not just blog_post_id alone.
+    assert_match(/#{Regexp.escape(join_blog_id_col)} =/, through_sql)
+    assert_match(/#{Regexp.escape(join_blog_post_col)} =/, through_sql)
+
+    # The target hop must also scope on blog_id in addition to id.
+    assert_match(/#{Regexp.escape(tags_blog_id_col)} =/, target_sql)
+    assert_match(/#{Regexp.escape(tags_id_col)} =/, target_sql)
+  end
+
+  def test_using_query_constraints_is_allowed
+    assert_nothing_raised do
+      Sharded::BlogPost.has_many :qc_configured_comments,
+        class_name: "Sharded::Comment", query_constraints: [:blog_id, :blog_post_id]
+
+      Sharded::Comment.belongs_to :qc_configured_blog_post,
         class_name: "Sharded::Blog", query_constraints: [:blog_id, :blog_post_id]
     end
+
+    assert Sharded::BlogPost.reflect_on_association(:qc_configured_comments)
+    assert Sharded::Comment.reflect_on_association(:qc_configured_blog_post)
   end
 end
 
