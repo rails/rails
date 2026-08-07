@@ -1,3 +1,11 @@
+*   Add query predicate expressions for Active Record types.
+
+    Types can include `ActiveRecord::Type::QueryPredicates` to define the SQL
+    expression through which query predicates compare stored attributes and
+    serialized query values. Ordering sorts through the same expression.
+
+    *Kir Shatrov*, *Jean-Samuel Aubry-Guzzi*, *Matthew Draper*
+
 *   Let the schema readers answer for many tables at once.
 
     `indexes`, `primary_keys`, `foreign_keys`, `check_constraints`,

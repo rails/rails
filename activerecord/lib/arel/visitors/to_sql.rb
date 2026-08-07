@@ -363,6 +363,12 @@ module Arel # :nodoc: all
 
           if values.empty?
             collector << @connection.quote(nil)
+          elsif o.attribute.respond_to?(:comparison_expression)
+            # Comparison values need SQL around each bind, so they cannot use
+            # the collector's bulk bind path.
+            binds = values.map(&o.proc_for_binds)
+            expressions = binds.map { |bind| o.attribute.comparison_expression(bind) }
+            collector = inject_join(expressions, collector, ", ")
           else
             collector.add_binds(values, o.proc_for_binds, &bind_block)
           end
@@ -772,6 +778,14 @@ module Arel # :nodoc: all
 
         def visit_ActiveModel_Attribute(o, collector)
           collector.add_bind(o, &bind_block)
+        end
+
+        def visit_ActiveRecord_PredicateBuilder_ComparisonAttribute(o, collector)
+          visit o.expression, collector
+        end
+
+        def visit_ActiveRecord_PredicateBuilder_ComparisonValue(o, collector)
+          visit o.expression, collector
         end
 
         def visit_Arel_Nodes_BindParam(o, collector)

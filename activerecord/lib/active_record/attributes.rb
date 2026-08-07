@@ -9,6 +9,10 @@ module ActiveRecord
     include ActiveModel::AttributeRegistration
     include ActiveModel::Attributes::Normalization
 
+    ActiveModel::Attributes::Normalization::NormalizedValueType.include(
+      Type::QueryPredicates::NormalizedValueTypeDecorator
+    )
+
     # = Active Record \Attributes
     module ClassMethods
       # :method: attribute
