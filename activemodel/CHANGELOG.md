@@ -1,3 +1,13 @@
+*   Raise an `ArgumentError` when `ActiveModel::Attributes` receives a name that
+    cannot generate usable readers, writers, or dirty tracking methods.
+
+    Attribute names are now restricted to letters, digits, and underscores, so
+    names such as `wat?`, `oof!`, or `oh:my:gaw` are rejected instead of
+    defining methods that can only be reached through `public_send` or that
+    raise a `SyntaxError` when used with `ActiveModel::Dirty`.
+
+    Fixes #57962.
+
 *   Fix `normalizes` re-applying normalizations on every validation of an
     unpersisted record, and speed up validation of normalized attributes.
 

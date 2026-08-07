@@ -32,6 +32,12 @@ module ActiveModel
 
     autoload :Normalization
 
+    # Attribute names are restricted to letters, digits, and underscores so that
+    # every generated method, including the ones added by ActiveModel::Dirty, can
+    # be called with regular Ruby syntax. This is stricter than Ruby itself, which
+    # also accepts symbols such as emoji in method names.
+    VALID_ATTRIBUTE_NAME_REGEXP = /\A(?:\p{L}|_)(?:\p{L}|\p{M}|\p{N}|_)*\z/u
+
     extend ActiveSupport::Concern
     include ActiveModel::AttributeRegistration
     include ActiveModel::AttributeMethods
@@ -61,6 +67,9 @@ module ActiveModel
       #   person.name   # => "Volmer"
       #   person.active # => true
       def attribute(name, ...)
+        name = name.to_s
+        validate_attribute_name!(name)
+
         super
         define_attribute_method(name)
       end
@@ -93,6 +102,16 @@ module ActiveModel
 
       ##
       private
+        def validate_attribute_name!(name)
+          unless VALID_ATTRIBUTE_NAME_REGEXP.match?(name)
+            raise_invalid_attribute_name(name)
+          end
+        end
+
+        def raise_invalid_attribute_name(name)
+          raise ArgumentError, "#{name.inspect} is not a valid attribute name for ActiveModel::Attributes"
+        end
+
         def define_method_attribute=(canonical_name, owner:, as: canonical_name)
           ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
             canonical_name, writer: true,
