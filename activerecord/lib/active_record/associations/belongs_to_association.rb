@@ -25,20 +25,21 @@ module ActiveRecord
         when :destroy
           raise ActiveRecord::Rollback unless target.destroy
         when :destroy_async
-          primary_key_column = reflection.active_record_primary_key
-          ids = foreign_key.map { |col| owner.public_send(col) }
-
           association_class = if reflection.polymorphic?
-            owner.public_send(foreign_type)
+            target.class
           else
             reflection.klass
           end
+
+          primary_key_column = reflection.join_query_constraints_primary_key(association_class)
+          query_constraints_foreign_key = ActiveRecord::Key.for(reflection.join_query_constraints_foreign_key)
+          ids = query_constraints_foreign_key.map { |column| owner.public_send(column) }
 
           enqueue_destroy_association(
             owner_model_name: owner.class.to_s,
             owner_id: owner.id,
             association_class: association_class.to_s,
-            association_ids: foreign_key.composite? ? [ids] : ids,
+            association_ids: query_constraints_foreign_key.composite? ? [ids] : ids,
             association_primary_key_column: primary_key_column,
             ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
           )
@@ -141,7 +142,12 @@ module ActiveRecord
         end
 
         def replace_keys(record, force: false)
-          target_key_values = record ? ActiveRecord::Key.for(primary_key(record.class)).map { |col| record.read_attribute(col) } : []
+          target_key = ActiveRecord::Key.for(record ? primary_key(record.class) : nil)
+          if record && target_key.length != foreign_key.length
+            target_key = ActiveRecord::Key.for(reflection.join_query_constraints_primary_key(record.class))
+          end
+
+          target_key_values = target_key.map { |key| record.read_attribute(key) }
           owner_key_values = foreign_key.map { |fk| owner.read_attribute(fk) }
 
           return if !force && owner_key_values == target_key_values
@@ -167,10 +173,11 @@ module ActiveRecord
         end
 
         def stale_state
-          values = foreign_key.map do |fk|
-            owner.read_attribute(fk) { |n| owner.send(:missing_attribute, n, caller) }
+          query_constraints_foreign_key = ActiveRecord::Key.for(reflection.join_query_constraints_foreign_key)
+          values = query_constraints_foreign_key.map do |key|
+            owner.read_attribute(key) { |name| owner.send(:missing_attribute, name, caller) }
           end
-          foreign_key.composite? ? (values if values.any?) : values.first
+          query_constraints_foreign_key.composite? ? (values if values.any?) : values.first
         end
     end
   end

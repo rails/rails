@@ -159,7 +159,7 @@ module ActiveRecord
 
         # The name of the key on the associated records
         def association_key_name
-          reflection.join_primary_key(klass)
+          reflection.join_query_constraints_primary_key(klass)
         end
 
         def loader_query
@@ -239,7 +239,7 @@ module ActiveRecord
 
           # The name of the key on the model which declares the association
           def owner_key_name
-            reflection.join_foreign_key
+            reflection.join_query_constraints_foreign_key
           end
 
           def associate_records_to_owner(owner, records)

@@ -9,12 +9,12 @@ module ActiveRecord
       end
 
       def queries
-        return [ reflection.join_foreign_key => values ] if values.empty?
+        return [ reflection.join_query_constraints_foreign_key => values ] if values.empty?
 
         type_to_ids_mapping.map do |type, ids|
           query = {}
           query[reflection.join_foreign_type] = type if type
-          query[reflection.join_foreign_key] = ids
+          query[reflection.join_query_constraints_foreign_key] = ids
           query
         end
       end
@@ -30,7 +30,7 @@ module ActiveRecord
         end
 
         def primary_key(value)
-          reflection.join_primary_key(klass(value))
+          reflection.join_query_constraints_primary_key(klass(value))
         end
 
         def klass(value)
