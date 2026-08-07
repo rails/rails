@@ -33,6 +33,30 @@ module ActionView
       Rails.instance_eval { undef :root } if defined?(@defined_root)
     end
 
+    def test_render_notifications_are_silenced_outside_debug_mode
+      original = ActiveSupport.event_reporter.debug_mode?
+      ActiveSupport.event_reporter.debug_mode = false
+
+      Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
+        assert_not ActiveSupport::Notifications.notifier.listening?("render_template.action_view")
+        assert_not ActiveSupport::Notifications.notifier.listening?("render_layout.action_view")
+
+        assert_no_event_reported("action_view.render_start") do
+          assert_equal "Hello world!", @view.render(template: "test/hello_world")
+        end
+
+        with_debug_event_reporting do
+          assert ActiveSupport::Notifications.notifier.listening?("render_template.action_view")
+
+          assert_event_reported("action_view.render_start", payload: { identifier: "test/hello_world.erb" }) do
+            @view.render(template: "test/hello_world")
+          end
+        end
+      end
+    ensure
+      ActiveSupport.event_reporter.debug_mode = original
+    end
+
     def test_render_template
       Rails.stub(:root, File.expand_path(FIXTURE_LOAD_PATH)) do
         with_debug_event_reporting do
