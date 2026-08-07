@@ -19,6 +19,12 @@ module ActiveRecord
 
       def validate_each(record, attribute, value)
         finder_class = find_finder_class_for(record)
+        if options[:case_sensitive] && finder_class.type_for_attribute(attribute.to_s).type == :citext
+          finder_class.logger&.warn(
+            "WARNING: '#{finder_class.name}' validates uniqueness of '#{attribute}' with `case_sensitive: true`, " \
+            "but the column type is 'citext' (case-insensitive). "
+          )
+        end
         value = map_enum_attribute(finder_class, attribute, value)
 
         return if record.persisted? && !validation_needed?(finder_class, record, attribute)
