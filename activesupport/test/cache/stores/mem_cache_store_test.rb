@@ -132,6 +132,20 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert stub_called
   end
 
+  # Overrides test from CacheStoreBehavior to account for Dalli's delete_multi not returning
+  # per key result.
+  def test_delete_multi
+    key = SecureRandom.alphanumeric
+    @cache.write(key, "bar")
+    assert @cache.exist?(key)
+    other_key = SecureRandom.alphanumeric
+    @cache.write(other_key, "world")
+    assert @cache.exist?(other_key)
+    assert_equal 3, @cache.delete_multi([key, SecureRandom.uuid, other_key])
+    assert_not @cache.exist?(key)
+    assert_not @cache.exist?(other_key)
+  end
+
   def test_short_key_normalization
     short_key = "a" * 250
     assert_equal short_key, @cache.send(:normalize_key, short_key, { namespace: nil })
