@@ -67,7 +67,7 @@ module ActionView
     end
 
     config.after_initialize do
-      ActionView::Template::Handlers::ERB.escape_ignore_list.freeze
+      ActiveSupport::Ractors.make_shareable(ActionView::Template::Handlers::ERB.escape_ignore_list)
     end
 
     config.after_initialize do |app|

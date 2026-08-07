@@ -1,3 +1,19 @@
+*   Configuring ERB options is now to be made on the ActionView::Base class.
+
+    The `ActionView::Template::Handlers::ERB` class is now private API. Applications
+    that used to configure ERB options such as `escape_ignore_list` now need
+    to do this on the `ActionView::Base` class or on the railtie `config.action_view`
+    configuration.
+
+    ```ruby
+    ActionView::Base.erb_trim_mode = nil
+    ActionView::Base.erb_implementation = ERB
+    ActionView::Base.escape_ignore_list = ["text/csv"]
+    ActionView::Base.strip_trailing_newlines = false
+    ```
+
+    *Edouard Chin*
+
 *   Fix `search_field` raising `NameError` when passed `autosave: true`.
 
     *Hammad Khan*
