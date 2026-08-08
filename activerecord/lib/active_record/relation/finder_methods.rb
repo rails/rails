@@ -199,12 +199,18 @@ module ActiveRecord
     #
     #   [#<Person id:4>, #<Person id:3>, #<Person id:2>]
     def last(limit = nil)
-      return find_last(limit) if loaded? || has_limit_or_offset?
+      return find_last(limit) if (!@to_sql && loaded?) || has_limit_or_offset?
 
-      result = ordered_relation.limit(limit)
-      result = result.reverse_order!
+      relation = ordered_relation.limit(limit)
+      relation = relation.reverse_order!
 
-      limit ? result.reverse : result.first
+      if @to_sql && limit
+        relation.to_sql
+      elsif limit
+        relation.reverse
+      else
+        relation.first
+      end
     end
 
     # Same as #last but raises ActiveRecord::RecordNotFound if no record
@@ -355,7 +361,7 @@ module ActiveRecord
     #   Person.exists?
     #   Person.where(name: 'Spartacus', rating: 4).exists?
     def exists?(conditions = :none)
-      return false if @none
+      return false if !@to_sql && @none
 
       if Base === conditions
         raise ArgumentError, <<-MSG.squish
@@ -364,7 +370,7 @@ module ActiveRecord
         MSG
       end
 
-      return false if !conditions || limit_value == 0
+      return false if !@to_sql && (!conditions || limit_value == 0)
 
       if eager_loading?
         relation = apply_join_dependency(eager_loading: false)
@@ -372,6 +378,7 @@ module ActiveRecord
       end
 
       relation = construct_relation_for_exists(conditions)
+      return relation.to_sql if @to_sql
       return false if relation.where_clause.contradiction?
 
       skip_query_cache_if_necessary do
@@ -487,9 +494,9 @@ module ActiveRecord
         raise UnknownPrimaryKey.new(model) if primary_key.nil?
 
         first_item = ids.first
-        return [] if first_item.is_a?(Array) && first_item.empty?
+        return [] if !@to_sql && first_item.is_a?(Array) && first_item.empty?
 
-        expects_array = model.primary_key_definition.expects_multiple_ids?(first_item)
+        expects_array = !@to_sql && model.primary_key_definition.expects_multiple_ids?(first_item)
 
         ids = first_item if expects_array
 
@@ -519,11 +526,12 @@ module ActiveRecord
 
         relation = where(model.primary_key_definition.where_hash(id))
 
-        record = relation.take
+        result = relation.take
+        return result if @to_sql
 
-        raise_record_not_found_exception!(id, 0, 1) unless record
+        raise_record_not_found_exception!(id, 0, 1) unless result
 
-        record
+        result
       end
 
       def find_some(ids)
@@ -538,7 +546,7 @@ module ActiveRecord
 
         # 11 ids with limit 3, offset 9 should give 2 results.
         if offset_value
-          if ids.size <= offset_value
+          if !@to_sql && ids.size <= offset_value
             return []
           elsif ids.size - offset_value < expected_size
             expected_size = ids.size - offset_value
@@ -547,6 +555,8 @@ module ActiveRecord
 
         relation = where(primary_key => ids)
         relation = relation.select(table[primary_key]) unless select_values.empty?
+        return relation.to_sql if @to_sql
+
         result = relation.to_a
 
         if result.size == expected_size
@@ -577,15 +587,22 @@ module ActiveRecord
       end
 
       def find_take
-        if loaded?
+        if !@to_sql && loaded?
           records.first
         else
-          @take ||= limit(1).records.first
+          @take ||= begin
+            relation = limit(1)
+            if @to_sql
+              relation.to_sql
+            else
+              relation.records.first
+            end
+          end
         end
       end
 
       def find_take_with_limit(limit)
-        if loaded?
+        if !@to_sql && loaded?
           records.take(limit)
         else
           limit(limit).to_a
@@ -594,11 +611,18 @@ module ActiveRecord
 
       def find_nth(index)
         @offsets ||= {}
-        @offsets[index] ||= find_nth_with_limit(index, 1).first
+        @offsets[index] ||= begin
+          result = find_nth_with_limit(index, 1)
+          if @to_sql
+            result
+          else
+            result.first
+          end
+        end
       end
 
       def find_nth_with_limit(index, limit)
-        if loaded?
+        if !@to_sql && loaded?
           records[index, limit] || []
         else
           relation = ordered_relation
@@ -609,7 +633,13 @@ module ActiveRecord
 
           if limit > 0
             relation = relation.offset((offset_value || 0) + index) unless index.zero?
-            relation.limit(limit).to_a
+            relation = relation.limit(limit)
+          end
+
+          if @to_sql
+            relation.to_sql
+          elsif limit > 0
+            relation.to_a
           else
             []
           end
@@ -631,7 +661,13 @@ module ActiveRecord
       end
 
       def find_last(limit)
-        limit ? records.last(limit) : records.last
+        if @to_sql
+          to_sql
+        elsif limit
+          records.last(limit)
+        else
+          records.last
+        end
       end
 
       def ordered_relation
