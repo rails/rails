@@ -1,13 +1,16 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 class String
-  # Returns +true+ if string has utf_8 encoding.
+  # Returns `true` if string has utf_8 encoding.
   #
-  #   utf_8_str = "some string".encode "UTF-8"
-  #   iso_str = "some string".encode "ISO-8859-1"
+  # ```
+  # utf_8_str = "some string".encode "UTF-8"
+  # iso_str = "some string".encode "ISO-8859-1"
   #
-  #   utf_8_str.is_utf8? # => true
-  #   iso_str.is_utf8?   # => false
+  # utf_8_str.is_utf8? # => true
+  # iso_str.is_utf8?   # => false
+  # ```
   def is_utf8?
     case encoding
     when Encoding::UTF_8, Encoding::US_ASCII
