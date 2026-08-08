@@ -1,3 +1,13 @@
+*   Show a Rails-flavored startup banner (a small logo, Rails/Ruby
+    version, a rotating tip about console helpers like `app`/`reload!`, and
+    `Rails.root`) when starting `bin/rails console`.
+
+    `rails console` bypassed IRB's normal startup path, so the banner IRB
+    shows when run directly via `irb` (see ruby/irb#1183) never appeared in
+    a Rails console session.
+
+    *Elia Gamberi*
+
 *   Don't filter nonexistent i18n paths on initialize. This negatively impacts
     applications with lots of translation files.
 
