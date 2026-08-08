@@ -678,6 +678,12 @@ module Rails
       Ractor.make_shareable(Rails.error)
       Ractor.make_shareable(Rails.backtrace_cleaner)
       ActionView::DependencyTracker.share_registry if defined?(ActionView)
+
+      begin
+        require "rack/ractorize"
+      rescue LoadError
+        raise "rack/ractorize not available, but required for Ractor support."
+      end
     end
 
   protected
