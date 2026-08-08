@@ -1371,7 +1371,7 @@ module ActiveRecord
     #
     # To make a readonly relation writable, pass +false+.
     #
-    #   users.readonly(false)
+    #   users = users.readonly(false)
     #   users.first.save
     #   # => true
     def readonly(value = true)
