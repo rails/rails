@@ -14,6 +14,17 @@ module Arel # :nodoc: all
         @distinct    = false
       end
 
+      def fetch_attribute(&block)
+        return unless expressions.size == 1
+
+        expression = expressions.first
+        if expression.is_a?(Arel::Attributes::Attribute)
+          yield expression
+        elsif expression.is_a?(Arel::Nodes::Node)
+          expression.fetch_attribute(&block)
+        end
+      end
+
       def hash
         [@expressions, @distinct].hash
       end
