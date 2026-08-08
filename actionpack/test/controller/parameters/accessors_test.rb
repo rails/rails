@@ -372,6 +372,16 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_not_same @params, result
   end
 
+  test "deep_transform_values returns an enumerator when no block is given" do
+    params = ActionController::Parameters.new(person: { name: " Francesco " })
+
+    assert_instance_of Enumerator, params.deep_transform_values
+
+    transformed = params.deep_transform_values.each(&:strip)
+    assert_equal({ "person" => { "name" => "Francesco" } }, transformed.to_unsafe_h)
+    assert_not_predicate transformed, :permitted?
+  end
+
   test "transform_values retains permitted status" do
     @params.permit!
     assert_predicate @params.transform_values { |v| v }, :permitted?
