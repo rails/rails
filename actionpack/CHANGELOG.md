@@ -32,6 +32,13 @@
 
     *Chad Cole*
 
+*   Fix `protect_from_forgery` re-registering callbacks when called again on the
+    same controller, which could wipe action-specific `skip_forgery_protection`
+    conditions on descendants.
+
+    *arimu1*
+
+
 *   Fix route recognition still matching routes that were removed by redrawing
     a route set as empty.
 
