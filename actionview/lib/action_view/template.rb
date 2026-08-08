@@ -408,6 +408,23 @@ module ActionView
       strict_locals!
     end
 
+    def freeze # :nodoc:
+      unless @compiled
+        raise ArgumentError, "Cannot freeze #{short_identifier.inspect}: the template must be compiled first. " \
+          "Frozen templates cannot compile, so an uncompiled one could never render."
+      end
+      strict_locals!
+      method_name.freeze
+      @source.freeze
+      @identifier.freeze
+      @virtual_path&.freeze
+      @locals&.freeze
+      @strict_locals.freeze if @strict_locals.is_a?(String)
+      @variant.freeze if @variant.is_a?(String)
+      @compile_mutex = nil
+      super
+    end
+
     # Exceptions are marshalled when using the parallel test runner with DRb, so we need
     # to ensure that references to the template object can be marshalled as well. This means forgoing
     # the marshalling of the compiler mutex and instantiating that again on unmarshalling.
@@ -443,7 +460,15 @@ module ActionView
       # Compile a template. This method ensures a template is compiled
       # just once and removes the source after it is compiled.
       def compile!(view)
-        return if @compiled
+        if @compiled
+          if @compiled_method_container && view.compiled_method_container != @compiled_method_container
+            raise ArgumentError, "Template #{short_identifier.inspect} was compiled to render with " \
+              "#{@compiled_method_container.inspect} but is being rendered with a view whose compiled " \
+              "method container is #{view.compiled_method_container.inspect}. A template compiles into " \
+              "a single container; render it with the view class it was compiled with."
+          end
+          return
+        end
 
         # Templates can be used concurrently in threaded environments
         # so compilation and any instance variable modification must
@@ -460,6 +485,7 @@ module ActionView
             compile(mod)
           end
 
+          @compiled_method_container = mod
           @compiled = true
         end
       end
