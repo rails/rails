@@ -1,7 +1,8 @@
 # :markup: markdown
 # frozen_string_literal: true
 
-# ## Attribute Accessors
+# Attribute Accessors
+# -------------------
 #
 # Extends the module object with class/module and instance accessors for
 # class/module attributes, just like the native attr* accessors for instance
