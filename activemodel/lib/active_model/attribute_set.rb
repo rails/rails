@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/object/deep_dup"
+require "active_model/attribute_set/attribute_hash"
 require "active_model/attribute_set/builder"
 require "active_model/attribute_set/yaml_encoder"
 
@@ -11,6 +12,7 @@ module ActiveModel
 
     def initialize(attributes)
       @attributes = attributes
+      attributes.rebind(self) if attributes.respond_to?(:rebind)
     end
 
     def [](name)
@@ -52,17 +54,20 @@ module ActiveModel
     end
 
     def write_from_database(name, value)
-      @attributes[name] = self[name].with_value_from_database(value)
+      new_attribute = self[name].with_value_from_database(value)
+      @attributes[name] = new_attribute if @attributes.key?(name)
     end
 
     def write_from_user(name, value)
       raise FrozenError, "can't modify frozen attributes" if frozen?
-      @attributes[name] = self[name].with_value_from_user(value)
+      new_attribute = self[name].with_value_from_user(value)
+      @attributes[name] = new_attribute if @attributes.key?(name)
       value
     end
 
     def write_cast_value(name, value)
-      @attributes[name] = self[name].with_cast_value(value)
+      new_attribute = self[name].with_cast_value(value)
+      @attributes[name] = new_attribute if @attributes.key?(name)
     end
 
     def freeze
@@ -71,16 +76,18 @@ module ActiveModel
     end
 
     def deep_dup
-      AttributeSet.new(attributes.transform_values(&:dup_or_share))
+      AttributeSet.new(attributes.dup.transform_values!(&:dup_or_share))
     end
 
     def initialize_dup(_)
       @attributes = @attributes.dup
+      @attributes.rebind(self) if @attributes.respond_to?(:rebind)
       super
     end
 
-    def initialize_clone(_)
-      @attributes = @attributes.clone
+    def initialize_clone(...)
+      @attributes = @attributes.clone(freeze: false)
+      @attributes.rebind(self) if @attributes.respond_to?(:rebind)
       super
     end
 
@@ -95,8 +102,7 @@ module ActiveModel
     end
 
     def map(&block)
-      new_attributes = attributes.transform_values(&block)
-      AttributeSet.new(new_attributes)
+      AttributeSet.new(attributes.dup.transform_values!(&block))
     end
 
     def reverse_merge!(target_attributes)

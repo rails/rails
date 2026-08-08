@@ -5,15 +5,16 @@ require "active_model/attribute"
 module ActiveModel
   class AttributeSet # :nodoc:
     class Builder # :nodoc:
-      attr_reader :types, :default_attributes
+      attr_reader :types, :default_attributes, :store_attribute_definitions
 
-      def initialize(types, default_attributes = {})
+      def initialize(types, default_attributes = {}, store_attribute_definitions = {})
         @types = types
         @default_attributes = default_attributes
+        @store_attribute_definitions = store_attribute_definitions
       end
 
       def build_from_database(values = {}, additional_types = {})
-        LazyAttributeSet.new(values, types, additional_types, default_attributes)
+        LazyAttributeSet.new(values, types, additional_types, default_attributes, AttributeHash.new(store_attribute_definitions))
       end
     end
   end

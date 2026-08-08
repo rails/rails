@@ -1,3 +1,42 @@
+*   `store_accessor` now generates the full standard attribute method set.
+
+    Store-accessor keys now share the standard attribute method
+    generation path, gaining the `{key}?` predicate and the Dirty methods
+    that had drifted out of sync.
+
+    *Ryuta Kamizono*
+
+*   Deprecate `read_store_attribute` and `write_store_attribute`.
+
+    `store_accessor` now generates standard attribute methods, so overrides
+    should call `super` instead of these internal helpers.
+
+    Before:
+
+    ```ruby
+    def phone_number
+      read_store_attribute(:settings, :phone_number).gsub(...)
+    end
+
+    def phone_number=(value)
+      write_store_attribute(:settings, :phone_number, value.gsub(...))
+    end
+    ```
+
+    After:
+
+    ```ruby
+    def phone_number
+      super&.gsub(...)
+    end
+
+    def phone_number=(value)
+      super(value&.gsub(...))
+    end
+    ```
+
+    *Ryuta Kamizono*
+
 *   Add query predicate hooks for Active Model types.
 
     Types can override `transforms_query_predicates?`, `query_attribute`, and

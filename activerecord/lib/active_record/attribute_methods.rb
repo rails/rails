@@ -112,7 +112,7 @@ module ActiveRecord
 
           unless abstract_class?
             load_schema
-            super(attribute_names)
+            super(attribute_names + store_attribute_definitions.keys)
             alias_attribute :id_value, :id if _has_attribute?("id") && !_has_attribute?("id_value")
           end
 
