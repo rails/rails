@@ -1,3 +1,14 @@
+*   Warn instead of aborting boot when `image_processing` 2.x is installed without `ruby-vips`
+    or `mini_magick`.
+
+    Both gems became soft dependencies in `image_processing` 2.0, and the `LoadError` raised for
+    a missing one names that gem instead of `image_processing`. Active Storage did not recognize
+    the message, so it re-raised rather than logging its usual warning.
+
+    Fixes #58413.
+
+    *Janko Marohnić*
+
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
     Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
