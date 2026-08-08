@@ -1,3 +1,13 @@
+*   Avoid loading ruby-vips when the `:mini_magick` Active Storage variant
+    processor is selected.
+
+    This prevents an installed but unsupported ruby-vips version from raising during
+    application boot when Vips processing is not configured.
+
+    Fixes #58394.
+
+    *tianrking*
+
 *   Allow `config.active_storage.variant_processor` to be set to a transformer class.
 
     `config.active_storage.variant_processor` now accepts a class, in addition to `:vips`,

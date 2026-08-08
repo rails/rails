@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_storage/vips"
-
 module ActiveStorage
   # This analyzer relies on the third-party {ruby-vips}[https://github.com/libvips/ruby-vips] gem. Ruby-vips requires
   # the {libvips}[https://libvips.github.io/libvips/] system library.
@@ -12,6 +10,8 @@ module ActiveStorage
 
     private
       def read_image
+        require "active_storage/vips"
+
         unless VIPS_AVAILABLE
           logger.error "Skipping image analysis because the ruby-vips gem isn't installed"
           return {}
