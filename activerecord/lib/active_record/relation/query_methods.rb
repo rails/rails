@@ -92,7 +92,7 @@ module ActiveRecord
             @scope.joins!(association)
           end
 
-          association_conditions = Array(reflection.association_primary_key).index_with(nil)
+          association_conditions = ActiveRecord::Key.for(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
             self.not(association => association_conditions)
           else
@@ -125,7 +125,7 @@ module ActiveRecord
         associations.each do |association|
           reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
-          association_conditions = Array(reflection.association_primary_key).index_with(nil)
+          association_conditions = ActiveRecord::Key.for(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
             @scope.where!(association => association_conditions)
           else
