@@ -672,6 +672,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "brakeman"
   end
 
+  def test_brakeman_binstub_passes_ensure_latest_cooldown
+    run_generator
+    assert_file "bin/brakeman", /ARGV\.unshift\("--ensure-latest", "7"\)/
+  end
+
   def test_brakeman_is_skipped_if_required
     run_generator [destination_root, "--skip-brakeman"]
 
