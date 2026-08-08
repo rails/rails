@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -17,19 +18,21 @@ module ActiveSupport
         @deprecators[name]
       end
 
-      # Adds a given +deprecator+ to this collection. The deprecator will be
+      # Adds a given `deprecator` to this collection. The deprecator will be
       # immediately configured with any options previously set on this
       # collection.
       #
-      #   deprecators = ActiveSupport::Deprecation::Deprecators.new
-      #   deprecators.debug = true
+      # ```
+      # deprecators = ActiveSupport::Deprecation::Deprecators.new
+      # deprecators.debug = true
       #
-      #   foo_deprecator = ActiveSupport::Deprecation.new("2.0", "Foo")
-      #   foo_deprecator.debug    # => false
+      # foo_deprecator = ActiveSupport::Deprecation.new("2.0", "Foo")
+      # foo_deprecator.debug    # => false
       #
-      #   deprecators[:foo] = foo_deprecator
-      #   deprecators[:foo].debug # => true
-      #   foo_deprecator.debug    # => true
+      # deprecators[:foo] = foo_deprecator
+      # deprecators[:foo].debug # => true
+      # foo_deprecator.debug    # => true
+      # ```
       #
       def []=(name, deprecator)
         apply_options(deprecator)
@@ -37,7 +40,7 @@ module ActiveSupport
       end
 
       # Iterates over all deprecators in this collection. If no block is given,
-      # returns an +Enumerator+.
+      # returns an `Enumerator`.
       def each(&block)
         return to_enum(__method__) unless block
         @deprecators.each_value(&block)

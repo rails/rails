@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -8,7 +9,7 @@ module ActiveSupport
       # expressions. (Symbols are treated as strings.) These are compared against
       # the text of the generated deprecation warning.
       #
-      # Additionally the scalar symbol +:all+ may be used to treat all
+      # Additionally the scalar symbol `:all` may be used to treat all
       # deprecations as disallowed.
       #
       # Deprecations matching a substring or regular expression will be handled

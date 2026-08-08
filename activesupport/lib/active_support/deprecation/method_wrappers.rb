@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/array/extract_options"
@@ -8,30 +9,32 @@ module ActiveSupport
     module MethodWrapper
       # Declare that a method has been deprecated.
       #
-      #   class Fred
-      #     def aaa; end
-      #     def bbb; end
-      #     def ccc; end
-      #     def ddd; end
-      #     def eee; end
-      #   end
+      # ```
+      # class Fred
+      #   def aaa; end
+      #   def bbb; end
+      #   def ccc; end
+      #   def ddd; end
+      #   def eee; end
+      # end
       #
-      #   deprecator = ActiveSupport::Deprecation.new('next-release', 'MyGem')
+      # deprecator = ActiveSupport::Deprecation.new('next-release', 'MyGem')
       #
-      #   deprecator.deprecate_methods(Fred, :aaa, bbb: :zzz, ccc: 'use Bar#ccc instead')
-      #   # => Fred
+      # deprecator.deprecate_methods(Fred, :aaa, bbb: :zzz, ccc: 'use Bar#ccc instead')
+      # # => Fred
       #
-      #   Fred.new.aaa
-      #   # DEPRECATION WARNING: aaa is deprecated and will be removed from MyGem next-release. (called from irb_binding at (irb):10)
-      #   # => nil
+      # Fred.new.aaa
+      # # DEPRECATION WARNING: aaa is deprecated and will be removed from MyGem next-release. (called from irb_binding at (irb):10)
+      # # => nil
       #
-      #   Fred.new.bbb
-      #   # DEPRECATION WARNING: bbb is deprecated and will be removed from MyGem next-release (use zzz instead). (called from irb_binding at (irb):11)
-      #   # => nil
+      # Fred.new.bbb
+      # # DEPRECATION WARNING: bbb is deprecated and will be removed from MyGem next-release (use zzz instead). (called from irb_binding at (irb):11)
+      # # => nil
       #
-      #   Fred.new.ccc
-      #   # DEPRECATION WARNING: ccc is deprecated and will be removed from MyGem next-release (use Bar#ccc instead). (called from irb_binding at (irb):12)
-      #   # => nil
+      # Fred.new.ccc
+      # # DEPRECATION WARNING: ccc is deprecated and will be removed from MyGem next-release (use Bar#ccc instead). (called from irb_binding at (irb):12)
+      # # => nil
+      # ```
       def deprecate_methods(target_module, *method_names)
         options = method_names.extract_options!
         deprecator = options.delete(:deprecator) || self
