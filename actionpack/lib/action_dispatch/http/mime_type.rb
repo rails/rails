@@ -3,7 +3,6 @@
 # :markup: markdown
 
 require "singleton"
-require "active_support/deprecation"
 require "action_dispatch/deprecator"
 require "active_support/core_ext/string/filters"
 
