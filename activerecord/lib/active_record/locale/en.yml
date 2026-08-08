@@ -9,6 +9,11 @@ en:
     messages:
       required: "must exist"
       taken: "has already been taken"
+      too_large: "is too large (maximum is %{count})"
+      too_small: "is too small (minimum is %{count})"
+      too_large_in_bytes:
+        one: "is too large (maximum is 1 byte)"
+        other: "is too large (maximum is %{count} bytes)"
 
   # Active Record models configuration
   activerecord:
