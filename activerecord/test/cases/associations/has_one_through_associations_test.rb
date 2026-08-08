@@ -27,7 +27,7 @@ require "models/cpk"
 require "models/dats"
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
+  fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :member_details, :minivans,
            :dashboards, :speedometers, :authors, :author_addresses, :posts, :comments, :categories, :essays, :owners
 
   def setup
@@ -192,6 +192,124 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:moustache_club), Member.all.merge!(includes: :hairy_club).find(@member.id).hairy_club
     clubs(:moustache_club).update_columns(name: "Association of Clean-Shaven Persons")
     assert_nil Member.all.merge!(includes: :hairy_club).find(@member.id).reload.hairy_club
+  end
+
+  def test_has_one_through_uses_preloaded_chain_without_query
+    members = Member.includes(member_detail: :organization).where(name: "Groucho Marx").to_a
+    member = members.first
+
+    assert member.association(:member_detail).loaded?, "member_detail should be loaded"
+    assert member.member_detail.association(:organization).loaded?, "member_detail.organization should be loaded"
+
+    assert_no_queries do
+      member.organization
+    end
+  end
+
+  def test_has_one_through_returns_nil_when_through_is_loaded_as_nil
+    member = Member.create!(name: "No Detail")
+    member = Member.includes(:member_detail).where(id: member.id).first
+
+    assert member.association(:member_detail).loaded?, "through association should be loaded"
+    assert_nil member.member_detail
+
+    assert_no_queries do
+      assert_nil member.organization
+    end
+  end
+
+  def test_has_one_through_queries_when_source_not_loaded
+    member = members(:groucho)
+    member.member_detail # load only the through association
+
+    assert member.association(:member_detail).loaded?, "through association should be loaded"
+    assert_not member.member_detail.association(:organization).loaded?,
+      "source association should NOT be loaded"
+
+    assert_queries_count(1) do
+      member.organization
+    end
+  end
+
+  def test_has_one_through_queries_when_nothing_loaded
+    member = members(:groucho)
+    member.association(:member_detail).reset
+    member.association(:organization).reset
+
+    assert_not member.association(:member_detail).loaded?
+    assert_not member.association(:organization).loaded?
+
+    assert_queries_count(1) do
+      member.organization
+    end
+  end
+
+  def test_has_one_through_explicit_reload_queries_even_when_chain_loaded
+    members = Member.includes(member_detail: :organization).where(name: "Groucho Marx").to_a
+    member = members.first
+
+    assert member.association(:member_detail).loaded?
+
+    # Explicit reload should always hit the database, even when the
+    # through chain is loaded in memory.
+    assert_queries_count(1) do
+      member.reload_organization
+    end
+  end
+
+  def test_has_one_through_queries_when_through_foreign_key_mutated_after_preload
+    minivan = Minivan.includes(speedometer: :dashboard).find(minivans(:cool_first).minivan_id)
+
+    assert minivan.association(:speedometer).loaded?, "through association should be loaded"
+    assert minivan.speedometer.association(:dashboard).loaded?, "source association should be loaded"
+
+    # Mutating the foreign key to the through record makes the preloaded
+    # chain stale — the association must fall back to querying so it
+    # resolves against the new foreign key, as it does without preloading.
+    other_speedometer = speedometers(:second)
+    other_dashboard = dashboards(:second)
+    minivan.speedometer_id = other_speedometer.speedometer_id
+
+    assert_queries_count(1) do
+      assert_equal other_dashboard, minivan.dashboard
+    end
+  end
+
+  def test_has_one_through_preloaded_returns_same_object_as_manual_chain
+    members = Member.includes(member_detail: :organization).where(name: "Groucho Marx").to_a
+    member = members.first
+
+    manual = member.member_detail.organization
+    through = member.organization
+
+    assert_same manual, through,
+      "has_one :through should return the exact same object as manual chain traversal"
+  end
+
+  def test_has_one_through_falls_back_to_query_when_scoped
+    member = Member.includes(membership: :club).where(name: "Groucho Marx").first
+
+    assert member.association(:membership).loaded?, "through association should be loaded"
+
+    # favorite_club has a scope (where favorite: true) — the optimization
+    # must bail out and query, because the preloaded chain was loaded
+    # without the scope applied.
+    assert_queries_count(1) do
+      member.favorite_club
+    end
+  end
+
+  def test_has_one_through_falls_back_to_query_with_source_type
+    club = Club.includes(sponsor: :sponsorable).where(name: "Moustache and Eyebrow Fancier Club").first
+
+    assert club.association(:sponsor).loaded?, "through association should be loaded"
+
+    # sponsored_member uses source_type: :Member — the optimization
+    # must bail out and query, because the chain could hold a record
+    # of a different type.
+    assert_queries_count(1) do
+      club.sponsored_member
+    end
   end
 
   def test_has_one_through_polymorphic_with_source_type
