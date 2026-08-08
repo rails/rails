@@ -31,8 +31,10 @@ class MessageVerifiersTest < ActiveSupport::TestCase
   end
 
   private
+    SECRET_GENERATOR = proc { |salt| salt * 10 }
+
     def make_coordinator
-      ActiveSupport::MessageVerifiers.new { |salt| salt * 10 }
+      ActiveSupport::MessageVerifiers.new(&SECRET_GENERATOR)
     end
 
     def roundtrip(message, signer, verifier = signer)
