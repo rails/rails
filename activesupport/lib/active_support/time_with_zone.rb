@@ -569,10 +569,21 @@ module ActiveSupport
         begin
           period || @time_zone.period_for_local(@time)
         rescue ::TZInfo::PeriodNotFound
-          # time is in the "spring forward" hour gap, so we're moving the time forward one hour and trying again
-          @time += 1.hour
+          # time is in the "spring forward" gap, so we're moving the time forward by the gap's length and trying again
+          @time += spring_forward_gap
           retry
         end
+      end
+
+      # Not every DST gap is one hour long, e.g. Australia/Lord_Howe's DST
+      # transition is 30 minutes.
+      def spring_forward_gap
+        transition = @time_zone.tzinfo.transitions_up_to(@time + 1.day, @time - 1.day).find do |t|
+          (t.at.to_i + t.previous_offset.observed_utc_offset) <= @time.to_i &&
+            @time.to_i < (t.at.to_i + t.offset.observed_utc_offset)
+        end
+
+        transition ? transition.offset.observed_utc_offset - transition.previous_offset.observed_utc_offset : 3600
       end
 
       def transfer_time_values_to_utc_constructor(time)
