@@ -1,3 +1,15 @@
+*   Fix `normalizes` to run before the underlying type validates an assigned
+    value.
+
+    When `normalizes` was combined with another type that rejects invalid
+    input (such as an Active Record `enum`), the underlying type's
+    `assert_valid_value` ran against the raw, un-normalized value and raised
+    before normalization had a chance to run. The normalization is now applied
+    first, so a value like `"  Pending  "` is normalized to `"pending"` and
+    accepted by the enum.
+
+    *Gabriel Quaresma*
+
 *   Fix `normalizes` re-applying normalizations on every validation of an
     unpersisted record, and speed up validation of normalized attributes.
 
