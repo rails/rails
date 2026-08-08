@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/duration"
@@ -35,7 +36,7 @@ class Time
       days_in_month(2, year) + 337
     end
 
-    # Returns <tt>Time.zone.now</tt> when <tt>Time.zone</tt> or <tt>config.time_zone</tt> are set, otherwise just returns <tt>Time.now</tt>.
+    # Returns `Time.zone.now` when `Time.zone` or `config.time_zone` are set, otherwise just returns `Time.now`.
     def current
       ::Time.zone ? ::Time.zone.now : ::Time.now
     end
@@ -57,13 +58,17 @@ class Time
     alias_method :at_without_coercion, :at
     alias_method :at, :at_with_coercion
 
-    # Creates a +Time+ instance from an RFC 3339 string.
+    # Creates a `Time` instance from an RFC 3339 string.
     #
-    #   Time.rfc3339('1999-12-31T14:00:00-10:00') # => 2000-01-01 00:00:00 -1000
+    # ```
+    # Time.rfc3339('1999-12-31T14:00:00-10:00') # => 2000-01-01 00:00:00 -1000
+    # ```
     #
-    # If the time or offset components are missing then an +ArgumentError+ will be raised.
+    # If the time or offset components are missing then an `ArgumentError` will be raised.
     #
-    #   Time.rfc3339('1999-12-31') # => ArgumentError: invalid date
+    # ```
+    # Time.rfc3339('1999-12-31') # => ArgumentError: invalid date
+    # ```
     def rfc3339(str)
       parts = Date._rfc3339(str)
 
@@ -83,41 +88,49 @@ class Time
 
   # Returns the number of seconds since 00:00:00.
   #
-  #   Time.new(2012, 8, 29,  0,  0,  0).seconds_since_midnight # => 0.0
-  #   Time.new(2012, 8, 29, 12, 34, 56).seconds_since_midnight # => 45296.0
-  #   Time.new(2012, 8, 29, 23, 59, 59).seconds_since_midnight # => 86399.0
+  # ```
+  # Time.new(2012, 8, 29,  0,  0,  0).seconds_since_midnight # => 0.0
+  # Time.new(2012, 8, 29, 12, 34, 56).seconds_since_midnight # => 45296.0
+  # Time.new(2012, 8, 29, 23, 59, 59).seconds_since_midnight # => 86399.0
+  # ```
   def seconds_since_midnight
     to_i - change(hour: 0).to_i + (usec / 1.0e+6)
   end
 
   # Returns the number of seconds until 23:59:59.
   #
-  #   Time.new(2012, 8, 29,  0,  0,  0).seconds_until_end_of_day # => 86399
-  #   Time.new(2012, 8, 29, 12, 34, 56).seconds_until_end_of_day # => 41103
-  #   Time.new(2012, 8, 29, 23, 59, 59).seconds_until_end_of_day # => 0
+  # ```
+  # Time.new(2012, 8, 29,  0,  0,  0).seconds_until_end_of_day # => 86399
+  # Time.new(2012, 8, 29, 12, 34, 56).seconds_until_end_of_day # => 41103
+  # Time.new(2012, 8, 29, 23, 59, 59).seconds_until_end_of_day # => 0
+  # ```
   def seconds_until_end_of_day
     end_of_day.to_i - to_i
   end
 
-  # Returns the fraction of a second as a +Rational+
+  # Returns the fraction of a second as a `Rational`
   #
-  #   Time.new(2012, 8, 29, 0, 0, 0.5).sec_fraction # => (1/2)
+  # ```
+  # Time.new(2012, 8, 29, 0, 0, 0.5).sec_fraction # => (1/2)
+  # ```
   def sec_fraction
     subsec
   end
 
   # Returns a new Time where one or more of the elements have been changed according
-  # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
-  # <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly, so if only
+  # to the `options` parameter. The time options (`:hour`, `:min`,
+  # `:sec`, `:usec`, `:nsec`) reset cascadingly, so if only
   # the hour is passed, then minute, sec, usec, and nsec is set to 0. If the hour
-  # and minute is passed, then sec, usec, and nsec is set to 0. The +options+ parameter
-  # takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>,
-  # <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>,
-  # <tt>:offset</tt>. Pass either <tt>:usec</tt> or <tt>:nsec</tt>, not both.
+  # and minute is passed, then sec, usec, and nsec is set to 0. The `options` parameter
+  # takes a hash with any of these keys: `:year`, `:month`, `:day`,
+  # `:hour`, `:min`, `:sec`, `:usec`, `:nsec`,
+  # `:offset`. Pass either `:usec` or `:nsec`, not both.
   #
-  #   Time.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => Time.new(2012, 8, 1, 22, 35, 0)
-  #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => Time.new(1981, 8, 1, 22, 35, 0)
-  #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, hour: 0) # => Time.new(1981, 8, 29, 0, 0, 0)
+  # ```
+  # Time.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => Time.new(2012, 8, 1, 22, 35, 0)
+  # Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => Time.new(1981, 8, 1, 22, 35, 0)
+  # Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, hour: 0) # => Time.new(1981, 8, 29, 0, 0, 0)
+  # ```
   def change(options)
     new_year   = options.fetch(:year, year)
     new_month  = options.fetch(:month, month)
@@ -175,16 +188,18 @@ class Time
   end
 
   # Uses Date to provide precise Time calculations for years, months, and days
-  # according to the proleptic Gregorian calendar. The +options+ parameter
-  # takes a hash with any of these keys: <tt>:years</tt>, <tt>:months</tt>,
-  # <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>, <tt>:minutes</tt>,
-  # <tt>:seconds</tt>.
+  # according to the proleptic Gregorian calendar. The `options` parameter
+  # takes a hash with any of these keys: `:years`, `:months`,
+  # `:weeks`, `:days`, `:hours`, `:minutes`,
+  # `:seconds`.
   #
-  #   Time.new(2015, 8, 1, 14, 35, 0).advance(seconds: 1) # => 2015-08-01 14:35:01 -0700
-  #   Time.new(2015, 8, 1, 14, 35, 0).advance(minutes: 1) # => 2015-08-01 14:36:00 -0700
-  #   Time.new(2015, 8, 1, 14, 35, 0).advance(hours: 1)   # => 2015-08-01 15:35:00 -0700
-  #   Time.new(2015, 8, 1, 14, 35, 0).advance(days: 1)    # => 2015-08-02 14:35:00 -0700
-  #   Time.new(2015, 8, 1, 14, 35, 0).advance(weeks: 1)   # => 2015-08-08 14:35:00 -0700
+  # ```
+  # Time.new(2015, 8, 1, 14, 35, 0).advance(seconds: 1) # => 2015-08-01 14:35:01 -0700
+  # Time.new(2015, 8, 1, 14, 35, 0).advance(minutes: 1) # => 2015-08-01 14:36:00 -0700
+  # Time.new(2015, 8, 1, 14, 35, 0).advance(hours: 1)   # => 2015-08-01 15:35:00 -0700
+  # Time.new(2015, 8, 1, 14, 35, 0).advance(days: 1)    # => 2015-08-02 14:35:00 -0700
+  # Time.new(2015, 8, 1, 14, 35, 0).advance(weeks: 1)   # => 2015-08-08 14:35:00 -0700
+  # ```
   #
   # Just like Date#advance, increments are applied in order of time units from
   # largest to smallest. This order can affect the result around the end of a
