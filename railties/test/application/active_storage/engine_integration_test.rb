@@ -53,6 +53,28 @@ module ApplicationTests
       assert_includes(output, "ActiveStorage::Transformers::Vips")
     end
 
+    def test_vips_transformer_missing_ruby_vips_gem_warning
+      add_to_config "config.active_storage.variant_processor = :vips"
+      File.open("#{app_path}/Gemfile", "a") do |f|
+        f.puts <<~GEMFILE
+          gem "image_processing", "~> 2.0"
+        GEMFILE
+      end
+      output = run_command("puts ActiveStorage.variant_transformer")
+      assert_includes(output, 'Generating image variants with libvips requires the ruby-vips gem. Please add `gem "ruby-vips", "~> 2.0"` to your Gemfile')
+    end
+
+    def test_mini_magick_transformer_missing_mini_magick_gem_warning
+      add_to_config "config.active_storage.variant_processor = :mini_magick"
+      File.open("#{app_path}/Gemfile", "a") do |f|
+        f.puts <<~GEMFILE
+          gem "image_processing", "~> 2.0"
+        GEMFILE
+      end
+      output = run_command("puts ActiveStorage.variant_transformer")
+      assert_includes(output, 'Generating image variants with ImageMagick requires the mini_magick gem. Please add `gem "mini_magick"` to your Gemfile')
+    end
+
     def test_disabled_transformer_missing_gem_no_warning
       add_to_config "config.active_storage.variant_processor = :disabled"
 
