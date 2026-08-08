@@ -115,6 +115,10 @@ module MiddlewareTest
       RactorController.middleware.swap(ExclaimerMiddleware, MyMiddleware)
       RactorController.middleware.move(0, MyMiddleware)
       RactorController.middleware.move_after(ExclaimerMiddleware, MyMiddleware)
+      RactorController.middleware.insert_before(MyMiddleware, BlockMiddleware)
+      RactorController.middleware.insert_after(MyMiddleware, ExclaimerMiddleware)
+      RactorController.middleware.move_before(ExclaimerMiddleware, MyMiddleware)
+      RactorController.middleware.delete!(BlockMiddleware)
 
       assert_ractor_shareable(RactorController.middleware_stack)
     ensure
