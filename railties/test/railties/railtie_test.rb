@@ -68,6 +68,25 @@ module RailtiesTest
       assert_equal "hello", Rails.application.config.foo.greetings
     end
 
+    test "load hook guards defer violations until application configuration has loaded" do
+      Class.new(Rails::Railtie) do
+        guard_load_hooks :early_component
+      end
+      ActiveSupport.run_load_hooks(:early_component)
+
+      application_class = Class.new(Rails::Application) do
+        initializer :configure_load_hook_guard, before: :load_environment_hook, group: :all do |app|
+          app.config.eager_load = false
+          app.config.action_on_early_load_hook = :raise
+        end
+      end
+
+      error = assert_raises(LoadError) do
+        application_class.instance.initialize!(:load_hook_guard_test)
+      end
+      assert_match ":early_component was loaded before application initialization", error.message
+    end
+
     test "railtie can add to_prepare callbacks" do
       $to_prepare = false
       class Foo < Rails::Railtie ; config.to_prepare { $to_prepare = true } ; end
