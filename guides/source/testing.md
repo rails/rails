@@ -68,11 +68,9 @@ When you first [generate system tests](#generating-system-tests), a `system`
 directory and an `application_system_test_case.rb` file will be created.
 
 The `system` directory holds [system tests](#system-testing), which are
-used for full browser testing of your application. System tests allow you to
-test your application the way your users experience it and help you test your
-JavaScript as well. System tests inherit from
-[Capybara](https://github.com/teamcapybara/capybara) and perform in-browser
-tests for your application.
+used for full browser testing of your application. System tests let you
+test your application the way your users experience it, including its
+JavaScript, by interacting with it in a real browser.
 
 The `application_system_test_case.rb` file holds the default configuration for your
 system tests.
@@ -1420,8 +1418,13 @@ System Testing
 Similarly to integration testing, system testing allows you to test how the
 components of your app work together, but from the point of view of a user. It
 does this by running tests in either a real or a headless browser (a browser
-which runs in the background without opening a visible window). System tests use
-[Capybara](https://www.rubydoc.info/github/jnicklas/capybara) under the hood.
+which runs in the background without opening a visible window).
+
+Rails supports two ways of writing system tests: the long-standing default built
+on [Capybara](https://www.rubydoc.info/github/jnicklas/capybara), and a lighter
+option that boots your app as a real server so you can interact with it using a
+modern browser automation tool. [Two Ways to Run System
+Tests](#two-ways-to-run-system-tests) explains when to use each.
 
 ### When to Use System Tests
 
@@ -1445,6 +1448,36 @@ tests for:
 For most features, integration tests provide a better balance of coverage and
 maintainability. Save system tests for scenarios where you need to verify the
 complete user experience.
+
+### Two Ways to Run System Tests
+
+Rails provides two base classes for system tests, and they differ in what
+controls the browser:
+
+* [`ActionDispatch::SystemTestCase`](https://api.rubyonrails.org/classes/ActionDispatch/SystemTestCase.html)
+  is the default and is built on Capybara. Capybara boots your application,
+  controls the browser, and gives you a DSL of assertions and screenshot helpers
+  out of the box. It needs the least setup and has been the standard Rails
+  approach for years.
+
+* [`ActionDispatch::ServerSystemTestCase`](https://api.rubyonrails.org/classes/ActionDispatch/ServerSystemTestCase.html)
+  is a thin wrapper that only boots your application as a real server and exposes
+  its URL. It does not touch the browser itself; instead you pair it with a
+  modern browser automation tool such as
+  [Playwright](https://github.com/YusukeIwaki/playwright-ruby-client) or
+  [Ferrum](https://github.com/rubycdp/ferrum) and interact with the page through
+  that tool's native API.
+
+Start with Capybara: it needs the least setup and is enough for most suites.
+Reach for `ActionDispatch::ServerSystemTestCase` when you want to use a modern
+automation tool directly. Those tools have advanced quickly and provide features
+such as auto-waiting for elements, which makes tests far less flaky, and the
+Capybara DSL cannot expose all of them. Because
+`ActionDispatch::ServerSystemTestCase` is only a thin server wrapper, the tool's
+API and behavior reach your tests unchanged.
+
+The rest of this section covers generating a system test, then each approach in
+turn.
 
 ### Generating System Tests
 
@@ -1736,13 +1769,102 @@ Rails.
 The `take_screenshot` helper method can be included anywhere in your tests to
 take a screenshot of the browser.
 
-#### Taking It Further
+### System Tests Without Capybara
 
-System testing is similar to [integration testing](#integration-testing) in that
-it tests the user's interaction with your controller, model, and view, but
-system testing tests your application as if a real user were using it. With
-system tests, you can test anything that a user would do in your application
-such as commenting, deleting articles, publishing draft articles, etc.
+When you want to use a modern browser automation tool instead of Capybara,
+inherit from
+[`ActionDispatch::ServerSystemTestCase`](https://api.rubyonrails.org/classes/ActionDispatch/ServerSystemTestCase.html)
+in `application_system_test_case.rb`. It boots your application as a real server,
+waits until it is serving requests, and exposes its URL through `base_url`. You
+select a browser adapter with `testing_with` and interact with the page through
+that tool's native API. The server binds to an available port on `0.0.0.0` by
+default, so you usually don't need to configure it.
+
+Adapters for browser tools such as Playwright and Ferrum are provided as
+separate libraries, each registered under a name you pass to `testing_with`.
+
+For example, with a Playwright adapter:
+
+```ruby
+require "test_helper"
+
+class ApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
+  testing_with :playwright
+end
+```
+
+The adapter starts one browser for the test run and provides a new
+`browser_context` and `page` for each test. Tests use the tool's native API:
+
+```ruby
+require "application_system_test_case"
+
+class ArticlesTest < ApplicationSystemTestCase
+  test "creating an article" do
+    page.goto new_article_path
+
+    page.get_by_label("Title").fill("Hello Rails")
+    page.get_by_label("Body").fill("Body")
+    page.get_by_role("button", name: "Create Article").click
+
+    assert page.get_by_text("Hello Rails").visible?
+  end
+end
+```
+
+For the options each adapter accepts and its setup, see the adapter library's
+own documentation.
+
+When the browser needs to reach the application at a different URL than the bind
+address (for example when the test runs in a separate Docker container), set
+`app_host` with `served_by`:
+
+```ruby
+class DockerizedApplicationSystemTestCase < ActionDispatch::ServerSystemTestCase
+  served_by port: 3000, app_host: "http://rails:3000"
+  testing_with :playwright,
+    browser_type: :chromium,
+    browser_server_endpoint_url: "ws://playwright:8080/ws"
+end
+```
+
+#### Using Other Browser Tools with a Custom Adapter
+
+Any browser automation tool can be used by writing an adapter: subclass
+`ActionDispatch::SystemTesting::TestAdapter`, register it under a name, and select
+it with `testing_with`.
+
+Inside an adapter, declare resources as helpers. `global_helper` builds a resource
+once and shares it across the whole run, while `helper` builds one fresh for each
+test. Dependencies are declared as keyword arguments, and `on_teardown` registers
+cleanup:
+
+```ruby
+class MyBrowserAdapter < ActionDispatch::SystemTesting::TestAdapter
+  global_helper :browser do
+    browser = MyBrowser.launch
+    on_teardown { browser.close }
+    browser
+  end
+
+  helper :browser_context do |base_url:, browser:|
+    context = browser.new_context(base_url: base_url)
+    on_teardown { context.close }
+    context
+  end
+
+  helper :page do |browser_context:|
+    page = browser_context.new_page
+    on_teardown { page.close }
+    page
+  end
+end
+
+ActionDispatch::SystemTesting::TestAdapters.register(:my_browser, MyBrowserAdapter)
+```
+
+Registered this way, `testing_with :my_browser` makes the adapter's helpers
+(`page`, and so on) available in every test.
 
 Test Helpers
 ------------
