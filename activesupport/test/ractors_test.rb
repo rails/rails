@@ -28,6 +28,11 @@ class RactorsTest < ActiveSupport::TestCase
     assert_equal 1, calls
   end
 
+  def test_ractor_local_storage_get_and_set
+    ActiveSupport::Ractors[:as_ractors_test_storage] = "value"
+    assert_equal "value", ActiveSupport::Ractors[:as_ractors_test_storage]
+  end
+
   if RUBY_VERSION >= "4.0"
     def test_on_main_runs_block_on_main_ractor
       value = Ractor.new do
@@ -205,6 +210,17 @@ class RactorsTest < ActiveSupport::TestCase
 
       assert_equal "main", main_value
       assert_equal "worker", worker_value
+    end
+
+    def test_ractor_local_storage_is_ractor_local
+      ActiveSupport::Ractors[:as_ractors_test_storage_local] = "main"
+      worker_value = Ractor.new do
+        ActiveSupport::Ractors[:as_ractors_test_storage_local] = "worker"
+        ActiveSupport::Ractors[:as_ractors_test_storage_local]
+      end.value
+
+      assert_equal "worker", worker_value
+      assert_equal "main", ActiveSupport::Ractors[:as_ractors_test_storage_local]
     end
   end
 end
