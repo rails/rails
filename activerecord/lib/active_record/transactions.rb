@@ -401,6 +401,7 @@ module ActiveRecord
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) # :nodoc:
       @_start_transaction_state = nil
+      @_optimistic_locking_savepoint_states = nil
       if should_run_callbacks
         @_committed_already_called = true
         _run_commit_callbacks
@@ -457,6 +458,7 @@ module ActiveRecord
       def init_internals
         super
         @_start_transaction_state = nil
+        @_optimistic_locking_savepoint_states = nil
         @_last_transaction_return_status = nil
         @_committed_already_called = nil
         @_new_record_before_last_commit = nil
@@ -486,7 +488,10 @@ module ActiveRecord
       def clear_transaction_record_state
         return unless @_start_transaction_state
         @_start_transaction_state[:level] -= 1
-        @_start_transaction_state = nil if @_start_transaction_state[:level] < 1
+        if @_start_transaction_state[:level] < 1
+          @_start_transaction_state = nil
+          @_optimistic_locking_savepoint_states = nil
+        end
       end
 
       # Restore the new record state and id of a record that was previously saved by a call to save_record_state.
@@ -531,14 +536,28 @@ module ActiveRecord
             # savepoint too. Leaving the bumped value in memory after the
             # savepoint reverts those rows raises `StaleObjectError` on the next
             # save in the surrounding transaction. Reset just the locking column
-            # so subsequent saves can match the row that the savepoint restored.
-            locking_column = self.class.locking_column
-            attr = restore_state[:attributes][locking_column]
-            if attr
-              @attributes.write_from_database(locking_column, attr.original_value)
-            end
+            # to the value the savepoint actually reverted to, which `_update_row`
+            # captured before its first bump inside this savepoint. The snapshot's
+            # `original_value` can't be used here: it holds the pristine
+            # transaction-start value, which is too low when the record was already
+            # saved in the enclosing transaction before the savepoint opened.
+            restore_locking_column_after_savepoint
           end
         end
+      end
+
+      def restore_locking_column_after_savepoint
+        states = @_optimistic_locking_savepoint_states
+        return if states.nil? || states.empty?
+
+        # `rollback_transaction` pops the savepoint off the stack before rolling
+        # its records back, so the savepoint being unwound sat one level deeper
+        # than the transaction that is now current.
+        depth = self.class.with_connection { |connection| connection.open_transactions } + 1
+        recorded = states.delete(depth)
+        return unless recorded
+
+        @attributes.write_from_database(self.class.locking_column, recorded.last)
       end
 
       # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
