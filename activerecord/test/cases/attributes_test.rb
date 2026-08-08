@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 
 class OverloadedType < ActiveRecord::Base
   attribute :overloaded_float, :integer
@@ -22,6 +23,8 @@ end
 
 module ActiveRecord
   class CustomPropertiesTest < ActiveRecord::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
     test "overloading types" do
       data = OverloadedType.new
 
@@ -398,6 +401,17 @@ module ActiveRecord
       immutable_string_type = Type.lookup(:immutable_string)
       assert_equal default_string_type.serialize(true), immutable_string_type.serialize(true)
       assert_equal default_string_type.serialize(false), immutable_string_type.serialize(false)
+    end
+
+    test "default_attributes are Ractor-shareable" do
+      model = Class.new(ActiveRecord::Base) do
+        def self.name = "ractor_safe_default_attributes"
+        self.table_name = "topics"
+      end
+
+      ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+        assert_ractor_shareable model._default_attributes
+      end
     end
 
     private

@@ -69,6 +69,22 @@ module ActiveModel
       assert_equal "foobar", duped[:bar].value
     end
 
+    test "deep_duping a frozen shareable set yields mutable attributes" do
+      builder = AttributeSet::Builder.new(count: Type::Integer.new, flag: Type::Boolean.new)
+      attributes = builder.build_from_database(count: "5", flag: "true")
+
+      Ractor.make_shareable(attributes)
+      assert_predicate attributes[:count], :frozen?
+
+      duped = attributes.deep_dup
+
+      assert_not_predicate duped[:count], :frozen?
+      assert_not_same attributes[:count], duped[:count]
+      assert_equal 5, duped[:count].value
+      assert_equal 5, duped[:count].value_for_database
+      assert_equal true, duped[:flag].value
+    end
+
     test "freezing cloned set does not freeze original" do
       attributes = AttributeSet.new({})
       clone = attributes.clone
