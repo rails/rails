@@ -13,6 +13,7 @@ module Rails
 
     autoload :Behavior
     autoload :Base
+    autoload :Actions
 
     class CorrectableNameError < StandardError # :nodoc:
       attr_reader :name
@@ -44,6 +45,8 @@ module Rails
     VERSION_MAPPINGS = %w(-v --version).to_set
 
     class << self
+      include Actions
+
       def hidden_commands # :nodoc:
         @hidden_commands ||= []
       end
@@ -61,6 +64,11 @@ module Rails
         command = find_by_namespace(namespace, command_name)
 
         with_argv(args) do
+          unless command && command.all_commands[command_name]
+            require_application!
+            command = find_by_namespace(namespace, command_name)
+          end
+
           if command && command.all_commands[command_name]
             command.perform(command_name, args, config)
           else
@@ -112,6 +120,7 @@ module Rails
       end
 
       def printing_commands # :nodoc:
+        require_application!
         lookup!
 
         (subclasses - hidden_commands).flat_map(&:printing_commands)
