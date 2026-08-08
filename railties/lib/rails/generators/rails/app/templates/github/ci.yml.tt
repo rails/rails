@@ -151,6 +151,7 @@ jobs:
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails <%= "db:test:prepare " unless skip_active_record? %>test
   <%- unless options[:api] || options[:skip_system_test] -%>
+  <%- if options[:skip_system_test] == false -%>
 
   system-test:
     runs-on: ubuntu-latest
@@ -231,5 +232,31 @@ jobs:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
+  <%- else -%>
+
+  # Optional: Uncomment to enable system tests in CI.
+  # Generate system test files first: bin/rails generate system_test
+  #
+  # system-test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v6
+  #     - name: Set up Ruby
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         bundler-cache: true
+  #     - name: Run System Tests
+  #       env:
+  #         RAILS_ENV: test
+  #       run: bin/rails <%= "db:test:prepare " unless skip_active_record? %>test:system
+  #     - name: Keep screenshots from failed system tests
+  #       uses: actions/upload-artifact@v6
+  #       if: failure()
+  #       with:
+  #         name: screenshots
+  #         path: ${{ github.workspace }}/tmp/screenshots
+  #         if-no-files-found: ignore
+  <%- end -%>
   <%- end -%>
 <%- end -%>
