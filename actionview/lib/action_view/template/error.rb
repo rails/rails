@@ -269,6 +269,14 @@ module ActionView
       end
     end
 
+    def line_number
+      if template.handler.respond_to?(:syntax_error_line)
+        template.handler.syntax_error_line(@offending_code_string)&.to_s || super
+      else
+        super
+      end
+    end
+
     def annotated_source_code
       @offending_code_string.split("\n").map.with_index(1) { |line, index|
         indentation = " " * 4
