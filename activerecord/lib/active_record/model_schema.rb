@@ -451,7 +451,7 @@ module ActiveRecord
 
       def attributes_builder # :nodoc:
         defaults = _default_attributes.except(*(column_names - Array(primary_key)))
-        ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
+        ActiveModel::AttributeSet::Builder.new(attribute_types, defaults, store_attribute_definitions)
       end
 
       def columns_hash # :nodoc:
