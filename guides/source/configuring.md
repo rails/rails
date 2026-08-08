@@ -661,7 +661,6 @@ If YJIT is enabled, ZJIT will not be enabled.
 | Starting with version | The default value is                 |
 | --------------------- | ------------------------------------ |
 | (original)            | `false`                              |
-| TBD                   | `!Rails.env.local? && !config.yjit`  |
 
 ### Configuring Assets
 
