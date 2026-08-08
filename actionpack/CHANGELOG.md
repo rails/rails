@@ -1,3 +1,21 @@
+*   Fix `url_for` to leave out an optional part of a route when its value is an
+    empty string, the same way it already does for `nil`.
+
+    Before, the empty string ended up in the path, producing a URL the route
+    itself cannot match:
+
+    ```ruby
+    get "(/locale/:locale)/products(/:id)", to: "products#show"
+
+    url_for(controller: "products", action: "show", locale: "", id: 123)
+    # Before: "/locale//products/123"
+    # After:  "/products/123"
+    ```
+
+    Empty strings for required parameters behave as before.
+
+    *Carl Dawson*
+
 *   Deprecate registering and unregistering MIME types after application initialization.
 
     `Mime::Type.register`, `Mime::Type.register_alias`, and `Mime::Type.unregister` will raise

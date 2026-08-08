@@ -90,6 +90,11 @@ module ActionDispatch
           defaults       = route.defaults
           required_parts = route.required_parts
 
+          # After query param extraction, so empty values are consumed as path parts.
+          parameterized_parts.delete_if do |key, value|
+            value == "" && !required_parts.include?(key)
+          end
+
           route.parts.reverse_each do |key|
             break if defaults[key].nil? && parameterized_parts[key].present?
             next if parameterized_parts[key].to_s != defaults[key].to_s
