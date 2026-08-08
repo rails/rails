@@ -65,7 +65,11 @@ module ActiveSupport
 
         def initialize(...)
           super
-          @local_cache_key = "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym
+          # Compute the key eagerly for named stores so the store can later be
+          # made shareable (frozen) without triggering a lazy assignment. An
+          # anonymous subclass has no name yet, so fall back to lazy computation
+          # once it has been assigned to a constant.
+          @local_cache_key = build_local_cache_key if self.class.name
         end
 
         # Use a local cache for the duration of block.
@@ -142,7 +146,13 @@ module ActiveSupport
         end
 
         private
-          attr_reader :local_cache_key
+          def local_cache_key
+            @local_cache_key ||= build_local_cache_key
+          end
+
+          def build_local_cache_key
+            "#{self.class.name.underscore}_local_cache_#{object_id}".gsub(/[\/-]/, "_").to_sym
+          end
 
           def read_serialized_entry(key, raw: false, **options)
             if cache = local_cache
