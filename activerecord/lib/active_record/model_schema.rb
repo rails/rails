@@ -513,13 +513,6 @@ module ActiveRecord
         columns.map(&:name).freeze
       end
 
-      def symbol_column_to_string(name_symbol) # :nodoc:
-        @symbol_column_to_string_name_hash || ActiveSupport::Ractors.on_main(self) do
-          @symbol_column_to_string_name_hash ||= column_names.index_by(&:to_sym).freeze
-        end
-        @symbol_column_to_string_name_hash[name_symbol]
-      end
-
       # Returns an array of column objects where the primary id, all columns ending in "_id" or "_count",
       # and columns used for single table inheritance have been removed.
       def content_columns
@@ -590,7 +583,6 @@ module ActiveRecord
           @_returning_columns_for_insert = nil
           @_returning_columns_for_update = nil
           @arel_table = Arel::Table.new(klass: self)
-          @symbol_column_to_string_name_hash = nil
           @content_columns = nil
           @column_defaults = nil
           @columns = nil
