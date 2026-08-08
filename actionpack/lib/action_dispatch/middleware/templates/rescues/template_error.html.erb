@@ -7,6 +7,7 @@
 </header>
 
 <main role="main" id="container">
+  <%= render "rescues/ai_prompt" %>
   <p>
     Showing <i><%= @exception_wrapper.file_name %></i> where line <b>#<%= @exception_wrapper.line_number %></b> raised:
   </p>
