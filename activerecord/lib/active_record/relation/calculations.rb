@@ -228,7 +228,7 @@ module ActiveRecord
       end
 
       if has_include?(column_name)
-        relation = apply_join_dependency
+        relation = apply_join_dependency(eager_loading: false)
 
         if operation == "count"
           unless distinct_value || distinct_select?(column_name || select_for_count)
@@ -311,7 +311,7 @@ module ActiveRecord
       end
 
       if has_include?(column_names.first)
-        relation = apply_join_dependency
+        relation = apply_join_dependency(eager_loading: false)
         relation.pluck(*column_names)
       else
         model.disallow_raw_sql!(flattened_args(column_names))
@@ -374,7 +374,7 @@ module ActiveRecord
     #   Person.joins(:company).ids # SELECT people.id FROM people INNER JOIN companies ON companies.id = people.company_id
     def ids
       if !loaded? && has_include?(primary_key)
-        return apply_join_dependency.group(*primary_key).pluck(*primary_key)
+        return apply_join_dependency(eager_loading: false).group(*primary_key).pluck(*primary_key)
       end
 
       pluck(*primary_key)
