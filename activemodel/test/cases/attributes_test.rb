@@ -183,5 +183,43 @@ module ActiveModel
 
       assert_equal with_alias.type_for_attribute(:integer_field), with_alias.type_for_attribute(:x)
     end
+
+    class ModelForStoreAttributeTest
+      include ActiveModel::Model
+      include ActiveModel::Attributes
+
+      attribute_method_suffix "_before_type_cast", parameters: false
+
+      attribute :settings, default: {}
+      store_attribute :count, backed_by: :settings, key: "count", type: :integer
+      store_attribute :note, backed_by: :settings, key: "note", type: :string, default: "hi"
+
+      private
+        def attribute_before_type_cast(attr_name)
+          @attributes[attr_name].value_before_type_cast
+        end
+    end
+
+    test "store_attribute type-casts on read and preserves raw value_before_type_cast" do
+      model = ModelForStoreAttributeTest.new
+      model.settings = { "count" => "42" }
+
+      assert_equal 42, model.count
+      assert_equal "42", model.count_before_type_cast
+    end
+
+    test "store_attribute casts on write via the generated writer" do
+      model = ModelForStoreAttributeTest.new
+      model.count = "42"
+
+      assert_equal 42, model.settings["count"]
+      assert_equal 42, model.count
+    end
+
+    test "store_attribute falls back to `default:` when the key is absent" do
+      model = ModelForStoreAttributeTest.new
+      assert_nil model.count
+      assert_equal "hi", model.note
+    end
   end
 end

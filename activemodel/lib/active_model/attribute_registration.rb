@@ -27,12 +27,14 @@ module ActiveModel
         reset_default_attributes
       end
 
-      def store_attribute(name, backed_by:, key: nil, definition: StoreAttribute::Definition) # :nodoc:
+      def store_attribute(name, backed_by:, key: nil, type: nil, default: nil, definition: StoreAttribute::Definition) # :nodoc:
         name = resolve_attribute_name(name)
         key = (key || name).to_s
         backed_by = backed_by.to_s
+        type = resolve_type_name(type) if type.is_a?(Symbol)
+        type ||= Type.default_value
 
-        _store_attribute_definitions[name] = definition.new(backed_by, key)
+        _store_attribute_definitions[name] = definition.new(backed_by, key, type, default)
 
         reset_default_attributes
       end

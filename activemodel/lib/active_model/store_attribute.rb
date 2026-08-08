@@ -6,20 +6,26 @@ require "active_model/attribute"
 module ActiveModel
   module StoreAttribute # :nodoc:
     # Describes how a store-attribute maps into a parent Hash-valued attribute.
-    Definition = Data.define(:backed_by, :key) do # :nodoc:
+    Definition = Data.define(:backed_by, :key, :type, :default) do # :nodoc:
       def build_attribute(name, attribute_set)
         Attribute.new(name, self, attribute_set)
       end
 
       def read(store)
+        raw = read_before_type_cast(store)
+        raw.nil? ? default : type.cast(raw)
+      end
+
+      def read_before_type_cast(store)
         store[key] if store
       end
 
       def write(store, value)
+        cast_value = type.cast(value)
         store ||= {}
-        return store if store[key] == value
+        return store if store[key] == cast_value
         new_store = store.dup
-        new_store[key] = value
+        new_store[key] = cast_value
         new_store
       end
 
@@ -33,7 +39,7 @@ module ActiveModel
       def initialize(name, definition, attribute_set)
         @definition = definition
         @attribute_set = attribute_set
-        super(name, nil, Type.default_value)
+        super(name, nil, definition.type)
         definition.validate!(parent)
       end
 
@@ -42,7 +48,7 @@ module ActiveModel
       end
 
       def value_before_type_cast
-        definition.read(parent_value)
+        definition.read_before_type_cast(parent_value)
       end
 
       def original_value
