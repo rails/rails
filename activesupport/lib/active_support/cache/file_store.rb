@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "fileutils"
@@ -8,7 +9,8 @@ require "uri/common"
 
 module ActiveSupport
   module Cache
-    # = \File \Cache \Store
+    # \File \Cache \Store
+    # ===================
     #
     # A cache store implementation which stores everything on the filesystem.
     class FileStore < Store
@@ -31,7 +33,7 @@ module ActiveSupport
 
       # Deletes all items from the cache. In this case it deletes all the entries in the specified
       # file store directory except for .keep or .gitkeep. Be careful which directory is specified in your
-      # config file when using +FileStore+ because everything in that directory will be deleted.
+      # config file when using `FileStore` because everything in that directory will be deleted.
       def clear(options = nil)
         root_dirs = (Dir.children(cache_path) - GITKEEP_FILES)
         FileUtils.rm_r(root_dirs.collect { |f| File.join(cache_path, f) })
@@ -49,15 +51,19 @@ module ActiveSupport
 
       # Increment a cached integer value. Returns the updated value.
       #
-      # If the key is unset, it starts from +0+:
+      # If the key is unset, it starts from `0`:
       #
-      #   cache.increment("foo") # => 1
-      #   cache.increment("bar", 100) # => 100
+      # ```
+      # cache.increment("foo") # => 1
+      # cache.increment("bar", 100) # => 100
+      # ```
       #
       # To set a specific value, call #write:
       #
-      #   cache.write("baz", 5)
-      #   cache.increment("baz") # => 6
+      # ```
+      # cache.write("baz", 5)
+      # cache.increment("baz") # => 6
+      # ```
       #
       def increment(name, amount = 1, **options)
         options = merged_options(options)
@@ -70,14 +76,18 @@ module ActiveSupport
 
       # Decrement a cached integer value. Returns the updated value.
       #
-      # If the key is unset, it will be set to +-amount+.
+      # If the key is unset, it will be set to `-amount`.
       #
-      #   cache.decrement("foo") # => -1
+      # ```
+      # cache.decrement("foo") # => -1
+      # ```
       #
       # To set a specific value, call #write:
       #
-      #   cache.write("baz", 5)
-      #   cache.decrement("baz") # => 4
+      # ```
+      # cache.write("baz", 5)
+      # cache.decrement("baz") # => 4
+      # ```
       #
       def decrement(name, amount = 1, **options)
         options = merged_options(options)
@@ -222,7 +232,7 @@ module ActiveSupport
         end
 
         # Modifies the amount of an integer value that is stored in the cache.
-        # If the key is not found it is created and set to +amount+.
+        # If the key is not found it is created and set to `amount`.
         def modify_value(name, amount, options)
           options = merged_options(options)
           key = normalize_key(name, options)

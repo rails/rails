@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/inflections"
@@ -5,7 +6,8 @@ require "active_support/core_ext/string/inflections"
 module ActiveSupport
   module Cache
     module Strategy
-      # = Local \Cache \Strategy
+      # Local \Cache \Strategy
+      # ======================
       #
       # Caches that implement LocalCache will be backed by an in-memory cache for the
       # duration of a block. Repeated calls to the cache for the same key will hit the
@@ -28,7 +30,8 @@ module ActiveSupport
           end
         end
 
-        # = Local \Cache \Store
+        # Local \Cache \Store
+        # ===================
         #
         # Simple memory backed cache. This cache is not thread safe and is intended only
         # for serving as a temporary memory cache for a single thread.
