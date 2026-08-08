@@ -42,6 +42,7 @@ require "models/image"
 require "models/shipment"
 require "models/adjustment"
 require "models/dats"
+require "models/sharded"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -1989,7 +1990,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_equal(<<~MESSAGE.squish, error.message)
-      Association Cpk::BrokenBookWithNonCpkOrder#order primary key ["id"]
+      Association Cpk::BrokenBookWithNonCpkOrder#order primary key id
       doesn't match with foreign key ["shop_id", "order_id"]. Please specify query_constraints, or primary_key and foreign_key values.
     MESSAGE
   end
@@ -2248,12 +2249,281 @@ class BelongsToPolymorphicShardedPrimaryKeyTest < ActiveRecord::TestCase
     assert_equal "id", reflection.association_primary_key(Sharded::BlogPost)
   end
 
-  def test_inverse_with_composite_query_constraints_resolves_single_primary_key
+  def test_inverse_with_decoupled_query_constraints_resolves_single_primary_key
     reflection = Adjustment.reflect_on_association(:adjustable)
     inverse = Shipment.reflect_on_association(:adjustments)
 
-    assert_equal [:region_id, :adjustable_id], inverse.options[:query_constraints]
-    assert_equal [:region_id, :id], inverse.options[:primary_key]
+    # Decoupled form: foreign_key handles the writable join (adjustable_id -> id),
+    # query_constraints scopes by the tenant column (region_id) without being written.
+    assert_equal :adjustable_id, inverse.options[:foreign_key]
+    assert_equal [:region_id], inverse.options[:query_constraints]
     assert_equal "id", reflection.association_primary_key(Shipment)
   end
+end
+
+class BelongsToWithDecoupledQueryConstraintsTest < ActiveRecord::TestCase
+  fixtures :sharded_comments, :sharded_blog_posts, :sharded_blogs
+
+  def test_legacy_composite_foreign_key_targets_query_constrained_primary_key
+    comment = sharded_comments(:great_comment_blog_post_one)
+    legacy_comment = Sharded::LegacyComment.find([comment.blog_id, comment.id])
+    expected_blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    sql = capture_sql do
+      assert_nothing_raised do
+        assert_equal expected_blog_post, legacy_comment.blog_post
+      end
+    end.first
+
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.id"))} =/, sql)
+  end
+
+  def test_belongs_to_with_decoupled_qc_queries_record_using_all_constraints
+    comment = sharded_comments(:great_comment_blog_post_one)
+    expected_blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    sql = capture_sql do
+      assert_equal expected_blog_post, comment.blog_post_with_decoupled_qc
+    end.first
+
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.id"))} =/, sql)
+  end
+
+  def test_belongs_to_association_preload_with_decoupled_qc
+    comment = sharded_comments(:great_comment_blog_post_one)
+    expected_blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    sql = capture_sql do
+      comment = Sharded::Comment.where(id: comment.id).preload(:blog_post_with_decoupled_qc).to_a.first
+      loaded_blog_post = assert_no_queries { comment.blog_post_with_decoupled_qc }
+      assert_equal expected_blog_post, loaded_blog_post
+    end.last
+
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.id"))} =/, sql)
+  end
+
+  def test_belongs_to_association_join_with_decoupled_qc_uses_all_constraints
+    comment = sharded_comments(:great_comment_blog_post_one)
+
+    sql = capture_sql do
+      loaded_comment = Sharded::Comment.joins(:blog_post_with_decoupled_qc).where(id: comment.id).first
+      assert_equal comment, loaded_comment
+    end.first
+
+    assert_sql_join_constraint(sql, Sharded::BlogPost, "sharded_blog_posts.blog_id", Sharded::Comment, "sharded_comments.blog_id")
+    assert_sql_join_constraint(sql, Sharded::BlogPost, "sharded_blog_posts.id", Sharded::Comment, "sharded_comments.blog_post_id")
+  end
+
+  def test_belongs_to_association_eager_load_with_decoupled_qc_uses_all_constraints
+    comment = sharded_comments(:great_comment_blog_post_one)
+    expected_blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    sql = capture_sql do
+      loaded_comment = Sharded::Comment.eager_load(:blog_post_with_decoupled_qc).where(id: comment.id).first
+      loaded_blog_post = assert_no_queries { loaded_comment.blog_post_with_decoupled_qc }
+      assert_equal expected_blog_post, loaded_blog_post
+    end.first
+
+    assert_sql_join_constraint(sql, Sharded::BlogPost, "sharded_blog_posts.blog_id", Sharded::Comment, "sharded_comments.blog_id")
+    assert_sql_join_constraint(sql, Sharded::BlogPost, "sharded_blog_posts.id", Sharded::Comment, "sharded_comments.blog_post_id")
+  end
+
+  def test_where_with_decoupled_query_constraints_uses_all_constraints
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    expected = Sharded::Comment.where(blog_id: blog_post.blog_id, blog_post_id: blog_post.id).to_a
+
+    sql = capture_sql do
+      assert_equal expected, Sharded::Comment.where(blog_post_with_decoupled_qc: blog_post).to_a
+    end.first
+
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_post_id"))} =/, sql)
+  end
+
+  def test_find_by_with_decoupled_query_constraints_uses_all_constraints
+    comment = sharded_comments(:great_comment_blog_post_one)
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    sql = capture_sql do
+      assert_equal comment, Sharded::Comment.find_by(blog_post_with_decoupled_qc: blog_post)
+    end.first
+
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_post_id"))} =/, sql)
+  end
+
+  def test_nullifiying_belongs_to_association_with_decoupled_query_constraints_doesnt_reset_tenant_key
+    comment = sharded_comments(:great_comment_blog_post_one)
+    comment.blog_post_with_decoupled_qc = nil
+    comment.save!
+
+    assert comment.blog_id
+    assert_nil comment.blog_post_id
+  end
+
+  def test_setting_belongs_to_association_with_decoupled_query_constraints_doesnt_set_tenant_key
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    comment = Sharded::Comment.new(blog_post_with_decoupled_qc: blog_post)
+
+    assert_nil comment.blog_id
+    assert_equal comment.blog_post_id, blog_post.id
+
+    comment.blog_id = 123_456
+    comment.save!
+
+    assert_equal 123_456, comment.blog_id
+    assert_equal comment.blog_post_id, blog_post.id
+  end
+
+  def test_saving_decoupled_query_constraints_belongs_to_autosaves_new_target_after_constraint_changes
+    blog_post = Sharded::BlogPost.new(id: 654_321, blog_id: 123_456)
+    comment = Sharded::Comment.new(blog_post_with_decoupled_qc: blog_post)
+    comment.blog_id = blog_post.blog_id
+
+    comment.save!
+
+    assert_predicate blog_post, :persisted?
+    assert_equal blog_post.id, comment.blog_post_id
+    assert_equal blog_post, comment.reload.blog_post_with_decoupled_qc
+  end
+
+  def test_belongs_to_with_query_constraints_column_mapping
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    expected_comment = sharded_comments(:great_comment_blog_post_one)
+
+    assert_equal expected_comment.id, blog_post.featured_comment_id
+
+    sql = capture_sql do
+      loaded_comment = blog_post.featured_comment
+      assert_equal expected_comment, loaded_comment
+    end.first
+
+    # All three constraints must appear in the query
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_post_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.id"))} =/, sql)
+  end
+
+  def test_belongs_to_join_with_query_constraints_column_mapping_uses_all_constraints
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    expected_comment = sharded_comments(:great_comment_blog_post_one)
+
+    sql = capture_sql do
+      loaded_blog_post = Sharded::BlogPost.joins(:featured_comment).where(id: blog_post.id).first
+      assert_equal expected_comment.id, loaded_blog_post.featured_comment_id
+    end.first
+
+    assert_sql_join_constraint(sql, Sharded::Comment, "sharded_comments.blog_id", Sharded::BlogPost, "sharded_blog_posts.blog_id")
+    assert_sql_join_constraint(sql, Sharded::Comment, "sharded_comments.blog_post_id", Sharded::BlogPost, "sharded_blog_posts.id")
+    assert_sql_join_constraint(sql, Sharded::Comment, "sharded_comments.id", Sharded::BlogPost, "sharded_blog_posts.featured_comment_id")
+  end
+
+  def test_belongs_to_eager_load_with_query_constraints_column_mapping_uses_all_constraints
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    expected_comment = sharded_comments(:great_comment_blog_post_one)
+
+    sql = capture_sql do
+      loaded_blog_post = Sharded::BlogPost.eager_load(:featured_comment).where(id: blog_post.id).first
+      loaded_comment = assert_no_queries { loaded_blog_post.featured_comment }
+      assert_equal expected_comment, loaded_comment
+    end.first
+
+    assert_sql_join_constraint(sql, Sharded::Comment, "sharded_comments.blog_id", Sharded::BlogPost, "sharded_blog_posts.blog_id")
+    assert_sql_join_constraint(sql, Sharded::Comment, "sharded_comments.blog_post_id", Sharded::BlogPost, "sharded_blog_posts.id")
+    assert_sql_join_constraint(sql, Sharded::Comment, "sharded_comments.id", Sharded::BlogPost, "sharded_blog_posts.featured_comment_id")
+  end
+
+  def test_preload_belongs_to_with_query_constraints_column_mapping
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    expected_comment = sharded_comments(:great_comment_blog_post_one)
+
+    sql = capture_sql do
+      bp = Sharded::BlogPost.where(id: blog_post.id).preload(:featured_comment).to_a.first
+      loaded_comment = assert_no_queries { bp.featured_comment }
+      assert_equal expected_comment, loaded_comment
+    end.last
+
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_post_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.id"))} =/, sql)
+  end
+
+  def test_belongs_to_with_fk_listed_in_query_constraints_queries_using_base_pk_fk_pair
+    comment = sharded_comments(:great_comment_blog_post_one)
+    expected_blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    sql = capture_sql do
+      assert_equal expected_blog_post, comment.blog_post_with_fk_in_qc
+    end.first
+
+    # The query must use the base PK/FK pair on the target table:
+    # sharded_blog_posts.blog_id and sharded_blog_posts.id.
+    # It must NOT reference sharded_blog_posts.blog_post_id (which is not even
+    # a column on that table) — the FK listed in query_constraints is de-duplicated.
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.id"))} =/, sql)
+    assert_no_match(/#{Regexp.escape(Sharded::BlogPost.lease_connection.quote_table_name("sharded_blog_posts.blog_post_id"))} =/, sql)
+  end
+
+  def test_belongs_to_with_bare_hash_query_constraints_loads_correctly
+    blog_post = sharded_blog_posts(:great_post_blog_one)
+    expected_comment = sharded_comments(:great_comment_blog_post_one)
+
+    assert_equal expected_comment.id, blog_post.featured_comment_id
+
+    sql = capture_sql do
+      loaded_comment = blog_post.featured_comment_bare_hash_qc
+      assert_equal expected_comment, loaded_comment
+    end.first
+
+    # A bare Hash { blog_id: :blog_id } normalizes to a single constraint pair,
+    # combined with the foreign_key for the base PK/FK join.
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.blog_id"))} =/, sql)
+    assert_match(/#{Regexp.escape(Sharded::Comment.lease_connection.quote_table_name("sharded_comments.id"))} =/, sql)
+  end
+
+  def test_changing_query_constraint_column_invalidates_cached_belongs_to
+    comment = sharded_comments(:great_comment_blog_post_one)
+    expected_blog_post = sharded_blog_posts(:great_post_blog_one)
+
+    # Load the association once — caches the target and records stale_state.
+    assert_equal expected_blog_post, comment.blog_post_with_decoupled_qc
+    assert_predicate comment.association(:blog_post_with_decoupled_qc), :loaded?
+
+    # Change ONLY the query-constraint column (blog_id), NOT the foreign_key
+    # (blog_post_id). The cached target must become stale.
+    comment.blog_id = comment.blog_id + 1_000_000
+
+    # The reader must reload — issuing exactly one query — rather than serving
+    # the stale cache.
+    assert_queries_count(1) do
+      comment.blog_post_with_decoupled_qc
+    end
+
+    # With a non-existent blog_id the query finds no matching BlogPost.
+    assert_nil comment.blog_post_with_decoupled_qc
+  end
+
+  def test_changing_query_constraint_column_invalidates_cached_has_one_through
+    comment = sharded_comments(:great_comment_blog_post_one)
+    expected_blog = sharded_blogs(:sharded_blog_one)
+
+    assert_equal expected_blog, comment.blog_through_post_with_decoupled_qc
+    comment.blog_id = comment.blog_id + 1_000_000
+
+    assert_queries_count(1) do
+      assert_nil comment.blog_through_post_with_decoupled_qc
+    end
+  end
+
+  private
+    def assert_sql_join_constraint(sql, left_model, left_column_name, right_model, right_column_name)
+      left_column = Regexp.escape(left_model.lease_connection.quote_table_name(left_column_name))
+      right_column = Regexp.escape(right_model.lease_connection.quote_table_name(right_column_name))
+
+      assert_match(/#{left_column} = #{right_column}/, sql)
+    end
 end
