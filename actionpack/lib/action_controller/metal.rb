@@ -37,10 +37,10 @@ module ActionController
     end
 
     class Middleware < ActionDispatch::MiddlewareStack::Middleware # :nodoc:
-      def initialize(klass, args, actions, strategy, block)
+      def initialize(klass, args, kwargs, actions, strategy, block)
         @actions = actions
         @strategy = strategy
-        super(klass, args, block)
+        super(klass, args, kwargs, block)
       end
 
       def valid?(action)
@@ -64,7 +64,6 @@ module ActionController
       def build_middleware(klass, args, kwargs, block)
         only   = Array(kwargs.delete(:only)).map(&:to_s)
         except = Array(kwargs.delete(:except)).map(&:to_s)
-        args << Hash.ruby2_keywords_hash(kwargs) unless kwargs.empty?
 
         strategy = NULL
         list     = nil
@@ -77,7 +76,7 @@ module ActionController
           list     = except
         end
 
-        Middleware.new(klass, args, list, strategy, block)
+        Middleware.new(klass, args, kwargs, list, strategy, block)
       end
   end
 
