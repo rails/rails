@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -26,7 +27,7 @@ module ActiveSupport
     end
 
     # Registers a new date format for formatting Date instances.
-    # See +Date::DATE_FORMATS+ for built-in formats.
+    # See `Date::DATE_FORMATS` for built-in formats.
     # Use the format name as the name and either a strftime string or
     # Proc instance that takes a date argument as the value.
     def self.register(name, format)
