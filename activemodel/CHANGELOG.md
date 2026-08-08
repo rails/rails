@@ -1,3 +1,12 @@
+*   Add a `self:` option to `normalizes` for normalization that depends on the
+    record.
+
+    When `self: true` is passed, the `with:` normalizer runs with the record as
+    `self`, so it can read other attributes. In record-less contexts (queries
+    and `normalize_value_for`) the value is left unchanged.
+
+    *Yaroslav Markin*
+
 *   Fix `normalizes` re-applying normalizations on every validation of an
     unpersisted record, and speed up validation of normalized attributes.
 
