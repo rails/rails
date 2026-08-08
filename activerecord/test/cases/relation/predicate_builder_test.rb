@@ -141,6 +141,39 @@ module ActiveRecord
       assert_equal expected_sql, sql
     end
 
+    def test_attribute_type_query_transform_predicates_can_be_unscoped
+      topic = topic_model_with_title_type(UnaccentedString.new)
+      sql = topic.where(title: "CAFE").unscope(where: :title).to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics}"
+
+      assert_equal expected_sql, sql
+    end
+
+    def test_attribute_type_query_transform_array_predicates_can_be_unscoped
+      topic = topic_model_with_title_type(UnaccentedString.new)
+      sql = topic.where(title: ["CAFE", "BAR"]).unscope(where: :title).to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics}"
+
+      assert_equal expected_sql, sql
+    end
+
+    def test_attribute_type_query_transform_negated_predicates_can_be_unscoped
+      topic = topic_model_with_title_type(UnaccentedString.new)
+      sql = topic.where.not(title: "CAFE").unscope(where: :title).to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics}"
+
+      assert_equal expected_sql, sql
+    end
+
+    def test_attribute_type_query_transform_predicates_can_be_replaced_by_rewhere
+      topic = topic_model_with_title_type(UnaccentedString.new)
+      sql = topic.where(title: "CAFE").rewhere(title: "BAR").to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE #{normalized_title} = #{normalized_value("BAR")}"
+
+      assert_equal expected_sql, sql
+    end
+
     private
       def quoted_topics
         quote_table_name("topics")
