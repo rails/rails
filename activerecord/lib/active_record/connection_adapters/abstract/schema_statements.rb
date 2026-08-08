@@ -1669,15 +1669,15 @@ module ActiveRecord
       def bulk_change_table(table_name, operations) # :nodoc:
         alter_table = create_alter_table(table_name)
 
-        operations.each do |command, args|
+        operations.each do |command, args, kwargs|
           args.shift # remove table_name
 
           if alter_table.class::COMBINABLE_COMMANDS.include?(command)
-            alter_table.public_send(command, *args)
+            alter_table.public_send(command, *args, **kwargs)
           else
             execute_alter_table(alter_table)
             alter_table = create_alter_table(table_name)
-            send(command, table_name, *args)
+            send(command, table_name, *args, **kwargs)
           end
         end
 

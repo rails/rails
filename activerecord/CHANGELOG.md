@@ -1,3 +1,13 @@
+*   Change the shape of `ActiveRecord::Migration::CommandRecorder#commands`.
+
+    Each recorded migration command is now stored as
+    `[cmd, args, kwargs, block]` (4-element) instead of
+    `[cmd, args, block]` (3-element) with kwargs bundled into a trailing
+    hash inside `args`. Code that inspects `recorder.commands` directly
+    needs to adapt to the new tuple shape.
+
+    *Ryuta Kamizono*
+
 *   Add query predicate hooks for Active Model types.
 
     Types can override `transforms_query_predicates?`, `query_attribute`, and
