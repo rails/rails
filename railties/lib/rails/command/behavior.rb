@@ -31,32 +31,41 @@ module Rails
             puts
           end
 
-          # Receives namespaces in an array and tries to find matching generators
-          # in the load path.
+          # Receives namespaces in an array and tries to find matching files
+          # in the load path. Once a namespace/lookup-path combination resolves,
+          # all files across all load paths matching that combination are loaded. 
+          # Lower-priority combinations are skipped once a higher-priority 
+          # combination has resolved.
           def lookup(namespaces)
             paths = namespaces_to_paths(namespaces)
 
             paths.each do |raw_path|
               lookup_paths.each do |base|
-                path = "#{base}/#{raw_path}_#{command_type}"
+                relative_path = "#{base}/#{raw_path}_#{command_type}.rb"
+                found = false
 
-                begin
-                  require path
-                  return
-                rescue LoadError => e
-                  raise unless /#{Regexp.escape(path)}$/.match?(e.message)
-                rescue Exception => e
-                  warn "[WARNING] Could not load #{command_type} #{path.inspect}. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
+                $LOAD_PATH.each do |load_path|
+                  full_path = File.join(load_path, relative_path)
+                  next unless File.file?(full_path)
+
+                  found = true
+
+                  begin
+                    require full_path
+                  rescue Exception => e
+                    warn "[WARNING] Could not load #{command_type} #{full_path.inspect}. Error: #{e.message}.\n#{e.backtrace.join("\n")}"
+                  end
                 end
+
+                return if found
               end
             end
           end
 
-          # This will try to load any command in the load path to show in help.
+          # This will try to load every file in the load path to show in help.
           def lookup!
             $LOAD_PATH.each do |base|
               Dir[File.join(base, *file_lookup_paths)].each do |path|
-                path = path.delete_prefix("#{base}/")
                 require path
               rescue Exception
                 # No problem
