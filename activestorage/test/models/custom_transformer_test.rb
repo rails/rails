@@ -85,6 +85,34 @@ class ActiveStorage::CustomTransformerTest < ActiveSupport::TestCase
     assert_equal "audio/mpeg", blob.variant(format: :mp3).content_type
   end
 
+  test "variant of a custom media type defaults to the blob's own format" do
+    ActiveStorage.transformers += [ AudioTransformer ]
+    blob = create_file_blob(filename: "audio.mp3", content_type: "audio/mpeg")
+
+    variant = blob.variant(sample_rate: 44100)
+
+    assert_equal "mp3", variant.variation.format
+    assert_equal "audio/mpeg", variant.content_type
+  end
+
+  test "recorded variant of a custom media type is filed under the blob's own format" do
+    ActiveStorage.track_variants = true
+    ActiveStorage.transformers += [ AudioTransformer ]
+    blob = create_file_blob(filename: "audio.mp3", content_type: "audio/mpeg")
+
+    variant = blob.variant(sample_rate: 44100).processed
+
+    assert_equal "audio.mp3", variant.image.filename.to_s
+    assert_equal "audio/mpeg", variant.image.content_type
+  end
+
+  test "a non-web image is still converted to PNG" do
+    ActiveStorage.transformers += [ AudioTransformer ]
+    blob = create_file_blob(filename: "racecar.tif", content_type: "image/tiff")
+
+    assert_equal :png, blob.variant(resize_to_limit: [ 100, 100 ]).variation.format
+  end
+
   test "representable? and representation follow variable?" do
     blob = create_file_blob(filename: "audio.mp3", content_type: "audio/mpeg")
     assert_not blob.representable?

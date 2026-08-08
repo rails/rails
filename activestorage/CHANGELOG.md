@@ -1,8 +1,9 @@
 *   Allow variants of blobs the image processor cannot transform.
 
-    Transformers registered in `ActiveStorage.transformers` are asked whether they accept a blob,
-    the way previewers already are. A blob accepted by one is variable, so `variant` and
-    `representation` work for media types that are not images.
+    Transformers registered in `config.active_storage.transformers` are asked whether they accept
+    a blob, the way previewers already are. A blob accepted by one is variable, so `variant` and
+    `representation` work for media types that are not images. Such a variant defaults to the
+    blob's own format rather than to PNG.
 
         class AudioTransformer < ActiveStorage::Transformers::Transformer
           def self.accept?(blob)
@@ -15,10 +16,11 @@
             end
         end
 
-        ActiveStorage.transformers += [ AudioTransformer ]
+        config.active_storage.transformers = [ AudioTransformer ]
 
     Images are unaffected: they remain governed by `ActiveStorage.variable_content_types` and the
-    transformer configured by `config.active_storage.variant_processor`.
+    transformer configured by `config.active_storage.variant_processor`, which also stays in use
+    for any blob the registered transformers do not accept.
 
     *Julian Rubisch*
 
