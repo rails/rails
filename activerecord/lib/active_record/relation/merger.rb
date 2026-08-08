@@ -56,6 +56,8 @@ module ActiveRecord
                       ]).freeze
 
       def merge
+        relation.excluded_default_scopes |= other.excluded_default_scopes
+
         NORMAL_VALUES.each do |name|
           value = values[name]
           # The unless clause is here mostly for performance reasons (since the `send` call might be moderately
