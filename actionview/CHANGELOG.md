@@ -1,3 +1,8 @@
+*   Report the original ERB line for template syntax errors instead of the
+    corresponding line in the generated Ruby source.
+
+    *aouxwoux*
+
 *   Configuring ERB options is now to be made on the ActionView::Base class.
 
     The `ActionView::Template::Handlers::ERB` class is now private API. Applications
