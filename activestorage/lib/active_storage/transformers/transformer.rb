@@ -11,14 +11,27 @@ module ActiveStorage
     # * ActiveStorage::Transformers::ImageProcessingTransformer:
     #   backed by ImageProcessing, a common interface for MiniMagick and ruby-vips
     #
-    # An application can set +config.active_storage.variant_processor+ to a class. The class must
-    # implement the interface defined by Transformer. Active Storage then uses it for variant
-    # processing.
+    # An application can supply a transformer of its own in either of two ways. Both take a class
+    # implementing the interface defined by Transformer.
+    #
+    # Setting +config.active_storage.variant_processor+ replaces the transformer used for every
+    # variant:
+    #
+    #   config.active_storage.variant_processor = CustomTransformer
+    #
+    # Adding to +config.active_storage.transformers+ instead registers a transformer alongside the
+    # variant processor, which goes on handling everything the registered ones do not claim. Each
+    # is asked whether it accepts a blob, the way previewers already are, and a blob accepted by
+    # one is variable even when its media type is not an image:
+    #
+    #   config.active_storage.transformers = [ AudioTransformer ]
     class Transformer
       attr_reader :transformations
 
-      # Implement this method in a transformer registered in +ActiveStorage.transformers+. Have it
-      # return true when given a blob the transformer can transform.
+      # Implement this method in a transformer registered in
+      # +config.active_storage.transformers+. Have it return true when given a blob the transformer
+      # can transform. The variant processor is never asked, so a transformer installed only
+      # through +config.active_storage.variant_processor+ does not need to implement it.
       def self.accept?(blob)
         false
       end
