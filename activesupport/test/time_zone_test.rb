@@ -889,6 +889,12 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_ractor_shareable(ActiveSupport::TimeZone["Central Time (US & Canada)"])
   end
 
+  def test_formatted_offset_in_ractor
+    twz = ActiveSupport::TimeZone["Eastern Time (US & Canada)"].local(2000, 1, 1)
+
+    assert_equal ["2000-01-01 00:00:00 -0500", "Sat, 01 Jan 2000 00:00:00 -0500"], on_ractor(twz) { |t| [t.to_s, t.rfc2822] }
+  end
+
   def test_us_zones
     assert_includes ActiveSupport::TimeZone.us_zones, ActiveSupport::TimeZone["Hawaii"]
     assert_not_includes ActiveSupport::TimeZone.us_zones, ActiveSupport::TimeZone["Kuala Lumpur"]
