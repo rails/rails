@@ -714,7 +714,7 @@ module ActiveRecord
       #   person.pets.select(:name).distinct
       #   # => [#<Pet name: "Fancy-Fancy">]
       #
-      #   person.pets.select(:name).distinct.distinct(false)
+      #   person.pets.select(:name).distinct.unscope_distinct
       #   # => [
       #   #      #<Pet name: "Fancy-Fancy">,
       #   #      #<Pet name: "Fancy-Fancy">

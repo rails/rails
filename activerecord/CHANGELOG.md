@@ -1,3 +1,22 @@
+*   Deprecate passing boolean arguments to the following relation query methods:
+    * `#lock`
+    * `#readonly`
+    * `#strict_loading`
+    * `#distinct`
+
+    And the following model methods:
+    * `#lock!`
+    * `#with_lock`
+
+    The argument can be omitted to maintain the behaviour of enabling these features, and the
+    following relation query methods have been introduced to support disabling them:
+    * `#unscope_lock`
+    * `#unscope_readonly`
+    * `#unscope_strict_loading`
+    * `#unscope_distinct`
+
+    *Joshua Young*
+
 *   Add query predicate hooks for Active Model types.
 
     Types can override `transforms_query_predicates?`, `query_attribute`, and
