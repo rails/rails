@@ -117,8 +117,9 @@ module ActiveRecord
         end
 
         def nullify_owner_attributes(record)
-          Array(reflection.foreign_key).each do |foreign_key_column|
-            record.write_attribute(foreign_key_column, nil) unless foreign_key_column.in?(Array(record.class.primary_key))
+          primary_key = ActiveRecord::Key.for(record.class.primary_key)
+          ActiveRecord::Key.for(reflection.foreign_key).each do |foreign_key_column|
+            record.write_attribute(foreign_key_column, nil) unless primary_key.include?(foreign_key_column)
           end
           record.write_attribute(reflection.type, nil) if reflection.type.present?
         end
