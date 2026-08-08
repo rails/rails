@@ -507,6 +507,23 @@ class FixturesTest < ActiveRecord::TestCase
     assert_kind_of Topic, topics["first"].find
   end
 
+  def test_fixture_find_uses_only_all_query_default_scopes
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.inheritance_column = :_type_disabled
+
+      default_scope :approved, -> { where(approved: true) }
+      default_scope :first, -> { where(id: 1) }, all_queries: true
+    end
+
+    ActiveRecord::FixtureSet.reset_cache
+    topics = ActiveRecord::FixtureSet.create_fixtures(fixture_paths, "topics", "topics" => topic_class).first
+
+    assert_kind_of topic_class, topics["first"].find
+  ensure
+    ActiveRecord::FixtureSet.reset_cache
+  end
+
   def test_complete_instantiation
     assert_equal "The First Topic", @first.title
   end

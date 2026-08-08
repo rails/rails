@@ -702,7 +702,7 @@ module ActiveRecord
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
       counters = { attribute => change, touch: touch }
 
-      self.class.unscoped.where!(_query_constraints_hash).update_counters(counters)
+      self.class.all_queries_scope.where!(_query_constraints_hash).update_counters(counters)
       public_send(:"clear_#{attribute}_change")
       self
     end
@@ -797,13 +797,23 @@ module ActiveRecord
     #     end
     #   end
     #
+    # The <tt>:unscoped</tt> option removes default scopes that would otherwise
+    # apply to reload. Only default scopes marked with <tt>all_queries: true</tt>
+    # participate. Named default scopes survive <tt>unscoped: true</tt> unless
+    # explicitly listed:
+    #
+    #   reload(unscoped: true)              # Without unnamed all-query default scopes
+    #   reload(unscoped: :foo)              # Without the all-query default scope named :foo
+    #   reload(unscoped: [:foo, :bar, true]) # Without :foo, :bar, or unnamed all-query default scopes
     def reload(options = nil)
       self.class.connection_pool.clear_query_cache
 
-      fresh_object = if apply_scoping?(options)
+      fresh_object = if options && options[:unscoped]
+        self.class.build_unscoped_default_scope(options[:unscoped], all_queries: true).scoping { _find_record(options) }
+      elsif apply_scoping?(options)
         _find_record((options || {}).merge(all_queries: true))
       else
-        self.class.unscoped { _find_record(options) }
+        self.class.raw_relation.scoping { _find_record(options) }
       end
 
       @association_cache = fresh_object.instance_variable_get(:@association_cache)
@@ -884,16 +894,10 @@ module ActiveRecord
       def _find_record(options)
         all_queries = options ? options[:all_queries] : nil
         base = if all_queries
-          self.class.default_scoped(all_queries: true)
+          self.class.all_queries_scope
         else
           self.class.all
-        end
-
-        if all_queries && (current_scope = self.class.global_current_scope)
-          base = base.merge!(current_scope)
-        end
-
-        base = base.preload(strict_loaded_associations)
+        end.preload(strict_loaded_associations)
 
         if options && options[:lock]
           base.lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)

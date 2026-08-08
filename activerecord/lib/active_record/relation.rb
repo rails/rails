@@ -71,6 +71,7 @@ module ActiveRecord
 
     attr_reader :table, :model, :loaded, :predicate_builder
     attr_accessor :skip_preloading_value
+    attr_accessor :excluded_default_scopes # :nodoc:
     alias :klass :model
     alias :loaded? :loaded
     alias :locked? :lock_value
@@ -93,11 +94,20 @@ module ActiveRecord
       @records = nil
       @async = false
       @none = false
+      @excluded_default_scopes = []
     end
 
     def initialize_copy(other)
       @values = @values.dup
+      @excluded_default_scopes = @excluded_default_scopes.dup
       reset
+    end
+
+    # Removes previous relation scoping and selected default scopes.
+    #
+    # See ActiveRecord::Scoping::Default::ClassMethods#unscoped for details.
+    def unscoped(*names, &block)
+      scoping { model.unscoped(*names, &block) }
     end
 
     def bind_attribute(name, value) # :nodoc:
@@ -1322,7 +1332,7 @@ module ActiveRecord
     end
 
     def empty_scope? # :nodoc:
-      @values == model.unscoped.values
+      @values == model.raw_relation.values
     end
 
     def has_limit_or_offset? # :nodoc:
