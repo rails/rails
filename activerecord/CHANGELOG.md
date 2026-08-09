@@ -1,3 +1,9 @@
+*   Use bind parameters for array-form arguments in `find_by_sql` and
+    `count_by_sql`, matching the `where` behavior the API doc already
+    claimed.
+
+    *Ryuta Kamizono*
+
 *   Append `TRADITIONAL` instead of `STRICT_ALL_TABLES` to MySQL's `sql_mode`
     by default.
 
