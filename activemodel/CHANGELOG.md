@@ -1,3 +1,10 @@
+*   Make `ActiveModel::Validations#validation_context=` public.
+
+    This allows setting a validation context before calling `valid?`, while an
+    explicit context passed to `valid?` still takes precedence.
+
+    *Tejas Shetty*
+
 *   Fix `normalizes` re-applying normalizations on every validation of an
     unpersisted record, and speed up validation of normalized attributes.
 

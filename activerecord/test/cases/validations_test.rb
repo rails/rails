@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "models/topic"
 require "models/reply"
 require "models/developer"
@@ -101,6 +102,263 @@ class ValidationsTest < ActiveRecord::TestCase
     assert r.validate!(:special_case)
   end
 
+  def test_save_respects_preset_custom_validation_context
+    reply = WrongReply.new(title: "Wrong Create", content: "Good", author_name: "secret")
+    reply.validation_context = :special_case
+
+    assert reply.save
+    assert_predicate reply, :persisted?
+    assert_equal :special_case, reply.validation_context
+  end
+
+  def test_save_runs_preset_custom_validation_context
+    reply = WrongReply.new(title: "Valid title", content: "Good")
+    reply.validation_context = :special_case
+
+    assert_not reply.save
+    assert_equal ["Invalid"], reply.errors[:author_name]
+  end
+
+  def test_save_bang_raises_when_preset_custom_validation_context_fails
+    reply = WrongReply.new(title: "Valid title", content: "Good")
+    reply.validation_context = :special_case
+
+    invalid = assert_raise(ActiveRecord::RecordInvalid) do
+      reply.save!
+    end
+
+    assert_equal reply, invalid.record
+    assert_equal ["Invalid"], reply.errors[:author_name]
+  end
+
+  def test_save_bang_respects_preset_custom_validation_context
+    reply = WrongReply.new(title: "Wrong Create", content: "Good", author_name: "secret")
+    reply.validation_context = :special_case
+
+    assert reply.save!
+    assert_predicate reply, :persisted?
+    assert_equal :special_case, reply.validation_context
+  end
+
+  def test_save_context_option_overrides_preset_validation_context
+    reply = WrongReply.new(title: "Valid title", content: "Good")
+    reply.validation_context = :special_case
+
+    assert reply.save(context: :create)
+    assert_predicate reply, :persisted?
+    assert_equal :special_case, reply.validation_context
+  end
+
+  def test_create_uses_validation_context_set_in_block
+    reply = WrongReply.create(title: "Valid title", content: "Good") do |record|
+      record.validation_context = :special_case
+    end
+
+    assert_not_predicate reply, :persisted?
+    assert_equal ["Invalid"], reply.errors[:author_name]
+    assert_equal :special_case, reply.validation_context
+  end
+
+  def test_create_bang_uses_validation_context_set_in_block
+    invalid = assert_raise(ActiveRecord::RecordInvalid) do
+      WrongReply.create!(title: "Valid title", content: "Good") do |record|
+        record.validation_context = :special_case
+      end
+    end
+
+    assert_equal ["Invalid"], invalid.record.errors[:author_name]
+  end
+
+  def test_create_with_preset_validation_context_can_skip_create_validations
+    reply = WrongReply.create(title: "Wrong Create", content: "Good", author_name: "secret") do |record|
+      record.validation_context = :special_case
+    end
+
+    assert_predicate reply, :persisted?
+    assert_equal :special_case, reply.validation_context
+  end
+
+  def test_create_bang_with_preset_validation_context_can_skip_create_validations
+    reply = WrongReply.create!(title: "Wrong Create", content: "Good", author_name: "secret") do |record|
+      record.validation_context = :special_case
+    end
+
+    assert_predicate reply, :persisted?
+    assert_equal :special_case, reply.validation_context
+  end
+
+  def test_update_uses_validation_context_set_with_object_with
+    reply = WrongReply.create!(title: "Valid title", content: "Good")
+
+    result = reply.with(validation_context: :special_case) do |record|
+      record.update(content: "Updated content")
+    end
+
+    assert_not result
+    assert_equal ["Invalid"], reply.errors[:author_name]
+    assert_nil reply.validation_context
+  end
+
+  def test_update_bang_uses_validation_context_set_with_object_with
+    reply = WrongReply.create!(title: "Valid title", content: "Good", author_name: "secret")
+
+    assert_raise(ActiveRecord::RecordInvalid) do
+      reply.with(validation_context: :special_case) do |record|
+        record.update!(author_name: nil)
+      end
+    end
+
+    assert_equal ["Invalid"], reply.errors[:author_name]
+    assert_nil reply.validation_context
+  end
+
+  def test_update_with_object_with_can_skip_update_validations
+    reply = WrongReply.create!(title: "Valid title", content: "Good", author_name: "secret")
+    reply.title = "Wrong Update"
+
+    result = reply.with(validation_context: :special_case) do |record|
+      record.update(content: "Updated content")
+    end
+
+    assert result
+    assert_equal "Wrong Update", reply.reload.title
+    assert_nil reply.validation_context
+  end
+
+  def test_find_or_create_by_uses_validation_context_set_in_block
+    reply = WrongReply.find_or_create_by(title: "Wrong Create") do |record|
+      record.content = "Good"
+      record.author_name = "secret"
+      record.validation_context = :special_case
+    end
+
+    assert_predicate reply, :persisted?
+    assert_equal :special_case, reply.validation_context
+  end
+
+  def test_create_or_find_by_uses_validation_context_set_in_block
+    reply = WrongReply.create_or_find_by(title: "Wrong Create") do |record|
+      record.content = "Good"
+      record.author_name = "secret"
+      record.validation_context = :special_case
+    end
+
+    assert_predicate reply, :persisted?
+    assert_equal :special_case, reply.validation_context
+  end
+
+  def test_custom_validation_context_predicate
+    reply = WrongReply.new
+
+    assert_not_predicate reply, :custom_validation_context?
+
+    reply.validation_context = :create
+    assert_not_predicate reply, :custom_validation_context?
+
+    reply.validation_context = :update
+    assert_not_predicate reply, :custom_validation_context?
+
+    reply.validation_context = :special_case
+    assert_predicate reply, :custom_validation_context?
+  end
+
+  def test_create_and_update_validation_contexts_set_with_writer_use_default_context
+    reply = WrongReply.new(title: "Wrong Create", content: "Good")
+    reply.validation_context = :update
+
+    assert_not_predicate reply, :valid?
+    assert_equal ["is Wrong Create"], reply.errors[:title]
+
+    reply = WrongReply.create!(title: "Valid title", content: "Good")
+    reply.title = "Wrong Update"
+    reply.validation_context = :create
+
+    assert_not_predicate reply, :valid?
+    assert_equal ["is Wrong Update"], reply.errors[:title]
+  end
+
+  def test_setting_validation_context_to_nil_restores_default_context
+    reply = WrongReply.new(title: "Wrong Create", content: "Good", author_name: "secret")
+    reply.validation_context = :special_case
+
+    assert_predicate reply, :valid?
+
+    reply.validation_context = nil
+
+    assert_not_predicate reply, :valid?
+    assert_equal ["is Wrong Create"], reply.errors[:title]
+  end
+
+  def test_valid_with_explicit_context_does_not_leak_between_calls
+    reply = WrongReply.new(title: "Wrong Create", content: "Good", author_name: "secret")
+
+    assert reply.valid?(:special_case)
+    assert_nil reply.validation_context
+    assert_not_predicate reply, :valid?
+    assert_equal ["is Wrong Create"], reply.errors[:title]
+  end
+
+  def test_valid_context_argument_overrides_preset_validation_context
+    reply = WrongReply.new(title: "Wrong Create", content: "Good")
+    reply.validation_context = :special_case
+
+    assert_not reply.valid?(:create)
+    assert_equal ["is Wrong Create"], reply.errors[:title]
+    assert_empty reply.errors[:author_name]
+    assert_equal :special_case, reply.validation_context
+  end
+
+  def test_autosave_association_uses_preset_custom_validation_context
+    parent_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+
+      def self.name; "ParentTopic"; end
+
+      has_many :replies, class_name: "WrongReply", foreign_key: "parent_id", autosave: true, validate: true
+    end
+
+    parent = parent_class.new(title: "Valid title")
+    reply = parent.replies.build(title: "Valid title", content: "Good")
+    parent.validation_context = :special_case
+
+    assert_not_predicate parent, :valid?
+    assert_equal ["Invalid"], reply.errors[:author_name]
+    assert_equal :special_case, parent.validation_context
+  end
+
+  def test_object_with_restores_and_nests_validation_context
+    reply = WrongReply.new(title: "Wrong Create", content: "Good", author_name: "secret")
+
+    reply.with(validation_context: :special_case) do |record|
+      assert_predicate record, :valid?
+      assert_equal :special_case, record.validation_context
+
+      record.with(validation_context: :nested) do |nested_record|
+        assert_equal :nested, nested_record.validation_context
+      end
+
+      assert_equal :special_case, record.validation_context
+    end
+
+    assert_nil reply.validation_context
+    assert_not_predicate reply, :valid?
+
+    assert_raises(RuntimeError) do
+      reply.with(validation_context: :special_case) do
+        raise RuntimeError
+      end
+    end
+    assert_nil reply.validation_context
+  end
+
+  def test_object_with_restores_validation_context_after_save
+    reply = WrongReply.new(title: "Wrong Create", content: "Good", author_name: "secret")
+
+    assert reply.with(validation_context: :special_case) { |record| record.save }
+    assert_predicate reply, :persisted?
+    assert_nil reply.validation_context
+  end
+
   def test_exception_on_create_bang_many
     assert_raise(ActiveRecord::RecordInvalid) do
       WrongReply.create!([ { "title" => "OK" }, { "title" => "Wrong Create" }])
@@ -126,6 +384,8 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_save_without_validation
     reply = WrongReply.new
     assert_not reply.save
+
+    reply.validation_context = :special_case
     assert reply.save(validate: false)
   end
 

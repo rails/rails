@@ -1571,9 +1571,9 @@ See the section above for more details about [`:on`](#on).
 
 ### Custom Contexts
 
-You can define your own custom validation contexts for callbacks, which is
-useful when you want to perform validations based on specific scenarios or group
-certain callbacks together and run them in a specific context. A common scenario
+You can define your own custom validation contexts, which is useful when you
+want to perform validations based on specific scenarios or group certain
+validations together and run them in a specific context. A common scenario
 for custom contexts is when you have a multi-step form and want to perform
 validations per step.
 
@@ -1605,9 +1605,8 @@ end
 
 In these cases, you may be tempted to [skip
 callbacks](active_record_callbacks.html#skipping-callbacks) altogether, but
-defining a custom context can be a more structured approach. You will need to
-combine a context with the `:on` option to define a custom context for a
-callback.
+defining a custom context can be a more structured approach. Use the `:on`
+option to define a custom context for a validation.
 
 Once you've defined the custom context, you can use it to trigger the
 validations:
@@ -1619,9 +1618,8 @@ irb> user.valid?(:contact_info) # => true
 irb> user.valid?(:location_info) # => false
 ```
 
-You can also use the custom contexts to trigger the validations on any method
-that supports callbacks. For example, you could use the custom context to
-trigger the validations on `save`:
+You can also use custom contexts to trigger validations when saving. For
+example, you could use the custom context on `save`:
 
 ```irb
 irb> user = User.new(name: "John Doe", age: 17, email: "jane@example.com", phone: "1234567890", address: "123 Main St")
@@ -1629,6 +1627,37 @@ irb> user.save(context: :personal_info) # => false
 irb> user.save(context: :contact_info) # => true
 irb> user.save(context: :location_info) # => false
 ```
+
+You can also set the validation context on a record before saving it. This is
+useful for methods that build a record and yield it before saving, such as
+`create`:
+
+```irb
+irb> user = User.create(email: "j@example.org", phone: "1234567890") do |user|
+irb>   user.validation_context = :contact_info
+irb> end
+irb> user.persisted? # => true
+irb> user.validation_context # => :contact_info
+```
+
+The context stays set on the record until you change it. When the context should
+only apply to a single operation, use `Object#with` to restore the previous
+context after the block:
+
+```irb
+irb> user = User.new(first_name: "John", age: 21, email: "jane@example.com", phone: "1234567890")
+irb> user.validation_context
+=> nil
+irb> user.with(validation_context: :contact_info) do |user|
+irb>   user.save
+irb> end
+=> true
+irb> user.validation_context
+=> nil
+```
+
+An explicit context passed to `valid?` or `save` overrides a context set on the
+record for that call.
 
 Working with Validation Errors
 ------------------------------

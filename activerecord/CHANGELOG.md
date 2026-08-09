@@ -1,3 +1,10 @@
+*   Respect a pre-set custom validation context in `valid?` and `save`.
+
+    Calling `record.validation_context = :import` before `valid?` or `save` now
+    uses that context unless an explicit context is passed.
+
+    *Tejas Shetty*
+
 *   Append `TRADITIONAL` instead of `STRICT_ALL_TABLES` to MySQL's `sql_mode`
     by default.
 
