@@ -58,12 +58,22 @@ module ActiveRecord
             end
           end
 
+          # Foreign keys can point at a table living in another schema, so every
+          # table definition is dumped before any foreign key. Otherwise loading
+          # the dump fails on a reference to a schema dumped later on.
           def tables(stream)
+            tables_by_schema = {}
             previous_schema_had_tables = false
+
             within_each_schema do
+              tables = tables_by_schema[schema_name] = not_ignored_tables
               stream.puts if previous_schema_had_tables
-              super
-              previous_schema_had_tables = @connection.tables.any?
+              table_definitions(tables, stream)
+              previous_schema_had_tables = tables.any?
+            end
+
+            within_each_schema do
+              dump_foreign_keys(tables_by_schema.fetch(schema_name), stream)
             end
           end
 

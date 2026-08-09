@@ -7,6 +7,20 @@
 
     *Ryuta Kamizono*
 
+*   Fix PostgreSQL schema dumps with foreign keys across multiple schemas.
+
+    When `ActiveRecord.dump_schemas` covers more than one schema, `schema.rb`
+    grouped the `add_foreign_key` statements of each schema right after that
+    schema's tables. A foreign key pointing at a schema dumped later then
+    referenced a table that did not exist yet, and `db:schema:load` or
+    `db:test:prepare` aborted with
+    `PG::UndefinedTable: ERROR: relation "..." does not exist`.
+
+    All table definitions are now dumped before any foreign keys. Dumps of a
+    single schema, and of every other adapter, are unchanged.
+
+    *David Paluy*
+
 *   Use bind parameters for array-form arguments in `find_by_sql` and
     `count_by_sql`, matching the `where` behavior the API doc already
     claimed.

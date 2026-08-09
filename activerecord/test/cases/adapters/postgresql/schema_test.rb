@@ -1123,4 +1123,40 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
       assert_not_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema.test_schema2.referenced_table"'
     end
   end
+
+  def test_schema_dump_emits_foreign_keys_after_all_tables
+    with_dump_schemas(:all) do
+      assert_foreign_keys_dumped_after_tables(dump_all_table_schema)
+    end
+  end
+
+  def test_schema_dump_emits_foreign_keys_after_all_tables_with_schema_search_path
+    with_dump_schemas(:schema_search_path) do
+      # test_schema is dumped first and holds a foreign key on a table of
+      # test_schema2, which is dumped last.
+      with_schema_search_path("test_schema,test_schema2") do
+        output = dump_all_table_schema
+        referenced_table = 'create_table "test_schema2.referenced_table"'
+        foreign_key = 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema2.referenced_table"'
+
+        assert_includes output, referenced_table
+        assert_includes output, foreign_key
+        assert_operator output.index(referenced_table), :<, output.index(foreign_key)
+        assert_foreign_keys_dumped_after_tables(output)
+      end
+    end
+  end
+
+  private
+    # A dump is only loadable if no add_foreign_key comes before a create_table,
+    # because a foreign key can point at a table of any other schema.
+    def assert_foreign_keys_dumped_after_tables(output)
+      last_table = output.rindex("create_table ")
+      first_foreign_key = output.index("add_foreign_key ")
+
+      assert last_table, "expected the dump to contain table definitions"
+      assert first_foreign_key, "expected the dump to contain foreign keys"
+      assert_operator last_table, :<, first_foreign_key,
+        "expected every add_foreign_key to come after every create_table:\n#{output}"
+    end
 end
