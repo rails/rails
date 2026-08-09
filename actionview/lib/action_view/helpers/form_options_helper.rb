@@ -5,6 +5,7 @@ require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/array/wrap"
 require "action_view/helpers/text_helper"
+require "active_support/values/time_zone"
 
 module ActionView
   module Helpers # :nodoc:
@@ -140,12 +141,12 @@ module ActionView
       # are deselected, web browsers do not send any value to the server. Unfortunately, this introduces a gotcha.
       # For example, given a multiple select in a form that edits people associated with a post:
       #
-      #   select :post, :person_ids, Person.all.collect { |p| [ p.name, p.id ] }, { multiple: true })
+      #   select :post, :person_ids, Person.all.collect { |p| [ p.name, p.id ] }, { multiple: true }
       #
       # would become:
       #
       #   <input name="post[person_ids][]" type="hidden" value="" autocomplete="off" />
-      #   <select name="post[person_ids][]" id="post_person_ids" multiple="true">
+      #   <select name="post[person_ids][]" id="post_person_ids" multiple="multiple">
       #     <option value="1">David</option>
       #     <option value="2">Eileen</option>
       #     <option value="3">Rafael</option>

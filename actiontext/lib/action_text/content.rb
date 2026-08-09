@@ -120,7 +120,7 @@ module ActionText
     #     content.to_plain_text # => "Funny times!"
     #
     #     content = ActionText::Content.new("<div onclick='action()'>safe<script>unsafe</script></div>")
-    #     content.to_plain_text # => "safeunsafe"
+    #     content.to_plain_text # => "safe"
     #
     # NOTE: that the returned string is not HTML safe and should not be rendered in
     # browsers without additional sanitization.
@@ -180,7 +180,7 @@ module ActionText
 
     # Safely transforms Content into an HTML String.
     #
-    #     content = ActionText::Content.new(content: "<h1>Funny times!</h1>")
+    #     content = ActionText::Content.new("<h1>Funny times!</h1>")
     #     content.to_s # => "<h1>Funny times!</h1>"
     #
     #     content = ActionText::Content.new("<div onclick='action()'>safe<script>unsafe</script></div>")

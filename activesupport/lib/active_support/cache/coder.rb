@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require_relative "entry"
@@ -74,7 +75,6 @@ module ActiveSupport
 
       private
         SIGNATURE = "\x00\x11".b.freeze
-        EMPTY_BINARY_STRING = "".b.freeze
 
         OBJECT_DUMP_TYPE = 0x01
 

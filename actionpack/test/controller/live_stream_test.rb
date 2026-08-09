@@ -774,6 +774,44 @@ module ActionController
       response.each { |chunk| body << chunk }
       assert_equal "barbaz", body
     end
+
+    def test_abort_terminates_a_reader_blocked_on_the_buffer
+      response = ActionController::Live::Response.new
+      response.request = ActionDispatch::Request.empty
+      buf = response.stream
+
+      received = []
+      reader = Thread.new { response.each { |chunk| received << chunk } }
+
+      buf.write "hello"
+      Timeout.timeout(5) do
+        Thread.pass until received.any?             # reader drained the chunk...
+        Thread.pass until reader.status == "sleep"  # ...and is blocked on the queue
+      end
+
+      buf.abort
+
+      assert reader.join(5), "#abort did not release a reader blocked in each_chunk"
+      assert_equal ["hello"], received
+    ensure
+      reader&.kill
+    end
+
+    def test_close_then_abort_still_terminates_the_reader
+      response = ActionController::Live::Response.new
+      response.request = ActionDispatch::Request.empty
+      buf = response.stream
+
+      buf.write "final"
+      buf.close   # enqueues the terminator
+      buf.abort   # clears the queue, dropping the terminator close just enqueued
+
+      reader = Thread.new { response.each { } }
+
+      assert reader.join(5), "#abort after #close left the reader blocked in each_chunk"
+    ensure
+      reader&.kill
+    end
   end
 end
 

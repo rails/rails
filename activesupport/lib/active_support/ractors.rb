@@ -1,9 +1,14 @@
 # frozen_string_literal: true
 
+require "active_support/dependencies/autoload"
+
 module ActiveSupport
   # Shims for +Ractor+ shareability methods so framework code can call them
   # unconditionally regardless of the Ruby version.
   module Ractors # :nodoc:
+    extend ActiveSupport::Autoload
+    autoload :Logger
+
     class << self
       attr_accessor :unshareable_proc_action
 
@@ -35,7 +40,48 @@ module ActiveSupport
         end
       end
 
-      if defined?(Ractor) && RUBY_VERSION >= "4.0"
+      # Attempt to make an object shareable. If successful, a shareable object is returned.
+      # If a Ractor::IsolationError is raised, the outcome will depend on how
+      # the user's application configuration:
+      #
+      # :raise - The error is raised
+      # :warn  - A deprecation warning is triggered and the original unshareable object is returned.
+      def try_make_shareable(obj, **)
+        return obj unless unshareable_proc_action
+
+        make_shareable(obj, **)
+      rescue Ractor::IsolationError
+        case unshareable_proc_action
+        when :raise
+          raise
+        when :warn
+          ActiveSupport.deprecator.warn(<<~MSG)
+            Rails attempted to make an object from your application Ractor shareable but a Ractor
+            Isolation error was raised. The object being returned is not Ractor safe and a runtime
+            error may occur anytime during the request lifecycle.
+
+            #{obj.inspect}
+          MSG
+
+          obj
+        end
+      end
+
+      if RUBY_VERSION >= "4.0"
+        def on_main(obj = nil, &block)
+          if Ractor.main?
+            obj.instance_eval(&block)
+          else
+            require "ractor/dispatch"
+            shareable_block = Ractor.shareable_proc(&block)
+            Ractor::Dispatch.main.run { obj.instance_eval(&shareable_block) }
+          end
+        end
+
+        def main?
+          Ractor.main?
+        end
+
         # Makes +obj+ Ractor-shareable by delegating to +Ractor.make_shareable+.
         #
         # The +copy:+ option is forwarded unchanged. On Ruby versions without
@@ -71,7 +117,16 @@ module ActiveSupport
         def shareable_lambda(...)
           Ractor.shareable_lambda(...)
         end
+
       else
+        def main?
+          Ractor.current == Ractor.main
+        end
+
+        def on_main(obj = nil, &block)
+          obj.instance_eval(&block)
+        end
+
         def make_shareable(obj, copy: false)
           obj
         end
@@ -87,6 +142,26 @@ module ActiveSupport
         def shareable_lambda(self: nil, &block)
           block
         end
+      end
+    end
+
+    if Ractor.respond_to?(:store_if_absent)
+      # Returns the value stored under +key+ in the current Ractor's local
+      # storage, running +block+ to compute and store it on first access, by
+      # delegating to +Ractor.store_if_absent+. Concurrent threads in the
+      # same Ractor initialize the value only once.
+      def self.store_if_absent(key, &block)
+        Ractor.store_if_absent(key, &block)
+      end
+    else
+      @local_storage_lock = Mutex.new
+
+      # Same contract as +Ractor.store_if_absent+ (Ruby 3.4) on top of the
+      # Ractor-local storage that predates it: the value is initialized at
+      # most once even when the Ractor's threads race, with an unsynchronized
+      # fast path for the common hit.
+      def self.store_if_absent(key, &block)
+        Ractor.current[key] || @local_storage_lock.synchronize { Ractor.current[key] ||= block.call }
       end
     end
   end

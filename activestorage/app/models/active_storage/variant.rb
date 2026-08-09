@@ -6,9 +6,9 @@
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
 # original.
 #
-# Variants rely on {ImageProcessing}[https://github.com/janko/image_processing] gem for the actual transformations
-# of the file, so you must add <tt>gem "image_processing"</tt> to your Gemfile if you wish to use variants. By
-# default, images will be processed with {libvips}[http://libvips.github.io/libvips/] using the
+# The built-in transformers rely on the {ImageProcessing}[https://github.com/janko/image_processing] gem for
+# the actual transformations of the file, so you must add <tt>gem "image_processing"</tt> to your Gemfile to use
+# them. By default, images will be processed with {libvips}[http://libvips.github.io/libvips/] using the
 # {ruby-vips}[https://github.com/libvips/ruby-vips] gem, but you can also switch to the
 # {ImageMagick}[http://imagemagick.org] processor operated by the {MiniMagick}[https://github.com/minimagick/minimagick]
 # gem). You'll need to add either <tt>gem "ruby-vips"</tt> or <tt>gem "mini_magick"</tt> to your Gemfile.
@@ -19,10 +19,22 @@
 #   Rails.application.config.active_storage.variant_processor = :mini_magick
 #   # => :mini_magick
 #
-# Note that to create a variant it's necessary to download the entire blob file from the service. Because of this process,
-# you also want to be considerate about when the variant is actually processed. You shouldn't be processing variants inline
-# in a template, for example. Delay the processing to an on-demand controller, like the one provided in
-# ActiveStorage::Representations::ProxyController and ActiveStorage::Representations::RedirectController.
+# You can also set +variant_processor+ to a class. The class must implement the interface defined by
+# ActiveStorage::Transformers::Transformer. Active Storage then uses it for variant processing.
+#
+#   Rails.application.config.active_storage.variant_processor = CustomTransformer
+#
+# Note that the built-in image analyzers accept a blob only when +variant_processor+ is
+# <tt>:vips</tt> or <tt>:mini_magick</tt>, so setting this configuration to a custom class requires
+# adding a custom analyzer to +config.active_storage.analyzers+ as well. See
+# ActiveStorage::Blob::Analyzable#analyze.
+#
+# Also note that to create a variant it's necessary to download the entire blob file from the
+# service. Because of this process, you also want to be considerate about when the variant is
+# actually processed. You shouldn't be processing variants inline in a template, for example. Delay
+# the processing to an on-demand controller, like the one provided in
+# ActiveStorage::Representations::ProxyController and
+# ActiveStorage::Representations::RedirectController.
 #
 # To refer to such a delayed on-demand variant, simply link to the variant through the resolved route provided
 # by Active Storage like so:
@@ -78,7 +90,7 @@ class ActiveStorage::Variant
   #
   # Use <tt>url_for(variant)</tt> (or the implied form, like <tt>link_to variant</tt> or <tt>redirect_to variant</tt>) to get the stable URL
   # for a variant that points to the ActiveStorage::Representations::ProxyController or ActiveStorage::Representations::RedirectController,
-  # which in turn will use this +service_call+ method for its redirection.
+  # which in turn will use this +url+ method for its redirection.
   def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end

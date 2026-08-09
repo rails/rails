@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 begin
@@ -18,29 +19,30 @@ require "active_support/inspect_backport"
 
 module ActiveSupport
   module Cache
-    # = Deprecated \Redis \Cache \Store
+    # Deprecated \Redis \Cache \Store
+    # ===============================
     #
-    # Deployment note: Take care to use a <b>dedicated Redis cache</b> rather
+    # Deployment note: Take care to use a **dedicated Redis cache** rather
     # than pointing this at a persistent Redis server (for example, one used as
     # an Active Job queue). Redis won't cope well with mixed usage patterns and it
     # won't expire cache entries by default.
     #
     # Redis cache server setup guide: https://redis.io/topics/lru-cache
     #
-    # * Supports vanilla Redis, hiredis, and +Redis::Distributed+.
-    # * Supports Memcached-like sharding across Redises with +Redis::Distributed+.
+    # * Supports vanilla Redis, hiredis, and `Redis::Distributed`.
+    # * Supports Memcached-like sharding across Redises with `Redis::Distributed`.
     # * Fault tolerant. If the Redis server is unavailable, no exceptions are
     #   raised. Cache fetches are all misses and writes are dropped.
     # * Local cache. Hot in-memory primary cache within block/middleware scope.
-    # * +read_multi+ and +write_multi+ support for Redis mget/mset. Use
-    #   +Redis::Distributed+ 4.0.1+ for distributed mget support.
-    # * +delete_matched+ support for Redis KEYS globs.
-    # * +read+ supports <tt>delete: true</tt> to atomically read and delete
-    #   a cache entry using the Redis +GETDEL+ command.
+    # * `read_multi` and `write_multi` support for Redis mget/mset. Use
+    #   `Redis::Distributed` 4.0.1+ for distributed mget support.
+    # * `delete_matched` support for Redis KEYS globs.
+    # * `read` supports `delete: true` to atomically read and delete
+    #   a cache entry using the Redis `GETDEL` command.
     #
-    #     cache.write("greeting", "hello")
-    #     cache.read("greeting", delete: true)  # => "hello"
-    #     cache.read("greeting")                 # => nil
+    #         cache.write("greeting", "hello")
+    #         cache.read("greeting", delete: true)  # => "hello"
+    #         cache.read("greeting")                 # => nil
     #
     class DeprecatedRedisCacheStore < Store
       DEFAULT_REDIS_OPTIONS = {
@@ -77,11 +79,13 @@ module ActiveSupport
         # Handles four options: :redis block, :redis instance, single :url
         # string, and multiple :url strings.
         #
-        #   Option  Class       Result
-        #   :redis  Proc    ->  options[:redis].call
-        #   :redis  Object  ->  options[:redis]
-        #   :url    String  ->  Redis.new(url: …)
-        #   :url    Array   ->  Redis::Distributed.new([{ url: … }, { url: … }, …])
+        # ```
+        # Option  Class       Result
+        # :redis  Proc    ->  options[:redis].call
+        # :redis  Object  ->  options[:redis]
+        # :url    String  ->  Redis.new(url: …)
+        # :url    Array   ->  Redis::Distributed.new([{ url: … }, { url: … }, …])
+        # ```
         #
         def build_redis(redis: nil, url: nil, **redis_options) # :nodoc:
           urls = Array(url)
@@ -117,33 +121,35 @@ module ActiveSupport
       #
       # There are a few ways to provide the Redis client used by the cache:
       #
-      # 1. The +:redis+ param can be:
+      # 1. The `:redis` param can be:
       #    - A Redis instance.
-      #    - A +ConnectionPool+ instance wrapping a Redis instance.
+      #    - A `ConnectionPool` instance wrapping a Redis instance.
       #    - A block that returns a Redis instance.
       #
-      # 2. The +:url+ param can be:
+      # 2. The `:url` param can be:
       #    - A string used to create a Redis instance.
-      #    - An array of strings used to create a +Redis::Distributed+ instance.
+      #    - An array of strings used to create a `Redis::Distributed` instance.
       #
-      # If the final Redis instance is not already a +ConnectionPool+, it will
-      # be wrapped in one using +ActiveSupport::Cache::Store::DEFAULT_POOL_OPTIONS+.
-      # These options can be overridden with the +:pool+ param, or the pool can be
-      # disabled with +:pool: false+.
+      # If the final Redis instance is not already a `ConnectionPool`, it will
+      # be wrapped in one using `ActiveSupport::Cache::Store::DEFAULT_POOL_OPTIONS`.
+      # These options can be overridden with the `:pool` param, or the pool can be
+      # disabled with `:pool: false`.
       #
-      #   Option  Class       Result
-      #   :redis  Object  ->  options[:redis]
-      #   :redis  Proc    ->  options[:redis].call
-      #   :url    String  ->  Redis.new(url: …)
-      #   :url    Array   ->  Redis::Distributed.new([{ url: … }, { url: … }, …])
+      # ```
+      # Option  Class       Result
+      # :redis  Object  ->  options[:redis]
+      # :redis  Proc    ->  options[:redis].call
+      # :url    String  ->  Redis.new(url: …)
+      # :url    Array   ->  Redis::Distributed.new([{ url: … }, { url: … }, …])
+      # ```
       #
       # No namespace is set by default. Provide one if the Redis cache
-      # server is shared with other apps: <tt>namespace: 'myapp-cache'</tt>.
+      # server is shared with other apps: `namespace: 'myapp-cache'`.
       #
       # Compression is enabled by default with a 1kB threshold, so cached
       # values larger than 1kB are automatically compressed. Disable by
-      # passing <tt>compress: false</tt> or change the threshold by passing
-      # <tt>compress_threshold: 4.kilobytes</tt>.
+      # passing `compress: false` or change the threshold by passing
+      # `compress_threshold: 4.kilobytes`.
       #
       # No expiry is set on cache entries by default. Redis is expected to
       # be configured with an eviction policy that automatically deletes
@@ -154,12 +160,14 @@ module ActiveSupport
       # "thundering herd" cache writes when hot cache entries are expired.
       # See ActiveSupport::Cache::Store#fetch for more.
       #
-      # Setting <tt>skip_nil: true</tt> will not cache nil results:
+      # Setting `skip_nil: true` will not cache nil results:
       #
-      #   cache.fetch('foo') { nil }
-      #   cache.fetch('bar', skip_nil: true) { nil }
-      #   cache.exist?('foo') # => true
-      #   cache.exist?('bar') # => false
+      # ```
+      # cache.fetch('foo') { nil }
+      # cache.fetch('bar', skip_nil: true) { nil }
+      # cache.exist?('foo') # => true
+      # cache.exist?('bar') # => false
+      # ```
       def initialize(error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
         universal_options = redis_options.extract!(*UNIVERSAL_OPTIONS)
         redis = redis_options[:redis]
@@ -202,11 +210,13 @@ module ActiveSupport
       #
       # Supports Redis KEYS glob patterns:
       #
-      #   h?llo matches hello, hallo and hxllo
-      #   h*llo matches hllo and heeeello
-      #   h[ae]llo matches hello and hallo, but not hillo
-      #   h[^e]llo matches hallo, hbllo, ... but not hello
-      #   h[a-b]llo matches hallo and hbllo
+      # ```
+      # h?llo matches hello, hallo and hxllo
+      # h*llo matches hllo and heeeello
+      # h[ae]llo matches hello and hallo, but not hillo
+      # h[^e]llo matches hallo, hbllo, ... but not hello
+      # h[a-b]llo matches hallo and hbllo
+      # ```
       #
       # Use \ to escape special characters if you want to match them verbatim.
       #
@@ -238,23 +248,29 @@ module ActiveSupport
       # Increment a cached integer value using the Redis incrby atomic operator.
       # Returns the updated value.
       #
-      # If the key is unset or has expired, it will be set to +amount+:
+      # If the key is unset or has expired, it will be set to `amount`:
       #
-      #   cache.increment("foo") # => 1
-      #   cache.increment("bar", 100) # => 100
+      # ```
+      # cache.increment("foo") # => 1
+      # cache.increment("bar", 100) # => 100
+      # ```
       #
-      # To set a specific value, call #write passing <tt>raw: true</tt>:
+      # To set a specific value, call #write passing `raw: true`:
       #
-      #   cache.write("baz", 5, raw: true)
-      #   cache.increment("baz") # => 6
+      # ```
+      # cache.write("baz", 5, raw: true)
+      # cache.increment("baz") # => 6
+      # ```
       #
       # Incrementing a non-numeric value, or a value written without
-      # <tt>raw: true</tt>, will fail and return +nil+.
+      # `raw: true`, will fail and return `nil`.
       #
       # To read the value later, call #read_counter:
       #
-      #   cache.increment("baz") # => 7
-      #   cache.read_counter("baz") # 7
+      # ```
+      # cache.increment("baz") # => 7
+      # cache.read_counter("baz") # 7
+      # ```
       #
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
@@ -271,22 +287,28 @@ module ActiveSupport
       # Decrement a cached integer value using the Redis decrby atomic operator.
       # Returns the updated value.
       #
-      # If the key is unset or has expired, it will be set to +-amount+:
+      # If the key is unset or has expired, it will be set to `-amount`:
       #
-      #   cache.decrement("foo") # => -1
+      # ```
+      # cache.decrement("foo") # => -1
+      # ```
       #
-      # To set a specific value, call #write passing <tt>raw: true</tt>:
+      # To set a specific value, call #write passing `raw: true`:
       #
-      #   cache.write("baz", 5, raw: true)
-      #   cache.decrement("baz") # => 4
+      # ```
+      # cache.write("baz", 5, raw: true)
+      # cache.decrement("baz") # => 4
+      # ```
       #
       # Decrementing a non-numeric value, or a value written without
-      # <tt>raw: true</tt>, will fail and return +nil+.
+      # `raw: true`, will fail and return `nil`.
       #
       # To read the value later, call #read_counter:
       #
-      #   cache.decrement("baz") # => 3
-      #   cache.read_counter("baz") # 3
+      # ```
+      # cache.decrement("baz") # => 3
+      # cache.read_counter("baz") # 3
+      # ```
       #
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)
@@ -454,12 +476,6 @@ module ActiveSupport
             entry.value.to_s
           else
             super(entry, raw: raw, **options)
-          end
-        end
-
-        def serialize_entries(entries, **options)
-          entries.transform_values do |entry|
-            serialize_entry(entry, **options)
           end
         end
 

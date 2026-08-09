@@ -1372,8 +1372,8 @@ You can enable additional logging to figure out where jobs are coming from with
 
 A failed job will not be retried, unless configured otherwise.
 
-It's possible to either retry or discard a failed job by using [`retry_on`] or
-[`discard_on`], respectively. For example:
+It's possible to either retry or discard a failed job by using [`retry_on`][] or
+[`discard_on`][], respectively. For example:
 
 ```ruby
 class RemoteServiceJob < ApplicationJob
@@ -1399,6 +1399,20 @@ when calling `#perform`.
 
 If a passed record is deleted after the job is enqueued but before the
 `#perform` method is called Active Job will raise an
-[`ActiveJob::DeserializationError`](https://api.rubyonrails.org/classes/ActiveJob/DeserializationError.html)
-exception.
+[`ActiveJob::DeserializationError::RecordNotFound`](https://api.rubyonrails.org/classes/ActiveJob/DeserializationError/RecordNotFound.html)
+exception. Jobs whose arguments may legitimately reference deleted records can
+discard it:
+
+```ruby
+class SearchIndexingJob < ApplicationJob
+  discard_on ActiveJob::DeserializationError::RecordNotFound
+end
+```
+
+Other errors raised while deserializing arguments, including database errors
+raised while locating a record, are wrapped in the more general
+[`ActiveJob::DeserializationError`](https://api.rubyonrails.org/classes/ActiveJob/DeserializationError.html),
+its parent class. Prefer discarding `RecordNotFound`: discarding the parent
+class would also discard jobs that failed due to a transient database error,
+even though the record may still exist.
 

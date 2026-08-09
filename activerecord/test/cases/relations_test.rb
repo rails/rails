@@ -27,6 +27,7 @@ require "models/reader"
 require "models/category"
 require "models/categorization"
 require "models/edge"
+require "models/clothing_item"
 require "models/wheel"
 require "models/subscriber"
 require "models/cpk"
@@ -172,16 +173,16 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_subquery
     relation = Topic.where(approved: true)
-    assert_equal relation.to_a, Topic.select("*").from(relation).to_a
-    assert_equal relation.to_a, Topic.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Topic.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Topic.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Topic.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Topic.select("a.*").from(relation, :a).to_a
   end
 
   def test_finding_with_subquery_with_binds
     relation = Post.first.comments
-    assert_equal relation.to_a, Comment.select("*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Comment.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("a.*").from(relation, :a).to_a
   end
 
   def test_finding_with_subquery_without_select_does_not_change_the_select
@@ -254,9 +255,9 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_subquery_with_eager_loading_in_from
     relation = Comment.includes(:post).where("posts.type": "Post").order(:id)
-    assert_equal relation.to_a, Comment.select("*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Comment.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("a.*").from(relation, :a).to_a
   end
 
   unless current_adapter?(:SQLite3Adapter)
@@ -266,8 +267,8 @@ class RelationTest < ActiveRecord::TestCase
       union = Arel::Nodes::Union.new(arel1, arel2)
       expected = [comments(:greetings), comments(:more_greetings)]
 
-      assert_equal expected, Comment.select("subquery.*").from(union).to_a
-      assert_equal expected, Comment.select("a.*").from(union, :a).to_a
+      assert_equal_unordered expected, Comment.select("subquery.*").from(union).to_a
+      assert_equal_unordered expected, Comment.select("a.*").from(union, :a).to_a
     end
   end
 
@@ -399,6 +400,19 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal edge_2.source_id, ordered_edge.all.reverse_order.first.source_id
   end
 
+  def test_reverse_order_uses_query_constraints
+    ClothingItem.delete_all
+    # Insert so that the id order is the reverse of the query_constraints order,
+    # to catch a reverse_order that falls back to ordering by the primary key.
+    zzz = ClothingItem.create!(clothing_type: "zzz", color: "red")
+    aaa = ClothingItem.create!(clothing_type: "aaa", color: "blue")
+
+    assert_equal aaa.id, ClothingItem.all.first.id
+    assert_equal zzz.id, ClothingItem.all.last.id
+    assert_equal zzz.id, ClothingItem.all.reverse_order.first.id
+    assert_equal aaa.id, ClothingItem.all.reverse_order.last.id
+  end
+
   def test_order_with_hash_and_symbol_generates_the_same_sql
     assert_equal Topic.order(:id).to_sql, Topic.order(id: :asc).to_sql
   end
@@ -464,6 +478,16 @@ class RelationTest < ActiveRecord::TestCase
   def test_reorder_deduplication
     topics = Topic.reorder("id desc", "id desc")
     assert_equal ["id desc"], topics.order_values
+  end
+
+  def test_regroup_deduplication
+    topics = Topic.regroup(:author_id, :author_id)
+    assert_equal [:author_id], topics.group_values
+  end
+
+  def test_default_order_deduplication
+    topics = Topic.default_order("id desc", "id desc")
+    assert_equal ["id desc"], topics.default_order_values
   end
 
   def test_finding_with_reorder_by_aliased_attributes
@@ -2196,13 +2220,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "relations show the records in #inspect" do
-    relation = Post.limit(2)
-    assert_equal "#<ActiveRecord::Relation [#{Post.limit(2).map(&:inspect).join(', ')}]>", relation.inspect
+    relation = Post.order(:id).limit(2)
+    assert_equal "#<ActiveRecord::Relation [#{Post.order(:id).limit(2).map(&:inspect).join(', ')}]>", relation.inspect
   end
 
   test "relations limit the records in #inspect at 10" do
-    relation = Post.limit(11)
-    assert_equal "#<ActiveRecord::Relation [#{Post.limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
+    relation = Post.order(:id).limit(11)
+    assert_equal "#<ActiveRecord::Relation [#{Post.order(:id).limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
   end
 
   test "relations don't load all records in #inspect" do

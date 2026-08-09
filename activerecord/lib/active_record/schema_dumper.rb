@@ -65,6 +65,7 @@ module ActiveRecord
       tables(stream)
       virtual_tables(stream)
       trailer(stream)
+      versions(stream) if @dump_schema_migrations
       stream
     end
 
@@ -80,6 +81,7 @@ module ActiveRecord
           ActiveRecord::Base.internal_metadata_table_name,
           self.class.ignore_tables
         ].flatten
+        @dump_schema_migrations = connection.pool.db_config.dump_schema_migrations?
       end
 
       # turns 20170404131909 into "2017_04_04_131909"
@@ -89,8 +91,8 @@ module ActiveRecord
         stringified.insert(4, "_").insert(7, "_").insert(10, "_")
       end
 
-      def define_params
-        @version ? "version: #{formatted_version}" : ""
+      def define_arglist
+        @dump_schema_migrations || @version.nil? ? "" : "(version: #{formatted_version})"
       end
 
       def header(stream)
@@ -107,12 +109,30 @@ module ActiveRecord
           #
           # It's strongly recommended that you check this file into your version control system.
 
-          ActiveRecord::Schema[#{ActiveRecord::Migration.current_version}].define(#{define_params}) do
+          ActiveRecord::Schema[#{ActiveRecord::Migration.current_version}].define#{define_arglist} do
         HEADER
       end
 
       def trailer(stream)
         stream.puts "end"
+      end
+
+      def versions(stream)
+        pool = @connection.pool
+
+        versions_in_schema_migrations = pool.migration_context.get_all_versions
+        versions_in_db_migrate = pool.migration_context.migrations.map(&:version)
+        versions_to_dump = versions_in_schema_migrations & versions_in_db_migrate
+
+        if versions_to_dump.any?
+          versions_to_dump.map!(&:to_s)
+          versions_to_dump.sort_by!(&ActiveRecord.dump_schema_migrations_sort_by)
+
+          stream.puts
+          stream.puts "ActiveRecord::Schema.load_schema_migrations(__FILE__)"
+          stream.puts "__END__"
+          stream.puts versions_to_dump
+        end
       end
 
       # extensions are only supported by PostgreSQL

@@ -4,10 +4,8 @@ module ActiveRecord
   module ConnectionAdapters
     module Trilogy
       module DatabaseStatements
-        def _exec_insert(intent, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
-          sql, binds = sql_for_insert(intent.raw_sql, pk, intent.binds, returning)
-          intent.raw_sql = sql
-          intent.binds = binds
+        def _exec_insert(intent, sequence_name = nil, returning: nil) # :nodoc:
+          apply_returning_to!(intent, returning)
 
           # AbstractAdapter calls cast_result (returning an AR::Result), but
           # our last_inserted_id needs the raw Trilogy result object
@@ -15,25 +13,11 @@ module ActiveRecord
           intent.raw_result
         end
 
-        def execute_batch(statements, name = nil, **kwargs) # :nodoc:
-          combine_multi_statements(statements).each do |statement|
-            intent = QueryIntent.new(
-              adapter: self,
-              processed_sql: statement,
-              name: name,
-              batch: true,
-              binds: kwargs[:binds] || [],
-              prepare: kwargs[:prepare] || false,
-              allow_async: kwargs[:async] || false,
-              allow_retry: kwargs[:allow_retry] || false,
-              materialize_transactions: kwargs[:materialize_transactions] != false
-            )
-            intent.execute!
-            intent.finish
-          end
-        end
-
         private
+          def multi_statements_enabled?
+            @config[:multi_statement]
+          end
+
           def perform_query(raw_connection, intent)
             reset_multi_statement = if intent.batch && !@config[:multi_statement]
               raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_ON)

@@ -217,7 +217,7 @@ module ActionController
     #       @article = Article.find(params[:id])
     #
     #       if stale?(@article, public: true, cache_control: { no_cache: true })
-    #         @statistics = @articles.really_expensive_call
+    #         @statistics = @article.really_expensive_call
     #         respond_to do |format|
     #           # all the supported formats
     #         end

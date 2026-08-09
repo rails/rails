@@ -185,8 +185,8 @@ module ActiveSupport
   #
   #   subscriber = ActiveSupport::Notifications.subscribe(/render/) { }
   #   ActiveSupport::Notifications.unsubscribe('render_template.action_view')
-  #   subscriber.matches?('render_template.action_view') # => false
-  #   subscriber.matches?('render_partial.action_view') # => true
+  #   subscriber.subscribed_to?('render_template.action_view') # => false
+  #   subscriber.subscribed_to?('render_partial.action_view') # => true
   #
   # == Default Queue
   #
@@ -195,7 +195,24 @@ module ActiveSupport
   #
   module Notifications
     class << self
-      attr_accessor :notifier
+      attr_accessor :notifier_subscriptions # :nodoc:
+
+      def notifier
+        return @notifier if ActiveSupport::Ractors.main?
+
+        Ractor[:__notifier] ||= begin
+          fanout = Fanout.new
+          set_subscriptions(fanout)
+
+          fanout
+        end
+      end
+
+      def notifier=(notifier)
+        @notifier = notifier
+
+        record_subscriptions
+      end
 
       # Returns a singleton no-op instrumenter that executes blocks without
       # publishing any notifications. Useful for suppressing instrumentation
@@ -212,9 +229,9 @@ module ActiveSupport
         notifier.publish_event(event)
       end
 
-      def instrument(name, payload = {})
+      def instrument(name, payload = {}, &block)
         if notifier.listening?(name)
-          instrumenter.instrument(name, payload) { yield payload if block_given? }
+          instrumenter.instrument(name, payload, &block)
         else
           yield payload if block_given?
         end
@@ -249,17 +266,23 @@ module ActiveSupport
       #   #=> ArgumentError (pattern must be specified as a String, Regexp or empty)
       #
       def subscribe(pattern = nil, callback = nil, prepend: false, &block)
-        notifier.subscribe(pattern, callback, monotonic: false, prepend: prepend, &block)
+        subscriber = notifier.subscribe(pattern, callback, monotonic: false, prepend: prepend, &block)
+        record_subscriptions
+
+        subscriber
       end
 
       # Performs the same functionality as #subscribe, but the +start+ and
       # +finish+ block arguments are in monotonic time instead of wall-clock
       # time. Monotonic time will not jump forward or backward (due to NTP or
-      # Daylights Savings). Use +monotonic_subscribe+ when accuracy of time
+      # Daylight Savings). Use +monotonic_subscribe+ when accuracy of time
       # duration is important. For example, computing elapsed time between
       # two events.
       def monotonic_subscribe(pattern = nil, callback = nil, prepend: false, &block)
-        notifier.subscribe(pattern, callback, monotonic: true, prepend: prepend, &block)
+        subscriber = notifier.subscribe(pattern, callback, monotonic: true, prepend: prepend, &block)
+        record_subscriptions
+
+        subscriber
       end
 
       def subscribed(callback, pattern = nil, monotonic: false, &block)
@@ -270,7 +293,10 @@ module ActiveSupport
       end
 
       def unsubscribe(subscriber_or_name)
-        notifier.unsubscribe(subscriber_or_name)
+        subscriber = notifier.unsubscribe(subscriber_or_name)
+        record_subscriptions
+
+        subscriber
       end
 
       def instrumenter
@@ -280,6 +306,20 @@ module ActiveSupport
       private
         def registry
           ActiveSupport::IsolatedExecutionState[:active_support_notifications_registry] ||= {}
+        end
+
+        def record_subscriptions
+          subscriptions = {
+            string_subscribers: Hash[notifier.string_subscribers.keys.zip(notifier.string_subscribers.values)],
+            other_subscribers: notifier.other_subscribers,
+          }
+
+          self.notifier_subscriptions = ActiveSupport::Ractors.try_make_shareable(subscriptions, copy: true)
+        end
+
+        def set_subscriptions(fanout)
+          fanout.string_subscribers = notifier_subscriptions[:string_subscribers]
+          fanout.other_subscribers = notifier_subscriptions[:other_subscribers]
         end
     end
 

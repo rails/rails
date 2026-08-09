@@ -100,6 +100,16 @@ module ActiveSupport
       end
     end
 
+    def freeze
+      return self if frozen?
+
+      @own_keys = own_keys.dup.freeze
+      self.default_proc = nil
+      @parent.freeze
+      replace(to_h)
+      super
+    end
+
     def to_h
       @parent.to_h.merge(self)
     end
@@ -120,11 +130,15 @@ module ActiveSupport
       pp.pp_hash(to_h)
     end
 
-    alias_method :own_key?, :key?
-    private :own_key?
-
     def key?(key)
       super || @parent.key?(key)
+    end
+
+    alias_method :_own_keys, :keys
+    private :_own_keys
+
+    def keys
+      @parent.keys | super
     end
 
     def overridden?(key)
@@ -143,5 +157,14 @@ module ActiveSupport
       to_h.each(&block)
       self
     end
+
+    private
+      def own_key?(key)
+        own_keys.include?(key.to_sym)
+      end
+
+      def own_keys
+        @own_keys || _own_keys
+      end
   end
 end

@@ -72,6 +72,12 @@ class RequestUrlFor < BaseRequestTest
   test "url_for accepts a frozen params hash" do
     assert_equal "/x?a=1", url_for(only_path: true, path: "/x", params: { a: 1, b: nil }.freeze)
   end
+
+  test "url_for keeps query params and anchor with a trailing slash and a blank path" do
+    assert_equal "http://www.example.com/?search=books", url_for(trailing_slash: true, params: { search: "books" })
+    assert_equal "http://www.example.com/#signup", url_for(trailing_slash: true, anchor: "signup")
+    assert_equal "/?a=1", url_for(only_path: true, trailing_slash: true, path: "", params: { a: 1 })
+  end
 end
 
 class RequestIP < BaseRequestTest
@@ -1188,7 +1194,7 @@ class RequestParameters < BaseRequestTest
   test "path parameters don't re-encode frozen strings" do
     request = stub_request
 
-    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, Hash.new { Encoding::BINARY }) do
+    ActionDispatch::Http::Utils::CustomParamEncoder.stub(:action_encoding_template, Hash.new { Encoding::BINARY }) do
       request.path_parameters = { foo: "frozen", bar: +"mutable", controller: "test_controller" }
       assert_equal Encoding::BINARY, request.params[:bar].encoding
       assert_equal Encoding::UTF_8, request.params[:foo].encoding
@@ -1228,7 +1234,7 @@ class RequestParameters < BaseRequestTest
   test "query parameters specified as ASCII_8BIT encoded do not raise InvalidParameterError" do
     request = stub_request("QUERY_STRING" => "foo=%81E")
 
-    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
+    ActionDispatch::Http::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
       assert_nothing_raised do
         request.parameters
       end
@@ -1244,7 +1250,7 @@ class RequestParameters < BaseRequestTest
       :input => data
     )
 
-    ActionDispatch::Request::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
+    ActionDispatch::Http::Utils::CustomParamEncoder.stub(:action_encoding_template, { "foo" => Encoding::ASCII_8BIT }) do
       assert_nothing_raised do
         request.parameters
       end
@@ -1526,8 +1532,8 @@ class RequestSession < BaseRequestTest
   test "#session" do
     @request.session
 
-    assert_not_predicate(ActionDispatch::Request::Session.find(@request), :enabled?)
-    assert_instance_of(ActionDispatch::Request::Session::Options, ActionDispatch::Request::Session::Options.find(@request))
+    assert_not_predicate(ActionDispatch::Http::Session.find(@request), :enabled?)
+    assert_instance_of(ActionDispatch::Http::Session::Options, ActionDispatch::Http::Session::Options.find(@request))
   end
 end
 
@@ -1559,6 +1565,11 @@ class RequestBearerToken < BaseRequestTest
 
   test "bearer_token returns token via X-HTTP_AUTHORIZATION header" do
     request = stub_request("X-HTTP_AUTHORIZATION" => "Bearer my-secret-token")
+    assert_equal "my-secret-token", request.bearer_token
+  end
+
+  test "bearer_token recognizes case-insensitive scheme" do
+    request = stub_request("HTTP_AUTHORIZATION" => "bearer my-secret-token")
     assert_equal "my-secret-token", request.bearer_token
   end
 end

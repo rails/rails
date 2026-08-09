@@ -3,7 +3,7 @@
 class ActiveStorage::PreviewImageJob < ActiveStorage::BaseJob
   queue_as { ActiveStorage.queues[:preview_image] }
 
-  discard_on ActiveRecord::RecordNotFound, ActiveStorage::UnrepresentableError
+  discard_on ActiveRecord::RecordNotFound, ActiveJob::DeserializationError::RecordNotFound, ActiveStorage::UnrepresentableError
   retry_on ActiveStorage::IntegrityError, attempts: 10, wait: :polynomially_longer
 
   def initialize(*arguments)

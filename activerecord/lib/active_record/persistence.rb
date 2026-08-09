@@ -212,7 +212,7 @@ module ActiveRecord
       def query_constraints(*columns_list)
         raise ArgumentError, "You must specify at least one column to be used in querying" if columns_list.empty?
 
-        @query_constraints_list = columns_list.map(&:to_s)
+        @query_constraints_list = columns_list.map { |column| -column.to_s }.freeze
         @has_query_constraints = @query_constraints_list
       end
 
@@ -221,7 +221,9 @@ module ActiveRecord
       end
 
       def query_constraints_list # :nodoc:
-        @query_constraints_list ||= if base_class? || primary_key != base_class.primary_key
+        return @query_constraints_list if @query_constraints_list
+
+        if base_class? || primary_key != base_class.primary_key
           primary_key if primary_key.is_a?(Array)
         else
           base_class.query_constraints_list
@@ -237,13 +239,9 @@ module ActiveRecord
 
       def _insert_record(connection, values, returning) # :nodoc:
         primary_key = self.primary_key
-        primary_key_value = nil
 
         if prefetch_primary_key? && primary_key
-          values[primary_key] ||= begin
-            primary_key_value = next_sequence_value
-            _default_attributes[primary_key].with_cast_value(primary_key_value)
-          end
+          values[primary_key] ||= _default_attributes[primary_key].with_cast_value(next_sequence_value)
         end
 
         im = Arel::InsertManager.new(arel_table)
@@ -254,10 +252,7 @@ module ActiveRecord
           im.insert(values.transform_keys { |name| arel_table[name] })
         end
 
-        connection.insert(
-          im, "#{self} Create", primary_key || false, primary_key_value,
-          returning: returning
-        )
+        connection.insert(im, "#{self} Create", returning: returning)
       end
 
       def _update_record(values, constraints) # :nodoc:
@@ -298,7 +293,7 @@ module ActiveRecord
         def inherited(subclass)
           super
           subclass.class_eval do
-            @_query_constraints_list = nil
+            @query_constraints_list = nil
             @has_query_constraints = false
           end
         end
@@ -309,7 +304,7 @@ module ActiveRecord
         # two apart.
         def update_multiple_ids?(id)
           if composite_primary_key?
-            id.is_a?(Array) && id.first.is_a?(Array)
+            id.is_a?(Array) && (id.empty? || id.first.is_a?(Array))
           else
             id.is_a?(Array)
           end

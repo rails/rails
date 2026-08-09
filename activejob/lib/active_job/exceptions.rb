@@ -105,14 +105,14 @@ module ActiveJob
       # ==== Example
       #
       #  class SearchIndexingJob < ActiveJob::Base
-      #    discard_on ActiveJob::DeserializationError
+      #    discard_on ActiveJob::DeserializationError::RecordNotFound
       #    discard_on CustomAppException, report: true
       #    discard_on(AnotherCustomAppException) do |job, error|
       #      CustomErrorHandlingCode.handle(job, error)
       #    end
       #
       #    def perform(record)
-      #      # Will raise ActiveJob::DeserializationError if the record can't be deserialized
+      #      # Will raise ActiveJob::DeserializationError::RecordNotFound if the record can't be found
       #      # Might raise CustomAppException for something domain specific
       #    end
       #  end
@@ -188,7 +188,7 @@ module ActiveJob
           delay_jitter = determine_jitter_for_delay(delay, jitter)
           delay + delay_jitter + 2
         when ActiveSupport::Duration, Integer, Float
-          delay = seconds_or_duration_or_algorithm.to_i
+          delay = seconds_or_duration_or_algorithm.to_f
           delay_jitter = determine_jitter_for_delay(delay, jitter)
           delay + delay_jitter
         when Proc

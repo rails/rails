@@ -103,6 +103,14 @@ module ActiveStorage
               ActiveStorage::Transformers::Vips
             when :mini_magick
               ActiveStorage::Transformers::ImageMagick
+            when Class
+              ActiveStorage.variant_processor
+            else
+              raise ArgumentError, <<~ERROR.squish
+                Unknown variant processor #{ActiveStorage.variant_processor.inspect}.
+                Set `config.active_storage.variant_processor` to :vips, :mini_magick, :disabled,
+                or to a transformer class. See ActiveStorage::Transformers::Transformer.
+              ERROR
             end
         rescue LoadError => error
           case error.message

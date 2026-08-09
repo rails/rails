@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/callbacks"
@@ -7,7 +8,8 @@ require "active_support/core_ext/enumerable"
 require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
-  # = Current Attributes
+  # Current Attributes
+  # ==================
   #
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
   # before and after each request. This allows you to keep all the per-request attributes easily
@@ -17,74 +19,76 @@ module ActiveSupport
   # facilitate easy access to the global, per-request attributes without passing them deeply
   # around everywhere:
   #
-  #   # app/models/current.rb
-  #   class Current < ActiveSupport::CurrentAttributes
-  #     attribute :account, :user
-  #     attribute :request_id, :user_agent, :ip_address
+  # ```
+  # # app/models/current.rb
+  # class Current < ActiveSupport::CurrentAttributes
+  #   attribute :account, :user
+  #   attribute :request_id, :user_agent, :ip_address
   #
-  #     resets { Time.zone = nil }
+  #   resets { Time.zone = nil }
   #
-  #     def user=(user)
-  #       super
-  #       self.account = user.account
-  #       Time.zone    = user.time_zone
-  #     end
+  #   def user=(user)
+  #     super
+  #     self.account = user.account
+  #     Time.zone    = user.time_zone
+  #   end
+  # end
+  #
+  # # app/controllers/concerns/authentication.rb
+  # module Authentication
+  #   extend ActiveSupport::Concern
+  #
+  #   included do
+  #     before_action :authenticate
   #   end
   #
-  #   # app/controllers/concerns/authentication.rb
-  #   module Authentication
-  #     extend ActiveSupport::Concern
-  #
-  #     included do
-  #       before_action :authenticate
-  #     end
-  #
-  #     private
-  #       def authenticate
-  #         if authenticated_user = User.find_by(id: cookies.encrypted[:user_id])
-  #           Current.user = authenticated_user
-  #         else
-  #           redirect_to new_session_url
-  #         end
-  #       end
-  #   end
-  #
-  #   # app/controllers/concerns/set_current_request_details.rb
-  #   module SetCurrentRequestDetails
-  #     extend ActiveSupport::Concern
-  #
-  #     included do
-  #       before_action do
-  #         Current.request_id = request.uuid
-  #         Current.user_agent = request.user_agent
-  #         Current.ip_address = request.ip
+  #   private
+  #     def authenticate
+  #       if authenticated_user = User.find_by(id: cookies.encrypted[:user_id])
+  #         Current.user = authenticated_user
+  #       else
+  #         redirect_to new_session_url
   #       end
   #     end
-  #   end
+  # end
   #
-  #   class ApplicationController < ActionController::Base
-  #     include Authentication
-  #     include SetCurrentRequestDetails
-  #   end
+  # # app/controllers/concerns/set_current_request_details.rb
+  # module SetCurrentRequestDetails
+  #   extend ActiveSupport::Concern
   #
-  #   class MessagesController < ApplicationController
-  #     def create
-  #       Current.account.messages.create(message_params)
+  #   included do
+  #     before_action do
+  #       Current.request_id = request.uuid
+  #       Current.user_agent = request.user_agent
+  #       Current.ip_address = request.ip
   #     end
   #   end
+  # end
   #
-  #   class Message < ApplicationRecord
-  #     belongs_to :creator, default: -> { Current.user }
-  #     after_create { |message| Event.create(record: message) }
-  #   end
+  # class ApplicationController < ActionController::Base
+  #   include Authentication
+  #   include SetCurrentRequestDetails
+  # end
   #
-  #   class Event < ApplicationRecord
-  #     before_create do
-  #       self.request_id = Current.request_id
-  #       self.user_agent = Current.user_agent
-  #       self.ip_address = Current.ip_address
-  #     end
+  # class MessagesController < ApplicationController
+  #   def create
+  #     Current.account.messages.create(message_params)
   #   end
+  # end
+  #
+  # class Message < ApplicationRecord
+  #   belongs_to :creator, default: -> { Current.user }
+  #   after_create { |message| Event.create(record: message) }
+  # end
+  #
+  # class Event < ApplicationRecord
+  #   before_create do
+  #     self.request_id = Current.request_id
+  #     self.user_agent = Current.user_agent
+  #     self.ip_address = Current.ip_address
+  #   end
+  # end
+  # ```
   #
   # A word of caution: It's easy to overdo a global singleton like Current and tangle your model as a result.
   # Current should only be used for a few, top-level globals, like account, user, and request details.
@@ -104,11 +108,11 @@ module ActiveSupport
 
       # Declares one or more attributes that will be given both class and instance accessor methods.
       #
-      # ==== Options
+      # #### Options
       #
-      # * <tt>:default</tt> - The default value for the attributes. If the value
+      # * `:default` - The default value for the attributes. If the value
       #   is a proc or lambda, it will be called whenever an instance is
-      #   constructed. Otherwise, the value will be duplicated with +#dup+.
+      #   constructed. Otherwise, the value will be duplicated with `#dup`.
       #   Default values are re-assigned when the attributes are reset.
       def attribute(*names, default: NOT_SET)
         invalid_attribute_names = names.map(&:to_sym) & INVALID_ATTRIBUTE_NAMES
@@ -211,13 +215,15 @@ module ActiveSupport
     # Expose one or more attributes within a block. Old values are returned after the block concludes.
     # Example demonstrating the common use of needing to set Current attributes outside the request-cycle:
     #
-    #   class Chat::PublicationJob < ApplicationJob
-    #     def perform(attributes, room_number, creator)
-    #       Current.set(person: creator) do
-    #         Chat::Publisher.publish(attributes: attributes, room_number: room_number)
-    #       end
+    # ```
+    # class Chat::PublicationJob < ApplicationJob
+    #   def perform(attributes, room_number, creator)
+    #     Current.set(person: creator) do
+    #       Chat::Publisher.publish(attributes: attributes, room_number: room_number)
     #     end
     #   end
+    # end
+    # ```
     def set(attributes, &block)
       with(**attributes, &block)
     end

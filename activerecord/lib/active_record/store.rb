@@ -103,10 +103,9 @@ module ActiveRecord
     end
 
     module ClassMethods
-      def inherited(subclass) # :nodoc
+      def inherited(subclass) # :nodoc:
         super
         subclass.instance_variable_set(:@local_stored_attributes, nil)
-        subclass.instance_variable_set(:@_store_accessors_module, nil)
       end
 
       def store(store_attribute, options = {})
@@ -137,7 +136,15 @@ module ActiveRecord
             ""
           end
 
-        _store_accessors_module.module_eval do
+        mod = if const_defined?(:GeneratedStoreMethods, false)
+          const_get(:GeneratedStoreMethods, false)
+        else
+          mod = const_set(:GeneratedStoreMethods, Module.new)
+          include mod
+          mod
+        end
+
+        mod.module_eval do
           keys.each do |key|
             accessor_key = "#{accessor_prefix}#{key}#{accessor_suffix}"
 
@@ -165,7 +172,7 @@ module ActiveRecord
             end
 
             define_method("#{accessor_key}_was") do
-              return unless attribute_changed?(store_attribute)
+              return read_store_attribute(store_attribute, key) unless attribute_changed?(store_attribute)
               prev_store, _new_store = changes[store_attribute]
               accessor = store_accessor_for(store_attribute)
               accessor.get(prev_store, key)
@@ -200,14 +207,6 @@ module ActiveRecord
         self.local_stored_attributes ||= {}
         self.local_stored_attributes[store_attribute] ||= []
         self.local_stored_attributes[store_attribute] |= keys
-      end
-
-      def _store_accessors_module # :nodoc:
-        @_store_accessors_module ||= begin
-          mod = Module.new
-          include mod
-          mod
-        end
       end
 
       def stored_attributes

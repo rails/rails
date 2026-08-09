@@ -83,4 +83,9 @@ class BaseTest < ActionCable::TestCase
     assert_not timer.running?
     assert_nil @server.instance_variable_get(:@heartbeat_timer)
   end
+
+  test "server configuration is available from ActionCable" do
+    assert_same ActionCable::Configuration, ActionCable::Server::Configuration
+    assert_instance_of ActionCable::Configuration, ActionCable::Server::Base.config
+  end
 end

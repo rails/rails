@@ -68,6 +68,7 @@ class KeyTest < ActiveRecord::TestCase
 
     assert_not pk.expects_multiple_ids?(5)
     assert pk.expects_multiple_ids?([1, 2, 3])
+    assert pk.expects_multiple_ids?([])
   end
 
   def test_expects_multiple_ids_for_composite_key
@@ -77,6 +78,8 @@ class KeyTest < ActiveRecord::TestCase
     assert_not pk.expects_multiple_ids?([1, 5])
     # ...so several ids are an Array of Arrays.
     assert pk.expects_multiple_ids?([[1, 5], [1, 6]])
+    # ...and an empty Array is an empty set of ids.
+    assert pk.expects_multiple_ids?([])
   end
 
   def test_inferred_id_picks_id_from_tenant_shaped_key

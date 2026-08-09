@@ -201,9 +201,7 @@ module CallbacksTest
     before_save Proc.new { |r| r.history << "b00m" }, if: :yes, unless: :yes
 
     def yes; true; end
-    def other_yes; true; end
     def no; false; end
-    def other_no; false; end
 
     def save
       run_callbacks :save

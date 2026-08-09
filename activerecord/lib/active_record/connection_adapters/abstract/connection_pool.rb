@@ -992,8 +992,8 @@ module ActiveRecord
 
         # Directly check a specific connection out of the pool. Skips callbacks.
         #
-        # The connection must later either #return_from_maintenance or
-        # #remove_from_maintenance, or the pool will hang.
+        # The connection must later be returned with #return_from_maintenance, or
+        # the pool will hang.
         def checkout_for_maintenance(conn)
           synchronize do
             @maintaining += 1
@@ -1019,15 +1019,6 @@ module ActiveRecord
           end
         end
 
-        # Remove a connection from the pool after it has been checked out for
-        # maintenance. It will be automatically replaced with a new connection if
-        # necessary.
-        def remove_from_maintenance(conn)
-          synchronize do
-            @maintaining -= 1
-            remove conn
-          end
-        end
 
         #--
         # this is unfortunately not concurrent
@@ -1170,13 +1161,13 @@ module ActiveRecord
           # <tt>synchronize { conn.lease }</tt> in this method, but by leaving it to <tt>@available.poll</tt>
           # and +try_to_checkout_new_connection+ we can piggyback on +synchronize+ sections
           # of the said methods and avoid an additional +synchronize+ overhead.
-          if conn = @available.poll || try_to_queue_for_background_connection(checkout_timeout) || try_to_checkout_new_connection
+          if conn = @available.poll || try_to_queue_for_background_connection || try_to_checkout_new_connection
             conn
           else
             reap
             # Retry after reaping, which may return an available connection,
             # remove an inactive connection, or both
-            if conn = @available.poll || try_to_queue_for_background_connection(checkout_timeout) || try_to_checkout_new_connection
+            if conn = @available.poll || try_to_queue_for_background_connection || try_to_checkout_new_connection
               conn
             else
               @available.poll(checkout_timeout)
@@ -1198,7 +1189,7 @@ module ActiveRecord
         # If background connections are available, this method will block and
         # return a connection. If no background connections are available, it
         # will immediately return +nil+.
-        def try_to_queue_for_background_connection(checkout_timeout)
+        def try_to_queue_for_background_connection
           return unless @maintaining > 0
 
           synchronize do

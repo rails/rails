@@ -34,7 +34,7 @@ class RetryJob < ActiveJob::Base
   retry_on ZeroJitterError, jitter: 0.0
   retry_on FirstRetryableErrorOfTwo, SecondRetryableErrorOfTwo, attempts: 4
   retry_on LongWaitError, wait: 1.hour, attempts: 10
-  retry_on FloatWaitError, wait: 2.5, attempts: 10
+  retry_on FloatWaitError, wait: 4.5, attempts: 10
   retry_on ShortWaitTenAttemptsError, wait: 1.second, attempts: 10
   retry_on PolynomialWaitTenAttemptsError, wait: :polynomially_longer, attempts: 10
   retry_on CustomWaitTenAttemptsError, wait: ->(executions) { executions * 2 }, attempts: 10

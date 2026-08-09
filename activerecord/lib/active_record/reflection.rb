@@ -548,7 +548,7 @@ module ActiveRecord
       def association_scope_cache(klass, owner, &block)
         key = self
         if polymorphic?
-          key = [key, owner._read_attribute(@foreign_type)]
+          key = [key, owner.read_attribute(@foreign_type)]
         end
         klass.with_connection do |connection|
           klass.cached_find_by_statement(connection, key, &block)
@@ -576,7 +576,7 @@ module ActiveRecord
       end
 
       def association_foreign_key
-        @association_foreign_key ||= -(options[:association_foreign_key]&.to_s || class_name.foreign_key)
+        @association_foreign_key ||= ActiveRecord::Key.for(options[:association_foreign_key] || class_name.foreign_key).name
       end
 
       def association_primary_key(klass = nil)
@@ -633,7 +633,7 @@ module ActiveRecord
       end
 
       def join_id_for(owner) # :nodoc:
-        Array(join_foreign_key).map { |key| owner._read_attribute(key) }
+        Array(join_foreign_key).map { |key| owner.read_attribute(key) }
       end
 
       def through_reflection
@@ -936,17 +936,23 @@ module ActiveRecord
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
         if options[:primary_key]
-          @association_primary_key ||= ActiveRecord::Key.for(options[:primary_key]).name
-        elsif polymorphic? && options[:inverse_of] && klass
-          inverse = klass.reflect_on_association(options[:inverse_of])
-          if inverse && inverse.options[:primary_key]
-            ActiveRecord::Key.for(inverse.options[:primary_key]).name
-          else
-            derive_primary_key(klass) { |model| model.composite_query_constraints_list }
-          end
-        else
-          derive_primary_key(klass || self.klass) { |model| model.composite_query_constraints_list }
+          return @association_primary_key ||= ActiveRecord::Key.for(options[:primary_key]).name
         end
+
+        if polymorphic? && options[:inverse_of] && klass
+          inverse = klass.reflect_on_association(options[:inverse_of])
+          if inverse && inverse.options[:primary_key] && !inverse.options[:query_constraints]
+            return ActiveRecord::Key.for(inverse.options[:primary_key]).name
+          end
+        end
+
+        klass ||= self.klass
+
+        if klass.has_query_constraints? && options[:foreign_key] && !options[:query_constraints]
+          return klass.primary_key_definition.inferred_id || primary_key(klass).freeze
+        end
+
+        derive_primary_key(klass) { |model| model.composite_query_constraints_list }
       end
 
       def join_primary_key(klass = nil)
@@ -1137,14 +1143,6 @@ module ActiveRecord
           end
           names.first
         end
-      end
-
-      def source_options
-        source_reflection.options
-      end
-
-      def through_options
-        through_reflection.options
       end
 
       def check_validity!

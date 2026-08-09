@@ -92,7 +92,7 @@ module ActiveRecord
             @scope.joins!(association)
           end
 
-          association_conditions = Array(reflection.association_primary_key).index_with(nil)
+          association_conditions = ActiveRecord::Key.for(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
             self.not(association => association_conditions)
           else
@@ -125,7 +125,7 @@ module ActiveRecord
         associations.each do |association|
           reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
-          association_conditions = Array(reflection.association_primary_key).index_with(nil)
+          association_conditions = ActiveRecord::Key.for(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
             @scope.where!(association => association_conditions)
           else
@@ -514,7 +514,7 @@ module ActiveRecord
     #   # )
     #   # SELECT * FROM posts
     #
-    # See `#with` for more information.
+    # See #with for more information.
     def with_recursive(*args)
       check_if_method_has_arguments!(__callee__, args)
       spawn.with_recursive!(*args)
@@ -597,6 +597,7 @@ module ActiveRecord
 
     # Same as #regroup but operates on relation in-place instead of copying.
     def regroup!(*args) # :nodoc:
+      args.uniq!
       self.group_values = args
       self
     end
@@ -805,6 +806,7 @@ module ActiveRecord
     # Same as #default_order but operates on relation in-place instead of copying.
     def default_order!(*args) # :nodoc:
       preprocess_order_args(args)
+      args.uniq!
       self.default_order_values = args
       self
     end
@@ -1369,7 +1371,7 @@ module ActiveRecord
     #
     # To make a readonly relation writable, pass +false+.
     #
-    #   users.readonly(false)
+    #   users = users.readonly(false)
     #   users.first.save
     #   # => true
     def readonly(value = true)
@@ -1753,17 +1755,7 @@ module ActiveRecord
       end
 
       def build_named_bound_sql_literal(statement, values)
-        bound_values = values.transform_values do |value|
-          if ActiveRecord::Relation === value
-            Arel.sql(value.to_sql)
-          elsif value.respond_to?(:map) && !value.acts_like?(:string)
-            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
-            values.empty? ? nil : values
-          else
-            value = value.id_for_database if value.respond_to?(:id_for_database)
-            value
-          end
-        end
+        bound_values = values.transform_values { bind_value_for_sql_literal(_1) }
 
         begin
           Arel::Nodes::BoundSqlLiteral.new("(#{statement})", nil, bound_values)
@@ -1772,18 +1764,19 @@ module ActiveRecord
         end
       end
 
-      def build_bound_sql_literal(statement, values)
-        bound_values = values.map do |value|
-          if ActiveRecord::Relation === value
-            Arel.sql(value.to_sql)
-          elsif value.respond_to?(:map) && !value.acts_like?(:string)
-            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
-            values.empty? ? nil : values
-          else
-            value = value.id_for_database if value.respond_to?(:id_for_database)
-            value
-          end
+      def bind_value_for_sql_literal(value)
+        if ActiveRecord::Relation === value
+          Arel.sql(value.to_sql)
+        elsif value.respond_to?(:map) && !value.acts_like?(:string)
+          values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
+          values.empty? ? nil : values
+        else
+          value.respond_to?(:id_for_database) ? value.id_for_database : value
         end
+      end
+
+      def build_bound_sql_literal(statement, values)
+        bound_values = values.map { bind_value_for_sql_literal(_1) }
 
         begin
           Arel::Nodes::BoundSqlLiteral.new("(#{statement})", bound_values, nil)
@@ -2023,7 +2016,7 @@ module ActiveRecord
       end
 
       def build_with_join_node(name, kind = Arel::Nodes::InnerJoin)
-        with_table = Arel::Table.new(name)
+        with_table = Arel::Table.new(name: name)
 
         table.join(with_table, kind).on(
           with_table[model.model_name.to_s.foreign_key].eq(table[model.primary_key])
@@ -2087,8 +2080,8 @@ module ActiveRecord
 
       def reverse_sql_order(order_query)
         if order_query.empty?
-          if !_reverse_order_columns.empty?
-            return _reverse_order_columns.map { |column| table[column].desc }
+          if !_order_columns.empty?
+            return _order_columns.map { |column| table[column].desc }
           end
 
           raise IrreversibleOrderError, <<~MSG.squish
@@ -2118,13 +2111,6 @@ module ActiveRecord
             o
           end
         end
-      end
-
-      def _reverse_order_columns
-        roc = []
-        roc << model.implicit_order_column if model.implicit_order_column
-        roc << model.primary_key if model.primary_key
-        roc.flatten.uniq.compact
       end
 
       def does_not_support_reverse?(order)

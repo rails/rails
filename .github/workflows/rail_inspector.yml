@@ -22,6 +22,6 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.4
+          ruby-version: ruby
           bundler-cache: true
       - run: cd tools/rail_inspector && bundle exec rake

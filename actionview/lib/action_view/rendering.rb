@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "action_view/view_paths"
+require "active_support/core_ext/module/attr_internal"
 
 module ActionView
   # This is a class to fix I18n global state. Whenever you provide I18n.locale during a request,
@@ -80,7 +81,7 @@ module ActionView
       end
 
       def view_context_class
-        klass = ActionView::LookupContext::DetailsKey.view_context_class
+        klass = ActionView::LookupContext.view_context_class
 
         @view_context_class ||= build_view_context_class(klass, supports_path?, _routes, _helpers)
 

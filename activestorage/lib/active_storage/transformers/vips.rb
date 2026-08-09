@@ -1,8 +1,13 @@
 # frozen_string_literal: true
 
+# Do not remove either of these requires.
+#
+# active_storage/vips disables libvips's unfuzzed loaders and savers.
+#
+# active_storage/vips has already loaded image_processing/vips, but requiring it here is what
+# raises LoadError when the gem is missing, which the engine reports as an actionable warning.
+require "active_storage/vips"
 require "image_processing/vips"
-
-Vips.block_untrusted(false) if Vips.respond_to?(:block_untrusted) && !ENV["VIPS_BLOCK_UNTRUSTED"]
 
 module ActiveStorage
   module Transformers

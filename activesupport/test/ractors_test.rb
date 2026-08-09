@@ -2,8 +2,53 @@
 
 require_relative "abstract_unit"
 
-class KernelRactorShareabilityTest < ActiveSupport::TestCase
+class RactorsTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+
+  def test_main_is_true_on_the_main_ractor
+    assert ActiveSupport::Ractors.main?
+  end
+
+  def test_main_is_false_on_a_non_main_ractor
+    ractor = Ractor.new do
+      ActiveSupport::Ractors.main?
+    end
+    value = ractor.respond_to?(:value) ? ractor.value : ractor.take
+
+    assert_not value
+  end
+
+  def test_store_if_absent_computes_once_and_returns_the_stored_value
+    calls = 0
+    first  = ActiveSupport::Ractors.store_if_absent(:as_ractors_test_once) { calls += 1; +"value" }
+    second = ActiveSupport::Ractors.store_if_absent(:as_ractors_test_once) { calls += 1; +"other" }
+
+    assert_equal "value", first
+    assert_same first, second
+    assert_equal 1, calls
+  end
+
   if RUBY_VERSION >= "4.0"
+    def test_on_main_runs_block_on_main_ractor
+      value = Ractor.new do
+        ActiveSupport::Ractors.on_main { Ractor.main? }
+      end.value
+
+      assert value
+    end
+
+    def test_on_main_evaluates_block_against_object
+      object = Class.new do
+        self.singleton_class.attr_accessor :foo
+        self.foo = :foo
+      end
+      Ractor.new(object) do |obj|
+        ActiveSupport::Ractors.on_main(obj) { @foo = :bar }
+      end.join
+
+      assert_equal :bar, object.foo
+    end
+
     def test_ractor_make_shareable_returns_a_shareable_object
       string = +"hello"
       assert_not ActiveSupport::Ractors.shareable?(string)
@@ -97,6 +142,69 @@ class KernelRactorShareabilityTest < ActiveSupport::TestCase
       end
     ensure
       ActiveSupport::Ractors.unshareable_proc_action = old
+    end
+
+    def test_try_make_shareable_when_action_is_nil
+      old = ActiveSupport::Ractors.unshareable_proc_action
+      ActiveSupport::Ractors.unshareable_proc_action = nil
+
+      obj = +"hello"
+      attempted = ActiveSupport::Ractors.try_make_shareable(obj)
+
+      assert_same(obj, attempted)
+      assert_not ActiveSupport::Ractors.shareable?(obj)
+    ensure
+      ActiveSupport::Ractors.unshareable_proc_action = old
+    end
+
+    def test_try_make_shareable_makes_the_object_shareable
+      old = ActiveSupport::Ractors.unshareable_proc_action
+      ActiveSupport::Ractors.unshareable_proc_action = :raise
+
+      obj = +"hello"
+      attempted = ActiveSupport::Ractors.try_make_shareable(obj)
+
+      assert_same(obj, attempted)
+      assert ActiveSupport::Ractors.shareable?(attempted)
+    ensure
+      ActiveSupport::Ractors.unshareable_proc_action = old
+    end
+
+    def test_try_make_shareable_raises
+      old = ActiveSupport::Ractors.unshareable_proc_action
+      ActiveSupport::Ractors.unshareable_proc_action = :raise
+
+      obj = proc { }
+
+      assert_raises(Ractor::IsolationError) do
+        ActiveSupport::Ractors.try_make_shareable(obj)
+      end
+    ensure
+      ActiveSupport::Ractors.unshareable_proc_action = old
+    end
+
+    def test_try_make_shareable_warns
+      old = ActiveSupport::Ractors.unshareable_proc_action
+      ActiveSupport::Ractors.unshareable_proc_action = :warn
+
+      obj = proc { }
+
+      assert_deprecated(/Rails attempted to make an object .* Ractor shareable/, ActiveSupport.deprecator) do
+        attempted = ActiveSupport::Ractors.try_make_shareable(obj)
+        assert_same(obj, attempted)
+      end
+    ensure
+      ActiveSupport::Ractors.unshareable_proc_action = old
+    end
+
+    def test_store_if_absent_is_ractor_local
+      main_value = ActiveSupport::Ractors.store_if_absent(:as_ractors_test_local) { "main" }
+      worker_value = Ractor.new do
+        ActiveSupport::Ractors.store_if_absent(:as_ractors_test_local) { "worker" }
+      end.value
+
+      assert_equal "main", main_value
+      assert_equal "worker", worker_value
     end
   end
 end

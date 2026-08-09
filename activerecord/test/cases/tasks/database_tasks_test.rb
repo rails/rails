@@ -441,6 +441,29 @@ module ActiveRecord
       ActiveRecord::Base.clear_cache!
     end
 
+    def test_dump_schema_passes_the_given_format_to_check_schema_dump
+      db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary",
+        adapter: "sqlite3",
+        database: "my-db",
+        schema_format: :sql,
+      )
+
+      format = :ruby
+      assert_not_equal format, db_config.schema_format # precondition
+
+      dumped = false
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        db_config.stub(:schema_dump, ->(sf = db_config.schema_format) { "schema.rb" if sf == format }) do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:with_temporary_pool, ->(*) { dumped = true }) do
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, format)
+          end
+        end
+      end
+
+      assert dumped
+    end
+
     def test_dump_all_only_dumps_same_schema_once
       counter = 0
 

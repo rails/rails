@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 class Numeric
@@ -11,7 +12,9 @@ class Numeric
 
   # Enables the use of byte calculations and declarations, like 45.bytes + 2.6.megabytes
   #
-  #   2.bytes # => 2
+  # ```
+  # 2.bytes # => 2
+  # ```
   def bytes
     self
   end
@@ -19,7 +22,9 @@ class Numeric
 
   # Returns the number of bytes equivalent to the kilobytes provided.
   #
-  #   2.kilobytes # => 2048
+  # ```
+  # 2.kilobytes # => 2048
+  # ```
   def kilobytes
     self * KILOBYTE
   end
@@ -27,7 +32,9 @@ class Numeric
 
   # Returns the number of bytes equivalent to the megabytes provided.
   #
-  #   2.megabytes # => 2_097_152
+  # ```
+  # 2.megabytes # => 2_097_152
+  # ```
   def megabytes
     self * MEGABYTE
   end
@@ -35,7 +42,9 @@ class Numeric
 
   # Returns the number of bytes equivalent to the gigabytes provided.
   #
-  #   2.gigabytes # => 2_147_483_648
+  # ```
+  # 2.gigabytes # => 2_147_483_648
+  # ```
   def gigabytes
     self * GIGABYTE
   end
@@ -43,7 +52,9 @@ class Numeric
 
   # Returns the number of bytes equivalent to the terabytes provided.
   #
-  #   2.terabytes # => 2_199_023_255_552
+  # ```
+  # 2.terabytes # => 2_199_023_255_552
+  # ```
   def terabytes
     self * TERABYTE
   end
@@ -51,7 +62,9 @@ class Numeric
 
   # Returns the number of bytes equivalent to the petabytes provided.
   #
-  #   2.petabytes # => 2_251_799_813_685_248
+  # ```
+  # 2.petabytes # => 2_251_799_813_685_248
+  # ```
   def petabytes
     self * PETABYTE
   end
@@ -59,7 +72,9 @@ class Numeric
 
   # Returns the number of bytes equivalent to the exabytes provided.
   #
-  #   2.exabytes # => 2_305_843_009_213_693_952
+  # ```
+  # 2.exabytes # => 2_305_843_009_213_693_952
+  # ```
   def exabytes
     self * EXABYTE
   end
@@ -67,7 +82,9 @@ class Numeric
 
   # Returns the number of bytes equivalent to the zettabytes provided.
   #
-  #   2.zettabytes # => 2_361_183_241_434_822_606_848
+  # ```
+  # 2.zettabytes # => 2_361_183_241_434_822_606_848
+  # ```
   def zettabytes
     self * ZETTABYTE
   end

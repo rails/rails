@@ -383,6 +383,16 @@ module ActiveRecord
 
           assert connection.index_exists?(:testings, :foo, enabled: false)
         end
+
+        def test_disable_and_enable_index_with_reserved_word_name
+          connection.add_index(:testings, :foo, name: "order")
+
+          connection.disable_index(:testings, "order")
+          assert connection.index_exists?(:testings, :foo, name: "order", enabled: false)
+
+          connection.enable_index(:testings, "order")
+          assert_not connection.index_exists?(:testings, :foo, name: "order", enabled: false)
+        end
       end
 
       private

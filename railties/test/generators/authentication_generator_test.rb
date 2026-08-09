@@ -105,8 +105,8 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "config/routes.rb" do |content|
-      assert_match(/resource :session, only: \[:new, :create, :destroy\]/, content)
-      assert_match(/resources :passwords, param: :token, only: \[:new, :create, :edit, :update\]/, content)
+      assert_match(/resource :session, only: \[ :new, :create, :destroy \]/, content)
+      assert_match(/resources :passwords, param: :token, only: \[ :new, :create, :edit, :update \]/, content)
     end
 
     assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
@@ -152,7 +152,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/models/user_test.rb"
   end
 
-  def mailer_preview_is_skipped_if_test_framework_is_given
+  def test_mailer_preview_is_skipped_if_test_framework_is_given
     generator([destination_root], ["-t", "rspec"])
 
     run_generator_instance
@@ -160,7 +160,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/mailers/previews/passwords_mailer_preview.rb"
   end
 
-  def session_test_helper_is_skipped_if_test_framework_is_given
+  def test_session_test_helper_is_skipped_if_test_framework_is_given
     generator([destination_root], ["-t", "rspec"])
 
     run_generator_instance

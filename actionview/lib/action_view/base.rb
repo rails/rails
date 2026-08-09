@@ -187,7 +187,27 @@ module ActionView # :nodoc:
     cattr_accessor :remove_hidden_field_autocomplete, default: false
 
     class << self
-      delegate :erb_trim_mode=, to: "ActionView::Template::Handlers::ERB"
+      ##
+      # :singleton-method: erb_trim_mode=
+      #
+      # Controls if certain ERB syntax should trim. It defaults to <tt>'-'</tt>, which turns on trimming of trailing spaces and
+      # newline when using <tt><%= -%></tt> or <tt><%= =%></tt>. Setting this to anything else will turn off trimming support.
+
+      ##
+      # :singleton-method: erb_implementation=
+      #
+      # Default ERB implementation to use. Defaults to Erubi.
+
+      ##
+      # :singleton-method: escape_ignore_list=
+      #
+      # Do not escape templates of these mime types. Defaults to ["text/plain"]
+
+      ##
+      # :singleton-method: strip_trailing_newlines=
+      #
+      # Strip trailing newlines from rendered output. Defaults to <tt>false</tt>.
+      delegate :erb_trim_mode=, :erb_implementation=, :escape_ignore_list=, :strip_trailing_newlines=, to: "ActionView::Template::Handlers::ERB"
 
       def cache_template_loading
         ActionView::Resolver.caching?
@@ -203,16 +223,17 @@ module ActionView # :nodoc:
 
       def with_empty_template_cache # :nodoc:
         subclass = Class.new(self) {
-          # We can't implement these as self.class because subclasses will
-          # share the same template cache as superclasses, so "changed?" won't work
-          # correctly.
-          define_method(:compiled_method_container)           { subclass }
-          define_singleton_method(:compiled_method_container) { subclass }
-
           def inspect
             "#<ActionView::Base:#{'%#016x' % (object_id << 1)}>"
           end
         }
+
+        # We can't implement these as self.class because subclasses will share the same
+        # template cache as superclasses, so "changed?" won't work correctly.
+        reader = ActiveSupport::Ractors.shareable_lambda { subclass }
+        subclass.define_method(:compiled_method_container, reader)
+        subclass.define_singleton_method(:compiled_method_container, reader)
+        subclass
       end
 
       def changed?(other) # :nodoc:

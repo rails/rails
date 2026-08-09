@@ -215,7 +215,7 @@ module Rails
       end
 
       # Adds a load hook that makes sure the application is initialized before
-      # the a lazy loaded component is loaded. The load hook will avise how to use
+      # a lazy-loaded component is loaded. The load hook will advise how to use
       # load hooks to defer code until the application is fully loaded.
       def guard_load_hooks(*components)
         components.each do |component|

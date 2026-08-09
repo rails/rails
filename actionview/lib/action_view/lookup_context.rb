@@ -23,6 +23,7 @@ module ActionView
     end
 
     def self.register_detail(name, &block)
+      block = ActiveSupport::Ractors.shareable_proc(&block)
       self.default_procs = self.default_procs.merge(name => block).freeze
 
       Accessors.define_method(:"default_#{name}", &block)
@@ -56,23 +57,19 @@ module ActionView
     class DetailsKey # :nodoc:
       alias :eql? :equal?
 
-      @details_keys = Concurrent::Map.new
-      @digest_cache = Concurrent::Map.new
-      @view_context_mutex = Mutex.new
-
       def self.digest_cache(details)
-        @digest_cache[details_cache_key(details)] ||= Concurrent::Map.new
+        digest_cache_store.compute_if_absent(details_cache_key(details)) { Concurrent::Map.new }
       end
 
       def self.details_cache_key(details)
-        @details_keys.fetch(details) do
+        details_keys.fetch(details) do
           if formats = details[:formats]
             if normalized = Template.normalized_formats(formats)
               details = details.dup
               details[:formats] = normalized
             end
           end
-          @details_keys[details] ||= TemplateDetails::Requested.new(**details)
+          details_keys[details] ||= TemplateDetails::Requested.new(**details)
         end
       end
 
@@ -80,21 +77,39 @@ module ActionView
         ActionView::PathRegistry.all_resolvers.each do |resolver|
           resolver.clear_cache
         end
-        @view_context_class = nil
-        @details_keys.clear
-        @digest_cache.clear
+        ActionView::LookupContext.reset_view_context_class
+        details_keys.clear
+        digest_cache_store.clear
       end
 
       def self.digest_caches
-        @digest_cache.values
+        digest_cache_store.values
       end
 
-      def self.view_context_class
-        @view_context_mutex.synchronize do
-          @view_context_class ||= ActionView::Base.with_empty_template_cache
-        end
+      def self.details_keys
+        ActiveSupport::Ractors.store_if_absent(:action_view_details_keys) { Concurrent::Map.new }
+      end
+      private_class_method :details_keys
+
+      def self.digest_cache_store
+        ActiveSupport::Ractors.store_if_absent(:action_view_digest_caches) { Concurrent::Map.new }
+      end
+      private_class_method :digest_cache_store
+    end
+
+    def self.reset_view_context_class
+      @view_context_mutex.synchronize { @view_context_class = nil }
+    end
+
+    def self.view_context_class
+      return @view_context_class if @view_context_class
+      base = ActionView::Base # prevent recursive locking
+      @view_context_mutex.synchronize do
+        @view_context_class = base.with_empty_template_cache
       end
     end
+    @view_context_mutex = Mutex.new
+    ActiveSupport.on_load(:action_view) { ActionView::LookupContext.view_context_class }
 
     # Add caching behavior on top of Details.
     module DetailsCache

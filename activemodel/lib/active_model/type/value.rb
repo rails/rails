@@ -114,6 +114,47 @@ module ActiveModel
         false
       end
 
+      # Returns true if the type customizes how attributes and values are
+      # rendered in hash-based +where+ predicates. When this method returns
+      # true, equality, array (+IN+), and range (+BETWEEN+) predicates are
+      # built by passing the attribute through Value#query_attribute and each
+      # value through Value#query_value. Returns +false+ by default. Types
+      # whose read-side SQL differs from what +cast+ and +serialize+ produce
+      # (e.g. a UUID stored as binary comparing as
+      # <tt>id = UUID_TO_BIN(?)</tt>) should override this method to return
+      # +true+.
+      def transforms_query_predicates?
+        false
+      end
+
+      # Returns the Arel node used for the attribute side of a +where+
+      # predicate. Only called when Value#transforms_query_predicates?
+      # returns +true+. The default implementation returns the attribute
+      # unchanged. Override this method to wrap the column reference, for
+      # example in a SQL function call.
+      #
+      # +attribute+ The Arel attribute for the column being compared.
+      def query_attribute(attribute)
+        attribute
+      end
+
+      # Returns the Arel node used for the value side of a +where+
+      # predicate. Only called when Value#transforms_query_predicates?
+      # returns +true+. The default implementation returns a bind parameter
+      # for +value+. Override this method to wrap the bind parameter, for
+      # example in a SQL function call.
+      #
+      # +attribute+ The Arel attribute for the column being compared.
+      #
+      # +value+ The value being compared against, before type casting.
+      #
+      # +predicate_builder+ The ActiveRecord::PredicateBuilder building the
+      # predicate. Call +predicate_builder.build_bind_attribute+ to create a
+      # bind parameter for +value+.
+      def query_value(attribute, value, predicate_builder:)
+        predicate_builder.build_bind_attribute(attribute.name, value, self)
+      end
+
       def map(value, &) # :nodoc:
         value
       end

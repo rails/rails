@@ -152,7 +152,7 @@ module ActionMailer
       end
 
       args = Array(args) unless args.is_a?(Proc)
-      queue ||= mailer.deliver_later_queue_name || ActiveJob::Base.default_queue_name
+      queue ||= mailer.delivery_job.new(mailer.name).queue_name
 
       expected = ->(job_args) do
         job_kwargs = job_args.extract_options!
@@ -204,7 +204,7 @@ module ActionMailer
     #   end
     #
     # If the +:queue+ option is specified,
-    # then only the emails(s) enqueued to a specific queue will be performed.
+    # then only the email(s) enqueued to a specific queue will be performed.
     #
     #   def test_deliver_enqueued_emails_with_queue
     #     deliver_enqueued_emails queue: :external_mailers do

@@ -11,7 +11,7 @@ module Arel
     end
 
     test "backwards compatibility project accepts symbols as sql literals" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.project :id
       manager.from table
@@ -20,7 +20,7 @@ module Arel
     end
 
     test "backwards compatibility order accepts symbols" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.project Nodes::SqlLiteral.new "*"
       manager.from table
@@ -29,7 +29,7 @@ module Arel
     end
 
     test "backwards compatibility group takes a symbol" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.group :foo
@@ -63,7 +63,7 @@ module Arel
     end
 
     test "backwards compatibility from ignores strings when table of same name exists" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
 
       manager.from table
@@ -73,7 +73,7 @@ module Arel
     end
 
     test "backwards compatibility from should support any ast" do
-      table = Table.new :users
+      table = Table.new name: :users
       manager1 = Arel::SelectManager.new
 
       manager2 = Arel::SelectManager.new
@@ -89,14 +89,14 @@ module Arel
     end
 
     test "backwards compatibility having converts strings to SQLLiterals" do
-      table = Table.new :users
+      table = Table.new name: :users
       mgr = table.from
       mgr.having Arel.sql("foo")
       assert_like %{ SELECT FROM "users" HAVING foo }, mgr.to_sql
     end
 
     test "backwards compatibility having can have multiple items specified separately" do
-      table = Table.new :users
+      table = Table.new name: :users
       mgr = table.from
       mgr.having Arel.sql("foo")
       mgr.having Arel.sql("bar")
@@ -104,14 +104,14 @@ module Arel
     end
 
     test "backwards compatibility having can receive any node" do
-      table = Table.new :users
+      table = Table.new name: :users
       mgr = table.from
       mgr.having Arel::Nodes::And.new([Arel.sql("foo"), Arel.sql("bar")])
       assert_like %{ SELECT FROM "users" HAVING foo AND bar }, mgr.to_sql
     end
 
     test "backwards compatibility on converts to sqlliterals" do
-      table = Table.new :users
+      table = Table.new name: :users
       right = table.alias
       mgr   = table.from
       mgr.join(right).on("omg")
@@ -119,7 +119,7 @@ module Arel
     end
 
     test "backwards compatibility on converts to sqlliterals with multiple items" do
-      table = Table.new :users
+      table = Table.new name: :users
       right = table.alias
       mgr   = table.from
       mgr.join(right).on("omg", "123")
@@ -127,7 +127,7 @@ module Arel
     end
 
     test "clone creates new cores" do
-      table = Table.new :users, as: "foo"
+      table = Table.new name: :users, as: "foo"
       mgr = table.from
       m2 = mgr.clone
       m2.project "foo"
@@ -135,7 +135,7 @@ module Arel
     end
 
     test "clone makes updates to the correct copy" do
-      table = Table.new :users, as: "foo"
+      table = Table.new name: :users, as: "foo"
       mgr = table.from
       m2 = mgr.clone
       m3 = m2.clone
@@ -145,34 +145,34 @@ module Arel
     end
 
     test "initialize uses alias in sql" do
-      table = Table.new :users, as: "foo"
+      table = Table.new name: :users, as: "foo"
       mgr = table.from
       mgr.skip 10
       assert_like %{ SELECT FROM "users" "foo" OFFSET 10 }, mgr.to_sql
     end
 
     test "skip should add an offset" do
-      table = Table.new :users
+      table = Table.new name: :users
       mgr = table.from
       mgr.skip 10
       assert_like %{ SELECT FROM "users" OFFSET 10 }, mgr.to_sql
     end
 
     test "skip should chain" do
-      table = Table.new :users
+      table = Table.new name: :users
       mgr = table.from
       assert_like %{ SELECT FROM "users" OFFSET 10 }, mgr.skip(10).to_sql
     end
 
     test "offset should add an offset" do
-      table = Table.new :users
+      table = Table.new name: :users
       mgr = table.from
       mgr.offset = 10
       assert_like %{ SELECT FROM "users" OFFSET 10 }, mgr.to_sql
     end
 
     test "offset should remove an offset" do
-      table = Table.new :users
+      table = Table.new name: :users
       mgr = table.from
       mgr.offset = 10
       assert_like %{ SELECT FROM "users" OFFSET 10 }, mgr.to_sql
@@ -182,14 +182,14 @@ module Arel
     end
 
     test "offset should return the offset" do
-      table = Table.new :users
+      table = Table.new name: :users
       mgr = table.from
       mgr.offset = 10
       assert_equal 10, mgr.offset
     end
 
     test "exists should create an exists clause" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       manager = Arel::SelectManager.new table
       manager.project Nodes::SqlLiteral.new "*"
       m2 = Arel::SelectManager.new
@@ -198,7 +198,7 @@ module Arel
     end
 
     test "exists can be aliased" do
-      table = Table.new(:users)
+      table = Table.new(name: :users)
       manager = Arel::SelectManager.new table
       manager.project Nodes::SqlLiteral.new "*"
       m2 = Arel::SelectManager.new
@@ -208,7 +208,7 @@ module Arel
 
 
     test "union should union two managers" do
-      table = Table.new :users
+      table = Table.new name: :users
       @m1 = Arel::SelectManager.new table
       @m1.project Arel.star
       @m1.where(table[:age].lt(18))
@@ -226,7 +226,7 @@ module Arel
     end
 
     test "union should union all" do
-      table = Table.new :users
+      table = Table.new name: :users
       @m1 = Arel::SelectManager.new table
       @m1.project Arel.star
       @m1.where(table[:age].lt(18))
@@ -242,7 +242,7 @@ module Arel
 
 
     test "intersect should intersect two managers" do
-      table = Table.new :users
+      table = Table.new name: :users
       @m1 = Arel::SelectManager.new table
       @m1.project Arel.star
       @m1.where(table[:age].gt(18))
@@ -261,7 +261,7 @@ module Arel
 
 
     test "except should except two managers" do
-      table = Table.new :users
+      table = Table.new name: :users
       @m1 = Arel::SelectManager.new table
       @m1.project Arel.star
       @m1.where(table[:age].between(18..60))
@@ -279,9 +279,9 @@ module Arel
     end
 
     test "with should support basic WITH" do
-      users          = Table.new(:users)
-      users_top      = Table.new(:users_top)
-      comments       = Table.new(:comments)
+      users          = Table.new(name: :users)
+      users_top      = Table.new(name: :users_top)
+      comments       = Table.new(name: :comments)
 
       top            = users.project(users[:id]).where(users[:karma].gt(100))
       users_as       = Arel::Nodes::As.new(users_top, top)
@@ -293,11 +293,11 @@ module Arel
     end
 
     test "with should support WITH RECURSIVE" do
-      comments           = Table.new(:comments)
+      comments           = Table.new(name: :comments)
       comments_id        = comments[:id]
       comments_parent_id = comments[:parent_id]
 
-      replies            = Table.new(:replies)
+      replies            = Table.new(name: :replies)
       replies_id         = replies[:id]
 
       non_recursive_term = Arel::SelectManager.new
@@ -324,7 +324,7 @@ module Arel
     end
 
     test "ast should return the ast" do
-      table = Table.new :users
+      table = Table.new name: :users
       mgr = table.from
       assert mgr.ast
     end
@@ -337,13 +337,13 @@ module Arel
 
     # This should fail on other databases
     test "lock adds a lock node" do
-      table = Table.new :users
+      table = Table.new name: :users
       mgr = table.from
       assert_like %{ SELECT FROM "users" FOR UPDATE }, mgr.lock.to_sql
     end
 
     test "orders returns order clauses" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       order = table[:id]
       manager.order table[:id]
@@ -351,7 +351,7 @@ module Arel
     end
 
     test "order generates order clauses" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.project Nodes::SqlLiteral.new "*"
       manager.from table
@@ -362,7 +362,7 @@ module Arel
 
     # FIXME: I would like to deprecate this
     test "order takes *args" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.project Nodes::SqlLiteral.new "*"
       manager.from table
@@ -372,13 +372,13 @@ module Arel
     end
 
     test "order chains" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       assert_equal manager, manager.order(table[:id])
     end
 
     test "order has order attributes" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.project Nodes::SqlLiteral.new "*"
       manager.from table
@@ -388,7 +388,7 @@ module Arel
     end
 
     test "on takes two params" do
-      left      = Table.new :users
+      left      = Table.new name: :users
       right     = left.alias
       predicate = left[:id].eq(right[:id])
       manager   = Arel::SelectManager.new
@@ -403,7 +403,7 @@ module Arel
     end
 
     test "on takes three params" do
-      left      = Table.new :users
+      left      = Table.new name: :users
       right     = left.alias
       predicate = left[:id].eq(right[:id])
       manager   = Arel::SelectManager.new
@@ -474,7 +474,7 @@ module Arel
     end
 
     test "join responds to join" do
-      left      = Table.new :users
+      left      = Table.new name: :users
       right     = left.alias
       predicate = left[:id].eq(right[:id])
       manager   = Arel::SelectManager.new
@@ -488,7 +488,7 @@ module Arel
     end
 
     test "join takes a class" do
-      left      = Table.new :users
+      left      = Table.new name: :users
       right     = left.alias
       predicate = left[:id].eq(right[:id])
       manager   = Arel::SelectManager.new
@@ -502,7 +502,7 @@ module Arel
     end
 
     test "join takes the full outer join class" do
-      left      = Table.new :users
+      left      = Table.new name: :users
       right     = left.alias
       predicate = left[:id].eq(right[:id])
       manager   = Arel::SelectManager.new
@@ -516,7 +516,7 @@ module Arel
     end
 
     test "join takes the right outer join class" do
-      left      = Table.new :users
+      left      = Table.new name: :users
       right     = left.alias
       predicate = left[:id].eq(right[:id])
       manager   = Arel::SelectManager.new
@@ -535,7 +535,7 @@ module Arel
     end
 
     test "join raises EmptyJoinError on empty" do
-      left      = Table.new :users
+      left      = Table.new name: :users
       manager   = Arel::SelectManager.new
 
       manager.from left
@@ -545,7 +545,7 @@ module Arel
     end
 
     test "outer join responds to join" do
-      left      = Table.new :users
+      left      = Table.new name: :users
       right     = left.alias
       predicate = left[:id].eq(right[:id])
       manager   = Arel::SelectManager.new
@@ -564,7 +564,7 @@ module Arel
     end
 
     test "joins returns inner join sql" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       aliaz   = table.alias
       manager = Arel::SelectManager.new
       manager.from Nodes::InnerJoin.new(aliaz, table[:id].eq(aliaz[:id]))
@@ -573,7 +573,7 @@ module Arel
     end
 
     test "joins returns outer join sql" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       aliaz   = table.alias
       manager = Arel::SelectManager.new
       manager.from Nodes::OuterJoin.new(aliaz, table[:id].eq(aliaz[:id]))
@@ -582,8 +582,8 @@ module Arel
     end
 
     test "joins can have a non-table alias as relation name" do
-      users    = Table.new :users
-      comments = Table.new :comments
+      users    = Table.new name: :users
+      comments = Table.new name: :comments
 
       counts = comments.from.
         group(comments[:user_id]).
@@ -598,7 +598,7 @@ module Arel
     end
 
     test "joins joins itself" do
-      left      = Table.new :users
+      left      = Table.new name: :users
       right     = left.alias
       predicate = left[:id].eq(right[:id])
 
@@ -619,7 +619,7 @@ module Arel
     end
 
     test "group takes an attribute" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.group table[:id]
@@ -628,13 +628,13 @@ module Arel
     end
 
     test "group chains" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       assert_equal manager, manager.group(table[:id])
     end
 
     test "group takes multiple args" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.group table[:id], table[:name]
@@ -644,7 +644,7 @@ module Arel
 
     # FIXME: backwards compat
     test "group makes strings literals" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.group "foo"
@@ -652,7 +652,7 @@ module Arel
     end
 
     test "window definition can be empty" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window")
@@ -661,7 +661,7 @@ module Arel
     end
 
     test "window definition takes an order" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").order(table["foo"].asc)
@@ -670,7 +670,7 @@ module Arel
     end
 
     test "window definition takes an order with multiple columns" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").order(table["foo"].asc, table["bar"].desc)
@@ -679,7 +679,7 @@ module Arel
     end
 
     test "window definition takes a partition" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").partition(table["bar"])
@@ -688,7 +688,7 @@ module Arel
     end
 
     test "window definition takes a partition and an order" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").partition(table["foo"]).order(table["foo"].asc)
@@ -698,7 +698,7 @@ module Arel
     end
 
     test "window definition takes a partition with multiple columns" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").partition(table["bar"], table["baz"])
@@ -707,7 +707,7 @@ module Arel
     end
 
     test "window definition takes a rows frame, unbounded preceding" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").rows(Arel::Nodes::Preceding.new)
@@ -716,7 +716,7 @@ module Arel
     end
 
     test "window definition takes a rows frame, bounded preceding" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").rows(Arel::Nodes::Preceding.new(5))
@@ -725,7 +725,7 @@ module Arel
     end
 
     test "window definition takes a rows frame, unbounded following" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").rows(Arel::Nodes::Following.new)
@@ -734,7 +734,7 @@ module Arel
     end
 
     test "window definition takes a rows frame, bounded following" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").rows(Arel::Nodes::Following.new(5))
@@ -743,7 +743,7 @@ module Arel
     end
 
     test "window definition takes a rows frame, current row" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").rows(Arel::Nodes::CurrentRow.new)
@@ -752,7 +752,7 @@ module Arel
     end
 
     test "window definition takes a rows frame, between two delimiters" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       window = manager.window("a_window")
@@ -768,7 +768,7 @@ module Arel
     end
 
     test "window definition takes a range frame, unbounded preceding" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").range(Arel::Nodes::Preceding.new)
@@ -777,7 +777,7 @@ module Arel
     end
 
     test "window definition takes a range frame, bounded preceding" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").range(Arel::Nodes::Preceding.new(5))
@@ -786,7 +786,7 @@ module Arel
     end
 
     test "window definition takes a range frame, unbounded following" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").range(Arel::Nodes::Following.new)
@@ -795,7 +795,7 @@ module Arel
     end
 
     test "window definition takes a range frame, bounded following" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").range(Arel::Nodes::Following.new(5))
@@ -804,7 +804,7 @@ module Arel
     end
 
     test "window definition takes a range frame, current row" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.window("a_window").range(Arel::Nodes::CurrentRow.new)
@@ -813,7 +813,7 @@ module Arel
     end
 
     test "window definition takes a range frame, between two delimiters" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       window = manager.window("a_window")
@@ -829,7 +829,7 @@ module Arel
     end
 
     test "delete copies from" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       stmt = manager.compile_delete
@@ -838,7 +838,7 @@ module Arel
     end
 
     test "delete copies where" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.where table[:id].eq 10
@@ -849,7 +849,7 @@ module Arel
     end
 
     test "where_sql gives me back the where sql" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.where table[:id].eq 10
@@ -857,7 +857,7 @@ module Arel
     end
 
     test "where_sql joins wheres with AND" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.where table[:id].eq 10
@@ -868,7 +868,7 @@ module Arel
     test "where_sql handles database-specific statements" do
       old_visitor = Table.engine.lease_connection.visitor
       Table.engine.lease_connection.visitor = Visitors::PostgreSQL.new Table.engine.lease_connection
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.where table[:id].eq 10
@@ -878,14 +878,14 @@ module Arel
     end
 
     test "where_sql returns nil when there are no wheres" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       assert_nil manager.where_sql
     end
 
     test "update creates an update statement" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       stmt = manager.compile_update({ table[:id] => 1 }, Arel::Attributes::Attribute.new(table, "id"))
@@ -895,7 +895,7 @@ module Arel
     end
 
     test "update takes a string" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       stmt = manager.compile_update(Nodes::SqlLiteral.new("foo = bar"), Arel::Attributes::Attribute.new(table, "id"))
@@ -904,7 +904,7 @@ module Arel
     end
 
     test "update copies limits" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.take 1
@@ -917,7 +917,7 @@ module Arel
     end
 
     test "update copies order" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from table
       manager.order :foo
@@ -930,7 +930,7 @@ module Arel
     end
 
     test "update copies where clauses" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.where table[:id].eq 10
       manager.from table
@@ -941,7 +941,7 @@ module Arel
     end
 
     test "update copies where clauses when nesting is triggered" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.where table[:foo].eq 10
       manager.take 42
@@ -985,7 +985,7 @@ module Arel
     end
 
     test "take knows take" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from(table).project(table["id"])
       manager.where(table["id"].eq(1))
@@ -1013,7 +1013,7 @@ module Arel
     end
 
     test "where knows where" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from(table).project(table["id"])
       manager.where(table["id"].eq(1))
@@ -1024,14 +1024,14 @@ module Arel
     end
 
     test "where chains" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       manager.from(table)
       assert_equal manager, manager.project(table["id"]).where(table["id"].eq 1)
     end
 
     test "from makes sql" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
 
       manager.from table
@@ -1040,7 +1040,7 @@ module Arel
     end
 
     test "from chains" do
-      table   = Table.new :users
+      table   = Table.new name: :users
       manager = Arel::SelectManager.new
       assert_equal manager, manager.from(table).project(table["id"])
       assert_like 'SELECT "users"."id" FROM "users"', manager.to_sql
@@ -1069,7 +1069,7 @@ module Arel
 
     test "distinct_on sets the quantifier" do
       manager = Arel::SelectManager.new
-      table = Table.new :users
+      table = Table.new name: :users
 
       manager.distinct_on(table["id"])
       assert_equal Arel::Nodes::DistinctOn.new(table["id"]), manager.ast.cores.last.set_quantifier
@@ -1080,7 +1080,7 @@ module Arel
 
     test "distinct_on chains" do
       manager = Arel::SelectManager.new
-      table = Table.new :users
+      table = Table.new name: :users
 
       assert_equal manager, manager.distinct_on(table["id"])
       assert_equal manager, manager.distinct_on(false)
@@ -1093,7 +1093,7 @@ module Arel
 
     test "comment appends a comment to the generated query" do
       manager = Arel::SelectManager.new
-      table = Table.new :users
+      table = Table.new name: :users
       manager.from(table).project(table["id"])
 
       manager.comment("selecting")

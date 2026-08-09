@@ -6,7 +6,7 @@ module Arel
   module Nodes
     class ::FilterTest < Arel::Test
       test "Filter should add filter to expression" do
-        table = Arel::Table.new :users
+        table = Arel::Table.new name: :users
 
         assert_like %{
           COUNT("users"."id") FILTER (WHERE "users"."income" >= 40000)
@@ -14,7 +14,7 @@ module Arel
       end
 
       test "Filter as should alias the expression" do
-        table = Arel::Table.new :users
+        table = Arel::Table.new name: :users
 
         assert_like %{
           COUNT("users"."id") FILTER (WHERE "users"."income" >= 40000) AS rich_users_count
@@ -22,7 +22,7 @@ module Arel
       end
 
       test "Filter over should reference the window definition by name" do
-        table = Arel::Table.new :users
+        table = Arel::Table.new name: :users
         window = Arel::Nodes::Window.new.partition(table[:year])
 
         assert_like %{

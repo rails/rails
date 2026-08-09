@@ -162,11 +162,7 @@ module Rails
 
     # Reload application routes regardless if they changed or not.
     def reload_routes!
-      if routes_reloader.execute_unless_loaded
-        routes_reloader.loaded = false
-      else
-        routes_reloader.reload!
-      end
+      routes_reloader.reload!
     end
 
     def reload_routes_unless_loaded # :nodoc:
@@ -215,8 +211,8 @@ module Rails
     #
     def message_verifiers
       @message_verifiers ||=
-        ActiveSupport::MessageVerifiers.new do |salt, secret_key_base: self.secret_key_base|
-          key_generator(secret_key_base).generate_key(salt)
+        ActiveSupport::MessageVerifiers.new do |salt, secret_key_base: Rails.application.secret_key_base|
+          Rails.application.key_generator(secret_key_base).generate_key(salt)
         end.rotate_defaults
     end
 
@@ -668,6 +664,29 @@ module Rails
       Rails.autoloaders.each(&:eager_load)
     end
 
+    def ractorize! # :nodoc:
+      warn "Ractor support in Rails is experimental and subject to change.", category: :experimental, uplevel: 1
+
+      env_config
+      revision
+      routes
+
+      @autoloaders, @reloaders, @routes_reloader = nil, nil, nil
+
+      if defined?(ActionView::PathRegistry)
+        view = ActionView::LookupContext.view_context_class.new(ActionView::LookupContext.new([]), {}, nil)
+        ActionView::PathRegistry.all_file_system_resolvers.each do |resolver|
+          resolver.eager_load_templates(view)
+        end
+      end
+
+      Ractor.make_shareable(self)
+      Ractor.make_shareable(Rails.event)
+      Ractor.make_shareable(Rails.error)
+      Ractor.make_shareable(Rails.backtrace_cleaner)
+      ActionView::DependencyTracker.share_registry if defined?(ActionView)
+    end
+
   protected
     alias :build_middleware_stack :app
 
@@ -772,7 +791,7 @@ module Rails
       end
 
       def coerce_same_site_protection(protection)
-        protection.respond_to?(:call) ? protection : proc { protection }
+        protection.respond_to?(:call) ? protection : ActiveSupport::Ractors.shareable_proc { protection }
       end
 
       def filter_parameters

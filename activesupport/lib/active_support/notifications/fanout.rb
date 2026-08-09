@@ -2,6 +2,7 @@
 
 require "concurrent/map"
 require "active_support/core_ext/object/try"
+require "active_support/ractors"
 
 module ActiveSupport
   module Notifications
@@ -53,6 +54,8 @@ module ActiveSupport
     #
     # This class is thread safe. All methods are reentrant.
     class Fanout
+      attr_accessor :string_subscribers, :other_subscribers # :nodoc:
+
       def initialize
         @mutex = Mutex.new
         @string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
@@ -67,6 +70,8 @@ module ActiveSupport
       end
 
       def subscribe(pattern = nil, callable = nil, monotonic: false, prepend: false, &block)
+        block = ActiveSupport::Ractors.try_shareable_proc(block) if block
+
         subscriber = Subscribers.new(pattern, callable || block, monotonic)
         @mutex.synchronize do
           case pattern
@@ -237,7 +242,7 @@ module ActiveSupport
       class Handle
         include FanoutIteration
 
-        def initialize(notifier, name, id, groups, payload) # :nodoc:
+        def initialize(name, id, groups, payload) # :nodoc:
           @name = name
           @id = id
           @payload = payload
@@ -298,7 +303,7 @@ module ActiveSupport
         if groups.empty?
           NullHandle
         else
-          Handle.new(self, name, id, groups, payload)
+          Handle.new(name, id, groups, payload)
         end
       end
 

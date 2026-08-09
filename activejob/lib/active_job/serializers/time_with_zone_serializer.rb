@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/time_with_zone"
+
 module ActiveJob
   module Serializers
     class TimeWithZoneSerializer < ObjectSerializer # :nodoc:

@@ -57,13 +57,17 @@ module ActionView
     config.after_initialize do |app|
       button_to_generates_button_tag = app.config.action_view.delete(:button_to_generates_button_tag)
       unless button_to_generates_button_tag.nil?
-        ActionView::Helpers::UrlHelper.button_to_generates_button_tag = button_to_generates_button_tag
+        ActionView::Helpers::NavigationHelper.button_to_generates_button_tag = button_to_generates_button_tag
       end
     end
 
     config.after_initialize do |app|
       frozen_string_literal = app.config.action_view.delete(:frozen_string_literal)
       ActionView::Template.frozen_string_literal = frozen_string_literal
+    end
+
+    config.after_initialize do
+      ActiveSupport::Ractors.make_shareable(ActionView::Template::Handlers::ERB.escape_ignore_list)
     end
 
     config.after_initialize do |app|

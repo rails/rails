@@ -37,6 +37,13 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_equal "redis://localhost:6379", @cache.redis.config.server_url
     end
 
+    test "default Redis options constant is deprecated" do
+      options = assert_deprecated(/RedisCacheStore::DEFAULT_REDIS_OPTIONS is deprecated/, ActiveSupport.deprecator) do
+        ActiveSupport::Cache::RedisCacheStore::DEFAULT_REDIS_OPTIONS.to_h
+      end
+      assert_equal({ connect_timeout: 1, read_timeout: 1, write_timeout: 1 }, options)
+    end
+
     test "no URLs uses Redis client with default settings" do
       @cache = ActiveSupport::Cache::RedisCacheStore.new(url: [])
       assert_equal 1, @cache.redis.connect_timeout
@@ -84,6 +91,13 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_equal 1, @cache.redis.write_timeout
       assert_equal REDIS_URL.delete_suffix("/0"), @cache.redis.config.server_url
       assert_kind_of ::RedisClient::Pooled, @cache.redis
+    end
+
+    test "array of :client Configs is not mutated" do
+      clients = REDIS_URLS.map { |url| RedisClient.config(url: url) }.freeze
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(client: clients)
+      assert_kind_of ::RedisClient::HashRing, @cache.redis
+      assert clients.all?(::RedisClient::Config)
     end
 
     test "deprecated :redis argument" do
@@ -578,7 +592,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @cache.with_local_cache do
         @cache.write("foo", "bar")
         # Overwrite in remote behind local cache's back
-        @cache.send(:bypass_local_cache) { @cache.write("foo", "baz") }
+        @cache.send(:use_temporary_local_cache, nil) { @cache.write("foo", "baz") }
         # Without delete, local cache returns stale value
         assert_equal "bar", @cache.read("foo")
         # With delete, it should bypass local cache and hit remote

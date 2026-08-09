@@ -176,6 +176,13 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_typed_equal 5.0, (10..0).sum(5.0), Float
   end
 
+  def test_range_sum_falsey_initial_value
+    assert_raises(NoMethodError) { (1..4).sum(nil) }
+    assert_raises(NoMethodError) { (1..4).sum(false) }
+    assert_nil (10..0).sum(nil)
+    assert_equal false, (10..0).sum(false)
+  end
+
   def test_array_sums
     enum = [5, 15, 10]
     assert_equal 30, enum.sum
@@ -414,6 +421,11 @@ class EnumerableTests < ActiveSupport::TestCase
   def test_in_order_of_with_filter_false_preserves_nil_elements
     values = [ 3, nil, 1, 2 ]
     assert_equal [ 1, 2, 3, nil ], values.in_order_of(:itself, [ 1, 2, 3 ], filter: false)
+  end
+
+  def test_in_order_of_preserves_nil_elements_named_in_series
+    values = [ 3, nil, 1, 2 ]
+    assert_equal [ 1, nil, 2, 3 ], values.in_order_of(:itself, [ 1, nil, 2, 3 ])
   end
 
   def test_sole

@@ -814,15 +814,6 @@ module Rails
         self.class.edge_branch
       end
 
-      def dockerfile_chown_directories
-        directories = %w(log tmp)
-
-        directories << "storage" unless skip_storage?
-        directories << "db" unless skip_active_record?
-
-        directories.sort
-      end
-
       def database
         @database ||= Database.build(options[:database])
       end

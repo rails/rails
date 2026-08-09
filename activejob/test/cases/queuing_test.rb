@@ -117,4 +117,19 @@ class QueuingTest < ActiveSupport::TestCase
 
     assert notification.payload[:adapter]
   end
+
+  test "perform_all_later clears a stale enqueue_error when the job is successfully enqueued" do
+    EnqueueErrorJob::EnqueueErrorAdapter.should_raise_sequence = [ true, false ]
+    job = EnqueueErrorJob.new
+
+    assert_equal false, job.enqueue
+    assert_equal ActiveJob::EnqueueError, job.enqueue_error.class
+
+    ActiveJob.perform_all_later(job)
+
+    assert job.successfully_enqueued?
+    assert_nil job.enqueue_error
+  ensure
+    EnqueueErrorJob::EnqueueErrorAdapter.should_raise_sequence = []
+  end
 end

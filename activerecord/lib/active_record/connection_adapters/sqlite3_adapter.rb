@@ -243,11 +243,11 @@ module ActiveRecord
       end
 
       def supports_insert_returning?
-        database_version >= "3.35.0"
+        true
       end
 
       def supports_insert_on_conflict?
-        database_version >= "3.24.0"
+        true
       end
       alias supports_insert_on_duplicate_skip? supports_insert_on_conflict?
       alias supports_insert_on_duplicate_update? supports_insert_on_conflict?
@@ -258,7 +258,7 @@ module ActiveRecord
       end
 
       def supports_virtual_columns?
-        database_version >= "3.31.0"
+        true
       end
 
       def connected?
@@ -465,12 +465,14 @@ module ActiveRecord
       end
       alias :add_belongs_to :add_reference
 
+      FK_NAME_REGEX = /\ACONSTRAINT\s+"([^"]+)"/
       FK_REGEX = /.*FOREIGN KEY\s+\("([^"]+)"\)\s+REFERENCES\s+"(\w+)"\s+\("(\w+)"\)/
       DEFERRABLE_REGEX = /DEFERRABLE INITIALLY (\w+)/
       def foreign_keys(table_name)
         # SQLite returns 1 row for each column of composite foreign keys.
         fk_info = query_all("PRAGMA foreign_key_list(#{quote(table_name)})")
-        # Deferred or immediate foreign keys can only be seen in the CREATE TABLE sql
+        # Deferred or immediate foreign keys and the constraint name can only be
+        # seen in the CREATE TABLE sql.
         fk_defs = table_structure_sql(table_name)
                     .select do |column_string|
                       column_string.start_with?("CONSTRAINT") &&
@@ -479,17 +481,20 @@ module ActiveRecord
                     .to_h do |fk_string|
                       _, from, table, to = fk_string.match(FK_REGEX).to_a
                       _, mode = fk_string.match(DEFERRABLE_REGEX).to_a
+                      _, name = fk_string.match(FK_NAME_REGEX).to_a
                       deferred = mode&.downcase&.to_sym || false
-                      [[table, from, to], deferred]
+                      [[table, from, to], { deferrable: deferred, name: name }]
                     end
 
         grouped_fk = fk_info.group_by { |row| row["id"] }.values.each { |group| group.sort_by! { |row| row["seq"] } }
         grouped_fk.map do |group|
           row = group.first
+          fk_def = fk_defs[[row["table"], row["from"], row["to"]]]
           options = {
             on_delete: extract_foreign_key_action(row["on_delete"]),
             on_update: extract_foreign_key_action(row["on_update"]),
-            deferrable: fk_defs[[row["table"], row["from"], row["to"]]]
+            deferrable: fk_def && fk_def[:deferrable],
+            name: fk_def && fk_def[:name],
           }
 
           if group.one?
@@ -531,8 +536,8 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < "3.23.0"
-          raise "Your version of SQLite (#{database_version}) is too old. Active Record supports SQLite >= 3.23.0."
+        if database_version < "3.35.0"
+          raise "Your version of SQLite (#{database_version}) is too old. Active Record supports SQLite >= 3.35.0."
         end
       end
 
@@ -576,6 +581,10 @@ module ActiveRecord
           case default
           when /^null$/i
             nil
+          when /^false$/i
+            false
+          when /^true$/i
+            true
           # Quoted types
           when /^'([^|]*)'$/m
             $1.gsub("''", "'")
@@ -588,8 +597,6 @@ module ActiveRecord
           # Binary columns
           when /x'(.*)'/
             [ $1 ].pack("H*")
-          when "TRUE", "FALSE"
-            default
           else
             # Anything else is blank or some function
             # and we can't know the value of that, so return nil.

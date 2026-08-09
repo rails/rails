@@ -107,7 +107,7 @@ module ActiveRecord
       end
 
       attr = table[name]
-      bind = predicate_builder.build_bind_attribute(attr.name, value)
+      bind = predicate_builder.build_bind_attribute(attr.name, value, model.type_for_attribute(attr.name))
       yield attr, bind
     end
 
@@ -396,8 +396,7 @@ module ActiveRecord
 
     # Returns true if there are any records.
     #
-    #
-    # When an argument is given, returns true if at least one records matches
+    # When an argument is given, returns true if at least one record matches
     # the argument via the case-equality operator (<tt>===</tt>).
     #
     #    posts.any?(Post)    # => true if at least one record
@@ -411,11 +410,11 @@ module ActiveRecord
 
     # Returns true if there is exactly one record.
     #
-    # When an argument is given, returns true if exactly one records matches the
+    # When an argument is given, returns true if exactly one record matches the
     # argument via the case-equality operator (<tt>===</tt>).
     #
-    #    posts.one?(Post) # => true if exactly one record
-    #    posts.any?(Comment) # => false
+    #    posts.one?(Post)    # => true if exactly one record
+    #    posts.one?(Comment) # => false
     def one?(*args)
       return false if @none
 
@@ -951,7 +950,7 @@ module ActiveRecord
     #
     # * +counter+ - A Hash containing the names of the fields to update as keys and the amount to update as values.
     # * <tt>:touch</tt> option - Touch the timestamp columns when updating.
-    # * If attributes names are passed, they are updated along with update_at/on attributes.
+    # * If attributes names are passed, they are updated along with updated_at/on attributes.
     #
     # ==== Examples
     #
@@ -1413,14 +1412,14 @@ module ActiveRecord
             end
           else
             type = model.type_for_attribute(attr.name)
-            value = predicate_builder.build_bind_attribute(attr.name, type.cast(value))
+            value = predicate_builder.build_bind_attribute(attr.name, type.cast(value), type)
           end
           [attr, value]
         end
       end
 
       def _increment_attribute(attribute, value = 1)
-        bind = predicate_builder.build_bind_attribute(attribute.name, value.abs)
+        bind = predicate_builder.build_bind_attribute(attribute.name, value.abs, model.type_for_attribute(attribute.name))
         expr = table.coalesce(attribute, 0)
         expr = value < 0 ? expr - bind : expr + bind
         expr.expr

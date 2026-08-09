@@ -1,10 +1,19 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 class MimeTypeTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
+  test "Mime::Type instances are shareable" do
+    assert_ractor_shareable Mime[:html]
+    assert_ractor_shareable Mime::ALL
+    assert_ractor_shareable Mime::Type.new("application/x-custom")
+  end
+
   test "parse single" do
-    Mime::LOOKUP.each_key do |mime_type|
+    Mime.lookup_by_string.each_key do |mime_type|
       unless mime_type == "image/*"
         assert_equal [Mime::Type.lookup(mime_type)], Mime::Type.parse(mime_type)
       end
@@ -26,6 +35,12 @@ class MimeTypeTest < ActiveSupport::TestCase
     ensure
       Mime::Type.unregister :mobile
     end
+  end
+
+  test "Mime::SET, Mime::LOOKUP and Mime::EXTENSION_LOOKUP are deprecated" do
+    assert_deprecated("Mime::SET", ActionDispatch.deprecator) { Mime::SET.symbols }
+    assert_deprecated("Mime::LOOKUP", ActionDispatch.deprecator) { Mime::LOOKUP.key?("text/html") }
+    assert_deprecated("Mime::EXTENSION_LOOKUP", ActionDispatch.deprecator) { Mime::EXTENSION_LOOKUP["html"] }
   end
 
   test "parse text with trailing star at the beginning" do
@@ -126,6 +141,21 @@ class MimeTypeTest < ActiveSupport::TestCase
     Mime::Type.unregister(:foo)
   end
 
+  test "extensions enumerates every registered extension, including synonyms" do
+    assert_includes Mime.extensions, "html"
+    assert_includes Mime.extensions, "jpg"
+    assert_includes Mime.extensions, "jpeg"
+  end
+
+  test "extensions includes custom extension aliases" do
+    Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
+    assert_includes Mime.extensions, "foobar"
+    assert_includes Mime.extensions, "foo"
+    assert_includes Mime.extensions, "bar"
+  ensure
+    Mime::Type.unregister(:foobar)
+  end
+
   test "custom type with type aliases" do
     Mime::Type.register "text/foobar", :foobar, ["text/foo", "text/bar"]
     %w[text/foobar text/foo text/bar].each do |type|
@@ -144,13 +174,31 @@ class MimeTypeTest < ActiveSupport::TestCase
     Mime::Type.unregister(:example_api)
   end
 
-  test "register callbacks" do
-    registered_mimes = []
-    Mime::Type.register_callback do |mime|
-      registered_mimes << mime
+  test "on_change callbacks fire on register and unregister" do
+    changes = []
+    Mime::Type.on_change do |mime, registered|
+      changes << [mime, registered]
     end
 
     mime = Mime::Type.register("text/foo", :foo)
+    assert_equal [[mime, true]], changes
+
+    Mime::Type.unregister(:foo)
+    assert_equal [[mime, true], [mime, false]], changes
+  ensure
+    Mime::Type.unregister(:foo)
+  end
+
+  test "register_callback is deprecated and only fires on register" do
+    registered_mimes = []
+    assert_deprecated("register_callback is deprecated", ActionDispatch.deprecator) do
+      Mime::Type.register_callback { |mime| registered_mimes << mime }
+    end
+
+    mime = Mime::Type.register("text/foo", :foo)
+    assert_equal [mime], registered_mimes
+
+    Mime::Type.unregister(:foo)
     assert_equal [mime], registered_mimes
   ensure
     Mime::Type.unregister(:foo)
@@ -159,7 +207,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   test "custom type with extension aliases" do
     Mime::Type.register "text/foobar", :foobar, [], [:foo, "bar"]
     %w[foobar foo bar].each do |extension|
-      assert_equal Mime[:foobar], Mime::EXTENSION_LOOKUP[extension]
+      assert_equal Mime[:foobar], Mime[extension]
     end
   ensure
     Mime::Type.unregister(:foobar)
@@ -167,7 +215,7 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "register alias" do
     Mime::Type.register_alias "application/xhtml+xml", :foobar
-    assert_equal Mime[:html], Mime::EXTENSION_LOOKUP["foobar"]
+    assert_equal Mime[:html], Mime["foobar"]
   ensure
     Mime::Type.unregister(:foobar)
   end
@@ -178,7 +226,7 @@ class MimeTypeTest < ActiveSupport::TestCase
   end
 
   test "type convenience methods" do
-    types = Mime::SET.symbols.uniq - [:iphone]
+    types = Mime.symbols.uniq - [:iphone]
 
     types.each do |type|
       mime = Mime[type]
@@ -289,13 +337,76 @@ class MimeTypeTest < ActiveSupport::TestCase
     end
   end
 
-  test "holds a reference to mime symbols" do
-    old_symbols = Mime::SET.symbols
-    Mime::Type.register_alias "application/xhtml+xml", :foobar
-    new_symbols = Mime::SET.symbols
+  test "Mime.symbols returns a live reference that tracks register and unregister" do
+    symbols = Mime.symbols
 
-    assert_same(old_symbols, new_symbols)
+    Mime::Type.register_alias "application/xhtml+xml", :foobar
+    assert_includes symbols, :foobar
+
+    Mime::Type.unregister(:foobar)
+    assert_not_includes symbols, :foobar
   ensure
     Mime::Type.unregister(:foobar)
+  end
+end
+
+class MimeTypeRegistryFreezeTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::RactorsAssertions
+
+  test "after eager_load! the registries are shareable" do
+    Mime.eager_load!
+
+    assert_ractor_shareable Mime.registry
+    assert_ractor_shareable Mime.lookup_by_string
+    assert_ractor_shareable Mime.lookup_by_extension
+  end
+
+  test "registering after eager_load! is deprecated, falls back to copy-on-write, and stays shareable" do
+    Mime.eager_load!
+
+    assert_deprecated("after the application has been initialized", ActionDispatch.deprecator) do
+      Mime::Type.register("text/x-ractor", :ractor)
+    end
+
+    assert_equal Mime[:ractor], Mime::Type.lookup("text/x-ractor")
+    assert_includes Mime.symbols, :ractor
+
+    assert_ractor_shareable Mime.registry
+    assert_ractor_shareable Mime.lookup_by_string
+    assert_ractor_shareable Mime.lookup_by_extension
+  end
+
+  test "after eager_load! a reference captured before the freeze no longer tracks unregister" do
+    Mime::Type.register_alias "application/xhtml+xml", :foobar
+    captured = Mime.symbols
+    Mime.eager_load!
+
+    assert_includes captured, :foobar
+
+    assert_deprecated("after the application has been initialized", ActionDispatch.deprecator) do
+      Mime::Type.unregister(:foobar)
+    end
+
+    assert_not_includes Mime.symbols, :foobar
+    assert_includes captured, :foobar
+  end
+
+  test "deprecated Mime::SET, Mime::LOOKUP and Mime::EXTENSION_LOOKUP proxies reflect registration after eager_load!" do
+    Mime.eager_load!
+
+    assert_deprecated("after the application has been initialized", ActionDispatch.deprecator) do
+      Mime::Type.register("text/x-ractor", :ractor)
+    end
+
+    assert_deprecated("Mime::SET is deprecated", ActionDispatch.deprecator) do
+      assert_includes Mime::SET.symbols, :ractor
+    end
+    assert_deprecated("Mime::LOOKUP is deprecated", ActionDispatch.deprecator) do
+      assert_equal Mime[:ractor], Mime::LOOKUP["text/x-ractor"]
+    end
+    assert_deprecated("Mime::EXTENSION_LOOKUP is deprecated", ActionDispatch.deprecator) do
+      assert_equal Mime[:ractor], Mime::EXTENSION_LOOKUP["ractor"]
+    end
   end
 end

@@ -48,6 +48,9 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_table :ri_pp_children, if_exists: true
     @connection.drop_table :ri_pp_parents_0, if_exists: true
     @connection.drop_table :ri_pp_parents, if_exists: true
+    @connection.drop_table :partitioned_table_with_foreign_key, if_exists: true, force: :cascade
+    @connection.drop_table :table_referenced_by_partioned_table, if_exists: true
+    @connection.drop_schema :ri_offpath, if_exists: true
     reset_pool
     if ActiveRecord::Base.lease_connection.is_a?(MissingSuperuserPrivileges)
       raise "MissingSuperuserPrivileges patch was not removed"
@@ -366,6 +369,61 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
   ensure
     @connection.drop_table "partitioned_table_with_foreign_key", if_exists: true, force: true
     @connection.drop_table "table_referenced_by_partioned_table", if_exists: true
+  end if ActiveRecord::Base.lease_connection.database_version >= 11_00_00
+
+  def test_check_all_foreign_keys_valid_detects_violation_in_validated_foreign_key
+    skip unless @connection.supports_enforced_foreign_keys?
+
+    @connection.add_foreign_key :ri_test_children, :ri_test_parents, column: :parent_id, name: :ri_test_fk
+
+    @connection.execute("ALTER TABLE ri_test_children DISABLE TRIGGER ALL")
+    @connection.execute("INSERT INTO ri_test_children (parent_id) VALUES (999)")
+    @connection.execute("ALTER TABLE ri_test_children ENABLE TRIGGER ALL")
+
+    assert_raises(ActiveRecord::InvalidForeignKey) do
+      @connection.check_all_foreign_keys_valid!
+    end
+
+    assert_equal true, @connection.select_value("SELECT conenforced FROM pg_constraint WHERE conname = 'ri_test_fk'"),
+      "the foreign key must be restored to ENFORCED after the rolled-back validation"
+  end
+
+  def test_check_all_foreign_keys_valid_detects_violation_in_partitioned_table
+    skip unless @connection.supports_enforced_foreign_keys?
+
+    @connection.create_table :table_referenced_by_partioned_table
+
+    @connection.create_table :partitioned_table_with_foreign_key, primary_key: :company_id,
+      options: "PARTITION BY LIST (company_id)" do |t|
+      t.foreign_key :table_referenced_by_partioned_table, column: :company_id, name: :fk_reference
+    end
+    @connection.execute("CREATE TABLE partitioned_table_with_foreign_key_1 PARTITION OF partitioned_table_with_foreign_key FOR VALUES IN (1)")
+
+    @connection.execute("ALTER TABLE partitioned_table_with_foreign_key_1 DISABLE TRIGGER ALL")
+    @connection.execute("INSERT INTO partitioned_table_with_foreign_key (company_id) VALUES (1)")
+    @connection.execute("ALTER TABLE partitioned_table_with_foreign_key_1 ENABLE TRIGGER ALL")
+
+    assert_raises(ActiveRecord::InvalidForeignKey) do
+      @connection.check_all_foreign_keys_valid!
+    end
+  end
+
+  def test_check_all_foreign_keys_valid_raises_for_invalid_fk_in_non_search_path_schema
+    skip unless @connection.supports_enforced_foreign_keys?
+
+    @connection.execute("CREATE SCHEMA ri_offpath")
+    @connection.execute("CREATE TABLE ri_offpath.parents (id bigint PRIMARY KEY)")
+    @connection.execute("CREATE TABLE ri_offpath.children (id bigint PRIMARY KEY, parent_id bigint)")
+    @connection.execute("INSERT INTO ri_offpath.children (id, parent_id) VALUES (1, 999)")
+    @connection.execute(<<~SQL)
+      ALTER TABLE ri_offpath.children
+        ADD CONSTRAINT fk_children_parent FOREIGN KEY (parent_id)
+        REFERENCES ri_offpath.parents (id) NOT VALID
+    SQL
+
+    assert_raises(ActiveRecord::InvalidForeignKey) do
+      @connection.check_all_foreign_keys_valid!
+    end
   end
 
   private

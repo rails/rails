@@ -2,6 +2,7 @@
 
 require_relative "abstract_unit"
 require "active_support/core_ext/module/delegation"
+require "active_support/testing/ractors_assertions"
 
 module Notifications
   class TestCase < ActiveSupport::TestCase
@@ -556,5 +557,59 @@ module Notifications
       def random_id
         @random_id ||= SecureRandom.hex(10)
       end
+  end
+
+  class NotificationSubscriptionTest < TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
+    def setup
+      super
+
+      ActiveSupport::Notifications.unsubscribe(@subscription)
+      ActiveSupport::Notifications.unsubscribe(@named_subscription)
+      @old_proc_action = ActiveSupport::Ractors.unshareable_proc_action
+      ActiveSupport::Ractors.unshareable_proc_action = :raise
+    end
+
+    def teardown
+      ActiveSupport::Ractors.unshareable_proc_action = @old_proc_action
+
+      super
+    end
+
+    test "record and set subscriptions" do
+      ActiveSupport::Notifications.subscribe("active_record.sql") { |event| event.payload[:called] = true }
+
+      value = on_ractor do
+        payload = {}
+        ActiveSupport::Notifications.instrument("active_record.sql", payload)
+        payload
+      end
+
+      assert_equal({ called: true }, value)
+    end
+
+    test "record and set subscriptions when using a regexp" do
+      ActiveSupport::Notifications.subscribe("active_record.sql") { }
+      ActiveSupport::Notifications.subscribe(/.*/) { |event| event.payload[:called] = true }
+
+      value = on_ractor do
+        payload = {}
+        ActiveSupport::Notifications.instrument("active_record.sql", payload)
+        payload
+      end
+
+      assert_equal({ called: true }, value)
+    end
+
+    if RUBY_VERSION >= "4.0"
+      test "creating a subscription that's not ractor shareable raises an error" do
+        outer = []
+
+        assert_raises(Ractor::IsolationError) do
+          ActiveSupport::Notifications.subscribe("active_record.sql") { outer }
+        end
+      end
+    end
   end
 end

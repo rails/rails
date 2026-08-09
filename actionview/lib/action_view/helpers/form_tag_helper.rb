@@ -951,7 +951,7 @@ module ActionView
         options = options.stringify_keys
         options["type"] ||= "number"
         if range = options.delete("in") || options.delete("within")
-          options.update("min" => range.min, "max" => range.max)
+          options.update("min" => range.begin, "max" => (range.max if range.end))
         end
         text_field_tag(name, value, options)
       end

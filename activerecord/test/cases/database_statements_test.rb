@@ -22,9 +22,87 @@ class DatabaseStatementsTest < ActiveRecord::TestCase
     assert_not_nil return_the_inserted_id(method: :create)
   end
 
+  def test_insert_with_scalar_returning_returns_scalar
+    sql = "INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)"
+    id = @connection.insert(sql, returning: "id")
+    assert_kind_of Integer, id
+  end
+
+  def test_insert_with_array_returning_returns_array
+    sql = "INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)"
+    values = @connection.insert(sql, returning: ["id"])
+    assert_kind_of Array, values
+    assert_equal 1, values.length
+  end
+
+  def test_insert_pk_positional_argument_is_deprecated
+    sql = "INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)"
+    id = assert_deprecated(/Passing `pk`/, ActiveRecord.deprecator) do
+      @connection.insert(sql, nil, "id")
+    end
+    assert_kind_of Integer, id
+  end
+
+  def test_insert_id_value_positional_argument_is_deprecated
+    sql = "INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)"
+    id = assert_deprecated(/Passing `id_value`/, ActiveRecord.deprecator) do
+      @connection.insert(sql, nil, nil, 12345)
+    end
+    assert_equal 12345, id
+  end
+
+  def test_insert_sequence_name_positional_argument_is_deprecated
+    sql = "INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)"
+    assert_deprecated(/Passing `sequence_name`/, ActiveRecord.deprecator) do
+      @connection.insert(sql, nil, nil, nil, "accounts_id_seq")
+    end
+  end
+
   def test_extract_table_ref_from_insert_sql_with_hyphen_in_table_name
     sql = "INSERT INTO \"table-with-hyphen\" (column1, column2) VALUES (value1, value2)"
     assert_equal "table-with-hyphen", @connection.send(:extract_table_ref_from_insert_sql, sql)
+  end
+
+  def test_to_sql_binds_arg_is_deprecated
+    sql = "SELECT 1"
+    assert_deprecated(/Passing `binds` to `to_sql`/, ActiveRecord.deprecator) do
+      assert_equal sql, @connection.to_sql(sql, [])
+    end
+  end
+
+  def test_insert_with_arel_sql_carrying_binds
+    arel = Arel.sql("INSERT INTO accounts (firm_id,credit_limit) VALUES (?,?)", 42, 5000)
+    id = @connection.insert(arel)
+    assert_kind_of Integer, id
+  end
+
+  if ActiveRecord::Base.lease_connection.prepared_statements
+    def test_insert_binds_arg_is_deprecated
+      sub = Arel::Nodes::BindParam.new(nil).to_sql
+      sql = "INSERT INTO accounts (firm_id) VALUES (#{sub})"
+      id = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+        @connection.insert(sql, nil, nil, nil, nil, [42])
+      end
+      assert_kind_of Integer, id
+    end
+
+    def test_update_binds_arg_is_deprecated
+      id = @connection.insert("INSERT INTO accounts (firm_id) VALUES (42)")
+      sub = Arel::Nodes::BindParam.new(nil).to_sql
+      affected = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+        @connection.update("UPDATE accounts SET firm_id = 99 WHERE id = #{sub}", nil, [id])
+      end
+      assert_equal 1, affected
+    end
+
+    def test_delete_binds_arg_is_deprecated
+      id = @connection.insert("INSERT INTO accounts (firm_id) VALUES (42)")
+      sub = Arel::Nodes::BindParam.new(nil).to_sql
+      affected = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+        @connection.delete("DELETE FROM accounts WHERE id = #{sub}", nil, [id])
+      end
+      assert_equal 1, affected
+    end
   end
 
   private

@@ -25,7 +25,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
   has_secure_token :key, length: MINIMUM_TOKEN_LENGTH
 
   # FIXME: these property should never have been stored in the metadata.
-  # The blob table should be migrated to have dedicated columns for theses.
+  # The blob table should be migrated to have dedicated columns for these.
   PROTECTED_METADATA = %w(analyzed identified composed).freeze
   private_constant :PROTECTED_METADATA
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON

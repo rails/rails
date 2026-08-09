@@ -40,6 +40,7 @@ module ActionDispatch
         routes.clear
         anchored_routes.clear
         custom_routes.clear
+        clear_cache!
       end
 
       def partition_route(route)

@@ -4,6 +4,7 @@ require "time"
 require "base64"
 require "bigdecimal"
 require "bigdecimal/util"
+require "active_support/core_ext/date/conversions"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/date_time/calculations"
@@ -68,7 +69,7 @@ module ActiveSupport
         "symbol"       => Proc.new { |symbol|  symbol.to_s.to_sym },
         "date"         => Proc.new { |date|    ::Date.strptime(date.to_s.strip, "%Y-%m-%d") },
         "datetime"     => Proc.new { |time|    Time.xmlschema(time).utc rescue ::DateTime.parse(time).utc },
-        "duration"     => Proc.new { |duration| Duration.parse(duration) },
+        "duration"     => Proc.new { |duration| Duration.parse(duration.to_s.strip) },
         "integer"      => Proc.new { |integer| integer.to_i },
         "float"        => Proc.new { |float|   float.to_f },
         "decimal"      => Proc.new do |number|

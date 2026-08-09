@@ -618,7 +618,7 @@ module ActiveSupport::Cache::DeprecatedRedisCacheStoreTests
       @cache.with_local_cache do
         @cache.write("foo", "bar")
         # Overwrite in remote behind local cache's back
-        @cache.send(:bypass_local_cache) { @cache.write("foo", "baz") }
+        @cache.send(:use_temporary_local_cache, nil) { @cache.write("foo", "baz") }
         # Without delete, local cache returns stale value
         assert_equal "bar", @cache.read("foo")
         # With delete, it should bypass local cache and hit remote

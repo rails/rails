@@ -1465,6 +1465,10 @@ class FoxyFixturesTest < ActiveRecord::TestCase
     assert_equal("X marks the spot!", pirates(:mark).catchphrase)
   end
 
+  def test_label_interpolation_inserts_the_label_verbatim
+    assert_equal("back\\&ref", parrots("back\\&ref").name)
+  end
+
   def test_supports_label_interpolation_for_integer_label
     assert_equal("#1 pirate!", pirates(1).catchphrase)
   end

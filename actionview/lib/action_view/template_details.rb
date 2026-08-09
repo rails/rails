@@ -3,17 +3,11 @@
 module ActionView
   class TemplateDetails # :nodoc:
     class Requested
-      attr_reader :locale, :handlers, :formats, :variants
       attr_reader :locale_idx, :handlers_idx, :formats_idx, :variants_idx
 
       ANY_HASH = Hash.new(1).merge(nil => 0).freeze
 
       def initialize(locale:, handlers:, formats:, variants:)
-        @locale = locale
-        @handlers = handlers
-        @formats = formats
-        @variants = variants
-
         @locale_idx   = build_idx_hash(locale)
         @handlers_idx = build_idx_hash(handlers)
         @formats_idx  = build_idx_hash(formats)
@@ -53,6 +47,16 @@ module ActionView
         requested.variants_idx[@variant],
         requested.handlers_idx[@handler]
       ]
+    end
+
+    # A single pass over matches? and sort_key_for: the sort key when the
+    # template matches +requested+, nil otherwise.
+    def rank_for(requested)
+      format  = requested.formats_idx[@format]   or return
+      locale  = requested.locale_idx[@locale]    or return
+      variant = requested.variants_idx[@variant] or return
+      handler = requested.handlers_idx[@handler] or return
+      [format, locale, variant, handler]
     end
 
     def handler_class

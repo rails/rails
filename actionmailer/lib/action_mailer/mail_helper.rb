@@ -61,7 +61,7 @@ module ActionMailer
     #   my_text = 'Here is a sample text with more than 40 characters'
     #
     #   format_paragraph(my_text, 25, 4)
-    #   # => "    Here is a sample text with\n    more than 40 characters"
+    #   # => "    Here is a sample text\n    with more than 40\n    characters"
     def format_paragraph(text, len = 72, indent = 2)
       sentences = [[]]
 

@@ -29,8 +29,8 @@ module ActionDispatch
       class Constraints < Routing::Endpoint # :nodoc:
         attr_reader :app, :constraints
 
-        SERVE = ActiveSupport::Ractors.shareable_lambda(&->(app, req) { app.serve req })
-        CALL  = ActiveSupport::Ractors.shareable_lambda(&->(app, req) { app.call req.env })
+        SERVE = ActiveSupport::Ractors.shareable_lambda { |app, req| app.serve req }
+        CALL  = ActiveSupport::Ractors.shareable_lambda { |app, req| app.call req.env }
 
         def initialize(app, constraints, strategy)
           # Unwrap Constraints objects. I don't actually think it's possible to pass a
@@ -178,7 +178,7 @@ module ActionDispatch
           @path = Journey::Path::Pattern.new(ast, @requirements, JOINED_SEPARATORS, @anchor)
         end
 
-        JOINED_SEPARATORS = SEPARATORS.join # :nodoc:
+        JOINED_SEPARATORS = "/.?" # :nodoc:
 
         def make_route(name, precedence)
           Journey::Route.new(name: name, app: application, path: path, constraints: conditions,

@@ -178,5 +178,11 @@ module ActiveSupport
           app.config.active_support.use_message_serializer_for_metadata
       end
     end
+
+    initializer "active_support.freeze_inflections" do
+      config.after_initialize do
+        ActiveSupport::Inflector::Inflections.all_instances.each(&:freeze)
+      end
+    end
   end
 end

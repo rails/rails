@@ -5,6 +5,300 @@
 
     *Tejas Shetty*
 
+*   Append `TRADITIONAL` instead of `STRICT_ALL_TABLES` to MySQL's `sql_mode`
+    by default.
+
+    On environments whose global `sql_mode` is empty — most notably Amazon
+    RDS and Aurora MySQL default parameter groups — appending only
+    `STRICT_ALL_TABLES` leaves out `NO_ZERO_IN_DATE`, `NO_ZERO_DATE`, and
+    `ERROR_FOR_DIVISION_BY_ZERO`, which MySQL 5.7+ has otherwise made part
+    of its own default. Appending `TRADITIONAL` closes the gap.
+
+    Reproducing the previous behavior is possible via
+    `variables: { sql_mode: "STRICT_ALL_TABLES" }` in `database.yml`.
+
+    *Ryuta Kamizono*
+
+*   Change the shape of `ActiveRecord::Migration::CommandRecorder#commands`.
+
+    Each recorded migration command is now stored as
+    `[cmd, args, kwargs, block]` (4-element) instead of
+    `[cmd, args, block]` (3-element) with kwargs bundled into a trailing
+    hash inside `args`. Code that inspects `recorder.commands` directly
+    needs to adapt to the new tuple shape.
+
+    *Ryuta Kamizono*
+
+*   Add query predicate hooks for Active Model types.
+
+    Types can override `transforms_query_predicates?`, `query_attribute`, and
+    `query_value` to customize how hash `where` predicates are built while
+    preserving normal casting and serialization behavior.
+
+    For example, a UUID type stored in MySQL `binary(16)` can accept UUID
+    strings while rendering predicates as `id = UUID_TO_BIN(?)`:
+
+    ```ruby
+    def transforms_query_predicates?
+      true
+    end
+
+    def query_value(attribute, value, predicate_builder:)
+      Arel::Nodes::NamedFunction.new(
+        "UUID_TO_BIN",
+        [predicate_builder.build_bind_attribute(attribute.name, value, self)]
+      )
+    end
+    ```
+
+    `query_attribute` transforms the left-hand side of the predicate, so a text
+    type can compare through a normalized expression such as
+    `lower(name) = lower(?)`:
+
+    ```ruby
+    def transforms_query_predicates?
+      true
+    end
+
+    def query_attribute(attribute)
+      Arel::Nodes::NamedFunction.new("lower", [attribute])
+    end
+
+    def query_value(attribute, value, predicate_builder:)
+      Arel::Nodes::NamedFunction.new(
+        "lower",
+        [predicate_builder.build_bind_attribute(attribute.name, value, self)]
+      )
+    end
+    ```
+
+    *Kir Shatrov*, *Jean-Samuel Aubry-Guzzi*
+
+*   Fix `pluck` ignoring records assigned to a new record's association.
+
+    ```ruby
+    # Before
+    post = Post.new
+    post.tags = [Tag.create!(name: "ruby")]
+
+    post.tags.pluck(:name) # => []
+    post.save!
+    post.tags.pluck(:name) # => ["ruby"]
+
+    # After
+    post = Post.new
+    post.tags = [Tag.create!(name: "ruby")]
+
+    post.tags.pluck(:name) # => ["ruby"]
+    ```
+
+    *Donal McBreen*
+
+*   Restore `alias_attribute` support in associations.
+
+    Since Rails 4.2, association reads have bypassed the public
+    `read_attribute` in favor of an internal fast path that skips
+    alias resolution. An `alias_attribute` on the owner's foreign key
+    or on the target's primary key was silently ignored; production
+    applications worked around this by overriding `_read_attribute`
+    itself.
+
+    The performance gap that justified the bypass has since closed
+    enough that association FK/PK reads and writes can go through the
+    public methods again — and `alias_attribute` declarations are now
+    honored.
+
+    *Ryuta Kamizono*
+
+*   Deprecate `write_attribute(:id, value)` writing to the primary key.
+
+    `read_attribute(:id)` was deprecated in Rails 7.1 and removed in
+    Rails 7.2 to make `:id` refer to the `id` column, not the primary
+    key. Apply the same deprecation to `write_attribute`; use `#id=` on
+    a model whose primary key is not named `id`.
+
+    *Ryuta Kamizono*
+
+*   Make `ActiveRecord::Migration::CommandRecorder#record` and
+    `#inverse_of` private.
+
+    These are internal APIs. Callers should use the public migration
+    methods (`create_table`, `add_column`, etc.) directly to record
+    commands, and combine them with `revert` to record inverted commands.
+
+    *Ryuta Kamizono*
+
+*   Deprecate passing `binds` to `#insert`, `#update`, and `#delete` on
+    `ActiveRecord::ConnectionAdapters::DatabaseStatements`.
+
+    The `binds` positional was restored in #29944 to keep raw-SQL callers
+    working after bind parameters moved into the Arel AST. Now that
+    `Arel.sql(sql_with_placeholders, *binds)` wraps SQL and its binds
+    together as an `Arel::Nodes::BoundSqlLiteral` — the same idiom
+    `Model.where("... = ?", value)` already uses — the separate positional
+    is no longer needed:
+
+    ```ruby
+    # Before
+    connection.insert("INSERT INTO topics (title) VALUES (?)", nil, nil, nil, nil, ["hello"])
+    connection.update("UPDATE topics SET title = ? WHERE id = 1", nil, ["hi"])
+    connection.delete("DELETE FROM topics WHERE id = ?", nil, [1])
+
+    # After
+    connection.insert(Arel.sql("INSERT INTO topics (title) VALUES (?)", "hello"))
+    connection.update(Arel.sql("UPDATE topics SET title = ? WHERE id = 1", "hi"))
+    connection.delete(Arel.sql("DELETE FROM topics WHERE id = ?", 1))
+    ```
+
+    *Ryuta Kamizono*
+
+*   Deprecate the `pk`, `id_value`, and `sequence_name` positional arguments to
+    `ActiveRecord::ConnectionAdapters::DatabaseStatements#insert`.
+
+    * `pk` — pass `returning:` instead. `insert(arel, name, "id")` becomes
+      `insert(arel, name, returning: "id")` (still a single value return).
+
+    * `id_value` — the caller usually already knows this value and can use it
+      directly rather than reading it back from `insert`'s return value.
+
+    * `sequence_name` — only used by PostgreSQL's `use_insert_returning?`
+      currval fallback, which is deprecated on its own.
+
+    *Ryuta Kamizono*
+
+*   Allow for prepared statements to remain enabled with query logs tags.
+
+    To keep prepared_statements enabled in conjunction with query log tags,
+    `config.active_record.disable_prepared_statements = false`.
+
+    *Brad Schrag*
+
+*   Improve bind parameter rendering for casted binds in SQL logs and EXPLAIN output.
+
+    Queries built with casted binds (an array of values instead of
+    `ActiveModel::Attribute`s) previously rendered the position as `nil`:
+
+    ```
+    SELECT * FROM topics WHERE title = $1  [[nil, "abcd"]]
+    ```
+
+    They now render the position as a numbered parameter marker:
+
+    ```
+    SELECT * FROM topics WHERE title = $1  [["$1", "abcd"]]
+    ```
+
+    *Ryuta Kamizono*
+
+*   Deprecate passing `binds` to
+    `ActiveRecord::ConnectionAdapters::DatabaseStatements#to_sql`.
+
+    The argument has been unused since bind parameters were moved into the
+    Arel AST in Rails 5.2 (rails/rails@213796fb49). `to_sql(arel)` returns
+    the same SQL regardless of what is passed as `binds`.
+
+    *Ryuta Kamizono*
+
+*   Deprecate `ActiveRecord::ConnectionAdapters::TransactionState#fully_committed?`,
+    `#fully_rolledback?`, `#fully_completed?`, and `#nullify!`.
+
+    These methods are no longer used by the framework. Use `#committed?`,
+    `#rolledback?`, and `#completed?` to inspect the transaction state instead.
+
+    *Kenta Ishizaki*
+
+*   Bump the minimum supported SQLite version to 3.35.0.
+
+    SQLite 3.35.0 introduced the `RETURNING` clause, which the SQLite3 adapter
+    has depended on since Rails 7.1 (#49290) for reading auto-populated columns
+    such as the primary key after `INSERT`. Older SQLite versions have been
+    silently broken since then; make the requirement explicit.
+
+    *Ryuta Kamizono*
+
+*   Deprecate the `insert_returning` option in PostgreSQL database
+    configurations, and the `PostgreSQLAdapter#use_insert_returning?` method.
+
+    The option only affected single-row INSERT statements. Other paths such
+    as `insert_all`, `upsert_all`, and RETURNING for `update` already use
+    RETURNING when the database supports it, so the option cannot fully
+    disable RETURNING and has become vestigial.
+
+    `insert_returning: false` was originally added in #5698 to support
+    trigger-based partitioning tables where a `BEFORE INSERT` trigger
+    makes `RETURNING` yield no rows. Use `prefetch_primary_key?` (also
+    used by the Oracle enhanced adapter) — which issues `SELECT nextval`
+    before the INSERT — as a replacement.
+
+    *Ryuta Kamizono*
+
+*   Remove unused `rest` parameter from merge and merge!
+
+    *Aaron Patterson*
+
+*   Support dumping `schema_migrations` in `db/schema.rb`.
+
+    When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`
+    schema dumps include the versions recorded in the `schema_migrations` table,
+    and the `ActiveRecord::Schema.define` call is made with no arguments.
+
+    Rails applications have `config.active_record.dump_schema_migrations` too,
+    which can be overridden per database, using the new `dump_schema_migrations`
+    database configuration option.
+
+    Versions are ordered by their reversed strings by default, to help avoid
+    merge conflicts, but `dump_schema_migrations_sort_by` gives you a way to
+    customize this.
+
+    `ActiveRecord.dump_schema_migrations` is false by default.
+
+    *Xavier Noria*
+
+*   Only use multi statement for `SET TRANSACTION ISOLATION LEVEL; BEGIN` if
+    MySQL connection is configured to use multi statement.
+
+    *Eliseu Daroit*, *Hartley McGuire*, *Matthew Draper*
+
+*   `connected_to_all_shards` now raises `ArgumentError` when called on a model
+    that is not connected to any shards, rather than silently doing nothing.
+
+    *Eileen M. Alayce*
+
+*   Honor foreign key names on SQLite3.
+
+    SQLite3 did not read foreign key names, so `remove_foreign_key(name:)`
+    removed an arbitrary foreign key rather than the named one, and custom
+    names were lost when a later schema change rebuilt the table or the
+    schema was dumped. Names are now honored, matching the other adapters.
+
+    *Kenta Ishizaki*
+
+*   Honor `if_not_exists:` in SQLite3 `add_check_constraint` and `add_foreign_key`.
+
+    *Kenta Ishizaki*
+
+*   Fix MySQL `POINT` and `MULTIPOINT` columns being misreported as integer columns.
+
+    Both type names contain the substring "int", so they matched the generic
+    `%r(int)i` rule in the abstract adapter's type map and came back with
+    `type: :integer`, instead of being treated as an unknown type like the
+    other spatial types (`GEOMETRY`, `POLYGON`, `LINESTRING`, ...).
+
+    *Ryosuke Okazuka*
+
+*   Report PostgreSQL default timestamp and time precision as 6.
+
+    Bare PostgreSQL `timestamp` and `time` columns now use their effective
+    microsecond precision in Active Record type metadata, matching the
+    database's persisted precision.
+
+    *Adrianna Chang*
+
+*   Fix inverse association matching for `has_many` and `has_one` associations
+    with association-specific composite primary keys.
+
+    *Hugo Vacher*
+
 *   Support polymorphic associations with custom primary keys through `:inverse_of`.
 
     When using polymorphic associations with `:inverse_of`, ActiveRecord now respects
@@ -384,8 +678,10 @@
     `FixtureSet.create_fixtures` to ensure all referenced rows are present when
     enforcement is restored.
 
-    `check_all_foreign_keys_valid!` skips `NOT ENFORCED` constraints on PostgreSQL 18.4+,
-    as `VALIDATE CONSTRAINT` cannot be applied to them.
+    `check_all_foreign_keys_valid!` revalidates foreign keys with the same
+    `NOT ENFORCED`/`ENFORCED` toggle on PostgreSQL 18.4+, likewise requiring only
+    table ownership rather than superuser privileges. Intentionally `NOT ENFORCED`
+    constraints are left unchecked.
 
     Unlike `SET CONSTRAINTS ALL DEFERRED` (the approach attempted in rails/rails#27636
     and reverted), `NOT ENFORCED` also suppresses referential actions such as
@@ -580,20 +876,20 @@
 *   Deprecate the `schema_order` option in PostgreSQL database configurations.
 
     Use `schema_search_path` instead. The `schema_order` alias will be
-    removed in Rails 8.3.
+    removed in Rails 9.0.
 
-    *Eileen M. Uchitelle*
+    *Eileen M. Alayce*
 
 *   Deprecate the `strict` option in MySQL database configurations.
 
-    The `strict` option for MySQL will be removed in Rails 8.3 because it is the default behavior.
+    The `strict` option for MySQL will be removed in Rails 9.0 because it is the default behavior.
 
     To change the default behavior of `strict`, use `variables: { sql_mode: "..." }` to configure `sql_mode` directly.
 
 
     `strict: false` can be replaced with `variables: { sql_mode: "" }`, and `strict: :default` can be replaced with `variables: { sql_mode: :default }`.
 
-    *Eileen M. Uchitelle*
+    *Eileen M. Alayce*
 
 *   Allow configuring `SET` queriers for the PostgreSQL and MySQL adapters.
 
@@ -625,7 +921,7 @@
     Also deprecates `set_standard_conforming_strings` — it is now handled
     automatically through the consolidated settings hash.
 
-    *Eileen M. Uchitelle*, *Matthew Draper*
+    *Eileen M. Alayce*, *Matthew Draper*
 
 *   MySQL error 1046 (`ER_NO_DB_ERROR: No database selected`) is now retryable as a `ConnectionFailed` exception
 

@@ -4,21 +4,21 @@ require_relative "../helper"
 
 class Arel::Nodes::ExtractTest < Arel::Test
   test "should extract field" do
-    table = Arel::Table.new :users
+    table = Arel::Table.new name: :users
     assert_like %{
       EXTRACT(DATE FROM "users"."timestamp")
     }, table[:timestamp].extract("date").to_sql
   end
 
   test "as should alias the extract" do
-    table = Arel::Table.new :users
+    table = Arel::Table.new name: :users
     assert_like %{
       EXTRACT(DATE FROM "users"."timestamp") AS foo
     }, table[:timestamp].extract("date").as("foo").to_sql
   end
 
   test "as should not mutate the extract" do
-    table = Arel::Table.new :users
+    table = Arel::Table.new name: :users
     extract = table[:timestamp].extract("date")
     before = extract.dup
     extract.as("foo")
@@ -26,13 +26,13 @@ class Arel::Nodes::ExtractTest < Arel::Test
   end
 
   test "equality is equal with equal ivars" do
-    table = Arel::Table.new :users
+    table = Arel::Table.new name: :users
     array = [table[:attr].extract("foo"), table[:attr].extract("foo")]
     assert_equal 1, array.uniq.size
   end
 
   test "equality is not equal with different ivars" do
-    table = Arel::Table.new :users
+    table = Arel::Table.new name: :users
     array = [table[:attr].extract("foo"), table[:attr].extract("bar")]
     assert_equal 2, array.uniq.size
   end

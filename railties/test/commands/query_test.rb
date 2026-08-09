@@ -90,6 +90,16 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     assert_not_equal page1["rows"], page2["rows"]
   end
 
+  test "respects a limit set on the relation" do
+    rails "runner", '3.times { |i| Post.create!(title: "Post #{i}") }'
+
+    data = query_json("Post.limit(1)")
+
+    assert_equal 1, data.dig("meta", "row_count")
+    assert_not data.dig("meta", "has_more")
+    assert_match(/\bLIMIT 1\b/, data.dig("meta", "sql"))
+  end
+
   test "does not double-eval on connection failure" do
     app_file "app/models/counter.rb", <<-RUBY
       class Counter
@@ -240,6 +250,14 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
 
     data = query_json("--sql", "SELECT * FROM posts ORDER BY id", "--per", "99999")
     assert_equal 3, data.dig("meta", "row_count")
+  end
+
+  test "detects an explicit LIMIT that follows a leading SQL comment" do
+    rails "runner", '3.times { |i| Post.create!(title: "Post #{i}") }'
+
+    data = query_json("--sql", "-- a leading comment\nSELECT * FROM posts ORDER BY id LIMIT 2")
+
+    assert_equal 2, data["rows"].length
   end
 
   test "explain shows query plan" do

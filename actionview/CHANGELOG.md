@@ -1,3 +1,74 @@
+*   Configuring ERB options is now to be made on the ActionView::Base class.
+
+    The `ActionView::Template::Handlers::ERB` class is now private API. Applications
+    that used to configure ERB options such as `escape_ignore_list` now need
+    to do this on the `ActionView::Base` class or on the railtie `config.action_view`
+    configuration.
+
+    ```ruby
+    ActionView::Base.erb_trim_mode = nil
+    ActionView::Base.erb_implementation = ERB
+    ActionView::Base.escape_ignore_list = ["text/csv"]
+    ActionView::Base.strip_trailing_newlines = false
+    ```
+
+    *Edouard Chin*
+
+*   Fix `search_field` raising `NameError` when passed `autosave: true`.
+
+    *Hammad Khan*
+
+*   Deprecate registering dependency trackers after application initialization.
+
+    Calling `ActionView::DependencyTracker.register_tracker` after application initialization will
+    raise a FrozenError in the next version of Rails.
+
+    Instead, register trackers during application initialization, wrapped in a call to
+    `ActiveSupport.on_load(:action_view)` to wait until Action View is available.
+
+    *Étienne Barrié*
+
+*   Extract `current_page?`, `button_to`, and `link_to` methods to
+    `ActionView::Helpers::NavigationHelper`
+
+    *Sean Doyle*
+
+*   Accept `Date` and `Numeric` inputs in `relative_time_in_words`.
+
+    Passing a `Date` or a `Numeric` raised `ArgumentError` instead of returning
+    a distance string, unlike `distance_of_time_in_words` which accepts them.
+
+    *Kenta Ishizaki*
+
+*   Support endless and beginless ranges in `number_field_tag` and
+    `range_field_tag`.
+
+    Previously, passing an endless (`18..`) or beginless (`..10`) range as the
+    `:in`/`:within` option raised `RangeError`. Now an endless range renders
+    `min` without `max`, and a beginless range renders `max` without `min`,
+    matching `number_field` and `range_field`.
+
+    *Kenta Ishizaki*
+
+*   Honor an explicit `value:` option in `color_field`, including `nil`.
+
+    Previously, passing `value: nil` was ignored and the field still pre-filled
+    from the model's stored color. Now an explicitly provided `value:` is
+    honored, and the stored color is only used when no `value:` option is given.
+
+    *Kenta Ishizaki*
+
+*   Calling `safe_join` in a view no longer fallbacks to the `$,` global variable.
+
+    Previously, calling `safe_join` would use `$,` by default to separate elements.
+    Ruby has deprecated the usage of setting `$,` for more than 10 years and its usage
+    in `safe_join` was never documented.
+
+    If your application relied on this behaviour, make sure to explicitly pass the separator
+    to `safe_join` as the default is now `nil` (no separation).
+
+    *Edouard Chin*
+
 *   Fix `ActionView::TestCase#render` to reset `rendered`.
     The behavior was changed when memoization was added in #51093. Now it once again conforms to the documentation.
 

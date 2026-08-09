@@ -12,7 +12,7 @@ module ActiveRecord
       #   # => "name='foo''bar' and group_id=4"
       #
       #   sanitize_sql_for_conditions(["name=:name and group_id=:group_id", name: "foo'bar", group_id: 4])
-      #   # => "name='foo''bar' and group_id='4'"
+      #   # => "name='foo''bar' and group_id=4"
       #
       #   sanitize_sql_for_conditions(["name='%s' and group_id='%s'", "foo'bar", 4])
       #   # => "name='foo''bar' and group_id='4'"
@@ -223,7 +223,7 @@ module ActiveRecord
             if $1 == ":" # skip PostgreSQL casts
               match # return the whole match
             elsif $1 == "\\" # escaped literal colon
-              match[1..-1] # return match with escaping backlash char removed
+              match[1..-1] # return match with escaping backslash char removed
             elsif bind_vars.include?(match = $2.to_sym)
               replace_bind_variable(connection, bind_vars[match])
             else

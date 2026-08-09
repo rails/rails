@@ -451,6 +451,20 @@ module ActiveRecord
   self.dump_schemas = :schema_search_path
 
   ##
+  # :singleton-method: dump_schema_migrations
+  # Specifies whether to dump the +schema_migrations+ table when dumping
+  # the database schema in the +:ruby+ format.
+  singleton_class.attr_accessor :dump_schema_migrations
+  self.dump_schema_migrations = false
+
+  ##
+  # :singleton-method: dump_schema_migrations_sort_by
+  # Specifies the proc used to order versions when dumping the +schema_migrations+
+  # table in the +:ruby+ format.
+  singleton_class.attr_accessor :dump_schema_migrations_sort_by
+  self.dump_schema_migrations_sort_by = :reverse
+
+  ##
   # :singleton-method: verify_foreign_keys_for_fixtures
   # If true, Rails will verify all foreign keys in the database after loading fixtures.
   # An error will be raised if there are any foreign key violations, indicating incorrectly

@@ -128,7 +128,7 @@ module ActiveRecord
       #   person.pets.find(4) # => ActiveRecord::RecordNotFound: Couldn't find Pet with 'id'=4
       #
       #   person.pets.find(2) { |pet| pet.name.downcase! }
-      #   # => #<Pet id: 2, name: "fancy-fancy", person_id: 1>
+      #   # => #<Pet id: 2, name: "spook", person_id: 1>
       #
       #   person.pets.find(2, 3)
       #   # => [
@@ -730,7 +730,7 @@ module ActiveRecord
           Base.strict_loading_violation!(owner: proxy_association.owner.class, reflection: proxy_association.reflection)
         end
 
-        null_scope? ? scope.pluck(*column_names) : super
+        null_scope? ? records.pluck(*column_names) : super
       end
 
       ##

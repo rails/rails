@@ -9,7 +9,7 @@ module ActiveModel
         include ActiveModel::Dirty
         include ActiveModel::Validations::Callbacks
 
-        class_attribute :normalized_attributes, default: Set.new
+        class_attribute :normalized_attributes, default: Set.new.freeze
 
         before_validation :normalize_changed_in_place_attributes
       end
@@ -113,7 +113,7 @@ module ActiveModel
             NormalizedValueType.new(cast_type: cast_type, normalizer: with, normalize_nil: apply_to_nil)
           end
 
-          self.normalized_attributes += names.map(&:to_sym)
+          self.normalized_attributes = (normalized_attributes + names.map(&:to_sym)).freeze
         end
 
         # Normalizes a given +value+ using normalizations declared for +name+.

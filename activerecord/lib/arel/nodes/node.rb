@@ -21,7 +21,7 @@ module Arel # :nodoc: all
     # The following example creates an equality constraint where the value of the name column on the users table
     # matches the value DHH.
     #
-    #   users = Arel::Table.new(:users)
+    #   users = Arel::Table.new(name: :users)
     #   constraint = users[:name].eq("DHH")
     #
     #   # => Arel::Nodes::Equality.new(

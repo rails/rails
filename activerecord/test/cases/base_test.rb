@@ -890,6 +890,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_ractor_shareable ReadonlyAuthorPost._attr_readonly
   end
 
+  def test_table_name_is_ractor_safe
+    assert_ractor_shareable Topic.table_name
+  end
+
   def test_unicode_column_name
     Weird.reset_column_information
     weird = Weird.create(なまえ: "たこ焼き仮面")

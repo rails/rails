@@ -6,7 +6,7 @@ require "active_model"
 
 class Arel::Nodes::HomogeneousInTest < Arel::Test
   test "in" do
-    table = Arel::Table.new :users, type_caster: fake_pg_caster
+    table = Arel::Table.new name: :users, type_caster: fake_pg_caster
 
     expr = Arel::Nodes::HomogeneousIn.new(["Bobby", "Robert"], table[:name], :in)
 
@@ -16,7 +16,7 @@ class Arel::Nodes::HomogeneousInTest < Arel::Test
   end
 
   test "custom attribute node" do
-    table = Arel::Table.new :users, type_caster: fake_pg_caster
+    table = Arel::Table.new name: :users, type_caster: fake_pg_caster
 
     node = TypedNode.new("COALESCE",
                          [table[:nickname], table[:name]],

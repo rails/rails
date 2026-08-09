@@ -1149,6 +1149,13 @@ module ActiveRecord
               downgrade_connection_after_error(translated_exception)
 
               raise translated_exception
+            rescue Exception
+              # A non-StandardError (a Timeout, or a fiber scheduler's cancel) abandoned
+              # the query partway through, so we mark the connection unverified, just as
+              # a failed query would, forcing a reconnect before it's used again.
+              @last_activity = nil
+              @verified = false
+              raise
             ensure
               dirty_current_transaction if materialize_transactions
             end
@@ -1349,14 +1356,6 @@ module ActiveRecord
         end
 
         def build_statement_pool
-        end
-
-        # Builds the result object.
-        #
-        # This is an internal hook to make possible connection adapters to build
-        # custom result objects with connection-specific data.
-        def build_result(columns:, rows:, column_types: nil)
-          ActiveRecord::Result.new(columns, rows, column_types)
         end
 
         # Perform any necessary initialization upon the newly-established

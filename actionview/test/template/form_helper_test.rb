@@ -607,6 +607,22 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
+  def test_file_field_with_multiple_include_hidden_carries_form_attribute
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      expected = '<input type="hidden" name="import[file][]" value="" form="uploads">' \
+                 '<input id="import_file" multiple="multiple" form="uploads" name="import[file][]" type="file" />'
+      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true, form: "uploads")
+    end
+  end
+
+  def test_file_field_with_multiple_include_hidden_carries_disabled_attribute
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      expected = '<input type="hidden" name="import[file][]" value="" disabled="disabled">' \
+                 '<input id="import_file" disabled="disabled" multiple="multiple" name="import[file][]" type="file" />'
+      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true, disabled: true)
+    end
+  end
+
   def test_file_field_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
     expected = '<input type="file" name="import[file]" id="import_file" />'
     assert_dom_equal expected, file_field("import", "file", direct_upload: true)
@@ -1137,19 +1153,30 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_color_field_with_valid_hex_color_string
-    expected = %{<input id="car_color" name="car[color]" type="color" value="#000fff" />}
+    expected = %{<input type="color" value="#000fff" name="car[color]" id="car_color" />}
     assert_dom_equal(expected, color_field("car", "color"))
   end
 
   def test_color_field_with_invalid_hex_color_string
-    expected = %{<input id="car_color" name="car[color]" type="color" value="#000000" />}
+    expected = %{<input type="color" value="#000000" name="car[color]" id="car_color" />}
     @car.color = "#1234TR"
     assert_dom_equal(expected, color_field("car", "color"))
   end
 
+  def test_color_field_with_string_containing_hex_color_substring
+    expected = %{<input type="color" value="#000000" name="car[color]" id="car_color"  />}
+    @car.color = "Not a color #123456 at all"
+    assert_dom_equal(expected, color_field("car", "color"))
+  end
+
   def test_color_field_with_value_attr
-    expected = %{<input id="car_color" name="car[color]" type="color" value="#00FF00" />}
+    expected = %{<input type="color" value="#00FF00" name="car[color]" id="car_color" />}
     assert_dom_equal(expected, color_field("car", "color", value: "#00FF00"))
+  end
+
+  def test_color_field_with_explicit_nil_value
+    expected = %{<input id="car_color" name="car[color]" type="color" />}
+    assert_dom_equal(expected, color_field("car", "color", value: nil))
   end
 
   def test_search_field
@@ -1160,6 +1187,26 @@ class FormHelperTest < ActionView::TestCase
   def test_search_field_with_onsearch_value
     expected = %{<input onsearch="true" type="search" name="contact[notes_query]" id="contact_notes_query" incremental="true" />}
     assert_dom_equal(expected, search_field("contact", "notes_query", onsearch: true))
+  end
+
+  def test_search_field_with_autosave_true_uses_the_reversed_host
+    expected = %{<input autosave="host.test" results="10" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: true))
+  end
+
+  def test_search_field_with_autosave_string_is_left_alone
+    expected = %{<input autosave="com.example.www" results="10" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: "com.example.www"))
+  end
+
+  def test_search_field_with_autosave_does_not_override_given_results
+    expected = %{<input autosave="host.test" results="3" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: true, results: 3))
+  end
+
+  def test_search_field_with_autosave_false_omits_results
+    expected = %{<input autosave="false" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: false))
   end
 
   def test_telephone_field
@@ -1465,6 +1512,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, week_field("post", "written_on"))
   end
 
+  def test_week_field_with_iso_week_year_boundary
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2015-W53" />}
+    @post.written_on = DateTime.new(2016, 1, 1, 1, 2, 3)
+    assert_dom_equal(expected, week_field("post", "written_on"))
+  end
+
   def test_url_field
     expected = %{<input id="user_homepage" name="user[homepage]" type="url" />}
     assert_dom_equal(expected, url_field("user", "homepage"))
@@ -1480,6 +1533,16 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, number_field("order", "quantity", in: 1...10))
     expected = %{<input name="order[quantity]" size="30" max="9" id="order_quantity" type="number" min="1" />}
     assert_dom_equal(expected, number_field("order", "quantity", size: 30, in: 1...10))
+  end
+
+  def test_number_field_with_endless_range
+    expected = %{<input name="order[quantity]" id="order_quantity" type="number" min="18" />}
+    assert_dom_equal(expected, number_field("order", "quantity", in: 18..))
+  end
+
+  def test_number_field_with_beginless_range
+    expected = %{<input name="order[quantity]" max="10" id="order_quantity" type="number" />}
+    assert_dom_equal(expected, number_field("order", "quantity", in: ..10))
   end
 
   def test_range_input
