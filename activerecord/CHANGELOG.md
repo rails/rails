@@ -1,3 +1,31 @@
+*   Column defaults are no longer eagerly deserialized.
+
+    Restore the Active Record 8.0 and older behavior.
+    Column defaults are now whatever is returned by the database, generally a string.
+
+    This was changed in 8.1.0 to make the attribute API more consistent,
+    however it caused problems when the attribute type is later changed in the model.
+
+    Typically, some databases treat boolean columns as small integers, ance once the
+    default integer is casted to a boolean, it's not longer possible to change the
+    attribute back into an integer in the model.
+
+    Before:
+
+    ```ruby
+    Person.columns_hash["age"].default # => 0
+    ```
+
+    After:
+
+    ```ruby
+    Person.columns_hash["age"].default # => "0"
+    ```
+
+    See https://github.com/rails/rails/issues/58292.
+
+    *Jean Boussier*
+
 *   Preserve the declared parent order when dumping PostgreSQL `INHERITS` table options.
 
     The schema dumper read a table's inherited parents without an `ORDER BY`, so the
