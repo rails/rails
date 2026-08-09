@@ -18,22 +18,38 @@ module ActionController
   #
   class MiddlewareStack < ActionDispatch::MiddlewareStack # :nodoc:
     class Proxy # :nodoc:
-      delegate_missing_to :@stack
+      delegate_missing_to :middleware_stack
 
       def initialize(controller)
         @controller = controller
-        @stack = @controller.middleware_stack
       end
 
       %w(unshift insert insert_before insert_after swap delete delete! move move_before move_after use).each do |method|
         class_eval(<<~CODE, __FILE__, __LINE__ + 1)
           def #{method}(...)
-            @controller.middleware_stack = @controller.middleware_stack.dup
-            @controller.middleware_stack.public_send(__method__, ...)
-            ActiveSupport::Ractors.try_make_shareable(@controller.middleware_stack)
+            stack = middleware_stack.dup
+            result = stack.#{method}(...)
+            replace_middleware_stack(stack)
+            result
           end
         CODE
       end
+
+      def middlewares=(middlewares)
+        stack = middleware_stack.dup
+        stack.middlewares = middlewares
+        replace_middleware_stack(stack)
+        middlewares
+      end
+
+      private
+        def middleware_stack
+          @controller.middleware_stack
+        end
+
+        def replace_middleware_stack(stack)
+          @controller.middleware_stack = ActiveSupport::Ractors.try_make_shareable(stack)
+        end
     end
 
     class Middleware < ActionDispatch::MiddlewareStack::Middleware # :nodoc:
