@@ -12,13 +12,14 @@ module ActionDispatch
   # stack](https://guides.rubyonrails.org/rails_on_rack.html#action-dispatcher-middleware-stack)
   # in the guides.
   class MiddlewareStack
-    class Middleware
-      attr_reader :args, :block, :klass
+    class Middleware # :nodoc:
+      attr_reader :args, :kwargs, :block, :klass
 
-      def initialize(klass, args, block)
-        @klass = klass
-        @args  = args
-        @block = block
+      def initialize(klass, args, kwargs, block)
+        @klass  = klass
+        @args   = args
+        @kwargs = kwargs
+        @block  = block
       end
 
       def name; klass.name; end
@@ -41,7 +42,7 @@ module ActionDispatch
       end
 
       def build(app)
-        klass.new(app, *args, &block)
+        klass.new(app, *args, **kwargs, &block)
       end
 
       def build_instrumented(app)
@@ -51,7 +52,7 @@ module ActionDispatch
 
     # This class is used to instrument the execution of a single middleware. It
     # proxies the `call` method transparently and instruments the method call.
-    class InstrumentationProxy
+    class InstrumentationProxy # :nodoc:
       EVENT_NAME = "process_middleware.action_dispatch"
 
       def initialize(middleware, class_name)
@@ -177,8 +178,7 @@ module ActionDispatch
       end
 
       def build_middleware(klass, args, kwargs, block)
-        args << Hash.ruby2_keywords_hash(kwargs) unless kwargs.empty?
-        Middleware.new(klass, args, block)
+        Middleware.new(klass, args, kwargs, block)
       end
 
       def index_of(klass)
