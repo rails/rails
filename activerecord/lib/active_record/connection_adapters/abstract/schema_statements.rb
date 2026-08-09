@@ -7,6 +7,8 @@ require "openssl"
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module SchemaStatements
+      EMPTY_METADATA = [].freeze # :nodoc:
+
       # Returns a hash of mappings from the abstract data types to the native
       # database types. See TableDefinition#column for details on the recognized
       # abstract data types.
@@ -76,7 +78,8 @@ module ActiveRecord
         views.include?(view_name.to_s)
       end
 
-      # Returns an array of indexes for the given table.
+      # Returns an array of indexes for the given table, or a Hash of them keyed by
+      # table name when given an Array of tables.
       def indexes(table_name)
         raise NotImplementedError, "#indexes is not implemented"
       end
@@ -1185,7 +1188,8 @@ module ActiveRecord
       end
       alias :remove_belongs_to :remove_reference
 
-      # Returns an array of foreign keys for the given table.
+      # Returns an array of foreign keys for the given table, or a Hash of them keyed
+      # by table name when given an Array of tables.
       # The foreign keys are represented as ForeignKeyDefinition objects.
       def foreign_keys(table_name)
         raise NotImplementedError, "foreign_keys is not implemented"
@@ -1377,7 +1381,8 @@ module ActiveRecord
         options
       end
 
-      # Returns an array of check constraints for the given table.
+      # Returns an array of check constraints for the given table, or a Hash of them
+      # keyed by table name when given an Array of tables.
       # The check constraints are represented as CheckConstraintDefinition objects.
       def check_constraints(table_name)
         raise NotImplementedError
@@ -1715,6 +1720,21 @@ module ActiveRecord
       end
 
       private
+        def quoted_table_names(table_names)
+          table_names.map { |name| quoted_scope(name)[:name] }.join(", ")
+        end
+
+        # One read filters by one schema, so tables naming different schemas are read
+        # a schema at a time.
+        def fetch_by_schema(tables)
+          tables.group_by { |table| quoted_scope(table)[:schema] }
+            .each_with_object({}) { |(schema, group), result| result.merge!(yield(schema, group)) }
+        end
+
+        def rows_for(rows_by_name, table)
+          rows_by_name.fetch(bare_table_name(table), EMPTY_METADATA)
+        end
+
         def generate_index_name(table_name, column)
           name = "index_#{table_name}_on_#{Array(column) * '_and_'}"
           return name if name.bytesize <= max_index_name_size
