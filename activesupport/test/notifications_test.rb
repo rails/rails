@@ -313,6 +313,69 @@ module Notifications
     end
   end
 
+  class CustomNotifierTest < ActiveSupport::TestCase
+    class CustomNotifier
+      attr_reader :published
+
+      def initialize
+        @published = []
+      end
+
+      def publish(name, *args)
+        @published << name
+      end
+
+      def publish_event(event)
+        @published << event.name
+      end
+
+      def start(name, id, payload)
+      end
+
+      def finish(name, id, payload, listener_state = nil)
+        @published << name
+      end
+
+      def listening?(name)
+        true
+      end
+
+      def subscribe(pattern = nil, callable = nil, monotonic: false, &block)
+      end
+
+      def unsubscribe(subscriber_or_name)
+      end
+
+      def wait
+      end
+    end
+
+    def setup
+      @old_notifier = ActiveSupport::Notifications.notifier
+    end
+
+    def teardown
+      ActiveSupport::Notifications.notifier = @old_notifier
+    end
+
+    def test_notifier_can_be_set_to_a_custom_queue
+      notifier = CustomNotifier.new
+
+      ActiveSupport::Notifications.notifier = notifier
+
+      assert_same notifier, ActiveSupport::Notifications.notifier
+    end
+
+    def test_instrumenting_through_a_custom_queue
+      notifier = CustomNotifier.new
+      ActiveSupport::Notifications.notifier = notifier
+
+      ActiveSupport::Notifications.instrument("custom.event") { }
+
+      assert_equal ["custom.event"], notifier.published
+    end
+  end
+
   class InspectTest < TestCase
     def test_inspect_output_is_small
       expected = "#<ActiveSupport::Notifications::Fanout (2 patterns)>"

@@ -353,10 +353,14 @@ module ActiveSupport
         end
 
         def record_subscriptions
-          subscriptions = {
-            string_subscribers: Hash[notifier.string_subscribers.keys.zip(notifier.string_subscribers.values)],
-            other_subscribers: notifier.other_subscribers,
-          }
+          subscriptions = if notifier.respond_to?(:string_subscribers)
+            {
+              string_subscribers: Hash[notifier.string_subscribers.keys.zip(notifier.string_subscribers.values)],
+              other_subscribers: notifier.other_subscribers,
+            }
+          else
+            { string_subscribers: {}, other_subscribers: [] }
+          end
 
           self.notifier_subscriptions = ActiveSupport::Ractors.try_make_shareable(subscriptions, copy: true)
         end
