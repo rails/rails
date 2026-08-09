@@ -367,6 +367,7 @@ end
 
 class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
+  include ActiveRecord::Sanitization
 
   class << self
     def scope_registry
@@ -387,18 +388,6 @@ class FakeKlass
 
     def attribute_aliases
       {}
-    end
-
-    def sanitize_sql(sql)
-      sql
-    end
-
-    def sanitize_sql_for_order(sql)
-      sql
-    end
-
-    def disallow_raw_sql!(*args)
-      # noop
     end
 
     def columns_hash

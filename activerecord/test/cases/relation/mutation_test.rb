@@ -30,10 +30,11 @@ module ActiveRecord
       assert_equal "posts", node.expr.relation.name
     end
 
-    test "#order! on non-string does not attempt regexp match for references" do
-      obj = Object.new
-      assert relation.order!(obj)
-      assert_equal [obj], relation.order_values
+    test "#order! with Arel::Attribute extracts table reference" do
+      attr = Post.arel_table[:name]
+      assert relation.order!(attr).equal?(relation)
+      assert_equal [attr], relation.order_values
+      assert_equal ["posts"], relation.references_values
     end
 
     test "#default_order!" do
