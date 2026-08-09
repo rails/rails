@@ -166,12 +166,6 @@
 
     *Brad Schrag*
 
-*   When `dump_schema_migrations` is enabled, the trailer gets now exactly the
-    versions present in the `schema_migrations` table, without filtering by
-    what's on disk.
-
-    *Xavier Noria*
-
 *   Improve bind parameter rendering for casted binds in SQL logs and EXPLAIN output.
 
     Queries built with casted binds (an array of values instead of
