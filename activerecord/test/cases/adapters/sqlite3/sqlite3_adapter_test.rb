@@ -579,7 +579,7 @@ module ActiveRecord
       def test_select_rows
         with_example_table do
           2.times do |i|
-            @conn.create "INSERT INTO ex (number) VALUES (#{i})"
+            @conn.insert "INSERT INTO ex (number) VALUES (#{i})"
           end
           rows = @conn.select_rows "select number, id from ex"
           assert_equal [[0, 1], [1, 2]], rows
@@ -601,7 +601,7 @@ module ActiveRecord
           count_sql = "select count(*) from ex"
 
           @conn.begin_db_transaction
-          @conn.create "INSERT INTO ex (number) VALUES (10)"
+          @conn.insert "INSERT INTO ex (number) VALUES (10)"
 
           assert_equal 1, @conn.select_rows(count_sql).first.first
           @conn.rollback_db_transaction
