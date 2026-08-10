@@ -50,6 +50,7 @@ module ActionDispatch
         request.set_header "action_dispatch.original_path", request.path_info
         request.set_header "action_dispatch.original_request_method", request.raw_request_method
         fallback_to_html_format_if_invalid_mime_type(request)
+        fallback_to_octet_stream_when_invalid_multipart(request, wrapper)
         request.path_info = "/#{status}"
         request.request_method = "GET"
         response = @exceptions_app.call(request.env)
@@ -78,6 +79,23 @@ module ActionDispatch
         rescue ActionDispatch::Http::MimeNegotiation::InvalidType
           request.set_header "HTTP_ACCEPT", "text/html"
         end
+      end
+
+      # When the request that raised the exception carried an invalid
+      # `multipart/form-data` body, the parse error is recorded on the env and
+      # re-raised every time the params are read. Since the exceptions app is
+      # handed the same env (and a routes-based exceptions app reads params
+      # while dispatching), it would re-raise and produce a 500 instead of the
+      # intended error page. Neutralize the poisoned body so the exceptions app
+      # can render normally.
+      def fallback_to_octet_stream_when_invalid_multipart(request, wrapper)
+        rack_error = wrapper.wrapped_causes.find { |wrapped| wrapped.exception.is_a?(::EOFError) }
+        return if rack_error.nil? || !request.form_data?
+
+        request.set_header "CONTENT_TYPE", "application/octet-stream"
+        # `rack.request.form_error` only exists on Rack 3; actionpack still
+        # supports Rack 2 (see the gemspec floor), so guard the constant.
+        request.delete_header(Rack::RACK_REQUEST_FORM_ERROR) if defined?(Rack::RACK_REQUEST_FORM_ERROR)
       end
 
       def pass_response(status)
