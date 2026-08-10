@@ -577,6 +577,16 @@ module Notifications
       super
     end
 
+    test "instrumenting an event with no subscribers inside a Ractor" do
+      ActiveSupport::Notifications.subscribe("subscribed.event") { }
+
+      value = on_ractor do
+        ActiveSupport::Notifications.instrument("unsubscribed.event") { :ran }
+      end
+
+      assert_equal :ran, value
+    end
+
     test "record and set subscriptions" do
       ActiveSupport::Notifications.subscribe("active_record.sql") { |event| event.payload[:called] = true }
 
