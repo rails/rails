@@ -63,7 +63,16 @@
 
     Almost all of the standard Logger interface is supported.
 
-    *Jean Boussier*
+    In addition it can be set to ignore messages matching given patterns.
+
+    Useful to silence noisy logs from gems that your application may not care
+    about, without needing to change the log level and losing other useful logs.
+
+    ```ruby
+    SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger).ignore(/Noisy/)
+    ```
+
+    *Jean Boussier*, *Federico Carrocera*
 
 *   Include call options in `Cache#exist?` instrumentation payload,
     consistent with `read`, `write`, and `delete`.
