@@ -9,6 +9,25 @@
 
     *Said Kaldybaev*
 
+*   Fix `ActiveSupport::BroadcastLogger#tagged` when broadcasting to more than
+    one tagging logger.
+
+    Without a block, `#tagged` fell through to `method_missing` and returned an
+    `Array` of the individual loggers instead of a logger, so the result could
+    not be logged to (`NoMethodError`). With a block, the block was executed once
+    per tagging logger instead of a single time. `#tagged` is now defined
+    directly on `BroadcastLogger`: without a block it returns a new
+    `BroadcastLogger` whose tagging-capable broadcasts are tagged (non-tagging
+    broadcasts are left untouched), and with a block it applies the tags to every
+    tagging logger while yielding once.
+
+    ```ruby
+    broadcast = ActiveSupport::BroadcastLogger.new(logger1, logger2)
+    broadcast.tagged("BCX").info("Hello") # => both loggers log "[BCX] Hello"
+    ```
+
+    *Ben Younes*
+
 *   Fix `Range#sum` with a falsey initial value.
 
     Summing an integer range with a falsey starting value (such as nil or false)
