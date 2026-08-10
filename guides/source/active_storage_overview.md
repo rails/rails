@@ -631,7 +631,67 @@ even if the rest of your application requires authentication. Also, the
 not apply to Active Storage’s built-in controllers.
 
 If your files require stricter access control, such as “a user may only view
-their own files”, you can replace the built-in controllers with your own
+their own files”, you have two options: add your own authorization to the
+built-in controllers through their [load hooks](configuring.html#load-hooks), or
+replace them entirely with your own controllers.
+
+#### Adding Authorization to the Built-in Controllers
+
+Each controller runs a load hook, so you can include your own module into it
+from an initializer:
+
+```ruby
+# config/initializers/active_storage_authorization.rb
+%i[
+  active_storage_blobs_proxy_controller
+  active_storage_blobs_redirect_controller
+  active_storage_representations_proxy_controller
+  active_storage_representations_redirect_controller
+].each do |hook|
+  ActiveSupport.on_load(hook) do
+    include BlobAuthorization
+  end
+end
+
+# The direct uploads controller has no blob to authorize yet.
+ActiveSupport.on_load(:active_storage_direct_uploads_controller) do
+  before_action { head :unauthorized unless Current.user }
+end
+```
+
+```ruby
+# app/controllers/concerns/blob_authorization.rb
+module BlobAuthorization
+  extend ActiveSupport::Concern
+
+  included do
+    before_action :authorize_blob
+  end
+
+  private
+    def authorize_blob
+      head :not_found unless Current.user&.owns?(@blob)
+    end
+end
+```
+
+The proxy controllers send `Cache-Control: public` by default, so a CDN may serve a
+cached copy to everybody. You must set `public_cache` to `false` to prevent that:
+
+```ruby
+%i[
+  active_storage_blobs_proxy_controller
+  active_storage_representations_proxy_controller
+].each do |hook|
+  ActiveSupport.on_load(hook) do
+    self.public_cache = false
+  end
+end
+```
+
+#### Replacing the Built-in Controllers
+
+Alternatively, you can replace the built-in controllers with your own
 authenticated controllers. These controllers should wrap the behavior of the
 following built-in controllers but apply your own authorization logic before
 serving the file :

@@ -4428,6 +4428,12 @@ These are the load hooks you can use in your own code. To hook into the initiali
 | `ActiveStorage::VariantRecord`       | `active_storage_variant_record`      |
 | `ActiveStorage::Blob`                | `active_storage_blob`                |
 | `ActiveStorage::Record`              | `active_storage_record`              |
+| `ActiveStorage::Blobs::ProxyController`              | `active_storage_blobs_proxy_controller`              |
+| `ActiveStorage::Blobs::RedirectController`           | `active_storage_blobs_redirect_controller`           |
+| `ActiveStorage::DirectUploadsController`             | `active_storage_direct_uploads_controller`           |
+| `ActiveStorage::DiskController`                      | `active_storage_disk_controller`                     |
+| `ActiveStorage::Representations::ProxyController`    | `active_storage_representations_proxy_controller`    |
+| `ActiveStorage::Representations::RedirectController` | `active_storage_representations_redirect_controller` |
 | `ActiveSupport::TestCase`            | `active_support_test_case`           |
 | `i18n`                               | `i18n`                               |
 

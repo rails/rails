@@ -77,7 +77,10 @@ module ActiveStorage
 
     config.eager_load_namespaces << ActiveStorage
 
-    guard_load_hooks(:active_storage_record, :active_storage_attachment, :active_storage_blob, :active_storage_variant_record)
+    guard_load_hooks(:active_storage_record, :active_storage_attachment, :active_storage_blob, :active_storage_variant_record,
+      :active_storage_blobs_proxy_controller, :active_storage_blobs_redirect_controller,
+      :active_storage_representations_proxy_controller, :active_storage_representations_redirect_controller,
+      :active_storage_direct_uploads_controller, :active_storage_disk_controller)
 
     initializer "active_storage.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_storage] = ActiveStorage.deprecator
