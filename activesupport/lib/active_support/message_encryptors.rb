@@ -78,10 +78,8 @@ module ActiveSupport
     ##
     # :method: rotate
     # :call-seq:
-    # ```
-    # rotate(**options)
-    # rotate(&block)
-    # ```
+    #   rotate(**options)
+    #   rotate(&block)
     #
     # Adds `options` to the list of option sets. Messages will be encrypted
     # using the first set in the list. When decrypting, however, each set will
@@ -134,10 +132,8 @@ module ActiveSupport
     ##
     # :method: prepend
     # :call-seq:
-    # ```
-    # prepend(**options)
-    # prepend(&block)
-    # ```
+    #   prepend(**options)
+    #   prepend(&block)
     #
     # Just like #rotate, but prepends the given options or block to the list of
     # option sets.
