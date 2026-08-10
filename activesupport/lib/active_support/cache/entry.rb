@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "zlib"
@@ -21,7 +22,7 @@ module ActiveSupport
       attr_reader :version
 
       # Creates a new cache entry for the specified value. Options supported are
-      # +:compressed+, +:version+, +:expires_at+ and +:expires_in+.
+      # `:compressed`, `:version`, `:expires_at` and `:expires_in`.
       def initialize(value, compressed: false, version: nil, expires_in: nil, expires_at: nil, **)
         @value      = value
         @version    = version
@@ -38,7 +39,7 @@ module ActiveSupport
         @version && version && @version != version
       end
 
-      # Checks if the entry is expired. The +expires_in+ parameter can override
+      # Checks if the entry is expired. The `expires_in` parameter can override
       # the value set when the entry was created.
       def expired?
         @expires_in && @created_at + @expires_in <= Time.now.to_f
@@ -57,7 +58,7 @@ module ActiveSupport
       end
 
       # Returns the size of the cached value. This could be less than
-      # <tt>value.bytesize</tt> if the data is compressed.
+      # `value.bytesize` if the data is compressed.
       def bytesize
         case value
         when NilClass

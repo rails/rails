@@ -1,7 +1,9 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
-  # = Active Support Broadcast Logger
+  # Active Support Broadcast Logger
+  # ===============================
   #
   # The Broadcast logger is a logger used to write messages to multiple IO. It is commonly used
   # in development to display messages on STDOUT and also write them to a file (development.log).
@@ -13,64 +15,76 @@ module ActiveSupport
   #
   # Broadcasting your logs.
   #
-  #   stdout_logger = Logger.new(STDOUT)
-  #   file_logger   = Logger.new("development.log")
-  #   broadcast = BroadcastLogger.new(stdout_logger, file_logger)
+  # ```
+  # stdout_logger = Logger.new(STDOUT)
+  # file_logger   = Logger.new("development.log")
+  # broadcast = BroadcastLogger.new(stdout_logger, file_logger)
   #
-  #   broadcast.info("Hello world!") # Writes the log to STDOUT and the development.log file.
+  # broadcast.info("Hello world!") # Writes the log to STDOUT and the development.log file.
+  # ```
   #
   # Add a logger to the broadcast.
   #
-  #   stdout_logger = Logger.new(STDOUT)
-  #   broadcast = BroadcastLogger.new(stdout_logger)
-  #   file_logger   = Logger.new("development.log")
-  #   broadcast.broadcast_to(file_logger)
+  # ```
+  # stdout_logger = Logger.new(STDOUT)
+  # broadcast = BroadcastLogger.new(stdout_logger)
+  # file_logger   = Logger.new("development.log")
+  # broadcast.broadcast_to(file_logger)
   #
-  #   broadcast.info("Hello world!") # Writes the log to STDOUT and the development.log file.
+  # broadcast.info("Hello world!") # Writes the log to STDOUT and the development.log file.
+  # ```
   #
   # Modifying the log level for all broadcasted loggers.
   #
-  #   stdout_logger = Logger.new(STDOUT)
-  #   file_logger   = Logger.new("development.log")
-  #   broadcast = BroadcastLogger.new(stdout_logger, file_logger)
+  # ```
+  # stdout_logger = Logger.new(STDOUT)
+  # file_logger   = Logger.new("development.log")
+  # broadcast = BroadcastLogger.new(stdout_logger, file_logger)
   #
-  #   broadcast.level = Logger::FATAL # Modify the log level for the whole broadcast.
+  # broadcast.level = Logger::FATAL # Modify the log level for the whole broadcast.
+  # ```
   #
   # Stop broadcasting log to a sink.
   #
-  #   stdout_logger = Logger.new(STDOUT)
-  #   file_logger   = Logger.new("development.log")
-  #   broadcast = BroadcastLogger.new(stdout_logger, file_logger)
-  #   broadcast.info("Hello world!") # Writes the log to STDOUT and the development.log file.
+  # ```
+  # stdout_logger = Logger.new(STDOUT)
+  # file_logger   = Logger.new("development.log")
+  # broadcast = BroadcastLogger.new(stdout_logger, file_logger)
+  # broadcast.info("Hello world!") # Writes the log to STDOUT and the development.log file.
   #
-  #   broadcast.stop_broadcasting_to(file_logger)
-  #   broadcast.info("Hello world!") # Writes the log *only* to STDOUT.
+  # broadcast.stop_broadcasting_to(file_logger)
+  # broadcast.info("Hello world!") # Writes the log *only* to STDOUT.
+  # ```
   #
   # At least one sink has to be part of the broadcast. Otherwise, your logs will not
   # be written anywhere. For instance:
   #
-  #   broadcast = BroadcastLogger.new
-  #   broadcast.info("Hello world") # The log message will appear nowhere.
+  # ```
+  # broadcast = BroadcastLogger.new
+  # broadcast.info("Hello world") # The log message will appear nowhere.
+  # ```
   #
   # If you are adding a custom logger with custom methods to the broadcast,
   # the `BroadcastLogger` will proxy them and return the raw value, or an array
   # of raw values, depending on how many loggers in the broadcasts responded to
   # the method:
   #
-  #   class MyLogger < ::Logger
-  #     def loggable?
-  #       true
-  #     end
+  # ```
+  # class MyLogger < ::Logger
+  #   def loggable?
+  #     true
   #   end
+  # end
   #
-  #   logger = BroadcastLogger.new
-  #   logger.loggable? # => A NoMethodError exception is raised because no loggers in the broadcasts could respond.
+  # logger = BroadcastLogger.new
+  # logger.loggable? # => A NoMethodError exception is raised because no loggers in the broadcasts could respond.
   #
-  #   logger.broadcast_to(MyLogger.new(STDOUT))
-  #   logger.loggable? # => true
-  #   logger.broadcast_to(MyLogger.new(STDOUT))
-  #   puts logger.broadcasts # => [MyLogger, MyLogger]
-  #   logger.loggable? # [true, true]
+  # logger.broadcast_to(MyLogger.new(STDOUT))
+  # logger.loggable? # => true
+  # logger.broadcast_to(MyLogger.new(STDOUT))
+  # puts logger.broadcasts # => [MyLogger, MyLogger]
+  # logger.loggable? # [true, true]
+  # ```
   class BroadcastLogger
     include ActiveSupport::LoggerSilence
 
@@ -87,8 +101,10 @@ module ActiveSupport
 
     # Add logger(s) to the broadcast.
     #
-    #   broadcast_logger = ActiveSupport::BroadcastLogger.new
-    #   broadcast_logger.broadcast_to(Logger.new(STDOUT), Logger.new(STDERR))
+    # ```
+    # broadcast_logger = ActiveSupport::BroadcastLogger.new
+    # broadcast_logger.broadcast_to(Logger.new(STDOUT), Logger.new(STDERR))
+    # ```
     def broadcast_to(*loggers)
       @broadcasts.concat(loggers)
     end
@@ -96,10 +112,12 @@ module ActiveSupport
     # Remove a logger from the broadcast. When a logger is removed, messages sent to
     # the broadcast will no longer be written to its sink.
     #
-    #   sink = Logger.new(STDOUT)
-    #   broadcast_logger = ActiveSupport::BroadcastLogger.new
+    # ```
+    # sink = Logger.new(STDOUT)
+    # broadcast_logger = ActiveSupport::BroadcastLogger.new
     #
-    #   broadcast_logger.stop_broadcasting_to(sink)
+    # broadcast_logger.stop_broadcasting_to(sink)
+    # ```
     def stop_broadcasting_to(logger)
       @broadcasts.delete(logger)
     end
@@ -136,57 +154,57 @@ module ActiveSupport
       @broadcasts.map(&:level).min
     end
 
-    # True if the log level allows entries with severity +Logger::DEBUG+ to be written
+    # True if the log level allows entries with severity `Logger::DEBUG` to be written
     # to at least one broadcast. False otherwise.
     def debug?
       @broadcasts.any? { |logger| logger.debug? }
     end
 
-    # Sets the log level to +Logger::DEBUG+ for the whole broadcast.
+    # Sets the log level to `Logger::DEBUG` for the whole broadcast.
     def debug!
       dispatch(:debug!)
     end
 
-    # True if the log level allows entries with severity +Logger::INFO+ to be written
+    # True if the log level allows entries with severity `Logger::INFO` to be written
     # to at least one broadcast. False otherwise.
     def info?
       @broadcasts.any? { |logger| logger.info? }
     end
 
-    # Sets the log level to +Logger::INFO+ for the whole broadcast.
+    # Sets the log level to `Logger::INFO` for the whole broadcast.
     def info!
       dispatch(:info!)
     end
 
-    # True if the log level allows entries with severity +Logger::WARN+ to be written
+    # True if the log level allows entries with severity `Logger::WARN` to be written
     # to at least one broadcast. False otherwise.
     def warn?
       @broadcasts.any? { |logger| logger.warn? }
     end
 
-    # Sets the log level to +Logger::WARN+ for the whole broadcast.
+    # Sets the log level to `Logger::WARN` for the whole broadcast.
     def warn!
       dispatch(:warn!)
     end
 
-    # True if the log level allows entries with severity +Logger::ERROR+ to be written
+    # True if the log level allows entries with severity `Logger::ERROR` to be written
     # to at least one broadcast. False otherwise.
     def error?
       @broadcasts.any? { |logger| logger.error? }
     end
 
-    # Sets the log level to +Logger::ERROR+ for the whole broadcast.
+    # Sets the log level to `Logger::ERROR` for the whole broadcast.
     def error!
       dispatch(:error!)
     end
 
-    # True if the log level allows entries with severity +Logger::FATAL+ to be written
+    # True if the log level allows entries with severity `Logger::FATAL` to be written
     # to at least one broadcast. False otherwise.
     def fatal?
       @broadcasts.any? { |logger| logger.fatal? }
     end
 
-    # Sets the log level to +Logger::FATAL+ for the whole broadcast.
+    # Sets the log level to `Logger::FATAL` for the whole broadcast.
     def fatal!
       dispatch(:fatal!)
     end

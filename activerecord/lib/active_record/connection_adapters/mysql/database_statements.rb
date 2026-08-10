@@ -24,8 +24,9 @@ module ActiveRecord
           HIGH_PRECISION_CURRENT_TIMESTAMP
         end
 
-        def explain(arel, binds = [], options = [])
-          sql     = build_explain_clause(options) + " " + to_sql(arel, binds)
+        def explain(arel_or_sql, binds = [], options = [])
+          sql, binds = to_sql_and_binds(arel_or_sql, binds)
+          sql = build_explain_clause(options) + " " + sql
           start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           result  = select_all(sql, "EXPLAIN", binds)
           elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
@@ -53,18 +54,28 @@ module ActiveRecord
           super unless column.auto_increment?
         end
 
+        def execute_batch(statements, name = nil, **kwargs) # :nodoc:
+          combine_multi_statements(statements).each do |statement|
+            intent = QueryIntent.new(
+              adapter: self,
+              processed_sql: statement,
+              name: name,
+              batch: true,
+              binds: kwargs[:binds] || [],
+              prepare: kwargs[:prepare] || false,
+              allow_async: kwargs[:async] || false,
+              allow_retry: kwargs[:allow_retry] || false,
+              materialize_transactions: kwargs[:materialize_transactions] != false
+            )
+            intent.execute!
+            intent.finish
+          end
+        end
+
         private
           # https://mariadb.com/kb/en/analyze-statement/
           def analyze_without_explain?
             mariadb? && database_version >= "10.1.0"
-          end
-
-          def returning_column_values(result)
-            if supports_insert_returning?
-              result.rows.first
-            else
-              super
-            end
           end
 
           def combine_multi_statements(total_sql)

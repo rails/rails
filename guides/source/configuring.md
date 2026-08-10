@@ -60,6 +60,7 @@ Below are the default values associated with each target version. In cases of co
 
 #### Default Values for Target Version 8.2
 
+- [`ActiveSupport.raise_on_invalid_time_zone_parse`](#activesupport-raise-on-invalid-time-zone-parse): `true`
 - [`config.action_controller.default_protect_from_forgery_with`](#config-action-controller-default-protect-from-forgery-with): `:exception`
 - [`config.action_controller.forgery_protection_verification_strategy`](#config-action-controller-forgery-protection-verification-strategy): `:header_only`
 - [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
@@ -1558,10 +1559,9 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.active_record.query_log_tags_enabled`
 
-Specifies whether or not to enable adapter-level query comments. Defaults to
-`false`, but is set to `true` in the default generated `config/environments/development.rb` file.
+Specifies whether or not to enable adapter-level query comments. Defaults to `false`, but is set to `true` in the default generated `config/environments/development.rb` file.When this is set to `true` database prepared statements will be automatically disabled. If prepared statements are desired in conjunction with `query_log_tags` you must explicitly opt-out of ActiveRecords disabling mechanism: `config.active_record.disable_preprared_statments = false`.
 
-NOTE: When this is set to `true` database prepared statements will be automatically disabled.
+Note: High cardinality comments can cause degraded db performance as the database may not be able to rely on a query plan cache. If forcing prepared statements with query log tags high cardinality values should be avoided. For example, `:request_id` or `admin_id`. Even basic `controller#action` tags can cause high cardinality on basic queries such as a current_user lookup since it will happen across many endpoints.
 
 #### `config.active_record.query_log_tags`
 
@@ -2562,7 +2562,7 @@ defaults to `true`.
 
 The `config.action_dispatch.show_exceptions` configuration controls how Action Pack (specifically the [`ActionDispatch::ShowExceptions`](/configuring.html#actiondispatch-showexceptions) middleware) handles exceptions raised while responding to requests.
 
-Setting the value to `:all` configures Action Pack to rescue from exceptions and render corresponding error pages. For example, Action Pack would rescue from an `ActiveRecord::RecordNotFound` exception and render the contents of `public/404.html` with a `404 Not found` status code.
+Setting the value to `:all` configures Action Pack to rescue from exceptions and render corresponding error pages. For example, Action Pack would rescue from an `ActiveRecord::RecordNotFound` exception and render the contents of `public/404.html` with a `404 Not Found` status code.
 
 Setting the value to `:rescuable` configures Action Pack to rescue from exceptions defined in [`config.action_dispatch.rescue_responses`](/configuring.html#config-action-dispatch-rescue-responses), and raise all others. For example, Action Pack would rescue from `ActiveRecord::RecordNotFound`, but would raise a `NoMethodError`.
 
@@ -2641,6 +2641,18 @@ Accepts a logger conforming to the interface of Log4r or the default Ruby Logger
 #### `config.action_view.erb_trim_mode`
 
 Controls if certain ERB syntax should trim. It defaults to `'-'`, which turns on trimming of tail spaces and newline when using `<%= -%>` or `<%= =%>`. Setting this to anything else will turn off trimming support.
+
+#### `config.action_view.erb_implementation`
+
+Controls the default ERB implementation to use. It defaults to `Erubi`.
+
+#### `config.action_view.escape_ignore_list`
+
+Control whether template should be escaped based on the mime type. Defaults to `["text/plain"]`.
+
+#### `config.action_view.strip_trailing_newlines`
+
+Strip trailing newlines from rendered output. Defaults to `false`.
 
 #### `config.action_view.frozen_string_literal`
 
@@ -3282,6 +3294,30 @@ The default value depends on the `config.load_defaults` target version:
 [ActiveSupport::Cache::Store#fetch]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-fetch
 [ActiveSupport::Cache::Store#write]: https://api.rubyonrails.org/classes/ActiveSupport/Cache/Store.html#method-i-write
 
+#### `ActiveSupport.raise_on_invalid_time_zone_parse`
+
+Specifies whether [`ActiveSupport::TimeZone#parse`][] raises `ArgumentError`
+for strings that contain no recognizable date information (e.g. `"foobar"`).
+
+Historically, `TimeZone#parse` had two different behaviors for invalid
+strings: it returned `nil` when the string contained no recognizable date
+information, but raised `ArgumentError` when the string looked like a date
+but contained out-of-range values (e.g. `"9000"`, which is interpreted as
+month 90).
+
+When set to `true`, both cases raise `ArgumentError`, which matches the
+Ruby standard library's `Time.parse` and makes failures less likely to
+go unnoticed.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
+
+[`ActiveSupport::TimeZone#parse`]: https://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html#method-i-parse
+
 #### `config.active_support.event_reporter_context_store`
 
 Configures a custom context store for the Event Reporter. The context store is used to manage metadata that should be attached to every event emitted by the reporter.
@@ -3480,7 +3516,19 @@ The default value is `/https?:\/\/localhost:\d+/` in the `development` environme
 
 #### `config.active_storage.variant_processor`
 
-Accepts a symbol `:mini_magick`, `:vips`, or `:disabled` specifying whether or not variant transformations and blob analysis will be performed with MiniMagick or ruby-vips.
+Accepts a symbol `:mini_magick`, `:vips`, or `:disabled` specifying whether or not variant
+processing and blob analysis will be performed with MiniMagick or ruby-vips.
+
+It also accepts a class. The class must implement the interface defined by
+`ActiveStorage::Transformers::Transformer`. Active Storage then uses it for variant processing:
+
+```ruby
+config.active_storage.variant_processor = CustomTransformer
+```
+
+Note that the built-in image analyzers accept a blob only when `variant_processor` is `:vips` or
+`:mini_magick`, so setting this configuration to a custom class requires adding a custom analyzer to
+[`config.active_storage.analyzers`](#config-active-storage-analyzers) as well.
 
 The default value depends on the `config.load_defaults` target version:
 

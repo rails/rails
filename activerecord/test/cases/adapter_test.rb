@@ -263,9 +263,31 @@ module ActiveRecord
         assert_not_nil error.cause
       end
 
-      def test_numeric_value_out_of_ranges_are_translated_to_specific_exception
+      def test_numeric_value_out_of_ranges_on_model_create_are_translated_to_specific_exception
+        assert_raises(ActiveModel::RangeError) do
+          Book.create(author_id: 9223372036854775808)
+        end
+      end
+
+      def test_numeric_value_out_of_ranges_on_model_update_are_translated_to_specific_exception
+        book = Book.create!
+        assert_raises(ActiveModel::RangeError) do
+          book.update(author_id: 9223372036854775808)
+        end
+      end
+
+      def test_numeric_value_out_of_ranges_on_connection_insert_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::RangeError) do
-          Book.lease_connection.create("INSERT INTO books(author_id) VALUES (9223372036854775808)")
+          Book.lease_connection.insert("INSERT INTO books(author_id) VALUES (9223372036854775808)")
+        end
+
+        assert_not_nil error.cause
+      end
+
+      def test_numeric_value_out_of_ranges_on_connection_update_are_translated_to_specific_exception
+        book = Book.create!
+        error = assert_raises(ActiveRecord::RangeError) do
+          Book.lease_connection.update("UPDATE books SET author_id = 9223372036854775808 WHERE id = #{book.id}")
         end
 
         assert_not_nil error.cause
@@ -303,16 +325,22 @@ module ActiveRecord
         binds = [Event.type_for_attribute("id").serialize(1)]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
-        id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        id = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        end
         assert_equal 1, id
 
-        updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        updated = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        end
         assert_equal 1, updated
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
 
-        deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        deleted = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        end
         assert_equal 1, deleted
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
@@ -323,16 +351,22 @@ module ActiveRecord
         binds = [Relation::QueryAttribute.new("id", 1, Event.type_for_attribute("id"))]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
-        id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        id = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        end
         assert_equal 1, id
 
-        updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        updated = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        end
         assert_equal 1, updated
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
 
-        deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        deleted = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        end
         assert_equal 1, deleted
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
@@ -450,12 +484,12 @@ module ActiveRecord
       @connection = ActiveRecord::Base.lease_connection
     end
 
-    def test_create_with_query_cache
+    def test_insert_with_query_cache
       @connection.enable_query_cache!
 
       count = Post.count
 
-      @connection.create("INSERT INTO posts(title, body) VALUES ('', '')")
+      @connection.insert("INSERT INTO posts(title, body) VALUES ('', '')")
 
       assert_equal count + 1, Post.count
     ensure

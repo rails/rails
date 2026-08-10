@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 gem "listen", "~> 3.5"
@@ -19,18 +20,20 @@ module ActiveSupport
   #
   # Example:
   #
-  #     checker = ActiveSupport::EventedFileUpdateChecker.new(["/tmp/foo"]) { puts "changed" }
-  #     checker.updated?
-  #     # => false
-  #     checker.execute_if_updated
-  #     # => nil
+  # ```
+  # checker = ActiveSupport::EventedFileUpdateChecker.new(["/tmp/foo"]) { puts "changed" }
+  # checker.updated?
+  # # => false
+  # checker.execute_if_updated
+  # # => nil
   #
-  #     FileUtils.touch("/tmp/foo")
+  # FileUtils.touch("/tmp/foo")
   #
-  #     checker.updated?
-  #     # => true
-  #     checker.execute_if_updated
-  #     # => "changed"
+  # checker.updated?
+  # # => true
+  # checker.execute_if_updated
+  # # => "changed"
+  # ```
   #
   class EventedFileUpdateChecker # :nodoc: all
     def initialize(files, dirs = {}, &block)

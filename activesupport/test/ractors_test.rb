@@ -18,6 +18,16 @@ class RactorsTest < ActiveSupport::TestCase
     assert_not value
   end
 
+  def test_store_if_absent_computes_once_and_returns_the_stored_value
+    calls = 0
+    first  = ActiveSupport::Ractors.store_if_absent(:as_ractors_test_once) { calls += 1; +"value" }
+    second = ActiveSupport::Ractors.store_if_absent(:as_ractors_test_once) { calls += 1; +"other" }
+
+    assert_equal "value", first
+    assert_same first, second
+    assert_equal 1, calls
+  end
+
   if RUBY_VERSION >= "4.0"
     def test_on_main_runs_block_on_main_ractor
       value = Ractor.new do
@@ -185,6 +195,16 @@ class RactorsTest < ActiveSupport::TestCase
       end
     ensure
       ActiveSupport::Ractors.unshareable_proc_action = old
+    end
+
+    def test_store_if_absent_is_ractor_local
+      main_value = ActiveSupport::Ractors.store_if_absent(:as_ractors_test_local) { "main" }
+      worker_value = Ractor.new do
+        ActiveSupport::Ractors.store_if_absent(:as_ractors_test_local) { "worker" }
+      end.value
+
+      assert_equal "main", main_value
+      assert_equal "worker", worker_value
     end
   end
 end

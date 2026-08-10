@@ -42,6 +42,7 @@ module ActiveModel
       def attribute_types # :nodoc:
         @attribute_types ||= _default_attributes.cast_types.tap do |hash|
           hash.default = Type.default_value
+          ActiveSupport::Ractors.try_make_shareable(hash)
         end
       end
 

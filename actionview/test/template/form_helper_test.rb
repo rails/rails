@@ -607,6 +607,22 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
+  def test_file_field_with_multiple_include_hidden_carries_form_attribute
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      expected = '<input type="hidden" name="import[file][]" value="" form="uploads">' \
+                 '<input id="import_file" multiple="multiple" form="uploads" name="import[file][]" type="file" />'
+      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true, form: "uploads")
+    end
+  end
+
+  def test_file_field_with_multiple_include_hidden_carries_disabled_attribute
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      expected = '<input type="hidden" name="import[file][]" value="" disabled="disabled">' \
+                 '<input id="import_file" disabled="disabled" multiple="multiple" name="import[file][]" type="file" />'
+      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true, disabled: true)
+    end
+  end
+
   def test_file_field_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
     expected = '<input type="file" name="import[file]" id="import_file" />'
     assert_dom_equal expected, file_field("import", "file", direct_upload: true)
@@ -1171,6 +1187,26 @@ class FormHelperTest < ActionView::TestCase
   def test_search_field_with_onsearch_value
     expected = %{<input onsearch="true" type="search" name="contact[notes_query]" id="contact_notes_query" incremental="true" />}
     assert_dom_equal(expected, search_field("contact", "notes_query", onsearch: true))
+  end
+
+  def test_search_field_with_autosave_true_uses_the_reversed_host
+    expected = %{<input autosave="host.test" results="10" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: true))
+  end
+
+  def test_search_field_with_autosave_string_is_left_alone
+    expected = %{<input autosave="com.example.www" results="10" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: "com.example.www"))
+  end
+
+  def test_search_field_with_autosave_does_not_override_given_results
+    expected = %{<input autosave="host.test" results="3" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: true, results: 3))
+  end
+
+  def test_search_field_with_autosave_false_omits_results
+    expected = %{<input autosave="false" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: false))
   end
 
   def test_telephone_field

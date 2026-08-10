@@ -327,7 +327,63 @@ In test and development applications get a `secret_key_base` derived from the ap
 secret_key_base: 492f...
 ```
 
-WARNING: If your application's secrets may have been exposed, strongly consider changing them. Note that changing `secret_key_base` will expire currently active sessions and require all users to log in again. In addition to session data: encrypted cookies, signed cookies, and Active Storage files may also be affected.
+WARNING: If your application's secrets may have been exposed, strongly consider changing them. Note that changing
+`secret_key_base` without rotating the old value will expire currently active sessions and require all users to log in
+again. In addition to session data: encrypted cookies, signed cookies, and Active Storage files may also be affected.
+
+### Rotating the `secret_key_base`
+
+You can rotate your application's `secret_key_base` without immediately
+invalidating messages generated with the old secret. First, replace
+`secret_key_base` with a new random value and make the old value available
+separately, for example as `old_secret_key_base` in your credentials. Then add
+the old value as a fallback before any message verifiers are created:
+
+```ruby
+# config/application.rb
+config.before_initialize do |app|
+  app.message_verifiers.rotate(
+    secret_key_base: app.credentials.old_secret_key_base
+  )
+end
+```
+
+New messages are generated using the new `secret_key_base`, while application
+message verifiers can still verify messages generated with the old one. This
+includes framework features backed by `Rails.application.message_verifiers`,
+such as signed IDs and Active Storage.
+
+Cookies use a separate rotation configuration. To preserve existing signed and
+encrypted cookies, derive their old secrets from the old `secret_key_base` and
+register them in an initializer:
+
+```ruby
+# config/initializers/cookie_rotator.rb
+Rails.application.config.after_initialize do |app|
+  old_secret_key_base = app.credentials.old_secret_key_base
+  old_key_generator = app.key_generator(old_secret_key_base)
+  action_dispatch = app.config.action_dispatch
+
+  old_signed_secret = old_key_generator.generate_key(
+    action_dispatch.signed_cookie_salt
+  )
+  old_encrypted_secret = old_key_generator.generate_key(
+    action_dispatch.authenticated_encrypted_cookie_salt,
+    ActiveSupport::MessageEncryptor.key_len(action_dispatch.encrypted_cookie_cipher)
+  )
+
+  action_dispatch.cookies_rotations.tap do |cookies|
+    cookies.rotate :signed, old_signed_secret
+    cookies.rotate :encrypted, old_encrypted_secret
+  end
+end
+```
+
+After enough time has passed for old messages and cookies to expire or be
+rewritten, remove the rotations and delete `old_secret_key_base`.
+
+WARNING: Do not retain an exposed secret as a fallback: if the old value may be compromised, replace
+it immediately and allow existing messages and cookies to become invalid.
 
 ### Rotating Encrypted and Signed Cookies Configurations
 

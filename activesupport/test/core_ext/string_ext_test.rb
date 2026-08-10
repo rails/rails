@@ -213,6 +213,18 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_string_parameterized_nil_separator
+    StringToParameterizeWithNoSeparator.each do |normal, slugged|
+      assert_equal(slugged, normal.parameterize(separator: nil))
+    end
+  end
+
+  def test_string_parameterized_nil_separator_preserve_case
+    StringToParameterizePreserveCaseWithNoSeparator.each do |normal, slugged|
+      assert_equal(slugged, normal.parameterize(separator: nil, preserve_case: true))
+    end
+  end
+
   def test_string_parameterized_underscore
     StringToParameterizeWithUnderscore.each do |normal, slugged|
       assert_equal(slugged, normal.parameterize(separator: "_"))

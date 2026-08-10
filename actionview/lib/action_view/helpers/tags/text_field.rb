@@ -19,9 +19,16 @@ module ActionView
 
         class << self
           def field_type
-            @field_type ||= name.split("::").last.sub("Field", "").downcase
+            @field_type ||= name.split("::").last.sub("Field", "").downcase.dedup
+          end
+
+          def inherited(subclass)
+            super
+            subclass.field_type if subclass.name
           end
         end
+
+        field_type
 
         private
           def field_type

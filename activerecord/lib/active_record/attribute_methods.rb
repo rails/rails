@@ -294,9 +294,8 @@ module ActiveRecord
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
       if @attributes
-        if name = self.class.symbol_column_to_string(name.to_sym)
-          return _has_attribute?(name)
-        end
+        name = name.name if name.is_a?(Symbol)
+        return _has_attribute?(name) if self.class.columns_hash.key?(name)
       end
 
       true

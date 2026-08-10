@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/testing/ractors_assertions"
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
@@ -40,6 +41,7 @@ class ::MyOldKeyProvider; end
 module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
     include Rack::Test::Methods
     include EnvHelpers
 
@@ -2825,7 +2827,7 @@ module ApplicationTests
           key: foo:
       RUBY
 
-      error = assert_raises RuntimeError do
+      error = assert_raises ActiveSupport::ConfigurationFile::FormatError do
         app "development"
       end
       assert_match "YAML syntax error occurred while parsing", error.message
@@ -3571,6 +3573,19 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
+    end
+
+    if RUBY_VERSION >= "4.0"
+      test "ActionView::Template::Handlers::ERB.escape_ignore_list is frozen after boot" do
+        app "development"
+
+        escape_ignore_list = on_ractor do
+          ActionView::Template::Handlers::ERB.escape_ignore_list
+        end
+
+        assert_equal(["text/plain"], escape_ignore_list)
+        assert_predicate(escape_ignore_list, :frozen?)
+      end
     end
 
     test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is true by default" do
@@ -4888,6 +4903,33 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+    end
+
+    test "raise_on_invalid_time_zone_parse is false with 8.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app "development"
+
+      assert_equal false, ActiveSupport.raise_on_invalid_time_zone_parse
+    end
+
+    test "raise_on_invalid_time_zone_parse is true with 8.2 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.2"'
+      app "development"
+
+      assert_equal true, ActiveSupport.raise_on_invalid_time_zone_parse
+    end
+
+    test "raise_on_invalid_time_zone_parse can be set via new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app_file "config/initializers/new_framework_defaults_8_2.rb", <<-RUBY
+        ActiveSupport.raise_on_invalid_time_zone_parse = true
+      RUBY
+      app "development"
+
+      assert_equal true, ActiveSupport.raise_on_invalid_time_zone_parse
     end
 
     test "adds a time zone aware type if using PostgreSQL" do

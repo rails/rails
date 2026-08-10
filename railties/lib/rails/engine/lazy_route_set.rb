@@ -89,17 +89,22 @@ module Rails
         def method_missing_module
           @method_missing_module ||= Module.new do
             private
-              def method_missing(...)
-                if Rails.application&.reload_routes_unless_loaded
-                  public_send(...)
+              # NamedRouteCollection#define_url_helper only defines "#{name}_path"
+              # and "#{name}_url" in these modules, so other suffixes can never be
+              # lazy route helpers. Without this guard, including url_helpers into
+              # Object makes every respond_to?(:to_ary) (and similar) re-enter
+              # reload_routes_unless_loaded and thrash while routes are drawing.
+              def method_missing(method_name, ...)
+                if method_name.end_with?("_path", "_url") && Rails.application&.reload_routes_unless_loaded
+                  public_send(method_name, ...)
                 else
                   super
                 end
               end
 
-              def respond_to_missing?(...)
-                if Rails.application&.reload_routes_unless_loaded
-                  respond_to?(...)
+              def respond_to_missing?(method_name, include_private = false)
+                if method_name.end_with?("_path", "_url") && Rails.application&.reload_routes_unless_loaded
+                  respond_to?(method_name, include_private)
                 else
                   super
                 end

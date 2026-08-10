@@ -1,7 +1,9 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "concurrent/map"
 require "active_support/core_ext/object/try"
+require "active_support/ractors"
 
 module ActiveSupport
   module Notifications
@@ -53,6 +55,8 @@ module ActiveSupport
     #
     # This class is thread safe. All methods are reentrant.
     class Fanout
+      attr_accessor :string_subscribers, :other_subscribers # :nodoc:
+
       def initialize
         @mutex = Mutex.new
         @string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
@@ -67,6 +71,8 @@ module ActiveSupport
       end
 
       def subscribe(pattern = nil, callable = nil, monotonic: false, prepend: false, &block)
+        block = ActiveSupport::Ractors.try_shareable_proc(block) if block
+
         subscriber = Subscribers.new(pattern, callable || block, monotonic)
         @mutex.synchronize do
           case pattern
@@ -220,24 +226,26 @@ module ActiveSupport
         groups
       end
 
-      # A +Handle+ is used to record the start and finish time of event.
+      # A `Handle` is used to record the start and finish time of event.
       #
       # Both #start and #finish must each be called exactly once.
       #
       # Where possible, it's best to use the block form: ActiveSupport::Notifications.instrument.
-      # +Handle+ is a low-level API intended for cases where the block form can't be used.
+      # `Handle` is a low-level API intended for cases where the block form can't be used.
       #
-      #   handle = ActiveSupport::Notifications.instrumenter.build_handle("my.event", {})
-      #   begin
-      #     handle.start
-      #     # work to be instrumented
-      #   ensure
-      #     handle.finish
-      #   end
+      # ```
+      # handle = ActiveSupport::Notifications.instrumenter.build_handle("my.event", {})
+      # begin
+      #   handle.start
+      #   # work to be instrumented
+      # ensure
+      #   handle.finish
+      # end
+      # ```
       class Handle
         include FanoutIteration
 
-        def initialize(notifier, name, id, groups, payload) # :nodoc:
+        def initialize(name, id, groups, payload) # :nodoc:
           @name = name
           @id = id
           @payload = payload
@@ -298,7 +306,7 @@ module ActiveSupport
         if groups.empty?
           NullHandle
         else
-          Handle.new(self, name, id, groups, payload)
+          Handle.new(name, id, groups, payload)
         end
       end
 

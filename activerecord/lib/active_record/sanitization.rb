@@ -182,6 +182,20 @@ module ActiveRecord
         end
       end
 
+      def bound_sql_literal_for(statement, values) # :nodoc:
+        if values.first.is_a?(Hash) && /:\w+/.match?(statement)
+          bound_values = values.first.transform_values { bind_value_for_sql_literal(_1) }
+          Arel::Nodes::BoundSqlLiteral.new(statement, nil, bound_values)
+        elsif statement.include?("?")
+          bound_values = values.map { bind_value_for_sql_literal(_1) }
+          Arel::Nodes::BoundSqlLiteral.new(statement, bound_values, nil)
+        else
+          Arel.sql(sanitize_sql([statement, *values]))
+        end
+      rescue Arel::BindError => error
+        raise ActiveRecord::PreparedStatementInvalid, error.message
+      end
+
       def disallow_raw_sql!(args, permit: adapter_class.column_name_matcher) # :nodoc:
         unexpected = nil
         args.each do |arg|
@@ -202,6 +216,17 @@ module ActiveRecord
       end
 
       private
+        def bind_value_for_sql_literal(value)
+          if ActiveRecord::Relation === value
+            Arel.sql(value.to_sql)
+          elsif value.respond_to?(:map) && !value.acts_like?(:string)
+            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
+            values.empty? ? nil : values
+          else
+            value.respond_to?(:id_for_database) ? value.id_for_database : value
+          end
+        end
+
         def replace_bind_variables(connection, statement, values)
           raise_if_bind_arity_mismatch(statement, statement.count("?"), values.size)
           bound = values.dup

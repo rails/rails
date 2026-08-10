@@ -647,7 +647,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     end
 
     assert_queries_match(%r{/\* from-scope \*/}) do
-      assert_equal Topic.including_annotate_in_scope.to_a, Topic.all.to_a
+      assert_equal_unordered Topic.including_annotate_in_scope.to_a, Topic.all.to_a
     end
   end
 end

@@ -44,9 +44,11 @@ module ActiveRecord
 
     def test_multi_values_deduplication_with_merge
       expected = {
-        unscope:   [ :where ],
-        extending: [ Module.new ],
-        with:      [ foo: Post.all ],
+        order:         [ Arel.sql("id") ],
+        default_order: [ Arel.sql("id") ],
+        unscope:       [ :where ],
+        extending:     [ Module.new ],
+        with:          [ foo: Post.all ],
       }
       expected.default = [ Object.new ]
 

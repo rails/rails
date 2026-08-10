@@ -4,6 +4,7 @@ require "cases/helper"
 
 class OverloadedType < ActiveRecord::Base
   attribute :overloaded_float, :integer
+  attribute :overloaded_boolean, :integer
   attribute :overloaded_string_with_limit, :string, limit: 50
   attribute :non_existent_decimal, :decimal
   attribute :string_with_default, :string, default: "the overloaded default"
@@ -25,11 +26,26 @@ module ActiveRecord
     test "overloading types" do
       data = OverloadedType.new
 
+      assert_equal 500, data.overloaded_float
+      assert_nil data.unoverloaded_float
+
       data.overloaded_float = "1.1"
       data.unoverloaded_float = "1.1"
 
       assert_equal 1, data.overloaded_float
       assert_equal 1.1, data.unoverloaded_float
+    end
+
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      test "overloading boolean types" do
+        # On MySQL-like databases `tinyint(1)` can easily be confused with a boolean.
+        data = OverloadedType.new
+
+        assert_equal 0, data.overloaded_boolean
+        data.overloaded_boolean = "2"
+        data.save!
+        assert_equal 2, data.overloaded_boolean
+      end
     end
 
     test "overloaded properties save" do

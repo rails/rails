@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "strscan"
@@ -6,20 +7,22 @@ class String
   # Strips indentation in heredocs.
   #
   # Note that since Ruby 2.3, heredocs can directly created with their indentation stripped
-  # by using the <tt><<~</tt> syntax instead of <tt><<-</tt>.
+  # by using the `<<~` syntax instead of `<<-`.
   # Hence the strip_heredoc method is rarely useful nowadays.
   #
   # For example in
   #
-  #   if options[:usage]
-  #     puts <<-USAGE.strip_heredoc
-  #       This command does such and such.
+  # ```
+  # if options[:usage]
+  #   puts <<-USAGE.strip_heredoc
+  #     This command does such and such.
   #
-  #       Supported options are:
-  #         -h         This message
-  #         ...
-  #     USAGE
-  #   end
+  #     Supported options are:
+  #       -h         This message
+  #       ...
+  #   USAGE
+  # end
+  # ```
   #
   # the user would see the usage message aligned against the left margin.
   #

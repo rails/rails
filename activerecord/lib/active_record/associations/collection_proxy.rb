@@ -730,7 +730,7 @@ module ActiveRecord
           Base.strict_loading_violation!(owner: proxy_association.owner.class, reflection: proxy_association.reflection)
         end
 
-        null_scope? ? scope.pluck(*column_names) : super
+        null_scope? ? records.pluck(*column_names) : super
       end
 
       ##

@@ -3,7 +3,7 @@
 require "isolation/abstract_unit"
 require "active_support/testing/ractors_assertions"
 
-if RUBY_VERSION >= "4.0"
+if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
   module ApplicationTests
     class RactorsTest < ActiveSupport::TestCase
       include ActiveSupport::Testing::Isolation
@@ -34,6 +34,15 @@ if RUBY_VERSION >= "4.0"
         assert_ractor_shareable Rails.event
         assert_ractor_shareable Rails.error
         assert_ractor_shareable Rails.backtrace_cleaner
+      end
+
+      test "ractorize! eager loads and compiles view templates" do
+        app "production"
+
+        ractorize!
+
+        templates = ActionView::PathRegistry.all_file_system_resolvers.flat_map(&:built_templates)
+        assert_not_empty templates
       end
 
       test "error reporting works after the application is ractorized" do

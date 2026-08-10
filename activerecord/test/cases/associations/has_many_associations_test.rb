@@ -178,6 +178,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_equal queries, capture_sql_and_binds { post.comments.to_a }
   end
 
+  def test_has_many_writes_foreign_key_through_alias_attribute
+    author = authors(:david)
+    post = author.posts_with_aliased_author_id.create!(title: "New Post", body: "Body")
+    assert_equal author.id, post.writer_id
+    assert_equal author.id, post.author_id
+  end
+
+  def test_has_many_sets_inverse_instance_through_alias_attribute_foreign_key
+    author = authors(:david)
+    author.posts_with_aliased_author_id.create!(title: "New Post", body: "Body")
+    post = author.posts_with_aliased_author_id.reload.first
+    assert_same author, post.author
+  end
+
   def test_has_many_build_with_options
     college = College.create(name: "UFMT")
     Student.create(active: true, college_id: college.id, name: "Sarah")
@@ -2209,6 +2223,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, firm.clients.size
   end
 
+  def test_ids_reader_on_loaded_association_of_new_record
+    client = Client.create!(name: "Client")
+    firm = Firm.new(name: "Startup")
+    firm.clients = [client]
+
+    assert_predicate firm.clients, :loaded?
+    assert_equal [client.id], firm.clients.ids
+  end
+
+  def test_pluck_on_loaded_association_of_new_record
+    client = Client.create!(name: "Client")
+    firm = Firm.new(name: "Startup")
+    firm.clients = [client]
+
+    assert_equal ["Client"], firm.clients.pluck(:name)
+  end
+
+  def test_pluck_on_unloaded_association_of_new_record
+    Client.create!(name: "Client")
+    firm = Firm.new(name: "Startup")
+
+    assert_equal [], firm.clients.pluck(:name)
+  end
+
   def test_ids_reader_cache_should_be_cleared_when_collection_is_deleted
     firm = companies(:first_firm)
     assert_equal [2, 3, 11], firm.client_ids
@@ -2751,7 +2789,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     bulb2 = car.bulbs.create
     bulb3 = Bulb.create
 
-    assert_equal [bulb1, bulb2], car.bulbs
+    assert_equal_unordered [bulb1, bulb2], car.bulbs
     result = car.bulbs.replace([bulb3, bulb1])
     assert_equal [bulb1, bulb3], car.bulbs
     assert_equal [bulb1, bulb3], result
@@ -3302,7 +3340,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_ids_reader_on_preloaded_association_with_composite_primary_key
     great_author = cpk_authors(:cpk_great_author)
 
-    assert_equal great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
+    assert_equal_unordered great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
   end
 
   def test_ids_writer_with_composite_primary_key_and_string_ids

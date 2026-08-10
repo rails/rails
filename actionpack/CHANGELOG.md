@@ -1,3 +1,57 @@
+*   Split keyword arguments off `#args` on `Rails.application.middleware` entries.
+
+    Middleware entries now expose keyword arguments through a new `#kwargs`
+    accessor. `#args` previously bundled kwargs as a trailing hash inside the
+    positional array (via `Hash.ruby2_keywords_hash`); it now returns
+    positional arguments only. Code that inspects `middleware.args` directly
+    needs to also read `middleware.kwargs`.
+
+    *Ryuta Kamizono*
+
+*   Deprecate registering and unregistering MIME types after application initialization.
+
+    `Mime::Type.register`, `Mime::Type.register_alias`, and `Mime::Type.unregister` will raise
+    a `FrozenError` when called after application initialization in the next version of Rails.
+    Instead, register or unregister MIME types during initialization (e.g. in
+    `config/initializers/mime_types.rb` or a Railtie `initializer` block).
+
+    *Étienne Barrié*
+
+*   Deprecate `Mime::Type.register_callback`.
+
+    It was never intended as a public API and has no replacement.
+
+    *Étienne Barrié*
+
+*   Allow HTTP token authentication to require specific authentication schemes.
+
+    Pass `scheme:` to `authenticate_or_request_with_http_token` (and the other
+    token authentication methods) with a scheme name, or an array of names, to
+    require one of those schemes and use them in the `WWW-Authenticate`
+    challenge:
+
+    ```ruby
+    authenticate_or_request_with_http_token(scheme: ["Bearer", "DPoP"]) do |token, options, scheme|
+      # ...
+    end
+    ```
+
+    Any scheme name can be required. Without `scheme:`, `Token`, `Bearer`, and
+    `DPoP` are accepted. The request's scheme is yielded to the authentication
+    block as a downcased symbol in an optional third argument.
+
+    *Chad Cole*
+
+*   Fix route recognition still matching routes that were removed by redrawing
+    a route set as empty.
+
+    `Journey::Routes#clear` did not invalidate the memoized recognition data
+    (`ast` / `simulator`); only `add_route` did. After `RouteSet#draw` cleared
+    the set, a draw block that added no routes left the stale recognition data
+    in place, so previously drawn routes were still recognized.
+
+    *Kenta Ishizaki*
+
 *   Deprecate `ActionDispatch::Cookies::HTTP_HEADER`.
 
     Use `Rack::SET_COOKIE` instead.
@@ -119,7 +173,7 @@
       user: { email: "  ALICE@EXAMPLE.COM  ", profile: { bio: "  Hello world  " } }
     )
     params.deep_transform_values { |v| v.is_a?(String) ? v.strip.downcase : v }
-    # => #<ActionController::Parameters {"user"=>#<ActionController::Parameters {"email"=>"alice@example.com", "profile"=>#<ActionController::Parameters {"bio"=>"hello world"} permitted: false>} permitted: false>} permitted: false>
+    # => #<ActionController::Parameters {"user"=>{"email"=>"alice@example.com", "profile"=>{"bio"=>"hello world"}}} permitted: false>
     ```
 
     *Edil Talantbek uulu*

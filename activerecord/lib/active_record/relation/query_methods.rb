@@ -92,7 +92,7 @@ module ActiveRecord
             @scope.joins!(association)
           end
 
-          association_conditions = Array(reflection.association_primary_key).index_with(nil)
+          association_conditions = ActiveRecord::Key.for(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
             self.not(association => association_conditions)
           else
@@ -125,7 +125,7 @@ module ActiveRecord
         associations.each do |association|
           reflection = scope_association_reflection(association)
           @scope.left_outer_joins!(association)
-          association_conditions = Array(reflection.association_primary_key).index_with(nil)
+          association_conditions = ActiveRecord::Key.for(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
             @scope.where!(association => association_conditions)
           else
@@ -1371,7 +1371,7 @@ module ActiveRecord
     #
     # To make a readonly relation writable, pass +false+.
     #
-    #   users.readonly(false)
+    #   users = users.readonly(false)
     #   users.first.save
     #   # => true
     def readonly(value = true)
@@ -1697,12 +1697,8 @@ module ActiveRecord
         when String
           if rest.empty?
             parts = [Arel.sql(opts)]
-          elsif rest.first.is_a?(Hash) && /:\w+/.match?(opts)
-            parts = [build_named_bound_sql_literal(opts, rest.first)]
-          elsif opts.include?("?")
-            parts = [build_bound_sql_literal(opts, rest)]
           else
-            parts = [Arel.sql(model.sanitize_sql([opts, *rest]))]
+            parts = [model.bound_sql_literal_for("(#{opts})", rest)]
           end
         when Hash
           opts = opts.transform_keys do |key|
@@ -1752,46 +1748,6 @@ module ActiveRecord
     private
       def async
         spawn.async!
-      end
-
-      def build_named_bound_sql_literal(statement, values)
-        bound_values = values.transform_values do |value|
-          if ActiveRecord::Relation === value
-            Arel.sql(value.to_sql)
-          elsif value.respond_to?(:map) && !value.acts_like?(:string)
-            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
-            values.empty? ? nil : values
-          else
-            value = value.id_for_database if value.respond_to?(:id_for_database)
-            value
-          end
-        end
-
-        begin
-          Arel::Nodes::BoundSqlLiteral.new("(#{statement})", nil, bound_values)
-        rescue Arel::BindError => error
-          raise ActiveRecord::PreparedStatementInvalid, error.message
-        end
-      end
-
-      def build_bound_sql_literal(statement, values)
-        bound_values = values.map do |value|
-          if ActiveRecord::Relation === value
-            Arel.sql(value.to_sql)
-          elsif value.respond_to?(:map) && !value.acts_like?(:string)
-            values = value.map { |v| v.respond_to?(:id_for_database) ? v.id_for_database : v }
-            values.empty? ? nil : values
-          else
-            value = value.id_for_database if value.respond_to?(:id_for_database)
-            value
-          end
-        end
-
-        begin
-          Arel::Nodes::BoundSqlLiteral.new("(#{statement})", bound_values, nil)
-        rescue Arel::BindError => error
-          raise ActiveRecord::PreparedStatementInvalid, error.message
-        end
       end
 
       def lookup_table_klass_from_join_dependencies(table_name)

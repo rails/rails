@@ -1705,7 +1705,9 @@ module ActiveRecord
 
         def connection_without_insert_returning(&block)
           db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-          with_postgresql_adapter(db_config.configuration_hash.merge(insert_returning: false), &block)
+          assert_deprecated(ActiveRecord.deprecator) do
+            with_postgresql_adapter(db_config.configuration_hash.merge(insert_returning: false), &block)
+          end
         end
 
         def oid_lookup_query?(query)

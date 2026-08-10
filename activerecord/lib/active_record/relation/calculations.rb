@@ -373,47 +373,11 @@ module ActiveRecord
     #   Person.ids # SELECT people.id FROM people
     #   Person.joins(:company).ids # SELECT people.id FROM people INNER JOIN companies ON companies.id = people.company_id
     def ids
-      if @none
-        if @async
-          return Promise::Complete.new([])
-        else
-          return []
-        end
+      if !loaded? && has_include?(primary_key)
+        return apply_join_dependency.group(*primary_key).pluck(*primary_key)
       end
 
-      primary_key_array = Array(primary_key)
-
-      if loaded?
-        result = records.map do |record|
-          if primary_key_array.one?
-            record._read_attribute(primary_key_array.first)
-          else
-            primary_key_array.map { |column| record._read_attribute(column) }
-          end
-        end
-        return @async ? Promise::Complete.new(result) : result
-      end
-
-      if has_include?(primary_key)
-        relation = apply_join_dependency.group(*primary_key_array)
-        return relation.ids
-      end
-
-      columns = arel_columns(primary_key_array)
-      relation = spawn
-      relation.select_values = columns
-
-      result = if relation.where_clause.contradiction?
-        ActiveRecord::Result.empty(async: @async)
-      else
-        skip_query_cache_if_necessary do
-          model.with_connection do |c|
-            c.select_all(relation, "#{model.name} Ids", async: @async)
-          end
-        end
-      end
-
-      result.then { |result| type_cast_pluck_values(result, columns) }
+      pluck(*primary_key)
     end
 
     # Same as #ids, but performs the query asynchronously and returns an

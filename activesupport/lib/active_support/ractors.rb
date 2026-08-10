@@ -46,10 +46,10 @@ module ActiveSupport
       #
       # :raise - The error is raised
       # :warn  - A deprecation warning is triggered and the original unshareable object is returned.
-      def try_make_shareable(obj)
+      def try_make_shareable(obj, **)
         return obj unless unshareable_proc_action
 
-        make_shareable(obj)
+        make_shareable(obj, **)
       rescue Ractor::IsolationError
         case unshareable_proc_action
         when :raise
@@ -67,7 +67,7 @@ module ActiveSupport
         end
       end
 
-      if defined?(Ractor) && RUBY_VERSION >= "4.0"
+      if RUBY_VERSION >= "4.0"
         def on_main(obj = nil, &block)
           if Ractor.main?
             obj.instance_eval(&block)
@@ -117,6 +117,7 @@ module ActiveSupport
         def shareable_lambda(...)
           Ractor.shareable_lambda(...)
         end
+
       else
         def main?
           Ractor.current == Ractor.main
@@ -141,6 +142,26 @@ module ActiveSupport
         def shareable_lambda(self: nil, &block)
           block
         end
+      end
+    end
+
+    if Ractor.respond_to?(:store_if_absent)
+      # Returns the value stored under +key+ in the current Ractor's local
+      # storage, running +block+ to compute and store it on first access, by
+      # delegating to +Ractor.store_if_absent+. Concurrent threads in the
+      # same Ractor initialize the value only once.
+      def self.store_if_absent(key, &block)
+        Ractor.store_if_absent(key, &block)
+      end
+    else
+      @local_storage_lock = Mutex.new
+
+      # Same contract as +Ractor.store_if_absent+ (Ruby 3.4) on top of the
+      # Ractor-local storage that predates it: the value is initialized at
+      # most once even when the Ractor's threads race, with an unsynchronized
+      # fast path for the common hit.
+      def self.store_if_absent(key, &block)
+        Ractor.current[key] || @local_storage_lock.synchronize { Ractor.current[key] ||= block.call }
       end
     end
   end

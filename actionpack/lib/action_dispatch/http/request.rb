@@ -210,8 +210,8 @@ module ActionDispatch
     #
     # For debugging purposes, when called with arguments this method will fall back
     # to Object#method
-    def method(*args)
-      if args.empty?
+    def method(*args, **kwargs)
+      if args.empty? && kwargs.empty?
         @method ||= check_method(
           get_header("rack.methodoverride.original_method") ||
           get_header("REQUEST_METHOD")
@@ -220,7 +220,6 @@ module ActionDispatch
         super
       end
     end
-    ruby2_keywords(:method)
 
     # Returns a symbol form of the #method.
     def method_symbol
@@ -283,7 +282,7 @@ module ActionDispatch
 
     # The `String` MIME type of the request.
     #
-    #     # get "/articles"
+    #     # post "/articles", params: { title: "Rails" }
     #     request.media_type # => "application/x-www-form-urlencoded"
     def media_type
       content_mime_type&.to_s

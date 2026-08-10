@@ -241,7 +241,7 @@ module ActiveModel
         call_args = []
         call_args << parameters if parameters
 
-        define_call(code_generator, method_name, target_name, mangled_name, parameters, call_args, namespace: :alias_attribute, as: method_name)
+        define_call(code_generator, target_name, mangled_name, parameters, call_args, namespace: :alias_attribute, as: method_name)
       end
 
       # Is +new_name+ an alias?
@@ -338,7 +338,7 @@ module ActiveModel
           return unless override
         end
 
-        generate_method = "define_method_#{pattern.proxy_target}"
+        generate_method = pattern.define_method_proxy_target
 
         if respond_to?(generate_method, true)
           send(generate_method, attr_name.to_s, owner: owner, as: as)
@@ -430,7 +430,7 @@ module ActiveModel
           #   attribute :title
           namespace = :"#{namespace}_#{proxy_target}"
 
-          define_call(code_generator, name, proxy_target, mangled_name, parameters, call_args, namespace: namespace, as: as)
+          define_call(code_generator, proxy_target, mangled_name, parameters, call_args, namespace: namespace, as: as)
         end
 
         def build_mangled_name(name)
@@ -443,7 +443,7 @@ module ActiveModel
           mangled_name
         end
 
-        def define_call(code_generator, name, target_name, mangled_name, parameters, call_args, namespace:, as:)
+        def define_call(code_generator, target_name, mangled_name, parameters, call_args, namespace:, as:)
           code_generator.define_cached_method(mangled_name, as: as, namespace: namespace) do |batch|
             body = if CALL_COMPILABLE_REGEXP.match?(target_name)
               "self.#{target_name}(#{call_args.join(", ")})"
@@ -466,7 +466,7 @@ module ActiveModel
         end
 
         class AttributeMethodPattern # :nodoc:
-          attr_reader :prefix, :suffix, :proxy_target, :parameters
+          attr_reader :prefix, :suffix, :define_method_proxy_target, :proxy_target, :parameters
 
           AttributeMethod = Struct.new(:proxy_target, :attr_name)
 
@@ -476,6 +476,7 @@ module ActiveModel
             @parameters = parameters.nil? ? "..." : (parameters.is_a?(String) ? -parameters : parameters)
             @regex = /\A(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})\z/
             @proxy_target = "#{@prefix}attribute#{@suffix}".freeze
+            @define_method_proxy_target = :"define_method_#{@proxy_target}"
             @method_name = "#{prefix}%s#{suffix}".freeze
             freeze
           end
@@ -572,7 +573,7 @@ module ActiveModel
         # to allocate an object on each call to the attribute method.
         # Making it frozen means that it doesn't get duped when used to
         # key the @attributes in read_attribute.
-        def self.define_attribute_accessor_method(owner, attr_name, writer: false)
+        def self.define_attribute_accessor_method(attr_name, writer: false)
           method_name = "#{attr_name}#{'=' if writer}"
           if attr_name.ascii_only? && DEF_SAFE_NAME.match?(attr_name)
             yield method_name, "'#{attr_name}'"

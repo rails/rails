@@ -49,6 +49,16 @@ module ActionView
       ]
     end
 
+    # A single pass over matches? and sort_key_for: the sort key when the
+    # template matches +requested+, nil otherwise.
+    def rank_for(requested)
+      format  = requested.formats_idx[@format]   or return
+      locale  = requested.locale_idx[@locale]    or return
+      variant = requested.variants_idx[@variant] or return
+      handler = requested.handlers_idx[@handler] or return
+      [format, locale, variant, handler]
+    end
+
     def handler_class
       Template.handler_for_extension(handler)
     end

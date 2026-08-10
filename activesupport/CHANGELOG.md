@@ -1,3 +1,34 @@
+*   Fix `Range#sum` with a falsey initial value.
+
+    Summing an integer range with a falsey starting value (such as nil or false)
+    treated that value as zero. It now keeps the starting value as given, matching
+    array and enumerable sum.
+
+    *Said Kaldybaev*
+
+*   Add `ActiveSupport.raise_on_invalid_time_zone_parse`.
+
+    Raise `ArgumentError` on `ActiveSupport::TimeZone#parse` for any invalid
+    string. Historically, strings without recognizable date information
+    (e.g. `"foobar"`) returned `nil`, while strings with out-of-range date
+    components (e.g. `"9000"`) raised `ArgumentError`. When enabled, both
+    cases raise `ArgumentError`, matching the Ruby standard library's `Time.parse`.
+
+    *Said Kaldybaev*
+
+*   Raise `ActiveSupport::ConfigurationFile::FormatError` when parsing malformed YAML.
+
+    *Nikita Vasilevsky*
+
+*   Preserve sub-second precision when subtracting a `DateTime` from a `Time`.
+
+    `Time - DateTime` converted both sides via `to_f`, so microsecond-level
+    `DateTime` values lost precision. The difference is now computed from exact
+    rational timestamps, matching `Time.at(DateTime)` and
+    `ActiveSupport::TimeWithZone - DateTime`.
+
+    *Said Kaldybaev*
+
 *   Deprecate `ActiveSupport::Cache::RedisCacheStore::DEFAULT_REDIS_OPTIONS`.
 
     The `redis-client` implementation no longer reads this constant. Pass
@@ -32,7 +63,16 @@
 
     Almost all of the standard Logger interface is supported.
 
-    *Jean Boussier*
+    In addition it can be set to ignore messages matching given patterns.
+
+    Useful to silence noisy logs from gems that your application may not care
+    about, without needing to change the log level and losing other useful logs.
+
+    ```ruby
+    SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger).ignore(/Noisy/)
+    ```
+
+    *Jean Boussier*, *Federico Carrocera*
 
 *   Include call options in `Cache#exist?` instrumentation payload,
     consistent with `read`, `write`, and `delete`.
