@@ -1,3 +1,19 @@
+*   Fix `LengthValidator` raising `NoMethodError` when a `:minimum` (or `:is`)
+    constraint is given as a proc and the validated value is `nil`.
+
+    The proc was resolved only when the value was present, so for a `nil` value
+    it leaked unresolved into the error message and was invoked with the message
+    options hash instead of the record. It is now resolved before the error is
+    built, producing the expected `"is too short"` message.
+
+    ```ruby
+    validates_length_of :title, minimum: ->(record) { record.min_length }
+    # title = nil now yields "is too short (minimum is N characters)"
+    # instead of raising NoMethodError
+    ```
+
+    *Ben Younes*
+
 *   Fix `normalizes` re-applying normalizations on every validation of an
     unpersisted record, and speed up validation of normalized attributes.
 
