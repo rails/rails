@@ -484,12 +484,12 @@ module ActiveRecord
       @connection = ActiveRecord::Base.lease_connection
     end
 
-    def test_create_with_query_cache
+    def test_insert_with_query_cache
       @connection.enable_query_cache!
 
       count = Post.count
 
-      @connection.create("INSERT INTO posts(title, body) VALUES ('', '')")
+      @connection.insert("INSERT INTO posts(title, body) VALUES ('', '')")
 
       assert_equal count + 1, Post.count
     ensure

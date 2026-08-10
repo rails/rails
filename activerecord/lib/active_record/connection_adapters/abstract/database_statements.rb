@@ -307,6 +307,7 @@ module ActiveRecord
         end
       end
       alias create insert
+      deprecate create: :insert, deprecator: ActiveRecord.deprecator
 
       # Executes the update statement and returns the number of rows affected.
       def update(arel_or_sql, name = nil, binds = [])

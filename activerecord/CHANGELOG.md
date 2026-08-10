@@ -1,3 +1,12 @@
+*   Deprecate `ActiveRecord::ConnectionAdapters::DatabaseStatements#create`
+    in favor of `#insert`.
+
+    `create` was an alias of `insert`, but it reads like a DDL statement
+    (compare `create_table`, `create_database`) rather than the SQL `INSERT`
+    it actually performs. Use `insert` directly instead.
+
+    *Ryuta Kamizono*
+
 *   Use bind parameters for array-form arguments in `find_by_sql` and
     `count_by_sql`, matching the `where` behavior the API doc already
     claimed.
