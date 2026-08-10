@@ -657,7 +657,7 @@ module ActiveRecord
       end
 
       def empty_all_tables # :nodoc:
-        truncate_tables(*tables)
+        truncate_tables(*qualified_tables)
       end
 
       def empty_insert_statement_value(primary_key = nil)

@@ -120,6 +120,56 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_includes schema_names, "hint_plan" if @connection.supports_optimizer_hints?
   end
 
+  def test_qualified_tables
+    tables = @connection.qualified_tables
+    assert_not_empty tables
+    assert tables.all? { |t| t.include?(".") }
+    assert_not_includes tables, "test_schema.#{TABLE_NAME}"
+    assert_not_includes tables, "test_schema2.#{TABLE_NAME}"
+  end
+
+  def test_qualified_tables_with_search_path
+    with_schema_search_path "public,test_schema,test_schema2" do
+      tables = @connection.qualified_tables
+      assert_not_empty tables
+      assert tables.all? { |t| t.include?(".") }
+      assert_includes tables, "test_schema.#{TABLE_NAME}"
+      assert_includes tables, "test_schema2.#{TABLE_NAME}"
+    end
+  end
+
+  def test_qualified_tables_quotes_identifiers_containing_dots
+    with_schema_search_path "public,test_schema" do
+      tables = @connection.qualified_tables
+      assert_includes tables, %(test_schema."#{TABLE_NAME}.table")
+    end
+  end
+
+  def test_truncate_tables_with_dotted_table_name
+    with_schema_search_path "public,test_schema" do
+      qualified_name = @connection.qualified_tables.find { |t| t == %(test_schema."#{TABLE_NAME}.table") }
+
+      @connection.execute %(INSERT INTO #{SCHEMA_NAME}."#{TABLE_NAME}.table" (id) VALUES (1))
+
+      @connection.truncate_tables(qualified_name)
+
+      assert_equal 0, @connection.select_value(%(SELECT count(*) FROM #{SCHEMA_NAME}."#{TABLE_NAME}.table"))
+    end
+  end
+
+  def test_truncate_tables_excludes_schema_qualified_internal_metadata_table
+    internal_metadata_table = @connection.pool.internal_metadata.table_name
+
+    @connection.execute "CREATE TABLE #{SCHEMA_NAME}.#{internal_metadata_table} (id serial primary key)"
+    @connection.execute "INSERT INTO #{SCHEMA_NAME}.#{internal_metadata_table} DEFAULT VALUES"
+    @connection.execute "INSERT INTO #{SCHEMA_NAME}.#{TABLE_NAME} (id) VALUES (1)"
+
+    @connection.truncate_tables("#{SCHEMA_NAME}.#{internal_metadata_table}", "#{SCHEMA_NAME}.#{TABLE_NAME}")
+
+    assert_equal 1, @connection.select_value("SELECT count(*) FROM #{SCHEMA_NAME}.#{internal_metadata_table}")
+    assert_equal 0, @connection.select_value("SELECT count(*) FROM #{SCHEMA_NAME}.#{TABLE_NAME}")
+  end
+
   def test_create_schema
     @connection.create_schema "test_schema3"
     assert @connection.schema_names.include? "test_schema3"
