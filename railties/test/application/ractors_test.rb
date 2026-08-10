@@ -3,7 +3,7 @@
 require "isolation/abstract_unit"
 require "active_support/testing/ractors_assertions"
 
-if RUBY_VERSION >= "4.0"
+if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
   module ApplicationTests
     class RactorsTest < ActiveSupport::TestCase
       include ActiveSupport::Testing::Isolation
