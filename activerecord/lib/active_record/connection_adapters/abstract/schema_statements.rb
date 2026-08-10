@@ -348,6 +348,19 @@ module ActiveRecord
         table_definition
       end
 
+      # Returns an AlterTable object containing information about changes that
+      # would be made to +table_name+.
+      #
+      #   alter_table = build_alter_table_definition(:suppliers) do |table|
+      #     table.add_column(:qualification, :string)
+      #   end
+      #
+      def build_alter_table_definition(table_name) # :nodoc:
+        alter_table = create_alter_table(table_name)
+        yield alter_table if block_given?
+        alter_table
+      end
+
       # Creates a new join table with the name created using the lexical order of the first two
       # arguments. These arguments can be a String or a Symbol.
       #
@@ -689,7 +702,7 @@ module ActiveRecord
       def add_column(table_name, column_name, type, **options)
         return if options[:if_not_exists] == true && column_exists?(table_name, column_name)
 
-        at = create_alter_table(table_name)
+        at = build_alter_table_definition(table_name)
         at.add_column(column_name, type, **options)
         execute_alter_table(at)
       end
@@ -712,7 +725,7 @@ module ActiveRecord
           raise ArgumentError.new("You must specify at least one column name. Example: remove_columns(:people, :first_name)")
         end
 
-        at = create_alter_table(table_name)
+        at = build_alter_table_definition(table_name)
         column_names.each { |column_name| at.remove_column(column_name) }
         execute_alter_table(at)
       end
@@ -741,7 +754,7 @@ module ActiveRecord
       def remove_column(table_name, column_name, type = nil, **options)
         return if options[:if_exists] == true && !column_exists?(table_name, column_name)
 
-        at = create_alter_table(table_name)
+        at = build_alter_table_definition(table_name)
         at.remove_column(column_name)
         execute_alter_table(at)
       end
@@ -1263,7 +1276,7 @@ module ActiveRecord
         options = foreign_key_options(from_table, to_table, options)
         return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table, **options.slice(:column, :primary_key))
 
-        at = create_alter_table from_table
+        at = build_alter_table_definition from_table
         at.add_foreign_key to_table, options
 
         execute_alter_table(at)
@@ -1306,7 +1319,7 @@ module ActiveRecord
 
         fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
 
-        at = create_alter_table from_table
+        at = build_alter_table_definition from_table
         at.drop_foreign_key fk_name_to_delete
 
         execute_alter_table(at)
@@ -1392,7 +1405,7 @@ module ActiveRecord
         options = check_constraint_options(table_name, expression, options)
         return if if_not_exists && check_constraint_exists?(table_name, **options)
 
-        at = create_alter_table(table_name)
+        at = build_alter_table_definition(table_name)
         at.add_check_constraint(expression, options)
 
         execute_alter_table(at)
@@ -1424,7 +1437,7 @@ module ActiveRecord
 
         chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
 
-        at = create_alter_table(table_name)
+        at = build_alter_table_definition(table_name)
         at.drop_check_constraint(chk_name_to_delete)
 
         execute_alter_table(at)
@@ -1442,7 +1455,7 @@ module ActiveRecord
       end
 
       def remove_constraint(table_name, constraint_name) # :nodoc:
-        at = create_alter_table(table_name)
+        at = build_alter_table_definition(table_name)
         at.drop_constraint(constraint_name)
 
         execute_alter_table(at)
@@ -1556,7 +1569,7 @@ module ActiveRecord
       #   add_timestamps(:suppliers, null: true)
       #
       def add_timestamps(table_name, **options)
-        at = create_alter_table(table_name)
+        at = build_alter_table_definition(table_name)
         at.add_timestamps(**options)
         execute_alter_table(at)
       end
@@ -1667,7 +1680,7 @@ module ActiveRecord
       end
 
       def bulk_change_table(table_name, operations) # :nodoc:
-        alter_table = create_alter_table(table_name)
+        alter_table = build_alter_table_definition(table_name)
 
         operations.each do |command, args, kwargs|
           args.shift # remove table_name
@@ -1676,7 +1689,7 @@ module ActiveRecord
             alter_table.public_send(command, *args, **kwargs)
           else
             execute_alter_table(alter_table)
-            alter_table = create_alter_table(table_name)
+            alter_table = build_alter_table_definition(table_name)
             send(command, table_name, *args, **kwargs)
           end
         end

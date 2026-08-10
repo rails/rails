@@ -193,7 +193,7 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
   def test_logs_name_rename_column_via_alter_table
     @connection.execute "CREATE TABLE `bar_baz` (`foo` varchar(255))"
     @subscriber.logged.clear
-    at = @connection.send(:create_alter_table, "bar_baz")
+    at = @connection.build_alter_table_definition("bar_baz")
     at.rename_column("foo", "foo2")
     if @connection.send(:supports_rename_column?)
       assert_empty @subscriber.logged
