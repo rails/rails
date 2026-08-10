@@ -43,7 +43,7 @@ class RoutesReloaderTest < ActiveSupport::TestCase
     rescue RuntimeError => error
       error
     end
-    draw_started.pop
+    draw_started.pop(timeout: 2)
 
     waiting = Thread.new { reloader.execute_unless_loaded }
     Thread.pass until waiting.stop?
