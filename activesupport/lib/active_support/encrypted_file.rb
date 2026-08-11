@@ -63,6 +63,7 @@ module ActiveSupport
     # Reads the file and returns the decrypted content.
     #
     # Raises:
+    #
     # - MissingKeyError if the key is missing and `raise_if_missing_key` is true.
     # - MissingContentError if the encrypted file does not exist or otherwise
     #   if the key is missing.
