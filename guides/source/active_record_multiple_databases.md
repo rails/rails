@@ -236,7 +236,7 @@ production:
 ```
 
 If you want to skip dumping the schema for a database entirely, set
-`schema_dump: false`.
+`disable_schema_dump: true`.
 
 #### Configuring a Replica
 
