@@ -17,11 +17,13 @@ module ActionDispatch
       # top-level domain (TLD) length.
       #
       # The module assumes a standard domain structure where domains consist of:
+      #
       # - Subdomains (optional, can be multiple levels)
       # - Domain name
       # - Top-level domain (TLD, can be multiple levels like .co.uk)
       #
       # For example, in "api.staging.example.co.uk":
+      #
       # - Subdomains: ["api", "staging"]
       # - Domain: "example.co.uk" (with tld_length=2)
       # - TLD: "co.uk"

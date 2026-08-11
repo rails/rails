@@ -11,6 +11,7 @@ module ActiveSupport
   # and thus allows all three to serve as interchangeable backends for `Rails.app.creds`.
   #
   # The .env file format supports:
+  #
   # - Lines with KEY=value pairs
   # - Comments starting with #
   # - Empty lines (ignored)

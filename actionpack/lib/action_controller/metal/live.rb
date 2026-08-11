@@ -86,6 +86,7 @@ module ActionController
   #     end
   #
   # Common keys you might want to exclude:
+  #
   # - `:active_record_connected_to_stack` - Database connection routing and roles
   # - `:active_record_prohibit_shard_swapping` - Shard swapping restrictions
   #
