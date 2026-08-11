@@ -108,6 +108,18 @@ class FileSystemResolverTest < ActiveSupport::TestCase
     assert_same c, d
   end
 
+  def test_strict_locals_templates_bind_once_for_any_locals
+    with_file "test/hello_world.html.erb", "<%# locals: () %>Hi"
+    resolver = ActionView::FileSystemResolver.new(tmpdir)
+    key = ActionView::TemplateDetails::Requested.new(**DETAILS)
+
+    a = resolver.find_all("hello_world", "test", false, DETAILS, key, [])[0]
+    b = resolver.find_all("hello_world", "test", false, DETAILS, key, [:extra])[0]
+
+    assert_same a, b
+    assert_equal [a], resolver.built_templates
+  end
+
   def test_frozen_resolver_returns_empty_for_missing_template
     with_file "test/hello_world.html.erb", "<%# locals: () %>Hi"
     resolver = ActionView::FileSystemResolver.new(tmpdir)

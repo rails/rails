@@ -77,6 +77,7 @@ module ActionView
 
           if template.strict_locals?
             @strict_locals_template = template
+            @templates = { normalized_locals => template }.freeze
           else
             # This may have already been assigned, but we've already de-dup'd so
             # reassignment is fine.
