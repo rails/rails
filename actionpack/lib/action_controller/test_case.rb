@@ -263,6 +263,7 @@ module ActionController
   # ## Basic example
   #
   # Functional tests are written as follows:
+  #
   # 1.  First, one uses the `get`, `post`, `patch`, `put`, `delete`, or `head`
   #     method to simulate an HTTP request.
   # 2.  Then, one asserts whether the current state is as expected. "State" can be

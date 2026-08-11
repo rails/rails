@@ -99,8 +99,9 @@ module ActiveSupport
       # Creates a new Redis cache store.
       #
       # The `:url` param can be:
-      #    - A string used to create a RedisClient::Pooled instance.
-      #    - An array of strings used to create a `RedisClient::HashRing` instance.
+      #
+      # - A string used to create a RedisClient::Pooled instance.
+      # - An array of strings used to create a `RedisClient::HashRing` instance.
       #
       # ```
       # Option  Class       Result
