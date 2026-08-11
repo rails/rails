@@ -1,3 +1,30 @@
+*   Wrap the PostgreSQL driver's null byte error in `ActiveRecord::NullByteError`.
+
+    PostgreSQL cannot store null bytes (`\0`) in text columns. Previously the
+    `pg` gem raised a generic `ArgumentError`, which could only be rescued by
+    catching every `ArgumentError` or matching on the message. It is now wrapped
+    in `ActiveRecord::NullByteError`, with the original error available as `#cause`.
+
+    Applications can rescue it to strip the null bytes, validate the input, or
+    reject the request, without any change to stored data.
+
+    This changes which rescue clauses catch the error. `NullByteError` is a
+    subclass of `ActiveRecord::StatementInvalid`, not `ArgumentError`, so code
+    that rescued `ArgumentError` around queries to handle null bytes no longer
+    catches it and should rescue `ActiveRecord::NullByteError` instead. Code
+    that rescues `ActiveRecord::StatementInvalid` or `ActiveRecord::ActiveRecordError`
+    now catches it too.
+
+    ```ruby
+    begin
+      Book.create!(name: "a\0b")
+    rescue ActiveRecord::NullByteError
+      # handle invalid input
+    end
+    ```
+
+    *Simon Isler*
+
 *   Fix preloading a `has_many :through` association with `source_type` and
     conditions on the through table.
 
