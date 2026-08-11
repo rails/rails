@@ -3,7 +3,6 @@
 # :markup: markdown
 
 require "active_support/ractors"
-require "active_support/core_ext/module/delegation"
 require "action_dispatch/middleware/stack"
 
 module ActionController
