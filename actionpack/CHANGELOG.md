@@ -1,3 +1,13 @@
+*   Add `ActionController::Parameters#expected` and `#expected!` as
+    aliases of `#expect` and `#expect!`.
+
+    `expect` is one letter away from `except` and easy to misread at a glance.
+    `expected` reads as the same intent without the visual collision.
+
+        params.expected(person: [:name, :age])
+
+    *Josua Schmid*
+
 *   Split keyword arguments off `#args` on `Rails.application.middleware` entries.
 
     Middleware entries now expose keyword arguments through a new `#kwargs`
