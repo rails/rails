@@ -2713,6 +2713,71 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       url_for(controller: "photos", action: "index", username: nil)
   end
 
+  def test_url_generator_treats_empty_strings_like_nil_for_optional_segments
+    draw do
+      get "(/locale/:locale)(/currency/:currency)/products(/:id)" => "products#show"
+    end
+
+    assert_equal "http://www.example.com/currency/USD/products/123",
+      url_for(controller: "products", action: "show", locale: "", currency: "USD", id: 123)
+    assert_equal "http://www.example.com/currency/USD/products/123",
+      url_for(controller: "products", action: "show", locale: nil, currency: "USD", id: 123)
+
+    assert_equal "http://www.example.com/locale/en/products/123",
+      url_for(controller: "products", action: "show", locale: "en", currency: "", id: 123)
+    assert_equal "http://www.example.com/locale/en/products/123",
+      url_for(controller: "products", action: "show", locale: "en", currency: nil, id: 123)
+
+    assert_equal "http://www.example.com/locale/en/currency/USD/products",
+      url_for(controller: "products", action: "show", locale: "en", currency: "USD", id: "")
+    assert_equal "http://www.example.com/locale/en/currency/USD/products",
+      url_for(controller: "products", action: "show", locale: "en", currency: "USD", id: nil)
+
+    assert_equal "http://www.example.com/locale/false/currency/USD/products/123",
+      url_for(controller: "products", action: "show", locale: false, currency: "USD", id: 123)
+
+    assert_equal "http://www.example.com/currency/USD/products/123?filter=",
+      url_for(controller: "products", action: "show", locale: "", currency: "USD", id: 123, filter: "")
+  end
+
+  def test_url_generator_preserves_empty_strings_for_required_segments
+    draw do
+      get "/products/:id" => "products#show"
+    end
+
+    assert_equal "http://www.example.com/products/",
+      url_for(controller: "products", action: "show", id: "")
+  end
+
+  def test_url_generator_omits_nested_optional_groups_for_empty_strings
+    draw do
+      get "(/locale/:locale(/currency/:currency))/products" => "products#index"
+    end
+
+    assert_equal "http://www.example.com/products",
+      url_for(controller: "products", action: "index", locale: "", currency: "USD")
+    assert_equal "http://www.example.com/locale/en/products",
+      url_for(controller: "products", action: "index", locale: "en", currency: "")
+  end
+
+  def test_url_generator_omits_whole_optional_group_when_one_part_is_empty
+    draw do
+      get "(/a/:a_id/:b_id)/products" => "products#index"
+    end
+
+    assert_equal "http://www.example.com/products",
+      url_for(controller: "products", action: "index", a_id: "", b_id: "2")
+  end
+
+  def test_url_generator_keeps_whitespace_only_optional_segments
+    draw do
+      get "(/locale/:locale)/products" => "products#index"
+    end
+
+    assert_equal "http://www.example.com/locale/%20/products",
+      url_for(controller: "products", action: "index", locale: " ")
+  end
+
   def test_url_recognition_for_optional_static_segments
     draw do
       scope "(groups)" do
