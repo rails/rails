@@ -645,6 +645,7 @@ end
 
 class SchemaForeignKeyTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
+  include PGSchemaHelper
 
   setup do
     @connection = ActiveRecord::Base.lease_connection
@@ -689,6 +690,38 @@ class SchemaForeignKeyTest < ActiveRecord::PostgreSQLTestCase
     assert @connection.foreign_key_exists?("my_other_schema.wagons", "my_schema.trains")
   ensure
     @connection.drop_schema "my_other_schema", if_exists: true
+  end
+
+  def test_remove_foreign_key_when_target_is_on_the_search_path
+    @connection.create_table "my_schema.trains"
+    @connection.create_table "wagons" do |t|
+      t.integer :train_id
+    end
+    @connection.add_foreign_key "wagons", "my_schema.trains"
+
+    with_schema_search_path("public,my_schema") do
+      @connection.remove_foreign_key "wagons", to_table: "my_schema.trains"
+      assert_empty @connection.foreign_keys("wagons")
+    end
+  ensure
+    @connection.drop_table "wagons", if_exists: true
+  end
+
+  def test_foreign_key_does_not_match_a_same_named_table_in_another_schema
+    @connection.create_table "my_schema.trains"
+    @connection.create_table "public.trains"
+    @connection.create_table "wagons" do |t|
+      t.integer :train_id
+    end
+    @connection.add_foreign_key "wagons", "my_schema.trains"
+
+    with_schema_search_path("public,my_schema") do
+      assert @connection.foreign_key_exists?("wagons", to_table: "my_schema.trains")
+      assert_not @connection.foreign_key_exists?("wagons", to_table: "public.trains")
+    end
+  ensure
+    @connection.drop_table "wagons", if_exists: true
+    @connection.drop_table "public.trains", if_exists: true
   end
 end
 
