@@ -1,3 +1,19 @@
+*   Add explicit `disable_schema_dump` option to disable schema dump per database.
+
+    Dumping the schema is on by default for all databases in an application. To
+    turn it off for a specific database use the `disable_schema_dump` option:
+
+    ```yaml
+    # config/database.yml
+
+    production:
+      disable_schema_dump: true
+    ```
+
+    This replaces disabling it with `schema_dump: false` which also disabled
+    schema loading. Fixes #58440
+    *Raphael Nestler*
+
 *   Deprecate `ActiveRecord::ConnectionAdapters::DatabaseStatements#create`
     in favor of `#insert`.
 
