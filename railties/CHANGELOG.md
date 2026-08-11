@@ -1,3 +1,7 @@
+*   Load every matching command/generator file found across `$LOAD_PATH`, not just the first.
+
+    *Ben Sheldon*
+
 *   Don't filter nonexistent i18n paths on initialize. This negatively impacts
     applications with lots of translation files.
 
