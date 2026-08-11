@@ -92,7 +92,7 @@ module ActionDispatch
 
           # After query param extraction, so empty values are consumed as path parts.
           parameterized_parts.delete_if do |key, value|
-            value.blank? && !required_parts.include?(key)
+            value.to_s.blank? && !required_parts.include?(key)
           end
 
           route.parts.reverse_each do |key|
