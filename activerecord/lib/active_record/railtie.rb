@@ -24,7 +24,8 @@ module ActiveRecord
       "ActiveRecord::RecordNotFound"   => :not_found,
       "ActiveRecord::StaleObjectError" => :conflict,
       "ActiveRecord::RecordInvalid"    => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
-      "ActiveRecord::RecordNotSaved"   => ActionDispatch::Constants::UNPROCESSABLE_CONTENT
+      "ActiveRecord::RecordNotSaved"   => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
+      "ActiveRecord::NullByteError"    => :bad_request
     )
 
     config.active_record.use_schema_cache_dump = true

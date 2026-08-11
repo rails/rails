@@ -1681,6 +1681,24 @@ module ActiveRecord
         assert_not_equal stored_column.hash, virtual_column.hash
       end
 
+      def test_null_byte_in_bind_raises_null_byte_error
+        with_example_table do
+          error = assert_raises ActiveRecord::NullByteError do
+            @connection.exec_query("INSERT INTO ex (data) VALUES ($1)", "SQL", [ActiveRecord::Relation::QueryAttribute.new("data", "a\0b", ActiveRecord::Type::String.new)])
+          end
+          assert_kind_of ActiveRecord::StatementInvalid, error
+        end
+      end
+
+      def test_null_byte_in_inline_quoting_raises_null_byte_error
+        with_example_table do
+          error = assert_raises ActiveRecord::NullByteError do
+            @connection.execute("INSERT INTO ex (data) VALUES (#{@connection.quote("a\0b")})")
+          end
+          assert_kind_of ActiveRecord::StatementInvalid, error
+        end
+      end
+
       private
         def with_postgresql_apdater_decode_dates
           PostgreSQLAdapter.decode_dates = true

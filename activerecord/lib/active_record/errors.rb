@@ -314,6 +314,15 @@ module ActiveRecord
   class RangeError < StatementInvalid
   end
 
+  # Raised when a string containing a null byte (+\0+) is used in a statement
+  # against a database that cannot store it, such as a text column in PostgreSQL.
+  #
+  # The underlying driver error is wrapped so that applications can rescue it
+  # and, for example, respond with a 400 Bad Request instead of an unhandled
+  # 500.
+  class NullByteError < StatementInvalid
+  end
+
   # Raised when a statement produces an SQL warning.
   class SQLWarning < AdapterError
     attr_reader :code, :level

@@ -946,6 +946,10 @@ module ActiveRecord
         QUERY_CANCELED        = "57014"
 
         def translate_exception(exception, message:, sql:, binds:)
+          if exception.is_a?(ArgumentError) && exception.message.include?("string contains null byte")
+            return NullByteError.new(message, sql: sql, binds: binds, connection_pool: @pool)
+          end
+
           return exception unless exception.respond_to?(:result)
 
           case exception.result.try(:error_field, PG::PG_DIAG_SQLSTATE)
