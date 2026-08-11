@@ -12,6 +12,10 @@ module Rails
 
       initializer :load_environment_hook, group: :all do end
 
+      initializer :run_load_hook_guards, after: :load_environment_hook, before: :bootstrap_hook, group: :all do |app|
+        Rails::Railtie.run_load_hook_guards(app)
+      end
+
       initializer :load_active_support, group: :all do
         require "active_support/all" unless config.active_support.bare
       end

@@ -219,21 +219,45 @@ module Rails
       # load hooks to defer code until the application is fully loaded.
       def guard_load_hooks(*components)
         components.each do |component|
+          # ActiveSupport.on_load immediately runs hooks for components that
+          # were loaded before their guard was registered.
+          registering_load_hook = true
           ActiveSupport.on_load(component) do
-            if Rails.try(:application) && !Rails.configuration.eager_load && !Rails.application.initialized?
-              case Rails.configuration.action_on_early_load_hook
-              when :log
-                (Rails.logger || ActiveSupport::Logger.new($stdout)).warn <<~MSG
-                  #{Railtie.load_hook_guard_message_for(component)}
-
-                  Called from:
-                  #{caller.join("\n")}
-                MSG
-              when :raise
-                raise LoadError, Railtie.load_hook_guard_message_for(component)
-              end
+            if application = Rails.try(:application)
+              Railtie.run_load_hook_guard(application, component, caller)
+            elsif !registering_load_hook
+              Railtie.defer_load_hook_guard(component, caller)
             end
           end
+          registering_load_hook = false
+        end
+      end
+
+      def defer_load_hook_guard(component, call_stack) # :nodoc:
+        (@pending_load_hook_guards ||= []) << [component, call_stack]
+      end
+
+      def run_load_hook_guards(application) # :nodoc:
+        guards = @pending_load_hook_guards
+        @pending_load_hook_guards = nil
+        guards&.each do |component, call_stack|
+          run_load_hook_guard(application, component, call_stack)
+        end
+      end
+
+      def run_load_hook_guard(application, component, call_stack) # :nodoc:
+        return if application.config.eager_load || application.initialized?
+
+        case application.config.action_on_early_load_hook
+        when :log
+          (Rails.logger || ActiveSupport::Logger.new($stdout)).warn <<~MSG
+            #{Railtie.load_hook_guard_message_for(component)}
+
+            Called from:
+            #{call_stack.join("\n")}
+          MSG
+        when :raise
+          raise LoadError, Railtie.load_hook_guard_message_for(component)
         end
       end
 
