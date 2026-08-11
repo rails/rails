@@ -2713,7 +2713,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       url_for(controller: "photos", action: "index", username: nil)
   end
 
-  def test_url_generator_treats_empty_strings_like_nil_for_optional_segments
+  def test_url_generator_treats_blank_strings_like_nil_for_optional_segments
     draw do
       get "(/locale/:locale)(/currency/:currency)/products(/:id)" => "products#show"
     end
@@ -2769,12 +2769,12 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       url_for(controller: "products", action: "index", a_id: "", b_id: "2")
   end
 
-  def test_url_generator_keeps_whitespace_only_optional_segments
+  def test_url_generator_also_removes_whitespace_only_optional_segments
     draw do
       get "(/locale/:locale)/products" => "products#index"
     end
 
-    assert_equal "http://www.example.com/locale/%20/products",
+    assert_equal "http://www.example.com/products",
       url_for(controller: "products", action: "index", locale: " ")
   end
 
