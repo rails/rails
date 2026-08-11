@@ -1,3 +1,21 @@
+*   Fix `url_for` to leave out an optional part of a route when its value is a
+    blank string, the same way it already does for `nil`.
+
+    Before, the blank string ended up in the path, producing a URL the route
+    itself cannot match:
+
+    ```ruby
+    get "(/locale/:locale)/products(/:id)", to: "products#show"
+
+    url_for(controller: "products", action: "show", locale: "", id: 123)
+    # Before: "/locale//products/123"
+    # After:  "/products/123"
+    ```
+
+    Blank strings for required parameters behave as before.
+
+    *Carl Dawson*
+
 *   Fix path normalization to handle mixed-case percent-encoding.
 
     *Andrii Furmanets*
