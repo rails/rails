@@ -14,14 +14,25 @@ module ActiveSupport
         @rotate_options = []
         @on_rotation = nil
         @codecs = {}
+        @ractor_key = nil
+      end
+
+      def freeze
+        return self if frozen?
+
+        @ractor_key = "_rotation_coordinator_#{object_id}".to_sym
+        cached_codecs, @codecs = @codecs, nil
+        ActiveSupport::Ractors.store_if_absent(@ractor_key) { cached_codecs }
+
+        super
       end
 
       def [](salt)
-        @codecs[salt] ||= build_with_rotations(salt)
+        codecs[salt] ||= build_with_rotations(salt)
       end
 
       def []=(salt, codec)
-        @codecs[salt] = codec
+        codecs[salt] = codec
       end
 
       def rotate(**options, &block)
@@ -58,13 +69,20 @@ module ActiveSupport
       end
 
       private
+        # After the coordinator is frozen the codec cache moves into Ractor-local
+        # storage, so that codecs for salts that were not used before freezing can
+        # still be built.
+        def codecs
+          @codecs || ActiveSupport::Ractors.store_if_absent(@ractor_key) { {} }
+        end
+
         def changing_configuration!
-          if @codecs.any?
+          if codecs.any?
             raise <<~MESSAGE
               Cannot change #{self.class} configuration after it has already been applied.
 
               The configuration has been applied with the following salts:
-              #{@codecs.keys.map { |salt| "- #{salt.inspect}" }.join("\n")}
+              #{codecs.keys.map { |salt| "- #{salt.inspect}" }.join("\n")}
             MESSAGE
           end
         end

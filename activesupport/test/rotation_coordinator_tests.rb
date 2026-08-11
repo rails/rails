@@ -25,6 +25,19 @@ module RotationCoordinatorTests
       assert_same @coordinator["salt"], @coordinator["other salt"]
     end
 
+    test "builds codecs for salts that were not used before being made shareable" do
+      codec = @coordinator["salt"]
+      ActiveSupport::Ractors.make_shareable(@coordinator)
+
+      assert_same codec, @coordinator["salt"]
+      assert_equal "message", roundtrip("message", @coordinator["other salt"])
+    end
+
+    test "can be frozen more than once" do
+      @coordinator.freeze
+      assert_nothing_raised { @coordinator.freeze }
+    end
+
     test "configures codecs with rotations" do
       @coordinator.rotate(digest: "MD5")
       codec = @coordinator["salt"]
