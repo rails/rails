@@ -1,3 +1,12 @@
+*   Strip invalid query strings before invoking the exceptions app.
+
+    Custom exceptions apps (e.g. `config.exceptions_app = self.routes`) raised a 500
+    when they would read unparseable query strings. The invalid query string is
+    now removed from the request before the exceptions app is called, so the
+    configured error page renders with the intended status (400).
+
+    *Josua Schmid*
+
 *   Split keyword arguments off `#args` on `Rails.application.middleware` entries.
 
     Middleware entries now expose keyword arguments through a new `#kwargs`

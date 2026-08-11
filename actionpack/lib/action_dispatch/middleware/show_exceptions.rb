@@ -49,6 +49,7 @@ module ActionDispatch
         status = wrapper.status_code
         request.set_header "action_dispatch.original_path", request.path_info
         request.set_header "action_dispatch.original_request_method", request.raw_request_method
+        strip_query_string_if_invalid(request)
         fallback_to_html_format_if_invalid_mime_type(request)
         request.path_info = "/#{status}"
         request.request_method = "GET"
@@ -62,6 +63,14 @@ module ActionDispatch
           "If you are the administrator of this website, then please read this web " \
           "application's log file and/or the web server's log file to find out what " \
           "went wrong."]]
+      end
+
+      def strip_query_string_if_invalid(request)
+        # If the query string is invalid the @exceptions_app would crash on it
+        # just like the app did. Remove it so the error page can render.
+        request.query_parameters
+      rescue ActionController::BadRequest
+        request.set_header "QUERY_STRING", ""
       end
 
       def fallback_to_html_format_if_invalid_mime_type(request)

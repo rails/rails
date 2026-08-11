@@ -17,6 +17,12 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
         rescue
           raise ActionDispatch::Http::Parameters::ParseError
         end
+      when "/bad_query"
+        begin
+          raise Rack::QueryParser::InvalidParameterError, "invalid %-encoding (unfinished=escape+seq+%A)"
+        rescue
+          raise ActionController::BadRequest.new("Invalid query parameters: invalid %-encoding (unfinished=escape+seq+%A)")
+        end
       when "/method_not_allowed"
         raise ActionController::MethodNotAllowed, "PUT"
       when "/unknown_http_method"
@@ -169,6 +175,19 @@ class ShowExceptionsTest < ActionDispatch::IntegrationTest
     assert_equal "application/json; charset=utf-8", response.headers["content-type"]
     assert_response 400
     assert_equal("{\"status\":400,\"error\":\"Bad Request\"}", body)
+  end
+
+  test "invalid query string stays a bad request when the exceptions app reads the bad query parameters" do
+    exceptions_app = lambda do |env|
+      ActionDispatch::Request.new(env).query_parameters
+      [400, { "content-type" => "text/plain" }, ["custom 400 error page"]]
+    end
+
+    @app = build_app(exceptions_app)
+
+    get "/bad_query", headers: { "QUERY_STRING" => "unfinished=escape+seq+%A" }, env: { "action_dispatch.show_exceptions" => :all }
+
+    assert_response :bad_request
   end
 
   test "failsafe prevents raising if exceptions_app raises" do

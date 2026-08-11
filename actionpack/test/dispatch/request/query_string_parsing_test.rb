@@ -147,6 +147,19 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
     )
   end
 
+  test "query string with invalid percent-encoding returns a bad request" do
+    with_routing do |set|
+      set.draw do
+        ActionDispatch.deprecator.silence do
+          get ":action", to: ::QueryStringParsingTest::TestController
+        end
+      end
+
+      get "/parse", headers: { "QUERY_STRING" => "unfinished=escape+seq+%A" }
+      assert_response :bad_request
+    end
+  end
+
   test "ambiguous query string returns a bad request" do
     with_routing do |set|
       set.draw do
