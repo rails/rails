@@ -301,6 +301,7 @@ module ActiveRecord
         end
 
         def reset_default_attributes
+          ([self] + descendants).each(&:undefine_attribute_methods)
           reload_schema_from_cache
         end
 
