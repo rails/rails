@@ -1,3 +1,16 @@
+*   Raise `IrreversibleMigration` when rolling back `update` / `insert` / `delete`
+    (and other connection SQL helpers such as `select_value`) used inside `change`.
+
+    These used to run again silently on rollback because they were forwarded to
+    the connection instead of being recorded. `execute` already raised; schema
+    predicates like `table_exists?` are unchanged so guarded reversible
+    migrations keep working. Wrap data SQL in `reversible` / `up_only`, or use
+    `up`/`down`.
+
+    Fixes #51570.
+
+    *Sankalp Thakur*
+
 *   Deprecate `ActiveRecord::ConnectionAdapters::DatabaseStatements#create`
     in favor of `#insert`.
 

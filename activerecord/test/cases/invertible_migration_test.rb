@@ -229,6 +229,18 @@ module ActiveRecord
       end
     end
 
+    class UpdateInChangeMigration < SilentMigration
+      def change
+        update("UPDATE horses SET content = 'changed'")
+      end
+    end
+
+    class SelectValueInChangeMigration < SilentMigration
+      def change
+        select_value("SELECT 1")
+      end
+    end
+
     class RevertUniqueConstraintWithInvalidOption < SilentMigration
       def change
         add_unique_constraint :horses, :place_id, invalid: :option
@@ -548,6 +560,24 @@ module ActiveRecord
 
       assert_not connection.index_exists?(:horses, [:remind_at, :place_id]),
              "index on remind_at and place_id should not exist"
+    end
+
+    def test_update_in_change_raises_on_rollback_without_reexecuting
+      InvertibleMigration.new.migrate(:up)
+      horse = Horse.create!(content: "original")
+      migration = UpdateInChangeMigration.new
+      migration.migrate(:up)
+      assert_equal "changed", horse.reload.content
+
+      assert_raises(IrreversibleMigration) { migration.migrate(:down) }
+      assert_equal "changed", horse.reload.content
+    end
+
+    def test_select_value_in_change_raises_on_rollback
+      InvertibleMigration.new.migrate(:up)
+      migration = SelectValueInChangeMigration.new
+      migration.migrate(:up)
+      assert_raises(IrreversibleMigration) { migration.migrate(:down) }
     end
 
     def test_up_only

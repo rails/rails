@@ -48,6 +48,29 @@ module ActiveRecord
         end
       end
 
+      def test_irreversible_update_insert_delete_raise_on_revert
+        %i[update insert delete].each do |method|
+          recorder = CommandRecorder.new(ActiveRecord::Base.lease_connection)
+          assert_raises(ActiveRecord::IrreversibleMigration, "expected #{method} to be irreversible") do
+            recorder.revert { recorder.public_send(method, "SQL") }
+          end
+        end
+      end
+
+      def test_irreversible_select_value_raises_on_revert
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.revert { @recorder.select_value("SELECT 1") }
+        end
+      end
+
+      def test_schema_predicates_still_delegate_on_revert
+        @recorder.create_table :horses
+        @recorder.revert do
+          assert_respond_to @recorder, :table_exists?
+          assert_equal false, @recorder.table_exists?(:horses)
+        end
+      end
+
       def test_record
         @recorder.create_table :system_settings
         assert_equal 1, @recorder.commands.length
