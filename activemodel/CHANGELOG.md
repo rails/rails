@@ -1,3 +1,15 @@
+*   Fix `normalizes` to run before the underlying type validates an assigned
+    value.
+
+    When `normalizes` was combined with another type that rejects invalid
+    input (such as an Active Record `enum`), the underlying type's
+    `assert_valid_value` ran against the raw, un-normalized value and raised
+    before normalization had a chance to run. The normalization is now applied
+    first, so a value like `"  Pending  "` is normalized to `"pending"` and
+    accepted by the enum.
+
+    *Gabriel Quaresma*
+
 *   Fix `LengthValidator` raising `NoMethodError` when a `:minimum` (or `:is`)
     constraint is given as a proc and the validated value is `nil`.
 
