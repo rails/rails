@@ -114,14 +114,6 @@ module Rails
 
           ActiveRecord::Base.connection_handler.each_connection_pool.select(&:query_cache_enabled).each(&:disable_query_cache!)
         end
-
-        def conditional_executor(enabled, **args, &block)
-          if enabled
-            Rails.application.executor.wrap(**args, &block)
-          else
-            yield
-          end
-        end
     end
   end
 end
