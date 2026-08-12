@@ -12,6 +12,10 @@ module Sharded
       foreign_key: [:blog_id, :blog_post_id],
       primary_key: [:blog_id, :id],
       inverse_of: :comments_with_inverse
+    belongs_to :blog_post_with_custom_primary_key,
+      class_name: "Sharded::BlogPost",
+      foreign_key: [:blog_id, :blog_post_id],
+      primary_key: [:revision, :id]
     belongs_to :blog
   end
 end

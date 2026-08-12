@@ -25,6 +25,10 @@ module Cpk
   class BestSeller < Book
   end
 
+  class TenantScopedBook < Book
+    query_constraints :shop_id, :id
+  end
+
   class BrokenBook < Book
     belongs_to :order, class_name: "Cpk::OrderWithSpecialPrimaryKey"
   end

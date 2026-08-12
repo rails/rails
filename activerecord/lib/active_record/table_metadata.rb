@@ -62,6 +62,10 @@ module ActiveRecord
 
     attr_reader :arel_table
 
+    def model
+      klass
+    end
+
     private
       attr_reader :klass
   end
