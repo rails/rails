@@ -205,7 +205,7 @@ module ApplicationTests
 
     if RUBY_VERSION >= "4.0"
       test "notification subscriptions are recorded" do
-        add_to_config "ActiveSupport::Ractors.unshareable_proc_action = :raise"
+        add_to_config "ActiveSupport::Ractors.unshareable_proc_action = :warn"
 
         app_file "config/initializers/subscriptions.rb", <<-RUBY
           WitnessError = Class.new(StandardError)
@@ -236,7 +236,7 @@ module ApplicationTests
       end
 
       test "Notification subscriptions can be added after boot" do
-        add_to_config "ActiveSupport::Ractors.unshareable_proc_action = :raise"
+        add_to_config "ActiveSupport::Ractors.unshareable_proc_action = :warn"
 
         app_file "config/initializers/subscriptions.rb", <<-RUBY
           WitnessError = Class.new(StandardError)
