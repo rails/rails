@@ -410,6 +410,10 @@ module Rails
         options[:skip_ci]
       end
 
+      def any_ci_check_steps?
+        !skip_rubocop? || !skip_bundler_audit? || !skip_brakeman? || using_node? || using_importmap?
+      end
+
       def skip_devcontainer?
         !options[:devcontainer]
       end

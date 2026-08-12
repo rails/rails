@@ -731,6 +731,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_config_ci_does_not_start_the_checks_group_with_a_blank_line
+    run_generator [destination_root, "--skip-rubocop", "--skip-brakeman", "--skip-bundler-audit", "--skip-javascript"]
+
+    assert_file "config/ci.rb" do |content|
+      assert_no_match(/group "Checks".*do\n\n/, content)
+    end
+  end
+
+  def test_config_ci_omits_the_checks_group_when_nothing_would_go_in_it
+    run_generator [destination_root, "--skip-rubocop", "--skip-brakeman", "--skip-bundler-audit", "--skip-javascript", "--skip-test"]
+
+    assert_file "config/ci.rb" do |content|
+      assert_no_match(/group "Checks"/, content)
+    end
+  end
+
   def test_config_ci_does_not_include_seed_step_when_skip_active_record_is_given
     run_generator [destination_root, "--skip-active-record"]
 
