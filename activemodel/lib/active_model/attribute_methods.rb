@@ -69,10 +69,9 @@ module ActiveModel
     EMPTY_HASH = Hash.new([].freeze).freeze # :nodoc:
 
     included do
-      @attribute_method_patterns_cache = Concurrent::Map.new(initial_capacity: 4)
       class_attribute :attribute_aliases, instance_writer: false, default: {}.freeze
       @aliases_by_attribute_name = EMPTY_HASH
-      class_attribute :attribute_method_patterns, instance_writer: false, default: [ ClassMethods::AttributeMethodPattern.new ].freeze
+      class_attribute :attribute_method_patterns, instance_writer: false, default: ClassMethods::AttributeMethodPatternSet.new([ ClassMethods::AttributeMethodPattern.new ])
     end
 
     module ClassMethods
@@ -227,7 +226,6 @@ module ActiveModel
           attribute_method_patterns.each do |pattern|
             alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
           end
-          @attribute_method_patterns_cache.clear
         end
       end
 
@@ -321,7 +319,6 @@ module ActiveModel
           attribute_method_patterns.each do |pattern|
             define_attribute_method_pattern(pattern, attr_name, owner: owner, as: as)
           end
-          @attribute_method_patterns_cache.clear
         end
       end
 
@@ -384,14 +381,12 @@ module ActiveModel
         @generated_attribute_methods&.module_eval do
           undef_method(*instance_methods)
         end
-        @attribute_method_patterns_cache.clear
       end
 
       private
         def inherited(base) # :nodoc:
           super
           base.class_eval do
-            @attribute_method_patterns_cache = Concurrent::Map.new(initial_capacity: 4)
             @aliases_by_attribute_name = EMPTY_HASH
             @generated_attribute_methods = nil
           end
@@ -407,12 +402,6 @@ module ActiveModel
 
         def instance_method_already_implemented?(method_name)
           @generated_attribute_methods&.method_defined?(method_name)
-        end
-
-        def attribute_method_patterns_matching(method_name)
-          @attribute_method_patterns_cache.compute_if_absent(method_name) do
-            attribute_method_patterns.filter_map { |pattern| pattern.match(method_name) }
-          end
         end
 
         # Define a method `name` in `mod` that dispatches to `send`
@@ -474,22 +463,64 @@ module ActiveModel
             @prefix = -prefix
             @suffix = -suffix
             @parameters = parameters.nil? ? "..." : (parameters.is_a?(String) ? -parameters : parameters)
-            @regex = /\A(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})\z/
+            @prefix_length = @prefix.length
+            @affix_length = @prefix.length + @suffix.length
+            @unaffixed = @prefix.empty? && @suffix.empty?
             @proxy_target = "#{@prefix}attribute#{@suffix}".freeze
             @define_method_proxy_target = :"define_method_#{@proxy_target}"
             @method_name = "#{prefix}%s#{suffix}".freeze
             freeze
           end
 
-          def match(method_name)
-            if @regex =~ method_name
-              AttributeMethod.new(proxy_target, $1)
-            end
+          def matched_attribute_name(method_name)
+            return method_name if @unaffixed
+            return if method_name.length < @affix_length
+            return unless method_name.end_with?(@suffix) && method_name.start_with?(@prefix)
+            method_name[@prefix_length, method_name.length - @affix_length]
+          end
+
+          def method_for_attr(attr_name)
+            AttributeMethod.new(@proxy_target, attr_name)
           end
 
           def method_name(attr_name)
             @method_name % attr_name
           end
+        end
+
+        class AttributeMethodPatternSet # :nodoc:
+          def initialize(patterns)
+            @patterns = patterns.freeze
+            @unaffixed = patterns.select { |pattern| pattern.prefix.empty? && pattern.suffix.empty? }.freeze
+
+            @prefixes = patterns.map(&:prefix).reject(&:empty?).uniq.freeze
+            @suffixes = patterns.map(&:suffix).reject(&:empty?).uniq.freeze
+
+            freeze
+          end
+
+          def each(&block)
+            @patterns.each(&block)
+          end
+
+          def +(other)
+            AttributeMethodPatternSet.new(@patterns + other)
+          end
+
+          def ==(other)
+            other.is_a?(AttributeMethodPatternSet) && patterns == other.patterns
+          end
+
+          def matching(method_name)
+            if method_name.end_with?(*@suffixes) || method_name.start_with?(*@prefixes)
+              @patterns
+            else
+              @unaffixed
+            end
+          end
+
+          protected
+            attr_reader :patterns
         end
     end
 
@@ -544,8 +575,19 @@ module ActiveModel
       # Returns a struct representing the matching attribute method.
       # The struct's attributes are prefix, base and suffix.
       def matched_attribute_method(method_name)
-        matches = self.class.send(:attribute_method_patterns_matching, method_name)
-        matches.detect { |match| attribute_method?(match.attr_name) }
+        patterns = self.class.attribute_method_patterns.matching(method_name)
+        index = 0
+        len = patterns.length
+
+        while index < len
+          pattern = patterns[index]
+          attr_name = pattern.matched_attribute_name(method_name)
+          if attr_name && attribute_method?(attr_name)
+            return pattern.method_for_attr(attr_name)
+          end
+          index += 1
+        end
+        nil
       end
 
       def missing_attribute(attr_name, stack)
