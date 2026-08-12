@@ -30,6 +30,18 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     end
   end
 
+  test "immediate exit does give wait flag hint" do
+    run_edit_command(visual: "", editor: "cat").tap do |output|
+      assert_match "It seems that the editor exited immediately.", output
+    end
+  end
+
+  test "delayed exit does not give wait flag hint" do
+    run_edit_command(visual: "", editor: "nano").tap do |output|
+      assert_no_match "It seems that the editor exited immediately.", output
+    end
+  end
+
   test "edit credentials" do
     # Run twice to ensure credentials can be reread after first edit pass.
     2.times do
