@@ -4,6 +4,8 @@ require "rails/command/environment_argument"
 
 module Rails
   class Console
+    HELP_HINT = "Type 'help' for help."
+
     def self.start(*args)
       new(*args).start
     end
@@ -29,6 +31,16 @@ module Rails
       end
     end
 
+    def self.startup_lines(sandbox)
+      lines = if sandbox
+        ["Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})",
+         "Any modifications you make will be rolled back on exit"]
+      else
+        ["Loading #{Rails.env} environment (Rails #{Rails.version})"]
+      end
+      lines << HELP_HINT
+    end
+
     def sandbox?
       return options[:sandbox] if !options[:sandbox].nil?
 
@@ -46,16 +58,14 @@ module Rails
       Rails.env = environment
     end
 
+    def show_default_startup_banner
+      puts Rails::Console.startup_lines(sandbox?)
+    end
+
     def start
       set_environment! if environment?
 
-      if sandbox?
-        puts "Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})"
-        puts "Any modifications you make will be rolled back on exit"
-      else
-        puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
-      end
-      puts "Type 'help' for help."
+      show_default_startup_banner unless console.respond_to?(:show_startup_banner)
 
       console.start
     end
