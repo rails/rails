@@ -71,7 +71,7 @@ module ActiveModel
     included do
       class_attribute :attribute_aliases, instance_writer: false, default: {}.freeze
       @aliases_by_attribute_name = EMPTY_HASH
-      class_attribute :attribute_method_patterns, instance_writer: false, default: ClassMethods::AttributeMethodPatternSet.new([ ClassMethods::AttributeMethodPattern.new ])
+      class_attribute :attribute_method_patterns, instance_writer: false, default: ClassMethods::AttributeMethodPatternSet.new([ ClassMethods::AttributeMethodPattern::BASE ])
     end
 
     module ClassMethods
@@ -486,15 +486,17 @@ module ActiveModel
           def method_name(attr_name)
             @method_name % attr_name
           end
+
+          BASE = new
         end
 
         class AttributeMethodPatternSet # :nodoc:
           def initialize(patterns)
             @patterns = patterns.freeze
-            @unaffixed = patterns.select { |pattern| pattern.prefix.empty? && pattern.suffix.empty? }.freeze
+            @affixed = patterns.reject { |pattern| pattern.prefix.empty? && pattern.suffix.empty? }.freeze
 
-            @prefixes = patterns.map(&:prefix).reject(&:empty?).uniq.freeze
-            @suffixes = patterns.map(&:suffix).reject(&:empty?).uniq.freeze
+            @prefixes = @affixed.map(&:prefix).reject(&:empty?).uniq.freeze
+            @suffixes = @affixed.map(&:suffix).reject(&:empty?).uniq.freeze
 
             freeze
           end
@@ -512,11 +514,8 @@ module ActiveModel
           end
 
           def matching(method_name)
-            if method_name.end_with?(*@suffixes) || method_name.start_with?(*@prefixes)
-              @patterns
-            else
-              @unaffixed
-            end
+            return if @affixed.empty?
+            @affixed if method_name.end_with?(*@suffixes) || method_name.start_with?(*@prefixes)
           end
 
           protected
@@ -575,12 +574,17 @@ module ActiveModel
       # Returns a struct representing the matching attribute method.
       # The struct's attributes are prefix, base and suffix.
       def matched_attribute_method(method_name)
-        patterns = self.class.attribute_method_patterns.matching(method_name)
-        index = 0
-        len = patterns.length
+        pattern = ClassMethods::AttributeMethodPattern::BASE
+        attr_name = pattern.matched_attribute_name(method_name)
+        return pattern.method_for_attr(attr_name) if attr_name && attribute_method?(attr_name)
 
+        affixed = self.class.attribute_method_patterns.matching(method_name)
+        return unless affixed
+
+        index = 0
+        len = affixed.length
         while index < len
-          pattern = patterns[index]
+          pattern = affixed[index]
           attr_name = pattern.matched_attribute_name(method_name)
           if attr_name && attribute_method?(attr_name)
             return pattern.method_for_attr(attr_name)
