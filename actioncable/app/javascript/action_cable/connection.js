@@ -36,7 +36,7 @@ class Connection {
       const socketProtocols = [...protocols, ...this.consumer.subprotocols || []]
       logger.log(`Opening WebSocket, current state is ${this.getState()}, subprotocols: ${socketProtocols}`)
       if (this.webSocket) { this.uninstallEventHandlers() }
-      this.webSocket = new adapters.WebSocket(this.consumer.url, socketProtocols)
+      this.webSocket = new adapters.WebSocket(this.consumer.url, socketProtocols,{headers:this.consumer.headers})
       this.installEventHandlers()
       this.monitor.start()
       return true
