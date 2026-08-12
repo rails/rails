@@ -34,6 +34,16 @@ class HasOneStaleTypeOwner < ActiveRecord::Base
   has_one :stale_type_child, class_name: "HasOneStaleTypeChild", as: :poly_human_without_inverse
 end
 
+class HasOneContainedKeyChild < ActiveRecord::Base
+  self.table_name = "faces"
+  self.primary_key = [:poly_human_without_inverse_id, :human_id]
+end
+
+class HasOneContainedKeyOwner < ActiveRecord::Base
+  self.table_name = "humans"
+  has_one :contained_key_child, class_name: "HasOneContainedKeyChild", as: :poly_human_without_inverse
+end
+
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
@@ -164,6 +174,23 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nil child.poly_human_without_inverse_type
   end
 
+  def test_clearing_polymorphic_has_one_nullifies_id_contained_in_composite_pk
+    owner = HasOneContainedKeyOwner.create!
+    child = HasOneContainedKeyChild.create!(
+      human_id: 1,
+      poly_human_without_inverse_id: owner.id,
+      poly_human_without_inverse_type: "HasOneContainedKeyOwner"
+    )
+
+    assert_equal child, owner.contained_key_child
+
+    owner.contained_key_child = nil
+
+    child = HasOneContainedKeyChild.find_by!(id: child.read_attribute(:id))
+    assert_nil child.poly_human_without_inverse_id
+    assert_nil child.poly_human_without_inverse_type
+  end
+
   def test_nullification_on_destroyed_association
     developer = Developer.create!(name: "Someone")
     ship = Ship.create!(name: "Planet Caravan", developer: developer)
@@ -181,6 +208,17 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_nil book.order_id
     assert_nil book.shop_id
+  end
+
+  def test_nullification_on_cpk_association_with_pk_column
+    chapter = Cpk::Chapter.create!(id: [1, 2])
+    other_chapter = Cpk::Chapter.create!(id: [1, 4])
+    book = Cpk::NullifiedBook.create!(id: [1, 3], chapter: chapter)
+
+    book.chapter = other_chapter
+
+    assert_nil chapter.book_id
+    assert_equal 1, chapter.author_id
   end
 
   def test_has_one_for_new_record_owner_with_composite_primary_key_present

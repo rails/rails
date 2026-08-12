@@ -1,8 +1,10 @@
-*   Fix clearing a `belongs_to` association whose composite foreign key is a
-    subset of the referencing record's primary key.
+*   Fix clearing an association whose foreign key is a subset of the
+    referencing record's primary key. This affected `belongs_to` associations
+    with composite foreign keys, and `has_one` associations with either scalar
+    or composite foreign keys.
 
-    Previously, assigning `nil` preserved every foreign key column in this
-    case. Shared columns are now preserved only when the foreign key has
+    Previously, assigning `nil` preserved every foreign key column in these
+    cases. Shared columns are now preserved only when the foreign key has
     another column that can be nulled instead.
 
     *Matthew Draper*
