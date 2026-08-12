@@ -4,6 +4,12 @@
 # This means using expiring, signed URLs that are meant for immediate access, not permanent linking.
 # Always go through the BlobsController, or your own authenticated controller, rather than directly
 # to the service URL.
+#
+# Authorization can be added through the +:active_storage_disk_controller+ load hook:
+#
+#   ActiveSupport.on_load(:active_storage_disk_controller) do
+#     include MyDiskAuthorization
+#   end
 class ActiveStorage::DiskController < ActiveStorage::BaseController
   include ActiveStorage::FileServer
 
@@ -61,3 +67,5 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
       token[:content_type] == request.content_mime_type && token[:content_length] == request.content_length
     end
 end
+
+ActiveSupport.run_load_hooks :active_storage_disk_controller, ActiveStorage::DiskController

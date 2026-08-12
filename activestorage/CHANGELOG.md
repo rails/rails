@@ -1,3 +1,14 @@
+*   Add load hooks to Active Storage controllers, so applications can apply their
+    own logic such as authentication or authorization.
+
+    ```ruby
+    ActiveSupport.on_load(:active_storage_blobs_proxy_controller) do
+      include BlobAuthorization
+    end
+    ```
+
+    *Shouichi Kamiya*
+
 *   Allow `config.active_storage.variant_processor` to be set to a transformer class.
 
     `config.active_storage.variant_processor` now accepts a class, in addition to `:vips`,

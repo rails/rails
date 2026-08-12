@@ -23,9 +23,17 @@
 # Anyone who knows the URL can access the file, even if the rest of your application requires
 # authentication. If your files require access control consider implementing
 # {Authenticated Controllers}[https://guides.rubyonrails.org/active_storage_overview.html#authenticated-controllers].
+#
+# Authorization can be added through the +:active_storage_representations_redirect_controller+ load hook:
+#
+#   ActiveSupport.on_load(:active_storage_representations_redirect_controller) do
+#     include MyBlobAuthorization
+#   end
 class ActiveStorage::Representations::RedirectController < ActiveStorage::Representations::BaseController
   def show
     expires_in ActiveStorage.service_urls_expire_in
     redirect_to @representation.url(disposition: params[:disposition]), allow_other_host: true
   end
 end
+
+ActiveSupport.run_load_hooks :active_storage_representations_redirect_controller, ActiveStorage::Representations::RedirectController

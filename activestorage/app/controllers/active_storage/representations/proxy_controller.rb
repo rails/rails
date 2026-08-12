@@ -20,13 +20,26 @@
 # Anyone who knows the URL can access the file, even if the rest of your application requires
 # authentication. If your files require access control consider implementing
 # {Authenticated Controllers}[https://guides.rubyonrails.org/active_storage_overview.html#authenticated-controllers].
+#
+# Authorization can be added through the +:active_storage_representations_proxy_controller+ load hook:
+#
+#   ActiveSupport.on_load(:active_storage_representations_proxy_controller) do
+#     include MyBlobAuthorization
+#   end
+#
+# WARNING: Responses are publicly cacheable by default. You must set +public_cache+
+# to +false+ so that CDNs do not cache authorized files.
 class ActiveStorage::Representations::ProxyController < ActiveStorage::Representations::BaseController
   include ActiveStorage::Streaming
   include ActiveStorage::DisableSession
 
+  class_attribute :public_cache, default: true
+
   def show
-    http_cache_forever public: true do
+    http_cache_forever public: public_cache do
       send_blob_stream @representation, disposition: params[:disposition]
     end
   end
 end
+
+ActiveSupport.run_load_hooks :active_storage_representations_proxy_controller, ActiveStorage::Representations::ProxyController

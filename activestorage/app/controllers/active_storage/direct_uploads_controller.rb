@@ -3,6 +3,12 @@
 # Creates a new blob on the server side in anticipation of a direct-to-service upload from the client side.
 # When the client-side upload is completed, the signed_blob_id can be submitted as part of the form to reference
 # the blob that was created up front.
+#
+# Authorization can be added through the +:active_storage_direct_uploads_controller+ load hook:
+#
+#   ActiveSupport.on_load(:active_storage_direct_uploads_controller) do
+#     include MyDirectUploadAuthorization
+#   end
 class ActiveStorage::DirectUploadsController < ActiveStorage::BaseController
   def create
     blob = ActiveStorage::Blob.create_before_direct_upload!(**blob_args)
@@ -21,3 +27,5 @@ class ActiveStorage::DirectUploadsController < ActiveStorage::BaseController
       })
     end
 end
+
+ActiveSupport.run_load_hooks :active_storage_direct_uploads_controller, ActiveStorage::DirectUploadsController
