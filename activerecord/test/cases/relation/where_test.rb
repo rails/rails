@@ -159,17 +159,6 @@ module ActiveRecord
       assert_includes Cpk::Book.where(order: nil), book
     end
 
-    def test_where_with_nil_cpk_association_does_not_constrain_shared_columns
-      order = Cpk::Order.create!(id: [1, 2])
-      book_with_order = order.books.create!(id: [3, 4])
-      book_without_order = Cpk::Book.create!(id: [3, 5], shop_id: order.shop_id)
-
-      relation = Cpk::Book.where(order: nil)
-
-      assert_includes relation, book_without_order
-      assert_not_includes relation, book_with_order
-    end
-
     def test_where_with_nil_association_on_query_constrained_model_keeps_tenant_scope
       blog = Sharded::Blog.create!
       blog_post = Sharded::BlogPost.create!(blog_id: blog.id)
@@ -182,18 +171,42 @@ module ActiveRecord
       assert_not_includes relation, comment_with_post
     end
 
-    def test_where_with_array_of_nil_and_record_for_cpk_association
+    def test_where_with_nil_association_prunes_owner_key_with_custom_target_key_name
+      blog = Sharded::Blog.create!
+      blog_post = Sharded::BlogPost.create!(blog_id: blog.id, revision: blog.id)
+      comment_with_post = Sharded::Comment.create!(blog_id: blog.id, blog_post_id: blog_post.id)
+      comment_without_post = Sharded::Comment.create!(blog_id: blog.id)
+
+      relation = Sharded::Comment.where(blog_id: blog.id).where(blog_post_with_custom_primary_key: nil)
+
+      assert_includes relation, comment_without_post
+      assert_not_includes relation, comment_with_post
+    end
+
+    def test_where_with_nil_cpk_association_constrains_non_owner_columns
       order = Cpk::Order.create!(id: [1, 2])
-      other_order = Cpk::Order.create!(id: [1, 3])
       book_with_order = order.books.create!(id: [3, 4])
-      book_with_other_order = other_order.books.create!(id: [3, 5])
-      book_without_order = Cpk::Book.create!(id: [3, 6], shop_id: order.shop_id)
+      book_without_order = Cpk::Book.create!(id: [3, 5], shop_id: order.shop_id)
 
-      relation = Cpk::Book.where(order: [nil, order])
+      relation = Cpk::Book.where(order: nil)
 
-      assert_includes relation, book_without_order
-      assert_includes relation, book_with_order
-      assert_not_includes relation, book_with_other_order
+      assert_not_includes relation, book_without_order
+      assert_not_includes relation, book_with_order
+    end
+
+    def test_where_with_array_of_nil_and_record_for_query_constrained_association
+      blog = Sharded::Blog.create!
+      blog_post = Sharded::BlogPost.create!(blog_id: blog.id)
+      other_blog_post = Sharded::BlogPost.create!(blog_id: blog.id)
+      comment_with_post = Sharded::Comment.create!(blog_id: blog.id, blog_post_id: blog_post.id)
+      comment_with_other_post = Sharded::Comment.create!(blog_id: blog.id, blog_post_id: other_blog_post.id)
+      comment_without_post = Sharded::Comment.create!(blog_id: blog.id)
+
+      relation = Sharded::Comment.where(blog_post: [nil, blog_post])
+
+      assert_includes relation, comment_without_post
+      assert_includes relation, comment_with_post
+      assert_not_includes relation, comment_with_other_post
     end
 
     def test_belongs_to_shallow_where

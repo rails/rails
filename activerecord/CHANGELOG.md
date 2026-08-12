@@ -1,10 +1,10 @@
-*   Don't emit `IS NULL` on shared columns when querying a composite foreign
+*   Don't emit `IS NULL` on owner key columns when querying a composite foreign
     key association with `nil`.
 
-    When a composite foreign key shares a column with the target's primary key
-    (e.g. a tenant key like `shop_id` in `[:shop_id, :item_id]` referencing
-    `[:shop_id, :id]`), `where(association: nil)` constrained every column of
-    the key to `NULL`, including the shared one. Combined with a scope on that
+    When a composite foreign key includes one of the owner's query constraint
+    or primary key columns (e.g. a tenant key like `shop_id` in
+    `[:shop_id, :item_id]`), `where(association: nil)` constrained every column
+    of the key to `NULL`, including the owner key. Combined with a scope on that
     column — such as a tenant scope — this produced an impossible
     `shop_id = ? AND shop_id IS NULL` condition. Only the columns identifying
     the target row are now constrained:

@@ -23,10 +23,10 @@ module ActiveRecord
         attr_reader :reflection, :value
 
         # A `nil` association is queried by `IS NULL` on the foreign key, but
-        # columns the foreign key shares with the association's target (e.g. a
-        # tenant key like `shop_id` in `[:shop_id, :item_id]` referencing
-        # `[:shop_id, :id]`) don't identify the target row, and `IS NULL` on
-        # them would contradict any tenant scope on the relation.
+        # columns the foreign key shares with the owner (e.g. a tenant key like
+        # `shop_id` in `[:shop_id, :item_id]`) don't identify the target row,
+        # and `IS NULL` on them would contradict any tenant scope on the
+        # relation.
         def prune_shared_columns(clause)
           return clause unless clause.values.all?(&:nil?)
 
@@ -35,9 +35,8 @@ module ActiveRecord
         end
 
         def shared_columns
-          Array(reflection.join_foreign_key).zip(Array(primary_key)).filter_map do |foreign_key_column, primary_key_column|
-            foreign_key_column.to_s if foreign_key_column.to_s == primary_key_column.to_s
-          end
+          owner_key = ActiveRecord::Key.for(reflection.active_record.composite_query_constraints_list)
+          ActiveRecord::Key.for(reflection.join_foreign_key).select { |column| owner_key.include?(column) }
         end
 
         def ids
