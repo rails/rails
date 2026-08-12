@@ -41,7 +41,7 @@ module ActiveSupport
       "Pacific Time (Canada)"        => "America/Vancouver",
       "Tijuana"                      => "America/Tijuana",
       "Mountain Time (US & Canada)"  => "America/Denver",
-      "Alberta Time"                 => "America/Edmonton",
+      "Alberta"                      => "America/Edmonton",
       "Arizona"                      => "America/Phoenix",
       "Chihuahua"                    => "America/Chihuahua",
       "Mazatlan"                     => "America/Mazatlan",
