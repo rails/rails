@@ -55,8 +55,6 @@ module ActiveSupport
     #
     # This class is thread safe. All methods are reentrant.
     class Fanout
-      attr_reader :string_subscribers, :other_subscribers # :nodoc:
-
       def initialize
         @mutex = Mutex.new
         @string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
@@ -65,14 +63,18 @@ module ActiveSupport
         @groups_for = Concurrent::Map.new
       end
 
-      def string_subscribers=(subscribers) # :nodoc:
-        string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
-        subscribers.each { |name, list| string_subscribers[name] = list.dup }
-        @string_subscribers = string_subscribers
+      def to_ractor_snapshot # :nodoc:
+        {
+          string_subscribers: Hash[@string_subscribers.keys.zip(@string_subscribers.values)],
+          other_subscribers: @other_subscribers,
+        }
       end
 
-      def other_subscribers=(subscribers) # :nodoc:
-        @other_subscribers = subscribers.dup
+      def load_ractor_snapshot(snapshot) # :nodoc:
+        string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
+        snapshot[:string_subscribers].each { |name, list| string_subscribers[name] = list.dup }
+        @string_subscribers = string_subscribers
+        @other_subscribers = snapshot[:other_subscribers].dup
       end
 
       def inspect # :nodoc:

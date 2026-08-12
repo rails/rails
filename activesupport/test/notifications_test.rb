@@ -622,4 +622,51 @@ module Notifications
       end
     end
   end
+
+  class CustomNotifierTest < ActiveSupport::TestCase
+    class MinimalNotifier
+      attr_reader :published
+
+      def initialize
+        @published = []
+      end
+
+      def listening?(name); true; end
+      def subscribe(pattern = nil, callable = nil, monotonic: false, prepend: false, &block); end
+      def start(name, id, payload); end
+      def finish(name, id, payload, listener_state = nil); @published << name; end
+    end
+
+    def setup
+      @old_notifier = ActiveSupport::Notifications.notifier
+    end
+
+    def teardown
+      ActiveSupport::Notifications.notifier = @old_notifier
+    end
+
+    test "assigning a notifier that does not implement the snapshot protocol does not raise" do
+      notifier = MinimalNotifier.new
+      assert_nothing_raised do
+        ActiveSupport::Notifications.notifier = notifier
+      end
+      assert_same notifier, ActiveSupport::Notifications.notifier
+    end
+
+    test "instrumenting through a notifier without the snapshot protocol works" do
+      notifier = MinimalNotifier.new
+      ActiveSupport::Notifications.notifier = notifier
+
+      ActiveSupport::Notifications.instrument("custom.event") { }
+
+      assert_equal ["custom.event"], notifier.published
+    end
+
+    test "subscribe on a notifier without the snapshot protocol does not raise" do
+      ActiveSupport::Notifications.notifier = MinimalNotifier.new
+      assert_nothing_raised do
+        ActiveSupport::Notifications.subscribe("custom.event") { }
+      end
+    end
+  end
 end
