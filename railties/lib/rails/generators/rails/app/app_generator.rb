@@ -2,6 +2,7 @@
 
 require "rails/generators/app_base"
 require "rails/generators/rails/devcontainer/devcontainer_generator"
+require "rails/logo"
 
 module Rails
   module ActionMethods # :nodoc:
@@ -307,8 +308,6 @@ module Rails
   module Generators
     class AppGenerator < AppBase
       # :stopdoc:
-
-      LOGO = %w[⠀⢀⠀⢡⣶⣿⠟⡛⠢ ⠠⠀⣰⣿⣿⠁⠄⠀⠀ ⠶⢠⣿⣿⣿⠰⠆⠀⠀ ⠶⢸⣿⣿⣿⡄⠰⠆⠀].freeze
 
       add_shared_options_for "application"
 
@@ -619,16 +618,8 @@ module Rails
           "New to Rails? https://guides.rubyonrails.org",
         ]
 
-        logo_lines = unicode_logo
-
-        output = if logo_lines
-          logo_lines.zip(info_lines).map { |logo, info| "#{set_color(logo.to_s, :red, :bold)}  #{info}".rstrip }.join("\n")
-        else
-          info_lines.join("\n")
-        end
-
         say ""
-        say output
+        say Rails::Logo.beside(info_lines, io: $stdout) { |logo| set_color(logo, :red, :bold) }
         say ""
       end
 
@@ -639,10 +630,6 @@ module Rails
     # :startdoc:
 
     private
-      def unicode_logo
-        ($stdout.external_encoding || Encoding.default_external) == Encoding::UTF_8 ? LOGO : nil
-      end
-
       def cd_step
         "cd #{app_path}" unless app_path.delete_suffix("/") == "."
       end
