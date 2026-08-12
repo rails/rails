@@ -22,7 +22,7 @@ module ActiveSupport
       #   ActiveSupport::JSON.decode("2.39")
       #   # => 2.39
       def decode(json)
-        data = ::JSON.parse(json, quirks_mode: true)
+        data = ::JSON.parse(json)
 
         if ActiveSupport.parse_json_times
           convert_dates_from(data)
