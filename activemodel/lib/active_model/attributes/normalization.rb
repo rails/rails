@@ -165,6 +165,10 @@ module ActiveModel
             normalize(super(value))
           end
 
+          def assert_valid_value(value)
+            cast_type.assert_valid_value(cast(value))
+          end
+
           def serialize(value)
             serialize_cast_value(cast(value))
           end
