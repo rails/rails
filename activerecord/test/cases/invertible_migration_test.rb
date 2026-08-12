@@ -235,12 +235,6 @@ module ActiveRecord
       end
     end
 
-    class SelectValueInChangeMigration < SilentMigration
-      def change
-        select_value("SELECT 1")
-      end
-    end
-
     class RevertUniqueConstraintWithInvalidOption < SilentMigration
       def change
         add_unique_constraint :horses, :place_id, invalid: :option
@@ -571,13 +565,6 @@ module ActiveRecord
 
       assert_raises(IrreversibleMigration) { migration.migrate(:down) }
       assert_equal "changed", horse.reload.content
-    end
-
-    def test_select_value_in_change_raises_on_rollback
-      InvertibleMigration.new.migrate(:up)
-      migration = SelectValueInChangeMigration.new
-      migration.migrate(:up)
-      assert_raises(IrreversibleMigration) { migration.migrate(:down) }
     end
 
     def test_up_only

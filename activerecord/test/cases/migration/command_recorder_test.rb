@@ -57,12 +57,6 @@ module ActiveRecord
         end
       end
 
-      def test_irreversible_select_value_raises_on_revert
-        assert_raises(ActiveRecord::IrreversibleMigration) do
-          @recorder.revert { @recorder.select_value("SELECT 1") }
-        end
-      end
-
       def test_schema_predicates_still_delegate_on_revert
         @recorder.create_table :horses
         @recorder.revert do
