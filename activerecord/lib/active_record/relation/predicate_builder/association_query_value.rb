@@ -13,11 +13,32 @@ module ActiveRecord
         id_list = ids
         id_list = id_list.pluck(primary_key) if key.composite? && id_list.is_a?(Relation)
 
-        key.where_clauses(id_list)
+        clauses = key.where_clauses(id_list)
+        return clauses unless key.composite?
+
+        clauses.map { |clause| prune_shared_columns(clause) }
       end
 
       private
         attr_reader :reflection, :value
+
+        # A `nil` association is queried by `IS NULL` on the foreign key, but
+        # columns the foreign key shares with the association's target (e.g. a
+        # tenant key like `shop_id` in `[:shop_id, :item_id]` referencing
+        # `[:shop_id, :id]`) don't identify the target row, and `IS NULL` on
+        # them would contradict any tenant scope on the relation.
+        def prune_shared_columns(clause)
+          return clause unless clause.values.all?(&:nil?)
+
+          pruned = clause.except(*shared_columns)
+          pruned.empty? ? clause : pruned
+        end
+
+        def shared_columns
+          Array(reflection.join_foreign_key).zip(Array(primary_key)).filter_map do |foreign_key_column, primary_key_column|
+            foreign_key_column.to_s if foreign_key_column.to_s == primary_key_column.to_s
+          end
+        end
 
         def ids
           case value
