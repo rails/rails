@@ -196,7 +196,13 @@ module ActiveRecord
         if queries.one?
           queries.first
         else
-          queries.map! { |query| query.reduce(&:and) }
+          queries.map! { |query|
+            if query.one?
+              query
+            else
+              Arel::Nodes::And.new(query)
+            end
+          }
           queries = Arel::Nodes::Or.new(queries)
           Arel::Nodes::Grouping.new(queries)
         end
