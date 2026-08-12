@@ -410,7 +410,7 @@ module ActiveRecord
       end
 
       def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
-        at = create_alter_table(table_name)
+        at = build_alter_table_definition(table_name)
         at.change_column_default(column_name, default_or_changes)
         execute_alter_table(at)
       end
@@ -431,13 +431,13 @@ module ActiveRecord
       end
 
       def change_column(table_name, column_name, type, **options) # :nodoc:
-        at = create_alter_table(table_name)
+        at = build_alter_table_definition(table_name)
         at.change_column(column_name, type, **options)
         execute_alter_table(at)
       end
 
       def rename_column(table_name, column_name, new_column_name, **options) # :nodoc:
-        at = create_alter_table(table_name)
+        at = build_alter_table_definition(table_name)
         at.rename_column(column_name, new_column_name, **options)
         execute_alter_table(at)
         rename_column_indexes(table_name, column_name, new_column_name)

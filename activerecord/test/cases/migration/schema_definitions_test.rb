@@ -30,6 +30,22 @@ module ActiveRecord
         assert_predicate id_column, :present?
       end
 
+      def test_build_alter_table_definition_with_block
+        at = connection.build_alter_table_definition(:test) do |t|
+          t.add_column(:foo, :string)
+        end
+
+        assert_equal "test", at.name.to_s
+        assert_equal "foo", at.operations.first.column.name
+      end
+
+      def test_build_alter_table_definition_without_block
+        at = connection.build_alter_table_definition(:test)
+
+        assert_equal "test", at.name.to_s
+        assert_empty at.operations
+      end
+
       def test_build_create_join_table_definition_with_block
         assert connection.table_exists?(:posts)
         assert connection.table_exists?(:comments)
@@ -83,7 +99,7 @@ module ActiveRecord
             t.column :foo, :string
           end
 
-          at = connection.send(:create_alter_table, :test)
+          at = connection.build_alter_table_definition(:test)
           at.change_column(:foo, :integer)
 
           op = at.operations.first
@@ -97,7 +113,7 @@ module ActiveRecord
             t.column :foo, :string
           end
 
-          at = connection.send(:create_alter_table, :test)
+          at = connection.build_alter_table_definition(:test)
           at.change_column_default(:foo, "new")
 
           op = at.operations.first
