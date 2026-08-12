@@ -1867,6 +1867,27 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_next_steps_are_shown
+    output = run_generator [destination_root]
+
+    assert_match(/is ready \(Rails #{Regexp.escape(Rails::VERSION::STRING)}\)/, output)
+  end
+
+  def test_next_steps_are_not_shown_when_pretending
+    output = run_generator [destination_root, "--pretend"]
+
+    assert_no_match(/is ready/, output)
+  end
+
+  def test_next_steps_omit_cd_when_generating_into_the_current_directory
+    generator [destination_root]
+    generator.stub(:app_path, ".") do
+      output = capture(:stdout) { generator.display_next_steps }
+
+      assert_no_match(/cd /, output)
+    end
+  end
+
   private
     def assert_load_defaults
       assert_file "config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/

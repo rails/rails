@@ -1,3 +1,10 @@
+*   Show next steps (the application name and Rails version, how to `cd` into
+    it, how to boot the server, and a link to the Rails guides) after
+    running `rails new`, next to the same Rails mark as the `bin/rails
+    console` banner.
+
+    *Carl Dawson*
+
 *   Show a Rails-flavored startup banner (a small logo, Rails/Ruby
     version, a rotating tip about console helpers like `app`/`reload!`, and
     `Rails.root`) when starting `bin/rails console`.

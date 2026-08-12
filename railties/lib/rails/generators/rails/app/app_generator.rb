@@ -308,6 +308,8 @@ module Rails
     class AppGenerator < AppBase
       # :stopdoc:
 
+      LOGO = %w[⠀⢀⠀⢡⣶⣿⠟⡛⠢ ⠠⠀⣰⣿⣿⠁⠄⠀⠀ ⠶⢠⣿⣿⣿⠰⠆⠀⠀ ⠶⢸⣿⣿⣿⡄⠰⠆⠀].freeze
+
       add_shared_options_for "application"
 
       # Add rails command options
@@ -607,6 +609,29 @@ module Rails
         @after_bundle_callbacks.each(&:call)
       end
 
+      def display_next_steps
+        return if options[:pretend] || options[:dummy_app]
+
+        info_lines = [
+          "#{set_color(app_name, :bold)} is ready (Rails #{Rails::VERSION::STRING})",
+          cd_step.to_s,
+          "Boot the server with bin/rails server",
+          "New to Rails? https://guides.rubyonrails.org",
+        ]
+
+        logo_lines = unicode_logo
+
+        output = if logo_lines
+          logo_lines.zip(info_lines).map { |logo, info| "#{set_color(logo.to_s, :red, :bold)}  #{info}".rstrip }.join("\n")
+        else
+          info_lines.join("\n")
+        end
+
+        say ""
+        say output
+        say ""
+      end
+
       def self.banner
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
@@ -614,6 +639,14 @@ module Rails
     # :startdoc:
 
     private
+      def unicode_logo
+        ($stdout.external_encoding || Encoding.default_external) == Encoding::UTF_8 ? LOGO : nil
+      end
+
+      def cd_step
+        "cd #{app_path}" unless app_path.delete_suffix("/") == "."
+      end
+
       def remove_new_framework_defaults?(target_version, current_version)
         Gem::Version.new(target_version.to_s) >= Gem::Version.new(current_version.to_s)
       end
