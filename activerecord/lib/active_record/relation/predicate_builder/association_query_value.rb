@@ -3,9 +3,10 @@
 module ActiveRecord
   class PredicateBuilder
     class AssociationQueryValue # :nodoc:
-      def initialize(reflection, value)
+      def initialize(reflection, value, model)
         @reflection = reflection
         @value = value
+        @model = model
       end
 
       def queries
@@ -13,11 +14,23 @@ module ActiveRecord
         id_list = ids
         id_list = id_list.pluck(primary_key) if key.composite? && id_list.is_a?(Relation)
 
-        key.where_clauses(id_list)
+        clauses = key.where_clauses(id_list)
+        return clauses unless key.composite? && reflection.belongs_to?
+
+        if value.is_a?(Array)
+          # `ids` and `where_clauses` preserve one clause per association value.
+          clauses.zip(value).map do |clause, association|
+            association.nil? ? prune_shared_columns(clause) : clause
+          end
+        elsif value.nil?
+          clauses.map { |clause| prune_shared_columns(clause) }
+        else
+          clauses
+        end
       end
 
       private
-        attr_reader :reflection, :value
+        attr_reader :reflection, :value, :model
 
         def ids
           case value
@@ -69,6 +82,20 @@ module ActiveRecord
           else
             value
           end
+        end
+
+        # A `nil` association is queried by `IS NULL` on the foreign key, but
+        # owner key columns don't identify the target row and can contradict a
+        # scope on the owner.
+        def prune_shared_columns(clause)
+          pruned = clause.except(*shared_columns)
+          # An empty predicate would match every record, so retain the original
+          # clause when the entire foreign key identifies the owner.
+          pruned.empty? ? clause : pruned
+        end
+
+        def shared_columns
+          Array(reflection.join_foreign_key) & model.composite_query_constraints_list
         end
     end
   end

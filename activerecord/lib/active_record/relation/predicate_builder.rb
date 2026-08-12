@@ -157,8 +157,13 @@ module ActiveRecord
               )
             end
 
-            klass ||= AssociationQueryValue
-            queries = klass.new(associated_reflection, value).queries.map! do |query|
+            query_value = if klass
+              klass.new(associated_reflection, value)
+            else
+              AssociationQueryValue.new(associated_reflection, value, table.model)
+            end
+
+            queries = query_value.queries.map! do |query|
               # If the query produced is identical to attributes don't go any deeper.
               # Prevents stack level too deep errors when association and foreign_key are identical.
               query == attributes ? self[key, value] : expand_from_hash(query)

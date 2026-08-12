@@ -1,3 +1,27 @@
+*   Don't emit `IS NULL` on owner key columns when querying a non-polymorphic
+    composite `belongs_to` association with `nil`.
+
+    When a composite foreign key includes one of the owner's query constraint
+    or primary key columns (e.g. a tenant key like `shop_id` in
+    `[:shop_id, :item_id]`), `where(association: nil)` constrained every column
+    of the key to `NULL`, including the owner key. Combined with a scope on that
+    column — such as a tenant scope — this produced an impossible
+    `shop_id = ? AND shop_id IS NULL` condition. Only the columns identifying
+    the target row are now constrained:
+
+    ```ruby
+    Order.where(shop_id: 1).where(first_item: nil)
+    # Before: WHERE shop_id = 1 AND shop_id IS NULL AND first_item_id IS NULL
+    # After:  WHERE shop_id = 1 AND first_item_id IS NULL
+    ```
+
+    Negated predicates such as `where.not(first_item: nil)` use the same owner
+    key handling and only negate the columns identifying the target row.
+
+    Fixes #57904.
+
+    *michaelg100*
+
 *   Deprecate `ActiveRecord::ConnectionAdapters::DatabaseStatements#create`
     in favor of `#insert`.
 
