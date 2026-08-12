@@ -40,6 +40,33 @@ module ActiveSupport
         end
       end
 
+      # Attempt to make a lambda shareable, bound to +receiver+ as its +self+.
+      # If successful, a shareable lambda is returned. If a Ractor::IsolationError
+      # is raised, the outcome will depend on the user's application configuration:
+      #
+      # :raise - The error is raised
+      # :warn  - A deprecation warning is triggered and the original unshareable lambda is returned.
+      def try_shareable_lambda(receiver, &block)
+        return block unless unshareable_proc_action
+
+        shareable_lambda(self: receiver, &block)
+      rescue Ractor::IsolationError
+        case unshareable_proc_action
+        when :raise
+          raise
+        when :warn
+          ActiveSupport.deprecator.warn(<<~MSG)
+            Rails attempted to make a lambda from your application Ractor shareable but a Ractor
+            Isolation error was raised. The lambda being returned is not Ractor safe and a runtime
+            error may occur anytime during the request lifecycle.
+
+            #{block.inspect}
+          MSG
+
+          block
+        end
+      end
+
       # Attempt to make an object shareable. If successful, a shareable object is returned.
       # If a Ractor::IsolationError is raised, the outcome will depend on how
       # the user's application configuration:

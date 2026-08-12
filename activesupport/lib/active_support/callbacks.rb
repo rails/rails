@@ -295,12 +295,13 @@ module ActiveSupport
             begin
               user_conditions = conditions_lambdas
               user_callback = CallTemplate.build(@filter, self)
+              lambda = Ractors.try_shareable_lambda(user_callback, &user_callback.make_lambda)
 
               case kind
               when :before
-                Filters::Before.new(user_callback.make_lambda, user_conditions, chain_config, @filter, name)
+                Filters::Before.new(lambda, user_conditions, chain_config, @filter, name)
               when :after
-                Filters::After.new(user_callback.make_lambda, user_conditions, chain_config)
+                Filters::After.new(lambda, user_conditions, chain_config)
               when :around
                 Filters::Around.new(user_callback, user_conditions)
               end
@@ -396,16 +397,14 @@ module ActiveSupport
           end
 
           def make_lambda
-            method_name = @method_name
-            Ractors.shareable_proc do |target, value, &block|
-              target.send(method_name, &block)
+            lambda do |target, value, &block|
+              target.send(@method_name, &block)
             end
           end
 
           def inverted_lambda
-            method_name = @method_name
-            Ractors.shareable_proc do |target, value, &block|
-              !target.send(method_name, &block)
+            lambda do |target, value, &block|
+              !target.send(@method_name, &block)
             end
           end
         end
@@ -421,18 +420,14 @@ module ActiveSupport
           end
 
           def make_lambda
-            override_target = @override_target
-            method_name = @method_name
-            Ractors.try_shareable_proc do |target, value, &block|
-              (override_target || target).send(method_name, target, &block)
+            lambda do |target, value, &block|
+              (@override_target || target).send(@method_name, target, &block)
             end
           end
 
           def inverted_lambda
-            override_target = @override_target
-            method_name = @method_name
-            Ractors.try_shareable_proc do |target, value, &block|
-              !(override_target || target).send(method_name, target, &block)
+            lambda do |target, value, &block|
+              !(@override_target || target).send(@method_name, target, &block)
             end
           end
         end
@@ -447,16 +442,14 @@ module ActiveSupport
           end
 
           def make_lambda
-            override_block = @override_block
-            Ractors.try_shareable_proc do |target, value, &block|
-              target.instance_exec(&override_block)
+            lambda do |target, value, &block|
+              target.instance_exec(&@override_block)
             end
           end
 
           def inverted_lambda
-            override_block = @override_block
-            Ractors.try_shareable_proc do |target, value, &block|
-              !target.instance_exec(&override_block)
+            lambda do |target, value, &block|
+              !target.instance_exec(&@override_block)
             end
           end
         end
@@ -471,16 +464,14 @@ module ActiveSupport
           end
 
           def make_lambda
-            override_block = @override_block
-            Ractors.try_shareable_proc do |target, value, &block|
-              target.instance_exec(target, &override_block)
+            lambda do |target, value, &block|
+              target.instance_exec(target, &@override_block)
             end
           end
 
           def inverted_lambda
-            override_block = @override_block
-            Ractors.try_shareable_proc do |target, value, &block|
-              !target.instance_exec(target, &override_block)
+            lambda do |target, value, &block|
+              !target.instance_exec(target, &@override_block)
             end
           end
         end
@@ -496,18 +487,16 @@ module ActiveSupport
           end
 
           def make_lambda
-            override_block = @override_block
-            Ractors.try_shareable_proc do |target, value, &block|
+            lambda do |target, value, &block|
               raise ArgumentError unless block
-              target.instance_exec(target, block, &override_block)
+              target.instance_exec(target, block, &@override_block)
             end
           end
 
           def inverted_lambda
-            override_block = @override_block
-            Ractors.try_shareable_proc do |target, value, &block|
+            lambda do |target, value, &block|
               raise ArgumentError unless block
-              !target.instance_exec(target, block, &override_block)
+              !target.instance_exec(target, block, &@override_block)
             end
           end
         end
@@ -522,16 +511,14 @@ module ActiveSupport
           end
 
           def make_lambda
-            override_target = @override_target
-            Ractors.shareable_proc do |target, value, &block|
-              (override_target || target).call(target, value, &block)
+            lambda do |target, value, &block|
+              (@override_target || target).call(target, value, &block)
             end
           end
 
           def inverted_lambda
-            override_target = @override_target
-            Ractors.shareable_proc do |target, value, &block|
-              !(override_target || target).call(target, value, &block)
+            lambda do |target, value, &block|
+              !(@override_target || target).call(target, value, &block)
             end
           end
         end
@@ -547,7 +534,7 @@ module ActiveSupport
         # All of these objects are converted into a CallTemplate and handled
         # the same after this point.
         def self.build(filter, callback)
-          case filter
+          type = case filter
           when Symbol
             MethodCall.new(filter)
           when Conditionals::Value
@@ -564,6 +551,8 @@ module ActiveSupport
           else
             ObjectCall.new(filter, callback.current_scopes.join("_").to_sym)
           end
+
+          Ractors.try_make_shareable(type)
         end
       end
 
