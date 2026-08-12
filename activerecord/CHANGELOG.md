@@ -1,3 +1,12 @@
+*   Fix clearing a `belongs_to` association whose composite foreign key is a
+    subset of the referencing record's primary key.
+
+    Previously, assigning `nil` preserved every foreign key column in this
+    case. Shared columns are now preserved only when the foreign key has
+    another column that can be nulled instead.
+
+    *Matthew Draper*
+
 *   `ActiveRecord::Relation#update` and `#update!` no longer escape the relation
     when given ids.
 
