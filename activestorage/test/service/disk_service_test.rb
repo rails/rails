@@ -46,7 +46,7 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
       @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
     end
 
-    assert_equal("Cannot generate URL for avatar.png using Disk service, please set ActiveStorage::Current.url_options.", error.message)
+    assert_equal("Cannot generate URL for avatar.png using Disk service. Consider using ActiveStorage::SetCurrent.", error.message)
   end
 
   test "URL generation keeps working with ActiveStorage::Current.host set" do
