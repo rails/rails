@@ -3792,6 +3792,29 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `"-y -vframes 1 -f image2"` |
 | 7.0                   | `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015)"`<sup><mark><strong><em>1</em></strong></mark></sup> <br> `+ ",loop=loop=-1:size=2,trim=start_frame=1'"`<sup><mark><strong><em>2</em></strong></mark></sup><br> `+ " -frames:v 1 -f image2"` <br><br> <ol><li>Select the first video frame, plus keyframes, plus frames that meet the scene change threshold.</li> <li>Use the first video frame as a fallback when no other frames meet the criteria by looping the first (one or) two selected frames, then dropping the first looped frame.</li></ol> |
 
+#### `config.active_storage.video_preview_input_arguments`
+
+Arguments passed to ffmpeg before `-i` when generating video preview images.
+ffmpeg's flags are position dependent, so arguments that apply to the input,
+such as `-codec_whitelist` and `-protocol_whitelist`, belong here.
+
+The default value is `""`.
+
+See [Media Processing of File Uploads](security.html#media-processing-of-file-uploads)
+in the Security Guide.
+
+#### `config.active_storage.ffprobe_arguments`
+
+Arguments passed to ffprobe before the file path when analyzing videos and
+audio. Applies to both `ActiveStorage::Analyzer::VideoAnalyzer` and
+`ActiveStorage::Analyzer::AudioAnalyzer`. Arguments that make ffprobe reject a
+file will fail that file's analysis.
+
+The default value is `""`.
+
+See [Media Processing of File Uploads](security.html#media-processing-of-file-uploads)
+in the Security Guide.
+
 #### `config.active_storage.multiple_file_field_include_hidden`
 
 In Rails 7.1 and beyond, Active Storage `has_many_attached` relationships will

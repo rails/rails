@@ -175,6 +175,8 @@ module ActiveStorage
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
+        ActiveStorage.video_preview_input_arguments = app.config.active_storage.video_preview_input_arguments || ""
+        ActiveStorage.ffprobe_arguments = app.config.active_storage.ffprobe_arguments || ""
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
         ActiveStorage.analyze = app.config.active_storage.analyze || :later
         ActiveStorage.streaming_chunk_max_size = app.config.active_storage.streaming_chunk_max_size || 100.megabytes
