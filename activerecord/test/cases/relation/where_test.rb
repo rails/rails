@@ -149,6 +149,18 @@ module ActiveRecord
       end
     end
 
+    def test_where_with_tuple_syntax_referencing_another_table
+      categorization = categorizations(:mary_thinking_general)
+
+      key = [:category_id, "authors.name"]
+
+      conditions = [
+        [categorization.category_id, categorization.author.name],
+      ]
+
+      assert_equal [categorization], Categorization.joins(:author).where(key => conditions)
+    end
+
     def test_where_with_nil_cpk_association
       order = Cpk::Order.create!(id: [1, 2])
       book = order.books.create!(id: [3, 4])

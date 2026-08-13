@@ -640,14 +640,14 @@ module ActiveRecord
 
         def change_column(table_name, column_name, type, **options) # :nodoc:
           clear_cache!
-          at = create_alter_table(table_name)
+          at = build_alter_table_definition(table_name)
           at.change_column(column_name, type, **options)
           execute_alter_table(at)
         end
 
         # Changes the default value of a table column.
         def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
-          at = create_alter_table(table_name)
+          at = build_alter_table_definition(table_name)
           at.change_column_default(column_name, default_or_changes)
           execute_alter_table(at)
         end
@@ -678,7 +678,7 @@ module ActiveRecord
         # Renames a column in a table.
         def rename_column(table_name, column_name, new_column_name) # :nodoc:
           clear_cache!
-          at = create_alter_table(table_name)
+          at = build_alter_table_definition(table_name)
           at.rename_column(column_name, new_column_name)
           execute_alter_table(at)
           rename_column_indexes(table_name, column_name, new_column_name)
@@ -925,7 +925,7 @@ module ActiveRecord
         #   Specify an exclusion constraint on a subset of the table (internally PostgreSQL creates a partial index for this).
         def add_exclusion_constraint(table_name, expression, **options)
           options = exclusion_constraint_options(table_name, expression, options)
-          at = create_alter_table(table_name)
+          at = build_alter_table_definition(table_name)
           at.add_exclusion_constraint(expression, options)
 
           execute_alter_table(at)
@@ -987,7 +987,7 @@ module ActiveRecord
         #   Note: only supported by PostgreSQL version 15.0.0 and greater.
         def add_unique_constraint(table_name, column_name = nil, **options)
           options = unique_constraint_options(table_name, column_name, options)
-          at = create_alter_table(table_name)
+          at = build_alter_table_definition(table_name)
           at.add_unique_constraint(column_name, options)
 
           execute_alter_table(at)
@@ -1094,7 +1094,7 @@ module ActiveRecord
         #
         #   validate_constraint :accounts, :constraint_name
         def validate_constraint(table_name, constraint_name)
-          at = create_alter_table table_name
+          at = build_alter_table_definition table_name
           at.validate_constraint constraint_name
 
           execute_alter_table(at)

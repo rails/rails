@@ -19,6 +19,17 @@
 
     *Yasuo Honda*
 
+*   Add `Pacific Time (Canada)` and `Alberta` to `ActiveSupport::TimeZone::MAPPING`.
+
+    British Columbia and Alberta no longer share winter clocks with US Pacific
+    and Mountain time. The existing `Pacific Time (US & Canada)` and
+    `Mountain Time (US & Canada)` entries remain mapped to `America/Los_Angeles`
+    and `America/Denver` for compatibility. Prefer `Pacific Time (Canada)` /
+    `Alberta` (or the IANA identifiers `America/Vancouver` /
+    `America/Edmonton`) for users in those regions.
+
+    *Said Kaldybaev*
+
 *   Fix `Range#sum` with a falsey initial value.
 
     Summing an integer range with a falsey starting value (such as nil or false)
@@ -84,7 +95,16 @@
 
     Almost all of the standard Logger interface is supported.
 
-    *Jean Boussier*
+    In addition it can be set to ignore messages matching given patterns.
+
+    Useful to silence noisy logs from gems that your application may not care
+    about, without needing to change the log level and losing other useful logs.
+
+    ```ruby
+    SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger).ignore(/Noisy/)
+    ```
+
+    *Jean Boussier*, *Federico Carrocera*
 
 *   Include call options in `Cache#exist?` instrumentation payload,
     consistent with `read`, `write`, and `delete`.

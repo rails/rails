@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 
 class OverloadedType < ActiveRecord::Base
   attribute :overloaded_float, :integer
@@ -305,6 +306,37 @@ module ActiveRecord
       assert_equal(:bar, child.new(foo: :bar).foo)
     end
 
+    test "attributes added after attribute methods are generated still define methods" do
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+      end
+      klass.new
+      assert_predicate klass, :attribute_methods_generated?
+
+      klass.attribute(:foo, Type::Value.new)
+      klass.define_attribute_methods
+
+      assert klass.method_defined?(:foo)
+      assert klass.method_defined?(:foo=)
+      assert klass.method_defined?(:foo_changed?)
+    end
+
+    test "attributes added after subclasses load define methods on the subclass" do
+      parent = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+      end
+
+      child = Class.new(parent)
+      child.new
+      assert_predicate child, :attribute_methods_generated?
+
+      parent.attribute(:foo, Type::Value.new)
+      child.define_attribute_methods
+
+      assert child.method_defined?(:foo)
+      assert child.method_defined?(:foo=)
+    end
+
     test "attributes not backed by database columns are not dirty when unchanged" do
       assert_not_predicate OverloadedType.new, :non_existent_decimal_changed?
     end
@@ -414,6 +446,26 @@ module ActiveRecord
       immutable_string_type = Type.lookup(:immutable_string)
       assert_equal default_string_type.serialize(true), immutable_string_type.serialize(true)
       assert_equal default_string_type.serialize(false), immutable_string_type.serialize(false)
+    end
+
+    class RactorTest < ActiveRecord::TestCase
+      include ActiveSupport::Testing::RactorsAssertions
+      include ActiveSupport::Testing::Isolation unless in_memory_db?
+
+      test "default_attributes are Ractor-shareable" do
+        model = Class.new(ActiveRecord::Base) do
+          def self.name = "ractor_safe_default_attributes"
+          self.table_name = "topics"
+        end
+
+        previous = ActiveSupport::Ractors.unshareable_proc_action
+        ActiveSupport::Ractors.unshareable_proc_action = :raise
+        begin
+          assert_ractor_shareable model._default_attributes
+        ensure
+          ActiveSupport::Ractors.unshareable_proc_action = previous
+        end
+      end
     end
 
     private

@@ -145,6 +145,22 @@ module ActiveSupport
       end
     end
 
+    # Returns the value stored under +key+ in the current Ractor's local
+    # storage. Returns +nil+ when nothing has been stored under +key+ yet.
+    #
+    # Each Ractor has an isolated local storage, so values set in one Ractor
+    # are not visible to any other.
+    def self.[](key)
+      Ractor.current[key]
+    end
+
+    # Stores +value+ under +key+ in the current Ractor's local storage.
+    # The value is only visible to the current Ractor, and other
+    # Ractors have their own independent storage.
+    def self.[]=(key, value)
+      Ractor.current[key] = value
+    end
+
     if Ractor.respond_to?(:store_if_absent)
       # Returns the value stored under +key+ in the current Ractor's local
       # storage, running +block+ to compute and store it on first access, by

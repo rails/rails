@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/concern"
 require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/tag_helper"
 require "action_view/helpers/url_helper"

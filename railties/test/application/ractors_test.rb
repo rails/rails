@@ -3,7 +3,7 @@
 require "isolation/abstract_unit"
 require "active_support/testing/ractors_assertions"
 
-if RUBY_VERSION >= "4.0"
+if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
   module ApplicationTests
     class RactorsTest < ActiveSupport::TestCase
       include ActiveSupport::Testing::Isolation
@@ -41,8 +41,12 @@ if RUBY_VERSION >= "4.0"
 
         ractorize!
 
-        templates = ActionView::PathRegistry.all_file_system_resolvers.flat_map(&:built_templates)
-        assert_not_empty templates
+        resolvers = ActionView::PathRegistry.all_file_system_resolvers
+        assert_not_empty resolvers
+        resolvers.each do |resolver|
+          assert_predicate resolver, :frozen?
+          assert_ractor_shareable resolver
+        end
       end
 
       test "error reporting works after the application is ractorized" do

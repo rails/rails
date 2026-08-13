@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 require "models/person"
 require "models/topic"
 require "pp"
@@ -243,7 +244,7 @@ class CoreTest < ActiveRecord::TestCase
   def test_find_by_cache_does_not_duplicate_entries
     Topic.initialize_find_by_cache
     using_prepared_statements = Topic.lease_connection.prepared_statements
-    topic_find_by_cache = Topic.instance_variable_get("@find_by_statement_cache")[using_prepared_statements]
+    topic_find_by_cache = Topic.find_by_statement_cache[using_prepared_statements]
 
     assert_difference -> { topic_find_by_cache.size }, +1 do
       Topic.find(1)
@@ -287,5 +288,29 @@ class CoreTest < ActiveRecord::TestCase
     assert_not_equal Cpk::Book.new(title: "Book A").hash, Cpk::Book.new(title: "Book B").hash
     assert_not_equal Cpk::Book.new(author_id: 1).hash, Cpk::Book.new(author_id: 1).hash
     assert_not_equal Cpk::Book.new(author_id: 1, title: "Same title").hash, Cpk::Book.new(author_id: 1, title: "Same title").hash
+  end
+
+  if RUBY_VERSION >= "4.0"
+    class RactorTest < ActiveRecord::TestCase
+      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::RactorsAssertions
+
+      def test_find_by_statement_cache_is_ractor_local
+        model = Class.new(ActiveRecord::Base) do
+          def self.name = "ractor_safe_find_by_cache"
+          self.table_name = "topics"
+        end
+
+        worker_marker, worker_stable = on_ractor do
+          cache = model.find_by_statement_cache
+          cache[true][:ractor_marker] = :from_worker
+          [cache[true][:ractor_marker], model.find_by_statement_cache.equal?(cache)]
+        end
+
+        assert_equal :from_worker, worker_marker
+        assert worker_stable
+        assert_nil model.find_by_statement_cache[true][:ractor_marker]
+      end
+    end
   end
 end

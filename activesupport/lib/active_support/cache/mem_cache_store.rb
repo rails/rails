@@ -24,6 +24,7 @@ module ActiveSupport
     # This is currently the most popular cache store for production websites.
     #
     # Special features:
+    #
     # - Clustering and load balancing. One can specify multiple memcached servers,
     #   and `MemCacheStore` will load balance between all available servers. If a
     #   server goes down, then `MemCacheStore` will ignore it until it comes back up.

@@ -177,7 +177,7 @@ module ActionView # :nodoc:
     cattr_accessor :automatically_disable_submit_tag, default: true
 
     # Annotate rendered view with file names
-    cattr_accessor :annotate_rendered_view_with_filenames, default: false
+    class_attribute :annotate_rendered_view_with_filenames, default: false
 
     class_attribute :_routes
     class_attribute :logger
