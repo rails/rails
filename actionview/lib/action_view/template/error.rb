@@ -254,8 +254,10 @@ module ActionView
   TemplateError = Template::Error
 
   class SyntaxErrorInTemplate < TemplateError # :nodoc:
-    def initialize(template, offending_code_string)
+    def initialize(template, offending_code_string, line_number: nil, line_number_translation_attempted: false)
       @offending_code_string = offending_code_string
+      @syntax_error_line_number = line_number&.to_s
+      @line_number_translation_attempted = line_number_translation_attempted
       super(template)
     end
 
@@ -269,11 +271,51 @@ module ActionView
       end
     end
 
-    def annotated_source_code
-      @offending_code_string.split("\n").map.with_index(1) { |line, index|
-        indentation = " " * 4
-        "#{index}:#{indentation}#{line}"
-      }
+    def line_number
+      return @syntax_error_line_number if @line_number_translation_attempted
+
+      super
     end
+
+    # The cause is a SyntaxError whose message carries the line number of the
+    # generated method, not of the template. ActiveSupport::SyntaxErrorProxy
+    # turns that message into the leading backtrace frames, which is what the
+    # debug pages read to build the "Extracted source" pane. Prepend a frame
+    # pointing at the template so that pane, and the trace links, agree with
+    # #line_number.
+    #
+    # The stale frames are kept rather than dropped: the message is multi-line
+    # on Ruby 3.4+, so it expands to several frames and there is no reliable
+    # count to remove.
+    def backtrace
+      return super unless @syntax_error_line_number
+
+      [syntax_error_backtrace_frame] + Array(super)
+    end
+
+    def backtrace_locations
+      return super unless @syntax_error_line_number
+      return unless locations = super
+
+      [ActiveSupport::SyntaxErrorProxy::BacktraceLocation.new(
+        template.identifier, @syntax_error_line_number.to_i, syntax_error_backtrace_frame
+      )] + locations
+    end
+
+    def annotated_source_code
+      if template.is_a?(Template::Inline) || !@syntax_error_line_number
+        @offending_code_string.split("\n").map.with_index(1) { |line, index|
+          indentation = " " * 4
+          "#{index}:#{indentation}#{line}"
+        }
+      else
+        super
+      end
+    end
+
+    private
+      def syntax_error_backtrace_frame
+        "#{template.identifier}:#{@syntax_error_line_number}: syntax error"
+      end
   end
 end

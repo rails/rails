@@ -212,7 +212,156 @@ module RenderTestCases
   def test_render_template_with_syntax_error
     e = assert_raises(ActionView::Template::Error) { silence_warnings { @view.render(template: "test/syntax_error") } }
     assert_match %r!syntax!, e.message
-    assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
+    assert_equal "1", e.line_number
+    assert_equal "1: <%= foo(", e.annotated_source_code[0].strip
+  end
+
+  def test_render_template_with_unmatched_end_syntax_error
+    error = assert_raises(ActionView::SyntaxErrorInTemplate) do
+      silence_warnings { @view.render(template: "test/syntax_error_unmatched_end") }
+    end
+
+    assert_equal "13", error.line_number
+    assert_includes error.annotated_source_code.map(&:strip), "13:   <% end %>"
+  end
+
+  # The debug pages build the "Extracted source" pane from the backtrace, not
+  # from #line_number, so the translated line has to reach the backtrace too.
+  def test_syntax_error_backtrace_points_at_the_template
+    error = assert_raises(ActionView::SyntaxErrorInTemplate) do
+      silence_warnings { @view.render(template: "test/syntax_error_unmatched_end") }
+    end
+
+    assert_match %r{syntax_error_unmatched_end\.html\.erb:13:}, error.backtrace.first
+
+    location = error.backtrace_locations.first
+    assert_equal 13, location.lineno
+    assert_match %r{syntax_error_unmatched_end\.html\.erb\z}, location.path
+  end
+
+  # The frames synthesized from the SyntaxError message are kept, so nothing
+  # that was previously reachable through the backtrace is lost.
+  def test_syntax_error_backtrace_retains_the_original_frames
+    error = assert_raises(ActionView::SyntaxErrorInTemplate) do
+      silence_warnings { @view.render(template: "test/syntax_error_unmatched_end") }
+    end
+
+    assert_equal error.cause.backtrace, error.backtrace.drop(1)
+  end
+
+  def test_syntax_error_backtrace_is_untouched_when_translation_fails
+    handler = Class.new do
+      def call(_template, _source)
+        "invalid ("
+      end
+
+      def syntax_error_line_number(_compiled_source, _source)
+        nil
+      end
+    end.new
+    template = ActionView::Template.new("original", "custom template", handler, locals: [], virtual_path: "custom", format: :html)
+
+    error = assert_raises(ActionView::SyntaxErrorInTemplate) do
+      template.send(:compile, Module.new)
+    end
+
+    # Compared by value: each call to the proxy's #backtrace_locations builds
+    # fresh delegator objects, so the arrays are never identical.
+    assert_equal error.cause.backtrace, error.backtrace
+    assert_equal error.cause.backtrace_locations.map(&:to_s), error.backtrace_locations.map(&:to_s)
+  end
+
+  def test_render_inline_template_with_syntax_error
+    error = assert_raises(ActionView::SyntaxErrorInTemplate) do
+      silence_warnings { @view.render(inline: "<% [ %>") }
+    end
+
+    assert_equal ["1:    <% [ %>"], error.annotated_source_code
+  end
+
+  # Handlers that do not implement `syntax_error_line_number` keep the legacy
+  # behavior: `line_number` is scraped from the backtrace of the compiled
+  # method, so it points at a line of the wrapper, not at the template line.
+  # The assertions below only characterize that value as present and stable,
+  # they do not claim it is correct.
+  def test_non_erb_syntax_error_annotation_is_independent_of_line_number_call_order
+    handler = Class.new do
+      def call(_template, _source)
+        "invalid ("
+      end
+    end.new
+    source = (1..8).map { |line| "line #{line}" }.join("\n")
+    template = ActionView::Template.new(source, "custom template", handler, locals: [], virtual_path: "custom", format: :html)
+
+    error = assert_raises(ActionView::SyntaxErrorInTemplate) do
+      template.send(:compile, Module.new)
+    end
+
+    annotated_source_code = error.annotated_source_code
+    assert_equal 8, annotated_source_code.length
+    assert error.line_number
+    assert_equal annotated_source_code, error.annotated_source_code
+
+    line_number_first_template = ActionView::Template.new(
+      source, "custom template", handler, locals: [], virtual_path: "custom", format: :html
+    )
+    line_number_first_error = assert_raises(ActionView::SyntaxErrorInTemplate) do
+      line_number_first_template.send(:compile, Module.new)
+    end
+
+    assert line_number_first_error.line_number
+    assert_equal annotated_source_code, line_number_first_error.annotated_source_code
+  end
+
+  def test_render_template_handler_syntax_error_is_wrapped
+    handler = Class.new do
+      def call(_template, _source)
+        raise SyntaxError, "handler syntax error"
+      end
+    end.new
+    template = ActionView::Template.new("original", "custom template", handler, locals: [], virtual_path: "custom", format: :html)
+
+    assert_raises(ActionView::SyntaxErrorInTemplate) do
+      template.send(:compile, Module.new)
+    end
+  end
+
+  def test_render_template_with_syntax_error_location_failure
+    handler = Class.new do
+      def call(_template, _source)
+        "invalid ("
+      end
+
+      def syntax_error_line_number(_compiled_source, _source)
+        raise NoMethodError, "location failure"
+      end
+    end.new
+    template = ActionView::Template.new("original", "custom template", handler, locals: [], virtual_path: "custom", format: :html)
+
+    error = assert_raises(ActionView::SyntaxErrorInTemplate) do
+      template.send(:compile, Module.new)
+    end
+
+    assert_nil error.line_number
+    assert_equal ["1:    original"], error.annotated_source_code
+  end
+
+  def test_render_erb_template_with_untranslatable_syntax_error
+    template = ActionView::Template.new(
+      "prefix\n<% yield( %>\nbody\n",
+      "erb template",
+      ActionView::Template::Handlers::ERB.new,
+      locals: [],
+      virtual_path: "erb_template",
+      format: :html
+    )
+
+    error = assert_raises(ActionView::SyntaxErrorInTemplate) do
+      template.send(:compile, Module.new)
+    end
+
+    assert_nil error.line_number
+    assert_equal ["1:    prefix", "2:    <% yield( %>", "3:    body"], error.annotated_source_code
   end
 
   def test_render_runtime_error

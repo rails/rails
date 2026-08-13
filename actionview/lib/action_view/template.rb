@@ -552,12 +552,14 @@ module ActionView
       # regardless of the original source encoding.
       def compile(mod)
         begin
-          mod.module_eval(compiled_source, identifier, offset)
+          compiled = compiled_source
+          mod.module_eval(compiled, identifier, offset)
         rescue SyntaxError
           # Account for when code in the template is not syntactically valid; e.g. if we're using
           # ERB and the user writes <%= foo( %>, attempting to call a helper `foo` and interpolate
           # the result into the template, but missing an end parenthesis.
-          raise SyntaxErrorInTemplate.new(self, encode!)
+          template_source = encode!
+          raise SyntaxErrorInTemplate.new(self, template_source, **syntax_error_options(compiled, template_source))
         end
 
         return unless strict_locals?
@@ -597,6 +599,21 @@ module ActionView
         else
           0
         end
+      end
+
+      # Returns the keyword arguments for SyntaxErrorInTemplate that locate the
+      # error in the template source.
+      def syntax_error_options(compiled_source, template_source)
+        return {} unless compiled_source && @handler.respond_to?(:syntax_error_line_number)
+
+        {
+          line_number: @handler.syntax_error_line_number(compiled_source, template_source),
+          line_number_translation_attempted: true,
+        }
+      rescue StandardError
+        # Locating the error is best-effort: a failure here must never replace
+        # the original SyntaxError.
+        { line_number_translation_attempted: true }
       end
 
       def handle_render_error(e)
