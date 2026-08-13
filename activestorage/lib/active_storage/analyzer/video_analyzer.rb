@@ -72,7 +72,7 @@ module ActiveStorage
             numerator   = Integer(terms[0])
             denominator = Integer(terms[1])
 
-            [numerator, denominator] unless numerator == 0
+            [numerator, denominator] unless numerator == 0 || denominator == 0
           end
         end
       end
