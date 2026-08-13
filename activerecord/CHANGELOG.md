@@ -1,3 +1,10 @@
+*   The database selector middleware treats HTTP QUERY requests
+    ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) as reads, routing
+    them to the replica like GET and HEAD, subject to the same
+    recent-write-window primary fallback.
+
+    *Jeremy Daer*
+
 *   Fix performance regression in `method_missing` for virtual SELECT alias
     attributes.
 
