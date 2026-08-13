@@ -1,3 +1,10 @@
+*   Fix performance regression in `method_missing` for virtual SELECT alias
+    attributes.
+
+    Fixes #57183.
+
+    *Hammad Khan*
+
 *   Column defaults are no longer eagerly deserialized.
 
     Restore the Active Record 8.0 and older behavior.
