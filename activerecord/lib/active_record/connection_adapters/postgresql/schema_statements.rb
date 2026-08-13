@@ -1199,6 +1199,24 @@ module ActiveRecord
         end
 
         private
+          # #foreign_keys reports the target through +regclass+, which omits the schema
+          # when the relation is reachable through the search path. Resolve +to_table+
+          # the same way so both sides of the comparison use the same name.
+          def foreign_key_for(from_table, **options)
+            if options[:to_table] && use_foreign_keys?
+              options = options.merge(to_table: canonical_relation_name(options[:to_table]))
+            end
+
+            super
+          end
+
+          def canonical_relation_name(table_name)
+            name = Utils.extract_schema_qualified_name(table_name.to_s)
+            return table_name unless name.schema
+
+            query_value("SELECT to_regclass(#{quote(name.quoted)})::text", "SCHEMA") || table_name
+          end
+
           def create_table_definition(name, **options)
             PostgreSQL::TableDefinition.new(self, name, **options)
           end

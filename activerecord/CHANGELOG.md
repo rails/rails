@@ -1,3 +1,13 @@
+*   Fix `foreign_key_exists?` and `remove_foreign_key` on PostgreSQL when the
+    target table is schema qualified and its schema is on the `search_path`.
+
+    `foreign_keys` reports the target through `regclass`, which omits the schema
+    when the relation is reachable through the `search_path`, so a schema
+    qualified `to_table` never matched. Reverting an `add_reference` with such a
+    `to_table` raised `ArgumentError` as a result.
+
+    *Tobias Egli*
+
 *   Deprecate `ActiveRecord::ConnectionAdapters::DatabaseStatements#create`
     in favor of `#insert`.
 
