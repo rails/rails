@@ -91,7 +91,7 @@ module ActiveStorage
 
       def computed_height
         if encoded_width && display_height_scale
-          encoded_width * display_height_scale
+          (encoded_width.to_r * display_height_scale).to_f
         end
       end
 
@@ -104,7 +104,7 @@ module ActiveStorage
       end
 
       def display_height_scale
-        @display_height_scale ||= Float(display_aspect_ratio.last) / display_aspect_ratio.first if display_aspect_ratio
+        @display_height_scale ||= Rational(display_aspect_ratio.last, display_aspect_ratio.first) if display_aspect_ratio
       end
 
       def tags

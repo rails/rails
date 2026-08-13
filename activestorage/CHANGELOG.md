@@ -1,3 +1,15 @@
+*   Fix `ActiveStorage::Analyzer::VideoAnalyzer` reporting an imprecise height for videos whose
+    display aspect ratio cannot be represented exactly as a float.
+
+    The height was derived by multiplying the encoded width by a float division of the display
+    aspect ratio, so a 468x60 video with a `39:5` ratio was analyzed as `59.99999999999999`
+    rather than `60`, and `metadata[:height].to_i` truncated it to `59`. The height is now
+    computed with rational arithmetic, which keeps fractional heights intact.
+
+    Fixes #53538.
+
+    *Ajay Krishnan*
+
 *   Allow ffmpeg and ffprobe input arguments to be configured.
 
     Two new configuration parameters are introduced.
