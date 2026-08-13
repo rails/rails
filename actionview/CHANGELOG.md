@@ -1,3 +1,10 @@
+*   `current_page?` matches HTTP QUERY requests
+    ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) with
+    `method: :query`. The default `method: :get` deliberately does not match
+    QUERY.
+
+    *Jeremy Daer*
+
 *   Configuring ERB options is now to be made on the ActionView::Base class.
 
     The `ActionView::Template::Handlers::ERB` class is now private API. Applications

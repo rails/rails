@@ -79,6 +79,16 @@ module ActionView
       #   current_page?(controller: 'product', action: 'index', method: [:get, :post])
       #   # => true
       #
+      # The default <tt>method: :get</tt> matches GET and HEAD requests, but not
+      # other safe methods: after an HTTP QUERY request to
+      # <tt>http://www.example.com/search</tt>,
+      #
+      #   current_page?('/search')
+      #   # => false
+      #
+      #   current_page?('/search', method: :query)
+      #   # => true
+      #
       # We can also pass in the symbol arguments instead of strings.
       #
       def current_page?(options = nil, check_parameters: false, method: :get, **options_as_kwargs)
