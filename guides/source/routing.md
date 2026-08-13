@@ -592,7 +592,7 @@ An incoming GET request to `/photos/1/preview` will route to the `preview` actio
 
 Within the `member` block, each route definition specifies the HTTP verb (`get`
 in the above example with `get 'preview'`). In addition to [`get`][], you can
-use [`patch`][], [`put`][], [`post`][], or [`delete`][].
+use [`patch`][], [`put`][], [`post`][], [`delete`][], or [`query`][].
 
 If you don't have multiple `member` routes, you can also
 pass `:on` to a route, eliminating the block:
