@@ -916,7 +916,7 @@ class RequestMethod < BaseRequestTest
 end
 
 class RequestSafety < BaseRequestTest
-  %w[GET HEAD OPTIONS TRACE].each do |method|
+  %w[GET HEAD QUERY OPTIONS TRACE].each do |method|
     test "#{method} is a safe method" do
       request = stub_request("REQUEST_METHOD" => method)
       assert_predicate request, :safe_method?

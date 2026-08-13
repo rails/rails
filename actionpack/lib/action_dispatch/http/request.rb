@@ -478,10 +478,10 @@ module ActionDispatch
       authorization.to_s[/\ABearer (.+)\z/i, 1]
     end
 
-    # True if the request method is safe per RFC 9110 §9.2.1
-    # (GET, HEAD, OPTIONS, or TRACE).
+    # True if the request method is safe per RFC 9110 §9.2.1 (GET, HEAD,
+    # OPTIONS, or TRACE) or RFC 10008 (QUERY).
     def safe_method?
-      get? || head? || options? || trace?
+      get? || head? || query? || options? || trace?
     end
 
     # True if the request method may modify resources. Inverse of #safe_method?.
