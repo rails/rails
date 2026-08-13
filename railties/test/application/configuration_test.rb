@@ -5483,6 +5483,12 @@ module ApplicationTests
           assert_ractor_shareable(config)
         end
       end
+
+      test "ActiveRecord configuration is frozen after boot" do
+        app "development"
+
+        assert_ractor_shareable(ActiveRecord.query_transformers)
+      end
     end
 
     private
