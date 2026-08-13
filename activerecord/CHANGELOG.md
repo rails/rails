@@ -1,3 +1,10 @@
+*   Fix performance regression in `method_missing` for virtual SELECT alias
+    attributes.
+
+    Fixes #57183.
+
+    *Hammad Khan*
+
 *   Preserve the declared parent order when dumping PostgreSQL `INHERITS` table options.
 
     The schema dumper read a table's inherited parents without an `ORDER BY`, so the
