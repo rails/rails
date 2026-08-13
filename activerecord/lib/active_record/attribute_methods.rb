@@ -478,10 +478,12 @@ module ActiveRecord
         self.class.define_attribute_methods
 
         # So in all cases we must behave as if the method was just defined.
-        method = begin
-          self.class.public_instance_method(name)
-        rescue NameError
-          nil
+        method = if self.class.public_method_defined?(name)
+          begin
+            self.class.public_instance_method(name)
+          rescue NameError
+            nil
+          end
         end
 
         # The method might be explicitly defined in the model, but call a generated

@@ -1,3 +1,10 @@
+*   Fix performance regression in `method_missing` for virtual SELECT alias
+    attributes.
+
+    Fixes #57183.
+
+    *Hammad Khan*
+
 *   Deprecate `ActiveRecord::ConnectionAdapters::DatabaseStatements#create`
     in favor of `#insert`.
 
