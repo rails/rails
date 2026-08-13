@@ -41,7 +41,10 @@ module Rails
       end
 
       def execute
-        updater.execute
+        @load_lock.synchronize do
+          updater.execute
+          @load_state ||= :loaded
+        end
       end
 
       def execute_unless_loaded

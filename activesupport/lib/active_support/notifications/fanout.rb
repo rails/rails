@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "concurrent/map"
@@ -54,14 +55,26 @@ module ActiveSupport
     #
     # This class is thread safe. All methods are reentrant.
     class Fanout
-      attr_accessor :string_subscribers, :other_subscribers # :nodoc:
-
       def initialize
         @mutex = Mutex.new
         @string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
         @other_subscribers = []
         @all_listeners_for = Concurrent::Map.new
         @groups_for = Concurrent::Map.new
+      end
+
+      def to_ractor_snapshot # :nodoc:
+        {
+          string_subscribers: Hash[@string_subscribers.keys.zip(@string_subscribers.values)],
+          other_subscribers: @other_subscribers,
+        }
+      end
+
+      def load_ractor_snapshot(snapshot) # :nodoc:
+        string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
+        snapshot[:string_subscribers].each { |name, list| string_subscribers[name] = list.dup }
+        @string_subscribers = string_subscribers
+        @other_subscribers = snapshot[:other_subscribers].dup
       end
 
       def inspect # :nodoc:
@@ -225,20 +238,22 @@ module ActiveSupport
         groups
       end
 
-      # A +Handle+ is used to record the start and finish time of event.
+      # A `Handle` is used to record the start and finish time of event.
       #
       # Both #start and #finish must each be called exactly once.
       #
       # Where possible, it's best to use the block form: ActiveSupport::Notifications.instrument.
-      # +Handle+ is a low-level API intended for cases where the block form can't be used.
+      # `Handle` is a low-level API intended for cases where the block form can't be used.
       #
-      #   handle = ActiveSupport::Notifications.instrumenter.build_handle("my.event", {})
-      #   begin
-      #     handle.start
-      #     # work to be instrumented
-      #   ensure
-      #     handle.finish
-      #   end
+      # ```
+      # handle = ActiveSupport::Notifications.instrumenter.build_handle("my.event", {})
+      # begin
+      #   handle.start
+      #   # work to be instrumented
+      # ensure
+      #   handle.finish
+      # end
+      # ```
       class Handle
         include FanoutIteration
 

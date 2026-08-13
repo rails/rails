@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/attribute_accessors"
@@ -7,9 +8,10 @@ require "active_support/subscriber"
 require "active_support/deprecation/proxy_wrappers"
 
 module ActiveSupport
-  # = Active Support Log \Subscriber
+  # Active Support Log \Subscriber
+  # ==============================
   #
-  # +ActiveSupport::LogSubscriber+ is an object set to consume
+  # `ActiveSupport::LogSubscriber` is an object set to consume
   # ActiveSupport::Notifications with the sole purpose of logging them.
   # The log subscriber dispatches notifications to a registered object based
   # on its given namespace.
@@ -17,47 +19,51 @@ module ActiveSupport
   # An example would be Active Record log subscriber responsible for logging
   # queries:
   #
-  #   module ActiveRecord
-  #     class LogSubscriber < ActiveSupport::LogSubscriber
-  #       attach_to :active_record
+  # ```
+  # module ActiveRecord
+  #   class LogSubscriber < ActiveSupport::LogSubscriber
+  #     attach_to :active_record
   #
-  #       def sql(event)
-  #         info "#{event.payload[:name]} (#{event.duration}) #{event.payload[:sql]}"
-  #       end
+  #     def sql(event)
+  #       info "#{event.payload[:name]} (#{event.duration}) #{event.payload[:sql]}"
   #     end
   #   end
+  # end
+  # ```
   #
   # ActiveRecord::LogSubscriber.logger must be set as well, but it is assigned
   # automatically in a \Rails environment.
   #
-  # After configured, whenever a <tt>"sql.active_record"</tt> notification is
+  # After configured, whenever a `"sql.active_record"` notification is
   # published, it will properly dispatch the event
-  # (ActiveSupport::Notifications::Event) to the +sql+ method.
+  # (ActiveSupport::Notifications::Event) to the `sql` method.
   #
   # Being an ActiveSupport::Notifications consumer,
-  # +ActiveSupport::LogSubscriber+ exposes a simple interface to check if
+  # `ActiveSupport::LogSubscriber` exposes a simple interface to check if
   # instrumented code raises an exception. It is common to log a different
   # message in case of an error, and this can be achieved by extending
   # the previous example:
   #
-  #   module ActiveRecord
-  #     class LogSubscriber < ActiveSupport::LogSubscriber
-  #       def sql(event)
-  #         exception = event.payload[:exception]
+  # ```
+  # module ActiveRecord
+  #   class LogSubscriber < ActiveSupport::LogSubscriber
+  #     def sql(event)
+  #       exception = event.payload[:exception]
   #
-  #         if exception
-  #           exception_object = event.payload[:exception_object]
+  #       if exception
+  #         exception_object = event.payload[:exception_object]
   #
-  #           error "[ERROR] #{event.payload[:name]}: #{exception.join(', ')} " \
-  #                 "(#{exception_object.backtrace.first})"
-  #         else
-  #           # standard logger code
-  #         end
+  #         error "[ERROR] #{event.payload[:name]}: #{exception.join(', ')} " \
+  #               "(#{exception_object.backtrace.first})"
+  #       else
+  #         # standard logger code
   #       end
   #     end
   #   end
+  # end
+  # ```
   #
-  # +ActiveSupport::LogSubscriber+ also has some helpers to deal with
+  # `ActiveSupport::LogSubscriber` also has some helpers to deal with
   # logging. For example, ActiveSupport::LogSubscriber.flush_all! will ensure
   # that all logs are flushed, and it is called in Rails::Rack::Logger after a
   # request finishes.
@@ -73,15 +79,11 @@ module ActiveSupport
     }.freeze
 
     class << self
-      def logger
-        @logger ||= if defined?(Rails) && Rails.respond_to?(:logger)
-          Rails.logger
-        end
-      end
+      attr_reader :logger
 
       def logger=(logger)
-        @supports_flush = nil
         @logger = logger
+        @supports_flush = logger.respond_to?(:flush)
       end
 
       def attach_to(...) # :nodoc:
@@ -96,7 +98,6 @@ module ActiveSupport
 
       # Flush all log_subscribers' logger.
       def flush_all!
-        @supports_flush = logger.respond_to?(:flush) if @supports_flush.nil?
         logger.flush if @supports_flush
       end
 

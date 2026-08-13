@@ -77,16 +77,62 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     clear = "\e[0m"
 
     Rails.env = "development"
-    assert_equal("#{blue}dev#{clear}", irb_console.colorized_env)
+    assert_equal("#{blue}dev#{clear}", irb_console.colorized_short_env)
 
     Rails.env = "test"
-    assert_equal("#{blue}test#{clear}", irb_console.colorized_env)
+    assert_equal("#{blue}test#{clear}", irb_console.colorized_short_env)
 
     Rails.env = "production"
-    assert_equal("#{red}prod#{clear}", irb_console.colorized_env)
+    assert_equal("#{red}prod#{clear}", irb_console.colorized_short_env)
+
+    Rails.env = "custom_env"
+    assert_equal("#{magenta}custom_env#{clear}", irb_console.colorized_short_env)
+  end
+
+  def test_banner_env_colorization
+    app = build_app(nil)
+    irb_console = Rails::Console.new(app).console
+    red = "\e[31m"
+    blue = "\e[34m"
+    magenta = "\e[35m"
+    clear = "\e[0m"
+
+    Rails.env = "development"
+    assert_equal("#{blue}development#{clear}", irb_console.colorized_env)
+
+    Rails.env = "production"
+    assert_equal("#{red}production#{clear}", irb_console.colorized_env)
 
     Rails.env = "custom_env"
     assert_equal("#{magenta}custom_env#{clear}", irb_console.colorized_env)
+  end
+
+  def test_show_startup_banner
+    app = build_app(nil)
+    irb_console = Rails::Console.new(app).console
+
+    IRB.conf[:SHOW_BANNER] = true
+    out = capture(:stderr) { irb_console.show_startup_banner }
+    assert_match(/Rails/, out)
+    assert_match(/v#{Regexp.escape(Rails.version)}/, out)
+    assert_match(/Ruby #{Regexp.escape(RUBY_VERSION)}/, out)
+    assert_match(/TIP: /, out)
+
+    IRB.conf[:SHOW_BANNER] = false
+    out = capture(:stderr) { irb_console.show_startup_banner }
+    assert_match(/Loading \w+ environment/, out)
+    assert_match(/Type 'help' for help/, out)
+  end
+
+  def test_show_startup_banner_without_tips
+    app = build_app(nil)
+    irb_console = Rails::Console.new(app).console
+    IRB.conf[:SHOW_BANNER] = true
+
+    switch_env "RAILS_TIPS", "false" do
+      out = capture(:stderr) { irb_console.show_startup_banner }
+      assert_no_match(/TIP: /, out)
+    end
   end
 
   def test_default_environment_with_no_rails_env

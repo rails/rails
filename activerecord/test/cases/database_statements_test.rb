@@ -15,11 +15,15 @@ class DatabaseStatementsTest < ActiveRecord::TestCase
   end
 
   def test_insert_should_return_the_inserted_id
-    assert_not_nil return_the_inserted_id(method: :insert)
+    id = @connection.insert("INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)")
+    assert_not_nil id
   end
 
-  def test_create_should_return_the_inserted_id
-    assert_not_nil return_the_inserted_id(method: :create)
+  def test_create_is_deprecated_alias_of_insert
+    id = assert_deprecated(/create is deprecated/, ActiveRecord.deprecator) do
+      @connection.create("INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)")
+    end
+    assert_not_nil id
   end
 
   def test_insert_with_scalar_returning_returns_scalar
@@ -104,9 +108,4 @@ class DatabaseStatementsTest < ActiveRecord::TestCase
       assert_equal 1, affected
     end
   end
-
-  private
-    def return_the_inserted_id(method:)
-      @connection.send(method, "INSERT INTO accounts (firm_id,credit_limit) VALUES (42,5000)")
-    end
 end

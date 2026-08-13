@@ -792,8 +792,11 @@ module ActiveSupport
         # ```
         #
         # Output:
-        #   - save
-        #   saved
+        #
+        # ```
+        # - save
+        # saved
+        # ```
         #
         # When if option returns false, callback is NOT skipped.
         #

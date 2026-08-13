@@ -133,7 +133,8 @@ module ActiveRecord
           if key.is_a?(Array)
             queries = Array(value).map do |ids_set|
               raise ArgumentError, "Expected corresponding value for #{key} to be an Array" unless ids_set.is_a?(Array)
-              expand_from_hash(key.zip(ids_set).to_h)
+              attributes = convert_dot_notation_to_hash(key.zip(ids_set).to_h)
+              expand_from_hash(attributes)
             end
             grouping_queries(queries)
           elsif value.is_a?(Hash) && !table.has_column?(key)
@@ -196,7 +197,13 @@ module ActiveRecord
         if queries.one?
           queries.first
         else
-          queries.map! { |query| query.reduce(&:and) }
+          queries.map! { |query|
+            if query.one?
+              query
+            else
+              Arel::Nodes::And.new(query)
+            end
+          }
           queries = Arel::Nodes::Or.new(queries)
           Arel::Nodes::Grouping.new(queries)
         end

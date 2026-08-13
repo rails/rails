@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "openssl"
@@ -9,105 +10,127 @@ require "active_support/messages/codec"
 require "active_support/messages/rotator"
 
 module ActiveSupport
-  # = Active Support Message Verifier
+  # Active Support Message Verifier
+  # ===============================
   #
-  # +MessageVerifier+ makes it easy to generate and verify messages which are
+  # `MessageVerifier` makes it easy to generate and verify messages which are
   # signed to prevent tampering.
   #
-  # In a \Rails application, you can use +Rails.application.message_verifier+
+  # In a \Rails application, you can use `Rails.application.message_verifier`
   # to manage unique instances of verifiers for each use case.
-  # {Learn more}[link:classes/Rails/Application.html#method-i-message_verifier].
+  # [Learn more](link:classes/Rails/Application.html#method-i-message_verifier).
   #
   # This is useful for cases like remember-me tokens and auto-unsubscribe links
   # where the session store isn't suitable or available.
   #
   # First, generate a signed message:
-  #   cookies[:remember_me] = Rails.application.message_verifier(:remember_me).generate([@user.id, 2.weeks.from_now])
+  #
+  # ```
+  # cookies[:remember_me] = Rails.application.message_verifier(:remember_me).generate([@user.id, 2.weeks.from_now])
+  # ```
   #
   # Later verify that message:
   #
-  #   id, time = Rails.application.message_verifier(:remember_me).verify(cookies[:remember_me])
-  #   if time.future?
-  #     self.current_user = User.find(id)
-  #   end
+  # ```
+  # id, time = Rails.application.message_verifier(:remember_me).verify(cookies[:remember_me])
+  # if time.future?
+  #   self.current_user = User.find(id)
+  # end
+  # ```
   #
-  # === Signing is not encryption
+  # ### Signing is not encryption
   #
   # The signed messages are not encrypted. The payload is merely encoded (Base64 by default) and can be decoded by
   # anyone. The signature is just assuring that the message wasn't tampered with. For example:
   #
-  #     message = Rails.application.message_verifier('my_purpose').generate('never put secrets here')
-  #     # => "BAhJIhtuZXZlciBwdXQgc2VjcmV0cyBoZXJlBjoGRVQ=--a0c1c0827919da5e949e989c971249355735e140"
-  #     Base64.decode64(message.split("--").first) # no key needed
-  #     # => 'never put secrets here'
+  # ```
+  # message = Rails.application.message_verifier('my_purpose').generate('never put secrets here')
+  # # => "BAhJIhtuZXZlciBwdXQgc2VjcmV0cyBoZXJlBjoGRVQ=--a0c1c0827919da5e949e989c971249355735e140"
+  # Base64.decode64(message.split("--").first) # no key needed
+  # # => 'never put secrets here'
+  # ```
   #
   # If you also need to encrypt the contents, you must use ActiveSupport::MessageEncryptor instead.
   #
-  # === Confine messages to a specific purpose
+  # ### Confine messages to a specific purpose
   #
   # It's not recommended to use the same verifier for different purposes in your application.
   # Doing so could allow a malicious actor to re-use a signed message to perform an unauthorized
   # action.
-  # You can reduce this risk by confining signed messages to a specific +:purpose+.
+  # You can reduce this risk by confining signed messages to a specific `:purpose`.
   #
-  #   token = @verifier.generate("signed message", purpose: :login)
+  # ```
+  # token = @verifier.generate("signed message", purpose: :login)
+  # ```
   #
   # Then that same purpose must be passed when verifying to get the data back out:
   #
-  #   @verifier.verified(token, purpose: :login)    # => "signed message"
-  #   @verifier.verified(token, purpose: :shipping) # => nil
-  #   @verifier.verified(token)                     # => nil
+  # ```
+  # @verifier.verified(token, purpose: :login)    # => "signed message"
+  # @verifier.verified(token, purpose: :shipping) # => nil
+  # @verifier.verified(token)                     # => nil
   #
-  #   @verifier.verify(token, purpose: :login)      # => "signed message"
-  #   @verifier.verify(token, purpose: :shipping)   # => raises ActiveSupport::MessageVerifier::InvalidSignature
-  #   @verifier.verify(token)                       # => raises ActiveSupport::MessageVerifier::InvalidSignature
+  # @verifier.verify(token, purpose: :login)      # => "signed message"
+  # @verifier.verify(token, purpose: :shipping)   # => raises ActiveSupport::MessageVerifier::InvalidSignature
+  # @verifier.verify(token)                       # => raises ActiveSupport::MessageVerifier::InvalidSignature
+  # ```
   #
   # Likewise, if a message has no purpose it won't be returned when verifying with
   # a specific purpose.
   #
-  #   token = @verifier.generate("signed message")
-  #   @verifier.verified(token, purpose: :redirect) # => nil
-  #   @verifier.verified(token)                     # => "signed message"
+  # ```
+  # token = @verifier.generate("signed message")
+  # @verifier.verified(token, purpose: :redirect) # => nil
+  # @verifier.verified(token)                     # => "signed message"
   #
-  #   @verifier.verify(token, purpose: :redirect)   # => raises ActiveSupport::MessageVerifier::InvalidSignature
-  #   @verifier.verify(token)                       # => "signed message"
+  # @verifier.verify(token, purpose: :redirect)   # => raises ActiveSupport::MessageVerifier::InvalidSignature
+  # @verifier.verify(token)                       # => "signed message"
+  # ```
   #
-  # === Expiring messages
+  # ### Expiring messages
   #
   # By default messages last forever and verifying one year from now will still
   # return the original value. But messages can be set to expire at a given
-  # time with +:expires_in+ or +:expires_at+.
+  # time with `:expires_in` or `:expires_at`.
   #
-  #   @verifier.generate("signed message", expires_in: 1.month)
-  #   @verifier.generate("signed message", expires_at: Time.now.end_of_year)
+  # ```
+  # @verifier.generate("signed message", expires_in: 1.month)
+  # @verifier.generate("signed message", expires_at: Time.now.end_of_year)
+  # ```
   #
   # Messages can then be verified and returned until expiry.
-  # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
-  # +ActiveSupport::MessageVerifier::InvalidSignature+.
+  # Thereafter, the `verified` method returns `nil` while `verify` raises
+  # `ActiveSupport::MessageVerifier::InvalidSignature`.
   #
-  # === Rotating keys
+  # ### Rotating keys
   #
   # MessageVerifier also supports rotating out old configurations by falling
-  # back to a stack of verifiers. Call +rotate+ to build and add a verifier so
-  # either +verified+ or +verify+ will also try verifying with the fallback.
+  # back to a stack of verifiers. Call `rotate` to build and add a verifier so
+  # either `verified` or `verify` will also try verifying with the fallback.
   #
   # By default any rotated verifiers use the values of the primary
   # verifier unless specified otherwise.
   #
   # You'd give your verifier the new defaults:
   #
-  #   verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA512", serializer: JSON)
+  # ```
+  # verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA512", serializer: JSON)
+  # ```
   #
   # Then gradually rotate the old values out by adding them as fallbacks. Any message
   # generated with the old values will then work until the rotation is removed.
   #
-  #   verifier.rotate(old_secret)          # Fallback to an old secret instead of @secret.
-  #   verifier.rotate(digest: "SHA256")    # Fallback to an old digest instead of SHA512.
-  #   verifier.rotate(serializer: Marshal) # Fallback to an old serializer instead of JSON.
+  # ```
+  # verifier.rotate(old_secret)          # Fallback to an old secret instead of @secret.
+  # verifier.rotate(digest: "SHA256")    # Fallback to an old digest instead of SHA512.
+  # verifier.rotate(serializer: Marshal) # Fallback to an old serializer instead of JSON.
+  # ```
   #
   # Though the above would most likely be combined into one rotation:
   #
-  #   verifier.rotate(old_secret, digest: "SHA256", serializer: Marshal)
+  # ```
+  # verifier.rotate(old_secret, digest: "SHA256", serializer: Marshal)
+  # ```
   class MessageVerifier < Messages::Codec
     prepend Messages::Rotator
 
@@ -118,53 +141,53 @@ module ActiveSupport
 
     # Initialize a new MessageVerifier with a secret for the signature.
     #
-    # ==== Options
+    # #### Options
     #
-    # [+:digest+]
-    #   Digest used for signing. The default is <tt>"SHA1"</tt>. See
-    #   +OpenSSL::Digest+ for alternatives.
+    # `:digest`
+    # :   Digest used for signing. The default is `"SHA1"`. See
+    # `OpenSSL::Digest` for alternatives.
     #
-    # [+:serializer+]
-    #   The serializer used to serialize message data. You can specify any
-    #   object that responds to +dump+ and +load+, or you can choose from
-    #   several preconfigured serializers: +:marshal+, +:json_allow_marshal+,
-    #   +:json+, +:message_pack_allow_marshal+, +:message_pack+.
+    # `:serializer`
+    # :   The serializer used to serialize message data. You can specify any
+    # object that responds to `dump` and `load`, or you can choose from
+    # several preconfigured serializers: `:marshal`, `:json_allow_marshal`,
+    # `:json`, `:message_pack_allow_marshal`, `:message_pack`.
     #
-    #   The preconfigured serializers include a fallback mechanism to support
-    #   multiple deserialization formats. For example, the +:marshal+ serializer
-    #   will serialize using +Marshal+, but can deserialize using +Marshal+,
-    #   ActiveSupport::JSON, or ActiveSupport::MessagePack. This makes it easy
-    #   to migrate between serializers.
+    # :   The preconfigured serializers include a fallback mechanism to support
+    # multiple deserialization formats. For example, the `:marshal` serializer
+    # will serialize using `Marshal`, but can deserialize using `Marshal`,
+    # ActiveSupport::JSON, or ActiveSupport::MessagePack. This makes it easy
+    # to migrate between serializers.
     #
-    #   The +:marshal+, +:json_allow_marshal+, and +:message_pack_allow_marshal+
-    #   serializers support deserializing using +Marshal+, but the others do
-    #   not. Beware that +Marshal+ is a potential vector for deserialization
-    #   attacks in cases where a message signing secret has been leaked. <em>If
-    #   possible, choose a serializer that does not support +Marshal+.</em>
+    # :   The `:marshal`, `:json_allow_marshal`, and `:message_pack_allow_marshal`
+    # serializers support deserializing using `Marshal`, but the others do
+    # not. Beware that `Marshal` is a potential vector for deserialization
+    # attacks in cases where a message signing secret has been leaked. <em>If
+    # possible, choose a serializer that does not support `Marshal`.</em>
     #
-    #   The +:message_pack+ and +:message_pack_allow_marshal+ serializers use
-    #   ActiveSupport::MessagePack, which can roundtrip some Ruby types that are
-    #   not supported by JSON, and may provide improved performance. However,
-    #   these require the +msgpack+ gem.
+    # :   The `:message_pack` and `:message_pack_allow_marshal` serializers use
+    # ActiveSupport::MessagePack, which can roundtrip some Ruby types that are
+    # not supported by JSON, and may provide improved performance. However,
+    # these require the `msgpack` gem.
     #
-    #   When using \Rails, the default depends on +config.active_support.message_serializer+.
-    #   Otherwise, the default is +:marshal+.
+    # :   When using \Rails, the default depends on `config.active_support.message_serializer`.
+    # Otherwise, the default is `:marshal`.
     #
-    # [+:url_safe+]
-    #   By default, MessageVerifier generates RFC 4648 compliant strings which are
-    #   not URL-safe. In other words, they can contain "+" and "/". If you want to
-    #   generate URL-safe strings (in compliance with "Base 64 Encoding with URL
-    #   and Filename Safe Alphabet" in RFC 4648), you can pass +true+.
-    #   Note that MessageVerifier will always accept both URL-safe and URL-unsafe
-    #   encoded messages, to allow a smooth transition between the two settings.
+    # `:url_safe`
+    # :   By default, MessageVerifier generates RFC 4648 compliant strings which are
+    # not URL-safe. In other words, they can contain "+" and "/". If you want to
+    # generate URL-safe strings (in compliance with "Base 64 Encoding with URL
+    # and Filename Safe Alphabet" in RFC 4648), you can pass `true`.
+    # Note that MessageVerifier will always accept both URL-safe and URL-unsafe
+    # encoded messages, to allow a smooth transition between the two settings.
     #
-    # [+:force_legacy_metadata_serializer+]
-    #   Whether to use the legacy metadata serializer, which serializes the
-    #   message first, then wraps it in an envelope which is also serialized. This
-    #   was the default in \Rails 7.0 and below.
+    # `:force_legacy_metadata_serializer`
+    # :   Whether to use the legacy metadata serializer, which serializes the
+    # message first, then wraps it in an envelope which is also serialized. This
+    # was the default in \Rails 7.0 and below.
     #
-    #   If you don't pass a truthy value, the default is set using
-    #   +config.active_support.use_message_serializer_for_metadata+.
+    # :   If you don't pass a truthy value, the default is set using
+    # `config.active_support.use_message_serializer_for_metadata`.
     def initialize(secret, **options)
       raise ArgumentError, "Secret should not be nil." unless secret
       super(**options)
@@ -173,55 +196,67 @@ module ActiveSupport
     end
 
     # Checks if a signed message could have been generated by signing an object
-    # with the +MessageVerifier+'s secret.
+    # with the `MessageVerifier`'s secret.
     #
-    #   verifier = ActiveSupport::MessageVerifier.new("secret")
-    #   signed_message = verifier.generate("signed message")
-    #   verifier.valid_message?(signed_message) # => true
+    # ```
+    # verifier = ActiveSupport::MessageVerifier.new("secret")
+    # signed_message = verifier.generate("signed message")
+    # verifier.valid_message?(signed_message) # => true
     #
-    #   tampered_message = signed_message.chop # editing the message invalidates the signature
-    #   verifier.valid_message?(tampered_message) # => false
+    # tampered_message = signed_message.chop # editing the message invalidates the signature
+    # verifier.valid_message?(tampered_message) # => false
+    # ```
     def valid_message?(message)
       !!catch_and_ignore(:invalid_message_format) { extract_encoded(message) }
     end
 
-    # Decodes the signed message using the +MessageVerifier+'s secret.
+    # Decodes the signed message using the `MessageVerifier`'s secret.
     #
-    #   verifier = ActiveSupport::MessageVerifier.new("secret")
+    # ```
+    # verifier = ActiveSupport::MessageVerifier.new("secret")
     #
-    #   signed_message = verifier.generate("signed message")
-    #   verifier.verified(signed_message) # => "signed message"
+    # signed_message = verifier.generate("signed message")
+    # verifier.verified(signed_message) # => "signed message"
+    # ```
     #
-    # Returns +nil+ if the message was not signed with the same secret.
+    # Returns `nil` if the message was not signed with the same secret.
     #
-    #   other_verifier = ActiveSupport::MessageVerifier.new("different_secret")
-    #   other_verifier.verified(signed_message) # => nil
+    # ```
+    # other_verifier = ActiveSupport::MessageVerifier.new("different_secret")
+    # other_verifier.verified(signed_message) # => nil
+    # ```
     #
-    # Returns +nil+ if the message is not Base64-encoded.
+    # Returns `nil` if the message is not Base64-encoded.
     #
-    #   invalid_message = "f--46a0120593880c733a53b6dad75b42ddc1c8996d"
-    #   verifier.verified(invalid_message) # => nil
+    # ```
+    # invalid_message = "f--46a0120593880c733a53b6dad75b42ddc1c8996d"
+    # verifier.verified(invalid_message) # => nil
+    # ```
     #
     # Raises any error raised while decoding the signed message.
     #
-    #   incompatible_message = "test--dad7b06c94abba8d46a15fafaef56c327665d5ff"
-    #   verifier.verified(incompatible_message) # => TypeError: incompatible marshal file format
+    # ```
+    # incompatible_message = "test--dad7b06c94abba8d46a15fafaef56c327665d5ff"
+    # verifier.verified(incompatible_message) # => TypeError: incompatible marshal file format
+    # ```
     #
-    # ==== Options
+    # #### Options
     #
-    # [+:purpose+]
-    #   The purpose that the message was generated with. If the purpose does not
-    #   match, +verified+ will return +nil+.
+    # <dl class="rdoc-list note-list">
+    # <dt><code>:purpose</code></dt>
+    # <dd>
+    # <p>The purpose that the message was generated with. If the purpose does not match, <code>verified</code> will return <code>nil</code>.</p>
+    # <pre class="ruby"><span class="ruby-identifier">message</span> = <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">generate</span>(<span class="ruby-string">&quot;</span><span class="ruby-string">hello</span><span class="ruby-string">&quot;</span>, <span class="ruby-value">purpose</span><span class="ruby-value">:</span> <span class="ruby-string">&quot;</span><span class="ruby-string">greeting</span><span class="ruby-string">&quot;</span>)
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verified</span>(<span class="ruby-identifier">message</span>, <span class="ruby-value">purpose</span><span class="ruby-value">:</span> <span class="ruby-string">&quot;</span><span class="ruby-string">greeting</span><span class="ruby-string">&quot;</span>) <span class="ruby-comment"># =&gt; &quot;hello&quot;</span>
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verified</span>(<span class="ruby-identifier">message</span>, <span class="ruby-value">purpose</span><span class="ruby-value">:</span> <span class="ruby-string">&quot;</span><span class="ruby-string">chatting</span><span class="ruby-string">&quot;</span>) <span class="ruby-comment"># =&gt; nil</span>
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verified</span>(<span class="ruby-identifier">message</span>)                      <span class="ruby-comment"># =&gt; nil</span>
     #
-    #     message = verifier.generate("hello", purpose: "greeting")
-    #     verifier.verified(message, purpose: "greeting") # => "hello"
-    #     verifier.verified(message, purpose: "chatting") # => nil
-    #     verifier.verified(message)                      # => nil
-    #
-    #     message = verifier.generate("bye")
-    #     verifier.verified(message)                      # => "bye"
-    #     verifier.verified(message, purpose: "greeting") # => nil
-    #
+    # <span class="ruby-identifier">message</span> = <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">generate</span>(<span class="ruby-string">&quot;</span><span class="ruby-string">bye</span><span class="ruby-string">&quot;</span>)
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verified</span>(<span class="ruby-identifier">message</span>)                      <span class="ruby-comment"># =&gt; &quot;bye&quot;</span>
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verified</span>(<span class="ruby-identifier">message</span>, <span class="ruby-value">purpose</span><span class="ruby-value">:</span> <span class="ruby-string">&quot;</span><span class="ruby-string">greeting</span><span class="ruby-string">&quot;</span>) <span class="ruby-comment"># =&gt; nil</span>
+    # </pre>
+    # </dd>
+    # </dl>
     def verified(message, **options)
       catch_and_ignore :invalid_message_format do
         catch_and_raise :invalid_message_serialization do
@@ -232,34 +267,40 @@ module ActiveSupport
       end
     end
 
-    # Decodes the signed message using the +MessageVerifier+'s secret.
+    # Decodes the signed message using the `MessageVerifier`'s secret.
     #
-    #   verifier = ActiveSupport::MessageVerifier.new("secret")
-    #   signed_message = verifier.generate("signed message")
+    # ```
+    # verifier = ActiveSupport::MessageVerifier.new("secret")
+    # signed_message = verifier.generate("signed message")
     #
-    #   verifier.verify(signed_message) # => "signed message"
+    # verifier.verify(signed_message) # => "signed message"
+    # ```
     #
-    # Raises +InvalidSignature+ if the message was not signed with the same
+    # Raises `InvalidSignature` if the message was not signed with the same
     # secret or was not Base64-encoded.
     #
-    #   other_verifier = ActiveSupport::MessageVerifier.new("different_secret")
-    #   other_verifier.verify(signed_message) # => ActiveSupport::MessageVerifier::InvalidSignature
+    # ```
+    # other_verifier = ActiveSupport::MessageVerifier.new("different_secret")
+    # other_verifier.verify(signed_message) # => ActiveSupport::MessageVerifier::InvalidSignature
+    # ```
     #
-    # ==== Options
+    # #### Options
     #
-    # [+:purpose+]
-    #   The purpose that the message was generated with. If the purpose does not
-    #   match, +verify+ will raise ActiveSupport::MessageVerifier::InvalidSignature.
+    # <dl class="rdoc-list note-list">
+    # <dt><code>:purpose</code></dt>
+    # <dd>
+    # <p>The purpose that the message was generated with. If the purpose does not match, <code>verify</code> will raise ActiveSupport::MessageVerifier::InvalidSignature.</p>
+    # <pre class="ruby"><span class="ruby-identifier">message</span> = <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">generate</span>(<span class="ruby-string">&quot;</span><span class="ruby-string">hello</span><span class="ruby-string">&quot;</span>, <span class="ruby-value">purpose</span><span class="ruby-value">:</span> <span class="ruby-string">&quot;</span><span class="ruby-string">greeting</span><span class="ruby-string">&quot;</span>)
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verify</span>(<span class="ruby-identifier">message</span>, <span class="ruby-value">purpose</span><span class="ruby-value">:</span> <span class="ruby-string">&quot;</span><span class="ruby-string">greeting</span><span class="ruby-string">&quot;</span>) <span class="ruby-comment"># =&gt; &quot;hello&quot;</span>
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verify</span>(<span class="ruby-identifier">message</span>, <span class="ruby-value">purpose</span><span class="ruby-value">:</span> <span class="ruby-string">&quot;</span><span class="ruby-string">chatting</span><span class="ruby-string">&quot;</span>) <span class="ruby-comment"># =&gt; raises InvalidSignature</span>
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verify</span>(<span class="ruby-identifier">message</span>)                      <span class="ruby-comment"># =&gt; raises InvalidSignature</span>
     #
-    #     message = verifier.generate("hello", purpose: "greeting")
-    #     verifier.verify(message, purpose: "greeting") # => "hello"
-    #     verifier.verify(message, purpose: "chatting") # => raises InvalidSignature
-    #     verifier.verify(message)                      # => raises InvalidSignature
-    #
-    #     message = verifier.generate("bye")
-    #     verifier.verify(message)                      # => "bye"
-    #     verifier.verify(message, purpose: "greeting") # => raises InvalidSignature
-    #
+    # <span class="ruby-identifier">message</span> = <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">generate</span>(<span class="ruby-string">&quot;</span><span class="ruby-string">bye</span><span class="ruby-string">&quot;</span>)
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verify</span>(<span class="ruby-identifier">message</span>)                      <span class="ruby-comment"># =&gt; &quot;bye&quot;</span>
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verify</span>(<span class="ruby-identifier">message</span>, <span class="ruby-value">purpose</span><span class="ruby-value">:</span> <span class="ruby-string">&quot;</span><span class="ruby-string">greeting</span><span class="ruby-string">&quot;</span>) <span class="ruby-comment"># =&gt; raises InvalidSignature</span>
+    # </pre>
+    # </dd>
+    # </dl>
     def verify(message, **options)
       catch_and_raise :invalid_message_format, as: InvalidSignature do
         catch_and_raise :invalid_message_serialization do
@@ -272,38 +313,46 @@ module ActiveSupport
 
     # Generates a signed message for the provided value.
     #
-    # The message is signed with the +MessageVerifier+'s secret.
+    # The message is signed with the `MessageVerifier`'s secret.
     # Returns Base64-encoded message joined with the generated signature.
     #
-    #   verifier = ActiveSupport::MessageVerifier.new("secret")
-    #   verifier.generate("signed message") # => "BAhJIhNzaWduZWQgbWVzc2FnZQY6BkVU--f67d5f27c3ee0b8483cebf2103757455e947493b"
+    # ```
+    # verifier = ActiveSupport::MessageVerifier.new("secret")
+    # verifier.generate("signed message") # => "BAhJIhNzaWduZWQgbWVzc2FnZQY6BkVU--f67d5f27c3ee0b8483cebf2103757455e947493b"
+    # ```
     #
-    # ==== Options
+    # #### Options
     #
-    # [+:expires_at+]
-    #   The datetime at which the message expires. After this datetime,
-    #   verification of the message will fail.
+    # <dl class="rdoc-list note-list">
+    # <dt><code>:expires_at</code></dt>
+    # <dd>
+    # <p>The datetime at which the message expires. After this datetime, verification of the message will fail.</p>
+    # <pre class="ruby"><span class="ruby-identifier">message</span> = <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">generate</span>(<span class="ruby-string">&quot;</span><span class="ruby-string">hello</span><span class="ruby-string">&quot;</span>, <span class="ruby-value">expires_at</span><span class="ruby-value">:</span> <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">tomorrow</span>)
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verified</span>(<span class="ruby-identifier">message</span>) <span class="ruby-comment"># =&gt; &quot;hello&quot;</span>
+    # <span class="ruby-comment"># 24 hours later...</span>
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verified</span>(<span class="ruby-identifier">message</span>) <span class="ruby-comment"># =&gt; nil</span>
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verify</span>(<span class="ruby-identifier">message</span>)   <span class="ruby-comment"># =&gt; raises ActiveSupport::MessageVerifier::InvalidSignature</span>
+    # </pre>
+    # </dd>
+    # </dl>
     #
-    #     message = verifier.generate("hello", expires_at: Time.now.tomorrow)
-    #     verifier.verified(message) # => "hello"
-    #     # 24 hours later...
-    #     verifier.verified(message) # => nil
-    #     verifier.verify(message)   # => raises ActiveSupport::MessageVerifier::InvalidSignature
+    # <dl class="rdoc-list note-list">
+    # <dt><code>:expires_in</code></dt>
+    # <dd>
+    # <p>The duration for which the message is valid. After this duration has elapsed, verification of the message will fail.</p>
+    # <pre class="ruby"><span class="ruby-identifier">message</span> = <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">generate</span>(<span class="ruby-string">&quot;</span><span class="ruby-string">hello</span><span class="ruby-string">&quot;</span>, <span class="ruby-value">expires_in</span><span class="ruby-value">:</span> <span class="ruby-value">24</span>.<span class="ruby-identifier">hours</span>)
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verified</span>(<span class="ruby-identifier">message</span>) <span class="ruby-comment"># =&gt; &quot;hello&quot;</span>
+    # <span class="ruby-comment"># 24 hours later...</span>
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verified</span>(<span class="ruby-identifier">message</span>) <span class="ruby-comment"># =&gt; nil</span>
+    # <span class="ruby-identifier">verifier</span>.<span class="ruby-identifier">verify</span>(<span class="ruby-identifier">message</span>)   <span class="ruby-comment"># =&gt; raises ActiveSupport::MessageVerifier::InvalidSignature</span>
+    # </pre>
+    # </dd>
+    # </dl>
     #
-    # [+:expires_in+]
-    #   The duration for which the message is valid. After this duration has
-    #   elapsed, verification of the message will fail.
-    #
-    #     message = verifier.generate("hello", expires_in: 24.hours)
-    #     verifier.verified(message) # => "hello"
-    #     # 24 hours later...
-    #     verifier.verified(message) # => nil
-    #     verifier.verify(message)   # => raises ActiveSupport::MessageVerifier::InvalidSignature
-    #
-    # [+:purpose+]
-    #   The purpose of the message. If specified, the same purpose must be
-    #   specified when verifying the message; otherwise, verification will fail.
-    #   (See #verified and #verify.)
+    # `:purpose`
+    # :   The purpose of the message. If specified, the same purpose must be
+    # specified when verifying the message; otherwise, verification will fail.
+    # (See #verified and #verify.)
     def generate(value, **options)
       create_message(value, **options)
     end

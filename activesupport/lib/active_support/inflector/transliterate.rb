@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/multibyte"
@@ -10,8 +11,10 @@ module ActiveSupport
     # Replaces non-ASCII characters with an ASCII approximation, or if none
     # exists, a replacement character which defaults to "?".
     #
-    #    transliterate('Ærøskøbing')
-    #    # => "AEroskobing"
+    # ```
+    # transliterate('Ærøskøbing')
+    # # => "AEroskobing"
+    # ```
     #
     # Default approximations are provided for Western/Latin characters,
     # e.g., "ø", "ñ", "é", "ß", etc.
@@ -22,42 +25,48 @@ module ActiveSupport
     # to ASCII.
     #
     # In order to make your custom transliterations available, you must set
-    # them as the <tt>i18n.transliterate.rule</tt> i18n key:
+    # them as the `i18n.transliterate.rule` i18n key:
     #
-    #   # Store the transliterations in locales/de.yml
-    #   i18n:
-    #     transliterate:
-    #       rule:
-    #         ü: "ue"
-    #         ö: "oe"
+    # ```
+    # # Store the transliterations in locales/de.yml
+    # i18n:
+    #   transliterate:
+    #     rule:
+    #       ü: "ue"
+    #       ö: "oe"
     #
-    #   # Or set them using Ruby
-    #   I18n.backend.store_translations(:de, i18n: {
-    #     transliterate: {
-    #       rule: {
-    #         'ü' => 'ue',
-    #         'ö' => 'oe'
-    #       }
+    # # Or set them using Ruby
+    # I18n.backend.store_translations(:de, i18n: {
+    #   transliterate: {
+    #     rule: {
+    #       'ü' => 'ue',
+    #       'ö' => 'oe'
     #     }
-    #   })
+    #   }
+    # })
+    # ```
     #
-    # The value for <tt>i18n.transliterate.rule</tt> can be a simple Hash that
+    # The value for `i18n.transliterate.rule` can be a simple Hash that
     # maps characters to ASCII approximations as shown above, or, for more
     # complex requirements, a Proc:
     #
-    #   I18n.backend.store_translations(:de, i18n: {
-    #     transliterate: {
-    #       rule: ->(string) { MyTransliterator.transliterate(string) }
-    #     }
-    #   })
+    # ```
+    # I18n.backend.store_translations(:de, i18n: {
+    #   transliterate: {
+    #     rule: ->(string) { MyTransliterator.transliterate(string) }
+    #   }
+    # })
+    # ```
     #
     # Now you can have different transliterations for each locale:
     #
-    #   transliterate('Jürgen', locale: :en)
-    #   # => "Jurgen"
+    # ```
+    # transliterate('Jürgen', locale: :en)
+    # # => "Jurgen"
     #
-    #   transliterate('Jürgen', locale: :de)
-    #   # => "Juergen"
+    # transliterate('Jürgen', locale: :de)
+    # # => "Juergen"
+    # ```
     #
     # Transliteration is restricted to UTF-8, US-ASCII, and GB18030 strings.
     # Other encodings will raise an ArgumentError.
@@ -100,34 +109,44 @@ module ActiveSupport
     # Replaces special characters in a string so that it may be used as part of
     # a 'pretty' URL.
     #
-    #   parameterize("Donald E. Knuth") # => "donald-e-knuth"
-    #   parameterize("^très|Jolie-- ")  # => "tres-jolie"
+    # ```
+    # parameterize("Donald E. Knuth") # => "donald-e-knuth"
+    # parameterize("^très|Jolie-- ")  # => "tres-jolie"
+    # ```
     #
-    # To use a custom separator, override the +separator+ argument.
+    # To use a custom separator, override the `separator` argument.
     #
-    #   parameterize("Donald E. Knuth", separator: '_') # => "donald_e_knuth"
-    #   parameterize("^très|Jolie__ ", separator: '_')  # => "tres_jolie"
+    # ```
+    # parameterize("Donald E. Knuth", separator: '_') # => "donald_e_knuth"
+    # parameterize("^très|Jolie__ ", separator: '_')  # => "tres_jolie"
+    # ```
     #
     # To remove the unwanted characters instead of replacing them, pass an
-    # empty separator. +nil+ is treated the same way.
+    # empty separator. `nil` is treated the same way.
     #
-    #   parameterize("Donald E. Knuth", separator: '') # => "donaldeknuth"
+    # ```
+    # parameterize("Donald E. Knuth", separator: '') # => "donaldeknuth"
+    # ```
     #
-    # To preserve the case of the characters in a string, use the +preserve_case+ argument.
+    # To preserve the case of the characters in a string, use the `preserve_case` argument.
     #
-    #   parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
-    #   parameterize("^très|Jolie-- ", preserve_case: true) # => "tres-Jolie"
+    # ```
+    # parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
+    # parameterize("^très|Jolie-- ", preserve_case: true) # => "tres-Jolie"
+    # ```
     #
     # It preserves dashes and underscores unless they are used as separators:
     #
-    #   parameterize("^très|Jolie__ ")                 # => "tres-jolie__"
-    #   parameterize("^très|Jolie-- ", separator: "_") # => "tres_jolie--"
-    #   parameterize("^très_Jolie-- ", separator: ".") # => "tres_jolie--"
+    # ```
+    # parameterize("^très|Jolie__ ")                 # => "tres-jolie__"
+    # parameterize("^très|Jolie-- ", separator: "_") # => "tres_jolie--"
+    # parameterize("^très_Jolie-- ", separator: ".") # => "tres_jolie--"
+    # ```
     #
-    # If the optional parameter +locale+ is specified,
+    # If the optional parameter `locale` is specified,
     # the word will be parameterized as a word of that language.
-    # By default, this parameter is set to <tt>nil</tt> and it will use
-    # the configured <tt>I18n.locale</tt>.
+    # By default, this parameter is set to `nil` and it will use
+    # the configured `I18n.locale`.
     def parameterize(string, separator: "-", preserve_case: false, locale: nil)
       separator ||= ""
 

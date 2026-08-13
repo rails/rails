@@ -182,7 +182,7 @@ GEM
     crass (1.0.6)
     cssbundling-rails (1.4.1)
       railties (>= 6.0.0)
-    dalli (5.0.0)
+    dalli (5.0.6)
       logger
     dante (0.2.0)
     dartsass-rails (0.5.1)
@@ -806,7 +806,7 @@ CHECKSUMS
   crack (1.0.0) sha256=c83aefdb428cdc7b66c7f287e488c796f055c0839e6e545fec2c7047743c4a49
   crass (1.0.6) sha256=dc516022a56e7b3b156099abc81b6d2b08ea1ed12676ac7a5657617f012bd45d
   cssbundling-rails (1.4.1) sha256=4b21273d627b21890da9155c88c67efc9274373d8b0add09149c262cf56c7ce1
-  dalli (5.0.0) sha256=7d5ae821da3ef98cad68e77f09ae0e563244dc0f3995f5c8999c5a379fa3d468
+  dalli (5.0.6) sha256=01887253a3e788124b9e04e90b63dc54ea9ef69f981d6f5fa2a4debc9e62a456
   dante (0.2.0) sha256=939776f04b4d253ffbbcf53341631aa2ee6e6cf314dedade2e60ac43b40a6fe6
   dartsass-rails (0.5.1) sha256=f19510fb1b29c76c1739a06954d615f1d20ad653b6fc668dd7c68542bb303a1a
   date (3.4.1) sha256=bf268e14ef7158009bfeaec40b5fa3c7271906e88b196d958a89d4b408abe64f

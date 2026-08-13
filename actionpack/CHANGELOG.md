@@ -1,3 +1,13 @@
+*   Split keyword arguments off `#args` on `Rails.application.middleware` entries.
+
+    Middleware entries now expose keyword arguments through a new `#kwargs`
+    accessor. `#args` previously bundled kwargs as a trailing hash inside the
+    positional array (via `Hash.ruby2_keywords_hash`); it now returns
+    positional arguments only. Code that inspects `middleware.args` directly
+    needs to also read `middleware.kwargs`.
+
+    *Ryuta Kamizono*
+
 *   Deprecate registering and unregistering MIME types after application initialization.
 
     `Mime::Type.register`, `Mime::Type.register_alias`, and `Mime::Type.unregister` will raise

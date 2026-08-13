@@ -105,6 +105,35 @@ module MiddlewareTest
       assert_nil result[1]["Middleware-Order"]
     end
 
+    test "the middleware proxy reads the stack it has mutated" do
+      middleware = Class.new(ActionController::Metal).middleware
+
+      middleware.use MyMiddleware
+
+      assert_equal 1, middleware.size
+      assert_equal [MyMiddleware], middleware.map(&:klass)
+    end
+
+    test "deleting a middleware that is not in the stack returns nil" do
+      middleware = Class.new(ActionController::Metal).middleware
+      middleware.use MyMiddleware
+
+      assert_nil middleware.delete(BlockMiddleware)
+      assert_equal 1, middleware.size
+    end
+
+    test "assigning middlewares refreezes the stack" do
+      old = ActiveSupport::Ractors.unshareable_proc_action
+      ActiveSupport::Ractors.unshareable_proc_action = :raise
+      controller = Class.new(ActionController::Metal)
+
+      controller.middleware.middlewares = []
+
+      assert_ractor_shareable(controller.middleware_stack)
+    ensure
+      ActiveSupport::Ractors.unshareable_proc_action = old
+    end
+
     test "middleware stack is frozen" do
       old = ActiveSupport::Ractors.unshareable_proc_action
       ActiveSupport::Ractors.unshareable_proc_action = :raise
@@ -113,8 +142,13 @@ module MiddlewareTest
       RactorController.middleware.unshift(BlockMiddleware)
       RactorController.middleware.insert(0, ExclaimerMiddleware)
       RactorController.middleware.swap(ExclaimerMiddleware, MyMiddleware)
+      RactorController.middleware.insert_before(MyMiddleware, BlockMiddleware)
+      RactorController.middleware.insert_after(MyMiddleware, ExclaimerMiddleware)
       RactorController.middleware.move(0, MyMiddleware)
+      RactorController.middleware.move_before(ExclaimerMiddleware, MyMiddleware)
       RactorController.middleware.move_after(ExclaimerMiddleware, MyMiddleware)
+      RactorController.middleware.delete(MyMiddleware)
+      RactorController.middleware.delete!(BlockMiddleware)
 
       assert_ractor_shareable(RactorController.middleware_stack)
     ensure

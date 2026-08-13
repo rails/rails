@@ -24,6 +24,7 @@ module ActiveSupport
     # This is currently the most popular cache store for production websites.
     #
     # Special features:
+    #
     # - Clustering and load balancing. One can specify multiple memcached servers,
     #   and `MemCacheStore` will load balance between all available servers. If a
     #   server goes down, then `MemCacheStore` will ignore it until it comes back up.
@@ -277,6 +278,17 @@ module ActiveSupport
         # Delete an entry from the cache.
         def delete_entry(key, **options)
           rescue_error_with(false) { @data.with { |c| c.delete(key) } }
+        end
+
+        # Dalli's delete_multi doesn't return the deleted count before version 5.0.6.
+        if Gem::Version.new(Dalli::VERSION) >= Gem::Version.new("5.0.6")
+          def delete_multi_entries(entries, **options)
+            return 0 if entries.empty?
+
+            rescue_error_with(0) do
+              @data.with { |c| c.delete_multi(entries) }
+            end
+          end
         end
 
         def serialize_entry(entry, raw: false, **options)

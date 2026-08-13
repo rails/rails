@@ -19,17 +19,34 @@ module ActionView
     end
 
     def bind_locals(locals)
-      @strict_locals_template || @templates[locals] || build_bound_template(locals)
+      if @strict_locals_template
+        @strict_locals_template
+      elsif frozen?
+        templates = ractor_local_templates
+        unless template = templates[locals]
+          normalized_locals = normalize_locals(locals)
+          template = templates.compute_if_absent(normalized_locals) { build_template(normalized_locals) }
+          templates[locals.dup] = template
+        end
+        template
+      else
+        @templates[locals] || build_bound_template(locals)
+      end
     end
 
     def built_templates # :nodoc:
-      @strict_locals_template ? [@strict_locals_template] : @templates.values
+      if @strict_locals_template
+        [@strict_locals_template]
+      elsif @templates
+        @templates.values
+      else
+        templates = ractor_local_store[self]
+        templates ? templates.values : []
+      end
     end
 
     def freeze # :nodoc:
-      unless bind_locals([]).strict_locals?
-        raise ArgumentError, "Cannot freeze #{@virtual_path.inspect}: templates must declare strict locals (e.g. `<%# locals: () %>`) to be frozen."
-      end
+      bind_locals([])
       @source.freeze
       @identifier.freeze
       @virtual_path.freeze
@@ -41,6 +58,14 @@ module ActionView
     end
 
     private
+      def ractor_local_templates
+        ractor_local_store.compute_if_absent(self) { Concurrent::Map.new }
+      end
+
+      def ractor_local_store
+        ActiveSupport::Ractors.store_if_absent(:action_view_bound_templates) { Concurrent::Map.new }
+      end
+
       def build_bound_template(locals)
         @write_lock.synchronize do
           return @strict_locals_template if @strict_locals_template
@@ -52,6 +77,7 @@ module ActionView
 
           if template.strict_locals?
             @strict_locals_template = template
+            @templates = { normalized_locals => template }.freeze
           else
             # This may have already been assigned, but we've already de-dup'd so
             # reassignment is fine.

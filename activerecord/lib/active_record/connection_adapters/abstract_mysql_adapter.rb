@@ -410,7 +410,7 @@ module ActiveRecord
       end
 
       def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
-        at = create_alter_table(table_name)
+        at = build_alter_table_definition(table_name)
         at.change_column_default(column_name, default_or_changes)
         execute_alter_table(at)
       end
@@ -431,13 +431,13 @@ module ActiveRecord
       end
 
       def change_column(table_name, column_name, type, **options) # :nodoc:
-        at = create_alter_table(table_name)
+        at = build_alter_table_definition(table_name)
         at.change_column(column_name, type, **options)
         execute_alter_table(at)
       end
 
       def rename_column(table_name, column_name, new_column_name, **options) # :nodoc:
-        at = create_alter_table(table_name)
+        at = build_alter_table_definition(table_name)
         at.rename_column(column_name, new_column_name, **options)
         execute_alter_table(at)
         rename_column_indexes(table_name, column_name, new_column_name)
@@ -963,7 +963,7 @@ module ActiveRecord
           defaults = [":default", :default].to_set
 
           # Make MySQL reject illegal values rather than truncating or blanking them, see
-          # https://dev.mysql.com/doc/refman/en/sql-mode.html#sqlmode_strict_all_tables
+          # https://dev.mysql.com/doc/refman/en/sql-mode.html#sqlmode_traditional
           # If the user has provided another value for sql_mode, don't replace it.
           # Set sql_mode to false or :default in variables to skip.
           if variables.key?("sql_mode")
@@ -973,7 +973,7 @@ module ActiveRecord
             end
           elsif !defaults.include?(strict_mode?)
             if strict_mode?
-              sql_mode = "CONCAT(@@sql_mode, ',STRICT_ALL_TABLES')"
+              sql_mode = "CONCAT(@@sql_mode, ',TRADITIONAL')"
             else
               sql_mode = "REPLACE(@@sql_mode, 'STRICT_TRANS_TABLES', '')"
               sql_mode = "REPLACE(#{sql_mode}, 'STRICT_ALL_TABLES', '')"

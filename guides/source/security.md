@@ -685,6 +685,23 @@ The popular Apache web server has an option called DocumentRoot. This is the hom
 
 _If your Apache DocumentRoot points to Rails' /public directory, do not put file uploads in it_, store files at least one level upwards.
 
+### Media Processing of File Uploads
+
+WARNING: _ffmpeg and ffprobe decode untrusted media in memory-unsafe code. Restrict the codecs and formats they will accept._
+
+Active Storage shells out to ffmpeg to generate video previews, and to ffprobe to extract video and audio metadata. Neither tool is shipped by Rails, and a stock ffmpeg build registers several hundred decoders and demuxers where an application needs a handful. Attachments are analyzed on upload by default, so ffprobe reads attacker-supplied bytes without any further interaction.
+
+Narrow that attack surface by naming the codecs these tools may decode. An application that accepts only H.264 video with AAC audio would configure:
+
+```ruby
+config.active_storage.video_preview_input_arguments = "-codec_whitelist h264,aac"
+config.active_storage.ffprobe_arguments = "-codec_whitelist h264,aac"
+```
+
+Alongside `-codec_whitelist`, `-f` forces a single demuxer and `-protocol_whitelist` restricts the protocols an input may reference.
+
+Every codec present in a stored file must appear in the list, audio codecs included. ffprobe exits with an error on a file that uses any other codec, and analysis of that file then raises `JSON::ParserError`. Codec names vary between ffmpeg builds, so check the list against `ffmpeg -decoders` for the build you deploy.
+
 ### File Downloads
 
 NOTE: _Make sure users cannot download arbitrary files._

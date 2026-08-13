@@ -3,7 +3,6 @@
 # :markup: markdown
 
 require "active_support/ractors"
-require "active_support/core_ext/module/delegation"
 require "action_dispatch/middleware/stack"
 
 module ActionController
@@ -18,29 +17,45 @@ module ActionController
   #
   class MiddlewareStack < ActionDispatch::MiddlewareStack # :nodoc:
     class Proxy # :nodoc:
-      delegate_missing_to :@stack
+      delegate_missing_to :middleware_stack
 
       def initialize(controller)
         @controller = controller
-        @stack = @controller.middleware_stack
       end
 
-      %w(unshift insert swap delete move move_after use).each do |method|
+      %w(unshift insert insert_before insert_after swap delete delete! move move_before move_after use).each do |method|
         class_eval(<<~CODE, __FILE__, __LINE__ + 1)
           def #{method}(...)
-            @controller.middleware_stack = @controller.middleware_stack.dup
-            @controller.middleware_stack.public_send(__method__, ...)
-            ActiveSupport::Ractors.try_make_shareable(@controller.middleware_stack)
+            stack = middleware_stack.dup
+            result = stack.#{method}(...)
+            replace_middleware_stack(stack)
+            result
           end
         CODE
       end
+
+      def middlewares=(middlewares)
+        stack = middleware_stack.dup
+        stack.middlewares = middlewares
+        replace_middleware_stack(stack)
+        middlewares
+      end
+
+      private
+        def middleware_stack
+          @controller.middleware_stack
+        end
+
+        def replace_middleware_stack(stack)
+          @controller.middleware_stack = ActiveSupport::Ractors.try_make_shareable(stack)
+        end
     end
 
     class Middleware < ActionDispatch::MiddlewareStack::Middleware # :nodoc:
-      def initialize(klass, args, actions, strategy, block)
+      def initialize(klass, args, kwargs, actions, strategy, block)
         @actions = actions
         @strategy = strategy
-        super(klass, args, block)
+        super(klass, args, kwargs, block)
       end
 
       def valid?(action)
@@ -64,7 +79,6 @@ module ActionController
       def build_middleware(klass, args, kwargs, block)
         only   = Array(kwargs.delete(:only)).map(&:to_s)
         except = Array(kwargs.delete(:except)).map(&:to_s)
-        args << Hash.ruby2_keywords_hash(kwargs) unless kwargs.empty?
 
         strategy = NULL
         list     = nil
@@ -77,7 +91,7 @@ module ActionController
           list     = except
         end
 
-        Middleware.new(klass, args, list, strategy, block)
+        Middleware.new(klass, args, kwargs, list, strategy, block)
       end
   end
 

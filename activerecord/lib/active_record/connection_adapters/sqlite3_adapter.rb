@@ -581,6 +581,10 @@ module ActiveRecord
           case default
           when /^null$/i
             nil
+          when /^false$/i
+            false
+          when /^true$/i
+            true
           # Quoted types
           when /^'([^|]*)'$/m
             $1.gsub("''", "'")
@@ -593,8 +597,6 @@ module ActiveRecord
           # Binary columns
           when /x'(.*)'/
             [ $1 ].pack("H*")
-          when "TRUE", "FALSE"
-            default
           else
             # Anything else is blank or some function
             # and we can't know the value of that, so return nil.

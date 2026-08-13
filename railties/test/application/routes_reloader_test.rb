@@ -26,6 +26,32 @@ class RoutesReloaderTest < ActiveSupport::TestCase
     assert reloader.loaded
   end
 
+  test "execute marks the routes as loaded" do
+    reloader = build_reloader { }
+
+    reloader.execute
+
+    assert reloader.loaded
+  end
+
+  test "execute does not leave the routes to be drawn again" do
+    draws = 0
+    reloader = build_reloader { draws += 1 }
+
+    reloader.execute
+
+    assert_equal false, reloader.execute_unless_loaded
+    assert_equal 1, draws
+  end
+
+  test "a failed execute leaves the routes unloaded" do
+    reloader = build_reloader { raise "invalid routes" }
+
+    assert_raises(RuntimeError) { reloader.execute }
+
+    assert_not reloader.loaded
+  end
+
   test "a failed initial load is surfaced to waiting threads and retried" do
     draw_started = Queue.new
     draw_resume = Queue.new
@@ -43,7 +69,7 @@ class RoutesReloaderTest < ActiveSupport::TestCase
     rescue RuntimeError => error
       error
     end
-    draw_started.pop
+    draw_started.pop(timeout: 2)
 
     waiting = Thread.new { reloader.execute_unless_loaded }
     Thread.pass until waiting.stop?

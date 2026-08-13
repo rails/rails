@@ -4423,6 +4423,34 @@ module ApplicationTests
         ActiveStorage.video_preview_arguments
     end
 
+    test "ActiveStorage.video_preview_input_arguments is empty by default" do
+      app "development"
+
+      assert_equal "", ActiveStorage.video_preview_input_arguments
+    end
+
+    test "ActiveStorage.video_preview_input_arguments can be configured" do
+      add_to_config 'config.active_storage.video_preview_input_arguments = "-codec_whitelist h264"'
+
+      app "development"
+
+      assert_equal "-codec_whitelist h264", ActiveStorage.video_preview_input_arguments
+    end
+
+    test "ActiveStorage.ffprobe_arguments is empty by default" do
+      app "development"
+
+      assert_equal "", ActiveStorage.ffprobe_arguments
+    end
+
+    test "ActiveStorage.ffprobe_arguments can be configured" do
+      add_to_config 'config.active_storage.ffprobe_arguments = "-codec_whitelist h264"'
+
+      app "development"
+
+      assert_equal "-codec_whitelist h264", ActiveStorage.ffprobe_arguments
+    end
+
     test "ActiveStorage.variant_processor uses mini_magick without Rails 7 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 

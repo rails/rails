@@ -15,6 +15,11 @@ module ActiveSupport
   #
   #   SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger, :error)
   #
+  # It can also ignore individual messages matching given patterns, when a
+  # library is only noisy on some logs your application doesn't care about:
+  #
+  #   SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger).ignore(/Noisy/)
+  #
   # Almost all of the standard Logger interface is supported.
   #
   # Note that the proxy logger can only suppress some logs, if the proxy severity is lower
@@ -27,6 +32,28 @@ module ActiveSupport
       super()
       @logger = logger
       @level = ::Logger::Severity.coerce(level)
+      @ignored_patterns = []
+      @ignored = nil
+    end
+
+    # Registers patterns of messages to ignore. Ignored messages aren't
+    # forwarded to the underlying logger, whatever their severity. Returns
+    # +self+, so it can be chained on the constructor.
+    #
+    # Regexps are matched against the message, strings are matched literally:
+    #
+    #   logger.ignore(/Noisy/, 'Also noisy')
+    #   logger.error('Noisy message') # not forwarded
+    #   logger.error('Also noisy')    # not forwarded
+    #
+    # Patterns are matched against +message.to_s+, so lazily generated messages
+    # are evaluated even when they end up ignored.
+    def ignore(*patterns)
+      return self if patterns.empty?
+
+      @ignored_patterns.concat(patterns)
+      @ignored = Regexp.union(@ignored_patterns)
+      self
     end
 
     # Logging severity threshold (e.g. <tt>Logger::INFO</tt>).
@@ -116,13 +143,26 @@ module ActiveSupport
     # - #fatal.
     # - #unknown.
     #
-    def add(severity, ...)
+    def add(severity, message = nil, progname = nil, &block)
       severity ||= UNKNOWN
-      if @logger && severity >= level
-        @logger.add(severity, ...)
-      else
-        true
+      return true unless @logger && severity >= level
+
+      if @ignored
+        if message.nil?
+          if block_given?
+            message = yield
+            block = nil
+          else
+            message = progname
+            progname = nil
+          end
+        end
+
+        text = message.to_s
+        return true if text.valid_encoding? && @ignored.match?(text)
       end
+
+      @logger.add(severity, message, progname, &block)
     end
     alias_method :log, :add
 

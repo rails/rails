@@ -303,16 +303,16 @@ module ActiveRecord
         end
 
         module CommandRecorder
-          def invert_transaction(args, &block)
-            [:transaction, args, block]
+          def invert_transaction(args, kwargs, &block)
+            [:transaction, args, kwargs, block]
           end
 
-          def invert_change_column_comment(args)
-            [:change_column_comment, args]
+          def invert_change_column_comment(args, kwargs)
+            [:change_column_comment, args, kwargs]
           end
 
-          def invert_change_table_comment(args)
-            [:change_table_comment, args]
+          def invert_change_table_comment(args, kwargs)
+            [:change_table_comment, args, kwargs]
           end
         end
 

@@ -114,6 +114,9 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
   def test_mysql_default_in_strict_mode
     result = @connection.select_value("SELECT @@SESSION.sql_mode")
     assert_match %r(STRICT_ALL_TABLES), result
+    assert_match %r(NO_ZERO_IN_DATE), result
+    assert_match %r(NO_ZERO_DATE), result
+    assert_match %r(ERROR_FOR_DIVISION_BY_ZERO), result
   end
 
   def test_mysql_strict_mode_disabled
@@ -122,6 +125,8 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
         ActiveRecord::Base.establish_connection(orig_connection.merge(strict: false))
         result = ActiveRecord::Base.lease_connection.select_value("SELECT @@SESSION.sql_mode")
         assert_no_match %r(STRICT_ALL_TABLES), result
+        assert_no_match %r(STRICT_TRANS_TABLES), result
+        assert_no_match %r(TRADITIONAL), result
       end
     end
   end
@@ -188,7 +193,7 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
   def test_logs_name_rename_column_via_alter_table
     @connection.execute "CREATE TABLE `bar_baz` (`foo` varchar(255))"
     @subscriber.logged.clear
-    at = @connection.send(:create_alter_table, "bar_baz")
+    at = @connection.build_alter_table_definition("bar_baz")
     at.rename_column("foo", "foo2")
     if @connection.send(:supports_rename_column?)
       assert_empty @subscriber.logged
