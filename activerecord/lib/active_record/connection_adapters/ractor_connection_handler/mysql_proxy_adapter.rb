@@ -177,10 +177,6 @@ module ActiveRecord
           remote_dispatch(:create_table, ...)
         end
 
-        def internal_string_options_for_primary_key
-          remote_dispatch(:internal_string_options_for_primary_key)
-        end
-
         def remove_foreign_key(...)
           remote_dispatch(:remove_foreign_key, ...)
         end

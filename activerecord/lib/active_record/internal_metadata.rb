@@ -89,7 +89,7 @@ module ActiveRecord
       @pool.with_connection do |connection|
         unless connection.table_exists?(table_name)
           connection.create_table(table_name, id: false) do |t|
-            t.string :key, **connection.internal_string_options_for_primary_key
+            t.string :key, primary_key: true
             t.string :value
             t.timestamps
           end

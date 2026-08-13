@@ -1,3 +1,19 @@
+*   Bump the minimum supported MySQL version to 5.7.9.
+
+    This drops the workarounds for indexing `utf8mb4` `varchar(255)` columns.
+    On MySQL 5.6, InnoDB created tables as `ROW_FORMAT=COMPACT`, whose 767 byte
+    index prefix is too small for `varchar(255)` at four bytes per character,
+    so such an index required `innodb_file_per_table`,
+    `innodb_file_format = 'Barracuda'` and `innodb_large_prefix` to be enabled
+    on the server. Active Record worked around that by emitting
+    `ROW_FORMAT=DYNAMIC` on every `CREATE TABLE`, and by refusing to create a
+    `utf8mb4` database when the server was not configured that way. 5.7.9 is
+    the version where `innodb_default_row_format` defaults to `DYNAMIC`
+    (MariaDB 10.2.2), so neither is needed any more and tables are created
+    without an explicit `ROW_FORMAT`.
+
+    *Ryuta Kamizono*
+
 *   Truncate tables shadowed by a same-named table earlier on the PostgreSQL
     `search_path`.
 
