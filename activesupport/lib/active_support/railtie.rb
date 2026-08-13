@@ -184,5 +184,9 @@ module ActiveSupport
         ActiveSupport::Inflector::Inflections.all_instances.each(&:freeze)
       end
     end
+
+    initializer "active_support.set_log_subscriber_logger", after: :initialize_logger do
+      ActiveSupport::LogSubscriber.logger = Rails.logger
+    end
   end
 end
