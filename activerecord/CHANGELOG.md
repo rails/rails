@@ -1,3 +1,10 @@
+*   Fix performance regression in `method_missing` for virtual SELECT alias
+    attributes.
+
+    Fixes #57183.
+
+    *Hammad Khan*
+
 *   Fix support for table names containing hyphens.
 
     *Evgeniy Demin*
