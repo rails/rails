@@ -5470,6 +5470,21 @@ module ApplicationTests
       assert_equal "[:active_record_connected_to_stack, :custom_key]", last_response.body
     end
 
+    if RUBY_VERSION >= "4.0"
+      test "ActionDispatch configuration is frozen after boot" do
+        app "development"
+
+        [
+          ActionDispatch::ExceptionWrapper.rescue_responses,
+          ActionDispatch::ExceptionWrapper.rescue_templates,
+          ActionDispatch::ExceptionWrapper.wrapper_exceptions,
+          ActionDispatch::ExceptionWrapper.silent_exceptions,
+        ].each do |config|
+          assert_ractor_shareable(config)
+        end
+      end
+    end
+
     private
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
