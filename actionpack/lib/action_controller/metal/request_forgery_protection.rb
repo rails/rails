@@ -579,14 +579,15 @@ module ActionController # :nodoc:
         end
       end
 
-      # GET requests are checked for cross-origin JavaScript after rendering.
+      # GET and QUERY requests are checked for cross-origin JavaScript after
+      # rendering.
       def mark_for_same_origin_verification! # :doc:
-        @_marked_for_same_origin_verification = request.get?
+        @_marked_for_same_origin_verification = request.get? || request.query?
       end
 
       # If the `verify_request_for_forgery_protection` before_action ran,
       # verify that JavaScript responses are only served to same-origin
-      # GET requests.
+      # GET and QUERY requests.
       def marked_for_same_origin_verification? # :doc:
         @_marked_for_same_origin_verification ||= false
       end
