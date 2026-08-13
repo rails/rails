@@ -361,6 +361,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     query "/search"
     assert_equal "search#index", @response.body
+    assert_equal "/search", search_path
+  end
+
+  def test_query_route_on_collection
+    draw do
+      resources :products do
+        collection do
+          query :search
+        end
+      end
+    end
+
+    query "/products/search"
+    assert_equal "products#search", @response.body
+    assert_equal "/products/search", search_products_path
   end
 
   def test_query_via_match
@@ -4372,6 +4387,7 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
   RFC5323 = %w(SEARCH).freeze
   RFC4791 = %w(MKCALENDAR).freeze
   RFC5789 = %w(PATCH).freeze
+  RFC10008 = %w(QUERY).freeze
 
   def simple_app(response)
     lambda { |env| [ 200, { "Content-Type" => "text/plain" }, [response] ] }
@@ -4385,13 +4401,13 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
     @app = RoutedRackApp.new routes
 
     routes.draw do
-      (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789).each do |method|
+      (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789 + RFC10008).each do |method|
         match "/" => s.simple_app(method), :via => method.underscore.to_sym
       end
     end
   end
 
-  (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789).each do |method|
+  (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789 + RFC10008).each do |method|
     test "request method #{method.underscore} can be matched" do
       get "/", headers: { "REQUEST_METHOD" => method }
       assert_equal method, @response.body

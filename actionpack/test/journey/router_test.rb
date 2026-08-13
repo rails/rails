@@ -512,6 +512,22 @@ module ActionDispatch
         assert_not called
       end
 
+      def test_get_routes_do_not_match_query_requests
+        # The HEAD->GET fallback does not extend to QUERY: a GET route never
+        # serves a QUERY request.
+        match "/books(/:action(.:format))", to: "foo#bar", via: :get
+
+        env = rails_env "PATH_INFO" => "/books/list.rss",
+                        "REQUEST_METHOD" => "QUERY"
+
+        called = false
+        router.recognize(env) do |r, params|
+          called = true
+        end
+
+        assert_not called
+      end
+
       def test_eager_load_with_routes
         get "/foo-bar", to: "foo#bar"
         assert_nil router.eager_load!
