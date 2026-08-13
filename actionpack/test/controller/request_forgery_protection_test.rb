@@ -438,6 +438,14 @@ module RequestForgeryProtectionTests
     assert_not_blocked { query :index }
   end
 
+  def test_should_not_exempt_query_tunneled_through_method_override
+    # A POST carrying _method=query (tunneled by newer Rack::MethodOverride
+    # versions) was submitted as an ordinary form POST and must be verified
+    # like one, not inherit QUERY's exemption.
+    @request.env["rack.methodoverride.original_method"] = "POST"
+    assert_blocked { query :index }
+  end
+
   def test_should_allow_post_without_token_on_unsafe_action
     assert_not_blocked { post :unsafe }
   end

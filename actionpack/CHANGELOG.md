@@ -17,13 +17,15 @@
 
     Like GET and HEAD, QUERY requests are exempt from forgery protection:
     HTML forms cannot emit QUERY requests, and cross-origin QUERY requests
-    always require a CORS preflight.
+    always require a CORS preflight. The exemption applies only to requests
+    that actually arrive with the QUERY method: a `_method=query` override
+    tunneled through a form POST is verified like any other POST.
 
     Note that the application server must also accept the method. For
     example, Puma only accepts the eight standard HTTP methods by default;
     QUERY can be enabled with its `supported_http_methods` option.
 
-    *Magno Gouveia*
+    *Magno Gouveia*, *Jeremy Daer*
 
 *   Split keyword arguments off `#args` on `Rails.application.middleware` entries.
 
