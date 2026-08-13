@@ -116,6 +116,70 @@ class ActiveStorage::Transformers::ImageProcessingTransformerTest < ActiveSuppor
     end
   end
 
+  test "each transformer uses its backend-specific allowlist" do
+    assert_equal ActiveStorage.supported_vips_image_processing_methods,
+      transformer_for(:vips).new({}).send(:supported_methods)
+    assert_equal ActiveStorage.supported_image_processing_methods,
+      transformer_for(:mini_magick).new({}).send(:supported_methods)
+  end
+
+  test "transformation names with dashes are normalized before validation" do
+    assert_equal [[ "resize-to-limit", [ 100, 100 ] ]],
+      validate(:vips, "resize-to-limit" => [ 100, 100 ])
+  end
+
+  test "unknown transformation methods are rejected with the normalized name" do
+    error = assert_raises UnsupportedImageProcessingMethod do
+      validate :vips, "not-a-vips-operation" => true
+    end
+
+    assert_match "not_a_vips_operation", error.message
+  end
+
+  test "transformations without arguments are validated but omitted from operations" do
+    assert_empty validate(:vips, resize_to_limit: nil, rotate: false)
+
+    assert_raises UnsupportedImageProcessingMethod do
+      validate :vips, "not-a-vips-operation" => nil
+    end
+  end
+
+  test "base transformer implementations fail closed without an allowlist" do
+    transformer = Class.new(ActiveStorage::Transformers::ImageProcessingTransformer)
+
+    assert_raises NotImplementedError do
+      transformer.new(resize_to_limit: [ 100, 100 ]).send(:operations)
+    end
+  end
+
+  test "custom Vips methods can be added to the configured allowlist" do
+    methods = ActiveStorage.supported_vips_image_processing_methods
+    ActiveStorage.supported_vips_image_processing_methods = methods + [ "custom_vips_operation" ]
+
+    assert_nothing_raised do
+      validate :vips, custom_vips_operation: "safe"
+    end
+  ensure
+    ActiveStorage.supported_vips_image_processing_methods = methods
+  end
+
+  test "custom unsupported arguments are applied recursively" do
+    arguments = ActiveStorage.unsupported_image_processing_arguments
+    ActiveStorage.unsupported_image_processing_arguments = arguments + [ "-custom" ]
+
+    assert_raises UnsupportedImageProcessingArgument do
+      validate :vips, resize: { options: [ "safe", { value: "-custom" } ] }
+    end
+  ensure
+    ActiveStorage.unsupported_image_processing_arguments = arguments
+  end
+
+  test "dangerous symbols are rejected as arguments" do
+    assert_raises UnsupportedImageProcessingArgument do
+      validate :vips, resize: :"-write"
+    end
+  end
+
   private
     def validate(processor, transformations)
       transformer_for(processor).new(transformations).send(:operations)
