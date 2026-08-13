@@ -126,6 +126,13 @@ class SessionTest < ActiveSupport::TestCase
     end
   end
 
+  def test_xml_http_request_query
+    path = "/index"; params = "blah"; headers = { location: "blah" }
+    assert_called_with @session, :process, [:query, path], params: params, headers: headers, xhr: true do
+      @session.query(path, params: params, headers: headers, xhr: true)
+    end
+  end
+
   def test_xml_http_request_head
     path = "/index"; params = "blah"; headers = { location: "blah" }
     assert_called_with @session, :process, [:head, path], params: params, headers: headers, xhr: true do
@@ -200,7 +207,7 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
     reset!
     headers = { "Origin" => "*" }
 
-    %w( get post head patch put delete options ).each do |verb|
+    %w( get post head patch put delete options query ).each do |verb|
       assert_nothing_raised { __send__(verb, "/", headers: headers) }
     end
   end
@@ -265,6 +272,14 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
     def redirect_308
       redirect_to action_url("post"), status: 308
+    end
+
+    def redirect_303
+      redirect_to action_url("get"), status: 303
+    end
+
+    def query_params
+      render plain: "#{request.media_type}|#{request.request_parameters["foo"]}|#{request.query_parameters["foo"].inspect}"
     end
 
     def remove_header
@@ -531,6 +546,40 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       query "/method"
       assert_equal 200, status
       assert_equal "method: query", body
+    end
+  end
+
+  def test_query_sends_params_as_request_body
+    with_test_route_set do
+      query "/query_params", params: { foo: "bar" }
+      assert_response :success
+      assert_equal "application/x-www-form-urlencoded|bar|nil", response.body
+    end
+  end
+
+  def test_query_as_json
+    with_test_route_set do
+      query "/query_params", params: { foo: "bar" }, as: :json
+      assert_response :success
+      assert_equal "application/json|bar|nil", response.body
+    end
+  end
+
+  def test_307_redirect_preserves_query_verb
+    with_test_route_set do
+      query "/redirect_307"
+      assert_equal 307, status
+      follow_redirect!
+      assert_equal "QUERY", request.method
+    end
+  end
+
+  def test_303_redirect_switches_query_to_get
+    with_test_route_set do
+      query "/redirect_303"
+      assert_equal 303, status
+      follow_redirect!
+      assert_equal "GET", request.method
     end
   end
 
