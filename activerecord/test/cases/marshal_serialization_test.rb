@@ -16,6 +16,7 @@ class MarshalSerializationTest < ActiveRecord::TestCase
   end
 
   def test_deserializing_rails_6_1_marshal_basic
+    Topic.undefine_attribute_methods
     topic = Marshal.load(marshal_fixture("rails_6_1_topic"))
 
     assert_not_predicate topic, :new_record?
@@ -36,6 +37,7 @@ class MarshalSerializationTest < ActiveRecord::TestCase
   end
 
   def test_deserializing_rails_7_1_marshal_basic
+    Topic.undefine_attribute_methods
     topic = Marshal.load(marshal_fixture("rails_7_1_topic"))
 
     assert_not_predicate topic, :new_record?
