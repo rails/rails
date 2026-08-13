@@ -67,6 +67,30 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     assert_equal "happy", enum.reload.current_mood
   end
 
+  def test_uniqueness_validation_with_invalid_native_enum_scope
+    @connection.create_table("postgresql_enum_organizations", force: true) do |t|
+      t.enum :provider, enum_type: "mood", null: false
+      t.string :external_id, null: false
+    end
+
+    klass = Class.new(ActiveRecord::Base) do
+      def self.name; "PostgresqlEnumOrganization"; end
+      self.table_name = "postgresql_enum_organizations"
+
+      enum :provider, { sad: "sad", okay: "ok", happy: "happy" }, validate: true
+      validates :external_id, uniqueness: { scope: :provider }
+    end
+
+    record = klass.new(provider: "angry", external_id: "123")
+
+    assert_nothing_raised { record.valid? }
+    assert_not_predicate record, :valid?
+    assert_includes record.errors[:provider], "is not included in the list"
+    assert_empty record.errors[:external_id]
+  ensure
+    @connection.drop_table "postgresql_enum_organizations", if_exists: true
+  end
+
   def test_invalid_enum_update
     @connection.execute "INSERT INTO postgresql_enums VALUES (1, 'sad');"
     enum = PostgresqlEnum.first
