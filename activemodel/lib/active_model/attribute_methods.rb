@@ -323,7 +323,6 @@ module ActiveModel
       end
 
       def define_attribute_method_pattern(pattern, attr_name, owner:, as:, override: false) # :nodoc:
-        canonical_method_name = pattern.method_name(attr_name)
         public_method_name = pattern.method_name(as)
 
         # If defining a regular attribute method, we don't override methods that are explicitly
@@ -340,6 +339,12 @@ module ActiveModel
         if respond_to?(generate_method, true)
           send(generate_method, attr_name.to_s, owner: owner, as: as)
         else
+          canonical_method_name = if as == attr_name
+            public_method_name
+          else
+            pattern.method_name(attr_name)
+          end
+
           define_proxy_call(
             owner,
             canonical_method_name,
