@@ -558,6 +558,7 @@ module ActiveRecord
 
     def test_update_in_change_raises_on_rollback_without_reexecuting
       InvertibleMigration.new.migrate(:up)
+      Horse.reset_column_information
       horse = Horse.create!(content: "original")
       migration = UpdateInChangeMigration.new
       migration.migrate(:up)
