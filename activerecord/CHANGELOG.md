@@ -1,3 +1,12 @@
+*   Deprecate `ActiveRecord::Relation#uniq!`.
+
+    The method was added in Rails 6.1 (#39358) as part of the migration path
+    toward Rails 7.0's default deduplication of multi-value query methods.
+    Deduplication has been applied automatically since Rails 7.0, so
+    `uniq!` no longer has a purpose and will be removed in Rails 9.0.
+
+    *Ryuta Kamizono*
+
 *   Apply `all_queries: true` default scopes consistently across counter caches,
     uniqueness validations, fixture lookups, and record reloads, while those
     operations continue to bypass ordinary default scopes.
