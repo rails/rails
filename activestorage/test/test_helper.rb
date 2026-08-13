@@ -164,7 +164,7 @@ class User < ActiveRecord::Base
     attachable.variant :immediate_thumb, resize_to_limit: [1, 1], process: :immediately
   end
   has_one_attached :avatar_with_later_variants do |attachable|
-    attachable.variant :later_thumb, resize_to_limit: [2, 2], process: :later
+    attachable.variant :later_thumb, resize_to_limit: [2, 2], saver: { strip: true }, process: :later
   end
   has_one_attached :avatar_with_lazy_variants do |attachable|
     attachable.variant :lazy_thumb, resize_to_limit: [3, 3], process: :lazily

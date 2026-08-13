@@ -263,9 +263,20 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
 
   test "enqueues create variants job to delay transformations after attach" do
     blob = create_file_blob
-    assert_create_variants_job blob:, variants: [{ resize_to_limit: [2, 2] }] do
+    assert_create_variants_job blob:, variants: [{ resize_to_limit: [2, 2], saver: { strip: true } }] do
       @user.avatar_with_later_variants.attach blob
     end
+  end
+
+  test "creates delayed variants readers can find when the queue does not preserve hash key order" do
+    blob = create_file_blob
+    @user.avatar_with_later_variants.attach blob
+
+    perform_enqueued_jobs do
+      ActiveJob::Base.execute reverse_hash_keys(ActiveJob::Base.queue_adapter.enqueued_jobs.last)
+    end
+
+    assert @user.avatar_with_later_variants.variant(:later_thumb).processed?
   end
 
   test "avoids enqueuing create variants job when lazy" do
@@ -494,7 +505,18 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     def assert_create_variants_job(blob:, variants:, &block)
       assert_enqueued_with(
         job: ActiveStorage::CreateVariantsJob,
-        args: [ blob, variants:, process: :later ], &block
+        args: [ blob, variants: variants.map(&:to_a), process: :later ], &block
       )
+    end
+
+    def reverse_hash_keys(value)
+      case value
+      when Hash
+        value.reverse_each.to_h.transform_values { |nested| reverse_hash_keys(nested) }
+      when Array
+        value.map { |nested| reverse_hash_keys(nested) }
+      else
+        value
+      end
     end
 end
