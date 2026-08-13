@@ -4495,6 +4495,7 @@ module ApplicationTests
 
       app "development"
 
+      assert ActiveStorage.supported_vips_image_processing_methods.include?("resize_to_limit")
       assert ActiveStorage.supported_vips_image_processing_methods.include?("write")
       assert ActiveStorage.supported_vips_image_processing_methods.include?("set")
     end
