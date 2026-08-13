@@ -215,6 +215,15 @@ module RenderTestCases
     assert_equal "1:    <%= foo(", e.annotated_source_code[0].strip
   end
 
+  def test_render_template_with_syntax_error_on_later_line
+    e = assert_raises(ActionView::Template::Error) do
+      silence_warnings { @view.render(template: "test/syntax_error_on_later_line") }
+    end
+
+    assert_equal "7", e.line_number
+    assert_includes e.annotated_source_code.map(&:strip), "7:      <% end %>"
+  end
+
   def test_render_runtime_error
     ex = assert_raises(ActionView::Template::Error) {
       @view.render(template: "test/runtime_error")

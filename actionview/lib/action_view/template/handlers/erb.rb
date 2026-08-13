@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "strscan"
+require "ripper"
 require "active_support/core_ext/erb/util"
 
 module ActionView
@@ -26,8 +27,20 @@ module ActionView
 
         LocationParsingError = Class.new(StandardError) # :nodoc:
 
+        class SyntaxErrorParser < Ripper # :nodoc:
+          attr_reader :line_number
+
+          def on_parse_error(*)
+            @line_number ||= lineno
+          end
+        end
+
         def self.call(template, source)
           new.call(template, source)
+        end
+
+        def self.syntax_error_line(source)
+          new.syntax_error_line(source)
         end
 
         def supports_streaming?
@@ -91,6 +104,31 @@ module ActionView
           end
 
           self.class.erb_implementation.new(erb, options).src
+        end
+
+        def syntax_error_line(source)
+          code = +""
+          code.force_encoding(source.encoding)
+          executable = false
+
+          ::ERB::Util.tokenize(source).each do |type, value|
+            case type
+            when :OPEN
+              executable = !value.start_with?("<%#", "<%%")
+              code << value.gsub(/[^\r\n]/, " ")
+            when :CODE
+              code << (executable ? value : value.gsub(/[^\r\n]/, " "))
+            else
+              code << value.gsub(/[^\r\n]/, " ")
+              executable = false if type == :CLOSE
+            end
+          end
+
+          parser = SyntaxErrorParser.new(code)
+          parser.parse
+          parser.line_number
+        rescue NotImplementedError
+          nil
         end
 
       private
