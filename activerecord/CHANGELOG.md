@@ -1,3 +1,9 @@
+*   Apply `all_queries: true` default scopes to counter caches, uniqueness validations, fixture lookups, and record reloads.
+
+    Normal default scopes do not affect these internal operations.
+
+    *Andrew Novoselac and Matthew Draper*
+
 
 *   Fix clearing an association whose foreign key is a subset of the
     referencing record's primary key. This affected `belongs_to` associations
@@ -120,7 +126,6 @@
     needs to adapt to the new tuple shape.
 
     *Ryuta Kamizono*
-
 *   Add query predicate hooks for Active Model types.
 
     Types can override `transforms_query_predicates?`, `query_attribute`, and
