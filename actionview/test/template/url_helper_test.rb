@@ -21,6 +21,10 @@ class UrlHelperTest < ActiveSupport::TestCase
   include Rails::Dom::Testing::Assertions::DomAssertions
   include RenderERBUtils
 
+  def default_url_options
+    @default_url_options ||= {}
+  end
+
   def hash_for(options = {})
     { controller: "foo", action: "bar" }.merge!(options)
   end
@@ -67,7 +71,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_url_for_with_array_and_only_path_set_to_false
-    default_url_options[:host] = "http://example.com"
+    @default_url_options = { host: "http://example.com" }
     assert_equal "http://example.com/other", url_for([:other, { controller: "foo", only_path: false }])
   end
 

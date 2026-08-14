@@ -967,7 +967,7 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   def test_can_override_default_url_options
     original_host = default_url_options.dup
 
-    default_url_options[:host] = "foobar.com"
+    self.default_url_options = { host: "foobar.com" }
     assert_equal "http://foobar.com/foo", foos_url
 
     get "/bar"
