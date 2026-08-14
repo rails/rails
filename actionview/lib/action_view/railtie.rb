@@ -100,6 +100,13 @@ module ActionView
       ActiveSupport.on_load(:action_view) { self.logger ||= Rails.logger }
     end
 
+    initializer "action_view.root" do
+      ActiveSupport.on_load(:action_view) do
+        ActionView::StructuredEventSubscriber.rails_root = "#{Rails.root}/".freeze
+        ActionView::LogSubscriber.rails_root = "#{Rails.root}/".freeze
+      end
+    end
+
     initializer "action_view.caching" do |app|
       ActiveSupport.on_load(:action_view) do
         if app.config.action_view.cache_template_loading.nil?

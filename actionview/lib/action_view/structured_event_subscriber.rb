@@ -6,11 +6,6 @@ module ActionView
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
     VIEWS_PATTERN = /^app\/views\//
 
-    def initialize
-      @root = nil
-      super
-    end
-
     def render_template(event)
       emit_debug_event("action_view.render_template",
         identifier: from_rails_root(event.payload[:identifier]),
@@ -53,18 +48,34 @@ module ActionView
     end
     debug_only :render_collection
 
+    class << self
+      def rails_root
+        Utils.rails_root
+      end
+
+      def rails_root=(rails_root)
+        Utils.rails_root = rails_root
+      end
+    end
+
     module Utils # :nodoc:
+      class << self
+        attr_accessor :rails_root
+      end
+
+      self.rails_root = "/"
+
       private
         def from_rails_root(string)
           return unless string
 
-          string = string.sub("#{rails_root}/", "")
+          string = string.sub(rails_root, "")
           string.sub!(VIEWS_PATTERN, "")
           string
         end
 
         def rails_root # :doc:
-          @root ||= Rails.try(:root)
+          Utils.rails_root
         end
     end
 
