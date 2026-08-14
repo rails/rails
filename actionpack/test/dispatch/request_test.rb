@@ -913,6 +913,18 @@ class RequestMethod < BaseRequestTest
 
     assert_not_predicate request, :query?
   end
+
+  test "post masquerading as query" do
+    request = stub_request(
+      "REQUEST_METHOD" => "QUERY",
+      "rack.methodoverride.original_method" => "POST"
+    )
+
+    assert_equal "POST", request.method
+    assert_equal :post, request.method_symbol
+    assert_equal "QUERY", request.request_method
+    assert_predicate request, :query?
+  end
 end
 
 class RequestSafety < BaseRequestTest

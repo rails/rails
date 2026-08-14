@@ -21,6 +21,10 @@
     that actually arrive with the QUERY method: a `_method=query` override
     tunneled through a form POST is verified like any other POST.
 
+    Routes drawn with `via: :all` (and custom constraints that don't check
+    the request method) now receive QUERY requests, where previously such
+    requests were refused with a 405 before routing ran.
+
     Note that the application server must also accept the method. For
     example, Puma only accepts the eight standard HTTP methods by default;
     QUERY can be enabled with its `supported_http_methods` option.

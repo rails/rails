@@ -378,6 +378,17 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/products/search", search_products_path
   end
 
+  def test_query_via_all
+    draw do
+      match "search", via: :all, to: "search#index"
+    end
+
+    # Previously a QUERY request was refused with a 405 before routing ran,
+    # so via: :all routes never received it.
+    query "/search"
+    assert_equal "search#index", @response.body
+  end
+
   def test_query_via_match
     draw do
       match "search", via: :query, to: "search#index"

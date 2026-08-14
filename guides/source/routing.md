@@ -758,10 +758,14 @@ match "photos", to: "photos#show", via: [:get, :post]
 
 The above route matches GET and POST requests to the `show` action of the `PhotosController`.
 
-The [`query`][] method defines routes for the HTTP QUERY method defined in [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html), a safe and idempotent verb that conveys the query in the request body instead of the URL query string:
+The [`query`][] method defines routes for the HTTP QUERY method defined in [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html), a safe and idempotent verb that conveys the query in the request body instead of the URL query string. It works standalone and on resource collections and members:
 
 ```ruby
 query "search", to: "search#index"
+
+resources :products do
+  query :search, on: :collection
+end
 ```
 
 You can match all verbs to a particular route using `via: :all`:

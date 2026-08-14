@@ -520,7 +520,7 @@ NOTE: _First, as is required by the W3C, use GET and POST appropriately. Secondl
 
 #### Use GET and POST Appropriately
 
-The HTTP protocol basically provides two main types of requests - GET and POST (DELETE, PUT, and PATCH should be used like POST). The World Wide Web Consortium (W3C) provides a checklist for choosing HTTP GET or POST:
+The HTTP protocol basically provides two main types of requests - GET and POST (DELETE, PUT, and PATCH should be used like POST, while QUERY — a safe, read-only method that carries its query in the request body — should be used like GET). The World Wide Web Consortium (W3C) provides a checklist for choosing HTTP GET or POST:
 
 **Use GET if:**
 
