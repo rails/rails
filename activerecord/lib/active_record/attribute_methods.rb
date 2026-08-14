@@ -460,42 +460,6 @@ module ActiveRecord
     end
 
     private
-      def respond_to_missing?(name, include_private = false)
-        if self.class.define_attribute_methods
-          # Some methods weren't defined yet.
-          return true if self.class.method_defined?(name)
-          return true if include_private && self.class.private_method_defined?(name)
-        end
-
-        super
-      end
-
-      def method_missing(name, ...)
-        # We can't know whether some method was defined or not because
-        # multiple thread might be concurrently be in this code path.
-        # So the first one would define the methods and the others would
-        # appear to already have them.
-        self.class.define_attribute_methods
-
-        # So in all cases we must behave as if the method was just defined.
-        method = if self.class.public_method_defined?(name)
-          begin
-            self.class.public_instance_method(name)
-          rescue NameError
-            nil
-          end
-        end
-
-        # The method might be explicitly defined in the model, but call a generated
-        # method with super. So we must resume the call chain at the right step.
-        method = method.super_method while method && !method.owner.is_a?(GeneratedAttributeMethods)
-        if method
-          method.bind_call(self, ...)
-        else
-          super
-        end
-      end
-
       def attribute_method?(attr_name)
         @attributes&.key?(attr_name)
       end
