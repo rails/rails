@@ -61,6 +61,21 @@ class Rails::Command::TestTest < ActiveSupport::TestCase
     end
   end
 
+  test "test command does not boot the app when running test:prepare task" do
+    app_file "Rakefile", <<~RUBY, "a"
+      Rake::Task["test:prepare"].enhance(["environment"])
+    RUBY
+
+    app_file "test/booted_test.rb", <<~'RUBY'
+      puts "Booted: #{!!Rails.application&.initialized?}"
+      require "test_helper"
+    RUBY
+
+    output = run_test_command("test")
+    assert_successful_run output
+    assert_match "Booted: false", output
+  end
+
   test "test command runs successfully when no tasks defined" do
     app_file "Rakefile", ""
     assert_successful_run run_test_command("test")
