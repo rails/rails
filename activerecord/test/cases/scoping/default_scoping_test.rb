@@ -736,21 +736,18 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_default_scopes_are_ractor_shareable
-    old = ActiveSupport::Ractors.unshareable_proc_action
-    ActiveSupport::Ractors.unshareable_proc_action = :raise
+    model = ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+      Class.new(ActiveRecord::Base) do
+        def self.name = "ractor_safe_posts"
+        self.table_name = "posts"
 
-    model = Class.new(ActiveRecord::Base) do
-      def self.name = "ractor_safe_posts"
-      self.table_name = "posts"
+        default_scope -> { ractor_safe }
 
-      default_scope -> { ractor_safe }
-
-      def self.ractor_safe
-        where(type: "ractor_safe")
+        def self.ractor_safe
+          where(type: "ractor_safe")
+        end
       end
     end
-
-    ActiveSupport::Ractors.unshareable_proc_action = old
 
     select_sql = capture_sql { model.all.to_a }.first
 
