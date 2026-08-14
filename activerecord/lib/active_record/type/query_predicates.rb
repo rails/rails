@@ -17,9 +17,11 @@ module ActiveRecord
     # symmetrically to the stored attribute and query value. Ruby values are
     # serialized first; Arel expressions are not. `IS NULL` tests apply to the
     # transformed attribute, and subquery projections are treated as stored
-    # values and transformed as well. The expression defines equality,
-    # ordering, and null semantics for the type. Type authors are responsible
-    # for ensuring those semantics are appropriate and supported by the database.
+    # values and transformed as well. Association join constraints compare two
+    # stored attributes. Each side is transformed through its own column's type.
+    # The expression defines equality, ordering, and null semantics for the type.
+    # Type authors are responsible for ensuring those semantics are appropriate
+    # and supported by the database.
     #
     # Ordering compares through the same expression: `order` on an attribute
     # sorts by the transformed value, as do `in_order_of` and batch cursors.
