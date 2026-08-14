@@ -1,3 +1,9 @@
+*   Apply `all_queries: true` default scopes consistently across counter caches,
+    uniqueness validations, fixture lookups, and record reloads, while those
+    operations continue to bypass ordinary default scopes.
+
+    *Andrew Novoselac* and *Matthew Draper*
+
 *   Fix clearing an association whose foreign key is a subset of the
     referencing record's primary key. This affected `belongs_to` associations
     with composite foreign keys, and `has_one` associations with either scalar
