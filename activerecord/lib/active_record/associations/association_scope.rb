@@ -66,12 +66,12 @@ module ActiveRecord
           primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
           primary_key_foreign_key_pairs.each do |join_key, foreign_key|
             value = transform_value(owner.read_attribute(foreign_key))
-            scope = apply_scope(scope, table, join_key, value)
+            scope = apply_scope(scope, reflection, table, join_key, value)
           end
 
           if reflection.type
             polymorphic_type = transform_value(owner.class.polymorphic_name)
-            scope = apply_scope(scope, table, reflection.type, polymorphic_type)
+            scope = apply_scope(scope, reflection, table, reflection.type, polymorphic_type)
           end
 
           scope
@@ -88,14 +88,18 @@ module ActiveRecord
           table = reflection.aliased_table
           foreign_table = next_reflection.aliased_table
 
+          predicate_builder = scope.predicate_builder
           primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
           constraints = primary_key_foreign_key_pairs.map do |join_primary_key, foreign_key|
-            table[join_primary_key].eq(foreign_table[foreign_key])
+            join_primary_key_attribute = predicate_builder.predicate_attribute(table[join_primary_key])
+            foreign_key_attribute = predicate_builder.predicate_attribute(foreign_table[foreign_key])
+
+            join_primary_key_attribute.eq(foreign_key_attribute)
           end.inject(&:and)
 
           if reflection.type
             value = transform_value(next_reflection.klass.polymorphic_name)
-            scope = apply_scope(scope, table, reflection.type, value)
+            scope = apply_scope(scope, reflection, table, reflection.type, value)
           end
 
           scope.joins!(join(foreign_table, constraints))
@@ -162,11 +166,13 @@ module ActiveRecord
           scope
         end
 
-        def apply_scope(scope, table, key, value)
+        def apply_scope(scope, reflection, table, key, value)
           if scope.table == table
             scope.where!(key => value)
           else
-            scope.where!(table.name => { key => value })
+            scope.references_values |= [Arel.sql(table.name, retryable: true)]
+            predicate_builder = reflection.klass.predicate_builder.with(TableMetadata.new(reflection.klass, table))
+            scope.where!(predicate_builder[key, value])
           end
         end
 

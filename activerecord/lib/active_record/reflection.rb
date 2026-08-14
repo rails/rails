@@ -214,7 +214,10 @@ module ActiveRecord
         primary_foreign_key_pairs = primary_key_column_names.zip(foreign_key_column_names)
 
         primary_foreign_key_pairs.each do |primary_key_column_name, foreign_key_column_name|
-          klass_scope.where!(table[primary_key_column_name].eq(foreign_table[foreign_key_column_name]))
+          primary_key_attribute = predicate_builder.predicate_attribute(table[primary_key_column_name])
+          foreign_key_attribute = predicate_builder.predicate_attribute(foreign_table[foreign_key_column_name])
+
+          klass_scope.where!(primary_key_attribute.eq(foreign_key_attribute))
         end
 
         if klass.finder_needs_type_condition?

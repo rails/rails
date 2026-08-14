@@ -27,6 +27,14 @@ module ActiveRecord
       end
     end
 
+    class UpperString < ActiveRecord::Type::String
+      include ActiveRecord::Type::QueryPredicates
+
+      def comparison_expression(expression)
+        Arel::Nodes::NamedFunction.new("upper", [expression])
+      end
+    end
+
     class TypeCastingAttribute < Arel::Attributes::Attribute
       attr_reader :custom_type
 
@@ -142,6 +150,22 @@ module ActiveRecord
       def self.load(value)
         value&.delete_prefix("coded:")
       end
+    end
+
+    class UpperNamedAuthor < ActiveRecord::Base
+      self.table_name = "authors"
+
+      attribute :name, UpperString.new
+    end
+
+    class MatchableAuthor < ActiveRecord::Base
+      self.table_name = "authors"
+
+      attribute :name, LowerString.new
+
+      has_many :matching_authors, class_name: "MatchableAuthor", primary_key: :name, foreign_key: :name
+      has_many :upper_matching_authors, class_name: "UpperNamedAuthor", primary_key: :name, foreign_key: :name
+      has_many :matches_of_matches, through: :matching_authors, source: :matching_authors
     end
 
     class RegexpPredicateBuilder < PredicateBuilder
@@ -547,6 +571,53 @@ module ActiveRecord
         "WHERE #{normalized_title} IN (SELECT #{normalized_title} FROM #{quoted_topics})"
 
       assert_equal expected_sql, sql
+    end
+
+    def test_association_join_constraints_use_query_predicate_expressions
+      sql = MatchableAuthor.joins(:matching_authors).to_sql
+      join_name = Regexp.escape(quote_table_name("matching_authors_authors.name"))
+      owner_name = Regexp.escape(quote_table_name("authors.name"))
+
+      assert_match %r{ON lower\(#{join_name}\) = lower\(#{owner_name}\)}, sql
+    end
+
+    def test_association_join_constraints_apply_each_columns_own_type
+      sql = MatchableAuthor.joins(:upper_matching_authors).to_sql
+      join_name = Regexp.escape(quote_table_name("upper_matching_authors_authors.name"))
+      owner_name = Regexp.escape(quote_table_name("authors.name"))
+
+      assert_match %r{ON upper\(#{join_name}\) = lower\(#{owner_name}\)}, sql
+    end
+
+    def test_association_join_constraints_execute_query_predicate_expressions
+      MatchableAuthor.create!(name: "CAFE")
+      MatchableAuthor.create!(name: "cafe")
+
+      assert_equal 4, MatchableAuthor.where(name: "cafe").joins(:matching_authors).count
+    end
+
+    def test_through_association_scopes_use_query_predicate_expressions
+      author = MatchableAuthor.create!(name: "Through Case")
+      sql = author.matches_of_matches.to_sql
+      middle_name = Regexp.escape(quote_table_name("matching_authors_matches_of_matches.name"))
+      owner_name = Regexp.escape(quote_table_name("authors.name"))
+
+      assert_match %r{ON lower\(#{owner_name}\) = lower\(#{middle_name}\)}, sql
+      assert_match %r{WHERE lower\(#{middle_name}\) = lower\('Through Case'\)}, sql
+    end
+
+    def test_through_association_scopes_execute_query_predicate_expressions
+      author = MatchableAuthor.create!(name: "Through Case")
+      MatchableAuthor.create!(name: "THROUGH CASE")
+
+      assert_equal 4, author.matches_of_matches.count
+    end
+
+    def test_through_association_scopes_preserve_aliased_table_references
+      author = MatchableAuthor.create!(name: "Through Case")
+      relation = author.matches_of_matches
+
+      assert_equal [Arel.sql("matching_authors_matches_of_matches", retryable: true)], relation.references_values
     end
 
     def test_order_uses_query_predicate_expressions
