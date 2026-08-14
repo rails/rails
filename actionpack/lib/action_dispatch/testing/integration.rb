@@ -138,7 +138,8 @@ module ActionDispatch
       end
 
       def url_options
-        @url_options ||= default_url_options.dup.tap do |url_options|
+        @url_options ||= begin
+          url_options = {}.merge(default_url_options)
           url_options.reverse_merge!(controller.url_options) if controller.respond_to?(:url_options)
 
           if @app.respond_to?(:routes)

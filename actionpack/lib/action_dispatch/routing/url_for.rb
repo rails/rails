@@ -90,6 +90,42 @@ module ActionDispatch
     #     User.find(1).base_uri # => "/users/1"
     #
     module UrlFor
+      class DefaultUrlOptionsProxy # :nodoc:
+        def initialize(owner)
+          @owner = owner
+        end
+
+        def to_hash
+          @owner.default_url_options_hash
+        end
+
+        def method_missing(name, *args)
+          return super unless @owner.default_url_options_hash.respond_to?(name)
+
+          @owner.default_url_options_hash.public_send(name, *args)
+        rescue FrozenError
+          trigger_deprecation
+
+          @owner.default_url_options_hash = @owner.default_url_options_hash.dup
+          @owner.default_url_options_hash.public_send(name, *args)
+        end
+
+        def respond_to_missing?(name, _)
+          @owner.respond_to?(name) || super
+        end
+
+        private
+
+        def trigger_deprecation
+          ActionController.deprecator.warn(<<~MSG.squish)
+            Mutating the `default_url_options` is deprecated and will raise a FrozenError in the next
+            Rails release. Mutating the `default_url_options` can be a source of hard to debug issues.
+
+            Instead, implement `def default_url_options` in your class or controller.
+          MSG
+        end
+      end
+
       extend ActiveSupport::Concern
       include PolymorphicRoutes
 
@@ -97,12 +133,13 @@ module ActionDispatch
         unless method_defined?(:default_url_options)
           # Including in a class uses an inheritable hash. Modules get a plain hash.
           if respond_to?(:class_attribute)
-            class_attribute :default_url_options
+            class_attribute :default_url_options, :default_url_options_hash
           else
-            mattr_writer :default_url_options
+            mattr_writer :default_url_options, :default_url_options_hash
           end
 
-          self.default_url_options = {}
+          self.default_url_options_hash = {}.freeze
+          self.default_url_options = DefaultUrlOptionsProxy.new(self).freeze
         end
 
         include(*_url_for_modules) if respond_to?(:_url_for_modules)
