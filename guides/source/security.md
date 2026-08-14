@@ -520,7 +520,7 @@ NOTE: _First, as is required by the W3C, use GET and POST appropriately. Secondl
 
 #### Use GET and POST Appropriately
 
-The HTTP protocol basically provides two main types of requests - GET and POST (DELETE, PUT, and PATCH should be used like POST). The World Wide Web Consortium (W3C) provides a checklist for choosing HTTP GET or POST:
+The HTTP protocol basically provides two main types of requests - GET and POST (DELETE, PUT, and PATCH should be used like POST, while QUERY — a safe, read-only method that carries its query in the request body — should be used like GET). The World Wide Web Consortium (W3C) provides a checklist for choosing HTTP GET or POST:
 
 **Use GET if:**
 
@@ -533,6 +533,8 @@ The HTTP protocol basically provides two main types of requests - GET and POST (
 * The user is _held accountable for the results_ of the interaction.
 
 If your web application is RESTful, you might be used to additional HTTP verbs, such as PATCH, PUT, or DELETE. Some legacy web browsers, however, do not support them - only GET and POST. Rails uses a hidden `_method` field to handle these cases.
+
+The HTTP QUERY method ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html)) is safe and idempotent like GET, but conveys the query in the request body. Like GET and HEAD, QUERY requests are not checked for the security token: HTML forms cannot issue QUERY requests, and cross-origin QUERY requests from scripts always require a CORS preflight. This exemption applies only to requests that actually arrive with the QUERY method: a request tunneled through a form POST with `_method=query` is verified like any other POST, since an ordinary form submission enjoys none of those structural protections. As with GET, never change state in response to a QUERY request.
 
 _POST requests can be sent automatically, too_. In this example, the link www.harmless.com is shown as the destination in the browser's status bar. But it has actually dynamically created a new form that sends a POST request.
 

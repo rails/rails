@@ -592,7 +592,7 @@ An incoming GET request to `/photos/1/preview` will route to the `preview` actio
 
 Within the `member` block, each route definition specifies the HTTP verb (`get`
 in the above example with `get 'preview'`). In addition to [`get`][], you can
-use [`patch`][], [`put`][], [`post`][], or [`delete`][].
+use [`patch`][], [`put`][], [`post`][], [`delete`][], or [`query`][].
 
 If you don't have multiple `member` routes, you can also
 pass `:on` to a route, eliminating the block:
@@ -750,13 +750,23 @@ This will define a `user_path` helper that will match `/:username` (e.g. `/jane`
 
 ### HTTP Verb Constraints
 
-In general, you should use the [`get`][], [`post`][], [`put`][], [`patch`][], and [`delete`][] methods to constrain a route to a particular verb. There is a [`match`][] method that you could use with the `:via` option to match multiple verbs at once:
+In general, you should use the [`get`][], [`post`][], [`put`][], [`patch`][], [`delete`][], and [`query`][] methods to constrain a route to a particular verb. There is a [`match`][] method that you could use with the `:via` option to match multiple verbs at once:
 
 ```ruby
 match "photos", to: "photos#show", via: [:get, :post]
 ```
 
 The above route matches GET and POST requests to the `show` action of the `PhotosController`.
+
+The [`query`][] method defines routes for the HTTP QUERY method defined in [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html), a safe and idempotent verb that conveys the query in the request body instead of the URL query string. It works standalone and on resource collections and members:
+
+```ruby
+query "search", to: "search#index"
+
+resources :products do
+  query :search, on: :collection
+end
+```
 
 You can match all verbs to a particular route using `via: :all`:
 
@@ -772,6 +782,7 @@ general, avoid routing all verbs to a single action unless you have a good
 reason.
 
 [`match`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/Base.html#method-i-match
+[`query`]: https://api.rubyonrails.org/classes/ActionDispatch/Routing/Mapper/HttpHelpers.html#method-i-query
 
 ### Segment Constraints
 

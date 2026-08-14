@@ -897,10 +897,38 @@ class RequestMethod < BaseRequestTest
       request.method(:POST)
     end
   end
+
+  test "QUERY method is recognized" do
+    request = stub_request("REQUEST_METHOD" => "QUERY")
+
+    assert_equal "QUERY", request.request_method
+    assert_equal :query, request.request_method_symbol
+    assert_predicate request, :query?
+    assert_not_predicate request, :get?
+    assert_not_predicate request, :post?
+  end
+
+  test "query? returns false when the request is not a QUERY" do
+    request = stub_request("REQUEST_METHOD" => "GET")
+
+    assert_not_predicate request, :query?
+  end
+
+  test "post masquerading as query" do
+    request = stub_request(
+      "REQUEST_METHOD" => "QUERY",
+      "rack.methodoverride.original_method" => "POST"
+    )
+
+    assert_equal "POST", request.method
+    assert_equal :post, request.method_symbol
+    assert_equal "QUERY", request.request_method
+    assert_predicate request, :query?
+  end
 end
 
 class RequestSafety < BaseRequestTest
-  %w[GET HEAD OPTIONS TRACE].each do |method|
+  %w[GET HEAD QUERY OPTIONS TRACE].each do |method|
     test "#{method} is a safe method" do
       request = stub_request("REQUEST_METHOD" => method)
       assert_predicate request, :safe_method?
