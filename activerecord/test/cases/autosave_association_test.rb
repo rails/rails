@@ -943,7 +943,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     order.save
     order.reload
 
-    assert_equal book_ids, order.book_ids
+    assert_equal book_ids.sort, order.book_ids.sort
     assert_equal 2, order.books.length
     assert_includes order.books, cpk_books(:cpk_great_author_first_book)
     assert_includes order.books, cpk_books(:cpk_great_author_second_book)
