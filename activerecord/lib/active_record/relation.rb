@@ -981,24 +981,25 @@ module ActiveRecord
     # This method can be passed attribute names and an optional time argument.
     # If attribute names are passed, they are updated along with +updated_at+/+updated_on+ attributes.
     # If no time argument is passed, the current time is used as default.
+    # Returns the number of rows affected.
     #
     # ==== Examples
     #
     #   # Touch all records
-    #   Person.all.touch_all
-    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670'"
+    #   Person.all.touch_all # => 42
     #
     #   # Touch multiple records with a custom attribute
-    #   Person.all.touch_all(:created_at)
-    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670', \"created_at\" = '2018-01-04 22:55:23.132670'"
+    #   Person.all.touch_all(:created_at) # => 42
     #
     #   # Touch multiple records with a specified time
-    #   Person.all.touch_all(time: Time.new(2020, 5, 16, 0, 0, 0))
-    #   # => "UPDATE \"people\" SET \"updated_at\" = '2020-05-16 00:00:00'"
+    #   Person.all.touch_all(time: Time.new(2020, 5, 16, 0, 0, 0)) # => 42
     #
     #   # Touch records with scope
-    #   Person.where(name: 'David').touch_all
-    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
+    #   Person.where(name: 'David').touch_all # => 1
+    #
+    # The first example above generates an SQL statement like:
+    #
+    #   UPDATE "people" SET "updated_at" = '2018-01-04 22:55:23.132670'
     def touch_all(*names, time: nil)
       update_all model.touch_attributes_with_time(*names, time: time)
     end
