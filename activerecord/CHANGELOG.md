@@ -1,3 +1,17 @@
+*   Fix a deadlock in `ConnectionPool#checkout` when the pinned connection is
+    replaced concurrently.
+
+    When using transactional tests, the pinned connection is unpinned at the end
+    of an example and a new one is pinned at the start of the next. If another
+    thread was in `checkout` during that window, it could lock the old connection
+    and then verify the *new* pinned connection while holding the old one's lock,
+    causing an ABBA deadlock with a thread checking out the new connection.
+
+    `checkout` now captures the pinned connection once and only verifies it if it
+    is still the pinned connection after acquiring the locks, retrying otherwise.
+
+    *VANDENBOGAERDE Nicolas*
+
 *   Support dumping `schema_migrations` in `db/schema.rb`.
 
     When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`

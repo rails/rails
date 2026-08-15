@@ -636,26 +636,25 @@ module ActiveRecord
       # Raises:
       # - ActiveRecord::ConnectionTimeoutError no connection can be obtained from the pool.
       def checkout(checkout_timeout = @checkout_timeout)
-        return checkout_and_verify(acquire_connection(checkout_timeout)) unless @pinned_connection
+        while (connection = @pinned_connection)
+          connection.lock.synchronize do
+            synchronize do
+              if @pinned_connection.equal?(connection)
+                connection.verify
 
-        @pinned_connection.lock.synchronize do
-          synchronize do
-            # The pinned connection may have been cleaned up before we synchronized, so check if it is still present
-            if @pinned_connection
-              @pinned_connection.verify
+                # Any leased connection must be in @connections otherwise
+                # some methods like #connected? won't behave correctly
+                unless @connections.include?(connection)
+                  @connections << connection
+                end
 
-              # Any leased connection must be in @connections otherwise
-              # some methods like #connected? won't behave correctly
-              unless @connections.include?(@pinned_connection)
-                @connections << @pinned_connection
+                return connection
               end
-
-              @pinned_connection
-            else
-              checkout_and_verify(acquire_connection(checkout_timeout))
             end
           end
         end
+
+        checkout_and_verify(acquire_connection(checkout_timeout))
       end
 
       # Check-in a database connection back into the pool, indicating that you
