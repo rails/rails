@@ -212,7 +212,7 @@ module ActionDispatch
             def call(t, method_name, args, inner_options, url_strategy)
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
-                path = optimized_helper(args)
+                path = optimized_helper(t, method_name, args)
                 path << "/" if options[:trailing_slash] && !path.end_with?("/")
                 options[:path] = path
 
@@ -232,9 +232,9 @@ module ActionDispatch
             end
 
             private
-              def optimized_helper(args)
+              def optimized_helper(t, method_name, args)
                 params = parameterize_args(args) do
-                  raise_generation_error(args)
+                  raise_generation_error(t, method_name, args)
                 end
 
                 @route.format params
@@ -255,7 +255,7 @@ module ActionDispatch
                 params
               end
 
-              def raise_generation_error(args)
+              def raise_generation_error(t, method_name, args)
                 missing_keys = []
                 params = parameterize_args(args) { |missing_key|
                   missing_keys << missing_key
@@ -264,7 +264,7 @@ module ActionDispatch
                 message = +"No route matches #{constraints.inspect}"
                 message << ", missing required keys: #{missing_keys.sort.inspect}"
 
-                raise ActionController::UrlGenerationError, message
+                raise ActionController::UrlGenerationError.new(message, t._routes, @route_name, method_name)
               end
           end
 
