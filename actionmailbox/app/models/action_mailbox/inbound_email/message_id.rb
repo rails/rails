@@ -17,9 +17,12 @@ module ActionMailbox::InboundEmail::MessageId
       message_checksum = OpenSSL::Digest::SHA1.hexdigest(source)
       message_id = extract_message_id(source) || generate_missing_message_id(message_checksum)
 
-      create! raw_email: create_and_upload_raw_email!(source),
-        message_id: message_id, message_checksum: message_checksum, **options
+      return if exists?(message_id: message_id, message_checksum: message_checksum)
+
+      raw_email = create_and_upload_raw_email!(source)
+      create! raw_email: raw_email, message_id: message_id, message_checksum: message_checksum, **options
     rescue ActiveRecord::RecordNotUnique
+      raw_email&.purge_later
       nil
     end
 
