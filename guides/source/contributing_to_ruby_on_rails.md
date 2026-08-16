@@ -719,7 +719,7 @@ value:
 ```
 
 As a last step, add the new configuration to configuration guide in
-`configuration.md`:
+`configuring.md`:
 
 ```markdown
 #### `config.active_job.existing_behavior

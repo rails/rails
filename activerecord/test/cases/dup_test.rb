@@ -22,11 +22,21 @@ module ActiveRecord
     end
 
     def test_is_readonly
+      ActiveRecord::Core.dup_retains_readonly_state = true
       topic = Topic.first
       topic.readonly!
 
       duped = topic.dup
       assert_predicate duped, :readonly?, "should be readonly"
+    end
+
+    def test_not_readonly_even_if_original_is_readonly
+      ActiveRecord::Core.dup_retains_readonly_state = false
+      topic = Topic.first
+      topic.readonly!
+
+      duped = topic.dup
+      assert_not_predicate duped, :readonly?, "should not be readonly even if original is readonly"
     end
 
     def test_dup_not_persisted
