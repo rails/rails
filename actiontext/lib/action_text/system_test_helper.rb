@@ -41,6 +41,7 @@ module ActionText
         } else {
           this.editor.loadHTML(arguments[0])
         }
+        this.focus()
       JS
     end
     alias_method :fill_in_rich_text_area, :fill_in_rich_textarea
