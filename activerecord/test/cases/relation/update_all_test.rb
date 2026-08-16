@@ -276,7 +276,8 @@ class UpdateAllTest < ActiveRecord::TestCase
     david_previously_updated_at = david.updated_at
     jamis = developers(:jamis)
     jamis_previously_updated_at = jamis.updated_at
-    Developer.where(name: "David").touch_all
+
+    assert_equal 1, Developer.where(name: "David").touch_all
 
     assert_not_equal david_previously_updated_at, david.reload.updated_at
     assert_equal jamis_previously_updated_at, jamis.reload.updated_at
