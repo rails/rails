@@ -9,10 +9,9 @@ module ActiveRecord
         @predicate_builder = predicate_builder
       end
 
-      def call(attribute, value, type)
+      def call(attribute, value)
         return attribute.in([]) if value.empty?
 
-        transformable = type.transforms_query_predicates?
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
         nils = values.compact!
         ranges = values.extract! { |v| v.is_a?(Range) }
@@ -20,8 +19,8 @@ module ActiveRecord
         values_predicate =
           case values.length
           when 0 then NullPredicate
-          when 1 then predicate_builder.predicate_for(attribute, values.first, nil, type)
-          else predicate_builder.array_predicate_for(attribute, values, type, transformable)
+          when 1 then predicate_builder.build(attribute, values.first)
+          else Arel::Nodes::HomogeneousIn.new(values, attribute, :in)
           end
 
         if nils
@@ -31,7 +30,7 @@ module ActiveRecord
         if ranges.empty?
           values_predicate
         else
-          array_predicates = ranges.map! { |range| predicate_builder.predicate_for(attribute, range, nil, type) }
+          array_predicates = ranges.map! { |range| predicate_builder.build(attribute, range) }
           values_predicate.or(
             Arel::Nodes::Grouping.new Arel::Nodes::Or.new(array_predicates)
           )
