@@ -105,13 +105,14 @@ module ActiveRecord
         indexes(table_name).any? { |i| i.defined_for?(column_name, **options) }
       end
 
-      # Returns an array of +Column+ objects for the table specified by +table_name+.
+      # Returns an array of +Column+ objects for the given table, or a Hash of them
+      # keyed by table name when given an Array of tables.
       def columns(table_name)
-        table_name = table_name.to_s
-        definitions = column_definitions(table_name)
-        definitions.map do |field|
-          new_column_from_field(table_name, field, definitions)
+        result = fetch_column_definitions(Array(table_name).map(&:to_s)).to_h do |table, definitions|
+          [table, definitions.map { |field| new_column_from_field(table, field, definitions) }]
         end
+
+        table_name.is_a?(Array) ? result : result[table_name.to_s]
       end
 
       # Checks to see if a column exists in a given table.
@@ -1720,6 +1721,10 @@ module ActiveRecord
       end
 
       private
+        def fetch_column_definitions(tables)
+          tables.index_with { |table| column_definitions(table) }
+        end
+
         def quoted_table_names(table_names)
           table_names.map { |name| quoted_scope(name)[:name] }.join(", ")
         end

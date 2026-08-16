@@ -1,6 +1,6 @@
 *   Let the schema readers answer for many tables at once.
 
-    `indexes`, `primary_keys`, `foreign_keys`, `check_constraints`,
+    `columns`, `indexes`, `primary_keys`, `foreign_keys`, `check_constraints`,
     `exclusion_constraints` and `unique_constraints` now accept a list of tables and
     answer for all of them at once:
 
@@ -10,16 +10,17 @@
     ```
 
     Adapters that can read a kind of metadata for many tables in one query do so, a
-    schema at a time; SQLite, which has no catalog to read them from, reads table by
-    table, so every adapter answers.
+    schema at a time: MySQL and MariaDB read columns from
+    `information_schema.columns`, and PostgreSQL filters the queries it already used
+    by a list of tables. SQLite reads table by table, so every adapter answers.
 
     Schema dumping asked about each table separately, which meant the number of
-    round trips grew with the size of the schema: primary keys, indexes, foreign
-    keys and constraints each cost one statement per table, and MySQL spent another
-    `SHOW TABLE STATUS` per table just to read a collation. It now reads each kind
-    in one query for the tables it is about to dump. On a schema with a few thousand
-    tables that removes about 70% of the statements a dump issues, and the output is
-    unchanged.
+    round trips grew with the size of the schema: columns, primary keys, indexes,
+    foreign keys and constraints each cost one statement per table, and MySQL spent
+    another `SHOW TABLE STATUS` per table just to read a collation. It now reads each
+    kind in one query for the tables it is about to dump. On a schema with a few
+    thousand tables that removes about 70% of the statements a dump issues, and the
+    output is unchanged.
 
     An empty list reads nothing, without querying. A blank table name no longer
     raises `ArgumentError`: MySQL was the only adapter that did, and only from

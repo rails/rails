@@ -152,6 +152,7 @@ module ActiveRecord
       end
 
       def read_schema_metadata(tables)
+        @columns = @connection.columns(tables)
         @primary_keys = @connection.primary_keys(tables)
         @indexes = @connection.indexes(tables)
         @foreign_keys = @connection.foreign_keys(tables) if @connection.supports_foreign_keys?
@@ -187,7 +188,7 @@ module ActiveRecord
       end
 
       def table(table, stream)
-        columns = @connection.columns(table)
+        columns = @columns[table]
         begin
           self.table_name = table
 

@@ -8,7 +8,7 @@ module ActiveRecord
       self.use_transactional_tests = false
 
       WHOLE_SCHEMA_READERS = %i[
-        indexes primary_keys foreign_keys
+        columns indexes primary_keys foreign_keys
         check_constraints exclusion_constraints unique_constraints
       ].freeze
 
@@ -87,6 +87,16 @@ module ActiveRecord
             attributes(listed.fetch(qualified)),
             "#{reader} disagreed about #{qualified}"
           assert_not_empty listed.fetch(qualified), "#{reader} found nothing for #{qualified}"
+        end
+      end
+
+      def test_a_list_reads_columns_in_the_same_order_as_one_table
+        tables = @connection.tables.sort.first(5)
+        listed = @connection.columns(tables)
+
+        tables.each do |table|
+          assert_equal @connection.columns(table).map(&:name), listed.fetch(table).map(&:name),
+            "columns for #{table} came back in a different order"
         end
       end
 
