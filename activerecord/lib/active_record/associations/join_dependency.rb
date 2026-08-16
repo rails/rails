@@ -135,8 +135,11 @@ module ActiveRecord
         message_bus = ActiveSupport::Notifications.instrumenter
 
         payload = {
+          class: join_root.base_klass,
+          class_name: join_root.base_klass.name,
+          results: result_set,
           record_count: result_set.length,
-          class_name: join_root.base_klass.name
+          column_aliases: column_aliases,
         }
 
         message_bus.instrument("instantiation.active_record", payload) do
