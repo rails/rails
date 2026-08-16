@@ -33,11 +33,19 @@ module ActiveRecord
             target.destroy
             throw(:abort) unless target.destroyed?
           when :destroy_async
-            if target.class.query_constraints_list
-              primary_key_column = target.class.query_constraints_list
+            association_class = target.class
+            primary_key_column = association_class.query_constraints_list || association_class.primary_key
+
+            if primary_key_column.blank?
+              raise UnknownPrimaryKey.new(
+                association_class,
+                "ActiveRecord cannot destroy associated records asynchronously without a primary key. Add a primary key or use dependent: :delete."
+              )
+            end
+
+            if association_class.query_constraints_list
               id = primary_key_column.map { |col| target.public_send(col) }
             else
-              primary_key_column = target.class.primary_key
               id = target.public_send(primary_key_column)
             end
 
