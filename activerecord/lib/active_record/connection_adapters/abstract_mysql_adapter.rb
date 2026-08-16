@@ -526,35 +526,6 @@ module ActiveRecord
         table_name.is_a?(Array) ? result : result[table_name.to_s]
       end
 
-      def table_options(table_name) # :nodoc:
-        create_table_info = create_table_info(table_name)
-
-        # strip create_definitions and partition_options
-        # Be aware that `create_table_info` might not include any table options due to `NO_TABLE_OPTIONS` sql mode.
-        raw_table_options = create_table_info.sub(/\A.*\n\) ?/m, "").sub(/\n\/\*!.*\*\/\n\z/m, "").strip
-
-        return if raw_table_options.empty?
-
-        table_options = {}
-
-        if / DEFAULT CHARSET=(?<charset>\w+)(?: COLLATE=(?<collation>\w+))?/ =~ raw_table_options
-          raw_table_options = $` + $' # before part + after part
-          table_options[:charset] = charset
-          table_options[:collation] = collation if collation
-        end
-
-        # strip AUTO_INCREMENT
-        raw_table_options.sub!(/(ENGINE=\w+)(?: AUTO_INCREMENT=\d+)/, '\1')
-
-        # strip COMMENT
-        if raw_table_options.sub!(/ COMMENT='.+'/, "")
-          table_options[:comment] = table_comment(table_name)
-        end
-
-        table_options[:options] = raw_table_options unless raw_table_options == "ENGINE=InnoDB"
-        table_options
-      end
-
       # SHOW VARIABLES LIKE 'name'
       def show_variable(name)
         query_value("SELECT @@#{name}")
@@ -750,6 +721,39 @@ module ActiveRecord
       EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
       private
+        # `SHOW CREATE TABLE` is the only place MySQL reports a table's options, and
+        # it reads one table at a time.
+        def fetch_table_options(tables)
+          tables.index_with { |table| build_table_options(table, create_table_info(table)) }
+        end
+
+        def build_table_options(table_name, create_table_info)
+          # strip create_definitions and partition_options
+          # Be aware that `create_table_info` might not include any table options due to `NO_TABLE_OPTIONS` sql mode.
+          raw_table_options = create_table_info.sub(/\A.*\n\) ?/m, "").sub(/\n\/\*!.*\*\/\n\z/m, "").strip
+
+          return if raw_table_options.empty?
+
+          table_options = {}
+
+          if / DEFAULT CHARSET=(?<charset>\w+)(?: COLLATE=(?<collation>\w+))?/ =~ raw_table_options
+            raw_table_options = $` + $' # before part + after part
+            table_options[:charset] = charset
+            table_options[:collation] = collation if collation
+          end
+
+          # strip AUTO_INCREMENT
+          raw_table_options.sub!(/(ENGINE=\w+)(?: AUTO_INCREMENT=\d+)/, '\1')
+
+          # strip COMMENT
+          if raw_table_options.sub!(/ COMMENT='.+'/, "")
+            table_options[:comment] = table_comment(table_name)
+          end
+
+          table_options[:options] = raw_table_options unless raw_table_options == "ENGINE=InnoDB"
+          table_options
+        end
+
         def fetch_table_collations(tables)
           fetch_by_schema(tables) do |schema, group|
             by_name = query_all(<<~SQL).to_h { |row| [row["table"], row["collation"]] }

@@ -529,52 +529,90 @@ module ActiveRecord
       EXTENDED_TYPE_MAPS = Concurrent::Map.new
 
       private
-        def fetch_primary_keys(tables)
+        def fetch_column_definitions(tables)
+          structures = table_structures(tables)
+
           tables.index_with do |table|
-            pks = table_structure(table).select { |f| f["pk"] > 0 }
+            create_table_sql, structure = structure_for(structures, table)
+
+            build_table_structure(structure, split_table_structure_sql(create_table_sql, structure.map { |column| column["name"] }))
+          end
+        end
+
+        def fetch_primary_keys(tables)
+          structures = table_structures(tables)
+
+          tables.index_with do |table|
+            _, structure = structure_for(structures, table)
+            pks = structure.select { |f| f["pk"] > 0 }
             pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
           end
         end
 
+        def structure_for(structures, table)
+          structures.fetch(table) do
+            raise ActiveRecord::StatementInvalid.new("Could not find table '#{table}'", connection_pool: @pool)
+          end
+        end
+
         def fetch_foreign_keys(tables)
+          return {} if tables.empty?
+
+          # SQLite returns 1 row for each column of composite foreign keys.
+          fk_infos = query_all(<<~SQL).group_by { |row| row["table_name"] }
+            #{MASTER_CTE}
+            SELECT m.name AS table_name, fk.id, fk.seq, fk."table", fk."from", fk."to", fk.on_update, fk.on_delete
+            FROM master m
+            JOIN pragma_foreign_key_list(m.name) fk
+            WHERE m.type = 'table'
+              AND m.name IN (#{quoted_table_names(tables)})
+          SQL
+
+          structures = table_structures(tables)
+
           tables.index_with do |table_name|
-            # SQLite returns 1 row for each column of composite foreign keys.
-            fk_info = query_all("PRAGMA foreign_key_list(#{quote(table_name)})")
-            # Deferred or immediate foreign keys and the constraint name can only be
-            # seen in the CREATE TABLE sql.
-            fk_defs = table_structure_sql(table_name)
-                        .select do |column_string|
-                          column_string.start_with?("CONSTRAINT") &&
-                          column_string.include?("FOREIGN KEY")
-                        end
-                        .to_h do |fk_string|
-                          _, from, table, to = fk_string.match(FK_REGEX).to_a
-                          _, mode = fk_string.match(DEFERRABLE_REGEX).to_a
-                          _, name = fk_string.match(FK_NAME_REGEX).to_a
-                          deferred = mode&.downcase&.to_sym || false
-                          [[table, from, to], { deferrable: deferred, name: name }]
-                        end
+            create_table_sql, structure = structures[table_name] || [nil, []]
+            column_strings = split_table_structure_sql(create_table_sql, structure.map { |column| column["name"] })
 
-            grouped_fk = fk_info.group_by { |row| row["id"] }.values.each { |group| group.sort_by! { |row| row["seq"] } }
-            grouped_fk.map do |group|
-              row = group.first
-              fk_def = fk_defs[[row["table"], row["from"], row["to"]]]
-              options = {
-                on_delete: extract_foreign_key_action(row["on_delete"]),
-                on_update: extract_foreign_key_action(row["on_update"]),
-                deferrable: fk_def && fk_def[:deferrable],
-                name: fk_def && fk_def[:name],
-              }
+            build_foreign_keys(table_name, fk_infos.fetch(table_name, []), column_strings)
+          end
+        end
 
-              if group.one?
-                options[:column] = row["from"]
-                options[:primary_key] = row["to"]
-              else
-                options[:column] = group.map { |row| row["from"] }
-                options[:primary_key] = group.map { |row| row["to"] }
-              end
-              ForeignKeyDefinition.new(table_name, row["table"], options)
+        def build_foreign_keys(table_name, fk_info, column_strings)
+          # Deferred or immediate foreign keys and the constraint name can only be
+          # seen in the CREATE TABLE sql.
+          fk_defs = column_strings
+                      .select do |column_string|
+                        column_string.start_with?("CONSTRAINT") &&
+                        column_string.include?("FOREIGN KEY")
+                      end
+                      .to_h do |fk_string|
+                        _, from, table, to = fk_string.match(FK_REGEX).to_a
+                        _, mode = fk_string.match(DEFERRABLE_REGEX).to_a
+                        _, name = fk_string.match(FK_NAME_REGEX).to_a
+                        deferred = mode&.downcase&.to_sym || false
+                        [[table, from, to], { deferrable: deferred, name: name }]
+                      end
+
+          grouped_fk = fk_info.group_by { |row| row["id"] }.values.each { |group| group.sort_by! { |row| row["seq"] } }
+          grouped_fk.map do |group|
+            row = group.first
+            fk_def = fk_defs[[row["table"], row["from"], row["to"]]]
+            options = {
+              on_delete: extract_foreign_key_action(row["on_delete"]),
+              on_update: extract_foreign_key_action(row["on_update"]),
+              deferrable: fk_def && fk_def[:deferrable],
+              name: fk_def && fk_def[:name],
+            }
+
+            if group.one?
+              options[:column] = row["from"]
+              options[:primary_key] = row["to"]
+            else
+              options[:column] = group.map { |row| row["from"] }
+              options[:primary_key] = group.map { |row| row["to"] }
             end
+            ForeignKeyDefinition.new(table_name, row["table"], options)
           end
         end
 
@@ -800,11 +838,15 @@ module ActiveRecord
         GENERATED_ALWAYS_AS_REGEX = /.*"(\w+)".+GENERATED ALWAYS AS \((.+)\) (?:STORED|VIRTUAL)/i
 
         def table_structure_with_collation(table_name, basic_structure)
+          column_strings = table_structure_sql(table_name, basic_structure.map { |column| column["name"] })
+
+          build_table_structure(basic_structure, column_strings)
+        end
+
+        def build_table_structure(basic_structure, column_strings)
           collation_hash = {}
           auto_increments = {}
           generated_columns = {}
-
-          column_strings = table_structure_sql(table_name, basic_structure.map { |column| column["name"] })
 
           if column_strings.any?
             column_strings.each do |column_string|
@@ -853,32 +895,66 @@ module ActiveRecord
             WHERE type = 'table' AND name = #{quote(table_name)}
           SQL
 
-          # Result will have following sample string
-          # CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-          #                       "password_digest" varchar COLLATE "NOCASE",
-          #                       "o_id" integer,
-          #                       CONSTRAINT "fk_rails_78146ddd2e" FOREIGN KEY ("o_id") REFERENCES "os" ("id"));
-          result = query_value(sql)
+          split_table_structure_sql(query_value(sql), column_names)
+        end
 
-          return [] unless result
+        # The sql is the statement the table was created with, and will have the
+        # following sample form
+        # CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        #                       "password_digest" varchar COLLATE "NOCASE",
+        #                       "o_id" integer,
+        #                       CONSTRAINT "fk_rails_78146ddd2e" FOREIGN KEY ("o_id") REFERENCES "os" ("id"));
+        def split_table_structure_sql(sql, column_names)
+          return [] unless sql
 
           # Splitting with left parentheses and discarding the first part will return all
           # columns separated with comma(,).
-          result.partition(UNQUOTED_OPEN_PARENS_REGEX)
-                .last
-                .sub(FINAL_CLOSE_PARENS_REGEX, "")
-                # column definitions can have a comma in them, so split on commas followed
-                # by a space and a column name in quotes or followed by the keyword CONSTRAINT
-                .split(/,(?=\s(?:CONSTRAINT|"(?:#{Regexp.union(column_names).source})"))/i)
-                .map(&:strip)
+          sql.partition(UNQUOTED_OPEN_PARENS_REGEX)
+             .last
+             .sub(FINAL_CLOSE_PARENS_REGEX, "")
+             # column definitions can have a comma in them, so split on commas followed
+             # by a space and a column name in quotes or followed by the keyword CONSTRAINT
+             .split(/,(?=\s(?:CONSTRAINT|"(?:#{Regexp.union(column_names).source})"))/i)
+             .map(&:strip)
         end
 
         def table_info(table_name)
-          if supports_virtual_columns?
-            query_all("PRAGMA table_xinfo(#{quote_table_name(table_name)})")
-          else
-            query_all("PRAGMA table_info(#{quote_table_name(table_name)})")
-          end
+          query_all("PRAGMA #{table_info_pragma}(#{quote_table_name(table_name)})")
+        end
+
+        # Only table_xinfo reports hidden columns, which is how a generated column is
+        # reported.
+        def table_info_pragma
+          supports_virtual_columns? ? "table_xinfo" : "table_info"
+        end
+
+        # The pragmas are table valued functions as well as statements, so they can be
+        # joined to a list of names and read for many tables at once.
+        # See https://www.sqlite.org/pragma.html#pragfunc
+        #
+        # The statement a table was created with comes along because the collation,
+        # auto increment and generated columns are only named there. It repeats once
+        # per column, so it is read from the first row. A view has a statement too,
+        # but it describes the query rather than any columns.
+        def table_structures(tables)
+          return {} if tables.empty?
+
+          fields = ["name", "type", "notnull", "dflt_value", "pk"]
+          fields << "hidden" if supports_virtual_columns?
+
+          query_all(<<~SQL).group_by { |row| row["table_name"] }
+            #{MASTER_CTE}
+            SELECT m.name AS table_name, CASE WHEN m.type = 'table' THEN m.sql END AS create_table_sql,
+                   #{fields.map { |field| "t.#{quote_column_name(field)}" }.join(", ")}
+            FROM master m
+            JOIN pragma_#{table_info_pragma}(m.name) t
+            WHERE m.type IN ('table', 'view')
+              AND m.name IN (#{quoted_table_names(tables)})
+            ORDER BY m.name, t.cid
+          SQL
+            .transform_values do |group|
+              [group.first["create_table_sql"], group.map { |row| row.except("table_name", "create_table_sql") }]
+            end
         end
 
         def arel_visitor

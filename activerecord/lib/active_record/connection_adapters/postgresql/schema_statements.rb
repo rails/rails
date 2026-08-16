@@ -100,26 +100,6 @@ module ActiveRecord
           table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
-        def table_options(table_name) # :nodoc:
-          options = {}
-
-          comment = table_comment(table_name)
-
-          options[:comment] = comment if comment
-
-          inherited_table_names = inherited_table_names(table_name).presence
-
-          options[:options] = "INHERITS (#{inherited_table_names.join(", ")})" if inherited_table_names
-
-          if !options[:options] && supports_native_partitioning?
-            partition_definition = table_partition_definition(table_name)
-
-            options[:options] = "PARTITION BY #{partition_definition}" if partition_definition
-          end
-
-          options
-        end
-
         # Returns a comment stored in database for given table
         def table_comment(table_name) # :nodoc:
           scope = quoted_scope(table_name, type: "BASE TABLE")
@@ -133,37 +113,6 @@ module ActiveRecord
                 AND n.nspname = #{scope[:schema]}
             SQL
           end
-        end
-
-        # Returns the partition definition of a given table
-        def table_partition_definition(table_name) # :nodoc:
-          scope = quoted_scope(table_name, type: "BASE TABLE")
-
-          query_value(<<~SQL)
-            SELECT pg_catalog.pg_get_partkeydef(c.oid)
-            FROM pg_catalog.pg_class c
-              LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-            WHERE c.relname = #{scope[:name]}
-              AND c.relkind IN (#{scope[:type]})
-              AND n.nspname = #{scope[:schema]}
-          SQL
-        end
-
-        # Returns the inherited table name of a given table
-        def inherited_table_names(table_name) # :nodoc:
-          scope = quoted_scope(table_name, type: "BASE TABLE")
-
-          query_values(<<~SQL)
-            SELECT parent.relname
-            FROM pg_catalog.pg_inherits i
-              JOIN pg_catalog.pg_class child ON i.inhrelid = child.oid
-              JOIN pg_catalog.pg_class parent ON i.inhparent = parent.oid
-              LEFT JOIN pg_namespace n ON n.oid = child.relnamespace
-            WHERE child.relname = #{scope[:name]}
-              AND child.relkind IN (#{scope[:type]})
-              AND n.nspname = #{scope[:schema]}
-            ORDER BY i.inhseqno
-          SQL
         end
 
         # Returns the current database name.
@@ -1019,6 +968,50 @@ module ActiveRecord
 
               group.index_with { |table| build_indexes(table, rows_for(by_name, table)) }
             end
+          end
+
+          def fetch_table_options(tables)
+            fetch_by_schema(tables) do |schema, group|
+              # A table comes back once per parent it inherits from, and once if it
+              # inherits from nothing.
+              by_name = query_all(<<~SQL).group_by { |row| row["table_name"] }
+                SELECT t.relname AS table_name, t.comment, t.partition_key, parent.relname AS parent
+                FROM (
+                  SELECT DISTINCT ON (c.relname) c.oid, c.relname,
+                         pg_catalog.obj_description(c.oid, 'pg_class') AS comment,
+                         #{supports_native_partitioning? ? "pg_catalog.pg_get_partkeydef(c.oid)" : "NULL"} AS partition_key
+                  FROM pg_class c
+                  JOIN pg_namespace n ON n.oid = c.relnamespace
+                  WHERE n.nspname = #{schema}
+                    AND c.relname IN (#{quoted_table_names(group)})
+                    AND c.relkind IN ('r', 'p')
+                  ORDER BY c.relname, array_position(current_schemas(false), n.nspname)
+                ) t
+                LEFT JOIN pg_inherits i ON i.inhrelid = t.oid
+                LEFT JOIN pg_class parent ON i.inhparent = parent.oid
+                ORDER BY t.relname, i.inhseqno
+              SQL
+
+              group.index_with { |table| build_table_options(rows_for(by_name, table)) }
+            end
+          end
+
+          def build_table_options(rows)
+            options = {}
+            first = rows.first
+            return options unless first
+
+            options[:comment] = first["comment"] if first["comment"]
+
+            parents = rows.filter_map { |row| row["parent"] }
+
+            if parents.any?
+              options[:options] = "INHERITS (#{parents.join(", ")})"
+            elsif first["partition_key"]
+              options[:options] = "PARTITION BY #{first["partition_key"]}"
+            end
+
+            options
           end
 
           def fetch_primary_keys(tables)

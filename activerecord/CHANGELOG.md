@@ -36,9 +36,9 @@
 
 *   Let the schema readers answer for many tables at once.
 
-    `columns`, `indexes`, `primary_keys`, `foreign_keys`, `check_constraints`,
-    `exclusion_constraints` and `unique_constraints` now accept a list of tables and
-    answer for all of them at once:
+    `columns`, `indexes`, `primary_keys`, `foreign_keys`, `table_options`,
+    `check_constraints`, `exclusion_constraints` and `unique_constraints` now accept
+    a list of tables and answer for all of them at once:
 
     ```ruby
     connection.indexes(:users)            # => [IndexDefinition, ...]
@@ -47,8 +47,10 @@
 
     Adapters that can read a kind of metadata for many tables in one query do so, a
     schema at a time: MySQL and MariaDB read columns from
-    `information_schema.columns`, and PostgreSQL filters the queries it already used
-    by a list of tables. SQLite reads table by table, so every adapter answers.
+    `information_schema.columns`, PostgreSQL filters the queries it already used by a
+    list of tables, and SQLite joins the table valued form of its pragmas to a list of
+    names. Only `table_options` on MySQL and MariaDB is still read a table at a time,
+    because `SHOW CREATE TABLE` is the only place they report it.
 
     Schema dumping asked about each table separately, which meant the number of
     round trips grew with the size of the schema: columns, primary keys, indexes,
