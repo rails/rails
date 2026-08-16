@@ -46,6 +46,12 @@ module ActiveRecord
         json:        { name: "json" },
       }
 
+      # Escape sequences MariaDB writes into the column defaults it reports.
+      MARIADB_DEFAULT_ESCAPES = {
+        "0" => "\0", "b" => "\b", "n" => "\n", "r" => "\r", "t" => "\t",
+        "Z" => "\x1A", "'" => "'", '"' => '"', "\\" => "\\"
+      }.freeze
+
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private
           def dealloc(stmt)
@@ -1057,6 +1063,54 @@ module ActiveRecord
           update_fields_for_mariadb(table_name, fields) if mariadb?
 
           fields
+        end
+
+        def fetch_column_definitions(tables)
+          fetch_by_schema(tables) do |schema, group|
+            by_name = query_all(<<~SQL).group_by { |row| row["Table"] }
+              SELECT table_name AS 'Table', column_name AS 'Field', column_type AS 'Type',
+                     column_default AS 'Default', is_nullable AS 'Null', extra AS 'Extra',
+                     collation_name AS 'Collation', column_comment AS 'Comment'
+              FROM information_schema.columns
+              WHERE table_schema = #{schema}
+                AND table_name IN (#{quoted_table_names(group)})
+              ORDER BY table_name, ordinal_position
+            SQL
+
+            group.index_with do |table|
+              fields = rows_for(by_name, table)
+
+              next column_definitions(table) if fields.empty?
+
+              fields.each { |field| unquote_mariadb_default(field) } if mariadb?
+
+              fields
+            end
+          end
+        end
+
+        # MariaDB reports a default as the SQL literal that produced it, where
+        # `SHOW FULL FIELDS` reports the value: a literal comes back quoted, and a
+        # newline inside one is written `\n`. Put them back into the form
+        # #new_column_from_field reads.
+        def unquote_mariadb_default(field)
+          default = field["Default"]
+          return if default.nil?
+
+          if default == "NULL"
+            # A column declared DEFAULT NULL, which has no default at all.
+            field["Default"] = nil
+          elsif !default.start_with?("'")
+            # An expression rather than a value. A bare `(1 + 1)` is left alone,
+            # which is what reading the table directly reports too.
+            if /[a-zA-Z_]\w*\(/.match?(default) && !/\ACURRENT_TIMESTAMP/i.match?(default)
+              field["Extra"] = "DEFAULT_GENERATED"
+            end
+          elsif !/\A(?:tiny|medium|long)?(?:text|blob)\b/.match?(field["Type"])
+            # Text and blob defaults stay quoted; #new_column_from_field unquotes those.
+            field["Default"] = default[1...-1].gsub("''", "'")
+              .gsub(/\\(.)/) { MARIADB_DEFAULT_ESCAPES.fetch($1, "\\#{$1}") }
+          end
         end
 
         def update_fields_for_mariadb(table_name, fields)
