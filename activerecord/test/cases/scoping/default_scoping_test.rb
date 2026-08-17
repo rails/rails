@@ -56,6 +56,21 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_nil DeveloperCalledJamis.unscoped.create!.name
   end
 
+  def test_default_scope_is_unscoped_on_update
+    jamis = developers(:jamis)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      DeveloperCalledDavid.update(jamis.id, name: "Not Jamis")
+    end
+    assert_raises(ActiveRecord::RecordNotFound) do
+      DeveloperCalledDavid.update!(jamis.id, name: "Not Jamis")
+    end
+    assert_equal "Jamis", jamis.reload.name
+
+    DeveloperCalledDavid.unscoped.update(jamis.id, name: "Not Jamis")
+    assert_equal "Not Jamis", jamis.reload.name
+  end
+
   def test_default_scope_with_conditions_string
     assert_equal Developer.where(name: "David").map(&:id).sort, DeveloperCalledDavid.all.map(&:id).sort
     assert_nil DeveloperCalledDavid.create!.name

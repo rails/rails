@@ -638,18 +638,50 @@ module ActiveRecord
     end
 
     def update(id = :all, attributes) # :nodoc:
-      if id == :all
+      if update_multiple_ids?(id)
+        if id.any?(ActiveRecord::Base)
+          raise ArgumentError,
+            "You are passing an array of ActiveRecord::Base instances to `update`. " \
+            "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
+        end
+        id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
+          object.update(attributes[idx])
+        }
+      elsif id == :all
         each { |record| record.update(attributes) }
       else
-        model.update(id, attributes)
+        if ActiveRecord::Base === id
+          raise ArgumentError,
+            "You are passing an instance of ActiveRecord::Base to `update`. " \
+            "Please pass the id of the object by calling `.id`."
+        end
+        object = find(id)
+        object.update(attributes)
+        object
       end
     end
 
     def update!(id = :all, attributes) # :nodoc:
-      if id == :all
+      if update_multiple_ids?(id)
+        if id.any?(ActiveRecord::Base)
+          raise ArgumentError,
+            "You are passing an array of ActiveRecord::Base instances to `update!`. " \
+            "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
+        end
+        id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
+          object.update!(attributes[idx])
+        }
+      elsif id == :all
         each { |record| record.update!(attributes) }
       else
-        model.update!(id, attributes)
+        if ActiveRecord::Base === id
+          raise ArgumentError,
+            "You are passing an instance of ActiveRecord::Base to `update!`. " \
+            "Please pass the id of the object by calling `.id`."
+        end
+        object = find(id)
+        object.update!(attributes)
+        object
       end
     end
 
@@ -1360,6 +1392,17 @@ module ActiveRecord
       end
 
     private
+      # +update+/+update!+ accept either a single id or an array of ids. For a
+      # composite primary key a single id is itself an array, so an array of
+      # ids is an array of arrays, mirroring how +#destroy+ tells the two apart.
+      def update_multiple_ids?(id)
+        if model.composite_primary_key?
+          id.is_a?(Array) && (id.empty? || id.first.is_a?(Array))
+        else
+          id.is_a?(Array)
+        end
+      end
+
       def already_in_scope?(registry)
         @delegate_to_model && registry.current_scope(model, true)
       end

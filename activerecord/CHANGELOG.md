@@ -1,3 +1,22 @@
+*   `ActiveRecord::Relation#update` and `#update!` no longer escape the relation
+    when given ids.
+
+    Passing ids used to delegate to the model class, which looks the records up
+    with an unscoped `find`:
+
+    ```ruby
+    post.comments.update!(comment_id, body: "...") # could update any comment
+    Comment.where(id: 1).update!(2, body: "...")   # updated comment 2
+    ```
+
+    The records are now looked up through the relation, so an id outside of it
+    raises `ActiveRecord::RecordNotFound` before anything is written. This makes
+    `update`/`update!` consistent with `update_all`, `#delete` and `#destroy`,
+    which have always been scoped, and with `update(:all, ...)`, which was
+    already scoped.
+
+    *Jean Mendonça*
+
 *   Let the schema readers answer for many tables at once.
 
     `columns`, `indexes`, `primary_keys`, `foreign_keys`, `check_constraints`,
