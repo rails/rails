@@ -6,11 +6,6 @@ module ActionView
 
     self.namespace = "action_view"
 
-    def initialize
-      @root = nil
-      super
-    end
-
     def render_template(event)
       info do
         message = +"  Rendered #{from_rails_root(event[:payload][:identifier])}"
@@ -62,9 +57,15 @@ module ActionView
     end
     event_log_level :render_start, :debug
 
-    def self.default_logger
-      ActionView::Base.logger
+    class << self
+      def default_logger
+        ActionView::Base.logger
+      end
+
+      attr_accessor :rails_root
     end
+
+    self.rails_root = "/"
 
     private
       def from_rails_root(string)
@@ -74,7 +75,7 @@ module ActionView
       end
 
       def rails_root # :doc:
-        @root ||= "#{Rails.root}/"
+        LogSubscriber.rails_root
       end
 
       def render_count(payload) # :doc:

@@ -34,7 +34,10 @@ The first step to avoid this type of attack is to ensure that all "destructive"
 actions (create, update, and destroy) in your application use non-GET requests (like POST, PUT and DELETE).
 
 However, a malicious site can still send a non-GET request to your site, so
-Rails builds in request forgery protection into controllers by default.
+Rails builds in request forgery protection into controllers by default. Safe
+methods — GET, HEAD, and the HTTP QUERY method
+([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) — are exempt from this
+verification, since they must not change state.
 
 This is done by adding a token using the
 [protect_from_forgery](https://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection/ClassMethods.html#method-i-protect_from_forgery)

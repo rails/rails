@@ -1,3 +1,65 @@
+*   `ActiveRecord::Relation#update` and `#update!` no longer escape the relation
+    when given ids.
+
+    Passing ids used to delegate to the model class, which looks the records up
+    with an unscoped `find`:
+
+    ```ruby
+    post.comments.update!(comment_id, body: "...") # could update any comment
+    Comment.where(id: 1).update!(2, body: "...")   # updated comment 2
+    ```
+
+    The records are now looked up through the relation, so an id outside of it
+    raises `ActiveRecord::RecordNotFound` before anything is written. This makes
+    `update`/`update!` consistent with `update_all`, `#delete` and `#destroy`,
+    which have always been scoped, and with `update(:all, ...)`, which was
+    already scoped.
+
+    *Jean Mendonça*
+
+*   Let the schema readers answer for many tables at once.
+
+    `columns`, `indexes`, `primary_keys`, `foreign_keys`, `check_constraints`,
+    `exclusion_constraints` and `unique_constraints` now accept a list of tables and
+    answer for all of them at once:
+
+    ```ruby
+    connection.indexes(:users)            # => [IndexDefinition, ...]
+    connection.indexes([:users, :posts])  # => { "users" => [...], "posts" => [...] }
+    ```
+
+    Adapters that can read a kind of metadata for many tables in one query do so, a
+    schema at a time: MySQL and MariaDB read columns from
+    `information_schema.columns`, and PostgreSQL filters the queries it already used
+    by a list of tables. SQLite reads table by table, so every adapter answers.
+
+    Schema dumping asked about each table separately, which meant the number of
+    round trips grew with the size of the schema: columns, primary keys, indexes,
+    foreign keys and constraints each cost one statement per table, and MySQL spent
+    another `SHOW TABLE STATUS` per table just to read a collation. It now reads each
+    kind in one query for the tables it is about to dump. On a schema with a few
+    thousand tables that removes about 70% of the statements a dump issues, and the
+    output is unchanged.
+
+    An empty list reads nothing, without querying. A blank table name no longer
+    raises `ArgumentError`: MySQL was the only adapter that did, and only from
+    `foreign_keys` and `primary_keys`. On PostgreSQL, `primary_keys` for a table
+    that does not exist now returns `[]` instead of raising
+    `ActiveRecord::StatementInvalid`.
+
+    Reading collations from `information_schema` also fixes MySQL looking them up
+    with a `LIKE` pattern, where a table name containing `_` or `%` could match a
+    different table.
+
+    *Ngan Pham*
+
+*   The database selector middleware treats HTTP QUERY requests
+    ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) as reads, routing
+    them to the replica like GET and HEAD, subject to the same
+    recent-write-window primary fallback.
+
+    *Jeremy Daer*
+
 *   Fix performance regression in `method_missing` for virtual SELECT alias
     attributes.
 

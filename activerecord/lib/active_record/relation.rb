@@ -638,18 +638,50 @@ module ActiveRecord
     end
 
     def update(id = :all, attributes) # :nodoc:
-      if id == :all
+      if update_multiple_ids?(id)
+        if id.any?(ActiveRecord::Base)
+          raise ArgumentError,
+            "You are passing an array of ActiveRecord::Base instances to `update`. " \
+            "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
+        end
+        id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
+          object.update(attributes[idx])
+        }
+      elsif id == :all
         each { |record| record.update(attributes) }
       else
-        model.update(id, attributes)
+        if ActiveRecord::Base === id
+          raise ArgumentError,
+            "You are passing an instance of ActiveRecord::Base to `update`. " \
+            "Please pass the id of the object by calling `.id`."
+        end
+        object = find(id)
+        object.update(attributes)
+        object
       end
     end
 
     def update!(id = :all, attributes) # :nodoc:
-      if id == :all
+      if update_multiple_ids?(id)
+        if id.any?(ActiveRecord::Base)
+          raise ArgumentError,
+            "You are passing an array of ActiveRecord::Base instances to `update!`. " \
+            "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
+        end
+        id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
+          object.update!(attributes[idx])
+        }
+      elsif id == :all
         each { |record| record.update!(attributes) }
       else
-        model.update!(id, attributes)
+        if ActiveRecord::Base === id
+          raise ArgumentError,
+            "You are passing an instance of ActiveRecord::Base to `update!`. " \
+            "Please pass the id of the object by calling `.id`."
+        end
+        object = find(id)
+        object.update!(attributes)
+        object
       end
     end
 
@@ -981,24 +1013,25 @@ module ActiveRecord
     # This method can be passed attribute names and an optional time argument.
     # If attribute names are passed, they are updated along with +updated_at+/+updated_on+ attributes.
     # If no time argument is passed, the current time is used as default.
+    # Returns the number of rows affected.
     #
     # ==== Examples
     #
     #   # Touch all records
-    #   Person.all.touch_all
-    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670'"
+    #   Person.all.touch_all # => 42
     #
     #   # Touch multiple records with a custom attribute
-    #   Person.all.touch_all(:created_at)
-    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670', \"created_at\" = '2018-01-04 22:55:23.132670'"
+    #   Person.all.touch_all(:created_at) # => 42
     #
     #   # Touch multiple records with a specified time
-    #   Person.all.touch_all(time: Time.new(2020, 5, 16, 0, 0, 0))
-    #   # => "UPDATE \"people\" SET \"updated_at\" = '2020-05-16 00:00:00'"
+    #   Person.all.touch_all(time: Time.new(2020, 5, 16, 0, 0, 0)) # => 42
     #
     #   # Touch records with scope
-    #   Person.where(name: 'David').touch_all
-    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
+    #   Person.where(name: 'David').touch_all # => 1
+    #
+    # The first example above generates an SQL statement like:
+    #
+    #   UPDATE "people" SET "updated_at" = '2018-01-04 22:55:23.132670'
     def touch_all(*names, time: nil)
       update_all model.touch_attributes_with_time(*names, time: time)
     end
@@ -1359,6 +1392,17 @@ module ActiveRecord
       end
 
     private
+      # +update+/+update!+ accept either a single id or an array of ids. For a
+      # composite primary key a single id is itself an array, so an array of
+      # ids is an array of arrays, mirroring how +#destroy+ tells the two apart.
+      def update_multiple_ids?(id)
+        if model.composite_primary_key?
+          id.is_a?(Array) && (id.empty? || id.first.is_a?(Array))
+        else
+          id.is_a?(Array)
+        end
+      end
+
       def already_in_scope?(registry)
         @delegate_to_model && registry.current_scope(model, true)
       end

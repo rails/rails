@@ -115,9 +115,12 @@ Data sent by the incoming request is available in your controller in the
 
 - Query string parameters which are sent as part of the URL (for example, after
   the `?` in `http://example.com/accounts?filter=free`).
-- POST parameters which are submitted from an HTML form.
+- Body parameters which are submitted in the request content — from an HTML
+  form POST, or from an HTTP QUERY request
+  ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)), which carries its
+  query in the request body rather than the URL.
 
-Rails does not make a distinction between query string parameters and POST
+Rails does not make a distinction between query string parameters and body
 parameters; both are available in the `params` hash in your controller. For
 example:
 
@@ -1209,7 +1212,8 @@ documentation.
 | `domain(n=2)`                             | The hostname's first `n` segments, starting from the right (the TLD).            |
 | `format`                                  | The content type requested by the client.                                        |
 | `method`                                  | The HTTP method used for the request.                                            |
-| `get?`, `post?`, `patch?`, `put?`, `delete?`, `head?` | Returns true if the HTTP method is GET/POST/PATCH/PUT/DELETE/HEAD.   |
+| `get?`, `post?`, `patch?`, `put?`, `delete?`, `head?`, `query?` | Returns true if the HTTP method is GET/POST/PATCH/PUT/DELETE/HEAD/QUERY. |
+| `safe_method?`, `unsafe_method?`          | Returns true if the HTTP method is safe (GET, HEAD, QUERY, OPTIONS, TRACE) / unsafe. |
 | `headers`                                 | Returns a hash containing the headers associated with the request.               |
 | `port`                                    | The port number (integer) used for the request.                                  |
 | `protocol`                                | Returns a string containing the protocol used plus "://", for example "http://". |
@@ -1320,3 +1324,19 @@ To get a full list of the available methods, refer to the [Rails API
 documentation](https://api.rubyonrails.org/classes/ActionDispatch/Response.html)
 and [Rack
 Documentation](https://rack.github.io/rack/main/Rack/Response.html).
+
+Handling HTTP QUERY Requests
+----------------------------
+
+The HTTP QUERY method ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) is
+a safe, idempotent, cacheable method that carries its query in the request body
+instead of the URL — "GET with a body". It's useful when a query is too large,
+too structured, or too sensitive to encode in a URL's query string.
+
+Rails routes QUERY requests with the [`query`](routing.html#http-verb-constraints)
+routing helper, parses the request body into `params` based on its
+`Content-Type` (form-encoded and JSON bodies work out of the box), exempts
+QUERY from CSRF verification like GET and HEAD, and answers conditional
+requests (`fresh_when`/`stale?`) with `304 Not Modified` just as it does for
+GET. You can check for a QUERY request with `request.query?`.
+

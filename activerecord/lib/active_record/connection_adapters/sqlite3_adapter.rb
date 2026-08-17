@@ -333,8 +333,8 @@ module ActiveRecord
       # SCHEMA STATEMENTS ========================================
 
       def primary_keys(table_name) # :nodoc:
-        pks = table_structure(table_name).select { |f| f["pk"] > 0 }
-        pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
+        result = fetch_primary_keys(Array(table_name).map(&:to_s))
+        table_name.is_a?(Array) ? result : result[table_name.to_s]
       end
 
       def remove_index(table_name, column_name = nil, **options) # :nodoc:
@@ -469,43 +469,8 @@ module ActiveRecord
       FK_REGEX = /.*FOREIGN KEY\s+\("([^"]+)"\)\s+REFERENCES\s+"(\w+)"\s+\("(\w+)"\)/
       DEFERRABLE_REGEX = /DEFERRABLE INITIALLY (\w+)/
       def foreign_keys(table_name)
-        # SQLite returns 1 row for each column of composite foreign keys.
-        fk_info = query_all("PRAGMA foreign_key_list(#{quote(table_name)})")
-        # Deferred or immediate foreign keys and the constraint name can only be
-        # seen in the CREATE TABLE sql.
-        fk_defs = table_structure_sql(table_name)
-                    .select do |column_string|
-                      column_string.start_with?("CONSTRAINT") &&
-                      column_string.include?("FOREIGN KEY")
-                    end
-                    .to_h do |fk_string|
-                      _, from, table, to = fk_string.match(FK_REGEX).to_a
-                      _, mode = fk_string.match(DEFERRABLE_REGEX).to_a
-                      _, name = fk_string.match(FK_NAME_REGEX).to_a
-                      deferred = mode&.downcase&.to_sym || false
-                      [[table, from, to], { deferrable: deferred, name: name }]
-                    end
-
-        grouped_fk = fk_info.group_by { |row| row["id"] }.values.each { |group| group.sort_by! { |row| row["seq"] } }
-        grouped_fk.map do |group|
-          row = group.first
-          fk_def = fk_defs[[row["table"], row["from"], row["to"]]]
-          options = {
-            on_delete: extract_foreign_key_action(row["on_delete"]),
-            on_update: extract_foreign_key_action(row["on_update"]),
-            deferrable: fk_def && fk_def[:deferrable],
-            name: fk_def && fk_def[:name],
-          }
-
-          if group.one?
-            options[:column] = row["from"]
-            options[:primary_key] = row["to"]
-          else
-            options[:column] = group.map { |row| row["from"] }
-            options[:primary_key] = group.map { |row| row["to"] }
-          end
-          ForeignKeyDefinition.new(table_name, row["table"], options)
-        end
+        result = fetch_foreign_keys(Array(table_name).map(&:to_s))
+        table_name.is_a?(Array) ? result : result[table_name.to_s]
       end
 
       def build_insert_sql(insert) # :nodoc:
@@ -564,6 +529,55 @@ module ActiveRecord
       EXTENDED_TYPE_MAPS = Concurrent::Map.new
 
       private
+        def fetch_primary_keys(tables)
+          tables.index_with do |table|
+            pks = table_structure(table).select { |f| f["pk"] > 0 }
+            pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
+          end
+        end
+
+        def fetch_foreign_keys(tables)
+          tables.index_with do |table_name|
+            # SQLite returns 1 row for each column of composite foreign keys.
+            fk_info = query_all("PRAGMA foreign_key_list(#{quote(table_name)})")
+            # Deferred or immediate foreign keys and the constraint name can only be
+            # seen in the CREATE TABLE sql.
+            fk_defs = table_structure_sql(table_name)
+                        .select do |column_string|
+                          column_string.start_with?("CONSTRAINT") &&
+                          column_string.include?("FOREIGN KEY")
+                        end
+                        .to_h do |fk_string|
+                          _, from, table, to = fk_string.match(FK_REGEX).to_a
+                          _, mode = fk_string.match(DEFERRABLE_REGEX).to_a
+                          _, name = fk_string.match(FK_NAME_REGEX).to_a
+                          deferred = mode&.downcase&.to_sym || false
+                          [[table, from, to], { deferrable: deferred, name: name }]
+                        end
+
+            grouped_fk = fk_info.group_by { |row| row["id"] }.values.each { |group| group.sort_by! { |row| row["seq"] } }
+            grouped_fk.map do |group|
+              row = group.first
+              fk_def = fk_defs[[row["table"], row["from"], row["to"]]]
+              options = {
+                on_delete: extract_foreign_key_action(row["on_delete"]),
+                on_update: extract_foreign_key_action(row["on_update"]),
+                deferrable: fk_def && fk_def[:deferrable],
+                name: fk_def && fk_def[:name],
+              }
+
+              if group.one?
+                options[:column] = row["from"]
+                options[:primary_key] = row["to"]
+              else
+                options[:column] = group.map { |row| row["from"] }
+                options[:primary_key] = group.map { |row| row["to"] }
+              end
+              ForeignKeyDefinition.new(table_name, row["table"], options)
+            end
+          end
+        end
+
         # See https://www.sqlite.org/limits.html,
         # the default value is 999 when not configured.
         def bind_params_length

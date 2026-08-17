@@ -81,8 +81,9 @@ module Rails
 
       LOGO = %w[⠀⢀⠀⢡⣶⣿⠟⡛⠢ ⠠⠀⣰⣿⣿⠁⠄⠀⠀ ⠶⢠⣿⣿⣿⠰⠆⠀⠀ ⠶⢸⣿⣿⣿⡄⠰⠆⠀].freeze
 
-      def initialize(app)
+      def initialize(app, options = {})
         @app = app
+        @options = options
 
         require "irb"
         require "irb/completion"
@@ -94,6 +95,8 @@ module Rails
 
       def start
         IRB.setup(nil)
+        # CLI --no-banner wins over IRB defaults / .irbrc.
+        IRB.conf[:SHOW_BANNER] = false if @options[:banner] == false
 
         if !Rails.env.local? && !ENV.key?("IRB_USE_AUTOCOMPLETE")
           IRB.conf[:USE_AUTOCOMPLETE] = false

@@ -35,6 +35,10 @@ module ActiveRecord
         end
       end
 
+      def add_all_to_new_cache
+        SchemaCache.new.tap { |cache| cache.add_all(@pool) }
+      end
+
       def deduplicable_classes
         klasses = [
           ActiveRecord::ConnectionAdapters::SqlTypeMetadata,
@@ -152,6 +156,21 @@ module ActiveRecord
 
       def test_indexes_for_non_existent_table
         assert_equal [], @cache.indexes("omgponies")
+      end
+
+      def test_add_all_caches_a_table_without_a_primary_key
+        assert_nil add_all_to_new_cache.primary_keys(@pool, "courses_professors")
+      end
+
+      def test_add_all_caches_a_composite_primary_key
+        @connection.create_table(:schema_cache_composite_pks, primary_key: [:one, :two], force: true) do |t|
+          t.integer :one
+          t.integer :two
+        end
+
+        assert_equal ["one", "two"], add_all_to_new_cache.primary_keys(@pool, "schema_cache_composite_pks")
+      ensure
+        @connection.drop_table(:schema_cache_composite_pks, if_exists: true)
       end
 
       def test_clearing

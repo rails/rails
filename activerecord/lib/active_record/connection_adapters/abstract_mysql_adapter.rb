@@ -46,6 +46,12 @@ module ActiveRecord
         json:        { name: "json" },
       }
 
+      # Escape sequences MariaDB writes into the column defaults it reports.
+      MARIADB_DEFAULT_ESCAPES = {
+        "0" => "\0", "b" => "\b", "n" => "\n", "r" => "\r", "t" => "\t",
+        "Z" => "\x1A", "'" => "'", '"' => '"', "\\" => "\\"
+      }.freeze
+
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private
           def dealloc(stmt)
@@ -350,6 +356,11 @@ module ActiveRecord
         show_variable "collation_database"
       end
 
+      def table_collation(table_name) # :nodoc:
+        result = fetch_table_collations(Array(table_name).map(&:to_s))
+        table_name.is_a?(Array) ? result : result[table_name.to_s]
+      end
+
       def table_comment(table_name) # :nodoc:
         scope = quoted_scope(table_name)
 
@@ -506,87 +517,13 @@ module ActiveRecord
       end
 
       def foreign_keys(table_name)
-        raise ArgumentError unless table_name.present?
-
-        scope = quoted_scope(table_name)
-
-        # MySQL returns 1 row for each column of composite foreign keys.
-        fk_info = query_all(<<~SQL)
-          SELECT fk.referenced_table_name AS 'to_table',
-                 fk.referenced_column_name AS 'primary_key',
-                 fk.column_name AS 'column',
-                 fk.constraint_name AS 'name',
-                 fk.ordinal_position AS 'position',
-                 rc.update_rule AS 'on_update',
-                 rc.delete_rule AS 'on_delete'
-          FROM information_schema.referential_constraints rc
-          JOIN information_schema.key_column_usage fk
-          USING (constraint_schema, constraint_name)
-          WHERE fk.referenced_column_name IS NOT NULL
-            AND fk.table_schema = #{scope[:schema]}
-            AND fk.table_name = #{scope[:name]}
-            AND rc.constraint_schema = #{scope[:schema]}
-            AND rc.table_name = #{scope[:name]}
-        SQL
-
-        grouped_fk = fk_info.group_by { |row| row["name"] }.values.each { |group| group.sort_by! { |row| row["position"] } }
-        grouped_fk.map do |group|
-          row = group.first
-          options = {
-            name: row["name"],
-            on_update: extract_foreign_key_action(row["on_update"]),
-            on_delete: extract_foreign_key_action(row["on_delete"])
-          }
-
-          if group.one?
-            options[:column] = unquote_identifier(row["column"])
-            options[:primary_key] = row["primary_key"]
-          else
-            options[:column] = group.map { |row| unquote_identifier(row["column"]) }
-            options[:primary_key] = group.map { |row| row["primary_key"] }
-          end
-
-          ForeignKeyDefinition.new(table_name, unquote_identifier(row["to_table"]), options)
-        end
+        result = fetch_foreign_keys(Array(table_name).map(&:to_s))
+        table_name.is_a?(Array) ? result : result[table_name.to_s]
       end
 
       def check_constraints(table_name)
-        if supports_check_constraints?
-          scope = quoted_scope(table_name)
-
-          sql = <<~SQL
-            SELECT cc.constraint_name AS 'name',
-                  cc.check_clause AS 'expression'
-            FROM information_schema.check_constraints cc
-            JOIN information_schema.table_constraints tc
-            USING (constraint_schema, constraint_name)
-            WHERE tc.table_schema = #{scope[:schema]}
-              AND tc.table_name = #{scope[:name]}
-              AND cc.constraint_schema = #{scope[:schema]}
-          SQL
-          sql += " AND cc.table_name = #{scope[:name]}" if mariadb?
-
-          chk_info = query_all(sql)
-
-          chk_info.map do |row|
-            options = {
-              name: row["name"]
-            }
-            expression = row["expression"]
-            expression = expression[1..-2] if expression.start_with?("(") && expression.end_with?(")")
-            expression = strip_whitespace_characters(expression)
-
-            unless mariadb?
-              # MySQL returns check constraints expression in an already escaped form.
-              # This leads to duplicate escaping later (e.g. when the expression is used in the SchemaDumper).
-              expression = expression.gsub("\\'", "'")
-            end
-
-            CheckConstraintDefinition.new(table_name, expression, options)
-          end
-        else
-          raise NotImplementedError
-        end
+        result = fetch_check_constraints(Array(table_name).map(&:to_s))
+        table_name.is_a?(Array) ? result : result[table_name.to_s]
       end
 
       def table_options(table_name) # :nodoc:
@@ -626,18 +563,8 @@ module ActiveRecord
       end
 
       def primary_keys(table_name) # :nodoc:
-        raise ArgumentError unless table_name.present?
-
-        scope = quoted_scope(table_name)
-
-        query_values(<<~SQL)
-          SELECT column_name
-          FROM information_schema.statistics
-          WHERE index_name = 'PRIMARY'
-            AND table_schema = #{scope[:schema]}
-            AND table_name = #{scope[:name]}
-          ORDER BY seq_in_index
-        SQL
+        result = fetch_primary_keys(Array(table_name).map(&:to_s))
+        table_name.is_a?(Array) ? result : result[table_name.to_s]
       end
 
       def case_sensitive_comparison(attribute, value) # :nodoc:
@@ -823,6 +750,125 @@ module ActiveRecord
       EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
       private
+        def fetch_table_collations(tables)
+          fetch_by_schema(tables) do |schema, group|
+            by_name = query_all(<<~SQL).to_h { |row| [row["table"], row["collation"]] }
+              SELECT table_name AS 'table', table_collation AS 'collation'
+              FROM information_schema.tables
+              WHERE table_schema = #{schema}
+                AND table_name IN (#{quoted_table_names(group)})
+            SQL
+
+            group.index_with { |table| by_name[bare_table_name(table)] }
+          end
+        end
+
+        def fetch_foreign_keys(tables)
+          fetch_by_schema(tables) do |schema, group|
+            names = quoted_table_names(group)
+
+            # MySQL returns 1 row for each column of composite foreign keys.
+            by_name = query_all(<<~SQL).group_by { |row| row["from_table"] }
+              SELECT fk.table_name AS 'from_table',
+                     fk.referenced_table_name AS 'to_table',
+                     fk.referenced_column_name AS 'primary_key',
+                     fk.column_name AS 'column',
+                     fk.constraint_name AS 'name',
+                     fk.ordinal_position AS 'position',
+                     rc.update_rule AS 'on_update',
+                     rc.delete_rule AS 'on_delete'
+              FROM information_schema.referential_constraints rc
+              JOIN information_schema.key_column_usage fk
+              USING (constraint_schema, constraint_name)
+              WHERE fk.referenced_column_name IS NOT NULL
+                AND fk.table_schema = #{schema}
+                AND rc.constraint_schema = #{schema}
+                AND fk.table_name IN (#{names}) AND rc.table_name IN (#{names})
+            SQL
+
+            group.index_with { |table| build_foreign_keys(table, rows_for(by_name, table)) }
+          end
+        end
+
+        def fetch_check_constraints(tables)
+          raise NotImplementedError unless supports_check_constraints?
+
+          fetch_by_schema(tables) do |schema, group|
+            names = quoted_table_names(group)
+
+            sql = +<<~SQL
+              SELECT tc.table_name AS 'table',
+                     cc.constraint_name AS 'name',
+                     cc.check_clause AS 'expression'
+              FROM information_schema.check_constraints cc
+              JOIN information_schema.table_constraints tc
+              USING (constraint_schema, constraint_name)
+              WHERE tc.table_schema = #{schema}
+                AND tc.table_name IN (#{names})
+                AND cc.constraint_schema = #{schema}
+            SQL
+            sql << " AND cc.table_name IN (#{names})" if mariadb?
+
+            by_name = query_all(sql).group_by { |row| row["table"] }
+
+            group.index_with { |table| build_check_constraints(table, rows_for(by_name, table)) }
+          end
+        end
+
+        def fetch_primary_keys(tables)
+          fetch_by_schema(tables) do |schema, group|
+            by_name = query_all(<<~SQL).group_by { |row| row["table"] }
+              SELECT table_name AS 'table', column_name AS 'column'
+              FROM information_schema.statistics
+              WHERE index_name = 'PRIMARY'
+                AND table_schema = #{schema}
+                AND table_name IN (#{quoted_table_names(group)})
+              ORDER BY table_name, seq_in_index
+            SQL
+
+            group.index_with { |table| rows_for(by_name, table).map { |row| row["column"] } }
+          end
+        end
+
+        def build_foreign_keys(table_name, fk_info)
+          grouped_fk = fk_info.group_by { |row| row["name"] }.values.each { |group| group.sort_by! { |row| row["position"] } }
+          grouped_fk.map do |group|
+            row = group.first
+            options = {
+              name: row["name"],
+              on_update: extract_foreign_key_action(row["on_update"]),
+              on_delete: extract_foreign_key_action(row["on_delete"])
+            }
+
+            if group.one?
+              options[:column] = unquote_identifier(row["column"])
+              options[:primary_key] = row["primary_key"]
+            else
+              options[:column] = group.map { |row| unquote_identifier(row["column"]) }
+              options[:primary_key] = group.map { |row| row["primary_key"] }
+            end
+
+            ForeignKeyDefinition.new(table_name, unquote_identifier(row["to_table"]), options)
+          end
+        end
+
+        def build_check_constraints(table_name, chk_info)
+          chk_info.map do |row|
+            options = { name: row["name"] }
+            expression = row["expression"]
+            expression = expression[1..-2] if expression.start_with?("(") && expression.end_with?(")")
+            expression = strip_whitespace_characters(expression)
+
+            unless mariadb?
+              # MySQL returns check constraints expression in an already escaped form.
+              # This leads to duplicate escaping later (e.g. when the expression is used in the SchemaDumper).
+              expression = expression.gsub("\\'", "'")
+            end
+
+            CheckConstraintDefinition.new(table_name, expression, options)
+          end
+        end
+
         def strip_whitespace_characters(expression)
           expression.gsub('\\\n', "").gsub("x0A", "").squish
         end
@@ -1017,6 +1063,54 @@ module ActiveRecord
           update_fields_for_mariadb(table_name, fields) if mariadb?
 
           fields
+        end
+
+        def fetch_column_definitions(tables)
+          fetch_by_schema(tables) do |schema, group|
+            by_name = query_all(<<~SQL).group_by { |row| row["Table"] }
+              SELECT table_name AS 'Table', column_name AS 'Field', column_type AS 'Type',
+                     column_default AS 'Default', is_nullable AS 'Null', extra AS 'Extra',
+                     collation_name AS 'Collation', column_comment AS 'Comment'
+              FROM information_schema.columns
+              WHERE table_schema = #{schema}
+                AND table_name IN (#{quoted_table_names(group)})
+              ORDER BY table_name, ordinal_position
+            SQL
+
+            group.index_with do |table|
+              fields = rows_for(by_name, table)
+
+              next column_definitions(table) if fields.empty?
+
+              fields.each { |field| unquote_mariadb_default(field) } if mariadb?
+
+              fields
+            end
+          end
+        end
+
+        # MariaDB reports a default as the SQL literal that produced it, where
+        # `SHOW FULL FIELDS` reports the value: a literal comes back quoted, and a
+        # newline inside one is written `\n`. Put them back into the form
+        # #new_column_from_field reads.
+        def unquote_mariadb_default(field)
+          default = field["Default"]
+          return if default.nil?
+
+          if default == "NULL"
+            # A column declared DEFAULT NULL, which has no default at all.
+            field["Default"] = nil
+          elsif !default.start_with?("'")
+            # An expression rather than a value. A bare `(1 + 1)` is left alone,
+            # which is what reading the table directly reports too.
+            if /[a-zA-Z_]\w*\(/.match?(default) && !/\ACURRENT_TIMESTAMP/i.match?(default)
+              field["Extra"] = "DEFAULT_GENERATED"
+            end
+          elsif !/\A(?:tiny|medium|long)?(?:text|blob)\b/.match?(field["Type"])
+            # Text and blob defaults stay quoted; #new_column_from_field unquotes those.
+            field["Default"] = default[1...-1].gsub("''", "'")
+              .gsub(/\\(.)/) { MARIADB_DEFAULT_ESCAPES.fetch($1, "\\#{$1}") }
+          end
         end
 
         def update_fields_for_mariadb(table_name, fields)

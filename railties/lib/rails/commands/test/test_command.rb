@@ -37,7 +37,7 @@ module Rails
       Rails::TestUnit::Runner::TEST_FOLDERS.each do |name|
         desc name, "Run tests in test/#{name}"
         define_method(name) do |*args|
-          perform("test/#{name}", *args)
+          perform(*test_folders("test/#{name}"), *args)
         end
       end
 
@@ -48,26 +48,33 @@ module Rails
 
       desc "functionals", "Run tests in test/controllers, test/mailers, and test/functional"
       def functionals(*args)
-        perform("test/controllers", "test/mailers", "test/functional", *args)
+        perform(*test_folders("test/controllers", "test/mailers", "test/functional"), *args)
       end
 
       desc "units", "Run tests in test/models, test/helpers, and test/unit"
       def units(*args)
-        perform("test/models", "test/helpers", "test/unit", *args)
+        perform(*test_folders("test/models", "test/helpers", "test/unit"), *args)
       end
 
       desc "system", "Run system tests only"
       def system(*args)
-        perform("test/system", *args)
+        perform(*test_folders("test/system"), *args)
       end
 
       desc "generators", "Run tests in test/lib/generators"
       def generators(*args)
-        perform("test/lib/generators", *args)
+        perform(*test_folders("test/lib/generators"), *args)
       end
 
       private
         EXACT_TEST_ARGUMENT_PATTERN = %r{^-n|^--name\b|^(?!/.+/$)[.\w]*[/\\]}
+
+        # The runner requires a path that is not an existing folder as if it
+        # were a test file, so name a glob that matches nothing instead.
+        # Dropping the folder would leave no patterns, which runs every test.
+        def test_folders(*folders)
+          folders.map { |folder| Dir.exist?(folder) ? folder : "#{folder}/**/*_test.rb" }
+        end
 
         def run_prepare_task
           Rails::Command::RakeCommand.perform("test:prepare", [], {})
