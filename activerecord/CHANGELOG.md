@@ -1,3 +1,8 @@
+*   Fix duplicated record creation when using nested attributes and `create_with`
+    on an association.
+
+    *Jerome Dalbert*
+
 *   Let the schema readers answer for many tables at once.
 
     `columns`, `indexes`, `primary_keys`, `foreign_keys`, `check_constraints`,
