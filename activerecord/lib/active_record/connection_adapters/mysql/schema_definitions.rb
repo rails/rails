@@ -51,9 +51,9 @@ module ActiveRecord
       class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition # :nodoc:
         attr_accessor :enabled
 
-        def initialize(*args, **kwargs)
-          @enabled = kwargs.key?(:enabled) ? kwargs.delete(:enabled) : true
-          super
+        def initialize(*args, enabled: true, **kwargs)
+          @enabled = enabled
+          super(*args, **kwargs)
         end
 
         def defined_for?(columns = nil, name: nil, unique: nil, valid: nil, include: nil, nulls_not_distinct: nil, enabled: nil, **options)
