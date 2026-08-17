@@ -39,6 +39,12 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   def test_no_options
     console = Rails::Console.new(app, parse_arguments([]))
     assert_not_predicate console, :sandbox?
+    assert_predicate console, :banner?
+  end
+
+  def test_no_banner_option
+    console = Rails::Console.new(app, parse_arguments(["--no-banner"]))
+    assert_not_predicate console, :banner?
   end
 
   def test_start
@@ -47,6 +53,14 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_predicate app.console, :started?
     assert_match(/Loading \w+ environment \(Rails/, output)
     assert_match(/Type 'help' for help/, output)
+  end
+
+  def test_start_with_no_banner
+    start ["--no-banner"]
+
+    assert_predicate app.console, :started?
+    assert_no_match(/Loading \w+ environment/, output)
+    assert_no_match(/Type 'help' for help/, output)
   end
 
   def test_start_with_sandbox

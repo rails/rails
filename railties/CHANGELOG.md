@@ -1,3 +1,14 @@
+*   Add `--no-banner` to `bin/rails console` to suppress the startup banner.
+
+    Users can already set `IRB.conf[:SHOW_BANNER] = false` in `.irbrc`; this
+    flag is for one-off or scripted sessions without editing config.
+
+    ```bash
+    bin/rails console --no-banner
+    ```
+
+    *Said Kaldybaev*
+
 *   Show a Rails-flavored startup banner (a small logo, Rails/Ruby
     version, a rotating tip about console helpers like `app`/`reload!`, and
     `Rails.root`) when starting `bin/rails console`.
