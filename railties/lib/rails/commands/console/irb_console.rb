@@ -2,6 +2,7 @@
 
 require "irb/helper_method"
 require "irb/command"
+require "rails/logo"
 
 module Rails
   class Console
@@ -79,8 +80,6 @@ module Rails
         '"source_location" shows where a method was defined, e.g. method(:reload!).source_location',
       ].freeze
 
-      LOGO = %w[⠀⢀⠀⢡⣶⣿⠟⡛⠢ ⠠⠀⣰⣿⣿⠁⠄⠀⠀ ⠶⢠⣿⣿⣿⠰⠆⠀⠀ ⠶⢸⣿⣿⣿⡄⠰⠆⠀].freeze
-
       def initialize(app)
         @app = app
 
@@ -131,7 +130,6 @@ module Rails
       def show_startup_banner
         return $stderr.puts(Rails::Console.startup_lines(@app.sandbox)) unless IRB.conf[:SHOW_BANNER]
 
-        logo_lines = unicode_logo
         tip_line = show_tips? ? "TIP: #{colorize_tip(TIPS.sample)}" : ""
         info_lines = [
           "#{IRB::Color.colorize('Rails', [:BOLD])} v#{Rails.version} - Ruby #{RUBY_VERSION}  (#{colorized_env})",
@@ -140,20 +138,14 @@ module Rails
           Rails::Console::HELP_HINT,
         ]
 
-        output = if logo_lines
-          logo_lines.zip(info_lines).map { |logo, info| "#{IRB::Color.colorize(logo.to_s, [:RED, :BOLD])}  #{info}" }.join("\n")
-        else
-          info_lines.join("\n")
+        output = Rails::Logo.beside(info_lines, io: $stderr) do |logo|
+          IRB::Color.colorize(logo, [:RED, :BOLD])
         end
 
         $stderr.puts
         $stderr.puts output
         $stderr.puts IRB::Color.colorize("\nSandbox mode: changes rolled back on exit", [:YELLOW]) if @app.sandbox
         $stderr.puts
-      end
-
-      def unicode_logo
-        ($stderr.external_encoding || Encoding.default_external) == Encoding::UTF_8 ? LOGO : nil
       end
 
       def show_tips?

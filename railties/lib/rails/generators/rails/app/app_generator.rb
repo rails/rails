@@ -2,6 +2,7 @@
 
 require "rails/generators/app_base"
 require "rails/generators/rails/devcontainer/devcontainer_generator"
+require "rails/logo"
 
 module Rails
   module ActionMethods # :nodoc:
@@ -607,6 +608,21 @@ module Rails
         @after_bundle_callbacks.each(&:call)
       end
 
+      def display_next_steps
+        return if options[:pretend] || options[:dummy_app]
+
+        info_lines = [
+          "#{set_color(app_name, :bold)} is ready (Rails #{Rails::VERSION::STRING})",
+          cd_step.to_s,
+          "Boot the server with bin/rails server",
+          "New to Rails? https://guides.rubyonrails.org",
+        ]
+
+        say ""
+        say Rails::Logo.beside(info_lines, io: $stdout) { |logo| set_color(logo, :red, :bold) }
+        say ""
+      end
+
       def self.banner
         "rails new #{arguments.map(&:usage).join(' ')} [options]"
       end
@@ -614,6 +630,10 @@ module Rails
     # :startdoc:
 
     private
+      def cd_step
+        "cd #{app_path}" unless app_path.delete_suffix("/") == "."
+      end
+
       def remove_new_framework_defaults?(target_version, current_version)
         Gem::Version.new(target_version.to_s) >= Gem::Version.new(current_version.to_s)
       end
