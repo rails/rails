@@ -1,3 +1,16 @@
+*   Run the `test:prepare` task in a subprocess when `bin/rails test` is given no
+    path argument.
+
+    Prepare tasks that depend on `:environment`, such as the asset builds gems
+    like `tailwindcss-rails` enhance it with, booted the application inside the
+    test process before any test file was loaded. Coverage tools started from
+    `test_helper.rb` cannot see code loaded before they start, so `bin/rails test`
+    and `bin/rails test test/` reported different coverage for the same suite.
+
+    Fixes #58477.
+
+    *Lazizbek Ergashev*
+
 *   Show a Rails-flavored startup banner (a small logo, Rails/Ruby
     version, a rotating tip about console helpers like `app`/`reload!`, and
     `Rails.root`) when starting `bin/rails console`.

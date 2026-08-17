@@ -70,9 +70,10 @@ module Rails
         EXACT_TEST_ARGUMENT_PATTERN = %r{^-n|^--name\b|^(?!/.+/$)[.\w]*[/\\]}
 
         def run_prepare_task
-          Rails::Command::RakeCommand.perform("test:prepare", [], {})
-        rescue UnrecognizedCommandError => error
-          raise unless error.name == "test:prepare"
+          return unless Rails::Command::RakeCommand.task_defined?("test:prepare")
+
+          # Run in a subprocess so tasks depending on :environment don't boot the app in the test process.
+          Kernel.system("rake", "test:prepare") || exit(false)
         end
     end
   end
