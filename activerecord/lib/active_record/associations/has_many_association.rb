@@ -25,7 +25,7 @@ module ActiveRecord
 
         when :destroy
           # No point in executing the counter update since we're going to destroy the parent anyway
-          load_target.each { |t| t.destroyed_by_association = reflection }
+          load_target_for_dependent_destroy.each { |t| t.destroyed_by_association = reflection }
           destroy_all
         when :destroy_async
           load_target.each do |t|
@@ -64,6 +64,19 @@ module ActiveRecord
       end
 
       private
+        # Persisted records may have been added without updating a loaded target.
+        # Re-read the association so dependent destruction uses the database as
+        # its source of truth, while retaining unsaved and changed target records.
+        def load_target_for_dependent_destroy
+          return load_target if owner.new_record?
+
+          persisted = reflection.klass.uncached do
+            skip_strict_loading { find_target }
+          end
+
+          self.target = merge_target_lists(persisted, target)
+        end
+
         # Returns the number of records in this collection.
         #
         # If the association has a counter cache it gets that value. Otherwise
