@@ -1,3 +1,12 @@
+*   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
+    the current controller and action when it starts with a period,
+    mirroring the existing behavior for the key argument.
+
+    Calling `translate("bar", scope: ".foo")` from `PostsController#index` is
+    now equivalent to calling `translate("bar", scope: "posts.index.foo")`.
+
+    *Ben Sheldon*
+
 *   Add support for the HTTP QUERY method defined in RFC 10008.
 
     QUERY is a safe and idempotent HTTP method that conveys the query in the
