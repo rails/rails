@@ -31,6 +31,12 @@ module ActiveRecord
         end
     end
 
+    class DisabledUnaccentedString < UnaccentedString
+      def transforms_query_predicates?
+        false
+      end
+    end
+
     class UuidToBinString < ActiveRecord::Type::String
       UUID_STRING = ActiveRecord::Type::String.new
 
@@ -122,6 +128,15 @@ module ActiveRecord
       assert_equal expected_sql, sql
     end
 
+    def test_attribute_type_does_not_transform_range_query_values_when_disabled
+      topic = topic_model_with_title_type(DisabledUnaccentedString.new)
+      sql = topic.where(title: "A".."Z").to_sql
+      expected_sql = "SELECT #{quoted_topics}.* FROM #{quoted_topics} " \
+        "WHERE #{quote_table_name("topics.title")} BETWEEN #{quoted_value("A")} AND #{quoted_value("Z")}"
+
+      assert_equal expected_sql, sql
+    end
+
     def test_attribute_type_can_transform_only_query_value
       topic = topic_model_with_title_type(UuidToBinString.new)
       uuid = "6ccd780c-baba-1026-9564-5b8c656024db"
@@ -151,7 +166,11 @@ module ActiveRecord
       end
 
       def normalized_value(value)
-        "lower(custom_immutable_unaccent(#{ActiveRecord::Base.lease_connection.quote(value)}))"
+        "lower(custom_immutable_unaccent(#{quoted_value(value)}))"
+      end
+
+      def quoted_value(value)
+        ActiveRecord::Base.lease_connection.quote(value)
       end
 
       def topic_model_with_title_type(type)
