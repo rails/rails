@@ -687,6 +687,20 @@ Rails.autoloaders.main
 Rails.autoloaders.once
 ```
 
+If you want to configure an autoloaded constant, but the configuration does not
+depend on whether the constant is reloadable, register the callback with
+`Rails.autoloaders.any`:
+
+```ruby
+Rails.autoloaders.any.on_load("MyGateway") do |gateway|
+  gateway.endpoint = "https://my-gateway.example.com"
+end
+```
+
+The callback runs according to the semantics of the autoloader that manages the
+constant. In particular, it runs again when a reloadable constant is loaded
+after a reload. Code in the callback has to be safe under either policy.
+
 The predicate
 
 ```ruby

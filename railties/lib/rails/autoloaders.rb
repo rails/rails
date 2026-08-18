@@ -6,9 +6,19 @@ module Rails
   class Autoloaders # :nodoc:
     require_relative "autoloaders/inflector"
 
+    class Any # :nodoc:
+      def initialize(autoloaders)
+        @autoloaders = autoloaders
+      end
+
+      def on_load(...)
+        @autoloaders.each { |autoloader| autoloader.on_load(...) }
+      end
+    end
+
     include Enumerable
 
-    attr_reader :main, :once
+    attr_reader :main, :once, :any
 
     def initialize
       # This `require` delays loading the library on purpose.
@@ -28,6 +38,8 @@ module Rails
       @once = Zeitwerk::Loader.new
       @once.tag = "rails.once"
       @once.inflector = Inflector
+
+      @any = Any.new([@main, @once])
     end
 
     def each

@@ -27,7 +27,44 @@ class ZeitwerkIntegrationTest < ActiveSupport::TestCase
     assert_predicate Rails.autoloaders, :zeitwerk_enabled?
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.main
     assert_instance_of Zeitwerk::Loader, Rails.autoloaders.once
+    assert_instance_of Rails::Autoloaders::Any, Rails.autoloaders.any
     assert_equal [Rails.autoloaders.main, Rails.autoloaders.once], Rails.autoloaders.to_a
+  end
+
+  test "autoloaders.any runs on_load callbacks for the autoloader managing the constant" do
+    app_file "app/models/user.rb", "class User; end"
+    app_file "extras/money.rb", "class Money; end"
+    add_to_config 'config.autoload_once_paths << "#{Rails.root}/extras"'
+    add_to_config <<~'RUBY'
+      Rails.autoloaders.any.on_load("User") do |user|
+        $autoloaders_any_loaded << user
+      end
+      Rails.autoloaders.any.on_load("Money") do |money|
+        $autoloaders_any_loaded << money
+      end
+    RUBY
+
+    $autoloaders_any_loaded = []
+    boot
+
+    assert_empty $autoloaders_any_loaded
+
+    user = User
+    assert_equal [user], $autoloaders_any_loaded
+
+    money = Money
+    assert_equal [user, money], $autoloaders_any_loaded
+
+    Rails.application.reloader.reload!
+
+    assert_same money, Money
+    assert_equal [user, money], $autoloaders_any_loaded
+
+    reloaded_user = User
+    assert_not_same user, reloaded_user
+    assert_equal [user, money, reloaded_user], $autoloaders_any_loaded
+  ensure
+    $autoloaders_any_loaded = nil
   end
 
   test "autoloaders inflect with Active Support" do

@@ -145,6 +145,17 @@ module Rails
     #
     # This autoloader manages constants that are autoloaded, but not reloaded.
     #
+    # If the code being configured works regardless of whether its target is
+    # reloadable, you can register an +on_load+ callback with either autoloader:
+    #
+    #   Rails.autoloaders.any.on_load("MyGateway") do
+    #     MyGateway.endpoint = "https://my-gateway.example.com"
+    #   end
+    #
+    # The callback runs according to the semantics of the autoloader that
+    # manages the constant. In particular, it runs again when a reloadable
+    # constant is loaded after a reload.
+    #
     # You can use these objects to customize their behavior, defining custom
     # root namespaces, collapsing directories, configuring callbacks, etc.
     #

@@ -1,3 +1,8 @@
+*   Add `Rails.autoloaders.any.on_load` to configure an autoloaded constant
+    without knowing whether the `main` or `once` autoloader manages it.
+
+    *Nicolas Vandenbogaerde*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"
