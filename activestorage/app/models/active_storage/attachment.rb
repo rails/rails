@@ -219,7 +219,6 @@ class ActiveStorage::Attachment < ActiveStorage::Record
       end
 
       ActiveStorage::CreateVariantsJob.perform_now(blob, variants: immediate_variants, process: :immediately) if immediate_variants.any?
-      # Enqueue transformations as pairs: some queue backends store job arguments as jsonb, which drops Hash key order
       ActiveStorage::CreateVariantsJob.perform_later(blob, variants: later_variants.map(&:to_a), process: :later) if later_variants.any?
     end
 
