@@ -42,6 +42,18 @@ require "models/image"
 require "models/shipment"
 require "models/adjustment"
 require "models/dats"
+require "models/human"
+
+class BelongsToContainedKeyChapter < Cpk::Chapter
+  self.primary_key = [:author_id, :book_id, :id]
+
+  belongs_to :contained_book,
+    class_name: "Cpk::Book",
+    foreign_key: [:author_id, :book_id],
+    primary_key: [:author_id, :id],
+    optional: true,
+    inverse_of: false
+end
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -505,6 +517,67 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal [1, 2], chapter.id
     assert_nil chapter.book_id
     assert_equal chapter.author_id, book.author_id
+  end
+
+  def test_clearing_belongs_to_nullifies_composite_foreign_key_that_is_a_subset_of_primary_key
+    chapter = BelongsToContainedKeyChapter.new(author_id: 1, book_id: 2)
+    chapter.write_attribute(:id, 3)
+
+    chapter.contained_book = nil
+
+    assert_nil chapter.author_id
+    assert_nil chapter.book_id
+    assert_equal 3, chapter.read_attribute(:id)
+  end
+
+  def test_clearing_belongs_to_nullifies_foreign_key_contained_in_composite_pk
+    order_tag = Cpk::OrderTag.new(order_id: 1, tag_id: 2)
+
+    assert_equal 2, order_tag.tag_id
+
+    order_tag.tag = nil
+
+    assert_nil order_tag.tag_id
+  end
+
+  def test_clearing_polymorphic_belongs_to_nullifies_both_columns_contained_in_composite_pk
+    face_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "faces"
+      self.primary_key = [:polymorphic_human_type, :polymorphic_human_id, :id]
+
+      belongs_to :polymorphic_human, polymorphic: true, optional: true
+    end
+
+    human = Human.new(id: 1, name: "Sonny")
+    face = face_class.new(polymorphic_human: human)
+
+    assert_equal "Human", face.polymorphic_human_type
+    assert_equal 1, face.polymorphic_human_id
+
+    face.polymorphic_human = nil
+
+    assert_nil face.polymorphic_human_type
+    assert_nil face.polymorphic_human_id
+  end
+
+  def test_clearing_polymorphic_belongs_to_nullifies_id_when_only_id_is_in_composite_pk
+    face_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "faces"
+      self.primary_key = [:polymorphic_human_id, :id]
+
+      belongs_to :polymorphic_human, polymorphic: true, optional: true
+    end
+
+    human = Human.new(id: 1, name: "Sonny")
+    face = face_class.new(polymorphic_human: human)
+
+    assert_equal "Human", face.polymorphic_human_type
+    assert_equal 1, face.polymorphic_human_id
+
+    face.polymorphic_human = nil
+
+    assert_nil face.polymorphic_human_type
+    assert_nil face.polymorphic_human_id
   end
 
   def test_should_reload_association_on_model_with_query_constraints_when_foreign_key_changes
