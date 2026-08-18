@@ -1138,7 +1138,7 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-This is not the recommended way to implement this particular action callback, 
+This is not the recommended way to implement this particular action callback,
 but in simpler cases, it might be useful.
 
 Specifically for `around_action`, the block also yields the `action`:
@@ -1147,7 +1147,7 @@ Specifically for `around_action`, the block also yields the `action`:
 around_action { |_controller, action| time(&action) }
 ```
 
-Note that the `controller` is also passed to the block, but it can often 
+Note that the `controller` is also passed to the block, but it can often
 be ignored because the block is already executed in that controller's scope.
 
 The second way is to specify a class (or any object that responds to the
