@@ -603,38 +603,40 @@ module CallbacksTest
 
     if RUBY_VERSION >= "4.0"
       def test_callbacks_are_ractor_shareable
-        ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
-          klass = Class.new do
-            include ActiveSupport::Callbacks
+        [:raise, :warn].each do |unshareable_proc_action|
+          ActiveSupport::Ractors.with(unshareable_proc_action:) do
+            klass = Class.new do
+              include ActiveSupport::Callbacks
 
-            define_callbacks :save, terminator: ->(_target, result_lambda) { result_lambda.call == false }
+              define_callbacks :save, terminator: ->(_target, result_lambda) { result_lambda.call == false }
 
-            set_callback :save, :before, -> { events << :before }, if: -> { true }
-            set_callback :save, :around, ->(_record, block) {
-              events << :around_before
-              block.call
-              events << :around_after
-            }
-            set_callback :save, :after, ->(record) { record.events << :after }, unless: -> { false }
+              set_callback :save, :before, -> { events << :before }, if: -> { true }
+              set_callback :save, :around, ->(_record, block) {
+                events << :around_before
+                block.call
+                events << :around_after
+              }
+              set_callback :save, :after, ->(record) { record.events << :after }, unless: -> { false }
 
-            attr_reader :events
+              attr_reader :events
 
-            def initialize
-              @events = []
+              def initialize
+                @events = []
+              end
+
+              def save
+                run_callbacks(:save) { events << :save }
+              end
             end
 
-            def save
-              run_callbacks(:save) { events << :save }
-            end
+            assert_ractor_shareable klass
+
+            assert_equal [:before, :around_before, :save, :after, :around_after], Ractor.new(klass) { |callback_class|
+              record = callback_class.new
+              record.save
+              record.events
+            }.value
           end
-
-          assert_ractor_shareable klass
-
-          assert_equal [:before, :around_before, :save, :after, :around_after], Ractor.new(klass) { |callback_class|
-            record = callback_class.new
-            record.save
-            record.events
-          }.value
         end
       end
 
