@@ -40,7 +40,7 @@ module ActiveRecord
         args.concat([db_config.database.to_s])
         args.unshift(*extra_flags) if extra_flags
 
-        run_cmd("mysqldump", *args)
+        run_cmd(client_command("mariadb-dump", "mysqldump"), *args)
       end
 
       def structure_load(filename, extra_flags)
@@ -49,10 +49,14 @@ module ActiveRecord
         args.concat(["--database", db_config.database.to_s])
         args.unshift(*extra_flags) if extra_flags
 
-        run_cmd("mysql", *args)
+        run_cmd(client_command("mariadb", "mysql"), *args)
       end
 
       private
+        def client_command(mariadb_command, mysql_command)
+          connection.mariadb? ? mariadb_command : mysql_command
+        end
+
         def creation_options
           Hash.new.tap do |options|
             options[:charset]     = configuration_hash[:encoding]   if configuration_hash.include?(:encoding)

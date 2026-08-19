@@ -1,3 +1,12 @@
+*   Run SQL structure dumps and loads through the `mariadb-dump` and `mariadb`
+    client binaries when the server is MariaDB.
+
+    MariaDB deprecated the `mysqldump` and `mysql` names in 11.0, and its official
+    Docker image no longer ships them, so `db:schema:dump` and `db:schema:load`
+    either printed a deprecation warning or failed with "command not found".
+
+    *Lazizbek Ergashev*
+
 *   Apply `all_queries: true` default scopes consistently across counter caches,
     uniqueness validations, fixture lookups, and record reloads, while those
     operations continue to bypass ordinary default scopes.
