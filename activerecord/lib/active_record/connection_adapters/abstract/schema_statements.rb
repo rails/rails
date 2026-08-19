@@ -53,6 +53,13 @@ module ActiveRecord
         query_values(data_source_sql(type: "BASE TABLE"))
       end
 
+      # Returns an array of table names defined in the database, each prefixed
+      # with its schema name. For adapters that do not support multiple schemas
+      # this is identical to #tables.
+      def qualified_tables
+        tables
+      end
+
       # Checks to see if the table +table_name+ exists on the database.
       #
       #   table_exists?(:developers)

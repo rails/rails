@@ -676,6 +676,10 @@ module ActiveRecord
           query_values(data_source_sql(type: "FOREIGN TABLE"))
         end
 
+        def qualified_tables
+          query_values(qualified_data_source_sql(type: "BASE TABLE"))
+        end
+
         def foreign_table_exists?(table_name)
           query_values(data_source_sql(table_name, type: "FOREIGN TABLE")).any? if table_name.present?
         end
@@ -1414,10 +1418,15 @@ module ActiveRecord
           end
 
           def data_source_sql(name = nil, type: nil)
+            qualified_data_source_sql(name, type: type, include_schema: false)
+          end
+
+          def qualified_data_source_sql(name = nil, type: nil, include_schema: true)
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'r','v','m','p','f'" # (r)elation/table, (v)iew, (m)aterialized view, (p)artitioned table, (f)oreign table
 
-            sql = +"SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace"
+            select_expr = include_schema ? "format('%I.%I', n.nspname, c.relname)" : "c.relname"
+            sql = +"SELECT #{select_expr} FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace"
             sql << " WHERE n.nspname = #{scope[:schema]}"
             sql << " AND c.relname = #{scope[:name]}" if scope[:name]
             sql << " AND c.relkind IN (#{scope[:type]})"
