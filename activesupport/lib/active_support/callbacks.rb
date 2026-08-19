@@ -1019,16 +1019,16 @@ module ActiveSupport
           end
         end
 
+        def freeze # :nodoc:
+          descendants.prepend(self).each do |target|
+            target.__callbacks =
+              Ractors.make_shareable(target.__callbacks)
+          end
+        end
+
         protected
           def get_callbacks(name) # :nodoc:
             __callbacks[name.to_sym]
-          end
-
-          def freeze # :nodoc:
-            descendants.prepend(self).each do |target|
-              target.__callbacks =
-                Ractors.make_shareable(target.__callbacks)
-            end
           end
 
           def set_callbacks(name, callbacks) # :nodoc:
@@ -1039,13 +1039,8 @@ module ActiveSupport
               alias_method("_run_#{name}_callbacks", "_run_#{name}_callbacks!")
             end
             callback_sets[name] = callbacks
-            ractor_shareable = Ractors.unshareable_proc_action == :raise ||
-              (!__callbacks.empty? && Ractors.shareable?(__callbacks))
-            self.__callbacks = if ractor_shareable
-              Ractors.make_shareable(callback_sets)
-            else
-              callback_sets
-            end
+
+            self.__callbacks = Ractors.try_make_shareable(callback_sets)
           end
       end
   end
