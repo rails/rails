@@ -69,12 +69,14 @@ module ActiveRecord
       #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbdea90 @env_name="production",
       #       @name="primary", @config={adapter: "sqlite3", database: "storage/production.sqlite3"}>
       #   ]>
+      # :singleton-method: configurations=
       def self.configurations=(config)
         @@configurations = ActiveRecord::DatabaseConfigurations.new(config)
       end
       self.configurations = {}
 
       # Returns a fully resolved ActiveRecord::DatabaseConfigurations object.
+      # :singleton-method: configurations
       def self.configurations
         @@configurations
       end
