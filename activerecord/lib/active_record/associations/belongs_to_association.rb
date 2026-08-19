@@ -128,7 +128,7 @@ module ActiveRecord
 
         def update_counters_via_scope(klass, values, by)
           primary_key = ActiveRecord::Key.for(primary_key(klass))
-          scope = klass.unscoped.where!(primary_key.where_hash(values))
+          scope = klass.all_queries_scope.where!(primary_key.where_hash(values))
           scope.update_counters(reflection.counter_cache_column => by, touch: reflection.options[:touch])
         end
 
