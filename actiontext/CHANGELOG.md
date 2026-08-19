@@ -1,3 +1,14 @@
+*   Locate attachables in bulk when extracting or rendering rich text content
+
+    `ActionText::Content` previously resolved each attachment's SGID with an
+    individual query, so rendering content with N attachments cost N queries.
+    Attachables are now located in bulk, one query per model class, memoised
+    per content instance. This also fixes quadratic query growth when saving
+    rich text with many attachments, where each attachment's `record`
+    presence validation re-renders the body.
+
+    *Olly Headey*
+
 *   Dispatch all Active Storage `direct-upload:`-prefixed events
 
     Add support for `direct-upload:before-blob-request` and `direct-upload:before-storage-request`.
