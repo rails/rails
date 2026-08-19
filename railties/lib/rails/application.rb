@@ -123,8 +123,8 @@ module Rails
       @revision          = nil
       @revision_initialized = false
 
-      @executor          = Class.new(ActiveSupport::Executor)
-      @reloader          = Class.new(ActiveSupport::Reloader)
+      @executor          = Class.new(ActiveSupport::Executor).set_temporary_name("ActiveSupport::Executor(#{inspect})")
+      @reloader          = Class.new(ActiveSupport::Reloader).set_temporary_name("ActiveSupport::Reloader(#{inspect})")
       @reloader.executor = @executor
 
       @autoloaders = Rails::Autoloaders.new
