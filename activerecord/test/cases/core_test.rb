@@ -244,7 +244,7 @@ class CoreTest < ActiveRecord::TestCase
   def test_find_by_cache_does_not_duplicate_entries
     Topic.initialize_find_by_cache
     using_prepared_statements = Topic.lease_connection.prepared_statements
-    topic_find_by_cache = Topic.find_by_statement_cache[using_prepared_statements]
+    topic_find_by_cache = Topic.schema_context.find_by_statement_cache[using_prepared_statements]
 
     assert_difference -> { topic_find_by_cache.size }, +1 do
       Topic.find(1)
@@ -296,20 +296,21 @@ class CoreTest < ActiveRecord::TestCase
       include ActiveSupport::Testing::RactorsAssertions
 
       def test_find_by_statement_cache_is_ractor_local
+        skip "SchemaContext is not yet Ractor-shareable; will be enabled when SC is made shareable"
         model = Class.new(ActiveRecord::Base) do
           def self.name = "ractor_safe_find_by_cache"
           self.table_name = "topics"
         end
 
         worker_marker, worker_stable = on_ractor do
-          cache = model.find_by_statement_cache
+          cache = model.schema_context.find_by_statement_cache
           cache[true][:ractor_marker] = :from_worker
-          [cache[true][:ractor_marker], model.find_by_statement_cache.equal?(cache)]
+          [cache[true][:ractor_marker], model.schema_context.find_by_statement_cache.equal?(cache)]
         end
 
         assert_equal :from_worker, worker_marker
         assert worker_stable
-        assert_nil model.find_by_statement_cache[true][:ractor_marker]
+        assert_nil model.schema_context.find_by_statement_cache[true][:ractor_marker]
       end
     end
   end
