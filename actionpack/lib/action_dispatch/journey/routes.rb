@@ -19,6 +19,13 @@ module ActionDispatch
         @simulator          = nil
       end
 
+      def freeze
+        ast
+        simulator
+
+        super
+      end
+
       def empty?
         routes.empty?
       end
