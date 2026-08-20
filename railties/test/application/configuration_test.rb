@@ -340,6 +340,13 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.public_path
     end
 
+    test "Rails.app executor and reloader are named" do
+      app "development"
+
+      assert Rails.app.executor.name.starts_with?("ActiveSupport::Executor(#<AppTemplate::Application:")
+      assert Rails.app.reloader.name.starts_with?("ActiveSupport::Reloader(#<AppTemplate::Application:")
+    end
+
     test "config.enable_reloading is !config.cache_classes" do
       app "development"
 
