@@ -482,6 +482,19 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_table_options_for_a_name_in_two_schemas_reads_the_first_on_the_search_path
+    @connection.execute "COMMENT ON TABLE #{SCHEMA_NAME}.#{TABLE_NAME} IS 'in schema one'"
+    @connection.execute "COMMENT ON TABLE #{SCHEMA2_NAME}.#{TABLE_NAME} IS 'in schema two'"
+
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
+      assert_equal({ comment: "in schema one" }, @connection.table_options(TABLE_NAME))
+    end
+
+    with_schema_search_path("#{SCHEMA2_NAME}, #{SCHEMA_NAME}") do
+      assert_equal({ comment: "in schema two" }, @connection.table_options(TABLE_NAME))
+    end
+  end
+
   def test_pk_and_sequence_for_with_schema_specified
     pg_name = ActiveRecord::ConnectionAdapters::PostgreSQL::Name
     [
@@ -992,6 +1005,18 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
     output = dump_table_schema "trains"
 
     assert_match("options: \"#{options}\"", output)
+  end
+
+  def test_table_options_are_only_read_for_base_tables
+    @connection.create_table "trains" do |t|
+      t.string :name
+    end
+    @connection.execute "CREATE VIEW train_names AS SELECT name FROM trains"
+    @connection.execute "COMMENT ON VIEW train_names IS 'not a table'"
+
+    assert_empty @connection.table_options("train_names")
+  ensure
+    @connection.execute "DROP VIEW IF EXISTS train_names"
   end
 
   def test_inherited_table_options_is_dumped

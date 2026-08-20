@@ -153,6 +153,7 @@ module ActiveRecord
 
       def read_schema_metadata(tables)
         @columns = @connection.columns(tables)
+        @table_options = @connection.table_options(tables)
         @primary_keys = @connection.primary_keys(tables)
         @indexes = @connection.indexes(tables)
         @foreign_keys = @connection.foreign_keys(tables) if @connection.supports_foreign_keys?
@@ -217,7 +218,7 @@ module ActiveRecord
             tbl.print ", id: false"
           end
 
-          table_options = @connection.table_options(table)
+          table_options = @table_options[table]
           if table_options.present?
             tbl.print ", #{format_options(table_options)}"
           end
