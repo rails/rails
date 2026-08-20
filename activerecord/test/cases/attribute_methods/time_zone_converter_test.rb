@@ -42,6 +42,22 @@ module ActiveRecord
           Time.zone = old_time_zone
         end
 
+        def test_time_attributes_keep_their_relative_order_when_converted
+          old_time_zone = Time.zone
+
+          Time.zone = "UTC"
+
+          subtype = ActiveRecord::Type::Time.new
+          converter = ActiveRecord::AttributeMethods::TimeZoneConversion::TimeZoneConverter.new(subtype)
+
+          from = ::Time.new(2000, 1, 1, 1, 0, 0, "+02:00")
+          to = ::Time.new(2000, 1, 1, 23, 0, 0, "+02:00")
+
+          assert_operator converter.cast(from), :<, converter.cast(to)
+        ensure
+          Time.zone = old_time_zone
+        end
+
         def test_time_attribute_dirty_tracking_with_fixed_date
           old_time_zone = Time.zone
           old_default_timezone = ActiveRecord.default_timezone
