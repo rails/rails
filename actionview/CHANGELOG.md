@@ -1,3 +1,20 @@
+*   Cache directory listings in `ActionView::FileSystemResolver` so template
+    lookup no longer runs a `Dir.glob` per virtual path.
+
+    Previously, resolving N templates in the same directory of N files ran N
+    directory scans (O(N^2) `readdir` cost). The resolver now maintains a
+    lazily-populated per-directory index of entries bucketed by the portion of
+    each filename before its first ".", and lookup consults that index instead
+    of globbing. Cache invalidation is unchanged: `ViewReloader` still triggers
+    `clear_cache` on every reloader tick, which now also clears the directory
+    index.
+
+    Subclasses that override the private `template_glob` method (e.g.
+    `ActionView::FixtureResolver`) are detected and transparently fall back to
+    the previous glob-based lookup path.
+
+    *Joel Hawksley*
+
 *   Configuring ERB options is now to be made on the ActionView::Base class.
 
     The `ActionView::Template::Handlers::ERB` class is now private API. Applications
