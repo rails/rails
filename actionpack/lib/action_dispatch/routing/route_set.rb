@@ -187,11 +187,13 @@ module ActionDispatch
 
         class UrlHelper
           def self.create(route, options, route_name)
-            if optimize_helper?(route)
+            helper = if optimize_helper?(route)
               OptimizedUrlHelper.new(route, options, route_name)
             else
               new(route, options, route_name)
             end
+
+            ActiveSupport::Ractors.try_make_shareable(helper)
           end
 
           def self.optimize_helper?(route)
@@ -331,7 +333,7 @@ module ActionDispatch
           #     foo_url(bar, baz, bang, sort_by: 'baz')
           #
           def define_url_helper(mod, name, helper, url_strategy)
-            mod.define_method(name) do |*args|
+            mod.define_method(name, ActiveSupport::Ractors.try_shareable_proc { |*args|
               last = args.last
               options = \
                 case last
@@ -341,7 +343,7 @@ module ActionDispatch
                   args.pop.to_h
                 end
               helper.call(self, name, args, options, url_strategy)
-            end
+            })
           end
       end
 

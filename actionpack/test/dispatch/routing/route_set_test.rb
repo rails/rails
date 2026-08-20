@@ -2,10 +2,13 @@
 
 require "abstract_unit"
 require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 
 module ActionDispatch
   module Routing
     class RouteSetTest < ActiveSupport::TestCase
+      include ActiveSupport::Testing::RactorsAssertions
+
       class SimpleApp
         def initialize(response)
           @response = response
@@ -242,6 +245,17 @@ module ActionDispatch
               end
             end
           end
+        end
+
+        test "generated url_helpers are ractor shareable" do
+          assert_nothing_raised do
+            ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+              draw { resources :posts }
+            end
+          end
+
+          assert_ractor_shareable(@set.named_routes.get(:post))
+          assert_ractor_shareable(@set.named_routes.get(:posts))
         end
       end
 
