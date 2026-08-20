@@ -20,11 +20,13 @@ After reading this guide, you will know:
 Introduction
 ------------
 
-Rails provides two mechanisms to deliver JavaScript within your application:
-using an [import map](#using-a-javascript-import-map), or a
+ES modules (ESM) is the standard structure for packaging JavaScript
+code in modern applications. Rails provides two mechanisms to
+deliver JavaScript made for ESM: an
+[import map](#using-a-javascript-import-map), or a
 [JavaScript bundler](#using-a-javascript-bundler). Both of these systems
-integrate with the [Asset Pipeline](asset_pipeline.html) to deliver the files to
-the browser.
+integrate with the [Asset Pipeline](asset_pipeline.html) to deliver
+the files to the browser.
 
 The [Turbo](#turbo) and [Stimulus](#stimulus) JavaScript libraries (which are
 part of the [Hotwire](https://hotwired.dev) suite) are included in Rails, and
@@ -42,13 +44,15 @@ It is a JSON object which defines the mapping between the module specifier
 passed to an `import` statement, and the path to the actual file to be imported.
 Here's an example:
 
-```json
+```html
+<script type="importmap" data-turbo-track="reload">
 {
   "imports": {
     "animations": "/scripts/animations.js",
     "utilities": "/scripts/utilities.js"
   }
 }
+</script>
 ```
 
 Scripts can now invoke `import "animations"` or `import "utilities"` and the
@@ -92,7 +96,8 @@ NOTE: All files declared in your `config/importmap.rb` must exist within your
 
 This will create an import map object similar to:
 
-```json
+```html
+<script type="importmap" data-turbo-track="reload">
 {
   "imports": {
     "application": "/assets/application-d8a8613a.js",
@@ -102,6 +107,7 @@ This will create an import map object similar to:
     "controllers": "/assets/controllers/index-ee64e1f1.js"
   }
 }
+</script>
 ```
 
 which is rendered in your HTML document's `<head>` using:
@@ -123,13 +129,15 @@ Using a JavaScript Bundler
 
 You can integrate a JavaScript bundler into Rails using the
 [`jsbundling-rails`](https://github.com/rails/jsbundling-rails) gem. It supports
-a number of builders such as [ESBuild](https://esbuild.github.io/),
+a number of bundlers such as [ESBuild](https://esbuild.github.io/),
 [Rollup](https://rollupjs.org/guide/en/), [Bun](https://bun.sh), and
 [Webpack](https://webpack.js.org/).
 
-This gem requires a JavaScript runtime. For all bundlers except Bun, you'll need
-Node.js and Yarn. For Bun, you'll just need to install that as it is both a
-JavaScript runtime and a bundler.
+`jsbundling-rails` requires a JavaScript runtime. For all bundlers
+except Bun, you'll need Node.js. For Bun, you'll just
+need to install that as it is both a JavaScript runtime and a bundler.
+`jsbundling-rails` will automatically detect the JavaScript bundler, so
+you may use alternatives such as Yarn without additional configuration.
 
 ### Installing Node.js and Yarn
 
@@ -193,9 +201,9 @@ along with Rails server in development. Further information is available in the
 Adding npm Packages
 -------------------
 
-### Vendoring NPM Packages with `importmap-rails`
+### Vendoring npm Packages with `importmap-rails`
 
-When using `importmap-rails`, NPM packages are downloaded into the `vendor`
+When using `importmap-rails`, npm packages are downloaded into the `vendor`
 folder in your app and checked into source control.
 
 Add a package to your application using `bin/importmap pin`:
@@ -209,15 +217,16 @@ your `config/importmap.rb`. You can then import the package in your
 `application.js`:
 
 ```javascript
+// app/javascript/application.js
 import ahoy from "ahoy.js";
 ```
 
 Further information is available in the
 [`importmap-rails` Readme](https://github.com/rails/importmap-rails?tab=readme-ov-file#using-npm-packages-via-javascript-cdns).
 
-### Installing NPM Packages with a JavaScript Bundler
+### Installing npm Packages with a JavaScript Bundler
 
-When using Bun, the Bun package manager installs NPM packages:
+When using Bun, the Bun package manager installs npm packages:
 
 ```bash
 $ bun add ahoy.js
@@ -239,7 +248,7 @@ Choosing Between an Import Map and a JavaScript Bundler
 -------------------------------------------------------
 
 In all new Rails apps, JavaScript is delivered using an import map. The Rails
-team believes that using an import maps reduces complexity, improves developer
+team believes that using an import map reduces complexity, improves developer
 experience, and delivers performance gains.
 
 For many applications, especially those that rely primarily on
