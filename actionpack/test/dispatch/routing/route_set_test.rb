@@ -257,6 +257,18 @@ module ActionDispatch
           assert_ractor_shareable(@set.named_routes.get(:post))
           assert_ractor_shareable(@set.named_routes.get(:posts))
         end
+
+        test "url helpers can be called inside a ractor" do
+          results = ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+            draw { resources :posts }
+
+            on_ractor(@set.url_helpers) do |helpers|
+              [helpers.posts_path, helpers.post_path(7)]
+            end
+          end
+
+          assert_equal(["/posts", "/posts/7"], results)
+        end
       end
 
       private
