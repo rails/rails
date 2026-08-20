@@ -1,3 +1,19 @@
+*   Fix `time` attributes comparing in the wrong order after being assigned a
+    `Time` from another time zone.
+
+    Casting pinned the date to 2000-01-01 after converting the value to
+    `Time.zone`, throwing away the day the conversion had moved it to. Two times
+    that ended up on either side of a day boundary then compared the wrong way
+    around.
+
+    Casting leaves the date alone again, and time attributes are compared by
+    their time of day instead, so assigning the same time twice still leaves
+    the attribute unchanged.
+
+    Fixes #58523.
+
+    *Lazizbek Ergashev*
+
 *   Apply `all_queries: true` default scopes consistently across counter caches,
     uniqueness validations, fixture lookups, and record reloads, while those
     operations continue to bypass ordinary default scopes.
