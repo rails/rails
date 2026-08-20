@@ -42,22 +42,6 @@ module ActiveRecord
           Time.zone = old_time_zone
         end
 
-        def test_time_attributes_keep_their_relative_order_when_converted
-          old_time_zone = Time.zone
-
-          Time.zone = "UTC"
-
-          subtype = ActiveRecord::Type::Time.new
-          converter = ActiveRecord::AttributeMethods::TimeZoneConversion::TimeZoneConverter.new(subtype)
-
-          from = ::Time.new(2000, 1, 1, 1, 0, 0, "+02:00")
-          to = ::Time.new(2000, 1, 1, 23, 0, 0, "+02:00")
-
-          assert_operator converter.cast(from), :<, converter.cast(to)
-        ensure
-          Time.zone = old_time_zone
-        end
-
         def test_time_attribute_dirty_tracking_with_fixed_date
           old_time_zone = Time.zone
           old_default_timezone = ActiveRecord.default_timezone
@@ -75,6 +59,47 @@ module ActiveRecord
           topic = timezone_aware_topic.create!(bonus_time: "08:00")
           topic.reload
           topic.bonus_time = "08:00"
+          assert_not_predicate topic, :bonus_time_changed?
+        ensure
+          Time.zone = old_time_zone
+          ActiveRecord.default_timezone = old_default_timezone
+        end
+
+        def test_time_attribute_comparison_across_time_zones
+          old_time_zone = Time.zone
+
+          Time.zone = "UTC"
+
+          subtype = ActiveRecord::Type::Time.new
+          converter = ActiveRecord::AttributeMethods::TimeZoneConversion::TimeZoneConverter.new(subtype)
+
+          from = Time.new(2000, 1, 1, 1, 0, 0, "+02:00")
+          to = Time.new(2000, 1, 1, 23, 0, 0, "+02:00")
+
+          assert_operator converter.cast(from), :<, converter.cast(to)
+        ensure
+          Time.zone = old_time_zone
+        end
+
+        def test_time_attribute_dirty_tracking_across_time_zones
+          old_time_zone = Time.zone
+          old_default_timezone = ActiveRecord.default_timezone
+
+          Time.zone = "Tokyo"
+          ActiveRecord.default_timezone = :utc
+
+          timezone_aware_topic = Class.new(ActiveRecord::Base) do
+            self.table_name = "topics"
+            self.time_zone_aware_attributes = true
+            self.time_zone_aware_types = [:datetime, :time]
+            attribute :bonus_time, :time
+          end
+
+          bonus_time = Time.utc(2000, 1, 1, 20, 0)
+
+          topic = timezone_aware_topic.create!(bonus_time: bonus_time)
+          topic.reload
+          topic.bonus_time = bonus_time
           assert_not_predicate topic, :bonus_time_changed?
         ensure
           Time.zone = old_time_zone

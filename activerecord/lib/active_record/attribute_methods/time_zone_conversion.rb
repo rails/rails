@@ -36,6 +36,14 @@ module ActiveRecord
           other.is_a?(self.class) && __getobj__ == other.__getobj__
         end
 
+        def changed?(old_value, new_value, new_value_before_type_cast)
+          if type == :time && old_value.acts_like?(:time) && new_value.acts_like?(:time)
+            fixed_date(old_value) != fixed_date(new_value)
+          else
+            super
+          end
+        end
+
         private
           def convert_time_to_time_zone(value)
             return if value.nil?
@@ -43,7 +51,7 @@ module ActiveRecord
             if value.acts_like?(:time)
               converted = value.in_time_zone
               if type == :time && converted
-                converted = converted.change(year: 2000, month: 1, day: 1)
+                converted = fixed_date(converted)
               end
               converted
             elsif value.respond_to?(:infinite?) && value.infinite?
@@ -51,6 +59,10 @@ module ActiveRecord
             else
               map(value) { |v| convert_time_to_time_zone(v) }
             end
+          end
+
+          def fixed_date(value)
+            value.change(year: 2000, month: 1, day: 1)
           end
 
           def set_time_zone_without_conversion(value)

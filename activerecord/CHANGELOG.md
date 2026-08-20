@@ -4,8 +4,13 @@
     Casting pinned the date to 2000-01-01 after converting the value to
     `Time.zone`, throwing away the day the conversion had moved it to. Two times
     that ended up on either side of a day boundary then compared the wrong way
-    around. Values read back from the database are still pinned, so assigning
-    the same time twice keeps leaving the attribute unchanged.
+    around.
+
+    Casting leaves the date alone again, and time attributes are compared by
+    their time of day instead, so assigning the same time twice still leaves
+    the attribute unchanged.
+
+    Fixes #58523.
 
     *Lazizbek Ergashev*
 
