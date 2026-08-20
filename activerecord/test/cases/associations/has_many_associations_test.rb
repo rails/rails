@@ -2395,20 +2395,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_predicate firm.clients, :loaded?
 
     author = Author.create!(name: "Carl")
-    third  = topics(:third)
-    fourth = topics(:fourth).becomes(Topic)
 
     new_topic = author.topics_without_type.build
 
     assert_not_predicate author.topics_without_type, :loaded?
 
-    assert_queries_count(1) do
-      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :SQLite3Adapter)
-        assert_equal fourth, author.topics_without_type.first
-        assert_equal third, author.topics_without_type.second
+    queries = capture_sql do
+      assert_queries_count(1) do
+        author.topics_without_type.first
+        author.topics_without_type.second
+        assert_equal new_topic, author.topics_without_type.last
       end
-      assert_equal new_topic, author.topics_without_type.last
     end
+
+    assert_no_match(/ORDER BY|LIMIT/, queries.sole)
 
     assert_predicate author.topics_without_type, :loaded?
   end
