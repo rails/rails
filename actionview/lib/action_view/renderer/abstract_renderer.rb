@@ -91,16 +91,19 @@ module ActionView
 
         def merge_prefix_into_object_path(prefix, object_path)
           if prefix.include?(?/) && object_path.include?(?/)
-            prefixes = []
             prefix_array = File.dirname(prefix).split("/")
             object_path_array = object_path.split("/")[0..-3] # skip model dir & partial
 
-            prefix_array.each_with_index do |dir, index|
-              break if dir == object_path_array[index]
-              prefixes << dir
-            end
+            # Drop the longest run of trailing controller-namespace segments that
+            # matches the leading object-namespace segments, so overlapping
+            # namespaces are de-duplicated regardless of how the two namespaces
+            # are aligned. Segments are compared whole so `quiz` never matches
+            # `quiztime`. `overlap` bottoms out at 0 (both `last(0)`/`first(0)`
+            # are `[]`), so no explicit guard is needed.
+            overlap = [prefix_array.length, object_path_array.length].min
+            overlap -= 1 until prefix_array.last(overlap) == object_path_array.first(overlap)
 
-            (prefixes << object_path).join("/")
+            (prefix_array.first(prefix_array.length - overlap) << object_path).join("/")
           else
             object_path
           end

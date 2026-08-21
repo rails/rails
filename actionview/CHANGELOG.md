@@ -7,6 +7,21 @@
 
     *Kenta Ishizaki*
 
+*   Fix partial path de-duplication when the controller and model namespaces
+    overlap.
+
+    When `prefix_partial_path_with_controller_namespace` is enabled, the
+    controller namespace is merged into the model's partial path. The previous
+    logic compared segments position by position and stopped at the first match,
+    which dropped non-overlapping segments (e.g. `learning/quiz/extra` +
+    `courses/quiz/questions` became `learning/courses/quiz/questions`) and failed
+    to de-duplicate when the namespaces were not aligned (e.g.
+    `learning/courses/quiz/questions` + `courses/quiz/questions` repeated
+    `courses/quiz`). The overlap between the trailing controller segments and the
+    leading model segments is now detected regardless of alignment.
+
+    *Ben Younes*
+
 *   `current_page?` matches HTTP QUERY requests
     ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) with
     `method: :query`. The default `method: :get` deliberately does not match
