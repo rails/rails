@@ -76,7 +76,18 @@ module ActionCable
 
         if subscription
           subscriptions[id_key] = subscription
-          subscription.subscribe_to_channel
+
+          successfully_subscribed = false
+          begin
+            subscription.subscribe_to_channel
+            successfully_subscribed = true
+          ensure
+            # Don't leave a half-initialized subscription occupying the
+            # identifier's slot if subscribe_to_channel raised: it would reject
+            # every later subscribe for that identifier with AlreadySubscribedError
+            # until the connection is torn down.
+            subscriptions.delete(id_key) unless successfully_subscribed
+          end
         else
           id_options = ActiveSupport::JSON.decode(id_key).with_indifferent_access
           raise ChannelNotFound, id_options[:channel]
