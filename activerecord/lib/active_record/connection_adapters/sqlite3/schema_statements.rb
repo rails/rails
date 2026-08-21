@@ -6,51 +6,8 @@ module ActiveRecord
       module SchemaStatements # :nodoc:
         # Returns an array of indexes for the given table.
         def indexes(table_name)
-          query_all("PRAGMA index_list(#{quote_table_name(table_name)})").filter_map do |row|
-            # Indexes SQLite creates implicitly for internal use start with "sqlite_".
-            # See https://www.sqlite.org/fileformat2.html#intschema
-            next if row["name"].start_with?("sqlite_")
-
-            index_sql = query_value(<<~SQL)
-              SELECT sql
-              FROM sqlite_master
-              WHERE name = #{quote(row['name'])} AND type = 'index'
-              UNION ALL
-              SELECT sql
-              FROM sqlite_temp_master
-              WHERE name = #{quote(row['name'])} AND type = 'index'
-            SQL
-
-            /\bON\b\s*"?(\w+?)"?\s*\((?<expressions>.+?)\)(?:\s*WHERE\b\s*(?<where>.+?))?(?:\s*\/\*.*\*\/)?\s*\z/im =~ index_sql
-
-            columns = query_all("PRAGMA index_info(#{quote(row['name'])})").map do |col|
-              col["name"]
-            end
-
-            where = where.sub(/\s*\/\*.*\*\/\z/, "") if where
-            orders = {}
-
-            if columns.any?(&:nil?) # index created with an expression
-              columns = expressions
-            else
-              # Add info on sort order for columns (only desc order is explicitly specified,
-              # asc is the default)
-              if index_sql # index_sql can be null in case of primary key indexes
-                index_sql.scan(/"(\w+)" DESC/).flatten.each { |order_column|
-                  orders[order_column] = :desc
-                }
-              end
-            end
-
-            IndexDefinition.new(
-              table_name,
-              row["name"],
-              row["unique"] != 0,
-              columns,
-              where: where,
-              orders: orders
-            )
-          end
+          result = fetch_indexes(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         def add_foreign_key(from_table, to_table, if_not_exists: false, **options)
@@ -82,19 +39,8 @@ module ActiveRecord
         end
 
         def check_constraints(table_name)
-          table_sql = query_value(<<-SQL)
-            SELECT sql
-            FROM sqlite_master
-            WHERE name = #{quote(table_name)} AND type = 'table'
-            UNION ALL
-            SELECT sql
-            FROM sqlite_temp_master
-            WHERE name = #{quote(table_name)} AND type = 'table'
-          SQL
-
-          table_sql.to_s.scan(/CONSTRAINT\s+(?<name>\w+)\s+CHECK\s+\((?<expression>(:?[^()]|\(\g<expression>\))+)\)/i).map do |name, expression|
-            CheckConstraintDefinition.new(table_name, expression, name: name)
-          end
+          result = fetch_check_constraints(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         def add_check_constraint(table_name, expression, if_not_exists: false, **options)
@@ -123,6 +69,97 @@ module ActiveRecord
         end
 
         private
+          # sqlite_master lists the permanent objects in the database and
+          # sqlite_temp_master the temporary ones.
+          MASTER_CTE = <<~SQL
+            WITH master AS (
+              SELECT name, type, sql FROM sqlite_master
+              UNION ALL
+              SELECT name, type, sql FROM sqlite_temp_master
+            )
+          SQL
+
+          def fetch_indexes(tables)
+            return {} if tables.empty?
+
+            rows = query_all(<<~SQL).group_by { |row| row["table_name"] }
+              #{MASTER_CTE}
+              SELECT m.name AS table_name, i.name, i."unique"
+              FROM master m
+              JOIN pragma_index_list(m.name) i
+              WHERE m.type = 'table'
+                AND m.name IN (#{quoted_table_names(tables)})
+                AND i.name NOT GLOB 'sqlite_*'
+            SQL
+
+            details = index_details(rows.each_value.flat_map { |group| group.map { |row| row["name"] } })
+
+            tables.index_with do |table_name|
+              rows.fetch(table_name, []).map do |row|
+                index_sql, columns = details[row["name"]] || [nil, []]
+
+                build_index(table_name, row, index_sql, columns)
+              end
+            end
+          end
+
+          # The statement an index was created with says whether it is partial and how
+          # its columns are ordered, and repeats once per column of the index.
+          def index_details(names)
+            return {} if names.empty?
+
+            query_all(<<~SQL).group_by { |row| row["index_name"] }
+              #{MASTER_CTE}
+              SELECT m.name AS index_name, m.sql, i.name
+              FROM master m
+              JOIN pragma_index_info(m.name) i
+              WHERE m.type = 'index'
+                AND m.name IN (#{names.map { |name| quote(name) }.join(", ")})
+              ORDER BY m.name, i.seqno
+            SQL
+              .transform_values { |group| [group.first["sql"], group.map { |row| row["name"] }] }
+          end
+
+          def build_index(table_name, row, index_sql, columns)
+            /\bON\b\s*"?(\w+?)"?\s*\((?<expressions>.+?)\)(?:\s*WHERE\b\s*(?<where>.+?))?(?:\s*\/\*.*\*\/)?\s*\z/im =~ index_sql
+
+            where = where.sub(/\s*\/\*.*\*\/\z/, "") if where
+            orders = {}
+
+            if columns.any?(&:nil?) # index created with an expression
+              columns = expressions
+            else
+              # Add info on sort order for columns (only desc order is explicitly specified,
+              # asc is the default)
+              if index_sql # index_sql can be null in case of primary key indexes
+                index_sql.scan(/"(\w+)" DESC/).flatten.each { |order_column|
+                  orders[order_column] = :desc
+                }
+              end
+            end
+
+            IndexDefinition.new(
+              table_name,
+              row["name"],
+              row["unique"] != 0,
+              columns,
+              where: where,
+              orders: orders
+            )
+          end
+
+          def fetch_check_constraints(tables)
+            structures = table_structures(tables)
+
+            tables.index_with do |table_name|
+              create_table_sql, = structures[table_name]
+
+              create_table_sql.to_s.scan(/CONSTRAINT\s+(?<name>\w+)\s+CHECK\s+\((?<expression>(:?[^()]|\(\g<expression>\))+)\)/i).map do |name, expression|
+                CheckConstraintDefinition.new(table_name, expression, name: name)
+              end
+            end
+          end
+
           def valid_table_definition_options
             super + [:rename]
           end

@@ -130,53 +130,13 @@ module ActiveRecord
       # it is preferred to use {update_all}[rdoc-ref:Relation#update_all]
       # for updating all records in a single query.
       def update(id = :all, attributes)
-        if update_multiple_ids?(id)
-          if id.any?(ActiveRecord::Base)
-            raise ArgumentError,
-              "You are passing an array of ActiveRecord::Base instances to `update`. " \
-              "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
-          end
-          id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
-            object.update(attributes[idx])
-          }
-        elsif id == :all
-          all.each { |record| record.update(attributes) }
-        else
-          if ActiveRecord::Base === id
-            raise ArgumentError,
-              "You are passing an instance of ActiveRecord::Base to `update`. " \
-              "Please pass the id of the object by calling `.id`."
-          end
-          object = find(id)
-          object.update(attributes)
-          object
-        end
+        all.update(id, attributes)
       end
 
       # Updates the object (or multiple objects) just like #update but calls #update! instead
       # of +update+, so an exception is raised if the record is invalid and saving will fail.
       def update!(id = :all, attributes)
-        if update_multiple_ids?(id)
-          if id.any?(ActiveRecord::Base)
-            raise ArgumentError,
-              "You are passing an array of ActiveRecord::Base instances to `update!`. " \
-              "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
-          end
-          id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
-            object.update!(attributes[idx])
-          }
-        elsif id == :all
-          all.each { |record| record.update!(attributes) }
-        else
-          if ActiveRecord::Base === id
-            raise ArgumentError,
-              "You are passing an instance of ActiveRecord::Base to `update!`. " \
-              "Please pass the id of the object by calling `.id`."
-          end
-          object = find(id)
-          object.update!(attributes)
-          object
-        end
+        all.update!(id, attributes)
       end
 
       # Accepts a list of attribute names to be used in the WHERE clause
@@ -295,18 +255,6 @@ module ActiveRecord
           subclass.class_eval do
             @query_constraints_list = nil
             @has_query_constraints = false
-          end
-        end
-
-        # +update+/+update!+ accept either a single id or an array of ids. For a
-        # composite primary key a single id is itself an array, so an array of
-        # ids is an array of arrays, mirroring how +Relation#destroy+ tells the
-        # two apart.
-        def update_multiple_ids?(id)
-          if composite_primary_key?
-            id.is_a?(Array) && (id.empty? || id.first.is_a?(Array))
-          else
-            id.is_a?(Array)
           end
         end
 
@@ -702,7 +650,7 @@ module ActiveRecord
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
       counters = { attribute => change, touch: touch }
 
-      self.class.unscoped.where!(_query_constraints_hash).update_counters(counters)
+      self.class.all_queries_scope.where!(_query_constraints_hash).update_counters(counters)
       public_send(:"clear_#{attribute}_change")
       self
     end
@@ -884,15 +832,10 @@ module ActiveRecord
       def _find_record(options)
         all_queries = options ? options[:all_queries] : nil
         base = if all_queries
-          self.class.default_scoped(all_queries: true)
+          self.class.all_queries_scope
         else
           self.class.all
         end
-
-        if all_queries && (current_scope = self.class.global_current_scope)
-          base = base.merge!(current_scope)
-        end
-
         base = base.preload(strict_loaded_associations)
 
         if options && options[:lock]

@@ -340,6 +340,13 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.public_path
     end
 
+    test "Rails.app executor and reloader are named" do
+      app "development"
+
+      assert Rails.app.executor.name.starts_with?("ActiveSupport::Executor(#<AppTemplate::Application:")
+      assert Rails.app.reloader.name.starts_with?("ActiveSupport::Reloader(#<AppTemplate::Application:")
+    end
+
     test "config.enable_reloading is !config.cache_classes" do
       app "development"
 
@@ -5468,6 +5475,27 @@ module ApplicationTests
 
       get "/posts"
       assert_equal "[:active_record_connected_to_stack, :custom_key]", last_response.body
+    end
+
+    if RUBY_VERSION >= "4.0"
+      test "ActionDispatch configuration is frozen after boot" do
+        app "development"
+
+        [
+          ActionDispatch::ExceptionWrapper.rescue_responses,
+          ActionDispatch::ExceptionWrapper.rescue_templates,
+          ActionDispatch::ExceptionWrapper.wrapper_exceptions,
+          ActionDispatch::ExceptionWrapper.silent_exceptions,
+        ].each do |config|
+          assert_ractor_shareable(config)
+        end
+      end
+
+      test "ActiveRecord configuration is frozen after boot" do
+        app "development"
+
+        assert_ractor_shareable(ActiveRecord.query_transformers)
+      end
     end
 
     private

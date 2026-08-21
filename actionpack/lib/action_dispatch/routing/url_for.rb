@@ -102,7 +102,7 @@ module ActionDispatch
             mattr_writer :default_url_options
           end
 
-          self.default_url_options = {}
+          self.default_url_options = {}.freeze
         end
 
         include(*_url_for_modules) if respond_to?(:_url_for_modules)

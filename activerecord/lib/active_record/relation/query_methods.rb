@@ -1613,8 +1613,14 @@ module ActiveRecord
       self
     end
 
-    # Deduplicate multiple values.
-    def uniq!(name)
+    def uniq!(name) # :nodoc:
+      ActiveRecord.deprecator.warn(<<~MSG.squish)
+        `ActiveRecord::Relation#uniq!` is deprecated and will be removed in
+        Rails 9.0. It was added in Rails 6.1 as part of the migration path
+        toward Rails 7.0's default deduplication of multi-value query
+        methods, which is no longer necessary now that deduplication is
+        applied automatically.
+      MSG
       if values = @values[name]
         values.uniq! if values.is_a?(Array) && !values.empty?
       end

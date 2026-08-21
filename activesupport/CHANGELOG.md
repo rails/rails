@@ -1,3 +1,35 @@
+*   Return a UTC time from `Time.rfc3339` for strings with the "Z" UTC designator.
+
+    ```ruby
+    Time.rfc3339("2026-08-07T10:00:00Z")
+    # Before: 2026-08-07 10:00:00 +0000 (utc? => false)
+    # After:  2026-08-07 10:00:00 UTC   (utc? => true)
+    ```
+
+    This matches Ruby's `Time.rfc3339`, which is expected to be included in
+    Ruby 4.1.
+    The resulting time value is unchanged, but serialized forms such as
+    `as_json` now end in "Z" instead of "+00:00". Call `getlocal("+00:00")`
+    to keep the previous representation:
+
+    ```ruby
+    Time.rfc3339("2026-08-07T10:00:00Z").getlocal("+00:00")
+    # => 2026-08-07 10:00:00 +0000 (utc? => false)
+    ```
+
+    *Yasuo Honda*
+
+*   Add `Pacific Time (Canada)` and `Alberta` to `ActiveSupport::TimeZone::MAPPING`.
+
+    British Columbia and Alberta no longer share winter clocks with US Pacific
+    and Mountain time. The existing `Pacific Time (US & Canada)` and
+    `Mountain Time (US & Canada)` entries remain mapped to `America/Los_Angeles`
+    and `America/Denver` for compatibility. Prefer `Pacific Time (Canada)` /
+    `Alberta` (or the IANA identifiers `America/Vancouver` /
+    `America/Edmonton`) for users in those regions.
+
+    *Said Kaldybaev*
+
 *   Fix `Range#sum` with a falsey initial value.
 
     Summing an integer range with a falsey starting value (such as nil or false)

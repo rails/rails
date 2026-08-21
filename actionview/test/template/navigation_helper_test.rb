@@ -729,6 +729,14 @@ class NavigationHelperTest < ActiveSupport::TestCase
     assert current_page?("/events", method: :post)
   end
 
+  def test_current_page_with_query_verb
+    @request = request_for_url("/search", method: :query)
+
+    assert_not current_page?("/search")
+    assert current_page?("/search", method: :query)
+    assert current_page?("/search", method: [:get, :query])
+  end
+
   def test_current_page_with_array_of_methods_including_request_method
     @request = request_for_url("/events", method: :post)
 

@@ -79,15 +79,11 @@ module ActiveSupport
     }.freeze
 
     class << self
-      def logger
-        @logger ||= if defined?(Rails) && Rails.respond_to?(:logger)
-          Rails.logger
-        end
-      end
+      attr_reader :logger
 
       def logger=(logger)
-        @supports_flush = nil
         @logger = logger
+        @supports_flush = logger.respond_to?(:flush)
       end
 
       def attach_to(...) # :nodoc:
@@ -102,7 +98,6 @@ module ActiveSupport
 
       # Flush all log_subscribers' logger.
       def flush_all!
-        @supports_flush = logger.respond_to?(:flush) if @supports_flush.nil?
         logger.flush if @supports_flush
       end
 

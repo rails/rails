@@ -12,7 +12,7 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
       def setup
         build_app
 
-        add_to_env_config "production", "ActiveSupport::Ractors.unshareable_proc_action = :raise"
+        add_to_env_config "production", "ActiveSupport::Ractors.unshareable_proc_action = :warn"
 
         # Remove defaults that are not compatible
         add_to_env_config "production", "config.logger = ActiveSupport::Ractors::Logger.new"

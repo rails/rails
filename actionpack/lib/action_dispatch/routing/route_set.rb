@@ -187,11 +187,13 @@ module ActionDispatch
 
         class UrlHelper
           def self.create(route, options, route_name)
-            if optimize_helper?(route)
+            helper = if optimize_helper?(route)
               OptimizedUrlHelper.new(route, options, route_name)
             else
               new(route, options, route_name)
             end
+
+            ActiveSupport::Ractors.try_make_shareable(helper)
           end
 
           def self.optimize_helper?(route)
@@ -331,7 +333,7 @@ module ActionDispatch
           #     foo_url(bar, baz, bang, sort_by: 'baz')
           #
           def define_url_helper(mod, name, helper, url_strategy)
-            mod.define_method(name) do |*args|
+            mod.define_method(name, ActiveSupport::Ractors.try_shareable_proc { |*args|
               last = args.last
               options = \
                 case last
@@ -341,7 +343,7 @@ module ActionDispatch
                   args.pop.to_h
                 end
               helper.call(self, name, args, options, url_strategy)
-            end
+            })
           end
       end
 
@@ -482,7 +484,12 @@ module ActionDispatch
       def finalize!
         return if @finalized
         @append.each { |blk| eval_block(blk) }
+
+        url_helpers(true)
+        url_helpers(false)
         @finalized = true
+
+        ActiveSupport::Ractors.try_make_shareable(self)
       end
 
       def clear!
@@ -558,7 +565,7 @@ module ActionDispatch
             end
           end
 
-          @_proxy = proxy_class.new(routes)
+          @_proxy = proxy_class.new(routes).freeze
 
           class << self
             def url_for(options)
@@ -605,18 +612,18 @@ module ActionDispatch
             extend path_helpers
           end
 
+          helper_module = self
+
           # plus a singleton class method called _routes ...
           included do
-            redefine_singleton_method(:_routes) { routes }
+            redefine_singleton_method(:_routes, &ActiveSupport::Ractors.try_shareable_proc { helper_module._routes })
           end
 
           # And an instance method _routes. Note that UrlFor (included in this module) add
           # extra conveniences for working with @_routes.
-          define_method(:_routes) { @_routes || routes }
+          define_method(:_routes, ActiveSupport::Ractors.try_shareable_proc { @_routes || helper_module._routes })
 
-          define_method(:_generate_paths_by_default) do
-            supports_path
-          end
+          define_method(:_generate_paths_by_default, ActiveSupport::Ractors.try_shareable_proc { supports_path })
 
           private :_generate_paths_by_default
 

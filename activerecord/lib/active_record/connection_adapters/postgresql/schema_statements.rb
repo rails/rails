@@ -96,96 +96,8 @@ module ActiveRecord
 
         # Returns an array of indexes for the given table.
         def indexes(table_name) # :nodoc:
-          scope = quoted_scope(table_name)
-
-          result = query_rows(<<~SQL)
-            SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid),
-                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid,
-                            ARRAY(
-                              SELECT pg_get_indexdef(d.indexrelid, k + 1, true)
-                              FROM generate_subscripts(d.indkey, 1) AS k
-                              ORDER BY k
-                            ) AS columns
-            FROM pg_class t
-            INNER JOIN pg_index d ON t.oid = d.indrelid
-            INNER JOIN pg_class i ON d.indexrelid = i.oid
-            LEFT JOIN pg_namespace n ON n.oid = t.relnamespace
-            WHERE i.relkind IN ('i', 'I')
-              AND d.indisprimary = 'f'
-              AND t.relname = #{scope[:name]}
-              AND n.nspname = #{scope[:schema]}
-            ORDER BY i.relname
-          SQL
-
-          result.map do |row|
-            index_name = row[0]
-            unique = row[1]
-            indkey = row[2].split(" ").map(&:to_i)
-            inddef = row[3]
-            comment = row[4]
-            valid = row[5]
-            columns = decode_string_array(row[6]).map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) }
-
-            using, expressions, include, nulls_not_distinct, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: INCLUDE \((.+?)\))?( NULLS NOT DISTINCT)?(?: WHERE (.+))?\z/m).flatten
-
-            orders = {}
-            opclasses = {}
-            include_columns = include ? include.split(",").map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) } : []
-
-            if indkey.include?(0)
-              columns = expressions
-            else
-              # prevent INCLUDE columns from being matched
-              columns.reject! { |c| include_columns.include?(c) }
-
-              # add info on sort order (only desc order is explicitly specified, asc is the default)
-              # and non-default opclasses
-              expressions.scan(/(?<column>\w+)"?\s?(?<opclass>(?:\w+\.)?\w+_ops(_\w+)?)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
-                opclasses[column] = opclass.split(".").last.to_sym if opclass
-
-                if nulls
-                  orders[column] = [desc, nulls].compact.join(" ")
-                else
-                  orders[column] = :desc if desc
-                end
-              end
-            end
-
-            IndexDefinition.new(
-              table_name,
-              index_name,
-              unique,
-              columns,
-              orders: orders,
-              opclasses: opclasses,
-              where: where,
-              using: using.to_sym,
-              include: include_columns.presence,
-              nulls_not_distinct: nulls_not_distinct.present?,
-              comment: comment.presence,
-              valid: valid
-            )
-          end
-        end
-
-        def table_options(table_name) # :nodoc:
-          options = {}
-
-          comment = table_comment(table_name)
-
-          options[:comment] = comment if comment
-
-          inherited_table_names = inherited_table_names(table_name).presence
-
-          options[:options] = "INHERITS (#{inherited_table_names.join(", ")})" if inherited_table_names
-
-          if !options[:options] && supports_native_partitioning?
-            partition_definition = table_partition_definition(table_name)
-
-            options[:options] = "PARTITION BY #{partition_definition}" if partition_definition
-          end
-
-          options
+          result = fetch_indexes(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         # Returns a comment stored in database for given table
@@ -201,37 +113,6 @@ module ActiveRecord
                 AND n.nspname = #{scope[:schema]}
             SQL
           end
-        end
-
-        # Returns the partition definition of a given table
-        def table_partition_definition(table_name) # :nodoc:
-          scope = quoted_scope(table_name, type: "BASE TABLE")
-
-          query_value(<<~SQL)
-            SELECT pg_catalog.pg_get_partkeydef(c.oid)
-            FROM pg_catalog.pg_class c
-              LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
-            WHERE c.relname = #{scope[:name]}
-              AND c.relkind IN (#{scope[:type]})
-              AND n.nspname = #{scope[:schema]}
-          SQL
-        end
-
-        # Returns the inherited table name of a given table
-        def inherited_table_names(table_name) # :nodoc:
-          scope = quoted_scope(table_name, type: "BASE TABLE")
-
-          query_values(<<~SQL)
-            SELECT parent.relname
-            FROM pg_catalog.pg_inherits i
-              JOIN pg_catalog.pg_class child ON i.inhrelid = child.oid
-              JOIN pg_catalog.pg_class parent ON i.inhparent = parent.oid
-              LEFT JOIN pg_namespace n ON n.oid = child.relnamespace
-            WHERE child.relname = #{scope[:name]}
-              AND child.relkind IN (#{scope[:type]})
-              AND n.nspname = #{scope[:schema]}
-            ORDER BY i.inhseqno
-          SQL
         end
 
         # Returns the current database name.
@@ -589,16 +470,8 @@ module ActiveRecord
         end
 
         def primary_keys(table_name) # :nodoc:
-          query_values(<<~SQL)
-            SELECT a.attname
-            FROM pg_index i
-            JOIN pg_attribute a
-              ON a.attrelid = i.indrelid
-              AND a.attnum = ANY(i.indkey)
-            WHERE i.indrelid = #{quote(quote_table_name(table_name))}::regclass
-              AND i.indisprimary
-            ORDER BY array_position(i.indkey, a.attnum)
-          SQL
+          result = fetch_primary_keys(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         # Renames a table.
@@ -744,59 +617,8 @@ module ActiveRecord
         end
 
         def foreign_keys(table_name)
-          scope = quoted_scope(table_name)
-          conenforced_column = supports_enforced_foreign_keys? ? ", c.conenforced AS enforced" : ""
-          fk_info = query_all(<<~SQL)
-            SELECT t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid#{conenforced_column},
-              (
-                SELECT array_agg(a.attname ORDER BY idx)
-                FROM (
-                  SELECT idx, c.conkey[idx] AS conkey_elem
-                  FROM generate_subscripts(c.conkey, 1) AS idx
-                ) indexed_conkeys
-                JOIN pg_attribute a ON a.attrelid = t1.oid
-                AND a.attnum = indexed_conkeys.conkey_elem
-              ) AS conkey_names,
-              (
-                SELECT array_agg(a.attname ORDER BY idx)
-                FROM (
-                  SELECT idx, c.confkey[idx] AS confkey_elem
-                  FROM generate_subscripts(c.confkey, 1) AS idx
-                ) indexed_confkeys
-                JOIN pg_attribute a ON a.attrelid = t2.oid
-                AND a.attnum = indexed_confkeys.confkey_elem
-              ) AS confkey_names
-            FROM pg_constraint c
-            JOIN pg_class t1 ON c.conrelid = t1.oid
-            JOIN pg_class t2 ON c.confrelid = t2.oid
-            JOIN pg_namespace n ON c.connamespace = n.oid
-            WHERE c.contype = 'f'
-              AND t1.relname = #{scope[:name]}
-              AND n.nspname = #{scope[:schema]}
-            ORDER BY c.conname
-          SQL
-
-          fk_info.map do |row|
-            to_table = Utils.extract_schema_qualified_name(row["to_table"]).to_s
-
-            column = decode_string_array(row["conkey_names"])
-            primary_key = decode_string_array(row["confkey_names"])
-
-            options = {
-              column: column.size == 1 ? column.first : column,
-              name: row["name"],
-              primary_key: primary_key.size == 1 ? primary_key.first : primary_key
-            }
-
-            options[:on_delete] = extract_foreign_key_action(row["on_delete"])
-            options[:on_update] = extract_foreign_key_action(row["on_update"])
-            options[:deferrable] = extract_constraint_deferrable(row["deferrable"], row["deferred"])
-
-            options[:validate] = row["valid"]
-            options[:enforced] = row["enforced"] if supports_enforced_foreign_keys?
-
-            ForeignKeyDefinition.new(table_name, to_table, options)
-          end
+          result = fetch_foreign_keys(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         def foreign_tables
@@ -808,101 +630,24 @@ module ActiveRecord
         end
 
         def check_constraints(table_name) # :nodoc:
-          scope = quoted_scope(table_name)
-
-          check_info = query_all(<<-SQL)
-            SELECT conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid
-            FROM pg_constraint c
-            JOIN pg_class t ON c.conrelid = t.oid
-            JOIN pg_namespace n ON n.oid = c.connamespace
-            WHERE c.contype = 'c'
-              AND t.relname = #{scope[:name]}
-              AND n.nspname = #{scope[:schema]}
-          SQL
-
-          check_info.map do |row|
-            options = {
-              name: row["conname"],
-              validate: row["valid"]
-            }
-            expression = row["constraintdef"][/CHECK \((.+)\)/m, 1]
-
-            CheckConstraintDefinition.new(table_name, expression, options)
-          end
+          result = fetch_check_constraints(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
-        # Returns an array of exclusion constraints for the given table.
+        # Returns an array of exclusion constraints for the given table, or a Hash of
+        # them keyed by table name when given an Array of tables.
         # The exclusion constraints are represented as ExclusionConstraintDefinition objects.
         def exclusion_constraints(table_name)
-          scope = quoted_scope(table_name)
-
-          exclusion_info = query_all(<<-SQL)
-            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef, c.condeferrable, c.condeferred
-            FROM pg_constraint c
-            JOIN pg_class t ON c.conrelid = t.oid
-            JOIN pg_namespace n ON n.oid = c.connamespace
-            WHERE c.contype = 'x'
-              AND t.relname = #{scope[:name]}
-              AND n.nspname = #{scope[:schema]}
-          SQL
-
-          exclusion_info.map do |row|
-            method_and_elements, predicate = row["constraintdef"].split(" WHERE ")
-            method_and_elements_parts = method_and_elements.match(/EXCLUDE(?: USING (?<using>\S+))? \((?<expression>.+)\)/)
-            predicate.remove!(/ DEFERRABLE(?: INITIALLY (?:IMMEDIATE|DEFERRED))?/) if predicate
-            predicate = predicate.from(2).to(-3) if predicate # strip 2 opening and closing parentheses
-
-            deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
-
-            options = {
-              name: row["conname"],
-              using: method_and_elements_parts["using"].to_sym,
-              where: predicate,
-              deferrable: deferrable
-            }
-
-            ExclusionConstraintDefinition.new(table_name, method_and_elements_parts["expression"], options)
-          end
+          result = fetch_exclusion_constraints(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
-        # Returns an array of unique constraints for the given table.
+        # Returns an array of unique constraints for the given table, or a Hash of them
+        # keyed by table name when given an Array of tables.
         # The unique constraints are represented as UniqueConstraintDefinition objects.
         def unique_constraints(table_name)
-          scope = quoted_scope(table_name)
-
-          unique_info = query_all(<<~SQL)
-            SELECT c.conname, c.conrelid, c.condeferrable, c.condeferred, pg_get_constraintdef(c.oid) AS constraintdef,
-            (
-              SELECT array_agg(a.attname ORDER BY idx)
-              FROM (
-                SELECT idx, c.conkey[idx] AS conkey_elem
-                FROM generate_subscripts(c.conkey, 1) AS idx
-              ) indexed_conkeys
-              JOIN pg_attribute a ON a.attrelid = t.oid
-              AND a.attnum = indexed_conkeys.conkey_elem
-            ) AS conkey_names
-            FROM pg_constraint c
-            JOIN pg_class t ON c.conrelid = t.oid
-            JOIN pg_namespace n ON n.oid = c.connamespace
-            WHERE c.contype = 'u'
-              AND t.relname = #{scope[:name]}
-              AND n.nspname = #{scope[:schema]}
-          SQL
-
-          unique_info.map do |row|
-            columns = decode_string_array(row["conkey_names"])
-
-            nulls_not_distinct = row["constraintdef"].start_with?("UNIQUE NULLS NOT DISTINCT")
-            deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
-
-            options = {
-              name: row["conname"],
-              nulls_not_distinct: nulls_not_distinct,
-              deferrable: deferrable
-            }
-
-            UniqueConstraintDefinition.new(table_name, columns, options)
-          end
+          result = fetch_unique_constraints(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         # Adds a new exclusion constraint to the table. +expression+ is a String
@@ -1199,6 +944,322 @@ module ActiveRecord
         end
 
         private
+          def fetch_indexes(tables)
+            fetch_by_schema(tables) do |schema, group|
+              # t.relname comes last so #build_indexes can keep reading columns by position.
+              rows = query_rows(<<~SQL)
+                SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid),
+                                pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid,
+                                ARRAY(
+                                  SELECT pg_get_indexdef(d.indexrelid, k + 1, true)
+                                  FROM generate_subscripts(d.indkey, 1) AS k
+                                  ORDER BY k
+                                ) AS columns, t.relname
+                FROM pg_class t
+                INNER JOIN pg_index d ON t.oid = d.indrelid
+                INNER JOIN pg_class i ON d.indexrelid = i.oid
+                LEFT JOIN pg_namespace n ON n.oid = t.relnamespace
+                WHERE i.relkind IN ('i', 'I')
+                  AND d.indisprimary = 'f'
+                  AND n.nspname = #{schema} AND t.relname IN (#{quoted_table_names(group)})
+                ORDER BY i.relname
+              SQL
+              by_name = rows.group_by(&:last)
+
+              group.index_with { |table| build_indexes(table, rows_for(by_name, table)) }
+            end
+          end
+
+          def fetch_table_options(tables)
+            fetch_by_schema(tables) do |schema, group|
+              # A table comes back once per parent it inherits from, and once if it
+              # inherits from nothing.
+              by_name = query_all(<<~SQL).group_by { |row| row["table_name"] }
+                SELECT t.relname AS table_name, t.comment, t.partition_key, parent.relname AS parent
+                FROM (
+                  SELECT DISTINCT ON (c.relname) c.oid, c.relname,
+                         pg_catalog.obj_description(c.oid, 'pg_class') AS comment,
+                         #{supports_native_partitioning? ? "pg_catalog.pg_get_partkeydef(c.oid)" : "NULL"} AS partition_key
+                  FROM pg_class c
+                  JOIN pg_namespace n ON n.oid = c.relnamespace
+                  WHERE n.nspname = #{schema}
+                    AND c.relname IN (#{quoted_table_names(group)})
+                    AND c.relkind IN ('r', 'p')
+                  ORDER BY c.relname, array_position(current_schemas(false), n.nspname)
+                ) t
+                LEFT JOIN pg_inherits i ON i.inhrelid = t.oid
+                LEFT JOIN pg_class parent ON i.inhparent = parent.oid
+                ORDER BY t.relname, i.inhseqno
+              SQL
+
+              group.index_with { |table| build_table_options(rows_for(by_name, table)) }
+            end
+          end
+
+          def build_table_options(rows)
+            options = {}
+            first = rows.first
+            return options unless first
+
+            options[:comment] = first["comment"] if first["comment"]
+
+            parents = rows.filter_map { |row| row["parent"] }
+
+            if parents.any?
+              options[:options] = "INHERITS (#{parents.join(", ")})"
+            elsif first["partition_key"]
+              options[:options] = "PARTITION BY #{first["partition_key"]}"
+            end
+
+            options
+          end
+
+          def fetch_primary_keys(tables)
+            fetch_by_schema(tables) do |schema, group|
+              # An unqualified name resolves to the first schema on the search path
+              # that has it, the way ::regclass would for a single table.
+              by_name = query_all(<<~SQL).group_by { |row| row["table_name"] }
+                SELECT t.relname AS table_name, a.attname AS column_name
+                FROM pg_index i
+                JOIN (
+                  SELECT DISTINCT ON (c.relname) c.oid, c.relname
+                  FROM pg_class c
+                  JOIN pg_namespace n ON n.oid = c.relnamespace
+                  WHERE n.nspname = #{schema}
+                    AND c.relname IN (#{quoted_table_names(group)})
+                  ORDER BY c.relname, array_position(current_schemas(false), n.nspname)
+                ) t ON t.oid = i.indrelid
+                JOIN pg_attribute a
+                  ON a.attrelid = i.indrelid
+                  AND a.attnum = ANY(i.indkey)
+                WHERE i.indisprimary
+                ORDER BY t.relname, array_position(i.indkey, a.attnum)
+              SQL
+
+              group.index_with { |table| rows_for(by_name, table).map { |row| row["column_name"] } }
+            end
+          end
+
+          def build_indexes(table_name, result)
+            result.map do |row|
+              index_name = row[0]
+              unique = row[1]
+              indkey = row[2].split(" ").map(&:to_i)
+              inddef = row[3]
+              comment = row[4]
+              valid = row[5]
+              columns = decode_string_array(row[6]).map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) }
+
+              using, expressions, include, nulls_not_distinct, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: INCLUDE \((.+?)\))?( NULLS NOT DISTINCT)?(?: WHERE (.+))?\z/m).flatten
+
+              orders = {}
+              opclasses = {}
+              include_columns = include ? include.split(",").map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) } : []
+
+              if indkey.include?(0)
+                columns = expressions
+              else
+                # prevent INCLUDE columns from being matched
+                columns.reject! { |c| include_columns.include?(c) }
+
+                # add info on sort order (only desc order is explicitly specified, asc is the default)
+                # and non-default opclasses
+                expressions.scan(/(?<column>\w+)"?\s?(?<opclass>(?:\w+\.)?\w+_ops(_\w+)?)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
+                  opclasses[column] = opclass.split(".").last.to_sym if opclass
+
+                  if nulls
+                    orders[column] = [desc, nulls].compact.join(" ")
+                  else
+                    orders[column] = :desc if desc
+                  end
+                end
+              end
+
+              IndexDefinition.new(
+                table_name,
+                index_name,
+                unique,
+                columns,
+                orders: orders,
+                opclasses: opclasses,
+                where: where,
+                using: using.to_sym,
+                include: include_columns.presence,
+                nulls_not_distinct: nulls_not_distinct.present?,
+                comment: comment.presence,
+                valid: valid
+              )
+            end
+          end
+
+          def fetch_foreign_keys(tables)
+            fetch_by_schema(tables) do |schema, group|
+              conenforced_column = supports_enforced_foreign_keys? ? ", c.conenforced AS enforced" : ""
+
+              rows = query_all(<<~SQL)
+                SELECT t1.relname AS from_table, t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid#{conenforced_column},
+                  (
+                    SELECT array_agg(a.attname ORDER BY idx)
+                    FROM (
+                      SELECT idx, c.conkey[idx] AS conkey_elem
+                      FROM generate_subscripts(c.conkey, 1) AS idx
+                    ) indexed_conkeys
+                    JOIN pg_attribute a ON a.attrelid = t1.oid
+                    AND a.attnum = indexed_conkeys.conkey_elem
+                  ) AS conkey_names,
+                  (
+                    SELECT array_agg(a.attname ORDER BY idx)
+                    FROM (
+                      SELECT idx, c.confkey[idx] AS confkey_elem
+                      FROM generate_subscripts(c.confkey, 1) AS idx
+                    ) indexed_confkeys
+                    JOIN pg_attribute a ON a.attrelid = t2.oid
+                    AND a.attnum = indexed_confkeys.confkey_elem
+                  ) AS confkey_names
+                FROM pg_constraint c
+                JOIN pg_class t1 ON c.conrelid = t1.oid
+                JOIN pg_class t2 ON c.confrelid = t2.oid
+                JOIN pg_namespace n ON c.connamespace = n.oid
+                WHERE c.contype = 'f'
+                  AND n.nspname = #{schema} AND t1.relname IN (#{quoted_table_names(group)})
+                ORDER BY c.conname
+              SQL
+              by_name = rows.group_by { |row| row["from_table"] }
+
+              group.index_with { |table| build_foreign_keys(table, rows_for(by_name, table)) }
+            end
+          end
+
+          def build_foreign_keys(table_name, fk_info)
+            fk_info.map do |row|
+              to_table = Utils.extract_schema_qualified_name(row["to_table"]).to_s
+
+              column = decode_string_array(row["conkey_names"])
+              primary_key = decode_string_array(row["confkey_names"])
+
+              options = {
+                column: column.size == 1 ? column.first : column,
+                name: row["name"],
+                primary_key: primary_key.size == 1 ? primary_key.first : primary_key
+              }
+
+              options[:on_delete] = extract_foreign_key_action(row["on_delete"])
+              options[:on_update] = extract_foreign_key_action(row["on_update"])
+              options[:deferrable] = extract_constraint_deferrable(row["deferrable"], row["deferred"])
+
+              options[:validate] = row["valid"]
+              options[:enforced] = row["enforced"] if supports_enforced_foreign_keys?
+
+              ForeignKeyDefinition.new(table_name, to_table, options)
+            end
+          end
+
+          def fetch_check_constraints(tables)
+            fetch_by_schema(tables) do |schema, group|
+              rows = query_all(<<~SQL)
+                SELECT t.relname AS table_name, conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid
+                FROM pg_constraint c
+                JOIN pg_class t ON c.conrelid = t.oid
+                JOIN pg_namespace n ON n.oid = c.connamespace
+                WHERE c.contype = 'c'
+                  AND n.nspname = #{schema} AND t.relname IN (#{quoted_table_names(group)})
+              SQL
+              by_name = rows.group_by { |row| row["table_name"] }
+
+              group.index_with { |table| build_check_constraints(table, rows_for(by_name, table)) }
+            end
+          end
+
+          def build_check_constraints(table_name, check_info)
+            check_info.map do |row|
+              options = {
+                name: row["conname"],
+                validate: row["valid"]
+              }
+              expression = row["constraintdef"][/CHECK \((.+)\)/m, 1]
+
+              CheckConstraintDefinition.new(table_name, expression, options)
+            end
+          end
+
+          def fetch_exclusion_constraints(tables)
+            fetch_by_schema(tables) do |schema, group|
+              rows = query_all(<<~SQL)
+                SELECT t.relname AS table_name, conname, pg_get_constraintdef(c.oid) AS constraintdef, c.condeferrable, c.condeferred
+                FROM pg_constraint c
+                JOIN pg_class t ON c.conrelid = t.oid
+                JOIN pg_namespace n ON n.oid = c.connamespace
+                WHERE c.contype = 'x'
+                  AND n.nspname = #{schema} AND t.relname IN (#{quoted_table_names(group)})
+              SQL
+              by_name = rows.group_by { |row| row["table_name"] }
+
+              group.index_with { |table| build_exclusion_constraints(table, rows_for(by_name, table)) }
+            end
+          end
+
+          def build_exclusion_constraints(table_name, exclusion_info)
+            exclusion_info.map do |row|
+              method_and_elements, predicate = row["constraintdef"].split(" WHERE ")
+              method_and_elements_parts = method_and_elements.match(/EXCLUDE(?: USING (?<using>\S+))? \((?<expression>.+)\)/)
+              predicate.remove!(/ DEFERRABLE(?: INITIALLY (?:IMMEDIATE|DEFERRED))?/) if predicate
+              predicate = predicate.from(2).to(-3) if predicate # strip 2 opening and closing parentheses
+
+              deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
+
+              options = {
+                name: row["conname"],
+                using: method_and_elements_parts["using"].to_sym,
+                where: predicate,
+                deferrable: deferrable
+              }
+
+              ExclusionConstraintDefinition.new(table_name, method_and_elements_parts["expression"], options)
+            end
+          end
+
+          def fetch_unique_constraints(tables)
+            fetch_by_schema(tables) do |schema, group|
+              rows = query_all(<<~SQL)
+                SELECT t.relname AS table_name, c.conname, c.conrelid, c.condeferrable, c.condeferred, pg_get_constraintdef(c.oid) AS constraintdef,
+                (
+                  SELECT array_agg(a.attname ORDER BY idx)
+                  FROM (
+                    SELECT idx, c.conkey[idx] AS conkey_elem
+                    FROM generate_subscripts(c.conkey, 1) AS idx
+                  ) indexed_conkeys
+                  JOIN pg_attribute a ON a.attrelid = t.oid
+                  AND a.attnum = indexed_conkeys.conkey_elem
+                ) AS conkey_names
+                FROM pg_constraint c
+                JOIN pg_class t ON c.conrelid = t.oid
+                JOIN pg_namespace n ON n.oid = c.connamespace
+                WHERE c.contype = 'u'
+                  AND n.nspname = #{schema} AND t.relname IN (#{quoted_table_names(group)})
+              SQL
+              by_name = rows.group_by { |row| row["table_name"] }
+
+              group.index_with { |table| build_unique_constraints(table, rows_for(by_name, table)) }
+            end
+          end
+
+          def build_unique_constraints(table_name, unique_info)
+            unique_info.map do |row|
+              columns = decode_string_array(row["conkey_names"])
+
+              nulls_not_distinct = row["constraintdef"].start_with?("UNIQUE NULLS NOT DISTINCT")
+              deferrable = extract_constraint_deferrable(row["condeferrable"], row["condeferred"])
+
+              options = {
+                name: row["conname"],
+                nulls_not_distinct: nulls_not_distinct,
+                deferrable: deferrable
+              }
+
+              UniqueConstraintDefinition.new(table_name, columns, options)
+            end
+          end
+
           def create_table_definition(name, **options)
             PostgreSQL::TableDefinition.new(self, name, **options)
           end
@@ -1372,6 +1433,10 @@ module ActiveRecord
             scope[:name] = quote(name) if name
             scope[:type] = type if type
             scope
+          end
+
+          def bare_table_name(table)
+            extract_schema_qualified_name(table).last
           end
 
           def extract_schema_qualified_name(string)

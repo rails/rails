@@ -458,6 +458,34 @@ module ActionDispatch
         assert called
       end
 
+      def test_recognize_cares_about_query_verbs
+        match "/books(/:action(.:format))", to: "foo#bar", via: :query
+
+        env = rails_env "PATH_INFO" => "/books/list.rss",
+                        "REQUEST_METHOD" => "QUERY"
+
+        called = false
+        router.recognize(env) do |r, params|
+          called = true
+        end
+
+        assert called
+      end
+
+      def test_query_verb_does_not_match_other_verbs
+        match "/books(/:action(.:format))", to: "foo#bar", via: :query
+
+        env = rails_env "PATH_INFO" => "/books/list.rss",
+                        "REQUEST_METHOD" => "GET"
+
+        called = false
+        router.recognize(env) do |r, params|
+          called = true
+        end
+
+        assert_not called
+      end
+
       def test_multi_verb_recognition
         match "/books(/:action(.:format))", to: "foo#bar", via: [:post, :get]
 
@@ -475,6 +503,22 @@ module ActionDispatch
 
         env = rails_env "PATH_INFO" => "/books/list.rss",
           "REQUEST_METHOD" => "PUT"
+
+        called = false
+        router.recognize(env) do |r, params|
+          called = true
+        end
+
+        assert_not called
+      end
+
+      def test_get_routes_do_not_match_query_requests
+        # The HEAD->GET fallback does not extend to QUERY: a GET route never
+        # serves a QUERY request.
+        match "/books(/:action(.:format))", to: "foo#bar", via: :get
+
+        env = rails_env "PATH_INFO" => "/books/list.rss",
+                        "REQUEST_METHOD" => "QUERY"
 
         called = false
         router.recognize(env) do |r, params|

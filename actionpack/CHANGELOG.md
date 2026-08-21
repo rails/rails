@@ -1,3 +1,36 @@
+*   Add support for the HTTP QUERY method defined in RFC 10008.
+
+    QUERY is a safe and idempotent HTTP method that conveys the query in the
+    request content, making it suitable for queries too large or structured
+    for a URL query string:
+
+        # config/routes.rb
+        query "search", to: "search#index"
+        match "filter", to: "search#filter", via: :query
+
+        # request handling
+        request.query?                # => true
+        request.request_method_symbol # => :query
+
+        # integration tests
+        query "/search", params: { filters: { status: "active" } }, as: :json
+
+    Like GET and HEAD, QUERY requests are exempt from forgery protection:
+    HTML forms cannot emit QUERY requests, and cross-origin QUERY requests
+    always require a CORS preflight. The exemption applies only to requests
+    that actually arrive with the QUERY method: a `_method=query` override
+    tunneled through a form POST is verified like any other POST.
+
+    Routes drawn with `via: :all` (and custom constraints that don't check
+    the request method) now receive QUERY requests, where previously such
+    requests were refused with a 405 before routing ran.
+
+    Note that the application server must also accept the method. For
+    example, Puma only accepts the eight standard HTTP methods by default;
+    QUERY can be enabled with its `supported_http_methods` option.
+
+    *Magno Gouveia*, *Jeremy Daer*
+
 *   Split keyword arguments off `#args` on `Rails.application.middleware` entries.
 
     Middleware entries now expose keyword arguments through a new `#kwargs`

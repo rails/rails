@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/json"
+
 module ActiveModel
   module Type
     # = Active Model \Binary \Type
@@ -48,6 +50,10 @@ module ActiveModel
           @value
         end
         alias_method :to_str, :to_s
+
+        def as_json(options = nil)
+          @value.as_json(options)
+        end
 
         def hex
           @value.unpack1("H*")

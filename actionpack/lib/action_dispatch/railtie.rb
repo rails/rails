@@ -88,13 +88,13 @@ module ActionDispatch
 
       ActiveSupport.on_load(:action_dispatch_response) do
         self.default_charset = app.config.action_dispatch.default_charset || app.config.encoding
-        self.default_headers = app.config.action_dispatch.default_headers
+        self.default_headers = ActiveSupport::Ractors.make_shareable(app.config.action_dispatch.default_headers)
       end
 
-      ActionDispatch::ExceptionWrapper.rescue_responses = ActionDispatch::ExceptionWrapper.rescue_responses.merge(config.action_dispatch.rescue_responses).freeze
-      ActionDispatch::ExceptionWrapper.rescue_templates = ActionDispatch::ExceptionWrapper.rescue_templates.merge(config.action_dispatch.rescue_templates).freeze
-      ActionDispatch::ExceptionWrapper.wrapper_exceptions = (ActionDispatch::ExceptionWrapper.wrapper_exceptions | config.action_dispatch.wrapper_exceptions).freeze
-      ActionDispatch::ExceptionWrapper.silent_exceptions = (ActionDispatch::ExceptionWrapper.silent_exceptions | config.action_dispatch.silent_exceptions).freeze
+      ActionDispatch::ExceptionWrapper.rescue_responses = ActionDispatch::ExceptionWrapper.rescue_responses.merge(config.action_dispatch.rescue_responses)
+      ActionDispatch::ExceptionWrapper.rescue_templates = ActionDispatch::ExceptionWrapper.rescue_templates.merge(config.action_dispatch.rescue_templates)
+      ActionDispatch::ExceptionWrapper.wrapper_exceptions = (ActionDispatch::ExceptionWrapper.wrapper_exceptions | config.action_dispatch.wrapper_exceptions)
+      ActionDispatch::ExceptionWrapper.silent_exceptions = (ActionDispatch::ExceptionWrapper.silent_exceptions | config.action_dispatch.silent_exceptions)
 
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
@@ -103,6 +103,15 @@ module ActionDispatch
 
       ActionDispatch::Http::Cache::Request.strict_freshness = app.config.action_dispatch.strict_freshness
       ActionDispatch.test_app = app
+    end
+
+    initializer "action_dispatch.share_configs" do
+      config.after_initialize do
+        ActiveSupport::Ractors.make_shareable(ActionDispatch::ExceptionWrapper.rescue_responses)
+        ActiveSupport::Ractors.make_shareable(ActionDispatch::ExceptionWrapper.rescue_templates)
+        ActiveSupport::Ractors.make_shareable(ActionDispatch::ExceptionWrapper.wrapper_exceptions)
+        ActiveSupport::Ractors.make_shareable(ActionDispatch::ExceptionWrapper.silent_exceptions)
+      end
     end
   end
 end
