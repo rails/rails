@@ -87,6 +87,8 @@ module ActionView
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k, v|
           next if k == :render_tracker
+          next if k == :precompile_templates
+          next if k == :precompile_additional_paths
           send "#{k}=", v
         end
       end
@@ -117,6 +119,8 @@ module ActionView
 
     initializer "action_view.set_render_tracker" do |app|
       ActionView.render_tracker = app.config.action_view.render_tracker
+      ActionView.precompile_templates = app.config.action_view.precompile_templates if app.config.action_view.key?(:precompile_templates)
+      ActionView.precompile_additional_paths = app.config.action_view.precompile_additional_paths if app.config.action_view.key?(:precompile_additional_paths)
     end
 
     initializer "action_view.setup_action_pack" do |app|
@@ -150,6 +154,23 @@ module ActionView
     rake_tasks do |app|
       unless app.config.api_only
         load "action_view/tasks/cache_digests.rake"
+      end
+    end
+
+    initializer "action_view.precompile_templates" do |app|
+      config.after_initialize do
+        if ActionView.precompile_templates && app.config.eager_load
+          engines = [app] + Rails::Engine.subclasses.filter_map { |ec| ec.instance if ec.respond_to?(:instance) }
+
+          controllers = if defined?(ActionController::Base)
+            concrete = ActionController::Base.descendants.reject { |c| c.abstract? || c.anonymous? }
+            concrete.empty? ? [ActionController::Base] : concrete
+          else
+            []
+          end
+
+          ActionView::Precompiler.precompile(engines: engines, controllers: controllers)
+        end
       end
     end
   end
