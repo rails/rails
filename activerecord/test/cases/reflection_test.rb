@@ -689,12 +689,10 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "id", actual
   end
 
-  def test_through_reflection_association_primary_key_with_composite_key
+  def test_through_reflection_association_primary_key_with_query_constraints
     reflection = Sharded::Blog.reflect_on_association(:comments_via_posts)
-    actual = reflection.association_primary_key
 
-    assert_kind_of Array, actual
-    assert_equal ["blog_id", "id"], actual
+    assert_equal "id", reflection.association_primary_key
   end
 
   def test_belongs_to_reflection_with_query_constraints_infers_correct_foreign_key
@@ -717,33 +715,190 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal ["blog_id", "tag_id"], reflection.association_foreign_key
   end
 
-  def test_using_query_constraints_warns_about_changing_behavior
-    has_many_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.has_many :clients` is not allowed.
-      To get the same behavior, use the `foreign_key` option instead.
-    MSG
+  def test_array_foreign_key_remains_in_reflection_options
+    reflection = Sharded::LegacyComment.reflect_on_association(:blog_post)
 
-    assert_raises(ActiveRecord::ConfigurationError, match: has_many_expected_message) do
-      ActiveRecord::Reflection.create(:has_many, :clients, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
+    assert_equal [:blog_id, :blog_post_id], reflection.options[:foreign_key]
+    assert_not reflection.options.key?(:query_constraints)
+    assert_equal ["blog_id", "id"], reflection.association_primary_key
+  end
+
+  def test_array_foreign_key_and_query_constraints_remain_distinct
+    reflection = ActiveRecord::Reflection.create(
+      :has_many, :comments, nil,
+      {
+        foreign_key: [:blog_id, :blog_post_id],
+        query_constraints: :created_at,
+        class_name: "Sharded::Comment",
+      },
+      Sharded::BlogPost
+    )
+
+    assert_equal [:blog_id, :blog_post_id], reflection.options[:foreign_key]
+    assert_equal :created_at, reflection.options[:query_constraints]
+    assert_equal ["blog_id", "id"], reflection.active_record_primary_key
+    assert_equal ["created_at", "blog_id", "id"], reflection.query_foreign_key
+    assert_equal ["created_at", "blog_id", "blog_post_id"], reflection.query_primary_key
+  end
+
+  def test_query_constraints_without_foreign_key_derives_writable_foreign_key
+    has_many = ActiveRecord::Reflection.create(:has_many, :clients, nil, { query_constraints: :firm_name }, Firm)
+    has_one = ActiveRecord::Reflection.create(:has_one, :account, nil, { query_constraints: :firm_name }, Firm)
+    belongs_to = ActiveRecord::Reflection.create(:belongs_to, :client, nil, { query_constraints: :firm_name }, Firm)
+
+    assert_equal "firm_id", has_many.foreign_key
+    assert_equal ["firm_name", "id"], has_many.query_foreign_key
+    assert_equal ["firm_name", "firm_id"], has_many.query_primary_key
+
+    assert_equal "firm_id", has_one.foreign_key
+    assert_equal ["firm_name", "id"], has_one.query_foreign_key
+    assert_equal ["firm_name", "firm_id"], has_one.query_primary_key
+
+    assert_equal "client_id", belongs_to.foreign_key
+    assert_equal ["firm_name", "client_id"], belongs_to.query_foreign_key
+    assert_equal ["firm_name", "id"], belongs_to.query_primary_key
+  end
+
+  def test_query_key_mapping_with_symbols
+    mapping = Sharded::Comment.reflect_on_association(:blog_post_with_decoupled_qc).query_key_mapping
+
+    assert_equal [["blog_id", "blog_id"]], mapping.query_constraint_pairs
+  end
+
+  def test_query_key_mapping_preserves_belongs_to_pairs
+    reflection = Sharded::BlogPost.reflect_on_association(:featured_comment)
+    mapping = reflection.query_key_mapping
+
+    assert_equal [["blog_id", "blog_id"], ["id", "blog_post_id"]], mapping.query_constraint_pairs
+    assert_equal [["featured_comment_id", "id"]], mapping.foreign_key_pairs
+    assert_equal [
+      ["blog_id", "blog_id"],
+      ["id", "blog_post_id"],
+      ["featured_comment_id", "id"],
+    ], mapping.to_a
+    assert_equal ["blog_id", "id", "featured_comment_id"], mapping.active_record_columns
+    assert_equal ["blog_id", "blog_post_id", "id"], mapping.associated_record_columns
+
+    blog_post = Sharded::BlogPost.new(id: 2, blog_id: 1, featured_comment_id: 3)
+    assert_equal [1, 2, 3], mapping.values_for(blog_post)
+
+    assert_equal mapping.associated_record_columns, reflection.query_primary_key
+    assert_equal mapping.active_record_columns, reflection.query_foreign_key
+  end
+
+  def test_query_constraints_with_column_mapping_requires_foreign_key_when_hash_present
+    assert_raises(ArgumentError, match: /requires an explicit `foreign_key` option/) do
+      ActiveRecord::Reflection.create(
+        :belongs_to, :comment, nil,
+        { query_constraints: [:blog_id, { id: :blog_post_id }], class_name: "Sharded::Comment" },
+        Sharded::BlogPost
+      ).foreign_key
     end
+  end
 
-    has_one_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.has_one :account` is not allowed.
-      To get the same behavior, use the `foreign_key` option instead.
-    MSG
+  def test_has_many_with_decoupled_query_constraints_active_record_primary_key_is_scalar
+    # When both foreign_key and query_constraints are specified, active_record_primary_key
+    # should return the scalar primary key, not the query_constraints_list array.
+    # This ensures .joins() works correctly.
+    reflection = ActiveRecord::Reflection.create(
+      :has_many, :comments, nil,
+      { foreign_key: :blog_post_id, query_constraints: :blog_id, class_name: "Sharded::Comment" },
+      Sharded::BlogPost
+    )
 
-    assert_raises(ActiveRecord::ConfigurationError, match: has_one_expected_message) do
-      ActiveRecord::Reflection.create(:has_one, :account, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
-    end
+    assert_equal "id", reflection.active_record_primary_key
+    assert_equal "id", reflection.join_foreign_key
+  end
 
-    belongs_to_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.belongs_to :client` is not allowed.
-      To get the same behavior, use the `foreign_key` option instead.
-    MSG
+  def test_has_many_decoupled_query_constraints_query_keys
+    reflection = ActiveRecord::Reflection.create(
+      :has_many, :comments, nil,
+      { foreign_key: :blog_post_id, query_constraints: :blog_id, class_name: "Sharded::Comment" },
+      Sharded::BlogPost
+    )
+    mapping = reflection.query_key_mapping
 
-    assert_raises(ActiveRecord::ConfigurationError, match: belongs_to_expected_message) do
-      ActiveRecord::Reflection.create(:belongs_to, :client, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
-    end
+    assert_equal [["blog_id", "blog_id"], ["id", "blog_post_id"]], mapping.to_a
+    assert_equal [["id", "blog_post_id"]], mapping.foreign_key_pairs
+    assert_equal mapping.active_record_columns, reflection.query_foreign_key
+    assert_equal mapping.associated_record_columns, reflection.query_primary_key
+  end
+
+  def test_has_many_query_constraints_cannot_include_explicit_foreign_key
+    reflection = ActiveRecord::Reflection.create(
+      :has_many, :comments, nil,
+      { foreign_key: :blog_post_id, query_constraints: [:blog_id, :blog_post_id], class_name: "Sharded::Comment" },
+      Sharded::BlogPost
+    )
+
+    error = assert_raises(ArgumentError) { reflection.check_validity! }
+    assert_equal "`query_constraints` on `Sharded::BlogPost.has_many :comments` " \
+      "must not include the foreign key columns [\"blog_post_id\"].", error.message
+  end
+
+  def test_has_many_query_constraints_cannot_include_derived_foreign_key
+    reflection = ActiveRecord::Reflection.create(
+      :has_many, :comments, nil,
+      { query_constraints: [:blog_id, :blog_post_id], class_name: "Sharded::Comment" },
+      Sharded::BlogPost
+    )
+
+    error = assert_raises(ArgumentError) { reflection.check_validity! }
+    assert_equal "`query_constraints` on `Sharded::BlogPost.has_many :comments` " \
+      "must not include the foreign key columns [\"blog_post_id\"].", error.message
+  end
+
+  def test_belongs_to_query_constraints_cannot_include_explicit_foreign_key
+    reflection = ActiveRecord::Reflection.create(
+      :belongs_to, :blog_post, nil,
+      { foreign_key: :blog_post_id, query_constraints: [:blog_id, :blog_post_id], class_name: "Sharded::BlogPost" },
+      Sharded::Comment
+    )
+
+    error = assert_raises(ArgumentError) { reflection.check_validity! }
+    assert_equal "`query_constraints` on `Sharded::Comment.belongs_to :blog_post` " \
+      "must not include the foreign key columns [\"blog_post_id\"].", error.message
+  end
+
+  def test_belongs_to_query_constraints_cannot_include_derived_foreign_key
+    reflection = ActiveRecord::Reflection.create(
+      :belongs_to, :blog_post, nil,
+      { query_constraints: [:blog_id, :blog_post_id], class_name: "Sharded::BlogPost" },
+      Sharded::Comment
+    )
+
+    error = assert_raises(ArgumentError) { reflection.check_validity! }
+    assert_equal "`query_constraints` on `Sharded::Comment.belongs_to :blog_post` " \
+      "must not include the foreign key columns [\"blog_post_id\"].", error.message
+  end
+
+  def test_query_key_mapping_with_bare_hash
+    reflection = Sharded::BlogPost.reflect_on_association(:featured_comment_bare_hash_qc)
+
+    assert_equal [["blog_id", "blog_id"]], reflection.query_key_mapping.query_constraint_pairs
+  end
+
+  def test_belongs_to_bare_hash_query_constraints_join_keys_aligned
+    reflection = Sharded::BlogPost.reflect_on_association(:featured_comment_bare_hash_qc)
+
+    # target (Comment) columns: blog_id (from mapping) + id (association_primary_key)
+    assert_equal ["blog_id", "id"], reflection.query_primary_key
+    # self (BlogPost) columns: blog_id (from mapping) + featured_comment_id (foreign_key)
+    assert_equal ["blog_id", "featured_comment_id"], reflection.query_foreign_key
+  end
+
+  def test_belongs_to_query_constraints_without_foreign_key_are_additive
+    reflection = ActiveRecord::Reflection.create(
+      :belongs_to, :blog_post, nil,
+      { query_constraints: [:blog_id], class_name: "Sharded::BlogPost" },
+      Sharded::Comment
+    )
+
+    assert_equal [["blog_id", "blog_id"]], reflection.query_key_mapping.query_constraint_pairs
+    assert_equal "blog_post_id", reflection.foreign_key
+    assert_equal "id", reflection.association_primary_key
+    assert_equal ["blog_id", "blog_post_id"], reflection.query_foreign_key
+    assert_equal ["blog_id", "id"], reflection.query_primary_key
   end
 
   def test_counter_cache_column_defaults_when_counter_cache_is_true
