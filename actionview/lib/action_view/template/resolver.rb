@@ -102,8 +102,8 @@ module ActionView
       @directory_entries = Concurrent::Map.new
       @path_parser = PathParser.new
       @path = File.expand_path(path)
-      # If a subclass overrides the private +template_glob+ seam (as
-      # FixtureResolver does), fall back to the glob-based lookup path so those
+      # If a subclass overrides +template_glob+  (as FixtureResolver does),
+      # fall back to the glob-based lookup path so those
       # subclasses keep working without any additional changes.
       @template_glob_overridden = method(:template_glob).owner != FileSystemResolver
       super()
