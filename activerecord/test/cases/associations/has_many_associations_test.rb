@@ -2396,21 +2396,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     author = Author.create!(name: "Carl")
 
-    new_topic = author.topics_without_type.build
+    new_topic = author.topics.build
 
-    assert_not_predicate author.topics_without_type, :loaded?
+    assert_not_predicate author.topics, :loaded?
 
     queries = capture_sql do
       assert_queries_count(1) do
-        author.topics_without_type.first
-        author.topics_without_type.second
-        assert_equal new_topic, author.topics_without_type.last
+        author.topics.first
+        author.topics.second
+        assert_equal new_topic, author.topics.last
       end
     end
 
     assert_no_match(/ORDER BY|LIMIT/, queries.sole)
 
-    assert_predicate author.topics_without_type, :loaded?
+    assert_predicate author.topics, :loaded?
   end
 
   def test_calling_first_nth_or_last_on_existing_record_with_create_should_not_load_association
