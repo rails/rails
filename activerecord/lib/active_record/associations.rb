@@ -1388,9 +1388,12 @@ module ActiveRecord
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
         # [+:query_constraints+]
-        #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
-        #   This is an optional option. By default Rails will attempt to derive the value automatically.
-        #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
+        #   Defines additional column pairs used to query associated records. These constraints are added to
+        #   the foreign key match, while only the foreign key columns are written when building, creating, or
+        #   assigning associated records. The foreign key is derived by convention when +:foreign_key+ is
+        #   omitted. Symbols and strings match same-named columns on both tables. A Hash maps a column on this
+        #   model to one on the associated model, for example <tt>{ tenant_id: :account_tenant_id }</tt>, and
+        #   requires +:foreign_key+. Query constraint columns must be distinct from the foreign key columns.
         # [+:index_errors+]
         #   Allows differentiation of multiple validation errors from the association records, by including
         #   an index in the error attribute name, e.g. +roles[2].level+.
@@ -1421,7 +1424,7 @@ module ActiveRecord
         #   has_many :subscribers, through: :subscriptions, source: :user
         #   has_many :subscribers, through: :subscriptions, disable_joins: true
         #   has_many :comments, strict_loading: true
-        #   has_many :comments, query_constraints: [:blog_id, :post_id]
+        #   has_many :comments, query_constraints: :blog_id
         #   has_many :comments, index_errors: :nested_attributes_order
         def has_many(name, scope = nil, **options, &extension)
           reflection = Builder::HasMany.build(self, name, scope, options, &extension)
@@ -1603,9 +1606,12 @@ module ActiveRecord
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
         # [+:query_constraints+]
-        #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
-        #   This is an optional option. By default Rails will attempt to derive the value automatically.
-        #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
+        #   Defines additional column pairs used to query associated records. These constraints are added to
+        #   the foreign key match, while only the foreign key columns are written when building, creating, or
+        #   assigning associated records. The foreign key is derived by convention when +:foreign_key+ is
+        #   omitted. Symbols and strings match same-named columns on both tables. A Hash maps a column on this
+        #   model to one on the associated model, for example <tt>{ tenant_id: :account_tenant_id }</tt>, and
+        #   requires +:foreign_key+. Query constraint columns must be distinct from the foreign key columns.
         # [+:deprecated+]
         #   If true, marks the association as deprecated. Usage of deprecated associations is reported.
         #   Please, check the class documentation above for details.
@@ -1623,7 +1629,7 @@ module ActiveRecord
         #   has_one :primary_address, -> { where(primary: true) }, through: :addressables, source: :addressable
         #   has_one :credit_card, required: true
         #   has_one :credit_card, strict_loading: true
-        #   has_one :employment_record_book, query_constraints: [:organization_id, :employee_id]
+        #   has_one :employment_record_book, query_constraints: :organization_id
         def has_one(name, scope = nil, **options)
           reflection = Builder::HasOne.build(self, name, scope, options)
           Reflection.add_reflection(self, name, reflection)
@@ -1798,9 +1804,12 @@ module ActiveRecord
         #   Specifies an instance method to be called on the owner. The method must return true in order for the
         #   associated records to be deleted in a background job.
         # [+:query_constraints+]
-        #   Serves as a composite foreign key. Defines the list of columns to be used to query the associated object.
-        #   This is an optional option. By default Rails will attempt to derive the value automatically.
-        #   When the value is set the Array size must match associated model's primary key or +query_constraints+ size.
+        #   Defines additional column pairs used to query associated records. These constraints are added to
+        #   the foreign key match, while only the foreign key columns are written when building, creating, or
+        #   assigning associated records. The foreign key is derived by convention when +:foreign_key+ is
+        #   omitted. Symbols and strings match same-named columns on both tables. A Hash maps a column on this
+        #   model to one on the associated model, for example <tt>{ tenant_id: :account_tenant_id }</tt>, and
+        #   requires +:foreign_key+. Query constraint columns must be distinct from the foreign key columns.
         # [+:deprecated+]
         #   If true, marks the association as deprecated. Usage of deprecated associations is reported.
         #   Please, check the class documentation above for details.
@@ -1819,7 +1828,7 @@ module ActiveRecord
         #   belongs_to :user, optional: true
         #   belongs_to :account, default: -> { company.account }
         #   belongs_to :account, strict_loading: true
-        #   belongs_to :note, query_constraints: [:organization_id, :note_id]
+        #   belongs_to :note, query_constraints: :organization_id
         def belongs_to(name, scope = nil, **options)
           reflection = Builder::BelongsTo.build(self, name, scope, options)
           Reflection.add_reflection(self, name, reflection)

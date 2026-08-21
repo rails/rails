@@ -1,3 +1,30 @@
+*   Support `query_constraints` on associations, decoupled from `foreign_key`.
+
+    `query_constraints` declares *additional* columns to match when querying an
+    association's targets (loading, preloading, eager loading, joins, and
+    association predicates), layered on top of the foreign key. The foreign key
+    is derived by convention when omitted, and is the only key written when
+    building, creating, or assigning associated records, while queries match on
+    the foreign key plus the extra columns.
+
+    Additive query constraints do not participate in association stale tracking.
+    Changing them does not invalidate a cached target; changing its foreign key does.
+
+    A column may map to a different name on the other side using a Hash. Query
+    constraint columns must be distinct from the association's foreign key columns:
+
+    ``` ruby
+    class BlogPost < ApplicationRecord
+      # match blog_id on both tables, and BlogPost#id -> Comment#blog_post_id
+      belongs_to :featured_comment,
+        class_name: "Comment",
+        foreign_key: :featured_comment_id,
+        query_constraints: [:blog_id, { id: :blog_post_id }]
+    end
+    ```
+
+    *Nikita Vasilevsky*
+
 *   Deprecate `ActiveRecord::Relation#uniq!`.
 
     The method was added in Rails 6.1 (#39358) as part of the migration path
@@ -94,7 +121,6 @@
     Fixes #57183.
 
     *Hammad Khan*
-
 *   Deprecate `ActiveRecord::ConnectionAdapters::DatabaseStatements#create`
     in favor of `#insert`.
 
@@ -133,7 +159,6 @@
     needs to adapt to the new tuple shape.
 
     *Ryuta Kamizono*
-
 *   Add query predicate hooks for Active Model types.
 
     Types can override `transforms_query_predicates?`, `query_attribute`, and
