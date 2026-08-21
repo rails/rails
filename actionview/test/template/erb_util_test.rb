@@ -26,24 +26,24 @@ class ErbUtilTest < ActiveSupport::TestCase
   end
 
   HTML_ESCAPE_TEST_CASES = [
-    ["<br>", "&lt;br&gt;"],
-    ["a & b", "a &amp; b"],
-    ['"quoted" string', "&quot;quoted&quot; string"],
-    ["'quoted' string", "&#39;quoted&#39; string"],
+    ["<br>", "&lt;br&gt;"].freeze,
+    ["a & b", "a &amp; b"].freeze,
+    ['"quoted" string', "&quot;quoted&quot; string"].freeze,
+    ["'quoted' string", "&#39;quoted&#39; string"].freeze,
     [
       '<script type="application/javascript">alert("You are \'pwned\'!")</script>',
       "&lt;script type=&quot;application/javascript&quot;&gt;alert(&quot;You are &#39;pwned&#39;!&quot;)&lt;/script&gt;"
-    ]
+    ].freeze
   ].freeze
 
   JSON_ESCAPE_TEST_CASES = [
-    ["1", "1"],
-    ["null", "null"],
-    ['"&"', '"\u0026"'],
-    ['"</script>"', '"\u003c/script\u003e"'],
-    ['["</script>"]', '["\u003c/script\u003e"]'],
-    ['{"name":"</script>"}', '{"name":"\u003c/script\u003e"}'],
-    [%({"name":"d\u2028h\u2029h"}), '{"name":"d\u2028h\u2029h"}']
+    ["1", "1"].freeze,
+    ["null", "null"].freeze,
+    ['"&"', '"\u0026"'].freeze,
+    ['"</script>"', '"\u003c/script\u003e"'].freeze,
+    ['["</script>"]', '["\u003c/script\u003e"]'].freeze,
+    ['{"name":"</script>"}', '{"name":"\u003c/script\u003e"}'].freeze,
+    [%({"name":"d\u2028h\u2029h"}), '{"name":"d\u2028h\u2029h"}'].freeze
   ].freeze
 
   def test_html_escape
