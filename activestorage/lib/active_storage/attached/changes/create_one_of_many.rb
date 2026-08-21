@@ -2,10 +2,15 @@
 
 module ActiveStorage
   class Attached::Changes::CreateOneOfMany < Attached::Changes::CreateOne # :nodoc:
+    def initialize(name, record, attachable, attachments_by_blob)
+      @attachments_by_blob = attachments_by_blob
+      super(name, record, attachable)
+    end
+
     private
       def find_attachment
         if blob.persisted?
-          record.public_send("#{name}_attachments").detect { |attachment| attachment.blob_id == blob.id }
+          @attachments_by_blob[blob.id]
         else
           blob.attachments.find { |attachment| attachment.record == record }
         end

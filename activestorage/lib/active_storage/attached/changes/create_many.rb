@@ -35,11 +35,16 @@ module ActiveStorage
 
     private
       def subchanges
-        @subchanges ||= attachables.collect { |attachable| build_subchange_from(attachable) }
+        @subchanges ||= begin
+          attachments_by_blob = record.public_send("#{name}_attachments").each_with_object({}) do |attachment, index|
+            index[attachment.blob_id] ||= attachment
+          end
+          attachables.collect { |attachable| build_subchange_from(attachable, attachments_by_blob) }
+        end
       end
 
-      def build_subchange_from(attachable)
-        ActiveStorage::Attached::Changes::CreateOneOfMany.new(name, record, attachable)
+      def build_subchange_from(attachable, attachments_by_blob)
+        ActiveStorage::Attached::Changes::CreateOneOfMany.new(name, record, attachable, attachments_by_blob)
       end
 
       def subchanges_without_blobs

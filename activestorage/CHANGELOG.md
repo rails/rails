@@ -1,3 +1,7 @@
+*   Avoid quadratic attachment lookups when adding to a `has_many_attached` collection.
+
+    *David Paluy*
+
 *   Allow ffmpeg and ffprobe input arguments to be configured.
 
     Two new configuration parameters are introduced.

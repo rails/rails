@@ -422,9 +422,11 @@ module ActiveRecord
 
         def replace_common_records_in_memory(new_target, original_target)
           common_records = intersection(new_target, original_target)
+          target_indexes = {}
+          @target.each_with_index { |record, index| target_indexes[record] ||= index }
           common_records.each do |record|
             skip_callbacks = true
-            replace_on_target(record, skip_callbacks, replace: true)
+            replace_on_target(record, skip_callbacks, replace: true, index: target_indexes[record])
           end
         end
 
@@ -447,9 +449,9 @@ module ActiveRecord
           records
         end
 
-        def replace_on_target(record, skip_callbacks, replace:, inversing: false)
+        def replace_on_target(record, skip_callbacks, replace:, inversing: false, index: nil)
           if replace && (!record.new_record? || @replaced_or_added_targets.include?(record))
-            index = @target.index(record)
+            index ||= @target.index(record)
           end
 
           catch(:abort) do

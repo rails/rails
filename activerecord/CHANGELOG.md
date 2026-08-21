@@ -1,3 +1,7 @@
+*   Avoid quadratic lookups when replacing records common to a collection association.
+
+    *David Paluy*
+
 *   Deprecate `ActiveRecord::Relation#uniq!`.
 
     The method was added in Rails 6.1 (#39358) as part of the migration path
