@@ -517,8 +517,9 @@ module ActionView
           end
         end_src
 
-        # Make sure the source is in the encoding of the returned code
-        source.force_encoding(code.encoding)
+        # Make sure the source is in the encoding of the returned code, unless
+        # the code is ASCII-only and its tag says nothing about the rest of the source
+        source.force_encoding(code.encoding) unless code.ascii_only?
 
         # In case we get back a String from a handler that is not in
         # BINARY or the default_internal, encode it to the default_internal
