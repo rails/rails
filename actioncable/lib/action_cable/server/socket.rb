@@ -11,14 +11,11 @@ module ActionCable
     # connection object shouldn't know about such details.
     class Socket
       attr_reader :server, :env, :protocol, :logger, :connection
-      private attr_reader :worker_pool
-
       delegate :event_loop, :pubsub, :config, to: :server
 
       def initialize(server, env, coder: ActiveSupport::JSON)
         @server, @env, @coder = server, env, coder
 
-        @worker_pool = server.worker_pool
         @logger = server.new_tagged_logger { request }
 
         @websocket      = WebSocket.new(env, self, event_loop)
@@ -55,11 +52,11 @@ module ActionCable
 
       # Invoke a method on the connection asynchronously through the pool of thread workers.
       def perform_work(receiver, method, *args)
-        worker_pool.async_invoke(receiver, method, *args, connection: self)
+        server.perform_work(self, receiver, method, *args)
       end
 
       def send_async(method, *arguments)
-        worker_pool.async_invoke(self, method, *arguments)
+        server.perform_work(self, self, method, *arguments)
       end
 
       # The request that initiated the WebSocket connection is available here. This gives access to the environment, cookies, etc.
