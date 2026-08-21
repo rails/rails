@@ -40,7 +40,7 @@ module ActionText
     cattr_accessor :editor, instance_accessor: false
 
     serialize :body, coder: ActionText::Content
-    delegate :to_s, :nil?, to: :body
+    delegate :render_in, :to_s, :nil?, to: :body
 
     ##
     # :method: record

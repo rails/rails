@@ -170,8 +170,8 @@ module ActionText
       fragment.to_html
     end
 
-    def to_rendered_html_with_layout
-      render layout: "action_text/contents/content", partial: to_partial_path, formats: :html, locals: { content: self }
+    def to_rendered_html_with_layout(locals: {})
+      render layout: "action_text/contents/content", partial: to_partial_path, formats: :html, locals: locals.merge(content: self)
     end
 
     def to_partial_path
@@ -187,6 +187,13 @@ module ActionText
     #     content.to_s # => "<div>safeunsafe</div>"
     def to_s
       to_rendered_html_with_layout
+    end
+
+    # Safely transforms Content into an HTML String with optional locals.
+    #
+    #     render @post.body, turbo_frame: "_top"
+    def render_in(view_context, locals: {}, **options)
+      to_rendered_html_with_layout(locals: locals)
     end
 
     def as_json(*)
