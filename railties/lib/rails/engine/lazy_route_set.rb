@@ -42,7 +42,11 @@ module Rails
       # draw. _path/_url names are left to method_missing_module, which owns
       # them and relies on reload_routes_unless_loaded returning true only to
       # the caller that performed the load.
-      module LazyMountedHelpers
+      module MountedHelpers
+        extend ActiveSupport::Concern
+
+        include ActionDispatch::Routing::RouteSet::MountedHelpers
+
         private
           def method_missing(method_name, ...)
             if method_name.end_with?("_path", "_url")
@@ -69,7 +73,6 @@ module Rails
 
       def initialize(config = DEFAULT_CONFIG)
         super
-        ActionDispatch::Routing::RouteSet::MountedHelpers.include(LazyMountedHelpers)
         self.named_routes = NamedRouteCollection.new
         named_routes.url_helpers_module.prepend(method_missing_module)
         named_routes.path_helpers_module.prepend(method_missing_module)
@@ -113,6 +116,20 @@ module Rails
       def routes
         Rails.application&.reload_routes_unless_loaded
         super
+      end
+
+      def mounted_helpers
+        MountedHelpers
+      end
+
+      def define_mounted_helper(name, script_namer = nil)
+        super
+
+        return if MountedHelpers.method_defined?(name)
+
+        shared = ActionDispatch::Routing::RouteSet::MountedHelpers
+        MountedHelpers.define_method("_#{name}", shared.instance_method("_#{name}"))
+        MountedHelpers.define_method(name, shared.instance_method(name))
       end
 
       private
