@@ -36,7 +36,7 @@ module ActiveRecord
         binds = []
         last_reflection = chain.last
 
-        binds.push(*last_reflection.join_id_for(owner))
+        binds.push(*last_reflection.query_key_values_for(owner))
         if last_reflection.type
           binds << owner.class.polymorphic_name
         end
@@ -57,14 +57,11 @@ module ActiveRecord
         end
 
         def last_chain_scope(scope, reflection, owner)
-          primary_key = ActiveRecord::Key.for(reflection.join_primary_key)
-          foreign_key = ActiveRecord::Key.for(reflection.join_foreign_key)
-
           table = reflection.aliased_table
-          primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
-          primary_key_foreign_key_pairs.each do |join_key, foreign_key|
-            value = transform_value(owner.read_attribute(foreign_key))
-            scope = apply_scope(scope, table, join_key, value)
+
+          reflection.query_key_mapping.each do |active_record_column, associated_record_column|
+            value = transform_value(owner.read_attribute(active_record_column))
+            scope = apply_scope(scope, table, associated_record_column, value)
           end
 
           if reflection.type
@@ -80,15 +77,11 @@ module ActiveRecord
         end
 
         def next_chain_scope(scope, reflection, next_reflection)
-          primary_key = ActiveRecord::Key.for(reflection.join_primary_key)
-          foreign_key = ActiveRecord::Key.for(reflection.join_foreign_key)
-
           table = reflection.aliased_table
           foreign_table = next_reflection.aliased_table
 
-          primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
-          constraints = primary_key_foreign_key_pairs.map do |join_primary_key, foreign_key|
-            table[join_primary_key].eq(foreign_table[foreign_key])
+          constraints = reflection.query_key_mapping.map do |active_record_column, associated_record_column|
+            table[associated_record_column].eq(foreign_table[active_record_column])
           end.inject(&:and)
 
           if reflection.type

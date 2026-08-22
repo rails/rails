@@ -1741,7 +1741,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_nil book.order_id
   end
 
-  def test_ids_reader_with_composite_primary_key_on_source
+  def test_ids_reader_with_query_constraints_on_source
     blog = Sharded::Blog.create!
     post = Sharded::BlogPost.create!(blog_id: blog.id)
     comment = Sharded::Comment.create!(blog_id: blog.id, blog_post_id: post.id)
@@ -1749,7 +1749,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     ids = blog.comments_via_post_ids
 
     assert_kind_of Array, ids
-    assert_equal [[comment.blog_id, comment.id]], ids
+    assert_equal [comment.id], ids
   end
 
   private
