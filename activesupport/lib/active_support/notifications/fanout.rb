@@ -219,9 +219,12 @@ module ActiveSupport
       end
 
       def groups_for(name) # :nodoc:
-        silenceable_groups, groups = @groups_for.compute_if_absent(name) do
-          listeners = all_listeners_for(name)
-          listeners.partition(&:silenceable).map { |l| group_listeners(l) }
+        # Acquire @mutex before Concurrent::Map's write lock to prevent lock-order deadlocks.
+        silenceable_groups, groups = @groups_for[name] || @mutex.synchronize do
+          @groups_for.compute_if_absent(name) do
+            listeners = all_listeners_for_locked(name)
+            listeners.partition(&:silenceable).map { |l| group_listeners(l) }
+          end
         end
 
         unless silenceable_groups.empty?
@@ -346,9 +349,7 @@ module ActiveSupport
       def all_listeners_for(name)
         # this is correctly done double-checked locking (Concurrent::Map's lookups have volatile semantics)
         @all_listeners_for[name] || @mutex.synchronize do
-          # use synchronisation when accessing @subscribers
-          @all_listeners_for[name] ||=
-            @string_subscribers[name] + @other_subscribers.select { |s| s.subscribed_to?(name) }
+          all_listeners_for_locked(name)
         end
       end
 
@@ -489,6 +490,12 @@ module ActiveSupport
           end
         end
       end
+
+      private
+        def all_listeners_for_locked(name)
+          @all_listeners_for[name] ||=
+            @string_subscribers[name] + @other_subscribers.select { |s| s.subscribed_to?(name) }
+        end
     end
   end
 end
