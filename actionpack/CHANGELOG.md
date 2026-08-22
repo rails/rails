@@ -1,3 +1,13 @@
+*   Fix a deadlock between `ActionController::Live` and code reloading in
+    development.
+
+    A queued unload could block the Live child thread while waiting for the
+    parent request, which was itself waiting for the child to commit the
+    response.
+
+    Fixes #56888.
+
+    *Pim Vermeyden*
 *   Add support for the HTTP QUERY method defined in RFC 10008.
 
     QUERY is a safe and idempotent HTTP method that conveys the query in the
