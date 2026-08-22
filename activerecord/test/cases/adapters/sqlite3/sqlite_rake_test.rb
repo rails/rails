@@ -244,4 +244,28 @@ module ActiveRecord
       FileUtils.rm_f(dbfile)
     end
   end
+
+  class SqliteDBCreateAutoVacuumTest < ActiveRecord::TestCase
+    def setup
+      @tmpdir = Dir.mktmpdir
+      @database = File.join(@tmpdir, "db_auto_vacuum.sqlite3")
+    end
+
+    def teardown
+      FileUtils.rm_rf(@tmpdir)
+    end
+
+    def test_create_sets_auto_vacuum_to_incremental_by_default
+      conn = ConnectionAdapters::SQLite3Adapter.new(adapter: "sqlite3", database: @database)
+      assert_equal [{ "auto_vacuum" => 2 }], conn.execute("PRAGMA auto_vacuum")
+      conn.disconnect!
+    end
+
+    def test_create_allows_overriding_auto_vacuum_via_pragmas
+      database = File.join(@tmpdir, "db_auto_vacuum_none.sqlite3")
+      conn = ConnectionAdapters::SQLite3Adapter.new(adapter: "sqlite3", database: database, pragmas: { auto_vacuum: :none })
+      assert_equal [{ "auto_vacuum" => 0 }], conn.execute("PRAGMA auto_vacuum")
+      conn.disconnect!
+    end
+  end
 end

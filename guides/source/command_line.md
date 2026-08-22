@@ -1231,6 +1231,33 @@ Overwrite config/database.yml? (enter "h" for help) [Ynaqdhm] Y
 ...
 ```
 
+#### `db:maintenance:vacuum`
+
+The `db:maintenance:vacuum` command performs space reclamation on SQLite
+databases. It runs `PRAGMA incremental_vacuum` to return freed pages to the
+operating system and `PRAGMA wal_checkpoint(TRUNCATE)` to reset the WAL file.
+Non-SQLite databases are skipped automatically.
+
+```bash
+$ bin/rails db:maintenance:vacuum
+```
+
+In multi-database applications, you can target a specific database:
+
+```bash
+$ bin/rails db:maintenance:vacuum:cache
+```
+
+This task is designed to be run on a schedule (for example, hourly via Solid
+Queue's recurring tasks) to prevent SQLite databases from accumulating unused
+disk space — especially important for high-churn databases like cache, queue,
+and cable.
+
+NOTE: If a database has `auto_vacuum=none` (the SQLite default before Rails
+added `auto_vacuum: incremental`), the task will log a warning and skip the
+incremental vacuum for that database. A one-time `VACUUM` is needed to switch
+an existing database to incremental mode.
+
 #### `db:encryption:init`
 
 The `db:encryption:init` command generates a set of keys for configuring Active
