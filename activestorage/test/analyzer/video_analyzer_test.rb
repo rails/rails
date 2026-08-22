@@ -53,6 +53,15 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_equal [16, 9], metadata[:display_aspect_ratio]
   end
 
+  test "analyzing a video with a non-terminating display aspect ratio" do
+    blob = create_file_blob(filename: "video_with_non_terminating_display_aspect_ratio.mp4", content_type: "video/mp4")
+    metadata = extract_metadata_from(blob)
+
+    assert_equal 468, metadata[:width]
+    assert_equal 60, metadata[:height]
+    assert_equal [39, 5], metadata[:display_aspect_ratio]
+  end
+
   test "analyzing a video with an undefined display aspect ratio" do
     blob = create_file_blob(filename: "video_with_undefined_display_aspect_ratio.mp4", content_type: "video/mp4")
     metadata = extract_metadata_from(blob)
