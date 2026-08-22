@@ -233,6 +233,38 @@ module ResolverSharedTests
     assert_empty context.find_all("hello_world.html", "test", false, [], {})
   end
 
+  def test_does_not_return_prefix_collision
+    with_file "test/header.html.erb", "Hello!"
+    with_file "test/header_extra.html.erb", "Extra!"
+
+    templates = resolver.find_all("header", "test", false, locale: [], formats: [:html], variants: :any, handlers: [:erb])
+    assert_equal 1, templates.size
+    assert_equal "test/header", templates[0].virtual_path
+  end
+
+  def test_finds_template_after_clear_cache
+    with_file "test/hello_world.html.erb", "Hello!"
+    r = resolver
+    assert_equal 1, r.find_all("hello_world", "test", false, locale: [], formats: [:html], variants: :any, handlers: [:erb]).size
+    assert_empty r.find_all("goodbye", "test", false, locale: [], formats: [:html], variants: :any, handlers: [:erb])
+
+    with_file "test/goodbye.html.erb", "Bye!"
+    r.clear_cache
+    assert_equal 1, r.find_all("goodbye", "test", false, locale: [], formats: [:html], variants: :any, handlers: [:erb]).size
+  end
+
+  def test_missing_prefix_directory_returns_empty
+    assert_empty resolver.find_all("hello_world", "does/not/exist", false, locale: [], formats: [:html], variants: :any, handlers: [:erb])
+  end
+
+  def test_root_level_template
+    with_file "hello_world.html.erb", "Hello!"
+
+    templates = resolver.find_all("hello_world", "", false, locale: [], formats: [:html], variants: :any, handlers: [:erb])
+    assert_equal 1, templates.size
+    assert_equal "hello_world", templates[0].virtual_path
+  end
+
   def test_finds_template_with_lowdash_format
     with_file "test/hello_world.es_AR.text.erb", "Texto simple!"
 

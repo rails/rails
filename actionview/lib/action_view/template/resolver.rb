@@ -99,13 +99,19 @@ module ActionView
     def initialize(path)
       raise ArgumentError, "path already is a Resolver class" if path.is_a?(Resolver)
       @unbound_templates = Concurrent::Map.new
+      @directory_entries = Concurrent::Map.new
       @path_parser = PathParser.new
       @path = File.expand_path(path)
+      # If a subclass overrides +template_glob+  (as FixtureResolver does),
+      # fall back to the glob-based lookup path so those
+      # subclasses keep working without any additional changes.
+      @template_glob_overridden = method(:template_glob).owner != FileSystemResolver
       super()
     end
 
     def clear_cache
       @unbound_templates.clear
+      @directory_entries.clear
       @path_parser = PathParser.new
       super
     end
@@ -127,6 +133,8 @@ module ActionView
         unbound_templates.freeze
       end
       @unbound_templates.freeze
+      @directory_entries = @directory_entries.each_pair.to_h unless @directory_entries.is_a?(::Hash)
+      @directory_entries.freeze
       super
     end
 
@@ -203,9 +211,11 @@ module ActionView
           return []
         end
 
-        # Instead of checking for every possible path, as our other globs would
-        # do, scan the directory for files with the right prefix.
-        paths = template_glob("#{escape_entry(path.to_s)}*")
+        # Instead of running a directory glob for each virtual path, consult a
+        # per-directory index of entries keyed by the portion of each filename
+        # before its first ".". This turns N template lookups within one
+        # directory of N files from O(N^2) directory reads into O(N).
+        paths = candidate_template_files(path)
 
         paths.map do |path|
           build_unbound_template(path)
@@ -213,6 +223,57 @@ module ActionView
           # Select for exact virtual path match, including case sensitivity
           template.virtual_path == path.virtual
         end
+      end
+
+      # Return the absolute filenames of files that could conceivably resolve to
+      # +path+. Subclasses (e.g. FixtureResolver) may override this to serve
+      # candidates from a different source.
+      def candidate_template_files(path)
+        if @template_glob_overridden
+          return template_glob("#{escape_entry(path.to_s)}*")
+        end
+
+        entries = directory_entries(path.prefix)
+        key = path.partial ? "_#{path.name}" : path.name
+        entries[key] || EMPTY_ARRAY
+      end
+
+      EMPTY_ARRAY = [].freeze
+      private_constant :EMPTY_ARRAY
+
+      EMPTY_HASH = {}.freeze
+      private_constant :EMPTY_HASH
+
+      def directory_entries(relative_dir)
+        @directory_entries.compute_if_absent(relative_dir) do
+          build_directory_entries(relative_dir)
+        end
+      end
+
+      def build_directory_entries(relative_dir)
+        dir = relative_dir.empty? ? @path : File.join(@path, relative_dir)
+        expanded = File.expand_path(dir)
+
+        # Preserve the traversal guard that template_glob's start_with? check
+        # provides: a caller-supplied prefix must not escape @path.
+        unless expanded == @path || expanded.start_with?(File.join(@path, ""))
+          return EMPTY_HASH
+        end
+
+        entries = {}
+        Dir.each_child(expanded) do |entry|
+          filename = File.join(expanded, entry)
+          next if File.directory?(filename)
+          # An action name can be followed by "+variant" or ".<locale/format/handler>"
+          # (see PathParser). Bucket by the portion of the filename that could
+          # match a requested action name.
+          split_idx = entry.index(/[.+]/) || entry.length
+          (entries[entry[0, split_idx]] ||= []) << filename
+        end
+        entries.each_value(&:freeze)
+        entries.freeze
+      rescue SystemCallError
+        EMPTY_HASH
       end
 
       def find_best_by_details(templates, requested_details)
