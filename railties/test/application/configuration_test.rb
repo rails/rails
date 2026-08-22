@@ -3512,6 +3512,42 @@ module ApplicationTests
       assert_equal true, ActiveJob::Base.enqueue_after_transaction_commit
     end
 
+    test "config.active_job.immutable_arguments defaults to true for new apps" do
+      app "production"
+
+      assert_equal true, ActiveJob.immutable_arguments
+    end
+
+    test "config.active_job.immutable_arguments can be set to false for new apps" do
+      app_file "config/initializers/immutable_arguments.rb", <<-RUBY
+        Rails.application.config.active_job.immutable_arguments = false
+      RUBY
+
+      app "production"
+
+      assert_equal false, ActiveJob.immutable_arguments
+    end
+
+    test "config.active_job.immutable_arguments defaults to false for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "production"
+
+      assert_equal false, ActiveJob.immutable_arguments
+    end
+
+    test "config.active_job.immutable_arguments can be set to true for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/immutable_arguments.rb", <<-RUBY
+        Rails.application.config.active_job.immutable_arguments = true
+      RUBY
+
+      app "production"
+
+      assert_equal true, ActiveJob.immutable_arguments
+    end
+
     test "active record job queue is set" do
       app "development"
 
