@@ -515,8 +515,11 @@ module ActiveRecord
         klass
       end
 
-      attr_reader :type, :foreign_type
+      attr_reader :type, :foreign_type, :extensions
       attr_accessor :parent_reflection # Reflection
+
+      FROZEN_EMPTY_ARRAY = [].freeze
+      private_constant :FROZEN_EMPTY_ARRAY
 
       def initialize(name, scope, options, active_record)
         super
@@ -528,6 +531,9 @@ module ActiveRecord
         @foreign_key = nil
         @association_foreign_key = nil
         @association_primary_key = nil
+        @extensions = options[:extend] ? Array(options[:extend]) : FROZEN_EMPTY_ARRAY
+        @extensions = @extensions.dup.freeze unless @extension.frozen?
+
         if options[:query_constraints]
           raise ConfigurationError, <<~MSG.squish
             Setting `query_constraints:` option on `#{active_record}.#{macro} :#{name}` is not allowed.
@@ -729,17 +735,6 @@ module ActiveRecord
 
       def add_as_through(seed)
         seed + [self]
-      end
-
-      FROZEN_EMPTY_ARRAY = [].freeze
-      private_constant :FROZEN_EMPTY_ARRAY
-
-      def extensions
-        if options[:extend]
-          Array(options[:extend])
-        else
-          FROZEN_EMPTY_ARRAY
-        end
       end
 
       def deprecated?
