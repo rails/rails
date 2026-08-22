@@ -145,7 +145,7 @@ module ActiveRecord
     #   users.create # => #<User id: 3, name: "Oscar", ...>
     #
     #   users.create(name: 'fxn')
-    #   users.create # => #<User id: 4, name: "fxn", ...>
+    #   # => #<User id: 4, name: "fxn", ...>
     #
     #   users.create { |user| user.name = 'tenderlove' }
     #   # => #<User id: 5, name: "tenderlove", ...>
