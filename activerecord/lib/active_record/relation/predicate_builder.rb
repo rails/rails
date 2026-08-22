@@ -87,12 +87,17 @@ module ActiveRecord
     end
 
     def range_predicate_for(attribute, range, type)
-      type.query_attribute(attribute).between(
-        RangeHandler::RangeWithBinds.new(
-          query_value(attribute, range.begin, type),
-          query_value(attribute, range.end, type),
-          range.exclude_end?
-        )
+      if type.transforms_query_predicates?
+        begin_value = query_value(attribute, range.begin, type)
+        end_value = query_value(attribute, range.end, type)
+        attribute = type.query_attribute(attribute)
+      else
+        begin_value = build_bind_attribute(attribute.name, range.begin, type)
+        end_value = build_bind_attribute(attribute.name, range.end, type)
+      end
+
+      attribute.between(
+        RangeHandler::RangeWithBinds.new(begin_value, end_value, range.exclude_end?)
       )
     end
 
