@@ -50,6 +50,27 @@ class ExecutionContextTest < ActiveSupport::TestCase
     end
   end
 
+  test "#pop after nestable is enabled does not corrupt execution context" do
+    ActiveSupport::ExecutionContext.with(nestable: false) do
+      # simulate executor hooks from active_support/railtie.rb
+      executor = Class.new(ActiveSupport::Executor)
+
+      executor.to_run do
+        ActiveSupport::ExecutionContext.push
+      end
+      executor.to_complete do
+        ActiveSupport::ExecutionContext.pop
+      end
+      executor.wrap do
+        # simulate the active_support_test_case load hook from active_support/railtie.rb
+        ActiveSupport::ExecutionContext.nestable = true
+      end
+
+      assert_equal({}, ActiveSupport::ExecutionContext.to_h)
+      assert_equal({}, ActiveSupport::ExecutionContext.current_attributes_instances)
+    end
+  end
+
   test "#set coerce keys to symbol" do
     ActiveSupport::ExecutionContext.set("foo" => "bar") do
       assert_equal "bar", ActiveSupport::ExecutionContext.to_h[:foo]
