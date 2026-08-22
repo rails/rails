@@ -334,17 +334,17 @@ module RailtiesTest
         end
       RUBY
 
-      @plugin.write "config/routes.rb", <<~RUBY
-        Rails.application.routes.draw do
-          draw(:testing)
-        end
-      RUBY
-
       @plugin.write "app/controllers/testing_controller.rb", <<-RUBY
         class TestingController < ActionController::Base
           def index
             render plain: "test"
           end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<~RUBY
+        Rails.application.routes.draw do
+          draw(:testing)
         end
       RUBY
 
