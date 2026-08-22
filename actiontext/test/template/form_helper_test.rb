@@ -9,6 +9,15 @@ class ActionText::FormHelperTest < ActionView::TestCase
     @output_buffer = super
   end
 
+  def without_direct_uploads_route
+    ActiveStorage.draw_direct_upload_route = false
+    Rails.application.reload_routes!
+    yield
+  ensure
+    ActiveStorage.draw_direct_upload_route = true
+    Rails.application.reload_routes!
+  end
+
   teardown do
     I18n.backend.reload!
   end
@@ -33,6 +42,20 @@ class ActionText::FormHelperTest < ActionView::TestCase
     assert_dom_equal(<<~HTML, output_buffer)
       <input type="hidden" name="content" id="trix_input_1" />
       <trix-editor input="trix_input_1" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">
+      </trix-editor>
+    HTML
+  end
+
+  test "#rich_textarea_tag helper when the direct upload route is not drawn" do
+    message = Message.new
+
+    without_direct_uploads_route do
+      concat rich_textarea_tag :content, message.content, { input: "trix_input_1" }
+    end
+
+    assert_dom_equal(<<~HTML, output_buffer)
+      <input type="hidden" name="content" id="trix_input_1" />
+      <trix-editor input="trix_input_1" class="trix-content" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">
       </trix-editor>
     HTML
   end
@@ -96,6 +119,22 @@ class ActionText::FormHelperTest < ActionView::TestCase
       <form action="/messages" accept-charset="UTF-8" method="post">
         <input type="hidden" name="message[content]" id="message_content_trix_input_message" />
         <trix-editor id="message_content" input="message_content_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">
+        </trix-editor>
+      </form>
+    HTML
+  end
+
+  test "form with rich text area when the direct upload route is not drawn" do
+    without_direct_uploads_route do
+      form_with model: Message.new, scope: :message do |form|
+        form.rich_textarea :content
+      end
+    end
+
+    assert_dom_equal(<<~HTML, output_buffer)
+      <form action="/messages" accept-charset="UTF-8" method="post">
+        <input type="hidden" name="message[content]" id="message_content_trix_input_message" />
+        <trix-editor id="message_content" input="message_content_trix_input_message" class="trix-content" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">
         </trix-editor>
       </form>
     HTML

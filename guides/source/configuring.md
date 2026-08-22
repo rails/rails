@@ -3770,6 +3770,12 @@ The default value depends on the `config.load_defaults` target version:
 
 Can be used to toggle Active Storage route generation. The default is `true`.
 
+#### `config.active_storage.draw_direct_upload_route`
+
+Can be used to toggle generation of the direct upload route, without
+affecting the other Active Storage routes. Has no effect if
+`config.active_storage.draw_routes` is `false`. The default is `true`.
+
 #### `config.active_storage.resolve_model_to_route`
 
 Can be used to globally change how Active Storage files are delivered.
