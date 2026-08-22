@@ -1,3 +1,16 @@
+*   Add `:capybara` support for `config.action_controller.dom_testing_assertions` and `config.action_dispatch.dom_testing_assertions`
+
+    Setting `:capybara` integrates with `Capybara::Minitest::Assertions`
+
+    *Sean Doyle*
+
+*   Introduce `config.action_controller.dom_testing_assertions` and `config.action_dispatch.dom_testing_assertions`
+
+    Adds support for `:rails_dom_testing` to support `Rails::Dom::Testing::Assertions` and `:none`.
+    Defaults to with `:rails_dom_testing`.
+
+    *Sean Doyle*
+
 *   Add support for the HTTP QUERY method defined in RFC 10008.
 
     QUERY is a safe and idempotent HTTP method that conveys the query in the
