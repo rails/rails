@@ -2,6 +2,7 @@
 
 CI.run do
   step "Setup", "bin/setup --skip-server"
+<% if any_ci_check_steps? || !options[:skip_test] -%>
 
   group "Checks", parallel: 2 do
 <% unless options.skip_rubocop? -%>
@@ -20,7 +21,7 @@ CI.run do
     step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
 <% end -%>
 <% unless options[:skip_test] -%>
-
+<%= "\n" if any_ci_check_steps? -%>
     group "Tests" do
       step "Tests: Rails", "bin/rails test"
 <% unless options.skip_active_record? -%>
@@ -31,6 +32,7 @@ CI.run do
     end
 <% end -%>
   end
+<% end -%>
 
   # Optional: set a green GitHub commit status to unblock PR merge.
   # Requires the `gh` CLI and `gh extension install basecamp/gh-signoff`.
