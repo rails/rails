@@ -34,7 +34,7 @@ module ActionText
               attachable.try(:to_editor_content_attachment_partial_path) ||
               ActionText.deprecator.silence { attachable.try(:to_trix_content_attachment_partial_path) }
             )
-            ActionText::Content.render(partial: partial_path, formats: :html, object: self, as: model_name.element)
+            ActionText::Content.render(partial: partial_path, formats: :html, object: self, as: model_name.element, locals: { in_editor: true })
           end
         end
     end
