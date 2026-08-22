@@ -731,8 +731,15 @@ module ActiveRecord
         seed + [self]
       end
 
+      FROZEN_EMPTY_ARRAY = [].freeze
+      private_constant :FROZEN_EMPTY_ARRAY
+
       def extensions
-        Array(options[:extend])
+        if options[:extend]
+          Array(options[:extend])
+        else
+          FROZEN_EMPTY_ARRAY
+        end
       end
 
       def deprecated?

@@ -25,7 +25,9 @@ module ActiveRecord
         owner = association.owner
         chain = get_chain(reflection, association, scope.alias_tracker)
 
-        scope.extending! reflection.extensions
+        extensions = reflection.extensions
+        scope.extending!(extensions) unless extensions.empty?
+
         scope = add_constraints(scope, owner, chain)
         scope.default_order!(reflection.options[:default_order]) if reflection.options[:default_order].present?
         scope.limit!(1) unless reflection.collection?
