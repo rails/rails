@@ -2090,6 +2090,72 @@ class PerformedJobsTest < ActiveJob::TestCase
 
       assert_equal 2, queue_adapter.performed_jobs.count
     end
+
+    test "perform_enqueued_jobs raises MaximumSideEffectsReached when maximum_side_effects is set and breached" do
+      perform_enqueued_jobs(maximum_side_effects: 1) do
+        assert_raises ActiveJob::QueueAdapters::TestAdapter::MaximumSideEffectsReached do
+          HelloJob.perform_later
+          LoggingJob.perform_later
+        end
+      end
+    end
+
+    test "perform_enqueued_jobs does not raise when maximum_side_effects is set and not breached" do
+      perform_enqueued_jobs(maximum_side_effects: 1) do
+        assert_nothing_raised do
+          HelloJob.perform_later
+        end
+      end
+    end
+    
+    test "perform_enqueued_jobs raises MaximumSideEffectsReached when class attribute is set and breached" do
+      ActiveJob::QueueAdapters::TestAdapter.maximum_side_effects = 1
+      perform_enqueued_jobs do
+        assert_raises ActiveJob::QueueAdapters::TestAdapter::MaximumSideEffectsReached do
+          HelloJob.perform_later
+          LoggingJob.perform_later
+        end
+      end
+      ActiveJob::QueueAdapters::TestAdapter.maximum_side_effects = nil
+    end
+
+    test "perform_enqueued_jobs does not raise when when class attribute is set and not breached" do
+      ActiveJob::QueueAdapters::TestAdapter.maximum_side_effects = 1
+      perform_enqueued_jobs do
+        assert_nothing_raised do
+          HelloJob.perform_later
+        end
+      end
+      ActiveJob::QueueAdapters::TestAdapter.maximum_side_effects = nil
+    end
+
+    test "perform_enqueued_jobs raises MaximumSideEffectsReached when maximum_side_effects is set and called without a block" do
+      HelloJob.perform_later
+      LoggingJob.perform_later
+
+      assert_raises ActiveJob::QueueAdapters::TestAdapter::MaximumSideEffectsReached do
+        perform_enqueued_jobs(maximum_side_effects: 1)
+      end
+    end
+
+    test "perform_enqueued_jobs does not raise when maximum_side_effects is not set and called without a block" do
+      HelloJob.perform_later
+
+      assert_nothing_raised do
+        perform_enqueued_jobs
+      end
+    end
+
+    test "perform_enqueued_jobs raises MaximumSideEffectsReached when class attribute is set and called without a block" do
+      ActiveJob::QueueAdapters::TestAdapter.maximum_side_effects = 1
+      HelloJob.perform_later
+      LoggingJob.perform_later
+
+      assert_raises ActiveJob::QueueAdapters::TestAdapter::MaximumSideEffectsReached do
+        perform_enqueued_jobs
+      end
+      ActiveJob::QueueAdapters::TestAdapter.maximum_side_effects = nil
+    end
   end
 end
 

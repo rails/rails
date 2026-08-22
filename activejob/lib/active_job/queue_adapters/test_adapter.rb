@@ -12,7 +12,10 @@ module ActiveJob
     #
     #   Rails.application.config.active_job.queue_adapter = :test
     class TestAdapter < AbstractAdapter
-      attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter, :reject, :queue, :at, :stopping)
+      class MaximumSideEffectsReached < StandardError; end
+
+      class_attribute :maximum_side_effects, default: nil
+      attr_accessor(:perform_enqueued_jobs, :perform_enqueued_at_jobs, :filter, :reject, :queue, :at, :stopping, :maximum_side_effects_override)
       attr_writer(:enqueued_jobs, :performed_jobs)
 
       # Provides a store of all the enqueued jobs with the TestAdapter so you can check them.
@@ -23,6 +26,25 @@ module ActiveJob
       # Provides a store of all the performed jobs with the TestAdapter so you can check them.
       def performed_jobs
         @performed_jobs ||= []
+      end
+
+      # Provides a count of all the performed jobs to check if the maximum side effects threshold has been reached.
+      def performed_jobs_count
+        @performed_jobs_count ||= 0
+      end
+
+      # Tracks the execution of a job and raises an error if the maximum side effects threshold has been reached.
+      def track_job_execution!
+        check_side_effects_threshold!
+        increment_performed_jobs_count!
+      end
+
+      def increment_performed_jobs_count!
+        @performed_jobs_count = performed_jobs_count + 1
+      end
+
+      def reset_performed_jobs_count!
+        @performed_jobs_count = 0
       end
 
       def enqueue(job) # :nodoc:
@@ -51,10 +73,23 @@ module ActiveJob
 
         def perform_or_enqueue(perform, job, job_data)
           if perform
+            track_job_execution!
             performed_jobs << job_data
             Base.execute(job.serialize)
           else
             enqueued_jobs << job_data
+          end
+        end
+
+        def check_side_effects_threshold!
+          threshold = maximum_side_effects_override || self.class.maximum_side_effects
+          return unless threshold
+
+          if performed_jobs_count >= threshold
+            raise MaximumSideEffectsReached,
+              "Maximum side effects threshold of #{threshold} reached. " \
+              "#{performed_jobs_count} jobs have already been performed. " \
+              "Consider using perform_enqueued_jobs with `only:` or `except:` or increase the threshold."
           end
         end
 
