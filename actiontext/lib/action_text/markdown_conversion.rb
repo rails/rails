@@ -18,7 +18,7 @@ module ActionText
   module MarkdownConversion
     extend self
 
-    # Converts a Nokogiri HTML +node+ into a Markdown string.
+    # Converts a Nokogiri HTML `node` into a Markdown string.
     #
     #     node = Nokogiri::HTML4.fragment("<p>Hello <strong>world</strong></p>")
     #     MarkdownConversion.node_to_markdown(node) # => "Hello **world**"
@@ -28,21 +28,21 @@ module ActionText
       end.strip
     end
 
-    # Returns a Markdown link: +[title](url)+.
+    # Returns a Markdown link: `[title](url)`.
     #
-    # Escapes metacharacters in +title+, and percent-encodes characters in +url+ that would break
+    # Escapes metacharacters in `title`, and percent-encodes characters in `url` that would break
     # the link syntax.
     #
     #     MarkdownConversion.markdown_link("photo", "https://example.com/photo_(large).png")
     #     # => "[photo](https://example.com/photo_%28large%29.png)"
     #
-    # Pass <tt>image: true</tt> to produce an image link (+![title](url)+).
+    # Pass `image: true` to produce an image link (`![title](url)`).
     #
     #     MarkdownConversion.markdown_link("photo", "https://example.com/photo.png", image: true)
     #     # => "![photo](https://example.com/photo.png)"
     #
-    # If the URI scheme is not allowed (per +Rails::HTML::Sanitizer.allowed_uri?+), returns the
-    # escaped title wrapped in escaped brackets (+\[title\]+).
+    # If the URI scheme is not allowed (per `Rails::HTML::Sanitizer.allowed_uri?`), returns the
+    # escaped title wrapped in escaped brackets (`\[title\]`).
     #
     #     MarkdownConversion.markdown_link("click", "javascript:alert(1)")
     #     # => "\\[click\\]"
@@ -54,7 +54,7 @@ module ActionText
       end
     end
 
-    # Backslash-escapes CommonMark metacharacters in +text+ so they are treated
+    # Backslash-escapes CommonMark metacharacters in `text` so they are treated
     # as literal characters by Markdown renderers.
     #
     #     MarkdownConversion.escape_markdown_text("**Important**")
