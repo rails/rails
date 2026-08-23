@@ -493,7 +493,7 @@ the Composite Primary Keys guide for the `find_by(id:)` behavior.
 
 #### Dynamic Finder Methods
 
-NOTE: Dynamic attribute-based finders are a mildly deprecated.
+NOTE: Dynamic finder methods are a mildly deprecated.
 
 For every field (also known as an attribute) you define in your table, Active
 Record dynamically provides a finder method. If you have a field called
