@@ -33,6 +33,7 @@ module ActionText
       def fragment_by_canonicalizing_content(content)
         fragment = ActionText::Attachment.fragment_by_canonicalizing_attachments(content)
         fragment = ActionText::AttachmentGallery.fragment_by_canonicalizing_attachment_galleries(fragment)
+        fragment = ActionText::MarkdownConversion.fragment_by_unwrapping_raw_markdown_tags(fragment)
         fragment
       end
     end

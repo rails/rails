@@ -24,10 +24,29 @@ module ActionText
     #
     #     node = Nokogiri::HTML4.fragment("<p>Hello <strong>world</strong></p>")
     #     MarkdownConversion.node_to_markdown(node) # => "Hello **world**"
+    #
+    # NOTE: text inside `<action-text-markdown>` elements is emitted without escaping, so this
+    # method is not safe for untrusted content. Convert user-supplied markup through
+    # ActionText::Content, which strips those elements while canonicalizing.
     def node_to_markdown(node)
       BottomUpReducer.new(node).reduce do |n, child_values|
         markdown_for_node(n, child_values)
       end.strip
+    end
+
+    # Returns a copy of `fragment` with `<action-text-markdown>` elements replaced by their
+    # children, leaving the text to be escaped like any other.
+    #
+    # #render_attachment wraps already-rendered Markdown in that element so #node_to_markdown
+    # emits it without escaping. Only Action Text may do that, so ActionText::Content unwraps
+    # the element while canonicalizing: anything carrying it at that point came from outside
+    # the framework.
+    def fragment_by_unwrapping_raw_markdown_tags(fragment)
+      ActionText::Fragment.wrap(fragment).update do |source|
+        source.css(RAW_MARKDOWN_TAG_NAME).each do |node|
+          node.replace(node.children)
+        end
+      end
     end
 
     # Returns an element holding `attachment`'s Markdown, for `ActionText::Content#to_markdown` to

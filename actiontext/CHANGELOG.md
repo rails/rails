@@ -47,6 +47,10 @@
         message = Message.create!(content: "<h1>Hello</h1><p>This is <strong>bold</strong></p>")
         message.content.to_markdown # => "# Hello\n\nThis is **bold**"
 
+    The `<action-text-markdown>` element is reserved for Action Text's own use and is
+    removed from rich text content, so Markdown typed inside one is escaped like any
+    other text.
+
     *Mike Dalessio*
 
 *   Make `ActionText::Attachable#read_attribute_for_serialization` public.

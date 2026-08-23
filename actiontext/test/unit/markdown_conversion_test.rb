@@ -3,6 +3,7 @@
 require "test_helper"
 
 class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
+  RAW_MARKDOWN_TAG = ActionText::MarkdownConversion::RAW_MARKDOWN_TAG_NAME
   test "escape_markdown_text escapes metacharacters" do
     assert_equal '\\*\\*bold\\*\\* and \\[link\\](url)', ActionText::MarkdownConversion.escape_markdown_text("**bold** and [link](url)")
   end
@@ -1079,6 +1080,64 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     blob.destroy!
 
     assert_converted_to("☒", html)
+  end
+
+  # --- User-supplied <action-text-markdown> tests ---
+
+  test "user-supplied action-text-markdown does not bypass URI scheme validation" do
+    assert_converted_to "\\[click\\](javascript:alert(1))",
+      "<action-text-markdown>[click](javascript:alert(1))</action-text-markdown>"
+  end
+
+  test "user-supplied action-text-markdown has its text escaped" do
+    assert_converted_to "\\*\\*bold\\*\\*", "<action-text-markdown>**bold**</action-text-markdown>"
+  end
+
+  test "user-supplied action-text-markdown keeps its element children" do
+    assert_converted_to "**bold**", "<action-text-markdown><strong>bold</strong></action-text-markdown>"
+  end
+
+  test "nested user-supplied action-text-markdown is neutralized at every level" do
+    assert_converted_to "\\[click\\](javascript:alert(1))",
+      "<action-text-markdown><action-text-markdown>[click](javascript:alert(1))</action-text-markdown></action-text-markdown>"
+  end
+
+  test "user-supplied action-text-markdown does not disturb attachment markdown in the same content" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = "<action-text-markdown>[click](javascript:alert(1))</action-text-markdown>" +
+      %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to "\\[click\\](javascript:alert(1))![Captioned](#{url})", html, attachment_links: true
+    end
+  end
+
+  test "canonicalizing unwraps every raw Markdown tag it finds" do
+    content = ActionText::Content.new("<action-text-markdown>[click](javascript:alert(1))</action-text-markdown>")
+
+    assert_equal "[click](javascript:alert(1))", content.to_html
+    assert_empty content.fragment.find_all(RAW_MARKDOWN_TAG),
+      "canonicalizing must leave no raw Markdown tag behind, whatever the source of the content"
+  end
+
+  test "render_attachments does not canonicalize away the raw Markdown tags it adds" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    content = ActionText::Content.new(%Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>))
+
+    rendered = content.render_attachments(with_full_attributes: false) do |attachment|
+      ActionText::MarkdownConversion.render_attachment(attachment)
+    end
+
+    assert_equal 1, rendered.fragment.find_all(RAW_MARKDOWN_TAG).size,
+      "#to_markdown adds raw Markdown tags after canonicalizing, so render_attachments must " \
+      "build its result with canonicalize: false or the tags it just added are unwrapped again"
+  end
+
+  test "to_markdown is repeatable for content holding user-supplied action-text-markdown" do
+    content = ActionText::Content.new("<action-text-markdown>[click](javascript:alert(1))</action-text-markdown>")
+
+    assert_equal content.to_markdown, content.to_markdown
   end
 
   # --- Fragment and Rich Text tests ---
