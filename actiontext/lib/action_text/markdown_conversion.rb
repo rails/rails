@@ -18,6 +18,8 @@ module ActionText
   module MarkdownConversion
     extend self
 
+    RAW_MARKDOWN_TAG_NAME = "action-text-markdown" # :nodoc:
+
     # Converts a Nokogiri HTML `node` into a Markdown string.
     #
     #     node = Nokogiri::HTML4.fragment("<p>Hello <strong>world</strong></p>")
@@ -26,6 +28,15 @@ module ActionText
       BottomUpReducer.new(node).reduce do |n, child_values|
         markdown_for_node(n, child_values)
       end.strip
+    end
+
+    # Returns an element holding `attachment`'s Markdown, for `ActionText::Content#to_markdown` to
+    # substitute in place of the attachment. #node_to_markdown emits the element's text verbatim
+    # rather than escaping it as ordinary Markdown source.
+    def render_attachment(attachment, attachment_links: false)
+      ActionText::HtmlConversion.create_element(RAW_MARKDOWN_TAG_NAME).tap do |node|
+        node.content = attachment.to_markdown(attachment_links: attachment_links)
+      end
     end
 
     # Returns a Markdown link: `[title](url)`.
@@ -77,12 +88,11 @@ module ActionText
         | \A\+(?=\s|\z)       # leading plus before space: list item
         | \A\d+\K\.(?=\s|\z)  # leading "1." with trailing space: ordered list item (only the dot is matched)
       /x
-      SKIP_ESCAPING_PARENTS = %w[ action-text-markdown code pre ].freeze
-      INLINE_ELEMENTS = %w[
-        action-text-markdown
+      SKIP_ESCAPING_PARENTS = [ RAW_MARKDOWN_TAG_NAME, "code", "pre" ].freeze
+      INLINE_ELEMENTS = [ RAW_MARKDOWN_TAG_NAME, *%w[
         a abbr b bdi bdo cite code data del dfn em i kbd mark q
         rp rt ruby s samp small span strong sub sup time u var
-      ].freeze
+      ] ].freeze
       LEADING_PRETTY_PRINT_WHITESPACE = /\A\s*\n\s*/
       TRAILING_PRETTY_PRINT_WHITESPACE = /\s*\n\s*\z/
       private_constant :BOLD_TAGS, :ITALIC_TAGS, :LIST_BULLET, :LIST_INDENT, :ENCODE_HREF_CHARS,

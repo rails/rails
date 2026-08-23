@@ -148,9 +148,7 @@ module ActionText
     # browsers without additional sanitization.
     def to_markdown(attachment_links: false)
       render_attachments(with_full_attributes: false) { |attachment|
-        ActionText::HtmlConversion.create_element("action-text-markdown").tap do |node|
-          node.content = attachment.to_markdown(attachment_links: attachment_links)
-        end
+        ActionText::MarkdownConversion.render_attachment(attachment, attachment_links: attachment_links)
       }.fragment.to_markdown
     end
 
