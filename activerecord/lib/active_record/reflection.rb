@@ -532,7 +532,7 @@ module ActiveRecord
         @association_foreign_key = nil
         @association_primary_key = nil
         @extensions = options[:extend] ? Array(options[:extend]) : FROZEN_EMPTY_ARRAY
-        @extensions = @extensions.dup.freeze unless @extension.frozen?
+        @extensions = @extensions.dup.freeze unless @extensions.frozen?
 
         if options[:query_constraints]
           raise ConfigurationError, <<~MSG.squish
