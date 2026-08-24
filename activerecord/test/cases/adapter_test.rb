@@ -315,6 +315,25 @@ module ActiveRecord
       assert_kind_of Exception, error.cause
     end
 
+    class MockDatabaseError < StandardError
+      def result
+        0
+      end
+
+      def error_number
+        0
+      end
+    end
+
+    def test_translated_exceptions_carry_their_cause_without_an_enclosing_rescue
+      native = MockDatabaseError.new("boom")
+
+      translated = @connection.send(:translate_exception_class, native, "SELECT 1", [])
+
+      assert_kind_of ActiveRecord::StatementInvalid, translated
+      assert_same native, translated.cause
+    end
+
     def test_select_all_always_return_activerecord_result
       result = @connection.select_all "SELECT * FROM posts"
       assert result.is_a?(ActiveRecord::Result)
@@ -943,6 +962,20 @@ module ActiveRecord
         # ready to reconnect on next use, but hasn't done so yet
         assert_not_predicate @connection, :active?
         assert_operator Post.count, :>, 0
+      end
+
+      test "connection failures consume the reconnect allowance" do
+        budget = ActiveRecord::ConnectionAdapters::RetryBudget.new(
+          retries: 2, deadline: nil, reconnectable: true
+        )
+        failure = ActiveRecord::ConnectionFailed.new("connection failed")
+
+        assert @connection.attempt_retry(failure, budget)
+        assert_not_predicate budget, :reconnectable?
+        assert_equal 1, budget.attempts_used
+
+        assert_not @connection.attempt_retry(failure, budget)
+        assert_equal 1, budget.attempts_used
       end
 
       test "can reconnect and retry queries under limit when retry deadline is set" do
