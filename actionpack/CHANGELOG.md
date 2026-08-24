@@ -1,3 +1,16 @@
+*   Fix `ActionController::Parameters#permit` to honor `explicit_arrays` when
+    the filter is shaped like a double array (e.g. `[[:flavor]]`).
+
+    `permit` passes `explicit_arrays: false` to stay permissive about unexpected
+    types, but `array_filter?` was evaluated before that flag was consulted, so
+    a double array filter was still interpreted strictly. A plain hash value was
+    then silently dropped via `params[key] = result unless result.nil?`,
+    producing `{}` instead of the permitted hash. This restores the permissive
+    behavior from Rails 7.2, where the double array fell through to the
+    hash/array matching path.
+
+    *Javier Omar Pacheco Moreno*
+
 *   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
     the current controller and action when it starts with a period,
     mirroring the existing behavior for the key argument.

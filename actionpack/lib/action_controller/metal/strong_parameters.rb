@@ -1340,7 +1340,7 @@ module ActionController
       #
       # When using `permit`, arrays are specified the same way as hashes:
       #
-      #     params.expect(pies: [:flavor])
+      #     params.permit(pies: [:flavor])
       #
       # In this case, `permit` would also allow matching with a hash (or vice versa):
       #
@@ -1456,7 +1456,7 @@ module ActionController
           permit_array_of_scalars(value)
         elsif filter == EMPTY_HASH # Declaration { preferences: {} }.
           permit_hash(value, filter, on_unpermitted:, explicit_arrays:)
-        elsif array_filter?(filter) # Declaration { comments: [[:text]] }
+        elsif explicit_arrays && array_filter?(filter) # Declaration { comments: [[:text]] }
           permit_array_of_hashes(value, filter.first, on_unpermitted:, explicit_arrays:)
         elsif explicit_arrays # Declaration { user: { address: ... } } or { user: [:name, ...] } (only allows hash value)
           permit_hash(value, filter, on_unpermitted:, explicit_arrays:)
