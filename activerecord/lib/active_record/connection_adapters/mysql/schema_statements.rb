@@ -81,6 +81,8 @@ module ActiveRecord
 
         private
           def fetch_indexes(tables)
+            return {} if tables.empty?
+
             # MariaDB has no EXPRESSION column, and neither it nor MySQL before
             # 8.0.13 reports index visibility the same way, so ask for what the
             # server has.
