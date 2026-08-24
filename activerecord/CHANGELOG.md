@@ -1,3 +1,26 @@
+*   Coerce `ActiveRecord::Relation` instances as `.includes(…)` compliant arguments
+
+    ```ruby
+    class User < ApplicationRecord
+      has_many :posts
+    end
+
+    class Post < ApplicationRecord
+      belongs_to :author, class_name: "User"
+      has_many :comments
+
+      scope :with_comments, -> { includes :comments }
+    end
+
+    class Comment < ApplicationRecord
+      belongs_to :post
+    end
+
+    users = User.includes(posts: Post.with_comments)
+    ```
+
+    *Sean Doyle*
+
 *   Deprecate `ActiveRecord::Relation#uniq!`.
 
     The method was added in Rails 6.1 (#39358) as part of the migration path
