@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 
 module ActiveRecord
   class ResultTest < ActiveRecord::TestCase
@@ -165,5 +166,87 @@ module ActiveRecord
         result.column_types["col2"].deserialize("test value")
       end
     end
+
+    test "shuffle_rows returns a copy with the rows reordered" do
+      rows = 10.times.map { |i| ["row #{i}"] }
+      result = ActiveRecord::Result.new(["col_1"], rows.map(&:dup))
+
+      shuffled = with_shuffle { 10.times.map { result.shuffle_rows(unordered_arel).rows }.uniq }
+
+      assert_operator shuffled.size, :>, 1
+      shuffled.each { |r| assert_equal rows.sort, r.sort }
+    end
+
+    test "shuffle_rows leaves the receiver untouched" do
+      rows = 10.times.map { |i| ["row #{i}"] }
+      result = ActiveRecord::Result.new(["col_1"], rows)
+      original = result.rows.dup
+
+      with_shuffle { 5.times { result.shuffle_rows(unordered_arel) } }
+
+      assert_equal original, result.rows
+      assert_equal original, rows, "the array handed to the constructor must not be mutated"
+    end
+
+    test "shuffle_rows returns the receiver when there is nothing to reorder" do
+      one_row = ActiveRecord::Result.new(["col_1"], [["a"]])
+
+      with_shuffle do
+        assert_same one_row, one_row.shuffle_rows(unordered_arel)
+        empty = ActiveRecord::Result.empty
+        assert_same empty, empty.shuffle_rows(unordered_arel)
+      end
+    end
+
+    test "shuffle_rows returns the receiver for an ordered query" do
+      result = ActiveRecord::Result.new(["col_1"], [["a"], ["b"], ["c"]])
+
+      with_shuffle { assert_same result, result.shuffle_rows(ordered_arel) }
+    end
+
+    test "shuffle_rows returns the receiver for raw SQL" do
+      result = ActiveRecord::Result.new(["col_1"], [["a"], ["b"], ["c"]])
+
+      with_shuffle { assert_same result, result.shuffle_rows("SELECT * FROM posts") }
+    end
+
+    test "shuffle_rows returns the receiver when the option is disabled" do
+      result = ActiveRecord::Result.new(["col_1"], [["a"], ["b"], ["c"]])
+
+      with_shuffle(false) { assert_same result, result.shuffle_rows(unordered_arel) }
+    end
+
+    test "shuffle_rows works on a frozen result whose caches are already warm" do
+      result = ActiveRecord::Result.new(["col_1"], [["a"], ["b"], ["c"]]).freeze
+
+      shuffled = with_shuffle { result.shuffle_rows(unordered_arel) }
+
+      assert_not_predicate shuffled, :frozen?
+      assert_equal [["a"], ["b"], ["c"]], shuffled.rows.sort
+      assert_equal shuffled.rows.map(&:first), shuffled.indexed_rows.map { |row| row["col_1"] }
+      assert_equal [["a"], ["b"], ["c"]], result.rows
+    end
+
+    test "shuffle! reorders in place and returns self" do
+      rows = 10.times.map { |i| ["row #{i}"] }
+      result = ActiveRecord::Result.new(["col_1"], rows.map(&:dup))
+
+      assert_same result, result.shuffle!
+      assert_equal rows.sort, result.rows.sort
+    end
+
+private
+  def unordered_arel
+    Arel::SelectManager.new(Arel::Table.new(name: :posts)).project(Arel.star)
+  end
+
+  def ordered_arel
+    table = Arel::Table.new(name: :posts)
+    Arel::SelectManager.new(table).project(Arel.star).order(table[:id])
+  end
+
+  def with_shuffle(value = true, &block)
+    ActiveRecord.with(shuffle_unordered_selects: value, &block)
+  end
   end
 end

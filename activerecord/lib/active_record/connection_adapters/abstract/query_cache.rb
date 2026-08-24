@@ -266,7 +266,8 @@ module ActiveRecord
             result = lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry)
             FutureResult.wrap(result)
           else
-            cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry) }
+            result = cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry) }
+            result.shuffle_rows(arel)
           end
         else
           super

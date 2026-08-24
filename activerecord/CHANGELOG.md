@@ -1,3 +1,26 @@
+*   Add `config.active_record.shuffle_unordered_selects`.
+
+    When enabled, Active Record shuffles the rows of every `SELECT` it generates
+    that has no `ORDER BY` clause. The order of such a query is not specified, so
+    this surfaces code and tests that accidentally depend on the order a given
+    database happens to return today. Queries written as raw SQL strings are left
+    untouched.
+
+    This is best effort: the shuffle applies where Active Record still has the
+    Arel to recognise the query by, which leaves out association loading, `find`
+    and `find_by`, since those are served from a precompiled SQL string by
+    `ActiveRecord::StatementCache`. Rows are shuffled after the database returns
+    them, so queries ending in `LIMIT 1` (`take`, `pick`, `has_one`) are
+    unaffected, and a query that has an `ORDER BY` is never shuffled even when
+    that ordering is not a total order.
+
+    Intended for the test or development environments. Disabled by default.
+
+        # config/environments/test.rb
+        config.active_record.shuffle_unordered_selects = true
+
+    *viralpraxis*
+
 *   Add `config.active_record.schema_ignored_tables` to exclude tables from both the
     schema cache and the schema file.
 

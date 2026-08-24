@@ -2004,6 +2004,42 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `false`              |
 | 8.1                   | `true`               |
 
+#### `config.active_record.shuffle_unordered_selects`
+
+Shuffles the rows of every `SELECT` Active Record generates that has no `ORDER BY` clause.
+
+The order of such a query is not specified: the database is free to return the rows in any order, and that
+order can change when an index is added, when the data grows, or when the query planner changes its mind.
+Enabling this option makes the lack of order explicit, so code and tests that accidentally depend on the
+order a particular database happens to return today fail immediately instead of breaking later.
+
+```ruby
+# config/environments/test.rb
+config.active_record.shuffle_unordered_selects = true
+```
+
+The order is fully random and drawn again on every execution, so a query cannot accidentally settle into an
+order that an assertion keeps passing against.
+
+The option is best effort, and two things bound what it can surface.
+
+The first is that Active Record has to recognise the query, which it does from the Arel it built. A query that
+reaches it as already-compiled SQL is left alone: SQL you wrote yourself, and association loading, `find` and
+`find_by`, which are served from a precompiled statement by `ActiveRecord::StatementCache`. Relations, `pluck`,
+calculations and eager loading are covered, inside a query cache block or out.
+
+The second is that rows are shuffled after the database has returned them, so the option cannot change *which*
+rows come back. Queries ending in `LIMIT 1` are unaffected — `find`, `find_by`, `take`, `pick`, `exists?`,
+`has_one` and `belongs_to` — which makes this weaker than SQLite's `reverse_unordered_selects` pragma. A query
+with an `ORDER BY` is never shuffled even when that ordering is not a total order, so ties on a non-unique
+column stay hidden. And the SQL in your log is the SQL that was sent, so replaying it by hand will not
+reproduce the order your application saw.
+
+This is a development aid intended for the test or development environments, and it is never enabled by
+`config.load_defaults`.
+
+The default value is `false`.
+
 ### Configuring Action Controller
 
 `config.action_controller` includes a number of configuration settings:
