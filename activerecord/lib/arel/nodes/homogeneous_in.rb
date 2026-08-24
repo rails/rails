@@ -53,7 +53,7 @@ module Arel # :nodoc: all
 
       def fetch_attribute(&block)
         if attribute
-          yield attribute
+          attribute.fetch_attribute(&block)
         else
           expr.fetch_attribute(&block)
         end
