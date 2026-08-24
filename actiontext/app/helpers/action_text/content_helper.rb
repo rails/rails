@@ -11,10 +11,6 @@ module ActionText
     mattr_accessor(:allowed_attributes)
     mattr_accessor(:scrubber)
 
-    def render_rich_text(rich_text, locals: {})
-      render_action_text_content(rich_text.body, locals: locals)
-    end
-
     def render_action_text_content(content, locals: {})
       self.prefix_partial_path_with_controller_namespace = false
       sanitize_action_text_content(render_action_text_attachments(content, locals: locals))
