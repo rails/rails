@@ -1140,6 +1140,28 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_equal content.to_markdown, content.to_markdown
   end
 
+  test "attachable without a Markdown representation escapes its caption" do
+    page = Page.create!
+    html = %Q(<action-text-attachment sgid="#{page.attachable_sgid}" caption="[click](javascript:alert(1))"></action-text-attachment>)
+
+    assert_converted_to "\\[click\\](javascript:alert(1))", html
+  end
+
+  test "attachable without a Markdown representation escapes metacharacters in its caption" do
+    page = Page.create!
+    html = %Q(<action-text-attachment sgid="#{page.attachable_sgid}" caption="**bold**"></action-text-attachment>)
+
+    assert_converted_to "\\*\\*bold\\*\\*", html
+  end
+
+  test "Attachment#to_markdown escapes the caption of an attachable without a Markdown representation" do
+    page = Page.create!
+    html = %Q(<action-text-attachment sgid="#{page.attachable_sgid}" caption="[click](javascript:alert(1))"></action-text-attachment>)
+    attachment = ActionText::Content.new(html).attachments.first
+
+    assert_equal "\\[click\\](javascript:alert(1))", attachment.to_markdown
+  end
+
   # --- Fragment and Rich Text tests ---
 
   test "Fragment#to_markdown memoizes the result" do
