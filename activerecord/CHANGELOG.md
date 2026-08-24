@@ -1,3 +1,13 @@
+*   Key the `has_and_belongs_to_many` join model's `left_side` association to the owner.
+
+    The join model generated for a `has_and_belongs_to_many` association declares
+    a `belongs_to :left_side` back to the owner without a foreign key, so it
+    derived a `left_side_id` column that does not exist on the join table.
+    Reading `left_side` therefore always returned `nil`. It now uses the same
+    foreign key as the association, including a custom `:foreign_key`.
+
+    *Carlos Daniel Pohlod*
+
 *   Treat `false` as disabled for `idle_timeout`, `reaping_frequency` and `max_age`
     in `database.yml`.
 
