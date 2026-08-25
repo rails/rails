@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/concern"
@@ -10,8 +9,7 @@ require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/blank"
 
 module ActiveSupport
-  # Active Support \Callbacks
-  # =========================
+  # = Active Support \Callbacks
   #
   # \Callbacks are code hooks that are run at key points in an object's life cycle.
   # The typical use case is to have a base class define a set of callbacks
@@ -23,9 +21,9 @@ module ActiveSupport
   # life cycle that will support callbacks (via ClassMethods#define_callbacks),
   # set the instance methods, procs, or callback objects to be called (via
   # ClassMethods#set_callback), and run the installed callbacks at the
-  # appropriate times (via `run_callbacks`).
+  # appropriate times (via +run_callbacks+).
   #
-  # By default callbacks are halted by throwing `:abort`.
+  # By default callbacks are halted by throwing +:abort+.
   # See ClassMethods#define_callbacks for details.
   #
   # Three kinds of callbacks are supported: before callbacks, run before a
@@ -35,40 +33,35 @@ module ActiveSupport
   # that respond to certain predetermined methods. See ClassMethods#set_callback
   # for details.
   #
-  # ```
-  # class Record
-  #   include ActiveSupport::Callbacks
-  #   define_callbacks :save
+  #   class Record
+  #     include ActiveSupport::Callbacks
+  #     define_callbacks :save
   #
-  #   def save
-  #     run_callbacks :save do
-  #       puts "- save"
+  #     def save
+  #       run_callbacks :save do
+  #         puts "- save"
+  #       end
   #     end
   #   end
-  # end
   #
-  # class PersonRecord < Record
-  #   set_callback :save, :before, :saving_message
-  #   def saving_message
-  #     puts "saving..."
+  #   class PersonRecord < Record
+  #     set_callback :save, :before, :saving_message
+  #     def saving_message
+  #       puts "saving..."
+  #     end
+  #
+  #     set_callback :save, :after do |object|
+  #       puts "saved"
+  #     end
   #   end
   #
-  #   set_callback :save, :after do |object|
-  #     puts "saved"
-  #   end
-  # end
-  #
-  # person = PersonRecord.new
-  # person.save
-  # ```
+  #   person = PersonRecord.new
+  #   person.save
   #
   # Output:
-  #
-  # ```
-  # saving...
-  # - save
-  # saved
-  # ```
+  #   saving...
+  #   - save
+  #   saved
   module Callbacks
     extend Concern
 
@@ -85,15 +78,13 @@ module ActiveSupport
     # the block (if given one), and then runs the after callbacks in reverse
     # order.
     #
-    # If the callback chain was halted, returns `false`. Otherwise returns the
-    # result of the block, `nil` if no callbacks have been set, or `true`
+    # If the callback chain was halted, returns +false+. Otherwise returns the
+    # result of the block, +nil+ if no callbacks have been set, or +true+
     # if callbacks have been set but no block is given.
     #
-    # ```
-    # run_callbacks :save do
-    #   save
-    # end
-    # ```
+    #   run_callbacks :save do
+    #     save
+    #   end
     #
     #--
     #
@@ -380,15 +371,11 @@ module ActiveSupport
           #
           # Returns an array of the form:
           #
-          # ```
-          # [target, block, method, *arguments]
-          # ```
+          #   [target, block, method, *arguments]
           #
           # This array can be used as such:
           #
-          # ```
-          # target.send(method, *arguments, &block)
-          # ```
+          #   target.send(method, *arguments, &block)
           #
           # The actual invocation is left up to the caller to minimize
           # call stack pollution.
@@ -525,11 +512,9 @@ module ActiveSupport
 
         # Filters support:
         #
-        # ```
-        # Symbols:: A method to call.
-        # Procs::   A proc to call with the object.
-        # Objects:: An object with a <tt>before_foo</tt> method on it to call.
-        # ```
+        #   Symbols:: A method to call.
+        #   Procs::   A proc to call with the object.
+        #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
         #
         # All of these objects are converted into a CallTemplate and handled
         # the same after this point.
@@ -760,23 +745,19 @@ module ActiveSupport
 
         # Install a callback for the given event.
         #
-        # ```
-        # set_callback :save, :before, :before_method
-        # set_callback :save, :after,  :after_method, if: :condition
-        # set_callback :save, :around, ->(r, block) { stuff; result = block.call; stuff }
-        # ```
+        #   set_callback :save, :before, :before_method
+        #   set_callback :save, :after,  :after_method, if: :condition
+        #   set_callback :save, :around, ->(r, block) { stuff; result = block.call; stuff }
         #
-        # The second argument indicates whether the callback is to be run `:before`,
-        # `:after`, or `:around` the event. If omitted, `:before` is assumed. This
+        # The second argument indicates whether the callback is to be run +:before+,
+        # +:after+, or +:around+ the event. If omitted, +:before+ is assumed. This
         # means the first example above can also be written as:
         #
-        # ```
-        # set_callback :save, :before_method
-        # ```
+        #   set_callback :save, :before_method
         #
         # The callback can be specified as a symbol naming an instance method; as a
         # proc, lambda, or block; or as an object that responds to a certain method
-        # determined by the `:scope` argument to #define_callbacks.
+        # determined by the <tt>:scope</tt> argument to #define_callbacks.
         #
         # If a proc, lambda, or block is given, its body is evaluated in the context
         # of the current object. It can also optionally accept the current object as
@@ -786,25 +767,25 @@ module ActiveSupport
         # after callbacks are called in the reverse order.
         #
         # Around callbacks can access the return value from the event, if it
-        # wasn't halted, from the `yield` call.
+        # wasn't halted, from the +yield+ call.
         #
-        # ##### Options
+        # ===== Options
         #
-        # * `:if` - A symbol or an array of symbols, each naming an instance
+        # * <tt>:if</tt> - A symbol or an array of symbols, each naming an instance
         #   method or a proc; the callback will be called only when they all return
         #   a true value.
         #
-        #     If a proc is given, its body is evaluated in the context of the
+        #   If a proc is given, its body is evaluated in the context of the
         #   current object. It can also optionally accept the current object as
         #   an argument.
-        # * `:unless` - A symbol or an array of symbols, each naming an
+        # * <tt>:unless</tt> - A symbol or an array of symbols, each naming an
         #   instance method or a proc; the callback will be called only when they
         #   all return a false value.
         #
-        #     If a proc is given, its body is evaluated in the context of the
+        #   If a proc is given, its body is evaluated in the context of the
         #   current object. It can also optionally accept the current object as
         #   an argument.
-        # * `:prepend` - If `true`, the callback will be prepended to the
+        # * <tt>:prepend</tt> - If +true+, the callback will be prepended to the
         #   existing chain rather than appended.
         def set_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
@@ -820,53 +801,41 @@ module ActiveSupport
           end
         end
 
-        # Skip a previously set callback. Like #set_callback, `:if` or
-        # `:unless` options may be passed in order to control when the
+        # Skip a previously set callback. Like #set_callback, <tt>:if</tt> or
+        # <tt>:unless</tt> options may be passed in order to control when the
         # callback is skipped.
         #
-        # Note: this example uses `PersonRecord` and `#saving_message`, which you
-        # can see defined [here](rdoc-ref:ActiveSupport::Callbacks)
+        # Note: this example uses +PersonRecord+ and +#saving_message+, which you
+        # can see defined here[rdoc-ref:ActiveSupport::Callbacks]
         #
-        # ```
-        # class Writer < PersonRecord
-        #   attr_accessor :age
-        #   skip_callback :save, :before, :saving_message, if: -> { age > 18 }
-        # end
-        # ```
+        #   class Writer < PersonRecord
+        #     attr_accessor :age
+        #     skip_callback :save, :before, :saving_message, if: -> { age > 18 }
+        #   end
         #
         # When if option returns true, callback is skipped.
         #
-        # ```
-        # writer = Writer.new
-        # writer.age = 20
-        # writer.save
-        # ```
+        #   writer = Writer.new
+        #   writer.age = 20
+        #   writer.save
         #
         # Output:
-        #
-        # ```
-        # - save
-        # saved
-        # ```
+        #   - save
+        #   saved
         #
         # When if option returns false, callback is NOT skipped.
         #
-        # ```
-        # young_writer = Writer.new
-        # young_writer.age = 17
-        # young_writer.save
-        # ```
+        #   young_writer = Writer.new
+        #   young_writer.age = 17
+        #   young_writer.save
         #
         # Output:
+        #   saving...
+        #   - save
+        #   saved
         #
-        # ```
-        # saving...
-        # - save
-        # saved
-        # ```
-        #
-        # An `ArgumentError` will be raised if the callback has not
-        # already been set (unless the `:raise` option is set to `false`).
+        # An <tt>ArgumentError</tt> will be raised if the callback has not
+        # already been set (unless the <tt>:raise</tt> option is set to <tt>false</tt>).
         def skip_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
 
@@ -906,83 +875,81 @@ module ActiveSupport
 
         # Define sets of events in the object life cycle that support callbacks.
         #
-        # ```
-        # define_callbacks :validate
-        # define_callbacks :initialize, :save, :destroy
-        # ```
+        #   define_callbacks :validate
+        #   define_callbacks :initialize, :save, :destroy
         #
-        # ##### Options
+        # ===== Options
         #
-        # * `:terminator` - Determines when a before filter will halt the
+        # * <tt>:terminator</tt> - Determines when a before filter will halt the
         #   callback chain, preventing following before and around callbacks from
         #   being called and the event from being triggered.
         #   This should be a lambda to be executed.
         #   The current object and the result lambda of the callback will be provided
         #   to the terminator lambda.
         #
-        #         define_callbacks :validate, terminator: ->(target, result_lambda) { result_lambda.call == false }
+        #     define_callbacks :validate, terminator: ->(target, result_lambda) { result_lambda.call == false }
         #
-        #     In this example, if any before validate callbacks returns `false`,
+        #   In this example, if any before validate callbacks returns +false+,
         #   any successive before and around callback is not executed.
         #
-        #     The default terminator halts the chain when a callback throws `:abort`.
+        #   The default terminator halts the chain when a callback throws +:abort+.
         #
-        # * `:skip_after_callbacks_if_terminated` - Determines if after
-        #   callbacks should be terminated by the `:terminator` option. By
+        # * <tt>:skip_after_callbacks_if_terminated</tt> - Determines if after
+        #   callbacks should be terminated by the <tt>:terminator</tt> option. By
         #   default after callbacks are executed no matter if callback chain was
-        #   terminated or not. This option has no effect if `:terminator`
-        #   option is set to `nil`.
+        #   terminated or not. This option has no effect if <tt>:terminator</tt>
+        #   option is set to +nil+.
         #
-        # * `:scope` - Indicates which methods should be executed when an
+        # * <tt>:scope</tt> - Indicates which methods should be executed when an
         #   object is used as a callback.
         #
-        #         class Audit
-        #           def before(caller)
-        #             puts 'Audit: before is called'
-        #           end
+        #     class Audit
+        #       def before(caller)
+        #         puts 'Audit: before is called'
+        #       end
         #
-        #           def before_save(caller)
-        #             puts 'Audit: before_save is called'
-        #           end
+        #       def before_save(caller)
+        #         puts 'Audit: before_save is called'
+        #       end
+        #     end
+        #
+        #     class Account
+        #       include ActiveSupport::Callbacks
+        #
+        #       define_callbacks :save
+        #       set_callback :save, :before, Audit.new
+        #
+        #       def save
+        #         run_callbacks :save do
+        #           puts 'save in main'
         #         end
+        #       end
+        #     end
         #
-        #         class Account
-        #           include ActiveSupport::Callbacks
+        #   In the above case whenever you save an account the method
+        #   <tt>Audit#before</tt> will be called. On the other hand
         #
-        #           define_callbacks :save
-        #           set_callback :save, :before, Audit.new
+        #     define_callbacks :save, scope: [:kind, :name]
         #
-        #           def save
-        #             run_callbacks :save do
-        #               puts 'save in main'
-        #             end
-        #           end
-        #         end
-        #
-        #     In the above case whenever you save an account the method
-        #   `Audit#before` will be called. On the other hand
-        #
-        #         define_callbacks :save, scope: [:kind, :name]
-        #
-        #     would trigger `Audit#before_save` instead. That's constructed
-        #   by calling `#{kind}_#{name}` on the given instance. In this
-        #   case "kind" is "before" and "name" is "save". In this context `:kind`
-        #   and `:name` have special meanings: `:kind` refers to the kind of
-        #   callback (before/after/around) and `:name` refers to the method on
+        #   would trigger <tt>Audit#before_save</tt> instead. That's constructed
+        #   by calling <tt>#{kind}_#{name}</tt> on the given instance. In this
+        #   case "kind" is "before" and "name" is "save". In this context +:kind+
+        #   and +:name+ have special meanings: +:kind+ refers to the kind of
+        #   callback (before/after/around) and +:name+ refers to the method on
         #   which callbacks are being defined.
         #
-        #     A declaration like
+        #   A declaration like
         #
-        #         define_callbacks :save, scope: [:name]
+        #     define_callbacks :save, scope: [:name]
         #
-        #     would call `Audit#save`.
+        #   would call <tt>Audit#save</tt>.
         #
-        # ##### Notes
+        # ===== Notes
         #
-        # `names` passed to `define_callbacks` must not end with
-        # `!`, `?` or `=`.
+        # +names+ passed to +define_callbacks+ must not end with
+        # <tt>!</tt>, <tt>?</tt> or <tt>=</tt>.
         #
-        # Calling `define_callbacks` multiple times with the same `names` will
+        # Calling +define_callbacks+ multiple times with the same +names+ will
         # overwrite previous callbacks registered with #set_callback.
         def define_callbacks(*names)
           options = names.extract_options!
