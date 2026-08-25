@@ -482,6 +482,17 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_primary_keys_exclude_included_columns
+    skip("PostgreSQL does not support included columns") unless @connection.supports_index_include?
+
+    table_name = "#{SCHEMA_NAME}.table_with_covering_primary_key"
+    @connection.execute "CREATE TABLE #{table_name} (tenant_id integer NOT NULL, id integer NOT NULL, name text)"
+    @connection.execute "CREATE UNIQUE INDEX covering_primary_key ON #{table_name} (tenant_id, id) INCLUDE (name)"
+    @connection.execute "ALTER TABLE #{table_name} ADD PRIMARY KEY USING INDEX covering_primary_key"
+
+    assert_equal ["tenant_id", "id"], @connection.primary_keys(table_name)
+  end
+
   def test_table_options_for_a_name_in_two_schemas_reads_the_first_on_the_search_path
     @connection.execute "COMMENT ON TABLE #{SCHEMA_NAME}.#{TABLE_NAME} IS 'in schema one'"
     @connection.execute "COMMENT ON TABLE #{SCHEMA2_NAME}.#{TABLE_NAME} IS 'in schema two'"
