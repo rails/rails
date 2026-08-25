@@ -40,6 +40,12 @@ module ActionController # :nodoc:
       # datastore as your general caches, you can pass a custom store in the `store`
       # parameter.
       #
+      # The limit is only enforced when the store's `increment` returns the updated
+      # count. Stores that don't count return `nil` instead, which silently turns
+      # `rate_limit` into a no-op. That includes `ActiveSupport::Cache::NullStore`,
+      # the default in the generated test environment, and any store that fails open
+      # while its backend is unavailable.
+      #
       # If you want to use multiple rate limits per controller, you need to give each of
       # them an explicit name via the `name:` option.
       #
