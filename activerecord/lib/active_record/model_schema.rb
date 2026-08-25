@@ -462,7 +462,7 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        schema_context.attributes_builder
+        schema_context.attributes.builder
       end
 
       def columns_hash # :nodoc:
@@ -474,11 +474,15 @@ module ActiveRecord
       end
 
       def _returning_columns_for_insert(connection) # :nodoc:
-        schema_context._returning_columns_for_insert(connection)
+        @_returning_columns_for_insert || ActiveSupport::Ractors.on_main(self) do
+          @_returning_columns_for_insert ||= schema_context._returning_columns_for_insert(connection)
+        end
       end
 
       def _returning_columns_for_update(connection) # :nodoc:
-        schema_context._returning_columns_for_update(connection)
+        @_returning_columns_for_update || ActiveSupport::Ractors.on_main(self) do
+          @_returning_columns_for_update ||= schema_context._returning_columns_for_update(connection)
+        end
       end
 
       # Returns the column object for the named attribute.
@@ -504,7 +508,7 @@ module ActiveRecord
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the Active Record object for this table.
       def column_defaults
-        schema_context.column_defaults
+        schema_context.attributes.column_defaults
       end
 
       # Returns an array of column names as strings.
@@ -557,12 +561,12 @@ module ActiveRecord
       # or directly from the database.
       def load_schema
         return if schema_loaded?
+
         @load_schema_monitor.synchronize do
           unless schema_loaded? || @schema_context
-            context = build_schema_context
-            @schema_context = context
-            context.load_schema!
-
+            @schema_context = build_schema_context
+            @schema_context.load_schema!
+            ActiveSupport::Ractors.make_shareable(@schema_context)
             unless @schema_hooks_loaded
               load_schema!
               @schema_hooks_loaded = true
@@ -596,6 +600,8 @@ module ActiveRecord
 
         def reload_schema_contexts_from_cache
           @schema_context = nil
+          @_returning_columns_for_insert = nil
+          @_returning_columns_for_update = nil
         end
 
       private

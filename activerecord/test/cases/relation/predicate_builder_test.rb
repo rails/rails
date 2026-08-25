@@ -109,15 +109,18 @@ module ActiveRecord
     class TrackingString < ActiveRecord::Type::String
       include ActiveRecord::Type::QueryPredicates
 
-      attr_reader :expressions
+      class << self
+        def expressions
+          @expressions ||= []
+        end
+      end
 
-      def initialize
-        @expressions = []
-        super
+      def expressions
+        self.class.expressions
       end
 
       def comparison_expression(expression)
-        expressions << expression
+        self.class.expressions << expression
         expression
       end
     end
@@ -125,15 +128,18 @@ module ActiveRecord
     class MutableSerializedType < ActiveRecord::Type::Value
       include ActiveRecord::Type::QueryPredicates
 
-      attr_reader :serializations
+      class << self
+        attr_accessor :serializations
+      end
 
-      def initialize
-        @serializations = 0
-        super
+      @serializations = 0
+
+      def serializations
+        self.class.serializations
       end
 
       def serialize(value)
-        @serializations += 1
+        self.class.serializations += 1
         value[:value]
       end
 
@@ -278,6 +284,7 @@ module ActiveRecord
     end
 
     def test_scalar_query_predicate_expressions_are_built_eagerly
+      TrackingString.expressions.clear
       type = TrackingString.new
       topic = topic_model_with_title_type(type)
       relation = topic.where(title: "CAFE")
@@ -439,6 +446,7 @@ module ActiveRecord
     end
 
     def test_comparison_expression_preserves_serialized_values
+      MutableSerializedType.serializations = 0
       type = MutableSerializedType.new
       topic = topic_model_with_title_type(type)
       value = { value: "original" }
