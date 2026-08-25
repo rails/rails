@@ -711,7 +711,7 @@ module ActiveRecord
 
           exclusion_info.map do |row|
             method_and_elements, predicate = row["constraintdef"].split(" WHERE ")
-            method_and_elements_parts = method_and_elements.match(/EXCLUDE(?: USING (?<using>\S+))? \((?<expression>.+)\)/)
+            method_and_elements_parts = method_and_elements.match(/EXCLUDE(?: USING (?<using>\S+))? \((?<expression>.+)\)/m)
             predicate.remove!(/ DEFERRABLE(?: INITIALLY (?:IMMEDIATE|DEFERRED))?/) if predicate
             predicate = predicate.from(2).to(-3) if predicate # strip 2 opening and closing parentheses
 
