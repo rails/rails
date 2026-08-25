@@ -306,14 +306,14 @@ module ActiveSupport
           if namespace = merged_options(options)[:namespace]
             delete_matched "*", namespace: namespace
           else
-            redis.then { |c| c.flushdb }
+            redis.then { |c| c.call("flushdb") }
           end
         end
       end
 
       # Get info from redis servers.
       def stats
-        redis.then { |c| c.info }
+        redis.then { |c| c.call("info") }
       end
 
       private

@@ -139,6 +139,30 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
   end
 
+  class CommandsTest < ActiveSupport::TestCase
+    setup do
+      skip "Redis server is not up" unless REDIS_UP
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(client: RedisClient.config(url: REDIS_URL), pool: false)
+    end
+
+    teardown do
+      @cache&.redis&.close
+    end
+
+    test "clear without a namespace flushes the database" do
+      @cache.write("foo", "bar")
+      assert_equal "bar", @cache.read("foo")
+
+      @cache.clear
+
+      assert_nil @cache.read("foo")
+    end
+
+    test "stats returns server info" do
+      assert_match(/redis_version/, @cache.stats)
+    end
+  end
+
   class StoreTest < ActiveSupport::TestCase
     module NotificationMiddleware
       def call(command, _redis_config)
