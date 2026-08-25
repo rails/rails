@@ -52,11 +52,7 @@ module Arel # :nodoc: all
       end
 
       def fetch_attribute(&block)
-        if attribute
-          attribute.fetch_attribute(&block)
-        else
-          expr.fetch_attribute(&block)
-        end
+        attribute.fetch_attribute(&block)
       end
 
       protected
