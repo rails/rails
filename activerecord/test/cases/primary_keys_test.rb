@@ -33,6 +33,10 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_nil on_ractor { NonPrimaryKey.primary_key }
   end
 
+  def test_primary_key_can_be_reset_from_a_ractor
+    assert_equal "id", on_ractor { Topic.reset_primary_key }
+  end
+
   def test_query_constraints_list_is_ractor_shareable
     assert_ractor_shareable Topic.query_constraints_list
   end
