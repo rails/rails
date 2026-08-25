@@ -36,4 +36,35 @@ class RailsStorageProxyUrlTest < ActiveSupport::TestCase
     variant = @blob.variant(resize_to_limit: [100, 100])
     assert_includes rails_representation_path(variant, only_path: true), "/rails/active_storage/representations/proxy/"
   end
+
+  test "rails_blob_path for a variant that changes the format uses the variant's extension" do
+    variant = @blob.variant(resize_to_limit: [100, 100], format: :webp)
+    assert rails_blob_path(variant, only_path: true).end_with?("/racecar.webp")
+  end
+
+  test "rails_blob_path for a variant that keeps the format uses the blob's extension" do
+    variant = @blob.variant(resize_to_limit: [100, 100])
+    assert rails_blob_path(variant, only_path: true).end_with?("/racecar.jpg")
+  end
+
+  test "rails_blob_path for a tracked variant that changes the format uses the variant's extension" do
+    with_variant_tracking do
+      variant = @blob.variant(resize_to_limit: [100, 100], format: :webp)
+      assert_kind_of ActiveStorage::VariantWithRecord, variant
+      assert rails_blob_path(variant, only_path: true).end_with?("/racecar.webp")
+    end
+  end
+
+  test "rails_blob_path for an unprocessed preview falls back to the blob's filename" do
+    blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
+    preview = ActiveStorage::Preview.new(blob, resize_to_limit: [100, 100])
+    assert_not_predicate preview, :processed?
+
+    assert rails_blob_path(preview, only_path: true).end_with?("/report.pdf")
+  end
+
+  test "rails_blob_path for a processed preview uses the preview image's extension" do
+    preview = create_file_blob(filename: "report.pdf", content_type: "application/pdf").preview(resize_to_limit: [100, 100]).processed
+    assert rails_blob_path(preview, only_path: true).end_with?("/report.png")
+  end
 end

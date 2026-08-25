@@ -35,7 +35,9 @@ class ActiveStorage::Preview
 
   class UnprocessedError < StandardError; end
 
-  delegate :filename, :content_type, to: :presentation
+  # +content_type+ is read only when serving an already-processed preview, so (unlike
+  # +filename+, which builds URLs before processing) it can resolve via the presentation.
+  delegate :content_type, to: :presentation
 
   attr_reader :blob, :variation
 
@@ -58,6 +60,20 @@ class ActiveStorage::Preview
   # Returns the blob's attached preview image.
   def image
     blob.preview_image
+  end
+
+  # Returns the filename of the processed preview image (e.g. +report.png+ for a PDF
+  # or +report.jpg+ for a video). Falls back to the blob's filename until the preview
+  # has been processed, so it can be used to build URLs without triggering processing
+  # (a preview's actual format isn't known until a previewer has run). The variant's
+  # filename is derived from the format alone, so it's read without forcing the
+  # variant to be processed.
+  def filename
+    if processed?
+      variant? ? variant.filename : image.filename
+    else
+      blob.filename
+    end
   end
 
   # Returns the URL of the preview's variant on the service. Raises ActiveStorage::Preview::UnprocessedError if the
