@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 # The ThumbHash codec in this file is adapted from https://github.com/evanw/thumbhash.
 # Copyright (c) 2023 Evan Wallace
 #
