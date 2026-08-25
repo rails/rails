@@ -82,11 +82,11 @@ module ActiveRecord
           model_was = klass
         end
 
-        values = foreign_key.map { |fk| owner.attribute_before_last_save(fk) }
-        foreign_key_was = foreign_key.composite? ? (values if values.all?) : values.first
+        foreign_key_values = foreign_key.map { |fk| owner.attribute_before_last_save(fk) }
+        foreign_key_was = foreign_key.composite? ? foreign_key_values.all? : foreign_key_values.first
 
         if foreign_key_was && model_was < ActiveRecord::Base
-          update_counters_via_scope(model_was, foreign_key_was, -1)
+          update_counters_via_scope(model_was, -1, before_last_save: true)
         end
       end
 
@@ -122,14 +122,23 @@ module ActiveRecord
             if target && !stale_target?
               target.increment!(reflection.counter_cache_column, by, touch: reflection.options[:touch])
             else
-              update_counters_via_scope(klass, foreign_key.value_of(owner), by)
+              update_counters_via_scope(klass, by)
             end
           end
         end
 
-        def update_counters_via_scope(klass, values, by)
-          primary_key = ActiveRecord::Key.for(primary_key(klass))
-          scope = klass.all_queries_scope.where!(primary_key.where_hash(values))
+        def update_counters_via_scope(klass, by, before_last_save: false)
+          constraints = reflection.query_key_mapping(klass).to_h do |active_record_column, associated_record_column|
+            active_record_column = owner.class.attribute_aliases[active_record_column] || active_record_column
+            value = if before_last_save
+              owner.attribute_before_last_save(active_record_column)
+            else
+              owner.read_attribute(active_record_column)
+            end
+
+            [associated_record_column, value]
+          end
+          scope = klass.all_queries_scope.where!(constraints)
           scope.update_counters(reflection.counter_cache_column => by, touch: reflection.options[:touch])
         end
 

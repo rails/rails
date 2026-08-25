@@ -46,7 +46,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
       association = o.association(name)
       foreign_key = association.foreign_key
 
-      old_foreign_id = if foreign_key.any? { |fk| o.public_send(change_method, fk) }
+      foreign_key_changed = foreign_key.any? { |fk| o.public_send(change_method, fk) }
+      old_foreign_key = if foreign_key_changed
         values = foreign_key.map do |fk|
           change = o.public_send(change_method, fk)
           change ? change.first : o.read_attribute(fk)
@@ -54,7 +55,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         foreign_key.composite? ? values : values.first
       end
 
-      if old_foreign_id
+      if old_foreign_key
         reflection = association.reflection
         if reflection.polymorphic?
           foreign_type = association.foreign_type
@@ -64,8 +65,14 @@ module ActiveRecord::Associations::Builder # :nodoc:
         else
           klass = association.klass
         end
-        primary_key = reflection.association_primary_key(klass)
-        old_record = klass.find_by(primary_key => [old_foreign_id])
+        constraints = reflection.query_key_mapping(klass).to_h do |active_record_column, associated_record_column|
+          active_record_column = o.class.attribute_aliases[active_record_column] || active_record_column
+          change = o.public_send(change_method, active_record_column)
+          value = change ? change.first : o.read_attribute(active_record_column)
+
+          [associated_record_column, value]
+        end
+        old_record = klass.find_by(constraints)
 
         if old_record
           if touch != true
