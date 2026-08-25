@@ -15,6 +15,18 @@
     building, creating, or assigning associated records, while queries match on
     the foreign key plus the extra columns.
 
+    An Array-valued `foreign_key` remains a writable composite foreign key:
+
+    ``` ruby
+    # Reads and writes both columns.
+    belongs_to :post, foreign_key: [:blog_id, :post_id]
+
+    # Reads with both columns, but writes only post_id.
+    belongs_to :post,
+      foreign_key: :post_id,
+      query_constraints: :blog_id
+    ```
+
     Additive query constraints do not participate in association stale tracking.
     Changing them does not invalidate a cached target; changing its foreign key does.
 
@@ -31,7 +43,7 @@
     end
     ```
 
-    *Nikita Vasilevsky*
+    *Nikita Vasilevsky* and *Adrianna Chang*
 
 *   Deprecate `ActiveRecord::Relation#uniq!`.
 

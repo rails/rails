@@ -1393,7 +1393,8 @@ module ActiveRecord
         #   assigning associated records. The foreign key is derived by convention when +:foreign_key+ is
         #   omitted. Symbols and strings match same-named columns on both tables. A Hash maps a column on this
         #   model to one on the associated model, for example <tt>{ tenant_id: :account_tenant_id }</tt>, and
-        #   requires +:foreign_key+. Query constraint columns must be distinct from the foreign key columns.
+        #   requires +:foreign_key+. Query constraint columns must differ from foreign key columns on the table
+        #   that stores the foreign key. Changing a query constraint does not invalidate a loaded target.
         # [+:index_errors+]
         #   Allows differentiation of multiple validation errors from the association records, by including
         #   an index in the error attribute name, e.g. +roles[2].level+.
@@ -1611,7 +1612,8 @@ module ActiveRecord
         #   assigning associated records. The foreign key is derived by convention when +:foreign_key+ is
         #   omitted. Symbols and strings match same-named columns on both tables. A Hash maps a column on this
         #   model to one on the associated model, for example <tt>{ tenant_id: :account_tenant_id }</tt>, and
-        #   requires +:foreign_key+. Query constraint columns must be distinct from the foreign key columns.
+        #   requires +:foreign_key+. Query constraint columns must differ from foreign key columns on the table
+        #   that stores the foreign key. Changing a query constraint does not invalidate a loaded target.
         # [+:deprecated+]
         #   If true, marks the association as deprecated. Usage of deprecated associations is reported.
         #   Please, check the class documentation above for details.
@@ -1809,7 +1811,8 @@ module ActiveRecord
         #   assigning associated records. The foreign key is derived by convention when +:foreign_key+ is
         #   omitted. Symbols and strings match same-named columns on both tables. A Hash maps a column on this
         #   model to one on the associated model, for example <tt>{ tenant_id: :account_tenant_id }</tt>, and
-        #   requires +:foreign_key+. Query constraint columns must be distinct from the foreign key columns.
+        #   requires +:foreign_key+. Query constraint columns must differ from foreign key columns on the table
+        #   that stores the foreign key. Changing a query constraint does not invalidate a loaded target.
         # [+:deprecated+]
         #   If true, marks the association as deprecated. Usage of deprecated associations is reported.
         #   Please, check the class documentation above for details.
