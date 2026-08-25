@@ -448,9 +448,9 @@ GEM
       psych (>= 4.0.0)
       tsort
     redcarpet (3.6.1)
-    redis (5.4.1)
-      redis-client (>= 0.22.0)
-    redis-client (0.29.0)
+    redis (6.0.0)
+      redis-client (= 0.30.1)
+    redis-client (0.30.1)
       connection_pool
     redis-namespace (1.11.0)
       redis (>= 4)
@@ -723,7 +723,7 @@ DEPENDENCIES
   rails!
   rake (>= 13)
   redcarpet (~> 3.6.1)
-  redis (>= 4.0.1, < 6)
+  redis (>= 4.0.1, < 7)
   redis-namespace
   releaser!
   resque
