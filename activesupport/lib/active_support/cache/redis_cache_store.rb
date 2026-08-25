@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 redis_client_min_version = "0.28.0"
@@ -23,30 +22,29 @@ require "active_support/core_ext/string/filters"
 
 module ActiveSupport
   module Cache
-    # Redis \Cache \Store
-    # ===================
+    # = Redis \Cache \Store
     #
-    # Deployment note: Take care to use a **dedicated Redis cache** rather
+    # Deployment note: Take care to use a <b>dedicated Redis cache</b> rather
     # than pointing this at a persistent Redis server (for example, one used as
     # an Active Job queue). Redis won't cope well with mixed usage patterns and it
     # won't expire cache entries by default.
     #
     # Redis cache server setup guide: https://redis.io/topics/lru-cache
     #
-    # * Supports vanilla Redis, hiredis, and `Redis::Distributed`.
-    # * Supports Memcached-like sharding across Redises with `Redis::Distributed`.
+    # * Supports vanilla Redis, hiredis, and +Redis::Distributed+.
+    # * Supports Memcached-like sharding across Redises with +Redis::Distributed+.
     # * Fault tolerant. If the Redis server is unavailable, no exceptions are
     #   raised. Cache fetches are all misses and writes are dropped.
     # * Local cache. Hot in-memory primary cache within block/middleware scope.
-    # * `read_multi` and `write_multi` support for Redis mget/mset. Use
-    #   `Redis::Distributed` 4.0.1+ for distributed mget support.
-    # * `delete_matched` support for Redis KEYS globs.
-    # * `read` supports `delete: true` to atomically read and delete
-    #   a cache entry using the Redis `GETDEL` command.
+    # * +read_multi+ and +write_multi+ support for Redis mget/mset. Use
+    #   +Redis::Distributed+ 4.0.1+ for distributed mget support.
+    # * +delete_matched+ support for Redis KEYS globs.
+    # * +read+ supports <tt>delete: true</tt> to atomically read and delete
+    #   a cache entry using the Redis +GETDEL+ command.
     #
-    #         cache.write("greeting", "hello")
-    #         cache.read("greeting", delete: true)  # => "hello"
-    #         cache.read("greeting")                 # => nil
+    #     cache.write("greeting", "hello")
+    #     cache.read("greeting", delete: true)  # => "hello"
+    #     cache.read("greeting")                 # => nil
     #
     class RedisCacheStore < Store
       DEFAULT_REDIS_OPTIONS = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(
@@ -98,33 +96,28 @@ module ActiveSupport
 
       # Creates a new Redis cache store.
       #
-      # The `:url` param can be:
+      # The +:url+ param can be:
+      #    - A string used to create a RedisClient::Pooled instance.
+      #    - An array of strings used to create a +RedisClient::HashRing+ instance.
       #
-      # - A string used to create a RedisClient::Pooled instance.
-      # - An array of strings used to create a `RedisClient::HashRing` instance.
-      #
-      # ```
-      # Option  Class       Result
-      # :url    String  ->  RedisClient.config(url: …).new_pool
-      # :url    Array   ->  RedisClient::HashRing.new([RedisClient.config(url: …).new_pool, ...])
-      # ```
+      #   Option  Class       Result
+      #   :url    String  ->  RedisClient.config(url: …).new_pool
+      #   :url    Array   ->  RedisClient::HashRing.new([RedisClient.config(url: …).new_pool, ...])
       #
       # If you need some advanced configuration for the client, or want to use an alternative implementation
-      # like `redis-cluster-client`, you can pass an already configured client via the `:client` option:
+      # like `redis-cluster-client`, you can pass an already configured client via the +:client+ option:
       #
-      # ```
-      # config.cache_store = :redis_cache_store, client: RedisClient.config(...)
-      # config.cache_store = :redis_cache_store, client: [RedisClient.config(...), RedisClient.config(...)]
-      # config.cache_store = :redis_cache_store, client: -> { RedisClient.config(...) }
-      # ```
+      #   config.cache_store = :redis_cache_store, client: RedisClient.config(...)
+      #   config.cache_store = :redis_cache_store, client: [RedisClient.config(...), RedisClient.config(...)]
+      #   config.cache_store = :redis_cache_store, client: -> { RedisClient.config(...) }
       #
       # No namespace is set by default. Provide one if the Redis cache
-      # server is shared with other apps: `namespace: 'myapp-cache'`.
+      # server is shared with other apps: <tt>namespace: 'myapp-cache'</tt>.
       #
       # Compression is enabled by default with a 1kB threshold, so cached
       # values larger than 1kB are automatically compressed. Disable by
-      # passing `compress: false` or change the threshold by passing
-      # `compress_threshold: 4.kilobytes`.
+      # passing <tt>compress: false</tt> or change the threshold by passing
+      # <tt>compress_threshold: 4.kilobytes</tt>.
       #
       # No expiry is set on cache entries by default. Redis is expected to
       # be configured with an eviction policy that automatically deletes
@@ -135,14 +128,12 @@ module ActiveSupport
       # "thundering herd" cache writes when hot cache entries are expired.
       # See ActiveSupport::Cache::Store#fetch for more.
       #
-      # Setting `skip_nil: true` will not cache nil results:
+      # Setting <tt>skip_nil: true</tt> will not cache nil results:
       #
-      # ```
-      # cache.fetch('foo') { nil }
-      # cache.fetch('bar', skip_nil: true) { nil }
-      # cache.exist?('foo') # => true
-      # cache.exist?('bar') # => false
-      # ```
+      #   cache.fetch('foo') { nil }
+      #   cache.fetch('bar', skip_nil: true) { nil }
+      #   cache.exist?('foo') # => true
+      #   cache.exist?('bar') # => false
       def initialize(error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
         universal_options = redis_options.extract!(*UNIVERSAL_OPTIONS)
         pool_options = self.class.send(:retrieve_pool_options, redis_options)
@@ -205,13 +196,11 @@ module ActiveSupport
       #
       # Supports Redis KEYS glob patterns:
       #
-      # ```
-      # h?llo matches hello, hallo and hxllo
-      # h*llo matches hllo and heeeello
-      # h[ae]llo matches hello and hallo, but not hillo
-      # h[^e]llo matches hallo, hbllo, ... but not hello
-      # h[a-b]llo matches hallo and hbllo
-      # ```
+      #   h?llo matches hello, hallo and hxllo
+      #   h*llo matches hllo and heeeello
+      #   h[ae]llo matches hello and hallo, but not hillo
+      #   h[^e]llo matches hallo, hbllo, ... but not hello
+      #   h[a-b]llo matches hallo and hbllo
       #
       # Use \ to escape special characters if you want to match them verbatim.
       #
@@ -238,29 +227,23 @@ module ActiveSupport
       # Increment a cached integer value using the Redis incrby atomic operator.
       # Returns the updated value.
       #
-      # If the key is unset or has expired, it will be set to `amount`:
+      # If the key is unset or has expired, it will be set to +amount+:
       #
-      # ```
-      # cache.increment("foo") # => 1
-      # cache.increment("bar", 100) # => 100
-      # ```
+      #   cache.increment("foo") # => 1
+      #   cache.increment("bar", 100) # => 100
       #
-      # To set a specific value, call #write passing `raw: true`:
+      # To set a specific value, call #write passing <tt>raw: true</tt>:
       #
-      # ```
-      # cache.write("baz", 5, raw: true)
-      # cache.increment("baz") # => 6
-      # ```
+      #   cache.write("baz", 5, raw: true)
+      #   cache.increment("baz") # => 6
       #
       # Incrementing a non-numeric value, or a value written without
-      # `raw: true`, will fail and return `nil`.
+      # <tt>raw: true</tt>, will fail and return +nil+.
       #
       # To read the value later, call #read_counter:
       #
-      # ```
-      # cache.increment("baz") # => 7
-      # cache.read_counter("baz") # 7
-      # ```
+      #   cache.increment("baz") # => 7
+      #   cache.read_counter("baz") # 7
       #
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
@@ -277,28 +260,22 @@ module ActiveSupport
       # Decrement a cached integer value using the Redis decrby atomic operator.
       # Returns the updated value.
       #
-      # If the key is unset or has expired, it will be set to `-amount`:
+      # If the key is unset or has expired, it will be set to +-amount+:
       #
-      # ```
-      # cache.decrement("foo") # => -1
-      # ```
+      #   cache.decrement("foo") # => -1
       #
-      # To set a specific value, call #write passing `raw: true`:
+      # To set a specific value, call #write passing <tt>raw: true</tt>:
       #
-      # ```
-      # cache.write("baz", 5, raw: true)
-      # cache.decrement("baz") # => 4
-      # ```
+      #   cache.write("baz", 5, raw: true)
+      #   cache.decrement("baz") # => 4
       #
       # Decrementing a non-numeric value, or a value written without
-      # `raw: true`, will fail and return `nil`.
+      # <tt>raw: true</tt>, will fail and return +nil+.
       #
       # To read the value later, call #read_counter:
       #
-      # ```
-      # cache.decrement("baz") # => 3
-      # cache.read_counter("baz") # 3
-      # ```
+      #   cache.decrement("baz") # => 3
+      #   cache.read_counter("baz") # 3
       #
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)
