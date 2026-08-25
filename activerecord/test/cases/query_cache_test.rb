@@ -1189,3 +1189,15 @@ class TransactionInCachedSqlActiveRecordPayloadTest < ActiveRecord::TestCase
     assert_same expected_transaction, notification.payload[:transaction]
   end
 end
+
+class QueryCacheRegistryTest < ActiveRecord::TestCase
+  def test_clear_drops_the_cached_stores
+    registry = ActiveRecord::ConnectionAdapters::QueryCache::QueryCacheRegistry.new
+    store = registry.compute_if_absent(Thread.current) { Object.new }
+    assert_same store, registry.compute_if_absent(Thread.current) { Object.new }
+
+    registry.clear
+
+    assert_not_same store, registry.compute_if_absent(Thread.current) { Object.new }
+  end
+end

@@ -123,7 +123,7 @@ module ActiveRecord
         end
 
         def clear
-          @map.synchronize do
+          @mutex.synchronize do
             @map.clear
           end
         end
