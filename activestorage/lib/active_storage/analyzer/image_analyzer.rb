@@ -3,7 +3,8 @@
 module ActiveStorage
   # = Active Storage Image \Analyzer
   #
-  # This is an abstract base class for image analyzers, which extract width and height from an image blob.
+  # This is an abstract base class for image analyzers, which extract width and height from an image blob. When
+  # +ActiveStorage.generate_image_placeholders+ is enabled, they also extract an inline placeholder.
   #
   # If the image contains EXIF data indicating its angle is 90 or 270 degrees, its width and height are swapped for convenience.
   #
@@ -23,12 +24,26 @@ module ActiveStorage
 
     def metadata
       read_image do |image|
-        if rotated_image?(image)
+        dimensions = if rotated_image?(image)
           { width: image.height, height: image.width }
         else
           { width: image.width, height: image.height }
         end
+
+        dimensions.merge(placeholder_metadata(image))
       end
     end
+
+    private
+      def placeholder_metadata(image)
+        if ActiveStorage.generate_image_placeholders && (placeholder = image_placeholder(image))
+          { placeholder: placeholder }
+        else
+          {}
+        end
+      end
+
+      def image_placeholder(_image)
+      end
   end
 end

@@ -43,6 +43,7 @@ module ActiveStorage
 
   autoload :Attached
   autoload :FixtureSet
+  autoload :ImagePlaceholder
   autoload :Service
   autoload :Previewer
   autoload :Analyzer
@@ -58,6 +59,7 @@ module ActiveStorage
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers,  default: []
   mattr_accessor :analyze,    default: :later
+  mattr_accessor :generate_image_placeholders, default: false
 
   mattr_accessor :paths, default: {}
 

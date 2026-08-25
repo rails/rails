@@ -26,7 +26,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
 
   # FIXME: these property should never have been stored in the metadata.
   # The blob table should be migrated to have dedicated columns for these.
-  PROTECTED_METADATA = %w(analyzed identified composed).freeze
+  PROTECTED_METADATA = %w(analyzed identified composed placeholder).freeze
   private_constant :PROTECTED_METADATA
   store :metadata, accessors: [ :analyzed, :identified, :composed ], coder: ActiveRecord::Coders::JSON
 
@@ -201,6 +201,12 @@ class ActiveStorage::Blob < ActiveStorage::Record
   #
   #   ActiveStorage::Blob.first.metadata
   #   => {"identified" => true, "width" => 763, "height" => 588, "analyzed" => true}
+
+  # Returns an inline low-quality placeholder for an analyzed image blob when
+  # +config.active_storage.generate_image_placeholders+ is enabled.
+  def placeholder
+    metadata[:placeholder]
+  end
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
   def signed_id(purpose: :blob_id, expires_in: nil, expires_at: nil)

@@ -46,5 +46,13 @@ module ActiveStorage
       rescue ::Vips::Error
         false
       end
+
+      def image_placeholder(image)
+        image = image.thumbnail_image(100, height: 100, size: :down)
+        image = image.colourspace(:srgb)
+        image = image.addalpha unless image.has_alpha?
+
+        ImagePlaceholder.data_url(image.width, image.height, image.cast(:uchar).write_to_memory.unpack("C*"))
+      end
   end
 end

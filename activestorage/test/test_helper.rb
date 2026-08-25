@@ -75,6 +75,23 @@ class ActiveSupport::TestCase
       blob.tap(&:analyze).metadata
     end
 
+    def assert_image_placeholder(metadata, landscape: true, transparent: false)
+      assert_match(/\Adata:image\/png;base64,/, metadata[:placeholder])
+      assert_operator metadata[:placeholder].bytesize, :<, 1024
+      image = MiniMagick::Image.read(Base64.strict_decode64(metadata[:placeholder].delete_prefix("data:image/png;base64,")))
+
+      assert_operator image.width, :<=, 16
+      assert_operator image.height, :<=, 16
+      if landscape == true
+        assert_operator image.width, :>, image.height
+      elsif landscape == false
+        assert_operator image.height, :>, image.width
+      end
+      assert image.get_pixels("RGBA").flatten.each_slice(4).any? { |pixel| pixel.last < 255 } if transparent
+    ensure
+      image&.destroy!
+    end
+
     def fixture_file_upload(filename)
       Rack::Test::UploadedFile.new file_fixture(filename).to_s
     end
