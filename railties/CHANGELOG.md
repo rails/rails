@@ -1,3 +1,17 @@
+*   Run the `test:prepare` task in a subprocess when `bin/rails test` runs it.
+
+    Prepare tasks that depend on `:environment`, such as the asset builds that
+    gems like `tailwindcss-rails` enhance the task with, booted the application
+    inside the test process before any test file was loaded. Coverage tools
+    started from `test_helper.rb` cannot see code loaded before they start, so
+    `bin/rails test` and `bin/rails test test/` reported different coverage for
+    the same suite. The application now boots in the subprocess, and the test
+    process still boots it from `test_helper.rb`, after coverage has started.
+
+    Fixes #58477.
+
+    *Adrián Mugnolo*
+
 *   Make mounted route helpers (e.g. `main_app`, engine mount proxies) trigger
     the lazy route load instead of raising `NoMethodError` when called before
     routes are drawn.
