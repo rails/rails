@@ -10,11 +10,26 @@ module ActiveRecord
   class SchemaDumper # :nodoc:
     private_class_method :new
 
-    ##
-    # :singleton-method:
     # A list of tables which should not be dumped to the schema.
     # Acceptable values are strings and regexps.
-    cattr_accessor :ignore_tables, default: []
+    def self.ignore_tables
+      ActiveRecord.deprecator.warn(<<~MSG)
+        `ActiveRecord::SchemaDumper.ignore_tables` is deprecated and will be removed.
+        Use `config.active_record.schema_ignored_tables` instead.
+      MSG
+
+      ActiveRecord.schema_ignored_tables
+    end
+
+    # Sets a list of tables which should not be dumped to the schema.
+    def self.ignore_tables=(tables)
+      ActiveRecord.deprecator.warn(<<~MSG)
+        `ActiveRecord::SchemaDumper.ignore_tables=` is deprecated and will be removed.
+        Use `config.active_record.schema_ignored_tables` instead.
+      MSG
+
+      ActiveRecord.schema_ignored_tables = tables
+    end
 
     ##
     # :singleton-method:
@@ -77,9 +92,9 @@ module ActiveRecord
         @version = connection.pool.migration_context.current_version rescue nil
         @options = options
         @ignore_tables = [
-          ActiveRecord::Base.schema_migrations_table_name,
-          ActiveRecord::Base.internal_metadata_table_name,
-          self.class.ignore_tables
+          add_prefix_and_suffix(ActiveRecord::Base.schema_migrations_table_name),
+          add_prefix_and_suffix(ActiveRecord::Base.internal_metadata_table_name),
+          Array(ActiveRecord.schema_ignored_tables)
         ].flatten
         @dump_schema_migrations = connection.pool.db_config.dump_schema_migrations?
       end
@@ -410,9 +425,14 @@ module ActiveRecord
         table.sub(/\A#{prefix}(.+)#{suffix}\z/, "\\1")
       end
 
+      def add_prefix_and_suffix(table)
+        "#{@options[:table_name_prefix]}#{table}#{@options[:table_name_suffix]}"
+      end
+
+
       def ignored?(table_name)
         @ignore_tables.any? do |ignored|
-          ignored === remove_prefix_and_suffix(table_name)
+          ignored === table_name
         end
       end
   end
