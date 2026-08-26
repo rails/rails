@@ -1,3 +1,7 @@
+*   Add `count: false` to `pluralize` to return only the singular or plural word.
+
+    *Victor Cobos*
+
 *   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
     the current template when it starts with a period, mirroring the existing
     behavior for the key argument.
