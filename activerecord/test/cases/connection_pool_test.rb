@@ -2,12 +2,14 @@
 
 require "cases/helper"
 require "active_support/error_reporter/test_helper"
+require "active_support/execution_context/test_helper"
 require "concurrent/atomic/count_down_latch"
 
 module ActiveRecord
   module ConnectionAdapters
     module ConnectionPoolTests
       include ActiveRecord::TestCase::WaitForTestHelper
+      include ActiveSupport::ExecutionContext::TestHelper
 
       def self.included(test)
         super
