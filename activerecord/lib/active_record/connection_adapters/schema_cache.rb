@@ -230,7 +230,7 @@ module ActiveRecord
 
         read(filename) do |file|
           if filename.include?(".dump")
-            Marshal.load(file)
+            Marshal.load(file, freeze: true)
           else
             YAML.unsafe_load(file)
           end
@@ -433,8 +433,7 @@ module ActiveRecord
       def marshal_load(array) # :nodoc:
         @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, _database_version = array
         @indexes ||= {}
-
-        derive_columns_hash_and_deduplicate_values
+        @columns_hash = @columns.transform_values { |columns| columns.index_by(&:name) }
       end
 
       private
