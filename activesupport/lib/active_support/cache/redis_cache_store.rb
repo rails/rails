@@ -108,6 +108,7 @@ module ActiveSupport
       # like `redis-cluster-client`, you can pass an already configured client via the +:client+ option:
       #
       #   config.cache_store = :redis_cache_store, client: RedisClient.config(...)
+      #   config.cache_store = :redis_cache_store, client: RedisClient.config(...).new_client
       #   config.cache_store = :redis_cache_store, client: [RedisClient.config(...), RedisClient.config(...)]
       #   config.cache_store = :redis_cache_store, client: -> { RedisClient.config(...) }
       #
@@ -140,7 +141,8 @@ module ActiveSupport
 
         if redis_options.key?(:client)
           client = redis_options.delete(:client)
-          clients = Array.wrap(client.respond_to?(:call) ? client.call : client)
+          client = client.call if client.is_a?(Proc)
+          clients = Array.wrap(client)
         else
           urls = Array.wrap(redis_options.delete(:url))
           urls << nil if urls.empty?

@@ -121,6 +121,18 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_kind_of ::RedisClient::Pooled, @cache.redis
     end
 
+    test "accepts a RedisClient instance via :client" do
+      client = RedisClient.config(url: REDIS_URL, protocol: 2).new_client
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(client: client)
+      assert_same client, @cache.redis
+    end
+
+    test "accepts a RedisClient::Pooled instance via :client" do
+      client = RedisClient.config(url: REDIS_URL, protocol: 2).new_pool
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(client: client)
+      assert_same client, @cache.redis
+    end
+
     test "array of :client Configs is not mutated" do
       clients = REDIS_URLS.map { |url| RedisClient.config(url: url) }.freeze
       @cache = ActiveSupport::Cache::RedisCacheStore.new(client: clients)
