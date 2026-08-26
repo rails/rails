@@ -1,3 +1,17 @@
+*   Include the database configuration name from `config/database.yml` in
+    `ActiveRecord::DatabaseConnectionError` messages raised by the PostgreSQL,
+    MySQL, and Trilogy adapters, so multi-database apps can tell which database
+    failed to connect. A non-default role or shard is appended to the end of
+    the message.
+
+    ```
+    There is an issue connecting to your 'primary' database with your username/password, username: example_user.
+
+    Please check your database configuration to ensure the username/password are valid. (role: reading, shard: shard_one)
+    ```
+
+    *Chris Oliver*
+
 *   Add `config.active_record.shuffle_unordered_selects`.
 
     When enabled, Active Record shuffles the rows of every `SELECT` it generates

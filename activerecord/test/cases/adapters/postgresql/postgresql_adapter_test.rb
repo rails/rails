@@ -102,6 +102,34 @@ module ActiveRecord
         end
       end
 
+      def test_database_connection_error_includes_connection_name_from_pool
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        configuration = db_config.configuration_hash.merge(username: "db_user")
+
+        connect_raises_error = proc { |**_conn_params| raise(PG::ConnectionBad, 'FATAL:  password authentication failed for user "db_user"') }
+        PG.stub(:connect, connect_raises_error) do
+          connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(configuration)
+          connection.pool = ActiveRecord::Base.connection_pool
+
+          error = assert_raises ActiveRecord::DatabaseConnectionError do
+            connection.connect!
+          end
+          assert_includes error.message, "your 'primary' database"
+          assert_not_includes error.message, "(role:"
+        end
+      end
+
+      def test_database_connection_error_includes_non_default_role_and_shard
+        connect_raises_error = proc { |**_conn_params| raise(PG::ConnectionBad, 'FATAL:  password authentication failed for user "db_user"') }
+        PG.stub(:connect, connect_raises_error) do
+          error = assert_raises ActiveRecord::DatabaseConnectionError do
+            ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new_client({ user: "db_user" }, connection_name: "animals", role: :reading, shard: :shard_one)
+          end
+          assert_includes error.message, "your 'animals' database"
+          assert_includes error.message, "(role: reading, shard: shard_one)"
+        end
+      end
+
       def test_reconnect_after_bad_connection_on_check_version_with_0_return
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         with_postgresql_adapter(db_config.configuration_hash.merge(connection_retries: 0)) do |connection|

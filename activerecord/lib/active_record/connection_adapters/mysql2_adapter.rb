@@ -22,16 +22,16 @@ module ActiveRecord
       include Mysql2::DatabaseStatements
 
       class << self
-        def new_client(config)
+        def new_client(config, connection_name: nil, role: nil, shard: nil)
           ::Mysql2::Client.new(config)
         rescue ::Mysql2::Error => error
           case error.error_number
           when ER_BAD_DB_ERROR
             raise ActiveRecord::NoDatabaseError.db_error(config[:database])
           when ER_DBACCESS_DENIED_ERROR, ER_ACCESS_DENIED_ERROR
-            raise ActiveRecord::DatabaseConnectionError.username_error(config[:username])
+            raise ActiveRecord::DatabaseConnectionError.username_error(config[:username], connection_name: connection_name, role: role, shard: shard)
           when ER_CONN_HOST_ERROR, ER_UNKNOWN_HOST_ERROR
-            raise ActiveRecord::DatabaseConnectionError.hostname_error(config[:host])
+            raise ActiveRecord::DatabaseConnectionError.hostname_error(config[:host], connection_name: connection_name, role: role, shard: shard)
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
@@ -141,7 +141,7 @@ module ActiveRecord
         end
 
         def connect
-          @raw_connection = self.class.new_client(@connection_parameters)
+          @raw_connection = self.class.new_client(@connection_parameters, connection_name: @pool.db_config.name, role: @pool.role, shard: @pool.shard)
         rescue ConnectionNotEstablished => ex
           raise ex.set_pool(@pool)
         end

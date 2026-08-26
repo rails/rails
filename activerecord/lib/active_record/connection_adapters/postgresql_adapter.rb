@@ -52,7 +52,7 @@ module ActiveRecord
       ADAPTER_NAME = "PostgreSQL"
 
       class << self
-        def new_client(conn_params)
+        def new_client(conn_params, connection_name: nil, role: nil, shard: nil)
           PG.connect(**conn_params)
         rescue ::PG::Error => error
           if conn_params && conn_params[:dbname] == "postgres"
@@ -60,9 +60,9 @@ module ActiveRecord
           elsif conn_params && conn_params[:dbname] && error.message.include?(conn_params[:dbname])
             raise ActiveRecord::NoDatabaseError.db_error(conn_params[:dbname])
           elsif conn_params && conn_params[:user] && error.message.include?(conn_params[:user])
-            raise ActiveRecord::DatabaseConnectionError.username_error(conn_params[:user])
+            raise ActiveRecord::DatabaseConnectionError.username_error(conn_params[:user], connection_name: connection_name, role: role, shard: shard)
           elsif conn_params && conn_params[:host] && error.message.include?(conn_params[:host])
-            raise ActiveRecord::DatabaseConnectionError.hostname_error(conn_params[:host])
+            raise ActiveRecord::DatabaseConnectionError.hostname_error(conn_params[:host], connection_name: connection_name, role: role, shard: shard)
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
@@ -1115,7 +1115,7 @@ module ActiveRecord
         # Connects to a PostgreSQL server and sets up the adapter depending on the
         # connected server's characteristics.
         def connect
-          @raw_connection = self.class.new_client(@connection_parameters)
+          @raw_connection = self.class.new_client(@connection_parameters, connection_name: @pool.db_config.name, role: @pool.role, shard: @pool.shard)
         rescue ConnectionNotEstablished => ex
           raise ex.set_pool(@pool)
         end

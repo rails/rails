@@ -36,6 +36,8 @@ module ActiveRecord
       def checkin(_); end
       def remove(_); end
       def async_executor; end
+      def role; end
+      def shard; end
 
       def db_config
         NULL_CONFIG

@@ -22,6 +22,42 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
   end
 
+  test "database connection error includes connection name from pool" do
+    access_denied = Class.new(Trilogy::BaseError) do
+      def error_code
+        ActiveRecord::ConnectionAdapters::TrilogyAdapter::ER_ACCESS_DENIED_ERROR
+      end
+    end
+
+    Trilogy.stub(:new, ->(*) { raise access_denied, "Access denied for user 'db_user'@'localhost'" }) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      connection = ActiveRecord::ConnectionAdapters::TrilogyAdapter.new(db_config.configuration_hash.merge(username: "db_user"))
+      connection.pool = ActiveRecord::Base.connection_pool
+
+      error = assert_raises ActiveRecord::DatabaseConnectionError do
+        connection.connect!
+      end
+      assert_includes error.message, "your 'primary' database"
+      assert_not_includes error.message, "(role:"
+    end
+  end
+
+  test "database connection error includes non-default role and shard" do
+    access_denied = Class.new(Trilogy::BaseError) do
+      def error_code
+        ActiveRecord::ConnectionAdapters::TrilogyAdapter::ER_ACCESS_DENIED_ERROR
+      end
+    end
+
+    Trilogy.stub(:new, ->(*) { raise access_denied, "Access denied for user 'db_user'@'localhost'" }) do
+      error = assert_raises ActiveRecord::DatabaseConnectionError do
+        ActiveRecord::ConnectionAdapters::TrilogyAdapter.new_client({ username: "db_user" }, connection_name: "animals", role: :reading, shard: :shard_one)
+      end
+      assert_includes error.message, "your 'animals' database"
+      assert_includes error.message, "(role: reading, shard: shard_one)"
+    end
+  end
+
   test "timeout in transaction doesnt query closed connection" do
     assert_timeout_and_remove_connection do
       @conn.transaction do

@@ -104,19 +104,28 @@ module ActiveRecord
     end
 
     class << self
-      def hostname_error(hostname)
+      def hostname_error(hostname, connection_name: nil, role: nil, shard: nil)
         DatabaseConnectionError.new(<<~MSG)
-          There is an issue connecting with your hostname: #{hostname}.\n
-          Please check your database configuration and ensure there is a valid connection to your database.
+          There is an issue connecting to your #{connection_name ? "'#{connection_name}' database" : "database"} with your hostname: #{hostname}.\n
+          Please check your database configuration and ensure there is a valid connection to your database.#{connection_context(role, shard)}
         MSG
       end
 
-      def username_error(username)
+      def username_error(username, connection_name: nil, role: nil, shard: nil)
         DatabaseConnectionError.new(<<~MSG)
-          There is an issue connecting to your database with your username/password, username: #{username}.\n
-          Please check your database configuration to ensure the username/password are valid.
+          There is an issue connecting to your #{connection_name ? "'#{connection_name}' database" : "database"} with your username/password, username: #{username}.\n
+          Please check your database configuration to ensure the username/password are valid.#{connection_context(role, shard)}
         MSG
       end
+
+      private
+        def connection_context(role, shard)
+          context = [
+            ("role: #{role}" if role && role != ActiveRecord::Base.default_role),
+            ("shard: #{shard}" if shard && shard != ActiveRecord::Base.default_shard),
+          ].compact
+          " (#{context.join(", ")})" if context.any?
+        end
     end
   end
 
