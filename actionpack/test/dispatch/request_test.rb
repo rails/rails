@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 class BaseRequestTest < ActiveSupport::TestCase
   def setup
@@ -14,6 +15,23 @@ class BaseRequestTest < ActiveSupport::TestCase
   def url_for(options = {})
     options = { host: "www.example.com" }.merge!(options)
     ActionDispatch::Http::URL.url_for(options)
+  end
+
+  class RactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "LOCALHOST is Ractor shareable" do
+      assert_ractor_shareable ActionDispatch::Request::LOCALHOST
+    end
+
+    test "local? matches loopback addresses on a non-main Ractor" do
+      local = on_ractor do
+        ActionDispatch::Request.new("REMOTE_ADDR" => "127.0.0.1", "action_dispatch.remote_ip" => "::1").local?
+      end
+
+      assert local
+    end
   end
 
   private
