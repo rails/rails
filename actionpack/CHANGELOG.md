@@ -1,3 +1,19 @@
+*   Fix `allow_browser` blocking every current version of Opera for Android.
+
+    Opera for Android is versioned independently of desktop Opera (e.g. Opera
+    for Android 100 ships the same Chromium as desktop Opera 134), but both
+    are reported as "Opera" and were compared against the desktop threshold
+    (106 in the `:modern` set), so mobile Opera users were served a 406.
+
+    Opera for Android is now matched under its own `opera_mobile` name, with a
+    minimum of 80 in the `:modern` set, and can be gated explicitly:
+
+    ```ruby
+    allow_browser versions: { opera: 106, opera_mobile: 80 }
+    ```
+
+    *Carlos Daniel Pohlod*
+
 *   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
     the current controller and action when it starts with a period,
     mirroring the existing behavior for the key argument.

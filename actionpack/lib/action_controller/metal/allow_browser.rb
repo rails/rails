@@ -20,7 +20,11 @@ module ActionController # :nodoc:
       # In addition to specifically named browser versions, you can also pass
       # `:modern` as the set to restrict support to browsers natively supporting webp
       # images, web push, badges, import maps, CSS nesting, and CSS :has. This
-      # includes Safari 17.2+, Chrome 120+, Firefox 121+, Opera 106+.
+      # includes Safari 17.2+, Chrome 120+, Firefox 121+, Opera 106+, Opera for
+      # Android 80+.
+      #
+      # Opera for Android is versioned independently of desktop Opera, so it's
+      # matched under its own `opera_mobile` name rather than `opera`.
       #
       # You can use https://caniuse.com to check for browser versions supporting the
       # features you use.
@@ -72,7 +76,7 @@ module ActionController # :nodoc:
 
       class BrowserBlocker # :nodoc:
         SETS = {
-          modern: { safari: 17.2, chrome: 120, firefox: 121, opera: 106, ie: false }.freeze
+          modern: { safari: 17.2, chrome: 120, firefox: 121, opera: 106, opera_mobile: 80, ie: false }.freeze
         }.freeze
 
         attr_reader :request, :versions
@@ -125,8 +129,13 @@ module ActionController # :nodoc:
           def normalized_browser_name
             case name = parsed_user_agent.browser.downcase
             when "internet explorer" then "ie"
+            when "opera" then opera_mobile? ? "opera_mobile" : "opera"
             else name
             end
+          end
+
+          def opera_mobile?
+            request.user_agent.match?(/\bMobile\b/)
           end
       end
   end
