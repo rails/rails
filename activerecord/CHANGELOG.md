@@ -1,3 +1,33 @@
+*   Add `config.active_record.schema_ignored_tables` to exclude tables from both the
+    schema cache and the schema file.
+
+    ```ruby
+    config.active_record.schema_ignored_tables = [/^_/]
+    ```
+
+    `config.active_record.schema_cache_ignored_tables` and
+    `ActiveRecord::SchemaDumper.ignore_tables` are deprecated in its favor.
+
+    Tables are matched against their real name in the database, including
+    `table_name_prefix` and `table_name_suffix`. This is a breaking change for
+    `ActiveRecord::SchemaDumper.ignore_tables`, which previously matched against
+    the name with the prefix and suffix removed:
+
+    ```ruby
+    # With `table_name_prefix = "omg_"`, to ignore the `omg_cats` table:
+    config.active_record.schema_ignored_tables = ["omg_cats"] # before: ["cats"]
+    ```
+
+    *Eduardo Carvalho*
+
+*   Add query predicate expressions for Active Record types.
+
+    Types can include `ActiveRecord::Type::QueryPredicates` to define the SQL
+    expression through which query predicates compare stored attributes and
+    serialized query values. Ordering sorts through the same expression.
+
+    *Kir Shatrov*, *Jean-Samuel Aubry-Guzzi*, *Matthew Draper*
+
 *   Deprecate `ActiveRecord::Relation#uniq!`.
 
     The method was added in Rails 6.1 (#39358) as part of the migration path
@@ -133,51 +163,6 @@
     needs to adapt to the new tuple shape.
 
     *Ryuta Kamizono*
-
-*   Add query predicate hooks for Active Model types.
-
-    Types can override `transforms_query_predicates?`, `query_attribute`, and
-    `query_value` to customize how hash `where` predicates are built while
-    preserving normal casting and serialization behavior.
-
-    For example, a UUID type stored in MySQL `binary(16)` can accept UUID
-    strings while rendering predicates as `id = UUID_TO_BIN(?)`:
-
-    ```ruby
-    def transforms_query_predicates?
-      true
-    end
-
-    def query_value(attribute, value, predicate_builder:)
-      Arel::Nodes::NamedFunction.new(
-        "UUID_TO_BIN",
-        [predicate_builder.build_bind_attribute(attribute.name, value, self)]
-      )
-    end
-    ```
-
-    `query_attribute` transforms the left-hand side of the predicate, so a text
-    type can compare through a normalized expression such as
-    `lower(name) = lower(?)`:
-
-    ```ruby
-    def transforms_query_predicates?
-      true
-    end
-
-    def query_attribute(attribute)
-      Arel::Nodes::NamedFunction.new("lower", [attribute])
-    end
-
-    def query_value(attribute, value, predicate_builder:)
-      Arel::Nodes::NamedFunction.new(
-        "lower",
-        [predicate_builder.build_bind_attribute(attribute.name, value, self)]
-      )
-    end
-    ```
-
-    *Kir Shatrov*, *Jean-Samuel Aubry-Guzzi*
 
 *   Fix `pluck` ignoring records assigned to a new record's association.
 

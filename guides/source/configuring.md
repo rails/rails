@@ -1602,9 +1602,21 @@ Defaults to `false`.
 
 #### `config.active_record.schema_cache_ignored_tables`
 
-Define the list of table that should be ignored when generating the schema
-cache. It accepts an `Array` of strings, representing the table names, or
-regular expressions.
+**Note:** This configuration is deprecated in favor of
+[`config.active_record.schema_ignored_tables`](#config-active-record-schema-ignored-tables),
+and will be removed in a future Rails version. It is now an alias for that
+option, so setting it also excludes the tables from the schema file.
+
+#### `config.active_record.schema_ignored_tables`
+
+Define the list of tables that should be ignored when generating the schema
+cache and the schema file. It accepts an `Array` of strings, representing the
+table names, or regular expressions.
+
+**Note:** This configuration replaces the deprecated
+[`config.active_record.schema_cache_ignored_tables`](#config-active-record-schema-cache-ignored-tables)
+and [`ActiveRecord::SchemaDumper.ignore_tables`](#activerecord-schemadumper-ignore-tables)
+options.
 
 #### `config.active_record.verbose_query_logs`
 
@@ -1856,6 +1868,11 @@ You should run `bin/rails db:migrate` to rebuild your schema.rb if you change th
 #### `ActiveRecord::SchemaDumper.ignore_tables`
 
 Accepts an array of tables that should _not_ be included in any generated schema file.
+
+**Note:** This configuration is deprecated in favor of
+[`config.active_record.schema_ignored_tables`](#config-active-record-schema-ignored-tables),
+and will be removed in a future Rails version. It is now an alias for that
+option, so setting it also excludes the tables from the schema cache.
 
 #### `ActiveRecord::SchemaDumper.fk_ignore_pattern`
 

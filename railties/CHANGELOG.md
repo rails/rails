@@ -1,3 +1,13 @@
+*   Make mounted route helpers (e.g. `main_app`, engine mount proxies) trigger
+    the lazy route load instead of raising `NoMethodError` when called before
+    routes are drawn.
+
+    Named url helpers already loaded routes on demand, but mounted helpers are
+    only defined when `mount` runs during the route draw, so calling one first
+    (in the console or a test) failed until something else drew the routes.
+
+    *Abdelkader Boudih*
+
 *   Report zero tests instead of raising a `LoadError` when a `bin/rails test:*`
     folder command names a folder the application does not have.
 

@@ -3,7 +3,7 @@
 module ActiveRecord
   class PredicateBuilder
     class RelationHandler # :nodoc:
-      def call(attribute, value, _type)
+      def call(attribute, value)
         if value.eager_loading?
           value = value.send(:apply_join_dependency)
         end
@@ -17,8 +17,23 @@ module ActiveRecord
           end
         end
 
-        attribute.in(value.arel)
+        query = value.arel
+        if attribute.is_a?(ComparisonAttribute)
+          query = query.clone
+          query.projections = query.projections.map { |projection| comparison_projection(attribute, projection) }
+        end
+
+        attribute.in(query)
       end
+
+      private
+        def comparison_projection(attribute, projection)
+          if projection.is_a?(Arel::Nodes::As)
+            Arel::Nodes::As.new(attribute.comparison_expression(projection.left), projection.right)
+          else
+            attribute.comparison_expression(projection)
+          end
+        end
     end
   end
 end

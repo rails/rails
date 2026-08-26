@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 require "timeout"
 require "rack/content_length"
 
@@ -431,6 +433,22 @@ class ResponseTest < ActiveSupport::TestCase
 
     _status, headers, _body = Rack::ContentLength.new(app).call(env)
     assert_header "content-length", "5", headers
+  end
+
+  class RactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "default_charset is readable from a non-main Ractor" do
+      assert_equal "utf-8", on_ractor { ActionDispatch::Response.default_charset }
+    end
+
+    test "default_headers assigned on the main Ractor are readable from a non-main Ractor" do
+      headers = { "x-frame-options" => "SAMEORIGIN" }.freeze
+
+      ActionDispatch::Response.with(default_headers: headers) do
+        assert_equal headers, on_ractor { ActionDispatch::Response.default_headers }
+      end
+    end
   end
 end
 

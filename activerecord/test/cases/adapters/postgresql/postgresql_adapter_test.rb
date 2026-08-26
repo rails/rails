@@ -1465,6 +1465,28 @@ module ActiveRecord
         end
       end
 
+      def test_query_intent_defers_warnings_until_result_is_observed
+        warning_sql = "do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$"
+        warnings = []
+        warning_action = ->(warning) { warnings << [warning.message, warning.sql] }
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: @connection,
+          raw_sql: warning_sql,
+          name: "WARNING"
+        )
+
+        with_db_warnings_action(warning_action) do
+          intent.execute!
+          assert_empty warnings
+
+          intent.cast_result
+          assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+
+          intent.cast_result
+          assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+        end
+      end
+
       def test_allowlist_of_warnings_to_ignore
         with_db_warnings_action(:raise, [/PostgreSQL SQL warning/]) do
           result = @connection.execute("do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$")

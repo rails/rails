@@ -246,8 +246,14 @@ module ActiveRecord
     # `nil` values to `lock_version`, and not result in `ActiveRecord::StaleObjectError`
     # during update record.
     class LockingType < ActiveSupport::Delegation::DelegateClass(Type::Value) # :nodoc:
+      include Type::QueryPredicates::Decorator
+
       def self.new(subtype)
         self === subtype ? subtype : super
+      end
+
+      def subtype
+        __getobj__
       end
 
       def deserialize(value)

@@ -205,24 +205,46 @@ module ActiveRecord
   end
   self.protected_environments = ["production"]
 
-  ##
-  # :singleton-method: schema_cache_ignored_tables
-  # A list of tables or regex's to match tables to ignore when
-  # dumping the schema cache. For example if this is set to +[/^_/]+
-  # the schema cache will not dump tables named with an underscore.
-  singleton_class.attr_accessor :schema_cache_ignored_tables
-  self.schema_cache_ignored_tables = []
+  # A list of tables or regex's to match tables to ignore when dumping the
+  # schema cache.
+  def self.schema_cache_ignored_tables
+    deprecator.warn(<<~MSG)
+      `config.active_record.schema_cache_ignored_tables` is deprecated and will be removed.
+      Use `config.active_record.schema_ignored_tables` instead.
+    MSG
 
-  # Checks to see if the +table_name+ is ignored by checking
-  # against the +schema_cache_ignored_tables+ option.
-  #
-  #   ActiveRecord.schema_cache_ignored_table?(:developers)
-  #
-  def self.schema_cache_ignored_table?(table_name)
-    ActiveRecord.schema_cache_ignored_tables.any? do |ignored|
-      ignored === table_name
-    end
+    schema_ignored_tables
   end
+
+  # Sets a list of tables or regex's to match tables to ignore when dumping the
+  # schema cache.
+  def self.schema_cache_ignored_tables=(tables)
+    deprecator.warn(<<~MSG)
+      `config.active_record.schema_cache_ignored_tables` is deprecated and will be removed.
+      Use `config.active_record.schema_ignored_tables` instead.
+    MSG
+
+    self.schema_ignored_tables = tables
+  end
+
+  ##
+  # :singleton-method: schema_ignored_tables
+  # A list of tables or regex's to match tables to ignore when dumping the
+  # schema cache and the schema file. For example if this is set to +[/^_/]+
+  # tables named with an underscore are dumped to neither.
+  singleton_class.attr_accessor :schema_ignored_tables
+  self.schema_ignored_tables = []
+
+  #   ActiveRecord.schema_ignored_table?(:developers)
+  def self.schema_ignored_table?(table_name)
+    schema_ignored_tables.any? { |ignored| ignored === table_name }
+  end
+
+  singleton_class.alias_method :schema_cache_ignored_table?, :schema_ignored_table?
+  ActiveRecord.deprecator.deprecate_methods(
+    singleton_class,
+    schema_cache_ignored_table?: :schema_ignored_table?
+  )
 
   singleton_class.attr_accessor :database_cli
   self.database_cli = { postgresql: "psql", mysql: %w[mysql mysql5], sqlite: "sqlite3" }

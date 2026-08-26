@@ -121,12 +121,6 @@ module ActiveRecord
             @map[context] ||= yield
           end
         end
-
-        def clear
-          @map.synchronize do
-            @map.clear
-          end
-        end
       end
 
       module ConnectionPoolConfiguration # :nodoc:

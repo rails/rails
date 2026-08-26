@@ -26,6 +26,10 @@ module Arel # :nodoc: all
       def able_to_type_cast?
         relation.able_to_type_cast?
       end
+
+      def fetch_attribute(&)
+        yield self
+      end
     end
   end
 
