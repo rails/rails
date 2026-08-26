@@ -29,6 +29,32 @@ class Arel::Nodes::HomogeneousInTest < Arel::Test
     }, expr.to_sql
   end
 
+  test "fetch_attribute yields the attribute" do
+    table = Arel::Table.new name: :users, type_caster: fake_pg_caster
+
+    expr = Arel::Nodes::HomogeneousIn.new(["Bobby", "Robert"], table[:name], :in)
+
+    fetched = []
+    expr.fetch_attribute { |attribute| fetched << attribute }
+
+    assert_equal [table[:name]], fetched
+  end
+
+  test "fetch_attribute yields nothing for an attribute node that is a function" do
+    table = Arel::Table.new name: :users, type_caster: fake_pg_caster
+
+    node = TypedNode.new("COALESCE",
+                         [table[:nickname], table[:name]],
+                         STRING_TYPE
+                        )
+    expr = Arel::Nodes::HomogeneousIn.new(["Bobby", "Robert"], node, :in)
+
+    fetched = []
+
+    assert_nil expr.fetch_attribute { |attribute| fetched << attribute }
+    assert_empty fetched
+  end
+
   private
     STRING_TYPE = ActiveModel::Type::String.new.freeze
 
