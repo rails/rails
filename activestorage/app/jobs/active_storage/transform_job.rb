@@ -7,6 +7,6 @@ class ActiveStorage::TransformJob < ActiveStorage::BaseJob
   retry_on ActiveStorage::IntegrityError, attempts: 10, wait: :polynomially_longer
 
   def perform(blob, transformations)
-    blob.representation(transformations).processed
+    blob.representation(transformations.to_h).processed
   end
 end

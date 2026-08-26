@@ -1,3 +1,14 @@
+*   Fix delayed variants being generated under an unreachable digest on queue backends that store job
+    arguments as jsonb.
+
+    `ActiveStorage::Variation#digest` derives a variant's identity from the transformations hash, and
+    `Marshal.dump` encodes its pairs in insertion order. Postgres `jsonb` columns do not keep that order,
+    so a variant with two or more transformations was generated under a digest no reader ever computes
+    and `processed?` stayed false forever. Transformations now travel to
+    `ActiveStorage::CreateVariantsJob` as pairs, which survive the round trip.
+
+    *Lazizbek Ergashev*
+
 *   Allow ffmpeg and ffprobe input arguments to be configured.
 
     Two new configuration parameters are introduced.
