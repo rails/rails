@@ -108,7 +108,7 @@ end
 group :cable do
   gem "puma", ">= 5.0.3", require: false
 
-  gem "redis", ">= 4.0.1", "< 6", require: false
+  gem "redis", ">= 4.0.1", "< 7", require: false
 
   gem "redis-namespace"
 

@@ -2,7 +2,7 @@
 
 # :markup: markdown
 
-gem "redis", ">= 4", "< 6"
+gem "redis", ">= 4", "< 7"
 require "redis"
 
 require "active_support/core_ext/hash/except"
