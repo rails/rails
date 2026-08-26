@@ -150,8 +150,10 @@ module ActiveSupport
         end
 
         clients = clients.map do |c|
-          if c.respond_to?(:new_pool)
-            c.new_pool(**(pool_options || {}))
+          if pool_options
+            c.respond_to?(:new_pool) ? c.new_pool(**pool_options) : c
+          elsif c.respond_to?(:new_client)
+            c.new_client
           else
             c
           end

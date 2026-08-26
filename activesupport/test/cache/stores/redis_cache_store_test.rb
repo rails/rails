@@ -135,6 +135,16 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_kind_of ActiveSupport::Cache::DeprecatedRedisCacheStore, @cache
     end
 
+    test "pool: false uses an unpooled RedisClient" do
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(url: REDIS_URL, pool: false)
+      assert_instance_of ::RedisClient, @cache.redis
+    end
+
+    test "pool: false with :client uses an unpooled RedisClient" do
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(client: RedisClient.config(url: REDIS_URL), pool: false)
+      assert_instance_of ::RedisClient, @cache.redis
+    end
+
     test "validate pool arguments" do
       assert_raises TypeError do
         build(url: REDIS_URL, pool: { size: [] })
