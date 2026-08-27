@@ -1,3 +1,11 @@
+*   Fix `NoMethodError` in mounted route helper proxies when the current
+    `script_name` has fewer segments than the engine's mount point, e.g.
+    calling `engine.some_path` in an `ActionDispatch::IntegrationTest` after a
+    request to the application, with the engine mounted more than one path
+    segment deep.
+
+    *Axel Gustav*
+
 *   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
     the current controller and action when it starts with a period,
     mirroring the existing behavior for the key argument.
