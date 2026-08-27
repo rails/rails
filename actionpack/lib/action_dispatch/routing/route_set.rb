@@ -281,7 +281,7 @@ module ActionDispatch
             controller_options = t.url_options
             options = controller_options.merge @options
             hash = handle_positional_args(controller_options,
-                                          inner_options || {},
+                                          inner_options.presence,
                                           args,
                                           options,
                                           @segment_keys)
@@ -304,8 +304,11 @@ module ActionDispatch
               else
                 path_params = path_params.dup
               end
-              inner_options.each_key do |key|
-                path_params.delete(key)
+
+              if inner_options
+                inner_options.each_key do |key|
+                  path_params.delete(key)
+                end
               end
 
               args.each_with_index do |arg, index|
@@ -314,7 +317,8 @@ module ActionDispatch
               end
             end
 
-            result.merge!(inner_options)
+            result.merge!(inner_options) if inner_options
+            result
           end
         end
 
@@ -862,12 +866,7 @@ module ActionDispatch
       def url_for(options, route_name = nil, url_strategy = UNKNOWN, method_name = nil, reserved = RESERVED_OPTIONS)
         options = default_url_options.merge options
 
-        user = password = nil
-
-        if options[:user] && options[:password]
-          user     = options.delete :user
-          password = options.delete :password
-        end
+        has_auth = options[:user] && options[:password]
 
         recall = options.delete(:_recall) { {} }
 
@@ -878,9 +877,7 @@ module ActionDispatch
           script_name = original_script_name + script_name
         end
 
-        path_options = options.dup
-        reserved.each { |ro| path_options.delete ro }
-
+        path_options = has_auth ? options.except(:user, :password, *reserved) : options.except(*reserved)
         route_with_params = generate(route_name, path_options, recall)
         path = route_with_params.path(method_name)
 
@@ -901,8 +898,6 @@ module ActionDispatch
         options[:path]        = path
         options[:script_name] = script_name
         options[:params]      = params
-        options[:user]        = user
-        options[:password]    = password
 
         url_strategy.call options
       end
