@@ -281,7 +281,7 @@ module ActionDispatch
             controller_options = t.url_options
             options = controller_options.merge @options
             hash = handle_positional_args(controller_options,
-                                          inner_options || {},
+                                          inner_options.presence,
                                           args,
                                           options,
                                           @segment_keys)
@@ -304,8 +304,11 @@ module ActionDispatch
               else
                 path_params = path_params.dup
               end
-              inner_options.each_key do |key|
-                path_params.delete(key)
+
+              if inner_options
+                inner_options.each_key do |key|
+                  path_params.delete(key)
+                end
               end
 
               args.each_with_index do |arg, index|
@@ -314,7 +317,8 @@ module ActionDispatch
               end
             end
 
-            result.merge!(inner_options)
+            result.merge!(inner_options) if inner_options
+            result
           end
         end
 
