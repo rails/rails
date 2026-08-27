@@ -1,3 +1,10 @@
+*   A generated application's ci.yml file now sets `timeout-minutes: 15` for
+    each job to prevent transisent network errors, etc. from hanging the
+    action until the default 360 minutes kicks in and potentially eat up an
+    org's allotted runner minutes.
+
+    *Tony Drake*
+
 *   Make mounted route helpers (e.g. `main_app`, engine mount proxies) trigger
     the lazy route load instead of raising `NoMethodError` when called before
     routes are drawn.
