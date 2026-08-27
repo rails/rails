@@ -207,7 +207,7 @@ module ActiveRecord
       end
 
       def build_schema_context # :nodoc:
-        ActiveRecord::ModelSchema::SchemaContext.new(self)
+        ActiveRecord::ModelSchema::SchemaContext::ConnectionPoolProxy.new(self)
       end
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the
@@ -557,10 +557,9 @@ module ActiveRecord
       def load_schema
         return if schema_loaded?
         @load_schema_monitor.synchronize do
-          unless schema_loaded? || @schema_context
-            context = build_schema_context
-            @schema_context = context
-            context.load_schema!
+          unless schema_loaded?
+            @schema_context ||= build_schema_context
+            @schema_context.load_schema!
 
             unless @schema_hooks_loaded
               load_schema!
@@ -581,7 +580,6 @@ module ActiveRecord
         def reload_schema_from_cache(recursive = true)
           @schema_hooks_loaded = false
           @arel_table = Arel::Table.new(klass: self)
-          @attribute_names = nil
 
           reload_schema_contexts_from_cache
 

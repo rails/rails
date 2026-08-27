@@ -8,10 +8,11 @@ module ActiveRecord
     # attribute types, and column defaults.
     class SchemaContext # :nodoc:
       attr_reader :model_class, :columns_hash, :columns, :column_names,
-                  :attribute_types, :content_columns
+                  :attribute_names, :attribute_types, :content_columns
 
-      def initialize(model_class)
+      def initialize(model_class, connection_pool = model_class.connection_pool)
         @model_class = model_class
+        @connection_pool = connection_pool
         @schema_loaded = false
       end
 
@@ -55,7 +56,9 @@ module ActiveRecord
       end
 
       def cached_find_by_statement(connection, key, &block) # :nodoc:
-        cache = find_by_statement_cache[connection.prepared_statements]
+        cache = find_by_statement_cache[connection.prepared_statements].compute_if_absent(@connection_pool) do
+          Concurrent::Map.new
+        end
         cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
       end
 
@@ -78,7 +81,7 @@ module ActiveRecord
           raise ActiveRecord::TableNotSpecified, "#{model_class} has no table configured. Set one with #{model_class}.table_name="
         end
 
-        columns_hash = model_class.connection_pool.schema_cache.columns_hash(table_name)
+        columns_hash = @connection_pool.schema_cache.columns_hash(table_name)
         if model_class.only_columns.present?
           columns_hash = columns_hash.slice(*model_class.only_columns)
         elsif model_class.ignored_columns.present?
@@ -102,6 +105,7 @@ module ActiveRecord
         @attribute_types = @default_attributes.cast_types.tap do |hash|
           hash.default = ActiveModel::Type.default_value
         end
+        @attribute_names = @attribute_types.keys.freeze
 
         @content_columns = @columns.reject do |c|
           Array(primary_key).include?(c.name) ||
@@ -110,6 +114,36 @@ module ActiveRecord
         end.freeze
 
         @schema_loaded = true
+      end
+
+      class ConnectionPoolProxy # :nodoc:
+        delegate :_default_attributes, :_returning_columns_for_insert, :_returning_columns_for_update,
+          :attribute_names, :attribute_types, :attributes_builder, :cached_find_by_statement,
+          :column_defaults, :column_names, :columns, :columns_hash, :content_columns,
+          :find_by_statement_cache, to: :current_context
+
+        def initialize(model_class)
+          @model_class = model_class
+          @schema_contexts = Concurrent::Map.new
+        end
+
+        def schema_loaded?
+          context = @schema_contexts[@model_class.connection_pool]
+          context ? context.schema_loaded? : false
+        end
+
+        def load_schema!
+          connection_pool = @model_class.connection_pool
+          context = @schema_contexts.compute_if_absent(connection_pool) do
+            SchemaContext.new(@model_class, connection_pool)
+          end
+          context.load_schema!
+        end
+
+        private
+          def current_context
+            @schema_contexts.fetch(@model_class.connection_pool)
+          end
       end
     end
   end

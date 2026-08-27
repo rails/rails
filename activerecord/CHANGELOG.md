@@ -1,3 +1,11 @@
+*   Keep schema-derived model state separate for each connection pool.
+
+    Models connected to shards with different schemas now use the columns,
+    attribute types, defaults, and cached finder statements for the current
+    shard.
+
+    *Joshua Young*
+
 *   Add `config.active_record.schema_ignored_tables` to exclude tables from both the
     schema cache and the schema file.
 
