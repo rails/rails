@@ -878,10 +878,7 @@ module ActionDispatch
           script_name = original_script_name + script_name
         end
 
-        path_options = options.dup
-        reserved.each { |ro| path_options.delete ro }
-
-        route_with_params = generate(route_name, path_options, recall)
+        route_with_params = generate(route_name, options.except(*reserved), recall)
         path = route_with_params.path(method_name)
 
         if options[:trailing_slash] && !options[:format] && !path.end_with?("/")
