@@ -44,15 +44,39 @@ module ActiveRecord
       end
 
       def structure_load(filename, extra_flags)
-        args = prepare_command_options
-        args.concat(["--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
-        args.concat(["--database", db_config.database.to_s])
-        args.unshift(*extra_flags) if extra_flags
+        extra_flags, init_commands = partition_init_commands(Array(extra_flags))
 
-        run_cmd("mysql", *args)
+        args = prepare_command_options
+        args.concat(["--database", db_config.database.to_s])
+        args.unshift(*extra_flags)
+        args.unshift("--init-command", ["SET FOREIGN_KEY_CHECKS = 0", *init_commands].join("; "))
+
+        run_cmd("mysql", *args, in: filename)
       end
 
       private
+        # The mysql client keeps only the last --init-command it is given, so
+        # one passed through structure_load_flags would replace the statement
+        # that disables foreign key checks. Split those off so that they can be
+        # folded into a single --init-command.
+        def partition_init_commands(flags)
+          remaining = []
+          init_commands = []
+          flags = flags.dup
+
+          while (flag = flags.shift)
+            if flag == "--init-command"
+              init_commands << flags.shift
+            elsif flag.start_with?("--init-command=")
+              init_commands << flag.delete_prefix("--init-command=")
+            else
+              remaining << flag
+            end
+          end
+
+          [remaining, init_commands]
+        end
+
         def creation_options
           Hash.new.tap do |options|
             options[:charset]     = configuration_hash[:encoding]   if configuration_hash.include?(:encoding)
