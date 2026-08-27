@@ -557,7 +557,7 @@ module ActiveRecord
       def load_schema
         return if schema_loaded?
         @load_schema_monitor.synchronize do
-          unless schema_loaded?
+          unless schema_loaded? || @schema_context&.schema_loading?
             @schema_context ||= build_schema_context
             @schema_context.load_schema!
 

@@ -74,8 +74,14 @@ module ActiveRecord
         @schema_loaded
       end
 
+      def schema_loading?
+        @schema_loading
+      end
+
       def load_schema!
         return if @schema_loaded
+
+        @schema_loading = true
 
         unless table_name
           raise ActiveRecord::TableNotSpecified, "#{model_class} has no table configured. Set one with #{model_class}.table_name="
@@ -114,6 +120,8 @@ module ActiveRecord
         end.freeze
 
         @schema_loaded = true
+      ensure
+        @schema_loading = false
       end
 
       class ConnectionPoolProxy # :nodoc:
@@ -130,6 +138,11 @@ module ActiveRecord
         def schema_loaded?
           context = @schema_contexts[@model_class.connection_pool]
           context ? context.schema_loaded? : false
+        end
+
+        def schema_loading?
+          context = @schema_contexts[@model_class.connection_pool]
+          context ? context.schema_loading? : false
         end
 
         def load_schema!
