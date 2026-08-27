@@ -1,0 +1,22 @@
+# Be sure to restart your server when you modify this file.
+#
+# This file eases your Rails 9.0 framework defaults upgrade.
+#
+# Uncomment each configuration one by one to switch to the new default.
+# Once your application is ready to run with all new defaults, you can remove
+# this file and set the `config.load_defaults` to `9.0`.
+#
+# Read the Guide for Upgrading Ruby on Rails for more info on each option.
+# https://guides.rubyonrails.org/upgrading_ruby_on_rails.html
+
+# Active Support
+
+###
+# Isolate Rails internal state by fiber rather than thread.
+#
+# This prevents concurrent fibers on the same thread from sharing
+# execution-local state, including Active Record connection leases. Code that
+# intentionally shares Rails execution-local state between fibers may need to
+# propagate that state explicitly.
+#++
+# Rails.application.config.active_support.isolation_level = :fiber

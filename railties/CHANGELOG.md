@@ -1,3 +1,11 @@
+*   Default `config.active_support.isolation_level` to `:fiber` for applications
+    that load Rails 9.0 defaults.
+
+    This prevents concurrent fibers on the same thread from sharing Rails
+    execution-local state, including Active Record connection leases.
+
+    *Samuel Williams*
+
 *   Make mounted route helpers (e.g. `main_app`, engine mount proxies) trigger
     the lazy route load instead of raising `NoMethodError` when called before
     routes are drawn.

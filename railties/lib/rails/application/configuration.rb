@@ -399,6 +399,12 @@ module Rails
           end
 
           ActiveSupport.raise_on_invalid_time_zone_parse = true
+        when "9.0"
+          load_defaults "8.2"
+
+          if respond_to?(:active_support)
+            active_support.isolation_level = :fiber
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

@@ -58,6 +58,10 @@ NOTE: If you need to apply configuration directly to a class, use a [lazy load h
 
 Below are the default values associated with each target version. In cases of conflicting values, newer versions take precedence over older versions.
 
+#### Default Values for Target Version 9.0
+
+- [`config.active_support.isolation_level`](#config-active-support-isolation-level): `:fiber`
+
 #### Default Values for Target Version 8.2
 
 - [`ActiveSupport.raise_on_invalid_time_zone_parse`](#activesupport-raise-on-invalid-time-zone-parse): `true`
@@ -3254,7 +3258,17 @@ In the default generated `config/environments` files, this is set to `false` for
 
 #### `config.active_support.isolation_level`
 
-Configures the locality of most of Rails internal state. If you use a fiber based server or job processor (e.g. `falcon`), you should set it to `:fiber`. Otherwise it is best to use `:thread` locality. Defaults to `:thread`.
+Configures the locality of most of Rails internal state. Set it to `:fiber` when
+execution can switch between fibers, such as when using a fiber-based server or
+job processor. This prevents concurrent fibers on the same thread from sharing
+execution-local state.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:thread`            |
+| 9.0                   | `:fiber`             |
 
 #### `config.active_support.executor_around_test_case`
 
