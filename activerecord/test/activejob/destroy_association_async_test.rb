@@ -32,20 +32,27 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   include ActiveJob::TestHelper
 
   test "destroying a record destroys the has_many :through records using a job" do
-    tag = Tag.create!(name: "Der be treasure")
-    tag2 = Tag.create!(name: "Der be rum")
+    tag = Tag.create!(name: "Shared treasure")
     book = BookDestroyAsync.create!
-    book.tags << [tag, tag2]
-    book.save!
+    other_book = BookDestroyAsync.create!
+    book.tags << tag
+    other_book.tags << tag
+    tagging = book.taggings.first
+    other_tagging = other_book.taggings.first
 
     assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
       book.destroy
     end
 
-    assert_difference -> { Tag.count }, -2 do
-      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    assert_no_difference -> { Tag.count } do
+      assert_difference -> { Tagging.count }, -1 do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
     end
+    assert_not Tagging.exists?(tagging.id)
+    assert Tagging.exists?(other_tagging.id)
   ensure
+    Tagging.delete_all
     Tag.delete_all
     BookDestroyAsync.delete_all
   end
@@ -65,19 +72,22 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
       blog_post.destroy
     end
 
-    sql = capture_sql do
-      assert_difference -> { Sharded::Tag.count }, -2 do
-        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    assert_no_difference -> { Sharded::Tag.count } do
+      sql = capture_sql do
+        assert_difference -> { Sharded::BlogPostTag.count }, -2 do
+          perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+        end
+      end
+
+      delete_sqls = sql.select { |sql| sql.start_with?("DELETE") }
+      assert_equal 2, delete_sqls.count
+
+      delete_sqls.each do |sql|
+        assert_match(/#{Regexp.escape(quote_table_name("sharded_blog_posts_tags.blog_id"))} =/, sql)
       end
     end
-
-    delete_sqls = sql.select { |sql| sql.start_with?("DELETE") }
-    assert_equal 2, delete_sqls.count
-
-    delete_sqls.each do |sql|
-      assert_match(/#{Regexp.escape(quote_table_name("sharded_tags.blog_id"))} =/, sql)
-    end
   ensure
+    Sharded::BlogPostTag.delete_all
     Sharded::Tag.delete_all
     Sharded::BlogPostDestroyAsync.delete_all
     Sharded::Blog.delete_all
@@ -94,13 +104,13 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
 
     parent.destroy
 
-    assert_difference -> { Tag.count }, -1 do
-      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
-    end
-    assert_raises ActiveRecord::RecordNotFound do
-      tag2.reload
+    assert_no_difference -> { Tag.count } do
+      assert_difference -> { Tagging.count }, -1 do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
     end
     assert tag.reload
+    assert tag2.reload
   ensure
     Tag.delete_all
     Tagging.delete_all
@@ -116,7 +126,7 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     parent.destroy
 
     assert_difference -> { DlKeyedJoin.count }, -2 do
-      assert_difference -> { DlKeyedHasManyThrough.count }, -2 do
+      assert_no_difference -> { DlKeyedHasManyThrough.count } do
         perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
       end
     end
@@ -135,8 +145,9 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     book.tags << [tag, tag2]
     book.save!
 
-    job_1_args = ->(job_args) { job_args.first[:association_ids] == [tag.id] }
-    job_2_args = ->(job_args) { job_args.first[:association_ids] == [tag2.id] }
+    tagging_ids = book.taggings.ids
+    job_1_args = ->(job_args) { job_args.first[:association_ids] == [tagging_ids.first] }
+    job_2_args = ->(job_args) { job_args.first[:association_ids] == [tagging_ids.second] }
 
     assert_enqueued_with(job: ActiveRecord::DestroyAssociationAsyncJob, args: job_1_args) do
       assert_enqueued_with(job: ActiveRecord::DestroyAssociationAsyncJob, args: job_2_args) do
@@ -144,10 +155,13 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
       end
     end
 
-    assert_difference -> { Tag.count }, -2 do
-      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    assert_no_difference -> { Tag.count } do
+      assert_difference -> { Tagging.count }, -2 do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
     end
   ensure
+    Tagging.delete_all
     Tag.delete_all
     BookDestroyAsync.delete_all
     ActiveRecord::Base.destroy_association_async_batch_size = nil
@@ -359,10 +373,13 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     end
 
     parent.destroy
-    assert_difference -> { Tag.count }, -2 do
-      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    assert_no_difference -> { Tag.count } do
+      assert_difference -> { Tagging.count }, -2 do
+        perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+      end
     end
   ensure
+    Tagging.delete_all
     Tag.delete_all
     DestroyAsyncParentSoftDelete.delete_all
   end

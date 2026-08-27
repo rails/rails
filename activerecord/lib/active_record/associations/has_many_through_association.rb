@@ -34,6 +34,22 @@ module ActiveRecord
       end
 
       private
+        def destroy_async_records
+          records = load_target
+
+          if records.empty?
+            records
+          else
+            scope = through_association.scope
+            scope.where! construct_join_attributes(*records)
+            scope.where(through_scope_attributes).to_a
+          end
+        end
+
+        def destroy_async_reflection
+          through_reflection
+        end
+
         def concat_records(records)
           ensure_not_nested
 

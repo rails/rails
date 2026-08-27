@@ -1,3 +1,8 @@
+*   Fix `dependent: :destroy_async` on `has_many :through` associations to
+    destroy join records instead of associated records.
+
+    *Nicolas Vandenbogaerde*
+
 *   Support dumping `schema_migrations` in `db/schema.rb`.
 
     When the new `ActiveRecord.dump_schema_migrations` flag is true, `:ruby`
