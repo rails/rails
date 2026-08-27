@@ -146,6 +146,10 @@ module ActiveRecord
         end
 
         def load_schema!
+          unless @model_class.table_name
+            raise ActiveRecord::TableNotSpecified, "#{@model_class} has no table configured. Set one with #{@model_class}.table_name="
+          end
+
           connection_pool = @model_class.connection_pool
           context = @schema_contexts.compute_if_absent(connection_pool) do
             SchemaContext.new(@model_class, connection_pool)
