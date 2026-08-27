@@ -271,6 +271,13 @@ module TestGenerationPrefix
     end
 
     # Inside the test session
+    test "[SESSION] application's route helpers don't use the engine's mount point after an engine request" do
+      get "/pure-awesomeness/blog/posts/1"
+
+      assert_equal "/posts/1", post_path(id: 1)
+      assert_equal "/pure-awesomeness/blog/posts/1", blog_engine.post_path(id: 1)
+    end
+
     test "[SESSION] engine's mounted helper works after an application request" do
       get "/generate"
 

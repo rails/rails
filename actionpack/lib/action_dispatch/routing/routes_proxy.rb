@@ -19,9 +19,7 @@ module ActionDispatch
       end
 
       def url_options
-        scope.send(:_with_routes, routes) do
-          scope.url_options
-        end
+        scope.send(:_url_options_for, routes)
       end
 
     private
