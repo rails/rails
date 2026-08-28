@@ -16,7 +16,7 @@ module ActiveRecord
       end
 
       def test_coder_with_symbolize_names
-        coder = JSON.new(symbolize_names: true)
+        coder = JSON.new(decode_options: { symbolize_names: true })
         assert_equal({ foo: "bar" }, coder.load('{"foo":"bar"}'))
       end
 
