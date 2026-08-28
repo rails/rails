@@ -137,6 +137,7 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       "analyzed" => "yolo",
       "identified" => 42,
       "composed" => "maybe",
+      "placeholder" => "data:image/png;base64,untrusted",
     }
 
     all_metadata = metadata.merge(protected_metadata)

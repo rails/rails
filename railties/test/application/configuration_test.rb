@@ -4398,6 +4398,20 @@ module ApplicationTests
       assert_equal [ ActiveStorage::Analyzer::ImageAnalyzer::Vips ], ActiveStorage.analyzers
     end
 
+    test "ActiveStorage.generate_image_placeholders is disabled by default" do
+      app "development"
+
+      assert_not ActiveStorage.generate_image_placeholders
+    end
+
+    test "ActiveStorage.generate_image_placeholders can be configured" do
+      add_to_config "config.active_storage.generate_image_placeholders = true"
+
+      app "development"
+
+      assert ActiveStorage.generate_image_placeholders
+    end
+
     test "ActiveStorage.draw_routes can be configured via config.active_storage.draw_routes" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do

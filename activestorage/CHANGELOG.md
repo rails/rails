@@ -1,3 +1,11 @@
+*   Add opt-in low-quality image placeholders.
+
+    Enable `config.active_storage.generate_image_placeholders` to store a small
+    ThumbHash-rendered PNG data URL in image blob metadata during analysis. Access
+    the result through `ActiveStorage::Blob#placeholder`.
+
+    *Sebastian Arrieta*
+
 *   Allow ffmpeg and ffprobe input arguments to be configured.
 
     Two new configuration parameters are introduced.

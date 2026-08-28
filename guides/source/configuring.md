@@ -3576,6 +3576,18 @@ If you want to disable analyzers, you can set this to an empty array:
 config.active_storage.analyzers = []
 ```
 
+#### `config.active_storage.generate_image_placeholders`
+
+Controls whether image analyzers generate low-quality placeholders that can be
+inlined while the original image loads. Placeholders are stored in blob metadata
+and returned by `ActiveStorage::Blob#placeholder`. The default value is `false`.
+
+```ruby
+config.active_storage.generate_image_placeholders = true
+```
+
+Existing analyzed image blobs must be analyzed again to generate a placeholder.
+
 #### `config.active_storage.analyze`
 
 Controls when attachment analysis (image/video/audio metadata extraction) is performed:

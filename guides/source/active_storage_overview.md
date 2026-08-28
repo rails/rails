@@ -838,6 +838,19 @@ these, as well as `duration`, `angle`, `display_aspect_ratio`, and `video` and
 `audio` booleans to indicate the presence of those channels. Audio analysis
 provides `duration` and `bit_rate` attributes.
 
+Active Storage can also generate an inline low-quality placeholder while analyzing
+an image. Enable this behavior with
+[`config.active_storage.generate_image_placeholders`][]. The placeholder is stored
+in the blob's metadata and exposed by the [`placeholder`][] method:
+
+```erb
+<%= image_tag user.profile_photo,
+      style: "background-image: url('#{user.profile_photo.placeholder}')" %>
+```
+
+Enabling placeholders applies to newly analyzed images. Call `analyze_later` on
+existing image blobs to generate placeholders for them.
+
 ### Controlling When Analysis is Performed
 
 You can control *when* metadata analysis is performed by using the `analyze`
@@ -900,6 +913,10 @@ using JavaScript instead.
 https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-metadata
 [`analyzed?`]:
 https://api.rubyonrails.org/classes/ActiveStorage/Blob/Analyzable.html#method-i-analyzed-3F
+[`placeholder`]:
+https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-placeholder
+[`config.active_storage.generate_image_placeholders`]:
+configuring.html#config-active-storage-generate-image-placeholders
 
 Displaying Images, Videos, and PDFs
 -----------------------------------

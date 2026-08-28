@@ -179,6 +179,7 @@ module ActiveStorage
         ActiveStorage.ffprobe_arguments = app.config.active_storage.ffprobe_arguments || ""
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
         ActiveStorage.analyze = app.config.active_storage.analyze || :later
+        ActiveStorage.generate_image_placeholders = app.config.active_storage.generate_image_placeholders || false
         ActiveStorage.streaming_chunk_max_size = app.config.active_storage.streaming_chunk_max_size || 100.megabytes
       end
     end

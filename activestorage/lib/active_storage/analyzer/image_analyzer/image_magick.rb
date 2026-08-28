@@ -44,5 +44,16 @@ module ActiveStorage
       def rotated_image?(image)
         %w[ LeftTop RightTop RightBottom LeftBottom ].include?(image["%[orientation]"])
       end
+
+      def image_placeholder(image)
+        placeholder = MiniMagick::Image.open(image.path)
+        placeholder.auto_orient
+        placeholder.resize("100x100>")
+        placeholder.colorspace("sRGB")
+
+        ImagePlaceholder.data_url(placeholder.width, placeholder.height, placeholder.get_pixels("RGBA").flatten)
+      ensure
+        placeholder&.destroy!
+      end
   end
 end

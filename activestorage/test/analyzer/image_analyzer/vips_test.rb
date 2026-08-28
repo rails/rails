@@ -16,6 +16,34 @@ class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
     end
   end
 
+  test "generating an image placeholder" do
+    ActiveStorage.with(generate_image_placeholders: true) do
+      analyze_with_vips do
+        blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+
+        assert_image_placeholder extract_metadata_from(blob)
+      end
+    end
+  end
+
+  test "image placeholders are disabled by default" do
+    analyze_with_vips do
+      blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+
+      assert_nil extract_metadata_from(blob)[:placeholder]
+    end
+  end
+
+  test "generating a transparent image placeholder" do
+    ActiveStorage.with(generate_image_placeholders: true) do
+      analyze_with_vips do
+        blob = create_file_blob(filename: "image.gif", content_type: "image/gif")
+
+        assert_image_placeholder extract_metadata_from(blob), landscape: nil, transparent: true
+      end
+    end
+  end
+
   test "analyzing a rotated JPEG image" do
     analyze_with_vips do
       blob = create_file_blob(filename: "racecar_rotated.jpg", content_type: "image/jpeg")
@@ -23,6 +51,16 @@ class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
 
       assert_equal 2736, metadata[:width]
       assert_equal 4104, metadata[:height]
+    end
+  end
+
+  test "generating an autorotated image placeholder" do
+    ActiveStorage.with(generate_image_placeholders: true) do
+      analyze_with_vips do
+        blob = create_file_blob(filename: "racecar_rotated.jpg", content_type: "image/jpeg")
+
+        assert_image_placeholder extract_metadata_from(blob), landscape: false
+      end
     end
   end
 

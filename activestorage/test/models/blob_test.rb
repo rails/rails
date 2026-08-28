@@ -46,6 +46,17 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "image/jpeg", blob.content_type
   end
 
+  test "placeholder returns analyzed image placeholder metadata" do
+    placeholder = "data:image/png;base64,image-data"
+    blob = ActiveStorage::Blob.new(metadata: { placeholder: placeholder })
+
+    assert_equal placeholder, blob.placeholder
+  end
+
+  test "placeholder is nil without analyzed image placeholder metadata" do
+    assert_nil ActiveStorage::Blob.new.placeholder
+  end
+
   test "create_and_upload prefers given content type over filename" do
     blob = create_blob content_type: "specific/type", filename: "file.txt"
     assert_equal "specific/type", blob.content_type
