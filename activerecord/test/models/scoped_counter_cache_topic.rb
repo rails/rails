@@ -6,6 +6,6 @@ class ScopedCounterCacheTopic < ActiveRecord::Base
 
   has_many :replies, foreign_key: "parent_id", class_name: "Reply"
 
-  default_scope -> { where(approved: true) }
-  default_scope -> { where(id: 1) }, all_queries: true
+  default_scope :approved, -> { where(approved: true) }
+  default_scope :first, -> { where(id: 1) }, all_queries: true
 end
