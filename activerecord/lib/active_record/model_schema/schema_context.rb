@@ -26,6 +26,10 @@ module ActiveRecord
           end
         end
 
+        def names
+          types.keys.freeze
+        end
+
         def builder
           primary_key_defaults = defaults.except(*(context.model_class.column_names - Array(context.model_class.primary_key)))
           ActiveModel::AttributeSet::Builder.new(types, primary_key_defaults)
@@ -39,8 +43,9 @@ module ActiveRecord
       attr_reader :model_class, :columns_hash, :columns, :column_names,
                   :content_columns
 
-      def initialize(model_class)
+      def initialize(model_class, connection_pool = model_class.connection_pool)
         @model_class = model_class
+        @connection_pool = connection_pool
         @schema_loaded = false
         @attributes_key = :"active_record_schema_attributes_#{object_id}"
       end
@@ -74,7 +79,9 @@ module ActiveRecord
       end
 
       def cached_find_by_statement(connection, key, &block) # :nodoc:
-        cache = find_by_statement_cache[connection.prepared_statements]
+        cache = find_by_statement_cache[connection.prepared_statements].compute_if_absent(@connection_pool) do
+          Concurrent::Map.new
+        end
         cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
       end
 
@@ -88,6 +95,14 @@ module ActiveRecord
 
       def schema_loaded?
         @schema_loaded
+      end
+
+      def schema_loading?
+        @schema_loading
+      end
+
+      def attribute_names
+        attributes.names
       end
 
       def attribute_set
@@ -105,11 +120,13 @@ module ActiveRecord
       def load_schema!
         return if @schema_loaded
 
+        @schema_loading = true
+
         unless table_name
           raise ActiveRecord::TableNotSpecified, "#{model_class} has no table configured. Set one with #{model_class}.table_name="
         end
 
-        columns_hash = model_class.connection_pool.schema_cache.columns_hash(table_name)
+        columns_hash = @connection_pool.schema_cache.columns_hash(table_name)
         if model_class.only_columns.present?
           columns_hash = columns_hash.slice(*model_class.only_columns)
         elsif model_class.ignored_columns.present?
@@ -130,6 +147,50 @@ module ActiveRecord
         attributes
 
         @schema_loaded = true
+      ensure
+        @schema_loading = false
+      end
+
+      class ConnectionPoolProxy # :nodoc:
+        delegate :_returning_columns_for_insert, :_returning_columns_for_update,
+          :attribute_names, :attributes, :cached_find_by_statement,
+          :column_names, :columns, :columns_hash, :content_columns,
+          :find_by_statement_cache, to: :current_context
+
+        def initialize(model_class)
+          @model_class = model_class
+          @schema_contexts = Concurrent::Map.new
+        end
+
+        def schema_loaded?
+          context = current_context
+          context ? context.schema_loaded? : false
+        end
+
+        def schema_loading?
+          context = current_context
+          context ? context.schema_loading? : false
+        end
+
+        def load_schema!
+          unless @model_class.table_name
+            raise ActiveRecord::TableNotSpecified, "#{@model_class} has no table configured. Set one with #{@model_class}.table_name="
+          end
+
+          connection_pool = @model_class.connection_pool
+          context = @schema_contexts.compute_if_absent(connection_pool) do
+            SchemaContext.new(@model_class, connection_pool)
+          end
+          @fallback_context ||= context
+          context.load_schema!
+        end
+
+        private
+          def current_context
+            @schema_contexts[@model_class.connection_pool]
+          rescue ActiveRecord::ConnectionNotDefined
+            @fallback_context
+          end
       end
     end
   end

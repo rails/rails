@@ -1,3 +1,11 @@
+*   Keep schema-derived model state separate for each connection pool.
+
+    Models connected to shards with different schemas now use the columns,
+    attribute types, defaults, and cached finder statements for the current
+    shard.
+
+    *Joshua Young*
+
 *   Avoid unnecessary association preloader queries for nil foreign keys when
     the foreign key and association primary key have different types.
 
@@ -12,7 +20,6 @@
     join would change the number of rows the query returns.
 
     *David Paluy*
-
 *   Add `config.active_record.shuffle_unordered_selects`.
 
     When enabled, Active Record shuffles the rows of every `SELECT` it generates
