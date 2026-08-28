@@ -107,7 +107,7 @@ module ActiveSupport
 
           # Encode a "jsonified" Ruby data structure using the JSON gem
           def stringify(jsonified)
-            ::JSON.generate(jsonified, quirks_mode: true, max_nesting: false)
+            ::JSON.generate(jsonified, max_nesting: false)
           end
       end
 
