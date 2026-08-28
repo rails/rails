@@ -479,10 +479,12 @@ module ActiveRecord
           self.partial_inserts = false
         end
 
-        ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
+        default_connection = ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
           model.lease_connection.create_table(:shard_connection_test_models) do |t|
             t.string :shard_key
           end
+          assert_not model.new.has_attribute?(:new_column)
+          model.lease_connection
         end
 
         ActiveRecord::Base.connected_to(role: :writing, shard: :migrated) do
@@ -496,6 +498,7 @@ module ActiveRecord
           assert_equal :string, model.type_for_attribute("new_column").type
           assert_equal "default value", model.column_defaults["new_column"]
           assert_equal "default value", model.new.new_column
+          assert_equal ["id"], model._returning_columns_for_insert(default_connection)
         end
 
         ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
@@ -511,7 +514,7 @@ module ActiveRecord
           assert_equal "default value", record.new_column
         end
 
-        assert_includes model.column_names, "new_column"
+        assert_not_includes model.column_names, "new_column"
       ensure
         SecondaryBase.default_shard = :default
       end

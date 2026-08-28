@@ -43,9 +43,10 @@ module ActiveRecord
       attr_reader :model_class, :columns_hash, :columns, :column_names,
                   :content_columns
 
-      def initialize(model_class, connection_pool = model_class.connection_pool)
+      def initialize(model_class, connection_pool = nil)
         @model_class = model_class
         @connection_pool = connection_pool
+        @pool_aware = !connection_pool.nil?
         @schema_loaded = false
         @attributes_key = :"active_record_schema_attributes_#{object_id}"
       end
@@ -79,8 +80,11 @@ module ActiveRecord
       end
 
       def cached_find_by_statement(connection, key, &block) # :nodoc:
-        cache = find_by_statement_cache[connection.prepared_statements].compute_if_absent(@connection_pool) do
-          Concurrent::Map.new
+        cache = find_by_statement_cache[connection.prepared_statements]
+        if @pool_aware
+          cache = cache.compute_if_absent(@connection_pool) do
+            Concurrent::Map.new
+          end
         end
         cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
       end
@@ -93,11 +97,11 @@ module ActiveRecord
         ActiveSupport::Ractors[model_class.find_by_statement_cache_key] || initialize_find_by_cache
       end
 
-      def schema_loaded?
+      def schema_loaded?(_connection_pool = nil)
         @schema_loaded
       end
 
-      def schema_loading?
+      def schema_loading?(_connection_pool = nil)
         @schema_loading
       end
 
@@ -117,7 +121,15 @@ module ActiveRecord
         super
       end
 
-      def load_schema!
+      def current_context
+        self
+      end
+
+      def context_for(_connection_pool)
+        self
+      end
+
+      def load_schema!(_connection_pool = nil)
         return if @schema_loaded
 
         @schema_loading = true
@@ -126,6 +138,7 @@ module ActiveRecord
           raise ActiveRecord::TableNotSpecified, "#{model_class} has no table configured. Set one with #{model_class}.table_name="
         end
 
+        @connection_pool ||= model_class.connection_pool
         columns_hash = @connection_pool.schema_cache.columns_hash(table_name)
         if model_class.only_columns.present?
           columns_hash = columns_hash.slice(*model_class.only_columns)
@@ -152,45 +165,59 @@ module ActiveRecord
       end
 
       class ConnectionPoolProxy # :nodoc:
-        delegate :_returning_columns_for_insert, :_returning_columns_for_update,
-          :attribute_names, :attributes, :cached_find_by_statement,
-          :column_names, :columns, :columns_hash, :content_columns,
-          :find_by_statement_cache, to: :current_context
-
         def initialize(model_class)
           @model_class = model_class
           @schema_contexts = Concurrent::Map.new
         end
 
-        def schema_loaded?
-          context = current_context
+        def current_context
+          connection_stack_entry = @model_class.connected_to_stack.last
+          # A stack entry is replaced whenever the role or shard changes, so its identity
+          # can cache the current context without resolving the connection pool each time.
+          if (last_context = @last_context) && last_context.first.equal?(connection_stack_entry)
+            last_context.last
+          elsif context = context_for(@model_class.connection_pool)
+            @last_context = [connection_stack_entry, context]
+            context
+          end
+        rescue ActiveRecord::ConnectionNotDefined
+          @fallback_context
+        end
+
+        def context_for(connection_pool)
+          if (last_context = @last_connection_pool_context) && last_context.first.equal?(connection_pool)
+            last_context.last
+          elsif context = @schema_contexts[connection_pool]
+            @last_connection_pool_context = [connection_pool, context]
+            context
+          end
+        end
+
+        def schema_loaded?(connection_pool = nil)
+          context = connection_pool ? context_for(connection_pool) : current_context
           context ? context.schema_loaded? : false
         end
 
-        def schema_loading?
-          context = current_context
+        def schema_loading?(connection_pool = nil)
+          context = connection_pool ? context_for(connection_pool) : current_context
           context ? context.schema_loading? : false
         end
 
-        def load_schema!
+        def load_schema!(connection_pool = nil)
           unless @model_class.table_name
             raise ActiveRecord::TableNotSpecified, "#{@model_class} has no table configured. Set one with #{@model_class}.table_name="
           end
 
-          connection_pool = @model_class.connection_pool
+          current_connection_pool = connection_pool.nil?
+          connection_pool ||= @model_class.connection_pool
           context = @schema_contexts.compute_if_absent(connection_pool) do
             SchemaContext.new(@model_class, connection_pool)
           end
+          @last_context = [@model_class.connected_to_stack.last, context] if current_connection_pool
+          @last_connection_pool_context = [connection_pool, context]
           @fallback_context ||= context
           context.load_schema!
         end
-
-        private
-          def current_context
-            @schema_contexts[@model_class.connection_pool]
-          rescue ActiveRecord::ConnectionNotDefined
-            @fallback_context
-          end
       end
     end
   end
