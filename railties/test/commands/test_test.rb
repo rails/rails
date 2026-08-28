@@ -13,6 +13,44 @@ class Rails::Command::TestTest < ActiveSupport::TestCase
     end
   end
 
+  test "test command runs test:prepare task outside the test process" do
+    app_file "Rakefile", <<~RUBY, "a"
+      task booting: :environment do
+        puts "test:prepare booted the app: \#{Rails.application.initialized?}"
+      end
+      Rake::Task["test:prepare"].enhance(["booting"])
+    RUBY
+
+    app_file "test/boot_state_test.rb", <<~RUBY
+      puts "app booted before tests loaded: \#{!!Rails.application&.initialized?}"
+      require "test_helper"
+
+      class BootStateTest < ActiveSupport::TestCase
+        test "truth" do
+          assert true
+        end
+      end
+    RUBY
+
+    output = run_test_command("test")
+    assert_successful_run output
+    assert_match "test:prepare booted the app: true", output
+    assert_match "app booted before tests loaded: false", output
+  end
+
+  test "test command does not run tests when test:prepare fails" do
+    app_file "Rakefile", <<~RUBY, "a"
+      task :failing do
+        abort "test:prepare failed"
+      end
+      Rake::Task["test:prepare"].enhance(["failing"])
+    RUBY
+
+    error = assert_raises(RuntimeError) { run_test_command("test") }
+    assert_match "test:prepare failed", error.message
+    assert_no_match "0 failures", error.message
+  end
+
   test "test command with path arg skips test:prepare task" do
     app_file "test/some_test.rb", ""
 
