@@ -207,7 +207,7 @@ module ActiveRecord
       end
 
       def build_schema_context # :nodoc:
-        ActiveRecord::ModelSchema::SchemaContext.new(self)
+        ActiveRecord::ModelSchema::SchemaContext::ConnectionPoolProxy.new(self)
       end
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the
@@ -563,10 +563,10 @@ module ActiveRecord
         return if schema_loaded?
 
         @load_schema_monitor.synchronize do
-          unless schema_loaded? || @schema_context
-            @schema_context = build_schema_context
+          unless schema_loaded? || @schema_context&.schema_loading?
+            @schema_context ||= build_schema_context
             @schema_context.load_schema!
-            ActiveSupport::Ractors.make_shareable(@schema_context)
+
             unless @schema_hooks_loaded
               load_schema!
               @schema_hooks_loaded = true
@@ -587,7 +587,6 @@ module ActiveRecord
           @schema_hooks_loaded = false
           @arel_table = Arel::Table.new(klass: self)
           @predicate_builder = PredicateBuilder.new(TableMetadata.new(self, @arel_table)) unless self == Base
-          @attribute_names = nil
 
           reload_schema_contexts_from_cache
 

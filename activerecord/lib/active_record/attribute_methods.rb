@@ -233,11 +233,11 @@ module ActiveRecord
       #   Person.attribute_names
       #   # => ["id", "created_at", "updated_at", "name", "age"]
       def attribute_names
-        @attribute_names ||= if !abstract_class? && table_exists?
-          attribute_types.keys
+        if !abstract_class? && table_exists?
+          schema_context.attribute_names
         else
-          []
-        end.freeze
+          [].freeze
+        end
       end
 
       # Returns true if the given attribute exists, otherwise false.
@@ -266,7 +266,6 @@ module ActiveRecord
           child_class.initialize_generated_modules
           child_class.class_eval do
             @alias_attributes_mass_generated = false
-            @attribute_names = nil
           end
         end
     end

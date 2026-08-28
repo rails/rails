@@ -1,3 +1,11 @@
+*   Keep schema-derived model state separate for each connection pool.
+
+    Models connected to shards with different schemas now use the columns,
+    attribute types, defaults, and cached finder statements for the current
+    shard.
+
+    *Joshua Young*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the
@@ -35,7 +43,6 @@
     join would change the number of rows the query returns.
 
     *David Paluy*
-
 *   Add `config.active_record.shuffle_unordered_selects`.
 
     When enabled, Active Record shuffles the rows of every `SELECT` it generates
