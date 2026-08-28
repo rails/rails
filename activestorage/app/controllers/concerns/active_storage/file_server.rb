@@ -3,6 +3,9 @@
 require "active_support/core_ext/hash/except"
 
 module ActiveStorage::FileServer # :nodoc:
+  DEFAULT_SEND_FILE_TYPE        = ActionController::DataStreaming::DEFAULT_SEND_FILE_TYPE
+  DEFAULT_SEND_FILE_DISPOSITION = ActionController::DataStreaming::DEFAULT_SEND_FILE_DISPOSITION
+
   private
     def serve_file(path, content_type:, disposition:)
       ::Rack::Files.new(nil).serving(request, path).tap do |(status, headers, body)|

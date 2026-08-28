@@ -23,6 +23,28 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Hello world!", response.body
   end
 
+  test "showing signed blob with no content type falls back to application/octet-stream" do
+    blob = create_blob
+
+    get blob.service.url(blob.key, expires_in: 1.minute, filename: blob.filename, content_type: nil, disposition: :inline)
+
+    assert_response :ok
+    assert_equal "application/octet-stream", response.headers["Content-Type"]
+    assert_equal "Hello world!", response.body
+  end
+
+  test "showing public blob with no content type falls back to application/octet-stream" do
+    with_service("local_public") do
+      blob = create_blob
+
+      get blob.service.url(blob.key, filename: blob.filename)
+
+      assert_response :ok
+      assert_equal "application/octet-stream", response.headers["Content-Type"]
+      assert_equal "Hello world!", response.body
+    end
+  end
+
   test "showing blob range" do
     blob = create_blob
     get blob.url, headers: { "Range" => "bytes=5-9" }

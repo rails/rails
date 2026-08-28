@@ -1,3 +1,10 @@
+*   Serve disk blobs with no content type as `application/octet-stream`
+
+    Serve a disk blob whose signed URL carries no content type as
+    `application/octet-stream`, instead of raising `NameError`.
+
+    *Seb Jacobs*
+
 *   Allow ffmpeg and ffprobe input arguments to be configured.
 
     Two new configuration parameters are introduced.
