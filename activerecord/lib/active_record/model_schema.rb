@@ -289,7 +289,6 @@ module ActiveRecord
         end
 
         @table_name        = value
-        @arel_table        = Arel::Table.new(klass: self)
         @sequence_name     = nil unless @explicit_sequence_name
       end
 
