@@ -714,6 +714,23 @@ class ShareLockFiberTest < ActiveSupport::TestCase
     fiber_b.resume
   end
 
+  def test_share_can_be_released_by_explicit_owner_from_another_fiber
+    owner = Fiber.new do
+      @lock.start_sharing
+      Fiber.current
+    end.resume
+
+    assert_not owner.alive?
+
+    Fiber.new do
+      @lock.stop_sharing(owner: owner)
+    end.resume
+
+    @lock.raw_state do |state|
+      assert_empty state
+    end
+  end
+
   def test_thread_isolation_level_still_collapses_fibers_to_one_owner
     ActiveSupport::IsolatedExecutionState.isolation_level = :thread
     lock = ActiveSupport::Concurrency::ShareLock.new

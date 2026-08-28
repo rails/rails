@@ -183,6 +183,11 @@
 
     *Andrew Novoselac*
 
+*   Fix the reloader interlock leaking a shared lock when a Rack server invokes
+    `rack.response_finished` from a different fiber than the request.
+
+    *Samuel Williams*
+
 *   Fix `ActiveSupport::Concurrency::ShareLock` to honor `isolation_level`.
 
     Lock ownership was keyed on `Thread.current`. Under
