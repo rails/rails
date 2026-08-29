@@ -51,8 +51,13 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.build_scope(scope)
-      if scope && scope.arity == 0
-        proc { instance_exec(&scope) }
+      return unless scope
+
+      scope = ActiveSupport::Ractors.try_shareable_proc(scope)
+
+      if scope.arity == 0
+        user_scope = scope
+        ActiveSupport::Ractors.try_shareable_proc(proc { instance_exec(&user_scope) })
       else
         scope
       end

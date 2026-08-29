@@ -358,7 +358,8 @@ module ActiveRecord
 
         attr_names.each do |association_name|
           if reflection = _reflect_on_association(association_name)
-            reflection.autosave = true
+            reflection = reflection.with_autosave(true)
+            ActiveRecord::Reflection.replace_reflection(self, association_name, reflection)
             define_autosave_validation_callbacks(reflection)
 
             nested_attributes_options = self.nested_attributes_options.dup

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 require "models/topic"
 require "models/customer"
 require "models/comment"
@@ -821,5 +822,196 @@ class DeprecatedReflectionsTest < ActiveRecord::TestCase
 
     def assert_deprecated_reflection(model, name)
       assert_predicate model.reflect_on_association(name), :deprecated?
+    end
+end
+
+class ReflectionShareabilityTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
+  class SharedTopic < ActiveRecord::Base
+    self.table_name = "topics"
+    has_many :shared_replies, class_name: "ReflectionShareabilityTest::SharedReply",
+      foreign_key: "parent_id", inverse_of: :shared_topic
+  end
+
+  class SharedReply < ActiveRecord::Base
+    self.table_name = "topics"
+    belongs_to :shared_topic, class_name: "ReflectionShareabilityTest::SharedTopic",
+      foreign_key: "parent_id", inverse_of: :shared_replies
+  end
+
+  class NestedAttrsTopic < ActiveRecord::Base
+    self.table_name = "topics"
+    has_many :nested_replies, class_name: "ReflectionShareabilityTest::SharedReply",
+      foreign_key: "parent_id"
+  end
+
+  class WrappedTitle
+    attr_reader :value
+
+    def initialize(value)
+      @value = value
+    end
+  end
+
+  class AggregatedTopic < ActiveRecord::Base
+    self.table_name = "topics"
+    composed_of :wrapped_title, class_name: "ReflectionShareabilityTest::WrappedTitle",
+      mapping: { title: :value }
+  end
+
+  def test_frozen_reflection_reads_lazy_state_through_the_per_ractor_cache
+    reflection = ActiveRecord::Reflection.create(
+      :has_many, :shared_replies, nil,
+      { class_name: "ReflectionShareabilityTest::SharedReply", foreign_key: "parent_id" },
+      SharedTopic
+    )
+    reflection.freeze
+
+    assert_equal "parent_id", reflection.foreign_key
+    assert_equal SharedReply, reflection.klass
+    assert_equal "parent_id", reflection.foreign_key
+    assert_nothing_raised { reflection.check_validity! }
+  end
+
+  def test_frozen_reflection_caches_nil_values_without_frozen_error
+    reflection = ActiveRecord::Reflection.create(
+      :belongs_to, :shared_topic, nil,
+      { class_name: "ReflectionShareabilityTest::SharedTopic", foreign_key: "parent_id" },
+      SharedReply
+    )
+    reflection.freeze
+
+    assert_nil reflection.counter_cache_column
+    assert_nil reflection.counter_cache_column
+  end
+
+  def test_accepts_nested_attributes_for_replaces_the_stored_reflection
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      def self.name = "AutosaveRebuildTopic"
+      has_many :rebuilt_replies, class_name: "ReflectionShareabilityTest::SharedReply",
+        foreign_key: "parent_id"
+    end
+
+    before = model._reflect_on_association(:rebuilt_replies)
+    model.accepts_nested_attributes_for :rebuilt_replies
+    after = model._reflect_on_association(:rebuilt_replies)
+
+    assert_not_same before, after
+    assert after.options[:autosave]
+    assert_nil before.options[:autosave]
+  end
+
+  def test_with_autosave_preserves_composite_foreign_keys
+    reflection = ActiveRecord::Reflection.create(
+      :has_many, :shared_replies, nil,
+      { class_name: "ReflectionShareabilityTest::SharedReply", foreign_key: [:id, :parent_id] },
+      SharedTopic
+    )
+
+    rebuilt = reflection.with_autosave(true)
+
+    assert rebuilt.options[:autosave]
+    assert_equal reflection.foreign_key, rebuilt.foreign_key
+  end
+
+  if RUBY_VERSION >= "4.0"
+    def test_add_reflection_freezes_storage_under_the_shareable_proc_policy
+      with_unshareable_proc_action(:raise) do
+        ActiveRecord::Reflection.add_reflection(
+          SharedTopic, :shared_replies, SharedTopic._reflect_on_association(:shared_replies)
+        )
+      end
+
+      assert_predicate SharedTopic._reflections, :frozen?
+      assert_ractor_shareable SharedTopic._reflections
+      assert_predicate SharedTopic._reflect_on_association(:shared_replies), :frozen?
+      assert_equal "parent_id", SharedTopic._reflect_on_association(:shared_replies).foreign_key
+    end
+
+    def test_add_aggregate_reflection_freezes_storage_under_the_shareable_proc_policy
+      with_unshareable_proc_action(:raise) do
+        ActiveRecord::Reflection.add_aggregate_reflection(
+          AggregatedTopic, :wrapped_title, AggregatedTopic.reflect_on_aggregation(:wrapped_title)
+        )
+      end
+
+      assert_ractor_shareable AggregatedTopic.aggregate_reflections
+      assert_equal WrappedTitle, AggregatedTopic.reflect_on_aggregation(:wrapped_title).klass
+    end
+
+    def test_worker_ractor_reads_frozen_reflections
+      with_unshareable_proc_action(:raise) do
+        [[SharedTopic, :shared_replies], [SharedReply, :shared_topic]].each do |model, name|
+          ActiveRecord::Reflection.add_reflection(model, name, model._reflect_on_association(name))
+        end
+      end
+
+      klass_name = on_ractor do
+        ReflectionShareabilityTest::SharedReply._reflect_on_association(:shared_topic).klass.name
+      end
+
+      assert_equal "ReflectionShareabilityTest::SharedTopic", klass_name
+    end
+
+    def test_worker_ractor_reads_normalized_reflections
+      with_unshareable_proc_action(:raise) do
+        ActiveRecord::Reflection.add_reflection(
+          SharedTopic, :shared_replies, SharedTopic._reflect_on_association(:shared_replies)
+        )
+      end
+
+      names = on_ractor do
+        [
+          ReflectionShareabilityTest::SharedTopic.reflect_on_association(:shared_replies)&.name,
+          ReflectionShareabilityTest::SharedTopic.reflect_on_association(:shared_replies)&.name,
+        ]
+      end
+
+      assert_equal [:shared_replies, :shared_replies], names
+    end
+
+    def test_autosave_on_frozen_reflection_rebuilds_instead_of_raising
+      with_unshareable_proc_action(:raise) do
+        ActiveRecord::Reflection.add_reflection(
+          NestedAttrsTopic, :nested_replies, NestedAttrsTopic._reflect_on_association(:nested_replies)
+        )
+      end
+      assert_predicate NestedAttrsTopic._reflect_on_association(:nested_replies), :frozen?
+
+      NestedAttrsTopic.accepts_nested_attributes_for :nested_replies
+
+      assert NestedAttrsTopic._reflect_on_association(:nested_replies).options[:autosave]
+    end
+
+    def test_scope_conversion_under_the_shareable_proc_policy
+      built_scope = with_unshareable_proc_action(:raise) do
+        ActiveRecord::Associations::Builder::HasMany.send(:build_scope, -> { order(:id) })
+      end
+
+      assert_ractor_shareable built_scope
+      assert_includes SharedReply.all.instance_exec(&built_scope).to_sql, "ORDER BY"
+    end
+
+    def test_unshareable_scope_raises_under_the_raise_policy
+      unshareable_capture = +"mutable"
+      scope = -> { where(title: unshareable_capture) }
+
+      with_unshareable_proc_action(:raise) do
+        assert_raises(Ractor::IsolationError) do
+          ActiveRecord::Associations::Builder::HasMany.send(:build_scope, scope)
+        end
+      end
+    end
+  end
+
+  private
+    def with_unshareable_proc_action(action)
+      original = ActiveSupport::Ractors.unshareable_proc_action
+      ActiveSupport::Ractors.unshareable_proc_action = action
+      yield
+    ensure
+      ActiveSupport::Ractors.unshareable_proc_action = original
     end
 end

@@ -2016,9 +2016,9 @@ module ActiveRecord
 
           middle_reflection = builder.middle_reflection(join_model)
 
+          middle_reflection.parent_reflection = habtm_reflection
           Builder::HasMany.define_callbacks(self, middle_reflection)
           Reflection.add_reflection(self, middle_reflection.name, middle_reflection)
-          middle_reflection.parent_reflection = habtm_reflection
 
           include Module.new {
             class_eval <<-RUBY, __FILE__, __LINE__ + 1
@@ -2038,8 +2038,9 @@ module ActiveRecord
             hm_options[k] = options[k] if options.key?(k)
           end
 
-          has_many name, scope, **hm_options, &extension
-          _reflections[name].parent_reflection = habtm_reflection
+          reflection = Builder::HasMany.build(self, name, scope, hm_options, &extension)
+          reflection.parent_reflection = habtm_reflection
+          Reflection.add_reflection(self, name, reflection)
         end
       end
   end
