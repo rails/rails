@@ -231,6 +231,20 @@ module ActiveRecord
       assert_ractor_shareable Topic.predicate_builder
     end
 
+    def test_is_eagerly_built_and_reachable_from_a_ractor
+      model = Class.new(ActiveRecord::Base) do
+        def self.name
+          "PredicateBuilderEagerModel"
+        end
+
+        self.table_name = "topics"
+      end
+
+      builder = on_ractor(model) { |m| m.instance_variable_get(:@predicate_builder) }
+
+      assert_same model.predicate_builder, builder
+    end
+
     def test_attribute_type_can_define_a_comparison_expression
       topic = topic_model_with_title_type(UnaccentedString.new)
       sql = topic.where(title: "CAFE").to_sql
