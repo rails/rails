@@ -282,14 +282,15 @@ module ActiveRecord
       def table_name=(value)
         value = (value && value.to_s).freeze
 
-        if defined?(@table_name)
+        renaming = defined?(@table_name)
+        if renaming
           return if value == @table_name
           reset_column_information if connected?
-          @predicate_builder = nil
         end
 
         @table_name        = value
         @arel_table        = Arel::Table.new(klass: self)
+        @predicate_builder = PredicateBuilder.new(TableMetadata.new(self, @arel_table)) if renaming
         @sequence_name     = nil unless @explicit_sequence_name
       end
 
@@ -581,6 +582,7 @@ module ActiveRecord
         def reload_schema_from_cache(recursive = true)
           @schema_hooks_loaded = false
           @arel_table = Arel::Table.new(klass: self)
+          @predicate_builder = PredicateBuilder.new(TableMetadata.new(self, @arel_table)) unless self == Base
           @attribute_names = nil
 
           reload_schema_contexts_from_cache

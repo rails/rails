@@ -439,7 +439,7 @@ module ActiveRecord
 
           subclass.class_eval do
             @arel_table = Arel::Table.new(klass: self)
-            @predicate_builder = nil
+            @predicate_builder = PredicateBuilder.new(TableMetadata.new(self, @arel_table))
             @inspection_filter = nil
             @filter_attributes ||= nil
             @generated_association_methods ||= nil
