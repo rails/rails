@@ -114,11 +114,20 @@ module ActiveModel
           when ::Integer
             value
           when ::String
-            str = value.bytesize > _limit * 4 ? value.byteslice(0, _limit * 4) : value
+            str = value.bytesize > _limit * 4 ? truncate_to_limit(value) : value
             str.to_i rescue nil
           else
             value.to_i rescue nil
           end
+        end
+
+        def truncate_to_limit(value)
+          # to_i skips leading whitespace, a sign and zeroes, so they must not
+          # use up the byte budget. The lookahead keeps the match from eating a
+          # digit that to_i would read, or a sign that it would stop at.
+          match = INSIGNIFICANT_PREFIX.match(value) if value.encoding.ascii_compatible?
+          return value.byteslice(0, _limit * 4) unless match
+          match[1] + value.byteslice(match.byteoffset(0).last, _limit * 4)
         end
 
         def max_value
@@ -132,6 +141,9 @@ module ActiveModel
         def _limit
           limit || DEFAULT_LIMIT
         end
+
+        INSIGNIFICANT_PREFIX = /\A\s*([+-]?)0*(?=\d)/
+        private_constant :INSIGNIFICANT_PREFIX
     end
   end
 end

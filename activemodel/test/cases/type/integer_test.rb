@@ -179,6 +179,32 @@ module ActiveModel
         assert_equal 42, type.cast("42-some-slug")
       end
 
+      test "leading whitespace, sign and zeros don't count towards the byte cap" do
+        type = Type::Integer.new # default limit: 4, byte cap: 16
+        # The cap applies to the significant digits, not to the padding in front of them
+        assert_equal 1, type.cast("0" * 100 + "1")
+        assert_equal 1, type.cast("+" + "0" * 100 + "1")
+        assert_equal(-12, type.cast(" \t-" + "0" * 100 + "12tail"))
+        assert_equal 42, type.cast(" " * 100 + "42")
+        assert_equal 0, type.cast("0" * 100)
+        assert_equal 0, type.cast("-" + "0" * 100)
+        # The cap is still enforced once the padding is skipped
+        assert_equal ("9" * 16).to_i, type.cast("0" * 100 + "9" * 30)
+      end
+
+      test "skipping the padding doesn't let to_i read a sign it would have stopped at" do
+        type = Type::Integer.new # default limit: 4, byte cap: 16
+        # to_i only honours a sign that leads the string, so padding must not change the value
+        assert_equal type.cast("0-1"), type.cast("0" * 100 + "-1")
+        assert_equal type.cast("0 5"), type.cast("  " + "0" * 100 + " 5")
+        assert_equal 0, type.cast("-" + "a" * 100)
+      end
+
+      test "long strings in a non ASCII compatible encoding are cast to nil" do
+        type = Type::Integer.new # default limit: 4, byte cap: 16
+        assert_nil type.cast(("0" * 100 + "1").encode("UTF-16LE"))
+      end
+
       test "Marshal round-trip preserves behaviour" do
         type = Integer.new
         restored = Marshal.load(Marshal.dump(type))
