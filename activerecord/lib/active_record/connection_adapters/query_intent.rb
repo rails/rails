@@ -110,6 +110,16 @@ module ActiveRecord
         @retry_budget = nil
       end
 
+      def self.unordered_select?(arel)
+        ast = arel.respond_to?(:ast) ? arel.ast : arel
+
+        Arel::Nodes::SelectStatement === ast && ast.orders.empty?
+      end
+
+      def self.shuffle_rows?(arel)
+        ActiveRecord.shuffle_unordered_selects && unordered_select?(arel)
+      end
+
       # Returns a hash representation of the QueryIntent for debugging/introspection
       def to_h
         {
@@ -332,7 +342,7 @@ module ActiveRecord
         raise "Cannot call cast_result after affected_rows has been called" if defined?(@affected_rows)
 
         ensure_result
-        @cast_result ||= adapter.send(:cast_result, @raw_result)
+        @cast_result ||= adapter.send(:cast_result, @raw_result).shuffle_rows(@arel)
       end
 
       def affected_rows

@@ -396,6 +396,25 @@ module ActiveRecord
   singleton_class.attr_accessor :raise_on_missing_required_finder_order_columns
   self.raise_on_missing_required_finder_order_columns = false
 
+  ##
+  # :singleton-method: shuffle_unordered_selects
+  # Shuffles the rows of every +SELECT+ Active Record generates that has no
+  # +ORDER BY+ clause.
+  #
+  # The order of such a query is not specified, and databases are free to
+  # return its rows in any order. Enabling this option makes that explicit, so
+  # code (and tests) that accidentally rely on the order a given database
+  # happens to return today fails loudly instead of breaking later.
+  #
+  # It is meant to be enabled in the test or development environments only.
+  #
+  # Rows are shuffled after the database has returned them, so queries built from
+  # raw SQL strings are left untouched (Active Record cannot tell whether they are
+  # ordered), and queries ending in +LIMIT 1+ are unaffected because the database
+  # has already picked the row.
+  singleton_class.attr_accessor :shuffle_unordered_selects
+  self.shuffle_unordered_selects = false
+
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil
 
