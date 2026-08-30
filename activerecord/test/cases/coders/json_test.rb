@@ -24,6 +24,11 @@ module ActiveRecord
         coder = JSON.new
         assert_equal '{"k":"<>&"}', coder.dump({ "k" => "<>&" })
       end
+
+      def test_dump_with_encode_options
+        coder = JSON.new(encode_options: { escape: true })
+        assert_equal '{"k":"\\u003c\\u003e\\u0026"}', coder.dump({ "k" => "<>&" })
+      end
     end
   end
 end
