@@ -121,8 +121,8 @@ module Rails
     def self.enumerate(tag = nil, options = {})
       tag ||= Annotation.tags.join("|")
       extractor = new(tag)
-      dirs = options.delete(:dirs) || Annotation.directories
-      extractor.display(extractor.find(dirs), options)
+      dirs = options[:dirs] || Annotation.directories
+      extractor.display(extractor.find(dirs), options.except(:dirs))
     end
 
     attr_reader :tag
@@ -177,7 +177,7 @@ module Rails
     # Prints the mapping from filenames to annotations in +results+ ordered by filename.
     # The +options+ hash is passed to each annotation's +to_s+.
     def display(results, options = {})
-      options[:indent] = results.flat_map { |f, a| a.map(&:line) }.max.to_s.size
+      options = options.merge(indent: results.flat_map { |f, a| a.map(&:line) }.max.to_s.size)
       results.keys.sort.each do |file|
         puts "#{file}:"
         results[file].each do |note|
