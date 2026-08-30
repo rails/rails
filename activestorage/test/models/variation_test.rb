@@ -57,6 +57,12 @@ class ActiveStorage::VariationTest < ActiveSupport::TestCase
     assert_equal ActiveStorage::Variation.encode(transformations), variation.key
   end
 
+  test "format defaults to the configured default variant format" do
+    with_default_variant_format(:jpeg) do
+      assert_equal :jpeg, ActiveStorage::Variation.new(resize_to_limit: [100, 100]).format
+    end
+  end
+
   test "default_to fills in missing transformations" do
     variation = ActiveStorage::Variation.new(resize_to_limit: [100, 100])
       .default_to(format: :png)
@@ -71,10 +77,10 @@ class ActiveStorage::VariationTest < ActiveSupport::TestCase
     assert_equal({ format: :jpg, resize_to_limit: [100, 100] }, variation.transformations)
   end
 
-  test "format defaults to png" do
+  test "format defaults to webp" do
     variation = ActiveStorage::Variation.new(resize_to_limit: [100, 100])
 
-    assert_equal :png, variation.format
+    assert_equal :webp, variation.format
   end
 
   test "format accepts valid extensions" do
@@ -103,9 +109,9 @@ class ActiveStorage::VariationTest < ActiveSupport::TestCase
     assert_equal "image/jpeg", variation.content_type
   end
 
-  test "content_type defaults to png" do
+  test "content_type defaults to webp" do
     variation = ActiveStorage::Variation.new(resize_to_limit: [100, 100])
 
-    assert_equal "image/png", variation.content_type
+    assert_equal "image/webp", variation.content_type
   end
 end

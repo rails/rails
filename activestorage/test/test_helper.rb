@@ -115,6 +115,13 @@ class ActiveSupport::TestCase
       class_names.each { |class_name| Vips.block(class_name, VIPS_LOADERS_DISABLED_AT_BOOT) }
     end
 
+    def with_default_variant_format(format)
+      previous, ActiveStorage.default_variant_format = ActiveStorage.default_variant_format, format
+      yield
+    ensure
+      ActiveStorage.default_variant_format = previous
+    end
+
     def with_strict_loading_by_default(&block)
       strict_loading_was = ActiveRecord::Base.strict_loading_by_default
       ActiveRecord::Base.strict_loading_by_default = true
