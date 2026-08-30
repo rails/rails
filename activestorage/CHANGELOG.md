@@ -1,3 +1,16 @@
+*   Add `config.active_storage.default_variant_format` to configure the format
+    of variants generated from images that are not web images, such as TIFF,
+    BMP, or HEIC files. Variants of web images keep the format of the original.
+
+    The default is `:png`. Applications loading the 8.2 framework defaults use
+    `:webp`, which produces smaller variants that all major browsers support.
+
+    ```ruby
+    config.active_storage.default_variant_format = :webp
+    ```
+
+    *Carlos Daniel Pohlod* and *Daniel Lopez*
+
 *   Forward other options from `has_one_attached` and `has_many_attached` to the attachment association.
 
     ```ruby

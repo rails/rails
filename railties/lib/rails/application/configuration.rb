@@ -400,6 +400,7 @@ module Rails
 
           if respond_to?(:active_storage)
             active_storage.analyze = :immediately
+            active_storage.default_variant_format = :webp
             active_storage.s3_public_uploads_via_acl = false
           end
 
