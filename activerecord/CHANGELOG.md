@@ -1,3 +1,12 @@
+*   Prefer the `mariadb-dump` and `mariadb` client binaries for SQL structure dump
+    and load when they are on the `PATH`, falling back to `mysqldump` and `mysql`.
+
+    MariaDB deprecated the `mysqldump` and `mysql` names in 11.0, and its official
+    Docker image no longer ships them, so `db:schema:dump` and `db:schema:load`
+    either printed a deprecation warning or failed with "command not found".
+
+    *Lazizbek Ergashev*
+
 *   Add `config.active_record.shuffle_unordered_selects`.
 
     When enabled, Active Record shuffles the rows of every `SELECT` it generates

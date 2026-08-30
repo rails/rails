@@ -52,6 +52,12 @@ module ActiveRecord
           configuration_hash.merge(database: nil)
         end
 
+        def find_cmd(*commands)
+          commands.detect do |cmd|
+            system("/bin/sh", "-c", "command -v #{cmd}", out: File::NULL, err: File::NULL)
+          end || commands.last
+        end
+
         def run_cmd(cmd, *args, **opts)
           fail run_cmd_error(cmd, args) unless Kernel.system(cmd, *args, opts)
         end
