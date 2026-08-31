@@ -1,3 +1,15 @@
+*   Wrap GCS IAM signer authorization failures in `ActiveStorage::AuthorizationError`
+
+    When the GCS service is configured with `iam: true`, generating a signed URL calls out to the
+    IAM credentials API to sign the request. If the underlying credentials (e.g. expired
+    `gcloud auth application-default login` reauth tokens in development) fail to authorize, this
+    previously raised `Signet::AuthorizationError` straight from the `google-cloud-storage` gem.
+    It's now wrapped in a new, generic `ActiveStorage::AuthorizationError`, so applications can
+    `rescue_from` it without depending on a Google-specific exception class -- and so other
+    services can raise the same error for their own authorization failures in the future.
+
+    *Bogdan Gusiev*
+
 *   Marcel 2 for content type detection
 
     Broader and more precise MIME type detection, security hardening, and uses canonical types
