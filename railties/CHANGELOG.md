@@ -1,3 +1,150 @@
+*   A generated application's ci.yml file now sets `timeout-minutes: 15` for
+    each job to prevent transisent network errors, etc. from hanging the
+    action until the default 360 minutes kicks in and potentially eat up an
+    org's allotted runner minutes.
+
+    *Tony Drake*
+
+*   Make mounted route helpers (e.g. `main_app`, engine mount proxies) trigger
+    the lazy route load instead of raising `NoMethodError` when called before
+    routes are drawn.
+
+    Named url helpers already loaded routes on demand, but mounted helpers are
+    only defined when `mount` runs during the route draw, so calling one first
+    (in the console or a test) failed until something else drew the routes.
+
+    *Abdelkader Boudih*
+
+*   Report zero tests instead of raising a `LoadError` when a `bin/rails test:*`
+    folder command names a folder the application does not have.
+
+    A generated application has no `test/system` folder, so the `system-test`
+    job in the generated `.github/workflows/ci.yml` failed on the first push
+    with `cannot load such file -- <app>/test/system (LoadError)`. The same
+    happened for `bin/rails test:channels`, `test:jobs`, `test:mailboxes`,
+    `test:units`, `test:functionals`, and `test:generators`, which all name
+    folders that an application does not necessarily have.
+
+    *Ariel Rzezak*
+
+*   Add `--no-banner` to `bin/rails console` to suppress the startup banner.
+
+    Users can already set `IRB.conf[:SHOW_BANNER] = false` in `.irbrc`; this
+    flag is for one-off or scripted sessions without editing config.
+
+    ```bash
+    bin/rails console --no-banner
+    ```
+
+    *Said Kaldybaev*
+
+*   Show a Rails-flavored startup banner (a small logo, Rails/Ruby
+    version, a rotating tip about console helpers like `app`/`reload!`, and
+    `Rails.root`) when starting `bin/rails console`.
+
+    `rails console` bypassed IRB's normal startup path, so the banner IRB
+    shows when run directly via `irb` (see ruby/irb#1183) never appeared in
+    a Rails console session.
+
+    Set `RAILS_TIPS=false` to hide the rotating tip.
+
+    *Elia Gamberi*
+
+*   Don't filter nonexistent i18n paths on initialize. This negatively impacts
+    applications with lots of translation files.
+
+    *Gannon McGibbon*
+
+*   Validate subcommand in `rails plugin` command.
+
+    `rails plugin foo bar` silently ignored the invalid subcommand "foo"
+    and proceeded to create a plugin named "bar". Now it prints an error
+    and exits with status 1.
+
+    Fixes #57430.
+
+    *Ruy Rocha*
+
+*   Prevent the internal development welcome route from being duplicated on route reloads.
+
+    *Elliot Temple*
+
+*   Remove `new_framework_defaults` during `app:update` when `config.load_defaults`
+    already targets the current Rails version.
+
+    *Rune Philosof*
+
+*   Enable `config.asset_host` to read from environment by default
+
+    This makes it so no code changes are needed in order to setup a CDN to
+    serve static assets.
+
+    ```
+    config.asset_host = ENV["CDN_HOST"]
+    ```
+
+    *Steve Polito*
+
+*   Skip `CreateUsers` migration when the User model already exists in the authentication generator.
+
+    *John Topley*
+
+*   `app.reloaders` is now a `ReloadersCollection` that calls `deactivate`
+    on each reloader when `clear` or `delete` is called, giving reloaders a
+    chance to clean up external state.
+
+    *Dave Ariens*
+
+*   Enable Ruby `frozen_string_literal` by default.
+
+    New Rails apps now include a `config/bootsnap.rb` file that enables frozen string
+    literals. This only impact the application code, not the dependencies.
+
+    It is also possible to enable it for dependencies for reduce allocations, but
+    some older gems may not yet be compatible. If you do attempt this and run into
+    incompatibilities please do report it on the corresponding gem bug tracker.
+
+    Additionally, `.rubocop.yml` is configured to assume frozen string literals
+    are enabled, if you decide not to enable frozen string literals for your application,
+    make sure to update the rubocop configuration accordingly.
+
+    *Jean Boussier*
+
+*   Add offline fallback page to the PWA scaffold.
+
+    New Rails apps now include an `app/views/pwa/offline.html.erb` template and
+    a commented `get "offline"` route in `config/routes.rb`, alongside the existing
+    manifest and service worker. The service worker template also includes a
+    commented example for caching and serving the offline page.
+
+    *Juan Vasquez*
+
+*   Add `bin/rails query` command for running read-only database queries.
+
+    Supports ActiveRecord expressions and raw SQL with JSON output.
+    Connects to the reading replica role by default and prevents writes.
+    Includes subcommands for schema introspection, model listing, and EXPLAIN.
+
+    ```bash
+    $ bin/rails query "Account.where(plan: 'premium').limit(10)"
+    $ bin/rails query --sql "SELECT COUNT(*) FROM accounts"
+    $ bin/rails query schema accounts
+    $ bin/rails query models
+    $ bin/rails query explain "Account.where(plan: 'premium')"
+    ```
+
+    *Lewis Buckley*
+
+*   Avoid adding `Rack::Sendfile` to the middleware stack if `config.action_dispatch.x_sendfile_header` is `nil`.
+
+    The middleware behave as a noop in such case so it's pointless to have it in the stack.
+
+    *Jean Boussier*
+
+*   Set read-only permissions for GitHub Actions workflow generated by rails new
+
+    *Taketo Takashima*
+
 *   `Rails.app.revision` now checks `ENV["REVISION"]` before falling back to the `REVISION` file or git.
 
     *Jonathan Baker*

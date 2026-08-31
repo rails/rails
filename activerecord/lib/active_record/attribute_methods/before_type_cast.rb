@@ -25,6 +25,21 @@ module ActiveRecord
     #
     #   task.id_before_type_cast           # => "1"
     #   task.completed_on_before_type_cast # => "2012-10-21"
+    #
+    # It also declares a method for all attributes with the <tt>*_for_database</tt>
+    # suffix, returning the serialized value used when writing to the database, and
+    # a method with the <tt>*_came_from_user?</tt> suffix, returning whether the
+    # attribute was assigned from user input (as opposed to loaded from the database
+    # or left at its default).
+    #
+    #   class Book < ActiveRecord::Base
+    #     enum :status, { draft: 1, published: 2 }
+    #   end
+    #
+    #   book = Book.new(status: "published")
+    #   book.status_for_database     # => 2
+    #   book.status_came_from_user?  # => true
+    #   book.id_came_from_user?      # => false
     module BeforeTypeCast
       extend ActiveSupport::Concern
 
@@ -94,10 +109,12 @@ module ActiveRecord
           @attributes[attr_name].value_before_type_cast
         end
 
+        # Dispatch target for <tt>*_for_database</tt> attribute methods.
         def attribute_for_database(attr_name)
           @attributes[attr_name].value_for_database
         end
 
+        # Dispatch target for <tt>*_came_from_user?</tt> attribute methods.
         def attribute_came_from_user?(attr_name)
           @attributes[attr_name].came_from_user?
         end

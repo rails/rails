@@ -142,14 +142,13 @@ module ActiveRecord
           # Load fixtures once and begin transaction.
           @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key]
           unless @loaded_fixtures
-            @@already_loaded_fixtures.clear
+            invalidate_already_loaded_fixtures
             @loaded_fixtures = @@already_loaded_fixtures[@fixture_cache_key] = load_fixtures(config)
           end
 
           setup_transactional_fixtures
         else
           # Load fixtures for every test.
-          ActiveRecord::FixtureSet.reset_cache
           invalidate_already_loaded_fixtures
           @loaded_fixtures = load_fixtures(config)
         end
@@ -182,6 +181,7 @@ module ActiveRecord
       end
 
       def invalidate_already_loaded_fixtures
+        ActiveRecord::FixtureSet.reset_cache
         @@already_loaded_fixtures.clear
       end
 
@@ -193,13 +193,16 @@ module ActiveRecord
         setup_shared_connection_pool
 
         # Begin transactions for connections already established
-        @fixture_connection_pools = ActiveRecord::Base.connection_handler.connection_pool_list(:writing)
+        pools = ActiveRecord::Base.connection_handler.connection_pool_list(:writing)
 
         # Filter to pools that want to use transactions
-        @fixture_connection_pools.select! { |pool| transactional_tests_for_pool?(pool) }
+        pools.select! { |pool| transactional_tests_for_pool?(pool) }
 
-        @fixture_connection_pools.each do |pool|
+        # Record each pool as it is pinned. Teardown raises for a pool it is
+        # asked to unpin that never was, which buries whatever stopped it.
+        pools.each do |pool|
           pool.pin_connection!(lock_threads)
+          @fixture_connection_pools << pool
           pool.lease_connection
         end
 
@@ -216,8 +219,8 @@ module ActiveRecord
               # Don't begin a transaction if we've already done so, or are not using them for this pool
               if !@fixture_connection_pools.include?(pool) && transactional_tests_for_pool?(pool)
                 pool.pin_connection!(lock_threads)
-                pool.lease_connection
                 @fixture_connection_pools << pool
+                pool.lease_connection
               end
             end
           end
@@ -263,19 +266,28 @@ module ActiveRecord
 
       def teardown_shared_connection_pool
         handler = ActiveRecord::Base.connection_handler
+        removed_pool_configs = []
+        pool_managers = handler.send(:connection_name_to_pool_manager)
 
         @saved_pool_configs.each_pair do |name, shards|
-          pool_manager = handler.send(:connection_name_to_pool_manager)[name]
+          pool_manager = pool_managers[name]
           shards.each_pair do |shard_name, roles|
             roles.each_pair do |role, pool_config|
-              next unless pool_manager.get_pool_config(role, shard_name)
-
-              pool_manager.set_pool_config(role, shard_name, pool_config)
+              if pool_manager.get_pool_config(role, shard_name)
+                pool_manager.set_pool_config(role, shard_name, pool_config)
+              else
+                removed_pool_configs << pool_config
+              end
             end
           end
         end
 
         @saved_pool_configs.clear
+
+        remaining_pool_configs = pool_managers.values.flat_map(&:pool_configs)
+        removed_pool_configs.compact.uniq.each do |pool_config|
+          pool_config.disconnect! unless remaining_pool_configs.include?(pool_config)
+        end
       end
 
       def load_fixtures(config)

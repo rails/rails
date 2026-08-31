@@ -238,19 +238,19 @@ class ActionText::FormHelperTest < ActionView::TestCase
     HTML
   end
 
-  test "form with rich text area with value with block" do
-    model = Message.new content: "<h1>ignored</h1>"
+  test "form with rich text area ignores block when value is present" do
+    message = Message.new content: "<h1>existing content</h1>"
 
-    form_with model: model, scope: :message do |form|
-      form.rich_textarea :title do
-        "<h1>hello world</h1>"
+    form_with model: message, scope: :message do |form|
+      form.rich_textarea :content do
+        content_tag("custom-prompt", "hello world")
       end
     end
 
     assert_dom_equal(<<~HTML, output_buffer)
       <form action="/messages" accept-charset="UTF-8" method="post">
-        <input type="hidden" name="message[title]" id="message_title_trix_input_message" value="&lt;h1&gt;hello world&lt;/h1&gt;" />
-        <trix-editor id="message_title" input="message_title_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">
+        <input type="hidden" name="message[content]" id="message_content_trix_input_message" value="&lt;h1&gt;existing content&lt;/h1&gt;"/>
+        <trix-editor id="message_content" input="message_content_trix_input_message" class="trix-content" data-direct-upload-url="http://test.host/rails/active_storage/direct_uploads" data-blob-url-template="http://test.host/rails/active_storage/blobs/redirect/:signed_id/:filename">
         </trix-editor>
       </form>
     HTML

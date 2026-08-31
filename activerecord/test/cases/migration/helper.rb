@@ -10,7 +10,7 @@ module ActiveRecord
     module TestHelper
       attr_reader :connection, :table_name
 
-      CONNECTION_METHODS = %w[add_column remove_column rename_column add_index change_column rename_table column_exists? index_exists? add_reference add_belongs_to remove_reference remove_references remove_belongs_to]
+      CONNECTION_METHODS = %w[add_column remove_column rename_column add_index change_column rename_table column_exists? index_exists? add_reference add_belongs_to remove_reference remove_references remove_belongs_to].freeze
 
       class TestModel < ActiveRecord::Base
         self.table_name = :test_models

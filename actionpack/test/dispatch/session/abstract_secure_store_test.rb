@@ -42,7 +42,7 @@ module ActionDispatch
         as.call(env)
 
         assert @env
-        assert Request::Session.find ActionDispatch::Request.new @env
+        assert ActionDispatch::Http::Session.find ActionDispatch::Request.new @env
       end
 
       def test_new_session_object_is_merged_with_old
@@ -51,11 +51,11 @@ module ActionDispatch
         as.call(env)
 
         assert @env
-        session = Request::Session.find ActionDispatch::Request.new @env
+        session = ActionDispatch::Http::Session.find ActionDispatch::Request.new @env
         session["foo"] = "bar"
 
         as.call(@env)
-        session1 = Request::Session.find ActionDispatch::Request.new @env
+        session1 = ActionDispatch::Http::Session.find ActionDispatch::Request.new @env
 
         assert_not_equal session, session1
         assert_equal session.to_hash, session1.to_hash

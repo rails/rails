@@ -5,6 +5,7 @@ require "models/topic"
 require "models/task"
 require "models/category"
 require "models/post"
+require "models/default"
 
 class QueryCacheTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -1025,6 +1026,18 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     end
   end
 
+  if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.lease_connection.supports_virtual_columns?
+    def test_update_with_returning_clears_cache
+      Default.cache do
+        record = Default.create!(random_number: 1)
+        assert_called(Default.connection_pool.query_cache, :clear, times: 1) do
+          record.update!(random_number: 2)
+        end
+        assert_equal 2, Default.find(record.id).random_number
+      end
+    end
+  end
+
   def test_destroy
     Task.cache do
       assert_called(Task.connection_pool.query_cache, :clear, times: 1) do
@@ -1151,44 +1164,28 @@ class TransactionInCachedSqlActiveRecordPayloadTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   def test_payload_without_open_transaction
-    asserted = false
-
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      if event.payload[:cached]
-        assert_nil event.payload.fetch(:transaction)
-        asserted = true
-      end
-    end
-    Task.cache do
-      2.times { Task.count }
-    end
-
-    assert asserted
-  ensure
-    ActiveSupport::Notifications.unsubscribe(subscriber)
-  end
-
-  def test_payload_with_open_transaction
-    asserted = false
-    expected_transaction = nil
-
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      if event.payload[:cached]
-        assert_same expected_transaction, event.payload[:transaction]
-        asserted = true
-      end
-    end
-
-    Task.transaction do |transaction|
-      expected_transaction = transaction
-
+    notification = assert_notification("sql.active_record", cached: true) do
       Task.cache do
         2.times { Task.count }
       end
     end
 
-    assert asserted
-  ensure
-    ActiveSupport::Notifications.unsubscribe(subscriber)
+    assert_nil notification.payload.fetch(:transaction)
+  end
+
+  def test_payload_with_open_transaction
+    expected_transaction = nil
+
+    notification = assert_notification("sql.active_record", cached: true) do
+      Task.transaction do |transaction|
+        expected_transaction = transaction
+
+        Task.cache do
+          2.times { Task.count }
+        end
+      end
+    end
+
+    assert_same expected_transaction, notification.payload[:transaction]
   end
 end

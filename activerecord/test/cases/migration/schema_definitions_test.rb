@@ -30,6 +30,22 @@ module ActiveRecord
         assert_predicate id_column, :present?
       end
 
+      def test_build_alter_table_definition_with_block
+        at = connection.build_alter_table_definition(:test) do |t|
+          t.add_column(:foo, :string)
+        end
+
+        assert_equal "test", at.name.to_s
+        assert_equal "foo", at.operations.first.column.name
+      end
+
+      def test_build_alter_table_definition_without_block
+        at = connection.build_alter_table_definition(:test)
+
+        assert_equal "test", at.name.to_s
+        assert_empty at.operations
+      end
+
       def test_build_create_join_table_definition_with_block
         assert connection.table_exists?(:posts)
         assert connection.table_exists?(:comments)
@@ -38,7 +54,7 @@ module ActiveRecord
           t.column :another_col, :string
         end
 
-        assert_equal :comments_posts, join_td.name
+        assert_equal "comments_posts", join_td.name
         assert_equal ["another_col", "comment_id", "post_id"], join_td.columns.map(&:name).sort
       end
 
@@ -48,7 +64,7 @@ module ActiveRecord
 
         join_td = connection.build_create_join_table_definition(:posts, :comments)
 
-        assert_equal :comments_posts, join_td.name
+        assert_equal "comments_posts", join_td.name
         assert_equal ["comment_id", "post_id"], join_td.columns.map(&:name).sort
       end
 
@@ -78,28 +94,31 @@ module ActiveRecord
       end
 
       unless current_adapter?(:SQLite3Adapter)
-        def test_build_change_column_definition
+        def test_change_column_via_alter_table
           connection.create_table(:test) do |t|
             t.column :foo, :string
           end
 
-          change_cd = connection.build_change_column_definition(:test, :foo, :integer)
-          change_col = change_cd.column
-          assert_equal "foo", change_col.name.to_s
+          at = connection.build_alter_table_definition(:test)
+          at.change_column(:foo, :integer)
+
+          op = at.operations.first
+          assert_equal "foo", op.column.name.to_s
         ensure
           connection.drop_table(:test) if connection.table_exists?(:test)
         end
 
-        def test_build_change_column_default_definition
+        def test_change_column_default_via_alter_table
           connection.create_table(:test) do |t|
             t.column :foo, :string
           end
 
-          change_default_cd = connection.build_change_column_default_definition(:test, :foo, "new")
-          assert_equal "new", change_default_cd.default
+          at = connection.build_alter_table_definition(:test)
+          at.change_column_default(:foo, "new")
 
-          change_col = change_default_cd.column
-          assert_equal "foo", change_col.name.to_s
+          op = at.operations.first
+          assert_equal "new", op.default
+          assert_equal "foo", op.column.name.to_s
         ensure
           connection.drop_table(:test) if connection.table_exists?(:test)
         end

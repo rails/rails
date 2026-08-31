@@ -105,6 +105,24 @@ module ActiveRecord
         configuration_hash[:query_cache]
       end
 
+      def query_log_tags_config # :nodoc:
+        configuration_hash[:query_log_tags]
+      end
+
+      def query_log_tags_format # :nodoc:
+        return @query_log_tags_format if defined? @query_log_tags_format
+
+        config = query_log_tags_config
+        @query_log_tags_format = (config["format"]&.to_sym if config.is_a?(Hash))
+      end
+
+      def query_log_tags_prepend_comment # :nodoc:
+        return @query_log_tags_prepend_comment if defined? @query_log_tags_prepend_comment
+
+        config = query_log_tags_config
+        @query_log_tags_prepend_comment = (config["prepend_comment"] if config.is_a?(Hash))
+      end
+
       def max_queue
         max_threads * 4
       end
@@ -193,6 +211,10 @@ module ActiveRecord
 
       def use_metadata_table? # :nodoc:
         configuration_hash.fetch(:use_metadata_table, true)
+      end
+
+      def dump_schema_migrations? # :nodoc:
+        configuration_hash.fetch(:dump_schema_migrations, ActiveRecord.dump_schema_migrations)
       end
 
       private

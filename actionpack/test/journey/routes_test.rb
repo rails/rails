@@ -25,6 +25,16 @@ module ActionDispatch
         assert_equal 0, routes.length
       end
 
+      def test_clear_clears_the_cached_ast_and_simulator
+        mapper.get "/foo(/:id)", to: "foo#bar", as: "aaron"
+        simulator = routes.simulator
+
+        routes.clear
+
+        assert_empty routes.ast.children
+        assert_not_same simulator, routes.simulator
+      end
+
       def test_ast
         mapper.get "/foo(/:id)", to: "foo#bar", as: "aaron"
         ast = routes.ast

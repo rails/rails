@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "stubs/test_connection"
+require "stubs/test_socket"
 require "stubs/room"
 require "active_support/time"
 
@@ -24,7 +24,7 @@ class ActionCable::Channel::PeriodicTimersTest < ActionCable::TestCase
   end
 
   setup do
-    @connection = TestConnection.new
+    @connection = TestSocket.new
   end
 
   test "periodic timers definition" do
@@ -68,7 +68,7 @@ class ActionCable::Channel::PeriodicTimersTest < ActionCable::TestCase
     3.times { mock.expect(:shutdown, nil) }
 
     assert_called(
-      @connection.server.event_loop,
+      @connection.server.executor,
       :timer,
       times: 3,
       returns: mock

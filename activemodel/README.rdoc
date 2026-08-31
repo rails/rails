@@ -108,7 +108,7 @@ behavior out of the box:
     person.save
     person.name = 'robert'
     person.save
-    person.previous_changes # => {'name' => ['bob, 'robert']}
+    person.previous_changes # => {'name' => ['bob', 'robert']}
 
   {Learn more}[https://api.rubyonrails.org/classes/ActiveModel/Dirty.html]
 
@@ -239,7 +239,7 @@ The latest version of Active Model can be installed with RubyGems:
 
   $ gem install activemodel
 
-Source code can be downloaded as part of the \Rails project on GitHub
+Source code can be downloaded as part of the \Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/main/activemodel
 

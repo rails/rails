@@ -113,7 +113,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_arguments_roundtrip([a: 1, "b" => 2])
   end
 
-  test "serialize a ActionController::Parameters" do
+  test "serialize an ActionController::Parameters" do
     ActiveJob::Serializers.add_serializers ActiveJob::Serializers::ActionControllerParametersSerializer
 
     parameters = Parameters.new(a: 1)
@@ -264,6 +264,26 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
       ActiveJob::Arguments.serialize [Person.new(nil)]
     end
     assert_match "Unable to serialize Person without an id.", err.message
+  end
+
+  test "wraps a missing record referenced by a Global ID in a DeserializationError::RecordNotFound" do
+    serialized = ActiveJob::Arguments.serialize [Person.new(404)]
+
+    error = assert_raises ActiveJob::DeserializationError::RecordNotFound do
+      ActiveJob::Arguments.deserialize serialized
+    end
+    assert_kind_of ActiveJob::DeserializationError, error
+    assert_instance_of GlobalID::Locator::RecordNotFound, error.cause
+  end
+
+  test "wraps other errors raised during deserialization in a plain DeserializationError" do
+    serialized = ActiveJob::Arguments.serialize [Person.new(500)]
+
+    error = assert_raises ActiveJob::DeserializationError do
+      ActiveJob::Arguments.deserialize serialized
+    end
+    assert_instance_of ActiveJob::DeserializationError, error
+    assert_instance_of GlobalID::Locator::RecordUnavailable, error.cause
   end
 
   private

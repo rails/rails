@@ -2,6 +2,7 @@
 
 require "tzinfo"
 require "concurrent/map"
+require "active_support/core_ext/class/attribute"
 
 module ActiveSupport
   # = Active Support \Time Zone
@@ -9,7 +10,7 @@ module ActiveSupport
   # The TimeZone class serves as a wrapper around +TZInfo::Timezone+ instances.
   # It allows us to do the following:
   #
-  # * Limit the set of zones provided by TZInfo to a meaningful subset of 134
+  # * Limit the set of zones provided by TZInfo to a meaningful subset of 154
   #   zones.
   # * Retrieve and display zones with a friendlier name
   #   (e.g., "Eastern \Time (US & Canada)" instead of "America/New_York").
@@ -30,15 +31,17 @@ module ActiveSupport
   #   Time.zone.now  # => Sun, 18 May 2008 14:30:44 EDT -04:00
   class TimeZone
     # Keys are \Rails TimeZone names, values are TZInfo identifiers.
-    MAPPING = {
+    MAPPING = { # rubocop:disable Style/MutableConstant
       "International Date Line West" => "Etc/GMT+12",
       "Midway Island"                => "Pacific/Midway",
       "American Samoa"               => "Pacific/Pago_Pago",
       "Hawaii"                       => "Pacific/Honolulu",
       "Alaska"                       => "America/Juneau",
       "Pacific Time (US & Canada)"   => "America/Los_Angeles",
+      "Pacific Time (Canada)"        => "America/Vancouver",
       "Tijuana"                      => "America/Tijuana",
       "Mountain Time (US & Canada)"  => "America/Denver",
+      "Alberta"                      => "America/Edmonton",
       "Arizona"                      => "America/Phoenix",
       "Chihuahua"                    => "America/Chihuahua",
       "Mazatlan"                     => "America/Mazatlan",
@@ -99,7 +102,7 @@ module ActiveSupport
       "Bucharest"                    => "Europe/Bucharest",
       "Cairo"                        => "Africa/Cairo",
       "Helsinki"                     => "Europe/Helsinki",
-      "Kyiv"                         => "Europe/Kiev",
+      "Kyiv"                         => "Europe/Kyiv",
       "Riga"                         => "Europe/Riga",
       "Sofia"                        => "Europe/Sofia",
       "Tallinn"                      => "Europe/Tallinn",
@@ -140,7 +143,7 @@ module ActiveSupport
       "Almaty"                       => "Asia/Almaty",
       "Astana"                       => "Asia/Almaty",
       "Novosibirsk"                  => "Asia/Novosibirsk",
-      "Rangoon"                      => "Asia/Rangoon",
+      "Rangoon"                      => "Asia/Yangon",
       "Bangkok"                      => "Asia/Bangkok",
       "Hanoi"                        => "Asia/Bangkok",
       "Jakarta"                      => "Asia/Jakarta",
@@ -186,7 +189,7 @@ module ActiveSupport
     }
 
     UTC_OFFSET_WITH_COLON = "%s%02d:%02d" # :nodoc:
-    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(":", "") # :nodoc:
+    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(":", "").freeze # :nodoc:
     private_constant :UTC_OFFSET_WITH_COLON, :UTC_OFFSET_WITHOUT_COLON
 
     @lazy_zones_map = Concurrent::Map.new
@@ -311,6 +314,8 @@ module ActiveSupport
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
+
+      ActiveSupport::Ractors.make_shareable(self)
     end
     # :startdoc:
 
@@ -456,7 +461,14 @@ module ActiveSupport
     #
     #   Time.zone.parse('Mar 2000') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
     #
-    # If the string is invalid then an +ArgumentError+ could be raised.
+    # Strings with no recognizable date information return +nil+, while strings
+    # with out-of-range components raise +ArgumentError+:
+    #
+    #   Time.zone.parse('foobar') # => nil
+    #   Time.zone.parse('9000')   # => ArgumentError: argument out of range
+    #
+    # Set ActiveSupport.raise_on_invalid_time_zone_parse to +true+ to
+    # raise +ArgumentError+ in both cases.
     def parse(str, now = now())
       parts_to_time(Date._parse(str, false), now)
     end
@@ -591,10 +603,13 @@ module ActiveSupport
     private
       def parts_to_time(parts, now)
         raise ArgumentError, "invalid date" if parts.nil?
-        return if parts.empty?
+        if parts.empty?
+          raise ArgumentError, "invalid date" if ActiveSupport.raise_on_invalid_time_zone_parse
+          return
+        end
 
         if parts[:seconds]
-          time = Time.at(parts[:seconds])
+          time = Time.at(parts[:seconds] + parts.fetch(:sec_fraction, 0))
         else
           time = Time.new(
             parts.fetch(:year, now.year),

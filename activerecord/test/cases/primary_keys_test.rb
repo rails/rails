@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/testing/ractors_assertions"
 require "cases/helper"
 require "support/schema_dumping_helper"
 require "models/topic"
@@ -13,7 +14,41 @@ require "models/non_primary_key"
 require "models/cpk"
 
 class PrimaryKeysTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
+
+  def test_primary_key_can_be_read_from_a_ractor_when_single
+    Topic.primary_key
+    assert_equal "id", on_ractor { Topic.primary_key }
+  end
+
+  def test_primary_key_can_be_read_from_a_ractor_when_composite
+    Cpk::Order.primary_key
+    assert_equal ["shop_id", "id"], on_ractor { Cpk::Order.primary_key }
+  end
+
+  def test_primary_key_can_be_read_from_a_ractor_when_absent
+    NonPrimaryKey.primary_key
+    assert_nil on_ractor { NonPrimaryKey.primary_key }
+  end
+
+  def test_primary_key_can_be_reset_from_a_ractor
+    assert_equal "id", on_ractor { Topic.reset_primary_key }
+  end
+
+  def test_query_constraints_list_is_ractor_shareable
+    assert_ractor_shareable Topic.query_constraints_list
+  end
+
+  def test_cpk_query_constraints_list_is_ractor_shareable
+    assert_ractor_shareable Cpk::Order.query_constraints_list
+  end
+
+  def test_returning_columns_for_insert_is_ractor_shareable
+    columns = Topic._returning_columns_for_insert(ActiveRecord::Base.lease_connection)
+    assert_ractor_shareable columns
+  end
 
   def test_to_key_with_default_primary_key
     topic = Topic.new
@@ -59,6 +94,34 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     end
 
     assert_equal 2, id
+  end
+
+  def test_write_attribute_id
+    topic = Topic.find(1)
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      topic.write_attribute(:id, 2)
+    end
+
+    assert_equal 2, topic.id
+  end
+
+  def test_write_attribute_with_custom_primary_key
+    keyboard = Keyboard.create!
+    msg = "Using write_attribute(:id, value) to write the primary key value is deprecated and will be removed in Rails 9.0. Use #id= instead."
+    assert_deprecated(msg, ActiveRecord.deprecator) do
+      keyboard.write_attribute(:id, 42)
+    end
+
+    assert_equal 42, keyboard.key_number
+  end
+
+  def test_write_attribute_with_composite_primary_key
+    book = Cpk::Book.new
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      book.write_attribute(:id, 42)
+    end
+
+    assert_equal 42, book.read_attribute(:id)
   end
 
   def test_to_key_with_primary_key_after_destroy
@@ -226,6 +289,15 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal k.lease_connection.quote_column_name("foo"), k.quoted_primary_key
   end
 
+  def test_primary_key_inherited
+    k = Class.new(ActiveRecord::Base)
+    k.primary_key = "foo"
+    subclass = Class.new(k)
+
+    assert_equal "foo", k._primary_key_definition&.name
+    assert_equal "foo", subclass._primary_key_definition&.name
+  end
+
   def test_auto_detect_primary_key_from_schema
     MixedCaseMonkey.reset_primary_key
     assert_equal "monkeyID", MixedCaseMonkey.primary_key
@@ -267,7 +339,7 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_not_predicate klass, :composite_primary_key?
   end
 
-  def composite_primary_key_is_false_for_a_non_cpk_model
+  def test_composite_primary_key_is_false_for_a_non_cpk_model
     assert_not_predicate Dashboard, :composite_primary_key?
   end
 
@@ -423,6 +495,13 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     Cpk::Book.delete_all
   end
 
+  def test_reading_composite_primary_key_after_partial_select_returns_nil
+    book = Cpk::Book.select(:title).first
+
+    assert_nil book.author_id
+    assert_equal [nil, nil], book.id
+  end
+
   def test_assigning_a_non_array_value_to_model_with_composite_primary_key_raises
     book = Cpk::Book.new
 
@@ -490,7 +569,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     assert_equal(["shop_id", "id"], Cpk::Order.primary_key)
   end
 
-  def composite_primary_key_is_true_for_a_cpk_model
+  def test_composite_primary_key_is_true_for_a_cpk_model
     assert_predicate Cpk::Book, :composite_primary_key?
   end
 

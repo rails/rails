@@ -87,6 +87,18 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "Hello", render
   end
 
+  def test_render_with_a_different_compiled_method_container_raises
+    @template = new_template
+    assert_equal "Hello", render
+
+    other_context = Context.with_empty_template_cache.empty
+    error = assert_raises(ActionView::Template::Error) do
+      @template.render(other_context, {})
+    end
+    assert_kind_of ArgumentError, error.cause
+    assert_match "compiled to render with", error.message
+  end
+
   def test_basic_template_does_html_escape
     @template = new_template("<%= apostrophe %>")
     assert_equal "l&#39;apostrophe", render
@@ -336,6 +348,16 @@ class TestERBTemplate < ActiveSupport::TestCase
       assert_equal Encoding::UTF_8, render.encoding
       assert_match(/hello \u{fc}mlat\nHi!/, render)
     end
+  end
+
+  def test_strict_locals_with_non_ascii_default_values
+    # \xC3\xA9 = U+00E9 (e with acute), \xC3\xBC = U+00FC (u with diaeresis)
+    source = "<%# locals: (label: \"caf\xC3\xA9\") -%>\n<p><%= label %> \xC3\xBC</p>"
+    assert_equal Encoding::ASCII_8BIT, source.encoding
+
+    @template = new_template(source)
+    assert_equal Encoding::UTF_8, render.encoding
+    assert_equal "<p>caf\u{E9} \u{FC}</p>", render
   end
 
   def test_error_when_template_isnt_valid_utf8

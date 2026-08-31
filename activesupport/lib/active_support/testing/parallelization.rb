@@ -79,6 +79,10 @@ module ActiveSupport
         rescue Errno::ECHILD
           nil
         end
+
+        DRb.stop_service
+
+        Parallelization.run_cleanup_hooks.each(&:call)
       end
     end
   end

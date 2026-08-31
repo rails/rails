@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "bigdecimal"
@@ -33,7 +34,7 @@ module ActiveSupport
           significant: false,
           # If set, the zeros after the decimal separator will always be stripped (e.g.: 1.200 will be 1.2)
           strip_insignificant_zeros: false
-        },
+        }.freeze,
 
         # Used in number_to_currency
         currency: {
@@ -47,23 +48,23 @@ module ActiveSupport
             precision: 2,
             significant: false,
             strip_insignificant_zeros: false
-          }
-        },
+          }.freeze
+        }.freeze,
 
         # Used in number_to_percentage
         percentage: {
           format: {
             delimiter: "",
             format: "%n%"
-          }
-        },
+          }.freeze
+        }.freeze,
 
         # Used in number_to_rounded
         precision: {
           format: {
             delimiter: ""
-          }
-        },
+          }.freeze
+        }.freeze,
 
         # Used in number_to_human_size and number_to_human
         human: {
@@ -73,7 +74,7 @@ module ActiveSupport
             precision: 3,
             significant: true,
             strip_insignificant_zeros: true
-          },
+          }.freeze,
           # Used in number_to_human_size
           storage_units: {
             # Storage units output formatting.
@@ -84,9 +85,12 @@ module ActiveSupport
               kb: "KB",
               mb: "MB",
               gb: "GB",
-              tb: "TB"
-            }
-          },
+              tb: "TB",
+              pb: "PB",
+              eb: "EB",
+              zb: "ZB"
+            }.freeze
+          }.freeze,
           # Used in number_to_human
           decimal_units: {
             format: "%n %u",
@@ -112,10 +116,10 @@ module ActiveSupport
               billion: "Billion",
               trillion: "Trillion",
               quadrillion: "Quadrillion"
-            }
-          }
-        }
-      }
+            }.freeze
+          }.freeze
+        }.freeze
+      }.freeze
 
       def self.convert(number, options)
         new(number, options).execute
@@ -180,7 +184,7 @@ module ActiveSupport
           when Float, Rational
             number.to_d(0)
           when String
-            BigDecimal(number, exception: false)
+            BigDecimal(number, exception: false) unless number.to_s.match?(/[de]/i)
           else
             number.to_d rescue nil
           end

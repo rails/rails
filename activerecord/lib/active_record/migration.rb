@@ -571,7 +571,6 @@ module ActiveRecord
     autoload :CommandRecorder, "active_record/migration/command_recorder"
     autoload :Compatibility, "active_record/migration/compatibility"
     autoload :DefaultSchemaVersionsFormatter, "active_record/migration/default_schema_versions_formatter"
-    autoload :JoinTable, "active_record/migration/join_table"
     autoload :ExecutionStrategy, "active_record/migration/execution_strategy"
     autoload :DefaultStrategy, "active_record/migration/default_strategy"
 
@@ -1064,22 +1063,21 @@ module ActiveRecord
       @pool || ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool
     end
 
-    def method_missing(method, *arguments, &block)
-      say_with_time "#{method}(#{format_arguments(arguments)})" do
+    def method_missing(method, *arguments, **kwargs, &block)
+      say_with_time "#{method}(#{format_arguments(arguments, kwargs)})" do
         unless connection.respond_to? :revert
           unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
             arguments[0] = proper_table_name(arguments.first, table_name_options)
             if method == :rename_table ||
-              (method == :remove_foreign_key && !arguments.second.is_a?(Hash))
+              (method == :remove_foreign_key && arguments.second)
               arguments[1] = proper_table_name(arguments.second, table_name_options)
             end
           end
         end
         return super unless execution_strategy.respond_to?(method)
-        execution_strategy.send(method, *arguments, &block)
+        execution_strategy.send(method, *arguments, **kwargs, &block)
       end
     end
-    ruby2_keywords(:method_missing)
 
     def copy(destination, sources, options = {})
       copied = []
@@ -1174,15 +1172,10 @@ module ActiveRecord
         end
       end
 
-      def format_arguments(arguments)
-        arg_list = arguments[0...-1].map(&:inspect)
-        last_arg = arguments.last
-        if last_arg.is_a?(Hash)
-          last_arg = last_arg.reject { |k, _v| internal_option?(k) }
-          arg_list << last_arg.inspect unless last_arg.empty?
-        else
-          arg_list << last_arg.inspect
-        end
+      def format_arguments(arguments, kwargs)
+        arg_list = arguments.map(&:inspect)
+        kwargs = kwargs.reject { |k, _v| internal_option?(k) }
+        arg_list << kwargs.inspect unless kwargs.empty?
         arg_list.join(", ")
       end
 
@@ -1369,7 +1362,7 @@ module ActiveRecord
     end
 
     def protected_environment? # :nodoc:
-      ActiveRecord::Base.protected_environments.include?(last_stored_environment) if last_stored_environment
+      ActiveRecord.protected_environments.include?(last_stored_environment) if last_stored_environment
     end
 
     def last_stored_environment # :nodoc:

@@ -66,6 +66,32 @@
         the Rails framework. This guide provides you with all you need to get
         started using Active Model classes.
 -
+  name: Routing and Controllers
+  documents:
+    -
+      name: Rails Routing from the Outside In
+      url: routing.html
+      description: >
+        The Rails router recognizes URLs and dispatches them to a controller's
+        action. This guide covers the user-facing features of Rails routing.
+        If you want to understand how to use routing in your own Rails
+        applications, start here.
+    -
+      name: Action Controller Overview
+      url: action_controller_overview.html
+      description: >
+        Action Controllers are the core of a web request in Rails.
+        This guide covers how controllers work and how they fit into the
+        request cycle of your application. Topics include accessing parameters in controller actions, using sessions and cookies, controller callbacks.
+    -
+      name: Action Controller Advanced Topics
+      url: action_controller_advanced_topics.html
+      description: >
+        This guide covers a number of advanced topics related to controllers in
+        a Rails application such as protecting against cross-site request
+        forgery, HTTP authentication, data streaming, and dealing with
+        exceptions, log filtering, and more.
+-
   name: Views
   documents:
     -
@@ -93,29 +119,6 @@
         the need to handle form control naming and its numerous attributes.
         Rails does away with this complexity by providing view helpers for
         generating form markup.
--
-  name: Controllers
-  documents:
-    -
-      name: Action Controller Overview
-      url: action_controller_overview.html
-      description: >
-        Action Controllers are the core of a web request in Rails.
-        This guide covers how controllers work and how they fit into the
-        request cycle of your application. Topics include accessing parameters in controller actions, using sessions and cookies, controller callbacks.
-    -
-      name: Action Controller Advanced Topics
-      url: action_controller_advanced_topics.html
-      description: >
-        This guide covers a number of advanced topics related to controllers in a Rails application such as protecting against cross-site request forgery, HTTP authentication, data streaming, and dealing with exceptions, log filtering, and more.
-    -
-      name: Rails Routing from the Outside In
-      url: routing.html
-      description: >
-        The Rails router recognizes URLs and dispatches them to a controller's
-        action. This guide covers the user-facing features of Rails routing.
-        If you want to understand how to use routing in your own Rails
-        applications, start here.
 -
   name: Other Components
   documents:
@@ -168,10 +171,6 @@
   name: Digging Deeper
   documents:
     -
-      name: Rails Internationalization (I18n) API
-      url: i18n.html
-      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
-    -
       name: Testing Rails Applications
       url: testing.html
       description: This guide explores how to write tests in Rails. It also covers test configuration and compares approaches to testing an application.
@@ -203,6 +202,10 @@
         This guide explains how to use import maps or jsbundling-rails to include
         JavaScript in Rails applications, and covers the basics of working with Turbo in Rails.
     -
+      name: Internationalization (I18n)
+      url: i18n.html
+      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
+    -
       name: The Rails Initialization Process
       work_in_progress: true
       url: initialization.html
@@ -232,7 +235,7 @@
       url: tuning_performance_for_deployment.html
       description: This guide covers performance and concurrency configuration for deploying your production Ruby on Rails application.
     -
-      name: "Caching with Rails: An Overview"
+      name: "Caching with Rails"
       url: caching_with_rails.html
       description: This guide is an introduction to speeding up your Rails application with caching.
     -

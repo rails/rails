@@ -5,7 +5,7 @@ require "active_support/core_ext/enumerable"
 module ActiveSupport
   module Testing
     module Assertions
-      UNTRACKED = Object.new # :nodoc:
+      UNTRACKED = Object.new.freeze # :nodoc:
 
       # Asserts that an expression is not truthy. Passes if +object+ is +nil+ or
       # +false+. "Truthy" means "considered true in a conditional" like <tt>if
@@ -113,9 +113,7 @@ module ActiveSupport
             Array(expression).index_with(difference)
           end
 
-        exps = expressions.keys.map { |e|
-          e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
-        }
+        exps = expressions.keys.map { |e| _expression_to_callable(e, block.binding) }
         before = exps.map(&:call)
 
         retval = _assert_nothing_raised_or_warn("assert_difference", &block)
@@ -210,7 +208,7 @@ module ActiveSupport
       #     post :create, params: { status: { incident: true } }
       #   end
       def assert_changes(expression, message = nil, from: UNTRACKED, to: UNTRACKED, &block)
-        exp = expression.respond_to?(:call) ? expression : -> { eval(expression.to_s, block.binding) }
+        exp = _expression_to_callable(expression, block.binding)
 
         before = exp.call
         retval = _assert_nothing_raised_or_warn("assert_changes", &block)
@@ -279,7 +277,7 @@ module ActiveSupport
       #     post :create, params: { status: { ok: false } }
       #   end
       def assert_no_changes(expression, message = nil, from: UNTRACKED, &block)
-        exp = expression.respond_to?(:call) ? expression : -> { eval(expression.to_s, block.binding) }
+        exp = _expression_to_callable(expression, block.binding)
 
         before = exp.call
         retval = _assert_nothing_raised_or_warn("assert_no_changes", &block)
@@ -366,6 +364,17 @@ module ActiveSupport
           end
 
           callable
+        end
+
+        def _expression_to_callable(callable_or_ruby_source, binding)
+          return callable_or_ruby_source if callable_or_ruby_source.respond_to?(:call)
+
+          case callable_or_ruby_source
+          when String, Symbol
+            -> { eval(callable_or_ruby_source.to_s, binding) }
+          else
+            raise ArgumentError, "The expression must be a callable object like a Proc, or a String of Ruby code. Got #{callable_or_ruby_source.inspect}"
+          end
         end
     end
   end

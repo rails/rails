@@ -131,8 +131,10 @@ module ActiveJob
   # === Checkpoints
   #
   # A checkpoint is where a job can be interrupted. At a checkpoint the job will call
-  # +queue_adapter.stopping?+. If it returns true, the job will raise an
-  # ActiveJob::Continuation::Interrupt exception.
+  # +queue_adapter.stopping?+ with the job. If it returns true, the job will raise
+  # an ActiveJob::Continuation::Interrupt exception with +:stopping+ as the
+  # reason. If it returns another truthy value, the job will use that value as
+  # the interruption reason.
   #
   # There is an automatic checkpoint before the start of each step except for the first for
   # each job execution. Within a step one is created when calling +set!+, +advance!+ or +checkpoint!+.
@@ -164,6 +166,13 @@ module ActiveJob
   #   step :slow_step, isolated: true
   #   step :quick_step2
   #   step :quick_step3
+  #
+  # === Persisting State Across Steps with \Attributes
+  #
+  # Steps store serialized progress but they do not persist any other state. For multi-step jobs where you need to use
+  # the results of one step in a later step, you can use +ActiveJob::Attributes+ to persist this state. This module is
+  # already included in +ActiveJob::Continuable+, so you can declare attributes on your job and they will be
+  # automatically serialized when the job is interrupted, and restored when the job resumes.
   #
   # === Errors
   #
@@ -214,7 +223,7 @@ module ActiveJob
     class UnadvanceableCursorError < Error; end
 
     # Raised when a job has reached its limit of the number of resumes.
-    # The limit is defined by the +max_resumes+ class attribute.
+    # The limit is defined by the +max_resumptions+ class attribute.
     class ResumeLimitError < Error; end
 
     include Validation
@@ -222,7 +231,10 @@ module ActiveJob
     def initialize(job, serialized_progress) # :nodoc:
       @job = job
       @completed = serialized_progress.fetch("completed", []).map(&:to_sym)
-      @current = new_step(*serialized_progress["current"], resumed: true) if serialized_progress.key?("current")
+      if serialized_progress.key?("current")
+        name, cursor = serialized_progress["current"]
+        @current = new_step(name, Arguments.deserialize([cursor]).first, resumed: true)
+      end
       @encountered = []
       @advanced = false
       @running_step = false
@@ -243,7 +255,7 @@ module ActiveJob
     def to_h # :nodoc:
       {
         "completed" => completed.map(&:to_s),
-        "current" => current&.to_a,
+        "current" => serialized_current,
       }.compact
     end
 
@@ -290,6 +302,13 @@ module ActiveJob
         Step.new(*args, job: job, **options)
       end
 
+      def serialized_current
+        return unless current
+
+        name, cursor = current.to_a
+        [ name, Arguments.serialize([cursor]).first ]
+      end
+
       def skip_step(name)
         instrument :step_skipped, step: name
       end
@@ -304,7 +323,7 @@ module ActiveJob
         end
       end
 
-      def run_step_inline(name, start:, **options, &block)
+      def run_step_inline(name, start:, &block)
         @running_step = true
         @current ||= new_step(name, start, resumed: false)
 

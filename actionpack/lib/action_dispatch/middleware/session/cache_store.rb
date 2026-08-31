@@ -54,7 +54,7 @@ module ActionDispatch
       def delete_session(env, sid, options)
         @cache.delete(cache_key(sid.private_id))
         @cache.delete(cache_key(sid.public_id))
-        generate_sid
+        generate_sid unless options[:drop]
       end
 
       private

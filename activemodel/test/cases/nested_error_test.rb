@@ -30,6 +30,33 @@ class NestedErrorTest < ActiveModel::TestCase
     assert_equal(inner_error.options, error.options)
   end
 
+  test "inner_error returns the original error" do
+    topic = Topic.new
+    inner_error = ActiveModel::Error.new(topic, :title, :invalid)
+    reply = Reply.new
+    error = ActiveModel::NestedError.new(reply, inner_error)
+
+    assert_same inner_error, error.inner_error
+  end
+
+  test "raw_type is taken from the inner error" do
+    topic = Topic.new
+    inner_error = ActiveModel::Error.new(topic, :title, :not_enough, count: 2)
+    reply = Reply.new
+    error = ActiveModel::NestedError.new(reply, inner_error)
+
+    assert_equal inner_error.raw_type, error.raw_type
+  end
+
+  test "options are taken from the inner error" do
+    topic = Topic.new
+    inner_error = ActiveModel::Error.new(topic, :title, :not_enough, count: 2)
+    reply = Reply.new
+    error = ActiveModel::NestedError.new(reply, inner_error, attribute: :parent)
+
+    assert_equal inner_error.options, error.options
+  end
+
   def test_message
     topic = Topic.new(author_name: "Bruce")
     inner_error = ActiveModel::Error.new(topic, :title, :not_enough, message: Proc.new { |model, options|

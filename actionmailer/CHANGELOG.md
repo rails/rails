@@ -1,3 +1,8 @@
+*   Add support for `config.action_mailer.raise_on_missing_callback_actions`
+    when using `_deliver` callbacks with `only:` and `except:` options.
+
+    *Iaroslav*
+
 *   Add `assert_part` and `assert_no_part` to `ActionMailer::TestCase`
 
     ```ruby

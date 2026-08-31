@@ -327,7 +327,63 @@ In test and development applications get a `secret_key_base` derived from the ap
 secret_key_base: 492f...
 ```
 
-WARNING: If your application's secrets may have been exposed, strongly consider changing them. Note that changing `secret_key_base` will expire currently active sessions and require all users to log in again. In addition to session data: encrypted cookies, signed cookies, and Active Storage files may also be affected.
+WARNING: If your application's secrets may have been exposed, strongly consider changing them. Note that changing
+`secret_key_base` without rotating the old value will expire currently active sessions and require all users to log in
+again. In addition to session data: encrypted cookies, signed cookies, and Active Storage files may also be affected.
+
+### Rotating the `secret_key_base`
+
+You can rotate your application's `secret_key_base` without immediately
+invalidating messages generated with the old secret. First, replace
+`secret_key_base` with a new random value and make the old value available
+separately, for example as `old_secret_key_base` in your credentials. Then add
+the old value as a fallback before any message verifiers are created:
+
+```ruby
+# config/application.rb
+config.before_initialize do |app|
+  app.message_verifiers.rotate(
+    secret_key_base: app.credentials.old_secret_key_base
+  )
+end
+```
+
+New messages are generated using the new `secret_key_base`, while application
+message verifiers can still verify messages generated with the old one. This
+includes framework features backed by `Rails.application.message_verifiers`,
+such as signed IDs and Active Storage.
+
+Cookies use a separate rotation configuration. To preserve existing signed and
+encrypted cookies, derive their old secrets from the old `secret_key_base` and
+register them in an initializer:
+
+```ruby
+# config/initializers/cookie_rotator.rb
+Rails.application.config.after_initialize do |app|
+  old_secret_key_base = app.credentials.old_secret_key_base
+  old_key_generator = app.key_generator(old_secret_key_base)
+  action_dispatch = app.config.action_dispatch
+
+  old_signed_secret = old_key_generator.generate_key(
+    action_dispatch.signed_cookie_salt
+  )
+  old_encrypted_secret = old_key_generator.generate_key(
+    action_dispatch.authenticated_encrypted_cookie_salt,
+    ActiveSupport::MessageEncryptor.key_len(action_dispatch.encrypted_cookie_cipher)
+  )
+
+  action_dispatch.cookies_rotations.tap do |cookies|
+    cookies.rotate :signed, old_signed_secret
+    cookies.rotate :encrypted, old_encrypted_secret
+  end
+end
+```
+
+After enough time has passed for old messages and cookies to expire or be
+rewritten, remove the rotations and delete `old_secret_key_base`.
+
+WARNING: Do not retain an exposed secret as a fallback: if the old value may be compromised, replace
+it immediately and allow existing messages and cookies to become invalid.
 
 ### Rotating Encrypted and Signed Cookies Configurations
 
@@ -464,7 +520,7 @@ NOTE: _First, as is required by the W3C, use GET and POST appropriately. Secondl
 
 #### Use GET and POST Appropriately
 
-The HTTP protocol basically provides two main types of requests - GET and POST (DELETE, PUT, and PATCH should be used like POST). The World Wide Web Consortium (W3C) provides a checklist for choosing HTTP GET or POST:
+The HTTP protocol basically provides two main types of requests - GET and POST (DELETE, PUT, and PATCH should be used like POST, while QUERY — a safe, read-only method that carries its query in the request body — should be used like GET). The World Wide Web Consortium (W3C) provides a checklist for choosing HTTP GET or POST:
 
 **Use GET if:**
 
@@ -477,6 +533,8 @@ The HTTP protocol basically provides two main types of requests - GET and POST (
 * The user is _held accountable for the results_ of the interaction.
 
 If your web application is RESTful, you might be used to additional HTTP verbs, such as PATCH, PUT, or DELETE. Some legacy web browsers, however, do not support them - only GET and POST. Rails uses a hidden `_method` field to handle these cases.
+
+The HTTP QUERY method ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html)) is safe and idempotent like GET, but conveys the query in the request body. Like GET and HEAD, QUERY requests are not checked for the security token: HTML forms cannot issue QUERY requests, and cross-origin QUERY requests from scripts always require a CORS preflight. This exemption applies only to requests that actually arrive with the QUERY method: a request tunneled through a form POST with `_method=query` is verified like any other POST, since an ordinary form submission enjoys none of those structural protections. As with GET, never change state in response to a QUERY request.
 
 _POST requests can be sent automatically, too_. In this example, the link www.harmless.com is shown as the destination in the browser's status bar. But it has actually dynamically created a new form that sends a POST request.
 
@@ -628,6 +686,23 @@ WARNING: _Source code in uploaded files may be executed when placed in specific 
 The popular Apache web server has an option called DocumentRoot. This is the home directory of the website, everything in this directory tree will be served by the web server. If there are files with a certain file name extension, the code in it will be executed when requested (might require some options to be set). Examples for this are PHP and CGI files. Now think of a situation where an attacker uploads a file "file.cgi" with code in it, which will be executed when someone downloads the file.
 
 _If your Apache DocumentRoot points to Rails' /public directory, do not put file uploads in it_, store files at least one level upwards.
+
+### Media Processing of File Uploads
+
+WARNING: _ffmpeg and ffprobe decode untrusted media in memory-unsafe code. Restrict the codecs and formats they will accept._
+
+Active Storage shells out to ffmpeg to generate video previews, and to ffprobe to extract video and audio metadata. Neither tool is shipped by Rails, and a stock ffmpeg build registers several hundred decoders and demuxers where an application needs a handful. Attachments are analyzed on upload by default, so ffprobe reads attacker-supplied bytes without any further interaction.
+
+Narrow that attack surface by naming the codecs these tools may decode. An application that accepts only H.264 video with AAC audio would configure:
+
+```ruby
+config.active_storage.video_preview_input_arguments = "-codec_whitelist h264,aac"
+config.active_storage.ffprobe_arguments = "-codec_whitelist h264,aac"
+```
+
+Alongside `-codec_whitelist`, `-f` forces a single demuxer and `-protocol_whitelist` restricts the protocols an input may reference.
+
+Every codec present in a stored file must appear in the list, audio codecs included. ffprobe exits with an error on a file that uses any other codec, and analysis of that file then raises `JSON::ParserError`. Codec names vary between ffmpeg builds, so check the list against `ffmpeg -decoders` for the build you deploy.
 
 ### File Downloads
 
@@ -1469,7 +1544,7 @@ Rails.application.config.content_security_policy_nonce_generator = -> request { 
 There are a few tradeoffs to consider when configuring the nonce generator.
 Using `SecureRandom.base64(16)` is a good default value, because it will
 generate a new random nonce for each request. However, this method is
-incompatible with [conditional GET caching](caching_with_rails.html#conditional-get-support)
+incompatible with [conditional GET caching](caching_with_rails.html#conditional-gets)
 because new nonces will result in new ETag values for every request. An
 alternative to per-request random nonces would be to use the session id:
 

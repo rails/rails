@@ -11,8 +11,8 @@ module Rails
         class ChangeGenerator < Base # :nodoc:
           include AppName
 
-          BASE_PACKAGES = %w( curl libjemalloc2 libvips )
-          BUILD_PACKAGES = %w( build-essential git )
+          BASE_PACKAGES = %w( curl libjemalloc2 libvips ).freeze
+          BUILD_PACKAGES = %w( build-essential git ).freeze
 
           class_option :to, required: true,
             desc: "The database system to switch to."
@@ -183,7 +183,7 @@ module Rails
             def devcontainer_json
               return unless File.exist?(devcontainer_json_path)
 
-              @devcontainer_json ||= JSON.parse(File.read(devcontainer_json_path))
+              @devcontainer_json ||= JSON.parse(File.read(devcontainer_json_path), allow_comments: true)
             end
 
             def devcontainer_json_path

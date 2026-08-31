@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
+require "active_support/inspect_backport"
 
 module ActiveModel
   # = Active \Model \Error
   #
   # Represents one single error
   class Error
-    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
-    MESSAGE_OPTIONS = [:message]
+    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict].freeze
+    MESSAGE_OPTIONS = [:message].freeze
 
     class_attribute :i18n_customize_full_message, default: false
 
@@ -195,9 +196,12 @@ module ActiveModel
       attributes_for_hash.hash
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name} attribute=#{@attribute}, type=#{@type}, options=#{@options.inspect}>"
-    end
+    ActiveSupport::InspectBackport.apply(self)
+
+    private
+      def instance_variables_to_inspect
+        [:@attribute, :@type, :@options].freeze
+      end
 
     protected
       def attributes_for_hash

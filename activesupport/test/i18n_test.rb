@@ -3,6 +3,7 @@
 require_relative "abstract_unit"
 require "active_support/time"
 require "active_support/core_ext/array/conversions"
+require "active_support/testing/ractors_assertions"
 
 class I18nTest < ActiveSupport::TestCase
   def setup
@@ -102,5 +103,16 @@ class I18nTest < ActiveSupport::TestCase
 
   def test_to_sentence_with_empty_i18n_store
     assert_equal "a, b, and c", %w[a b c].to_sentence(locale: "empty")
+  end
+
+  class RactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+    include ActiveSupport::Testing::Isolation
+
+    test "en.rb contents are Ractor shareable" do
+      contents = I18n.translate(:"number.nth", raise: true)
+
+      assert_ractor_make_shareable contents
+    end
   end
 end

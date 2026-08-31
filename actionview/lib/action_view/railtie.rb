@@ -17,6 +17,8 @@ module ActionView
 
     config.eager_load_namespaces << ActionView
 
+    guard_load_hooks(:action_view, :action_view_test_case)
+
     config.after_initialize do |app|
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms =
         app.config.action_view.delete(:embed_authenticity_token_in_remote_forms)
@@ -55,13 +57,17 @@ module ActionView
     config.after_initialize do |app|
       button_to_generates_button_tag = app.config.action_view.delete(:button_to_generates_button_tag)
       unless button_to_generates_button_tag.nil?
-        ActionView::Helpers::UrlHelper.button_to_generates_button_tag = button_to_generates_button_tag
+        ActionView::Helpers::NavigationHelper.button_to_generates_button_tag = button_to_generates_button_tag
       end
     end
 
     config.after_initialize do |app|
       frozen_string_literal = app.config.action_view.delete(:frozen_string_literal)
       ActionView::Template.frozen_string_literal = frozen_string_literal
+    end
+
+    config.after_initialize do
+      ActiveSupport::Ractors.make_shareable(ActionView::Template::Handlers::ERB.escape_ignore_list)
     end
 
     config.after_initialize do |app|
@@ -78,10 +84,6 @@ module ActionView
     end
 
     config.after_initialize do |app|
-      config.after_initialize do
-        ActionView.render_tracker = config.action_view.render_tracker
-      end
-
       ActiveSupport.on_load(:action_view) do
         app.config.action_view.each do |k, v|
           next if k == :render_tracker
@@ -98,12 +100,23 @@ module ActionView
       ActiveSupport.on_load(:action_view) { self.logger ||= Rails.logger }
     end
 
+    initializer "action_view.root" do
+      ActiveSupport.on_load(:action_view) do
+        ActionView::StructuredEventSubscriber.rails_root = "#{Rails.root}/".freeze
+        ActionView::LogSubscriber.rails_root = "#{Rails.root}/".freeze
+      end
+    end
+
     initializer "action_view.caching" do |app|
       ActiveSupport.on_load(:action_view) do
         if app.config.action_view.cache_template_loading.nil?
           ActionView::Resolver.caching = !app.config.reloading_enabled?
         end
       end
+    end
+
+    initializer "action_view.set_render_tracker" do |app|
+      ActionView.render_tracker = app.config.action_view.render_tracker
     end
 
     initializer "action_view.setup_action_pack" do |app|
@@ -124,7 +137,7 @@ module ActionView
       end
 
       unless enable_caching
-        view_reloader = ActionView::CacheExpiry::ViewReloader.new(watcher: app.config.file_watcher)
+        view_reloader = ActionView::CacheExpiry::ViewReloader.create(watcher: app.config.file_watcher)
 
         app.reloaders << view_reloader
         app.reloader.to_run do

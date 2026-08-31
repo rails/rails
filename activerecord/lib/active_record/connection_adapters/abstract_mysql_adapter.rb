@@ -28,7 +28,7 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
       class_attribute :emulate_booleans, default: true
 
-      NATIVE_DATABASE_TYPES = {
+      NATIVE_DATABASE_TYPES = { # rubocop:disable Style/MutableConstant
         primary_key: "bigint auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
         text:        { name: "text" },
@@ -45,6 +45,12 @@ module ActiveRecord
         boolean:     { name: "boolean" },
         json:        { name: "json" },
       }
+
+      # Escape sequences MariaDB writes into the column defaults it reports.
+      MARIADB_DEFAULT_ESCAPES = {
+        "0" => "\0", "b" => "\b", "n" => "\n", "r" => "\r", "t" => "\t",
+        "Z" => "\x1A", "'" => "'", '"' => '"', "\\" => "\\"
+      }.freeze
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private
@@ -179,7 +185,7 @@ module ActiveRecord
       end
 
       def return_value_after_insert?(column) # :nodoc:
-        supports_insert_returning? ? column.auto_populated? : column.auto_increment?
+        supports_insert_returning? ? column.auto_populated_on_insert? : column.auto_increment?
       end
 
       # See https://dev.mysql.com/doc/refman/8.0/en/invisible-indexes.html for more details on MySQL feature.
@@ -207,6 +213,29 @@ module ActiveRecord
           inplace: "ALGORITHM = INPLACE",
           instant: "ALGORITHM = INSTANT",
         }
+      end
+
+      # Returns the available lock options for MySQL DDL operations.
+      #
+      # MySQL supports the following lock modes:
+      # * <tt>:default</tt> - Let MySQL decide the lock level.
+      # * <tt>:none</tt> - Allow concurrent reads and writes (online DDL).
+      # * <tt>:shared</tt> - Allow concurrent reads but block writes.
+      # * <tt>:exclusive</tt> - Block all concurrent reads and writes.
+      def lock_options
+        {
+          default:   "LOCK = DEFAULT",
+          none:      "LOCK = NONE",
+          shared:    "LOCK = SHARED",
+          exclusive: "LOCK = EXCLUSIVE",
+        }
+      end
+
+      def lock_clause(lock) # :nodoc:
+        return unless lock
+        lock_options.fetch(lock) do
+          raise ArgumentError, "Lock must be one of the following: #{lock_options.keys.map(&:inspect).join(', ')}"
+        end
       end
 
       # Must return the MySQL error number from the exception, if the exception has an
@@ -239,12 +268,24 @@ module ActiveRecord
       def begin_isolated_db_transaction(isolation) # :nodoc:
         # From MySQL manual: The [SET TRANSACTION] statement applies only to the next single transaction performed within the session.
         # So we don't need to implement #reset_isolation_level
-        execute_batch(
-          ["SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "BEGIN"],
-          "TRANSACTION",
-          allow_retry: true,
-          materialize_transactions: false,
-        )
+        if multi_statements_enabled?
+          execute_batch(
+            ["SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "BEGIN"],
+            "TRANSACTION",
+            allow_retry: true,
+            materialize_transactions: false,
+          )
+        else
+          with_raw_connection(allow_retry: true, materialize_transactions: false) do
+            query_command(
+              "SET TRANSACTION ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}",
+              "TRANSACTION",
+              allow_retry: false,
+              materialize_transactions: false,
+            )
+            query_command("BEGIN", "TRANSACTION", allow_retry: false, materialize_transactions: false)
+          end
+        end
       end
 
       def commit_db_transaction # :nodoc:
@@ -315,6 +356,11 @@ module ActiveRecord
         show_variable "collation_database"
       end
 
+      def table_collation(table_name) # :nodoc:
+        result = fetch_table_collations(Array(table_name).map(&:to_s))
+        table_name.is_a?(Array) ? result : result[table_name.to_s]
+      end
+
       def table_comment(table_name) # :nodoc:
         scope = quoted_scope(table_name)
 
@@ -361,7 +407,7 @@ module ActiveRecord
       # In that case, +options+ and the block will be used by #create_table except if you provide more than one table which is not supported.
       def drop_table(*table_names, **options)
         table_names.each { |table_name| schema_cache.clear_data_source_cache!(table_name.to_s) }
-        execute "DROP#{' TEMPORARY' if options[:temporary]} TABLE#{' IF EXISTS' if options[:if_exists]} #{table_names.map { |table_name| quote_table_name(table_name) }.join(', ')}#{' CASCADE' if options[:force] == :cascade}"
+        execute drop_table_sql(*table_names, **options)
       end
 
       def rename_index(table_name, old_name, new_name)
@@ -375,15 +421,9 @@ module ActiveRecord
       end
 
       def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
-        execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_default_for_alter(table_name, column_name, default_or_changes)}"
-      end
-
-      def build_change_column_default_definition(table_name, column_name, default_or_changes) # :nodoc:
-        column = column_for(table_name, column_name)
-        return unless column
-
-        default = extract_new_default_value(default_or_changes)
-        ChangeColumnDefaultDefinition.new(column, default)
+        at = build_alter_table_definition(table_name)
+        at.change_column_default(column_name, default_or_changes)
+        execute_alter_table(at)
       end
 
       def change_column_null(table_name, column_name, null, default = nil) # :nodoc:
@@ -402,51 +442,15 @@ module ActiveRecord
       end
 
       def change_column(table_name, column_name, type, **options) # :nodoc:
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, **options)}")
+        at = build_alter_table_definition(table_name)
+        at.change_column(column_name, type, **options)
+        execute_alter_table(at)
       end
 
-      # Builds a ChangeColumnDefinition object.
-      #
-      # This definition object contains information about the column change that would occur
-      # if the same arguments were passed to #change_column. See #change_column for information about
-      # passing a +table_name+, +column_name+, +type+ and other options that can be passed.
-      def build_change_column_definition(table_name, column_name, type, **options) # :nodoc:
-        column = column_for(table_name, column_name)
-        type ||= column.sql_type
-
-        unless options.key?(:default)
-          options[:default] = if column.default_function
-            -> { column.default_function }
-          else
-            column.default
-          end
-        end
-
-        unless options.key?(:null)
-          options[:null] = column.null
-        end
-
-        unless options.key?(:comment)
-          options[:comment] = column.comment
-        end
-
-        if options[:collation] == :no_collation
-          options.delete(:collation)
-        else
-          options[:collation] ||= column.collation if text_type?(type)
-        end
-
-        unless options.key?(:auto_increment)
-          options[:auto_increment] = column.auto_increment?
-        end
-
-        td = create_table_definition(table_name)
-        cd = td.new_column_definition(column.name, type, **options)
-        ChangeColumnDefinition.new(cd, column.name)
-      end
-
-      def rename_column(table_name, column_name, new_column_name) # :nodoc:
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_for_alter(table_name, column_name, new_column_name)}")
+      def rename_column(table_name, column_name, new_column_name, **options) # :nodoc:
+        at = build_alter_table_definition(table_name)
+        at.rename_column(column_name, new_column_name, **options)
+        execute_alter_table(at)
         rename_column_indexes(table_name, column_name, new_column_name)
       end
 
@@ -458,18 +462,42 @@ module ActiveRecord
       end
 
       def build_create_index_definition(table_name, column_name, **options) # :nodoc:
+        lock = lock_clause(options.delete(:lock))
         index, algorithm, if_not_exists = add_index_options(table_name, column_name, **options)
 
         return if if_not_exists && index_exists?(table_name, column_name, name: index.name)
 
-        CreateIndexDefinition.new(index, algorithm)
+        CreateIndexDefinition.new(index, algorithm, if_not_exists, lock)
+      end
+
+      def remove_index(table_name, column_name = nil, **options) # :nodoc:
+        algorithm = index_algorithm(options.delete(:algorithm))
+        lock = lock_clause(options.delete(:lock))
+
+        return if options[:if_exists] && !index_exists?(table_name, column_name, **options)
+
+        index_name = index_name_for_remove(table_name, column_name, options)
+
+        if mariadb? && (algorithm || lock)
+          # MariaDB doesn't support ALGORITHM/LOCK on DROP INDEX,
+          # but does support them on ALTER TABLE ... DROP INDEX.
+          sql = +"ALTER TABLE #{quote_table_name(table_name)} DROP INDEX #{quote_column_name(index_name)}"
+          sql << ", #{algorithm}" if algorithm
+          sql << ", #{lock}" if lock
+        else
+          sql = +"DROP INDEX #{quote_column_name(index_name)} ON #{quote_table_name(table_name)}"
+          sql << " #{algorithm}" if algorithm
+          sql << " #{lock}" if lock
+        end
+
+        execute(sql)
       end
 
       def enable_index(table_name, index_name) # :nodoc:
         raise NotImplementedError unless supports_disabling_indexes?
 
         query = <<~SQL
-          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{index_name} #{mariadb? ? "NOT IGNORED" : "VISIBLE"}
+          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{quote_column_name(index_name)} #{mariadb? ? "NOT IGNORED" : "VISIBLE"}
         SQL
         execute(query)
       end
@@ -478,7 +506,7 @@ module ActiveRecord
         raise NotImplementedError unless supports_disabling_indexes?
 
         query = <<~SQL
-          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{index_name} #{mariadb? ? "IGNORED" : "INVISIBLE"}
+          ALTER TABLE #{quote_table_name(table_name)} ALTER INDEX #{quote_column_name(index_name)} #{mariadb? ? "IGNORED" : "INVISIBLE"}
         SQL
         execute(query)
       end
@@ -489,116 +517,13 @@ module ActiveRecord
       end
 
       def foreign_keys(table_name)
-        raise ArgumentError unless table_name.present?
-
-        scope = quoted_scope(table_name)
-
-        # MySQL returns 1 row for each column of composite foreign keys.
-        fk_info = query_all(<<~SQL)
-          SELECT fk.referenced_table_name AS 'to_table',
-                 fk.referenced_column_name AS 'primary_key',
-                 fk.column_name AS 'column',
-                 fk.constraint_name AS 'name',
-                 fk.ordinal_position AS 'position',
-                 rc.update_rule AS 'on_update',
-                 rc.delete_rule AS 'on_delete'
-          FROM information_schema.referential_constraints rc
-          JOIN information_schema.key_column_usage fk
-          USING (constraint_schema, constraint_name)
-          WHERE fk.referenced_column_name IS NOT NULL
-            AND fk.table_schema = #{scope[:schema]}
-            AND fk.table_name = #{scope[:name]}
-            AND rc.constraint_schema = #{scope[:schema]}
-            AND rc.table_name = #{scope[:name]}
-        SQL
-
-        grouped_fk = fk_info.group_by { |row| row["name"] }.values.each { |group| group.sort_by! { |row| row["position"] } }
-        grouped_fk.map do |group|
-          row = group.first
-          options = {
-            name: row["name"],
-            on_update: extract_foreign_key_action(row["on_update"]),
-            on_delete: extract_foreign_key_action(row["on_delete"])
-          }
-
-          if group.one?
-            options[:column] = unquote_identifier(row["column"])
-            options[:primary_key] = row["primary_key"]
-          else
-            options[:column] = group.map { |row| unquote_identifier(row["column"]) }
-            options[:primary_key] = group.map { |row| row["primary_key"] }
-          end
-
-          ForeignKeyDefinition.new(table_name, unquote_identifier(row["to_table"]), options)
-        end
+        result = fetch_foreign_keys(Array(table_name).map(&:to_s))
+        table_name.is_a?(Array) ? result : result[table_name.to_s]
       end
 
       def check_constraints(table_name)
-        if supports_check_constraints?
-          scope = quoted_scope(table_name)
-
-          sql = <<~SQL
-            SELECT cc.constraint_name AS 'name',
-                  cc.check_clause AS 'expression'
-            FROM information_schema.check_constraints cc
-            JOIN information_schema.table_constraints tc
-            USING (constraint_schema, constraint_name)
-            WHERE tc.table_schema = #{scope[:schema]}
-              AND tc.table_name = #{scope[:name]}
-              AND cc.constraint_schema = #{scope[:schema]}
-          SQL
-          sql += " AND cc.table_name = #{scope[:name]}" if mariadb?
-
-          chk_info = query_all(sql)
-
-          chk_info.map do |row|
-            options = {
-              name: row["name"]
-            }
-            expression = row["expression"]
-            expression = expression[1..-2] if expression.start_with?("(") && expression.end_with?(")")
-            expression = strip_whitespace_characters(expression)
-
-            unless mariadb?
-              # MySQL returns check constraints expression in an already escaped form.
-              # This leads to duplicate escaping later (e.g. when the expression is used in the SchemaDumper).
-              expression = expression.gsub("\\'", "'")
-            end
-
-            CheckConstraintDefinition.new(table_name, expression, options)
-          end
-        else
-          raise NotImplementedError
-        end
-      end
-
-      def table_options(table_name) # :nodoc:
-        create_table_info = create_table_info(table_name)
-
-        # strip create_definitions and partition_options
-        # Be aware that `create_table_info` might not include any table options due to `NO_TABLE_OPTIONS` sql mode.
-        raw_table_options = create_table_info.sub(/\A.*\n\) ?/m, "").sub(/\n\/\*!.*\*\/\n\z/m, "").strip
-
-        return if raw_table_options.empty?
-
-        table_options = {}
-
-        if / DEFAULT CHARSET=(?<charset>\w+)(?: COLLATE=(?<collation>\w+))?/ =~ raw_table_options
-          raw_table_options = $` + $' # before part + after part
-          table_options[:charset] = charset
-          table_options[:collation] = collation if collation
-        end
-
-        # strip AUTO_INCREMENT
-        raw_table_options.sub!(/(ENGINE=\w+)(?: AUTO_INCREMENT=\d+)/, '\1')
-
-        # strip COMMENT
-        if raw_table_options.sub!(/ COMMENT='.+'/, "")
-          table_options[:comment] = table_comment(table_name)
-        end
-
-        table_options[:options] = raw_table_options unless raw_table_options == "ENGINE=InnoDB"
-        table_options
+        result = fetch_check_constraints(Array(table_name).map(&:to_s))
+        table_name.is_a?(Array) ? result : result[table_name.to_s]
       end
 
       # SHOW VARIABLES LIKE 'name'
@@ -609,18 +534,8 @@ module ActiveRecord
       end
 
       def primary_keys(table_name) # :nodoc:
-        raise ArgumentError unless table_name.present?
-
-        scope = quoted_scope(table_name)
-
-        query_values(<<~SQL)
-          SELECT column_name
-          FROM information_schema.statistics
-          WHERE index_name = 'PRIMARY'
-            AND table_schema = #{scope[:schema]}
-            AND table_name = #{scope[:name]}
-          ORDER BY seq_in_index
-        SQL
+        result = fetch_primary_keys(Array(table_name).map(&:to_s))
+        table_name.is_a?(Array) ? result : result[table_name.to_s]
       end
 
       def case_sensitive_comparison(attribute, value) # :nodoc:
@@ -654,6 +569,15 @@ module ActiveRecord
       end
 
       def strict_mode?
+        if @config.key?(:strict) && !@strict_mode_deprecation_warned
+          @strict_mode_deprecation_warned = true
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            The `strict` option in database configurations is deprecated and
+            will be removed in Rails 9.0. Use `variables: { sql_mode: "..." }`
+            to configure sql_mode directly instead.
+          MSG
+        end
+
         self.class.type_cast_config_to_boolean(@config.fetch(:strict, true))
       end
 
@@ -768,6 +692,10 @@ module ActiveRecord
 
             m.alias_type %r(year)i, "integer"
             m.alias_type %r(bit)i,  "binary"
+
+            # AbstractAdapter's generic type map matches POINT and MULTIPOINT against
+            # %r(int)i and misreports them as integers, so override them here.
+            m.register_type %r(^(?:point|multipoint))i, Type::Value.new
           end
 
           def register_integer_type(mapping, key, limit:)
@@ -793,6 +721,158 @@ module ActiveRecord
       EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
       private
+        # `SHOW CREATE TABLE` is the only place MySQL reports a table's options, and
+        # it reads one table at a time.
+        def fetch_table_options(tables)
+          tables.index_with { |table| build_table_options(table, create_table_info(table)) }
+        end
+
+        def build_table_options(table_name, create_table_info)
+          # strip create_definitions and partition_options
+          # Be aware that `create_table_info` might not include any table options due to `NO_TABLE_OPTIONS` sql mode.
+          raw_table_options = create_table_info.sub(/\A.*\n\) ?/m, "").sub(/\n\/\*!.*\*\/\n\z/m, "").strip
+
+          return if raw_table_options.empty?
+
+          table_options = {}
+
+          if / DEFAULT CHARSET=(?<charset>\w+)(?: COLLATE=(?<collation>\w+))?/ =~ raw_table_options
+            raw_table_options = $` + $' # before part + after part
+            table_options[:charset] = charset
+            table_options[:collation] = collation if collation
+          end
+
+          # strip AUTO_INCREMENT
+          raw_table_options.sub!(/(ENGINE=\w+)(?: AUTO_INCREMENT=\d+)/, '\1')
+
+          # strip COMMENT
+          if raw_table_options.sub!(/ COMMENT='.+'/, "")
+            table_options[:comment] = table_comment(table_name)
+          end
+
+          table_options[:options] = raw_table_options unless raw_table_options == "ENGINE=InnoDB"
+          table_options
+        end
+
+        def fetch_table_collations(tables)
+          fetch_by_schema(tables) do |schema, group|
+            by_name = query_all(<<~SQL).to_h { |row| [row["table"], row["collation"]] }
+              SELECT table_name AS 'table', table_collation AS 'collation'
+              FROM information_schema.tables
+              WHERE table_schema = #{schema}
+                AND table_name IN (#{quoted_table_names(group)})
+            SQL
+
+            group.index_with { |table| by_name[bare_table_name(table)] }
+          end
+        end
+
+        def fetch_foreign_keys(tables)
+          fetch_by_schema(tables) do |schema, group|
+            names = quoted_table_names(group)
+
+            # MySQL returns 1 row for each column of composite foreign keys.
+            by_name = query_all(<<~SQL).group_by { |row| row["from_table"] }
+              SELECT fk.table_name AS 'from_table',
+                     fk.referenced_table_name AS 'to_table',
+                     fk.referenced_column_name AS 'primary_key',
+                     fk.column_name AS 'column',
+                     fk.constraint_name AS 'name',
+                     fk.ordinal_position AS 'position',
+                     rc.update_rule AS 'on_update',
+                     rc.delete_rule AS 'on_delete'
+              FROM information_schema.referential_constraints rc
+              JOIN information_schema.key_column_usage fk
+              USING (constraint_schema, constraint_name)
+              WHERE fk.referenced_column_name IS NOT NULL
+                AND fk.table_schema = #{schema}
+                AND rc.constraint_schema = #{schema}
+                AND fk.table_name IN (#{names}) AND rc.table_name IN (#{names})
+            SQL
+
+            group.index_with { |table| build_foreign_keys(table, rows_for(by_name, table)) }
+          end
+        end
+
+        def fetch_check_constraints(tables)
+          raise NotImplementedError unless supports_check_constraints?
+
+          fetch_by_schema(tables) do |schema, group|
+            names = quoted_table_names(group)
+
+            sql = +<<~SQL
+              SELECT tc.table_name AS 'table',
+                     cc.constraint_name AS 'name',
+                     cc.check_clause AS 'expression'
+              FROM information_schema.check_constraints cc
+              JOIN information_schema.table_constraints tc
+              USING (constraint_schema, constraint_name)
+              WHERE tc.table_schema = #{schema}
+                AND tc.table_name IN (#{names})
+                AND cc.constraint_schema = #{schema}
+            SQL
+            sql << " AND cc.table_name IN (#{names})" if mariadb?
+
+            by_name = query_all(sql).group_by { |row| row["table"] }
+
+            group.index_with { |table| build_check_constraints(table, rows_for(by_name, table)) }
+          end
+        end
+
+        def fetch_primary_keys(tables)
+          fetch_by_schema(tables) do |schema, group|
+            by_name = query_all(<<~SQL).group_by { |row| row["table"] }
+              SELECT table_name AS 'table', column_name AS 'column'
+              FROM information_schema.statistics
+              WHERE index_name = 'PRIMARY'
+                AND table_schema = #{schema}
+                AND table_name IN (#{quoted_table_names(group)})
+              ORDER BY table_name, seq_in_index
+            SQL
+
+            group.index_with { |table| rows_for(by_name, table).map { |row| row["column"] } }
+          end
+        end
+
+        def build_foreign_keys(table_name, fk_info)
+          grouped_fk = fk_info.group_by { |row| row["name"] }.values.each { |group| group.sort_by! { |row| row["position"] } }
+          grouped_fk.map do |group|
+            row = group.first
+            options = {
+              name: row["name"],
+              on_update: extract_foreign_key_action(row["on_update"]),
+              on_delete: extract_foreign_key_action(row["on_delete"])
+            }
+
+            if group.one?
+              options[:column] = unquote_identifier(row["column"])
+              options[:primary_key] = row["primary_key"]
+            else
+              options[:column] = group.map { |row| unquote_identifier(row["column"]) }
+              options[:primary_key] = group.map { |row| row["primary_key"] }
+            end
+
+            ForeignKeyDefinition.new(table_name, unquote_identifier(row["to_table"]), options)
+          end
+        end
+
+        def build_check_constraints(table_name, chk_info)
+          chk_info.map do |row|
+            options = { name: row["name"] }
+            expression = row["expression"]
+            expression = expression[1..-2] if expression.start_with?("(") && expression.end_with?(")")
+            expression = strip_whitespace_characters(expression)
+
+            unless mariadb?
+              # MySQL returns check constraints expression in an already escaped form.
+              # This leads to duplicate escaping later (e.g. when the expression is used in the SchemaDumper).
+              expression = expression.gsub("\\'", "'")
+            end
+
+            CheckConstraintDefinition.new(table_name, expression, options)
+          end
+        end
+
         def strip_whitespace_characters(expression)
           expression.gsub('\\\n', "").gsub("x0A", "").squish
         end
@@ -805,19 +885,17 @@ module ActiveRecord
           end
         end
 
-        def handle_warnings(_initial_result, sql)
-          return if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
+        def collect_warnings(_initial_result)
+          return [] if ActiveRecord.db_warnings_action.nil? || @raw_connection.warning_count == 0
 
           warning_count = @raw_connection.warning_count
           result = @raw_connection.query("SHOW WARNINGS")
           result = [
             ["Warning", nil, "Query had warning_count=#{warning_count} but `SHOW WARNINGS` did not return the warnings. Check MySQL logs or database configuration."],
           ] if result.count == 0
-          result.each do |level, code, message|
-            warning = SQLWarning.new(message, code, level, sql, @pool)
-            next if warning_ignored?(warning)
 
-            ActiveRecord.db_warnings_action.call(warning)
+          result.map do |level, code, message|
+            SQLWarning.new(message, code, level, nil, @pool)
           end
         end
 
@@ -828,6 +906,7 @@ module ActiveRecord
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
         ER_DB_CREATE_EXISTS     = 1007
         ER_FILSORT_ABORT        = 1028
+        ER_NO_DB_ERROR          = 1046
         ER_DUP_ENTRY            = 1062
         ER_SERVER_SHUTDOWN      = 1053
         ER_NOT_NULL_VIOLATION   = 1048
@@ -860,7 +939,7 @@ module ActiveRecord
             else
               super
             end
-          when ER_CONNECTION_KILLED, ER_SERVER_SHUTDOWN, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT
+          when ER_CONNECTION_KILLED, ER_SERVER_SHUTDOWN, CR_SERVER_GONE_ERROR, CR_SERVER_LOST, ER_CLIENT_INTERACTION_TIMEOUT, ER_NO_DB_ERROR
             ConnectionFailed.new(message, sql: sql, binds: binds, connection_pool: @pool)
           when ER_DB_CREATE_EXISTS
             DatabaseAlreadyExists.new(message, sql: sql, binds: binds, connection_pool: @pool)
@@ -897,40 +976,6 @@ module ActiveRecord
           end
         end
 
-        def change_column_for_alter(table_name, column_name, type, **options)
-          cd = build_change_column_definition(table_name, column_name, type, **options)
-          schema_creation.accept(cd)
-        end
-
-        def rename_column_for_alter(table_name, column_name, new_column_name)
-          return rename_column_sql(table_name, column_name, new_column_name) if supports_rename_column?
-
-          column  = column_for(table_name, column_name)
-          options = {
-            default: column.default,
-            null: column.null,
-            auto_increment: column.auto_increment?,
-            comment: column.comment
-          }
-
-          current_type = query_one("SHOW COLUMNS FROM #{quote_table_name(table_name)} LIKE #{quote(column_name)}")["Type"]
-          td = create_table_definition(table_name)
-          cd = td.new_column_definition(new_column_name, current_type, **options)
-          schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
-        end
-
-        def add_index_for_alter(table_name, column_name, **options)
-          index, algorithm, _ = add_index_options(table_name, column_name, **options)
-          algorithm = ", #{algorithm}" if algorithm
-
-          "ADD #{schema_creation.accept(index)}#{algorithm}"
-        end
-
-        def remove_index_for_alter(table_name, column_name = nil, **options)
-          index_name = index_name_for_remove(table_name, column_name, options)
-          "DROP INDEX #{quote_column_name(index_name)}"
-        end
-
         def supports_insert_raw_alias_syntax?
           !mariadb? && database_version >= "8.0.19"
         end
@@ -956,20 +1001,27 @@ module ActiveRecord
           variables = @config.fetch(:variables, {}).stringify_keys
 
           # Increase timeout so the server doesn't disconnect us.
-          wait_timeout = self.class.type_cast_config_to_integer(@config[:wait_timeout])
-          wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
-          variables["wait_timeout"] = wait_timeout
+          # Set to false in config to skip.
+          unless @config[:wait_timeout] == false
+            wait_timeout = self.class.type_cast_config_to_integer(@config[:wait_timeout])
+            wait_timeout = 2147483 unless wait_timeout.is_a?(Integer)
+            variables["wait_timeout"] = wait_timeout
+          end
 
           defaults = [":default", :default].to_set
 
           # Make MySQL reject illegal values rather than truncating or blanking them, see
-          # https://dev.mysql.com/doc/refman/en/sql-mode.html#sqlmode_strict_all_tables
+          # https://dev.mysql.com/doc/refman/en/sql-mode.html#sqlmode_traditional
           # If the user has provided another value for sql_mode, don't replace it.
-          if sql_mode = variables.delete("sql_mode")
-            sql_mode = quote(sql_mode)
+          # Set sql_mode to false or :default in variables to skip.
+          if variables.key?("sql_mode")
+            sql_mode_value = variables.delete("sql_mode")
+            unless sql_mode_value == false || defaults.include?(sql_mode_value)
+              sql_mode = quote(sql_mode_value)
+            end
           elsif !defaults.include?(strict_mode?)
             if strict_mode?
-              sql_mode = "CONCAT(@@sql_mode, ',STRICT_ALL_TABLES')"
+              sql_mode = "CONCAT(@@sql_mode, ',TRADITIONAL')"
             else
               sql_mode = "REPLACE(@@sql_mode, 'STRICT_TRANS_TABLES', '')"
               sql_mode = "REPLACE(#{sql_mode}, 'STRICT_ALL_TABLES', '')"
@@ -1008,7 +1060,81 @@ module ActiveRecord
         end
 
         def column_definitions(table_name) # :nodoc:
-          query_all("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}")
+          fields = query_all("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}")
+
+          update_fields_for_mariadb(table_name, fields) if mariadb?
+
+          fields
+        end
+
+        def fetch_column_definitions(tables)
+          fetch_by_schema(tables) do |schema, group|
+            by_name = query_all(<<~SQL).group_by { |row| row["Table"] }
+              SELECT table_name AS 'Table', column_name AS 'Field', column_type AS 'Type',
+                     column_default AS 'Default', is_nullable AS 'Null', extra AS 'Extra',
+                     collation_name AS 'Collation', column_comment AS 'Comment'
+              FROM information_schema.columns
+              WHERE table_schema = #{schema}
+                AND table_name IN (#{quoted_table_names(group)})
+              ORDER BY table_name, ordinal_position
+            SQL
+
+            group.index_with do |table|
+              fields = rows_for(by_name, table)
+
+              next column_definitions(table) if fields.empty?
+
+              fields.each { |field| unquote_mariadb_default(field) } if mariadb?
+
+              fields
+            end
+          end
+        end
+
+        # MariaDB reports a default as the SQL literal that produced it, where
+        # `SHOW FULL FIELDS` reports the value: a literal comes back quoted, and a
+        # newline inside one is written `\n`. Put them back into the form
+        # #new_column_from_field reads.
+        def unquote_mariadb_default(field)
+          default = field["Default"]
+          return if default.nil?
+
+          if default == "NULL"
+            # A column declared DEFAULT NULL, which has no default at all.
+            field["Default"] = nil
+          elsif !default.start_with?("'")
+            # An expression rather than a value. A bare `(1 + 1)` is left alone,
+            # which is what reading the table directly reports too.
+            if /[a-zA-Z_]\w*\(/.match?(default) && !/\ACURRENT_TIMESTAMP/i.match?(default)
+              field["Extra"] = "DEFAULT_GENERATED"
+            end
+          elsif !/\A(?:tiny|medium|long)?(?:text|blob)\b/.match?(field["Type"])
+            # Text and blob defaults stay quoted; #new_column_from_field unquotes those.
+            field["Default"] = default[1...-1].gsub("''", "'")
+              .gsub(/\\(.)/) { MARIADB_DEFAULT_ESCAPES.fetch($1, "\\#{$1}") }
+          end
+        end
+
+        def update_fields_for_mariadb(table_name, fields)
+          has_function_default_candidate = fields.any? do |field|
+            default = field["Default"]
+            default&.match?(/[a-zA-Z_]\w*\(/) && !/\ACURRENT_TIMESTAMP/i.match?(default)
+          end
+
+          if has_function_default_candidate
+            table_info = create_table_info(table_name)
+            fields.each do |field|
+              default = field["Default"]
+              next unless default&.match?(/[a-zA-Z_]\w*\(/)
+              next if /\ACURRENT_TIMESTAMP/i.match?(default)
+
+              field_name = field["Field"]
+              match = table_info&.match(/`#{field_name}` .+ DEFAULT ('|\d+|[A-z]+)/)
+              if match && match[1].match?(/\A[A-z]/)
+                field["Extra"] = "DEFAULT_GENERATED"
+              end
+            end
+          end
         end
 
         def create_table_info(table_name) # :nodoc:
@@ -1069,6 +1195,15 @@ module ActiveRecord
           else
             raise DatabaseVersionError, "Unable to parse MySQL version from #{full_version_string.inspect}"
           end
+        end
+
+        def drop_table_sql(*table_names, if_exists: nil, force: nil, temporary: nil, **)
+          temporary = " TEMPORARY" if temporary
+          exists = " IF EXISTS" if if_exists
+          quoted_table_names = table_names.map { |table_name| quote_table_name(table_name) }.join(", ")
+          cascade = " CASCADE" if force == :cascade
+
+          "DROP#{temporary} TABLE#{exists} #{quoted_table_names}#{cascade}"
         end
     end
   end

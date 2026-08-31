@@ -46,7 +46,7 @@ branch.
 
 ## Day of release
 
-If making multiple releases. Publish them in order from oldest to newest, to
+If making multiple releases, publish them in order from oldest to newest, to
 ensure that the "greatest" version also shows up in npm and GitHub Releases as
 "latest".
 
@@ -78,7 +78,7 @@ build the gems, and check if bundler can resolve the dependencies.
 You can now inspect the results in the diff and see if you are happy with the
 changes.
 
-To release, Run `rake release`. This will commit the changes, tag it, and create a GitHub
+To release, run `rake release`. This will commit the changes, tag it, and create a GitHub
 release with the proper release notes in draft mode.
 
 Open the corresponding GitHub release draft and check that the release notes

@@ -70,6 +70,16 @@ module ActiveRecord
       assert_equal last_developer_timestamp.to_fs(ActiveRecord::Base.cache_timestamp_format), $3
     end
 
+    test "cache_key for a loaded relation with a NULL timestamp matches the unloaded key" do
+      with_timestamp = Topic.create!(title: "with timestamp")
+      without_timestamp = Topic.create!(title: "without timestamp")
+      Topic.where(id: without_timestamp.id).update_all(updated_at: nil)
+
+      relation = -> { Topic.where(id: [with_timestamp.id, without_timestamp.id]) }
+
+      assert_equal relation.call.cache_key, relation.call.load.cache_key
+    end
+
     test "cache_key for relation with table alias" do
       table_alias = Developer.arel_table.alias("omg_developers")
 

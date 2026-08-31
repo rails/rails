@@ -277,7 +277,7 @@ module ActionView
 
       def find_template(path, locals)
         prefixes = path.include?(?/) ? [] : @lookup_context.prefixes
-        @lookup_context.find_template(path, prefixes, true, locals, @details)
+        @lookup_context.find!(path, prefixes, true, locals, @details)
       end
   end
 end

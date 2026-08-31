@@ -4,7 +4,7 @@ require "cases/helper"
 require "models/binary"
 
 class BinaryTest < ActiveRecord::TestCase
-  FIXTURES = %w(flowers.jpg example.log test.txt)
+  FIXTURES = %w(flowers.jpg example.log test.txt).freeze
 
   def test_mixed_encoding
     str = +"\x80"

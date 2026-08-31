@@ -8,19 +8,25 @@ module ActiveRecord
         reset_transaction
       end
 
-      # Converts an arel AST to SQL
-      def to_sql(arel_or_sql_string, binds = [])
-        sql, _ = to_sql_and_binds(arel_or_sql_string, binds)
+      def to_sql(arel_or_sql, binds = nil)
+        unless binds.nil?
+          ActiveRecord.deprecator.warn(<<~MSG)
+            Passing `binds` to `to_sql` is deprecated and will be removed in Rails 9.0.
+            The `binds` argument has been unused since bind parameters were moved into
+            the Arel AST in Rails 5.2.
+          MSG
+        end
+        sql, _ = to_sql_and_binds(arel_or_sql)
         sql
       end
 
-      def to_sql_and_binds(arel_or_sql_string, binds = [], preparable = nil, allow_retry = false) # :nodoc:
+      def to_sql_and_binds(arel_or_sql, binds = [], preparable = nil, allow_retry = false) # :nodoc:
         # Arel::TreeManager -> Arel::Node
-        if arel_or_sql_string.respond_to?(:ast)
-          arel_or_sql_string = arel_or_sql_string.ast
+        if arel_or_sql.respond_to?(:ast)
+          arel_or_sql = arel_or_sql.ast
         end
 
-        if Arel.arel_node?(arel_or_sql_string) && !(String === arel_or_sql_string)
+        if Arel.arel_node?(arel_or_sql) && !(String === arel_or_sql)
           unless binds.empty?
             raise "Passing bind parameters with an arel AST is forbidden. " \
               "The values must be stored on the AST directly"
@@ -31,22 +37,22 @@ module ActiveRecord
 
           if prepared_statements
             collector.preparable = true
-            sql, binds = visitor.compile(arel_or_sql_string, collector)
+            sql, binds = visitor.compile(arel_or_sql, collector)
 
             if binds.length > bind_params_length
               unprepared_statement do
-                return to_sql_and_binds(arel_or_sql_string)
+                return to_sql_and_binds(arel_or_sql)
               end
             end
             preparable = collector.preparable
           else
-            sql = visitor.compile(arel_or_sql_string, collector)
+            sql = visitor.compile(arel_or_sql, collector)
           end
           allow_retry = collector.retryable
           [sql.freeze, binds, preparable, allow_retry]
         else
-          arel_or_sql_string = arel_or_sql_string.dup.freeze unless arel_or_sql_string.frozen?
-          [arel_or_sql_string, binds, preparable, allow_retry]
+          arel_or_sql = arel_or_sql.dup.freeze unless arel_or_sql.frozen?
+          [arel_or_sql, binds, preparable, allow_retry]
         end
       end
 
@@ -75,7 +81,7 @@ module ActiveRecord
           arel: arel,
           name: name,
           binds: binds,
-          prepare: preparable,
+          prepare: prepared_statements && preparable,
           allow_async: async,
           allow_retry: allow_retry
         )
@@ -185,16 +191,22 @@ module ActiveRecord
       # `nil` is the default value and maintains default behavior. If an array of column names is passed -
       # the result will contain values of the specified columns from the inserted row.
       def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil)
+        # The `pk` positional argument is really the RETURNING column name.
+        # Translate it to `returning:` — including the legacy `false` sentinel
+        # meaning "no primary key / skip RETURNING".
+        if pk == false
+          returning ||= []
+        elsif pk
+          returning ||= pk
+        end
+
         intent = QueryIntent.new(adapter: self, raw_sql: sql, name: name, binds: binds)
 
-        _exec_insert(intent, pk, sequence_name, returning: returning)
+        _exec_insert(intent, sequence_name, returning: returning)
       end
 
-      def _exec_insert(intent, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
-        sql, binds = sql_for_insert(intent.raw_sql, pk, intent.binds, returning)
-        intent.raw_sql = sql
-        intent.binds = binds
-
+      def _exec_insert(intent, sequence_name = nil, returning: nil) # :nodoc:
+        apply_returning_to!(intent, returning)
         intent.execute!
         intent.cast_result
       end
@@ -219,49 +231,128 @@ module ActiveRecord
 
       deprecate :exec_insert, :exec_delete, :exec_update, deprecator: ActiveRecord.deprecator
 
-      def exec_insert_all(sql, name) # :nodoc:
-        intent = internal_build_intent(sql, name)
+      def exec_insert_all(inserter, name) # :nodoc:
+        intent = internal_build_intent(inserter.to_sql, name)
         intent.execute!
         intent.cast_result
       end
 
-      def explain(arel, binds = [], options = []) # :nodoc:
+      def explain(arel_or_sql, binds = [], options = []) # :nodoc:
         raise NotImplementedError
       end
 
-      # Executes an INSERT query and returns the new record's ID
+      # Executes an INSERT query and returns the new record's ID.
       #
-      # +id_value+ will be returned unless the value is +nil+, in
-      # which case the database will attempt to calculate the last inserted
-      # id and return that value.
-      #
-      # If the next id was calculated in advance (as in Oracle), it should be
-      # passed in as +id_value+.
-      # Some adapters support the `returning` keyword argument which allows defining the return value of the method:
-      # `nil` is the default value and maintains default behavior. If an array of column names is passed -
-      # an array of is returned from the method representing values of the specified columns from the inserted row.
-      def insert(arel, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil)
-        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
+      # Some adapters support the `returning` keyword argument, which controls
+      # what the method returns: +nil+ (default) returns the id via
+      # +last_inserted_id+; a column name returns that column as a single
+      # value; an array of column names returns an Array of column values.
+      def insert(arel_or_sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil)
+        unless pk.nil?
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            Passing `pk` as a positional argument to `insert` is deprecated
+            and will be removed in Rails 9.0. Pass `returning:` instead —
+            `insert(arel, name, "id")` becomes `insert(arel, name, returning: "id")`.
+          MSG
+        end
+        unless id_value.nil?
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            Passing `id_value` as a positional argument to `insert` is
+            deprecated and will be removed in Rails 9.0. `id_value` was
+            returned when the database couldn't compute the last inserted id;
+            callers that pass it already know the value and can use it
+            directly rather than reading it back from `insert`.
+          MSG
+        end
+        unless sequence_name.nil?
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            Passing `sequence_name` as a positional argument to `insert` is
+            deprecated and will be removed in Rails 9.0. It was only used by
+            PostgreSQL's `use_insert_returning?` currval fallback, which is
+            deprecated on its own — drop the argument once the
+            `insert_returning` option is removed.
+          MSG
+        end
+        if binds.any?
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            Passing `binds` as a positional argument to `insert` is
+            deprecated and will be removed in Rails 9.0. Use
+            `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
+            inside the arel node instead —
+            `insert(sql, name, nil, nil, nil, binds)` becomes
+            `insert(Arel.sql(sql, *binds), name)`.
+          MSG
+        end
 
-        value = _exec_insert(intent, pk, sequence_name, returning: returning)
+        # The `pk` positional argument is really the RETURNING column name.
+        # Translate it to `returning:` — including the legacy `false` sentinel
+        # meaning "no primary key / skip RETURNING".
+        if pk == false
+          returning ||= []
+        elsif pk
+          returning ||= pk
+        end
 
-        return returning_column_values(value) unless returning.nil?
+        intent = QueryIntent.new(adapter: self, arel: arel_or_sql, name: name, binds: binds)
 
-        id_value || last_inserted_id(value)
+        value = _exec_insert(intent, sequence_name, returning: returning)
+
+        case returning
+        when nil
+          id_value || last_inserted_id(value)
+        when Array
+          returning_column_values(value)
+        else
+          returning_column_values(value)&.first
+        end
       end
       alias create insert
+      deprecate create: :insert, deprecator: ActiveRecord.deprecator
 
       # Executes the update statement and returns the number of rows affected.
-      def update(arel, name = nil, binds = [])
-        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
+      def update(arel_or_sql, name = nil, binds = [])
+        if binds.any?
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            Passing `binds` as a positional argument to `update` is
+            deprecated and will be removed in Rails 9.0. Use
+            `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
+            inside the arel node instead —
+            `update(sql, name, binds)` becomes
+            `update(Arel.sql(sql, *binds), name)`.
+          MSG
+        end
+
+        intent = QueryIntent.new(adapter: self, arel: arel_or_sql, name: name, binds: binds)
 
         intent.execute!
         intent.affected_rows
       end
 
+      # Executes the update statement and returns an ActiveRecord::Result
+      # Some adapters support the `returning` keyword argument
+      def update_with_result(arel, name = nil, returning:) # :nodoc:
+        arel.returning(returning.map { |column| Arel.sql(quote_column_name(column)) })
+
+        intent = QueryIntent.new(adapter: self, arel: arel, name: name)
+
+        intent.execute!
+        intent.cast_result
+      end
+
       # Executes the delete statement and returns the number of rows affected.
-      def delete(arel, name = nil, binds = [])
-        intent = QueryIntent.new(adapter: self, arel: arel, name: name, binds: binds)
+      def delete(arel_or_sql, name = nil, binds = [])
+        if binds.any?
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            Passing `binds` as a positional argument to `delete` is
+            deprecated and will be removed in Rails 9.0. Use
+            `Arel.sql(sql_with_placeholders, *binds)` to carry bind values
+            inside the arel node instead —
+            `delete(sql, name, binds)` becomes
+            `delete(Arel.sql(sql, *binds), name)`.
+          MSG
+        end
+
+        intent = QueryIntent.new(adapter: self, arel: arel_or_sql, name: name, binds: binds)
 
         intent.execute!
         intent.affected_rows
@@ -602,16 +693,116 @@ module ActiveRecord
       end
 
       # Lowest-level abstract execution of a query, called only from the intent itself.
-      # Final wrapper around the subclass-specific +perform_query+. Populates the calling
-      # intent's raw_result.
+      # Final wrapper around the subclass-specific +perform_query+. Delivers the outcome
+      # back to the calling intent.
       def execute_intent(intent) # :nodoc:
-        log(intent) do |notification_payload|
-          intent.notification_payload = notification_payload
-          with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: intent.materialize_transactions) do |conn|
-            result = perform_query(conn, intent)
-            intent.raw_result = result
-            handle_warnings(result, intent.processed_sql)
+        if intent.materialize_transactions
+          # These can raise locally (e.g., ReadOnlyError). Validate before BEGIN.
+          intent.processed_sql
+          intent.type_casted_binds
+          materialize_transactions
+        end
+
+        start_intent_log(intent)
+        begin
+          @lock.synchronize do
+            reconnectable = ensure_connection_ready(
+              allow_retry: intent.allow_retry,
+              materialize_transactions: false
+            )
+
+            intent.retry_budget ||= build_retry_budget(
+              allow_retry: intent.allow_retry, reconnectable: reconnectable
+            )
+
+            perform_sync_attempt(intent)
           end
+        rescue Exception => error
+          intent.finish_log(exception: error) unless intent.raw_result_available?
+          raise
+        end
+      end
+
+      def perform_sync_attempt(intent) # :nodoc:
+        result = perform_query(@raw_connection, intent)
+        query_completed = true
+        warnings = collect_warnings(result)
+      rescue ::RangeError
+        raise
+      rescue => error
+        translated = translate_exception_class(error, intent.processed_sql, intent.binds)
+        invalidate_transaction(translated)
+
+        unless query_completed
+          begin
+            warnings = collect_warnings(nil)
+          rescue
+            # The query failed, so we need to swallow this exception
+            # from collect_warnings to avoid masking the original.
+          end
+        end
+
+        intent.deliver_failure(translated, warnings: warnings)
+      rescue Exception
+        # A non-StandardError (a Timeout, or a fiber scheduler's cancel) abandoned
+        # the query partway through, so we mark the connection unverified, just as
+        # a failed query would, forcing a reconnect before it's used again.
+        @last_activity = nil
+        @verified = false
+        dirty_current_transaction if intent.materialize_transactions
+        raise
+      else
+        intent.deliver_result(result, warnings: warnings)
+      end
+
+      def start_intent_log(intent) # :nodoc:
+        return if intent.log_handle
+
+        payload = {
+          sql:               intent.processed_sql,
+          name:              intent.name,
+          binds:             intent.binds,
+          type_casted_binds: intent.type_casted_binds,
+          async:             intent.ran_async,
+          allow_retry:       intent.allow_retry,
+          connection:        self,
+          transaction:       current_transaction.user_transaction.presence,
+          affected_rows:     0,
+          row_count:         0,
+        }
+        intent.notification_payload = payload
+
+        active_record_instrumenter = intent.event_buffer || instrumenter
+        handle = active_record_instrumenter.build_handle("sql.active_record", payload)
+        handle.start
+        intent.log_handle = handle
+        @unfinalized_intents << intent
+      end
+
+      def finish_intent_log(intent, exception: nil) # :nodoc:
+        handle = intent.log_handle
+        return unless handle
+
+        intent.log_handle = nil
+        @unfinalized_intents.delete(intent)
+
+        if exception
+          payload = intent.notification_payload
+          payload[:exception] = [exception.class.name, exception.message]
+          payload[:exception_object] = exception
+        end
+
+        handle.finish
+      end
+
+      def finalize_remaining_intents # :nodoc:
+        intents = @unfinalized_intents
+        @unfinalized_intents = []
+
+        intents.each do |intent|
+          next if intent.finalized?
+
+          intent.finish_log(exception: intent.error)
         end
       end
 
@@ -634,6 +825,17 @@ module ActiveRecord
         end
       end
 
+      def handle_warnings(intent, warnings) # :nodoc:
+        return unless action = ActiveRecord.db_warnings_action
+
+        warnings&.each do |warning|
+          next if warning_ignored?(warning)
+
+          warning.sql = intent.processed_sql
+          action.call(warning)
+        end
+      end
+
       private
         DEFAULT_INSERT_VALUE = Arel.sql("DEFAULT").freeze
         private_constant :DEFAULT_INSERT_VALUE
@@ -642,7 +844,8 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        def handle_warnings(raw_result, sql)
+        def collect_warnings(raw_result)
+          []
         end
 
         # Receive a native adapter result object and returns an ActiveRecord::Result object.
@@ -686,7 +889,7 @@ module ActiveRecord
             end
           end
 
-          table = Arel::Table.new(table_name)
+          table = Arel::Table.new(name: table_name)
           manager = Arel::InsertManager.new(table)
 
           if values_list.size == 1
@@ -734,21 +937,38 @@ module ActiveRecord
           total_sql.join(";\n")
         end
 
-        def sql_for_insert(sql, pk, binds, returning) # :nodoc:
-          if supports_insert_returning?
-            if pk.nil?
-              # Extract the table from the insert sql. Yuck.
-              table_ref = extract_table_ref_from_insert_sql(sql)
-              pk = schema_cache.primary_keys(table_ref) if table_ref
-            end
+        def apply_returning_to!(intent, returning)
+          return unless supports_insert_returning?
 
-            returning_columns = returning || Array(pk)
+          # Only `Arel::InsertManager` has `#returning` on the AST; other arel
+          # nodes (e.g. `Arel::Nodes::BoundSqlLiteral` from `Arel.sql("... ?", value)`)
+          # are compiled to raw SQL first and take the string append path.
+          arel_or_sql = intent.arel.is_a?(Arel::InsertManager) ? intent.arel : intent.raw_sql
 
-            returning_columns_statement = returning_columns.map { |c| quote_column_name(c) }.join(", ")
-            sql = "#{sql} RETURNING #{returning_columns_statement}" if returning_columns.any?
+          returning ||= primary_key_for_insert(arel_or_sql)
+          returning = Array(returning)
+          return if returning.empty?
+
+          if arel_or_sql.is_a?(String)
+            returning_statement = returning.map { |c| quote_column_name(c) }.join(", ")
+            intent.raw_sql = "#{arel_or_sql} RETURNING #{returning_statement}"
+          else
+            arel_or_sql.returning(returning.map { |column| Arel.sql(quote_column_name(column)) })
           end
+        end
 
-          [sql, binds]
+        def primary_key_for_insert(arel_or_sql)
+          table_ref = table_ref_for_insert(arel_or_sql)
+          pk = schema_cache.primary_keys(table_ref) if table_ref
+          pk unless pk.is_a?(Array)
+        end
+
+        def table_ref_for_insert(arel_or_sql)
+          if arel_or_sql.is_a?(String)
+            extract_table_ref_from_insert_sql(arel_or_sql)
+          elsif arel_or_sql.respond_to?(:ast) && arel_or_sql.ast.respond_to?(:relation)
+            arel_or_sql.ast.relation.name
+          end
         end
 
         def last_inserted_id(result)
@@ -756,7 +976,11 @@ module ActiveRecord
         end
 
         def returning_column_values(result)
-          [last_inserted_id(result)]
+          if supports_insert_returning?
+            result.rows.first
+          else
+            [last_inserted_id(result)]
+          end
         end
 
         def single_value_from_rows(rows)
@@ -773,7 +997,7 @@ module ActiveRecord
         end
 
         def extract_table_ref_from_insert_sql(sql)
-          if sql =~ /into\s("[A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im
+          if sql =~ /into\s("[-A-Za-z0-9_."\[\]\s]+"|[A-Za-z0-9_."\[\]]+)\s*/im
             $1.delete('"').strip
           end
         end

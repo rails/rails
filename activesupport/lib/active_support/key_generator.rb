@@ -1,10 +1,13 @@
+# :markup: markdown
 # frozen_string_literal: true
 
+require "active_support/inspect_backport"
 require "concurrent/map"
 require "openssl"
 
 module ActiveSupport
-  # = Key Generator
+  # Key Generator
+  # =============
   #
   # KeyGenerator is a simple wrapper around OpenSSL's implementation of PBKDF2.
   # It can be used to derive a number of keys for various purposes from a given secret.
@@ -35,32 +38,49 @@ module ActiveSupport
       @hash_digest_class = options[:hash_digest_class] || self.class.hash_digest_class
     end
 
-    # Returns a derived key suitable for use.  The default +key_size+ is chosen
+    # Returns a derived key suitable for use.  The default `key_size` is chosen
     # to be compatible with the default settings of ActiveSupport::MessageVerifier.
-    # i.e. <tt>OpenSSL::Digest::SHA1#block_length</tt>
+    # i.e. `OpenSSL::Digest::SHA1#block_length`
     def generate_key(salt, key_size = 64)
       OpenSSL::PKCS5.pbkdf2_hmac(@secret, salt, @iterations, key_size, @hash_digest_class.new)
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-    end
+    ActiveSupport::InspectBackport.apply(self)
+
+    private
+      def instance_variables_to_inspect
+        [].freeze
+      end
   end
 
-  # = Caching Key Generator
+  # Caching Key Generator
+  # =====================
   #
   # CachingKeyGenerator is a wrapper around KeyGenerator which allows users to avoid
-  # re-executing the key generation process when it's called using the same +salt+ and
-  # +key_size+.
+  # re-executing the key generation process when it's called using the same `salt` and
+  # `key_size`.
   class CachingKeyGenerator
     def initialize(key_generator)
       @key_generator = key_generator
       @cache_keys = Concurrent::Map.new
+      @ractor_key = nil
+    end
+
+    def freeze
+      @ractor_key = "_caching_key_generator_#{object_id}".to_sym
+      Ractor[@ractor_key] = @cache_keys
+      @cache_keys = nil
+      super
     end
 
     # Returns a derived key suitable for use.
     def generate_key(*args)
-      @cache_keys[args.join("|")] ||= @key_generator.generate_key(*args)
+      cache_keys[args.join("|")] ||= @key_generator.generate_key(*args)
     end
+
+    private
+      def cache_keys
+        @cache_keys || (Ractor[@ractor_key] ||= Concurrent::Map.new)
+      end
   end
 end

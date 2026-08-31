@@ -113,7 +113,7 @@ module InflectorTestCases
     "|ouse"       => "|ouses",
     "slice"       => "slices",
     "police"      => "police"
-  }
+  }.freeze
 
   CamelToUnderscore = {
     "Product"               => "product",
@@ -122,21 +122,21 @@ module InflectorTestCases
     "Area51Controller"      => "area51_controller",
     "AppCDir"               => "app_c_dir",
     "Accountsv2N2Test"      => "accountsv2_n2_test",
-  }
+  }.freeze
 
   UnderscoreToLowerCamel = {
     "product"                => "product",
     "special_guest"          => "specialGuest",
     "application_controller" => "applicationController",
     "area51_controller"      => "area51Controller"
-  }
+  }.freeze
 
   SymbolToLowerCamel = {
     product: "product",
     special_guest: "specialGuest",
     application_controller: "applicationController",
     area51_controller: "area51Controller"
-  }
+  }.freeze
 
   CamelToUnderscoreWithoutReverse = {
     "HTMLTidy"              => "html_tidy",
@@ -145,29 +145,29 @@ module InflectorTestCases
     "HTML"                  => "html",
     "ForceXMLController"    => "force_xml_controller",
     :product                => "product",
-  }
+  }.freeze
 
   CamelWithModuleToUnderscoreWithSlash = {
     "Admin::Product" => "admin/product",
     "Users::Commission::Department" => "users/commission/department",
     "UsersSection::CommissionDepartment" => "users_section/commission_department",
-  }
+  }.freeze
 
   ClassNameToForeignKeyWithUnderscore = {
     "Person" => "person_id",
     "MyApplication::Billing::Account" => "account_id"
-  }
+  }.freeze
 
   ClassNameToForeignKeyWithoutUnderscore = {
     "Person" => "personid",
     "MyApplication::Billing::Account" => "accountid"
-  }
+  }.freeze
 
   ClassNameToTableName = {
     "PrimarySpokesman" => "primary_spokesmen",
     "NodeChild"        => "node_children",
     "Calculu"          => "calculus" # Singular names are not handled correctly
-  }
+  }.freeze
 
   StringToParameterized = {
     "Donald E. Knuth"                     => "donald-e-knuth",
@@ -178,7 +178,7 @@ module InflectorTestCases
     "Squeeze   separators"                => "squeeze-separators",
     "Test with + sign"                    => "test-with-sign",
     "Test with malformed utf8 \251"       => "test-with-malformed-utf8"
-  }
+  }.freeze
 
   StringToParameterizedPreserveCase = {
     "Donald E. Knuth"                     => "Donald-E-Knuth",
@@ -189,7 +189,7 @@ module InflectorTestCases
     "Squeeze   separators"                => "Squeeze-separators",
     "Test with + sign"                    => "Test-with-sign",
     "Test with malformed utf8 \xA9"       => "Test-with-malformed-utf8"
-  }
+  }.freeze
 
   StringToParameterizeWithNoSeparator = {
     "Donald E. Knuth"                     => "donaldeknuth",
@@ -200,7 +200,7 @@ module InflectorTestCases
     "Squeeze   separators"                => "squeezeseparators",
     "Test with + sign"                    => "testwithsign",
     "Test with malformed utf8 \251"       => "testwithmalformedutf8"
-  }
+  }.freeze
 
   StringToParameterizePreserveCaseWithNoSeparator = {
     "Donald E. Knuth"                     => "DonaldEKnuth",
@@ -211,7 +211,7 @@ module InflectorTestCases
     "Squeeze   separators"                => "Squeezeseparators",
     "Test with + sign"                    => "Testwithsign",
     "Test with malformed utf8 \xA9"       => "Testwithmalformedutf8"
-  }
+  }.freeze
 
   StringToParameterizeWithUnderscore = {
     "Donald E. Knuth"                     => "donald_e_knuth",
@@ -223,7 +223,7 @@ module InflectorTestCases
     "Squeeze   separators"                => "squeeze_separators",
     "Test with + sign"                    => "test_with_sign",
     "Test with malformed utf8 \251"       => "test_with_malformed_utf8"
-  }
+  }.freeze
 
   StringToParameterizePreserveCaseWithUnderscore = {
     "Donald E. Knuth"                     => "Donald_E_Knuth",
@@ -235,7 +235,7 @@ module InflectorTestCases
     "Squeeze   separators"                => "Squeeze_separators",
     "Test with + sign"                    => "Test_with_sign",
     "Test with malformed utf8 \xA9"       => "Test_with_malformed_utf8"
-  }
+  }.freeze
 
   StringToParameterizedAndNormalized = {
     "Malmö"                               => "malmo",
@@ -244,7 +244,7 @@ module InflectorTestCases
     "Ærøskøbing"                          => "aeroskobing",
     "Aßlar"                               => "asslar",
     "Japanese: 日本語" => "japanese"
-  }
+  }.freeze
 
   UnderscoreToHuman = {
     "employee_salary" => "Employee salary",
@@ -254,7 +254,7 @@ module InflectorTestCases
     "underground"     => "Underground",
     "_id"             => "Id",
     "_external_id"    => "External"
-  }
+  }.freeze
 
   UnderscoreToHumanWithKeepIdSuffix = {
     "this_is_a_string_ending_with_id" => "This is a string ending with id",
@@ -265,19 +265,19 @@ module InflectorTestCases
     "employee id etc"           => "Employee id etc",
     "_id"                       => "Id",
     "_external_id"              => "External id"
-  }
+  }.freeze
 
   UnderscoreToHumanWithoutCapitalize = {
     "employee_salary" => "employee salary",
     "employee_id"     => "employee",
     "underground"     => "underground"
-  }
+  }.freeze
 
   MixtureToTitleCaseWithKeepIdSuffix = {
     "this_is_a_string_ending_with_id" => "This Is A String Ending With Id",
     "EmployeeId"                      => "Employee Id",
     "Author Id"                       => "Author Id"
-  }
+  }.freeze
 
   MixtureToTitleCase = {
     "active_record"         => "Active Record",
@@ -294,6 +294,7 @@ module InflectorTestCases
     "i've just seen a face" => "I've Just Seen A Face",
     "maybe you'll be there" => "Maybe You'll Be There",
     "¿por qué?"             => "¿Por Qué?",
+    "über ñoño"             => "Über Ñoño",
     "Fred’s"                => "Fred’s",
     "Fred`s"                => "Fred`s",
     "this was 'fake news'"  => "This Was 'Fake News'",
@@ -301,7 +302,7 @@ module InflectorTestCases
     "new (names)"           => "New (Names)",
     "their (mis)deeds"      => "Their (Mis)deeds",
     ActiveSupport::SafeBuffer.new("confirmation num") => "Confirmation Num"
-  }
+  }.freeze
 
   OrdinalNumbers = {
     "-1" => "-1st",
@@ -365,13 +366,13 @@ module InflectorTestCases
     "113" => "113th",
     "1000" => "1000th",
     "1001" => "1001st"
-  }
+  }.freeze
 
   UnderscoresToDashes = {
     "street"                => "street",
     "street_address"        => "street-address",
     "person_street_address" => "person-street-address"
-  }
+  }.freeze
 
   Irregularities = {
     "person" => "people",
@@ -382,5 +383,5 @@ module InflectorTestCases
     "cow"    => "kine", # Test inflections with different starting letters
     "zombie" => "zombies",
     "genus"  => "genera"
-  }
+  }.freeze
 end

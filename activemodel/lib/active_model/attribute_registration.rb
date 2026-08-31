@@ -9,6 +9,11 @@ module ActiveModel
     extend ActiveSupport::Concern
 
     module ClassMethods # :nodoc:
+      def inherited(base)
+        super
+        base.instance_variable_set(:@pending_attribute_modifications, nil)
+      end
+
       def attribute(name, type = nil, default: (no_default = true), **options)
         name = resolve_attribute_name(name)
         type = resolve_type_name(type, **options) if type.is_a?(Symbol)
@@ -37,6 +42,7 @@ module ActiveModel
       def attribute_types # :nodoc:
         @attribute_types ||= _default_attributes.cast_types.tap do |hash|
           hash.default = Type.default_value
+          ActiveSupport::Ractors.try_make_shareable(hash)
         end
       end
 
@@ -47,6 +53,16 @@ module ActiveModel
           attribute_types.fetch(attribute_name, &block)
         else
           attribute_types[attribute_name]
+        end
+      end
+
+      def apply_pending_attribute_modifications(attribute_set) # :nodoc:
+        if superclass.respond_to?(:apply_pending_attribute_modifications, true)
+          superclass.send(:apply_pending_attribute_modifications, attribute_set)
+        end
+
+        pending_attribute_modifications.each do |modification|
+          modification.apply_to(attribute_set)
         end
       end
 
@@ -76,16 +92,6 @@ module ActiveModel
 
         def pending_attribute_modifications
           @pending_attribute_modifications ||= []
-        end
-
-        def apply_pending_attribute_modifications(attribute_set)
-          if superclass.respond_to?(:apply_pending_attribute_modifications, true)
-            superclass.send(:apply_pending_attribute_modifications, attribute_set)
-          end
-
-          pending_attribute_modifications.each do |modification|
-            modification.apply_to(attribute_set)
-          end
         end
 
         def reset_default_attributes

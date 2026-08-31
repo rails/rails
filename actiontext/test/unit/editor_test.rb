@@ -99,4 +99,31 @@ class ActionText::Editor::SubclassTest < ActionView::TestCase
     assert_equal "test-content", element["class"]
     assert_equal "<div>hello</div>", element["value"]
   end
+
+  test "#editor_tag with block renders children inside the editor element" do
+    editor = TestEditor.new
+    editor_tag = editor.editor_tag(id: "test_editor_id", name: "message[body]") {
+      content_tag("custom-prompt", "hello world")
+    }
+
+    render(editor_tag)
+
+    element = rendered.html.at("test-editor")
+    assert_not_nil element.at("custom-prompt")
+    assert_equal "hello world", element.at("custom-prompt").text
+  end
+
+  test "#editor_tag supports both value and block children simultaneously" do
+    editor = TestEditor.new
+    editor_tag = editor.editor_tag(id: "test_editor_id", name: "message[body]", value: "<div>hello</div>") {
+      content_tag("custom-prompt", "hello world")
+    }
+
+    render(editor_tag)
+
+    element = rendered.html.at("test-editor")
+    assert_equal "<div>hello</div>", element["value"]
+    assert_not_nil element.at("custom-prompt")
+    assert_equal "hello world", element.at("custom-prompt").text
+  end
 end

@@ -574,3 +574,169 @@ class ShareLockTest < ActiveSupport::TestCase
       stuck_thread.join # clean up
     end
 end
+
+# +ShareLock+ keys ownership on +IsolatedExecutionState.context+ (Thread or
+# Fiber, depending on the configured isolation level). These tests exercise
+# the +:fiber+ path: multiple fibers on the same thread must be treated as
+# distinct owners. Under the previous +Thread.current+ keying they would
+# collide and the reloader interlock could clear constants from under an
+# in-flight request fiber.
+#
+# The +no_wait+ option lets us probe lock state synchronously without
+# spinning up a fiber scheduler, so the suite stays self-contained.
+class ShareLockFiberTest < ActiveSupport::TestCase
+  setup do
+    @original_isolation_level = ActiveSupport::IsolatedExecutionState.isolation_level
+    ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
+    @lock = ActiveSupport::Concurrency::ShareLock.new
+  end
+
+  teardown do
+    ActiveSupport::IsolatedExecutionState.isolation_level = @original_isolation_level
+  end
+
+  def test_two_fibers_on_same_thread_are_distinct_share_owners
+    fiber_a_holds = false
+    fiber_b_saw_lock_busy = nil
+
+    fiber_a = Fiber.new do
+      @lock.start_sharing
+      fiber_a_holds = true
+      Fiber.yield
+      @lock.stop_sharing
+    end
+
+    fiber_b = Fiber.new do
+      # Fiber A's share must block fiber B's attempt at an exclusive lock.
+      # Under the old +Thread.current+ keying, fiber B would have looked
+      # like the same owner and proceeded.
+      fiber_b_saw_lock_busy = @lock.start_exclusive(no_wait: true) == false
+    end
+
+    fiber_a.resume
+    assert fiber_a_holds
+    fiber_b.resume
+    assert fiber_b_saw_lock_busy, "fiber B should observe fiber A's share and decline the exclusive lock"
+    fiber_a.resume # drain stop_sharing
+  end
+
+  def test_exclusive_held_by_one_fiber_blocks_exclusive_in_another_fiber
+    fiber_a = Fiber.new do
+      @lock.start_exclusive
+      Fiber.yield
+      @lock.stop_exclusive
+    end
+
+    second_attempt_blocked = nil
+    fiber_b = Fiber.new do
+      second_attempt_blocked = @lock.start_exclusive(no_wait: true) == false
+    end
+
+    fiber_a.resume
+    fiber_b.resume
+
+    assert second_attempt_blocked, "a second fiber must not be able to claim the exclusive lock"
+    fiber_a.resume
+  end
+
+  def test_stop_exclusive_from_a_different_fiber_raises
+    acquirer = Fiber.new do
+      @lock.start_exclusive
+      Fiber.yield
+      @lock.stop_exclusive
+    end
+
+    releaser = Fiber.new do
+      error = assert_raises(RuntimeError) do
+        @lock.stop_exclusive
+      end
+      assert_equal "invalid unlock", error.message
+    end
+
+    acquirer.resume
+    releaser.resume
+    acquirer.resume
+  end
+
+  def test_exclusive_is_reentrant_within_a_single_fiber
+    inner_executed = false
+
+    fiber = Fiber.new do
+      @lock.exclusive do
+        @lock.exclusive do
+          inner_executed = true
+        end
+      end
+    end
+
+    fiber.resume
+    assert inner_executed
+  end
+
+  def test_sharing_upgradeable_to_exclusive_within_a_single_fiber
+    upgraded = false
+
+    fiber = Fiber.new do
+      @lock.sharing do
+        @lock.exclusive do
+          upgraded = true
+        end
+      end
+    end
+
+    fiber.resume
+    assert upgraded
+  end
+
+  def test_share_count_is_per_fiber_not_per_thread
+    fiber_a = Fiber.new do
+      @lock.start_sharing
+      Fiber.yield
+      @lock.stop_sharing
+    end
+
+    fiber_b = Fiber.new do
+      @lock.start_sharing
+      Fiber.yield
+      @lock.stop_sharing
+    end
+
+    fiber_a.resume
+    fiber_b.resume
+
+    @lock.raw_state do |data|
+      owners_with_share = data.select { |_, info| info[:sharing] && info[:sharing] > 0 }.keys
+      assert_equal 2, owners_with_share.size, "expected two distinct fiber owners to hold shares"
+      assert owners_with_share.all? { |o| o.is_a?(Fiber) }, "owners should be Fibers under :fiber isolation"
+    end
+
+    fiber_a.resume
+    fiber_b.resume
+  end
+
+  def test_thread_isolation_level_still_collapses_fibers_to_one_owner
+    ActiveSupport::IsolatedExecutionState.isolation_level = :thread
+    lock = ActiveSupport::Concurrency::ShareLock.new
+
+    fiber_a = Fiber.new do
+      lock.start_sharing
+      Fiber.yield
+      lock.stop_sharing
+    end
+
+    can_acquire_exclusive_inline = nil
+    fiber_b = Fiber.new do
+      # Same thread, +:thread+ isolation: fiber B looks like the same owner
+      # as fiber A and is allowed to take the exclusive lock despite the
+      # outstanding share.
+      can_acquire_exclusive_inline = lock.start_exclusive(no_wait: true)
+      lock.stop_exclusive if can_acquire_exclusive_inline
+    end
+
+    fiber_a.resume
+    fiber_b.resume
+
+    assert can_acquire_exclusive_inline, "under :thread isolation, fibers on the same thread share an owner identity"
+    fiber_a.resume
+  end
+end

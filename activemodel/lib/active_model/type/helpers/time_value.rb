@@ -61,33 +61,16 @@ module ActiveModel
             end
           end
 
-          if Time.new(2000, 1, 1, 0, 0, 0, "-00:00").yday != 1 # Early 3.2.x had a bug
-            # BUG: Wrapping the Time object with Time.at because Time.new with `in:` in Ruby 3.2.0
-            # used to return an invalid Time object
-            # see: https://bugs.ruby-lang.org/issues/19292
-            def fast_string_to_time(string)
-              return unless string.include?("-") #  Time.new("1234") # => 1234-01-01 00:00:00
+          def fast_string_to_time(string)
+            return unless string.include?("-") #  Time.new("1234") # => 1234-01-01 00:00:00
 
-              if is_utc?
-                ::Time.at(::Time.new(string, in: "UTC"))
-              else
-                ::Time.new(string)
-              end
-            rescue ArgumentError
-              nil
+            if is_utc?
+              ::Time.new(string, in: "UTC")
+            else
+              ::Time.new(string)
             end
-          else
-            def fast_string_to_time(string)
-              return unless string.include?("-") #  Time.new("1234") # => 1234-01-01 00:00:00
-
-              if is_utc?
-                ::Time.new(string, in: "UTC")
-              else
-                ::Time.new(string)
-              end
-            rescue ArgumentError
-              nil
-            end
+          rescue ArgumentError
+            nil
           end
       end
     end

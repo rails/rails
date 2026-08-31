@@ -18,12 +18,12 @@ module ActiveRecord
 
       def initialize
         super()
-        @mutex = Mutex.new
+        @monitor = Monitor.new
         @server_version = nil
       end
 
       def server_version(connection) # :nodoc:
-        @server_version || @mutex.synchronize { @server_version ||= connection.get_database_version }
+        @server_version || @monitor.synchronize { @server_version ||= connection.get_database_version }
       end
 
       def schema_reflection
@@ -129,14 +129,14 @@ module ActiveRecord
     class ConnectionPool
       # Prior to 3.3.5, WeakKeyMap had a use after free bug
       # https://bugs.ruby-lang.org/issues/20688
-      if ObjectSpace.const_defined?(:WeakKeyMap) && Gem::Version.new(RUBY_VERSION) >= "3.3.5"
+      if ObjectSpace.const_defined?(:WeakKeyMap) && Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.3.5")
         WeakThreadKeyMap = ObjectSpace::WeakKeyMap
       else
         class WeakThreadKeyMap # :nodoc:
           # FIXME: On 3.3 we could use ObjectSpace::WeakKeyMap
           # but it currently causes GC crashes: https://github.com/byroot/rails/pull/3
           def initialize
-            @map = {}
+            @map = Concurrent::Map.new
           end
 
           def clear
@@ -148,7 +148,9 @@ module ActiveRecord
           end
 
           def []=(key, value)
-            @map.select! { |c, _| c&.alive? }
+            @map.each_pair do |thread, _|
+              @map.delete(thread) unless thread&.alive?
+            end
             @map[key] = value
           end
         end
@@ -455,13 +457,13 @@ module ActiveRecord
           begin
             yield lease.connection
           ensure
-            lease.sticky = sticky_was if prevent_permanent_checkout && !sticky_was
+            lease.sticky = sticky_was if prevent_permanent_checkout
           end
         else
           begin
             yield lease.connection = checkout
           ensure
-            lease.sticky = sticky_was if prevent_permanent_checkout && !sticky_was
+            lease.sticky = sticky_was if prevent_permanent_checkout
             release_connection(lease) unless lease.sticky
           end
         end
@@ -521,11 +523,17 @@ module ActiveRecord
               @connections.each do |conn|
                 if conn.in_use?
                   conn.steal!
-                  checkin conn
+
+                  ActiveSupport.error_reporter.handle(source: "active_record.connection_pool") do
+                    checkin conn
+                  end
                 end
-                conn.disconnect!
+
+                ActiveSupport.error_reporter.handle(source: "active_record.connection_pool") do
+                  conn.disconnect!
+                end
               end
-              @connections = []
+              @connections = @pinned_connection ? [@pinned_connection] : []
               @leases.clear
               @available.clear
 
@@ -555,6 +563,7 @@ module ActiveRecord
         @reaper_lock.synchronize do
           synchronize do
             return if self.discarded?
+            Reaper.discard_pool(self)
             @connections.each do |conn|
               conn.discard!
             end
@@ -807,13 +816,15 @@ module ActiveRecord
       # having to wait for a connection to be established when first using it
       # after checkout.
       def preconnect
-        sequential_maintenance -> c { (!c.connected? || !c.verified?) && c.allow_preconnect } do |conn|
-          conn.connect!
-        rescue
-          # Wholesale rescue: there's nothing we can do but move on. The
-          # connection will go back to the pool, and the next consumer will
-          # presumably try to connect again -- which will either work, or
-          # fail and they'll be able to report the exception.
+        reaper_lock do
+          sequential_maintenance -> c { (!c.connected? || !c.verified?) && c.allow_preconnect } do |conn|
+            conn.connect!
+          rescue
+            # Wholesale rescue: there's nothing we can do but move on. The
+            # connection will go back to the pool, and the next consumer will
+            # presumably try to connect again -- which will either work, or
+            # fail and they'll be able to report the exception.
+          end
         end
       end
 
@@ -981,8 +992,8 @@ module ActiveRecord
 
         # Directly check a specific connection out of the pool. Skips callbacks.
         #
-        # The connection must later either #return_from_maintenance or
-        # #remove_from_maintenance, or the pool will hang.
+        # The connection must later be returned with #return_from_maintenance, or
+        # the pool will hang.
         def checkout_for_maintenance(conn)
           synchronize do
             @maintaining += 1
@@ -1008,15 +1019,6 @@ module ActiveRecord
           end
         end
 
-        # Remove a connection from the pool after it has been checked out for
-        # maintenance. It will be automatically replaced with a new connection if
-        # necessary.
-        def remove_from_maintenance(conn)
-          synchronize do
-            @maintaining -= 1
-            remove conn
-          end
-        end
 
         #--
         # this is unfortunately not concurrent
@@ -1159,13 +1161,13 @@ module ActiveRecord
           # <tt>synchronize { conn.lease }</tt> in this method, but by leaving it to <tt>@available.poll</tt>
           # and +try_to_checkout_new_connection+ we can piggyback on +synchronize+ sections
           # of the said methods and avoid an additional +synchronize+ overhead.
-          if conn = @available.poll || try_to_queue_for_background_connection(checkout_timeout) || try_to_checkout_new_connection
+          if conn = @available.poll || try_to_queue_for_background_connection || try_to_checkout_new_connection
             conn
           else
             reap
             # Retry after reaping, which may return an available connection,
             # remove an inactive connection, or both
-            if conn = @available.poll || try_to_queue_for_background_connection(checkout_timeout) || try_to_checkout_new_connection
+            if conn = @available.poll || try_to_queue_for_background_connection || try_to_checkout_new_connection
               conn
             else
               @available.poll(checkout_timeout)
@@ -1187,7 +1189,7 @@ module ActiveRecord
         # If background connections are available, this method will block and
         # return a connection. If no background connections are available, it
         # will immediately return +nil+.
-        def try_to_queue_for_background_connection(checkout_timeout)
+        def try_to_queue_for_background_connection
           return unless @maintaining > 0
 
           synchronize do

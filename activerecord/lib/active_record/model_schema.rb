@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "monitor"
+require "active_record/model_schema/schema_context"
 
 module ActiveRecord
   module ModelSchema
@@ -178,8 +179,6 @@ module ActiveRecord
         alias_method :inheritance_column=, :real_inheritance_column=
       end
 
-      self.protected_environments = ["production"]
-
       self.ignored_columns = [].freeze
       self.only_columns = [].freeze
 
@@ -201,6 +200,16 @@ module ActiveRecord
     end
 
     module ClassMethods
+      def schema_context # :nodoc:
+        return @schema_context if schema_loaded?
+        load_schema
+        @schema_context
+      end
+
+      def build_schema_context # :nodoc:
+        ActiveRecord::ModelSchema::SchemaContext.new(self)
+      end
+
       # Guesses the table name (in forced lower-case) based on the name of the class in the
       # inheritance hierarchy descending directly from ActiveRecord::Base. So if the hierarchy
       # looks like: Reply < Message < ActiveRecord::Base, then Message is used
@@ -271,17 +280,18 @@ module ActiveRecord
       #     self.table_name = "project"
       #   end
       def table_name=(value)
-        value = value && value.to_s
+        value = (value && value.to_s).freeze
 
-        if defined?(@table_name)
+        renaming = defined?(@table_name)
+        if renaming
           return if value == @table_name
           reset_column_information if connected?
         end
 
         @table_name        = value
-        @arel_table        = nil
+        @arel_table        = Arel::Table.new(klass: self)
+        @predicate_builder = PredicateBuilder.new(TableMetadata.new(self, @arel_table)) if renaming
         @sequence_name     = nil unless @explicit_sequence_name
-        @predicate_builder = nil
       end
 
       # Returns a quoted version of the table name.
@@ -291,14 +301,16 @@ module ActiveRecord
 
       # Computes the table name, (re)sets it internally, and returns it.
       def reset_table_name # :nodoc:
-        self.table_name = if self == Base
-          nil
-        elsif abstract_class?
-          superclass.table_name
-        elsif superclass.abstract_class?
-          superclass.table_name || compute_table_name
-        else
-          compute_table_name
+        ActiveSupport::Ractors.on_main(self) do
+          self.table_name = if self == Base
+            nil
+          elsif abstract_class?
+            superclass.table_name
+          elsif superclass.abstract_class?
+            superclass.table_name || compute_table_name
+          else
+            compute_table_name
+          end
         end
       end
 
@@ -313,7 +325,14 @@ module ActiveRecord
       # The array of names of environments where destructive actions should be prohibited. By default,
       # the value is <tt>["production"]</tt>.
       def protected_environments
-        if defined?(@protected_environments)
+        ActiveRecord.deprecator.warn <<~MSG
+          ActiveRecord::Base.protected_environments is deprecated in favor of
+          ActiveRecord.protected_environments and will be removed in Rails 9.0.
+        MSG
+
+        if self == ActiveRecord::Base
+          ActiveRecord.protected_environments
+        elsif defined?(@protected_environments)
           @protected_environments
         else
           superclass.protected_environments
@@ -322,7 +341,16 @@ module ActiveRecord
 
       # Sets an array of names of environments where destructive actions should be prohibited.
       def protected_environments=(environments)
-        @protected_environments = environments.map(&:to_s)
+        ActiveRecord.deprecator.warn <<~MSG
+          ActiveRecord::Base.protected_environments= is deprecated in favor of
+          ActiveRecord.protected_environments= and will be removed in Rails 9.0.
+        MSG
+
+        if self == ActiveRecord::Base
+          ActiveRecord.protected_environments = environments
+        else
+          @protected_environments = environments.map(&:to_s)
+        end
       end
 
       def real_inheritance_column=(value) # :nodoc:
@@ -434,29 +462,23 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        @attributes_builder ||= begin
-          defaults = _default_attributes.except(*(column_names - [primary_key]))
-          ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
-        end
+        schema_context.attributes_builder
       end
 
       def columns_hash # :nodoc:
-        load_schema unless @columns_hash
-        @columns_hash
+        schema_context.columns_hash
       end
 
       def columns
-        @columns ||= columns_hash.values.freeze
+        schema_context.columns
       end
 
       def _returning_columns_for_insert(connection) # :nodoc:
-        @_returning_columns_for_insert ||= begin
-          auto_populated_columns = columns.filter_map do |c|
-            c.name if connection.return_value_after_insert?(c)
-          end
+        schema_context._returning_columns_for_insert(connection)
+      end
 
-          auto_populated_columns.empty? ? Array(primary_key) : auto_populated_columns
-        end
+      def _returning_columns_for_update(connection) # :nodoc:
+        schema_context._returning_columns_for_update(connection)
       end
 
       # Returns the column object for the named attribute.
@@ -482,28 +504,18 @@ module ActiveRecord
       # Returns a hash where the keys are column names and the values are
       # default values when instantiating the Active Record object for this table.
       def column_defaults
-        load_schema
-        @column_defaults ||= _default_attributes.deep_dup.to_hash.freeze
+        schema_context.column_defaults
       end
 
       # Returns an array of column names as strings.
       def column_names
-        @column_names ||= columns.map(&:name).freeze
-      end
-
-      def symbol_column_to_string(name_symbol) # :nodoc:
-        @symbol_column_to_string_name_hash ||= column_names.index_by(&:to_sym)
-        @symbol_column_to_string_name_hash[name_symbol]
+        schema_context.column_names
       end
 
       # Returns an array of column objects where the primary id, all columns ending in "_id" or "_count",
       # and columns used for single table inheritance have been removed.
       def content_columns
-        @content_columns ||= columns.reject do |c|
-          c.name == primary_key ||
-          c.name == inheritance_column ||
-          c.name.end_with?("_id", "_count")
-        end.freeze
+        schema_context.content_columns
       end
 
       # Resets all the cached information about columns, which will cause them
@@ -546,11 +558,16 @@ module ActiveRecord
       def load_schema
         return if schema_loaded?
         @load_schema_monitor.synchronize do
-          return if schema_loaded?
+          unless schema_loaded? || @schema_context
+            context = build_schema_context
+            @schema_context = context
+            context.load_schema!
 
-          load_schema!
-
-          @schema_loaded = true
+            unless @schema_hooks_loaded
+              load_schema!
+              @schema_hooks_loaded = true
+            end
+          end
         rescue
           reload_schema_from_cache # If the schema loading failed half way through, we must reset the state.
           raise
@@ -563,22 +580,22 @@ module ActiveRecord
         end
 
         def reload_schema_from_cache(recursive = true)
-          @_returning_columns_for_insert = nil
-          @arel_table = nil
-          @column_names = nil
-          @symbol_column_to_string_name_hash = nil
-          @content_columns = nil
-          @column_defaults = nil
-          @attributes_builder = nil
-          @columns = nil
-          @columns_hash = nil
-          @schema_loaded = false
+          @schema_hooks_loaded = false
+          @arel_table = Arel::Table.new(klass: self)
+          @predicate_builder = PredicateBuilder.new(TableMetadata.new(self, @arel_table)) unless self == Base
           @attribute_names = nil
+
+          reload_schema_contexts_from_cache
+
           if recursive
             subclasses.each do |descendant|
               descendant.send(:reload_schema_from_cache)
             end
           end
+        end
+
+        def reload_schema_contexts_from_cache
+          @schema_context = nil
         end
 
       private
@@ -593,23 +610,11 @@ module ActiveRecord
         end
 
         def schema_loaded?
-          @schema_loaded
+          @schema_context&.schema_loaded? || false
         end
 
         def load_schema!
-          unless table_name
-            raise ActiveRecord::TableNotSpecified, "#{self} has no table configured. Set one with #{self}.table_name="
-          end
-
-          columns_hash = schema_cache.columns_hash(table_name)
-          if only_columns.present?
-            columns_hash = columns_hash.slice(*only_columns)
-          elsif ignored_columns.present?
-            columns_hash = columns_hash.except(*ignored_columns)
-          end
-          @columns_hash = columns_hash.freeze
-
-          _default_attributes # Precompute to cache DB-dependent attribute types
+          # The current schema context handles the default schema load.
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
@@ -628,7 +633,7 @@ module ActiveRecord
               contained += "_"
             end
 
-            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(model_name)}#{full_table_name_suffix}"
+            "#{full_table_name_prefix}#{contained}#{undecorated_table_name(model_name)}#{full_table_name_suffix}".freeze
           else
             # STI subclasses always use their superclass's table.
             base_class.table_name

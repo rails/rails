@@ -284,7 +284,7 @@ module ActionView
         silence_redefinition_of_method(:_layout)
 
         prefixes = /\blayouts/.match?(_implied_layout_name) ? [] : ["layouts"]
-        default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}, false, keys, { formats: formats }).first || super"
+        default_behavior = "lookup_context.find('#{_implied_layout_name}', #{prefixes.inspect}, false, keys, { formats: formats }) || super"
         name_clause = if name
           default_behavior
         else
@@ -308,10 +308,11 @@ module ActionView
               end
             RUBY
           when Proc
-            define_method :_layout_from_proc, &_layout
+            layout_proc = ActiveSupport::Ractors.try_shareable_proc(_layout)
+            define_method :_layout_from_proc, layout_proc
             private :_layout_from_proc
             <<-RUBY
-              result = _layout_from_proc(#{_layout.arity == 0 ? '' : 'self'})
+              result = _layout_from_proc(#{layout_proc.arity == 0 ? '' : 'self'})
               return #{default_behavior} if result.nil?
               result
             RUBY

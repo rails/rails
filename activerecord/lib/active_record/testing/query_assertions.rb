@@ -12,7 +12,7 @@ module ActiveRecord
       #   assert_queries_count { Post.first }
       #
       # Any unmaterialized transactions will be materialized to ensure only
-      # queries attempted intside the block are counted.
+      # queries attempted inside the block are counted.
       #
       # If the +:include_schema+ option is provided, any queries (including
       # schema related) are counted. Setting this option also skips leasing a

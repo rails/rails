@@ -4,18 +4,18 @@ require_relative "../helper"
 
 module Arel
   module Nodes
-    class BindParamTest < Arel::Spec
-      it "is equal to other bind params with the same value" do
-        _(BindParam.new(1)).must_equal(BindParam.new(1))
-        _(BindParam.new("foo")).must_equal(BindParam.new("foo"))
+    class BindParamTest < Arel::Test
+      test "is equal to other bind params with the same value" do
+        assert_equal BindParam.new(1), BindParam.new(1)
+        assert_equal BindParam.new("foo"), BindParam.new("foo")
       end
 
-      it "is not equal to other nodes" do
-        _(BindParam.new(nil)).wont_equal(Node.new)
+      test "is not equal to other nodes" do
+        assert_not_equal Node.new, BindParam.new(nil)
       end
 
-      it "is not equal to bind params with different values" do
-        _(BindParam.new(1)).wont_equal(BindParam.new(2))
+      test "is not equal to bind params with different values" do
+        assert_not_equal BindParam.new(2), BindParam.new(1)
       end
     end
   end

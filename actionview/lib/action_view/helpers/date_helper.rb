@@ -196,6 +196,7 @@ module ActionView
       #
       # See also #time_ago_in_words
       def relative_time_in_words(from_time, options = {})
+        from_time = normalize_distance_of_time_argument_to_time(from_time)
         now = Time.now
         time = distance_of_time_in_words(from_time, now, options.except(:scope))
         key = from_time > now ? :future : :past
@@ -889,14 +890,16 @@ module ActionView
 
       private
         %w( sec min hour day month year ).each do |method|
-          define_method(method) do
+          name = method.to_sym
+          reader = ActiveSupport::Ractors.shareable_lambda do
             case @datetime
-            when Hash then @datetime[method.to_sym]
+            when Hash then @datetime[name]
             when Numeric then @datetime
             when nil then nil
-            else @datetime.send(method)
+            else @datetime.send(name)
             end
           end
+          define_method(method, reader)
         end
 
         def prompt_text(prompt, type)

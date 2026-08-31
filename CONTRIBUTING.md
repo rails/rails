@@ -8,7 +8,7 @@
 #### **Did you find a bug?**
 
 * **Do not open up a GitHub issue if the bug is a security vulnerability
-  in Rails**, and instead to refer to our [security policy](https://rubyonrails.org/security).
+  in Rails**, and instead refer to our [security policy](https://rubyonrails.org/security).
 
 * **Ensure the bug was not already reported** by searching on GitHub under [Issues](https://github.com/rails/rails/issues).
 
@@ -45,7 +45,7 @@ Changes that are cosmetic in nature and do not add anything substantial to the s
 
 * Do not open an issue on GitHub until you have collected positive feedback about the change. GitHub issues are primarily intended for bug reports and fixes.
 
-* We generally reject changes to Active Support core extensions. Those change should be proposed in the [Ruby issue tracker instead](https://bugs.ruby-lang.org/issues), as we don't want to conflict with future versions of Ruby.
+* We generally reject changes to Active Support core extensions. Those changes should be proposed in the [Ruby issue tracker instead](https://bugs.ruby-lang.org/issues), as we don't want to conflict with future versions of Ruby.
 
 #### **Do you have questions about the source code?**
 

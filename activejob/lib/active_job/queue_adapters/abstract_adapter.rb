@@ -17,7 +17,7 @@ module ActiveJob
         raise NotImplementedError
       end
 
-      def stopping?
+      def stopping?(job = nil)
         !!@stopping
       end
     end

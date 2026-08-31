@@ -341,6 +341,14 @@ module ActionView
       end
     end
 
+    test "nested helper renders do not replace rendered" do
+      render(partial: "test/from_helper")
+
+      assert_equal 1, rendered.html.css("form").size
+      assert_equal 1, rendered.html.css("ul").size
+      assert_equal "/foo", rendered.html.at("form")["action"]
+    end
+
     test "do not memoize the document_root_element in view tests" do
       concat form_tag("/foo")
 
@@ -404,14 +412,14 @@ module ActionView
 
       render "developers/developer", developer: DeveloperStruct.new("second")
 
-      assert_includes rendered, "first"
+      assert_not_includes rendered, "first"
       assert_includes rendered, "second"
       assert_not_includes rendered, "third"
 
       render "developers/developer", developer: DeveloperStruct.new("third")
 
-      assert_includes rendered, "first"
-      assert_includes rendered, "second"
+      assert_not_includes rendered, "first"
+      assert_not_includes rendered, "second"
       assert_includes rendered, "third"
     end
   end

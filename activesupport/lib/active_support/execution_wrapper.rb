@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/error_reporter"
@@ -13,6 +14,14 @@ module ActiveSupport
 
     define_callbacks :run
     define_callbacks :complete
+
+    class << self
+      attr_reader :active_key # :nodoc:
+    end
+
+    def self.inherited(subclass)
+      subclass.class_eval { @active_key = :"active_execution_wrapper_#{object_id}" }
+    end
 
     def self.to_run(*args, &block)
       set_callback(:run, *args, &block)
@@ -39,13 +48,13 @@ module ActiveSupport
       alias after before
     end
 
-    # Register an object to be invoked during both the +run+ and
-    # +complete+ steps.
+    # Register an object to be invoked during both the `run` and
+    # `complete` steps.
     #
-    # +hook.complete+ will be passed the value returned from +hook.run+,
-    # and will only be invoked if +run+ has previously been called.
+    # `hook.complete` will be passed the value returned from `hook.run`,
+    # and will only be invoked if `run` has previously been called.
     # (Mostly, this means it won't be invoked if an exception occurs in
-    # a preceding +to_run+ block; all ordinary +to_complete+ blocks are
+    # a preceding `to_run` block; all ordinary `to_complete` blocks are
     # invoked in that situation.)
     def self.register_hook(hook, outer: false)
       if outer
@@ -59,10 +68,10 @@ module ActiveSupport
 
     # Run this execution.
     #
-    # Returns an instance, whose +complete!+ method *must* be invoked
+    # Returns an instance, whose `complete!` method **must** be invoked
     # after the work has been performed.
     #
-    # Where possible, prefer +wrap+.
+    # Where possible, prefer `wrap`.
     def self.run!(reset: false)
       if reset
         lost_instance = IsolatedExecutionState.delete(active_key)
@@ -111,10 +120,6 @@ module ActiveSupport
       ActiveSupport.error_reporter
     end
 
-    def self.active_key # :nodoc:
-      @active_key ||= :"active_execution_wrapper_#{object_id}"
-    end
-
     def self.active? # :nodoc:
       IsolatedExecutionState.key?(active_key)
     end
@@ -128,10 +133,10 @@ module ActiveSupport
       run_callbacks(:run)
     end
 
-    # Complete this in-flight execution. This method *must* be called
-    # exactly once on the result of any call to +run!+.
+    # Complete this in-flight execution. This method **must** be called
+    # exactly once on the result of any call to `run!`.
     #
-    # Where possible, prefer +wrap+.
+    # Where possible, prefer `wrap`.
     def complete!
       complete
     ensure

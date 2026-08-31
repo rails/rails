@@ -9,6 +9,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   include ConsoleHelpers
 
   def setup
+    @spawned_console_pids = []
     skip "PTY unavailable" unless available_pty?
 
     build_app
@@ -22,6 +23,12 @@ class FullStackConsoleTest < ActiveSupport::TestCase
   end
 
   def teardown
+    @spawned_console_pids.each do |pid|
+      Process.kill("KILL", pid)
+      Process.wait(pid)
+    rescue Errno::ESRCH, Errno::ECHILD, Errno::EPERM
+      # ESRCH: process already exited, ECHILD: already reaped, EPERM: not our process to kill
+    end
     teardown_app
   end
 
@@ -41,6 +48,7 @@ class FullStackConsoleTest < ActiveSupport::TestCase
       "#{app_path}/bin/rails console #{options}",
       in: @replica, out: @replica, err: @replica
     )
+    @spawned_console_pids << pid
 
     if wait_for_prompt
       assert_output "> ", @primary, 30

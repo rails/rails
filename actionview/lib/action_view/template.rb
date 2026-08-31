@@ -7,8 +7,6 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
-    STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*?)\)(?=\s*-?%>|\s*$)/m
-
     # === Encodings in ActionView::Template
     #
     # ActionView::Template is one of a few sources of potential
@@ -164,23 +162,36 @@ module ActionView
 
     eager_autoload do
       autoload :Error
+      autoload :HTML
+      autoload :Handlers
+      autoload :Inline
       autoload :RawFile
       autoload :Renderable
-      autoload :Handlers
-      autoload :HTML
-      autoload :Inline
-      autoload :Types
       autoload :Sources
       autoload :Text
       autoload :Types
     end
 
+    ##
+    # :singleton-method: register_template_handler
+    #
+    # Register an object that knows how to handle template files with the given
+    # extensions. This can be used to implement new template types. The handler
+    # must respond to +:call+, which will be passed the template and should
+    # return the rendered template as a String.
+    #
+    #   ActionView::Template.register_template_handler :foo, FooHandler
+
     extend Template::Handlers
 
-    singleton_class.attr_accessor :frozen_string_literal
+    singleton_class.attr_accessor :frozen_string_literal # :nodoc:
     @frozen_string_literal = false
 
-    class << self # :nodoc:
+    # :stopdoc:
+
+    STRICT_LOCALS_REGEX = /\#\s+locals:\s+\((.*?)\)(?=\s*-?%>|\s*$)/m
+
+    class << self
       def mime_types_implementation=(implementation)
         # This method isn't thread-safe, but it's not supposed
         # to be called after initialization
@@ -189,12 +200,22 @@ module ActionView
           const_set(:Types, implementation)
         end
       end
+
+      def validate_formats(formats)
+        return if Types.valid_symbols?(formats)
+        invalid = formats - Types.symbols
+        raise ArgumentError, "Invalid formats: #{invalid.map(&:inspect).join(", ")}"
+      end
+
+      def normalized_formats(formats)
+        formats & Types.symbols unless Types.valid_symbols?(formats)
+      end
     end
 
     attr_reader :identifier, :handler
     attr_reader :variable, :format, :variant, :virtual_path
 
-    NONE = Object.new
+    NONE = Object.new.freeze
 
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
       @source            = source.dup
@@ -286,7 +307,7 @@ module ActionView
         end
       end
     rescue => e
-      handle_render_error(view, e)
+      handle_render_error(e)
     end
 
     def type
@@ -370,6 +391,12 @@ module ActionView
 
         return if @strict_locals.nil? # Magic comment not found
 
+        # Tag with the assumed encoding before encode! runs, same as
+        # encode! does for the source itself (see above).
+        if @strict_locals.encoding == Encoding::BINARY
+          @strict_locals.force_encoding(Encoding.default_external)
+        end
+
         @strict_locals = "**nil" if @strict_locals.blank?
       end
 
@@ -379,6 +406,23 @@ module ActionView
     # Returns whether a template is using strict locals.
     def strict_locals?
       strict_locals!
+    end
+
+    def freeze # :nodoc:
+      unless @compiled
+        raise ArgumentError, "Cannot freeze #{short_identifier.inspect}: the template must be compiled first. " \
+          "Frozen templates cannot compile, so an uncompiled one could never render."
+      end
+      strict_locals!
+      method_name.freeze
+      @source.freeze
+      @identifier.freeze
+      @virtual_path&.freeze
+      @locals&.freeze
+      @strict_locals.freeze if @strict_locals.is_a?(String)
+      @variant.freeze if @variant.is_a?(String)
+      @compile_mutex = nil
+      super
     end
 
     # Exceptions are marshalled when using the parallel test runner with DRb, so we need
@@ -416,7 +460,15 @@ module ActionView
       # Compile a template. This method ensures a template is compiled
       # just once and removes the source after it is compiled.
       def compile!(view)
-        return if @compiled
+        if @compiled
+          if @compiled_method_container && view.compiled_method_container != @compiled_method_container
+            raise ArgumentError, "Template #{short_identifier.inspect} was compiled to render with " \
+              "#{@compiled_method_container.inspect} but is being rendered with a view whose compiled " \
+              "method container is #{view.compiled_method_container.inspect}. A template compiles into " \
+              "a single container; render it with the view class it was compiled with."
+          end
+          return
+        end
 
         # Templates can be used concurrently in threaded environments
         # so compilation and any instance variable modification must
@@ -433,6 +485,7 @@ module ActionView
             compile(mod)
           end
 
+          @compiled_method_container = mod
           @compiled = true
         end
       end
@@ -546,7 +599,7 @@ module ActionView
         end
       end
 
-      def handle_render_error(view, e)
+      def handle_render_error(e)
         if e.is_a?(Template::Error)
           e.sub_template_of(self)
           raise e

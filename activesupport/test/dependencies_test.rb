@@ -3,19 +3,11 @@
 require_relative "abstract_unit"
 require "active_support/dependencies"
 
-module ModuleWithMissing
-  mattr_accessor :missing_count
-  def self.const_missing(name)
-    self.missing_count += 1
-    name
-  end
-end
-
-module ModuleWithConstant
-  InheritedConstant = "Hello"
-end
-
 class RequireDependencyTest < ActiveSupport::TestCase
+  def silenced_require_dependency(path)
+    ActiveSupport.deprecator.silence { require_dependency(path) }
+  end
+
   setup do
     @loaded_features_copy = $LOADED_FEATURES.dup
     ActiveSupport::Dependencies.autoload_paths.clear
@@ -34,30 +26,30 @@ class RequireDependencyTest < ActiveSupport::TestCase
   end
 
   test "require_dependency looks autoload paths up" do
-    assert require_dependency("x")
+    assert silenced_require_dependency("x")
     assert_equal :X, X
   end
 
   test "require_dependency looks autoload paths up (idempotent)" do
-    assert require_dependency("x")
-    assert_not require_dependency("x")
+    assert silenced_require_dependency("x")
+    assert_not silenced_require_dependency("x")
   end
 
   test "require_dependency handles absolute paths correctly" do
-    assert require_dependency("#{@root_dir}/x.rb")
+    assert silenced_require_dependency("#{@root_dir}/x.rb")
     assert_equal :X, X
   end
 
   test "require_dependency handles absolute paths correctly (idempotent)" do
-    assert require_dependency("#{@root_dir}/x.rb")
-    assert_not require_dependency("#{@root_dir}/x.rb")
+    assert silenced_require_dependency("#{@root_dir}/x.rb")
+    assert_not silenced_require_dependency("#{@root_dir}/x.rb")
   end
 
   test "require_dependency supports arguments that respond to to_path" do
     x = Object.new
     def x.to_path; "x"; end
 
-    assert require_dependency(x)
+    assert silenced_require_dependency(x)
     assert_equal :X, X
   end
 
@@ -65,8 +57,8 @@ class RequireDependencyTest < ActiveSupport::TestCase
     x = Object.new
     def x.to_path; "x"; end
 
-    assert require_dependency(x)
-    assert_not require_dependency(x)
+    assert silenced_require_dependency(x)
+    assert_not silenced_require_dependency(x)
   end
 
   test "require_dependency fallback to Kernel#require" do
@@ -74,7 +66,7 @@ class RequireDependencyTest < ActiveSupport::TestCase
     $LOAD_PATH << dir
     File.write("#{dir}/y.rb", "Y = :Y")
 
-    assert require_dependency("y")
+    assert silenced_require_dependency("y")
     assert_equal :Y, Y
   ensure
     $LOAD_PATH.pop
@@ -86,18 +78,24 @@ class RequireDependencyTest < ActiveSupport::TestCase
     $LOAD_PATH << dir
     File.write("#{dir}/y.rb", "Y = :Y")
 
-    assert require_dependency("y")
-    assert_not require_dependency("y")
+    assert silenced_require_dependency("y")
+    assert_not silenced_require_dependency("y")
   ensure
     $LOAD_PATH.pop
     Object.send(:remove_const, :Y) if Object.const_defined?(:Y)
   end
 
   test "require_dependency raises ArgumentError if the argument is not a String and does not respond to #to_path" do
-    assert_raises(ArgumentError) { require_dependency(Object.new) }
+    assert_raises(ArgumentError) { silenced_require_dependency(Object.new) }
   end
 
   test "require_dependency raises LoadError if the given argument is not found" do
-    assert_raise(LoadError) { require_dependency("nonexistent_filename") }
+    assert_raise(LoadError) { silenced_require_dependency("nonexistent_filename") }
+  end
+
+  test "require_dependency is deprecated" do
+    assert_deprecated(/require_dependency is deprecated/, ActiveSupport.deprecator) do
+      require_dependency("x")
+    end
   end
 end

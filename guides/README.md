@@ -2,7 +2,7 @@
 
 ## About the Project
 
-The Rails Guides Visual Refresh occurred in Q1 2024, and was intended to bring the visual style of the guides inline with the rubyonrails.org site.
+The Rails Guides Visual Refresh occurred in Q1 2024, and was intended to bring the visual style of the guides in line with the rubyonrails.org site.
 
 ## Editing Dependencies
 
@@ -16,7 +16,7 @@ To generate new guides into static files, type `rake guides:generate` from insid
 
 ### Why are you not using CSS variables?
 
-Per the MDN documentation on CSS custom properties (https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties), they are not supported in media or container queries at this point (Feb 2024). They may in future releases, and we should pivot to that when they are more wholistically supported. SCSS variables, because they are interpolated at build, serve a similar purpose and allow us the flexibility to support much older browsers.
+Per the MDN documentation on CSS custom properties (https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties), they are not supported in media or container queries at this point (Feb 2024). They may in future releases, and we should pivot to that when they are more holistically supported. SCSS variables, because they are interpolated at build, serve a similar purpose and allow us the flexibility to support much older browsers.
 
 ### Why do we include LTR and RTL?
 

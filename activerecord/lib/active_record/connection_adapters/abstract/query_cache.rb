@@ -10,9 +10,9 @@ module ActiveRecord
 
       class << self
         def included(base) # :nodoc:
-          dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :delete, :truncate,
-            :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction, :restart_db_transaction,
-            :exec_insert_all
+          dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :update_with_result,
+            :delete, :truncate, :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction,
+            :restart_db_transaction, :exec_insert_all
         end
 
         def dirties_query_cache(base, *method_names)
@@ -119,12 +119,6 @@ module ActiveRecord
         def compute_if_absent(context)
           @map[context] || @mutex.synchronize do
             @map[context] ||= yield
-          end
-        end
-
-        def clear
-          @map.synchronize do
-            @map.clear
           end
         end
       end
@@ -272,7 +266,8 @@ module ActiveRecord
             result = lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry)
             FutureResult.wrap(result)
           else
-            cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry) }
+            result = cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry) }
+            result.shuffle_rows(arel)
           end
         else
           super

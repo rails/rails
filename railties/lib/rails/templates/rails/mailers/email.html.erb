@@ -117,8 +117,8 @@
     <% if @email.html_part && @email.text_part %>
       <dd>
         <select id="part" onchange="refreshBody(false);">
-          <option <%= request.format == Mime[:html] ? 'selected' : '' %> value="<%= part_query('text/html') %>">View as HTML email</option>
-          <option <%= request.format == Mime[:text] ? 'selected' : '' %> value="<%= part_query('text/plain') %>">View as plain-text email</option>
+          <option<% if request.format == Mime[:html] %> selected<% end %> value="<%= part_query('text/html') %>">View as HTML email</option>
+          <option<% if request.format == Mime[:text] %> selected<% end %> value="<%= part_query('text/plain') %>">View as plain-text email</option>
         </select>
       </dd>
     <% elsif @part %>
@@ -132,7 +132,7 @@
       <dd>
         <select id="locale" onchange="refreshBody(true);">
           <% I18n.available_locales.each do |locale| %>
-            <option <%= I18n.locale == locale ? 'selected' : '' %> value="<%= locale_query(locale) %>"><%= locale %></option>
+            <option<% if I18n.locale == locale %> selected<% end %> value="<%= locale_query(locale) %>"><%= locale %></option>
           <% end %>
         </select>
       </dd>

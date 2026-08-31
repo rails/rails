@@ -113,6 +113,28 @@ module ApplicationTests
       assert_match "FooTest", rails("test:generators", "--verbose")
     end
 
+    def test_run_system_when_the_folder_does_not_exist
+      assert_not File.directory?("#{app_path}/test/system")
+
+      assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", rails("test:system")
+    end
+
+    def test_run_folder_command_when_the_folder_does_not_exist
+      assert_not File.directory?("#{app_path}/test/jobs")
+
+      assert_match "0 runs, 0 assertions, 0 failures, 0 errors, 0 skips", rails("test:jobs")
+    end
+
+    def test_run_units_when_one_of_the_folders_does_not_exist
+      create_test_file :models, "foo"
+      assert_not File.directory?("#{app_path}/test/unit")
+
+      rails("test:units").tap do |output|
+        assert_match "FooTest", output
+        assert_match "1 runs, 1 assertions, 0 failures", output
+      end
+    end
+
     def test_run_channels
       create_test_file :channels, "foo_channel"
       create_test_file :channels, "bar_channel"
@@ -889,18 +911,18 @@ module ApplicationTests
     def test_parallel_testing_when_schema_is_not_up_to_date
       require "#{app_path}/config/environment"
       Dir.chdir(app_path) do
-        use_mysql2
+        use_mysql2 do
+          exercise_parallelization_regardless_of_machine_core_count(with: :processes)
 
-        exercise_parallelization_regardless_of_machine_core_count(with: :processes)
+          rails "generate", "scaffold", "User", "name:string"
+          rails "db:create"
+          rails "db:migrate"
 
-        rails "generate", "scaffold", "User", "name:string"
-        rails "db:create"
-        rails "db:migrate"
+          output = rails "test"
 
-        output = rails "test"
-
-        assert_match(/Finished in.*7 runs, 11 assertions, 0 failures, 0 errors, 0 skips/m, output)
-        assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
+          assert_match(/Finished in.*7 runs, 11 assertions, 0 failures, 0 errors, 0 skips/m, output)
+          assert_match %r{Running \d+ tests in parallel using \d+ processes}, output
+        end
       end
     end
 

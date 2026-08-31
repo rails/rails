@@ -7,7 +7,7 @@ module ActionView
     # SimpleType is mostly just a stub implementation for when Action View
     # is used without Action Dispatch.
     class SimpleType # :nodoc:
-      @symbols = [ :html, :text, :js, :css, :xml, :json ]
+      @symbols = [ :html, :text, :js, :css, :xml, :json ].freeze
       class << self
         attr_reader :symbols
 
@@ -28,6 +28,7 @@ module ActionView
 
       def initialize(symbol)
         @symbol = symbol.to_sym
+        freeze
       end
 
       def to_s

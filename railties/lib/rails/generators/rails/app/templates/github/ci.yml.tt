@@ -5,14 +5,18 @@ on:
   push:
     branches: [ <%= user_default_branch %> ]
 
+permissions:
+  contents: read
+
 jobs:
 <%- unless skip_brakeman? && skip_bundler_audit? -%>
   scan_ruby:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -33,10 +37,11 @@ jobs:
 <%- if using_importmap? -%>
   scan_js:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -50,11 +55,12 @@ jobs:
 <%- unless skip_rubocop? -%>
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -62,7 +68,7 @@ jobs:
           bundler-cache: true
 
       - name: Prepare RuboCop cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         env:
           DEPENDENCIES_HASH: ${{ hashFiles('.ruby-version', '**/.rubocop.yml', '**/.rubocop_todo.yml', 'Gemfile.lock') }}
         with:
@@ -78,6 +84,7 @@ jobs:
 <% unless options[:skip_test] -%>
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     <%- if options[:database] == "sqlite3" -%>
     # services:
@@ -121,7 +128,7 @@ jobs:
 
       <%- end -%>
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -151,6 +158,7 @@ jobs:
 
   system-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     <%- if options[:database] == "sqlite3" -%>
     # services:
@@ -194,7 +202,7 @@ jobs:
 
       <%- end -%>
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -222,7 +230,7 @@ jobs:
         run: bin/rails <%= "db:test:prepare " unless skip_active_record? %>test:system
 
       - name: Keep screenshots from failed system tests
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: screenshots

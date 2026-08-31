@@ -34,7 +34,7 @@ class ErbUtilTest < ActiveSupport::TestCase
       '<script type="application/javascript">alert("You are \'pwned\'!")</script>',
       "&lt;script type=&quot;application/javascript&quot;&gt;alert(&quot;You are &#39;pwned&#39;!&quot;)&lt;/script&gt;"
     ]
-  ]
+  ].freeze
 
   JSON_ESCAPE_TEST_CASES = [
     ["1", "1"],
@@ -44,7 +44,7 @@ class ErbUtilTest < ActiveSupport::TestCase
     ['["</script>"]', '["\u003c/script\u003e"]'],
     ['{"name":"</script>"}', '{"name":"\u003c/script\u003e"}'],
     [%({"name":"d\u2028h\u2029h"}), '{"name":"d\u2028h\u2029h"}']
-  ]
+  ].freeze
 
   def test_html_escape
     HTML_ESCAPE_TEST_CASES.each do |(raw, expected)|

@@ -6,6 +6,12 @@ require "database/setup"
 require "active_storage/previewer/video_previewer"
 
 class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
+  setup do
+    if !ENV["BUILDKITE"] && !system("command", "-v", ActiveStorage.paths[:ffmpeg] || "ffmpeg")
+      skip("ffmpeg isn't available")
+    end
+  end
+
   test "previewing an MP4 video" do
     blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
 
@@ -17,6 +23,16 @@ class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
       assert_equal 640, image.width
       assert_equal 480, image.height
       assert_equal "image/jpeg", Marcel::Magic.by_extension(image.type).type
+    end
+  end
+
+  test "previewing a video that the input arguments exclude" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+
+    ActiveStorage.with(video_preview_input_arguments: "-codec_whitelist none") do
+      assert_raises ActiveStorage::PreviewError do
+        ActiveStorage::Previewer::VideoPreviewer.new(blob).preview
+      end
     end
   end
 

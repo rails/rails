@@ -41,7 +41,7 @@ module Rails
       test_unit: {
         fixture_replacement: "-r",
       }
-    }
+    }.freeze
 
     DEFAULT_OPTIONS = {
       rails: {
@@ -58,7 +58,7 @@ module Rails
         test_framework: nil,
         template_engine: :erb
       }
-    }
+    }.freeze
 
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change when we FileUtils.cd.

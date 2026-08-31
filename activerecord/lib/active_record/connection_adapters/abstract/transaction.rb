@@ -74,6 +74,9 @@ module ActiveRecord
       def nullify!
         @state = nil
       end
+
+      deprecate :fully_committed?, :fully_rolledback?, :nullify!,
+        fully_completed?: :completed?, deprecator: ActiveRecord.deprecator
     end
 
     class TransactionInstrumenter
@@ -497,7 +500,7 @@ module ActiveRecord
 
       def rollback
         if materialized?
-          connection.rollback_db_transaction
+          connection.rollback_db_transaction unless @state.invalidated?
           connection.reset_isolation_level if isolation_level
         end
         @state.full_rollback!
@@ -659,6 +662,12 @@ module ActiveRecord
                   commit_transaction
                 rescue ActiveRecord::ConnectionFailed
                   transaction.invalidate! unless transaction.state.completed?
+                  raise
+                rescue ActiveRecord::TransactionRollbackError
+                  unless transaction.state.completed?
+                    transaction.invalidate!
+                    rollback_transaction(transaction)
+                  end
                   raise
                 rescue Exception
                   rollback_transaction(transaction) unless transaction.state.completed?

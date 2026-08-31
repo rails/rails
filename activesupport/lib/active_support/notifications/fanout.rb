@@ -1,7 +1,9 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "concurrent/map"
 require "active_support/core_ext/object/try"
+require "active_support/ractors"
 
 module ActiveSupport
   module Notifications
@@ -61,19 +63,42 @@ module ActiveSupport
         @groups_for = Concurrent::Map.new
       end
 
+      def to_ractor_snapshot # :nodoc:
+        {
+          string_subscribers: Hash[@string_subscribers.keys.zip(@string_subscribers.values)],
+          other_subscribers: @other_subscribers,
+        }
+      end
+
+      def load_ractor_snapshot(snapshot) # :nodoc:
+        string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
+        snapshot[:string_subscribers].each { |name, list| string_subscribers[name] = list.dup }
+        @string_subscribers = string_subscribers
+        @other_subscribers = snapshot[:other_subscribers].dup
+      end
+
       def inspect # :nodoc:
         total_patterns = @string_subscribers.size + @other_subscribers.size
         "#<#{self.class} (#{total_patterns} patterns)>"
       end
 
-      def subscribe(pattern = nil, callable = nil, monotonic: false, &block)
+      def subscribe(pattern = nil, callable = nil, monotonic: false, prepend: false, &block)
+        block = ActiveSupport::Ractors.try_shareable_proc(block) if block
+
         subscriber = Subscribers.new(pattern, callable || block, monotonic)
         @mutex.synchronize do
           case pattern
           when String
-            @string_subscribers[pattern] << subscriber
+            if prepend
+              @string_subscribers[pattern].unshift(subscriber)
+            else
+              @string_subscribers[pattern] << subscriber
+            end
             clear_cache(pattern)
           when NilClass, Regexp
+            if prepend
+              raise ArgumentError, "Cannot prepend Regex subscribers"
+            end
             @other_subscribers << subscriber
             clear_cache
           else
@@ -213,24 +238,26 @@ module ActiveSupport
         groups
       end
 
-      # A +Handle+ is used to record the start and finish time of event.
+      # A `Handle` is used to record the start and finish time of event.
       #
       # Both #start and #finish must each be called exactly once.
       #
       # Where possible, it's best to use the block form: ActiveSupport::Notifications.instrument.
-      # +Handle+ is a low-level API intended for cases where the block form can't be used.
+      # `Handle` is a low-level API intended for cases where the block form can't be used.
       #
-      #   handle = ActiveSupport::Notifications.instrumenter.build_handle("my.event", {})
-      #   begin
-      #     handle.start
-      #     # work to be instrumented
-      #   ensure
-      #     handle.finish
-      #   end
+      # ```
+      # handle = ActiveSupport::Notifications.instrumenter.build_handle("my.event", {})
+      # begin
+      #   handle.start
+      #   # work to be instrumented
+      # ensure
+      #   handle.finish
+      # end
+      # ```
       class Handle
         include FanoutIteration
 
-        def initialize(notifier, name, id, groups, payload) # :nodoc:
+        def initialize(name, id, groups, payload) # :nodoc:
           @name = name
           @id = id
           @payload = payload
@@ -291,7 +318,7 @@ module ActiveSupport
         if groups.empty?
           NullHandle
         else
-          Handle.new(self, name, id, groups, payload)
+          Handle.new(name, id, groups, payload)
         end
       end
 

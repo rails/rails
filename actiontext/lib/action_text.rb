@@ -17,15 +17,15 @@ module ActionText
   autoload :AttachmentGallery
   autoload :Attachment
   autoload :Attribute
-  autoload :Configurator
+  autoload :BottomUpReducer
   autoload :Content
   autoload :Editor
   autoload :Encryption
   autoload :Fragment
   autoload :FixtureSet
   autoload :HtmlConversion
+  autoload :MarkdownConversion
   autoload :PlainTextConversion
-  autoload :Registry
   autoload :Rendering
   autoload :Serialization
   autoload :TrixAttachment

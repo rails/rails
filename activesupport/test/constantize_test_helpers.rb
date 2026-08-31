@@ -6,7 +6,7 @@ module ConstantizeTestHelpers
     "RaisesLoadError"     => "#{ROOT_DIR}/raises_load_error",
     "RaisesNameError"     => "#{ROOT_DIR}/raises_name_error",
     "RaisesNoMethodError" => "#{ROOT_DIR}/raises_no_method_error"
-  }
+  }.freeze
 
   def with_autoloading_fixtures
     define_autoloads

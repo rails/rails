@@ -2,6 +2,7 @@
 
 require "ipaddr"
 require "active_support/core_ext/array/wrap"
+require "active_support/inspect_backport"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
 require "active_support/configuration_file"
@@ -24,7 +25,7 @@ module Rails
                     :content_security_policy_nonce_auto,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
-                    :dom_testing_default_html_version, :yjit
+                    :dom_testing_default_html_version, :yjit, :action_on_early_load_hook
 
       attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
@@ -85,6 +86,7 @@ module Rails
         @server_timing                           = false
         @dom_testing_default_html_version        = :html4
         @yjit                                    = false
+        @action_on_early_load_hook               = :log
       end
 
       # Loads default configuration values for a target version. This includes
@@ -287,7 +289,6 @@ module Rails
             active_record.default_column_serializer = nil
             active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
             active_record.encryption.support_sha1_for_non_deterministic_encryption = false
-            active_record.marshalling_format_version = 7.1
             active_record.run_after_transaction_callbacks_in_order_defined = true
             active_record.generate_secure_token_on = :initialize
           end
@@ -375,6 +376,7 @@ module Rails
           end
 
           if respond_to?(:action_dispatch)
+            action_dispatch.strict_accept_header = true
             action_dispatch.default_headers = {
               "X-Frame-Options" => "SAMEORIGIN",
               "X-Content-Type-Options" => "nosniff",
@@ -395,6 +397,8 @@ module Rails
           if respond_to?(:active_job)
             active_job.enqueue_after_transaction_commit = true
           end
+
+          ActiveSupport.raise_on_invalid_time_zone_parse = true
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -491,7 +495,7 @@ module Rails
               if config.is_a?(Hash) && config.values.all?(Hash)
                 if shared.is_a?(Hash) && shared.values.all?(Hash)
                   config.map do |name, sub_config|
-                    sub_config.reverse_merge!(shared[name])
+                    sub_config.reverse_merge!(shared[name]) if shared[name]
                   end
                 else
                   config.map do |name, sub_config|
@@ -647,9 +651,7 @@ module Rails
         f
       end
 
-      def inspect # :nodoc:
-        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-      end
+      ActiveSupport::InspectBackport.apply(self)
 
       class Custom # :nodoc:
         def initialize
@@ -674,6 +676,10 @@ module Rails
       end
 
       private
+        def instance_variables_to_inspect
+          [].freeze
+        end
+
         def credentials_defaults
           content_path = root.join("config/credentials/#{Rails.env}.yml.enc")
           content_path = root.join("config/credentials.yml.enc") if !content_path.exist?

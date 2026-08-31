@@ -254,7 +254,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       get "/get_class_after_reset_session"
       assert_response :success
       assert_not_equal [], headers["Set-Cookie"]
-      assert_equal "class: ActionDispatch::Request::Session", response.body
+      assert_equal "class: ActionDispatch::Http::Session", response.body
     end
   end
 

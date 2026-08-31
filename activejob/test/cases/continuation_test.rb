@@ -6,6 +6,7 @@ require "active_support/testing/stream"
 require "active_support/core_ext/object/with"
 require "support/test_logger"
 require "support/do_not_perform_enqueued_jobs"
+require "models/person"
 
 return unless adapter_is?(:test)
 
@@ -179,7 +180,8 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
 
     assert_enqueued_jobs 0, only: DeletingJob do
       assert_raises StandardError do
-        queue_adapter.with(stopping: ->() { raise StandardError if during_step?(DeletingJob, :delete) }) do
+        stopping = ->(job) { raise StandardError if job.is_a?(DeletingJob) && during_step?(job, :delete) }
+        queue_adapter.with(stopping: stopping) do
           perform_enqueued_jobs
         end
       end
@@ -212,7 +214,8 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
 
     IteratingJob.perform_later
 
-    queue_adapter.with(stopping: ->() { raise StandardError if during_step?(IteratingJob, :rename, cursor: 433) }) do
+    stopping = ->(job) { raise StandardError if job.is_a?(IteratingJob) && during_step?(job, :rename, cursor: 433) }
+    queue_adapter.with(stopping: stopping) do
       assert_enqueued_jobs 1, only: IteratingJob do
         perform_enqueued_jobs
       end
@@ -246,6 +249,43 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
       assert_raises StandardError do
         perform_enqueued_jobs
       end
+    end
+  end
+
+  test "records the exception message as the exception_executions key when resuming after an error" do
+    IteratingRecord.records = [ 123, 432, 6565, 3243, 234, 13, 22 ].map { |i| IteratingRecord.new(i, "item_#{i}") }
+
+    IteratingJob.perform_later(raise_when_cursor: 433)
+
+    assert_enqueued_jobs 1, only: IteratingJob do
+      perform_enqueued_jobs
+    end
+
+    job = queue_adapter.enqueued_jobs.first
+    assert_equal({ "Cursor error" => 1 }, job["exception_executions"])
+  end
+
+  test "passes the job to the queue adapter stopping predicate" do
+    LinearJob.items = []
+    LinearJob.perform_later
+
+    jobs = []
+    queue_adapter.with(stopping: ->(job) { jobs << job; false }) do
+      perform_enqueued_jobs
+    end
+
+    assert_operator jobs.length, :>, 0
+    assert jobs.all? { |job| job.is_a?(LinearJob) }
+  end
+
+  test "uses queue adapter stopping reason when interrupting" do
+    LinearJob.items = []
+    LinearJob.perform_later
+
+    interrupt_job_after_step LinearJob, :step_one, reason: :queue_paused do
+      perform_enqueued_jobs
+
+      assert_match(/Interrupted ActiveJob::TestContinuation::LinearJob \(Job ID: [0-9a-f-]{36}\) after 'step_one' \(queue_paused\)/, @logger.messages)
     end
   end
 
@@ -598,19 +638,22 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
   test "limits resumes due to errors" do
     LimitedResumesJob.perform_later(10)
 
-    queue_adapter.with(stopping: ->() { raise StandardError if during_step?(LimitedResumesJob, :iterate, cursor: 1) }) do
+    stopping = ->(job) { raise StandardError if job.is_a?(LimitedResumesJob) && during_step?(job, :iterate, cursor: 1) }
+    queue_adapter.with(stopping: stopping) do
       assert_enqueued_jobs 1, only: LimitedResumesJob do
         perform_enqueued_jobs
       end
     end
 
-    queue_adapter.with(stopping: ->() { raise StandardError if during_step?(LimitedResumesJob, :iterate, cursor: 2) }) do
+    stopping = ->(job) { raise StandardError if job.is_a?(LimitedResumesJob) && during_step?(job, :iterate, cursor: 2) }
+    queue_adapter.with(stopping: stopping) do
       assert_enqueued_jobs 1, only: LimitedResumesJob do
         perform_enqueued_jobs
       end
     end
 
-    queue_adapter.with(stopping: ->() { raise StandardError if during_step?(LimitedResumesJob, :iterate, cursor: 3) }) do
+    stopping = ->(job) { raise StandardError if job.is_a?(LimitedResumesJob) && during_step?(job, :iterate, cursor: 3) }
+    queue_adapter.with(stopping: stopping) do
       assert_enqueued_jobs 0, only: LimitedResumesJob do
         exception = assert_raises ActiveJob::Continuation::ResumeLimitError do
           perform_enqueued_jobs
@@ -625,7 +668,8 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     LimitedResumesJob.with(resume_errors_after_advancing: false) do
       LimitedResumesJob.perform_later(10)
 
-      queue_adapter.with(stopping: ->() { raise StandardError, "boom" if during_step?(LimitedResumesJob, :iterate, cursor: 5) }) do
+      stopping = ->(job) { raise StandardError, "boom" if job.is_a?(LimitedResumesJob) && during_step?(job, :iterate, cursor: 5) }
+      queue_adapter.with(stopping: stopping) do
         assert_enqueued_jobs 0, only: LimitedResumesJob do
           exception = assert_raises StandardError do
             perform_enqueued_jobs
@@ -718,10 +762,56 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     assert_equal [ "step_one", "step_two", "step_three", "step_four" ], IsolatedStepsJob.items
   end
 
-  private
-    def capture_info_stdout(&block)
-      ActiveJob::Base.logger.with(level: :info) do
-        capture(:stdout, &block)
+  class SerializableCursorJob < ContinuableJob
+    cattr_accessor :cursor_value
+    cattr_accessor :serialized_job
+    cattr_accessor :resumed_cursor
+
+    def perform
+      step :scan do |step|
+        if step.resumed?
+          self.class.resumed_cursor = step.cursor
+        else
+          step.set! self.class.cursor_value
+          self.class.serialized_job = serialize
+        end
       end
     end
+  end
+
+  test "round-trips a non-primitive step cursor through Active Job argument serialization" do
+    SerializableCursorJob.cursor_value = Date.new(2026, 7, 6)
+    SerializableCursorJob.resumed_cursor = nil
+    SerializableCursorJob.perform_now
+
+    round_tripped = JSON.parse(JSON.generate(SerializableCursorJob.serialized_job))
+    ActiveJob::Base.execute(round_tripped)
+
+    assert_instance_of Date, SerializableCursorJob.resumed_cursor
+    assert_equal Date.new(2026, 7, 6), SerializableCursorJob.resumed_cursor
+  end
+
+  class DiscardableCursorJob < ContinuableJob
+    cattr_accessor :discarded_error
+
+    discard_on ActiveJob::DeserializationError do |job, error|
+      job.class.discarded_error = error
+    end
+
+    def perform
+      step :scan do |step|
+      end
+    end
+  end
+
+  test "cursor deserialization errors can be handled by the job's error handlers" do
+    DiscardableCursorJob.discarded_error = nil
+    job_data = DiscardableCursorJob.new.serialize.merge(
+      "continuation" => { "completed" => [], "current" => [ "scan", { "_aj_globalid" => Person.new(404).to_gid.to_s } ] }
+    )
+
+    ActiveJob::Base.execute(JSON.parse(JSON.generate(job_data)))
+
+    assert_kind_of ActiveJob::DeserializationError, DiscardableCursorJob.discarded_error
+  end
 end

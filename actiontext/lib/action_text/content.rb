@@ -33,6 +33,7 @@ module ActionText
       def fragment_by_canonicalizing_content(content)
         fragment = ActionText::Attachment.fragment_by_canonicalizing_attachments(content)
         fragment = ActionText::AttachmentGallery.fragment_by_canonicalizing_attachment_galleries(fragment)
+        fragment = ActionText::MarkdownConversion.fragment_by_unwrapping_raw_markdown_tags(fragment)
         fragment
       end
     end
@@ -120,7 +121,7 @@ module ActionText
     #     content.to_plain_text # => "Funny times!"
     #
     #     content = ActionText::Content.new("<div onclick='action()'>safe<script>unsafe</script></div>")
-    #     content.to_plain_text # => "safeunsafe"
+    #     content.to_plain_text # => "safe"
     #
     # NOTE: that the returned string is not HTML safe and should not be rendered in
     # browsers without additional sanitization.
@@ -130,6 +131,26 @@ module ActionText
     #     ActionText::ContentHelper.sanitizer.sanitize(content.to_plain_text) # => ""
     def to_plain_text
       render_attachments(with_full_attributes: false, &:to_plain_text).fragment.to_plain_text
+    end
+
+    # Returns a Markdown version of the markup contained by the content.
+    #
+    #     content = ActionText::Content.new("<h1>Funny times!</h1>")
+    #     content.to_markdown # => "# Funny times!"
+    #
+    #     content = ActionText::Content.new("<p>Hello <strong>world</strong></p>")
+    #     content.to_markdown # => "Hello **world**"
+    #
+    # When `attachment_links` is true, ActiveStorage blob attachments generate Markdown links with
+    # URLs. This requires a rendering context (e.g., controller or mailer action) and will raise if
+    # URL generation fails.
+    #
+    # NOTE: that the returned string is not HTML safe and should not be rendered in
+    # browsers without additional sanitization.
+    def to_markdown(attachment_links: false)
+      render_attachments(with_full_attributes: false) { |attachment|
+        ActionText::MarkdownConversion.render_attachment(attachment, attachment_links: attachment_links)
+      }.fragment.to_markdown
     end
 
     def to_trix_html
@@ -158,7 +179,7 @@ module ActionText
 
     # Safely transforms Content into an HTML String.
     #
-    #     content = ActionText::Content.new(content: "<h1>Funny times!</h1>")
+    #     content = ActionText::Content.new("<h1>Funny times!</h1>")
     #     content.to_s # => "<h1>Funny times!</h1>"
     #
     #     content = ActionText::Content.new("<div onclick='action()'>safe<script>unsafe</script></div>")

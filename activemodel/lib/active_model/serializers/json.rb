@@ -26,7 +26,7 @@ module ActiveModel
       #   user = User.find(1)
       #   user.as_json
       #   # => { "id" => 1, "name" => "Konata Izumi", "age" => 16,
-      #   #     "created_at" => "2006-08-01T17:27:133.000Z", "awesome" => true}
+      #   #     "created_at" => "2006-08-01T17:27:13.000Z", "awesome" => true}
       #
       #   ActiveRecord::Base.include_root_in_json = true
       #

@@ -77,6 +77,27 @@ class RendererTest < ActiveSupport::TestCase
       %(Hello, World!),
       renderer.render(renderable: TestRenderable.new)
     )
+    assert_equal(
+      %(Hello, Local!),
+      renderer.render(TestRenderable.new, name: "Local")
+    )
+    assert_equal(
+      %(Hello, Local!),
+      renderer.render(renderable: TestRenderable.new, locals: { name: "Local" })
+    )
+  end
+
+  test "render a renderable object with block" do
+    renderer = ApplicationController.renderer
+
+    assert_equal(
+      %(Hello, Block!),
+      renderer.render(TestRenderable.new) { "Hello, Block!" }
+    )
+    assert_equal(
+      %(Hello, Block!),
+      renderer.render(renderable: TestRenderable.new) { "Hello, Block!" }
+    )
   end
 
   test "rendering with custom env" do

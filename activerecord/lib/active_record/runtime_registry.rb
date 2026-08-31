@@ -47,9 +47,10 @@ module ActiveRecord
         stats.cached_queries_count += 1 if cached
       end
 
-      if async
+      if async && lock_wait
         stats.async_sql_runtime += (runtime - lock_wait)
       end
+
       stats.sql_runtime += runtime
     end
 

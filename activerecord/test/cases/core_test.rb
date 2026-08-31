@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 require "models/person"
 require "models/topic"
 require "pp"
@@ -31,16 +32,13 @@ class CoreTest < ActiveRecord::TestCase
   end
 
   def test_inspect_instance_with_lambda_date_formatter
-    before = Time::DATE_FORMATS[:inspect]
-
     Topic.stub(:attributes_for_inspect, [:id, :last_read]) do
-      Time::DATE_FORMATS[:inspect] = ->(date) { "my_format" }
-      topic = topics(:first)
+      ActiveSupport::TimeFormats.stub(:lookup, ->(format) { { inspect: ->(date) { "my_format" } }[format] }) do
+        topic = topics(:first)
 
-      assert_equal %(#<Topic id: 1, last_read: "2004-04-15">), topic.inspect
+        assert_equal %(#<Topic id: 1, last_read: "2004-04-15">), topic.inspect
+      end
     end
-  ensure
-    Time::DATE_FORMATS[:inspect] = before
   end
 
   def test_inspect_new_instance
@@ -246,7 +244,7 @@ class CoreTest < ActiveRecord::TestCase
   def test_find_by_cache_does_not_duplicate_entries
     Topic.initialize_find_by_cache
     using_prepared_statements = Topic.lease_connection.prepared_statements
-    topic_find_by_cache = Topic.instance_variable_get("@find_by_statement_cache")[using_prepared_statements]
+    topic_find_by_cache = Topic.schema_context.find_by_statement_cache[using_prepared_statements]
 
     assert_difference -> { topic_find_by_cache.size }, +1 do
       Topic.find(1)
@@ -290,5 +288,30 @@ class CoreTest < ActiveRecord::TestCase
     assert_not_equal Cpk::Book.new(title: "Book A").hash, Cpk::Book.new(title: "Book B").hash
     assert_not_equal Cpk::Book.new(author_id: 1).hash, Cpk::Book.new(author_id: 1).hash
     assert_not_equal Cpk::Book.new(author_id: 1, title: "Same title").hash, Cpk::Book.new(author_id: 1, title: "Same title").hash
+  end
+
+  if RUBY_VERSION >= "4.0"
+    class RactorTest < ActiveRecord::TestCase
+      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::RactorsAssertions
+
+      def test_find_by_statement_cache_is_ractor_local
+        skip "SchemaContext is not yet Ractor-shareable; will be enabled when SC is made shareable"
+        model = Class.new(ActiveRecord::Base) do
+          def self.name = "ractor_safe_find_by_cache"
+          self.table_name = "topics"
+        end
+
+        worker_marker, worker_stable = on_ractor do
+          cache = model.schema_context.find_by_statement_cache
+          cache[true][:ractor_marker] = :from_worker
+          [cache[true][:ractor_marker], model.schema_context.find_by_statement_cache.equal?(cache)]
+        end
+
+        assert_equal :from_worker, worker_marker
+        assert worker_stable
+        assert_nil model.schema_context.find_by_statement_cache[true][:ractor_marker]
+      end
+    end
   end
 end

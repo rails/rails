@@ -54,12 +54,24 @@ module ActiveRecord
       end
 
       def previous_types # :nodoc:
-        @previous_types ||= {} # Memoizing on support_unencrypted_data so that we can tweak it during tests
-        @previous_types[support_unencrypted_data?] ||= build_previous_types_for(previous_schemes_including_clean_text)
+        @previous_types ||= {
+          support_unencrypted_data? => build_previous_types_for(previous_schemes_including_clean_text),
+        }
+
+        @previous_types[support_unencrypted_data?] || build_previous_types_for(previous_schemes_including_clean_text)
       end
 
       def support_unencrypted_data?
         scheme.support_unencrypted_data? && !previous_type?
+      end
+
+      def freeze
+        serialize_with_oldest?
+        previous_types_without_clean_text
+        previous_types
+        clean_text_scheme
+
+        super
       end
 
       private
@@ -120,7 +132,9 @@ module ActiveRecord
         end
 
         def serialize_with_oldest?
-          @serialize_with_oldest ||= fixed? && previous_types_without_clean_text.present?
+          return @serialize_with_oldest if defined?(@serialize_with_oldest)
+
+          @serialize_with_oldest = fixed? && previous_types_without_clean_text.present?
         end
 
         def serialize_with_oldest(value)

@@ -114,7 +114,7 @@ module Rails
         "E" => codes[:red],
         "F" => codes[:red],
         "S" => codes[:yellow]
-      }
+      }.freeze
 
       def color_output(string, by:)
         if colored_output?

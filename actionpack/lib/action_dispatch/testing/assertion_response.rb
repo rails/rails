@@ -14,7 +14,7 @@ module ActionDispatch
       missing: "404",
       redirect: "3XX",
       error: "5XX"
-    }
+    }.freeze
 
     # Accepts a specific response status code as an Integer (404) or String ('404')
     # or a response status range as a Symbol pseudo-code (:success, indicating any

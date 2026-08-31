@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/enumerable"
@@ -7,18 +8,38 @@ module ActiveSupport
   # the configuration backends that the combined configuration has been initialized with.
   #
   # This is used by Rails to offer a unified API for fetching credentials from both ENV and the encrypted file.
-  # You can access this through +Rails.app.creds+ within a Rails application.
+  # You can access this through `Rails.app.creds` within a Rails application.
   class CombinedConfiguration
     def initialize(*configurations)
       @configurations = configurations
     end
 
-    # Find singular or nested keys across all backends. If no backend holds the key, it raises +KeyError+.
+    # Find singular or nested keys across all backends.
+    # Raises `KeyError` if no backend holds the key or if the value is nil.
     #
-    # Examples of Rails-configured access:
+    # Given ENV:
     #
-    #   require(:db_host)         # => ENV["DB_HOST"] || Rails.app.credentials.require(:db_host)
-    #   require(:database, :host) # => ENV["DATABASE__HOST"] || Rails.app.credentials.require(:database, :host)
+    # ```
+    # DATABASE__HOST: "env.example.com"
+    # ```
+    #
+    # And credentials:
+    #
+    # ```
+    # database:
+    #   host: "creds.example.com"
+    # api_key: "secret"
+    # api_host: null
+    # ```
+    #
+    # Examples:
+    #
+    # ```
+    # require(:database, :host) # => "env.example.com" (ENV overrides credentials)
+    # require(:api_key)         # => "secret" (from credentials)
+    # require(:missing)         # => KeyError
+    # require(:api_host)        # => KeyError (nil values are treated as missing)
+    # ```
     def require(*key)
       @configurations.each do |config|
         value = config.option(*key)
@@ -28,15 +49,34 @@ module ActiveSupport
       raise KeyError, "Missing key: #{key.inspect}"
     end
 
-    # Find singular or nested keys across all backends. If no backend holds the key, +nil+ is returned.
-    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key.
+    # Find singular or nested keys across all backends.
+    # Returns `nil` if no backend holds the key.
+    # If a `default` value is defined, it (or its callable value) will be returned on a missing key or nil value.
+    #
+    # Given ENV:
+    #
+    # ```
+    # DATABASE__HOST: "env.example.com"
+    # ```
+    #
+    # And credentials:
+    #
+    # ```
+    # database:
+    #   host: "creds.example.com"
+    # api_key: "secret"
+    # api_host: null
+    # ```
     #
     # Examples:
     #
-    #   option(:db_host)                             # => ENV["DB_HOST"] || Rails.app.credentials.option(:db_host)
-    #   option(:database, :host)                     # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host)
-    #   option(:database, :host, default: "missing") # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || "missing"
-    #   option(:database, :host, default: -> { "missing" }) # => ENV["DATABASE__HOST"] || Rails.app.credentials.option(:database, :host) || "missing"
+    # ```
+    # option(:database, :host)                      # => "env.example.com" (ENV overrides credentials)
+    # option(:missing)                              # => nil
+    # option(:missing, default: "localhost")        # => "localhost"
+    # option(:missing, default: -> { "localhost" }) # => "localhost"
+    # option(:api_host, default: "api.example.com") # => "api.example.com" (nil values use default)
+    # ```
     def option(*key, default: nil)
       @configurations.each do |config|
         value = config.option(*key)
@@ -55,11 +95,13 @@ module ActiveSupport
     #
     # Examples of Rails-configured access:
     #
-    #   ENV["DB_HOST"] = "localhost"
-    #   Rails.app.credentials # has keys [:secret_key_base, :aws]
+    # ```
+    # ENV["DB_HOST"] = "localhost"
+    # Rails.app.credentials # has keys [:secret_key_base, :aws]
     #
-    #   Rails.app.creds.keys
-    #   # => [:db_host, :secret_key_base, :aws]
+    # Rails.app.creds.keys
+    # # => [:db_host, :secret_key_base, :aws]
+    # ```
     #
     def keys
       @configurations.flat_map(&:keys).uniq

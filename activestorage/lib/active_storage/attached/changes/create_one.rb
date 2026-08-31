@@ -5,7 +5,8 @@ require "action_dispatch/http/upload"
 
 module ActiveStorage
   class Attached::Changes::CreateOne # :nodoc:
-    attr_reader :name, :record, :attachable
+    attr_reader :name, :attachable
+    attr_accessor :record
 
     def initialize(name, record, attachable)
       @name, @record, @attachable = name, record, attachable
@@ -88,7 +89,7 @@ module ActiveStorage
           )
         when String
           ActiveStorage::Blob.find_signed!(attachable, record: record)
-        when File
+        when File, Tempfile
           ActiveStorage::Blob.build_after_unfurling(
             io: attachable,
             filename: File.basename(attachable),
@@ -154,7 +155,7 @@ module ActiveStorage
           attachable.respond_to?(:open) ? attachable.open : attachable
         when Hash
           attachable.fetch(:io)
-        when File
+        when File, Tempfile
           attachable
         when Pathname
           attachable.open

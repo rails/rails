@@ -63,9 +63,6 @@ class ActionPackAssertionsController < ActionController::Base
     render plain: "Mr. #{params[:name]}"
   end
 
-  def render_url
-    render html: "<div>#{url_for(action: 'flash_me', only_path: true)}</div>"
-  end
 
   def render_text_with_custom_content_type
     render body: "Hello!", content_type: Mime[:rss]
@@ -322,7 +319,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     assert_equal "turkey", session["xmas"]
   end
 
-  def session_does_not_exist
+  def test_session_does_not_exist
     process :nothing
     assert_empty session
   end
@@ -501,6 +498,19 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     post :raise_exception_on_get
     assert_in_body "request method: POST"
     assert_not_in_body "request method: GET"
+  end
+
+  def test_url_helper_delegation
+    @controller = ActionPackAssertionsController.new
+    @controller.request = ActionDispatch::TestRequest.create
+
+    with_routing do |set|
+      set.draw do
+        get "/route_one", to: "action_pack_assertions#nothing", as: :route_one
+      end
+
+      assert_equal("/route_one", route_one_path)
+    end
   end
 end
 

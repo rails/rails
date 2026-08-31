@@ -169,7 +169,7 @@ module ActiveRecord
         def owners_by_key
           @owners_by_key ||= owners.each_with_object({}) do |owner, result|
             key = derive_key(owner, owner_key_name)
-            (result[key] ||= []) << owner if key
+            (result[key] ||= []) << owner if key.is_a?(Array) ? key.all? : key
           end
         end
 
@@ -265,9 +265,9 @@ module ActiveRecord
 
           def derive_key(owner, key)
             if key.is_a?(Array)
-              key.map { |k| convert_key(owner._read_attribute(k)) }
+              key.map { |k| convert_key(owner.read_attribute(k)) }
             else
-              convert_key(owner._read_attribute(key))
+              convert_key(owner.read_attribute(key))
             end
           end
 

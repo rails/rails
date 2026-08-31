@@ -12,16 +12,28 @@ module ActiveRecord
       :create_or_find_by, :create_or_find_by!,
       :destroy, :destroy_all, :delete, :delete_all, :update_all, :touch_all, :destroy_by, :delete_by,
       :find_each, :find_in_batches, :in_batches,
-      :select, :reselect, :order, :regroup, :in_order_of, :reorder, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
+      :select, :reselect, :order, :regroup, :in_order_of, :reorder, :default_order, :group, :limit, :offset, :joins, :left_joins, :left_outer_joins,
       :where, :rewhere, :invert_where, :preload, :extract_associated, :eager_load, :includes, :from, :lock, :readonly,
       :and, :or, :annotate, :optimizer_hints, :extending,
       :having, :create_with, :distinct, :references, :none, :unscope, :merge, :except, :only,
       :count, :average, :minimum, :maximum, :sum, :calculate,
-      :pluck, :pick, :ids, :async_ids, :strict_loading, :excluding, :without, :with, :with_recursive,
+      :pluck, :pick, :ids, :async_ids, :strict_loading, :excluding, :without, :with_recursive,
       :async_count, :async_average, :async_minimum, :async_maximum, :async_sum, :async_pluck, :async_pick,
       :insert, :insert_all, :insert!, :insert_all!, :upsert, :upsert_all
     ].freeze # :nodoc:
     delegate(*QUERYING_METHODS, to: :all)
+
+    # Add a Common Table Expression (CTE) that you can then reference within another SELECT statement.
+    #
+    # See ActiveRecord::QueryMethods#with for more information.
+    #
+    # When given a block, and the Object#with core extension is loaded, this
+    # delegates to it instead, temporarily setting the given attributes on the
+    # class for the duration of the block and restoring them afterwards.
+    def with(...)
+      return super if block_given? && defined?(super)
+      all.with(...)
+    end
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array, with the requested columns encapsulated as attributes of the model you call
@@ -65,7 +77,7 @@ module ActiveRecord
     end
 
     def _query_by_sql(connection, sql, binds = [], preparable: nil, async: false, allow_retry: false) # :nodoc:
-      connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async, allow_retry: allow_retry)
+      connection.select_all(_sql_for_find(sql), "#{name} Load", binds, preparable: preparable, async: async, allow_retry: allow_retry)
     end
 
     def _load_from_sql(result_set, &block) # :nodoc:
@@ -108,15 +120,23 @@ module ActiveRecord
     # * +sql+ - An SQL statement which should return a count query from the database, see the example above.
     def count_by_sql(sql)
       with_connection do |c|
-        c.select_value(sanitize_sql(sql), "#{name} Count").to_i
+        c.select_value(_sql_for_find(sql), "#{name} Count").to_i
       end
     end
 
     # Same as #count_by_sql but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_count_by_sql(sql)
       with_connection do |c|
-        c.select_value(sanitize_sql(sql), "#{name} Count", async: true).then(&:to_i)
+        c.select_value(_sql_for_find(sql), "#{name} Count", async: true).then(&:to_i)
       end
     end
+
+    private
+      def _sql_for_find(sql)
+        return sql unless sql.is_a?(Array)
+
+        statement, *values = sql
+        bound_sql_literal_for(statement, values)
+      end
   end
 end

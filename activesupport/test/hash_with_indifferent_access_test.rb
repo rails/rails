@@ -196,6 +196,39 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_raise(KeyError) { @mixed.fetch_values(:a, :c) }
   end
 
+  def test_indifferent_fetch_with_default_and_block
+    hash = HashWithIndifferentAccess.new
+    hash[:foo] = 1
+
+    assert_equal 0, hash.fetch(:bar, 0)
+    assert_equal 1, hash.fetch(:foo, 99)
+    assert_equal "bar", hash.fetch(:bar) { |key| key }
+  end
+
+  def test_indifferent_values_at_with_missing_key
+    hash = HashWithIndifferentAccess.new
+    hash[:a] = "x"
+    hash[:b] = "y"
+
+    assert_equal ["x", nil, "y"], hash.values_at(:a, :c, "b")
+  end
+
+  def test_indifferent_dig_returns_nil_for_missing_key
+    data = { foo: { bar: 1 } }.with_indifferent_access
+
+    assert_nil data.dig(:zoo)
+    assert_nil data.dig(:foo, :missing)
+  end
+
+  def test_indifferent_except
+    original = { a: "x", b: "y", c: 10 }.with_indifferent_access
+
+    assert_equal({ c: 10 }.with_indifferent_access, original.except(:a, "b"))
+    assert_instance_of HashWithIndifferentAccess, original.except(:a)
+    assert_equal({ a: "x", b: "y", c: 10 }.with_indifferent_access, original)
+    assert_equal({ c: 10 }.with_indifferent_access, original.without(:a, :b))
+  end
+
   def test_indifferent_reading
     hash = HashWithIndifferentAccess.new
     hash["a"] = 1
@@ -222,6 +255,16 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal false, hash[:c]
     assert_nil hash[:d]
     assert_equal 1, hash[:e]
+  end
+
+  def test_indifferent_preserves_falsy_default_from_source_hash
+    source = Hash.new(false)
+    source["a"] = 1
+    hash = HashWithIndifferentAccess.new(source)
+
+    assert_equal false, hash.default
+    assert_equal false, hash[:missing]
+    assert_equal 1, hash[:a]
   end
 
   def test_indifferent_writing
@@ -413,6 +456,13 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
+  def test_indifferent_filter
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).filter { |k, v| v == 1 }
+
+    assert_equal({ "a" => 1 }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
   def test_indifferent_select_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
     indifferent_strings.select! { |k, v| v == 1 }
@@ -454,6 +504,16 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
 
     hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).transform_keys({ "a" => "x", "y" => "z" })
+
+    assert_nil(hash["a"])
+    assert_equal(1, hash["x"])
+    assert_equal(2, hash["b"])
+    assert_nil(hash["y"])
+    assert_nil(hash["z"])
+    assert_equal(["x", "b"], hash.keys) # asserting that order of keys is unchanged
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).transform_keys({ a: :x, y: :z })
 
     assert_nil(hash["a"])
     assert_equal(1, hash["x"])
@@ -529,6 +589,17 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
 
     hash = ActiveSupport::HashWithIndifferentAccess.new(@strings)
     hash.transform_keys!({ "a" => "x", "y" => "z" })
+
+    assert_nil(hash["a"])
+    assert_equal(1, hash["x"])
+    assert_equal(2, hash["b"])
+    assert_nil(hash["y"])
+    assert_nil(hash["z"])
+    assert_equal(["x", "b"], hash.keys) # asserting that order of keys is unchanged
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    hash.transform_keys!({ a: :x, y: :z })
 
     assert_nil(hash["a"])
     assert_equal(1, hash["x"])

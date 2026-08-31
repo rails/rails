@@ -41,7 +41,7 @@ module ActionText
         "#{remove_trailing_newlines(plain_text_for_child_values(child_values))}\n\n"
       end
 
-      %i[ h1 p ].each do |element|
+      %i[ h1 h2 h3 h4 h5 h6 p ].each do |element|
         alias_method :"plain_text_for_#{element}_node", :plain_text_for_block
       end
 
@@ -121,34 +121,6 @@ module ActionText
         else
           text
         end
-      end
-
-      class BottomUpReducer # :nodoc:
-        def initialize(node)
-          @node = node
-          @values = {}
-        end
-
-        def reduce(&block)
-          traverse_bottom_up(@node) do |n|
-            child_values = @values.values_at(*n.children)
-            @values[n] = block.call(n, child_values)
-          end
-          @values[@node]
-        end
-
-        private
-          def traverse_bottom_up(node, &block)
-            call_stack, processing_stack = [ node ], []
-
-            until call_stack.empty?
-              node = call_stack.pop
-              processing_stack.push(node)
-              call_stack.concat node.children
-            end
-
-            processing_stack.reverse_each(&block)
-          end
       end
   end
 end

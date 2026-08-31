@@ -12,8 +12,16 @@ module ActionDispatch
 
     def call(env)
       state = @executor.run!(reset: true)
+
+      completed = false
+      finalize = -> {
+        next if completed
+        completed = true
+        state.complete!
+      }
+
       if response_finished = env["rack.response_finished"]
-        response_finished << proc { state.complete! }
+        response_finished << proc { finalize.call }
       end
 
       begin
@@ -24,8 +32,12 @@ module ActionDispatch
           @executor.error_reporter.report(error, handled: false, source: "application.action_dispatch")
         end
 
-        unless response_finished
-          response << ::Rack::BodyProxy.new(response.pop) { state.complete! }
+        if hijacked?(env, response)
+          # `close` and `rack.response_finished` may never fire on hijack.
+          # Release eagerly; the request's autoloaded code is resolved by now.
+          finalize.call
+        elsif !response_finished
+          response << ::Rack::BodyProxy.new(response.pop) { finalize.call }
         end
         returned = true
         response
@@ -37,9 +49,16 @@ module ActionDispatch
         raise
       ensure
         if !returned && !response_finished
-          state.complete!
+          finalize.call
         end
       end
     end
+
+    private
+      def hijacked?(env, response)
+        return false unless response
+
+        env["rack.hijack_io"] || response.first == 101
+      end
   end
 end

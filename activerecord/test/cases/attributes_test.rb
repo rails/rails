@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 
 class OverloadedType < ActiveRecord::Base
   attribute :overloaded_float, :integer
+  attribute :overloaded_boolean, :integer
   attribute :overloaded_string_with_limit, :string, limit: 50
   attribute :non_existent_decimal, :decimal
   attribute :string_with_default, :string, default: "the overloaded default"
@@ -22,14 +24,45 @@ end
 
 module ActiveRecord
   class CustomPropertiesTest < ActiveRecord::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
+    if RUBY_VERSION >= "4.0"
+      test "attribute type is available in a Ractor" do
+        skip "SchemaContext is not yet Ractor-shareable; attribute types are unreachable from a Ractor"
+
+        OverloadedType.reset_column_information
+
+        type = on_ractor do
+          OverloadedType.type_for_attribute("overloaded_float")
+        end
+
+        assert_equal :integer, type.type
+      end
+    end
+
     test "overloading types" do
       data = OverloadedType.new
+
+      assert_equal 500, data.overloaded_float
+      assert_nil data.unoverloaded_float
 
       data.overloaded_float = "1.1"
       data.unoverloaded_float = "1.1"
 
       assert_equal 1, data.overloaded_float
       assert_equal 1.1, data.unoverloaded_float
+    end
+
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      test "overloading boolean types" do
+        # On MySQL-like databases `tinyint(1)` can easily be confused with a boolean.
+        data = OverloadedType.new
+
+        assert_equal 0, data.overloaded_boolean
+        data.overloaded_boolean = "2"
+        data.save!
+        assert_equal 2, data.overloaded_boolean
+      end
     end
 
     test "overloaded properties save" do
@@ -289,6 +322,37 @@ module ActiveRecord
       assert_equal(:bar, child.new(foo: :bar).foo)
     end
 
+    test "attributes added after attribute methods are generated still define methods" do
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+      end
+      klass.new
+      assert_predicate klass, :attribute_methods_generated?
+
+      klass.attribute(:foo, Type::Value.new)
+      klass.define_attribute_methods
+
+      assert klass.method_defined?(:foo)
+      assert klass.method_defined?(:foo=)
+      assert klass.method_defined?(:foo_changed?)
+    end
+
+    test "attributes added after subclasses load define methods on the subclass" do
+      parent = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+      end
+
+      child = Class.new(parent)
+      child.new
+      assert_predicate child, :attribute_methods_generated?
+
+      parent.attribute(:foo, Type::Value.new)
+      child.define_attribute_methods
+
+      assert child.method_defined?(:foo)
+      assert child.method_defined?(:foo=)
+    end
+
     test "attributes not backed by database columns are not dirty when unchanged" do
       assert_not_predicate OverloadedType.new, :non_existent_decimal_changed?
     end
@@ -398,6 +462,27 @@ module ActiveRecord
       immutable_string_type = Type.lookup(:immutable_string)
       assert_equal default_string_type.serialize(true), immutable_string_type.serialize(true)
       assert_equal default_string_type.serialize(false), immutable_string_type.serialize(false)
+    end
+
+    class RactorTest < ActiveRecord::TestCase
+      include ActiveSupport::Testing::RactorsAssertions
+      include ActiveSupport::Testing::Isolation unless in_memory_db?
+
+      test "default_attributes are Ractor-shareable" do
+        skip "SchemaContext is not yet Ractor-shareable; _default_attributes is unreachable from a Ractor"
+        model = Class.new(ActiveRecord::Base) do
+          def self.name = "ractor_safe_default_attributes"
+          self.table_name = "topics"
+        end
+
+        previous = ActiveSupport::Ractors.unshareable_proc_action
+        ActiveSupport::Ractors.unshareable_proc_action = :raise
+        begin
+          assert_ractor_shareable model._default_attributes
+        ensure
+          ActiveSupport::Ractors.unshareable_proc_action = previous
+        end
+      end
     end
 
     private

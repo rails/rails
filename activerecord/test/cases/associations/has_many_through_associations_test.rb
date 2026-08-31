@@ -950,7 +950,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author.author_favorites.create(favorite_author_id: 1)
     author.author_favorites.create(favorite_author_id: 2)
     author.author_favorites.create(favorite_author_id: 3)
-    assert_equal post.author.author_favorites, post.author_favorites
+    assert_equal_unordered post.author.author_favorites, post.author_favorites
   end
 
   def test_merge_join_association_with_has_many_through_association_proxy
@@ -1429,6 +1429,28 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, post.lazy_people_unscope_skimmers.to_a.size
   end
 
+  def test_has_many_through_unscope_respects_join_model_default_scope
+    author = authors(:david)
+
+    active_post = PostWithWhereDefaultScope.create!(
+      author: author,
+      title: "test post",
+      body: "this is an active post"
+    )
+    deleted_post = PostWithWhereDefaultScope.create!(
+      author: author,
+      title: "test post 2",
+      body: "this is a deleted post",
+      deleted_at: Time.now
+    )
+
+    CommentOnPostWithWhereDefaultScope.create!(body: "hi!", post: active_post)
+    CommentOnPostWithWhereDefaultScope.create!(body: "hi!", post: active_post, deleted_at: Time.now)
+    CommentOnPostWithWhereDefaultScope.create!(body: "hi!", post: deleted_post, deleted_at: Time.now)
+
+    assert_equal 2, author.comments_on_posts_with_where_default_scope.count
+  end
+
   def test_has_many_through_add_with_sti_middle_relation
     club = SuperClub.create!(name: "Fight Club")
     member = Member.create!(name: "Tyler Durden")
@@ -1703,6 +1725,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     chapter = order.chapters.build
 
     assert_equal(chapter.book, book)
+  end
+
+  def test_delete_all_nullify_on_through_with_composite_source_foreign_key
+    author = Cpk::Author.create!(name: "author")
+    order = Cpk::Order.create!(id: [9999, 30001], status: "open")
+    book = Cpk::Book.create!(id: [author.id, 30001], title: "Book", order: order)
+
+    assert_equal 1, author.orders.count
+
+    author.orders.delete_all(:nullify)
+
+    book.reload
+    assert_nil book.shop_id
+    assert_nil book.order_id
   end
 
   def test_ids_reader_with_composite_primary_key_on_source

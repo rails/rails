@@ -70,26 +70,48 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 100, image.height
   end
 
-  test "resized variation of PSD blob" do
+  test "resized variation of PSD blob raises because the ImageMagick loader is disabled by default" do
     blob = create_file_blob(filename: "icon.psd", content_type: "image/vnd.adobe.photoshop")
-    variant = blob.variant(resize_to_limit: [20, 20]).processed
-    assert_match(/icon\.png/, variant.url)
 
-    image = read_image(variant)
-    assert_equal "PNG", image.type
-    assert_equal 20, image.width
-    assert_equal 20, image.height
+    assert_raises(Vips::Error) do
+      blob.variant(resize_to_limit: [20, 20]).processed
+    end
   end
 
-  test "resized variation of ICO blob" do
-    blob = create_file_blob(filename: "favicon.ico", content_type: "image/vnd.microsoft.icon")
-    variant = blob.variant(resize_to_limit: [20, 20]).processed
-    assert_match(/icon\.png/, variant.url)
+  test "resized variation of PSD blob when the ImageMagick loader is enabled" do
+    blob = create_file_blob(filename: "icon.psd", content_type: "image/vnd.adobe.photoshop")
 
-    image = read_image(variant)
-    assert_equal "PNG", image.type
-    assert_equal 20, image.width
-    assert_equal 20, image.height
+    with_vips_loaders_enabled(*VIPS_MAGICK_LOADERS) do
+      variant = blob.variant(resize_to_limit: [20, 20]).processed
+      assert_match(/icon\.png/, variant.url)
+
+      image = read_image(variant)
+      assert_equal "PNG", image.type
+      assert_equal 20, image.width
+      assert_equal 20, image.height
+    end
+  end
+
+  test "resized variation of ICO blob raises because the ImageMagick loader is disabled by default" do
+    blob = create_file_blob(filename: "favicon.ico", content_type: "image/vnd.microsoft.icon")
+
+    assert_raises(Vips::Error) do
+      blob.variant(resize_to_limit: [20, 20]).processed
+    end
+  end
+
+  test "resized variation of ICO blob when the ImageMagick loader is enabled" do
+    blob = create_file_blob(filename: "favicon.ico", content_type: "image/vnd.microsoft.icon")
+
+    with_vips_loaders_enabled(*VIPS_MAGICK_LOADERS) do
+      variant = blob.variant(resize_to_limit: [20, 20]).processed
+      assert_match(/icon\.png/, variant.url)
+
+      image = read_image(variant)
+      assert_equal "PNG", image.type
+      assert_equal 20, image.width
+      assert_equal 20, image.height
+    end
   end
 
   test "resized variation of TIFF blob" do
@@ -103,15 +125,26 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 33, image.height
   end
 
-  test "resized variation of BMP blob" do
+  test "resized variation of BMP blob raises because the ImageMagick loader is disabled by default" do
     blob = create_file_blob(filename: "colors.bmp", content_type: "image/bmp")
-    variant = blob.variant(resize_to_limit: [15, 15]).processed
-    assert_match(/colors\.png/, variant.url)
 
-    image = read_image(variant)
-    assert_equal "PNG", image.type
-    assert_equal 15, image.width
-    assert_equal 8, image.height
+    assert_raises(Vips::Error) do
+      blob.variant(resize_to_limit: [15, 15]).processed
+    end
+  end
+
+  test "resized variation of BMP blob when the ImageMagick loader is enabled" do
+    blob = create_file_blob(filename: "colors.bmp", content_type: "image/bmp")
+
+    with_vips_loaders_enabled(*VIPS_MAGICK_LOADERS) do
+      variant = blob.variant(resize_to_limit: [15, 15]).processed
+      assert_match(/colors\.png/, variant.url)
+
+      image = read_image(variant)
+      assert_equal "PNG", image.type
+      assert_equal 15, image.width
+      assert_equal 8, image.height
+    end
   end
 
   test "resized variation of WEBP blob" do

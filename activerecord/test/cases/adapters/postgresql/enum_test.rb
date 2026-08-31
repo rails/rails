@@ -132,7 +132,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_dump_added_enum_value
-    skip("Adding enum values can not be run in a transaction") if @connection.database_version < 10_00_00
+    skip "ALTER TYPE ... ADD VALUE in a transaction block requires PostgreSQL 12+" unless @connection.database_version >= 12_00_00
 
     @connection.add_enum_value :mood, :angry, before: :ok
     @connection.add_enum_value :mood, :nervous, after: :ok
@@ -149,8 +149,6 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_schema_dump_renamed_enum_value
-    skip("Renaming enum values is only supported in PostgreSQL 10 or later") if @connection.database_version < 10_00_00
-
     @connection.rename_enum_value :mood, from: :ok, to: :okay
 
     output = dump_table_schema("postgresql_enums")
@@ -172,6 +170,30 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     assert @connection.column_exists?(:postgresql_enums, :best_color, sql_type: "color", default: "blue", null: false)
   ensure
     $stdout = original
+  end
+
+  def test_schema_dump_after_schema_load_with_enum_array_column
+    original_stdout, $stdout = $stdout, StringIO.new
+
+    ActiveRecord::Schema.define do
+      create_enum "pg_enum_array_schema_dump_account_type", ["customer", "vendor"]
+
+      create_table "pg_enum_array_schema_dump_accounts", force: :cascade do |t|
+        t.enum :account_types, array: true, enum_type: "pg_enum_array_schema_dump_account_type"
+      end
+    end
+
+    warning = capture(:stderr) { @connection.columns("pg_enum_array_schema_dump_accounts") }
+    assert_predicate warning, :blank?
+
+    column = @connection.columns("pg_enum_array_schema_dump_accounts").find { |entry| entry.name == "account_types" }
+    assert_equal :enum, column.type
+    assert_predicate column, :array?
+  ensure
+    $stdout = original_stdout
+    @connection.drop_table "pg_enum_array_schema_dump_accounts", if_exists: true
+    @connection.drop_enum "pg_enum_array_schema_dump_account_type", if_exists: true
+    reset_connection
   end
 
   def test_drop_enum
@@ -250,11 +272,28 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
 
       assert_includes output, 'create_enum "public.mood", ["sad", "ok", "happy"]'
       assert_includes output, 'create_enum "test_schema.mood_in_test_schema", ["sad", "ok", "happy"]'
-      assert_includes output, 't.enum "current_mood", enum_type: "mood_in_test_schema"'
+      assert_includes output, 't.enum "current_mood", enum_type: "test_schema.mood_in_test_schema"'
       assert_not_includes output, 'create_enum "other_schema.mood_in_other_schema"'
     end
   ensure
     @connection.drop_schema("other_schema")
+  end
+
+  def test_schema_dump_enums_with_same_name_in_different_schemas
+    with_test_schema("test_schema") do
+      # Need to explicitly include the schema name to avoid conflicting with the existing enum in `public` schema
+      @connection.create_enum("test_schema.mood", ["angry", "frustrated", "content"])
+
+      @connection.create_table("postgresql_enums_in_test_schema") do |t|
+        t.column :current_mood, "mood"
+      end
+
+      output = dump_table_schema("postgresql_enums_in_test_schema")
+
+      assert_includes output, 'create_enum "public.mood", ["sad", "ok", "happy"]'
+      assert_includes output, 'create_enum "test_schema.mood", ["angry", "frustrated", "content"]'
+      assert_includes output, 't.enum "current_mood", enum_type: "test_schema.mood"'
+    end
   end
 
   def test_schema_load_scoped_to_schemas

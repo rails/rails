@@ -38,7 +38,15 @@ module ActionView # :nodoc:
     end
 
     def find(path, prefixes, partial, details, details_key, locals)
-      find_all(path, prefixes, partial, details, details_key, locals).first ||
+      search_combinations(prefixes) do |resolver, prefix|
+        template = resolver.find(path, prefix, partial, details, details_key, locals)
+        return template if template
+      end
+      nil
+    end
+
+    def find!(path, prefixes, partial, details, details_key, locals)
+      find(path, prefixes, partial, details, details_key, locals) ||
         raise(MissingTemplate.new(self, path, prefixes, partial, details, details_key, locals))
     end
 
@@ -51,7 +59,7 @@ module ActionView # :nodoc:
     end
 
     def exists?(path, prefixes, partial, details, details_key, locals)
-      find_all(path, prefixes, partial, details, details_key, locals).any?
+      !find(path, prefixes, partial, details, details_key, locals).nil?
     end
 
     private

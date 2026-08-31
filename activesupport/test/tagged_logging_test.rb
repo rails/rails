@@ -258,4 +258,10 @@ class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase
     @logger.tagged("tag") { @logger.info [1, 2, 3] }
     assert_equal "[tag] [1, 2, 3]\n", @output.string
   end
+
+  test "formatter works when frozen" do
+    @logger.formatter.freeze
+    @logger.info "frozen"
+    assert_equal "frozen\n", @output.string
+  end
 end

@@ -47,10 +47,10 @@ module ActiveRecord
     def execute
       return ActiveRecord::Result.empty if inserts.empty?
 
-      message = +"#{model} "
+      message = +"#{model.name} "
       message << "Bulk " if inserts.many?
       message << (on_duplicate == :update ? "Upsert" : "Insert")
-      connection.exec_insert_all to_sql, message
+      connection.exec_insert_all self, message
     end
 
     def updatable_columns
@@ -98,6 +98,10 @@ module ActiveRecord
       else
         keys.sort!
       end
+    end
+
+    def to_sql
+      connection.build_insert_sql(ActiveRecord::InsertAll::Builder.new(self))
     end
 
     private
@@ -191,12 +195,6 @@ module ActiveRecord
         end
       end
 
-
-      def to_sql
-        connection.build_insert_sql(ActiveRecord::InsertAll::Builder.new(self))
-      end
-
-
       def readonly_columns
         primary_keys + model.readonly_attributes
       end
@@ -208,7 +206,12 @@ module ActiveRecord
 
       def verify_attributes(attributes)
         if keys_including_timestamps != attributes.keys.sort!
-          raise ArgumentError, "All objects being inserted must have the same keys"
+          missing = keys_including_timestamps - attributes.keys
+          extra = attributes.keys - keys_including_timestamps
+          details = []
+          details << "missing: #{missing.inspect}" if missing.any?
+          details << "extra: #{extra.inspect}" if extra.any?
+          raise ArgumentError, "All objects being inserted must have the same keys (#{details.join(", ")})"
         end
       end
 
@@ -244,7 +247,9 @@ module ActiveRecord
             elsif pks.include?(key) && value.nil?
               connection.default_insert_value(model.columns_hash[key])
             else
-              ActiveModel::Type::SerializeCastValue.serialize(type = types[key], type.cast(value))
+              type = types[key]
+              value = type.cast(value) unless type.serialized? && !value.is_a?(String)
+              ActiveModel::Type::SerializeCastValue.serialize(type, value)
             end
           end
 

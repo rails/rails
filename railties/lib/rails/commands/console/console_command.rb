@@ -4,6 +4,8 @@ require "rails/command/environment_argument"
 
 module Rails
   class Console
+    HELP_HINT = "Type 'help' for help."
+
     def self.start(*args)
       new(*args).start
     end
@@ -25,8 +27,18 @@ module Rails
 
       @console = app.config.console || begin
         require "rails/commands/console/irb_console"
-        IRBConsole.new(app)
+        IRBConsole.new(app, options)
       end
+    end
+
+    def self.startup_lines(sandbox)
+      lines = if sandbox
+        ["Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})",
+         "Any modifications you make will be rolled back on exit"]
+      else
+        ["Loading #{Rails.env} environment (Rails #{Rails.version})"]
+      end
+      lines << HELP_HINT
     end
 
     def sandbox?
@@ -46,16 +58,22 @@ module Rails
       Rails.env = environment
     end
 
+    # Whether to print a startup banner. Defaults to true; pass +--no-banner+
+    # to suppress it for one-off sessions.
+    def banner?
+      options.fetch(:banner, true)
+    end
+
+    def show_default_startup_banner
+      puts Rails::Console.startup_lines(sandbox?)
+    end
+
     def start
       set_environment! if environment?
 
-      if sandbox?
-        puts "Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})"
-        puts "Any modifications you make will be rolled back on exit"
-      else
-        puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
+      if banner?
+        show_default_startup_banner unless console.respond_to?(:show_startup_banner)
       end
-      puts "Type 'help' for help."
 
       console.start
     end
@@ -72,6 +90,9 @@ module Rails
 
       class_option :query_cache, type: :boolean, aliases: "-q", default: false,
         desc: "Enable the Active Record query cache for the session (ignored if --skip-executor or -w is used)"
+
+      class_option :banner, type: :boolean, default: true,
+        desc: "Show the console startup banner (use --no-banner to hide)"
 
       def initialize(args = [], local_options = {}, config = {})
         console_options = []
@@ -103,14 +124,6 @@ module Rails
           return unless defined?(ActiveRecord::Base)
 
           ActiveRecord::Base.connection_handler.each_connection_pool.select(&:query_cache_enabled).each(&:disable_query_cache!)
-        end
-
-        def conditional_executor(enabled, **args, &block)
-          if enabled
-            Rails.application.executor.wrap(**args, &block)
-          else
-            yield
-          end
         end
     end
   end

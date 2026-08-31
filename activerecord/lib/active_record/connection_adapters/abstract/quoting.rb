@@ -71,7 +71,7 @@ module ActiveRecord
       # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
         case value
-        when String, Symbol, ActiveSupport::Multibyte::Chars
+        when String, Symbol
           "'#{quote_string(value.to_s)}'"
         when true       then quoted_true
         when false      then quoted_false
@@ -93,7 +93,7 @@ module ActiveRecord
       # to a String.
       def type_cast(value)
         case value
-        when Symbol, Type::Binary::Data, ActiveSupport::Multibyte::Chars
+        when Symbol, Type::Binary::Data
           value.to_s
         when true       then unquoted_true
         when false      then unquoted_false
@@ -198,7 +198,7 @@ module ActiveRecord
       def sanitize_as_sql_comment(value) # :nodoc:
         # Sanitize a string to appear within an SQL comment
         # For compatibility, this also surrounding "/*+", "/*", and "*/"
-        # charcacters, possibly with single surrounding space.
+        # characters, possibly with single surrounding space.
         # Then follows that by replacing any internal "*/" or "/*" with
         # "* /" or "/ *"
         comment = value.to_s.dup

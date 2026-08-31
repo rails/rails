@@ -3,8 +3,11 @@
 require "pp"
 require_relative "abstract_unit"
 require "active_support/ordered_options"
+require "active_support/testing/ractors_assertions"
 
 class OrderedOptionsTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def test_usage
     a = ActiveSupport::OrderedOptions.new
 
@@ -174,6 +177,32 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert_equal({ one: "first value", two: "second value", three: "third value" }, object.to_h)
   end
 
+  def test_nested_inheritable_options_to_h
+    options = ActiveSupport::InheritableOptions.new(one: "first value")
+    options[:two] = "second value"
+
+    nested = options.inheritable_copy
+
+    assert_equal({ one: "first value", two: "second value" }, nested.to_h)
+  end
+
+  def test_inheritable_options_equality
+    object = ActiveSupport::InheritableOptions.new(one: "first value")
+
+    assert object == ActiveSupport::InheritableOptions.new(one: "first value")
+    assert object == { one: "first value" }
+    assert_not object == { one: "other value" }
+  end
+
+  def test_inheritable_options_equality_with_non_hash_returns_false
+    object = ActiveSupport::InheritableOptions.new(one: "first value")
+    empty  = ActiveSupport::InheritableOptions.new
+
+    assert_not object == "first value"
+    assert_not object == nil
+    assert_not empty == nil
+  end
+
   def test_ordered_options_dup
     object = ActiveSupport::OrderedOptions.new
     object.one = "first value"
@@ -222,6 +251,14 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     assert object.key?(:three)
     assert_not object.key?("three")
     assert_not object.key?(:four)
+  end
+
+  def test_inheritable_options_keys
+    object = ActiveSupport::InheritableOptions.new(one: "first value")
+    object[:two] = "second value"
+    object["three"] = "third value"
+
+    assert_equal [:one, :two, :three], object.keys
   end
 
   def test_inheritable_options_overridden
@@ -320,5 +357,29 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     io = StringIO.new
     PP.pp(object, io)
     assert_equal({ one: "first value", two: "second value", three: "third value" }.inspect, io.string.strip)
+  end
+
+  def test_inheritable_options_ractor_shareable
+    object = ActiveSupport::InheritableOptions.new(one: "first value")
+    object[:two] = "second value"
+    object["three"] = "third value"
+
+    assert_ractor_make_shareable(object)
+
+    assert_equal "first value", object[:one]
+    assert_equal "second value", object[:two]
+    assert_equal "third value", object[:three]
+  end
+
+  def test_overridden_works_when_frozen
+    object = ActiveSupport::InheritableOptions.new(one: "first value", two: "second value")
+    object[:two] = "second value"
+    object["three"] = "third value"
+
+    object.freeze
+
+    assert object.overridden?(:two)
+    assert_not object.overridden?(:one)
+    assert_not object.overridden?(:three)
   end
 end

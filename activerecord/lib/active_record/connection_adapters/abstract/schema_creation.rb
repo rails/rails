@@ -22,13 +22,19 @@ module ActiveRecord
 
       private
         def visit_AlterTable(o)
-          sql = +"ALTER TABLE #{quote_table_name(o.name)} "
-          sql << o.adds.map { |col| accept col }.join(" ")
-          sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
-          sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
-          sql << o.check_constraint_adds.map { |con| visit_AddCheckConstraint con }.join(" ")
-          sql << o.check_constraint_drops.map { |con| visit_DropCheckConstraint con }.join(" ")
-          sql << o.constraint_drops.map { |con| visit_DropConstraint con }.join(" ")
+          "ALTER TABLE #{quote_table_name(o.name)} #{o.operations.map { |op| accept(op) }.join(', ')}"
+        end
+
+        def visit_DropColumn(o)
+          "DROP COLUMN #{quote_column_name(o.name)}"
+        end
+
+        def visit_RenameColumn(o)
+          "RENAME COLUMN #{quote_column_name(o.from_name)} TO #{quote_column_name(o.to_name)}"
+        end
+
+        def visit_ChangeColumnNull(o)
+          "ALTER COLUMN #{quote_column_name(o.name)} #{o.null ? 'DROP' : 'SET'} NOT NULL"
         end
 
         def visit_ColumnDefinition(o)
@@ -94,11 +100,11 @@ module ActiveRecord
         end
 
         def visit_AddForeignKey(o)
-          "ADD #{accept(o)}"
+          "ADD #{accept(o.foreign_key)}"
         end
 
-        def visit_DropConstraint(name)
-          "DROP CONSTRAINT #{quote_column_name(name)}"
+        def visit_DropConstraint(o)
+          "DROP CONSTRAINT #{quote_column_name(o.name)}"
         end
         alias :visit_DropForeignKey :visit_DropConstraint
         alias :visit_DropCheckConstraint :visit_DropConstraint
@@ -127,7 +133,7 @@ module ActiveRecord
         end
 
         def visit_AddCheckConstraint(o)
-          "ADD #{accept(o)}"
+          "ADD #{accept(o.check_constraint)}"
         end
 
         def quoted_columns(o)

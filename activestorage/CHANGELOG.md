@@ -1,3 +1,266 @@
+*   Marcel 2 for content type detection
+
+    Broader and more precise MIME type detection, security hardening, and uses canonical types
+    instead of aliases (`text/x-yaml` → `application/yaml`).
+
+    *Jeremy Daer*
+
+*   Allow ffmpeg and ffprobe input arguments to be configured.
+
+    Two new configuration parameters are introduced.
+    `config.active_storage.video_preview_input_arguments` is passed to ffmpeg before `-i`, and
+    `config.active_storage.ffprobe_arguments` is passed to ffprobe before the file path. Both
+    default to `""`.
+
+    ffmpeg's flags are position dependent, and these parameters carry the ones that apply to the
+    input, such as `-codec_whitelist`, `-f`, and `-protocol_whitelist`. For example, an
+    application that accepts only H.264 video with AAC audio:
+
+    ```ruby
+    config.active_storage.video_preview_input_arguments = "-codec_whitelist h264,aac"
+    config.active_storage.ffprobe_arguments = "-codec_whitelist h264,aac"
+    ```
+
+    `ffprobe_arguments` applies to both `ActiveStorage::Analyzer::VideoAnalyzer` and
+    `ActiveStorage::Analyzer::AudioAnalyzer`.
+
+    *Mike Dalessio*
+
+*   Allow `config.active_storage.variant_processor` to be set to a transformer class.
+
+    `config.active_storage.variant_processor` now accepts a class, in addition to `:vips`,
+    `:mini_magick`, and `:disabled`. The class must implement the interface defined by
+    `ActiveStorage::Transformers::Transformer`. Active Storage then uses it for variant processing.
+
+    ```ruby
+    config.active_storage.variant_processor = CustomTransformer
+    ```
+
+    Note that the built-in image analyzers accept a blob only when `variant_processor` is `:vips` or
+    `:mini_magick`, so setting this configuration to a custom class requires adding a custom
+    analyzer to `config.active_storage.analyzers` as well.
+
+    An unrecognized value now raises `ArgumentError` while booting, instead of failing later with
+    `NoMethodError` when a variant is generated.
+
+    *Mike Dalessio*
+
+*   Disable libvips's unfuzzed image loaders and savers.
+
+    libvips flags some of its loaders and savers as "unfuzzed" or "untrusted", meaning they are only
+    safe for trusted content. Active Storage will call `Vips.block_untrusted(true)` to disable them
+    while booting. An application that needs a specific loader or saver may re-enable it in an
+    initializer.
+
+    This is a breaking change for applications that process image types with an unfuzzed loader or
+    saver. Variant transformation of BMP, ICO, and PSD attachments will raise `Vips::Error`, and
+    analysis of these and other types such as SVG, JPEG XL, JPEG 2000, and Netpbm will no longer
+    record `width` and `height`. Requesting an unfuzzed output format, typically FITS, JXL, or
+    anything delegated to ImageMagick, will also raise `Vips::Error`. Attaching, storing, and
+    downloading are unchanged.
+
+    An application seeing `Vips::Error` raised during image transformation may wish to remove the
+    affected content types from `config.active_storage.variable_content_types` in an initializer.
+    Active Storage will then treat those attachments as not variable and will not generate variants
+    for them. This most often matters to an application that transforms images during a request
+    rather than in a background job, where the failure surfaces as an error response instead of a
+    failed job.
+
+    ```ruby
+    Rails.application.config.active_storage.variable_content_types -=
+      %w[ image/bmp image/vnd.microsoft.icon image/vnd.adobe.photoshop ]
+    ```
+
+    Applications using the `:mini_magick` variant processor will see no change in how their
+    attachments are processed, but the loaders and savers will be disabled process-wide whenever
+    ruby-vips is installed, and the version requirements below will still apply. Such an application
+    may remove ruby-vips from its Gemfile to avoid both.
+
+    The minimum supported version of libvips is now 8.13, and the minimum supported version of
+    ruby-vips is now 2.2.1. These are the earliest versions that are capable of disabling untrusted
+    operations. When ruby-vips is installed and either minimum is not met, Active Storage will raise
+    a `RuntimeError` while booting rather than run in an unsecurable environment.
+
+    [GHSA-xr9x-r78c-5hrm]
+    [CVE-2026-66066]
+
+    *Mike Dalessio*
+
+*   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
+
+    Mirrored copies on S3, Azure, and GCS were served as `application/octet-stream`
+    because `content_type`, `filename`, `disposition`, and `custom_metadata` were
+    dropped. Forward the blob's `service_metadata` to each mirror's upload.
+
+    Fixes #57270.
+
+    *Maksim Romanov* + *Andrii Furmanets*
+
+*   Offload ActiveStorage::Blob#metadata sync to background
+
+    Problem:
+
+    A data race can occur when both a http server and a background worker (
+    `ActiveStorage::AnalyzeJob`) attempt to update a blob's metadata
+    simultaneously. This leads to a 409 conflict on GCS.
+
+    Solution:
+
+    Offload the metadata upload to a background job so the 409 no longer breaks
+    the request with a 500. Applications can add `retry_on` to
+    `ActiveStorage::SyncMetadataJob` to retry the conflict for their service.
+
+    `ActiveStorage::Service#update_metadata` now instruments the work and
+    delegates it to a new `update_metadata_for` method. Custom services that
+    overrode `update_metadata` should override `update_metadata_for` instead, so
+    the work runs inside the instrumentation.
+
+    *Shouichi Kamiya*
+
+*   Update Active Storage for ImageProcessing 2.0.
+
+    ImageProcessing 2.0 now requires adding `ruby-vips` or `mini_magick` gems explicitly to the Gemfile.
+
+    *Janko Marohnić*
+
+*   Prevent `ActiveStorage.touch_attachment_records = false` from crashing the attachment of a Blob.
+
+    When `ActiveStorage.touch_attachment_records` was set to `false`, attaching a existing Blob to a Record
+    would raise an error. This is now fixed.
+
+    *Edouard Chin*
+
+*   Parallelize `exist?` checks and uploads in `MirrorService#mirror` using
+    the existing internal thread pool. With N mirrors, wall time drops from
+    O(N) to O(1) network round-trips for both phases.
+
+    *Denis Savchuk*
+
+*   Fix `MirrorService#mirror` raising `ActiveStorage::IntegrityError` when
+    mirroring without a checksum (e.g., `track_variants: false`).
+
+    *Denis Savchuk*
+
+*   Don't bump `lock_version` on attachment records' parents during blob analysis.
+
+    `ActiveStorage::AnalyzeJob` writes only to `Blob#metadata`. The cascade
+    that touches attached records (and their parents) exists for cache-key
+    invalidation; when those records use optimistic locking, the previous
+    behavior bumped `lock_version`, causing concurrent form edits to raise
+    spurious `ActiveRecord::StaleObjectError`s. The `updated_at` cascade is
+    preserved; the `lock_version` bump on this code path is now suppressed.
+
+    Fixes #55764.
+
+    *Greg Pavlik*
+
+*   Accept Tempfile as ActiveStorage attachable.
+
+    ```ruby
+    tempfile = Tempfile.open(["users", ".csv"])
+    write_csv_to(tempfile)
+    export.csv.attach(tempfile)
+    ```
+
+    *Shouichi Kamiya*
+
+*   Require image processing backend upfront when Active Storage is being loaded.
+
+    This removes extra overhead when processing first variant after deploy and improves copy-on-write for preforking web servers.
+
+    *Janko Marohnić*
+
+*   ActiveStorage ProxyController now set relevant `Last-Modified`
+
+    It is now set to `Blob#created_at` instead of being hardcoded to January 1st 2011.
+
+    *Jean Boussier*
+
+*   Preserve attachment changes when converting record to another class using STI.
+
+    *fatkodima*
+
+*   Add a helper to get the combined byte size of blobs attached via `has_many_attached`.
+
+    ```ruby
+    document.images.byte_size # => 2048
+    ```
+
+    *Sandip Mane*, *fatkodima*
+
+*   Implement `attach!` as a bang counterpart to `attach`.
+
+    This method raises an exception if the attachment was not saved, similar
+    to how `save!` raises an exception if an Active Record object is found to
+    be invalid prior to be persisted.
+
+    *Quentin de Metz*
+
+*   Correct unexpected behavior resulting from dependent: :purge when using
+    has_one_attached or has_many_attached. Fixes #36423.
+
+    *Mark Oveson*
+
+*   Allow configuring Active Storage base controller parent class
+
+    This enables users to change the parent class for
+    `ActiveStorage::BaseController`, including the option to inherit from
+    `ActionController::API` for api-only apps.
+
+    *Andrew White*, *Santiago Bartesaghi*, *zzak*
+
+*   Fix image analyzer reporting wrong dimensions for EXIF orientations involving a mirror.
+
+    `rotated_image?` was swapping width/height for orientations 2 and 4 (flip-only, no 90°
+    rotation), which do not change portrait/landscape orientation. It was also missing orientations
+    5 and 7 (flip + 90° rotation), which do require a swap. Only orientations 5, 6, 7, and 8
+    involve a 90° or 270° rotation and should trigger a dimension swap.
+
+    *Bogdan Gusiev*
+
+*   Define `as_json` on `ActiveStorage::Attached::One` and `ActiveStorage::Attached::Many`.
+
+    The proxies hold a back-reference to the owning record in `@record`. Without an explicit
+    `as_json`, the default `Object#as_json` fall back serialized `instance_values`, which made
+    `record.to_json` recurse infinitely whenever the attached name collided with a model
+    attribute (e.g. an `ignored_columns` column brought back by `select('*')`).
+
+    `Attached::One#as_json` now returns the attachment record's JSON when attached and `nil`
+    otherwise. `Attached::Many#as_json` returns the attachment records' JSON as an array.
+
+    *Renxiang Cai*
+
+*   Configurable maximum streaming chunk size
+
+    Makes sure that byte ranges for blobs don't exceed 100mb by default.
+    Content ranges that are too big can result in denial of service.
+
+    *Gannon McGibbon*
+
+*   Prevent path traversal in `DiskService`.
+
+    `DiskService#path_for` now raises an `InvalidKeyError` when passed keys with dot segments (".",
+    ".."), or if the resolved path is outside the storage root directory.
+
+    `#path_for` also now consistently raises `InvalidKeyError` if the key is invalid in any way, for
+    example containing null bytes or having an incompatible encoding. Previously, the exception
+    raised may have been `ArgumentError` or `Encoding::CompatibilityError`.
+
+    `DiskController` now explicitly rescues `InvalidKeyError` with appropriate HTTP status codes.
+
+    *Mike Dalessio*
+
+*   Prevent glob injection in `DiskService#delete_prefixed`.
+
+    Escape glob metacharacters in the resolved path before passing to `Dir.glob`.
+
+    Note that this change breaks any existing code that is relying on `delete_prefixed` to expand
+    glob metacharacters. This change presumes that is unintended behavior (as other storage services
+    do not respect these metacharacters).
+
+    *Mike Dalessio*
+
+
 *   Restore ADC when signing URLs with IAM for GCS
 
     ADC was previously used for automatic authorization when signing URLs with IAM.

@@ -7,11 +7,15 @@ https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#setting-up
 
 To run a specific test:
 
-  $ bundle exec ruby -Itest test/cases/base_test.rb -n method_name
+  $ bin/test test/cases/base_test.rb -i method_name
+
+To run the test at a specific line:
+
+  $ bin/test test/cases/base_test.rb:123
 
 To run a set of tests:
 
-  $ bundle exec ruby -Itest test/cases/base_test.rb
+  $ bin/test test/cases/base_test.rb
 
 You can also run tests that depend upon a specific database backend. For
 example:
@@ -50,7 +54,7 @@ parameters in +test/config.example.yml+ are.
 You can override the +connections:+ parameter in either file using the +ARCONN+
 (Active Record CONNection) environment variable:
 
-  $ ARCONN=postgresql bundle exec ruby -Itest test/cases/base_test.rb
+  $ ARCONN=postgresql bin/test test/cases/base_test.rb
 
 Or
 

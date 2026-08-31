@@ -2,6 +2,7 @@
 
 require_relative "abstract_unit"
 require "active_support/event_reporter/test_helper"
+require "active_support/testing/ractors_assertions"
 require "json"
 
 module ActiveSupport
@@ -261,6 +262,41 @@ module ActiveSupport
           event_matcher(name: "test_event", payload: { key: "value", zomg: "[FILTERED]" })
         ]) do
           @reporter.notify(:test_event, { key: "value", zomg: "secret" })
+        end
+      end
+    end
+
+    test "#notify with filter_payload: false skips payload filtering" do
+      filter = ActiveSupport::ParameterFilter.new([:name], mask: "[FILTERED]")
+      @reporter.stub(:payload_filter, filter) do
+        assert_called_with(@subscriber, :emit, [
+          event_matcher(name: "test_event", payload: { name: "Person Load", sql: "SELECT 1" })
+        ]) do
+          @reporter.notify(:test_event, filter_payload: false, name: "Person Load", sql: "SELECT 1")
+        end
+      end
+    end
+
+    test "#notify with filter_payload: false and hash payload skips filtering" do
+      filter = ActiveSupport::ParameterFilter.new([:name], mask: "[FILTERED]")
+      @reporter.stub(:payload_filter, filter) do
+        assert_called_with(@subscriber, :emit, [
+          event_matcher(name: "test_event", payload: { name: "Person Load" })
+        ]) do
+          @reporter.notify(:test_event, { name: "Person Load" }, filter_payload: false)
+        end
+      end
+    end
+
+    test "#debug with filter_payload: false skips payload filtering" do
+      filter = ActiveSupport::ParameterFilter.new([:name], mask: "[FILTERED]")
+      @reporter.stub(:payload_filter, filter) do
+        @reporter.with_debug do
+          assert_called_with(@subscriber, :emit, [
+            event_matcher(name: "test_event", payload: { name: "Person Load" })
+          ]) do
+            @reporter.debug(:test_event, filter_payload: false, name: "Person Load")
+          end
         end
       end
     end
@@ -658,6 +694,26 @@ module ActiveSupport
         timestamp: 1738964843208679035,
         source_location: { filepath: "/path/to/file.rb", lineno: 42, label: "test_method" }
       }
+    end
+  end
+
+  class EventReporterRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
+    if RUBY_VERSION >= "4.0"
+      test "each Ractor gets its own event reporter" do
+        main_subscriber_count = ActiveSupport.event_reporter.subscribers.size
+
+        event_names = on_ractor do
+          subscriber = EventReporter::TestHelper::EventSubscriber.new
+          ActiveSupport.event_reporter.subscribe(subscriber)
+          ActiveSupport.event_reporter.notify("ractor_event")
+          subscriber.events.map { |event| event[:name] }
+        end
+
+        assert_equal ["ractor_event"], event_names
+        assert_equal main_subscriber_count, ActiveSupport.event_reporter.subscribers.size
+      end
     end
   end
 end

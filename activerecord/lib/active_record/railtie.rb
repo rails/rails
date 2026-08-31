@@ -37,14 +37,23 @@ module ActiveRecord
     config.active_record.cache_query_log_tags = false
     config.active_record.query_log_tags_prepend_comment = false
     config.active_record.raise_on_assign_to_attr_readonly = false
+    config.active_record.shuffle_unordered_selects = false
     config.active_record.belongs_to_required_validates_foreign_key = true
     config.active_record.generate_secure_token_on = :create
     config.active_record.use_legacy_signed_id_verifier = :generate_and_verify
     config.active_record.deprecated_associations_options = { mode: :warn, backtrace: false }
+    config.active_record.dump_schema_migrations = false
+    config.active_record.dump_schema_migrations_sort_by = :reverse
 
     config.active_record.queues = ActiveSupport::InheritableOptions.new
 
     config.eager_load_namespaces << ActiveRecord
+
+    guard_load_hooks(
+      :active_record, :active_record_encryption, :active_record_fixture_set, :active_record_fixtures,
+      :active_record_mysql2adapter, :active_record_postgresqladapter, :active_record_sqlite3adapter,
+      :active_record_trilogyadapter,
+    )
 
     rake_tasks do
       namespace :db do
@@ -345,12 +354,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
       ActiveRecord.message_verifiers = app.message_verifiers
 
       use_legacy_signed_id_verifier = app.config.active_record.use_legacy_signed_id_verifier
-      legacy_options = { digest: "SHA256", serializer: JSON, url_safe: true }
+      legacy_options = { digest: "SHA256", serializer: JSON, url_safe: true }.freeze
 
       if use_legacy_signed_id_verifier == :generate_and_verify
-        app.message_verifiers.prepend { |salt| legacy_options if salt == "active_record/signed_id" }
+        app.message_verifiers.prepend(&ActiveSupport::Ractors.shareable_proc { |salt| legacy_options if salt == "active_record/signed_id" })
       elsif use_legacy_signed_id_verifier == :verify
-        app.message_verifiers.rotate { |salt| legacy_options if salt == "active_record/signed_id" }
+        app.message_verifiers.rotate(&ActiveSupport::Ractors.shareable_proc { |salt| legacy_options if salt == "active_record/signed_id" })
       elsif use_legacy_signed_id_verifier
         raise ArgumentError, "Unrecognized value for config.active_record.use_legacy_signed_id_verifier: #{use_legacy_signed_id_verifier.inspect}"
       end
@@ -367,9 +376,9 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record_encryption.configuration" do |app|
       ActiveSupport.on_load(:active_record_encryption) do
         ActiveRecord::Encryption.configure(
-          primary_key: app.credentials.dig(:active_record_encryption, :primary_key),
-          deterministic_key: app.credentials.dig(:active_record_encryption, :deterministic_key),
-          key_derivation_salt: app.credentials.dig(:active_record_encryption, :key_derivation_salt),
+          primary_key: app.creds.option(:active_record_encryption, :primary_key),
+          deterministic_key: app.creds.option(:active_record_encryption, :deterministic_key),
+          key_derivation_salt: app.creds.option(:active_record_encryption, :key_derivation_salt),
           **app.config.active_record.encryption
         )
 
@@ -405,7 +414,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
             database:     ->(context) { context[:connection].pool.db_config.database },
             source_location: -> { QueryLogs.query_source_location }
           )
-          ActiveRecord.disable_prepared_statements = true
+          ActiveRecord.disable_prepared_statements = true if config.active_record.disable_prepared_statements.nil?
 
           if app.config.active_record.query_log_tags.present?
             ActiveRecord::QueryLogs.tags = app.config.active_record.query_log_tags
@@ -446,6 +455,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
           require "active_record/message_pack"
           ActiveRecord::MessagePack::Extensions.install(ActiveSupport::MessagePack::CacheSerializer)
         end
+      end
+    end
+
+    initializer "active_record.share_configs" do
+      config.after_initialize do
+        ActiveSupport::Ractors.make_shareable(ActiveRecord.query_transformers)
       end
     end
   end

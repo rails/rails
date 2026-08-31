@@ -83,10 +83,15 @@ class StaticTest < ActiveSupport::TestCase
   def test_served_gzipped_static_file_with_non_english_filename
     response = get("/foo/%E3%81%95%E3%82%88%E3%81%86%E3%81%AA%E3%82%89.html", "HTTP_ACCEPT_ENCODING" => "gzip")
 
-    assert_gzip  "/foo/さようなら.html", response
-    assert_equal "text/html",          response.headers["content-type"]
-    assert_equal "accept-encoding",    response.headers["vary"]
-    assert_equal "gzip",               response.headers["content-encoding"]
+    assert_gzip  "/foo/さようなら.html",       response
+    assert_equal "text/html; charset=utf-8", response.headers["content-type"]
+    assert_equal "accept-encoding",          response.headers["vary"]
+    assert_equal "gzip",                     response.headers["content-encoding"]
+  end
+
+  def test_serves_static_css_with_charset
+    response = get("/foo/baz.css")
+    assert_equal "text/css; charset=utf-8", response.headers["content-type"]
   end
 
   def test_serves_static_file_with_exclamation_mark_in_filename
@@ -179,9 +184,9 @@ class StaticTest < ActiveSupport::TestCase
     file_name = "/gzip/logo-bcb6d75d927347158af5.svg"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
     assert_gzip  file_name, response
-    assert_equal "image/svg+xml", response.headers["Content-Type"]
-    assert_equal "accept-encoding",        response.headers["Vary"]
-    assert_equal "gzip",                   response.headers["Content-Encoding"]
+    assert_equal "image/svg+xml",   response.headers["Content-Type"]
+    assert_equal "accept-encoding", response.headers["Vary"]
+    assert_equal "gzip",            response.headers["Content-Encoding"]
   end
 
   def test_set_vary_when_origin_compressed_but_client_cant_accept
@@ -332,7 +337,7 @@ class StaticTest < ActiveSupport::TestCase
 
     def assert_html(body, response)
       assert_equal body, response.body
-      assert_equal "text/html", response.headers["content-type"]
+      assert_equal "text/html; charset=utf-8", response.headers["content-type"]
       assert_nil response.headers["vary"]
     end
 

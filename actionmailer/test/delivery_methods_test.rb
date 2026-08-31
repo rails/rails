@@ -87,7 +87,7 @@ class MailDeliveryTest < ActiveSupport::TestCase
     DEFAULT_HEADERS = {
       to: "mikel@test.lindsaar.net",
       from: "jose@test.plataformatec.com"
-    }
+    }.freeze
 
     def welcome(hash = {})
       mail(DEFAULT_HEADERS.merge(hash))

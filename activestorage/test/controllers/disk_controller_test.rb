@@ -72,6 +72,26 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "showing blob with path traversal key returns not found" do
+    encoded_key = ActiveStorage.verifier.generate(
+      { key: "../../etc/passwd", disposition: "inline", content_type: "text/plain", service_name: "local" },
+      purpose: :blob_key
+    )
+    get rails_disk_service_url(encoded_key: encoded_key, filename: "hello.txt")
+    assert_response :not_found
+  end
+
+  test "directly uploading blob with path traversal key returns unprocessable content" do
+    data = "hello"
+    encoded_token = ActiveStorage.verifier.generate(
+      { key: "../../etc/passwd", content_type: "text/plain", content_length: data.size, checksum: OpenSSL::Digest::MD5.base64digest(data), service_name: "local" },
+      purpose: :blob_token
+    )
+    put update_rails_disk_service_url(encoded_token: encoded_token),
+      params: data, headers: { "Content-Type" => "text/plain" }
+    assert_response ActionDispatch::Constants::UNPROCESSABLE_CONTENT
+  end
+
   test "directly uploading blob with integrity" do
     data = "Something else entirely!"
     blob = create_blob_before_direct_upload byte_size: data.size, checksum: OpenSSL::Digest::MD5.base64digest(data)

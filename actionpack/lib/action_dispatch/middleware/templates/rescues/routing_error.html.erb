@@ -5,14 +5,12 @@
 <main role="main" id="container">
   <h2><%= h @exception_wrapper.message %></h2>
   <% unless @exception_wrapper.failures.empty? %>
-    <p>
-      <h2>Failure reasons:</h2>
-      <ol>
-      <% @exception_wrapper.failures.each do |route, reason| %>
-        <li><code><%= route.inspect.delete('\\') %></code> failed because <%= reason.downcase %></li>
-      <% end %>
-      </ol>
-    </p>
+    <h2>Failure reasons:</h2>
+    <ol>
+    <% @exception_wrapper.failures.each do |route, reason| %>
+      <li><code><%= route.inspect.delete('\\') %></code> failed because <%= reason.downcase %></li>
+    <% end %>
+    </ol>
   <% end %>
 
   <%= render "rescues/trace", traces: @traces, trace_to_show: @trace_to_show %>

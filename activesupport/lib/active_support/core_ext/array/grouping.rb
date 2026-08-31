@@ -1,24 +1,27 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 class Array
-  # Splits or iterates over the array in groups of size +number+,
-  # padding any remaining slots with +fill_with+ unless it is +false+.
+  # Splits or iterates over the array in groups of size `number`,
+  # padding any remaining slots with `fill_with` unless it is `false`.
   #
-  #   %w(1 2 3 4 5 6 7 8 9 10).in_groups_of(3) {|group| p group}
-  #   ["1", "2", "3"]
-  #   ["4", "5", "6"]
-  #   ["7", "8", "9"]
-  #   ["10", nil, nil]
+  # ```
+  # %w(1 2 3 4 5 6 7 8 9 10).in_groups_of(3) {|group| p group}
+  # ["1", "2", "3"]
+  # ["4", "5", "6"]
+  # ["7", "8", "9"]
+  # ["10", nil, nil]
   #
-  #   %w(1 2 3 4 5).in_groups_of(2, '&nbsp;') {|group| p group}
-  #   ["1", "2"]
-  #   ["3", "4"]
-  #   ["5", "&nbsp;"]
+  # %w(1 2 3 4 5).in_groups_of(2, '&nbsp;') {|group| p group}
+  # ["1", "2"]
+  # ["3", "4"]
+  # ["5", "&nbsp;"]
   #
-  #   %w(1 2 3 4 5).in_groups_of(2, false) {|group| p group}
-  #   ["1", "2"]
-  #   ["3", "4"]
-  #   ["5"]
+  # %w(1 2 3 4 5).in_groups_of(2, false) {|group| p group}
+  # ["1", "2"]
+  # ["3", "4"]
+  # ["5"]
+  # ```
   def in_groups_of(number, fill_with = nil, &block)
     if number.to_i <= 0
       raise ArgumentError,
@@ -42,23 +45,25 @@ class Array
     end
   end
 
-  # Splits or iterates over the array in +number+ of groups, padding any
-  # remaining slots with +fill_with+ unless it is +false+.
+  # Splits or iterates over the array in `number` of groups, padding any
+  # remaining slots with `fill_with` unless it is `false`.
   #
-  #   %w(1 2 3 4 5 6 7 8 9 10).in_groups(3) {|group| p group}
-  #   ["1", "2", "3", "4"]
-  #   ["5", "6", "7", nil]
-  #   ["8", "9", "10", nil]
+  # ```
+  # %w(1 2 3 4 5 6 7 8 9 10).in_groups(3) {|group| p group}
+  # ["1", "2", "3", "4"]
+  # ["5", "6", "7", nil]
+  # ["8", "9", "10", nil]
   #
-  #   %w(1 2 3 4 5 6 7 8 9 10).in_groups(3, '&nbsp;') {|group| p group}
-  #   ["1", "2", "3", "4"]
-  #   ["5", "6", "7", "&nbsp;"]
-  #   ["8", "9", "10", "&nbsp;"]
+  # %w(1 2 3 4 5 6 7 8 9 10).in_groups(3, '&nbsp;') {|group| p group}
+  # ["1", "2", "3", "4"]
+  # ["5", "6", "7", "&nbsp;"]
+  # ["8", "9", "10", "&nbsp;"]
   #
-  #   %w(1 2 3 4 5 6 7).in_groups(3, false) {|group| p group}
-  #   ["1", "2", "3"]
-  #   ["4", "5"]
-  #   ["6", "7"]
+  # %w(1 2 3 4 5 6 7).in_groups(3, false) {|group| p group}
+  # ["1", "2", "3"]
+  # ["4", "5"]
+  # ["6", "7"]
+  # ```
   def in_groups(number, fill_with = nil, &block)
     if number.to_i <= 0
       raise ArgumentError,
@@ -91,11 +96,13 @@ class Array
     end
   end
 
-  # Divides the array into one or more subarrays based on a delimiting +value+
+  # Divides the array into one or more subarrays based on a delimiting `value`
   # or the result of an optional block.
   #
-  #   [1, 2, 3, 4, 5].split(3)              # => [[1, 2], [4, 5]]
-  #   (1..10).to_a.split { |i| i % 3 == 0 } # => [[1, 2], [4, 5], [7, 8], [10]]
+  # ```
+  # [1, 2, 3, 4, 5].split(3)              # => [[1, 2], [4, 5]]
+  # (1..10).to_a.split { |i| i % 3 == 0 } # => [[1, 2], [4, 5], [7, 8], [10]]
+  # ```
   def split(value = nil, &block)
     arr = dup
     result = []

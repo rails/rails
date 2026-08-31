@@ -105,7 +105,6 @@ module ActionDispatch
         def literal?; false; end
         def terminal?; false; end
         def star?; false; end
-        def cat?; false; end
         def group?; false; end
       end
 
@@ -191,7 +190,6 @@ module ActionDispatch
       end
 
       class Cat < Binary # :nodoc:
-        def cat?; true; end
         def type; :CAT; end
       end
 

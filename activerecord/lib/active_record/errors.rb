@@ -306,7 +306,7 @@ module ActiveRecord
   class ExclusionViolation < StatementInvalid
   end
 
-  # Raised when a record cannot be inserted or updated because a value too long for a column type.
+  # Raised when a record cannot be inserted or updated because a value is too long for a column type.
   class ValueTooLong < StatementInvalid
   end
 

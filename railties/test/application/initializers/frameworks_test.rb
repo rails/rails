@@ -203,6 +203,55 @@ module ApplicationTests
       end
     end
 
+    if RUBY_VERSION >= "4.0"
+      test "notification subscriptions are recorded" do
+        add_to_config "ActiveSupport::Ractors.unshareable_proc_action = :warn"
+
+        app_file "config/initializers/subscriptions.rb", <<-RUBY
+          WitnessError = Class.new(StandardError)
+
+          ActiveSupport::Notifications.subscribe("active_record.sql") { raise WitnessError }
+        RUBY
+
+        app("development")
+
+        # Main Ractor receives notifications
+        assert_raises(WitnessError) do
+          ActiveSupport::Notifications.instrument("active_record.sql")
+        end
+
+        previous_report_on_exception = Thread.report_on_exception
+        Thread.report_on_exception = false
+
+        # Worker Ractor received notifications
+        error = assert_raises(Ractor::RemoteError) do
+          Ractor.new do
+            ActiveSupport::Notifications.instrument("active_record.sql")
+          end.join
+        end
+
+        assert_instance_of(WitnessError, error.cause)
+      ensure
+        Thread.report_on_exception = previous_report_on_exception
+      end
+
+      test "Notification subscriptions can be added after boot" do
+        add_to_config "ActiveSupport::Ractors.unshareable_proc_action = :warn"
+
+        app_file "config/initializers/subscriptions.rb", <<-RUBY
+          WitnessError = Class.new(StandardError)
+
+          ActiveSupport::Notifications.subscribe("active_record.sql") { raise WitnessError }
+        RUBY
+
+        app("development")
+
+        assert_nothing_raised do
+          ActiveSupport::Notifications.subscribe("sql.active_record") { }
+        end
+      end
+    end
+
     # AR
     test "active_record extensions are applied to ActiveRecord" do
       add_to_config "config.active_record.table_name_prefix = 'tbl_'"
@@ -370,7 +419,9 @@ module ApplicationTests
 
     test "connections checked out during initialization are returned to the pool" do
       app_file "config/initializers/active_record.rb", <<-RUBY
-        ActiveRecord::Base.lease_connection
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.lease_connection
+        end
       RUBY
       app("development")
       assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?

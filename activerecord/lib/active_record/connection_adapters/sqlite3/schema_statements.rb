@@ -6,26 +6,122 @@ module ActiveRecord
       module SchemaStatements # :nodoc:
         # Returns an array of indexes for the given table.
         def indexes(table_name)
-          query_all("PRAGMA index_list(#{quote_table_name(table_name)})").filter_map do |row|
-            # Indexes SQLite creates implicitly for internal use start with "sqlite_".
-            # See https://www.sqlite.org/fileformat2.html#intschema
-            next if row["name"].start_with?("sqlite_")
+          result = fetch_indexes(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
+        end
 
-            index_sql = query_value(<<~SQL)
-              SELECT sql
-              FROM sqlite_master
-              WHERE name = #{quote(row['name'])} AND type = 'index'
+        def add_foreign_key(from_table, to_table, if_not_exists: false, **options)
+          options = foreign_key_options(from_table, to_table, options)
+          return if if_not_exists && foreign_key_exists?(from_table, to_table, **options.slice(:column, :primary_key))
+
+          assert_valid_deferrable(options[:deferrable])
+
+          alter_table(from_table) do |definition|
+            to_table = strip_table_name_prefix_and_suffix(to_table)
+            definition.foreign_key(to_table, **options)
+          end
+        end
+
+        def remove_foreign_key(from_table, to_table = nil, **options)
+          to_table ||= options[:to_table]
+          return if options.delete(:if_exists) && !foreign_key_exists?(from_table, to_table, **options.slice(:column, :name))
+
+          options = options.except(:to_table, :validate)
+          fkey = foreign_key_for!(from_table, to_table: to_table, **options)
+
+          foreign_keys = foreign_keys(from_table)
+          foreign_keys.delete(fkey)
+          alter_table(from_table, foreign_keys)
+        end
+
+        def virtual_table_exists?(table_name)
+          query_values(data_source_sql(table_name, type: "VIRTUAL TABLE")).any?
+        end
+
+        def check_constraints(table_name)
+          result = fetch_check_constraints(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
+        end
+
+        def add_check_constraint(table_name, expression, if_not_exists: false, **options)
+          return if if_not_exists && check_constraint_exists?(table_name, expression: expression, **options)
+
+          alter_table(table_name) do |definition|
+            definition.check_constraint(expression, **options)
+          end
+        end
+
+        def remove_check_constraint(table_name, expression = nil, if_exists: false, **options)
+          return if if_exists && !check_constraint_exists?(table_name, expression: expression, **options)
+
+          check_constraints = check_constraints(table_name)
+          chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
+          check_constraints.delete_if { |chk| chk.name == chk_name_to_delete }
+          alter_table(table_name, foreign_keys(table_name), check_constraints)
+        end
+
+        def create_schema_dumper(options)
+          SQLite3::SchemaDumper.create(self, options)
+        end
+
+        def schema_creation # :nodoc
+          SQLite3::SchemaCreation.new(self)
+        end
+
+        private
+          # sqlite_master lists the permanent objects in the database and
+          # sqlite_temp_master the temporary ones.
+          MASTER_CTE = <<~SQL
+            WITH master AS (
+              SELECT name, type, sql FROM sqlite_master
               UNION ALL
-              SELECT sql
-              FROM sqlite_temp_master
-              WHERE name = #{quote(row['name'])} AND type = 'index'
+              SELECT name, type, sql FROM sqlite_temp_master
+            )
+          SQL
+
+          def fetch_indexes(tables)
+            return {} if tables.empty?
+
+            rows = query_all(<<~SQL).group_by { |row| row["table_name"] }
+              #{MASTER_CTE}
+              SELECT m.name AS table_name, i.name, i."unique"
+              FROM master m
+              JOIN pragma_index_list(m.name) i
+              WHERE m.type = 'table'
+                AND m.name IN (#{quoted_table_names(tables)})
+                AND i.name NOT GLOB 'sqlite_*'
             SQL
 
-            /\bON\b\s*"?(\w+?)"?\s*\((?<expressions>.+?)\)(?:\s*WHERE\b\s*(?<where>.+))?(?:\s*\/\*.*\*\/)?\z/i =~ index_sql
+            details = index_details(rows.each_value.flat_map { |group| group.map { |row| row["name"] } })
 
-            columns = query_all("PRAGMA index_info(#{quote(row['name'])})").map do |col|
-              col["name"]
+            tables.index_with do |table_name|
+              rows.fetch(table_name, []).map do |row|
+                index_sql, columns = details[row["name"]] || [nil, []]
+
+                build_index(table_name, row, index_sql, columns)
+              end
             end
+          end
+
+          # The statement an index was created with says whether it is partial and how
+          # its columns are ordered, and repeats once per column of the index.
+          def index_details(names)
+            return {} if names.empty?
+
+            query_all(<<~SQL).group_by { |row| row["index_name"] }
+              #{MASTER_CTE}
+              SELECT m.name AS index_name, m.sql, i.name
+              FROM master m
+              JOIN pragma_index_info(m.name) i
+              WHERE m.type = 'index'
+                AND m.name IN (#{names.map { |name| quote(name) }.join(", ")})
+              ORDER BY m.name, i.seqno
+            SQL
+              .transform_values { |group| [group.first["sql"], group.map { |row| row["name"] }] }
+          end
+
+          def build_index(table_name, row, index_sql, columns)
+            /\bON\b\s*"?(\w+?)"?\s*\((?<expressions>.+?)\)(?:\s*WHERE\b\s*(?<where>.+?))?(?:\s*\/\*.*\*\/)?\s*\z/im =~ index_sql
 
             where = where.sub(/\s*\/\*.*\*\/\z/, "") if where
             orders = {}
@@ -51,73 +147,19 @@ module ActiveRecord
               orders: orders
             )
           end
-        end
 
-        def add_foreign_key(from_table, to_table, **options)
-          assert_valid_deferrable(options[:deferrable])
+          def fetch_check_constraints(tables)
+            structures = table_structures(tables)
 
-          alter_table(from_table) do |definition|
-            to_table = strip_table_name_prefix_and_suffix(to_table)
-            definition.foreign_key(to_table, **options)
+            tables.index_with do |table_name|
+              create_table_sql, = structures[table_name]
+
+              create_table_sql.to_s.scan(/CONSTRAINT\s+(?<name>\w+)\s+CHECK\s+\((?<expression>(:?[^()]|\(\g<expression>\))+)\)/i).map do |name, expression|
+                CheckConstraintDefinition.new(table_name, expression, name: name)
+              end
+            end
           end
-        end
 
-        def remove_foreign_key(from_table, to_table = nil, **options)
-          return if options.delete(:if_exists) && !foreign_key_exists?(from_table, to_table, **options.slice(:column))
-
-          to_table ||= options[:to_table]
-          options = options.except(:name, :to_table, :validate)
-          fkey = foreign_key_for!(from_table, to_table: to_table, **options)
-
-          foreign_keys = foreign_keys(from_table)
-          foreign_keys.delete(fkey)
-          alter_table(from_table, foreign_keys)
-        end
-
-        def virtual_table_exists?(table_name)
-          query_values(data_source_sql(table_name, type: "VIRTUAL TABLE")).any?
-        end
-
-        def check_constraints(table_name)
-          table_sql = query_value(<<-SQL)
-            SELECT sql
-            FROM sqlite_master
-            WHERE name = #{quote(table_name)} AND type = 'table'
-            UNION ALL
-            SELECT sql
-            FROM sqlite_temp_master
-            WHERE name = #{quote(table_name)} AND type = 'table'
-          SQL
-
-          table_sql.to_s.scan(/CONSTRAINT\s+(?<name>\w+)\s+CHECK\s+\((?<expression>(:?[^()]|\(\g<expression>\))+)\)/i).map do |name, expression|
-            CheckConstraintDefinition.new(table_name, expression, name: name)
-          end
-        end
-
-        def add_check_constraint(table_name, expression, **options)
-          alter_table(table_name) do |definition|
-            definition.check_constraint(expression, **options)
-          end
-        end
-
-        def remove_check_constraint(table_name, expression = nil, if_exists: false, **options)
-          return if if_exists && !check_constraint_exists?(table_name, **options)
-
-          check_constraints = check_constraints(table_name)
-          chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
-          check_constraints.delete_if { |chk| chk.name == chk_name_to_delete }
-          alter_table(table_name, foreign_keys(table_name), check_constraints)
-        end
-
-        def create_schema_dumper(options)
-          SQLite3::SchemaDumper.create(self, options)
-        end
-
-        def schema_creation # :nodoc
-          SQLite3::SchemaCreation.new(self)
-        end
-
-        private
           def valid_table_definition_options
             super + [:rename]
           end

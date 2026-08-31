@@ -18,10 +18,15 @@ require "models/friendship"
 require "models/subscriber"
 require "models/subscription"
 require "models/book"
+require "models/scoped_counter_cache_topic"
+require "models/scoped_counter_cache_child"
 require "models/cpk"
 require "active_support/core_ext/enumerable"
+require "active_support/testing/ractors_assertions"
 
 class CounterCacheTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   fixtures :topics, :categories, :categorizations, :cars, :dogs, :dog_lovers, :people, :friendships, :subscribers, :subscriptions, :books,
     :cpk_orders, :cpk_books
 
@@ -36,6 +41,25 @@ class CounterCacheTest < ActiveRecord::TestCase
 
   setup do
     @topic = Topic.find(1)
+  end
+
+  test "update counters uses only all-query default scopes" do
+    assert_difference -> { @topic.reload.replies_count } do
+      ScopedCounterCacheTopic.update_counters(@topic.id, replies_count: 1)
+    end
+  end
+
+  test "reset counters uses only all-query default scopes" do
+    @topic.update_columns(replies_count: 0)
+    ScopedCounterCacheTopic.reset_counters(@topic.id, :replies)
+
+    assert_equal 1, @topic.reload.replies_count
+  end
+
+  test "belongs_to counter cache uses only all-query default scopes" do
+    assert_difference -> { @topic.reload.replies_count } do
+      ScopedCounterCacheChild.create!(title: "Counter cache child", parent_id: @topic.id, approved: true)
+    end
   end
 
   test "increment counter" do
@@ -127,6 +151,15 @@ class CounterCacheTest < ActiveRecord::TestCase
     end
   end
 
+  test "reset counters with string id" do
+    assert @topic.replies_count > 0, "Must have replies"
+    Topic.increment_counter("replies_count", @topic.id)
+
+    assert_difference "@topic.reload.replies_count", -1 do
+      Topic.reset_counters(@topic.id.to_s, :replies)
+    end
+  end
+
   test "reset counters with modularized and camelized classnames" do
     special = SpecialTopic.create!(title: "Special")
     SpecialTopic.increment_counter(:replies_count, special.id)
@@ -188,6 +221,53 @@ class CounterCacheTest < ActiveRecord::TestCase
     # check that it gets reset
     assert_difference -> { order.reload.books_count }, -1 do
       Cpk::Order.reset_counters(order.id, :books)
+    end
+  end
+
+  test "belongs_to counter cache is maintained on create/update/destroy for cpk model" do
+    order1 = Cpk::Order.create!(id: [9999, 10001], status: "open")
+    order2 = Cpk::Order.create!(id: [9999, 10002], status: "open")
+
+    book = nil
+    assert_difference -> { order1.reload.books_count }, 1 do
+      book = Cpk::Book.create!(id: [9999, 10001], title: "Book", order: order1)
+    end
+
+    assert_difference(
+      { -> { order1.reload.books_count } => -1,
+        -> { order2.reload.books_count } => 1 }
+    ) do
+      book.update!(order: order2)
+    end
+
+    assert_difference -> { order2.reload.books_count }, -1 do
+      book.destroy!
+    end
+  end
+
+  test "belongs_to counter cache is maintained when composite foreign key is manually set" do
+    author = Cpk::Author.create!(name: "author")
+    book = Cpk::Book.create!(id: [author.id, 9999], title: "Book")
+    assert_nil book.shop_id
+    assert_nil book.order_id
+
+    order = Cpk::Order.create!(id: [1, 200], status: "open")
+
+    assert_difference -> { order.reload.books_count }, 1 do
+      book.update!(order: order)
+    end
+  end
+
+  test "reset counters for cpk model with string ids" do
+    order = cpk_orders(:cpk_book_order_1)
+    assert order.books_count > 0, "Must have books"
+
+    Cpk::Order.increment_counter(:books_count, order.id)
+
+    # check that it gets reset
+    assert_difference -> { order.reload.books_count }, -1 do
+      string_id = order.id.map(&:to_s)
+      Cpk::Order.reset_counters(string_id, :books)
     end
   end
 
@@ -487,6 +567,11 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_queries_count(1) do
       assert_equal 2, car.tires.count
     end
+  end
+
+  test "counter cache configuration is ractor shareable" do
+    assert_ractor_shareable SpecialReply.counter_cached_association_names
+    assert_ractor_shareable SpecialReply._counter_cache_columns
   end
 
   private

@@ -13,14 +13,22 @@ module ActiveRecord
 
     def initialize(pool)
       @pool = pool
-      @arel_table = Arel::Table.new(table_name)
+      @arel_table = Arel::Table.new(name: table_name)
     end
 
     def create_version(version)
+      create_versions([version])
+      version.to_s
+    end
+
+    def create_versions(versions) # :nodoc:
+      return if versions.empty?
+
       im = Arel::InsertManager.new(arel_table)
-      im.insert(arel_table[primary_key] => version)
+      im.columns << arel_table[primary_key]
+      im.values = im.create_values_list(versions.map { |version| [version] })
       @pool.with_connection do |connection|
-        connection.insert(im, "#{self.class} Create", primary_key, version)
+        connection.execute(connection.to_sql(im), "#{self.class} Create")
       end
     end
 

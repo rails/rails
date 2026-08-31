@@ -4,8 +4,9 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module DatabaseStatements
-        def explain(arel, binds = [], options = [])
-          sql    = build_explain_clause(options) + " " + to_sql(arel, binds)
+        def explain(arel_or_sql, binds = [], options = [])
+          sql, binds = to_sql_and_binds(arel_or_sql, binds)
+          sql = build_explain_clause(options) + " " + sql
           result = select_all(sql, "EXPLAIN", binds)
           PostgreSQL::ExplainPrettyPrinter.new.pp(result)
         end
@@ -19,7 +20,7 @@ module ActiveRecord
         end
 
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
-          :close, :declare, :fetch, :move, :set, :show
+          :close, :declare, :fetch, :move, :set, :show, :reset
         ) # :nodoc:
         private_constant :READ_QUERY
 
@@ -29,37 +30,23 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        # Executes an SQL statement, returning a PG::Result object on success
-        # or raising a PG::Error exception otherwise.
-        #
-        # Setting +allow_retry+ to true causes the db to reconnect and retry
-        # executing the SQL statement in case of a connection-related exception.
-        # This option should only be enabled for known idempotent queries.
-        #
-        # Note: the PG::Result object is manually memory managed; if you don't
-        # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
-        def execute(...) # :nodoc:
+        def insert(arel_or_sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil) # :nodoc:
+          sequence_name, pk = resolve_currval_for_insert(arel_or_sql, pk, sequence_name, returning)
           super
-        ensure
-          @notice_receiver_sql_warnings = []
         end
 
-        def _exec_insert(intent, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
-          if use_insert_returning? || pk == false
+        def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil) # :nodoc:
+          sequence_name, pk = resolve_currval_for_insert(sql, pk, sequence_name, returning)
+          super
+        end
+
+        def _exec_insert(intent, sequence_name = nil, returning: nil) # :nodoc:
+          if @use_insert_returning || !returning.nil?
             super
           else
             intent.execute!
             result = intent.cast_result
-            unless sequence_name
-              table_ref = extract_table_ref_from_insert_sql(intent.raw_sql)
-              if table_ref
-                pk = schema_cache.primary_keys(table_ref) if pk.nil?
-                pk = suppress_composite_primary_key(pk)
-                sequence_name = default_sequence_name(table_ref, pk)
-              end
-              return result unless sequence_name
-            end
-
+            return result unless sequence_name
             query_all("SELECT currval(#{quote(sequence_name)})", "SQL")
           end
         end
@@ -145,8 +132,28 @@ module ActiveRecord
         end
 
         private
-          IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR]
+          IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR].freeze
           private_constant :IDLE_TRANSACTION_STATUSES
+
+          # When RETURNING is globally disabled, a positional `pk` was
+          # historically the signal to use the currval fallback in
+          # `_exec_insert`. Resolve `sequence_name` from the caller's `pk` (or
+          # the schema cache's primary key) so the fallback still runs against
+          # the intended sequence — including on tables where a `BEFORE INSERT`
+          # trigger short-circuits `RETURNING` (e.g. partitioned inheritance).
+          # Then drop `pk` to skip the abstract's translation into `returning:`
+          # (which would force the RETURNING path and bypass the fallback).
+          def resolve_currval_for_insert(arel_or_sql, pk, sequence_name, returning)
+            return [sequence_name, pk] if @use_insert_returning
+            return [sequence_name, pk] if !returning.nil? || pk == false
+
+            if sequence_name.nil? && (table_ref = table_ref_for_insert(arel_or_sql))
+              effective_pk = pk || schema_cache.primary_keys(table_ref)
+              sequence_name = default_sequence_name(table_ref, effective_pk) if effective_pk
+            end
+
+            [sequence_name, nil]
+          end
 
           def cancel_any_running_query
             return if @raw_connection.nil? || IDLE_TRANSACTION_STATUSES.include?(@raw_connection.transaction_status)
@@ -164,11 +171,19 @@ module ActiveRecord
           end
 
           def perform_query(raw_connection, intent)
-            result = if intent.prepare
+            if fatal = consume_notice_receiver_fatal_error
+              raise fatal
+            end
+
+            raw_connection.discard_results
+
+            if intent.prepare
               begin
                 stmt_key = prepare_statement(intent.processed_sql, intent.binds, raw_connection)
                 intent.notification_payload[:statement_name] = stmt_key
-                raw_connection.exec_prepared(stmt_key, intent.type_casted_binds)
+                raw_connection.send_query_prepared(stmt_key, intent.type_casted_binds)
+                result = get_result(raw_connection)
+                result&.check
               rescue PG::FeatureNotSupported => error
                 if is_cached_plan_failure?(error)
                   # Nothing we can do if we are in a transaction because all commands
@@ -186,10 +201,15 @@ module ActiveRecord
 
                 raise
               end
-            elsif intent.has_binds?
-              raw_connection.exec_params(intent.processed_sql, intent.type_casted_binds)
             else
-              raw_connection.async_exec(intent.processed_sql)
+              if intent.has_binds?
+                raw_connection.send_query_params(intent.processed_sql, intent.type_casted_binds)
+              else
+                raw_connection.send_query(intent.processed_sql)
+              end
+
+              result = get_result(raw_connection)
+              result&.check
             end
 
             verified!
@@ -205,8 +225,28 @@ module ActiveRecord
             else
               fields = result.fields
               types = Array.new(fields.size)
+              field_types = Array.new(fields.size)
+              missing_oids = []
+
               fields.size.times do |index|
                 ftype = result.ftype(index)
+                field_types[index] = ftype
+                missing_oids << ftype unless type_map.key?(ftype)
+              end
+
+              if missing_oids.any?
+                load_additional_types(missing_oids)
+
+                fields.size.times do |index|
+                  ftype = field_types[index]
+                  next if type_map.key?(ftype)
+
+                  register_unknown_oid_type(ftype, fields[index])
+                end
+              end
+
+              fields.size.times do |index|
+                ftype = field_types[index]
                 fmod  = result.fmod(index)
                 types[index] = get_oid_type(ftype, fmod, fields[index])
               end
@@ -228,25 +268,26 @@ module ActiveRecord
             ["TRUNCATE TABLE #{table_names.map(&method(:quote_table_name)).join(", ")}"]
           end
 
-          def returning_column_values(result)
-            result.rows.first
-          end
-
-          def suppress_composite_primary_key(pk)
-            pk unless pk.is_a?(Array)
-          end
-
-          def handle_warnings(result, sql)
-            @notice_receiver_sql_warnings.each do |warning|
-              next if warning_ignored?(warning)
-
-              warning.sql = sql
-              ActiveRecord.db_warnings_action.call(warning)
-            end
+          def collect_warnings(_result)
+            warnings, @notice_receiver_sql_warnings = @notice_receiver_sql_warnings, []
+            warnings
           end
 
           def warning_ignored?(warning)
             ["WARNING", "ERROR", "FATAL", "PANIC"].exclude?(warning.level) || super
+          end
+
+          def get_result(raw_connection)
+            result = nil
+            while incoming = raw_connection.get_result
+              result&.clear
+              result = incoming
+
+              if result.result_status == PG::PGRES_FATAL_ERROR
+                result.check if connection_terminating_severity?(result)
+              end
+            end
+            result
           end
       end
     end

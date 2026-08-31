@@ -78,7 +78,7 @@ module ActiveRecord
     trilogy:    :mysql_tasks,
     postgresql: :postgresql_tasks,
     sqlite3:    :sqlite_tasks
-  }
+  }.freeze
 
   class DatabaseTasksCheckProtectedEnvironmentsTest < ActiveRecord::TestCase
     if current_adapter?(:SQLite3Adapter) && !in_memory_db?
@@ -95,7 +95,7 @@ module ActiveRecord
       end
 
       def test_raises_an_error_when_called_with_protected_environment
-        protected_environments = ActiveRecord::Base.protected_environments
+        protected_environments = ActiveRecord.protected_environments
         current_env            = ActiveRecord::Base.connection_pool.migration_context.current_environment
 
         ActiveRecord::Base.connection_pool.internal_metadata[:environment] = current_env
@@ -110,18 +110,18 @@ module ActiveRecord
           # Assert no error
           ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
 
-          ActiveRecord::Base.protected_environments = [current_env]
+          ActiveRecord.protected_environments = [current_env]
 
           assert_raise(ActiveRecord::ProtectedEnvironmentError) do
             ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
           end
         end
       ensure
-        ActiveRecord::Base.protected_environments = protected_environments
+        ActiveRecord.protected_environments = protected_environments
       end
 
       def test_raises_an_error_when_called_with_protected_environment_which_name_is_a_symbol
-        protected_environments = ActiveRecord::Base.protected_environments
+        protected_environments = ActiveRecord.protected_environments
         current_env            = ActiveRecord::Base.connection_pool.migration_context.current_environment
 
         ActiveRecord::Base.connection_pool.internal_metadata[:environment] = current_env
@@ -136,13 +136,13 @@ module ActiveRecord
           # Assert no error
           ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
 
-          ActiveRecord::Base.protected_environments = [current_env.to_sym]
+          ActiveRecord.protected_environments = [current_env.to_sym]
           assert_raise(ActiveRecord::ProtectedEnvironmentError) do
             ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!("arunit")
           end
         end
       ensure
-        ActiveRecord::Base.protected_environments = protected_environments
+        ActiveRecord.protected_environments = protected_environments
       end
 
       def test_raises_an_error_if_no_migrations_have_been_made
@@ -194,7 +194,7 @@ module ActiveRecord
         env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
 
         with_multi_db_configurations(env) do
-          protected_environments = ActiveRecord::Base.protected_environments
+          protected_environments = ActiveRecord.protected_environments
           current_env = ActiveRecord::Base.connection_pool.migration_context.current_environment
           assert_equal current_env, env
 
@@ -214,13 +214,13 @@ module ActiveRecord
           schema_migration.create_table
           schema_migration.create_version("1")
 
-          ActiveRecord::Base.protected_environments = [current_env.to_sym]
+          ActiveRecord.protected_environments = [current_env.to_sym]
 
           assert_raise(ActiveRecord::ProtectedEnvironmentError) do
             ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!(env)
           end
         ensure
-          ActiveRecord::Base.protected_environments = protected_environments
+          ActiveRecord.protected_environments = protected_environments
         end
       end
 
@@ -439,6 +439,29 @@ module ActiveRecord
       end
     ensure
       ActiveRecord::Base.clear_cache!
+    end
+
+    def test_dump_schema_passes_the_given_format_to_check_schema_dump
+      db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary",
+        adapter: "sqlite3",
+        database: "my-db",
+        schema_format: :sql,
+      )
+
+      format = :ruby
+      assert_not_equal format, db_config.schema_format # precondition
+
+      dumped = false
+
+      ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, "db") do
+        db_config.stub(:schema_dump, ->(sf = db_config.schema_format) { "schema.rb" if sf == format }) do
+          ActiveRecord::Tasks::DatabaseTasks.stub(:with_temporary_pool, ->(*) { dumped = true }) do
+            ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, format)
+          end
+        end
+      end
+
+      assert dumped
     end
 
     def test_dump_all_only_dumps_same_schema_once

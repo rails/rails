@@ -8,7 +8,7 @@ class UnloggedTablesTest < ActiveRecord::PostgreSQLTestCase
 
   TABLE_NAME = "things"
   LOGGED_FIELD = "relpersistence"
-  LOGGED_QUERY = "SELECT #{LOGGED_FIELD} FROM pg_class WHERE relname = '#{TABLE_NAME}'"
+  LOGGED_QUERY = "SELECT #{LOGGED_FIELD} FROM pg_class WHERE relname = '#{TABLE_NAME}'".freeze
   LOGGED = "p"
   UNLOGGED = "u"
   TEMPORARY = "t"

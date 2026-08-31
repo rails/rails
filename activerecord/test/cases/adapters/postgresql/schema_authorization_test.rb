@@ -12,8 +12,8 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
   COLUMNS = [
     "id serial primary key",
     "name character varying(50)"
-  ]
-  USERS = ["rails_pg_schema_user1", "rails_pg_schema_user2"]
+  ].freeze
+  USERS = ["rails_pg_schema_user1", "rails_pg_schema_user2"].freeze
 
   def setup
     @connection = ActiveRecord::Base.lease_connection
