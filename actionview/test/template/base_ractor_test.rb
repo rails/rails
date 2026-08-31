@@ -57,3 +57,15 @@ class BaseRactorTest < ActiveSupport::TestCase
     end
   end
 end
+
+class BaseDefaultFormatsRactorTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::RactorsAssertions
+
+  test "default_formats is readable from a non-main Ractor once the Mime registry is frozen" do
+    Mime.eager_load!
+
+    assert_equal ActionView::Base.default_formats,
+      on_ractor { ActionView::Base.default_formats }
+  end
+end

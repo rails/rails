@@ -179,7 +179,7 @@ module ActionView # :nodoc:
     class_attribute :prefix_partial_path_with_controller_namespace, default: true
 
     # Specify default_formats that can be rendered.
-    cattr_accessor :default_formats
+    singleton_class.attr_accessor :default_formats
 
     # Specify whether submit_tag should automatically disable on click
     singleton_class.attr_accessor :automatically_disable_submit_tag
