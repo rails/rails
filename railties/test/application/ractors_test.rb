@@ -53,6 +53,14 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_ractor_shareable Rails::HealthController.config
       end
 
+      test "ractorize! makes Rails.logger shareable" do
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable Rails.logger
+      end
+
       test "ractorize! eager loads and compiles view templates" do
         app "production"
 
