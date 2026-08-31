@@ -49,7 +49,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       join_model.table_name_resolver = -> { table_name }
       join_model.left_model          = lhs_model
 
-      join_model.add_left_association :left_side, anonymous_class: lhs_model
+      join_model.add_left_association :left_side, anonymous_class: lhs_model, foreign_key: left_side_foreign_key
       join_model.add_right_association association_name, belongs_to_options(options)
       join_model
     end
@@ -66,6 +66,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     private
+      def left_side_foreign_key
+        options[:foreign_key] || lhs_model.model_name.to_s.foreign_key
+      end
+
       def middle_options(join_model)
         middle_options = {}
         middle_options[:class_name] = "#{lhs_model.name}::#{join_model.name}"

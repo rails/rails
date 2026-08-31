@@ -1011,6 +1011,28 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     sink = Sink.create! kitchen: Kitchen.new, sources: [Source.new]
     assert_equal 1, sink.sources.count
   end
+
+  def test_join_model_left_side_uses_the_owner_foreign_key
+    join_model = Developer.const_get(:HABTM_Projects)
+
+    assert_equal "developer_id", join_model._reflect_on_association(:left_side).foreign_key
+  end
+
+  def test_join_model_left_side_returns_the_owner
+    developer = Developer.create!(name: "Jane")
+    developer.projects << Project.create!(name: "Bounty")
+
+    join_model = Developer.const_get(:HABTM_Projects)
+    join_record = join_model.find_by(developer_id: developer.id)
+
+    assert_equal developer, join_record.left_side
+  end
+
+  def test_join_model_left_side_honors_a_custom_foreign_key
+    join_model = SubDeveloper.const_get(:HABTM_SpecialProjects)
+
+    assert_equal "project_id", join_model._reflect_on_association(:left_side).foreign_key
+  end
 end
 
 class DeprecatedHasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
