@@ -7,7 +7,7 @@ module ActiveRecord
     class Column
       include Deduplicable
 
-      attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment
+      attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment, :cast_type
 
       delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
 
@@ -109,9 +109,6 @@ module ActiveRecord
       def virtual?
         false
       end
-
-      protected
-        attr_reader :cast_type
 
       private
         def deduplicated
