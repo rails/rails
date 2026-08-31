@@ -234,7 +234,7 @@ module ActiveRecord
 
       def truncate_tables(db_config)
         with_temporary_connection(db_config) do |conn|
-          conn.truncate_tables(*conn.tables)
+          conn.truncate_tables(*conn.qualified_tables)
         end
       end
       private :truncate_tables
