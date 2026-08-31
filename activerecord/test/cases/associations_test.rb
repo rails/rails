@@ -858,6 +858,14 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_skips_query_when_foreign_key_is_nil_and_key_types_differ
+    post = Postesque.new(author_id: nil)
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author_with_address).call
+    end
+  end
+
   def test_preload_does_not_concatenate_duplicate_records
     post = posts(:welcome)
     post.reload
@@ -1216,7 +1224,8 @@ class PreloaderTest < ActiveRecord::TestCase
 
   def test_preload_does_not_group_same_class_different_scope
     post = posts(:welcome)
-    postesque = Postesque.create(author: Author.last)
+    author = Author.last
+    postesque = Postesque.create(author: author, author_id: author.id)
     postesque.reload
 
     # When the scopes differ in the generated SQL:

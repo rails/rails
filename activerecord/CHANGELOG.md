@@ -1,3 +1,8 @@
+*   Avoid unnecessary association preloader queries for nil foreign keys when
+    the foreign key and association primary key have different types.
+
+    *Thrwat Elmoselhi*
+
 *   Add `config.active_record.shuffle_unordered_selects`.
 
     When enabled, Active Record shuffles the rows of every `SELECT` it generates
