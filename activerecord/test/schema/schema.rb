@@ -167,6 +167,7 @@ ActiveRecord::Schema.define do
     t.column :name, :string, default: "<untitled>", limit: 1024
     t.column :original_name, :string
     t.column :logo, :binary
+    t.json :metadata
 
     t.datetime :created_at
     t.datetime :updated_at
