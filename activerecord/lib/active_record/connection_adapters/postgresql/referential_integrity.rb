@@ -9,10 +9,11 @@ module ActiveRecord
             toggle_foreign_key_enforcement(current_schemas_only: true, &block)
           else
             original_exception = nil
+            table_names = schema_qualified_tables
 
             begin
               transaction(requires_new: true) do
-                execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
+                execute(table_names.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
               end
             rescue ActiveRecord::ActiveRecordError => e
               original_exception = e
@@ -35,7 +36,7 @@ module ActiveRecord
 
             begin
               transaction(requires_new: true) do
-                execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
+                execute(table_names.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
               end
             rescue ActiveRecord::ActiveRecordError
             end
@@ -74,6 +75,17 @@ module ActiveRecord
         end
 
         private
+          # Like #data_source_sql, but returns schema qualified names, so that tables sharing
+          # a name across several schemas on the search path are all covered.
+          def schema_qualified_tables
+            scope = quoted_scope(nil, type: "BASE TABLE")
+            sql = +"SELECT n.nspname || '.' || c.relname FROM pg_class c "
+            sql << "LEFT JOIN pg_namespace n ON n.oid = c.relnamespace"
+            sql << " WHERE n.nspname = #{scope[:schema]}"
+            sql << " AND c.relkind IN (#{scope[:type]})"
+            query_values(sql)
+          end
+
           # conparentid = 0: a partition's child copy can't be ALTERed; the parent's ALTER cascades
           def enforced_foreign_keys(current_schemas_only: false)
             query_all(<<~SQL)
