@@ -2,6 +2,7 @@
 
 require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/ractors"
 require "active_support/ordered_options"
 require "action_view/log_subscriber"
 require "action_view/structured_event_subscriber"
@@ -159,7 +160,13 @@ module ActionView # :nodoc:
     include Helpers, ::ERB::Util, Context
 
     # Specify the proc used to decorate input tags that refer to attributes with errors.
-    cattr_accessor :field_error_proc, default: Proc.new { |html_tag, instance| content_tag :div, html_tag, class: "field_with_errors" }
+    singleton_class.attr_reader :field_error_proc
+
+    def self.field_error_proc=(proc)
+      @field_error_proc = ActiveSupport::Ractors.try_shareable_proc(proc)
+    end
+
+    @field_error_proc = ActiveSupport::Ractors.shareable_proc { |html_tag, instance| content_tag :div, html_tag, class: "field_with_errors" }
 
     # How to complete the streaming when an exception occurs.
     # This is our best guess: first try to close the attribute, then the tag.
