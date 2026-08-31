@@ -2,10 +2,16 @@
 
 require "test_helper"
 
-ENV["MAILGUN_INGRESS_SIGNING_KEY"] = "tbsy84uSV1Kt3ZJZELY2TmShPRs91E3yL4tzf96297vBCkDWgL"
-
 class ActionMailbox::Ingresses::Mailgun::InboundEmailsControllerTest < ActionDispatch::IntegrationTest
-  setup { ActionMailbox.ingress = :mailgun }
+  setup do
+    @previous_key = ENV["MAILGUN_INGRESS_SIGNING_KEY"]
+    ENV["MAILGUN_INGRESS_SIGNING_KEY"] = "tbsy84uSV1Kt3ZJZELY2TmShPRs91E3yL4tzf96297vBCkDWgL"
+    ActionMailbox.ingress = :mailgun
+  end
+
+  teardown do
+    ENV["MAILGUN_INGRESS_SIGNING_KEY"] = @previous_key
+  end
 
   test "receiving an inbound email from Mailgun" do
     assert_difference -> { ActionMailbox::InboundEmail.count }, +1 do
