@@ -6,9 +6,22 @@ require "active_support/testing/ractors_assertions"
 class BaseRactorTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::RactorsAssertions
 
-  test "field_error_proc is readable from a non-main Ractor" do
-    assert_equal ActionView::Base.field_error_proc,
-      on_ractor { ActionView::Base.field_error_proc }
+  test "settings are readable from a non-main Ractor" do
+    expected = [
+      ActionView::Base.field_error_proc,
+      ActionView::Base.streaming_completion_on_exception,
+      ActionView::Base.automatically_disable_submit_tag,
+      ActionView::Base.remove_hidden_field_autocomplete,
+    ]
+
+    assert_equal expected, on_ractor {
+      [
+        ActionView::Base.field_error_proc,
+        ActionView::Base.streaming_completion_on_exception,
+        ActionView::Base.automatically_disable_submit_tag,
+        ActionView::Base.remove_hidden_field_autocomplete,
+      ]
+    }
   end
 
   test "the default field_error_proc is shareable" do
