@@ -46,7 +46,7 @@ class ActiveStorage::VariantWithRecord
   def process_from_io(io) # :nodoc:
     return if processed?
 
-    variation.transform(io) do |output|
+    variation.transform(io, content_type: blob.content_type) do |output|
       create_or_find_record(image: {
         io: output,
         filename: "#{blob.filename.base}.#{variation.format.downcase}",
@@ -63,7 +63,7 @@ class ActiveStorage::VariantWithRecord
 
     def transform_blob
       blob.open do |input|
-        variation.transform(input) do |output|
+        variation.transform(input, content_type: blob.content_type) do |output|
           yield io: output, filename: "#{blob.filename.base}.#{variation.format.downcase}",
             content_type: variation.content_type, service_name: blob.service.name
         end
