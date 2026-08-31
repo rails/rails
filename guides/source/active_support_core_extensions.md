@@ -13,12 +13,12 @@ After reading this guide, you will know:
 
 * What Core Extensions are.
 * How to load all extensions.
-* How to cherry-pick just the extensions you want.
+* How to include only the extensions you want.
 * What extensions Active Support provides.
 
 --------------------------------------------------------------------------------
 
-NOTE: this document will not list every single core extension. The Rails API docs are a great resource for that. The goal of this doc is to highlight the use cases for the various extensions (group them by use cases) and show the breath of the methods Rails adds to Ruby.
+NOTE: this document will not list every single core extension. The Rails API docs are a great resource for that. The goal of this doc is to highlight the use cases for the various extensions and show the breath of the methods Rails adds to Ruby.
 
 What are Core Extensions
 ------------------------
@@ -57,7 +57,7 @@ to natural language.
 
 WARNING: Because open classes modify Ruby's built-in types globally, they are a
 form of **monkey patching**. A method added to `String` in one part of your
-program affects every string everywhere. This can lead to subtle bugs if
+program affects all strings everywhere. This can lead to subtle bugs if
 extensions conflict with other gems or future versions of Ruby. Active Support's
 extensions are well-tested and widely used, but if you are loading them in a
 non-Rails project, prefer [selective
@@ -132,8 +132,8 @@ Extensions to All Objects
 
 The [`blank?`][Object#blank?] method returns `true` if the value is `nil`,
 `false`, or empty. It enhances Ruby's built-in `empty` method and works across
-types. For example, it works for `nil` by returning `true` (while calling
-`.empty?` on `nil` would raise a `NoMethodError`).
+types. For example, it works for `nil` by returning `true` (on the other hand,
+calling `.empty?` on `nil` would raise a `NoMethodError`).
 
 Specifically, the following values are considered to be blank in a Rails
 application:
@@ -206,6 +206,7 @@ config[:host] = ""            # Assuming config[:host] is blank
 config[:host].present?        # => false
 config[:host].presence        # => nil
 
+# Default to "localhost" if config[:host] is blank
 host = config[:host].presence || "localhost"
 ```
 
@@ -235,7 +236,7 @@ Complex(1).duplicable?      # => true
 1.method(:+).duplicable?    # => false
 ```
 
-Without `duplicable?`, the caller of `dup` would need to `rescue` from the error raised by `dup` to discover that a given object is not duplicable, which is 40 times slower. Hence, the predicate method is preferred when possible.
+Without `duplicable?`, the caller of `dup` would need to `rescue` from the error raised by `dup` to discover that a given object is not duplicable.
 
 WARNING: `duplicable?` depends on a [hard-coded list of non-duplicable types](https://github.com/rails/rails/blob/main/activesupport/lib/active_support/core_ext/object/duplicable.rb) built into Active Support source code. This list is small and can change as Ruby evolves — for example, `NilClass`, `TrueClass`, `FalseClass`, `Symbol`, and `Numeric` were removed from the list when Ruby 2.4 made them duplicable. Use `duplicable?` only when you know the hard-coded list covers your use case, otherwise use the slower `rescue` approach.
 
@@ -391,7 +392,7 @@ def acts_like_time?
 end
 ```
 
-The method body and return value are irrelevant. Its presence alone is the signal by convention. Client code can then check:
+The method body and return value are irrelevant. By convention, its presence alone is the signal. Client code can then check:
 
 ```ruby
 obj.acts_like?(:time)
@@ -587,7 +588,7 @@ NOTE: Defined in `active_support/core_ext/object/json.rb`.
 ### `instance_values`
 
 The [`instance_values`][Object#instance_values] method returns a hash that maps
-instance variable names without "@" to their corresponding values. Keys are
+instance variable names (without "@") to their corresponding values. Keys are
 strings:
 
 ```ruby
