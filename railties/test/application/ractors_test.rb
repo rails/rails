@@ -36,6 +36,14 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_ractor_shareable Rails.backtrace_cleaner
       end
 
+      test "ractorize! makes Rails.env shareable" do
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable Rails.env
+      end
+
       test "ractorize! makes the controller configs shareable" do
         app "production"
 

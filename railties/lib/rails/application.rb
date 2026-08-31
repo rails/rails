@@ -682,6 +682,7 @@ module Rails
       end
 
       Ractor.make_shareable(self)
+      Ractor.make_shareable(Rails.env)
       Ractor.make_shareable(Rails.event)
       Ractor.make_shareable(Rails.error)
       Ractor.make_shareable(Rails.backtrace_cleaner)
