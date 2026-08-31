@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "active_record/tasks/database_tasks"
+require "support/client_binaries_helper"
 
 module ActiveRecord
   class TrilogyDBCreateTest < ActiveRecord::TestCase
@@ -259,11 +260,19 @@ module ActiveRecord
   end
 
   class MySQLStructureDumpTest < ActiveRecord::TestCase
+    include ClientBinariesHelper
+
     def setup
       @configuration = {
         "adapter"  => "trilogy",
         "database" => "test-db"
       }
+
+      stub_empty_client_binaries_path
+    end
+
+    def teardown
+      restore_client_binaries_path
     end
 
     def test_structure_dump
@@ -370,6 +379,28 @@ module ActiveRecord
         end
     end
 
+    def test_structure_dump_prefers_mariadb_dump_when_it_is_on_the_path
+      filename = "awesome-file.sql"
+      expected_command = ["mariadb-dump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}]
+
+      with_client_binaries("mariadb-dump", "mysqldump") do
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        end
+      end
+    end
+
+    def test_structure_dump_falls_back_to_mysqldump_when_mariadb_dump_is_missing
+      filename = "awesome-file.sql"
+      expected_command = ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}]
+
+      with_client_binaries("mysqldump") do
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        end
+      end
+    end
+
     private
       def with_structure_dump_flags(flags)
         old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
@@ -381,11 +412,19 @@ module ActiveRecord
   end
 
   class MySQLStructureLoadTest < ActiveRecord::TestCase
+    include ClientBinariesHelper
+
     def setup
       @configuration = {
         "adapter"  => "trilogy",
         "database" => "test-db"
       }
+
+      stub_empty_client_binaries_path
+    end
+
+    def teardown
+      restore_client_binaries_path
     end
 
     def test_structure_load
@@ -416,6 +455,28 @@ module ActiveRecord
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags({ trilogy: ["--noop"] }) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+        end
+      end
+    end
+
+    def test_structure_load_prefers_mariadb_when_it_is_on_the_path
+      filename = "awesome-file.sql"
+      expected_command = ["mariadb", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
+
+      with_client_binaries("mariadb", "mysql") do
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+        end
+      end
+    end
+
+    def test_structure_load_falls_back_to_mysql_when_mariadb_is_missing
+      filename = "awesome-file.sql"
+      expected_command = ["mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
+
+      with_client_binaries("mysql") do
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
           ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
         end
       end
