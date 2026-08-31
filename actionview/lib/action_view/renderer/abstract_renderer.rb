@@ -173,7 +173,7 @@ module ActionView
         return if formats.empty? || @lookup_context.html_fallback_for_js
 
         current = @lookup_context.formats
-        return if (formats - current).empty?
+        return if current.first(formats.length) == formats
 
         @lookup_context.formats = formats | current
       end
