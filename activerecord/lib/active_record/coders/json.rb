@@ -8,7 +8,7 @@ module ActiveRecord
       DEFAULT_ENCODE_OPTIONS = { escape: false }.freeze
 
       def initialize(encode_options: nil, decode_options: nil)
-        encode_options = encode_options ? DEFAULT_ENCODE_OPTIONS.merge(options) : DEFAULT_ENCODE_OPTIONS
+        encode_options = encode_options ? DEFAULT_ENCODE_OPTIONS.merge(encode_options) : DEFAULT_ENCODE_OPTIONS
         @decode_options = decode_options
         @encoder = ActiveSupport::JSON::Encoding.json_encoder.new(encode_options)
       end
