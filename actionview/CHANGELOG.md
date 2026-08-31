@@ -1,3 +1,16 @@
+*   Reduce allocation overhead of rendering `render_in`-compatible objects.
+
+    PR #50623 introduced a ~5x allocation regression for objects rendered via
+    `render(renderable)` (including ViewComponent) because every such call
+    began flowing through the standard template rendering pipeline. This
+    change memoizes per-class metadata used by `Template::Renderable`,
+    avoids redundant `prepend_formats` writes, reuses the `TemplateRenderer`
+    within a `Renderer`, gates the `render_template.action_view`
+    notification payload construction on active subscribers, and reuses
+    a pooled `Template::Renderable` when no block is supplied.
+
+    *Joel Hawksley*
+
 *   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
     the current template when it starts with a period, mirroring the existing
     behavior for the key argument.

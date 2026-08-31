@@ -2,6 +2,9 @@
 
 module ActionView
   class TemplateRenderer < AbstractRenderer # :nodoc:
+    RENDER_TEMPLATE_NOTIFICATION = "render_template.action_view"
+    private_constant :RENDER_TEMPLATE_NOTIFICATION
+
     def render(context, options, &block)
       @details = extract_details(options)
       template = determine_template(options, &block)
@@ -41,7 +44,14 @@ module ActionView
           end
           Template::Inline.new(options[:inline], "inline template", handler, locals: keys, format: format)
         elsif options.key?(:renderable)
-          Template::Renderable.new(options[:renderable], &block)
+          if block.nil?
+            pooled = (@_pooled_renderable ||= Template::Renderable.allocate)
+            pooled.instance_variable_set(:@renderable, options[:renderable])
+            pooled.instance_variable_set(:@block, nil)
+            pooled
+          else
+            Template::Renderable.new(options[:renderable], &block)
+          end
         elsif options.key?(:template)
           if options[:template].respond_to?(:render)
             options[:template]
@@ -57,12 +67,16 @@ module ActionView
       # supplied as well.
       def render_template(view, template, layout_name, locals)
         render_with_layout(view, template, layout_name, locals) do |layout|
-          ActiveSupport::Notifications.instrument(
-            "render_template.action_view",
-            identifier: template.identifier,
-            layout: layout && layout.virtual_path,
-            locals: locals
-          ) do
+          if ActiveSupport::Notifications.notifier.listening?(RENDER_TEMPLATE_NOTIFICATION)
+            ActiveSupport::Notifications.instrument(
+              RENDER_TEMPLATE_NOTIFICATION,
+              identifier: template.identifier,
+              layout: layout && layout.virtual_path,
+              locals: locals
+            ) do
+              template.render(view, locals) { |*name| view._layout_for(*name) }
+            end
+          else
             template.render(view, locals) { |*name| view._layout_for(*name) }
           end
         end

@@ -1,9 +1,15 @@
 # frozen_string_literal: true
 
+require "concurrent/map"
+
 module ActionView
   class Template
     # = Action View Renderable Template for objects that respond to #render_in
     class Renderable # :nodoc:
+      RENDER_IN_ARITY = Concurrent::Map.new
+      FORMAT_RESPONDER = Concurrent::Map.new
+      private_constant :RENDER_IN_ARITY, :FORMAT_RESPONDER
+
       def initialize(renderable, &block)
         @renderable = renderable
         @block = block
@@ -14,9 +20,16 @@ module ActionView
       end
 
       def render(context, locals)
-        render_in_method = Kernel.instance_method(:method).bind_call(@renderable, :render_in)
+        klass = @renderable.class
+        arity = if klass.method_defined?(:render_in)
+          RENDER_IN_ARITY.fetch_or_store(klass) do
+            klass.instance_method(:render_in).arity
+          end
+        else
+          Kernel.instance_method(:method).bind_call(@renderable, :render_in).arity
+        end
 
-        if render_in_method.arity == 1
+        if arity == 1
           ActionView.deprecator.warn <<~WARN
             Action View support for #render_in without options is deprecated.
 
@@ -36,7 +49,13 @@ module ActionView
       end
 
       def format
-        @renderable.try(:format)
+        klass = @renderable.class
+        responds = if klass.method_defined?(:format)
+          FORMAT_RESPONDER.fetch_or_store(klass) { true }
+        else
+          @renderable.respond_to?(:format)
+        end
+        responds ? @renderable.format : nil
       end
     end
   end

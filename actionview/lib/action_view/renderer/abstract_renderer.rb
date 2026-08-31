@@ -172,7 +172,10 @@ module ActionView
         formats = Array(formats)
         return if formats.empty? || @lookup_context.html_fallback_for_js
 
-        @lookup_context.formats = formats | @lookup_context.formats
+        current = @lookup_context.formats
+        return if (formats - current).empty?
+
+        @lookup_context.formats = formats | current
       end
 
       def build_rendered_template(content, template)

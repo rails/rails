@@ -55,7 +55,7 @@ module ActionView
 
     private
       def render_template_to_object(context, options, &block)
-        TemplateRenderer.new(@lookup_context).render(context, options, &block)
+        (@_template_renderer ||= TemplateRenderer.new(@lookup_context)).render(context, options, &block)
       end
 
       def render_partial_to_object(context, options, &block)
