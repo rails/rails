@@ -1,13 +1,14 @@
-*   Reduce allocation overhead of rendering `render_in`-compatible objects.
+*   Reduce allocation overhead of #50623.
 
-    PR #50623 introduced a ~5x allocation regression for objects rendered via
-    `render(renderable)` (including ViewComponent) because every such call
-    began flowing through the standard template rendering pipeline. This
-    change memoizes per-class metadata used by `Template::Renderable`,
-    avoids redundant `prepend_formats` writes, reuses the `TemplateRenderer`
-    within a `Renderer`, gates the `render_template.action_view`
-    notification payload construction on active subscribers, and reuses
-    a pooled `Template::Renderable` when no block is supplied.
+    #50623 closed a long-present gap between the render pipeline for
+    renderables and non-renderables, which introduced a significant
+    increase in allocations on ViewComponent-heavy routes. This change
+    keeps the unified pipeline but recovers most of the lost allocations
+    by memoizing per-class `render_in` arity and `format` lookups,
+    skipping redundant `prepend_formats` writes, reusing the
+    `TemplateRenderer` within a `Renderer`, gating the
+    `render_template.action_view` notification on active subscribers,
+    and pooling `Template::Renderable` when no block is given.
 
     *Joel Hawksley*
 
