@@ -1,3 +1,14 @@
+*   Detect conflicts between the `Forwarded` and `X-Forwarded-For` headers in
+    `ActionDispatch::RemoteIp`.
+
+    When `ip_spoofing_check` is enabled (the default), requests carrying both
+    headers with conflicting client addresses now raise
+    `ActionDispatch::RemoteIp::IpSpoofAttackError`.
+
+    [GHSA-2gff-2mmg-m73p]
+
+    *Gannon McGibbon*, *Mike Dalessio*
+
 *   `ActionController::Parameters#each_key` returns `self` when given a block.
 
     It returned the internal `ActiveSupport::HashWithIndifferentAccess`, which

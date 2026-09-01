@@ -879,6 +879,8 @@ Makes a unique X-Request-Id header available to the response and enables the `Ac
 
 Checks for IP spoofing attacks and gets valid `client_ip` from request headers. Configurable with the `config.action_dispatch.ip_spoofing_check`, and `config.action_dispatch.trusted_proxies` options.
 
+The client address is read from the RFC 7239 `Forwarded` header, the `X-Forwarded-For` header, or the `Client-Ip` header. Make sure your proxies strip or overwrite any of these headers they do not manage themselves. When `ip_spoofing_check` is enabled (the default), requests carrying conflicting client addresses in these headers raise `ActionDispatch::RemoteIp::IpSpoofAttackError`.
+
 #### `Rack::Sendfile`
 
 Intercepts responses whose body is being served from a file and replaces it with a server specific X-Sendfile header. Configurable with `config.action_dispatch.x_sendfile_header`.
