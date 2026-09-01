@@ -137,6 +137,7 @@ def create
         # </turbo-stream>
         render turbo_stream: turbo_stream.prepend("posts", helpers.tag.h2(@post.title))
       end
+      format.html
     else
       format.html { render :new, status: :unprocessable_entity }
     end
@@ -153,6 +154,7 @@ def create
   respond_to do |format|
     if @post.save
       format.turbo_stream
+      format.html
     else
       format.html { render :new, status: :unprocessable_entity }
     end
@@ -471,6 +473,7 @@ class Post < ApplicationRecord
   broadcasts_to ->(post) { post.model_name.plural }
 end
 ```
+
 ```ruby
 class Post < ApplicationRecord
   broadcasts_to :stream_name
