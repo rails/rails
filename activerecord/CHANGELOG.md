@@ -1,3 +1,16 @@
+*   Fix PostgreSQL `bytea` deserialization of already decoded binary strings.
+
+    When a record is rebuilt from raw decoded `bytea` values (for example after a
+    cache serialization round-trip that loses the decoded marker), `Bytea#deserialize`
+    passed the raw bytes to `PG::Connection.unescape_bytea`, which raised
+    `ArgumentError: string contains null byte` or silently corrupted values
+    containing backslashes. Binary strings that cannot be PostgreSQL escaped
+    output are now returned as-is.
+
+    Fixes #56952.
+
+    *Dmytro Rymar*
+
 *   Add `config.active_record.shuffle_unordered_selects`.
 
     When enabled, Active Record shuffles the rows of every `SELECT` it generates

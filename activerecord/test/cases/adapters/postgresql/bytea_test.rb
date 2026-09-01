@@ -55,6 +55,40 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_type_cast_unmarked_binary_value_with_null_bytes
+    decoded = "\x01\x00\x02\x00\x03".b
+
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      result = @type.deserialize(decoded)
+      assert_equal decoded, result
+      assert_equal Encoding::BINARY, result.encoding
+    end
+  end
+
+  def test_type_cast_unmarked_binary_value_with_non_ascii_bytes_and_backslashes
+    decoded = "\xC3\\xFF\\\\".b
+
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      result = @type.deserialize(decoded)
+      assert_equal decoded, result
+      assert_equal Encoding::BINARY, result.encoding
+    end
+  end
+
+  def test_attributes_for_database_round_trip_of_decoded_value
+    data = Digest::MD5.digest("test19") # contains \x00 and non-ASCII bytes
+    record = ByteaDataType.create!(payload: data)
+    record.reload
+
+    # Simulates a cache round-trip (e.g. Paquito::ActiveRecordCoder) which
+    # stores raw decoded bytes and rebuilds the record from them.
+    attributes = record.attributes_for_database.transform_values { |v| v.is_a?(ActiveModel::Type::Binary::Data) ? v.to_s : v }
+    restored = ByteaDataType.instantiate(attributes)
+
+    assert_equal data.bytes, restored.attributes_for_database["payload"].to_s.bytes
+    assert_equal data.bytes, restored.payload.bytes
+  end
+
   def test_type_cast_marked_true_value
     decoded = "\\x414243".b
     decoded.instance_variable_set(:@ar_pg_bytea_decoded, true)
