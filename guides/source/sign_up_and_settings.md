@@ -379,6 +379,8 @@ class Settings::PasswordsController < ApplicationController
 end
 ```
 
+The `update` action will redirect to the profile settings page, which currently does not exist and will lead to an error. We will create this page in the next section.
+
 For security, we need to ensure that the user is the only one who can update
 their password. The `has_secure_password` method in our `User` model provides
 this attribute. If `password_challenge` is present, it will validate the
@@ -389,18 +391,6 @@ A malicious user could try deleting the `password_challenge` field in the
 browser to bypass this validation. To prevent this and ensure the validation
 always runs, we use `.with_defaults(password_challenge: "")` to set a default
 value even if the `password_challenge` parameter is missing.
-
-Now let's add the route to redirect the user once the password is updated.
-
-```ruby#3
-namespace :settings do
-  resource :password, only: [ :show, :update ]
-  resource :profile, only: [ :show ]
-end
-```
-
-You can now visit http://localhost:3000/settings/password to update your
-password.
 
 ### Renaming The Password Challenge Attribute
 
@@ -434,7 +424,7 @@ first and last name.
 
 ### Profile Routes & Controller
 
-In `config/routes.rb`, add an `update` action on the profile resource under the settings namespace. We
+In `config/routes.rb`, add a profile resource under the settings namespace with the `show` and `update` actions. We
 can also add a root to the namespace to handle any visits to `/settings` and
 redirect them to profile settings.
 
@@ -500,7 +490,7 @@ form.
 <% end %>
 ```
 
-You can now visit http://localhost:3000/settings/profile to update your name.
+You can now visit http://localhost:3000/settings/password to update your password and http://localhost:3000/settings/profile to update your name.
 
 ### Updating Navigation
 
