@@ -27,11 +27,11 @@ module ActiveRecord
       }.freeze
 
       class << self
-        def new_client(config)
+        def new_client(config, connection_name: nil, role: nil, shard: nil)
           config[:ssl_mode] = parse_ssl_mode(config[:ssl_mode]) if config[:ssl_mode]
           ::Trilogy.new(config)
         rescue ::Trilogy::Error => error
-          raise translate_connect_error(config, error)
+          raise translate_connect_error(config, error, connection_name: connection_name, role: role, shard: shard)
         end
 
         def parse_ssl_mode(mode)
@@ -43,15 +43,15 @@ module ActiveRecord
           SSL_MODES.fetch(m.to_sym, mode)
         end
 
-        def translate_connect_error(config, error)
+        def translate_connect_error(config, error, connection_name: nil, role: nil, shard: nil)
           case error.error_code
           when ER_DBACCESS_DENIED_ERROR, ER_BAD_DB_ERROR
             ActiveRecord::NoDatabaseError.db_error(config[:database])
           when ER_ACCESS_DENIED_ERROR
-            ActiveRecord::DatabaseConnectionError.username_error(config[:username])
+            ActiveRecord::DatabaseConnectionError.username_error(config[:username], connection_name: connection_name, role: role, shard: shard)
           else
             if error.message.include?("TRILOGY_DNS_ERROR")
-              ActiveRecord::DatabaseConnectionError.hostname_error(config[:host])
+              ActiveRecord::DatabaseConnectionError.hostname_error(config[:host], connection_name: connection_name, role: role, shard: shard)
             else
               ActiveRecord::ConnectionNotEstablished.new(error.message)
             end
@@ -154,7 +154,7 @@ module ActiveRecord
         end
 
         def connect
-          @raw_connection = self.class.new_client(@config)
+          @raw_connection = self.class.new_client(@config, connection_name: @pool.db_config.name, role: @pool.role, shard: @pool.shard)
         rescue ConnectionNotEstablished => ex
           raise ex.set_pool(@pool)
         end

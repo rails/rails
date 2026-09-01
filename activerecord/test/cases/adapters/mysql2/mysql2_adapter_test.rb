@@ -44,6 +44,32 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
     assert_kind_of ActiveRecord::ConnectionAdapters::NullPool, error.connection_pool
   end
 
+  def test_database_connection_error_includes_connection_name_from_pool
+    access_denied = Mysql2::Error.new("Access denied for user 'db_user'@'localhost'", nil, ActiveRecord::ConnectionAdapters::Mysql2Adapter::ER_ACCESS_DENIED_ERROR)
+    Mysql2::Client.stub(:new, ->(*) { raise access_denied }) do
+      db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+      connection = ActiveRecord::ConnectionAdapters::Mysql2Adapter.new(db_config.configuration_hash.merge(username: "db_user"))
+      connection.pool = ActiveRecord::Base.connection_pool
+
+      error = assert_raises ActiveRecord::DatabaseConnectionError do
+        connection.connect!
+      end
+      assert_includes error.message, "your 'primary' database"
+      assert_not_includes error.message, "(role:"
+    end
+  end
+
+  def test_database_connection_error_includes_non_default_role_and_shard
+    access_denied = Mysql2::Error.new("Access denied for user 'db_user'@'localhost'", nil, ActiveRecord::ConnectionAdapters::Mysql2Adapter::ER_ACCESS_DENIED_ERROR)
+    Mysql2::Client.stub(:new, ->(*) { raise access_denied }) do
+      error = assert_raises ActiveRecord::DatabaseConnectionError do
+        ActiveRecord::ConnectionAdapters::Mysql2Adapter.new_client({ username: "db_user" }, connection_name: "animals", role: :reading, shard: :shard_one)
+      end
+      assert_includes error.message, "your 'animals' database"
+      assert_includes error.message, "(role: reading, shard: shard_one)"
+    end
+  end
+
   def test_reconnection_error
     fake_connection = Class.new do
       def query_options
