@@ -2,6 +2,7 @@
 
 # :markup: markdown
 
+require "concurrent"
 require "monitor"
 
 module ActionCable
