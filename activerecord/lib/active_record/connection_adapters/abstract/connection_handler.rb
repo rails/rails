@@ -130,7 +130,8 @@ module ActiveRecord
           # Update the pool_config's connection class if it differs. This is used
           # for ensuring that ActiveRecord::Base and the primary_abstract_class use
           # the same pool. Without this granular swapping will not work correctly.
-          if owner_name.primary_class? && (existing_pool_config.connection_descriptor != owner_name)
+          if owner_name.primary_class? && (existing_pool_config.connection_descriptor != owner_name) &&
+              (owner_name.application_record_class? || !ActiveRecord.application_record_class)
             existing_pool_config.connection_descriptor = owner_name
           end
 

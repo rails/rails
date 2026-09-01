@@ -622,6 +622,34 @@ module ActiveRecord
           ActiveRecord::Base.establish_connection :arunit
         end
 
+        def test_prevent_writes_can_be_changed_granularly_after_a_primary_class_reestablish
+          # Regression test for https://github.com/rails/rails/issues/58630
+          Object.const_set(:PrimaryRecord, Class.new(ActiveRecord::Base) { primary_abstract_class })
+          PrimaryRecord.connects_to(database: { writing: :arunit, reading: :arunit })
+
+          ActiveRecord::Base.connected_to(role: :writing, prevent_writes: true) do
+            PrimaryRecord.connected_to(role: :writing) do
+              assert_not_predicate PrimaryRecord.lease_connection, :preventing_writes?
+            end
+          end
+
+          # ActiveRecord::Migration.maintain_test_schema! re-establishes the primary
+          # pool through ActiveRecord::Base by way of DatabaseTasks#with_temporary_pool.
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+          ActiveRecord::Base.connection_handler.establish_connection(db_config)
+
+          ActiveRecord::Base.connected_to(role: :writing, prevent_writes: true) do
+            PrimaryRecord.connected_to(role: :writing) do
+              assert_not_predicate PrimaryRecord.lease_connection, :preventing_writes?
+            end
+          end
+        ensure
+          PrimaryRecord.remove_connection
+          ActiveRecord.application_record_class = nil
+          Object.send(:remove_const, :PrimaryRecord)
+          ActiveRecord::Base.establish_connection :arunit
+        end
+
         def test_prevent_writes_handles_class_reloading
           # Regression test for https://github.com/rails/rails/issues/54343
           Object.const_set(:ReloadedRecord, Class.new(ActiveRecord::Base) { self.abstract_class = true })

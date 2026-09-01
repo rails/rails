@@ -1,3 +1,21 @@
+*   Keep the connection descriptor on the `primary_abstract_class` when
+    `ActiveRecord::Base` re-establishes the same pool.
+
+    An application whose `primary_abstract_class` calls `connects_to` names its
+    primary pool after that class. Re-establishing the same pool through
+    `ActiveRecord::Base`, as `ActiveRecord::Migration.maintain_test_schema!`
+    does, renamed the descriptor back to `"ActiveRecord::Base"`. From that point
+    `ApplicationRecord.connected_to(role: :writing)` no longer lifted the
+    readonly guard and the write raised `ActiveRecord::ReadOnlyError`, so the
+    guard behaved one way in a booted application and another under
+    `rails/test_help`.
+
+    The descriptor is now only adopted by the `primary_abstract_class`, which is
+    the direction granular swapping needs. `ActiveRecord::Base.connected_to` is
+    unaffected, since it is matched by class rather than by descriptor name.
+
+    *Ahmed Abd El-Latif*
+
 *   Avoid unnecessary association preloader queries for nil foreign keys when
     the foreign key and association primary key have different types.
 
