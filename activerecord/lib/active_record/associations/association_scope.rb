@@ -143,6 +143,7 @@ module ActiveRecord
               if scope_chain_item == chain_head.scope
                 scope.merge! item.except(:where, :includes, :unscope, :order)
               elsif !item.references_values.empty?
+                item.joins_values = item.joins_values.reject { |join| redundant_join?(item, chain, join) }
                 scope.merge! item.only(:joins, :left_outer_joins)
 
                 associations = item.eager_load_values | item.includes_values
@@ -174,6 +175,18 @@ module ActiveRecord
             predicate_builder = reflection.klass.predicate_builder.with(TableMetadata.new(reflection.klass, table))
             scope.where!(predicate_builder[key, value])
           end
+        end
+
+        def redundant_join?(item, chain, join)
+          return false unless join.is_a?(Symbol)
+
+          reflection = item.model._reflect_on_association(join)
+
+          # Dropping a collection join would change how many rows the query
+          # returns, so only singular ones are considered redundant here.
+          return false unless reflection && !reflection.collection? && !reflection.through_reflection?
+
+          chain.drop(1).any? { |chain_reflection| chain_reflection == reflection }
         end
 
         def eval_scope(reflection, scope, owner)

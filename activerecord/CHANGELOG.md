@@ -1,3 +1,13 @@
+*   Avoid a redundant join when the scope of a `has_many :through` association
+    joins an association that the through chain already joins.
+
+    Given a scope such as `-> { joins(:post) }` on the through association, the
+    same table was joined twice: once by the chain and once by the scope. Only
+    `belongs_to` and `has_one` joins are dropped, since removing a collection
+    join would change the number of rows the query returns.
+
+    *David Paluy*
+
 *   Add `config.active_record.shuffle_unordered_selects`.
 
     When enabled, Active Record shuffles the rows of every `SELECT` it generates
