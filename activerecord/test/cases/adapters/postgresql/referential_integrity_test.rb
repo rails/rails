@@ -129,6 +129,37 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_re_enables_triggers_when_the_block_raises
+    skip if @connection.supports_enforced_foreign_keys?
+    skip "DISABLE TRIGGER ALL needs a superuser" unless @connection.select_value("SELECT rolsuper FROM pg_roles WHERE rolname = current_user")
+
+    @connection.create_table :ri_test_parents, force: true
+    @connection.create_table :ri_test_children, force: true do |t|
+      t.bigint :parent_id, null: false
+    end
+    @connection.add_foreign_key :ri_test_children, :ri_test_parents, column: :parent_id, name: :ri_test_fk
+
+    begin
+      assert_raises(RuntimeError) do
+        @connection.disable_referential_integrity do
+          assert_operator disabled_trigger_count(:ri_test_children), :>, 0
+          raise "boom"
+        end
+      end
+
+      assert_equal 0, disabled_trigger_count(:ri_test_children)
+    ensure
+      @connection.execute(@connection.tables.map { |name| "ALTER TABLE #{@connection.quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
+    end
+  end
+
+  def disabled_trigger_count(table)
+    @connection.select_value(<<~SQL).to_i
+      SELECT COUNT(*) FROM pg_trigger
+      WHERE tgrelid = #{@connection.quote(table.to_s)}::regclass AND tgisinternal AND tgenabled = 'D'
+    SQL
+  end
+
   def test_disable_referential_integrity_with_partitioned_to_partitioned_fk
     skip unless @connection.supports_enforced_foreign_keys?
 

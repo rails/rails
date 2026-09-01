@@ -1,3 +1,14 @@
+*   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
+
+    The PostgreSQL adapter switches foreign key enforcement off with
+    `ALTER TABLE ... DISABLE TRIGGER ALL`, which is catalog state that outlives the
+    connection. The matching `ENABLE TRIGGER ALL` only ran when the block returned
+    normally, so an exception raised inside it (a truncation blocked by a deadlock, a
+    test process interrupted) left every foreign key in that database disabled for
+    every later connection and every later run. The re-enable now runs in an `ensure`.
+
+    *Lucas Guedes*
+
 *   Avoid unnecessary association preloader queries for nil foreign keys when
     the foreign key and association primary key have different types.
 
