@@ -1,3 +1,8 @@
+*   Avoid unnecessary association preloader queries for nil foreign keys when
+    the foreign key and association primary key have different types.
+
+    *Thrwat Elmoselhi*
+
 *   Avoid a redundant join when the scope of a `has_many :through` association
     joins an association that the through chain already joins.
 
