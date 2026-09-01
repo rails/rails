@@ -29,6 +29,16 @@ class ActiveRecord::Encryption::EnvelopeEncryptionKeyProviderTest < ActiveRecord
     assert_equal key.secret, @key_provider.decryption_keys(encrypted_message).first.secret
   end
 
+  test "decryption_key_for raises ActiveRecord::Encryption::Errors::Decryption when encryption key is nil" do
+    @previous_key_provider = ActiveRecord::Encryption::KeyProvider.new(build_keys(1))
+    key = @previous_key_provider.encryption_key
+    encrypted_encoded_message = ActiveRecord::Encryption.encryptor.encrypt("some message", key_provider: ActiveRecord::Encryption::KeyProvider.new(key))
+    encrypted_message = ActiveRecord::Encryption.message_serializer.load encrypted_encoded_message
+    assert_raises(ActiveRecord::Encryption::Errors::Decryption) do
+      @key_provider.decryption_keys(encrypted_message)
+    end
+  end
+
   test "work with multiple keys when config.store_key_references is false" do
     ActiveRecord::Encryption.config.primary_key = ["key 1", "key 2"]
 
