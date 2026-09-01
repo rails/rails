@@ -829,7 +829,7 @@ NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
 ### `anonymous?`
 
-In Ruby modules and classes can be created dynamically at runtime with
+In Ruby, modules and classes can be created dynamically at runtime with
 `Module.new` or `Class.new`. These have no name until assigned to a constant.
 The [`Module#anonymous?`][] method lets you check for this explicitly. This is
 useful when you need to handle named and unnamed modules differently, for
@@ -874,7 +874,7 @@ class User < ApplicationRecord
 end
 ```
 
-You get a user's name via their profile, `user.profile.name` above. But it could be handy to access `name` attribute more directly. With the below update, we can do `user.name`:
+You can get a user's name via their profile, `user.profile.name`. But it could be handy to access `name` attribute more directly with `user.name` like this:
 
 ```ruby
 class User < ApplicationRecord
@@ -886,7 +886,7 @@ class User < ApplicationRecord
 end
 ```
 
-This is what `delegate` provides:
+This is what `delegate` is for:
 
 ```ruby
 class User < ApplicationRecord
@@ -1022,8 +1022,7 @@ AdminController.new.pagination_limit # => 100
 ```
 
 Rails uses `class_attribute` extensively internally, for example,
-`ActionMailer::Base` uses it for define default options that each mailer can
-then override independently:
+`ActionMailer::Base` uses it to define default options that each mailer can override independently:
 
 ```ruby
 class_attribute :default_params
@@ -1035,7 +1034,7 @@ self.default_params = {
 }.freeze
 ```
 
-The generation of the writer instance method can be prevented by setting the option `:instance_writer` to `false`:
+The generation of the writer instance method can be prevented by setting the option `:instance_writer` to `false`. This can be useful as a way to prevent mass-assignment from setting the attribute:
 
 ```ruby
 class Base
@@ -1045,17 +1044,7 @@ end
 Base.new.pagination_limit = 100 # NoMethodError
 ```
 
-This can be useful as a way to prevent mass-assignment from setting the attribute.
-
-The generation of the reader instance method can be prevented by setting the option `:instance_reader` to `false`:
-
-```ruby
-class Base
-  class_attribute :pagination_limit, instance_reader: false
-end
-
-Base.new.pagination_limit # NoMethodError
-```
+The generation of the reader instance method can also be prevented by setting the option `:instance_reader` to `false`:
 
 The `class_attribute` method also defines an instance predicate method — the double negation of what the instance reader returns. In the examples above it would be called `pagination_limit?`. When `:instance_reader` is `false`, the instance predicate returns a `NoMethodError` just like the reader method.
 
