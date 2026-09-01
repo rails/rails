@@ -3936,13 +3936,13 @@ Using the `config/database.yml` file you can specify all the information needed 
 development:
   adapter: postgresql
   database: blog_development
-  pool: 5
+  max_connections: 5
 ```
 
 This will connect to the database named `blog_development` using the `postgresql` adapter. This same information can be stored in a URL and provided via an environment variable like this:
 
 ```ruby
-ENV["DATABASE_URL"] # => "postgresql://localhost/blog_development?pool=5"
+ENV["DATABASE_URL"] # => "postgresql://localhost/blog_development?max_connections=5"
 ```
 
 The `config/database.yml` file contains sections for three different environments in which Rails can run by default:
@@ -3955,7 +3955,7 @@ If you wish, you can manually specify a URL inside of your `config/database.yml`
 
 ```yaml
 development:
-  url: postgresql://localhost/blog_development?pool=5
+  url: postgresql://localhost/blog_development?max_connections=5
 ```
 
 The `config/database.yml` file can contain ERB tags `<%= %>`. Anything in the tags will be evaluated as Ruby code. You can use this to pull out data from an environment variable or to perform calculations to generate the needed connection information.
@@ -4024,7 +4024,7 @@ If non-duplicate information is provided you will get all unique values, environ
 $ cat config/database.yml
 development:
   adapter: sqlite3
-  pool: 5
+  max_connections: 5
 
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
@@ -4033,12 +4033,12 @@ $ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
     @env_name="development", @spec_name="primary",
-    @config={"adapter"=>"postgresql", "database"=>"my_database", "host"=>"localhost", "pool"=>5}
+    @config={"adapter"=>"postgresql", "database"=>"my_database", "host"=>"localhost", "max_connections"=>5}
     @url="postgresql://localhost/my_database">
   ]
 ```
 
-Since pool is not in the `ENV['DATABASE_URL']` provided connection information its information is merged in. Since `adapter` is duplicate, the `ENV['DATABASE_URL']` connection information wins.
+Since max_connections is not in the `ENV['DATABASE_URL']` provided connection information its information is merged in. Since `adapter` is duplicate, the `ENV['DATABASE_URL']` connection information wins.
 
 The only way to explicitly not use the connection information in `ENV['DATABASE_URL']` is to specify an explicit URL connection using the `"url"` sub key:
 
@@ -4081,7 +4081,7 @@ Here's the section of the default configuration file (`config/database.yml`) wit
 development:
   adapter: sqlite3
   database: storage/development.sqlite3
-  pool: 5
+  max_connections: 5
   timeout: 5000
 ```
 
@@ -4109,7 +4109,7 @@ development:
   adapter: mysql2
   encoding: utf8mb4
   database: blog_development
-  pool: 5
+  max_connections: 5
   username: root
   password:
   socket: /tmp/mysql.sock
@@ -4136,7 +4136,7 @@ development:
   adapter: postgresql
   encoding: unicode
   database: blog_development
-  pool: 5
+  max_connections: 5
 ```
 
 By default Active Record uses a database feature called advisory locks. You might need to disable this feature if you're using an external connection pooler like PgBouncer:
@@ -4686,7 +4686,7 @@ Active Record database connections are managed by [`ActiveRecord::ConnectionAdap
 development:
   adapter: sqlite3
   database: storage/development.sqlite3
-  pool: 5
+  max_connections: 5
   timeout: 5000
 ```
 
@@ -4703,7 +4703,7 @@ ActiveRecord::ConnectionTimeoutError - could not obtain a database connection wi
 ```
 
 If you get the above error, you might want to increase the size of the
-connection pool by incrementing the `pool` option in `database.yml`
+connection pool by incrementing the `max_connections` option in `database.yml`
 
 NOTE. If you are running in a multi-threaded environment, there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited number of connections.
 
