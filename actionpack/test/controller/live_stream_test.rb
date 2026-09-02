@@ -156,6 +156,12 @@ module ActionController
         response.stream.close
       end
 
+      def streaming_thread
+        response.headers["Content-Type"] = "text/plain"
+        response.stream.write Thread.current.object_id.to_s
+        response.stream.close
+      end
+
       def basic_send_stream
         send_stream(filename: "my.csv") do |stream|
           stream.write "name,age\ndavid,41"
@@ -381,6 +387,25 @@ module ActionController
       get :basic_stream
       assert_equal "helloworld", @response.body
       assert_equal "text/event-stream", @response.headers["Content-Type"]
+    end
+
+    def test_action_runs_inside_the_executor_on_the_streaming_thread
+      executor = Class.new(ActiveSupport::Executor)
+      completed = Concurrent::CountDownLatch.new
+      completed_on = nil
+      executor.to_complete do
+        completed_on = Thread.current
+        completed.count_down
+      end
+
+      original_executor, ActionController::Live.executor = ActionController::Live.executor, executor
+      get :streaming_thread
+
+      assert completed.wait(2), "executor did not complete on the streaming thread"
+      assert_equal @response.body, completed_on.object_id.to_s
+      assert_not_equal Thread.current, completed_on
+    ensure
+      ActionController::Live.executor = original_executor
     end
 
     def test_write_lines_to_stream
