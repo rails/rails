@@ -681,6 +681,12 @@ module Rails
         end
       end
 
+      if defined?(AbstractController::Base)
+        [AbstractController::Base, *AbstractController::Base.descendants].each do |controller|
+          Ractor.make_shareable(controller.config)
+        end
+      end
+
       Ractor.make_shareable(self)
       Ractor.make_shareable(Rails.event)
       Ractor.make_shareable(Rails.error)
