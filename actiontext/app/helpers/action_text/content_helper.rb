@@ -9,6 +9,8 @@ module ActionText
     mattr_accessor(:sanitizer, default: Rails::HTML4::Sanitizer.safe_list_sanitizer.new)
     mattr_accessor(:allowed_tags)
     mattr_accessor(:allowed_attributes)
+    mattr_accessor(:extra_allowed_tags, default: [])
+    mattr_accessor(:extra_allowed_attributes, default: [])
     mattr_accessor(:scrubber)
 
     def render_action_text_content(content)
@@ -66,11 +68,13 @@ module ActionText
     end
 
     def sanitizer_allowed_tags
-      allowed_tags || (sanitizer.class.allowed_tags + [ ActionText::Attachment.tag_name, "figure", "figcaption" ])
+      base = allowed_tags || (sanitizer.class.allowed_tags + [ ActionText::Attachment.tag_name, "figure", "figcaption" ])
+      extra_allowed_tags.any? ? base + extra_allowed_tags : base
     end
 
     def sanitizer_allowed_attributes
-      allowed_attributes || (sanitizer.class.allowed_attributes + ActionText::Attachment::ATTRIBUTES)
+      base = allowed_attributes || (sanitizer.class.allowed_attributes + ActionText::Attachment::ATTRIBUTES)
+      extra_allowed_attributes.any? ? base + extra_allowed_attributes : base
     end
   end
 end
