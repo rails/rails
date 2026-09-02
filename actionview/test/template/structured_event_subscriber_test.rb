@@ -5,6 +5,8 @@ require "active_support/testing/event_reporter_assertions"
 require "action_view/structured_event_subscriber"
 require "controller/fake_models"
 
+ActionView::StructuredEventSubscriber.attach_to :action_view
+
 module ActionView
   class StructuredEventSubscriberTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::EventReporterAssertions
@@ -28,20 +30,6 @@ module ActionView
       super
       StructuredEventSubscriber.rails_root = @previous_rails_root
       ActionController::Base.view_paths.map(&:clear_cache)
-    end
-
-    def test_detach_removes_render_action_view_notification_listeners
-      previous_debug_mode = ActiveSupport.event_reporter.debug_mode?
-      ActiveSupport.event_reporter.debug_mode = false
-      ActionView::StructuredEventSubscriber.detach!
-
-      assert_not ActiveSupport::Notifications.notifier.listening?("render_template.action_view")
-      assert_not ActiveSupport::Notifications.notifier.listening?("render_partial.action_view")
-      assert_not ActiveSupport::Notifications.notifier.listening?("render_collection.action_view")
-      assert_not ActiveSupport::Notifications.notifier.listening?("render_layout.action_view")
-    ensure
-      ActiveSupport.event_reporter.debug_mode = previous_debug_mode
-      ActionView::StructuredEventSubscriber.attach_to :action_view
     end
 
     def test_render_template

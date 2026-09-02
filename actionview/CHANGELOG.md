@@ -9,8 +9,8 @@
     notification just for the subscriber to throw it away, measurably ~90µs
     and ~115 allocations of overhead per render on view-heavy pages (#57781).
 
-    The subscriber is now detached during boot when
-    `Rails.event.debug_mode?` is false. Debug apps are unaffected.
+    The subscriber is now only attached during boot when
+    `Rails.event.debug_mode?` is true. Debug apps are unaffected.
 
     *Joel Hawksley*
 

@@ -92,9 +92,9 @@ module ActionView
       end
     end
 
-    initializer "action_view.gate_structured_events", after: :initialize_event_reporter do
-      unless Rails.event.debug_mode?
-        ActionView::StructuredEventSubscriber.detach!
+    initializer "action_view.attach_structured_event_subscriber", after: :initialize_event_reporter do
+      if Rails.event.debug_mode?
+        ActionView::StructuredEventSubscriber.attach_to :action_view
       end
     end
 
