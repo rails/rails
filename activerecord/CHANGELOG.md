@@ -1,13 +1,3 @@
-*   Fix encrypted fixtures for JSON columns.
-
-    Encrypted fixture values were serialized twice: once by the encrypted
-    attribute type and again by the column type when the rows were inserted.
-    For `json`/`jsonb` columns this stored the encrypted payload as a JSON
-    string, which then failed to decrypt. The payload is now handed back in
-    the column's cast form so it round-trips through the column type.
-
-    *Carlos Daniel Pohlod*
-
 *   Fix performance regression in `method_missing` for virtual SELECT alias
     attributes.
 
