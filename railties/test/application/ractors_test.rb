@@ -66,6 +66,22 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_predicate Rails.application, :initialized?
       end
 
+      test "controller view paths are readable from a non-main Ractor" do
+        app_file "app/controllers/greetings_controller.rb", <<~RUBY
+          class GreetingsController < ApplicationController
+          end
+        RUBY
+        app_file "app/views/greetings/index.html.erb", "Hello from a view"
+
+        app "production"
+
+        ractorize!
+
+        main_size = GreetingsController._view_paths.size
+        assert_operator main_size, :>, 0
+        assert_equal main_size, on_ractor { GreetingsController._view_paths.size }
+      end
+
       test "error reporting works after the application is ractorized" do
         app "production"
 
