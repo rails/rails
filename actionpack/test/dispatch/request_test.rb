@@ -1748,3 +1748,26 @@ class RequestCacheControlDirectives < BaseRequestTest
     assert_not_predicate request.cache_control_directives, :no_store?
   end
 end
+
+class RequestMimeNegotiationSettingsTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
+  test "the negotiation settings are readable from a non-main Ractor" do
+    assert_equal [false, false], on_ractor {
+      [
+        ActionDispatch::Http::MimeNegotiation.ignore_accept_header,
+        ActionDispatch::Request.strict_accept_header,
+      ]
+    }
+  end
+
+  test "request classes delegate the settings to the module" do
+    old = ActionDispatch::Request.ignore_accept_header
+    ActionDispatch::Request.ignore_accept_header = true
+
+    assert_equal true, ActionDispatch::Http::MimeNegotiation.ignore_accept_header
+    assert_equal true, ActionDispatch::TestRequest.ignore_accept_header
+  ensure
+    ActionDispatch::Request.ignore_accept_header = old
+  end
+end

@@ -9,7 +9,9 @@ require "rack/utils"
 
 module ActionDispatch
   class ExceptionWrapper
-    cattr_accessor :rescue_responses, default: Hash.new(:internal_server_error).merge!(
+    singleton_class.attr_accessor :rescue_responses, :rescue_templates, :wrapper_exceptions, :silent_exceptions
+
+    @rescue_responses = Hash.new(:internal_server_error).merge!(
       "ActionController::RoutingError"                     => :not_found,
       "AbstractController::ActionNotFound"                 => :not_found,
       "ActionController::MethodNotAllowed"                 => :method_not_allowed,
@@ -28,7 +30,7 @@ module ActionDispatch
       "Rack::QueryParser::InvalidParameterError"           => :bad_request
     ).freeze
 
-    cattr_accessor :rescue_templates, default: Hash.new("diagnostics").merge!(
+    @rescue_templates = Hash.new("diagnostics").merge!(
       "ActionView::MissingTemplate"            => "missing_template",
       "ActionController::RoutingError"         => "routing_error",
       "AbstractController::ActionNotFound"     => "unknown_action",
@@ -37,11 +39,11 @@ module ActionDispatch
       "ActionController::MissingExactTemplate" => "missing_exact_template",
     ).freeze
 
-    cattr_accessor :wrapper_exceptions, default: [
+    @wrapper_exceptions = [
       "ActionView::Template::Error"
     ].freeze
 
-    cattr_accessor :silent_exceptions, default: [
+    @silent_exceptions = [
       "ActionController::RoutingError",
       "ActionDispatch::Http::MimeNegotiation::InvalidType"
     ].freeze
@@ -104,7 +106,7 @@ module ActionDispatch
     end
 
     def unwrapped_exception
-      if wrapper_exceptions.include?(@exception_class_name)
+      if self.class.wrapper_exceptions.include?(@exception_class_name)
         @exception.cause
       else
         @exception
@@ -120,7 +122,7 @@ module ActionDispatch
     end
 
     def rescue_template
-      @@rescue_templates[@exception_class_name]
+      self.class.rescue_templates[@exception_class_name]
     end
 
     def status_code
@@ -129,7 +131,7 @@ module ActionDispatch
 
     def exception_trace
       trace = application_trace
-      trace = framework_trace if trace.empty? && !silent_exceptions.include?(@exception_class_name)
+      trace = framework_trace if trace.empty? && !self.class.silent_exceptions.include?(@exception_class_name)
       trace
     end
 
@@ -179,7 +181,7 @@ module ActionDispatch
     end
 
     def self.status_code_for_exception(class_name)
-      ActionDispatch::Response.rack_status_code(@@rescue_responses[class_name])
+      ActionDispatch::Response.rack_status_code(rescue_responses[class_name])
     end
 
     def show?(request)
@@ -198,7 +200,7 @@ module ActionDispatch
     end
 
     def rescue_response?
-      @@rescue_responses.key?(exception.class.name)
+      self.class.rescue_responses.key?(exception.class.name)
     end
 
     def source_extracts

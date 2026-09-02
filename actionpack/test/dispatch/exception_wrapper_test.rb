@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 module ActionDispatch
   class ExceptionWrapperTest < ActionDispatch::IntegrationTest
@@ -366,6 +367,32 @@ module ActionDispatch
       request = ActionDispatch::Request.new(env)
 
       assert_equal true, wrapper.show?(request)
+    end
+  end
+
+  class ExceptionWrapperRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "the rescue tables are readable from a non-main Ractor once shared" do
+      ActiveSupport::Ractors.make_shareable(ExceptionWrapper.rescue_responses)
+      ActiveSupport::Ractors.make_shareable(ExceptionWrapper.rescue_templates)
+      ActiveSupport::Ractors.make_shareable(ExceptionWrapper.wrapper_exceptions)
+      ActiveSupport::Ractors.make_shareable(ExceptionWrapper.silent_exceptions)
+
+      statuses = on_ractor {
+        [
+          ExceptionWrapper.rescue_responses["ActionController::RoutingError"],
+          ExceptionWrapper.rescue_templates["ActionController::RoutingError"],
+          ExceptionWrapper.wrapper_exceptions,
+          ExceptionWrapper.silent_exceptions,
+        ]
+      }
+
+      assert_equal :not_found, statuses[0]
+      assert_equal "routing_error", statuses[1]
+      assert_equal ExceptionWrapper.wrapper_exceptions, statuses[2]
+      assert_equal ExceptionWrapper.silent_exceptions, statuses[3]
     end
   end
 end
