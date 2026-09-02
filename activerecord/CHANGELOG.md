@@ -1,3 +1,7 @@
+*   Fix `alias_attribute` overriding methods defined in included modules.
+
+    *Gaston Ramos*
+
 *   Avoid unnecessary association preloader queries for nil foreign keys when
     the foreign key and association primary key have different types.
 
