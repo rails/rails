@@ -152,7 +152,7 @@ module ActiveSupport
             results.merge!(super(*(names - results.keys), options, &block))
           end
 
-          results
+          results.slice(*names)
         end
 
         private

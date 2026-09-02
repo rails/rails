@@ -1,3 +1,12 @@
+*   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
+    when a local cache is active.
+
+    Previously, if some keys were served from the local cache and others from the
+    underlying store, `fetch_multi` returned the local cache hits first instead of
+    following the order of the requested keys.
+
+    *Mueez Afzal*
+
 *   Fix `String#parameterize` raising `TypeError` when `separator` is `nil`.
 
     `parameterize` already treats a `nil` separator the same as an empty one when

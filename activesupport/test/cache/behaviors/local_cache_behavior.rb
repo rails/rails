@@ -247,6 +247,22 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_fetch_multi_preserves_order
+    first_key = SecureRandom.uuid
+    cached_key = SecureRandom.uuid
+    last_key = SecureRandom.uuid
+
+    @cache.with_local_cache do
+      # Seed the local cache so that only the middle key is a local hit.
+      @cache.increment(cached_key)
+
+      results = @cache.fetch_multi(first_key, cached_key, last_key) { |key| "yielded-#{key}" }
+
+      assert_equal [first_key, cached_key, last_key], results.keys
+      assert_not_equal "yielded-#{cached_key}", results[cached_key]
+    end
+  end
+
   def test_local_cache_of_read_multi
     key = SecureRandom.uuid
     value = SecureRandom.alphanumeric
