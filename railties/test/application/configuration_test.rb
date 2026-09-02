@@ -5495,6 +5495,8 @@ module ApplicationTests
         app "development"
 
         assert_ractor_shareable(ActiveRecord.query_transformers)
+        assert_ractor_shareable(ActiveRecord::Base.time_zone_aware_types)
+        assert_ractor_shareable(ActiveRecord::Base.skip_time_zone_conversion_for_attributes)
       end
     end
 
