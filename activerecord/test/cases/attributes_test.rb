@@ -471,6 +471,23 @@ module ActiveRecord
       end
     end
 
+    class RactorSchemaContextDeadlockTest < ActiveRecord::TestCase
+      include ActiveSupport::Testing::Isolation unless in_memory_db?
+
+      test "SchemaContext#attributes avoids recursive locking deadlocks when initializing modifiers" do
+        base_model = Class.new(ActiveRecord::Base) do
+          self.table_name = "topics"
+          encrypts :title # We use the encrypts modifier to demonstrate
+        end
+
+        child_model = Class.new(base_model)
+
+        assert_nothing_raised do
+          child_model.schema_context.attributes
+        end
+      end
+    end
+
     private
       def with_immutable_strings
         old_value = ActiveRecord::Base.immutable_strings_by_default
