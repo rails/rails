@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 require "active_support/ordered_options"
 
 require "action_dispatch"
@@ -1274,5 +1275,32 @@ class AssetUrlHelperEmptyModuleTest < ActionView::TestCase
 
     assert @module.config.asset_host
     assert_equal "http://custom.example.com/foo", @module.asset_url("foo", host: "http://custom.example.com")
+  end
+end
+
+class AssetTagHelperSettingsRactorTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
+  test "the settings are readable from a non-main Ractor" do
+    expected = [
+      ActionView::Helpers::AssetTagHelper.image_loading,
+      ActionView::Helpers::AssetTagHelper.image_decoding,
+      ActionView::Helpers::AssetTagHelper.preload_links_header,
+      ActionView::Helpers::AssetTagHelper.apply_stylesheet_media_default,
+      ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_scripts,
+      ActionView::Helpers::AssetTagHelper.auto_include_nonce_for_styles,
+    ]
+
+    assert_equal expected, on_ractor {
+      helper = ActionView::Helpers::AssetTagHelper
+      [
+        helper.image_loading,
+        helper.image_decoding,
+        helper.preload_links_header,
+        helper.apply_stylesheet_media_default,
+        helper.auto_include_nonce_for_scripts,
+        helper.auto_include_nonce_for_styles,
+      ]
+    }
   end
 end
