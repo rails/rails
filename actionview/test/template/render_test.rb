@@ -466,6 +466,40 @@ module RenderTestCases
     assert_equal options.to_s, @view.render(renderable: renderable, **options)
   end
 
+  # Guards against regressions like #57781, where #50623 unintentionally
+  # increased per-render allocations for `render_in` objects (including
+  # ViewComponent) by ~5x. Uses a minimal view / lookup context and swaps
+  # in a fresh notifier (no subscribers) so the measurement reflects the
+  # production case and targets the renderable dispatch path itself.
+  def test_render_renderable_allocation_ceiling
+    renderable = Class.new do
+      def render_in(_view_context, **) = "hello"
+      def format; :html; end
+    end.new
+
+    lookup_context = ActionView::LookupContext.new([])
+    view = ActionView::Base.with_empty_template_cache.new(lookup_context, {}, ActionController::Base.new)
+
+    old_notifier = ActiveSupport::Notifications.notifier
+    ActiveSupport::Notifications.notifier = ActiveSupport::Notifications::Fanout.new
+
+    # Warm any per-class caches (arity memoization, format lookup, etc.)
+    # before sampling.
+    view.render(renderable)
+
+    GC.disable
+    before = GC.stat(:total_allocated_objects)
+    100.times { view.render(renderable) }
+    per_render = (GC.stat(:total_allocated_objects) - before) / 100.0
+
+    assert_operator per_render, :<=, 16,
+      "Expected `render(renderable)` to allocate <= 16 objects/render, " \
+      "got #{per_render}. See https://github.com/rails/rails/issues/57781."
+  ensure
+    GC.enable
+    ActiveSupport::Notifications.notifier = old_notifier if old_notifier
+  end
+
   def test_render_object_different_name
     assert_equal "Hello: t.lo", @view.render(partial: "test/template_not_named_customer", object: Customer.new("t.lo"), as: "customer").chomp
   end
