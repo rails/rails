@@ -1206,6 +1206,60 @@ class InsertAllTest < ActiveRecord::TestCase
                  klass.find_by(title: "json_str_insert").content
   end
 
+  def test_insert_all_invokes_skip_callback_monitor_with_insert_all
+    calls = []
+    Book.skip_callback_monitor = ->(insert_all) { calls << insert_all }
+    Book.insert_all([{ id: 1_000_000, name: "Hook", author_id: 1 }])
+    assert_kind_of ActiveRecord::InsertAll, calls.first
+    assert_equal Book, calls.first.model
+  ensure
+    Book.skip_callback_monitor = nil
+  end
+
+  def test_insert_all_bang_invokes_skip_callback_monitor_with_insert_all
+    calls = []
+    Book.skip_callback_monitor = ->(insert_all) { calls << insert_all }
+    Book.insert_all!([{ id: 1_000_001, name: "Hook2", author_id: 1 }])
+    assert_kind_of ActiveRecord::InsertAll, calls.first
+    assert_equal Book, calls.first.model
+  ensure
+    Book.skip_callback_monitor = nil
+  end
+
+  def test_upsert_all_invokes_skip_callback_monitor_with_insert_all
+    skip unless supports_insert_on_duplicate_update?
+    calls = []
+    Book.skip_callback_monitor = ->(insert_all) { calls << insert_all }
+    begin
+      Book.upsert_all([{ id: 1, name: "Upsert Hook", author_id: 1 }])
+    ensure
+      Book.skip_callback_monitor = nil
+    end
+    assert_kind_of ActiveRecord::InsertAll, calls.first
+    assert_equal Book, calls.first.model
+  end
+
+  def test_insert_invokes_skip_callback_monitor_once
+    calls = []
+    Book.skip_callback_monitor = ->(insert_all) { calls << insert_all }
+    Book.insert({ id: 2_000_000, name: "Hook", author_id: 1 })
+    assert_equal 1, calls.size
+  ensure
+    Book.skip_callback_monitor = nil
+  end
+
+  def test_upsert_invokes_skip_callback_monitor_once
+    skip unless supports_insert_on_duplicate_update?
+    calls = []
+    Book.skip_callback_monitor = ->(insert_all) { calls << insert_all }
+    begin
+      Book.upsert({ id: 2, name: "Upsert Once", author_id: 1 })
+    ensure
+      Book.skip_callback_monitor = nil
+    end
+    assert_equal 1, calls.size
+  end
+
   private
     def capture_log_output
       output = StringIO.new
