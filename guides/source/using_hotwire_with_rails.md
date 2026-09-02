@@ -528,7 +528,7 @@ class Post < ApplicationRecord
 end
 ```
 
-When using morphing page refereshes, the `broadcasts_refreshes` declaration will trigger Turbo Streams with the action `refresh` whenever a model changes:
+When using morphing page refreshes, the `broadcasts_refreshes` declaration will trigger Turbo Streams with the action `refresh` whenever a model changes:
 
 ```ruby
 class Post < ApplicationRecord
@@ -572,7 +572,7 @@ Here's an example of a Stimulus controller:
 ```js
 // hello_controller.js
 
-import { Controller } from "stimulus"
+import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = [ "name", "output" ]
