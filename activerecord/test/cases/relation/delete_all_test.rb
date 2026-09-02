@@ -162,4 +162,15 @@ class DeleteAllTest < ActiveRecord::TestCase
     join_scope = Cpk::Order.joins(:order_agreements).where(order_agreements: { signature: agreement.signature })
     assert_equal 1, join_scope.delete_all
   end
+
+  def test_delete_all_invokes_skip_callback_monitor_with_relation
+    calls = []
+    Author.skip_callback_monitor = ->(relation) { calls << relation }
+    relation = Author.where(id: -1)
+    relation.delete_all
+    assert_same relation, calls.first
+    assert_equal Author, calls.first.model
+  ensure
+    Author.skip_callback_monitor = nil
+  end
 end

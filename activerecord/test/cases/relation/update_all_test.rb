@@ -596,4 +596,15 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal "bulk update!", posts(:thinking).body
     assert_not_equal "bulk update!", posts(:welcome).body
   end
+
+  def test_update_all_invokes_skip_callback_monitor_with_relation
+    calls = []
+    Author.skip_callback_monitor = ->(relation) { calls << relation }
+    relation = Author.where(id: -1)
+    relation.update_all(name: "Nobody")
+    assert_same relation, calls.first
+    assert_equal Author, calls.first.model
+  ensure
+    Author.skip_callback_monitor = nil
+  end
 end
