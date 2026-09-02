@@ -2,6 +2,7 @@
 
 require "rails"
 require "action_view"
+require "action_view/structured_event_subscriber"
 
 module ActionView
   # = Action View Railtie
@@ -92,7 +93,7 @@ module ActionView
       end
     end
 
-    initializer "action_view.attach_structured_event_subscriber", after: :initialize_event_reporter do
+    config.after_initialize do
       if Rails.event.debug_mode?
         ActionView::StructuredEventSubscriber.attach_to :action_view
       end
