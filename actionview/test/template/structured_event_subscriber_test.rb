@@ -30,6 +30,20 @@ module ActionView
       ActionController::Base.view_paths.map(&:clear_cache)
     end
 
+    def test_detach_removes_render_action_view_notification_listeners
+      previous_debug_mode = ActiveSupport.event_reporter.debug_mode?
+      ActiveSupport.event_reporter.debug_mode = false
+      ActionView::StructuredEventSubscriber.detach!
+
+      assert_not ActiveSupport::Notifications.notifier.listening?("render_template.action_view")
+      assert_not ActiveSupport::Notifications.notifier.listening?("render_partial.action_view")
+      assert_not ActiveSupport::Notifications.notifier.listening?("render_collection.action_view")
+      assert_not ActiveSupport::Notifications.notifier.listening?("render_layout.action_view")
+    ensure
+      ActiveSupport.event_reporter.debug_mode = previous_debug_mode
+      ActionView::StructuredEventSubscriber.attach_to :action_view
+    end
+
     def test_render_template
       with_debug_event_reporting do
         assert_event_reported("action_view.render_start", payload: { identifier: "test/hello_world.erb", layout: nil }) do

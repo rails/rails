@@ -1,3 +1,19 @@
+*   Stop subscribing `ActionView::StructuredEventSubscriber` to
+    `render_template`, `render_partial`, `render_collection`, and
+    `render_layout` `action_view` notifications in apps whose event reporter
+    isn't in debug mode.
+
+    Every handler in the subscriber is `debug_only`, so the events it
+    consumes are discarded unless the event reporter is in debug mode. In
+    non-debug apps each render still paid to allocate and dispatch the
+    notification just for the subscriber to throw it away, measurably ~90µs
+    and ~115 allocations of overhead per render on view-heavy pages (#57781).
+
+    The subscriber is now detached during boot when
+    `Rails.event.debug_mode?` is false. Debug apps are unaffected.
+
+    *Joel Hawksley*
+
 *   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
     the current template when it starts with a period, mirroring the existing
     behavior for the key argument.

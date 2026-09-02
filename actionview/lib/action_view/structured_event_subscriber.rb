@@ -97,11 +97,25 @@ module ActionView
       end
     end
 
-    def self.attach_to(*)
-      ActiveSupport::Notifications.subscribe("render_template.action_view", Start.new)
-      ActiveSupport::Notifications.subscribe("render_layout.action_view", Start.new)
+    class << self
+      def attach_to(*)
+        @start_template_subscription = ActiveSupport::Notifications.subscribe("render_template.action_view", Start.new)
+        @start_layout_subscription = ActiveSupport::Notifications.subscribe("render_layout.action_view", Start.new)
 
-      super
+        super
+      end
+
+      # Detach the subscriber and its monotonic +Start+ listeners.
+      # Called from the +ActionView::Railtie+ when the event reporter is
+      # not in debug mode, so non-debug apps stop paying to allocate and
+      # dispatch +render_*.action_view+ notifications that would otherwise
+      # be discarded (see \#57781).
+      def detach! # :nodoc:
+        detach_from :action_view
+        ActiveSupport::Notifications.unsubscribe(@start_template_subscription) if @start_template_subscription
+        ActiveSupport::Notifications.unsubscribe(@start_layout_subscription) if @start_layout_subscription
+        @start_template_subscription = @start_layout_subscription = nil
+      end
     end
   end
 end

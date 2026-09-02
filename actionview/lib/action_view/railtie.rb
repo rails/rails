@@ -92,6 +92,12 @@ module ActionView
       end
     end
 
+    initializer "action_view.gate_structured_events", after: :initialize_event_reporter do
+      unless Rails.event.debug_mode?
+        ActionView::StructuredEventSubscriber.detach!
+      end
+    end
+
     initializer "action_view.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_view] = ActionView.deprecator
     end
