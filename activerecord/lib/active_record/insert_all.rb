@@ -47,6 +47,8 @@ module ActiveRecord
     def execute
       return ActiveRecord::Result.empty if inserts.empty?
 
+      model.invoke_skip_callback_monitor(self)
+
       message = +"#{model.name} "
       message << "Bulk " if inserts.many?
       message << (on_duplicate == :update ? "Upsert" : "Insert")
