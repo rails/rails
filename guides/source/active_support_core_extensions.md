@@ -1208,15 +1208,13 @@ NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
 ### `squish`
 
-The method [`squish`][String#squish] strips leading and trailing whitespace, and substitutes runs of whitespace with a single space each:
+The method [`squish`][String#squish] strips leading and trailing whitespace, and substitutes runs of whitespace with a single space each (it handles both ASCII and Unicode whitespace):
 
 ```ruby
 " \n  foo\n\r \t bar \n".squish # => "foo bar"
 ```
 
 There's also the version `String#squish!` which modifies the string in place.
-
-Note that `squish` handles both ASCII and Unicode whitespace.
 
 NOTE: Defined in `active_support/core_ext/string/filters.rb`.
 
@@ -1324,7 +1322,7 @@ object making equality checks prettier.
 
 ```ruby
 "production".inquiry.production? # => true
-"active".inquiry.inactive?       # => false
+"active".inquiry.inactive?       # => false, for anything other than ".active?"
 ```
 
 NOTE: Defined in `active_support/core_ext/string/inquiry.rb`.
@@ -1510,7 +1508,7 @@ This method can also take an optional `count` parameter. If `count == 1` the sin
 
 Active Record uses `pluralize` to compute the default table name that corresponds to a model:
 
-```ruby
+```ruby#4
 # active_record/model_schema.rb
 def undecorated_table_name(model_name)
   table_name = model_name.to_s.demodulize.underscore
@@ -1534,7 +1532,7 @@ The [`singularize`][String#singularize] method is the inverse of `pluralize`:
 
 Active Record associations compute the name of the corresponding default associated class using this method:
 
-```ruby
+```ruby#4
 # active_record/reflection.rb
 def derive_class_name
   class_name = name.to_s.camelize
@@ -1564,7 +1562,7 @@ This method is also used to transform paths into Ruby class or module names, whe
 
 The `/` becomes a `::` above. For example, Action Pack uses this method to load the class that provides a certain session store:
 
-```ruby
+```ruby#4
 # action_controller/metal/session_management.rb
 def session_store=(store)
   @@session_store = store.is_a?(Symbol) ?
@@ -1658,7 +1656,7 @@ The [`dasherize`][String#dasherize] method replaces the underscores in the recei
 
 The XML serializer of models uses this method to dasherize node names:
 
-```ruby
+```ruby#4
 # active_model/serializers/xml.rb
 def reformat_name(name)
   name = name.camelize if camelize?
@@ -1684,7 +1682,7 @@ When working with namespaced constants, the [`demodulize`][String#demodulize] me
 
 Active Record uses this method to compute the name of a counter cache column:
 
-```ruby
+```ruby#4
 # active_record/reflection.rb
 def counter_cache_column
   if options[:counter_cache] == true
@@ -1750,7 +1748,7 @@ The `tableize` method converts a class name into the snake_case plural form. It 
 "InvoiceLine".tableize # => "invoice_lines"
 ```
 
-One use case for `tableize` is deriving database table names that corrospond to Active Record model class name. Active Record's actual table name resolution is more involved, it also handles namespacing and respects configuration options like `table_name_prefix`. So the `tableize` method can be thought of as a close approximation but not the exact implementation.
+One use case for `tableize` is deriving database table names that correspond to Active Record model class name. Active Record's actual table name resolution is more involved, it also handles namespacing and respects configuration options like `table_name_prefix`. So the `tableize` method can be thought of as a close approximation but not the exact implementation.
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
@@ -1816,8 +1814,6 @@ rescue NameError => e
   raise NonInferrableMailerError.new(name)
 end
 ```
-
-So `UserMailerTest` automatically resolves to `UserMailer`.
 
 NOTE: Defined in `active_support/core_ext/string/inflections.rb`.
 
