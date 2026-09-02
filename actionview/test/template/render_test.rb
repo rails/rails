@@ -471,10 +471,6 @@ module RenderTestCases
   # ViewComponent) by ~5x. Uses a minimal view / lookup context and swaps
   # in a fresh notifier (no subscribers) so the measurement reflects the
   # production case and targets the renderable dispatch path itself.
-  #
-  # Pre-#50623 was 4 obj/render; post-#50623 was 19; this branch is 9.
-  # Any change to that number should be a deliberate one — bump this
-  # constant and update the PR/CHANGELOG.
   def test_render_renderable_allocation_ceiling
     renderable = Class.new do
       def render_in(_view_context, **) = "hello"
