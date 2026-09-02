@@ -19,7 +19,7 @@ module ActiveRecord
           through_record = through_proxy.load_target
 
           if through_record && !record
-            through_record.destroy
+            through_record.destroy!
           elsif record
             attributes = construct_join_attributes(record)
 

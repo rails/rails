@@ -1,3 +1,14 @@
+*   Raise `ActiveRecord::RecordNotDestroyed` when a `has_one` association fails to
+    destroy the record it replaces.
+
+    Both `has_one dependent: :destroy` and `has_one :through` discarded the result
+    of destroying the previous record, so a record that halted its own destruction
+    was left in place with no error: the first ended up with two rows pointing at
+    the owner, and the second reported `nil` while its join record survived. The
+    equivalent `has_many` association already raises in that case.
+
+    *Carlos Daniel Pohlod*
+
 *   Avoid unnecessary association preloader queries for nil foreign keys when
     the foreign key and association primary key have different types.
 
