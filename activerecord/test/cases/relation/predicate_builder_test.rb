@@ -109,15 +109,18 @@ module ActiveRecord
     class TrackingString < ActiveRecord::Type::String
       include ActiveRecord::Type::QueryPredicates
 
-      attr_reader :expressions
+      class << self
+        def expressions
+          @expressions ||= []
+        end
+      end
 
-      def initialize
-        @expressions = []
-        super
+      def expressions
+        self.class.expressions
       end
 
       def comparison_expression(expression)
-        expressions << expression
+        self.class.expressions << expression
         expression
       end
     end
@@ -125,15 +128,18 @@ module ActiveRecord
     class MutableSerializedType < ActiveRecord::Type::Value
       include ActiveRecord::Type::QueryPredicates
 
-      attr_reader :serializations
+      class << self
+        attr_accessor :serializations
+      end
 
-      def initialize
-        @serializations = 0
-        super
+      @serializations = 0
+
+      def serializations
+        self.class.serializations
       end
 
       def serialize(value)
-        @serializations += 1
+        self.class.serializations += 1
         value[:value]
       end
 
@@ -231,18 +237,25 @@ module ActiveRecord
       assert_ractor_shareable Topic.predicate_builder
     end
 
-    def test_is_eagerly_built_and_reachable_from_a_ractor
-      model = Class.new(ActiveRecord::Base) do
-        def self.name
-          "PredicateBuilderEagerModel"
+    if RUBY_VERSION >= "4.0" && !in_memory_db?
+      class PredicateBuilderRactorTest < ActiveRecord::TestCase
+        include ActiveSupport::Testing::Isolation
+        include ActiveSupport::Testing::RactorsAssertions
+
+        def test_is_eagerly_built_and_reachable_from_a_ractor
+          model = Class.new(ActiveRecord::Base) do
+            def self.name
+              "PredicateBuilderEagerModel"
+            end
+
+            self.table_name = "topics"
+          end
+
+          builder = on_ractor(model) { |m| m.instance_variable_get(:@predicate_builder) }
+
+          assert_same model.predicate_builder, builder
         end
-
-        self.table_name = "topics"
       end
-
-      builder = on_ractor(model) { |m| m.instance_variable_get(:@predicate_builder) }
-
-      assert_same model.predicate_builder, builder
     end
 
     def test_attribute_type_can_define_a_comparison_expression
@@ -278,6 +291,7 @@ module ActiveRecord
     end
 
     def test_scalar_query_predicate_expressions_are_built_eagerly
+      TrackingString.expressions.clear
       type = TrackingString.new
       topic = topic_model_with_title_type(type)
       relation = topic.where(title: "CAFE")
@@ -439,6 +453,7 @@ module ActiveRecord
     end
 
     def test_comparison_expression_preserves_serialized_values
+      MutableSerializedType.serializations = 0
       type = MutableSerializedType.new
       topic = topic_model_with_title_type(type)
       value = { value: "original" }

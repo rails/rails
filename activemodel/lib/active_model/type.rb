@@ -36,9 +36,11 @@ module ActiveModel
       end
 
       def default_value # :nodoc:
-        @default_value ||= Value.new
+        DEFAULT_TYPE
       end
     end
+
+    DEFAULT_TYPE = Value.new.freeze # :nodoc:
 
     register(:big_integer, Type::BigInteger)
     register(:binary, Type::Binary)
