@@ -157,4 +157,22 @@ class ObjectTryTest < ActiveSupport::TestCase
       Decorator.new(klass.new).try!(:private_method)
     end
   end
+
+  class ObjectDelegate < DelegateClass(Object)
+    def to_s
+      "object delegate"
+    end
+  end
+
+  def test_try_with_overridden_method_on_delegate_class
+    assert_equal "object delegate", ObjectDelegate.new(@string).try(:to_s)
+  end
+
+  def test_try_bang_with_overridden_method_on_delegate_class
+    assert_equal "object delegate", ObjectDelegate.new(@string).try!(:to_s)
+  end
+
+  def test_try_with_method_on_delegate_class_target
+    assert_equal 5, ObjectDelegate.new(@string).try(:size)
+  end
 end

@@ -1,3 +1,13 @@
+*   Fix `try` / `try!` on subclasses of `DelegateClass(x)`.
+
+    `DelegateClass` was copying `try` from the target class as a forwarding
+    method, so overrides on the subclass were skipped. `try` and `try!` are now
+    treated as part of `Delegator`'s public API and are no longer forwarded.
+
+    Fixes #31045.
+
+    *Edil Talantbek uulu*
+
 *   Return a UTC time from `Time.rfc3339` for strings with the "Z" UTC designator.
 
     ```ruby
