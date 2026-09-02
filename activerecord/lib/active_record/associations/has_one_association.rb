@@ -99,7 +99,7 @@ module ActiveRecord
           when :destroy
             target.destroyed_by_association = reflection
             if target.persisted?
-              target.destroy
+              target.destroy!
             end
           else
             nullify_owner_attributes(target)
