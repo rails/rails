@@ -1965,11 +1965,7 @@ They return the corresponding number of bytes, using a conversion factor of 1 ki
 -4.exabytes   # => -4611686018427387904
 ```
 
-Singular forms are aliased so you are able to say:
-
-```ruby
-1.megabyte # => 1048576
-```
+Singular forms are aliased so you can also do `1.megabyte`.
 
 NOTE: Defined in `active_support/core_ext/numeric/bytes.rb`.
 
@@ -2433,8 +2429,6 @@ NOTE: Defined in `active_support/core_ext/array/extract_options.rb`.
 
 [Array#extract_options!]: https://api.rubyonrails.org/classes/Array.html#method-i-extract_options-21
 
-
-
 #### `to_sentence`
 
 The method [`to_sentence`][Array#to_sentence] turns an array into a string containing a sentence that enumerates its items:
@@ -2473,15 +2467,13 @@ The method [`to_fs`][Array#to_fs] acts like `to_s` by default.
 
 If the array contains items that respond to `id`, however, the symbol `:db` may
 be passed as argument. That's typically used with collections of Active Record
-objects. Returned strings are:
+objects. Returned strings come from the respective calls to `id`:
 
 ```ruby
 [].to_fs(:db)            # => "null"
 [user].to_fs(:db)        # => "8456"
 invoice.lines.to_fs(:db) # => "23,567,556,12"
 ```
-
-Integers in the example above come from the respective calls to `id`.
 
 NOTE: Defined in `active_support/core_ext/array/conversions.rb`.
 
@@ -2870,13 +2862,11 @@ The first example shows how `in_groups_of` fills the last group with as many `ni
 [1, 2, 3].in_groups_of(2, 0) # => [[1, 2], [3, 0]]
 ```
 
-And you can tell the method not to fill the last group by passing `false`:
+And you can tell the method not to fill the last group by passing `false` (as a consequence `false` can't be used as a padding value):
 
 ```ruby
 [1, 2, 3].in_groups_of(2, false) # => [[1, 2], [3]]
 ```
-
-As a consequence `false` can't be used as a padding value.
 
 NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
 
@@ -2884,16 +2874,13 @@ NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
 
 #### `in_groups(number, fill_with = nil)`
 
-The method [`in_groups`][Array#in_groups] divides an array into a given number of groups. The method returns an array with the groups:
+The method [`in_groups`][Array#in_groups] divides an array into a given number of groups. The method returns an array with the groups or yields them in turn if a block is passed:
 
 ```ruby
 %w(1 2 3 4 5 6 7).in_groups(3)
 # => [["1", "2", "3"], ["4", "5", nil], ["6", "7", nil]]
-```
 
-or yields them in turn if a block is passed:
-
-```ruby
+# with a block
 %w(1 2 3 4 5 6 7).in_groups(3) { |group| p group }
 ["1", "2", "3"]
 ["4", "5", nil]
@@ -2915,8 +2902,6 @@ And you can tell the method not to fill the smaller groups by passing `false`:
 %w(1 2 3 4 5 6 7).in_groups(3, false)
 # => [["1", "2", "3"], ["4", "5"], ["6", "7"]]
 ```
-
-As a consequence `false` can't be used as a padding value.
 
 NOTE: Defined in `active_support/core_ext/array/grouping.rb`.
 
