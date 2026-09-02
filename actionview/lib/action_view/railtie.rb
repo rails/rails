@@ -2,6 +2,7 @@
 
 require "rails"
 require "action_view"
+require "action_view/structured_event_subscriber"
 
 module ActionView
   # = Action View Railtie
@@ -89,6 +90,12 @@ module ActionView
           next if k == :render_tracker
           send "#{k}=", v
         end
+      end
+    end
+
+    config.after_initialize do
+      if Rails.event.debug_mode?
+        ActionView::StructuredEventSubscriber.attach_to :action_view
       end
     end
 

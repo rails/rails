@@ -1,3 +1,7 @@
+*   Only attach `ActionView::StructuredEventSubscriber` to `action_view` notifications when `Rails.event.debug_mode?` is true, avoiding unnecessary instrumentation overhead in non-debug apps.
+
+    *Joel Hawksley*
+
 *   Reduce allocation overhead of #50623.
 
     #50623 closed a long-present gap between the render pipeline for

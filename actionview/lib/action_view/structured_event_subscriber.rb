@@ -105,5 +105,3 @@ module ActionView
     end
   end
 end
-
-ActionView::StructuredEventSubscriber.attach_to :action_view
