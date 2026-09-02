@@ -200,22 +200,14 @@ module ActiveRecord
     end
 
     module ClassMethods
-      def schema_context(connection_pool = nil) # :nodoc:
-        if @schema_context
-          context = connection_pool ? @schema_context.context_for(connection_pool) : @schema_context.current_context
-          return context if context&.schema_loaded?
-        end
-
-        load_schema(connection_pool)
-        connection_pool ? @schema_context.context_for(connection_pool) : @schema_context.current_context
+      def schema_context # :nodoc:
+        return @schema_context if schema_loaded?
+        load_schema
+        @schema_context
       end
 
       def build_schema_context # :nodoc:
-        if sharded?
-          ActiveRecord::ModelSchema::SchemaContext::ConnectionPoolProxy.new(self)
-        else
-          ActiveRecord::ModelSchema::SchemaContext.new(self)
-        end
+        ActiveRecord::ModelSchema::SchemaContext.new(self)
       end
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the
@@ -482,11 +474,15 @@ module ActiveRecord
       end
 
       def _returning_columns_for_insert(connection) # :nodoc:
-        schema_context(connection.pool)._returning_columns_for_insert(connection)
+        @_returning_columns_for_insert || ActiveSupport::Ractors.on_main(self) do
+          @_returning_columns_for_insert ||= schema_context._returning_columns_for_insert(connection)
+        end
       end
 
       def _returning_columns_for_update(connection) # :nodoc:
-        schema_context(connection.pool)._returning_columns_for_update(connection)
+        @_returning_columns_for_update || ActiveSupport::Ractors.on_main(self) do
+          @_returning_columns_for_update ||= schema_context._returning_columns_for_update(connection)
+        end
       end
 
       # Returns the column object for the named attribute.
@@ -563,13 +559,14 @@ module ActiveRecord
 
       # Load the model's schema information either from the schema cache
       # or directly from the database.
-      def load_schema(connection_pool = nil)
-        return if schema_loaded?(connection_pool)
-        @load_schema_monitor.synchronize do
-          unless schema_loaded?(connection_pool) || @schema_context&.schema_loading?(connection_pool)
-            @schema_context ||= build_schema_context
-            @schema_context.load_schema!(connection_pool)
+      def load_schema
+        return if schema_loaded?
 
+        @load_schema_monitor.synchronize do
+          unless schema_loaded? || @schema_context
+            @schema_context = build_schema_context
+            @schema_context.load_schema!
+            ActiveSupport::Ractors.make_shareable(@schema_context)
             unless @schema_hooks_loaded
               load_schema!
               @schema_hooks_loaded = true
@@ -617,8 +614,8 @@ module ActiveRecord
           end
         end
 
-        def schema_loaded?(connection_pool = nil)
-          @schema_context&.schema_loaded?(connection_pool) || false
+        def schema_loaded?
+          @schema_context&.schema_loaded? || false
         end
 
         def load_schema!

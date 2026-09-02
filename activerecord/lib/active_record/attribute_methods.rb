@@ -234,9 +234,7 @@ module ActiveRecord
       #   # => ["id", "created_at", "updated_at", "name", "age"]
       def attribute_names
         return [].freeze if abstract_class?
-
-        context = @schema_context&.current_context
-        return context.attribute_names if context&.schema_loaded?
+        return @schema_context.attribute_names if @schema_context&.schema_loaded?
 
         table_exists? ? schema_context.attribute_names : [].freeze
       end
