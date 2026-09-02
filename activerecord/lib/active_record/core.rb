@@ -420,7 +420,7 @@ module ActiveRecord
       end
 
       def cached_find_by_statement(connection, key, &block) # :nodoc:
-        schema_context(connection.pool).cached_find_by_statement(connection, key, &block)
+        schema_context.cached_find_by_statement(connection, key, &block)
       end
 
       private
