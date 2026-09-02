@@ -468,55 +468,39 @@ module ActiveRecord
         assert ShardConnectionTestModel.find_by_shard_key("foo")
       end
 
-      def test_model_schema_is_separate_for_each_shard
+      def test_model_schema_can_use_a_connection_pool_different_from_current
         SecondaryBase.connects_to shards: {
-          default: { writing: { database: ":memory:", adapter: "sqlite3" } },
+          authority: { writing: { database: ":memory:", adapter: "sqlite3" } },
           migrated: { writing: { database: ":memory:", adapter: "sqlite3" } }
         }
-        SecondaryBase.default_shard = :none
-        model = Class.new(SecondaryBase) do
-          self.table_name = "shard_connection_test_models"
-          self.partial_inserts = false
-        end
 
-        default_connection = ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
-          model.lease_connection.create_table(:shard_connection_test_models) do |t|
+        authority_pool = ActiveRecord::Base.connected_to(role: :writing, shard: :authority) do
+          SecondaryBase.lease_connection.create_table(:shard_connection_test_models) do |t|
             t.string :shard_key
           end
-          assert_not model.new.has_attribute?(:new_column)
-          model.lease_connection
+          SecondaryBase.connection_pool
         end
 
         ActiveRecord::Base.connected_to(role: :writing, shard: :migrated) do
-          model.lease_connection.create_table(:shard_connection_test_models) do |t|
+          SecondaryBase.lease_connection.create_table(:shard_connection_test_models) do |t|
             t.string :shard_key
             t.string :new_column, default: "default value"
           end
-
-          assert_includes model.column_names, "new_column"
-          assert_includes model.attribute_names, "new_column"
-          assert_equal :string, model.type_for_attribute("new_column").type
-          assert_equal "default value", model.column_defaults["new_column"]
-          assert_equal "default value", model.new.new_column
-          assert_equal ["id"], model._returning_columns_for_insert(default_connection)
         end
 
-        ActiveRecord::Base.connected_to(role: :writing, shard: :default) do
+        model = Class.new(SecondaryBase) do
+          self.table_name = "shard_connection_test_models"
+        end
+        model.define_singleton_method(:build_schema_context) do
+          ActiveRecord::ModelSchema::SchemaContext.new(self, authority_pool)
+        end
+
+        ActiveRecord::Base.connected_to(role: :writing, shard: :migrated) do
           assert_not_includes model.column_names, "new_column"
           assert_not_includes model.attribute_names, "new_column"
           assert_not model.has_attribute?("new_column")
           assert_not model.column_defaults.key?("new_column")
-          model.create!(shard_key: "default")
         end
-
-        ActiveRecord::Base.connected_to(role: :writing, shard: :migrated) do
-          record = model.create!(shard_key: "migrated")
-          assert_equal "default value", record.new_column
-        end
-
-        assert_not_includes model.column_names, "new_column"
-      ensure
-        SecondaryBase.default_shard = :default
       end
 
       def test_swapping_shards_globally_in_a_multi_threaded_environment

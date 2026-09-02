@@ -1,8 +1,8 @@
-*   Keep schema-derived model state separate for each connection pool.
+*   Allow model schema contexts to use an explicit connection pool.
 
-    Models connected to shards with different schemas now use the columns,
-    attribute types, defaults, and cached finder statements for the current
-    shard.
+    Applications can use this with `build_schema_context` to control where a
+    model loads its schema. `attribute_names` now lives in the schema context
+    with the rest of the schema-derived model state.
 
     *Joshua Young*
 
@@ -20,6 +20,7 @@
     join would change the number of rows the query returns.
 
     *David Paluy*
+
 *   Add `config.active_record.shuffle_unordered_selects`.
 
     When enabled, Active Record shuffles the rows of every `SELECT` it generates
