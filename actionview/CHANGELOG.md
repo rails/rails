@@ -1,4 +1,4 @@
-*   Only attach `ActionView::StructuredEventSubscriber` to `action_view` notifications when `Rails.event.debug_mode?` is true, avoiding unnecessary instrumentation overhead in non-debug apps (#57781).
+*   Only attach `ActionView::StructuredEventSubscriber` to `action_view` notifications when `Rails.event.debug_mode?` is true, avoiding unnecessary instrumentation overhead in non-debug apps.
 
     *Joel Hawksley*
 
