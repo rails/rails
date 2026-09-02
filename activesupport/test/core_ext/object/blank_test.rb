@@ -40,4 +40,32 @@ class BlankTest < ActiveSupport::TestCase
     BLANK.each { |v| assert_nil v.presence, "#{v.inspect}.presence should return nil" }
     NOT.each   { |v| assert_equal v,   v.presence, "#{v.inspect}.presence should return self" }
   end
+
+  def test_delegator_presence_returns_self_without_touching_wrapped_object
+    require "delegate"
+
+    klass = Class.new(Delegator) do
+      attr_reader :inner_obj
+
+      def initialize
+        __setobj__(Object.new)
+      end
+
+      def __setobj__(obj)
+        @inner_obj = obj
+      end
+
+      def __getobj__
+        @inner_obj
+      end
+
+      def deliver_now
+        :delivered
+      end
+    end
+
+    delegator = klass.new
+    assert_same delegator, delegator.presence
+    assert_equal :delivered, delegator.presence.deliver_now
+  end
 end
