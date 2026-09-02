@@ -20,7 +20,7 @@ module ActiveRecord
           column = schema_cache.columns_hash(table_name)[attr_name.to_s]
           if column
             # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
-            type = column.fetch_cast_type(@klass.lease_connection)
+            type = @klass.with_connection { |c| column.fetch_cast_type(c) }
           end
         end
 
