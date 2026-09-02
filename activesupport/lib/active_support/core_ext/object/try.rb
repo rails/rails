@@ -153,6 +153,18 @@ class Delegator
   #   try!(*args, &block)
   #
   # See Object#try!
+
+  # +DelegateClass+ copies public methods from the target class onto the
+  # generated subclass, except those listed in +Delegator.public_api+. Without
+  # listing +try+ / +try!+ here, they would be forwarded to the target and
+  # overrides on the subclass would be skipped (see #31045).
+  class << self
+    alias_method :active_support_original_public_api, :public_api
+
+    def public_api # :nodoc:
+      active_support_original_public_api | ActiveSupport::Tryable.public_instance_methods
+    end
+  end
 end
 
 class NilClass
