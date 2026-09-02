@@ -468,6 +468,41 @@ module ActiveRecord
         assert ShardConnectionTestModel.find_by_shard_key("foo")
       end
 
+      def test_model_schema_can_use_a_connection_pool_different_from_current
+        SecondaryBase.connects_to shards: {
+          authority: { writing: { database: ":memory:", adapter: "sqlite3" } },
+          migrated: { writing: { database: ":memory:", adapter: "sqlite3" } }
+        }
+
+        authority_pool = ActiveRecord::Base.connected_to(role: :writing, shard: :authority) do
+          SecondaryBase.lease_connection.create_table(:shard_connection_test_models) do |t|
+            t.string :shard_key
+          end
+          SecondaryBase.connection_pool
+        end
+
+        ActiveRecord::Base.connected_to(role: :writing, shard: :migrated) do
+          SecondaryBase.lease_connection.create_table(:shard_connection_test_models) do |t|
+            t.string :shard_key
+            t.string :new_column, default: "default value"
+          end
+        end
+
+        model = Class.new(SecondaryBase) do
+          self.table_name = "shard_connection_test_models"
+        end
+        model.define_singleton_method(:build_schema_context) do
+          ActiveRecord::ModelSchema::SchemaContext.new(self, authority_pool)
+        end
+
+        ActiveRecord::Base.connected_to(role: :writing, shard: :migrated) do
+          assert_not_includes model.column_names, "new_column"
+          assert_not_includes model.attribute_names, "new_column"
+          assert_not model.has_attribute?("new_column")
+          assert_not model.column_defaults.key?("new_column")
+        end
+      end
+
       def test_swapping_shards_globally_in_a_multi_threaded_environment
         tf_default = Tempfile.open "shard_key_default"
         tf_shard_one = Tempfile.open "shard_key_one"

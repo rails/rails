@@ -1,3 +1,11 @@
+*   Allow model schema contexts to use an explicit connection pool.
+
+    Applications can use this with `build_schema_context` to control where a
+    model loads its schema. `attribute_names` now lives in the schema context
+    with the rest of the schema-derived model state.
+
+    *Joshua Young*
+
 *   Avoid unnecessary association preloader queries for nil foreign keys when
     the foreign key and association primary key have different types.
 
