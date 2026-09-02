@@ -7,6 +7,7 @@ class Comment < ActiveRecord::Base
   scope :limit_by, lambda { |l| limit(l) }
   scope :containing_the_letter_e, -> { where("comments.body LIKE '%e%'") }
   scope :not_again, -> { where("comments.body NOT LIKE '%again%'") }
+  scope :thank_you_for_the_welcome, -> { where(body: "Thank you for the welcome") }
   scope :for_first_post, -> { where(post_id: 1) }
   scope :for_first_author, -> { joins(:post).where("posts.author_id" => 1) }
   scope :created, -> { all }
