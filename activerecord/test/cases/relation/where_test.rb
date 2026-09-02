@@ -116,6 +116,16 @@ module ActiveRecord
       assert_empty Cpk::Book.where([:author_id, :id] => [[1, 4], [3, 2]])
     end
 
+    def test_where_with_tuple_syntax_on_composite_models_accepts_records
+      book_one = Cpk::Book.create!(id: [1, 2])
+      book_two = Cpk::Book.create!(id: [3, 4])
+
+      assert_equal [book_one], Cpk::Book.where([:author_id, :id] => book_one)
+      assert_equal [book_one], Cpk::Book.where([:author_id, :id] => [book_one])
+      assert_equal [book_one, book_two].sort, Cpk::Book.where(Cpk::Book.primary_key => [book_one, book_two]).sort
+      assert_empty Cpk::Book.where([:author_id, :id] => [[1, 4], [3, 2]])
+    end
+
     def test_where_with_tuple_syntax_with_incorrect_arity
       error = assert_raise ArgumentError do
         Cpk::Book.where([:one, :two, :three] => [1, 2, 3])
