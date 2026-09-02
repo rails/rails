@@ -6,9 +6,8 @@
     keeps the unified pipeline but recovers most of the lost allocations
     by memoizing per-class `render_in` arity and `format` lookups,
     skipping redundant `prepend_formats` writes, reusing the
-    `TemplateRenderer` within a `Renderer`, gating the
-    `render_template.action_view` notification on active subscribers,
-    and pooling `Template::Renderable` when no block is given.
+    `TemplateRenderer` within a `Renderer`, and pooling
+    `Template::Renderable` when no block is given.
 
     *Joel Hawksley*
 

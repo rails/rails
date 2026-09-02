@@ -15,6 +15,8 @@ module ActionView
         @block = block
       end
 
+      attr_writer :renderable, :block # :nodoc:
+
       def identifier
         @renderable.class.name
       end

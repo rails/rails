@@ -2,9 +2,6 @@
 
 module ActionView
   class TemplateRenderer < AbstractRenderer # :nodoc:
-    RENDER_TEMPLATE_NOTIFICATION = "render_template.action_view"
-    private_constant :RENDER_TEMPLATE_NOTIFICATION
-
     def render(context, options, &block)
       @details = extract_details(options)
       template = determine_template(options, &block)
@@ -46,8 +43,8 @@ module ActionView
         elsif options.key?(:renderable)
           if block.nil?
             pooled = (@_pooled_renderable ||= Template::Renderable.allocate)
-            pooled.instance_variable_set(:@renderable, options[:renderable])
-            pooled.instance_variable_set(:@block, nil)
+            pooled.renderable = options[:renderable]
+            pooled.block = nil
             pooled
           else
             Template::Renderable.new(options[:renderable], &block)
@@ -67,16 +64,12 @@ module ActionView
       # supplied as well.
       def render_template(view, template, layout_name, locals)
         render_with_layout(view, template, layout_name, locals) do |layout|
-          if ActiveSupport::Notifications.notifier.listening?(RENDER_TEMPLATE_NOTIFICATION)
-            ActiveSupport::Notifications.instrument(
-              RENDER_TEMPLATE_NOTIFICATION,
-              identifier: template.identifier,
-              layout: layout && layout.virtual_path,
-              locals: locals
-            ) do
-              template.render(view, locals) { |*name| view._layout_for(*name) }
-            end
-          else
+          ActiveSupport::Notifications.instrument(
+            "render_template.action_view",
+            identifier: template.identifier,
+            layout: layout && layout.virtual_path,
+            locals: locals
+          ) do
             template.render(view, locals) { |*name| view._layout_for(*name) }
           end
         end
