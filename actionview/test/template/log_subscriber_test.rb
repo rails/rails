@@ -5,9 +5,6 @@ require "active_support/log_subscriber/test_helper"
 require "action_view/log_subscriber"
 require "controller/fake_models"
 require "active_support/testing/event_reporter_assertions"
-require "action_view/structured_event_subscriber"
-
-ActionView::StructuredEventSubscriber.attach_to :action_view
 
 class AVLogSubscriberTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::EventReporterAssertions

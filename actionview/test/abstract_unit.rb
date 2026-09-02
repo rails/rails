@@ -19,6 +19,8 @@ require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"
 require "action_controller"
 require "action_view"
+require "action_view/structured_event_subscriber"
+ActionView::StructuredEventSubscriber.attach_to :action_view
 require "action_view/testing/resolvers"
 require "active_support/dependencies"
 require "active_model"

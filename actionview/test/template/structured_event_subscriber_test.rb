@@ -5,8 +5,6 @@ require "active_support/testing/event_reporter_assertions"
 require "action_view/structured_event_subscriber"
 require "controller/fake_models"
 
-ActionView::StructuredEventSubscriber.attach_to :action_view
-
 module ActionView
   class StructuredEventSubscriberTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::EventReporterAssertions
