@@ -612,4 +612,21 @@ class ParametersPermitTest < ActiveSupport::TestCase
       ActionController::Parameters.new({ foo: 1 } => :bar)
     end
   end
+
+  test "permit ignores the double array syntax and permits a hash value" do
+    params = ActionController::Parameters.new(comments: { flavor: "cherry" })
+
+    permitted = params.permit(comments: [[:flavor]])
+
+    assert_equal({ "flavor" => "cherry" }, permitted[:comments].to_h)
+  end
+
+  test "permit ignores the double array syntax and permits an array of hashes" do
+    params = ActionController::Parameters.new(comments: [{ flavor: "cherry" }, { flavor: "apple" }])
+
+    permitted = params.permit(comments: [[:flavor]])
+
+    assert_equal({ "flavor" => "cherry" }, permitted[:comments][0].to_h)
+    assert_equal({ "flavor" => "apple" }, permitted[:comments][1].to_h)
+  end
 end
