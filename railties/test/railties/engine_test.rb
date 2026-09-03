@@ -1157,6 +1157,19 @@ en:
       assert Bukkits::Engine.config.bukkits_seeds_loaded
     end
 
+    if RUBY_VERSION >= "4.0"
+      test "the load_seed reloader callback is Ractor-shareable" do
+        boot_rails
+
+        around = Rails.application.class.send(:get_callbacks, :load_seed).find { |c| c.kind == :around }
+        assert_not_nil around, "expected an around :load_seed callback"
+
+        assert_nothing_raised do
+          Ractor.shareable_proc(&around.filter)
+        end
+      end
+    end
+
     test "loading seed data is wrapped by the executor" do
       app_file "db/seeds.rb", <<-RUBY
         Rails.application.config.seeding_wrapped_by_executor = Rails.application.executor.active?
