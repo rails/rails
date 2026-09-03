@@ -147,6 +147,8 @@ module ActiveModel
           else
             value
           end
+        elsif block_given?
+          yield
         else
           raise KeyError, "key not found: #{column.inspect}"
         end
