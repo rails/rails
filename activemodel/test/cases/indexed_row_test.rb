@@ -35,6 +35,10 @@ class IndexedRowTest < ActiveModel::TestCase
     assert_equal @hash, @row
   end
 
+  test "#hash" do
+    assert_equal 1, [@row, @row.dup].uniq.size
+  end
+
   test "#key?" do
     assert_equal true, @row.key?("first_name")
     assert_equal true, @row.key?("last_name")
