@@ -53,6 +53,18 @@ module ActiveModel
       end
     end
 
+    def hash
+      [IndexedRow, @indexes, @row].hash
+    end
+
+    protected attr_reader :indexes, :row
+
+    def eql?(other)
+      other.is_a?(IndexedRow) &&
+        @indexes == other.indexes &&
+        @row == other.row
+    end
+
     def key?(column)
       @indexes.key?(column)
     end
