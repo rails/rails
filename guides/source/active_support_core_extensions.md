@@ -4015,7 +4015,7 @@ NOTE: Defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 #### `beginning_of_day`, `end_of_day`
 
-The [`beginning_of_day`][Date#beginning_of_day] and `end_of_day` methods return a value representing the start (`00:00:00`) and end (`23:59:59`) of the day. On `Date`, this actually converts the receiver into a time-zone-aware `Time`/`DateTime`, since a bare date has no time component to set:
+The [`beginning_of_day`][Date#beginning_of_day] and `end_of_day` methods return a value representing the start (`00:00:00`) and end (`23:59:59`) of the day. On `Date`, this actually converts the receiver into a time-zone-aware `Time`/`DateTime`, since a `Date` object has no time component to set:
 
 ```ruby
 date = Date.new(2026, 5, 5)
