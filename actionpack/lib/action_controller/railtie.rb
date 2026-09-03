@@ -41,6 +41,12 @@ module ActionController
       end
     end
 
+    initializer "action_controller.live_executor" do |app|
+      ActiveSupport.on_load(:action_controller_live) do
+        ActionController::Live.executor = app.executor
+      end
+    end
+
     initializer "action_controller.parameters_config" do |app|
       options = app.config.action_controller
 

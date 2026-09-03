@@ -1,3 +1,16 @@
+*   Run `ActionController::Live` actions inside the application executor on the
+    streaming thread.
+
+    The streaming thread comes from a pool and outlives the request, and the
+    request thread's executor cannot release state established on another
+    thread. Any per-request state set up on the streaming thread, such as an
+    Active Record connection leased there, was left pinned to the pooled thread
+    after the action finished, which could exhaust the connection pool. The
+    action now runs in `ActionController::Live.executor`, which the railtie sets
+    to `Rails.application.executor`, so the usual completion hooks clean it up.
+
+    *Antony Sastre*
+
 *   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
     the current controller and action when it starts with a period,
     mirroring the existing behavior for the key argument.

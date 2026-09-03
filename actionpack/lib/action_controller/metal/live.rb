@@ -91,11 +91,20 @@ module ActionController
   # - `:active_record_prohibit_shard_swapping` - Shard swapping restrictions
   #
   # By default, no keys are excluded to maintain backward compatibility.
+  #
+  # The streaming thread runs the action inside `ActionController::Live.executor`,
+  # which the railtie sets to the application's executor. That way any per-request
+  # state established on the streaming thread, such as Active Record connections
+  # leased there, is cleaned up when the action finishes rather than staying pinned
+  # to the pooled thread.
   module Live
     extend ActiveSupport::Concern
 
     @live_streaming_excluded_keys = []
     singleton_class.attr_accessor :live_streaming_excluded_keys
+
+    @executor = ActiveSupport::Executor
+    singleton_class.attr_accessor :executor
 
     included do
       class_attribute :live_streaming_excluded_keys, instance_accessor: false, default: Live.live_streaming_excluded_keys
@@ -420,7 +429,7 @@ module ActionController
         ActionController::Live.live_thread_pool_executor.post do
           t2 = Thread.current
           t2.abort_on_exception = true
-          yield
+          ActionController::Live.executor.wrap(source: "application.action_controller.live", &block)
         end
       end
 
