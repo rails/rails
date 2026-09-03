@@ -300,6 +300,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert_cache :dirty
 
         thread_1_connection = ActiveRecord::Base.lease_connection
+        thread_1_physical = main_ractor_connection(thread_1_connection)
         ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
         assert_cache :off, thread_1_connection
 
@@ -310,7 +311,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         thread = Thread.new {
           thread_2_connection = ActiveRecord::Base.lease_connection
 
-          assert_equal thread_2_connection, thread_1_connection
+          assert_equal main_ractor_connection(thread_2_connection), thread_1_physical
           assert_cache :off
 
           middleware {
@@ -329,7 +330,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         started.wait
 
         thread_1_connection = ActiveRecord::Base.lease_connection
-        assert_not_equal thread_1_connection, thread_2_connection
+        assert_not_equal main_ractor_connection(thread_1_connection), main_ractor_connection(thread_2_connection)
         assert_cache :dirty, thread_2_connection
         checked.set
         thread.join
