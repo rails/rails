@@ -45,6 +45,49 @@ module ApplicationTests
         db_create_and_drop db_config.database
       end
 
+      test "db:create sets auto_vacuum to incremental on new SQLite databases" do
+        require "#{app_path}/config/environment"
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
+        db_create_and_drop db_config.database do
+          auto_vacuum = `sqlite3 #{db_config.database} "PRAGMA auto_vacuum;"`.strip.to_i
+          assert_equal 2, auto_vacuum
+        end
+      end
+
+      test "db:maintenance:vacuum reclaims freed pages and truncates WAL" do
+        require "#{app_path}/config/environment"
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
+        Dir.chdir(app_path) do
+          rails "db:create"
+
+          # Insert and delete data to produce freelist pages
+          `sqlite3 #{db_config.database} "CREATE TABLE bloat(id INTEGER PRIMARY KEY, data TEXT)"`
+          `sqlite3 #{db_config.database} "INSERT INTO bloat(data) SELECT randomblob(1000) FROM generate_series(1, 1000)"`
+          `sqlite3 #{db_config.database} "DELETE FROM bloat"`
+
+          freelist_before = `sqlite3 #{db_config.database} "PRAGMA freelist_count;"`.strip.to_i
+          assert freelist_before > 0
+
+          rails "db:maintenance:vacuum"
+
+          freelist_after = `sqlite3 #{db_config.database} "PRAGMA freelist_count;"`.strip.to_i
+          assert freelist_after < freelist_before
+
+          wal_file = "#{db_config.database}-wal"
+          assert_equal 0, File.size(wal_file) if File.exist?(wal_file)
+        end
+      end
+
+      test "db:maintenance:vacuum warns when auto_vacuum is none" do
+        require "#{app_path}/config/environment"
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, name: "primary")
+        Dir.chdir(app_path) do
+          `sqlite3 #{db_config.database} "CREATE TABLE schema_migrations(version VARCHAR NOT NULL PRIMARY KEY)"`
+          output = rails("db:maintenance:vacuum")
+          assert_match(/WARNING.*auto_vacuum=none/, output)
+        end
+      end
+
       test "db:create and db:drop with database URL" do
         require "#{app_path}/config/environment"
         delete_database_config!
