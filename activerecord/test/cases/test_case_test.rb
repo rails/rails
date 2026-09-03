@@ -10,7 +10,7 @@ module ActiveRecord
 
     def test_check_connection_leaks_does_not_report_connections_held_for_reaper_maintenance
       with_temporary_connection_pool do
-        pool = ActiveRecord::Base.connection_pool
+        pool = without_ractor_proxy { ActiveRecord::Base.connection_pool }
 
         conn = pool.checkout
         conn.select_value("SELECT 1")
@@ -71,7 +71,7 @@ module ActiveRecord
 
     def test_check_connection_leaks_does_not_report_connections_held_for_async_reaper_maintenance
       with_temporary_connection_pool do
-        pool = ActiveRecord::Base.connection_pool
+        pool = without_ractor_proxy { ActiveRecord::Base.connection_pool }
         original_async_executor = pool.async_executor
 
         async_executor = FakeAsyncExecutor.new

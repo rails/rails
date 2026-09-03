@@ -27,7 +27,7 @@ desc "Run mysql2, trilogy, sqlite, and postgresql tests"
 task :test do
   tasks = defined?(JRUBY_VERSION) ?
     %w(test_jdbcmysql test_jdbcsqlite3 test_jdbcpostgresql) :
-    %w(test_mysql2 test_trilogy test_sqlite3 test_postgresql)
+    %w(test_mysql2 test_trilogy test_sqlite3 test_sqlite3_ractor test_postgresql)
   run_without_aborting(*tasks)
 end
 
@@ -134,6 +134,34 @@ adapters.each do |adapter|
   # Make sure the adapter test evaluates the env setting task
   task "test_#{adapter}" => ["#{adapter}:env", "test:#{adapter}", "test:integration:active_job:#{adapter}"]
 end
+
+namespace :test do
+  namespace :sqlite3 do
+    Rake::TestTask.new("ractor" => "sqlite3:ractor:env") do |t|
+      t.libs << "test"
+      t.test_files = (FileList["test/cases/**/*_test.rb"].reject {
+        |x| x.include?("/adapters/") || x.include?("/encryption/performance")
+      } + FileList["test/cases/adapters/sqlite3/**/*_test.rb"])
+      t.warning = true
+      if ENV["CI"]
+        t.verbose = true
+        t.options = "--profile --defer-output"
+      end
+    end
+  end
+end
+
+namespace :sqlite3 do
+  namespace :test do
+    task ractor: "test_sqlite3_ractor"
+  end
+
+  namespace :ractor do
+    task(:env) { ENV["ARCONN"] = "sqlite3_ractor" }
+  end
+end
+
+task "test_sqlite3_ractor" => ["sqlite3:ractor:env", "test:sqlite3:ractor"]
 
 namespace :db do
   namespace :mysql do

@@ -246,7 +246,7 @@ module ActiveRecord
       # need to share a connection pool so that the reading connection
       # can see data in the open transaction on the writing connection.
       def setup_shared_connection_pool
-        handler = ActiveRecord::Base.connection_handler
+        handler = main_ractor_connection_handler
 
         handler.connection_pool_names.each do |name|
           pool_manager = handler.send(:connection_name_to_pool_manager)[name]
@@ -265,7 +265,7 @@ module ActiveRecord
       end
 
       def teardown_shared_connection_pool
-        handler = ActiveRecord::Base.connection_handler
+        handler = main_ractor_connection_handler
         removed_pool_configs = []
         pool_managers = handler.send(:connection_name_to_pool_manager)
 
@@ -287,6 +287,15 @@ module ActiveRecord
         remaining_pool_configs = pool_managers.values.flat_map(&:pool_configs)
         removed_pool_configs.compact.uniq.each do |pool_config|
           pool_config.disconnect! unless remaining_pool_configs.include?(pool_config)
+        end
+      end
+
+      def main_ractor_connection_handler
+        handler = ActiveRecord::Base.connection_handler
+        if handler.is_a?(ConnectionAdapters::RactorConnectionHandler)
+          handler.main_ractor_handler
+        else
+          handler
         end
       end
 
