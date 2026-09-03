@@ -92,6 +92,38 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         end
       end
 
+      test "ractorize! makes model reflections Ractor-shareable" do
+        app_file "app/models/post.rb", <<~RUBY
+          class Post < ActiveRecord::Base
+            has_one :comment
+          end
+        RUBY
+        app_file "app/models/comment.rb", <<~RUBY
+          class Comment < ActiveRecord::Base
+            belongs_to :post
+          end
+        RUBY
+        app_file "config/initializers/active_record.rb", <<~RUBY
+          ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+          ActiveRecord::Migration.verbose = false
+          ActiveRecord::Schema.define(version: 1) do
+            create_table :posts
+            create_table :comments do |t|
+              t.belongs_to :post
+            end
+          end
+          ActiveRecord::Base.schema_cache.add("posts")
+          ActiveRecord::Base.schema_cache.add("comments")
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert Ractor.shareable?(Post._reflections)
+        assert_equal "Comment", on_ractor { Post.reflect_on_association(:comment).klass.name }
+      end
+
       private
         def ractorize!
           @original_experimental_warning = Warning[:experimental]
