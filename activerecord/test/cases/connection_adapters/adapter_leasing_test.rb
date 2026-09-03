@@ -38,6 +38,14 @@ module ActiveRecord
         assert_not @adapter.in_use?, "adapter is in use"
       end
 
+      def test_discard_clears_advisory_lock_tracking
+        @adapter.send(:advisory_lock_acquired!, :lock)
+
+        @adapter.discard!
+
+        assert_not @adapter.send(:advisory_locks_held?)
+      end
+
       def test_close
         db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", adapter: "abstract")
         pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default)
