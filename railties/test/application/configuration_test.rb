@@ -2095,6 +2095,17 @@ module ApplicationTests
 
         assert_includes File.read(app_path("log/ractor.log")), "[request-id] hello"
       end
+
+      test "config.action_dispatch.default_headers can still be mutated after ActionDispatch::Response is loaded" do
+        app "development"
+
+        assert_predicate(ActionDispatch::Response.default_headers, :frozen?)
+        assert_not Rails.application.config.action_dispatch.default_headers.frozen?
+
+        assert_nothing_raised do
+          Rails.application.config.action_dispatch.default_headers["X-Custom-Header"] = "custom"
+        end
+      end
     end
 
     test "respond_to? accepts include_private" do

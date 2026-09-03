@@ -88,7 +88,7 @@ module ActionDispatch
 
       ActiveSupport.on_load(:action_dispatch_response) do
         self.default_charset = app.config.action_dispatch.default_charset || app.config.encoding
-        self.default_headers = ActiveSupport::Ractors.make_shareable(app.config.action_dispatch.default_headers)
+        self.default_headers = ActiveSupport::Ractors.make_shareable(app.config.action_dispatch.default_headers, copy: true)
       end
 
       ActionDispatch::ExceptionWrapper.rescue_responses = ActionDispatch::ExceptionWrapper.rescue_responses.merge(config.action_dispatch.rescue_responses)
