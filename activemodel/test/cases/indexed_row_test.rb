@@ -114,5 +114,8 @@ class EmptyMutableIndexedRowTest < ActiveModel::TestCase
     assert_equal(4, @row.fetch("age") { 4 })
     @row["age"] = 42
     assert_equal 42, @row.fetch("age")
+
+    assert_raises(KeyError) { @row.fetch("missing") }
+    assert_equal(5, @row.fetch("missing") { 5 })
   end
 end
