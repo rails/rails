@@ -1,3 +1,13 @@
+*   Allow records as values in tuple-syntax `where` clauses. Records that respond to
+    `#id` are now resolved to their primary key values automatically.
+
+    ```ruby
+    Cpk::Book.where([:author_id, :id] => book)
+    Cpk::Book.where([:author_id, :id] => [book])
+    ```
+
+    *Htet Wun San*
+
 *   Avoid unnecessary association preloader queries for nil foreign keys when
     the foreign key and association primary key have different types.
 

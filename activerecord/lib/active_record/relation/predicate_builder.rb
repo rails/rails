@@ -122,8 +122,10 @@ module ActiveRecord
           end
 
           if key.is_a?(Array)
-            queries = Array(value).map do |ids_set|
+            queries = Array(value).map do |value|
+              ids_set = value.respond_to?(:id) ? value.id : value
               raise ArgumentError, "Expected corresponding value for #{key} to be an Array" unless ids_set.is_a?(Array)
+
               attributes = convert_dot_notation_to_hash(key.zip(ids_set).to_h)
               expand_from_hash(attributes)
             end
