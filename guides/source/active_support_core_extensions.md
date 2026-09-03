@@ -55,14 +55,14 @@ come to define a style of Ruby code that is expressive and reads close
 to natural language.
 
 WARNING: Because open classes modify Ruby's built-in types globally, they are a
-form of [**monkey patching**](https://en.wikipedia.org/wiki/Monkey_patch). A method added to `String` in one part of your
-program affects all strings across your application. This can lead to subtle bugs if
-extensions conflict with other gems or future versions of Ruby. Active Support's
-extensions are well-tested and widely used, but if you are loading them in a
-non-Rails project, prefer [selective
-loading](#cherry-picking-a-single-extension) over `require "active_support/all"`
-to limit the surface area. Avoid writing your own monkey patches on top of
-Active Support's, and never monkey patch classes in a gem you do not own.
+form of [**monkey patching**](https://en.wikipedia.org/wiki/Monkey_patch). A
+method added to `String` in one part of your program affects all strings across
+your application. This can lead to subtle bugs if extensions conflict with other
+gems or future versions of Ruby. Active Support's extensions are well-tested and
+widely used, but if you are loading them in a non-Rails project, prefer
+[selective loading](#cherry-picking-a-single-extension) over `require
+"active_support/all"` to limit the surface area. Avoid writing your own monkey
+patches on top of Active Support's.
 
 How to Load Core Extensions
 ---------------------------
@@ -237,7 +237,7 @@ Complex(1).duplicable?      # => true
 
 Without `duplicable?`, the caller of `dup` would need to `rescue` from the error raised by `dup` to discover that a given object is not duplicable.
 
-WARNING: `duplicable?` depends on a [hard-coded list of non-duplicable types](https://github.com/rails/rails/blob/main/activesupport/lib/active_support/core_ext/object/duplicable.rb) built into Active Support source code. This list is small and can change as Ruby evolves — for example, `NilClass`, `TrueClass`, `FalseClass`, `Symbol`, and `Numeric` were removed from the list when Ruby 2.4 made them duplicable. Use `duplicable?` only when you know the hard-coded list covers your use case, otherwise use the slower `rescue` approach.
+WARNING: `duplicable?` depends on a [hard-coded list of non-duplicable types](https://github.com/rails/rails/blob/main/activesupport/lib/active_support/core_ext/object/duplicable.rb) built into Active Support source code. This list is small and can change as Ruby evolves — for example, `NilClass`, `TrueClass`, `FalseClass`, `Symbol`, and `Numeric` were removed from the list when Ruby 2.4 made them duplicable. Use `duplicable?` only when you know the hard-coded list covers your use case.
 
 NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 
@@ -738,7 +738,7 @@ NOTE: Defined in `active_support/core_ext/module/attr_internal.rb`.
 [attr_internal_reader]: https://api.rubyonrails.org/classes/Module.html#method-i-attr_internal_reader
 [attr_internal_writer]: https://api.rubyonrails.org/classes/Module.html#method-i-attr_internal_writer
 
-### `mattr_*`
+### `mattr_reader`, `mattr_writer`, `mattr_accessor`
 
 The methods [`mattr_reader`][Module#mattr_reader], [`mattr_writer`][Module#mattr_writer], and [`mattr_accessor`][Module#mattr_accessor] are the same as their `cattr_*` equivalents [defined for class](#cattr-reader-cattr-writer-and-cattr-accessor). In fact, the `cattr_*` method are an aliases for the `mattr_*` ones.
 
@@ -992,6 +992,8 @@ NOTE: Defined in `active_support/core_ext/module/redefine_method.rb`.
 
 Extensions to `Class`
 ---------------------
+
+Ruby's `Class` object is a special object that represents a class itself and Active Support adds useful methods to `Class` as well.
 
 ### `class_attribute`
 
@@ -4387,7 +4389,7 @@ NOTE: Defined in `active_support/core_ext/digest/uuid.rb`.
 [Digest::UUID.nil_uuid]: https://api.rubyonrails.org/classes/Digest/UUID.html#method-c-nil_uuid
 
 ### ERB::Util (`html_escape`)
- 
+
 The method [`html_escape`][ERB::Util#html_escape] escapes HTML tag characters, such as `<`, `>`, `&`, and `"`, in a string. Active Support's version behaves the same as Ruby's but returns an HTML-safe string, so Rails' template engine knows not to escape it again when rendering:
 
 ```ruby
