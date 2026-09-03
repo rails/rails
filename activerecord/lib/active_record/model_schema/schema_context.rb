@@ -46,19 +46,7 @@ module ActiveRecord
       end
 
       def attributes
-        # Preload schemas from the class hierarchy to ensure `Attributes.new`
-        # (below) doesn't call a nested `store_if_absent`, which would deadlock.
-        # `load_schema` will return immediately is the schema has already been
-        # loaded, so there should be no performance hit here.
-        klass = @model_class.superclass
-        while klass < ActiveRecord::Base
-          klass.load_schema if !klass.abstract_class?
-          klass = klass.superclass
-        end
-
-        ActiveSupport::Ractors.store_if_absent(@attributes_key) do
-          Attributes.new(self)
-        end
+        ActiveSupport::Ractors[@attributes_key] ||= Attributes.new(self)
       end
 
       def table_name
