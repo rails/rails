@@ -5,6 +5,7 @@ require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/sqlite3/column"
 require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
 require "active_record/connection_adapters/sqlite3/quoting"
+require "active_record/connection_adapters/sqlite3/referential_integrity"
 require "active_record/connection_adapters/sqlite3/database_statements"
 require "active_record/connection_adapters/sqlite3/schema_creation"
 require "active_record/connection_adapters/sqlite3/schema_definitions"
@@ -102,6 +103,7 @@ module ActiveRecord
       include SQLite3::Quoting
       include SQLite3::SchemaStatements
       include SQLite3::DatabaseStatements
+      include SQLite3::ReferentialIntegrity
 
       ##
       # :singleton-method:
@@ -305,20 +307,6 @@ module ActiveRecord
       end
 
       # REFERENTIAL INTEGRITY ====================================
-
-      def disable_referential_integrity # :nodoc:
-        old_foreign_keys = query_value("PRAGMA foreign_keys", nil)
-        old_defer_foreign_keys = query_value("PRAGMA defer_foreign_keys", nil)
-
-        begin
-          execute("PRAGMA defer_foreign_keys = ON")
-          execute("PRAGMA foreign_keys = OFF")
-          yield
-        ensure
-          execute("PRAGMA defer_foreign_keys = #{old_defer_foreign_keys}")
-          execute("PRAGMA foreign_keys = #{old_foreign_keys}")
-        end
-      end
 
       def check_all_foreign_keys_valid! # :nodoc:
         sql = "PRAGMA foreign_key_check"
