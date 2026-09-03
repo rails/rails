@@ -36,6 +36,15 @@ module ActiveModel
       @row.dup
     end
 
+    def values_at(*columns)
+      columns.map! do |column|
+        if index = @indexes[column]
+          @row[index]
+        end
+      end
+      columns
+    end
+
     def ==(other)
       if other.is_a?(Hash)
         to_hash == other
@@ -98,6 +107,16 @@ module ActiveModel
 
       def values
         @row.reject { |v| UNSET.equal?(v) }
+      end
+
+      def values_at(*columns)
+        columns.map! do |column|
+          if index = @indexes[column]
+            value = @row[index]
+            UNSET.equal?(value) ? nil : value
+          end
+        end
+        columns
       end
 
       def [](column)

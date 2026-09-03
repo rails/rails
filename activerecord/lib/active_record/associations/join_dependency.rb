@@ -140,10 +140,10 @@ module ActiveRecord
         }
 
         message_bus.instrument("instantiation.active_record", payload) do
-          result_set.each { |row_hash|
-            parent_key = primary_key.empty? ? row_hash : row_hash.values_at(*primary_key)
-            parent = parents[parent_key] ||= join_root.instantiate(row_hash, column_aliases, column_types, &block)
-            construct(parent, join_root, row_hash, seen, model_cache, strict_loading_value)
+          result_set.indexed_rows.each { |row|
+            parent_key = primary_key.empty? ? row : row.values_at(*primary_key)
+            parent = parents[parent_key] ||= join_root.instantiate(row, column_aliases, column_types, &block)
+            construct(parent, join_root, row, seen, model_cache, strict_loading_value)
           }
         end
 

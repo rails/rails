@@ -27,6 +27,10 @@ class IndexedRowTest < ActiveModel::TestCase
     assert_equal @hash.values, @row.values
   end
 
+  test "#values_at" do
+    assert_equal @hash.values_at("age", "first_name", "missing"), @row.values_at("age", "first_name", "missing")
+  end
+
   test "#==" do
     assert_equal @hash, @row
   end
@@ -97,6 +101,12 @@ class EmptyMutableIndexedRowTest < ActiveModel::TestCase
     assert_equal [42], @row.values
     @row["first_name"] = "George"
     assert_equal ["George", 42], @row.values
+  end
+
+  test "#values_at" do
+    assert_equal [nil, nil], @row.values_at("age", "first_name")
+    @row["age"] = 42
+    assert_equal [42, nil, nil], @row.values_at("age", "first_name", "missing")
   end
 
   test "#fetch" do
