@@ -494,6 +494,16 @@ module ActiveRecord
     # Holds all the metadata about an association as it was specified in the
     # Active Record class.
     class AssociationReflection < MacroReflection # :nodoc:
+      def join_scopes(table, predicate_builder = nil, klass = self.klass, record = nil) # :nodoc:
+        scopes = super
+
+        if options[:default_order].present?
+          scopes += [build_scope(table, predicate_builder, klass).default_order!(options[:default_order])]
+        end
+
+        scopes
+      end
+
       def compute_class(name)
         if polymorphic?
           raise ArgumentError, "Polymorphic associations do not support computing the class."
