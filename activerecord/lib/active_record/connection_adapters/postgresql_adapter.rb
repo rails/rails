@@ -451,6 +451,8 @@ module ActiveRecord
           unless @raw_connection.transaction_status == ::PG::PQTRANS_IDLE
             @raw_connection.query "ROLLBACK"
           end
+          # DISCARD ALL releases session-level advisory locks, keeping the
+          # tracking cleared by AbstractAdapter#reset! in sync with PostgreSQL.
           @raw_connection.query "DISCARD ALL"
 
           super
@@ -544,14 +546,24 @@ module ActiveRecord
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")
         end
-        query_value("SELECT pg_try_advisory_lock(#{lock_id})", nil, materialize_transactions: true)
+        @lock.synchronize do
+          ensure_advisory_lock_session!(allow_reconnect: true)
+          acquired = query_value("SELECT pg_try_advisory_lock(#{lock_id})", nil, allow_retry: false, materialize_transactions: true)
+          advisory_lock_acquired!(lock_id) if acquired
+          acquired
+        end
       end
 
       def release_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")
         end
-        query_value("SELECT pg_advisory_unlock(#{lock_id})", nil, materialize_transactions: true)
+        @lock.synchronize do
+          ensure_advisory_lock_session!
+          released = query_value("SELECT pg_advisory_unlock(#{lock_id})", nil, allow_retry: false, materialize_transactions: true)
+          advisory_lock_released!(lock_id) if released
+          released
+        end
       end
 
       def enable_extension(name, **)

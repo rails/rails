@@ -193,11 +193,23 @@ module ActiveRecord
       end
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
-        query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})", nil, materialize_transactions: true) == 1
+        lock_name = lock_name.to_s
+        @lock.synchronize do
+          ensure_advisory_lock_session!(allow_reconnect: true)
+          acquired = query_value("SELECT GET_LOCK(#{quote(lock_name)}, #{timeout})", nil, allow_retry: false, materialize_transactions: true) == 1
+          advisory_lock_acquired!(lock_name) if acquired
+          acquired
+        end
       end
 
       def release_advisory_lock(lock_name) # :nodoc:
-        query_value("SELECT RELEASE_LOCK(#{quote(lock_name.to_s)})", nil, materialize_transactions: true) == 1
+        lock_name = lock_name.to_s
+        @lock.synchronize do
+          ensure_advisory_lock_session!
+          released = query_value("SELECT RELEASE_LOCK(#{quote(lock_name)})", nil, allow_retry: false, materialize_transactions: true) == 1
+          advisory_lock_released!(lock_name) if released
+          released
+        end
       end
 
       def index_algorithms
