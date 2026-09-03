@@ -155,6 +155,34 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_nil @member.club
   end
 
+  class UndestroyableMembership < ActiveRecord::Base
+    self.table_name = "memberships"
+    belongs_to :club
+    before_destroy :dont
+
+    def dont
+      throw(:abort)
+    end
+  end
+
+  class MemberWithUndestroyableMembership < ActiveRecord::Base
+    self.table_name = "members"
+    has_one :undestroyable_membership, class_name: "UndestroyableMembership", foreign_key: "member_id"
+    has_one :club, through: :undestroyable_membership
+  end
+
+  def test_assigning_nil_raises_when_the_through_record_cannot_be_destroyed
+    member = MemberWithUndestroyableMembership.create!(name: "Bob")
+    club = Club.create!(name: "Moustache")
+    UndestroyableMembership.create!(member_id: member.id, club: club)
+
+    assert_raises(ActiveRecord::RecordNotDestroyed) do
+      member.club = nil
+    end
+
+    assert_equal club, member.reload.club
+  end
+
   def test_set_record_after_delete_association
     @member.club = nil
     @member.club = clubs(:moustache_club)
