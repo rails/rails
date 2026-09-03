@@ -300,6 +300,7 @@ module ActiveRecord
             scope.where!(fixed_values) unless fixed_values.empty?
 
             scope.merge!(reflection_scope) unless reflection_scope.empty_scope?
+            scope.default_order!(reflection.options[:default_order]) if reflection.options[:default_order].present?
 
             if preload_scope && !preload_scope.empty_scope?
               scope.merge!(preload_scope)
