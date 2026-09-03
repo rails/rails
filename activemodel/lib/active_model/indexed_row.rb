@@ -14,8 +14,6 @@ module ActiveModel
       end
     end
 
-    attr_reader :indexes
-
     def initialize(indexes, row)
       @indexes = indexes
       @row = row
@@ -32,6 +30,10 @@ module ActiveModel
 
     def keys
       @indexes.keys
+    end
+
+    def values
+      @row.dup
     end
 
     def ==(other)
@@ -66,5 +68,75 @@ module ActiveModel
       @indexes.transform_values { |index| @row[index] }
     end
     alias_method :to_hash, :to_h
+
+    def new_empty_mutable_row
+      Mutable.new(@indexes)
+    end
+
+    class Mutable < self
+      UNSET = Object.new.freeze
+      private_constant :UNSET
+
+      def initialize(indexes, row = nil)
+        @indexes = indexes
+        @row = row || Array.new(indexes.size, UNSET)
+      end
+
+      def size
+        @indexes.size - @row.count(UNSET)
+      end
+      alias_method :length, :size
+
+      def keys
+        @indexes.reject { |k, v| UNSET.equal?(@row[v]) }.keys
+      end
+
+      def key?(column)
+        index = @indexes[column]
+        index && !UNSET.equal?(@row[index])
+      end
+
+      def values
+        @row.reject { |v| UNSET.equal?(v) }
+      end
+
+      def [](column)
+        if index = @indexes[column]
+          value = @row[index]
+          return if UNSET.equal?(value)
+          value
+        end
+      end
+
+      def []=(column, value)
+        if index = @indexes[column]
+          @row[index] = value
+        else
+          raise KeyError, "key not found: #{column.inspect}"
+        end
+      end
+
+      def fetch(column)
+        if index = @indexes[column]
+          value = @row[index]
+          if UNSET.equal?(value)
+            if block_given?
+              yield
+            else
+              raise KeyError, "key not found: #{column.inspect}"
+            end
+          else
+            value
+          end
+        else
+          raise KeyError, "key not found: #{column.inspect}"
+        end
+      end
+
+      def to_h
+        @indexes.transform_values { |index| @row[index] }.reject { |k, v| UNSET.equal?(v) }
+      end
+      alias_method :to_hash, :to_h
+    end
   end
 end
