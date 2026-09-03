@@ -1,3 +1,14 @@
+*   Check `PATCH` and `QUERY` in `assert_recognizes` and `assert_routing` with `method: :all`.
+
+    Both assertions only recognized the path for `GET`, `POST`, `PUT` and
+    `DELETE`, so a route that did not accept `PATCH` or `QUERY` still passed an
+    assertion meant to cover every verb.
+
+    An assertion that passes today on a route drawn without those verbs now
+    fails, which is what it was meant to do.
+
+    *Carlos Daniel Pohlod*
+
 *   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
     the current controller and action when it starts with a period,
     mirroring the existing behavior for the key argument.
