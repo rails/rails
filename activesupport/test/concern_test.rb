@@ -127,6 +127,13 @@ class ConcernTest < ActiveSupport::TestCase
     assert_nil @klass.prepended_ran
   end
 
+  def test_dependencies_are_added_to_ancestors_immediately
+    assert_includes Bar.ancestors, ConcernTest::Baz
+    # Recorded as a dependency, but the hook processing has not run yet."
+    assert_includes Bar.instance_variable_get(:@_dependencies), ConcernTest::Baz
+    assert_not_respond_to Bar, :included_ran
+  end
+
   def test_modules_dependencies_are_met
     @klass.include(Bar)
     assert_equal "bar", @klass.new.bar
