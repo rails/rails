@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "active_support/testing/ractors_assertions"
+require "active_support/core_ext/object/with"
 
 class OverloadedType < ActiveRecord::Base
   attribute :overloaded_float, :integer
@@ -448,22 +449,24 @@ module ActiveRecord
       assert_equal default_string_type.serialize(false), immutable_string_type.serialize(false)
     end
 
-    class RactorTest < ActiveRecord::TestCase
-      include ActiveSupport::Testing::RactorsAssertions
-      include ActiveSupport::Testing::Isolation unless in_memory_db?
+    if RUBY_VERSION >= "4.0" && !in_memory_db?
 
-      test "default_attributes are Ractor-shareable" do
-        model = Class.new(ActiveRecord::Base) do
-          def self.name = "ractor_safe_default_attributes"
-          self.table_name = "topics"
-        end
+      class RactorTest < ActiveRecord::TestCase
+        include ActiveSupport::Testing::RactorsAssertions
+        include ActiveSupport::Testing::Isolation
 
-        previous = ActiveSupport::Ractors.unshareable_proc_action
-        ActiveSupport::Ractors.unshareable_proc_action = :raise
-        begin
-          assert_ractor_shareable model._default_attributes
-        ensure
-          ActiveSupport::Ractors.unshareable_proc_action = previous
+
+        test "attribute type is available in a Ractor" do
+          OverloadedType.reset_column_information
+          ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+            OverloadedType.load_schema
+          end
+
+          type = on_ractor do
+            OverloadedType.type_for_attribute("overloaded_float")
+          end
+
+          assert_equal :integer, type.type
         end
       end
     end

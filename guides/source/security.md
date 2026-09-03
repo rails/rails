@@ -520,7 +520,7 @@ NOTE: _First, as is required by the W3C, use GET and POST appropriately. Secondl
 
 #### Use GET and POST Appropriately
 
-The HTTP protocol basically provides two main types of requests - GET and POST (DELETE, PUT, and PATCH should be used like POST). The World Wide Web Consortium (W3C) provides a checklist for choosing HTTP GET or POST:
+The HTTP protocol basically provides two main types of requests - GET and POST (DELETE, PUT, and PATCH should be used like POST, while QUERY — a safe, read-only method that carries its query in the request body — should be used like GET). The World Wide Web Consortium (W3C) provides a checklist for choosing HTTP GET or POST:
 
 **Use GET if:**
 
@@ -533,6 +533,8 @@ The HTTP protocol basically provides two main types of requests - GET and POST (
 * The user is _held accountable for the results_ of the interaction.
 
 If your web application is RESTful, you might be used to additional HTTP verbs, such as PATCH, PUT, or DELETE. Some legacy web browsers, however, do not support them - only GET and POST. Rails uses a hidden `_method` field to handle these cases.
+
+The HTTP QUERY method ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008.html)) is safe and idempotent like GET, but conveys the query in the request body. Like GET and HEAD, QUERY requests are not checked for the security token: HTML forms cannot issue QUERY requests, and cross-origin QUERY requests from scripts always require a CORS preflight. This exemption applies only to requests that actually arrive with the QUERY method: a request tunneled through a form POST with `_method=query` is verified like any other POST, since an ordinary form submission enjoys none of those structural protections. As with GET, never change state in response to a QUERY request.
 
 _POST requests can be sent automatically, too_. In this example, the link www.harmless.com is shown as the destination in the browser's status bar. But it has actually dynamically created a new form that sends a POST request.
 
@@ -684,6 +686,23 @@ WARNING: _Source code in uploaded files may be executed when placed in specific 
 The popular Apache web server has an option called DocumentRoot. This is the home directory of the website, everything in this directory tree will be served by the web server. If there are files with a certain file name extension, the code in it will be executed when requested (might require some options to be set). Examples for this are PHP and CGI files. Now think of a situation where an attacker uploads a file "file.cgi" with code in it, which will be executed when someone downloads the file.
 
 _If your Apache DocumentRoot points to Rails' /public directory, do not put file uploads in it_, store files at least one level upwards.
+
+### Media Processing of File Uploads
+
+WARNING: _ffmpeg and ffprobe decode untrusted media in memory-unsafe code. Restrict the codecs and formats they will accept._
+
+Active Storage shells out to ffmpeg to generate video previews, and to ffprobe to extract video and audio metadata. Neither tool is shipped by Rails, and a stock ffmpeg build registers several hundred decoders and demuxers where an application needs a handful. Attachments are analyzed on upload by default, so ffprobe reads attacker-supplied bytes without any further interaction.
+
+Narrow that attack surface by naming the codecs these tools may decode. An application that accepts only H.264 video with AAC audio would configure:
+
+```ruby
+config.active_storage.video_preview_input_arguments = "-codec_whitelist h264,aac"
+config.active_storage.ffprobe_arguments = "-codec_whitelist h264,aac"
+```
+
+Alongside `-codec_whitelist`, `-f` forces a single demuxer and `-protocol_whitelist` restricts the protocols an input may reference.
+
+Every codec present in a stored file must appear in the list, audio codecs included. ffprobe exits with an error on a file that uses any other codec, and analysis of that file then raises `JSON::ParserError`. Codec names vary between ffmpeg builds, so check the list against `ffmpeg -decoders` for the build you deploy.
 
 ### File Downloads
 

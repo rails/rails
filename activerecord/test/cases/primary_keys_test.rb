@@ -18,21 +18,6 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 
   fixtures :topics, :subscribers, :movies, :mixed_case_monkeys
 
-  def test_primary_key_can_be_read_from_a_ractor_when_single
-    Topic.primary_key
-    assert_equal "id", on_ractor { Topic.primary_key }
-  end
-
-  def test_primary_key_can_be_read_from_a_ractor_when_composite
-    Cpk::Order.primary_key
-    assert_equal ["shop_id", "id"], on_ractor { Cpk::Order.primary_key }
-  end
-
-  def test_primary_key_can_be_read_from_a_ractor_when_absent
-    NonPrimaryKey.primary_key
-    assert_nil on_ractor { NonPrimaryKey.primary_key }
-  end
-
   def test_query_constraints_list_is_ractor_shareable
     assert_ractor_shareable Topic.query_constraints_list
   end
@@ -357,6 +342,32 @@ class PrimaryKeysTest < ActiveRecord::TestCase
       column = Topic.columns_hash[Topic.primary_key]
       assert_equal "nextval('topics_id_seq'::regclass)", column.default_function
       assert_predicate column, :serial?
+    end
+  end
+
+  if RUBY_VERSION >= "4.0" && !in_memory_db?
+    class PrimaryKeysRactorTest < ActiveRecord::TestCase
+      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::RactorsAssertions
+
+      def test_primary_key_can_be_read_from_a_ractor_when_single
+        Topic.primary_key
+        assert_equal "id", on_ractor { Topic.primary_key }
+      end
+
+      def test_primary_key_can_be_read_from_a_ractor_when_composite
+        Cpk::Order.primary_key
+        assert_equal ["shop_id", "id"], on_ractor { Cpk::Order.primary_key }
+      end
+
+      def test_primary_key_can_be_read_from_a_ractor_when_absent
+        NonPrimaryKey.primary_key
+        assert_nil on_ractor { NonPrimaryKey.primary_key }
+      end
+
+      def test_primary_key_can_be_reset_from_a_ractor
+        assert_equal "id", on_ractor { Topic.reset_primary_key }
+      end
     end
   end
 end

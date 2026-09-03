@@ -340,6 +340,13 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.public_path
     end
 
+    test "Rails.app executor and reloader are named" do
+      app "development"
+
+      assert Rails.app.executor.name.starts_with?("ActiveSupport::Executor(#<AppTemplate::Application:")
+      assert Rails.app.reloader.name.starts_with?("ActiveSupport::Reloader(#<AppTemplate::Application:")
+    end
+
     test "config.enable_reloading is !config.cache_classes" do
       app "development"
 
@@ -4423,6 +4430,34 @@ module ApplicationTests
         ActiveStorage.video_preview_arguments
     end
 
+    test "ActiveStorage.video_preview_input_arguments is empty by default" do
+      app "development"
+
+      assert_equal "", ActiveStorage.video_preview_input_arguments
+    end
+
+    test "ActiveStorage.video_preview_input_arguments can be configured" do
+      add_to_config 'config.active_storage.video_preview_input_arguments = "-codec_whitelist h264"'
+
+      app "development"
+
+      assert_equal "-codec_whitelist h264", ActiveStorage.video_preview_input_arguments
+    end
+
+    test "ActiveStorage.ffprobe_arguments is empty by default" do
+      app "development"
+
+      assert_equal "", ActiveStorage.ffprobe_arguments
+    end
+
+    test "ActiveStorage.ffprobe_arguments can be configured" do
+      add_to_config 'config.active_storage.ffprobe_arguments = "-codec_whitelist h264"'
+
+      app "development"
+
+      assert_equal "-codec_whitelist h264", ActiveStorage.ffprobe_arguments
+    end
+
     test "ActiveStorage.variant_processor uses mini_magick without Rails 7 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 
@@ -5440,6 +5475,29 @@ module ApplicationTests
 
       get "/posts"
       assert_equal "[:active_record_connected_to_stack, :custom_key]", last_response.body
+    end
+
+    if RUBY_VERSION >= "4.0"
+      test "ActionDispatch configuration is frozen after boot" do
+        app "development"
+
+        [
+          ActionDispatch::ExceptionWrapper.rescue_responses,
+          ActionDispatch::ExceptionWrapper.rescue_templates,
+          ActionDispatch::ExceptionWrapper.wrapper_exceptions,
+          ActionDispatch::ExceptionWrapper.silent_exceptions,
+        ].each do |config|
+          assert_ractor_shareable(config)
+        end
+      end
+
+      test "ActiveRecord configuration is frozen after boot" do
+        app "development"
+
+        assert_ractor_shareable(ActiveRecord.query_transformers)
+        assert_ractor_shareable(ActiveRecord::Base.time_zone_aware_types)
+        assert_ractor_shareable(ActiveRecord::Base.skip_time_zone_conversion_for_attributes)
+      end
     end
 
     private

@@ -5,6 +5,16 @@ module ActiveRecord
     module SQLite3
       class SchemaDumper < ConnectionAdapters::SchemaDumper # :nodoc:
         private
+          def read_schema_metadata(tables)
+            super
+
+            @table_sqls = @connection.query_all(<<~SQL, "SCHEMA").to_h { |row| [row["name"], row["sql"]] }
+              SELECT name, sql FROM sqlite_master WHERE type = 'table'
+              UNION ALL
+              SELECT name, sql FROM sqlite_temp_master WHERE type = 'table'
+            SQL
+          end
+
           def virtual_tables(stream)
             virtual_tables = @connection.virtual_tables.reject { |name, _| ignored?(name) }
             if virtual_tables.any?
@@ -29,13 +39,7 @@ module ActiveRecord
           def primary_key_has_autoincrement?
             return false unless table_name
 
-            table_sql = @connection.query_value(<<~SQL, "SCHEMA")
-              SELECT sql FROM sqlite_master WHERE name = #{@connection.quote(table_name)} AND type = 'table'
-              UNION ALL
-              SELECT sql FROM sqlite_temp_master WHERE name = #{@connection.quote(table_name)} AND type = 'table'
-            SQL
-
-            table_sql.to_s.match?(/\bAUTOINCREMENT\b/i)
+            @table_sqls[table_name].to_s.match?(/\bAUTOINCREMENT\b/i)
           end
 
           def prepare_column_options(column)

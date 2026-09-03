@@ -43,6 +43,7 @@ PATH
       activesupport (= 8.2.0.alpha)
       builder (~> 3.1)
       erubi (~> 1.11)
+      herb (>= 0.10)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.7)
     activejob (8.2.0.alpha)
@@ -59,7 +60,7 @@ PATH
       activejob (= 8.2.0.alpha)
       activerecord (= 8.2.0.alpha)
       activesupport (= 8.2.0.alpha)
-      marcel (~> 1.0)
+      marcel (~> 2.0)
     activesupport (8.2.0.alpha)
       base64
       bigdecimal
@@ -275,6 +276,11 @@ GEM
       os (>= 0.9, < 2.0)
       signet (>= 0.16, < 2.a)
     hashdiff (1.1.2)
+    herb (0.10.3)
+    herb (0.10.3-aarch64-linux-gnu)
+    herb (0.10.3-arm64-darwin)
+    herb (0.10.3-x86_64-darwin)
+    herb (0.10.3-x86_64-linux-gnu)
     httpclient (2.9.0)
       mutex_m
     i18n (1.14.8)
@@ -331,7 +337,7 @@ GEM
       net-imap
       net-pop
       net-smtp
-    marcel (1.2.1)
+    marcel (2.1.0)
     matrix (0.4.2)
     mdl (0.12.0)
       kramdown (~> 2.3)
@@ -846,6 +852,11 @@ CHECKSUMS
   google-protobuf (4.29.3-x86_64-linux) sha256=4ac194b06c59559457ce1d1d57d03760b50e009dbcfe5ef065a1af48ce4a2d0e
   googleauth (1.12.2) sha256=3d3177b1b253a9a3ce92222a91fcabcfad206cec2a5c823a6a251a6db4d8d67f
   hashdiff (1.1.2) sha256=2c30eeded6ed3dce8401d2b5b99e6963fe5f14ed85e60dd9e33c545a44b71a77
+  herb (0.10.3) sha256=da76e8bfbb302586ee51a4fb608624f48218fbfea198a9493540b42f7654024b
+  herb (0.10.3-aarch64-linux-gnu) sha256=1eaea87e6577557492a1b0ddaae989fba8a8ddd382e888ee5f939ce6ded06eb8
+  herb (0.10.3-arm64-darwin) sha256=1a5bef57d925d775496328e7a01a9c1260e1d83bed8038b60a4f8c81b12c15a3
+  herb (0.10.3-x86_64-darwin) sha256=e02e43b3bb1977f4fd08f3330b5f2aa3292ca2d572a8bd59688eca8b79725f46
+  herb (0.10.3-x86_64-linux-gnu) sha256=cbb49b66f2bdc92d17109d1ea9452e88ba6a8ae52e9ddd5279deff83dcc4c66d
   httpclient (2.9.0) sha256=4b645958e494b2f86c2f8a2f304c959baa273a310e77a2931ddb986d83e498c8
   i18n (1.14.8) sha256=285778639134865c5e0f6269e0b818256017e8cde89993fdfcbfb64d088824a5
   image_processing (2.0.1) sha256=69c93216dafe1179343a6c3ae8bfa554e3c1f5eece4043f255595e76df2cbf3f
@@ -868,7 +879,7 @@ CHECKSUMS
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
   loofah (2.25.0) sha256=df5ed7ac3bac6a4ec802df3877ee5cc86d027299f8952e6243b3dac446b060e6
   mail (2.8.1) sha256=ec3b9fadcf2b3755c78785cb17bc9a0ca9ee9857108a64b6f5cfc9c0b5bfc9ad
-  marcel (1.2.1) sha256=1678e9360e32f9eafa917c80029e2f6d10b2715c66a4b87b6d0da9b9cd1f859f
+  marcel (2.1.0) sha256=f8b0327111dc7e516331eeefe052e981ce50e2bd826c1042a53cdf047fcc3512
   matrix (0.4.2) sha256=71083ccbd67a14a43bfa78d3e4dc0f4b503b9cc18e5b4b1d686dc0f9ef7c4cc0
   mdl (0.12.0) sha256=66718347ba0ad8126173f431bb99028b0300196f9b9ba90802a221ebd51364be
   mini_magick (5.3.1) sha256=29395dfd76badcabb6403ee5aff6f681e867074f8f28ce08d78661e9e4a351c4

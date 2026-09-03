@@ -230,7 +230,10 @@ class CalculationsTest < ActiveRecord::TestCase
       9 => 53
     }
     assert_equal expected, accounts.sum(:credit_limit)
-    assert_equal expected, accounts.merge!(accounts).uniq!(:group).sum(:credit_limit)
+    result = assert_deprecated(/`ActiveRecord::Relation#uniq!` is deprecated/, ActiveRecord.deprecator) do
+      accounts.merge!(accounts).uniq!(:group).sum(:credit_limit)
+    end
+    assert_equal expected, result
 
     expected = {
       nil => 50,

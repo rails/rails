@@ -123,8 +123,8 @@ module Rails
       @revision          = nil
       @revision_initialized = false
 
-      @executor          = Class.new(ActiveSupport::Executor)
-      @reloader          = Class.new(ActiveSupport::Reloader)
+      @executor          = Class.new(ActiveSupport::Executor).set_temporary_name("ActiveSupport::Executor(#{inspect})")
+      @reloader          = Class.new(ActiveSupport::Reloader).set_temporary_name("ActiveSupport::Reloader(#{inspect})")
       @reloader.executor = @executor
 
       @autoloaders = Rails::Autoloaders.new
@@ -677,6 +677,13 @@ module Rails
         view = ActionView::LookupContext.view_context_class.new(ActionView::LookupContext.new([]), {}, nil)
         ActionView::PathRegistry.all_file_system_resolvers.each do |resolver|
           resolver.eager_load_templates(view)
+          resolver.freeze
+        end
+      end
+
+      if defined?(AbstractController::Base)
+        [AbstractController::Base, *AbstractController::Base.descendants].each do |controller|
+          Ractor.make_shareable(controller.config)
         end
       end
 

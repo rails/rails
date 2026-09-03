@@ -12,7 +12,7 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
       def setup
         build_app
 
-        add_to_env_config "production", "ActiveSupport::Ractors.unshareable_proc_action = :raise"
+        add_to_env_config "production", "ActiveSupport::Ractors.unshareable_proc_action = :warn"
 
         # Remove defaults that are not compatible
         add_to_env_config "production", "config.logger = ActiveSupport::Ractors::Logger.new"
@@ -36,13 +36,26 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_ractor_shareable Rails.backtrace_cleaner
       end
 
+      test "ractorize! makes the controller configs shareable" do
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ActionController::Base.config
+        assert_ractor_shareable Rails::HealthController.config
+      end
+
       test "ractorize! eager loads and compiles view templates" do
         app "production"
 
         ractorize!
 
-        templates = ActionView::PathRegistry.all_file_system_resolvers.flat_map(&:built_templates)
-        assert_not_empty templates
+        resolvers = ActionView::PathRegistry.all_file_system_resolvers
+        assert_not_empty resolvers
+        resolvers.each do |resolver|
+          assert_predicate resolver, :frozen?
+          assert_ractor_shareable resolver
+        end
       end
 
       test "error reporting works after the application is ractorized" do

@@ -6,77 +6,8 @@ module ActiveRecord
       module SchemaStatements # :nodoc:
         # Returns an array of indexes for the given table.
         def indexes(table_name)
-          indexes = []
-          current_index = nil
-          query_all("SHOW KEYS FROM #{quote_table_name(table_name)}").each do |row|
-            if current_index != row["Key_name"]
-              next if row["Key_name"] == "PRIMARY" # skip the primary key
-              current_index = row["Key_name"]
-
-              mysql_index_type = row["Index_type"].downcase.to_sym
-              case mysql_index_type
-              when :fulltext, :spatial
-                index_type = mysql_index_type
-              when :btree, :hash
-                index_using = mysql_index_type
-              end
-
-              index = [
-                row["Table"],
-                row["Key_name"],
-                row["Non_unique"].to_i == 0,
-                [],
-                lengths: {},
-                orders: {},
-                type: index_type,
-                using: index_using,
-                comment: row["Index_comment"].presence,
-              ]
-
-              if supports_disabling_indexes?
-                index[-1][:enabled] = mariadb? ? row["Ignored"] == "NO" : row["Visible"] == "YES"
-              end
-
-              indexes << index
-            end
-
-            if expression = row["Expression"]
-              expression = expression.gsub("\\'", "'")
-              expression = +"(#{expression})" unless expression.start_with?("(")
-              indexes.last[-2] << expression
-              indexes.last[-1][:expressions] ||= {}
-              indexes.last[-1][:expressions][expression] = expression
-              indexes.last[-1][:orders][expression] = :desc if row["Collation"] == "D"
-            else
-              indexes.last[-2] << row["Column_name"]
-              indexes.last[-1][:lengths][row["Column_name"]] = row["Sub_part"].to_i if row["Sub_part"]
-              indexes.last[-1][:orders][row["Column_name"]] = :desc if row["Collation"] == "D"
-            end
-          end
-
-          indexes.map do |index|
-            options = index.pop
-
-            if expressions = options.delete(:expressions)
-              orders = options.delete(:orders)
-              lengths = options.delete(:lengths)
-
-              columns = index[-1].to_h { |name|
-                [ name.to_sym, expressions[name] || +quote_column_name(name) ]
-              }
-
-              index[-1] = add_options_for_index_columns(
-                columns, order: orders, length: lengths
-              ).values.join(", ")
-            end
-            MySQL::IndexDefinition.new(*index, **options)
-          end
-        rescue StatementInvalid => e
-          if e.message.match?(/Table '.+' doesn't exist/)
-            []
-          else
-            raise
-          end
+          result = fetch_indexes(Array(table_name).map(&:to_s))
+          table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
         def create_index_definition(table_name, name, unique, columns, **options)
@@ -149,6 +80,106 @@ module ActiveRecord
         end
 
         private
+          def fetch_indexes(tables)
+            return {} if tables.empty?
+
+            # MariaDB has no EXPRESSION column, and neither it nor MySQL before
+            # 8.0.13 reports index visibility the same way, so ask for what the
+            # server has.
+            optional_columns = +""
+            optional_columns << ", expression AS 'Expression'" if supports_expression_index?
+            if supports_disabling_indexes?
+              optional_columns << (mariadb? ? ", IF(ignored = 'NO', 'YES', 'NO') AS 'Enabled'" : ", is_visible AS 'Enabled'")
+            end
+
+            fetch_by_schema(tables) do |schema, group|
+              by_name = query_all(<<~SQL).group_by { |row| row["Table"] }
+                SELECT table_name AS 'Table',
+                       index_name AS 'Key_name',
+                       non_unique AS 'Non_unique',
+                       column_name AS 'Column_name',
+                       collation AS 'Collation',
+                       sub_part AS 'Sub_part',
+                       LOWER(index_type) AS 'Index_type',
+                       index_comment AS 'Index_comment'#{optional_columns}
+                FROM information_schema.statistics
+                WHERE table_schema = #{schema}
+                  AND table_name IN (#{quoted_table_names(group)})
+                  AND index_name != 'PRIMARY'
+                ORDER BY table_name, index_name, seq_in_index
+              SQL
+
+              group.index_with { |table| build_indexes(rows_for(by_name, table)) }
+            end
+          end
+
+          def build_indexes(rows)
+            indexes = []
+            current_index = nil
+            rows.each do |row|
+              if current_index != row["Key_name"]
+                current_index = row["Key_name"]
+
+                mysql_index_type = row["Index_type"].to_sym
+                case mysql_index_type
+                when :fulltext, :spatial
+                  index_type = mysql_index_type
+                when :btree, :hash
+                  index_using = mysql_index_type
+                end
+
+                index = [
+                  row["Table"],
+                  row["Key_name"],
+                  row["Non_unique"].to_i == 0,
+                  [],
+                  lengths: {},
+                  orders: {},
+                  type: index_type,
+                  using: index_using,
+                  comment: row["Index_comment"].presence,
+                ]
+
+                if supports_disabling_indexes?
+                  index[-1][:enabled] = row["Enabled"] == "YES"
+                end
+
+                indexes << index
+              end
+
+              if expression = row["Expression"]
+                expression = expression.gsub("\\'", "'")
+                expression = +"(#{expression})" unless expression.start_with?("(")
+                indexes.last[-2] << expression
+                indexes.last[-1][:expressions] ||= {}
+                indexes.last[-1][:expressions][expression] = expression
+                indexes.last[-1][:orders][expression] = :desc if row["Collation"] == "D"
+              else
+                indexes.last[-2] << row["Column_name"]
+                indexes.last[-1][:lengths][row["Column_name"]] = row["Sub_part"].to_i if row["Sub_part"]
+                indexes.last[-1][:orders][row["Column_name"]] = :desc if row["Collation"] == "D"
+              end
+            end
+
+            indexes.map do |index|
+              options = index.pop
+
+              if expressions = options.delete(:expressions)
+                orders = options.delete(:orders)
+                lengths = options.delete(:lengths)
+
+                columns = index[-1].to_h { |name|
+                  [ name.to_sym, expressions[name] || +quote_column_name(name) ]
+                }
+
+                index[-1] = add_options_for_index_columns(
+                  columns, order: orders, length: lengths
+                ).values.join(", ")
+              end
+              MySQL::IndexDefinition.new(*index, **options)
+            end
+          end
+
           CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"].freeze
 
           def row_format_dynamic_by_default?
@@ -266,6 +297,10 @@ module ActiveRecord
             scope[:name] = quote(name) if name
             scope[:type] = quote(type) if type
             scope
+          end
+
+          def bare_table_name(table)
+            unquote_identifier(extract_schema_qualified_name(table).last)
           end
 
           def extract_schema_qualified_name(string)

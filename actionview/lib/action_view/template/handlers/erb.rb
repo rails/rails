@@ -8,6 +8,7 @@ module ActionView
     module Handlers
       class ERB # :nodoc:
         autoload :Erubi, "action_view/template/handlers/erb/erubi"
+        autoload :Herb, "action_view/template/handlers/erb/herb"
 
         # Specify trim mode for the ERB compiler. Defaults to '-'.
         # See ERB documentation for suitable values.
@@ -22,7 +23,7 @@ module ActionView
         # Strip trailing newlines from rendered output
         class_attribute :strip_trailing_newlines, default: false
 
-        ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
+        ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*").freeze
 
         LocationParsingError = Class.new(StandardError) # :nodoc:
 

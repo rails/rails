@@ -18,7 +18,9 @@ end
 class UrlTestMailer < ActionMailer::Base
   include AppRoutes.url_helpers
 
-  default_url_options[:host] = "www.basecamphq.com"
+  def default_url_options
+    { host: "www.basecamphq.com" }
+  end
 
   configure do |c|
     c.assets_dir = "" # To get the tests to pass

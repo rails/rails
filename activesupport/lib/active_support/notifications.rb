@@ -352,18 +352,18 @@ module ActiveSupport
           ActiveSupport::IsolatedExecutionState[:active_support_notifications_registry] ||= {}
         end
 
+        # Snapshot subscriptions so a Ractor can restore them onto its own
+        # notifier. Skipped for notifiers that don't opt into the protocol.
         def record_subscriptions
-          subscriptions = {
-            string_subscribers: Hash[notifier.string_subscribers.keys.zip(notifier.string_subscribers.values)],
-            other_subscribers: notifier.other_subscribers,
-          }
-
-          self.notifier_subscriptions = ActiveSupport::Ractors.try_make_shareable(subscriptions, copy: true)
+          return unless notifier.respond_to?(:to_ractor_snapshot)
+          self.notifier_subscriptions = ActiveSupport::Ractors.try_make_shareable(
+            notifier.to_ractor_snapshot, copy: true
+          )
         end
 
         def set_subscriptions(fanout)
-          fanout.string_subscribers = notifier_subscriptions[:string_subscribers]
-          fanout.other_subscribers = notifier_subscriptions[:other_subscribers]
+          return unless notifier_subscriptions && fanout.respond_to?(:load_ractor_snapshot)
+          fanout.load_ractor_snapshot(notifier_subscriptions)
         end
     end
 

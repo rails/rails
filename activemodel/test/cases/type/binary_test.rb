@@ -61,6 +61,12 @@ module ActiveModel
         assert_equal "\xFF\x00".b, data.to_str
         assert_equal data, "\xFF\x00".b
       end
+
+      def test_data_as_json
+        data = Type::Binary::Data.new("\xFF\x00")
+
+        assert_equal "\xFF\x00".b.as_json, data.as_json
+      end
     end
   end
 end

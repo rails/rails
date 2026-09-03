@@ -205,24 +205,46 @@ module ActiveRecord
   end
   self.protected_environments = ["production"]
 
-  ##
-  # :singleton-method: schema_cache_ignored_tables
-  # A list of tables or regex's to match tables to ignore when
-  # dumping the schema cache. For example if this is set to +[/^_/]+
-  # the schema cache will not dump tables named with an underscore.
-  singleton_class.attr_accessor :schema_cache_ignored_tables
-  self.schema_cache_ignored_tables = []
+  # A list of tables or regex's to match tables to ignore when dumping the
+  # schema cache.
+  def self.schema_cache_ignored_tables
+    deprecator.warn(<<~MSG)
+      `config.active_record.schema_cache_ignored_tables` is deprecated and will be removed.
+      Use `config.active_record.schema_ignored_tables` instead.
+    MSG
 
-  # Checks to see if the +table_name+ is ignored by checking
-  # against the +schema_cache_ignored_tables+ option.
-  #
-  #   ActiveRecord.schema_cache_ignored_table?(:developers)
-  #
-  def self.schema_cache_ignored_table?(table_name)
-    ActiveRecord.schema_cache_ignored_tables.any? do |ignored|
-      ignored === table_name
-    end
+    schema_ignored_tables
   end
+
+  # Sets a list of tables or regex's to match tables to ignore when dumping the
+  # schema cache.
+  def self.schema_cache_ignored_tables=(tables)
+    deprecator.warn(<<~MSG)
+      `config.active_record.schema_cache_ignored_tables` is deprecated and will be removed.
+      Use `config.active_record.schema_ignored_tables` instead.
+    MSG
+
+    self.schema_ignored_tables = tables
+  end
+
+  ##
+  # :singleton-method: schema_ignored_tables
+  # A list of tables or regex's to match tables to ignore when dumping the
+  # schema cache and the schema file. For example if this is set to +[/^_/]+
+  # tables named with an underscore are dumped to neither.
+  singleton_class.attr_accessor :schema_ignored_tables
+  self.schema_ignored_tables = []
+
+  #   ActiveRecord.schema_ignored_table?(:developers)
+  def self.schema_ignored_table?(table_name)
+    schema_ignored_tables.any? { |ignored| ignored === table_name }
+  end
+
+  singleton_class.alias_method :schema_cache_ignored_table?, :schema_ignored_table?
+  ActiveRecord.deprecator.deprecate_methods(
+    singleton_class,
+    schema_cache_ignored_table?: :schema_ignored_table?
+  )
 
   singleton_class.attr_accessor :database_cli
   self.database_cli = { postgresql: "psql", mysql: %w[mysql mysql5], sqlite: "sqlite3" }
@@ -373,6 +395,25 @@ module ActiveRecord
 
   singleton_class.attr_accessor :raise_on_missing_required_finder_order_columns
   self.raise_on_missing_required_finder_order_columns = false
+
+  ##
+  # :singleton-method: shuffle_unordered_selects
+  # Shuffles the rows of every +SELECT+ Active Record generates that has no
+  # +ORDER BY+ clause.
+  #
+  # The order of such a query is not specified, and databases are free to
+  # return its rows in any order. Enabling this option makes that explicit, so
+  # code (and tests) that accidentally rely on the order a given database
+  # happens to return today fails loudly instead of breaking later.
+  #
+  # It is meant to be enabled in the test or development environments only.
+  #
+  # Rows are shuffled after the database has returned them, so queries built from
+  # raw SQL strings are left untouched (Active Record cannot tell whether they are
+  # ordered), and queries ending in +LIMIT 1+ are unaffected because the database
+  # has already picked the row.
+  singleton_class.attr_accessor :shuffle_unordered_selects
+  self.shuffle_unordered_selects = false
 
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil

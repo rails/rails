@@ -37,6 +37,7 @@ module ActiveRecord
     config.active_record.cache_query_log_tags = false
     config.active_record.query_log_tags_prepend_comment = false
     config.active_record.raise_on_assign_to_attr_readonly = false
+    config.active_record.shuffle_unordered_selects = false
     config.active_record.belongs_to_required_validates_foreign_key = true
     config.active_record.generate_secure_token_on = :create
     config.active_record.use_legacy_signed_id_verifier = :generate_and_verify
@@ -100,7 +101,7 @@ module ActiveRecord
     initializer "active_record.postgresql_time_zone_aware_types" do
       ActiveSupport.on_load(:active_record_postgresqladapter) do
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::Base.time_zone_aware_types << :timestamptz
+          (ActiveRecord::Base.time_zone_aware_types += [:timestamptz]).freeze
         end
       end
     end
@@ -453,6 +454,17 @@ To keep using the current cache store, you can turn off cache versioning entirel
         ActiveSupport.on_load(:active_record) do
           require "active_record/message_pack"
           ActiveRecord::MessagePack::Extensions.install(ActiveSupport::MessagePack::CacheSerializer)
+        end
+      end
+    end
+
+    initializer "active_record.share_configs" do
+      config.after_initialize do
+        ActiveSupport::Ractors.make_shareable(ActiveRecord.query_transformers)
+
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.time_zone_aware_types.freeze
+          ActiveRecord::Base.skip_time_zone_conversion_for_attributes.freeze
         end
       end
     end

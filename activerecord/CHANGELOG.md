@@ -15,6 +15,195 @@
 
     *Mutsutoshi Yoshimoto*
 
+*   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
+
+    On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the
+    adapter ran `ENABLE TRIGGER ALL` only after the block returned. When the block
+    raised outside of a transaction, every foreign key in the database stayed
+    disabled for all later connections.
+
+    *Lucas Guedes*
+
+*   Add `error_verbosity` support to the PostgreSQL adapter's `database.yml` configuration.
+
+    Sets the connection's error verbosity via `PG::Connection#set_error_verbosity`,
+    controlling whether `DETAIL`, `HINT`, and `CONTEXT` fields are included on
+    raised errors. This is useful to keep values echoed back by Postgres in the
+    `DETAIL` field of unique/foreign-key violations (which can contain PII) out
+    of exception messages and, from there, out of error trackers and logs.
+
+        production:
+          adapter: postgresql
+          error_verbosity: <%= PG::PQERRORS_TERSE %>
+
+    *Florent Beaurain*
+
+*   Avoid unnecessary association preloader queries for nil foreign keys when
+    the foreign key and association primary key have different types.
+
+    *Thrwat Elmoselhi*
+
+*   Avoid a redundant join when the scope of a `has_many :through` association
+    joins an association that the through chain already joins.
+
+    Given a scope such as `-> { joins(:post) }` on the through association, the
+    same table was joined twice: once by the chain and once by the scope. Only
+    `belongs_to` and `has_one` joins are dropped, since removing a collection
+    join would change the number of rows the query returns.
+
+    *David Paluy*
+
+*   Add `config.active_record.shuffle_unordered_selects`.
+
+    When enabled, Active Record shuffles the rows of every `SELECT` it generates
+    that has no `ORDER BY` clause. The order of such a query is not specified, so
+    this surfaces code and tests that accidentally depend on the order a given
+    database happens to return today. Queries written as raw SQL strings are left
+    untouched.
+
+    This is best effort: the shuffle applies where Active Record still has the
+    Arel to recognise the query by, which leaves out association loading, `find`
+    and `find_by`, since those are served from a precompiled SQL string by
+    `ActiveRecord::StatementCache`. Rows are shuffled after the database returns
+    them, so queries ending in `LIMIT 1` (`take`, `pick`, `has_one`) are
+    unaffected, and a query that has an `ORDER BY` is never shuffled even when
+    that ordering is not a total order.
+
+    Intended for the test or development environments. Disabled by default.
+
+        # config/environments/test.rb
+        config.active_record.shuffle_unordered_selects = true
+
+    *viralpraxis*
+
+*   Add `config.active_record.schema_ignored_tables` to exclude tables from both the
+    schema cache and the schema file.
+
+    ```ruby
+    config.active_record.schema_ignored_tables = [/^_/]
+    ```
+
+    `config.active_record.schema_cache_ignored_tables` and
+    `ActiveRecord::SchemaDumper.ignore_tables` are deprecated in its favor.
+
+    Tables are matched against their real name in the database, including
+    `table_name_prefix` and `table_name_suffix`. This is a breaking change for
+    `ActiveRecord::SchemaDumper.ignore_tables`, which previously matched against
+    the name with the prefix and suffix removed:
+
+    ```ruby
+    # With `table_name_prefix = "omg_"`, to ignore the `omg_cats` table:
+    config.active_record.schema_ignored_tables = ["omg_cats"] # before: ["cats"]
+    ```
+
+    *Eduardo Carvalho*
+
+*   Add query predicate expressions for Active Record types.
+
+    Types can include `ActiveRecord::Type::QueryPredicates` to define the SQL
+    expression through which query predicates compare stored attributes and
+    serialized query values. Ordering sorts through the same expression.
+
+    *Kir Shatrov*, *Jean-Samuel Aubry-Guzzi*, *Matthew Draper*
+
+*   Deprecate `ActiveRecord::Relation#uniq!`.
+
+    The method was added in Rails 6.1 (#39358) as part of the migration path
+    toward Rails 7.0's default deduplication of multi-value query methods.
+    Deduplication has been applied automatically since Rails 7.0, so
+    `uniq!` no longer has a purpose and will be removed in Rails 9.0.
+
+    *Ryuta Kamizono*
+
+*   Apply `all_queries: true` default scopes consistently across counter caches,
+    uniqueness validations, fixture lookups, and record reloads, while those
+    operations continue to bypass ordinary default scopes.
+
+    *Andrew Novoselac* and *Matthew Draper*
+
+*   Fix clearing an association whose foreign key is a subset of the
+    referencing record's primary key. This affected `belongs_to` associations
+    with composite foreign keys, and `has_one` associations with either scalar
+    or composite foreign keys.
+
+    Previously, assigning `nil` preserved every foreign key column in these
+    cases. Shared columns are now preserved only when the foreign key has
+    another column that can be nulled instead.
+
+    *Matthew Draper*
+
+*   `ActiveRecord::Relation#update` and `#update!` no longer escape the relation
+    when given ids.
+
+    Passing ids used to delegate to the model class, which looks the records up
+    with an unscoped `find`:
+
+    ```ruby
+    post.comments.update!(comment_id, body: "...") # could update any comment
+    Comment.where(id: 1).update!(2, body: "...")   # updated comment 2
+    ```
+
+    The records are now looked up through the relation, so an id outside of it
+    raises `ActiveRecord::RecordNotFound` before anything is written. This makes
+    `update`/`update!` consistent with `update_all`, `#delete` and `#destroy`,
+    which have always been scoped, and with `update(:all, ...)`, which was
+    already scoped.
+
+    *Jean Mendonça*
+
+*   Let the schema readers answer for many tables at once.
+
+    `columns`, `indexes`, `primary_keys`, `foreign_keys`, `table_options`,
+    `check_constraints`, `exclusion_constraints` and `unique_constraints` now accept
+    a list of tables and answer for all of them at once:
+
+    ```ruby
+    connection.indexes(:users)            # => [IndexDefinition, ...]
+    connection.indexes([:users, :posts])  # => { "users" => [...], "posts" => [...] }
+    ```
+
+    Adapters that can read a kind of metadata for many tables in one query do so, a
+    schema at a time: MySQL and MariaDB read columns from
+    `information_schema.columns`, PostgreSQL filters the queries it already used by a
+    list of tables, and SQLite joins the table valued form of its pragmas to a list of
+    names. Only `table_options` on MySQL and MariaDB is still read a table at a time,
+    because `SHOW CREATE TABLE` is the only place they report it.
+
+    Schema dumping asked about each table separately, which meant the number of
+    round trips grew with the size of the schema: columns, primary keys, indexes,
+    foreign keys and constraints each cost one statement per table, and MySQL spent
+    another `SHOW TABLE STATUS` per table just to read a collation. It now reads each
+    kind in one query for the tables it is about to dump. On a schema with a few
+    thousand tables that removes about 70% of the statements a dump issues, and the
+    output is unchanged.
+
+    An empty list reads nothing, without querying. A blank table name no longer
+    raises `ArgumentError`: MySQL was the only adapter that did, and only from
+    `foreign_keys` and `primary_keys`. On PostgreSQL, `primary_keys` for a table
+    that does not exist now returns `[]` instead of raising
+    `ActiveRecord::StatementInvalid`.
+
+    Reading collations from `information_schema` also fixes MySQL looking them up
+    with a `LIKE` pattern, where a table name containing `_` or `%` could match a
+    different table.
+
+    *Ngan Pham*
+
+*   The database selector middleware treats HTTP QUERY requests
+    ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) as reads, routing
+    them to the replica like GET and HEAD, subject to the same
+    recent-write-window primary fallback.
+
+    *Jeremy Daer*
+
+*   Fix performance regression in `method_missing` for virtual SELECT alias
+    attributes.
+
+    Fixes #57183.
+
+    *Hammad Khan*
+>>>>>>> rails/main
+
 *   Deprecate `ActiveRecord::ConnectionAdapters::DatabaseStatements#create`
     in favor of `#insert`.
 
@@ -53,51 +242,6 @@
     needs to adapt to the new tuple shape.
 
     *Ryuta Kamizono*
-
-*   Add query predicate hooks for Active Model types.
-
-    Types can override `transforms_query_predicates?`, `query_attribute`, and
-    `query_value` to customize how hash `where` predicates are built while
-    preserving normal casting and serialization behavior.
-
-    For example, a UUID type stored in MySQL `binary(16)` can accept UUID
-    strings while rendering predicates as `id = UUID_TO_BIN(?)`:
-
-    ```ruby
-    def transforms_query_predicates?
-      true
-    end
-
-    def query_value(attribute, value, predicate_builder:)
-      Arel::Nodes::NamedFunction.new(
-        "UUID_TO_BIN",
-        [predicate_builder.build_bind_attribute(attribute.name, value, self)]
-      )
-    end
-    ```
-
-    `query_attribute` transforms the left-hand side of the predicate, so a text
-    type can compare through a normalized expression such as
-    `lower(name) = lower(?)`:
-
-    ```ruby
-    def transforms_query_predicates?
-      true
-    end
-
-    def query_attribute(attribute)
-      Arel::Nodes::NamedFunction.new("lower", [attribute])
-    end
-
-    def query_value(attribute, value, predicate_builder:)
-      Arel::Nodes::NamedFunction.new(
-        "lower",
-        [predicate_builder.build_bind_attribute(attribute.name, value, self)]
-      )
-    end
-    ```
-
-    *Kir Shatrov*, *Jean-Samuel Aubry-Guzzi*
 
 *   Fix `pluck` ignoring records assigned to a new record's association.
 

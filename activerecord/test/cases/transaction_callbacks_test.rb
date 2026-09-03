@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "models/owner"
 require "models/pet"
 require "models/topic"
@@ -1085,5 +1086,23 @@ class SetCallbackTest < ActiveRecord::TestCase
     expected_history << :after_commit_on_update_2
     expected_history << :after_commit_on_update_1
     assert_equal expected_history, TopicWithCallbacksOnUpdate.history
+  end
+
+  if RUBY_VERSION >= "4.0"
+    def test_transaction_callbacks_with_on_option_are_ractor_shareable
+      ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+        assert_nothing_raised do
+          klass = Class.new do
+            include ActiveSupport::Callbacks
+            include ActiveRecord::Transactions
+
+            def noop; end
+          end
+
+          klass.after_commit :noop, on: [:create, :update]
+          klass.after_rollback :noop, on: :destroy
+        end
+      end
+    end
   end
 end

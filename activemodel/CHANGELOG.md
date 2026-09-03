@@ -1,3 +1,10 @@
+*   Implement `ActiveModel::Type::Binary::Data#as_json`
+
+    Delegates JSON conversion to the underlying binary data value (instead of
+    falling back to `Object#as_json` and exposing ivar name).
+
+    *Tiago Cardoso*
+
 *   Fix `normalizes` to run before the underlying type validates an assigned
     value.
 

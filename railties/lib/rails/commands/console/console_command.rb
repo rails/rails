@@ -27,7 +27,7 @@ module Rails
 
       @console = app.config.console || begin
         require "rails/commands/console/irb_console"
-        IRBConsole.new(app)
+        IRBConsole.new(app, options)
       end
     end
 
@@ -58,6 +58,12 @@ module Rails
       Rails.env = environment
     end
 
+    # Whether to print a startup banner. Defaults to true; pass +--no-banner+
+    # to suppress it for one-off sessions.
+    def banner?
+      options.fetch(:banner, true)
+    end
+
     def show_default_startup_banner
       puts Rails::Console.startup_lines(sandbox?)
     end
@@ -65,7 +71,9 @@ module Rails
     def start
       set_environment! if environment?
 
-      show_default_startup_banner unless console.respond_to?(:show_startup_banner)
+      if banner?
+        show_default_startup_banner unless console.respond_to?(:show_startup_banner)
+      end
 
       console.start
     end
@@ -82,6 +90,9 @@ module Rails
 
       class_option :query_cache, type: :boolean, aliases: "-q", default: false,
         desc: "Enable the Active Record query cache for the session (ignored if --skip-executor or -w is used)"
+
+      class_option :banner, type: :boolean, default: true,
+        desc: "Show the console startup banner (use --no-banner to hide)"
 
       def initialize(args = [], local_options = {}, config = {})
         console_options = []
@@ -113,14 +124,6 @@ module Rails
           return unless defined?(ActiveRecord::Base)
 
           ActiveRecord::Base.connection_handler.each_connection_pool.select(&:query_cache_enabled).each(&:disable_query_cache!)
-        end
-
-        def conditional_executor(enabled, **args, &block)
-          if enabled
-            Rails.application.executor.wrap(**args, &block)
-          else
-            yield
-          end
         end
     end
   end

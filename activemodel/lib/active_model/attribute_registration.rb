@@ -8,10 +8,14 @@ module ActiveModel
   module AttributeRegistration # :nodoc:
     extend ActiveSupport::Concern
 
+    included do
+      @pending_attribute_modifications = []
+    end
+
     module ClassMethods # :nodoc:
       def inherited(base)
         super
-        base.instance_variable_set(:@pending_attribute_modifications, nil)
+        base.instance_variable_set(:@pending_attribute_modifications, [])
       end
 
       def attribute(name, type = nil, default: (no_default = true), **options)
@@ -19,8 +23,8 @@ module ActiveModel
         type = resolve_type_name(type, **options) if type.is_a?(Symbol)
         type = hook_attribute_type(name, type) if type
 
-        pending_attribute_modifications << PendingType.new(name, type) if type || no_default
-        pending_attribute_modifications << PendingDefault.new(name, default) unless no_default
+        add_pending_attribute_modification(PendingType.new(name, type)) if type || no_default
+        add_pending_attribute_modification(PendingDefault.new(name, default)) unless no_default
 
         reset_default_attributes
       end
@@ -28,7 +32,7 @@ module ActiveModel
       def decorate_attributes(names = nil, &decorator) # :nodoc:
         names = names&.map { |name| resolve_attribute_name(name) }
 
-        pending_attribute_modifications << PendingDecorator.new(names, decorator)
+        add_pending_attribute_modification(PendingDecorator.new(names, decorator))
 
         reset_default_attributes
       end
@@ -56,6 +60,24 @@ module ActiveModel
         end
       end
 
+      def apply_pending_attribute_modifications(attribute_set) # :nodoc:
+        if superclass.respond_to?(:apply_pending_attribute_modifications, true)
+          superclass.send(:apply_pending_attribute_modifications, attribute_set)
+        end
+
+        pending_attribute_modifications.each do |modification|
+          modification.apply_to(attribute_set)
+        end
+      end
+
+      def make_pending_attribute_modifications_shareable # :nodoc:
+        if superclass.respond_to?(:make_pending_attribute_modifications_shareable, true)
+          superclass.send(:make_pending_attribute_modifications_shareable)
+        end
+
+        @pending_attribute_modifications = ActiveSupport::Ractors.try_make_shareable(@pending_attribute_modifications)
+      end
+
       private
         PendingType = Struct.new(:name, :type) do # :nodoc:
           def apply_to(attribute_set)
@@ -80,18 +102,10 @@ module ActiveModel
           end
         end
 
-        def pending_attribute_modifications
-          @pending_attribute_modifications ||= []
-        end
+        attr_reader :pending_attribute_modifications
 
-        def apply_pending_attribute_modifications(attribute_set)
-          if superclass.respond_to?(:apply_pending_attribute_modifications, true)
-            superclass.send(:apply_pending_attribute_modifications, attribute_set)
-          end
-
-          pending_attribute_modifications.each do |modification|
-            modification.apply_to(attribute_set)
-          end
+        def add_pending_attribute_modification(modification)
+          @pending_attribute_modifications = [*@pending_attribute_modifications, modification]
         end
 
         def reset_default_attributes

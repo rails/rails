@@ -2,8 +2,6 @@
 
 # :markup: markdown
 
-require "active_support/core_ext/module/attribute_accessors"
-
 module ActionDispatch
   module Http
     module MimeNegotiation
@@ -16,9 +14,12 @@ module ActionDispatch
         ActionDispatch::Http::Parameters::ParseError,
       ].freeze
 
+      @ignore_accept_header = false
+      @strict_accept_header = false
+      accessors = singleton_class.attr_accessor :ignore_accept_header, :strict_accept_header
+
       included do
-        mattr_accessor :ignore_accept_header, default: false
-        mattr_accessor :strict_accept_header, default: false
+        singleton_class.delegate(*accessors, to: MimeNegotiation)
       end
 
       # The MIME type of the HTTP request, such as [Mime](:xml).
@@ -231,12 +232,12 @@ module ActionDispatch
           if xhr?
             accept.present? || content_mime_type
           elsif accept.present?
-            self.class.strict_accept_header || !accept.match?(BROWSER_LIKE_ACCEPTS)
+            MimeNegotiation.strict_accept_header || !accept.match?(BROWSER_LIKE_ACCEPTS)
           end
         end
 
         def use_accept_header
-          !self.class.ignore_accept_header
+          !MimeNegotiation.ignore_accept_header
         end
 
         def format_from_path_extension

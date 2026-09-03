@@ -1,3 +1,28 @@
+*   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
+    the current template when it starts with a period, mirroring the existing
+    behavior for the key argument.
+
+    Calling `translate("bar", scope: ".foo")` from `posts/index.html.erb` is
+    now equivalent to calling `translate("posts.index.foo.bar")`.
+
+    *Ben Sheldon*
+
+*   Join an Array `:accept` option with commas in `file_field_tag`.
+
+    Previously, passing `accept: ["image/png", "image/gif"]` rendered
+    `accept="image/png image/gif"`, while the HTML `accept` attribute is a
+    comma-separated list. It now renders `accept="image/png,image/gif"`,
+    matching the object-based `file_field`.
+
+    *Kenta Ishizaki*
+
+*   `current_page?` matches HTTP QUERY requests
+    ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) with
+    `method: :query`. The default `method: :get` deliberately does not match
+    QUERY.
+
+    *Jeremy Daer*
+
 *   Configuring ERB options is now to be made on the ActionView::Base class.
 
     The `ActionView::Template::Handlers::ERB` class is now private API. Applications

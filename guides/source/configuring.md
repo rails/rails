@@ -1602,9 +1602,21 @@ Defaults to `false`.
 
 #### `config.active_record.schema_cache_ignored_tables`
 
-Define the list of table that should be ignored when generating the schema
-cache. It accepts an `Array` of strings, representing the table names, or
-regular expressions.
+**Note:** This configuration is deprecated in favor of
+[`config.active_record.schema_ignored_tables`](#config-active-record-schema-ignored-tables),
+and will be removed in a future Rails version. It is now an alias for that
+option, so setting it also excludes the tables from the schema file.
+
+#### `config.active_record.schema_ignored_tables`
+
+Define the list of tables that should be ignored when generating the schema
+cache and the schema file. It accepts an `Array` of strings, representing the
+table names, or regular expressions.
+
+**Note:** This configuration replaces the deprecated
+[`config.active_record.schema_cache_ignored_tables`](#config-active-record-schema-cache-ignored-tables)
+and [`ActiveRecord::SchemaDumper.ignore_tables`](#activerecord-schemadumper-ignore-tables)
+options.
 
 #### `config.active_record.verbose_query_logs`
 
@@ -1857,6 +1869,11 @@ You should run `bin/rails db:migrate` to rebuild your schema.rb if you change th
 
 Accepts an array of tables that should _not_ be included in any generated schema file.
 
+**Note:** This configuration is deprecated in favor of
+[`config.active_record.schema_ignored_tables`](#config-active-record-schema-ignored-tables),
+and will be removed in a future Rails version. It is now an alias for that
+option, so setting it also excludes the tables from the schema cache.
+
 #### `ActiveRecord::SchemaDumper.fk_ignore_pattern`
 
 Allows setting a different regular expression that will be used to decide
@@ -1986,6 +2003,42 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 8.1                   | `true`               |
+
+#### `config.active_record.shuffle_unordered_selects`
+
+Shuffles the rows of every `SELECT` Active Record generates that has no `ORDER BY` clause.
+
+The order of such a query is not specified: the database is free to return the rows in any order, and that
+order can change when an index is added, when the data grows, or when the query planner changes its mind.
+Enabling this option makes the lack of order explicit, so code and tests that accidentally depend on the
+order a particular database happens to return today fail immediately instead of breaking later.
+
+```ruby
+# config/environments/test.rb
+config.active_record.shuffle_unordered_selects = true
+```
+
+The order is fully random and drawn again on every execution, so a query cannot accidentally settle into an
+order that an assertion keeps passing against.
+
+The option is best effort, and two things bound what it can surface.
+
+The first is that Active Record has to recognise the query, which it does from the Arel it built. A query that
+reaches it as already-compiled SQL is left alone: SQL you wrote yourself, and association loading, `find` and
+`find_by`, which are served from a precompiled statement by `ActiveRecord::StatementCache`. Relations, `pluck`,
+calculations and eager loading are covered, inside a query cache block or out.
+
+The second is that rows are shuffled after the database has returned them, so the option cannot change *which*
+rows come back. Queries ending in `LIMIT 1` are unaffected — `find`, `find_by`, `take`, `pick`, `exists?`,
+`has_one` and `belongs_to` — which makes this weaker than SQLite's `reverse_unordered_selects` pragma. A query
+with an `ORDER BY` is never shuffled even when that ordering is not a total order, so ties on a non-unique
+column stay hidden. And the SQL in your log is the SQL that was sent, so replaying it by hand will not
+reproduce the order your application saw.
+
+This is a development aid intended for the test or development environments, and it is never enabled by
+`config.load_defaults`.
+
+The default value is `false`.
 
 ### Configuring Action Controller
 
@@ -3791,6 +3844,29 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `"-y -vframes 1 -f image2"` |
 | 7.0                   | `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015)"`<sup><mark><strong><em>1</em></strong></mark></sup> <br> `+ ",loop=loop=-1:size=2,trim=start_frame=1'"`<sup><mark><strong><em>2</em></strong></mark></sup><br> `+ " -frames:v 1 -f image2"` <br><br> <ol><li>Select the first video frame, plus keyframes, plus frames that meet the scene change threshold.</li> <li>Use the first video frame as a fallback when no other frames meet the criteria by looping the first (one or) two selected frames, then dropping the first looped frame.</li></ol> |
+
+#### `config.active_storage.video_preview_input_arguments`
+
+Arguments passed to ffmpeg before `-i` when generating video preview images.
+ffmpeg's flags are position dependent, so arguments that apply to the input,
+such as `-codec_whitelist` and `-protocol_whitelist`, belong here.
+
+The default value is `""`.
+
+See [Media Processing of File Uploads](security.html#media-processing-of-file-uploads)
+in the Security Guide.
+
+#### `config.active_storage.ffprobe_arguments`
+
+Arguments passed to ffprobe before the file path when analyzing videos and
+audio. Applies to both `ActiveStorage::Analyzer::VideoAnalyzer` and
+`ActiveStorage::Analyzer::AudioAnalyzer`. Arguments that make ffprobe reject a
+file will fail that file's analysis.
+
+The default value is `""`.
+
+See [Media Processing of File Uploads](security.html#media-processing-of-file-uploads)
+in the Security Guide.
 
 #### `config.active_storage.multiple_file_field_include_hidden`
 

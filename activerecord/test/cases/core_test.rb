@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "active_support/testing/ractors_assertions"
+require "active_support/core_ext/object/with"
 require "models/person"
 require "models/topic"
 require "pp"
@@ -244,7 +245,7 @@ class CoreTest < ActiveRecord::TestCase
   def test_find_by_cache_does_not_duplicate_entries
     Topic.initialize_find_by_cache
     using_prepared_statements = Topic.lease_connection.prepared_statements
-    topic_find_by_cache = Topic.find_by_statement_cache[using_prepared_statements]
+    topic_find_by_cache = Topic.schema_context.find_by_statement_cache[using_prepared_statements]
 
     assert_difference -> { topic_find_by_cache.size }, +1 do
       Topic.find(1)
@@ -290,26 +291,78 @@ class CoreTest < ActiveRecord::TestCase
     assert_not_equal Cpk::Book.new(author_id: 1, title: "Same title").hash, Cpk::Book.new(author_id: 1, title: "Same title").hash
   end
 
-  if RUBY_VERSION >= "4.0"
+  if RUBY_VERSION >= "4.0" && !in_memory_db?
     class RactorTest < ActiveRecord::TestCase
       include ActiveSupport::Testing::Isolation
       include ActiveSupport::Testing::RactorsAssertions
+
+      def test_schema_context_is_ractor_shareable_and_accessible_on_a_non_main_ractor
+        model = Class.new(ActiveRecord::Base) do
+          def self.name = "ractor_safe_schema_context"
+          self.table_name = "topics"
+        end
+        context = model.schema_context
+
+        assert_ractor_shareable context
+        assert_same context, on_ractor { model.schema_context }
+      end
 
       def test_find_by_statement_cache_is_ractor_local
         model = Class.new(ActiveRecord::Base) do
           def self.name = "ractor_safe_find_by_cache"
           self.table_name = "topics"
         end
+        model.load_schema
 
         worker_marker, worker_stable = on_ractor do
-          cache = model.find_by_statement_cache
+          cache = model.schema_context.find_by_statement_cache
           cache[true][:ractor_marker] = :from_worker
-          [cache[true][:ractor_marker], model.find_by_statement_cache.equal?(cache)]
+          [cache[true][:ractor_marker], model.schema_context.find_by_statement_cache.equal?(cache)]
         end
 
         assert_equal :from_worker, worker_marker
         assert worker_stable
-        assert_nil model.find_by_statement_cache[true][:ractor_marker]
+        assert_nil model.schema_context.find_by_statement_cache[true][:ractor_marker]
+      end
+
+      def test_pending_attribute_modifications_are_shareable_and_applied_on_a_non_main_ractor
+        model = Class.new(ActiveRecord::Base) do
+          def self.name = "ractor_safe_pending_modifications"
+          self.table_name = "topics"
+          attribute :approved, default: true
+          attribute :title, :string, default: -> { "title-#{rand}" }
+        end
+        ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+          model.load_schema
+        end
+
+        assert_ractor_shareable model.send(:pending_attribute_modifications)
+
+        approved_default, title_a, title_b = on_ractor do
+          defaults = model.schema_context.attributes.defaults
+          [
+            defaults["approved"].value,
+            defaults.deep_dup.fetch_value("title"),
+            defaults.deep_dup.fetch_value("title"),
+          ]
+        end
+
+        assert_equal true, approved_default
+        assert_match(/\Atitle-/, title_a)
+        assert_not_equal title_a, title_b
+      end
+
+      def test_unshareable_pending_attribute_modifications_do_not_break_schema_load
+        unshareable = +"local default"
+        model = Class.new(ActiveRecord::Base) do
+          def self.name = "ractor_unsafe_pending_modifications"
+          self.table_name = "topics"
+          attribute :title, :string, default: -> { unshareable }
+        end
+
+        assert_nothing_raised { model.load_schema }
+        assert_not_ractor_shareable model.send(:pending_attribute_modifications)
+        assert_equal "local default", model.new.title
       end
     end
   end

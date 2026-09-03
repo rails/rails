@@ -851,6 +851,17 @@ module ActionDispatch
           self
         end
 
+        # Define a route that only recognizes HTTP QUERY. QUERY is a safe and
+        # idempotent method for queries with a request body, defined in [RFC 10008:
+        # The HTTP QUERY Method](https://www.ietf.org/rfc/rfc10008.txt). For
+        # supported arguments, see [match](rdoc-ref:Base#match)
+        #
+        #     query 'bacon', to: 'food#bacon'
+        def query(*path_or_actions, as: DEFAULT, to: nil, controller: nil, action: nil, on: nil, defaults: nil, constraints: nil, anchor: nil, format: nil, path: nil, internal: nil, **mapping, &block)
+          match(*path_or_actions, as:, to:, controller:, action:, on:, defaults:, constraints:, anchor:, format:, path:, internal:, **mapping, via: :query, &block)
+          self
+        end
+
         # Define a route that only recognizes HTTP OPTIONS. For supported arguments, see
         # [match](rdoc-ref:Base#match)
         #
