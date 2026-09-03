@@ -3396,8 +3396,7 @@ methods, such as `prev_day` and `beginning_of_week`, are defined once in a
 common module
 [`DateAndTime::Calculations`](https://api.rubyonrails.org/classes/DateAndTime/Calculations.html).
 
-TIP: Most Rails developers face the question of which class to use when. The
-answer comes down to one practical distinction: `Time` understands time zones
+TIP: For most Rails developers, the decision of which of the three classes to use comes down to one practical distinction: `Time` understands time zones
 and daylight saving time, while `DateTime` does not. In most modern
 applications, you are better off using `Time` (or more specifically
 `ActiveSupport::TimeWithZone`, which is what `Time.current` returns). Treat
@@ -4208,7 +4207,7 @@ DateTime.current + 3.days # => a DateTime three days from now
 ```
 
 Under the hood, this arithmetic translates into calls to `since` or
-`advance`,which means they correctly handle calendar edge cases. For example,
+`advance`, which means they correctly handle calendar edge cases. For example,
 the Gregorian calendar reform skipped 10 days in October 1582, the `Duration`
 arithmetic respects this:
 
