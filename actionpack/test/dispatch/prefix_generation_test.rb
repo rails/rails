@@ -270,6 +270,20 @@ module TestGenerationPrefix
       assert_equal "/awesome/blog/posts/1", response.body
     end
 
+    # Inside the test session
+    test "[SESSION] application's route helpers don't use the engine's mount point after an engine request" do
+      get "/pure-awesomeness/blog/posts/1"
+
+      assert_equal "/posts/1", post_path(id: 1)
+      assert_equal "/pure-awesomeness/blog/posts/1", blog_engine.post_path(id: 1)
+    end
+
+    test "[SESSION] engine's mounted helper works after an application request" do
+      get "/generate"
+
+      assert_equal "/awesome/blog/posts/1", blog_engine.post_path(id: 1)
+    end
+
     # Inside any Object
     test "[OBJECT] proxy route should override respond_to?() as expected" do
       assert_respond_to blog_engine, :named_helper_that_should_be_invoked_only_in_respond_to_test_path

@@ -19,9 +19,7 @@ module ActionDispatch
       end
 
       def url_options
-        scope.send(:_with_routes, routes) do
-          scope.url_options
-        end
+        scope.send(:_url_options_for, routes)
       end
 
     private
@@ -58,7 +56,7 @@ module ActionDispatch
 
         resolved_parts = new_script_name.count("/")
         previous_parts = previous_script_name.count("/")
-        context_parts = previous_parts - resolved_parts + 1
+        context_parts = [previous_parts - resolved_parts + 1, 0].max
 
         (previous_script_name.split("/").slice(0, context_parts).join("/")) + new_script_name
       end

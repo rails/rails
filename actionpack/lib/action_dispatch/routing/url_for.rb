@@ -236,6 +236,10 @@ module ActionDispatch
           @_routes = old_routes
         end
 
+        def _url_options_for(routes) # :doc:
+          _with_routes(routes) { url_options }
+        end
+
         def _routes_context # :doc:
           self
         end
