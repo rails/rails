@@ -18,19 +18,18 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-NOTE: this document will not list every single core extension. The Rails API docs are a great resource for that. The goal of this doc is to highlight the use cases for the various extensions and show the breath of the methods Rails adds to Ruby.
+NOTE: This document does not list every single core extension. The [Rails API docs](https://api.rubyonrails.org) are a great resource for that. The  guide aims to highlight the use cases for the various extensions and show the breath of the methods Rails adds to Ruby.
 
 What are Core Extensions
 ------------------------
 
-Ruby has a distinct feature, *open classes*, that sets it apart from many other
-programming languages. In Ruby, any class, including built-in ones like
-`String`, `Integer`, or `Array`, can be reopened and have new methods added to
-it.
+Ruby is unique in that, any class, including built-in ones like
+`String`, `Integer`, or `Array`, can be reopened arbitrarily to add new methods or overwrite
+existing methods (this feature is called "open classes").
 
 This is the mechanism Active Support Core Extensions use. They reopen Ruby's
 built-in classes and add dozens of utility methods that are useful in the
-development of the Rails framework itself as well as everyday Rails applications.
+development of the Rails framework itself, as well as everyday Rails applications.
 
 For example,
 [`blank?`](https://api.rubyonrails.org/classes/Object.html#method-i-blank-3F) is
@@ -56,8 +55,8 @@ come to define a style of Ruby code that is expressive and reads close
 to natural language.
 
 WARNING: Because open classes modify Ruby's built-in types globally, they are a
-form of **monkey patching**. A method added to `String` in one part of your
-program affects all strings everywhere. This can lead to subtle bugs if
+form of [**monkey patching**](https://en.wikipedia.org/wiki/Monkey_patch). A method added to `String` in one part of your
+program affects all strings across your application. This can lead to subtle bugs if
 extensions conflict with other gems or future versions of Ruby. Active Support's
 extensions are well-tested and widely used, but if you are loading them in a
 non-Rails project, prefer [selective
@@ -81,11 +80,11 @@ You can opt out of loading all core extensions by setting `config.active_support
 
 ### Using Core Extensions Outside of Rails
 
-Active Support ships as its own gem and can be used in any Ruby project independently of Rails. You have several options for how much to load.
+Active Support ships as its own gem and can be used in any Ruby project independently of Rails. You have fine-grained control over which Active Support extensions to load into your project.
 
 #### Cherry-picking a Single Extension
 
-You can load just the extension you need. For example, to use a [`Hash#with_indifferent_access`](https://api.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html) where the keys `:foo` and `"foo"` are considered the same:
+You can load just the extension you need. For example, to use [`Hash#with_indifferent_access`](https://api.rubyonrails.org/classes/ActiveSupport/HashWithIndifferentAccess.html) where the keys `:foo` and `"foo"` are considered the same:
 
 ```ruby
 require "active_support/core_ext/hash/indifferent_access"
@@ -93,7 +92,7 @@ require "active_support/core_ext/hash/indifferent_access"
 { a: 1 }.with_indifferent_access["a"] # => 1
 ```
 
-NOTE: Throughout this guide, each extension includes a note indicating where it is defined, which tells you exactly what to require.
+NOTE: Throughout this guide, each extension includes a note indicating where it is defined, which tells you exactly what to `require`.
 
 #### Loading All Extensions for a Class
 
@@ -216,7 +215,7 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
 ### `duplicable?`
 
-In Ruby, most objects can be duplicated via `dup` or `clone` but not all. When an object does not support duplication, a call to `dup` raises an error. Active Support adds a predicate method, [`duplicable?`][Object#duplicable?], as a shorthand to find out if a given object is duplicable. For example:
+In Ruby, most, but not all, objects can be duplicated via `dup` or `clone`. When an object does not support duplication, a call to `dup` raises an error. Active Support adds a predicate method, [`duplicable?`][Object#duplicable?], as a shorthand to inspect whether a given object is duplicable. For example:
 
 ```ruby
 "foo".dup           # => "foo"
@@ -246,10 +245,10 @@ NOTE: Defined in `active_support/core_ext/object/duplicable.rb`.
 
 ### `deep_dup`
 
-Normally, when you `dup` an object that contains other objects, Ruby does not
+When you `dup` an object that references other objects, Ruby does not
 `dup` them as well. So, `dup` creates a *shallow copy* of the object. The
 [`deep_dup`][Object#deep_dup] method returns a *deep copy* of a given object, by
-also duplicating containing objects. For example, if you have an array of
+also duplicating the objects it references. For example, if you have an array of
 strings, `dup` can lead to some surprising behavior:
 
 ```ruby
@@ -303,7 +302,7 @@ NOTE: Defined in `active_support/core_ext/object/deep_dup.rb`.
 
 ### `try` and `try!`
 
-When you call a method on an object and if the object could be `nil`, typically you would need to add a conditional check for `nil` first to avoid errors. The [`try`][Object#try] method provides a way to do this without an explicit `nil` check. It returns `nil` if sent to `nil`. For example:
+When calling a method on an object that could be `nil`, you'd typically need to add a conditional check for `nil` to avoid errors. The [`try`][Object#try] method provides a way to do this without an explicit check. It returns `nil` if sent to `nil`. For example:
 
 ```ruby
 # without try
@@ -321,7 +320,7 @@ The `try` method can also be called with a block, which will be executed only if
 @person.try { |p| "#{p.first_name} #{p.last_name}" }
 ```
 
-Note that `try` will hide no-method errors, returning `nil` instead. You can use [`try!`][Object#try!] if you want to surface errors, made by typos in the method name, for example.
+Note that `try` will suppress errors raised by a missing method, returning `nil` instead. Use [`try!`][Object#try!] to surface such errors.
 
 ```ruby
 @number.try(:nexte)  # => nil
