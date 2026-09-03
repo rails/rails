@@ -446,7 +446,7 @@ An authentication system securely identifies the user of a web
 application. It is the foundation for securing user data and is part
 of most modern web applications.
 
-Rails has authentication generator built-in, which provides the base
+Rails has an authentication generator built-in, which provides the base
 for your authentication system. See the
 [Getting Started](getting_started.html#adding-authentication) guide
 and the [Sign Up and Settings](sign_up_and_settings.html) guide for
@@ -660,7 +660,7 @@ a password.
 
 Changing the email address would effectively transfer ownership of
 the account. Your defence against this might vary depending on
-your application's account ownership model. One or more of below
+your application's account ownership model. One or more of the below
 steps will help mitigate this attack:
 
 * Require a password when changing the email address.
