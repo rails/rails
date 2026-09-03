@@ -130,7 +130,13 @@ module ActiveModel
         [self.class, precision, scale, limit].hash
       end
 
-      def assert_valid_value(_)
+      def assert_valid_value(value)
+        return if valid_value?(value)
+        raise ArgumentError, "'#{value}' is not a valid #{type}"
+      end
+
+      def valid_value?(_)
+        true
       end
 
       def serialized? # :nodoc:
