@@ -202,7 +202,6 @@
     Fixes #57183.
 
     *Hammad Khan*
->>>>>>> rails/main
 
 *   Deprecate `ActiveRecord::ConnectionAdapters::DatabaseStatements#create`
     in favor of `#insert`.
