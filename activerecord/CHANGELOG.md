@@ -1,3 +1,12 @@
+*   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
+
+    On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the
+    adapter ran `ENABLE TRIGGER ALL` only after the block returned. When the block
+    raised outside of a transaction, every foreign key in the database stayed
+    disabled for all later connections.
+
+    *Lucas Guedes*
+
 *   Add `error_verbosity` support to the PostgreSQL adapter's `database.yml` configuration.
 
     Sets the connection's error verbosity via `PG::Connection#set_error_verbosity`,
