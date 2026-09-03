@@ -46,9 +46,7 @@ module ActiveRecord
       end
 
       def attributes
-        ActiveSupport::Ractors.store_if_absent(@attributes_key) do
-          Attributes.new(self)
-        end
+        ActiveSupport::Ractors[@attributes_key] ||= Attributes.new(self)
       end
 
       def table_name
