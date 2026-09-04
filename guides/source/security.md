@@ -504,8 +504,8 @@ User.create(
 
 Requiring a strong password during the sign up process can help
 mitigate the effectiveness of brute-force or dictionary attacks.
-The [National Institute of Standards and Technology (NIST)](https://pages.nist.gov/800-63-4/sp800-63b.html) has compiled a set of
-password guidelines — summarized in [this article by 1password](https://1password.com/blog/nist-password-guidelines-update) — for web
+The **National Institute of Standards and Technology (NIST)** has compiled a set of
+[password guidelines](https://pages.nist.gov/800-63-4/sp800-63b.html) — summarized in [this article by 1Password](https://1password.com/blog/nist-password-guidelines-update) — for web
 application developers to enforce.
 
 Implementing these guidelines offers your users a baseline level
@@ -915,7 +915,7 @@ Here's an example XSS attack scenario:
   on their machine.
 
 The malicious code may steal cookies, hijack the session, redirect
-the victim to a phising website, display advertisements for the
+the victim to a phishing website, display advertisements for the
 benefit of the attacker, change elements on the website to get
 confidential information, or install malicious software through
 vulnerabilites in the web browser. The scope of misuse is endless.
@@ -1914,7 +1914,7 @@ Rails.app.credentials.system.access_key_id
 # => "1234AB"
 ```
 
-Use the bang operator to raise an exception if a key doesn't exist
+Use the bang operator to raise an exception if a key doesn't exist:
 
 ```ruby
 Rails.app.credentials.unknown_key!
@@ -2012,8 +2012,9 @@ developers are not forced to upgrade to the latest version of a
 depedency to pull in security fixes, and can upgrade on their own
 timeline.
 
-[`bundler-audit`] can help you detect vulnerable dependencies and
-provide solutions. Generate a report by running:
+[`bundler-audit`](https://github.com/rubysec/bundler-audit) can help you
+detect vulnerable dependencies and provide solutions. Generate a
+report by running:
 
 ```bash
 $ bundle-audit
