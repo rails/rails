@@ -7,6 +7,26 @@ module ActiveRecord
       include ThroughAssociation
 
       private
+        def find_target(async: false)
+          # If the through association is already loaded and its target also has
+          # the source association loaded, traverse the loaded chain instead of
+          # firing a database query. This prevents N+1 queries when the entire
+          # object graph has been eager-loaded via includes().
+          if through_association.loaded?
+            through_target = through_association.target
+            if through_target
+              source_assoc = through_target.association(source_reflection.name)
+              if source_assoc.loaded?
+                return source_assoc.target
+              end
+            else
+              return nil
+            end
+          end
+
+          super
+        end
+
         def replace(record, save = true)
           create_through_record(record, save)
           self.target = record
