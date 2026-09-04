@@ -12,7 +12,14 @@ module ActiveModel
         column_indexes = hash.transform_values { index += 1 }.freeze
         new(column_indexes, hash.values.freeze)
       end
+
+      def build_indexes(columns)
+        index = -1
+        columns.index_with { index += 1 }
+      end
     end
+
+    attr_reader :indexes, :row
 
     def initialize(indexes, row)
       @indexes = indexes
@@ -57,8 +64,6 @@ module ActiveModel
       [IndexedRow, @indexes, @row].hash
     end
 
-    protected attr_reader :indexes, :row
-
     def eql?(other)
       other.is_a?(IndexedRow) &&
         @indexes == other.indexes &&
@@ -92,6 +97,24 @@ module ActiveModel
 
     def new_empty_mutable_row
       Mutable.new(@indexes)
+    end
+
+    class Remapper
+      def initialize(initial_indexes, old_columns, new_columns = old_columns)
+        @initial_indexes = initial_indexes
+
+        # Handle duplicate keys
+        pairs = new_columns.zip(old_columns).to_h
+        new_columns = pairs.keys
+        old_columns = pairs.values
+
+        @new_indexes = IndexedRow.build_indexes(new_columns)
+        @indexes_to_extract = old_columns.map { |column| @initial_indexes.fetch(column) }
+      end
+
+      def build(original_row)
+        IndexedRow.new(@new_indexes, original_row.row.values_at(*@indexes_to_extract).freeze)
+      end
     end
 
     class Mutable < self

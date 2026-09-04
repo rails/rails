@@ -186,10 +186,7 @@ module ActiveRecord
     end
 
     def column_indexes # :nodoc:
-      @column_indexes ||= begin
-        index = -1
-        columns.to_h { |c| [c, index += 1] }.freeze # rubocop:disable Rails/IndexWith
-      end
+      @column_indexes ||= ActiveModel::IndexedRow.build_indexes(columns)
     end
 
     def indexed_rows # :nodoc:
