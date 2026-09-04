@@ -50,6 +50,10 @@ module Cpk
     has_one :chapter, foreign_key: [:author_id, :book_id], dependent: :nullify
   end
 
+  class NullifiedBookWithChapters < Book
+    has_many :chapters, class_name: "Cpk::Chapter", foreign_key: [:author_id, :book_id], dependent: :nullify
+  end
+
   class BookWithOrderAgreements < Book
     has_many :order_agreements, through: :order
     has_one :order_agreement, through: :order, source: :order_agreements
