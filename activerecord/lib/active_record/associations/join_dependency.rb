@@ -103,6 +103,9 @@ module ActiveRecord
         }
       end
 
+      EMPTY_HASH = {}.freeze
+      private_constant :EMPTY_HASH
+
       def instantiate(result_set, strict_loading_value, &block)
         primary_key = Array(join_root.primary_key).map { |column| aliases.column_alias(join_root, column) }
 
@@ -116,19 +119,19 @@ module ActiveRecord
         parents = model_cache[join_root]
 
         column_aliases = aliases.column_aliases(join_root)
-        column_names = []
 
-        result_set.columns.each do |name|
-          column_names << name unless /\At\d+_r\d+\z/.match?(name)
+        column_names = result_set.columns.reject do |name|
+          /\At\d+_r\d+\z/.match?(name)
         end
 
         if column_names.empty?
-          column_types = {}
+          column_types = EMPTY_HASH
         else
           column_types = result_set.column_types
           unless column_types.empty?
             attribute_types = join_root.attribute_types
-            column_types = column_types.slice(*column_names).delete_if { |k, _| attribute_types.key?(k) }
+            column_types = column_types.slice(*column_names).delete_if { |k, _| attribute_types.key?(k) }.freeze
+            column_types = EMPTY_HASH if column_types.empty?
           end
           column_aliases += column_names.map! { |name| Aliases::Column.new(name, name) }
         end
