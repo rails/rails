@@ -517,7 +517,8 @@ header:
 render plain: "Redirecting...", location: root_path, status: :see_other
 ```
 
-WARNING: While this is valid code, using [`redirect_to`](#redirecting-requests)
+WARNING: While this is valid code, using
+[`redirect_to`](action_controller_overview.html#redirecting-requests)
 is the canonical way to send redirect responses in Rails.
 
 #### `status:`
