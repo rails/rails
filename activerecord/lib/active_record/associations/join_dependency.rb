@@ -72,6 +72,7 @@ module ActiveRecord
         tree = self.class.make_tree associations
         @join_root = JoinBase.new(base, table, build(tree, base))
         @join_type = join_type
+        @remappers = {}
       end
 
       def base_klass
@@ -139,12 +140,17 @@ module ActiveRecord
           class_name: join_root.base_klass.name
         }
 
+        primary_key_indexes = primary_key.map { |name| result_set.column_indexes.fetch(name) }.freeze
+        remapper = ActiveModel::IndexedRow::Remapper.new(result_set.column_indexes, column_aliases.map(&:alias), column_aliases.map(&:name))
+
         message_bus.instrument("instantiation.active_record", payload) do
-          result_set.indexed_rows.each { |row|
-            parent_key = primary_key.empty? ? row : row.values_at(*primary_key)
-            parent = parents[parent_key] ||= join_root.instantiate(row, column_aliases, column_types, &block)
-            construct(parent, join_root, row, seen, model_cache, strict_loading_value)
-          }
+          result_set.indexed_rows.each do |indexed_row|
+            row = indexed_row.row
+            parent_key = primary_key_indexes.empty? ? row : row.values_at(*primary_key_indexes)
+
+            parent = parents[parent_key] ||= join_root.instantiate(remapper.build(indexed_row), column_types, &block)
+            construct(parent, join_root, indexed_row, seen, model_cache, strict_loading_value)
+          end
         end
 
         parents.values
@@ -276,11 +282,18 @@ module ActiveRecord
           end
         end
 
+        def remapper(node, indexes)
+          @remappers[node] ||= begin
+            column_aliases = aliases.column_aliases(node)
+            ActiveModel::IndexedRow::Remapper.new(indexes, column_aliases.map(&:alias), column_aliases.map(&:name))
+          end
+        end
+
         def construct_model(record, node, row, model_cache, id, strict_loading_value)
           other = record.association(node.reflection.name)
 
           unless model = model_cache[node][id]
-            model = node.instantiate(row, aliases.column_aliases(node)) do |m|
+            model = node.instantiate(remapper(node, row.indexes).build(row)) do |m|
               m.strict_loading! if strict_loading_value
               other.set_inverse_instance(m)
             end

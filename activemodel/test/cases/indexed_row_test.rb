@@ -8,6 +8,11 @@ class IndexedRowTest < ActiveModel::TestCase
     @row = ActiveModel::IndexedRow[@hash]
   end
 
+  test ".build_indexes" do
+    assert_equal({ a: 0, b: 1, c: 2, d: 3 }, ActiveModel::IndexedRow.build_indexes(%i(a b c d)))
+    assert_equal({ a: 0, b: 5, c: 2, d: 6 }, ActiveModel::IndexedRow.build_indexes(%i(a b c b b b d)))
+  end
+
   test "#[]" do
     assert_equal "George", @row["first_name"]
     assert_equal "Abitbol", @row["last_name"]
@@ -121,5 +126,36 @@ class EmptyMutableIndexedRowTest < ActiveModel::TestCase
 
     assert_raises(KeyError) { @row.fetch("missing") }
     assert_equal(5, @row.fetch("missing") { 5 })
+  end
+end
+
+class RemapperTest < ActiveModel::TestCase
+  test "#build" do
+    row = ActiveModel::IndexedRow["_first_name" => "George", "_last_name" => "Abitbol", "_age" => 42]
+    remapper = ActiveModel::IndexedRow::Remapper.new(
+      row.indexes,
+      %w(_age _first_name),
+      %w(age name),
+    )
+    remapped_row = remapper.build(row)
+    assert_equal({ "age" => 42, "name" => "George" }, remapped_row.to_h)
+  end
+
+  test "#build with duplicated keys" do
+    columns = ["id", "author_id", "name", "author_id"].freeze
+    values = [1, 2, "George", 4].freeze
+    indexes = ActiveModel::IndexedRow.build_indexes(columns)
+    row = ActiveModel::IndexedRow.new(indexes, values)
+
+    remapper = ActiveModel::IndexedRow::Remapper.new(
+      row.indexes,
+      ["author_id", "name", "author_id"],
+      ["author_id", "first_name", "author_id"],
+    )
+    remapped_row = remapper.build(row)
+    assert_equal row["author_id"], remapped_row["author_id"]
+    assert_equal row["name"], remapped_row["first_name"]
+
+    assert_equal(2, remapped_row.values.size)
   end
 end
