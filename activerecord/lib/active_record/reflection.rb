@@ -600,38 +600,36 @@ module ActiveRecord
       #
       # Defaults to `foreign_key` when no `query_constraints` are given.
       def query_constraints_foreign_key
+        return foreign_key unless options[:query_constraints]
+
         @query_constraints_foreign_key ||= if (mapping = join_query_constraints_mapping)
           columns = belongs_to? ? mapping.map(&:first) : mapping.map(&:last)
           [*columns, *Array(foreign_key)].uniq.freeze
-        elsif options[:query_constraints]
+        else
           constraints = Array(options[:query_constraints]).map { |key| key.to_s.freeze }
           [*constraints, *Array(foreign_key)].uniq.freeze
-        else
-          foreign_key
         end
       end
 
       def foreign_key(infer_from_inverse_of: true)
-        @foreign_key ||= if options[:foreign_key]
-          ActiveRecord::Key.for(options[:foreign_key]).name
+        if options[:foreign_key]
+          return @foreign_key ||= ActiveRecord::Key.for(options[:foreign_key]).name
         elsif options[:query_constraints]
-          query_constraints = options[:query_constraints]
-          query_constraints = [query_constraints] unless query_constraints.is_a?(Array)
-          if query_constraints.any?(Hash)
-            raise ArgumentError,
-              "`query_constraints` with column mapping (Hash) on `#{active_record}.#{macro} :#{name}` " \
-              "requires an explicit `foreign_key` option."
+          return @foreign_key ||= begin
+            query_constraints = options[:query_constraints]
+            query_constraints = [query_constraints] unless query_constraints.is_a?(Array)
+            if query_constraints.any?(Hash)
+              raise ArgumentError,
+                "`query_constraints` with column mapping (Hash) on `#{active_record}.#{macro} :#{name}` " \
+                "requires an explicit `foreign_key` option."
+            end
+            query_constraints.map { |fk| -fk.to_s.freeze }.freeze
           end
-          query_constraints.map { |fk| -fk.to_s.freeze }.freeze
-        else
-          derived_fk = derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of)
-
-          if !derived_fk.is_a?(Array) && active_record.has_query_constraints?
-            derived_fk = derive_fk_query_constraints(derived_fk)
-          end
-
-          ActiveRecord::Key.for(derived_fk).name
         end
+
+        derived_fk = derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of)
+        derived_fk = derive_fk_query_constraints(derived_fk) if !derived_fk.is_a?(Array) && active_record.has_query_constraints?
+        ActiveRecord::Key.for(derived_fk).name
       end
 
       def association_foreign_key
@@ -646,23 +644,22 @@ module ActiveRecord
         if options[:primary_key]
           active_record_primary_key
         elsif active_record.has_query_constraints? || options[:query_constraints]
-          @active_record_query_constraints_primary_key ||= active_record.query_constraints_list
+          active_record.query_constraints_list
         else
           active_record_primary_key
         end
       end
 
       def active_record_primary_key
-        @active_record_primary_key ||=
-          if options[:primary_key]
-            ActiveRecord::Key.for(options[:primary_key]).name
-          elsif (active_record.has_query_constraints? || options[:query_constraints]) && !options[:foreign_key]
-            # query_constraints drive the key only when no foreign_key is given;
-            # an explicit foreign_key handles writes and takes precedence here.
-            active_record.query_constraints_list
-          else
-            active_record.primary_key_definition.inferred_id || primary_key(active_record).freeze
-          end
+        if options[:primary_key]
+          @active_record_primary_key ||= ActiveRecord::Key.for(options[:primary_key]).name
+        elsif (active_record.has_query_constraints? || options[:query_constraints]) && !options[:foreign_key]
+          # query_constraints drive the key only when no foreign_key is given;
+          # an explicit foreign_key handles writes and takes precedence here.
+          active_record.query_constraints_list
+        else
+          active_record.primary_key_definition.inferred_id || primary_key(active_record).freeze
+        end
       end
 
       def join_query_constraints_primary_key(klass = nil)

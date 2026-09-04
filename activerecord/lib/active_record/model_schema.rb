@@ -201,13 +201,25 @@ module ActiveRecord
 
     module ClassMethods
       def schema_context # :nodoc:
-        return @schema_context if schema_loaded?
+        context = schema_context_without_loading
+        return context if context.schema_loaded?
         load_schema
-        @schema_context
+        context
+      end
+
+      def schema_context_without_loading # :nodoc:
+        return @schema_context if @schema_context
+
+        @load_schema_monitor.synchronize do
+          @schema_context ||= build_schema_context
+        end
       end
 
       def build_schema_context # :nodoc:
-        ActiveRecord::ModelSchema::SchemaContext.new(self)
+        ActiveRecord::ModelSchema::SchemaContext.new(
+          self,
+          query_constraints_list: query_constraints_definition
+        )
       end
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the
@@ -557,9 +569,8 @@ module ActiveRecord
       def load_schema
         return if schema_loaded?
         @load_schema_monitor.synchronize do
-          unless schema_loaded? || @schema_context
-            context = build_schema_context
-            @schema_context = context
+          context = schema_context_without_loading
+          unless context.schema_loaded? || context.schema_loading?
             context.load_schema!
 
             unless @schema_hooks_loaded

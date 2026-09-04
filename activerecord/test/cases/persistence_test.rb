@@ -1866,6 +1866,52 @@ class QueryConstraintsTest < ActiveRecord::TestCase
     assert_equal(["author_id", "id"], Cpk::Book.query_constraints_list)
   end
 
+  def test_query_constraint_state_comes_from_the_current_schema_context
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.primary_key = :id
+
+      class << self
+        attr_accessor :current_test_schema_context
+
+        def schema_context_without_loading
+          current_test_schema_context || super
+        end
+      end
+    end
+
+    default_context = ActiveRecord::ModelSchema::SchemaContext.new(klass)
+    constrained_context = ActiveRecord::ModelSchema::SchemaContext.new(
+      klass,
+      query_constraints_list: [:author_name, :id]
+    )
+
+    [default_context, constrained_context].each do |context|
+      klass.current_test_schema_context = context
+      context.load_schema!
+    end
+
+    klass.current_test_schema_context = default_context
+    assert_not_predicate klass, :has_query_constraints?
+    assert_nil klass.query_constraints_list
+    assert_equal ["id"], klass.composite_query_constraints_list
+
+    klass.current_test_schema_context = constrained_context
+    assert_predicate klass, :has_query_constraints?
+    assert_equal ["author_name", "id"], klass.query_constraints_list
+    assert_equal ["author_name", "id"], klass.composite_query_constraints_list
+  ensure
+    klass.current_test_schema_context = nil if klass
+  end
+
+  def test_has_query_constraints_does_not_load_an_abstract_class_schema
+    klass = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+    end
+
+    assert_not_predicate klass, :has_query_constraints?
+  end
+
   def test_child_keeps_parents_query_constraints
     clothing_item = clothing_items(:green_t_shirt)
     assert_uses_query_constraints_on_reload(clothing_item, ["clothing_type", "color"])

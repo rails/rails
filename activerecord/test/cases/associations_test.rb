@@ -383,7 +383,7 @@ class AssociationsTest < ActiveRecord::TestCase
   end
 
   def test_query_constraints_that_dont_include_the_primary_key_raise_with_a_single_column
-    original = Sharded::BlogPost.instance_variable_get(:@query_constraints_list)
+    original = Sharded::BlogPost.query_constraints_definition
     Sharded::BlogPost.query_constraints :title
     Sharded::BlogPost.has_many :comments_without_single_column_query_constraints, primary_key: [:blog_id, :id], class_name: "Comment"
     blog_post = sharded_blog_posts(:great_post_blog_one)
@@ -394,11 +394,11 @@ class AssociationsTest < ActiveRecord::TestCase
 
     assert_equal "The query constraints on the `Sharded::BlogPost` model does not include the primary key so Active Record is unable to derive the foreign key constraints for the association. You need to explicitly define the query constraints for this association.", error.message
   ensure
-    Sharded::BlogPost.instance_variable_set(:@query_constraints_list, original)
+    Sharded::BlogPost.query_constraints(*original)
   end
 
   def test_query_constraints_that_dont_include_the_primary_key_raise_with_multiple_columns
-    original = Sharded::BlogPost.instance_variable_get(:@query_constraints_list)
+    original = Sharded::BlogPost.query_constraints_definition
     Sharded::BlogPost.query_constraints :title, :revision
     Sharded::BlogPost.has_many :comments_without_multiple_column_query_constraints, primary_key: [:blog_id, :id], class_name: "Comment"
     blog_post = sharded_blog_posts(:great_post_blog_one)
@@ -409,7 +409,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
     assert_equal "The query constraints on the `Sharded::BlogPost` model does not include the primary key so Active Record is unable to derive the foreign key constraints for the association. You need to explicitly define the query constraints for this association.", error.message
   ensure
-    Sharded::BlogPost.instance_variable_set(:@query_constraints_list, original)
+    Sharded::BlogPost.query_constraints(*original)
   end
 
   def test_assign_belongs_to_cpk_model_by_id_attribute

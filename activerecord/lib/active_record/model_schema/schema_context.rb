@@ -5,14 +5,18 @@
 module ActiveRecord
   module ModelSchema
     # SchemaContext owns all schema-derived state for a model: columns,
-    # attribute types, and column defaults.
+    # attribute types, column defaults, and query constraints.
     class SchemaContext # :nodoc:
       attr_reader :model_class, :columns_hash, :columns, :column_names,
                   :attribute_types, :content_columns
 
-      def initialize(model_class)
+      def initialize(model_class, query_constraints_list: nil)
         @model_class = model_class
+        @explicit_query_constraints_list = query_constraints_list&.map { |column| -column.to_s }.freeze
+        @has_query_constraints = @explicit_query_constraints_list
+        @query_constraints_list = @explicit_query_constraints_list if @explicit_query_constraints_list
         @schema_loaded = false
+        @schema_loading = false
       end
 
       def table_name
@@ -71,8 +75,32 @@ module ActiveRecord
         @schema_loaded
       end
 
+      def schema_loading?
+        @schema_loading
+      end
+
+      def has_query_constraints?
+        @has_query_constraints
+      end
+
+      def query_constraints_list
+        return @query_constraints_list if defined?(@query_constraints_list)
+
+        @query_constraints_list =
+          if model_class.base_class? || primary_key != model_class.base_class.primary_key
+            primary_key if primary_key.is_a?(Array)
+          else
+            model_class.base_class.query_constraints_list
+          end
+      end
+
+      def composite_query_constraints_list
+        @composite_query_constraints_list ||= query_constraints_list || Array(primary_key).freeze
+      end
+
       def load_schema!
         return if @schema_loaded
+        @schema_loading = true
 
         unless table_name
           raise ActiveRecord::TableNotSpecified, "#{model_class} has no table configured. Set one with #{model_class}.table_name="
@@ -103,6 +131,9 @@ module ActiveRecord
           hash.default = ActiveModel::Type.default_value
         end
 
+        query_constraints_list
+        composite_query_constraints_list
+
         @content_columns = @columns.reject do |c|
           Array(primary_key).include?(c.name) ||
           c.name == model_class.inheritance_column ||
@@ -110,6 +141,8 @@ module ActiveRecord
         end.freeze
 
         @schema_loaded = true
+      ensure
+        @schema_loading = false
       end
     end
   end

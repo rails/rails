@@ -703,6 +703,52 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal ["blog_id", "blog_post_id"], blog_post_foreign_key
   end
 
+  def test_model_derived_association_keys_follow_the_current_schema_context
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "sharded_blog_posts"
+      self.primary_key = :id
+
+      def self.name = "ContextualBlogPost"
+
+      class << self
+        attr_accessor :current_test_schema_context
+
+        def schema_context_without_loading
+          current_test_schema_context || super
+        end
+      end
+    end
+
+    default_context = ActiveRecord::ModelSchema::SchemaContext.new(model)
+    constrained_context = ActiveRecord::ModelSchema::SchemaContext.new(
+      model,
+      query_constraints_list: [:blog_id, :id]
+    )
+
+    [default_context, constrained_context].each do |context|
+      model.current_test_schema_context = context
+      context.load_schema!
+    end
+
+    expectations = {
+      default_context => ["contextual_blog_post_id", "id"],
+      constrained_context => [["blog_id", "contextual_blog_post_id"], ["blog_id", "id"]],
+    }
+
+    [expectations.keys, expectations.keys.reverse].each do |contexts|
+      reflection = ActiveRecord::Reflection.create(:has_many, :comments, nil, {}, model)
+
+      contexts.each do |context|
+        model.current_test_schema_context = context
+        expected_foreign_key, expected_primary_key = expectations.fetch(context)
+        assert_equal expected_foreign_key, reflection.foreign_key
+        assert_equal expected_primary_key, reflection.active_record_primary_key
+      end
+    end
+  ensure
+    model.current_test_schema_context = nil if model
+  end
+
   def test_has_many_foreign_key_derived_from_inverse_with_composite_foreign_key
     reflection = Sharded::BlogPost.reflect_on_association(:comments_with_inverse)
     assert_equal ["blog_id", "blog_post_id"], reflection.foreign_key
