@@ -150,7 +150,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
         end
       end
 
-      model.before_destroy(->(o) { o.association(reflection.name).handle_dependency })
+      name = reflection.name
+      model.before_destroy(->(o) { o.association(name).handle_dependency })
     end
 
     def self.add_after_commit_jobs_callback(model, dependent)
