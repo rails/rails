@@ -88,4 +88,38 @@ class BaseTest < ActionCable::TestCase
     assert_same ActionCable::Configuration, ActionCable::Server::Configuration
     assert_instance_of ActionCable::Configuration, ActionCable::Server::Base.config
   end
+
+  test "ActionCable.server uses configured server class" do
+    server_class = Class.new do
+      attr_reader :config
+
+      def initialize(config:)
+        @config = config
+      end
+    end
+
+    with_server_class(server_class) do
+      assert_instance_of server_class, ActionCable.server
+      assert_same ActionCable.config, ActionCable.server.config
+    end
+  end
+
+  private
+    def with_server_class(server_class)
+      previous_server_class = ActionCable.config.server_class
+      previous_server = ActionCable.instance_variable_get(:@server) if ActionCable.instance_variable_defined?(:@server)
+
+      ActionCable.instance_variable_set(:@server, nil)
+      ActionCable.config.server_class = server_class
+
+      yield
+    ensure
+      ActionCable.config.server_class = previous_server_class
+
+      if defined?(previous_server)
+        ActionCable.instance_variable_set(:@server, previous_server)
+      else
+        ActionCable.instance_variable_set(:@server, nil)
+      end
+    end
 end
