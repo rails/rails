@@ -262,6 +262,19 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal Money, Customer.reflect_on_aggregation(:balance).klass
   end
 
+  def test_reflection_hashes_are_frozen
+    assert_predicate Topic.aggregate_reflections, :frozen?
+    assert_predicate Customer.aggregate_reflections, :frozen?
+    assert_predicate Topic._reflections, :frozen?
+  end
+
+  if RUBY_VERSION >= "4.0"
+    def test_empty_aggregate_reflections_can_be_read_from_a_ractor
+      assert Ractor.shareable?(Topic.aggregate_reflections)
+      assert_equal({}, Ractor.new { Topic.aggregate_reflections }.value)
+    end
+  end
+
   def test_reflect_on_all_autosave_associations
     expected = Pirate.reflect_on_all_associations.select { |r| r.options[:autosave] }
     received = Pirate.reflect_on_all_autosave_associations
