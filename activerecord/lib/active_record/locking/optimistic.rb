@@ -139,6 +139,8 @@ module ActiveRecord
               MSG
             end
 
+            remember_locking_column_before_savepoint(lock_attribute_was)
+
             self[locking_column] += 1
 
             affected_rows = self.class._update_record(
@@ -156,6 +158,33 @@ module ActiveRecord
           rescue Exception
             @attributes[locking_column] = lock_attribute_was
             raise
+          end
+        end
+
+        # Records the locking column value as it stands just before a save that
+        # happens inside a savepoint (a +requires_new: true+ block). A savepoint
+        # rollback only reverts the row to the point where the savepoint was
+        # created, so this pre-save value, rather than the snapshot's pristine
+        # transaction-start value, is what the in-memory record must be reset to.
+        # See +restore_transaction_record_state+.
+        def remember_locking_column_before_savepoint(lock_attribute)
+          self.class.with_connection do |connection|
+            # The outermost transaction lives at depth 1 and is restored in full
+            # from the snapshot; only deeper savepoints (which roll back partially)
+            # need the intermediate value captured here.
+            depth = connection.open_transactions
+            return unless depth > 1
+
+            states = (@_optimistic_locking_savepoint_states ||= {})
+            uuid = connection.current_transaction.user_transaction.uuid
+            # Only the first bump inside a given savepoint matters. Key by depth so
+            # the rollback can find it, but track the savepoint's identity too so a
+            # fresh sibling savepoint (which reuses the depth) replaces a stale entry
+            # left behind by a committed sibling.
+            existing = states[depth]
+            if existing.nil? || existing.first != uuid
+              states[depth] = [uuid, lock_attribute.value]
+            end
           end
         end
 
