@@ -67,7 +67,7 @@ module ActionCable
           # A callback must be executed within the channel context
           callback = -> { instance_exec(&timer_callback) }
 
-          connection.executor.timer(every) do
+          connection.timer(every) do
             connection.perform_work callback, :call
           end
         end
