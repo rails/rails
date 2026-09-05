@@ -493,6 +493,8 @@ the Composite Primary Keys guide for the `find_by(id:)` behavior.
 
 #### Dynamic Finder Methods
 
+NOTE: Dynamic finder methods are a mildly deprecated.
+
 For every field (also known as an attribute) you define in your table, Active
 Record dynamically provides a finder method. If you have a field called
 `first_name` on your `Customer` model for example, you get the
@@ -502,9 +504,6 @@ Record dynamically provides a finder method. If you have a field called
 store(dev)> Customer.find_by_first_name("Bhumi")
 => #<Customer id: 25, first_name: "Bhumi">
 ```
-
-If you also have a `locked` field on the `Customer` model, you also get a
-`find_by_locked` method.
 
 You can specify an exclamation point (`!`) on the end of the dynamic finders to
 get them to raise an `ActiveRecord::RecordNotFound` error if they do not return
