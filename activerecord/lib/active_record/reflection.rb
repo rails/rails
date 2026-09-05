@@ -160,6 +160,70 @@ module ActiveRecord
     #     ThroughReflection
     #     PolymorphicReflection
     #     RuntimeReflection
+    # Preserves the relationship between columns on both sides of an association.
+    # Query constraint pairs precede writable foreign key pairs.
+    class QueryKeyMapping # :nodoc:
+      include Enumerable
+
+      attr_reader :query_constraint_pairs, :foreign_key_pairs,
+        :active_record_columns, :associated_record_columns,
+        :foreign_key_active_record_columns, :foreign_key_associated_record_columns
+
+      def self.normalize_query_constraints(query_constraints)
+        return unless query_constraints
+
+        query_constraints = [query_constraints] unless query_constraints.is_a?(Array)
+        query_constraints.flat_map do |constraint|
+          case constraint
+          when Symbol, String
+            column = -constraint.to_s
+            [[column, column].freeze]
+          when Hash
+            constraint.map do |active_record_column, associated_record_column|
+              [-active_record_column.to_s, -associated_record_column.to_s].freeze
+            end
+          end
+        end.uniq.freeze
+      end
+
+      def initialize(constraints:, foreign_key:)
+        @query_constraints_declared = !constraints.nil?
+        @query_constraint_pairs = freeze_pairs(constraints || [])
+        @foreign_key_pairs = freeze_pairs(foreign_key)
+        @pairs = [*@query_constraint_pairs, *@foreign_key_pairs].freeze
+        @active_record_columns = @pairs.map { |active_record_column,| active_record_column }.freeze
+        @associated_record_columns = @pairs.map { |_, associated_record_column| associated_record_column }.freeze
+        @foreign_key_active_record_columns = @foreign_key_pairs.map { |active_record_column,| active_record_column }.freeze
+        @foreign_key_associated_record_columns = @foreign_key_pairs.map { |_, associated_record_column| associated_record_column }.freeze
+        freeze
+      end
+
+      def each(&block)
+        @pairs.each(&block)
+      end
+
+      def active_record_key
+        key_for(active_record_columns)
+      end
+
+      def associated_record_key
+        key_for(associated_record_columns)
+      end
+
+      def values_for(active_record)
+        active_record_columns.map { |column| active_record.read_attribute(column) }
+      end
+
+      private
+        def freeze_pairs(pairs)
+          pairs.map { |pair| pair.frozen? ? pair : pair.freeze }.freeze
+        end
+
+        def key_for(columns)
+          @query_constraints_declared || columns.length > 1 ? columns : columns.first
+        end
+    end
+
     class AbstractReflection # :nodoc:
       def initialize
         @class_name = nil
@@ -208,16 +272,11 @@ module ActiveRecord
 
         scope_chain_items.inject(klass_scope, &:merge!)
 
-        primary_key_column_names = Array(join_primary_key)
-        foreign_key_column_names = Array(join_foreign_key)
+        query_key_mapping(foreign_klass).each do |active_record_column, associated_record_column|
+          associated_record_attribute = predicate_builder.predicate_attribute(table[associated_record_column])
+          active_record_attribute = predicate_builder.predicate_attribute(foreign_table[active_record_column])
 
-        primary_foreign_key_pairs = primary_key_column_names.zip(foreign_key_column_names)
-
-        primary_foreign_key_pairs.each do |primary_key_column_name, foreign_key_column_name|
-          primary_key_attribute = predicate_builder.predicate_attribute(table[primary_key_column_name])
-          foreign_key_attribute = predicate_builder.predicate_attribute(foreign_table[foreign_key_column_name])
-
-          klass_scope.where!(primary_key_attribute.eq(foreign_key_attribute))
+          klass_scope.where!(associated_record_attribute.eq(active_record_attribute))
         end
 
         if klass.finder_needs_type_condition?
@@ -537,18 +596,6 @@ module ActiveRecord
         @extensions = options[:extend] ? Array(options[:extend]) : FROZEN_EMPTY_ARRAY
         @extensions = @extensions.dup.freeze unless @extensions.frozen?
 
-        if options[:query_constraints]
-          raise ConfigurationError, <<~MSG.squish
-            Setting `query_constraints:` option on `#{active_record}.#{macro} :#{name}` is not allowed.
-            To get the same behavior, use the `foreign_key` option instead.
-          MSG
-        end
-
-        # If the foreign key is an array, set query constraints options and don't use the foreign key
-        if options[:foreign_key].is_a?(Array)
-          options[:query_constraints] = options.delete(:foreign_key)
-        end
-
         @deprecated = !!options[:deprecated]
 
         ensure_option_not_given_as_class!(:class_name)
@@ -568,15 +615,46 @@ module ActiveRecord
         @join_table ||= -(options[:join_table]&.to_s || derive_join_table)
       end
 
+      # The complete column mapping used to query association targets. Every pair
+      # is [column_on_active_record, column_on_associated_record]. Additive query
+      # constraints precede the writable foreign key relationship.
+      def query_key_mapping(klass = nil)
+        if polymorphic?
+          return build_query_key_mapping(klass) unless klass
+
+          (@query_key_mappings ||= Concurrent::Map.new).compute_if_absent(klass) do
+            build_query_key_mapping(klass)
+          end
+        else
+          @query_key_mapping ||= build_query_key_mapping(klass)
+        end
+      end
+
+      # The columns on the association target's table that additive query
+      # constraints match on. They take part in querying the association, but are
+      # never written when building or assigning a record — only the foreign key
+      # is. See +ForeignAssociation#set_owner_attributes+.
+      def query_constraints_target_columns
+        query_constraint_pairs&.map { |_, associated_record_column| associated_record_column } || []
+      end
+
       def foreign_key(infer_from_inverse_of: true)
         @foreign_key ||= if options[:foreign_key]
           ActiveRecord::Key.for(options[:foreign_key]).name
-        elsif options[:query_constraints]
-          options[:query_constraints].map { |fk| -fk.to_s.freeze }.freeze
         else
+          if options[:query_constraints]
+            query_constraints = options[:query_constraints]
+            query_constraints = [query_constraints] unless query_constraints.is_a?(Array)
+            if query_constraints.any?(Hash)
+              raise ArgumentError,
+                "`query_constraints` with column mapping (Hash) on `#{active_record}.#{macro} :#{name}` " \
+                "requires an explicit `foreign_key` option."
+            end
+          end
+
           derived_fk = derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of)
 
-          if !derived_fk.is_a?(Array) && active_record.has_query_constraints?
+          if !options[:query_constraints] && !derived_fk.is_a?(Array) && active_record.has_query_constraints?
             derived_fk = derive_fk_query_constraints(derived_fk)
           end
 
@@ -596,9 +674,16 @@ module ActiveRecord
         @active_record_primary_key ||=
           if options[:primary_key]
             ActiveRecord::Key.for(options[:primary_key]).name
+          elsif options[:foreign_key].is_a?(Array) ||
+              (active_record.has_query_constraints? && !options[:foreign_key] && !options[:query_constraints])
+            active_record.query_constraints_list
           else
-            derive_primary_key(active_record) { |model| model.query_constraints_list }
+            active_record.primary_key_definition.inferred_id || primary_key(active_record).freeze
           end
+      end
+
+      def query_primary_key(klass = nil)
+        query_key_mapping(klass).associated_record_key
       end
 
       def join_primary_key(klass = nil)
@@ -609,12 +694,26 @@ module ActiveRecord
         type
       end
 
+      def query_foreign_key
+        if polymorphic?
+          if (constraints = query_constraint_pairs)
+            constraint_columns = constraints.map { |active_record_column,| active_record_column }
+            [*constraint_columns, *Array(join_foreign_key)].freeze
+          else
+            join_foreign_key
+          end
+        else
+          query_key_mapping.active_record_key
+        end
+      end
+
       def join_foreign_key
         active_record_primary_key
       end
 
       def check_validity!
         return if @validated
+        query_constraint_pairs
 
         check_validity_of_inverse!
 
@@ -639,6 +738,10 @@ module ActiveRecord
             is not supported.
           MSG
         end
+      end
+
+      def query_key_values_for(owner)
+        Array(query_foreign_key).map { |key| owner.read_attribute(key) }
       end
 
       def join_id_for(owner) # :nodoc:
@@ -745,6 +848,36 @@ module ActiveRecord
       end
 
       private
+        def query_constraint_pairs
+          return unless options[:query_constraints]
+
+          @query_constraint_pairs ||= begin
+            pairs = QueryKeyMapping.normalize_query_constraints(options[:query_constraints])
+            validate_query_constraint_pairs!(pairs)
+            pairs
+          end
+        end
+
+        def build_query_key_mapping(klass)
+          QueryKeyMapping.new(
+            constraints: query_constraint_pairs,
+            foreign_key: Array(join_foreign_key).zip(Array(join_primary_key(klass)))
+          )
+        end
+
+        def validate_query_constraint_pairs!(pairs)
+          query_constraint_foreign_keys = pairs.map do |active_record_column, associated_record_column|
+            belongs_to? ? active_record_column : associated_record_column
+          end
+          overlapping_foreign_keys = Array(foreign_key) & query_constraint_foreign_keys
+
+          if overlapping_foreign_keys.any?
+            raise ArgumentError,
+              "`query_constraints` on `#{active_record}.#{macro} :#{name}` " \
+              "must not include the foreign key columns #{overlapping_foreign_keys.inspect}."
+          end
+        end
+
         # Attempts to find the inverse association name automatically.
         # If it cannot find a suitable inverse association name, it returns
         # +nil+.
@@ -800,9 +933,11 @@ module ActiveRecord
         # Third, we must not have options such as <tt>:foreign_key</tt>
         # which prevent us from correctly guessing the inverse association.
         def can_find_inverse_of_automatically?(reflection, inverse_reflection = false)
+          foreign_key = reflection.options[:foreign_key]
+
           reflection.options[:inverse_of] != false &&
             !reflection.options[:through] &&
-            !reflection.options[:foreign_key] &&
+            (!foreign_key || (foreign_key.is_a?(Array) && !reflection.options[:query_constraints])) &&
             scope_allows_automatic_inverse_of?(reflection, inverse_reflection)
         end
 
@@ -820,11 +955,14 @@ module ActiveRecord
           end
         end
 
-        # Shared by +active_record_primary_key+ and +association_primary_key+ to
-        # resolve the key from +model+ once a custom +primary_key+ is ruled out.
+        # Resolves the key from +model+ once a custom +primary_key+ is ruled out.
         # The block is yielded +model+ to supply its query-constraints list.
+        #
+        # Note: callers handle the association-level +query_constraints+ option
+        # themselves, since its meaning differs by side (and it is decoupled from
+        # +foreign_key+). This only considers the model-level query constraints.
         def derive_primary_key(model)
-          if model.has_query_constraints? || options[:query_constraints]
+          if model.has_query_constraints?
             yield model
           else
             # inferred_id is nil unless the key is composite; otherwise fall back
@@ -953,7 +1091,15 @@ module ActiveRecord
 
         klass ||= self.klass
 
-        if klass.has_query_constraints? && options[:foreign_key] && !options[:query_constraints]
+        # An Array-valued `foreign_key` uses the target's composite query key.
+        if options[:foreign_key].is_a?(Array)
+          return klass.has_query_constraints? ? klass.composite_query_constraints_list : primary_key(klass)
+        end
+
+        # An explicit or derived scalar `foreign_key` handles writes, so the
+        # association's writable key is the target's primary key even when extra
+        # query constraints are layered on for reads.
+        if klass.has_query_constraints? && (options[:foreign_key] || options[:query_constraints])
           return klass.primary_key_definition.inferred_id || primary_key(klass).freeze
         end
 
@@ -989,8 +1135,13 @@ module ActiveRecord
     # Holds all the metadata about a :through association as it was specified
     # in the Active Record class.
     class ThroughReflection < AbstractReflection # :nodoc:
+      # The `query_*` key methods must be delegated the same way as their `join_*`
+      # counterparts (foreign key and key values to +source_reflection+ here,
+      # primary key overridden below), otherwise query-constraint joins would
+      # resolve to the wrong reflection on the chain. Keep the two sets in sync.
       delegate :foreign_key, :foreign_type, :association_foreign_key, :join_id_for, :type,
-               :active_record_primary_key, :join_foreign_key, to: :source_reflection
+               :active_record_primary_key, :join_foreign_key,
+               :query_key_values_for, :query_foreign_key, to: :source_reflection
 
       def initialize(delegate_reflection)
         super()
@@ -1109,6 +1260,14 @@ module ActiveRecord
         else
           primary_key(klass || self.klass)
         end
+      end
+
+      def query_primary_key(klass = self.klass)
+        source_reflection.query_primary_key(klass)
+      end
+
+      def query_key_mapping(klass = self.klass)
+        source_reflection.query_key_mapping(klass)
       end
 
       def join_primary_key(klass = self.klass)
@@ -1260,13 +1419,16 @@ module ActiveRecord
     end
 
     class PolymorphicReflection < AbstractReflection # :nodoc:
-      delegate :klass, :scope, :plural_name, :type, :join_primary_key, :join_foreign_key,
-               :name, :scope_for, to: :@reflection
+      delegate :klass, :scope, :plural_name, :type, :join_primary_key, :join_foreign_key, :name, :scope_for, :query_primary_key, :query_foreign_key, to: :@reflection
 
       def initialize(reflection, previous_reflection)
         super()
         @reflection = reflection
         @previous_reflection = previous_reflection
+      end
+
+      def query_key_mapping(klass = self.klass)
+        @reflection.query_key_mapping(klass)
       end
 
       def join_scopes(table, predicate_builder = nil, klass = self.klass, record = nil) # :nodoc:
@@ -1290,7 +1452,7 @@ module ActiveRecord
     end
 
     class RuntimeReflection < AbstractReflection # :nodoc:
-      delegate :scope, :type, :constraints, :join_foreign_key, to: :@reflection
+      delegate :scope, :type, :constraints, :join_foreign_key, :query_foreign_key, to: :@reflection
 
       def initialize(reflection, association)
         super()
@@ -1304,6 +1466,14 @@ module ActiveRecord
 
       def aliased_table
         klass.arel_table
+      end
+
+      def query_primary_key(klass = self.klass)
+        @reflection.query_primary_key(klass)
+      end
+
+      def query_key_mapping(klass = self.klass)
+        @reflection.query_key_mapping(klass)
       end
 
       def join_primary_key(klass = self.klass)
