@@ -1190,6 +1190,18 @@ class FormTagHelperTest < ActionView::TestCase
       assert_equal ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention,
         on_ractor { ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention }
     end
+
+    test "the settings are readable from a non-main Ractor" do
+      expected = [
+        ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms,
+        ActionView::Helpers::FormTagHelper.default_enforce_utf8,
+      ]
+
+      assert_equal expected, on_ractor {
+        helper = ActionView::Helpers::FormTagHelper
+        [helper.embed_authenticity_token_in_remote_forms, helper.default_enforce_utf8]
+      }
+    end
   end
 
   private
