@@ -83,10 +83,10 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
 
     with_vips_loaders_enabled(*VIPS_MAGICK_LOADERS) do
       variant = blob.variant(resize_to_limit: [20, 20]).processed
-      assert_match(/icon\.png/, variant.url)
+      assert_match(/icon\.webp/, variant.url)
 
       image = read_image(variant)
-      assert_equal "PNG", image.type
+      assert_equal "WEBP", image.type
       assert_equal 20, image.width
       assert_equal 20, image.height
     end
@@ -105,10 +105,10 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
 
     with_vips_loaders_enabled(*VIPS_MAGICK_LOADERS) do
       variant = blob.variant(resize_to_limit: [20, 20]).processed
-      assert_match(/icon\.png/, variant.url)
+      assert_match(/icon\.webp/, variant.url)
 
       image = read_image(variant)
-      assert_equal "PNG", image.type
+      assert_equal "WEBP", image.type
       assert_equal 20, image.width
       assert_equal 20, image.height
     end
@@ -117,10 +117,10 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   test "resized variation of TIFF blob" do
     blob = create_file_blob(filename: "racecar.tif")
     variant = blob.variant(resize_to_limit: [50, 50]).processed
-    assert_match(/racecar\.png/, variant.url)
+    assert_match(/racecar\.webp/, variant.url)
 
     image = read_image(variant)
-    assert_equal "PNG", image.type
+    assert_equal "WEBP", image.type
     assert_equal 50, image.width
     assert_equal 33, image.height
   end
@@ -138,12 +138,34 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
 
     with_vips_loaders_enabled(*VIPS_MAGICK_LOADERS) do
       variant = blob.variant(resize_to_limit: [15, 15]).processed
-      assert_match(/colors\.png/, variant.url)
+      assert_match(/colors\.webp/, variant.url)
+
+      image = read_image(variant)
+      assert_equal "WEBP", image.type
+      assert_equal 15, image.width
+      assert_equal 8, image.height
+    end
+  end
+
+  test "resized variation of TIFF blob with a configured default variant format" do
+    with_default_variant_format(:png) do
+      blob = create_file_blob(filename: "racecar.tif")
+      variant = blob.variant(resize_to_limit: [50, 50]).processed
+      assert_match(/racecar\.png/, variant.url)
 
       image = read_image(variant)
       assert_equal "PNG", image.type
-      assert_equal 15, image.width
-      assert_equal 8, image.height
+      assert_equal 50, image.width
+      assert_equal 33, image.height
+    end
+  end
+
+  test "web image blobs keep their format regardless of the default variant format" do
+    with_default_variant_format(:webp) do
+      blob = create_file_blob(filename: "racecar.jpg")
+      variant = blob.variant(resize_to_limit: [50, 50]).processed
+      assert_match(/racecar\.jpg/, variant.url)
+      assert_equal "JPEG", read_image(variant).type
     end
   end
 
@@ -252,7 +274,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     end
 
     assert_nil blob.send(:format)
-    assert_equal :png, blob.send(:default_variant_format)
+    assert_equal :webp, blob.send(:default_variant_format)
   end
 
   test "variations with dangerous argument string raise UnsupportedImageProcessingArgument" do

@@ -3510,6 +3510,30 @@ module ApplicationTests
       assert_equal false, ActiveJob::Base.enqueue_after_transaction_commit
     end
 
+    test "config.active_storage.default_variant_format defaults to :webp for new apps" do
+      app "development"
+
+      assert_equal :webp, ActiveStorage.default_variant_format
+    end
+
+    test "config.active_storage.default_variant_format can be set for new apps" do
+      app_file "config/initializers/default_variant_format.rb", <<-RUBY
+        Rails.application.config.active_storage.default_variant_format = :jpeg
+      RUBY
+
+      app "development"
+
+      assert_equal :jpeg, ActiveStorage.default_variant_format
+    end
+
+    test "config.active_storage.default_variant_format defaults to :png for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal :png, ActiveStorage.default_variant_format
+    end
+
     test "config.active_job.enqueue_after_transaction_commit can be set to true for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
 
