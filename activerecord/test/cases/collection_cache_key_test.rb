@@ -278,6 +278,32 @@ module ActiveRecord
       end
     end
 
+    test "cache_version for grouped relation" do
+      with_collection_cache_versioning do
+        Developer.delete_all
+        developers = %w[Alpha Beta Beta].map { |name| Developer.create!(name: name) }
+        first_developer_timestamp = 1.second.from_now
+        last_developer_timestamp = 2.seconds.from_now
+        developers.first.update!(updated_at: first_developer_timestamp)
+        developers.last.update!(updated_at: last_developer_timestamp)
+
+        relation = Developer.select("name AS developer_name").distinct.group(:name).order("developer_name DESC")
+        cache_version = relation.cache_version
+        match = /(\d+)-(\d+)\z/.match(cache_version)
+
+        assert_not_nil match
+        assert_equal developers.map(&:name).uniq.size.to_s, match[1]
+        assert_equal last_developer_timestamp.to_fs(ActiveRecord::Base.cache_timestamp_format), match[2]
+
+        limited_cache_version = relation.limit(1).cache_version
+        limited_match = /(\d+)-(\d+)\z/.match(limited_cache_version)
+
+        assert_not_nil limited_match
+        assert_equal 1.to_s, limited_match[1]
+        assert_equal last_developer_timestamp.to_fs(ActiveRecord::Base.cache_timestamp_format), limited_match[2]
+      end
+    end
+
     test "reset will reset cache_version" do
       with_collection_cache_versioning do
         developers = Developer.all
