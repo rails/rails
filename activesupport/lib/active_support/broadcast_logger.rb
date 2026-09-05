@@ -209,6 +209,27 @@ module ActiveSupport
       dispatch(:fatal!)
     end
 
+    # Add the +tags+ to every broadcast that supports tagged logging.
+    #
+    # Without a block, it returns a new BroadcastLogger whose tagging-capable
+    # broadcasts are tagged, so the result can be logged to directly. Broadcasts
+    # that don't support tagging are kept as-is so they keep receiving messages.
+    #
+    #   broadcast.tagged("BCX").info("Hello") # All broadcasts log "[BCX] Hello"
+    #
+    # With a block, the tags are applied to every tagging-capable broadcast for
+    # the duration of the block, which is yielded once with the broadcast logger.
+    #
+    #   broadcast.tagged("BCX") { |logger| logger.info("Hello") }
+    def tagged(*tags, &block)
+      unless block
+        return self.class.new(*@broadcasts.map { |logger| logger.respond_to?(:tagged) ? logger.tagged(*tags) : logger })
+      end
+
+      tagging_loggers = @broadcasts.select { |logger| logger.respond_to?(:tagged) }
+      tagged_yielding_self(tagging_loggers, tags, &block)
+    end
+
     def initialize_copy(other)
       @broadcasts = []
       @progname = other.progname.dup
@@ -217,6 +238,16 @@ module ActiveSupport
     end
 
     private
+      # Applies +tags+ to each tagging-capable +loggers+ by nesting their own
+      # block form (so each cleans up its tags via its own +ensure+, even if the
+      # block raises), then yields +self+ exactly once with every tag active.
+      def tagged_yielding_self(loggers, tags, &block)
+        return yield(self) if loggers.empty?
+
+        logger, *rest = loggers
+        logger.tagged(*tags) { tagged_yielding_self(rest, tags, &block) }
+      end
+
       def dispatch(method, *args, **kwargs, &block)
         if block_given?
           # Maintain semantics that the first logger yields the block
