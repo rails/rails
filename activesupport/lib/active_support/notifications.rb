@@ -354,7 +354,11 @@ module ActiveSupport
 
         # Snapshot subscriptions so a Ractor can restore them onto its own
         # notifier. Skipped for notifiers that don't opt into the protocol.
+        # Only the main Ractor records: non-main Ractors subscribe onto their
+        # own Ractor-local notifier, which must not overwrite the snapshot
+        # (and cannot write module instance variables anyway).
         def record_subscriptions
+          return unless ActiveSupport::Ractors.main?
           return unless notifier.respond_to?(:to_ractor_snapshot)
           self.notifier_subscriptions = ActiveSupport::Ractors.try_make_shareable(
             notifier.to_ractor_snapshot, copy: true

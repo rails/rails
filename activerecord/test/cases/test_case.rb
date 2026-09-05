@@ -42,10 +42,17 @@ module ActiveRecord
     def check_connection_leaks(connection_pools = nil)
       return if in_memory_db?
 
+      # Leak checking is physical-pool maintenance (reaper, owner threads);
+      # inspect the real pools, not the Ractor facades a self-proxy run
+      # resolves by default.
+      connection_pools ||= without_ractor_proxy do
+        ActiveRecord::Base.connection_handler.each_connection_pool.to_a
+      end
+
       # Make sure tests didn't leave a connection owned by some background thread
       # which could lead to some slow wait in a subsequent thread.
       leaked_conn = []
-      (connection_pools || ActiveRecord::Base.connection_handler.each_connection_pool).each do |pool|
+      connection_pools.each do |pool|
         # Ensure all in flights tasks are completed.
         # Otherwise they may still hold a connection.
         if pool.async_executor
@@ -321,8 +328,11 @@ module ActiveRecord
     end
 
     def clean_up_connection_handler
-      handler = ActiveRecord::Base.connection_handler
-      pool_managers = handler.instance_variable_get(:@connection_name_to_pool_manager)
+      # Physical pool-manager surgery: inspect the real pools, not the Ractor
+      # facades a self-proxy run resolves by default.
+      pool_managers = without_ractor_proxy do
+        ActiveRecord::Base.connection_handler.send(:connection_name_to_pool_manager)
+      end
       removed_pool_configs = []
 
       pool_managers.each do |owner, pool_manager|
