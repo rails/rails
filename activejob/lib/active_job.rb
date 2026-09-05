@@ -61,6 +61,15 @@ module ActiveJob
   singleton_class.attr_accessor :verbose_enqueue_logs
   self.verbose_enqueue_logs = false
 
+  ##
+  # :singleton-method: immutable_arguments
+  #
+  # When true, job arguments are deep-duped before +perform+ so mutations inside
+  # the job do not leak into later retries. Defaults to false; new applications
+  # using +config.load_defaults 8.2+ enable this automatically.
+  singleton_class.attr_accessor :immutable_arguments
+  self.immutable_arguments = false
+
   # Push many jobs onto the queue at once without running enqueue callbacks.
   # Queue adapters may communicate the enqueue status of each job by setting
   # successfully_enqueued and/or enqueue_error on the passed-in job instances.
