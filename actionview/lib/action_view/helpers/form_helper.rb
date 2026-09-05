@@ -7,7 +7,6 @@ require "action_view/helpers/active_model_helper"
 require "action_view/model_naming"
 require "action_view/record_identifier"
 require "active_support/code_generator"
-require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/inflections"
@@ -476,11 +475,12 @@ module ActionView
       end
       private :apply_form_for_options!
 
-      mattr_accessor :form_with_generates_remote_forms, default: true
+      singleton_class.attr_accessor :form_with_generates_remote_forms, :form_with_generates_ids, :multiple_file_field_include_hidden
+      delegate :form_with_generates_remote_forms, :form_with_generates_ids, :multiple_file_field_include_hidden, to: FormHelper
 
-      mattr_accessor :form_with_generates_ids, default: false
-
-      mattr_accessor :multiple_file_field_include_hidden, default: false
+      self.form_with_generates_remote_forms = true
+      self.form_with_generates_ids = false
+      self.multiple_file_field_include_hidden = false
 
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
