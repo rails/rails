@@ -30,4 +30,8 @@ module ActiveStorage
   # Raised when a storage key resolves to a path outside the service's root
   # directory, indicating a potential path traversal attack.
   class InvalidKeyError < Error; end
+
+  # Raised when a service fails to authorize with its backing cloud provider,
+  # e.g. expired or invalid credentials.
+  class AuthorizationError < Error; end
 end
