@@ -2761,6 +2761,7 @@ module ActionView
   end
 
   ActiveSupport.on_load(:action_view) do
-    cattr_accessor :default_form_builder, instance_writer: false, instance_reader: false, default: ::ActionView::Helpers::FormBuilder
+    singleton_class.attr_accessor :default_form_builder
+    self.default_form_builder = ::ActionView::Helpers::FormBuilder
   end
 end

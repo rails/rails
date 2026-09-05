@@ -56,6 +56,16 @@ class BaseRactorTest < ActiveSupport::TestCase
       ActionView::Base.field_error_proc = old_proc
     end
   end
+
+  class DefaultFormBuilderRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "default_form_builder is readable from a non-main Ractor" do
+      assert_equal ActionView::Base.default_form_builder,
+        on_ractor { ActionView::Base.default_form_builder }
+    end
+  end
 end
 
 class BaseDefaultFormatsRactorTest < ActiveSupport::TestCase
