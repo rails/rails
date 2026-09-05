@@ -2574,3 +2574,43 @@ class AutosavePolymorphicShardedPrimaryKeyTest < ActiveRecord::TestCase
     assert_equal shipment, adjustment.reload.adjustable
   end
 end
+
+class TestAutosaveAssociationOnADuplicatedRecord < ActiveRecord::TestCase
+  def test_dup_does_not_inherit_the_autosave_callbacks_guard
+    pirate = Pirate.create!(catchphrase: "Aye")
+    pirate.instance_variable_set(:@_already_called, { autosave_associated_records_for_birds: true })
+
+    assert_nil pirate.dup.instance_variable_get(:@_already_called)
+  end
+
+  def test_dup_saves_the_records_staged_on_it_while_the_original_guard_is_raised
+    pirate = Pirate.create!(catchphrase: "Aye")
+    pirate.instance_variable_set(:@_already_called, { autosave_associated_records_for_birds: true })
+
+    copy = pirate.dup
+    copy.birds = [Bird.new(name: "Bluebird")]
+    copy.save!
+
+    assert_equal ["Bluebird"], copy.reload.birds.map(&:name)
+  end
+
+  def test_dup_taken_from_inside_the_autosave_callback_saves_its_own_records
+    pirate = Pirate.create!(catchphrase: "Aye")
+    bird = pirate.birds.create!(name: "Bluebird")
+    copy = nil
+
+    Bird.define_method(:duplicate_the_pirate) do
+      copy = pirate.dup
+      copy.birds = [Bird.new(name: "Cockatoo")]
+      copy.save!
+    end
+    Bird.set_callback(:update, :after, :duplicate_the_pirate)
+
+    pirate.update!(birds_attributes: [{ id: bird.id, name: "Canary" }])
+
+    assert_equal ["Cockatoo"], copy.reload.birds.map(&:name)
+  ensure
+    Bird.skip_callback(:update, :after, :duplicate_the_pirate, raise: false)
+    Bird.remove_method(:duplicate_the_pirate) if Bird.method_defined?(:duplicate_the_pirate)
+  end
+end
