@@ -143,12 +143,6 @@ And this `where` call behaves the same way:
 Order.where(id: 5)
 ```
 
-Take caution when using `find_by(id:)` on models where `:id` is not the primary
-key, such as composite primary key models. See the [Active Record Querying][]
-guide to learn more.
-
-[Active Record Querying]: active_record_querying.html#conditions-with-id
-
 Associations between Models with Composite Primary Keys
 -------------------------------------------------------
 
