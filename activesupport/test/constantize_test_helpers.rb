@@ -3,9 +3,9 @@
 module ConstantizeTestHelpers
   ROOT_DIR  = File.realpath("#{__dir__}/autoloading_fixtures")
   AUTOLOADS = {
-    "RaisesLoadError"     => "#{ROOT_DIR}/raises_load_error",
-    "RaisesNameError"     => "#{ROOT_DIR}/raises_name_error",
-    "RaisesNoMethodError" => "#{ROOT_DIR}/raises_no_method_error"
+    "RaisesLoadError"     => "#{ROOT_DIR}/raises_load_error".freeze,
+    "RaisesNameError"     => "#{ROOT_DIR}/raises_name_error".freeze,
+    "RaisesNoMethodError" => "#{ROOT_DIR}/raises_no_method_error".freeze
   }.freeze
 
   def with_autoloading_fixtures

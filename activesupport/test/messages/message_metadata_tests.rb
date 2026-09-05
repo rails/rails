@@ -132,8 +132,8 @@ module MessageMetadataTests
 
     DATA = [
       "a string",
-      { "a_number" => 123, "a_time" => Time.local(2004), "an_object" => { "key" => "value" } },
-      ["a string", 123, Time.local(2004), { "key" => "value" }],
+      { "a_number" => 123, "a_time" => Time.local(2004), "an_object" => { "key" => "value" }.freeze }.freeze,
+      ["a string", 123, Time.local(2004), { "key" => "value" }.freeze].freeze,
     ].freeze
 
     def using_message_serializer_for_metadata(value = true)
