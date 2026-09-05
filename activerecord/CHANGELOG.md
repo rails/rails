@@ -59,6 +59,25 @@
 
     *viralpraxis*
 
+*   Add `ActiveRecord::Base.skip_callback_monitor` to allow applications to record or
+    react whenever persistence methods bypass Active Record callbacks.
+
+    The hook receives the current caller object as its argument:
+    the record instance for `update_columns`/`delete`, the relation for
+    `update_all`/`delete_all`, and the `InsertAll` instance for
+    `insert_all`/`insert_all!`/`upsert_all`.
+
+    ```ruby
+    class ApplicationRecord < ActiveRecord::Base
+      self.abstract_class = true
+      self.skip_callback_monitor = ->(caller) {
+        Rails.logger.warn "#{caller.class} bypassed Active Record callbacks"
+      }
+    end
+    ```
+
+    *OuYangJinTing*
+
 *   Add `config.active_record.schema_ignored_tables` to exclude tables from both the
     schema cache and the schema file.
 
