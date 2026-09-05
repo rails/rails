@@ -4147,6 +4147,14 @@ production:
   advisory_locks: false
 ```
 
+Active Record also uses prepared statements by default. To disable prepared statements, set `prepared_statements` to `false`:
+
+```yaml
+production:
+  adapter: postgresql
+  prepared_statements: false
+```
+
 If enabled, Active Record will create up to `1000` prepared statements per database connection by default. To modify this behavior you can set `statement_limit` to a different value:
 
 ```yaml
