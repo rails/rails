@@ -34,8 +34,12 @@ module ActiveModel
     end
 
     def keys
-      keys = values.keys | types.keys | @attributes.keys
-      keys.keep_if { |name| self[name].initialized? }
+      names = values.keys
+      names.keep_if { |name| !@attributes.key?(name) || self[name].initialized? } unless @attributes.empty?
+      (types.keys | @attributes.keys).each do |name|
+        names << name if !values.key?(name) && self[name].initialized?
+      end
+      names
     end
 
     def fetch_value(name, &block)
