@@ -85,6 +85,26 @@
     [CVE-2026-66066]
 
     *Mike Dalessio*
+*   Validate variant transformations against a libvips allowlist when using the
+    Vips transformer.
+
+    The fix for CVE-2025-24293 only guarded the `ImageMagick` transformer, so
+    transformation names reaching the `Vips` transformer were dispatched to
+    libvips without any validation.
+
+    Method and argument validation now lives in
+    `ActiveStorage::Transformers::ImageProcessingTransformer`, and each backend
+    declares its own allowlist, since ImageMagick options and libvips operations
+    do not share the same vocabulary. ImageMagick keeps
+    `ActiveStorage.supported_image_processing_methods`, and libvips uses the new
+    `ActiveStorage.supported_vips_image_processing_methods`, which can be
+    extended with `config.active_storage.supported_vips_image_processing_methods`.
+
+    Transformers inheriting from
+    `ActiveStorage::Transformers::ImageProcessingTransformer` are now required to
+    implement `supported_methods`.
+
+    *Nicolas Vandenbogaerde*
 
 *   Fix `MirrorService#mirror` losing blob metadata when copying to mirrors.
 
