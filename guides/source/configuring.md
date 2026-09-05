@@ -4680,7 +4680,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 Database Pooling
 ----------------
 
-Active Record database connections are managed by [`ActiveRecord::ConnectionAdapters::ConnectionPool`][] which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 5 and can be configured in `database.yml`.
+Active Record database connections are managed by [`ActiveRecord::ConnectionAdapters::ConnectionPool`][] which ensures that a connection pool synchronizes the amount of thread access to a limited number of database connections. This limit defaults to 5 and can be configured in `database.yml` with the `max_connections` option.
 
 ```yaml
 development:
@@ -4689,6 +4689,19 @@ development:
   max_connections: 5
   timeout: 5000
 ```
+
+You can also set `min_connections` to tell the pool how many connections to open up front and keep available even while idle (it defaults to `0`, meaning connections are only opened on demand):
+
+```yaml
+development:
+  adapter: sqlite3
+  database: storage/development.sqlite3
+  max_connections: 5
+  min_connections: 1
+  timeout: 5000
+```
+
+NOTE: The `max_connections` option was previously named `pool`. The `pool` option is still supported and is treated as an alias for `max_connections`, but `max_connections` is now preferred. Setting both `pool` and `max_connections` to different values, or combining `pool` with `min_connections`, raises an error.
 
 Since the connection pooling is handled inside of Active Record by default, all application servers (Thin, Puma, Unicorn, etc.) should behave the same. The database connection pool is initially empty. As demand for connections increases it will create them until it reaches the connection pool limit.
 
