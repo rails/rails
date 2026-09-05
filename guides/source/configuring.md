@@ -4661,15 +4661,17 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `ensure_autoload_once_paths_as_subset`: Ensures that the `config.autoload_once_paths` only contains paths from `config.autoload_paths`. If it contains extra paths, then an exception will be raised.
 
-* `add_to_prepare_blocks`: The block for every `config.to_prepare` call in the application, a railtie, or engine is added to the `to_prepare` callbacks for Action Dispatch which will be run per request in development, or before the first request in production.
-
-* `add_builtin_route`: If the application is running under the development environment then this will append the route for `rails/info/properties` to the application routes. This route provides the detailed information such as Rails and Ruby version for `public/index.html` in a default Rails application.
-
 * `build_middleware_stack`: Builds the middleware stack for the application, returning an object which has a `call` method which takes a Rack environment object for the request.
+
+* `add_to_prepare_blocks`: The block for every `config.to_prepare` call in the application, a railtie, or engine is added to `app.reloader.to_prepare`. These run after the middleware stack is built and before eager loading.
+
+* `run_prepare_callbacks`: Calls `app.reloader.prepare!` so those `to_prepare` blocks run at boot. In development they run again after a reload; in production and test they run once.
 
 * `eager_load!`: If `config.eager_load` is `true`, runs the `config.before_eager_load` hooks and then calls `eager_load!` which will load all `config.eager_load_namespaces`.
 
 * `finisher_hook`: Provides a hook for after the initialization of process of the application is complete, as well as running all the `config.after_initialize` blocks for the application, railties, and engines.
+
+* `add_internal_routes`: If the application is running under the development environment, prepends the `/rails/info` routes (properties, routes, notes, and index) and the Chrome DevTools well-known path. This replaced `add_builtin_route`.
 
 * `set_routes_reloader_hook`: Configures Action Dispatch to reload the routes file using `ActiveSupport::Callbacks.to_run`.
 
