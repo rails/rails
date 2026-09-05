@@ -233,23 +233,25 @@ module ActiveSupport
   #
   module Notifications
     class << self
-      attr_accessor :notifier_subscriptions # :nodoc:
+      attr_reader :subscription_registry # :nodoc:
 
       def notifier
         return @notifier if ActiveSupport::Ractors.main?
 
-        Ractor[:__notifier] ||= begin
-          fanout = Fanout.new
-          set_subscriptions(fanout)
+        registry = subscription_registry
+        notifier = ActiveSupport::Ractors.store_if_absent(:__notifier) { Fanout.new }
 
-          fanout
+        if registry && !notifier.subscription_registry.equal?(registry)
+          notifier.subscription_registry = registry
         end
+
+        notifier
       end
 
       def notifier=(notifier)
         @notifier = notifier
 
-        record_subscriptions
+        publish_subscription_registry
       end
 
       # Returns a singleton no-op instrumenter that executes blocks without
@@ -311,7 +313,7 @@ module ActiveSupport
       #
       def subscribe(pattern = nil, callback = nil, prepend: false, &block)
         subscriber = notifier.subscribe(pattern, callback, monotonic: false, prepend: prepend, &block)
-        record_subscriptions
+        publish_subscription_registry
 
         subscriber
       end
@@ -324,7 +326,7 @@ module ActiveSupport
       # two events.
       def monotonic_subscribe(pattern = nil, callback = nil, prepend: false, &block)
         subscriber = notifier.subscribe(pattern, callback, monotonic: true, prepend: prepend, &block)
-        record_subscriptions
+        publish_subscription_registry
 
         subscriber
       end
@@ -333,37 +335,29 @@ module ActiveSupport
         subscriber = notifier.subscribe(pattern, callback, monotonic: monotonic)
         yield
       ensure
-        unsubscribe(subscriber)
+        notifier.unsubscribe(subscriber)
       end
 
       def unsubscribe(subscriber_or_name)
         subscriber = notifier.unsubscribe(subscriber_or_name)
-        record_subscriptions
+        publish_subscription_registry
 
         subscriber
       end
 
       def instrumenter
-        registry[notifier] ||= Instrumenter.new(notifier)
+        instrumenters[notifier] ||= Instrumenter.new(notifier)
       end
 
       private
-        def registry
+        def instrumenters
           ActiveSupport::IsolatedExecutionState[:active_support_notifications_registry] ||= {}
         end
 
-        # Snapshot subscriptions so a Ractor can restore them onto its own
-        # notifier. Skipped for notifiers that don't opt into the protocol.
-        def record_subscriptions
-          return unless notifier.respond_to?(:to_ractor_snapshot)
-          self.notifier_subscriptions = ActiveSupport::Ractors.try_make_shareable(
-            notifier.to_ractor_snapshot, copy: true
-          )
-        end
+        def publish_subscription_registry
+          return @subscription_registry = nil unless notifier.respond_to?(:subscription_registry)
 
-        def set_subscriptions(fanout)
-          return unless notifier_subscriptions && fanout.respond_to?(:load_ractor_snapshot)
-          fanout.load_ractor_snapshot(notifier_subscriptions)
+          @subscription_registry = ActiveSupport::Ractors.try_make_shareable(notifier.subscription_registry, copy: true)
         end
     end
 

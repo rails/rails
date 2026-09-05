@@ -160,8 +160,7 @@ class FileSystemResolverRactorTest < ActiveSupport::TestCase
 
       # Make sure subscriptions are Ractor-shareable
       ActiveSupport::Ractors.unshareable_proc_action = :raise
-      # Nothing subscribes after, so record manually
-      ActiveSupport::Notifications.send(:record_subscriptions)
+      Ractor.make_shareable(ActiveSupport::Notifications.subscription_registry)
 
       resolver = ActionView::FileSystemResolver.new(dir)
       resolver.eager_load_templates
