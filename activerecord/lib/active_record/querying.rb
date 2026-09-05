@@ -69,7 +69,7 @@ module ActiveRecord
 
     # Same as #find_by_sql but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_find_by_sql(sql, binds = [], preparable: nil, allow_retry: false, &block)
-      with_connection do |c|
+      with_query_connection(async: true) do |c|
         _query_by_sql(c, sql, binds, preparable: preparable, allow_retry: allow_retry, async: true)
       end.then do |result|
         _load_from_sql(result, &block)
@@ -126,7 +126,7 @@ module ActiveRecord
 
     # Same as #count_by_sql but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_count_by_sql(sql)
-      with_connection do |c|
+      with_query_connection(async: true) do |c|
         c.select_value(_sql_for_find(sql), "#{name} Count", async: true).then(&:to_i)
       end
     end

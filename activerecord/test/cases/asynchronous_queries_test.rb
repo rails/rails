@@ -187,6 +187,25 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
     end
   end
 
+  def test_async_query_execution_limit_keeps_failures_with_their_query
+    skip unless @connection.async_enabled?
+
+    failure = ActiveRecord::StatementInvalid.new("count failed")
+    matching = ->(intent) { intent.name == "Post Count" }
+    @connection.pool.release_connection
+
+    with_async_query_failures([failure], matching: matching) do
+      ActiveRecord.with_async_query_execution_limit(1) do
+        count = Post.async_count
+        titles = Post.limit(2).async_pluck(:title)
+
+        error = assert_raises(ActiveRecord::StatementInvalid) { count.value }
+        assert_equal "count failed", error.message
+        assert_equal Post.limit(2).pluck(:title), titles.value
+      end
+    end
+  end
+
   private
     def with_async_query_failures(failures, matching:, repeat_last: false)
       adapter_class = @connection.class

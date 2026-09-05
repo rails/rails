@@ -886,8 +886,9 @@ module ActiveRecord
       end
 
       def schedule_query(future_result) # :nodoc:
-        @async_executor.post { future_result.execute_or_skip }
+        accepted = @async_executor.post { future_result.execute_or_skip }
         Thread.pass
+        accepted
       end
 
       def new_connection # :nodoc:

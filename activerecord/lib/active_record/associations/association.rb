@@ -277,7 +277,7 @@ module ActiveRecord
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          klass.with_connection do |c|
+          klass.with_query_connection(async: async) do |c|
             sc.execute(binds, c, async: async) do |record|
               set_inverse_instance(record)
               set_strict_loading(record)

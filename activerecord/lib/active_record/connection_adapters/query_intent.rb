@@ -106,6 +106,7 @@ module ActiveRecord
         @event_buffer = nil
         @log_handle = nil
         @finalized = false
+        @async_query_execution_permit = nil
 
         @retry_budget = nil
       end
@@ -173,6 +174,8 @@ module ActiveRecord
             end
           end
         end
+      ensure
+        release_async_query_execution_permit
       end
 
       # Is this intent still pending (result not yet available)?
@@ -399,11 +402,15 @@ module ActiveRecord
           # Force preprocessing on original thread before queuing
           processed_sql
 
+          @async_query_execution_permit = ActiveRecord::AsyncQueryExecutionSemaphore.claim_reserved_permit
+
           # Detach from original adapter while in queue
           @adapter = nil
 
           # Schedule on the pool's async queue
-          @pool.schedule_query(self)
+          accepted = @pool.schedule_query(self)
+        ensure
+          release_async_query_execution_permit unless accepted
         end
 
         # Heuristically guesses whether this is a write query by examining the outermost
@@ -465,10 +472,16 @@ module ActiveRecord
           rescue => error
             @error = error
           end
+        ensure
+          release_async_query_execution_permit
         end
 
         def can_run_async?
           @allow_async && adapter.async_enabled?
+        end
+
+        def release_async_query_execution_permit
+          @async_query_execution_permit&.release
         end
 
         def run_query!

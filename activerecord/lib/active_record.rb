@@ -97,6 +97,7 @@ module ActiveRecord
     autoload :Aggregations
     autoload :AssociationRelation
     autoload :Associations
+    autoload :AsyncQueryExecutionSemaphore
     autoload :AsynchronousQueriesTracker
     autoload :AttributeAssignment
     autoload :AttributeMethods
@@ -347,6 +348,21 @@ module ActiveRecord
 
   def self.global_executor_concurrency # :nodoc:
     @global_executor_concurrency ||= nil
+  end
+
+  # Limits concurrent queries started by +load_async+ and +async_*+ methods within
+  # the block. Additional calls wait until a previous query completes.
+  #
+  #   ActiveRecord.with_async_query_execution_limit(2) do
+  #     posts = Post.where(published: true).load_async
+  #     count = Comment.async_count
+  #   end
+  #
+  # The limit is shared by all connection pools in the current execution context.
+  # The limit must be a positive integer. Nested calls raise ArgumentError.
+  # Calls made while the caller holds a connection are not limited.
+  def self.with_async_query_execution_limit(limit, &block)
+    AsyncQueryExecutionSemaphore.with(limit, &block)
   end
 
   @permanent_connection_checkout = true
