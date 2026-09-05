@@ -79,6 +79,20 @@ class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
     end
   end
 
+  test "analyzing with variant processing disabled" do
+    previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, :disabled
+
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    metadata = extract_metadata_from(blob)
+
+    assert_equal 4104, metadata[:width]
+    assert_equal 2736, metadata[:height]
+  rescue LoadError
+    ENV["BUILDKITE"] ? raise : skip("Variant processor vips is not installed")
+  ensure
+    ActiveStorage.variant_processor = previous_processor
+  end
+
   test "instrumenting analysis" do
     analyze_with_vips do
       blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
