@@ -1468,6 +1468,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/docker-entrypoint"
   end
 
+  def test_docker_entrypoint_checks_first_two_arguments_so_extra_server_flags_still_trigger_db_prepare
+    run_generator
+
+    assert_file "bin/docker-entrypoint" do |content|
+      assert_match(/if \[ "\$\{1\}" == "\.\/bin\/rails" \] && \[ "\$\{2\}" == "server" \]; then/, content)
+      assert_no_match(/\$\{@: -2:1\}|\$\{@: -1:1\}/, content)
+    end
+  end
+
+  def test_docker_entrypoint_omits_db_prepare_check_when_skipping_active_record
+    run_generator [destination_root, "--skip-active-record"]
+
+    assert_file "bin/docker-entrypoint" do |content|
+      assert_no_match(/db:prepare/, content)
+    end
+  end
+
   def test_env
     run_generator
 
