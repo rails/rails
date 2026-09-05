@@ -169,8 +169,8 @@ module ActionText
       fragment.to_html
     end
 
-    def to_rendered_html_with_layout
-      render layout: "action_text/contents/content", partial: to_partial_path, formats: :html, locals: { content: self }
+    def to_rendered_html_with_layout(locals: {})
+      render layout: "action_text/contents/content", partial: to_partial_path, formats: :html, locals: locals.merge(content: self)
     end
 
     def to_partial_path
@@ -186,6 +186,22 @@ module ActionText
     #     content.to_s # => "<div>safeunsafe</div>"
     def to_s
       to_rendered_html_with_layout
+    end
+
+    # Safely transforms Content into an HTML String, passing any +locals+ through to the partials used to render attachments.
+    #
+    #     @post.body.render_in(view_context, locals: { turbo_frame: "_top" }
+    #
+    # In a view, locals can be passed the same way as when rendering a partial:
+    #
+    #     <%= render @post.body, turbo_frame: "_top" %>
+    #
+    # Attachment partials can then read them from +local_assigns+:
+    #
+    #     <%# app/views/users/_user.html.erb %>
+    #     <%= link_to user.name, user, data: { turbo_frame: local_assigns[:turbo_frame] } %>
+    def render_in(view_context, locals: {}, **options)
+      to_rendered_html_with_layout(locals: locals)
     end
 
     def as_json(*)

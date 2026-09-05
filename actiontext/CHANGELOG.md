@@ -1,3 +1,14 @@
+*   Support rendering ActionText with locals
+
+        <%= render @post.body, turbo_frame: :_top %>
+
+    Attachment partials can then read them from `local_assigns`:
+
+        <%# app/views/users/_user.html.erb %>
+        <%= link_to user.name, user, data: { turbo_frame: local_assigns[:turbo_frame] } %>
+
+    *Chris Oliver*
+
 *   Dispatch all Active Storage `direct-upload:`-prefixed events
 
     Add support for `direct-upload:before-blob-request` and `direct-upload:before-storage-request`.

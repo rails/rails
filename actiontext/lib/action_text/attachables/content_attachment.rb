@@ -26,7 +26,7 @@ module ActionText
       end
 
       def to_html
-        @to_html ||= content_instance.render(content_instance)
+        @to_html ||= content_instance.render(partial: content_instance.to_partial_path, object: content_instance)
       end
 
       def to_s

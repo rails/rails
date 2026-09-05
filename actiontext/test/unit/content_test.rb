@@ -151,6 +151,24 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_not defined?(::ApplicationController)
   end
 
+  test "renders via render_in" do
+    html = "<h1>Hello world</h1>"
+    rendered = content_from_html(html).render_in(ActionController::Base.new.view_context)
+
+    assert_includes rendered, html
+    assert_match %r/\A#{Regexp.escape '<div class="trix-content">'}/, rendered
+  end
+
+  test "render_in passes locals through to attachment partials" do
+    alice = people(:alice)
+    html = %Q(<action-text-attachment sgid="#{alice.attachable_sgid}"></action-text-attachment>)
+
+    ActionText::Content.with_renderer MessagesController.renderer do
+      rendered = content_from_html(html).render_in(ActionController::Base.new.view_context, locals: { role: "admin" })
+      assert_includes rendered, "Alice (admin)"
+    end
+  end
+
   test "does basic sanitization" do
     html = "<div onclick='action()'>safe<script>unsafe</script></div>"
     rendered = content_from_html(html).to_rendered_html_with_layout
