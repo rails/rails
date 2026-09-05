@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -84,20 +85,24 @@ module ActiveSupport
         end
       end
 
-      # Asserts that the block does not cause an event to be reported to +Rails.event+.
+      # Asserts that the block does not cause an event to be reported to `Rails.event`.
       #
       # If no name is provided, passes if evaluated code in the yielded block reports no events.
       #
-      #   assert_no_event_reported do
-      #     service_that_does_not_report_events.perform
-      #   end
+      # ```
+      # assert_no_event_reported do
+      #   service_that_does_not_report_events.perform
+      # end
+      # ```
       #
       # If a name is provided, passes if evaluated code in the yielded block reports no events
       # with that name.
       #
-      #   assert_no_event_reported("user.created") do
-      #     service_that_does_not_report_events.perform
-      #   end
+      # ```
+      # assert_no_event_reported("user.created") do
+      #   service_that_does_not_report_events.perform
+      # end
+      # ```
       def assert_no_event_reported(name = nil, payload: {}, tags: {}, &block)
         events = EventCollector.record(&block)
 
@@ -115,30 +120,36 @@ module ActiveSupport
       end
 
       # Asserts that the block causes an event with the given name to be reported
-      # to +Rails.event+.
+      # to `Rails.event`.
       #
       # Passes if the evaluated code in the yielded block reports a matching event.
       #
-      #   assert_event_reported("user.created") do
-      #     Rails.event.notify("user.created", { id: 123 })
-      #   end
+      # ```
+      # assert_event_reported("user.created") do
+      #   Rails.event.notify("user.created", { id: 123 })
+      # end
+      # ```
       #
       # To test further details about the reported event, you can specify payload and tag matchers.
       #
-      #   assert_event_reported("user.created",
-      #     payload: { id: 123, name: "John Doe" },
-      #     tags: { request_id: /[0-9]+/ }
-      #   ) do
-      #     Rails.event.tagged(request_id: "123") do
-      #       Rails.event.notify("user.created", { id: 123, name: "John Doe" })
-      #     end
+      # ```
+      # assert_event_reported("user.created",
+      #   payload: { id: 123, name: "John Doe" },
+      #   tags: { request_id: /[0-9]+/ }
+      # ) do
+      #   Rails.event.tagged(request_id: "123") do
+      #     Rails.event.notify("user.created", { id: 123, name: "John Doe" })
       #   end
+      # end
+      # ```
       #
       # The matchers support partial matching - only the specified keys need to match.
       #
-      #   assert_event_reported("user.created", payload: { id: 123 }) do
-      #     Rails.event.notify("user.created", { id: 123, name: "John Doe" })
-      #   end
+      # ```
+      # assert_event_reported("user.created", payload: { id: 123 }) do
+      #   Rails.event.notify("user.created", { id: 123, name: "John Doe" })
+      # end
+      # ```
       def assert_event_reported(name, payload: nil, tags: {}, &block)
         events = EventCollector.record(&block)
 
@@ -160,27 +171,31 @@ module ActiveSupport
 
       # Asserts that the provided events were reported, regardless of order.
       #
-      #   assert_events_reported([
-      #     { name: "user.created", payload: { id: 123 } },
-      #     { name: "email.sent", payload: { to: "user@example.com" } }
-      #   ]) do
-      #     create_user_and_send_welcome_email
-      #   end
+      # ```
+      # assert_events_reported([
+      #   { name: "user.created", payload: { id: 123 } },
+      #   { name: "email.sent", payload: { to: "user@example.com" } }
+      # ]) do
+      #   create_user_and_send_welcome_email
+      # end
+      # ```
       #
-      # Supports the same payload and tag matching as +assert_event_reported+.
+      # Supports the same payload and tag matching as `assert_event_reported`.
       #
-      #   assert_events_reported([
-      #     {
-      #       name: "process.started",
-      #       payload: { id: 123 },
-      #       tags: { request_id: /[0-9]+/ }
-      #     },
-      #     { name: "process.completed" }
-      #   ]) do
-      #     Rails.event.tagged(request_id: "456") do
-      #       start_and_complete_process(123)
-      #     end
+      # ```
+      # assert_events_reported([
+      #   {
+      #     name: "process.started",
+      #     payload: { id: 123 },
+      #     tags: { request_id: /[0-9]+/ }
+      #   },
+      #   { name: "process.completed" }
+      # ]) do
+      #   Rails.event.tagged(request_id: "456") do
+      #     start_and_complete_process(123)
       #   end
+      # end
+      # ```
       def assert_events_reported(expected_events, &block)
         events = EventCollector.record(&block)
 
@@ -213,11 +228,13 @@ module ActiveSupport
         assert(true)
       end
 
-      # Allows debug events to be reported to +Rails.event+ for the duration of a given block.
+      # Allows debug events to be reported to `Rails.event` for the duration of a given block.
       #
-      #   with_debug_event_reporting do
-      #     service_that_reports_debug_events.perform
-      #   end
+      # ```
+      # with_debug_event_reporting do
+      #   service_that_reports_debug_events.perform
+      # end
+      # ```
       #
       def with_debug_event_reporting(&block)
         ActiveSupport.event_reporter.with_debug(&block)
