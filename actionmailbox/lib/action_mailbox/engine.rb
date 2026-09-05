@@ -7,6 +7,7 @@ require "active_record/railtie"
 require "active_storage/engine"
 
 require "action_mailbox"
+require "action_mailbox/ingresses/mailgun/request_parser"
 
 module ActionMailbox
   class Engine < Rails::Engine
@@ -16,6 +17,7 @@ module ActionMailbox
     config.action_mailbox = ActiveSupport::OrderedOptions.new
     config.action_mailbox.incinerate = true
     config.action_mailbox.incinerate_after = 30.days
+    config.action_mailbox.mailgun_payload_size_limit = 25.megabytes
 
     config.action_mailbox.queues = ActiveSupport::InheritableOptions.new \
       incineration: :action_mailbox_incineration, routing: :action_mailbox_routing
@@ -37,6 +39,12 @@ module ActionMailbox
         ActionMailbox.ingress = app.config.action_mailbox.ingress
         ActionMailbox.storage_service = app.config.action_mailbox.storage_service
       end
+    end
+
+    initializer "action_mailbox.mailgun_request_parser", before: :build_middleware_stack do |app|
+      app.middleware.insert_before Rack::MethodOverride,
+        ActionMailbox::Ingresses::Mailgun::RequestParser,
+        bytesize_limit: app.config.action_mailbox.mailgun_payload_size_limit
     end
   end
 end
