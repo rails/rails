@@ -2,6 +2,7 @@
 
 # :markup: markdown
 
+require "concurrent/map"
 require "active_support/parameter_filter"
 
 module ActionDispatch
@@ -21,6 +22,17 @@ module ActionDispatch
       ENV_MATCH = [/RAW_POST_DATA/, "rack.request.form_vars"].freeze
       NULL_PARAM_FILTER = ActiveSupport::ParameterFilter.new
       NULL_ENV_FILTER   = ActiveSupport::ParameterFilter.new ENV_MATCH
+
+      # Cache ParameterFilter's because compiling Regexps is expensive and causes extra GC load
+      @parameter_filters_cache = Concurrent::Map.new
+
+      class << self
+        def parameter_filter_for(filters) # :nodoc:
+          # Guard against unbounded growth if an application generates ever-changing filter lists
+          @parameter_filters_cache.clear if @parameter_filters_cache.size > 100
+          @parameter_filters_cache.compute_if_absent(filters) { ActiveSupport::ParameterFilter.new(filters) }
+        end
+      end
       # :startdoc:
 
       def initialize
@@ -67,7 +79,7 @@ module ActionDispatch
       end
 
       def parameter_filter_for(filters) # :doc:
-        ActiveSupport::ParameterFilter.new(filters)
+        FilterParameters.parameter_filter_for(filters)
       end
 
       def filtered_query_string # :doc:
