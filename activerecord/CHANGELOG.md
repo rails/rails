@@ -1,3 +1,7 @@
+*   Avoid quadratic lookups when replacing records in a collection association.
+
+    *Denis Levenko*
+
 *   Keep query block scoped optimizer hints on the subquery for `count` with
     `limit`/`offset`/`distinct` on MySQL.
 
