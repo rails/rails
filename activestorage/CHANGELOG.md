@@ -1,9 +1,17 @@
+*   Serve disk blobs with no content type as `application/octet-stream`
+
+    Serve a disk blob whose signed URL carries no content type as
+    `application/octet-stream`, instead of raising `NameError`.
+
+    *Seb Jacobs*
+
 *   Marcel 2 for content type detection
 
     Broader and more precise MIME type detection, security hardening, and uses canonical types
     instead of aliases (`text/x-yaml` → `application/yaml`).
 
     *Jeremy Daer*
+
 
 *   Allow ffmpeg and ffprobe input arguments to be configured.
 
