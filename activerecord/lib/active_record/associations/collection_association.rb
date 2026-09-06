@@ -422,9 +422,18 @@ module ActiveRecord
 
         def replace_common_records_in_memory(new_target, original_target)
           common_records = intersection(new_target, original_target)
+          return if common_records.empty?
+
+          # Avoid scanning the target for every common record. Keep the first
+          # index for equal records to match Array#index.
+          target_index = {}
+          @target.each_with_index do |record, index|
+            target_index[record] = index unless target_index.key?(record)
+          end
+
           common_records.each do |record|
             skip_callbacks = true
-            replace_on_target(record, skip_callbacks, replace: true)
+            replace_on_target(record, skip_callbacks, replace: true, target_index: target_index)
           end
         end
 
@@ -447,9 +456,13 @@ module ActiveRecord
           records
         end
 
-        def replace_on_target(record, skip_callbacks, replace:, inversing: false)
+        def index_on_target(record, target_index)
+          target_index ? target_index[record] : @target.index(record)
+        end
+
+        def replace_on_target(record, skip_callbacks, replace:, inversing: false, target_index: nil)
           if replace && (!record.new_record? || @replaced_or_added_targets.include?(record))
-            index = @target.index(record)
+            index = index_on_target(record, target_index)
           end
 
           catch(:abort) do
@@ -463,7 +476,7 @@ module ActiveRecord
           yield(record) if block_given?
 
           if !index && @replaced_or_added_targets.include?(record)
-            index = @target.index(record)
+            index = index_on_target(record, target_index)
           end
 
           @replaced_or_added_targets << record if inversing || index || record.new_record?
