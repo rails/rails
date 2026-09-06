@@ -8,6 +8,9 @@ module ActionDispatch
 
     def self.===(other)
       super || (
+        # Rack >= 3.1 tags every request-parsing error with Rack::BadRequest;
+        # the explicit classes keep Rack 3.0 working.
+        defined?(Rack::BadRequest) && Rack::BadRequest === other ||
         defined?(Rack::Utils::ParameterTypeError) && Rack::Utils::ParameterTypeError === other ||
         defined?(Rack::Utils::InvalidParameterError) && Rack::Utils::InvalidParameterError === other ||
         defined?(Rack::QueryParser::ParamsTooDeepError) && Rack::QueryParser::ParamsTooDeepError === other
