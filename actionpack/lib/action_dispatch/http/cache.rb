@@ -35,8 +35,7 @@ module ActionDispatch
 
         def etag_matches?(etag)
           if etag
-            validators = if_none_match_etags
-            validators.include?(etag) || validators.include?("*")
+            if_none_match&.strip == "*" || if_none_match_etags.include?(etag)
           end
         end
 

@@ -1,3 +1,10 @@
+*   Match `If-None-Match` wildcards only when the entire header value is `*`.
+
+    A nonmatching quoted ETag such as `"foo,*,bar"` no longer produces a
+    `304 Not Modified` response.
+
+    *Marcelo Trylesinski*
+
 *   Check `PATCH` and `QUERY` in `assert_recognizes` and `assert_routing` with `method: :all`.
 
     Both assertions only recognized the path for `GET`, `POST`, `PUT` and
