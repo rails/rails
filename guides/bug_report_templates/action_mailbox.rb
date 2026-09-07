@@ -10,6 +10,7 @@ gemfile(true) do
   # gem "rails", github: "rails/rails", branch: "main"
 
   gem "sqlite3"
+  gem "json", "~> 2.0"
 end
 
 require "active_record/railtie"
