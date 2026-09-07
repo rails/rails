@@ -9,6 +9,7 @@ external JavaScript packages into Rails.
 
 After reading this guide, you will know:
 
+- The techniques to deliver and integrate JavaScript with Rails.
 - How to use an Import Map to deliver JavaScript in your Rails app.
 - How to integrate JavaScript bundlers like `esbuild` or `rollup` with Rails.
 - What Turbo is and how Rails integrates with it.
@@ -20,17 +21,36 @@ After reading this guide, you will know:
 Introduction
 ------------
 
-ES modules (ESM) is the standard structure for packaging JavaScript
-code in modern applications. Rails provides two mechanisms to
-deliver JavaScript made for ESM: an
-[import map](#using-a-javascript-import-map), or a
-[JavaScript bundler](#using-a-javascript-bundler). Both of these systems
-integrate with the [Asset Pipeline](asset_pipeline.html) to deliver
-the files to the browser.
+Rails applications typically deliver server-rendered HTML to the browser. In this
+setup, JavaScript is used mainly to add a layer of user interactivity over the HTML
+document.
 
-The [Turbo](#turbo) and [Stimulus](#stimulus) JavaScript libraries (which are
-part of the [Hotwire](https://hotwired.dev) suite) are included in Rails, and
-form the default front-end stack.
+JavaScript files can be delivered individually using an import map, or bundled together
+and shipped as a single file. This guide will cover the pros and cons of each approach,
+as well as Rails' default JavaScript stack composed of [Turbo](#turbo)
+and [Stimulus](#stimulus) (which are part of the [Hotwire](https://hotwired.dev) suite).
+
+NOTE: Rails can also be [used in API-mode](api_app.html) where it speaks JSON or XML,
+but in such a setup, the front-end JavaScript application is usually transmitted independently
+from the Rails app. As such, this guide covers the usage of JavaScript for server-rendered
+applications only.
+
+Modern JavaScript has a standard structure for packaging called
+[ECMAScript modules (ESM)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+Rails provides two mechanisms to deliver JavaScript written for ESM: an
+[import map](#using-a-javascript-import-map), or a
+[JavaScript bundler](#using-a-javascript-bundler).
+
+Legacy JavaScript applications may use another structure such as
+[`CommonJS`](https://en.wikipedia.org/wiki/CommonJS). In such setups, JavaScript
+needs to be compiled and bundled into a single file before transmission to the browser.
+Common bundlers for this approach include [Babel](https://babeljs.io)
+and [Webpack](https://webpack.js.org), but Rails doesn't integrate tightly with these
+tools. You can, however, [deliver pre-built or bespoke JavaScript files](#delivering-bespoke-javascript-files)
+using Rails.
+
+Rails uses the [Asset Pipeline](asset_pipeline.html) to deliver all assets,
+including JavaScript files, to the browser.
 
 Using a JavaScript Import Map
 -----------------------------
@@ -210,6 +230,36 @@ $ bin/rails javascript:install:[bun|esbuild|rollup|webpack]
 When using `jsbundling-rails`, use `bin/dev` to start the JavaScript bundler
 along with Rails server in development. Further information is available in the
 [Asset Pipeline guide](asset_pipeline.html#bundling-and-transpiling-javascript).
+
+Delivering Bespoke JavaScript Files
+-----------------------------------
+
+You may wish to use Rails to deliver a pre-built or bespoke JavaScript file. This is useful
+if your JavaScript application doesn't use ESM, or requires a bundler such as
+[Babel](https://babeljs.io) which isn't natively supported within Rails.
+
+You can reference any JavaScript files in the
+[asset pipeline's load path](asset_pipeline.html#load_paths) using `javascript_include_tag`:
+
+```erb
+<%= javascript_include_tag "application" %>
+```
+
+which will render
+
+```html
+<script src="/assets/application-5bcb24fe.js"></script>
+```
+
+A common setup in this case would be to write your built JavaScript files to `app/assets/builds`
+(which is in the asset pipeline's load path), and load them into your HTML document
+using `javascript_include_tag`.
+
+Configuring your chosen bundler within Rails is out of scope for this guide. All supported bundlers
+are designed to work with ESM and are covered in the previous
+section: [Using a JavaScript Bundler](#using-a-javascript-bundler).
+
+NOTE: Files within `app/assets/builds` are excluded from source control by default.
 
 Adding npm Packages
 -------------------
