@@ -33,6 +33,7 @@ module ActiveModel
   extend ActiveSupport::Autoload
 
   autoload :Access
+  autoload :Aggregations
   autoload :API
   autoload :Attribute
   autoload :Attributes
