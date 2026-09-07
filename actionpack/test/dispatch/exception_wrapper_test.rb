@@ -141,16 +141,15 @@ module ActionDispatch
       template = TestTemplate.new("_app_views_tests_show_html_erb")
       resolver = Data.define(:built_templates).new(built_templates: [template])
 
-      wrapper = nil
       assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
         wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
-      end
 
-      assert_equal [{
-        code: { 1 => "translated @ _app_views_tests_show_html_erb:3" },
-        line_number: 1,
-        trace: wrapper.source_extracts.first[:trace]
-      }], wrapper.source_extracts
+        assert_equal [{
+          code: { 1 => "translated @ _app_views_tests_show_html_erb:3" },
+          line_number: 1,
+          trace: wrapper.source_extracts.first[:trace]
+        }], wrapper.source_extracts
+      end
     end
 
     class_eval "def _app_views_tests_nested_html_erb;
@@ -167,29 +166,28 @@ module ActionDispatch
       template = TestTemplate.new("_app_views_tests_nested_html_erb")
       resolver = Data.define(:built_templates).new(built_templates: [template])
 
-      wrapper = nil
       assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
         wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 5))
-      end
 
-      extracts = wrapper.source_extracts
-      assert_equal({
-        code: { 1 => "translated @ _app_views_tests_nested_html_erb:5" },
-        line_number: 1,
-        trace: extracts[0][:trace]
-      }, extracts[0])
-      # extracts[1] is Array#each (unreliable backtrace across rubies)
-      assert_equal({
-        code: { 1 => "translated @ _app_views_tests_nested_html_erb:4" },
-        line_number: 1,
-        trace: extracts[2][:trace]
-      }, extracts[2])
-      # extracts[3] is Array#each (unreliable backtrace across rubies)
-      assert_equal({
-        code: { 1 => "translated @ _app_views_tests_nested_html_erb:3" },
-        line_number: 1,
-        trace: extracts[4][:trace]
-      }, extracts[4])
+        extracts = wrapper.source_extracts
+        assert_equal({
+          code: { 1 => "translated @ _app_views_tests_nested_html_erb:5" },
+          line_number: 1,
+          trace: extracts[0][:trace]
+        }, extracts[0])
+        # extracts[1] is Array#each (unreliable backtrace across rubies)
+        assert_equal({
+          code: { 1 => "translated @ _app_views_tests_nested_html_erb:4" },
+          line_number: 1,
+          trace: extracts[2][:trace]
+        }, extracts[2])
+        # extracts[3] is Array#each (unreliable backtrace across rubies)
+        assert_equal({
+          code: { 1 => "translated @ _app_views_tests_nested_html_erb:3" },
+          line_number: 1,
+          trace: extracts[4][:trace]
+        }, extracts[4])
+      end
     end
 
     test "#application_trace returns traces only from the application" do
