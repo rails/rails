@@ -39,7 +39,7 @@ gem "bcrypt", "~> 3.1.11", require: false
 gem "terser", ">= 1.1.4", require: false
 
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
-gem "json", ">= 2.0.0", "!=2.7.0"
+gem "json", ">= 2.0.0", "!=2.7.0", "< 3"
 
 # Workaround until all supported Ruby versions ship with uri version 0.13.1 or higher.
 gem "uri", ">= 0.13.1", require: false
@@ -47,7 +47,7 @@ gem "uri", ">= 0.13.1", require: false
 gem "prism"
 
 group :rubocop do
-  gem "rubocop", "1.79.2", require: false
+  gem "rubocop", "1.90.0", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
