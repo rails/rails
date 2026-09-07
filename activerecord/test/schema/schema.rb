@@ -1324,7 +1324,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :humans, force: true do |t|
-    t.string  :name
+    t.string :name
   end
 
   create_table :faces, force: true do |t|
