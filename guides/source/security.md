@@ -590,6 +590,11 @@ usage information.
 You can also use a [CAPTCHA](https://en.wikipedia.org/wiki/CAPTCHA) to
 restrict access after a certain number of failed login attempts.
 
+NOTE: Rate-limiting and similar techniques are not a bullet-proof defence
+against automatic programs, because these programs may frequently change their
+IP address to subvert such rules. However, it raises the barrier required for
+an attack.
+
 #### Generic Error Messages
 
 Error messages displayed during sign up, log in, and password recovery
@@ -616,13 +621,14 @@ of security protecting against brute-force attacks. Even if an attacker
 has a valid password for a user, a secure second factor in addition
 to the password will protect the user's account.
 
-[Time-based one-time passwords](https://en.wikipedia.org/wiki/Time-based_one-time_password) are a secure way to implement
-two-factor authentication.
+[Time-based one-time passwords](https://en.wikipedia.org/wiki/Time-based_one-time_password)
+are a secure way to implement two-factor authentication.
 
 Avoid using SMS-based one-time passwords as they are vulnerable
-to physical theft. A thief can swap a user's SIM card into another
-phone to receive SMS one-time passwords without ever breaking into
-their phone.
+to many attacks, including
+[remote SIM swap attacks](https://en.wikipedia.org/wiki/SIM_swap_attack). A thief
+may be able to hijack a user's phone number to receive SMS one-time passwords without ever
+touching their phone.
 
 Rails doesn't currently have built-in support for TOTP and hence
 implementation details are out of scope for this guide.
@@ -1216,6 +1222,21 @@ with `[FILTERED]`. They will also be hidden when called `inspect`
 on an Active Record object so sensitive data is protected when
 sending traces to monitoring tools.
 
+If your application generates URLs containing sensitive information when
+redirecting the user, you can omit the sensitive information from the
+logs using `filter_direct`:
+
+```ruby
+# config/initializers/filter_parameter_logging.rb
+
+Rails.app.config.filter_redirect += [
+  "s3.amazonaws.com", /token/
+]
+```
+
+The redirect filter tests whether URLs include strings or match regular expressions
+defined in the above array. Matched URLs will be replaced in the logs with `[FILTERED]`.
+
 Injection
 ---------
 
@@ -1396,6 +1417,8 @@ middleware in the [configuration guide](/configuring.html#actiondispatch-hostaut
 Regular Expressions
 -------------------
 
+### Matching
+
 Ruby handles regular expressions slightly differently than other
 languages. `^` and `$` match the start and end of the string
 respectively in most languages — however, in Ruby, they match
@@ -1452,6 +1475,29 @@ validates :content, format: { with: /^Meanwhile$/, multiline: true }
 ```
 
 Always ensure your regular expressions are well tested.
+
+### Timeouts
+
+An attacker may try to abuse a regex in your application by crafting a string that
+is computationally expensive to validate. This could cause the system to become
+unresponsive as your compute resources are tied up by the attack.
+
+Ruby introduced a `timeout` setting on the `Regexp` class in version 3.2 to mitigate
+such attacks.
+
+```ruby
+Regexp.timeout = 1.0
+```
+
+A `Regexp::TimeoutError` will be raised for matches that take longer than the defined timeout.
+Rails (starting in version 8.0) automatically sets the timeout to `1.0`. In older Rails versions,
+or to customize the timeout, set it in an initializer:
+
+```ruby
+# config/initializers/regexp.rb
+
+Regexp.timeout = 0.5
+```
 
 Default HTTP Headers
 --------------------
@@ -2013,17 +2059,27 @@ depedency to pull in security fixes, and can upgrade on their own
 timeline.
 
 [`bundler-audit`](https://github.com/rubysec/bundler-audit) can help you
-detect vulnerable dependencies and provide solutions. Generate a
-report by running:
+detect vulnerable dependencies and provide solutions. Download the latest advisories
+and generate a report by running:
 
 ```bash
-$ bundle-audit
+$ bundle-audit check --update
 ```
 
 Rails also now includes the [`brakeman`](https://brakemanscanner.org) gem
 by default which statically analyzes your codebase to detect vulnerabilities.
-It will flag [unmaintained dependencies](https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/)
-so you can prepare a migration plan to replace them.
+
+Run a brakeman scan using:
+
+```bash
+$ brakeman --ensure-latest 7
+```
+
+The `--ensure-latest 7` option is recommended as it ensures that you use the
+most recent version of brakeman that has been out for at least 7 days.
+
+It will flag [unmaintained dependencies](https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/) so you can prepare a migration plan to replace them. Brakeman
+only detects vulnerabilities, it will not fix them automatically.
 
 Additional Resources
 --------------------
@@ -2037,7 +2093,9 @@ to avoid losing control of your system.
 The security landscape shifts and it is important to keep up to date
 to avoid missing critical security updates. Subscribe to the
 [Rails Security mailing list](https://discuss.rubyonrails.org/c/security-announcements/9)
-to receive updates about known vulnerabilities and fixes.
+to receive updates about known vulnerabilities and fixes. Ruby security updates and
+details on how to receive notifications of new vulnerabilities can be found on
+the [Ruby website](https://www.ruby-lang.org/en/security/)/
 
 These are some additional resources for web application security:
 
