@@ -48,8 +48,8 @@ Here's an example:
 <script type="importmap" data-turbo-track="reload">
 {
   "imports": {
-    "animations": "/scripts/animations.js",
-    "utilities": "/scripts/utilities.js"
+    "animations": "/assets/scripts/animations.js",
+    "utilities": "/assets/scripts/utilities.js"
   }
 }
 </script>
@@ -226,12 +226,26 @@ $ bin/importmap pin ahoy.js
 ```
 
 This will download the package into your `vendor` folder and declare them in
-your `config/importmap.rb`. You can then import the package in your
-`application.js`:
+your `config/importmap.rb`. You can then import the package wherever required:
 
 ```javascript
 // app/javascript/application.js
+
 import ahoy from "ahoy.js";
+```
+
+Or in a Stimulus controller:
+
+```js
+import { Controller } from "@hotwired/stimulus"
+import ahoy from "ahoy.js";
+
+// Connects to data-controller="ahoy"
+export default class extends Controller {
+  connect() {
+    ahoy.trackView()
+  }
+}
 ```
 
 Further information is available in the
