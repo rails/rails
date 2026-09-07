@@ -1343,27 +1343,27 @@ module CallbacksTest
     end
 
     def before_save_2
-      @history <<  __method__.to_s
+      @history << __method__.to_s
     end
 
     def around_save_1
-      @history <<  __method__.to_s + "_before"
+      @history << __method__.to_s + "_before"
       yield
-      @history <<  __method__.to_s + "_after"
+      @history << __method__.to_s + "_after"
     end
 
     def around_save_2
-      @history <<  __method__.to_s + "_before"
+      @history << __method__.to_s + "_before"
       yield
-      @history <<  __method__.to_s + "_after"
+      @history << __method__.to_s + "_after"
     end
 
     def after_save_1
-      @history <<  __method__.to_s
+      @history << __method__.to_s
     end
 
     def after_save_2
-      @history <<  __method__.to_s
+      @history << __method__.to_s
     end
   end
 
