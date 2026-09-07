@@ -1,3 +1,7 @@
+*   Extract `composed_of` from `ActiveRecord::Aggregations` into `ActiveModel::Aggregations`.
+
+    *Ben Sheldon*
+
 *   Active Record schema caches can now be dumped in JSON format.
 
     Enabled by configuring `schema_cache_path` with a path ending in `.json`,
