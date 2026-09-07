@@ -1,3 +1,11 @@
+*   Add `ActiveModel::Aggregations` extracted from `ActiveRecord::Aggregations`.
+
+    `composed_of` is now available to any class that includes
+    `ActiveModel::Aggregations`. `ActiveRecord::Aggregations` now extends
+    the Active Model implementation.
+
+    *Ben Sheldon*
+
 *   Implement `ActiveModel::Type::Binary::Data#as_json`
 
     Delegates JSON conversion to the underlying binary data value (instead of
