@@ -84,8 +84,8 @@ knows to include them in the import map object.
 # config/importmap.rb
 
 # Declare JavaScript files from your application
-pin "application"
-pin "utilities"
+pin "application" # app/javascript/application.js
+pin "utilities"   # app/javascript/utilities.js
 
 # Declare all files inside a folder
 pin_all_from "app/javascript/controllers", under: "controllers"
@@ -115,6 +115,19 @@ which is rendered in your HTML document's `<head>` using:
 ```erb
 <%= javascript_importmap_tags %>
 ```
+
+It's worth reiterating that the import map only defines the mapping
+between a module specifier and a file. It doesn't execute or import any code.
+As part of the above declaration, Rails also renders:
+
+```
+<script type="module">import "application"</script>
+```
+
+This is the default entry-point for your JavaScript application
+(located at `app/javascript/application.js`). Use this file to import
+additional JavaScript files such as your Stimulus controllers or
+the `utilities` file shown in the above examples.
 
 NOTE: You'll notice that the filenames contain a _hash_. This is added by
 [Rails' Asset Pipeline](asset_pipeline.html). It is calculated based on the
