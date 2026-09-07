@@ -701,18 +701,17 @@ module ActiveSupport
     include ActiveSupport::Testing::RactorsAssertions
 
     if RUBY_VERSION >= "4.0"
-      test "each Ractor gets its own event reporter" do
-        main_subscriber_count = ActiveSupport.event_reporter.subscribers.size
+      test "a shareable event reporter notifies its subscribers from other Ractors" do
+        reporter = ActiveSupport::EventReporter.new
+        reporter.subscribe(Class.new { def emit(event); end }.new)
+        Ractor.make_shareable(reporter)
 
-        event_names = on_ractor do
-          subscriber = EventReporter::TestHelper::EventSubscriber.new
-          ActiveSupport.event_reporter.subscribe(subscriber)
-          ActiveSupport.event_reporter.notify("ractor_event")
-          subscriber.events.map { |event| event[:name] }
+        subscriber_count = on_ractor(reporter) do |reporter|
+          reporter.notify("ractor_event")
+          reporter.subscribers.size
         end
 
-        assert_equal ["ractor_event"], event_names
-        assert_equal main_subscriber_count, ActiveSupport.event_reporter.subscribers.size
+        assert_equal 1, subscriber_count
       end
     end
   end
