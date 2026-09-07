@@ -2081,6 +2081,15 @@ most recent version of brakeman that has been out for at least 7 days.
 It will flag [unmaintained dependencies](https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/) so you can prepare a migration plan to replace them. Brakeman
 only detects vulnerabilities, it will not fix them automatically.
 
+If you're using the [`importmap-rails`](https://github.com/rails/importmap-rails) gem
+to manage JavaScript, regularly audit your dependencies using:
+
+```bash
+$ bin/importmap audit
+```
+
+This will check the NPM registry for known security issues in your dependencies.
+
 Additional Resources
 --------------------
 
