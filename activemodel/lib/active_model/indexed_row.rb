@@ -118,7 +118,7 @@ module ActiveModel
     end
 
     class Mutable < self
-      UNSET = Object.new.freeze
+      UNSET = Module.new.freeze
       private_constant :UNSET
 
       def initialize(indexes, row = nil)
