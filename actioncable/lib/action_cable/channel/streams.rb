@@ -175,7 +175,6 @@ module ActionCable
         # May be overridden to add instrumentation, logging, specialized error handling,
         # or other forms of handler decoration.
         #
-        # TODO: Tests demonstrating this.
         def stream_handler(broadcasting, user_handler, coder: nil)
           if user_handler
             stream_decoder user_handler, coder: coder
@@ -186,8 +185,6 @@ module ActionCable
 
         # May be overridden to change the default stream handling behavior which decodes
         # JSON and transmits to the client.
-        #
-        # TODO: Tests demonstrating this.
         #
         # TODO: Room for optimization. Update transmit API to be coder-aware so we can
         # no-op when pubsub and connection are both JSON-encoded. Then we can skip
