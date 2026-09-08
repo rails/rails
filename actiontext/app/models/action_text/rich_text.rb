@@ -128,6 +128,41 @@ module ActionText
     end
 
     delegate :blank?, :empty?, :present?, to: :to_plain_text
+
+    # Saves the RichText record, transparently handling a concurrent-save race
+    # condition that can occur when two requests create rich text for the same
+    # record and attribute at the same time.
+    #
+    # Because +has_rich_text+ is backed by an autosaved +has_one+ association,
+    # two concurrent saves of the parent record may both build a new RichText
+    # in memory and attempt to INSERT it. The database unique index on
+    # <tt>(record_type, record_id, name)</tt> guarantees that only one succeeds.
+    #
+    # When the loser raises +ActiveRecord::RecordNotUnique+, this method finds
+    # the winning row, updates it with the current body (and any embeds
+    # extracted by the +before_validation+ callback), adopts its primary key,
+    # and marks the in-memory object as persisted so the parent save can
+    # continue normally.
+    #
+    # RecordNotUnique errors on already-persisted records are re-raised.
+    def save(**options)
+      super
+    rescue ActiveRecord::RecordNotUnique => error
+      if new_record?
+        if (existing = self.class.find_by(record: record, name: name))
+          existing.update!(body: body)
+          self.id = existing.id
+          @new_record = false
+          @previously_new_record = true
+          @transaction_state = nil
+          true
+        else
+          raise error
+        end
+      else
+        raise error
+      end
+    end
   end
 end
 
