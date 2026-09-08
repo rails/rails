@@ -12,6 +12,7 @@ module ActionMailbox
 
         def initialize(app, bytesize_limit:)
           @app = app
+          @bytesize_limit = bytesize_limit
           @query_parser = Rack::QueryParser.make_default(
             Rack::Utils.default_query_parser.param_depth_limit,
             bytesize_limit: bytesize_limit
@@ -20,10 +21,13 @@ module ActionMailbox
 
         def call(env)
           if mailgun_request?(env)
-            form_vars = env.fetch("rack.input").read
+            read_limit = @bytesize_limit ? @bytesize_limit + 2 : nil
+            form_vars = env.fetch("rack.input").read(read_limit) || ""
+            form_vars.slice!(-1) if form_vars.end_with?("\0")
+
             env["rack.input"] = StringIO.new(form_vars)
             env["rack.request.form_vars"] = form_vars
-            env["rack.request.form_pairs"] = @query_parser.parse_query_pairs(form_vars)
+            env["rack.request.form_pairs"] = @query_parser.parse_query_pairs(form_vars, "&")
           end
 
           @app.call(env)

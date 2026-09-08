@@ -26,6 +26,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
     boot!
 
     assert_equal [
+      "ActionMailbox::Ingresses::Mailgun::RequestParser",
       "ActionDispatch::HostAuthorization",
       "ActionDispatch::Static",
       "Propshaft::Server",
@@ -61,6 +62,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
     boot!
 
     assert_equal [
+      "ActionMailbox::Ingresses::Mailgun::RequestParser",
       "ActionDispatch::HostAuthorization",
       "ActionDispatch::Static",
       "Propshaft::Server",
@@ -95,6 +97,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
     boot!
 
     assert_equal [
+      "ActionMailbox::Ingresses::Mailgun::RequestParser",
       "ActionDispatch::HostAuthorization",
       "ActionDispatch::Static",
       "Propshaft::Server",
@@ -112,6 +115,17 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
       "Rack::ConditionalGet",
       "Rack::ETag"
     ], middleware
+  end
+
+  test "configures the Mailgun request parser payload size limit" do
+    add_to_config "config.action_mailbox.mailgun_payload_size_limit = 50.megabytes"
+
+    boot!
+
+    mailgun_parser = Rails.application.middleware.find do |middleware|
+      middleware.klass == ActionMailbox::Ingresses::Mailgun::RequestParser
+    end
+    assert_equal [{ bytesize_limit: 50.megabytes }], mailgun_parser.args
   end
 
   test "middleware dependencies" do
@@ -211,7 +225,8 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
     add_to_config "config.ssl_options = { redirect: { host: 'example.com' } }"
     boot!
 
-    assert_equal [{ redirect: { host: "example.com" }, ssl_default_redirect_status: 308 }], Rails.application.middleware[1].args
+    ssl_middleware = Rails.application.middleware.find { |middleware| middleware.klass == ActionDispatch::SSL }
+    assert_equal [{ redirect: { host: "example.com" }, ssl_default_redirect_status: 308 }], ssl_middleware.args
   end
 
   test "ActionDispatch::PermissionsPolicy::MiddlewareStack is included if permissions_policy set" do
@@ -308,20 +323,20 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
   test "unshift middleware" do
     add_to_config "config.middleware.unshift Rack::Config"
     boot!
-    assert_equal "Rack::Config", middleware.first
+    assert_equal "Rack::Config", middleware.second
   end
 
   test "Rails.cache does not respond to middleware" do
     add_to_config "config.cache_store = :file_store, '/tmp/cache'"
     boot!
-    assert_equal "Rack::Runtime", middleware[4]
+    assert_equal "Rack::Runtime", middleware[5]
     assert_instance_of ActiveSupport::Cache::FileStore, Rails.cache
   end
 
   test "Rails.cache does respond to middleware" do
     boot!
-    assert_equal "ActiveSupport::Cache::Strategy::LocalCache", middleware[4]
-    assert_equal "Rack::Runtime", middleware[5]
+    assert_equal "ActiveSupport::Cache::Strategy::LocalCache", middleware[5]
+    assert_equal "Rack::Runtime", middleware[6]
   end
 
   test "insert middleware before" do

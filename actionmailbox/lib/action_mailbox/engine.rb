@@ -42,7 +42,7 @@ module ActionMailbox
     end
 
     initializer "action_mailbox.mailgun_request_parser", before: :build_middleware_stack do |app|
-      app.middleware.insert_before Rack::MethodOverride,
+      app.middleware.unshift \
         ActionMailbox::Ingresses::Mailgun::RequestParser,
         bytesize_limit: app.config.action_mailbox.mailgun_payload_size_limit
     end
