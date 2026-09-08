@@ -291,7 +291,7 @@ GEM
     jmespath (1.6.2)
     jsbundling-rails (1.3.1)
       railties (>= 6.0.0)
-    json (2.20.0)
+    json (3.0.1)
     jwt (3.2.0)
       base64
     kamal (2.11.0)
@@ -479,15 +479,15 @@ GEM
     retriable (3.4.1)
     rexml (3.4.4)
     rouge (4.7.0)
-    rubocop (1.79.2)
-      json (~> 2.3)
+    rubocop (1.90.0)
+      json (>= 2.3)
       language_server-protocol (~> 3.17.0.2)
       lint_roller (~> 1.1.0)
-      parallel (~> 1.10)
+      parallel (>= 1.10)
       parser (>= 3.3.0.2)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 2.9.3, < 3.0)
-      rubocop-ast (>= 1.46.0, < 2.0)
+      rubocop-ast (>= 1.49.0, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 4.0)
     rubocop-ast (1.49.1)
@@ -730,7 +730,7 @@ DEPENDENCIES
   resque-scheduler
   rexml
   rouge
-  rubocop (= 1.79.2)
+  rubocop (= 1.90.0)
   rubocop-md
   rubocop-minitest
   rubocop-packaging
