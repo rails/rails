@@ -105,23 +105,6 @@ adapters.each do |adapter|
         end
       end
     end
-
-    namespace :encryption do
-      namespace :performance do
-        Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
-          t.description = "Encryption performance tests for #{adapter}"
-          t.libs << "test"
-          t.test_files = FileList["test/cases/encryption/performance/*_test.rb"]
-
-          t.warning = true
-          if ENV["CI"]
-            t.verbose = true
-            t.options = "--profile --defer-output"
-          end
-          t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
-        end
-      end
-    end
   end
 
   namespace adapter do
