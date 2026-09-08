@@ -24,6 +24,7 @@ module MessagePackSharedSerializerTests
         15  => Pathname,
         16  => Regexp,
         17  => ActiveSupport::HashWithIndifferentAccess,
+        18  => ActiveSupport::SafeBuffer,
         127 => Object,
       }
 
@@ -145,6 +146,15 @@ module MessagePackSharedSerializerTests
 
     test "roundtrips ActiveSupport::HashWithIndifferentAccess" do
       assert_roundtrip ActiveSupport::HashWithIndifferentAccess.new(a: true, b: 2, c: "three")
+    end
+
+    test "roundtrips ActiveSupport::SafeBuffer preserving encoding" do
+      deserialized = load(dump(ActiveSupport::SafeBuffer.new("Mäßig")))
+
+      assert_instance_of ActiveSupport::SafeBuffer, deserialized
+      assert_predicate deserialized, :html_safe?
+      assert_equal Encoding::UTF_8, deserialized.encoding
+      assert_equal "prefix Mäßig", "prefix " + deserialized
     end
 
     test "works with ENV['RAILS_MAX_THREADS']" do

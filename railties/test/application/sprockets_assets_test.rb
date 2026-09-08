@@ -56,13 +56,6 @@ module ApplicationTests
       end
     end
 
-    def with_env(env)
-      env.each { |k, v| ENV[k.to_s] = v }
-      yield
-    ensure
-      env.each_key { |k| ENV.delete k.to_s }
-    end
-
     def clean_assets!
       quietly do
         rails ["assets:clobber"]
@@ -321,6 +314,7 @@ module ApplicationTests
       assets = ActiveSupport::JSON.decode(File.read(manifest))
       asset_path = assets["assets"]["application.css"]
 
+      sleep 1
       app_file "app/assets/images/rails.png", "p { url: change }"
 
       precompile!
@@ -355,7 +349,7 @@ module ApplicationTests
       # Load app env
       app "development"
 
-      get "/assets/#{URI::DEFAULT_PARSER.escape(asset_path)}"
+      get "/assets/#{URI::RFC2396_PARSER.escape(asset_path)}"
       assert_match "not an image really", last_response.body
       assert_file_exists("#{app_path}/public/assets/#{asset_path}")
     end
@@ -378,8 +372,10 @@ module ApplicationTests
       # Load app env
       app "production"
 
-      get("/assets/demo.js", {}, "HTTPS" => "on")
-      assert_equal 404, last_response.status
+      quietly do
+        get("/assets/demo.js", {}, "HTTPS" => "on")
+        assert_equal 404, last_response.status
+      end
     end
 
     test "does not stream session cookies back" do
@@ -520,15 +516,16 @@ module ApplicationTests
     end
 
     test "asset paths should use RAILS_RELATIVE_URL_ROOT by default" do
-      ENV["RAILS_RELATIVE_URL_ROOT"] = "/sub/uri"
-      app_file "app/assets/images/rails.png", "notreallyapng"
-      app_file "app/assets/javascripts/app.js.erb", "var src='<%= image_path('rails.png') %>';"
-      add_to_config "config.assets.precompile = %w{rails.png app.js}"
-      add_to_env_config "development", "config.assets.digest = false"
+      with_env RAILS_RELATIVE_URL_ROOT: "/sub/uri" do
+        app_file "app/assets/images/rails.png", "notreallyapng"
+        app_file "app/assets/javascripts/app.js.erb", "var src='<%= image_path('rails.png') %>';"
+        add_to_config "config.assets.precompile = %w{rails.png app.js}"
+        add_to_env_config "development", "config.assets.digest = false"
 
-      precompile!
+        precompile!
 
-      assert_match "src='/sub/uri/assets/rails.png'", File.read(Dir["#{app_path}/public/assets/app-*.js"].first)
+        assert_match "src='/sub/uri/assets/rails.png'", File.read(Dir["#{app_path}/public/assets/app-*.js"].first)
+      end
     end
 
     test "app:update removes_sprockets" do

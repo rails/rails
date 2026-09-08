@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/testing/strict_warnings"
+require_relative "../../tools/strict_warnings"
 require "action_cable"
 require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"
@@ -34,6 +34,17 @@ class ActionCable::TestCase < ActiveSupport::TestCase
       sleep 0.1
       timeout -= 0.1
       raise "Executor could not complete all tasks in 2 seconds" unless timeout > 0
+    end
+  end
+
+  def wait_for(message: "condition not met", timeout: 5, interval: 0.01)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout
+    loop do
+      return if yield
+      if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+        raise Timeout::Error, "#{message} after #{timeout} seconds"
+      end
+      sleep interval
     end
   end
 end

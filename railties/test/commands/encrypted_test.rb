@@ -46,7 +46,7 @@ class Rails::Command::EncryptedTest < ActiveSupport::TestCase
     run_edit_command
 
     assert_file "config/master.key"
-    assert_match "config/master.key", read_file(".gitignore")
+    assert_match "config/*.key", read_file(".gitignore")
   end
 
   test "edit command does not overwrite master key file if it already exists" do
@@ -58,8 +58,7 @@ class Rails::Command::EncryptedTest < ActiveSupport::TestCase
 
   test "edit command does not add duplicate master key entries to gitignore" do
     2.times { run_edit_command }
-
-    assert_equal 1, read_file(".gitignore").scan("config/master.key").length
+    assert_equal 1, read_file(".gitignore").scan("/config/*.key").length
   end
 
   test "edit command can add master key when require_master_key is true" do
@@ -87,7 +86,7 @@ class Rails::Command::EncryptedTest < ActiveSupport::TestCase
 
     Dir.chdir(app_path) do
       assert File.exist?("config/tokens.key")
-      assert_match "/config/tokens.key", File.read(".gitignore")
+      assert_match "/config/*.key", File.read(".gitignore")
     end
 
     assert_match(/access_key_id: 123/, run_edit_command(key: "config/tokens.key"))

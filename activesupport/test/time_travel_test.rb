@@ -462,6 +462,19 @@ class TimeTravelTest < ActiveSupport::TestCase
     end
   end
 
+  def test_travel_to_with_usec_true_preserves_datetime_now_subsec
+    Time.stub(:now, Time.now) do
+      travel_to Time.utc(2014, 10, 10, 10, 10, 50, 999999), with_usec: true do
+        assert_equal 999999, DateTime.now.usec
+        assert_equal Rational(999999, 1000000), DateTime.now.sec_fraction
+      end
+
+      travel_to Time.utc(2014, 10, 10, 10, 10, 50, 999999) do
+        assert_equal 0, DateTime.now.usec
+      end
+    end
+  end
+
   def test_time_helper_travel_with_time_subclass
     assert_equal TimeSubclass, TimeSubclass.now.class
     assert_equal DateSubclass, DateSubclass.today.class
@@ -480,6 +493,16 @@ class TimeTravelTest < ActiveSupport::TestCase
   def test_time_helper_freeze_time
     expected_time = Time.now
     freeze_time
+    sleep(1)
+
+    assert_equal expected_time.to_fs(:db), Time.now.to_fs(:db)
+  ensure
+    travel_back
+  end
+
+  def test_time_helper_freeze_time_with_time_arg
+    expected_time = Time.now + 1.day
+    freeze_time expected_time
     sleep(1)
 
     assert_equal expected_time.to_fs(:db), Time.now.to_fs(:db)

@@ -93,7 +93,7 @@ module ActiveRecord
       end
 
       def self.empty
-        @empty ||= new([]).freeze
+        EMPTY
       end
 
       def contradiction?
@@ -116,12 +116,6 @@ module ActiveRecord
       protected
         attr_reader :predicates
 
-        def referenced_columns
-          hash = {}
-          each_attributes { |attr, node| hash[attr] = node }
-          hash
-        end
-
       private
         def each_attributes
           predicates.each do |node|
@@ -135,10 +129,14 @@ module ActiveRecord
 
         def extract_attribute(node)
           attr_node = nil
-          Arel.fetch_attribute(node) do |attr|
-            return if attr_node&.!= attr # all attr nodes should be the same
+
+          valid_attrs = Arel.fetch_attribute(node) do |attr|
+            !attr_node || attr_node == attr # all attr nodes should be the same
+          ensure
             attr_node = attr
           end
+          return unless valid_attrs # all nested nodes should yield an attribute
+
           attr_node
         end
 
@@ -172,11 +170,13 @@ module ActiveRecord
         end
 
         def except_predicates(columns)
+          return predicates if columns.empty?
+
           attrs = columns.extract! { |node| node.is_a?(Arel::Attribute) }
           non_attrs = columns.extract! { |node| node.is_a?(Arel::Predications) }
 
           predicates.reject do |node|
-            if !non_attrs.empty? && node.equality? && node.left.is_a?(Arel::Predications)
+            if !non_attrs.empty? && equality_node?(node) && node.left.is_a?(Arel::Predications)
               non_attrs.include?(node.left)
             end || Arel.fetch_attribute(node) do |attr|
               attrs.include?(attr) || columns.include?(attr.name.to_s)
@@ -188,22 +188,17 @@ module ActiveRecord
           non_empty_predicates.map do |node|
             case node
             when Arel::Nodes::SqlLiteral, ::String
-              wrap_sql_literal(node)
+              Arel::Nodes::Grouping.new(node)
             else node
             end
           end
         end
 
-        ARRAY_WITH_EMPTY_STRING = [""]
+        EMPTY = new([].freeze).freeze
+        ARRAY_WITH_EMPTY_STRING = [""].freeze
+
         def non_empty_predicates
           predicates - ARRAY_WITH_EMPTY_STRING
-        end
-
-        def wrap_sql_literal(node)
-          if ::String === node
-            node = Arel.sql(node)
-          end
-          Arel::Nodes::Grouping.new(node)
         end
 
         def extract_node_value(node)

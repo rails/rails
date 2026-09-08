@@ -1,0 +1,134 @@
+--- !ruby/object:ActiveRecord::ConnectionAdapters::SchemaCache
+columns:
+  colleges:
+  - &1 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    auto_increment: true
+    name: id
+    sql_type_metadata: &4 !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: INTEGER
+      type: :integer
+      limit:
+      precision:
+      scale:
+    'null': false
+    default:
+    default_function:
+    collation:
+    comment:
+  - &2 !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    auto_increment:
+    name: name
+    sql_type_metadata: !ruby/object:ActiveRecord::ConnectionAdapters::SqlTypeMetadata
+      sql_type: varchar
+      type: :string
+      limit:
+      precision:
+      scale:
+    'null': false
+    default:
+    default_function:
+    collation:
+    comment:
+  courses:
+  - *1
+  - *2
+  - !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    auto_increment:
+    name: college_id
+    sql_type_metadata: *4
+    'null': true
+    default:
+    default_function:
+    collation:
+    comment:
+  courses_professors:
+  - !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    auto_increment:
+    name: course_id
+    sql_type_metadata: *4
+    'null': true
+    default:
+    default_function:
+    collation:
+    comment:
+  - !ruby/object:ActiveRecord::ConnectionAdapters::Column
+    auto_increment:
+    name: professor_id
+    sql_type_metadata: *4
+    'null': true
+    default:
+    default_function:
+    collation:
+    comment:
+  dogs:
+  - *1
+  professors:
+  - *1
+  - *2
+primary_keys:
+  colleges: id
+  courses: id
+  courses_professors:
+  dogs: id
+  professors: id
+data_sources:
+  colleges: true
+  courses: true
+  courses_professors: true
+  dogs: true
+  professors: true
+indexes:
+  colleges: []
+  courses:
+  - !ruby/object:ActiveRecord::ConnectionAdapters::IndexDefinition
+    table: courses
+    name: index_courses_on_college_id
+    unique: false
+    columns:
+    - college_id
+    lengths: {}
+    orders: {}
+    opclasses: {}
+    where:
+    type:
+    using:
+    include:
+    nulls_not_distinct:
+    comment:
+    valid: true
+  courses_professors:
+  - !ruby/object:ActiveRecord::ConnectionAdapters::IndexDefinition
+    table: courses_professors
+    name: index_courses_professors_on_professor_id
+    unique: false
+    columns:
+    - professor_id
+    lengths: {}
+    orders: {}
+    opclasses: {}
+    where:
+    type:
+    using:
+    include:
+    nulls_not_distinct:
+    comment:
+    valid: true
+  - !ruby/object:ActiveRecord::ConnectionAdapters::IndexDefinition
+    table: courses_professors
+    name: index_courses_professors_on_course_id
+    unique: false
+    columns:
+    - course_id
+    lengths: {}
+    orders: {}
+    opclasses: {}
+    where:
+    type:
+    using:
+    include:
+    nulls_not_distinct:
+    comment:
+    valid: true
+  dogs: []
+  professors: []
+version: 0

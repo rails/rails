@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Ruby on Rails 7.1 Release Notes
 ===============================
@@ -866,7 +866,7 @@ Please refer to the [Changelog][active-job] for detailed changes.
 
 *   Add `after_discard` method to `ActiveJob::Base` to run a callback when a job is about to be discarded.
 
-*   Add support for logging background job enqueue callers.
+*   Add support for logging background job enqueue callers via `config.active_job.verbose_enqueue_logs`.
 
 Action Text
 ----------

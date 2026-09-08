@@ -1,8 +1,12 @@
+# :markup: markdown
 # frozen_string_literal: true
+
+require "active_support/inspect_backport"
 
 module ActiveSupport
   module Cache
-    # = Null \Cache \Store
+    # Null \Cache \Store
+    # ==================
     #
     # A cache store implementation which doesn't actually store anything. Useful in
     # development and test environments where you don't want caching turned on but
@@ -25,20 +29,22 @@ module ActiveSupport
       def cleanup(options = nil)
       end
 
-      def increment(name, amount = 1, options = nil)
+      def increment(name, amount = 1, **options)
       end
 
-      def decrement(name, amount = 1, options = nil)
+      def decrement(name, amount = 1, **options)
       end
 
       def delete_matched(matcher, options = nil)
       end
 
-      def inspect # :nodoc:
-        "#<#{self.class.name} options=#{@options.inspect}>"
-      end
+      ActiveSupport::InspectBackport.apply(self)
 
       private
+        def instance_variables_to_inspect
+          [:@options].freeze
+        end
+
         def read_entry(key, **s)
           deserialize_entry(read_serialized_entry(key))
         end

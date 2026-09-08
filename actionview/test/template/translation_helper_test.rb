@@ -20,6 +20,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
       translations: {
         templates: {
           found: { foo: "Foo" },
+          found_with_scope: { foo: { bar: "Foo Bar From Scope" } },
           found_yield_single_argument: { foo: "Foo" },
           found_yield_block: { foo: "Foo" },
           array: { foo: { bar: "Foo Bar" } },
@@ -37,7 +38,9 @@ class TranslationHelperTest < ActiveSupport::TestCase
           one: "<a>One %{count}</a>",
           other: "<a>Other %{count}</a>"
         }
-      }
+      },
+      scoped: { foo: "Scoped Foo" },
+      foo: { translations: { templates: { double_relative: { bar: "Double Relative!" } } } }
     )
     view_paths = ActionController::Base.view_paths
     view_paths.each(&:clear_cache)
@@ -148,6 +151,41 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal "Foo", view.render(template: "translations/templates/found").strip
   end
 
+  def test_finds_translation_scoped_by_partial_via_scope_option
+    assert_equal "Foo Bar From Scope", view.render(template: "translations/templates/found_with_scope").strip
+  end
+
+  def test_relative_key_takes_precedence_over_relative_scope
+    assert_equal "Double Relative!", view.render(template: "translations/templates/double_relative").strip
+  end
+
+  def test_relative_scope_option_raises_without_virtual_path
+    error = assert_raises(RuntimeError) do
+      translate("foo", scope: ".bar")
+    end
+    assert_match(/Cannot use scope: "\.bar" shortcut because path is not available/, error.message)
+  end
+
+  def test_relative_symbol_scope_option_raises_without_virtual_path
+    error = assert_raises(RuntimeError) do
+      translate("foo", scope: :".bar")
+    end
+    assert_match(/Cannot use scope: :"\.bar" shortcut because path is not available/, error.message)
+  end
+
+  def test_absolute_string_scope_option_is_unaffected
+    assert_equal "Scoped Foo", translate(:foo, scope: "scoped")
+  end
+
+  def test_absolute_symbol_scope_option_is_unaffected
+    assert_equal "Scoped Foo", translate(:foo, scope: :scoped)
+  end
+
+  def test_array_scope_option_is_unaffected
+    expected = '<span class="translation_missing" title="translation missing: en.scoped.translations.missing, year: 2015">Missing</span>'
+    assert_equal expected, translate(:"translations.missing", year: "2015", scope: %i(scoped))
+  end
+
   def test_finds_translation_scoped_by_partial_yielding_single_argument_block
     assert_equal "Foo", view.render(template: "translations/templates/found_yield_single_argument").strip
   end
@@ -170,6 +208,28 @@ class TranslationHelperTest < ActiveSupport::TestCase
 
   def test_default_lookup_scoped_by_partial
     assert_equal "Foo", view.render(template: "translations/templates/default").strip
+  end
+
+  def test_missing_translation_reported_to_i18n_exception_handler
+    previous_handler = I18n.exception_handler
+
+    calls = []
+    I18n.exception_handler = ->(*args) { calls << args }
+    view.render(template: "translations/templates/missing")
+
+    first_call = calls.first
+    assert_not_nil first_call
+    exception = first_call.first
+    assert_instance_of I18n::MissingTranslation, exception
+    assert_equal "translations.templates.missing.missing", exception.key
+
+    assert_equal 1, calls.size
+
+    assert_nothing_raised do
+      previous_handler.call(*first_call)
+    end
+  ensure
+    I18n.exception_handler = previous_handler
   end
 
   def test_missing_translation_scoped_by_partial

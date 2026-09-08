@@ -20,15 +20,15 @@ module ActionView
     end
 
     # Main render entry point shared by Action View and Action Controller.
-    def render(context, options)
-      render_to_object(context, options).body
+    def render(context, options, &block)
+      render_to_object(context, options, &block).body
     end
 
-    def render_to_object(context, options) # :nodoc:
+    def render_to_object(context, options, &block) # :nodoc:
       if options.key?(:partial)
         render_partial_to_object(context, options)
       else
-        render_template_to_object(context, options)
+        render_template_to_object(context, options, &block)
       end
     end
 
@@ -54,8 +54,8 @@ module ActionView
     end
 
     private
-      def render_template_to_object(context, options)
-        TemplateRenderer.new(@lookup_context).render(context, options)
+      def render_template_to_object(context, options, &block)
+        TemplateRenderer.new(@lookup_context).render(context, options, &block)
       end
 
       def render_partial_to_object(context, options, &block)

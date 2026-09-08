@@ -71,8 +71,8 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
   def test_schema_migration_is_different_for_different_connections
     assert_not_equal @schema_migration_a, @schema_migration_b
     assert_not_equal @schema_migration_a.instance_variable_get(:@pool), @schema_migration_b.instance_variable_get(:@pool)
-    assert_equal "ActiveRecord::Base", @pool_a.pool_config.connection_name
-    assert_equal "ARUnit2Model", @pool_b.pool_config.connection_name
+    assert_equal "ActiveRecord::Base", @pool_a.pool_config.connection_descriptor.name
+    assert_equal "ARUnit2Model", @pool_b.pool_config.connection_descriptor.name
   end
 
   def test_finds_migrations

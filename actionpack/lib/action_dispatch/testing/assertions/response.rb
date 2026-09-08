@@ -11,7 +11,7 @@ module ActionDispatch
         missing:  :not_found?,
         redirect: :redirection?,
         error:    :server_error?,
-      }
+      }.freeze
 
       # Asserts that the response is one of the following types:
       #
@@ -71,12 +71,21 @@ module ActionDispatch
         assert_operator redirect_expected, :===, redirect_is, message
       end
 
-      private
-        # Proxy to to_param if the object will respond to it.
-        def parameterize(value)
-          value.respond_to?(:to_param) ? value.to_param : value
-        end
+      # Asserts that the given +text+ is present somewhere in the response body.
+      #
+      #     assert_in_body fixture(:name).description
+      def assert_in_body(text)
+        assert_match(/#{Regexp.escape(text)}/, @response.body)
+      end
 
+      # Asserts that the given +text+ is not present anywhere in the response body.
+      #
+      #     assert_not_in_body fixture(:name).description
+      def assert_not_in_body(text)
+        assert_no_match(/#{Regexp.escape(text)}/, @response.body)
+      end
+
+      private
         def normalize_argument_to_redirection(fragment)
           if Regexp === fragment
             fragment

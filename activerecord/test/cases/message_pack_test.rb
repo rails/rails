@@ -5,6 +5,7 @@ require "models/author"
 require "models/binary"
 require "models/comment"
 require "models/post"
+require "models/topic"
 require "active_support/message_pack"
 require "active_record/message_pack"
 
@@ -13,6 +14,7 @@ class ActiveRecordMessagePackTest < ActiveRecord::TestCase
 
   test "enshrines type IDs" do
     expected = {
+      118 => ActiveRecord::Type::Time::Value,
       119 => ActiveModel::Type::Binary::Data,
       120 => ActiveRecord::Base,
     }
@@ -30,7 +32,7 @@ class ActiveRecordMessagePackTest < ActiveRecord::TestCase
     post = Post.create!(title: "A Title", body: "A body.")
     post.create_author!(name: "An Author")
     post.comments.create!(body: "A comment.")
-    post.comments.create!(body: "Another comment.", author: post.author)
+    comment_with_author = post.comments.create!(body: "Another comment.", author: post.author)
     post.comments.load
 
     assert_no_queries do
@@ -43,7 +45,7 @@ class ActiveRecordMessagePackTest < ActiveRecord::TestCase
 
       assert_same roundtripped_post, roundtripped_post.comments[0].post
       assert_same roundtripped_post, roundtripped_post.comments[1].post
-      assert_same roundtripped_post.author, roundtripped_post.comments[1].author
+      assert_same roundtripped_post.author, roundtripped_post.comments.find { |comment| comment.id == comment_with_author.id }.author
     end
   end
 
@@ -64,6 +66,11 @@ class ActiveRecordMessagePackTest < ActiveRecord::TestCase
   test "roundtrips binary attribute" do
     binary = Binary.new(data: Marshal.dump("data"))
     assert_equal binary.attributes, roundtrip(binary).attributes
+  end
+
+  test "roundtrips time attribute" do
+    topic = Topic.new(bonus_time: "09:30:00")
+    assert_equal topic.attributes, roundtrip(topic).attributes
   end
 
   test "raises ActiveSupport::MessagePack::MissingClassError if record class no longer exists" do

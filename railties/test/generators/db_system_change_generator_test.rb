@@ -48,7 +48,7 @@ module Rails
 
             assert_file("Dockerfile") do |content|
               assert_match "build-essential git libpq-dev", content
-              assert_match "curl libvips postgresql-client", content
+              assert_match "curl libjemalloc2 libvips postgresql-client", content
             end
 
             assert_devcontainer_json_file do |content|
@@ -61,10 +61,10 @@ module Rails
               assert_includes compose_config["services"]["rails-app"]["depends_on"], "postgres"
 
               expected_postgres_config = {
-                "image" => "postgres:16.1",
+                "image" => "postgres:18",
                 "restart" => "unless-stopped",
                 "networks" => ["default"],
-                "volumes" => ["postgres-data:/var/lib/postgresql/data"],
+                "volumes" => ["postgres-data:/var/lib/postgresql"],
                 "environment" => {
                   "POSTGRES_USER" => "postgres",
                   "POSTGRES_PASSWORD" => "postgres"
@@ -91,7 +91,7 @@ module Rails
 
             assert_file("Dockerfile") do |content|
               assert_match "build-essential default-libmysqlclient-dev git", content
-              assert_match "curl default-mysql-client libvips", content
+              assert_match "curl default-mysql-client libjemalloc2 libvips", content
             end
 
             assert_devcontainer_json_file do |content|
@@ -103,7 +103,7 @@ module Rails
               assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
 
               expected_mysql_config = {
-                "image" => "mysql/mysql-server:8.0",
+                "image" => "mysql:9.7",
                 "restart" => "unless-stopped",
                 "environment" => {
                   "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
@@ -133,7 +133,7 @@ module Rails
 
             assert_file("Dockerfile") do |content|
               assert_match "build-essential git", content
-              assert_match "curl libvips sqlite3", content
+              assert_match "curl libjemalloc2 libvips sqlite3", content
             end
 
             assert_devcontainer_json_file do |content|
@@ -156,7 +156,7 @@ module Rails
 
             assert_file("Dockerfile") do |content|
               assert_match "build-essential git", content
-              assert_match "curl libvips", content
+              assert_match "curl default-mysql-client libjemalloc2 libvips", content
               assert_no_match "default-libmysqlclient-dev", content
             end
           end

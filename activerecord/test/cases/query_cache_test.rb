@@ -5,14 +5,14 @@ require "models/topic"
 require "models/task"
 require "models/category"
 require "models/post"
-require "rack"
+require "models/default"
 
 class QueryCacheTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
-  class ShouldNotHaveExceptionsLogger < ActiveRecord::LogSubscriber
+  class ShouldNotHaveExceptionsLogger < ActiveRecord::StructuredEventSubscriber
     attr_reader :logger, :events
 
     def initialize
@@ -340,8 +340,6 @@ class QueryCacheTest < ActiveRecord::TestCase
       ActiveRecord::Base.connection_pool.connections.each do |conn|
         assert_cache :off, conn
       end
-    ensure
-      ActiveRecord::Base.connection_pool.disconnect!
     end
   end
 
@@ -732,16 +730,28 @@ class QueryCacheTest < ActiveRecord::TestCase
       ActiveRecord::Base.lease_connection.enable_query_cache!
       assert_cache :clean
 
+      main_thread_cache = ActiveRecord::Base.lease_connection.query_cache
+      assert_same main_thread_cache, ActiveRecord::Base.lease_connection.query_cache
+
       thread_a = Thread.new do
         middleware { |env|
           assert_cache :clean
+
+          # In a background thread, the cache instance must stay consistent but be different from the main
+          # thread.
+          background_thread_cache = ActiveRecord::Base.lease_connection.query_cache
+          assert_same background_thread_cache, ActiveRecord::Base.lease_connection.query_cache
+          assert_not_same main_thread_cache, ActiveRecord::Base.lease_connection.query_cache
           [200, {}, nil]
         }.call({})
       end
 
       thread_a.join
+
+      assert_same main_thread_cache, ActiveRecord::Base.lease_connection.query_cache
     ensure
       ActiveRecord::Base.connection_pool.unpin_connection!
+      assert_same main_thread_cache, ActiveRecord::Base.lease_connection.query_cache
     end
   end
 
@@ -758,7 +768,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
       thread_a = Thread.new do
         middleware { |env|
-          assert_cache :dirty # The cache is shared with the main thread
+          assert_cache :clean
 
           Post.first
           assert_cache :dirty
@@ -831,13 +841,6 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   private
-    def with_temporary_connection_pool(&block)
-      pool_config = ActiveRecord::Base.lease_connection.pool.pool_config
-      new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
-
-      pool_config.stub(:pool, new_pool, &block)
-    end
-
     def middleware(&app)
       executor = Class.new(ActiveSupport::Executor)
       ActiveRecord::QueryCache.install_executor_hooks executor
@@ -855,10 +858,12 @@ class QueryCacheTest < ActiveRecord::TestCase
         end
       when :clean
         assert connection.query_cache_enabled, "cache should be on"
+        assert_not_nil connection.query_cache
         assert_predicate connection.query_cache, :empty?, "cache should be empty"
       when :dirty
         assert connection.query_cache_enabled, "cache should be on"
-        assert_not connection.query_cache.empty?, "cache should be dirty"
+        assert_not_nil connection.query_cache
+        assert_not_predicate connection.query_cache, :empty?, "cache should be dirty"
       else
         raise "unknown state"
       end
@@ -1021,6 +1026,18 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     end
   end
 
+  if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.lease_connection.supports_virtual_columns?
+    def test_update_with_returning_clears_cache
+      Default.cache do
+        record = Default.create!(random_number: 1)
+        assert_called(Default.connection_pool.query_cache, :clear, times: 1) do
+          record.update!(random_number: 2)
+        end
+        assert_equal 2, Default.find(record.id).random_number
+      end
+    end
+  end
+
   def test_destroy
     Task.cache do
       assert_called(Task.connection_pool.query_cache, :clear, times: 1) do
@@ -1147,44 +1164,28 @@ class TransactionInCachedSqlActiveRecordPayloadTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   def test_payload_without_open_transaction
-    asserted = false
-
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      if event.payload[:cached]
-        assert_nil event.payload.fetch(:transaction)
-        asserted = true
-      end
-    end
-    Task.cache do
-      2.times { Task.count }
-    end
-
-    assert asserted
-  ensure
-    ActiveSupport::Notifications.unsubscribe(subscriber)
-  end
-
-  def test_payload_with_open_transaction
-    asserted = false
-    expected_transaction = nil
-
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      if event.payload[:cached]
-        assert_same expected_transaction, event.payload[:transaction]
-        asserted = true
-      end
-    end
-
-    Task.transaction do |transaction|
-      expected_transaction = transaction
-
+    notification = assert_notification("sql.active_record", cached: true) do
       Task.cache do
         2.times { Task.count }
       end
     end
 
-    assert asserted
-  ensure
-    ActiveSupport::Notifications.unsubscribe(subscriber)
+    assert_nil notification.payload.fetch(:transaction)
+  end
+
+  def test_payload_with_open_transaction
+    expected_transaction = nil
+
+    notification = assert_notification("sql.active_record", cached: true) do
+      Task.transaction do |transaction|
+        expected_transaction = transaction
+
+        Task.cache do
+          2.times { Task.count }
+        end
+      end
+    end
+
+    assert_same expected_transaction, notification.payload[:transaction]
   end
 end

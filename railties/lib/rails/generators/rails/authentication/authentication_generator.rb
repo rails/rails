@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
+require "rails/generators/bundle_helper"
+
 module Rails
   module Generators
     class AuthenticationGenerator < Base # :nodoc:
+      include BundleHelper
+
       class_option :api, type: :boolean,
         desc: "Generate API-only controllers and models, with no view templates"
 
@@ -11,6 +15,8 @@ module Rails
       end
 
       def create_authentication_files
+        @user_model_exists = File.exist?(File.expand_path("app/models/user.rb", destination_root))
+
         template "app/models/session.rb"
         template "app/models/user.rb"
         template "app/models/current.rb"
@@ -21,12 +27,12 @@ module Rails
 
         template "app/channels/application_cable/connection.rb" if defined?(ActionCable::Engine)
 
-        template "app/mailers/passwords_mailer.rb"
+        if defined?(ActionMailer::Railtie)
+          template "app/mailers/passwords_mailer.rb"
 
-        template "app/views/passwords_mailer/reset.html.erb"
-        template "app/views/passwords_mailer/reset.text.erb"
-
-        template "test/mailers/previews/passwords_mailer_preview.rb"
+          template "app/views/passwords_mailer/reset.html.erb"
+          template "app/views/passwords_mailer/reset.text.erb"
+        end
       end
 
       def configure_application_controller
@@ -34,21 +40,23 @@ module Rails
       end
 
       def configure_authentication_routes
-        route "resources :passwords, param: :token"
-        route "resource :session"
+        route "resources :passwords, param: :token, only: [ :new, :create, :edit, :update ]"
+        route "resource :session, only: [ :new, :create, :destroy ]"
       end
 
       def enable_bcrypt
         if File.read(File.expand_path("Gemfile", destination_root)).include?('gem "bcrypt"')
           uncomment_lines "Gemfile", /gem "bcrypt"/
-          Bundler.with_original_env { execute_command :bundle, "install --quiet" }
+          bundle_command("install --quiet")
         else
-          Bundler.with_original_env { execute_command :bundle, "add bcrypt", capture: true }
+          bundle_command("add bcrypt", {}, quiet: true)
         end
       end
 
       def add_migrations
-        generate "migration", "CreateUsers", "email_address:string!:uniq password_digest:string!", "--force"
+        unless @user_model_exists
+          generate "migration", "CreateUsers", "email_address:string!:uniq password_digest:string!", "--force"
+        end
         generate "migration", "CreateSessions", "user:references ip_address:string user_agent:string", "--force"
       end
 

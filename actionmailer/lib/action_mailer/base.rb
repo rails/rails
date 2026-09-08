@@ -7,6 +7,7 @@ require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/anonymous"
 
 require "action_mailer/log_subscriber"
+require "action_mailer/structured_event_subscriber"
 require "action_mailer/rescuable"
 
 module ActionMailer
@@ -474,7 +475,6 @@ module ActionMailer
   # * <tt>deliver_later_queue_name</tt> - The queue name used by <tt>deliver_later</tt> with the default
   #   <tt>delivery_job</tt>. Mailers can set this to use a custom queue name.
   class Base < AbstractController::Base
-    include Callbacks
     include DeliveryMethods
     include QueuedDelivery
     include Rescuable
@@ -493,9 +493,11 @@ module ActionMailer
     include AbstractController::Callbacks
     include AbstractController::Caching
 
+    include Callbacks
+
     include ActionView::Layouts
 
-    PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [:@_action_has_layout]
+    PROTECTED_IVARS = (AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [:@_action_has_layout]).freeze
 
     helper ActionMailer::MailHelper
 
@@ -574,18 +576,13 @@ module ActionMailer
       attr_writer :mailer_name
       alias :controller_path :mailer_name
 
-      # Sets the defaults through app configuration:
+      # Allows to set defaults through app configuration:
       #
-      #     config.action_mailer.default(from: "no-reply@example.org")
-      #
-      # Aliased by ::default_options=
+      #    config.action_mailer.default_options = { from: "no-reply@example.org" }
       def default(value = nil)
         self.default_params = default_params.merge(value).freeze if value
         default_params
       end
-      # Allows to set defaults through app configuration:
-      #
-      #    config.action_mailer.default_options = { from: "no-reply@example.org" }
       alias :default_options= :default
 
       # Wraps an email delivery inside of ActiveSupport::Notifications instrumentation.
@@ -609,6 +606,19 @@ module ActionMailer
           builder.address = address
           builder.display_name = name.presence
         end.to_s
+      end
+
+      def mail(...)
+        MessageDelivery.new(self, :mail, ...)
+      end
+
+      def action_methods
+        methods = super
+        if self == ActionMailer::Base
+          methods.dup.add("mail").freeze
+        else
+          methods
+        end
       end
 
     private
@@ -646,11 +656,11 @@ module ActionMailer
       @_message = Mail.new
     end
 
-    def process(method_name, *args) # :nodoc:
+    def process(method_name, *args, **kwargs) # :nodoc:
       payload = {
         mailer: self.class.name,
         action: method_name,
-        args: args
+        args: kwargs.empty? ? args : args + [kwargs]
       }
 
       ActiveSupport::Notifications.instrument("process.action_mailer", payload) do
@@ -658,7 +668,6 @@ module ActionMailer
         @_message = NullMail.new unless @_mail_was_called
       end
     end
-    ruby2_keywords(:process)
 
     class NullMail # :nodoc:
       def body; "" end

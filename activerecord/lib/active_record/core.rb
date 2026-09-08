@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/enumerable"
-require "active_support/core_ext/module/delegation"
 require "active_support/parameter_filter"
 require "concurrent/map"
 
@@ -12,6 +11,8 @@ module ActiveRecord
     include ActiveModel::Access
 
     included do
+      @arel_table = Arel::Table.new(klass: self)
+
       ##
       # :singleton-method:
       #
@@ -202,6 +203,17 @@ module ActiveRecord
         false
       end
 
+      # Intended to behave like `.current_preventing_writes` given the class name as input.
+      # See PoolConfig and ConnectionHandler::ConnectionDescriptor.
+      def self.preventing_writes?(class_name) # :nodoc:
+        connected_to_stack.reverse_each do |hash|
+          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].include?(Base)
+          return hash[:prevent_writes] if !hash[:prevent_writes].nil? && hash[:klasses].any? { |klass| klass.name == class_name }
+        end
+
+        false
+      end
+
       def self.connected_to_stack # :nodoc:
         if connected_to_stack = ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack]
           connected_to_stack
@@ -253,7 +265,11 @@ module ActiveRecord
 
     module ClassMethods
       def initialize_find_by_cache # :nodoc:
-        @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
+        ActiveSupport::Ractors[find_by_statement_cache_key] = { true => Concurrent::Map.new, false => Concurrent::Map.new }
+      end
+
+      def find_by_statement_cache_key # :nodoc:
+        @find_by_statement_cache_key ||= "active_record_find_by_statement_cache_#{object_id}".to_sym
       end
 
       def find(*ids) # :nodoc:
@@ -266,7 +282,7 @@ module ActiveRecord
         return super if StatementCache.unsupported_value?(id)
 
         cached_find_by([primary_key], [id]) ||
-          raise(RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}", name, primary_key, id))
+          raise(RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id.inspect}", name, primary_key, id))
       end
 
       def find_by(*args) # :nodoc:
@@ -337,7 +353,11 @@ module ActiveRecord
       # Returns columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes
         if @filter_attributes.nil?
-          superclass.filter_attributes
+          if superclass <= Base
+            superclass.filter_attributes
+          else
+            nil
+          end
         else
           @filter_attributes
         end
@@ -346,7 +366,15 @@ module ActiveRecord
       # Specifies columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes=(filter_attributes)
         @inspection_filter = nil
-        @filter_attributes = filter_attributes
+        previous = if @filter_attributes
+          self.filter_attributes
+        else
+          Base.filter_attributes
+        end
+        changes = @filter_attributes = filter_attributes
+
+        changes -= previous if previous
+        FilterAttributeHandler.sensitive_attribute_was_declared(self, changes)
       end
 
       def inspection_filter # :nodoc:
@@ -367,7 +395,7 @@ module ActiveRecord
         elsif abstract_class?
           "#{super}(abstract)"
         elsif !schema_loaded? && !connected?
-          "#{super} (call '#{super}.load_schema' to load schema informations)"
+          "#{super} (call '#{super}.load_schema' to load schema information)"
         elsif table_exists?
           attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ", "
           "#{super}(#{attr_list})"
@@ -378,11 +406,13 @@ module ActiveRecord
 
       # Returns an instance of +Arel::Table+ loaded with the current table name.
       def arel_table # :nodoc:
-        @arel_table ||= Arel::Table.new(table_name, klass: self)
+        @arel_table
       end
 
       def predicate_builder # :nodoc:
-        @predicate_builder ||= PredicateBuilder.new(TableMetadata.new(self, arel_table))
+        @predicate_builder || ActiveSupport::Ractors.on_main(self) do
+          @predicate_builder ||= PredicateBuilder.new(TableMetadata.new(self, arel_table))
+        end
       end
 
       def type_caster # :nodoc:
@@ -390,8 +420,7 @@ module ActiveRecord
       end
 
       def cached_find_by_statement(connection, key, &block) # :nodoc:
-        cache = @find_by_statement_cache[connection.prepared_statements]
-        cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
+        schema_context.cached_find_by_statement(connection, key, &block)
       end
 
       private
@@ -409,8 +438,8 @@ module ActiveRecord
           end
 
           subclass.class_eval do
-            @arel_table = nil
-            @predicate_builder = nil
+            @arel_table = Arel::Table.new(klass: self)
+            @predicate_builder = PredicateBuilder.new(TableMetadata.new(self, @arel_table))
             @inspection_filter = nil
             @filter_attributes ||= nil
             @generated_association_methods ||= nil
@@ -440,7 +469,7 @@ module ActiveRecord
               where(wheres).limit(1)
             }
 
-            statement.execute(values.flatten, connection, allow_retry: true).then do |r|
+            statement.execute(values.flatten, connection).then do |r|
               r.first
             rescue TypeError
               raise ActiveRecord::StatementInvalid
@@ -486,7 +515,7 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder, &block)
       coder = LegacyYamlAdapter.convert(coder)
-      attributes = self.class.yaml_encoder.decode(coder)
+      attributes = ActiveModel::AttributeSet::YAMLEncoder.decode(coder, self.class.attribute_types)
       init_with_attributes(attributes, coder["new_record"], &block)
     end
 
@@ -552,11 +581,7 @@ module ActiveRecord
     def init_attributes(_) # :nodoc:
       attrs = @attributes.deep_dup
 
-      if self.class.composite_primary_key?
-        @primary_key.each { |key| attrs.reset(key) }
-      else
-        attrs.reset(@primary_key)
-      end
+      self.class.primary_key_definition.each { |key| attrs.reset(key) }
 
       attrs
     end
@@ -574,7 +599,7 @@ module ActiveRecord
     #   Post.new.encode_with(coder)
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
-      self.class.yaml_encoder.encode(@attributes, coder)
+      ActiveModel::AttributeSet::YAMLEncoder.encode(@attributes, coder, self.class.attribute_types)
       coder["new_record"] = new_record?
       coder["active_record_yaml_version"] = 2
     end
@@ -589,7 +614,7 @@ module ActiveRecord
     #
     #   topic = Topic.new(title: "Budget", author_name: "Jason")
     #   topic.slice(:title, :author_name)
-    #   => { "title" => "Budget", "author_name" => "Jason" }
+    #   # => { "title" => "Budget", "author_name" => "Jason" }
     #
     #--
     # Implemented by ActiveModel::Access#slice.
@@ -603,7 +628,7 @@ module ActiveRecord
     #
     #   topic = Topic.new(title: "Budget", author_name: "Jason")
     #   topic.values_at(:title, :author_name)
-    #   => ["Budget", "Jason"]
+    #   # => ["Budget", "Jason"]
     #
     #--
     # Implemented by ActiveModel::Access#values_at.
@@ -631,7 +656,7 @@ module ActiveRecord
       id = self.id
 
       if self.class.composite_primary_key? ? primary_key_values_present? : id
-        self.class.hash ^ id.hash
+        [self.class, id].hash
       else
         super
       end
@@ -680,12 +705,14 @@ module ActiveRecord
     # Sets the record to strict_loading mode. This will raise an error
     # if the record tries to lazily load an association.
     #
+    # NOTE: Strict loading is disabled during validation in order to let the record validate its association.
+    #
     #   user = User.first
     #   user.strict_loading! # => true
     #   user.address.city
-    #   => ActiveRecord::StrictLoadingViolationError
+    #   # => ActiveRecord::StrictLoadingViolationError
     #   user.comments.to_a
-    #   => ActiveRecord::StrictLoadingViolationError
+    #   # => ActiveRecord::StrictLoadingViolationError
     #
     # ==== Parameters
     #
@@ -705,7 +732,7 @@ module ActiveRecord
     #   user.address.city # => "Tatooine"
     #   user.comments.to_a # => [#<Comment:0x00...]
     #   user.comments.first.ratings.to_a
-    #   => ActiveRecord::StrictLoadingViolationError
+    #   # => ActiveRecord::StrictLoadingViolationError
     def strict_loading!(value = true, mode: :all)
       unless [:all, :n_plus_one_only].include?(mode)
         raise ArgumentError, "The :mode option must be one of [:all, :n_plus_one_only] but #{mode.inspect} was provided."
@@ -727,11 +754,29 @@ module ActiveRecord
       @strict_loading_mode == :all
     end
 
-    # Marks this record as read only.
+    # Prevents records from being written to the database:
+    #
+    #   customer = Customer.new
+    #   customer.readonly!
+    #   customer.save # raises ActiveRecord::ReadOnlyRecord
     #
     #   customer = Customer.first
     #   customer.readonly!
-    #   customer.save # Raises an ActiveRecord::ReadOnlyRecord
+    #   customer.update(name: 'New Name') # raises ActiveRecord::ReadOnlyRecord
+    #
+    # Read-only records cannot be deleted from the database either:
+    #
+    #   customer = Customer.first
+    #   customer.readonly!
+    #   customer.destroy # raises ActiveRecord::ReadOnlyRecord
+    #
+    # Please, note that the objects themselves are still mutable in memory:
+    #
+    #   customer = Customer.new
+    #   customer.readonly!
+    #   customer.name = 'New Name' # OK
+    #
+    # but you won't be able to persist the changes.
     def readonly!
       @readonly = true
     end
@@ -826,7 +871,7 @@ module ActiveRecord
         self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
       end
 
-      class InspectionMask < DelegateClass(::String)
+      class InspectionMask < ActiveSupport::Delegation::DelegateClass(::String)
         def pretty_print(pp)
           pp.text __getobj__
         end

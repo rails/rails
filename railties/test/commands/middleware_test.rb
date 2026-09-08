@@ -27,8 +27,8 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
 
     assert_equal [
       "ActionDispatch::HostAuthorization",
-      "Rack::Sendfile",
       "ActionDispatch::Static",
+      "Propshaft::Server",
       "ActionDispatch::Executor",
       "ActionDispatch::ServerTiming",
       "ActiveSupport::Cache::Strategy::LocalCache",
@@ -62,8 +62,8 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
 
     assert_equal [
       "ActionDispatch::HostAuthorization",
-      "Rack::Sendfile",
       "ActionDispatch::Static",
+      "Propshaft::Server",
       "ActionDispatch::Executor",
       "ActionDispatch::ServerTiming",
       "ActiveSupport::Cache::Strategy::LocalCache",
@@ -96,8 +96,8 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
 
     assert_equal [
       "ActionDispatch::HostAuthorization",
-      "Rack::Sendfile",
       "ActionDispatch::Static",
+      "Propshaft::Server",
       "ActionDispatch::Executor",
       "ActiveSupport::Cache::Strategy::LocalCache",
       "Rack::Runtime",
@@ -134,7 +134,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
       %w(ActionDispatch::Reloader ActionDispatch::ShowExceptions ActionDispatch::DebugExceptions),
 
       # Outright dependencies
-      %w(ActionDispatch::Static Rack::Sendfile),
+      %w(ActionDispatch::Static),
       %w(ActionDispatch::Flash ActionDispatch::Session::CookieStore),
       %w(ActionDispatch::Session::CookieStore ActionDispatch::Cookies),
     ]
@@ -211,7 +211,7 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
     add_to_config "config.ssl_options = { redirect: { host: 'example.com' } }"
     boot!
 
-    assert_equal [{ redirect: { host: "example.com" }, ssl_default_redirect_status: 308 }], Rails.application.middleware[1].args
+    assert_equal({ redirect: { host: "example.com" }, ssl_default_redirect_status: 308 }, Rails.application.middleware[1].kwargs)
   end
 
   test "ActionDispatch::PermissionsPolicy::MiddlewareStack is included if permissions_policy set" do
@@ -300,9 +300,9 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
   end
 
   test "insert middleware after" do
-    add_to_config "config.middleware.insert_after Rack::Sendfile, Rack::Config"
+    add_to_config "config.middleware.insert_after Rack::Runtime, Rack::Config"
     boot!
-    assert_equal "Rack::Config", middleware.third
+    assert_equal middleware.index("Rack::Runtime") + 1, middleware.index("Rack::Config")
   end
 
   test "unshift middleware" do
@@ -312,10 +312,10 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
   end
 
   test "Rails.cache does not respond to middleware" do
-    add_to_config "config.cache_store = :memory_store, { timeout: 10 }"
+    add_to_config "config.cache_store = :file_store, '/tmp/cache'"
     boot!
     assert_equal "Rack::Runtime", middleware[4]
-    assert_instance_of ActiveSupport::Cache::MemoryStore, Rails.cache
+    assert_instance_of ActiveSupport::Cache::FileStore, Rails.cache
   end
 
   test "Rails.cache does respond to middleware" do
@@ -325,9 +325,9 @@ class Rails::Command::MiddlewareTest < ActiveSupport::TestCase
   end
 
   test "insert middleware before" do
-    add_to_config "config.middleware.insert_before Rack::Sendfile, Rack::Config"
+    add_to_config "config.middleware.insert_before Rack::Runtime, Rack::Config"
     boot!
-    assert_equal "Rack::Config", middleware.second
+    assert_operator middleware.index("Rack::Runtime"), :>, middleware.index("Rack::Config")
   end
 
   test "can't change middleware after it's built" do

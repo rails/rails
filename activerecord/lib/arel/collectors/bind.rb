@@ -18,7 +18,7 @@ module Arel # :nodoc: all
         self
       end
 
-      def add_binds(binds, proc_for_binds = nil)
+      def add_binds(binds, proc_for_binds = nil, &)
         @binds.concat proc_for_binds ? binds.map(&proc_for_binds) : binds
         self
       end

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Action Cable Overview
 =====================
@@ -302,7 +302,7 @@ createConsumer('https://ws.example.com/cable')
 createConsumer(getWebSocketURL)
 
 function getWebSocketURL() {
-  const token = localStorage.get('auth-token')
+  const token = localStorage.getItem('auth-token')
   return `wss://example.com/cable?token=${token}`
 }
 ```
@@ -713,11 +713,6 @@ callback. The data passed as an argument is the hash sent as the second paramete
 to the server-side broadcast call, JSON encoded for the trip across the wire
 and unpacked for the data argument arriving as `received`.
 
-### More Complete Examples
-
-See the [rails/actioncable-examples](https://github.com/rails/actioncable-examples)
-repository for a full example of how to set up Action Cable in a Rails app and adding channels.
-
 ## Configuration
 
 Action Cable has two required configurations: a subscription adapter and allowed request origins.
@@ -748,6 +743,12 @@ Below is a list of the subscription adapters available for end-users.
 ##### Async Adapter
 
 The async adapter is intended for development/testing and should not be used in production.
+
+NOTE: The async adapter only works within the same process, so for manually triggering cable updates from a console and seeing results in the browser, you must do so from the web console (running inside the dev process), not a terminal started via `bin/rails console`! Add `console` to any action or any ERB template view to make the web console appear.
+
+##### Solid Cable Adapter
+
+The Solid Cable adapter is a database-backed solution that uses Active Record. It has been tested with MySQL, SQLite, and PostgreSQL. Running `bin/rails solid_cable:install` will automatically set up `config/cable.yml` and create `db/cable_schema.rb`. After that, you must manually update `config/database.yml`, adjusting it based on your database. See [Solid Cable Installation](https://github.com/rails/solid_cable?tab=readme-ov-file#installation).
 
 ##### Redis Adapter
 
@@ -822,7 +823,7 @@ config.action_cable.worker_pool_size = 4
 Also, note that your server must provide at least the same number of database
 connections as you have workers. The default worker pool size is set to 4, so
 that means you have to make at least 4 database connections available.
-You can change that in `config/database.yml` through the `pool` attribute.
+You can change that in `config/database.yml` through the `max_connections` attribute.
 
 ### Client-side Logging
 
@@ -849,7 +850,7 @@ config.action_cable.log_tags = [
 ```
 
 For a full list of all configuration options, see the
-`ActionCable::Server::Configuration` class.
+`ActionCable::Configuration` class.
 
 ## Running Standalone Cable Servers
 

@@ -3,8 +3,6 @@
 require "thor"
 require "erb"
 
-require "active_support/core_ext/class/attribute"
-require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/string/inflections"
 
 require "rails/command/actions"
@@ -180,6 +178,15 @@ module Rails
           @current_subcommand = original_subcommand
         end
       end
+
+      private
+        def conditional_executor(enabled, **args, &block)
+          if enabled
+            Rails.application.executor.wrap(**args, &block)
+          else
+            yield
+          end
+        end
     end
   end
 end

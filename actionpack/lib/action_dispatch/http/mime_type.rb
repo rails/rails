@@ -3,6 +3,8 @@
 # :markup: markdown
 
 require "singleton"
+require "action_dispatch/deprecator"
+require "active_support/core_ext/string/filters"
 
 module Mime
   class Mimes
@@ -14,6 +16,19 @@ module Mime
       @mimes = []
       @symbols = []
       @symbols_set = Set.new
+    end
+
+    def initialize_copy(_other)
+      @mimes = @mimes.dup
+      @symbols = @symbols.dup
+      @symbols_set = @symbols_set.dup
+    end
+
+    def freeze
+      @mimes.freeze
+      @symbols.freeze
+      @symbols_set.freeze
+      super
     end
 
     def each(&block)
@@ -43,27 +58,77 @@ module Mime
     end
   end
 
-  SET              = Mimes.new
-  EXTENSION_LOOKUP = {}
-  LOOKUP           = {}
+  @registry            = Mimes.new
+  @lookup_by_string    = {}
+  @lookup_by_extension = {}
+
+  SET = ActiveSupport::Deprecation::DeprecatedObjectProxy.new( # :nodoc:
+    @registry,
+    "Mime::SET is deprecated. Use Mime.symbols to enumerate registered types, or Mime[...] / Mime::Type.lookup to look one up.",
+    ActionDispatch.deprecator,
+  )
+  LOOKUP = ActiveSupport::Deprecation::DeprecatedObjectProxy.new( # :nodoc:
+    @lookup_by_string,
+    "Mime::LOOKUP is deprecated. Use Mime::Type.lookup instead.",
+    ActionDispatch.deprecator,
+  )
+  EXTENSION_LOOKUP = ActiveSupport::Deprecation::DeprecatedObjectProxy.new( # :nodoc:
+    @lookup_by_extension,
+    "Mime::EXTENSION_LOOKUP is deprecated. Use Mime.extensions to enumerate registered extensions, or Mime::Type.lookup_by_extension / Mime[...] to look one up.",
+    ActionDispatch.deprecator,
+  )
 
   class << self
+    attr_reader :registry, :lookup_by_string, :lookup_by_extension # :nodoc:
+
     def [](type)
       return type if type.is_a?(Type)
       Type.lookup_by_extension(type)
     end
 
     def symbols
-      SET.symbols
+      @registry.symbols
+    end
+
+    def extensions
+      @lookup_by_extension.keys
     end
 
     def valid_symbols?(symbols) # :nodoc:
-      SET.valid_symbols?(symbols)
+      @registry.valid_symbols?(symbols)
     end
 
     def fetch(type, &block)
       return type if type.is_a?(Type)
-      EXTENSION_LOOKUP.fetch(type.to_s, &block)
+      @lookup_by_extension.fetch(type.to_s, &block)
+    end
+
+    def eager_load! # :nodoc:
+      @registry.freeze
+      @lookup_by_string.freeze
+      @lookup_by_extension.freeze
+      nil
+    end
+
+    def update # :nodoc:
+      if @registry.frozen?
+        ActionDispatch.deprecator.warn(<<~DEPRECATION.squish)
+          Registering or unregistering a MIME type after the application has been initialized is deprecated.
+          Register custom MIME types from an initializer instead (e.g. config/initializers/mime_types.rb).
+          This will raise a FrozenError in Rails 9.0.
+        DEPRECATION
+        registry, string_lookup, extension_lookup = @registry.dup, @lookup_by_string.dup, @lookup_by_extension.dup
+        yield registry, string_lookup, extension_lookup
+        @registry = registry.freeze
+        @lookup_by_string = string_lookup.freeze
+        @lookup_by_extension = extension_lookup.freeze
+
+        SET.target = @registry
+        LOOKUP.target = @lookup_by_string
+        EXTENSION_LOOKUP.target = @lookup_by_extension
+      else
+        yield @registry, @lookup_by_string, @lookup_by_extension
+      end
     end
   end
 
@@ -84,7 +149,7 @@ module Mime
   class Type
     attr_reader :symbol
 
-    @register_callbacks = []
+    @on_change_callbacks = []
 
     # A simple helper class used in parsing the accept header.
     class AcceptItem # :nodoc:
@@ -160,20 +225,26 @@ module Mime
       PARAMETER_SEPARATOR_REGEXP = /;\s*q="?/
       ACCEPT_HEADER_REGEXP = /[^,\s"](?:[^,"]|"[^"]*")*/
 
-      def register_callback(&block)
-        @register_callbacks << block
+      def on_change(&block) # :nodoc:
+        @on_change_callbacks << block
       end
 
+      def register_callback(&block)
+        on_change { |mime, registered| block.call(mime) if registered }
+      end
+      ActionDispatch.deprecator.deprecate_methods(self, :register_callback)
+
       def lookup(string)
-        return LOOKUP[string] if LOOKUP.key?(string)
+        lookup = Mime.lookup_by_string
+        return lookup[string] if lookup.key?(string)
 
         # fallback to the media-type without parameters if it was not found
         string = string.split(";", 2)[0]&.rstrip
-        LOOKUP[string] || Type.new(string)
+        lookup[string] || Type.new(string)
       end
 
       def lookup_by_extension(extension)
-        EXTENSION_LOOKUP[extension.to_s]
+        Mime.lookup_by_extension[extension.to_s]
       end
 
       # Registers an alias that's not used on MIME type lookup, but can be referenced
@@ -186,13 +257,14 @@ module Mime
       def register(string, symbol, mime_type_synonyms = [], extension_synonyms = [], skip_lookup = false)
         new_mime = Type.new(string, symbol, mime_type_synonyms)
 
-        SET << new_mime
+        Mime.update do |registry, string_lookup, extension_lookup|
+          registry << new_mime
+          ([string] + mime_type_synonyms).each { |str| string_lookup[-str] = new_mime } unless skip_lookup
+          ([symbol] + extension_synonyms).each { |ext| extension_lookup[-ext.to_s] = new_mime }
+        end
 
-        ([string] + mime_type_synonyms).each { |str| LOOKUP[str] = new_mime } unless skip_lookup
-        ([symbol] + extension_synonyms).each { |ext| EXTENSION_LOOKUP[ext.to_s] = new_mime }
-
-        @register_callbacks.each do |callback|
-          callback.call(new_mime)
+        @on_change_callbacks.each do |callback|
+          callback.call(new_mime, true)
         end
         new_mime
       end
@@ -234,7 +306,7 @@ module Mime
       # For an input of `'application'`, returns `[Mime[:html], Mime[:js], Mime[:xml],
       # Mime[:yaml], Mime[:atom], Mime[:json], Mime[:rss], Mime[:url_encoded_form]]`.
       def parse_data_with_trailing_star(type)
-        Mime::SET.select { |m| m.match?(type) }
+        Mime.registry.select { |m| m.match?(type) }
       end
 
       # This method is opposite of register method.
@@ -245,29 +317,41 @@ module Mime
       def unregister(symbol)
         symbol = symbol.downcase
         if mime = Mime[symbol]
-          SET.delete_if { |v| v.eql?(mime) }
-          LOOKUP.delete_if { |_, v| v.eql?(mime) }
-          EXTENSION_LOOKUP.delete_if { |_, v| v.eql?(mime) }
+          Mime.update do |registry, string_lookup, extension_lookup|
+            registry.delete_if { |v| v.eql?(mime) }
+            string_lookup.delete_if { |_, v| v.eql?(mime) }
+            extension_lookup.delete_if { |_, v| v.eql?(mime) }
+          end
+
+          @on_change_callbacks.each do |callback|
+            callback.call(mime, false)
+          end
         end
       end
     end
 
     attr_reader :hash
 
-    MIME_NAME = "[a-zA-Z0-9][a-zA-Z0-9#{Regexp.escape('!#$&-^_.+')}]{0,126}"
-    MIME_PARAMETER_VALUE = "(?:#{MIME_NAME}|\"[^\"\r\\\\]*\")"
-    MIME_PARAMETER = "\s*;\s*#{MIME_NAME}(?:=#{MIME_PARAMETER_VALUE})?"
+    MIME_NAME = "[a-zA-Z0-9][a-zA-Z0-9#{Regexp.escape('!#$&-^_.+')}]{0,126}".freeze
+    MIME_PARAMETER_VALUE = "(?:#{MIME_NAME}|\"[^\"\r\\\\]*\")".freeze
+    MIME_PARAMETER = "\s*;\s*#{MIME_NAME}(?:=#{MIME_PARAMETER_VALUE})?".freeze
     MIME_REGEXP = /\A(?:\*\/\*|#{MIME_NAME}\/(?:\*|#{MIME_NAME})(?>#{MIME_PARAMETER})*\s*)\z/
 
     class InvalidMimeType < StandardError; end
 
-    def initialize(string, symbol = nil, synonyms = [])
+    def initialize(string, symbol = nil, synonyms = nil)
       unless MIME_REGEXP.match?(string)
         raise InvalidMimeType, "#{string.inspect} is not a valid MIME type"
       end
-      @symbol, @synonyms = symbol, synonyms
-      @string = string
+      @symbol = symbol
+      @synonyms = if synonyms&.any?
+        synonyms.map { |synonym| synonym.dup.freeze }.freeze
+      else
+        [].freeze
+      end
+      @string = string.dup.freeze
       @hash = [@string, @synonyms, @symbol].hash
+      freeze
     end
 
     def to_s

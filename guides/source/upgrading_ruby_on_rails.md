@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Upgrading Ruby on Rails
 =======================
@@ -20,9 +20,9 @@ The best way to be sure that your application still works after upgrading is to 
 
 Rails generally stays close to the latest released Ruby version when it's released:
 
-* Rails 8.0 requires Ruby 3.2.0 or newer.
+* Rails 8.0 and 8.1 require Ruby 3.2.0 or newer.
 * Rails 7.2 requires Ruby 3.1.0 or newer.
-* Rails 7.0 and 7.1 requires Ruby 2.7.0 or newer.
+* Rails 7.0 and 7.1 require Ruby 2.7.0 or newer.
 * Rails 6 requires Ruby 2.5.0 or newer.
 * Rails 5 requires Ruby 2.2.2 or newer.
 
@@ -54,7 +54,7 @@ You can find a list of all released Rails gems [here](https://rubygems.org/gems/
 
 ### The Update Task
 
-Rails provides the `rails app:update` command. After updating the Rails version
+Rails provides the `bin/rails app:update` command. After updating the Rails version
 in the `Gemfile`, run this command.
 This will help you with the creation of new files and changes of old files in an
 interactive session.
@@ -75,13 +75,50 @@ Don't forget to review the difference, to see if there were any unexpected chang
 
 The new Rails version might have different configuration defaults than the previous version. However, after following the steps described above, your application would still run with configuration defaults from the *previous* Rails version. That's because the value for `config.load_defaults` in `config/application.rb` has not been changed yet.
 
-To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults_X.Y.rb` (with the desired Rails version in the filename). You should enable the new configuration defaults by uncommenting them in the file; this can be done gradually over several deployments. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
+To allow you to upgrade to new defaults one by one, the update task has created a file `config/initializers/new_framework_defaults_X_Y.rb` (with the desired Rails version in the filename). You should enable the new configuration defaults by uncommenting them in the file; this can be done gradually over several deployments. Once your application is ready to run with new defaults, you can remove this file and flip the `config.load_defaults` value.
+
+Upgrading from Rails 8.1 to Rails 8.2
+-------------------------------------
+
+For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
+
+### The old Active Record 6.1 marshalling format was removed.
+
+If your application still sets `active_record.marshalling_format_version = 6.1`, which may
+be done by not calling `config.load_defaults` or calling it with a version older or equal to `6.1`,
+you MUST opt-in to the newer `7.1` marshal format before upgrading, and ensure all caches were
+either flushed or upgraded.
+
+### The negative scopes for enums now include records with `nil` values.
+
+Active Record negative scopes for enums now include records with `nil` values.
+
+```ruby
+class Book < ApplicationRecord
+  enum :status, [:proposed, :written, :published]
+end
+
+book1 = Book.create!(status: :published)
+book2 = Book.create!(status: :written)
+book3 = Book.create!(status: nil)
+
+# Before
+
+Book.not_published # => [book2]
+
+# After
+
+Book.not_published # => [book2, book3]
+```
 
 Upgrading from Rails 8.0 to Rails 8.1
 -------------------------------------
 
 For more information on changes made to Rails 8.1 please see the [release notes](8_1_release_notes.html).
 
+### The table columns inside `schema.rb` are now sorted alphabetically.
+
+Active Record now alphabetically sorts table columns in `schema.rb` by default, so dumps are consistent across machines and don’t flip-flop with migration order -- meaning fewer noisy diffs. `structure.sql` can still be leveraged to preserve exact column order. [See #53281 for more details on alphabetizing schema changes.](https://github.com/rails/rails/pull/53281)
 
 Upgrading from Rails 7.2 to Rails 8.0
 -------------------------------------
@@ -104,6 +141,60 @@ set the `queue_adapter` config to something other than `:test`, but written test
 
 If no config is provided, the `TestAdapter` will continue to be used.
 
+### `alias_attribute` now bypasses custom methods on the original attribute
+
+In Rails 7.2, `alias_attribute` now bypasses custom methods defined on the original attribute and directly accesses the underlying database value. This change was announced via deprecation warnings in Rails 7.1.
+
+**Before (Rails 7.1):**
+
+```ruby
+class User < ActiveRecord::Base
+  def email
+    "custom_#{super}"
+  end
+
+  alias_attribute :username, :email
+end
+
+user = User.create!(email: "test@example.com")
+user.username
+# => "custom_test@example.com"
+```
+
+**After (Rails 7.2):**
+
+```ruby
+user = User.create!(email: "test@example.com")
+user.username
+# => "test@example.com"  # Raw database value
+```
+
+If you received the deprecation warning "Since Rails 7.2 `#{method_name}` will not be calling `#{target_name}` anymore", you should manually define the alias method:
+
+```ruby
+class User < ActiveRecord::Base
+  def email
+    "custom_#{super}"
+  end
+
+  def username
+    email  # This will call the custom email method
+  end
+end
+```
+
+Alternatively, you can use `alias_method`:
+
+```ruby
+class User < ActiveRecord::Base
+  def email
+    "custom_#{super}"
+  end
+
+  alias_method :username, :email
+end
+```
+
 Upgrading from Rails 7.0 to Rails 7.1
 -------------------------------------
 
@@ -120,6 +211,14 @@ Failure to do so will cause Rails to generate a new secret key in the new file `
 This will invalidate all existing sessions/cookies in development and test environments, and also cause other signatures derived from `secret_key_base` to break, such as Active Storage/Action Text attachments.
 
 Production and other environments are not affected.
+
+### New ActiveSupport::Cache serialization format
+
+A new 7.1 cache format is available which includes an optimization for bare string values such as view fragments.
+
+The 7.1 cache format is used by default for new apps, and existing apps can enable the format by setting `config.load_defaults 7.1` or by setting `config.active_support.cache_format_version = 7.1` in `config/application.rb` or a `config/environments/*.rb` file.
+
+Cache entries written using the 6.1 or 7.0 cache formats can be read when using the 7.1 format. To perform a rolling deploy of a Rails 7.1 upgrade, wherein servers that have not yet been upgraded must be able to read caches from upgraded servers, leave the cache format unchanged on the first deploy, then enable the 7.1 cache format on a subsequent deploy.
 
 ### Autoloaded paths are no longer in $LOAD_PATH
 
@@ -251,7 +350,7 @@ config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
 
 ### `config.i18n.raise_on_missing_translations = true` now raises on any missing translation.
 
-Previously it would only raise when called in a view or controller. Now it will raise anytime `I18n.t` is provided an unrecognised key.
+Previously it would only raise when called in a view or controller. Now it will raise anytime `I18n.t` is provided an unrecognized key.
 
 ```ruby
 # with config.i18n.raise_on_missing_translations = true
@@ -264,7 +363,7 @@ I18n.t("missing.key") # didn't raise in 7.0, raises in 7.1
 I18n.t("missing.key") # didn't raise in 7.0, raises in 7.1
 ```
 
-If you don't want this behaviour, you can set `config.i18n.raise_on_missing_translations = false`:
+If you don't want this behavior, you can set `config.i18n.raise_on_missing_translations = false`:
 
 ```ruby
 # with config.i18n.raise_on_missing_translations = false
@@ -277,7 +376,7 @@ I18n.t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
 I18n.t("missing.key") # didn't raise in 7.0, doesn't raise in 7.1
 ```
 
-Alternatively, you can customise the `I18n.exception_handler`.
+Alternatively, you can customize the `I18n.exception_handler`.
 See the [i18n guide](https://guides.rubyonrails.org/v7.1/i18n.html#using-different-exception-handlers) for more information.
 
 `AbstractController::Translation.raise_on_missing_translations` has been removed. This was a private API, if you were
@@ -365,7 +464,7 @@ versions, there are two scenarios to consider:
     config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
     ```
 
-    If all of your data was encrypted non-deterministicly (the default unless `encrypts` is passed `deterministic: true`, you can instead configure SHA-256 for Active Record Encryption as in scenario 2 below and also allow columns previously encrypted with SHA-1 to be decrypted by setting:
+    If all of your data was encrypted non-deterministically (the default unless `encrypts` is passed `deterministic: true`, you can instead configure SHA-256 for Active Record Encryption as in scenario 2 below and also allow columns previously encrypted with SHA-1 to be decrypted by setting:
 
     ```ruby
     config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
@@ -399,7 +498,7 @@ config.active_record.encryption.support_sha1_for_non_deterministic_encryption = 
 
 The `config.action_dispatch.show_exceptions` configuration controls how Action Pack handles exceptions raised while responding to requests.
 
-Prior to Rails 7.1, setting `config.action_dispatch.show_exceptions = true` configured Action Pack to rescue exceptions and render appropriate HTML error pages, like rendering `public/404.html` with a `404 Not found` status code instead of raising an `ActiveRecord::RecordNotFound` exception. Setting `config.action_dispatch.show_exceptions = false` configured Action Pack to not rescue the exception. Prior to Rails 7.1, new applications were generated with a line in `config/environments/test.rb` that set `config.action_dispatch.show_exceptions = false`.
+Prior to Rails 7.1, setting `config.action_dispatch.show_exceptions = true` configured Action Pack to rescue exceptions and render appropriate HTML error pages, like rendering `public/404.html` with a `404 Not Found` status code instead of raising an `ActiveRecord::RecordNotFound` exception. Setting `config.action_dispatch.show_exceptions = false` configured Action Pack to not rescue the exception. Prior to Rails 7.1, new applications were generated with a line in `config/environments/test.rb` that set `config.action_dispatch.show_exceptions = false`.
 
 Rails 7.1 changes the acceptable values from `true` and `false` to `:all`, `:rescuable`, and `:none`.
 
@@ -407,7 +506,7 @@ Rails 7.1 changes the acceptable values from `true` and `false` to `:all`, `:res
 * `:rescuable` - render HTML error pages for exceptions declared by [`config.action_dispatch.rescue_responses`](/configuring.html#config-action-dispatch-rescue-responses)
 * `:none` (equivalent to `false`) - do not rescue from any exceptions
 
-Applications generated by Rails 7.1 or later set `config.action_dispatch.show_exceptions = :rescuable` in their `config/environments/test.rb`. When upgrading, existing applications can change `config.action_dispatch.show_exceptions = :rescuable` to utilize the new behavior, or replace the old values with the corresponding new ones (`true` replaces `:all`, `false` replaces `:none`).
+Applications generated by Rails 7.1 or later set `config.action_dispatch.show_exceptions = :rescuable` in their `config/environments/test.rb`. When upgrading, existing applications can change `config.action_dispatch.show_exceptions = :rescuable` to utilize the new behavior, or replace the old values with the corresponding new ones (`:all` replaces `true`, `:none` replaces `false`).
 
 Upgrading from Rails 6.1 to Rails 7.0
 -------------------------------------
@@ -552,7 +651,7 @@ In order to be able to read messages using the old digest class it is necessary
 to register a rotator. Failing to do so may result in users having their sessions
 invalidated during the upgrade.
 
-The following is an example for rotator for the encrypted and the signed cookies.
+The following is an example of a rotator for encrypted and signed cookies.
 
 ```ruby
 # config/initializers/cookie_rotator.rb
@@ -752,7 +851,7 @@ You can invalidate the cache either by touching the product, or changing the cac
 Rails 7.0 changed some default values for some column types. To avoid that application upgrading from 6.1 to 7.0
 load the current schema using the new 7.0 defaults, Rails now includes the version of the framework in the schema dump.
 
-Before loading the schema for the first time in Rails 7.0, make sure to run `rails app:update` to ensure that the
+Before loading the schema for the first time in Rails 7.0, make sure to run `bin/rails app:update` to ensure that the
 version of the schema is included in the schema dump.
 
 The schema file will look like this:
@@ -2177,7 +2276,7 @@ end
 ```irb
 irb> FooBar.new.to_json
 => "{\"foo\":\"bar\"}"
-irb> JSON.generate(FooBar.new, quirks_mode: true)
+irb> JSON.generate(FooBar.new)
 => "\"#<FooBar:0x007fa80a481610>\""
 ```
 
@@ -2483,7 +2582,7 @@ being used, you can update your form to use the `PUT` method instead:
 <%= form_for [ :update_name, @user ], method: :put do |f| %>
 ```
 
-For more on PATCH and why this change was made, see [this post](https://weblog.rubyonrails.org/2012/2/26/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
+For more on PATCH and why this change was made, see [this post](https://rubyonrails.org/2012/2/26/edge-rails-patch-is-the-new-primary-http-method-for-updates)
 on the Rails blog.
 
 #### A note about media types

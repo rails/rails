@@ -197,7 +197,7 @@ module ActionView
         CachingRegistry.caching?
       end
 
-      # Raises +UncacheableFragmentError+ when called from within a +cache+ block.
+      # Raises UncacheableFragmentError when called from within a +cache+ block.
       #
       # Useful to denote helper methods that can't participate in fragment caching:
       #
@@ -206,7 +206,7 @@ module ActionView
       #     "#{project.name} - #{Time.now}"
       #   end
       #
-      #   # Which will then raise if used within a +cache+ block:
+      #   # Which will then raise if used within a `cache` block:
       #   <% cache project do %>
       #     <%= project_name_with_time(project) %>
       #   <% end %>

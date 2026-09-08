@@ -1,13 +1,16 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "bigdecimal"
 require "date"
 require "ipaddr"
 require "pathname"
-require "uri/generic"
+require "uri"
 require "msgpack/bigint"
 require "active_support/hash_with_indifferent_access"
+require "active_support/core_ext/string/output_safety"
 require "active_support/time"
+require "active_support/core_ext/object/json"
 
 module ActiveSupport
   module MessagePack
@@ -101,6 +104,11 @@ module ActiveSupport
         registry.register_type 17, ActiveSupport::HashWithIndifferentAccess,
           packer: method(:write_hash_with_indifferent_access),
           unpacker: method(:read_hash_with_indifferent_access),
+          recursive: true
+
+        registry.register_type 18, ActiveSupport::SafeBuffer,
+          packer: method(:write_safe_buffer),
+          unpacker: method(:read_safe_buffer),
           recursive: true
       end
 
@@ -240,6 +248,14 @@ module ActiveSupport
 
       def read_hash_with_indifferent_access(unpacker)
         ActiveSupport::HashWithIndifferentAccess.new(unpacker.read)
+      end
+
+      def write_safe_buffer(buffer, packer)
+        packer.write(buffer.to_str)
+      end
+
+      def read_safe_buffer(unpacker)
+        ActiveSupport::SafeBuffer.new(unpacker.read)
       end
 
       def raise_unserializable(object, *)

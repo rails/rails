@@ -165,28 +165,42 @@ module ActiveRecord
 
         def test_exclusion_constraint_creates_exclusion_constraint
           with_change_table do |t|
-            expect :add_exclusion_constraint, nil, [:delete_me, "daterange(start_date, end_date) WITH &&", using: :gist, where: "start_date IS NOT NULL AND end_date IS NOT NULL", name: "date_overlap"]
+            expect :add_exclusion_constraint, nil, [:delete_me, "daterange(start_date, end_date) WITH &&"], using: :gist, where: "start_date IS NOT NULL AND end_date IS NOT NULL", name: "date_overlap"
             t.exclusion_constraint "daterange(start_date, end_date) WITH &&", using: :gist, where: "start_date IS NOT NULL AND end_date IS NOT NULL", name: "date_overlap"
+          end
+        end
+
+        def test_exclusion_constraint_exists
+          with_change_table do |t|
+            expect :exclusion_constraint_exists?, nil, [:delete_me], name: "date_overlap"
+            assert_not t.exclusion_constraint_exists?(name: "date_overlap")
           end
         end
 
         def test_remove_exclusion_constraint_removes_exclusion_constraint
           with_change_table do |t|
-            expect :remove_exclusion_constraint, nil, [:delete_me, name: "date_overlap"]
+            expect :remove_exclusion_constraint, nil, [:delete_me], name: "date_overlap"
             t.remove_exclusion_constraint name: "date_overlap"
           end
         end
 
         def test_unique_constraint_creates_unique_constraint
           with_change_table do |t|
-            expect :add_unique_constraint, nil, [:delete_me, :foo, deferrable: :deferred, name: "unique_constraint"]
+            expect :add_unique_constraint, nil, [:delete_me, :foo], deferrable: :deferred, name: "unique_constraint"
             t.unique_constraint :foo, deferrable: :deferred, name: "unique_constraint"
+          end
+        end
+
+        def test_unique_constraint_exists
+          with_change_table do |t|
+            expect :unique_constraint_exists?, nil, [:delete_me], name: "unique_constraint"
+            assert_not t.unique_constraint_exists?(name: "unique_constraint")
           end
         end
 
         def test_remove_unique_constraint_removes_unique_constraint
           with_change_table do |t|
-            expect :remove_unique_constraint, nil, [:delete_me, name: "unique_constraint"]
+            expect :remove_unique_constraint, nil, [:delete_me], name: "unique_constraint"
             t.remove_unique_constraint name: "unique_constraint"
           end
         end
@@ -211,6 +225,37 @@ module ActiveRecord
           expect :add_column, nil, [:delete_me, :bar, :integer]
           expect :add_index, nil, [:delete_me, :bar]
           t.column :bar, :integer, index: true
+        end
+      end
+
+      if ActiveRecord::Base.lease_connection.supports_disabling_indexes?
+        def test_column_creates_column_with_disabled_index
+          with_change_table do |t|
+            expect :add_column, nil, [:delete_me, :bar, :integer]
+            expect :add_index, nil, [:delete_me, :bar], enabled: false
+            t.column :bar, :integer, index: { enabled: false }
+          end
+        end
+
+        def test_index_creates_disabled_index
+          with_change_table do |t|
+            expect :add_index, nil, [:delete_me, :bar], enabled: false
+            t.index :bar, enabled: false
+          end
+        end
+
+        def test_disable_index_disables_index
+          with_change_table do |t|
+            expect :disable_index, nil, [:delete_me, :bar]
+            t.disable_index :bar
+          end
+        end
+
+        def test_enable_index_enables_index
+          with_change_table do |t|
+            expect :enable_index, nil, [:delete_me, :bar]
+            t.enable_index :bar
+          end
         end
       end
 
@@ -371,6 +416,30 @@ module ActiveRecord
         assert_raises(ArgumentError) do
           with_change_table do |t|
             t.string :nickname, if_not_exists: true
+          end
+        end
+      end
+
+      def test_remove_timestamps_with_if_exists_raises_error
+        assert_raises(ArgumentError) do
+          with_change_table do |t|
+            t.remove_timestamps if_exists: true
+          end
+        end
+      end
+
+      def test_check_constraint_with_if_not_exists_raises_error
+        assert_raises(ArgumentError) do
+          with_change_table do |t|
+            t.check_constraint "price > 0", name: "price_check", if_not_exists: true
+          end
+        end
+      end
+
+      def test_remove_check_constraint_with_if_exists_raises_error
+        assert_raises(ArgumentError) do
+          with_change_table do |t|
+            t.remove_check_constraint name: "price_check", if_exists: true
           end
         end
       end

@@ -42,7 +42,7 @@ class Post < ActiveRecord::Base
   scope :most_commented, lambda { |comments_count|
     joins(:comments)
     .group("posts.id")
-    .having("count(comments.id) >= #{comments_count}")
+    .having("count(comments.id) >= ?", comments_count)
   }
 
   belongs_to :author
@@ -91,6 +91,8 @@ class Post < ActiveRecord::Base
     end
   end
 
+  has_many :ordered_comments, class_name: "Comment", default_order: :body
+
   has_many :comments_with_extend, extend: NamedExtension, class_name: "Comment", foreign_key: "post_id" do
     def greeting
       "hello"
@@ -112,6 +114,10 @@ class Post < ActiveRecord::Base
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, -> { includes(:post) }, class_name: "VerySpecialComment"
   has_one :very_special_comment_with_post_with_joins, -> { joins(:post).order("posts.id") }, class_name: "VerySpecialComment"
+  has_one :very_special_comment_with_string_joins, -> {
+    joins("JOIN posts AS p1 ON comments.post_id = p1.id")
+    .where.not(p1: { id: 999999 })
+  }, class_name: "VerySpecialComment"
   has_many :special_comments
   has_many :nonexistent_comments, -> { where "comments.id < 0" }, class_name: "Comment"
 
@@ -278,6 +284,15 @@ class PostWithDefaultScope < ActiveRecord::Base
   default_scope { order(:title) }
 end
 
+class PostWithWhereDefaultScope < ActiveRecord::Base
+  self.inheritance_column = :disabled
+  self.table_name = "posts"
+  default_scope { where(deleted_at: nil) }
+
+  belongs_to :author
+  has_many :comments, -> { unscope(where: :deleted_at) }, class_name: "CommentOnPostWithWhereDefaultScope", foreign_key: :post_id
+end
+
 class PostWithPreloadDefaultScope < ActiveRecord::Base
   self.table_name = "posts"
 
@@ -352,6 +367,7 @@ end
 
 class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
+  include ActiveRecord::Sanitization
 
   class << self
     def scope_registry
@@ -372,18 +388,6 @@ class FakeKlass
 
     def attribute_aliases
       {}
-    end
-
-    def sanitize_sql(sql)
-      sql
-    end
-
-    def sanitize_sql_for_order(sql)
-      sql
-    end
-
-    def disallow_raw_sql!(*args)
-      # noop
     end
 
     def columns_hash
@@ -427,4 +431,11 @@ class PostRecord < ActiveRecord::Base
       ActiveModel::Name.new(self, nil, "Post")
     end
   end
+end
+
+class PostWithAliasedAuthorId < ActiveRecord::Base
+  self.table_name = "posts"
+  self.inheritance_column = nil
+  alias_attribute :writer_id, :author_id
+  belongs_to :author, foreign_key: :writer_id, inverse_of: :posts_with_aliased_author_id
 end

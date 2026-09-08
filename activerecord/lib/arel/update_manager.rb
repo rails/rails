@@ -5,6 +5,8 @@ module Arel # :nodoc: all
     include TreeManager::StatementMethods
 
     def initialize(table = nil)
+      super
+
       @ast = Nodes::UpdateStatement.new(table)
     end
 
@@ -43,6 +45,16 @@ module Arel # :nodoc: all
 
     def having(expr)
       @ast.havings << expr
+      self
+    end
+
+    def comment(value)
+      @ast.comment = value
+      self
+    end
+
+    def returning(returning)
+      @ast.returning << returning
       self
     end
   end

@@ -15,9 +15,10 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        def explain(arel, binds = [], _options = [])
-          sql    = "EXPLAIN QUERY PLAN " + to_sql(arel, binds)
-          result = internal_exec_query(sql, "EXPLAIN", [])
+        def explain(arel_or_sql, binds = [], _options = [])
+          sql, _ = to_sql_and_binds(arel_or_sql, binds)
+          sql = "EXPLAIN QUERY PLAN " + sql
+          result = query_rows(sql, "EXPLAIN")
           SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
@@ -34,11 +35,11 @@ module ActiveRecord
         end
 
         def commit_db_transaction # :nodoc:
-          internal_execute("COMMIT TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("COMMIT TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def exec_rollback_db_transaction # :nodoc:
-          internal_execute("ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         # https://stackoverflow.com/questions/17574784
@@ -57,8 +58,33 @@ module ActiveRecord
         end
 
         def reset_isolation_level # :nodoc:
-          internal_execute("PRAGMA read_uncommitted=#{@previous_read_uncommitted}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("PRAGMA read_uncommitted=#{@previous_read_uncommitted}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
           @previous_read_uncommitted = nil
+        end
+
+        def default_insert_value(column) # :nodoc:
+          if column.default_function
+            Arel.sql(column.default_function)
+          else
+            column.default
+          end
+        end
+
+        def execute_batch(statements, name = nil, **kwargs) # :nodoc:
+          sql = combine_multi_statements(statements)
+          intent = QueryIntent.new(
+            adapter: self,
+            processed_sql: sql,
+            name: name,
+            batch: true,
+            binds: kwargs[:binds] || [],
+            prepare: kwargs[:prepare] || false,
+            allow_async: kwargs[:async] || false,
+            allow_retry: kwargs[:allow_retry] || false,
+            materialize_transactions: kwargs[:materialize_transactions] != false
+          )
+          intent.execute!
+          intent.finish
         end
 
         private
@@ -68,77 +94,75 @@ module ActiveRecord
               raise StandardError, "You need to enable the shared-cache mode in SQLite mode before attempting to change the transaction isolation level" unless shared_cache?
             end
 
-            internal_execute("BEGIN #{mode} TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+            query_command("BEGIN #{mode} TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
             if isolation
-              @previous_read_uncommitted = query_value("PRAGMA read_uncommitted")
-              internal_execute("PRAGMA read_uncommitted=ON", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+              @previous_read_uncommitted = query_value("PRAGMA read_uncommitted", "TRANSACTION")
+              query_command("PRAGMA read_uncommitted=ON", "TRANSACTION", allow_retry: true, materialize_transactions: false)
             end
           end
 
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
-            if batch
-              raw_connection.execute_batch2(sql)
-            elsif prepare
-              stmt = @statements[sql] ||= raw_connection.prepare(sql)
-              stmt.reset!
-              stmt.bind_params(type_casted_binds)
+          def perform_query(raw_connection, intent)
+            total_changes_before_query = raw_connection.total_changes
+            affected_rows = nil
 
-              result = if stmt.column_count.zero? # No return
-                stmt.step
-                ActiveRecord::Result.empty
-              else
-                ActiveRecord::Result.new(stmt.columns, stmt.to_a)
-              end
+            if intent.batch
+              raw_connection.execute_batch2(intent.processed_sql)
             else
-              # Don't cache statements if they are not prepared.
-              stmt = raw_connection.prepare(sql)
+              stmt = if intent.prepare
+                @statements[intent.processed_sql] ||= raw_connection.prepare(intent.processed_sql)
+                @statements[intent.processed_sql].reset!
+              else
+                # Don't cache statements if they are not prepared.
+                raw_connection.prepare(intent.processed_sql)
+              end
               begin
-                unless binds.nil? || binds.empty?
-                  stmt.bind_params(type_casted_binds)
+                if intent.has_binds?
+                  stmt.bind_params(intent.type_casted_binds)
                 end
                 result = if stmt.column_count.zero? # No return
                   stmt.step
-                  ActiveRecord::Result.empty
+
+                  affected_rows = if raw_connection.total_changes > total_changes_before_query
+                    raw_connection.changes
+                  else
+                    0
+                  end
+
+                  ActiveRecord::Result.empty(affected_rows: affected_rows)
                 else
-                  ActiveRecord::Result.new(stmt.columns, stmt.to_a)
+                  rows = stmt.to_a
+
+                  affected_rows = if raw_connection.total_changes > total_changes_before_query
+                    raw_connection.changes
+                  else
+                    0
+                  end
+
+                  ActiveRecord::Result.new(stmt.columns, rows, stmt.types.map { |t| type_map.lookup(t) }, affected_rows: affected_rows)
                 end
               ensure
-                stmt.close
+                stmt.close unless intent.prepare
               end
             end
-            @last_affected_rows = raw_connection.changes
             verified!
 
-            notification_payload[:affected_rows] = @last_affected_rows
-            notification_payload[:row_count] = result&.length || 0
+            intent.notification_payload[:affected_rows] = affected_rows
+            intent.notification_payload[:row_count] = result&.length || 0
             result
           end
 
           def cast_result(result)
-            # Given that SQLite3 doesn't really a Result type, raw_execute already return an ActiveRecord::Result
-            # and we have nothing to cast here.
+            # Given that SQLite3 doesn't have a Result type, raw_execute already returns an ActiveRecord::Result
+            # so we have nothing to cast here.
             result
           end
 
           def affected_rows(result)
-            @last_affected_rows
-          end
-
-          def execute_batch(statements, name = nil, **kwargs)
-            sql = combine_multi_statements(statements)
-            raw_execute(sql, name, batch: true, **kwargs)
+            result&.affected_rows
           end
 
           def build_truncate_statement(table_name)
             "DELETE FROM #{quote_table_name(table_name)}"
-          end
-
-          def returning_column_values(result)
-            result.rows.first
-          end
-
-          def default_insert_value(column)
-            column.default
           end
       end
     end

@@ -17,7 +17,10 @@ module ActionMailer
   #   Notifier.welcome(User.first).deliver_later # enqueue email delivery as a job through Active Job
   #   Notifier.welcome(User.first).message       # a Mail::Message object
   class MessageDelivery < Delegator
-    def initialize(mailer_class, action, *args) # :nodoc:
+    attr_reader :mailer_class, :action, :params, :args # :nodoc:
+
+    def initialize(mailer_class, action, *args, **kwargs) # :nodoc:
+      args << Hash.ruby2_keywords_hash(kwargs) unless kwargs.empty?
       @mailer_class, @action, @args = mailer_class, action, args
 
       # The mail is only processed if we try to call any methods on it.
@@ -25,7 +28,6 @@ module ActionMailer
       @processed_mailer = nil
       @mail_message = nil
     end
-    ruby2_keywords(:initialize)
 
     # Method calls are delegated to the Mail::Message that's ready to deliver.
     def __getobj__ # :nodoc:

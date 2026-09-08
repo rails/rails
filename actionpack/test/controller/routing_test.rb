@@ -59,11 +59,8 @@ end
 class MockController
   def self.build(helpers, additional_options = {})
     Class.new do
-      define_method :url_options do
-        options = super()
-        options[:protocol] ||= "http"
-        options[:host] ||= "test.host"
-        options.merge(additional_options)
+      define_method :default_url_options do
+        { protocol: "http", host: "test.host" }.merge(additional_options)
       end
 
       include helpers
@@ -495,7 +492,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal("http://test.host/admin/user", setup_for_named_route.users_url)
   end
 
-  def test_optimised_named_route_with_host
+  def test_optimized_named_route_with_host
     rs.draw do
       get "page" => "content#show_page", :as => "pages", :host => "foo.com"
     end
@@ -1017,10 +1014,6 @@ class RouteSetTest < ActiveSupport::TestCase
     @set = make_set
   end
 
-  def request
-    @request ||= ActionController::TestRequest.new
-  end
-
   def default_route_set
     @default_route_set ||= begin
       set = ActionDispatch::Routing::RouteSet.new
@@ -1283,10 +1276,12 @@ class RouteSetTest < ActiveSupport::TestCase
 
   def test_route_error_with_missing_controller
     set.draw do
-      get    "/people" => "missing#index"
+      get    "/people" => "does_not_exists#index"
     end
 
-    assert_raises(ActionController::RoutingError) { request_path_params "/people" }
+    assert_raises(ActionDispatch::MissingController, match: "uninitialized constant DoesNotExistsController") do
+      request_path_params "/people"
+    end
   end
 
   def test_recognize_with_encoded_id_and_regex

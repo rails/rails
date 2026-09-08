@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/dependencies/interlock"
@@ -21,7 +22,12 @@ module ActiveSupport # :nodoc:
     # preventing any other thread from being inside a #run_interlock
     # block at the same time.
     def self.load_interlock(&block)
-      interlock.loading(&block)
+      ActiveSupport.deprecator.warn(
+        "ActiveSupport::Dependencies.load_interlock is deprecated and " \
+        "will be removed in Rails 9.0. The loading interlock is no longer " \
+        "used since Rails switched to Zeitwerk for autoloading."
+      )
+      yield if block
     end
 
     # Execute the supplied block while holding an exclusive lock,

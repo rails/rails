@@ -24,7 +24,7 @@ module ActionView
         @_prefixes ||= begin
           return local_prefixes if superclass.abstract?
 
-          local_prefixes + superclass._prefixes
+          (local_prefixes + superclass._prefixes).freeze
         end
       end
 
@@ -67,6 +67,11 @@ module ActionView
       #   otherwise, process the parameter into a PathSet.
       def view_paths=(paths)
         self._view_paths = _build_view_paths(paths)
+      end
+
+      def eager_load! # :nodoc:
+        _prefixes
+        super
       end
 
       private

@@ -1051,6 +1051,20 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, @rendered
   end
 
+  def test_form_with_label_namespace
+    form_with(model: Post.new, namespace: "namespace") do |f|
+      concat f.label(:title, for: "my_title")
+      concat f.text_field(:title, id: "my_title")
+    end
+
+    expected = whole_form("/posts") do
+      "<label for='namespace_my_title'>Title</label>" \
+      "<input id='namespace_my_title' name='post[title]' type='text' />"
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
   def test_form_with_label_error_wrapping
     form_with(model: @post) do |f|
       concat f.label(:author_name, class: "label")
@@ -2197,12 +2211,11 @@ class FormWithActsLikeFormForTest < FormWithTest
   class LabelledFormBuilder < ActionView::Helpers::FormBuilder
     (field_helpers - %w(hidden_field)).each do |selector|
       class_eval <<-RUBY_EVAL, __FILE__, __LINE__ + 1
-        def #{selector}(field, *args, &proc)
+        def #{selector}(field, ...)
           ("<label for='\#{field}'>\#{field.to_s.humanize}:</label> " + super + "<br/>").html_safe
         end
       RUBY_EVAL
     end
-    ruby2_keywords(:fields)
   end
 
   def test_form_with_with_labelled_builder
@@ -2442,6 +2455,12 @@ class FormWithActsLikeFormForTest < FormWithTest
     form_with(model: @post, data: { behavior: "stuff" }) { }
     assert_match %r|data-behavior="stuff"|, @rendered
     assert_match %r|data-remote="true"|, @rendered
+  end
+
+  def test_form_with_nested_html_attributes
+    form_with(model: @post, html: { hx: { post: "/path", data: { open: false } } }) { }
+
+    assert_dom "form[hx-post=?][hx-data=?]", "/path", { open: false }.to_json
   end
 
   def test_fields_returns_block_result

@@ -13,6 +13,10 @@ module ActiveSupport
           ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post")
         end
 
+        assert_notification("post.submitted", title: "Cool Post") do # subset of payload
+          ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post", body: "Cool Body")
+        end
+
         assert_notification("post.submitted") do # payload omitted
           ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post")
         end
@@ -31,6 +35,16 @@ module ActiveSupport
             ActiveSupport::Notifications.instrument("post.submitted", title: "Cooler Post")
           end
         end
+
+        notification = assert_notification("post.submitted") do # returns notification, no payload specified
+          ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post")
+        end
+        assert_equal("post.submitted", notification.name)
+
+        notification = assert_notification("post.submitted", title: "Cool Post") do # returns notification
+          ActiveSupport::Notifications.instrument("post.submitted", title: "Cool Post")
+        end
+        assert_equal("post.submitted", notification.name)
       end
 
       def test_assert_notifications_count

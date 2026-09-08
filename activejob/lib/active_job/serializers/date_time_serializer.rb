@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "date"
+
 module ActiveJob
   module Serializers
     class DateTimeSerializer < TimeObjectSerializer # :nodoc:
@@ -7,10 +9,9 @@ module ActiveJob
         DateTime.iso8601(hash["value"])
       end
 
-      private
-        def klass
-          DateTime
-        end
+      def klass
+        DateTime
+      end
     end
   end
 end

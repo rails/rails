@@ -148,7 +148,7 @@ module JSONSharedTestCases
     assert_equal "320×480", x.resolution
 
     payload = YAML.dump(x)
-    y = YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+    y = YAML.unsafe_load(payload)
     assert_equal "320×480", y.resolution
   end
 
@@ -221,6 +221,15 @@ module JSONSharedTestCases
   def test_not_compatible_with_serialize_json
     new_klass = Class.new(klass) do
       serialize :payload, coder: JSON
+    end
+    assert_raises(ActiveRecord::AttributeMethods::Serialization::ColumnNotSerializableError) do
+      new_klass.new
+    end
+  end
+
+  def test_not_compatible_with_serialize_active_record_coders_json
+    new_klass = Class.new(klass) do
+      serialize :payload, coder: ActiveRecord::Coders::JSON
     end
     assert_raises(ActiveRecord::AttributeMethods::Serialization::ColumnNotSerializableError) do
       new_klass.new

@@ -17,7 +17,7 @@ module ActionView
       #   @user = User.new({ username: 'testing', password: 'xyz', age: 42})
       #   debug(@user)
       #   # =>
-      #   <pre class='debug_dump'>--- !ruby/object:User
+      #   <pre class="debug_dump">--- !ruby/object:User
       #   attributes:
       #     updated_at:
       #     username: testing

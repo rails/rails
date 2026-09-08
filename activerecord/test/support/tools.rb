@@ -16,7 +16,13 @@ Rails::TestUnit::Runner.singleton_class.prepend Module.new {
    private
      def list_tests(patterns)
        tests = super
-       tests.concat FileList["test/cases/adapters/#{adapter_name}/**/*_test.rb"] if patterns.empty?
+       if patterns.empty?
+         tests.concat FileList["test/cases/adapters/#{adapter_name}/**/*_test.rb"]
+         case adapter_name
+         when "mysql2", "trilogy"
+           tests.concat(FileList["test/cases/adapters/abstract_mysql_adapter/**/*_test.rb"])
+         end
+       end
        tests
      end
 
@@ -30,7 +36,7 @@ Rails::TestUnit::Runner.singleton_class.prepend Module.new {
  }
 
 ActiveSupport::TestCase.extend Rails::LineFiltering
-Rails::TestUnitReporter.app_root = COMPONENT_ROOT
+Rails::TestUnitReporter.app_root ||= COMPONENT_ROOT
 Rails::TestUnitReporter.executable = "bin/test"
 
 Rails::TestUnit::Runner.parse_options(ARGV)

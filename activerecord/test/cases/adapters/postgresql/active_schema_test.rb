@@ -27,6 +27,10 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'UTF8' LC_COLLATE = 'ja_JP.UTF8' LC_CTYPE = 'ja_JP.UTF8'), create_database(:aimonetti, encoding: :"UTF8", collation: :"ja_JP.UTF8", ctype: :"ja_JP.UTF8")
   end
 
+  def test_create_database_with_locale_provider_and_locale
+    assert_equal %(CREATE DATABASE "aimonetti" ENCODING = 'utf8' LOCALE_PROVIDER = 'builtin' LOCALE = 'C.UTF-8'), create_database(:aimonetti, locale_provider: :builtin, locale: "C.UTF-8")
+  end
+
   def test_add_index
     expected = %(CREATE UNIQUE INDEX "index_people_on_last_name" ON "people" ("last_name") WHERE state = 'active')
     assert_equal expected, add_index(:people, :last_name, unique: true, where: "state = 'active'")
@@ -107,6 +111,18 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   def test_remove_index_with_wrong_option
     assert_raises ArgumentError do
       remove_index(:people, coulmn: :last_name)
+    end
+  end
+
+  def test_drop_database_without_force
+    ActiveRecord::Base.lease_connection.stub(:database_version, 12_99_99) do
+      assert_equal %(DROP DATABASE IF EXISTS "development"), drop_database(:development)
+    end
+  end
+
+  def test_drop_database_with_force
+    ActiveRecord::Base.lease_connection.stub(:database_version, 13_00_00) do
+      assert_equal %(DROP DATABASE IF EXISTS "development" WITH (FORCE)), drop_database(:development)
     end
   end
 

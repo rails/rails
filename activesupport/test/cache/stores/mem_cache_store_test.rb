@@ -19,7 +19,15 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
-  class UnavailableDalliServer < Dalli::Protocol::Binary
+  if Dalli::VERSION >= "5."
+    DALLI_PROTOCOL = Dalli::Protocol::Meta
+    DALLI_PROTOCOL_NAME = :Meta
+  else
+    DALLI_PROTOCOL = Dalli::Protocol::Binary
+    DALLI_PROTOCOL_NAME = :Binary
+  end
+
+  class UnavailableDalliServer < DALLI_PROTOCOL
     def alive? # before https://github.com/petergoldstein/dalli/pull/863
       false
     end
@@ -34,7 +42,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   else
     begin
       servers = ENV["MEMCACHE_SERVERS"] || "localhost:11211"
-      ss = Dalli::Client.new(servers).stats
+      ss = Dalli::Client.new(servers, serializer: Marshal).stats
       raise Dalli::DalliError unless ss[servers] || ss[servers + ":11211"]
 
       MEMCACHE_UP = true
@@ -371,6 +379,30 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_equal({}, @cache.send(:read_multi_entries, [key]))
   end
 
+  def test_falls_back_to_default_value_when_client_raises_dalli_error
+    cache = lookup_store
+    client = cache.instance_variable_get(:@data)
+    client.stub(:get_multi, lambda { |*_args| raise Dalli::DalliError.new("test error") }) do
+      assert_equal({}, cache.read_multi("key1", "key2"))
+    end
+  end
+
+  def test_falls_back_to_default_value_when_client_raises_connection_pool_timeout_error
+    cache = lookup_store
+    client = cache.instance_variable_get(:@data)
+    client.stub(:get_multi, lambda { |*_args| raise ConnectionPool::TimeoutError.new("test error") }) do
+      assert_equal({}, cache.read_multi("key1", "key2"))
+    end
+  end
+
+  def test_falls_back_to_default_value_when_client_raises_connection_pool_error
+    cache = lookup_store
+    client = cache.instance_variable_get(:@data)
+    client.stub(:get_multi, lambda { |*_args| raise ConnectionPool::Error.new("test error") }) do
+      assert_equal({}, cache.read_multi("key1", "key2"))
+    end
+  end
+
   def test_pool_options_work
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool: { size: 2, timeout: 1 })
     pool = cache.instance_variable_get(:@data) # loads 'connection_pool' gem
@@ -396,24 +428,14 @@ class MemCacheStoreTest < ActiveSupport::TestCase
       [:mem_cache_store]
     end
 
-    def emulating_latency
-      old_client = Dalli.send(:remove_const, :Client)
-      Dalli.const_set(:Client, SlowDalliClient)
-
-      yield
-    ensure
-      Dalli.send(:remove_const, :Client)
-      Dalli.const_set(:Client, old_client)
+    def emulating_latency(&block)
+      stub_const(Dalli, :Client, SlowDalliClient, &block)
     end
 
     def emulating_unavailability
-      old_server = Dalli::Protocol.send(:remove_const, :Binary)
-      Dalli::Protocol.const_set(:Binary, UnavailableDalliServer)
-
-      yield ActiveSupport::Cache::MemCacheStore.new
-    ensure
-      Dalli::Protocol.send(:remove_const, :Binary)
-      Dalli::Protocol.const_set(:Binary, old_server)
+      stub_const(Dalli::Protocol, DALLI_PROTOCOL_NAME, UnavailableDalliServer) do
+        yield ActiveSupport::Cache::MemCacheStore.new
+      end
     end
 
     def servers(cache = @cache)

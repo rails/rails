@@ -45,7 +45,7 @@ module ActiveRecord
       # Example:
       #   ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = {
       #     mysql2: ['--no-defaults', '--skip-add-drop-table'],
-      #     postgres: '--no-tablespaces'
+      #     postgresql: '--no-tablespaces'
       #   }
       mattr_accessor :structure_dump_flags, instance_accessor: false
 
@@ -60,13 +60,13 @@ module ActiveRecord
       attr_writer :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
       attr_accessor :database_configuration
 
-      LOCAL_HOSTS = ["127.0.0.1", "localhost"]
+      LOCAL_HOSTS = ["127.0.0.1", "localhost"].freeze
 
       def check_protected_environments!(environment = env)
         return if ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
 
         configs_for(env_name: environment).each do |db_config|
-          check_current_protected_environment!(db_config)
+          database_adapter_for(db_config).check_current_protected_environment!(db_config, migration_class)
         end
       end
 
@@ -147,8 +147,6 @@ module ActiveRecord
         return if database_configs.count == 1
 
         database_configs.each do |db_config|
-          next unless db_config.database_tasks?
-
           yield db_config.name
         end
       end
@@ -226,6 +224,13 @@ module ActiveRecord
       def drop_current(environment = env)
         each_current_configuration(environment) { |db_config| drop(db_config) }
       end
+
+      def empty_all_tables(db_config)
+        with_temporary_connection(db_config) do |conn|
+          conn.empty_all_tables
+        end
+      end
+      private :empty_all_tables
 
       def truncate_tables(db_config)
         with_temporary_connection(db_config) do |conn|
@@ -373,7 +378,8 @@ module ActiveRecord
         database_adapter_for(db_config, *arguments).structure_load(filename, flags)
       end
 
-      def load_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
+      def load_schema(db_config, format = db_config.schema_format, file = nil) # :nodoc:
+        format = format.to_sym
         file ||= schema_dump_path(db_config, format)
         return unless file
 
@@ -394,71 +400,88 @@ module ActiveRecord
         Migration.verbose = verbose_was
       end
 
-      def schema_up_to_date?(configuration, format = ActiveRecord.schema_format, file = nil)
+      def schema_up_to_date?(configuration, _ = nil, file = nil, pool: nil)
         db_config = resolve_configuration(configuration)
 
         file ||= schema_dump_path(db_config)
 
         return true unless file && File.exist?(file)
 
-        with_temporary_pool(db_config) do |pool|
-          internal_metadata = pool.internal_metadata
-          return false unless internal_metadata.enabled?
-          return false unless internal_metadata.table_exists?
-
-          internal_metadata[:schema_sha1] == schema_sha1(file)
+        if pool
+          check_schema_sha1(pool, file)
+        else
+          with_temporary_pool(db_config) do |pool|
+            check_schema_sha1(pool, file)
+          end
         end
       end
 
-      def reconstruct_from_schema(db_config, format = ActiveRecord.schema_format, file = nil) # :nodoc:
-        file ||= schema_dump_path(db_config, format)
+      def reconstruct_from_schema(db_config, file = nil) # :nodoc:
+        file ||= schema_dump_path(db_config, db_config.schema_format)
 
         check_schema_file(file) if file
 
-        with_temporary_pool(db_config, clobber: true) do
-          if schema_up_to_date?(db_config, format, file)
-            truncate_tables(db_config) unless ENV["SKIP_TEST_DATABASE_TRUNCATE"]
+        with_temporary_pool(db_config, clobber: true) do |pool|
+          if schema_up_to_date?(db_config, nil, file, pool: pool)
+            empty_all_tables(db_config)
           else
             purge(db_config)
-            load_schema(db_config, format, file)
+            load_schema(db_config, db_config.schema_format, file)
           end
         rescue ActiveRecord::NoDatabaseError
           create(db_config)
-          load_schema(db_config, format, file)
+          load_schema(db_config, db_config.schema_format, file)
         end
       end
 
-      def dump_schema(db_config, format = ActiveRecord.schema_format) # :nodoc:
-        return unless db_config.schema_dump
+      def dump_all
+        seen_schemas = []
+
+        ActiveRecord::Base.configurations.configs_for(env_name: ActiveRecord::Tasks::DatabaseTasks.env).each do |db_config|
+          schema_path = schema_dump_path(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
+
+          next if seen_schemas.include?(schema_path)
+
+          ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config, ENV["SCHEMA_FORMAT"] || db_config.schema_format)
+          seen_schemas << schema_path
+        end
+      end
+
+      def dump_schema(db_config, format = db_config.schema_format) # :nodoc:
+        return unless db_config.schema_dump(format)
 
         require "active_record/schema_dumper"
         filename = schema_dump_path(db_config, format)
         return unless filename
 
-        FileUtils.mkdir_p(db_dir)
-        case format
-        when :ruby
-          File.open(filename, "w:utf-8") do |file|
-            ActiveRecord::SchemaDumper.dump(migration_connection_pool, file)
-          end
-        when :sql
-          structure_dump(db_config, filename)
-          if migration_connection_pool.schema_migration.table_exists?
-            File.open(filename, "a") do |f|
-              f.puts migration_connection.dump_schema_information
-              f.print "\n"
+        with_temporary_pool(db_config) do |pool|
+          FileUtils.mkdir_p(db_dir)
+          case format.to_sym
+          when :ruby
+            File.open(filename, "w:utf-8") do |file|
+              ActiveRecord::SchemaDumper.dump(pool, file)
+            end
+          when :sql
+            structure_dump(db_config, filename)
+            if pool.schema_migration.table_exists?
+              File.open(filename, "a") do |f|
+                pool.with_connection do |connection|
+                  f.puts connection.dump_schema_versions
+                end
+                f.print "\n"
+              end
             end
           end
         end
       end
 
-      def schema_dump_path(db_config, format = ActiveRecord.schema_format)
+      def schema_dump_path(db_config, format = db_config.schema_format)
         return ENV["SCHEMA"] if ENV["SCHEMA"]
 
         filename = db_config.schema_dump(format)
         return unless filename
 
-        if File.dirname(filename) == ActiveRecord::Tasks::DatabaseTasks.db_dir
+        if Pathname.new(filename).absolute? || File.dirname(filename) == ActiveRecord::Tasks::DatabaseTasks.db_dir
           filename
         else
           File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
@@ -471,10 +494,10 @@ module ActiveRecord
           db_config.default_schema_cache_path(ActiveRecord::Tasks::DatabaseTasks.db_dir)
       end
 
-      def load_schema_current(format = ActiveRecord.schema_format, file = nil, environment = env)
+      def load_schema_current(format = nil, file = nil, environment = env)
         each_current_configuration(environment) do |db_config|
           with_temporary_connection(db_config) do
-            load_schema(db_config, format, file)
+            load_schema(db_config, format || db_config.schema_format, file)
           end
         end
       end
@@ -539,6 +562,14 @@ module ActiveRecord
       end
 
       private
+        def check_schema_sha1(pool, file)
+          internal_metadata = pool.internal_metadata
+          return false unless internal_metadata.enabled?
+          return false unless internal_metadata.table_exists?
+
+          internal_metadata[:schema_sha1] == schema_sha1(file)
+        end
+
         def with_temporary_pool(db_config, clobber: false)
           original_db_config = migration_class.connection_db_config
           pool = migration_class.connection_handler.establish_connection(db_config, clobber: clobber)
@@ -632,23 +663,6 @@ module ActiveRecord
           end
         end
 
-        def check_current_protected_environment!(db_config)
-          with_temporary_pool(db_config) do |pool|
-            migration_context = pool.migration_context
-            current = migration_context.current_environment
-            stored  = migration_context.last_stored_environment
-
-            if migration_context.protected_environment?
-              raise ActiveRecord::ProtectedEnvironmentError.new(stored)
-            end
-
-            if stored && stored != current
-              raise ActiveRecord::EnvironmentMismatchError.new(current: current, stored: stored)
-            end
-          rescue ActiveRecord::NoDatabaseError
-          end
-        end
-
         def initialize_database(db_config)
           with_temporary_pool(db_config) do
             begin
@@ -661,7 +675,7 @@ module ActiveRecord
             unless database_already_initialized
               schema_dump_path = schema_dump_path(db_config)
               if schema_dump_path && File.exist?(schema_dump_path)
-                load_schema(db_config, ActiveRecord.schema_format, nil)
+                load_schema(db_config)
               end
             end
 

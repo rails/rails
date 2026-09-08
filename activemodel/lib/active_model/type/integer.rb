@@ -42,6 +42,7 @@ module ActiveModel
     #     attribute :age, :integer, limit: 6
     #   end
     class Integer < Value
+      include Helpers::Immutable
       include Helpers::Numeric
 
       # Column storage size in bytes.
@@ -101,11 +102,23 @@ module ActiveModel
 
       private
         def out_of_range?(value)
+          if @max.nil?
+            @max = max_value
+            @min = min_value
+          end
           value && (@max <= value || @min > value)
         end
 
         def cast_value(value)
-          value.to_i rescue nil
+          case value
+          when ::Integer
+            value
+          when ::String
+            str = value.bytesize > _limit * 4 ? value.byteslice(0, _limit * 4) : value
+            str.to_i rescue nil
+          else
+            value.to_i rescue nil
+          end
         end
 
         def max_value

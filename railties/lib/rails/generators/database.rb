@@ -3,7 +3,7 @@
 module Rails
   module Generators
     class Database
-      DATABASES = %w( mysql trilogy postgresql sqlite3 mariadb-mysql mariadb-trilogy )
+      DATABASES = %w( mysql trilogy postgresql sqlite3 mariadb-mysql mariadb-trilogy ).freeze
 
       module MySQL
         def name
@@ -16,7 +16,7 @@ module Rails
 
         def service
           {
-            "image" => "mysql/mysql-server:8.0",
+            "image" => "mysql:9.7",
             "restart" => "unless-stopped",
             "environment" => {
               "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
@@ -174,10 +174,10 @@ module Rails
 
         def service
           {
-            "image" => "postgres:16.1",
+            "image" => "postgres:18",
             "restart" => "unless-stopped",
             "networks" => ["default"],
-            "volumes" => ["postgres-data:/var/lib/postgresql/data"],
+            "volumes" => ["postgres-data:/var/lib/postgresql"],
             "environment" => {
               "POSTGRES_USER" => "postgres",
               "POSTGRES_PASSWORD" => "postgres"
@@ -218,7 +218,7 @@ module Rails
         end
 
         def base_package
-          nil
+          "default-mysql-client"
         end
 
         def build_package

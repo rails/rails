@@ -26,6 +26,13 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal "foobar", string
   end
 
+  def test_capture_with_keyword_arguments
+    string = @av.capture("foo", b: "bar") do |a, b:|
+      a + b
+    end
+    assert_equal "foobar", string
+  end
+
   def test_capture_returns_nil_if_the_returned_value_is_not_a_string
     assert_nil @av.capture { 1 }
   end

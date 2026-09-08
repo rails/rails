@@ -10,11 +10,26 @@ module ActiveRecord
   class SchemaDumper # :nodoc:
     private_class_method :new
 
-    ##
-    # :singleton-method:
     # A list of tables which should not be dumped to the schema.
     # Acceptable values are strings and regexps.
-    cattr_accessor :ignore_tables, default: []
+    def self.ignore_tables
+      ActiveRecord.deprecator.warn(<<~MSG)
+        `ActiveRecord::SchemaDumper.ignore_tables` is deprecated and will be removed.
+        Use `config.active_record.schema_ignored_tables` instead.
+      MSG
+
+      ActiveRecord.schema_ignored_tables
+    end
+
+    # Sets a list of tables which should not be dumped to the schema.
+    def self.ignore_tables=(tables)
+      ActiveRecord.deprecator.warn(<<~MSG)
+        `ActiveRecord::SchemaDumper.ignore_tables=` is deprecated and will be removed.
+        Use `config.active_record.schema_ignored_tables` instead.
+      MSG
+
+      ActiveRecord.schema_ignored_tables = tables
+    end
 
     ##
     # :singleton-method:
@@ -65,6 +80,7 @@ module ActiveRecord
       tables(stream)
       virtual_tables(stream)
       trailer(stream)
+      versions(stream) if @dump_schema_migrations
       stream
     end
 
@@ -76,10 +92,11 @@ module ActiveRecord
         @version = connection.pool.migration_context.current_version rescue nil
         @options = options
         @ignore_tables = [
-          ActiveRecord::Base.schema_migrations_table_name,
-          ActiveRecord::Base.internal_metadata_table_name,
-          self.class.ignore_tables
+          add_prefix_and_suffix(ActiveRecord::Base.schema_migrations_table_name),
+          add_prefix_and_suffix(ActiveRecord::Base.internal_metadata_table_name),
+          Array(ActiveRecord.schema_ignored_tables)
         ].flatten
+        @dump_schema_migrations = connection.pool.db_config.dump_schema_migrations?
       end
 
       # turns 20170404131909 into "2017_04_04_131909"
@@ -89,8 +106,8 @@ module ActiveRecord
         stringified.insert(4, "_").insert(7, "_").insert(10, "_")
       end
 
-      def define_params
-        @version ? "version: #{formatted_version}" : ""
+      def define_arglist
+        @dump_schema_migrations || @version.nil? ? "" : "(version: #{formatted_version})"
       end
 
       def header(stream)
@@ -107,12 +124,30 @@ module ActiveRecord
           #
           # It's strongly recommended that you check this file into your version control system.
 
-          ActiveRecord::Schema[#{ActiveRecord::Migration.current_version}].define(#{define_params}) do
+          ActiveRecord::Schema[#{ActiveRecord::Migration.current_version}].define#{define_arglist} do
         HEADER
       end
 
       def trailer(stream)
         stream.puts "end"
+      end
+
+      def versions(stream)
+        pool = @connection.pool
+
+        versions_in_schema_migrations = pool.migration_context.get_all_versions
+        versions_in_db_migrate = pool.migration_context.migrations.map(&:version)
+        versions_to_dump = versions_in_schema_migrations & versions_in_db_migrate
+
+        if versions_to_dump.any?
+          versions_to_dump.map!(&:to_s)
+          versions_to_dump.sort_by!(&ActiveRecord.dump_schema_migrations_sort_by)
+
+          stream.puts
+          stream.puts "ActiveRecord::Schema.load_schema_migrations(__FILE__)"
+          stream.puts "__END__"
+          stream.puts versions_to_dump
+        end
       end
 
       # extensions are only supported by PostgreSQL
@@ -131,10 +166,23 @@ module ActiveRecord
       def virtual_tables(stream)
       end
 
+      def read_schema_metadata(tables)
+        @columns = @connection.columns(tables)
+        @table_options = @connection.table_options(tables)
+        @primary_keys = @connection.primary_keys(tables)
+        @indexes = @connection.indexes(tables)
+        @foreign_keys = @connection.foreign_keys(tables) if @connection.supports_foreign_keys?
+        @check_constraints = @connection.check_constraints(tables) if @connection.supports_check_constraints?
+        @exclusion_constraints = @connection.exclusion_constraints(tables) if @connection.supports_exclusion_constraints?
+        @unique_constraints = @connection.unique_constraints(tables) if @connection.supports_unique_constraints?
+      end
+
       def tables(stream)
         sorted_tables = @connection.tables.sort
 
         not_ignored_tables = sorted_tables.reject { |table_name| ignored?(table_name) }
+
+        read_schema_metadata(not_ignored_tables)
 
         not_ignored_tables.each_with_index do |table_name, index|
           table(table_name, stream)
@@ -156,16 +204,17 @@ module ActiveRecord
       end
 
       def table(table, stream)
-        columns = @connection.columns(table)
+        columns = @columns[table]
         begin
           self.table_name = table
 
           tbl = StringIO.new
 
           # first dump primary key column
-          pk = @connection.primary_key(table)
+          pk = @primary_keys[table]
+          pk = pk.first unless pk.size > 1
 
-          tbl.print "  create_table #{remove_prefix_and_suffix(table).inspect}"
+          tbl.print "  create_table #{relation_name(remove_prefix_and_suffix(table)).inspect}"
 
           case pk
           when String
@@ -184,7 +233,7 @@ module ActiveRecord
             tbl.print ", id: false"
           end
 
-          table_options = @connection.table_options(table)
+          table_options = @table_options[table]
           if table_options.present?
             tbl.print ", #{format_options(table_options)}"
           end
@@ -207,11 +256,16 @@ module ActiveRecord
           end
 
           indexes_in_create(table, tbl)
-          check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
+          remaining = check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
           exclusion_constraints_in_create(table, tbl) if @connection.supports_exclusion_constraints?
           unique_constraints_in_create(table, tbl) if @connection.supports_unique_constraints?
 
           tbl.puts "  end"
+
+          if remaining
+            tbl.puts
+            tbl.print remaining.string
+          end
 
           stream.print tbl.string
         rescue => e
@@ -227,8 +281,8 @@ module ActiveRecord
       def indexes(table, stream)
         if (indexes = @connection.indexes(table)).any?
           add_index_statements = indexes.map do |index|
-            table_name = remove_prefix_and_suffix(index.table).inspect
-            "  add_index #{([table_name] + index_parts(index)).join(', ')}"
+            table_name = remove_prefix_and_suffix(index.table)
+            "  add_index #{([relation_name(table_name).inspect] + index_parts(index)).join(', ')}"
           end
 
           stream.puts add_index_statements.sort.join("\n")
@@ -237,14 +291,14 @@ module ActiveRecord
       end
 
       def indexes_in_create(table, stream)
-        if (indexes = @connection.indexes(table)).any?
-          if @connection.supports_exclusion_constraints? && (exclusion_constraints = @connection.exclusion_constraints(table)).any?
+        if (indexes = @indexes[table]).any?
+          if @connection.supports_exclusion_constraints? && (exclusion_constraints = @exclusion_constraints[table]).any?
             exclusion_constraint_names = exclusion_constraints.collect(&:name)
 
             indexes = indexes.reject { |index| exclusion_constraint_names.include?(index.name) }
           end
 
-          if @connection.supports_unique_constraints? && (unique_constraints = @connection.unique_constraints(table)).any?
+          if @connection.supports_unique_constraints? && (unique_constraints = @unique_constraints[table]).any?
             unique_constraint_names = unique_constraints.collect(&:name)
 
             indexes = indexes.reject { |index| unique_constraint_names.include?(index.name) }
@@ -272,35 +326,49 @@ module ActiveRecord
         index_parts << "nulls_not_distinct: #{index.nulls_not_distinct.inspect}" if index.nulls_not_distinct
         index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
+        index_parts << "enabled: #{index.enabled.inspect}" if @connection.supports_disabling_indexes? && index.disabled?
         index_parts
       end
 
       def check_constraints_in_create(table, stream)
-        if (check_constraints = @connection.check_constraints(table)).any?
-          add_check_constraint_statements = check_constraints.map do |check_constraint|
-            parts = [
-              "t.check_constraint #{check_constraint.expression.inspect}"
-            ]
+        if (check_constraints = @check_constraints[table]).any?
+          check_valid, check_invalid = check_constraints.partition { |chk| chk.validate? }
 
-            if check_constraint.export_name_on_schema_dump?
-              parts << "name: #{check_constraint.name.inspect}"
+          unless check_valid.empty?
+            check_constraint_statements = check_valid.map do |check|
+              "    t.check_constraint #{check_parts(check).join(', ')}"
             end
 
-            parts << "validate: #{check_constraint.validate?.inspect}" unless check_constraint.validate?
-
-            "    #{parts.join(', ')}"
+            stream.puts check_constraint_statements.sort.join("\n")
           end
 
-          stream.puts add_check_constraint_statements.sort.join("\n")
+          unless check_invalid.empty?
+            remaining = StringIO.new
+            table_name = remove_prefix_and_suffix(table).inspect
+
+            add_check_constraint_statements = check_invalid.map do |check|
+              "  add_check_constraint #{([table_name] + check_parts(check)).join(', ')}"
+            end
+
+            remaining.puts add_check_constraint_statements.sort.join("\n")
+            remaining
+          end
         end
       end
 
+      def check_parts(check)
+        check_parts = [ check.expression.inspect ]
+        check_parts << "name: #{check.name.inspect}" if check.export_name_on_schema_dump?
+        check_parts << "validate: #{check.validate?.inspect}" unless check.validate?
+        check_parts
+      end
+
       def foreign_keys(table, stream)
-        if (foreign_keys = @connection.foreign_keys(table)).any?
+        if (foreign_keys = @foreign_keys[table]).any?
           add_foreign_key_statements = foreign_keys.map do |foreign_key|
             parts = [
-              "add_foreign_key #{remove_prefix_and_suffix(foreign_key.from_table).inspect}",
-              remove_prefix_and_suffix(foreign_key.to_table).inspect,
+              relation_name(remove_prefix_and_suffix(foreign_key.from_table)).inspect,
+              relation_name(remove_prefix_and_suffix(foreign_key.to_table)).inspect,
             ]
 
             if foreign_key.column != @connection.foreign_key_column_for(foreign_key.to_table, "id")
@@ -311,16 +379,14 @@ module ActiveRecord
               parts << "primary_key: #{foreign_key.primary_key.inspect}"
             end
 
-            if foreign_key.export_name_on_schema_dump?
-              parts << "name: #{foreign_key.name.inspect}"
-            end
-
+            parts << "name: #{foreign_key.name.inspect}" if foreign_key.export_name_on_schema_dump?
             parts << "on_update: #{foreign_key.on_update.inspect}" if foreign_key.on_update
             parts << "on_delete: #{foreign_key.on_delete.inspect}" if foreign_key.on_delete
             parts << "deferrable: #{foreign_key.deferrable.inspect}" if foreign_key.deferrable
             parts << "validate: #{foreign_key.validate?.inspect}" unless foreign_key.validate?
+            parts << "enforced: #{foreign_key.enforced?.inspect}" unless foreign_key.enforced?
 
-            "  #{parts.join(', ')}"
+            "  add_foreign_key #{parts.join(', ')}"
           end
 
           stream.puts add_foreign_key_statements.sort.join("\n")
@@ -345,6 +411,10 @@ module ActiveRecord
         end
       end
 
+      def relation_name(name)
+        name
+      end
+
       def remove_prefix_and_suffix(table)
         # This method appears at the top when profiling active_record test cases run.
         # Avoid costly calculation when there are no prefix and suffix.
@@ -355,9 +425,14 @@ module ActiveRecord
         table.sub(/\A#{prefix}(.+)#{suffix}\z/, "\\1")
       end
 
+      def add_prefix_and_suffix(table)
+        "#{@options[:table_name_prefix]}#{table}#{@options[:table_name_suffix]}"
+      end
+
+
       def ignored?(table_name)
         @ignore_tables.any? do |ignored|
-          ignored === remove_prefix_and_suffix(table_name)
+          ignored === table_name
         end
       end
   end

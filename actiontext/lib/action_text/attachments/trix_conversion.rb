@@ -6,19 +6,20 @@ require "active_support/core_ext/object/try"
 
 module ActionText
   module Attachments
+    # DEPRECATED
     module TrixConversion
       extend ActiveSupport::Concern
 
       class_methods do
         def fragment_by_converting_trix_attachments(content)
-          Fragment.wrap(content).replace(TrixAttachment::SELECTOR) do |node|
-            from_trix_attachment(TrixAttachment.new(node))
-          end
+          fragment_by_converting_editor_attachments(content)
         end
+        deprecate :fragment_by_converting_trix_attachments, deprecator: ActionText.deprecator
 
         def from_trix_attachment(trix_attachment)
           from_attributes(trix_attachment.attributes)
         end
+        deprecate :from_trix_attachment, deprecator: ActionText.deprecator
       end
 
       def to_trix_attachment(content = trix_attachment_content)
@@ -26,6 +27,7 @@ module ActionText
         attributes["content"] = content if content
         TrixAttachment.from_attributes(attributes)
       end
+      deprecate :to_trix_attachment, deprecator: ActionText.deprecator
 
       private
         def trix_attachment_content

@@ -42,4 +42,9 @@ class GzipTest < ActiveSupport::TestCase
       ActiveSupport::Gzip.decompress(compressed)
     end
   end
+
+  def test_sets_mtime_to_zero
+    compressed = ActiveSupport::Gzip.compress("Hello World")
+    assert_equal Time.at(0), Zlib::GzipReader.new(StringIO.new(compressed)).mtime
+  end
 end

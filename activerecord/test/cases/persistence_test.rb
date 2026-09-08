@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/auto_id"
 require "models/aircraft"
 require "models/dashboard"
 require "models/clothing_item"
@@ -36,6 +37,22 @@ class PersistenceTest < ActiveRecord::TestCase
     topic = TitlePrimaryKeyTopic.create!(title: "title pk topic")
 
     assert_not_nil topic.attributes["id"]
+  end
+
+  def test_populates_autoincremented_id_pk_regardless_of_its_position_in_columns_list
+    auto_populated_column_names = AutoId.columns.select(&:auto_populated_on_insert?).map(&:name)
+
+    # It's important we test a scenario where tables has more than one auto populated column
+    # and the first column is not the primary key. Otherwise it will be a regular test not asserting this special case.
+    assert auto_populated_column_names.size > 1
+    assert_not_equal AutoId.primary_key, auto_populated_column_names.first
+
+    record = AutoId.create!
+    last_id = AutoId.last.id
+
+    assert_not_nil last_id
+    assert last_id > 0
+    assert_equal last_id, record.id
   end
 
   def test_populates_non_primary_key_autoincremented_column_for_a_cpk_model
@@ -74,6 +91,21 @@ class PersistenceTest < ActiveRecord::TestCase
         assert_not_nil record.id
       end
     end
+
+    def test_fills_auto_populated_columns_on_update
+      record_with_defaults = Default.create
+
+      record_with_defaults.update!(random_number: 105)
+      assert_equal 1050,  record_with_defaults.virtual_stored_number
+    end if supports_virtual_columns?
+
+    def test_returning_columns_on_update_does_not_include_id
+      record_with_defaults = Default.create
+
+      sql = capture_sql { record_with_defaults.update!(random_number: 105) }.first
+
+      assert_equal false, (/RETURNING.*id/).match?(sql)
+    end
   elsif current_adapter?(:SQLite3Adapter)
     def test_fills_auto_populated_columns_on_creation
       record = Default.create
@@ -86,6 +118,17 @@ class PersistenceTest < ActiveRecord::TestCase
       assert_not_nil record.modified_time
       assert_not_nil record.modified_time_without_precision
       assert_not_nil record.modified_time_function
+    end
+
+    def test_does_not_fill_auto_populated_columns_on_update
+      # NOTE: When support for reload via RETURNING on update is added to sqlite this
+      #       test can be replaced with: test_fills_auto_populated_columns_on_update
+      record_with_defaults = Default.create
+      record_with_defaults.update!(random_number: 105)
+
+      assert_not_equal 1050, record_with_defaults.virtual_stored_number
+      record_with_defaults.reload
+      assert_equal 1050, record_with_defaults.virtual_stored_number
     end
   elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     def test_fills_auto_populated_columns_on_creation
@@ -150,6 +193,34 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_not_equal "updated", Topic.first.content
     assert_not_equal "updated", Topic.second.content
+  end
+
+  def test_update_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    updated = Cpk::Book.update(book.id, title: "updated")
+
+    assert_equal book.id, updated.id
+    assert_equal "updated", book.reload.title
+  end
+
+  def test_update_bang_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    updated = Cpk::Book.update!(book.id, title: "updated")
+
+    assert_equal book.id, updated.id
+    assert_equal "updated", book.reload.title
+  end
+
+  def test_update_many_with_composite_primary_keys
+    first = cpk_books(:cpk_great_author_first_book)
+    second = cpk_books(:cpk_great_author_second_book)
+
+    Cpk::Book.update([first.id, second.id], [{ title: "first updated" }, { title: "second updated" }])
+
+    assert_equal "first updated", first.reload.title
+    assert_equal "second updated", second.reload.title
   end
 
   def test_class_level_update_without_ids
@@ -344,6 +415,27 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raises(ArgumentError) { topic.increment! }
   end
 
+  def test_increment_new_record
+    topic = Topic.new
+
+    assert_no_queries do
+      assert_raises ActiveRecord::ActiveRecordError do
+        topic.increment!(:replies_count)
+      end
+    end
+  end
+
+  def test_increment_destroyed_record
+    topic = topics(:first)
+    topic.destroy
+
+    assert_no_queries do
+      assert_raises ActiveRecord::ActiveRecordError do
+        topic.increment!(:replies_count)
+      end
+    end
+  end
+
   def test_destroy_many
     clients = Client.find([2, 3])
 
@@ -386,6 +478,16 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_destroy_with_empty_array_of_composite_primary_keys
+    assert_no_difference("Cpk::Book.count") do
+      assert_equal [], Cpk::Book.destroy([])
+    end
+  end
+
+  def test_update_with_empty_array_of_composite_primary_keys
+    assert_equal [], Cpk::Book.update([], [])
+  end
+
   def test_destroy_with_invalid_ids_for_a_model_that_expects_composite_keys
     books = [
       cpk_books(:cpk_great_author_first_book),
@@ -395,6 +497,25 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) do
       ids = books.map { |book| book.id.first }
       Cpk::Book.destroy(ids)
+    end
+  end
+
+  def test_delete_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_difference("Cpk::Book.count", -1) do
+      assert_equal 1, Cpk::Book.delete(book.id)
+    end
+  end
+
+  def test_delete_with_multiple_composite_primary_keys
+    books = [
+      cpk_books(:cpk_great_author_first_book),
+      cpk_books(:cpk_great_author_second_book),
+    ]
+
+    assert_difference("Cpk::Book.count", -2) do
+      assert_equal 2, Cpk::Book.delete(books.map(&:id))
     end
   end
 
@@ -460,6 +581,26 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal %w{name}, client.changed
   end
 
+  def test_becomes_preserve_record_status
+    company = Company.new(name: "37signals")
+    client = company.becomes(Client)
+    assert_predicate client, :new_record?
+
+    company.save
+    client = company.becomes(Client)
+    assert_predicate client, :persisted?
+    assert_predicate client, :previously_new_record?
+  end
+
+  def test_becomes_preserve_mark_for_destruction
+    topic = topics(:first)
+    topic.mark_for_destruction
+    assert_predicate topic, :marked_for_destruction?
+
+    reply = topic.becomes(Reply)
+    assert_predicate reply, :marked_for_destruction?
+  end
+
   def test_becomes_initializes_missing_attributes
     company = Company.new(name: "GrowingCompany")
 
@@ -475,6 +616,13 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_equal 50, company.extra_size
     assert_equal 50, client.extra_size
+  end
+
+  def test_becomes_same_class_makes_clone
+    original = Company.new(name: "GrowingCompany")
+    clone = original.becomes(Company)
+    assert_instance_of Company, clone
+    assert_not_equal original.object_id, clone.object_id
   end
 
   def test_delete_many
@@ -843,6 +991,13 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
+  def test_update_does_run_callbacks
+    record = Default.create
+    record.update!(char1: "B")
+
+    assert_equal true, record.after_update_commit_called
+  end
+
   def test_delete_doesnt_run_callbacks
     Topic.find(1).delete
     assert_not_nil Topic.find(2)
@@ -1090,6 +1245,25 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_predicate topic, :approved?
   end
 
+  def test_update_column_touch_option
+    topic = Topic.find(1)
+
+    assert_changes -> { topic.updated_at } do
+      travel(1.second) do
+        topic.update_column(:title, "super_title", touch: true)
+      end
+    end
+  end
+
+  def test_update_column_touch_option_with_specific_time
+    topic = Topic.find(1)
+    new_updated_at = Date.parse("2024-03-31 12:00:00")
+
+    assert_changes -> { topic.updated_at }, to: new_updated_at do
+      topic.update_column(:title, "super_title", touch: { time: new_updated_at })
+    end
+  end
+
   def test_update_column_should_not_use_setter_method
     dev = Developer.find(1)
     dev.instance_eval { def salary=(value); write_attribute(:salary, value * 2); end }
@@ -1179,6 +1353,53 @@ class PersistenceTest < ActiveRecord::TestCase
     topic.reload
     assert_predicate topic, :approved?
     assert_equal "Sebastian Topic", topic.title
+  end
+
+  def test_update_columns_touch_option_updates_timestamps
+    topic = Topic.find(1)
+
+    assert_changes -> { topic.updated_at } do
+      travel(1.second) do
+        topic.update_columns(title: "super_title", touch: true)
+      end
+    end
+  end
+
+  def test_update_columns_touch_option_explicit_column_names
+    topic = Topic.find(1)
+
+    assert_changes -> { [topic.updated_at, topic.written_on] } do
+      travel(1.second) do
+        topic.update_columns(title: "super_title", touch: :written_on)
+      end
+    end
+  end
+
+  def test_update_columns_touch_option_not_overwrite_explicit_attribute
+    topic = Topic.find(1)
+    new_updated_at = Date.parse("2024-03-31 12:00:00")
+
+    assert_changes -> { topic.updated_at }, to: new_updated_at do
+      topic.update_columns(title: "super_title", updated_at: new_updated_at, touch: true)
+    end
+  end
+
+  def test_update_columns_touch_option_not_overwrite_explicit_attribute_with_string_key
+    topic = Topic.find(1)
+    new_updated_at = Date.parse("2024-03-31 12:00:00")
+
+    assert_changes -> { topic.updated_at }, to: new_updated_at do
+      topic.update_columns(title: "super_title", "updated_at" => new_updated_at, touch: true)
+    end
+  end
+
+  def test_update_columns_touch_option_with_specific_time
+    topic = Topic.find(1)
+    new_updated_at = Date.parse("2024-03-31 12:00:00")
+
+    assert_changes -> { topic.updated_at }, to: new_updated_at do
+      topic.update_columns(title: "super_title", touch: { time: new_updated_at })
+    end
   end
 
   def test_update_columns_should_not_use_setter_method
@@ -1578,6 +1799,28 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_match(/WHERE .*color/, sql)
   end
 
+  def test_increment_and_decrement_use_query_constraints_not_composite_pk
+    topic_class = Class.new(Topic) do
+      self.inheritance_column = :_type_disabled
+      query_constraints :author_name, :id
+    end
+    topic = topic_class.create!(title: "New Topic", author_name: "Not David", replies_count: 0)
+
+    sql = nil
+    assert_difference -> { topic.reload.replies_count }, +1 do
+      sql = capture_sql { topic.increment!(:replies_count) }.first
+    end
+    assert_match(/WHERE .*author_name/, sql)
+    assert_match(/WHERE .*id/, sql)
+
+    sql = nil
+    assert_difference -> { topic.reload.replies_count }, -1 do
+      sql = capture_sql { topic.decrement!(:replies_count) }.first
+    end
+    assert_match(/WHERE .*author_name/, sql)
+    assert_match(/WHERE .*id/, sql)
+  end
+
   def test_it_is_possible_to_update_parts_of_the_query_constraints_config
     clothing_item = clothing_items(:green_t_shirt)
     clothing_item.color = "blue"
@@ -1631,7 +1874,7 @@ class QueryConstraintsTest < ActiveRecord::TestCase
     assert_uses_query_constraints_on_reload(used_clothing_item, ["clothing_type", "color"])
   end
 
-  def test_child_keeps_parents_query_contraints_derived_from_composite_pk
+  def test_child_keeps_parents_query_constraints_derived_from_composite_pk
     assert_equal(["author_id", "id"], Cpk::BestSeller.query_constraints_list)
   end
 

@@ -4,6 +4,7 @@ require "active_support/concern"
 require "active_support/descendants_tracker"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/class/attribute"
+require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/blank"
 
@@ -66,7 +67,7 @@ module ActiveSupport
 
     included do
       extend ActiveSupport::DescendantsTracker
-      class_attribute :__callbacks, instance_writer: false, instance_predicate: false, default: {}
+      class_attribute :__callbacks, instance_writer: false, instance_predicate: false, default: {}.freeze
     end
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around].freeze
@@ -152,7 +153,8 @@ module ActiveSupport
       module Conditionals # :nodoc: all
         class Value
           def initialize(&block)
-            @block = block
+            @block = Ractors.shareable_proc(&block)
+            freeze
           end
           def call(target, value); @block.call(value); end
         end
@@ -230,7 +232,7 @@ module ActiveSupport
       class Callback # :nodoc:
         def self.build(chain, filter, kind, options)
           if filter.is_a?(String)
-            raise ArgumentError, <<-MSG.squish
+            raise ArgumentError, <<~MSG.squish
               Passing string to define a callback is not supported. See the `.set_callback`
               documentation to see supported values.
             MSG
@@ -239,16 +241,17 @@ module ActiveSupport
           new chain.name, filter, kind, options, chain.config
         end
 
-        attr_accessor :kind, :name
+        attr_reader :kind, :name
         attr_reader :chain_config, :filter
 
         def initialize(name, filter, kind, options, chain_config)
           @chain_config = chain_config
-          @name    = name
-          @kind    = kind
-          @filter  = filter
-          @if      = check_conditionals(options[:if])
-          @unless  = check_conditionals(options[:unless])
+          @name            = name
+          @kind            = kind
+          @original_filter = filter.object_id
+          @filter          = try_shareable_proc(filter)
+          @if              = check_conditionals(options[:if])
+          @unless          = check_conditionals(options[:unless])
 
           compiled
         end
@@ -266,7 +269,7 @@ module ActiveSupport
         end
 
         def matches?(_kind, _filter)
-          @kind == _kind && filter == _filter
+          @kind == _kind && (filter == _filter || (@original_filter == _filter.object_id))
         end
 
         def duplicates?(other)
@@ -283,16 +286,30 @@ module ActiveSupport
             begin
               user_conditions = conditions_lambdas
               user_callback = CallTemplate.build(@filter, self)
+              lambda = Ractors.try_shareable_lambda(user_callback, &user_callback.make_lambda)
 
               case kind
               when :before
-                Filters::Before.new(user_callback.make_lambda, user_conditions, chain_config, @filter, name)
+                Filters::Before.new(lambda, user_conditions, chain_config, @filter, name)
               when :after
-                Filters::After.new(user_callback.make_lambda, user_conditions, chain_config)
+                Filters::After.new(lambda, user_conditions, chain_config)
               when :around
                 Filters::Around.new(user_callback, user_conditions)
               end
             end
+        end
+
+        def freeze # :nodoc:
+          return self if frozen?
+
+          @filter = Ractors.make_shareable(@filter)
+          @if = make_conditionals_ractor_shareable(@if)
+          @unless = make_conditionals_ractor_shareable(@unless)
+          @compiled = nil
+
+          compiled
+          super
+          self
         end
 
         # Wraps code with filter
@@ -313,21 +330,31 @@ module ActiveSupport
 
             conditionals = Array(conditionals)
             if conditionals.any?(String)
-              raise ArgumentError, <<-MSG.squish
+              raise ArgumentError, <<~MSG.squish
                 Passing string to be evaluated in :if and :unless conditional
                 options is not supported. Pass a symbol for an instance method,
                 or a lambda, proc or block, instead.
               MSG
             end
 
-            conditionals.freeze
+            conditionals.map! { |conditional| try_shareable_proc(conditional) }
           end
 
           def conditions_lambdas
             conditions =
               @if.map { |c| CallTemplate.build(c, self).make_lambda } +
               @unless.map { |c| CallTemplate.build(c, self).inverted_lambda }
-            conditions.empty? ? EMPTY_ARRAY : conditions
+            conditions.empty? ? EMPTY_ARRAY : conditions.freeze
+          end
+
+          def try_shareable_proc(object)
+            object.is_a?(Proc) ? Ractors.try_shareable_proc(object) : object
+          end
+
+          def make_conditionals_ractor_shareable(conditionals)
+            return conditionals if conditionals.empty?
+
+            Ractors.make_shareable(conditionals)
           end
       end
 
@@ -492,15 +519,16 @@ module ActiveSupport
         # All of these objects are converted into a CallTemplate and handled
         # the same after this point.
         def self.build(filter, callback)
-          case filter
+          type = case filter
           when Symbol
             MethodCall.new(filter)
           when Conditionals::Value
             ProcCall.new(filter)
           when ::Proc
-            if filter.arity > 1
+            case filter.arity
+            when 2
               InstanceExec2.new(filter)
-            elsif filter.arity > 0
+            when 1, -2
               InstanceExec1.new(filter)
             else
               InstanceExec0.new(filter)
@@ -508,6 +536,8 @@ module ActiveSupport
           else
             ObjectCall.new(filter, callback.current_scopes.join("_").to_sym)
           end
+
+          Ractors.try_make_shareable(type)
         end
       end
 
@@ -561,6 +591,12 @@ module ActiveSupport
         def invoke_after(arg)
           @after&.each { |a| a.call(arg) }
         end
+
+        def freeze
+          @before&.freeze
+          @after&.freeze
+          super
+        end
       end
 
       class CallbackChain # :nodoc:
@@ -572,8 +608,9 @@ module ActiveSupport
           @name = name
           @config = {
             scope: [:kind],
-            terminator: default_terminator
+            terminator: DEFAULT_TERMINATOR
           }.merge!(config)
+          @config[:terminator] = Ractors.try_shareable_proc(@config[:terminator]) if @config[:terminator].is_a?(Proc)
           @chain = []
           @all_callbacks = nil
           @single_callbacks = {}
@@ -611,19 +648,15 @@ module ActiveSupport
         end
 
         def compile(type)
-          if type.nil?
+          if frozen?
+            type.nil? ? (@all_callbacks || compile_sequence(nil)) : (@single_callbacks[type] || compile_sequence(type))
+          elsif type.nil?
             @all_callbacks || @mutex.synchronize do
-              final_sequence = CallbackSequence.new
-              @all_callbacks ||= @chain.reverse.inject(final_sequence) do |callback_sequence, callback|
-                callback.apply(callback_sequence)
-              end
+              @all_callbacks ||= compile_sequence(nil)
             end
           else
             @single_callbacks[type] || @mutex.synchronize do
-              final_sequence = CallbackSequence.new
-              @single_callbacks[type] ||= @chain.reverse.inject(final_sequence) do |callback_sequence, callback|
-                type == callback.kind ? callback.apply(callback_sequence) : callback_sequence
-              end
+              @single_callbacks[type] ||= compile_sequence(type)
             end
           end
         end
@@ -636,10 +669,30 @@ module ActiveSupport
           callbacks.each { |c| prepend_one(c) }
         end
 
+        def freeze
+          return self if frozen?
+
+          @chain.each(&:freeze)
+          compile(nil)
+          CALLBACK_FILTER_TYPES.each { |type| compile(type) }
+          @chain.freeze
+          @config.freeze
+          @single_callbacks.freeze
+          @mutex = nil
+          super
+        end
+
         protected
           attr_reader :chain
 
         private
+          def compile_sequence(type)
+            final_sequence = CallbackSequence.new
+            @chain.reverse.inject(final_sequence) do |callback_sequence, callback|
+              type.nil? || type == callback.kind ? callback.apply(callback_sequence) : callback_sequence
+            end
+          end
+
           def append_one(callback)
             @all_callbacks = nil
             @single_callbacks.clear
@@ -660,8 +713,8 @@ module ActiveSupport
             @chain.delete_if { |c| callback.duplicates?(c) }
           end
 
-          def default_terminator
-            Proc.new do |target, result_lambda|
+          class DefaultTerminator # :nodoc:
+            def call(target, result_lambda)
               terminate = true
               catch(:abort) do
                 result_lambda.call
@@ -670,6 +723,7 @@ module ActiveSupport
               terminate
             end
           end
+          DEFAULT_TERMINATOR = DefaultTerminator.new.freeze
       end
 
       module ClassMethods
@@ -903,12 +957,13 @@ module ActiveSupport
           names.each do |name|
             name = name.to_sym
 
-            ([self] + self.descendants).each do |target|
-              target.set_callbacks name, CallbackChain.new(name, options)
-            end
+            module_eval <<~RUBY, __FILE__, __LINE__ + 1
+              def _run_#{name}_callbacks
+                yield if block_given?
+              end
+              silence_redefinition_of_method(:_run_#{name}_callbacks)
 
-            module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def _run_#{name}_callbacks(&block)
+              def _run_#{name}_callbacks!(&block)
                 run_callbacks #{name.inspect}, &block
               end
 
@@ -924,6 +979,17 @@ module ActiveSupport
                 __callbacks[#{name.inspect}]
               end
             RUBY
+
+            ([self] + self.descendants).each do |target|
+              target.set_callbacks name, CallbackChain.new(name, options)
+            end
+          end
+        end
+
+        def freeze # :nodoc:
+          descendants.prepend(self).each do |target|
+            target.__callbacks =
+              Ractors.make_shareable(target.__callbacks)
           end
         end
 
@@ -933,14 +999,15 @@ module ActiveSupport
           end
 
           def set_callbacks(name, callbacks) # :nodoc:
-            # HACK: We're making assumption on how `class_attribute` is implemented
-            # to save constantly duping the callback hash. If this desync with class_attribute
-            # we'll lose the optimization, but won't cause an actual behavior bug.
-            unless singleton_class.private_method_defined?(:__class_attr__callbacks, false)
-              self.__callbacks = __callbacks.dup
+            name = name.to_sym
+            callback_sets = __callbacks.dup
+            callbacks_was = callback_sets[name]
+            if (callbacks_was.nil? || callbacks_was.empty?) && !callbacks.empty?
+              alias_method("_run_#{name}_callbacks", "_run_#{name}_callbacks!")
             end
-            self.__callbacks[name.to_sym] = callbacks
-            self.__callbacks
+            callback_sets[name] = callbacks
+
+            self.__callbacks = Ractors.try_make_shareable(callback_sets)
           end
       end
   end

@@ -39,6 +39,9 @@ module Cpk
 
   class NonCpkOrder < Order
     self.primary_key = :id
+
+    has_many :books_with_composite_primary_key, class_name: "Cpk::BookWithNonCpkOrder",
+      foreign_key: [:shop_id, :order_id], primary_key: [:shop_id, :id], inverse_of: :non_cpk_order
   end
 
   class OrderWithPrimaryKeyAssociatedBook < Order

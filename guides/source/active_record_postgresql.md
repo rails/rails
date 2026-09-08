@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Record and PostgreSQL
 ============================
@@ -18,7 +18,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-In order to use the PostgreSQL adapter you need to have at least version 9.3
+In order to use the PostgreSQL adapter you need to have at least version 10.0
 installed. Older versions are not supported.
 
 To get started with PostgreSQL have a look at the
@@ -28,7 +28,7 @@ It describes how to properly set up Active Record for PostgreSQL.
 Datatypes
 ---------
 
-PostgreSQL offers a number of specific datatypes. Following is a list of types,
+PostgreSQL offers a number of specific datatypes. The following is a list of types,
 that are supported by the PostgreSQL adapter.
 
 ### Bytea
@@ -102,7 +102,7 @@ NOTE: You need to enable the `hstore` extension to use hstore.
 
 ```ruby
 # db/migrate/20131009135255_create_profiles.rb
-class CreateProfiles < ActiveRecord::Migration[8.1]
+class CreateProfiles < ActiveRecord::Migration[8.2]
   enable_extension "hstore" unless extension_enabled?("hstore")
   create_table :profiles do |t|
     t.hstore "settings"
@@ -362,9 +362,8 @@ SELECT n.nspname AS enum_schema,
 
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-uuid.html)
 * [pgcrypto generator function](https://www.postgresql.org/docs/current/static/pgcrypto.html)
-* [uuid-ossp generator functions](https://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
-NOTE: If you're using PostgreSQL earlier than version 13.0 you may need to enable special extensions to use UUIDs. Enable the `pgcrypto` extension (PostgreSQL >= 9.4) or `uuid-ossp` extension (for even earlier releases).
+NOTE: If you're using PostgreSQL earlier than version 13.0 you may need to enable the `pgcrypto` extension to use UUIDs.
 
 ```ruby
 # db/migrate/20131220144913_create_revisions.rb
@@ -516,11 +515,38 @@ irb> event.duration
 => 2 days
 ```
 
+### Timestamps
+
+* [Date/Time Types](https://www.postgresql.org/docs/current/datatype-datetime.html)
+
+Rails migrations with timestamps store the time a model was created or updated. By default and for legacy reasons, the columns use the `timestamp without time zone` data type.
+
+```ruby
+# db/migrate/20241220144913_create_devices.rb
+create_table :posts, id: :uuid do |t|
+  t.datetime :published_at
+  # By default, Active Record will set the data type of this column to `timestamp without time zone`.
+end
+```
+
+While this works ok, [PostgreSQL best practices](https://wiki.postgresql.org/wiki/Don't_Do_This#Don.27t_use_timestamp_.28without_time_zone.29) recommend that `timestamp with time zone` is used instead for timezone-aware timestamps.
+This must be configured before it can be used for new migrations.
+
+To configure `timestamp with time zone` as your new timestamp default data type, place the following configuration in the `config/application.rb` file.
+
+```ruby
+# config/application.rb
+ActiveSupport.on_load(:active_record_postgresqladapter) do
+  self.datetime_type = :timestamptz
+end
+```
+
+With that configuration in place, generate and apply new migrations, then verify their timestamps use the `timestamp with time zone` data type.
+
 UUID Primary Keys
 -----------------
 
-NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
-extension to generate random UUIDs.
+NOTE: You need to enable the `pgcrypto` extension to generate random UUIDs.
 
 ```ruby
 # db/migrate/20131220144913_create_devices.rb
@@ -551,14 +577,14 @@ To use the Rails model generator for a table using UUID as the primary key, pass
 For example:
 
 ```bash
-$ rails generate model Device --primary-key-type=uuid kind:string
+$ bin/rails generate model Device --primary-key-type=uuid kind:string
 ```
 
 When building a model with a foreign key that will reference this UUID, treat
 `uuid` as the native field type, for example:
 
 ```bash
-$ rails generate model Case device_id:uuid
+$ bin/rails generate model Case device_id:uuid
 ```
 
 Indexing
@@ -812,7 +838,7 @@ ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ["--no-comments"]
 Explain
 -------
 
-Along with the standard [`explain`][explain-options] options, the PostgreSQL adapter supports [`buffers`][explain-analayze-buffers].
+Along with the standard [`explain`][explain-options] options, the PostgreSQL adapter supports [`buffers`][explain-analyze-buffers].
 
 ```ruby
 Company.where(id: owning_companies_ids).explain(:analyze, :buffers)
@@ -825,4 +851,4 @@ Company.where(id: owning_companies_ids).explain(:analyze, :buffers)
 See their documentation for more details.
 
 [explain-options]: active_record_querying.html#explain-options
-[explain-analayze-buffers]: https://www.postgresql.org/docs/current/sql-explain.html
+[explain-analyze-buffers]: https://www.postgresql.org/docs/current/sql-explain.html

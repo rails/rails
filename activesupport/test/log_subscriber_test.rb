@@ -2,9 +2,11 @@
 
 require_relative "abstract_unit"
 require "active_support/log_subscriber/test_helper"
+require "active_support/testing/ractors_assertions"
 
 class SyncLogSubscriberTest < ActiveSupport::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
+  include ActiveSupport::Testing::RactorsAssertions
 
   class MyLogSubscriber < ActiveSupport::LogSubscriber
     attr_reader :event
@@ -56,13 +58,13 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
   end
 
   def test_set_color_for_messages
-    ActiveSupport::LogSubscriber.colorize_logging = true
+    ActiveSupport.colorize_logging = true
     @log_subscriber.bar(nil)
     assert_equal "\e[31mcool\e[0m, \e[1m\e[34misn't it?\e[0m", @logger.logged(:info).last
   end
 
   def test_set_mode_for_messages
-    ActiveSupport::LogSubscriber.colorize_logging = true
+    ActiveSupport.colorize_logging = true
     @log_subscriber.baz(nil)
     assert_equal "\e[1;4m\e[32mrad\e[0m, \e[3m\e[33misn't it?\e[0m", @logger.logged(:info).last
   end
@@ -175,7 +177,7 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
   end
 
   class MockSemanticLogger < MockLogger
-    LEVELS = [:debug, :info]
+    LEVELS = [:debug, :info].freeze
     def level
       LEVELS[super]
     end
@@ -198,6 +200,27 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     instrument "debug_only.my_log_subscriber"
     wait
     assert_not_empty @logger.logged(:debug)
+  end
+
+  def test_log_levels_are_ractor_safe
+    assert_ractor_shareable MyLogSubscriber.log_levels
+  end
+
+  if RUBY_VERSION >= "4.0"
+    def test_logger_is_ractor_safe
+      previous_logger = ActiveSupport::LogSubscriber.logger
+      logger = ActiveSupport::Ractors::Logger.new
+      ActiveSupport::Ractors.make_shareable(logger)
+      ActiveSupport::LogSubscriber.logger = logger
+      other_ractor_logger = on_ractor do
+        ActiveSupport::LogSubscriber.logger
+      end
+
+      assert_same logger, other_ractor_logger
+    ensure
+      ActiveSupport::LogSubscriber.logger = previous_logger
+      logger&.close
+    end
   end
 
   private

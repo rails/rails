@@ -1,19 +1,24 @@
 # frozen_string_literal: true
 
+redis_client_min_version = "0.28.0"
 begin
-  gem "redis", ">= 4.0.1"
-  require "redis"
-  require "redis/distributed"
+  gem "redis-client", ">= #{redis_client_min_version}"
 rescue LoadError
-  warn "The Redis cache store requires the redis gem, version 4.0.1 or later. Please add it to your Gemfile: `gem \"redis\", \">= 4.0.1\"`"
-  raise
+  raise LoadError, <<~MSG
+    The Redis cache store requires the redis-client gem version #{redis_client_min_version} or later.
+    Please add it to your Gemfile:
+      gem "redis-client", ">= #{redis_client_min_version}"
+  MSG
 end
 
-require "connection_pool"
+require "redis-client"
+require "active_support/deprecation"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/numeric/time"
 require "active_support/digest"
+require "active_support/inspect_backport"
+require "active_support/core_ext/string/filters"
 
 module ActiveSupport
   module Cache
@@ -34,15 +39,23 @@ module ActiveSupport
     # * +read_multi+ and +write_multi+ support for Redis mget/mset. Use
     #   +Redis::Distributed+ 4.0.1+ for distributed mget support.
     # * +delete_matched+ support for Redis KEYS globs.
+    # * +read+ supports <tt>delete: true</tt> to atomically read and delete
+    #   a cache entry using the Redis +GETDEL+ command.
+    #
+    #     cache.write("greeting", "hello")
+    #     cache.read("greeting", delete: true)  # => "hello"
+    #     cache.read("greeting")                 # => nil
+    #
     class RedisCacheStore < Store
-      # Keys are truncated with the Active Support digest if they exceed 1kB
-      MAX_KEY_BYTESIZE = 1024
-
-      DEFAULT_REDIS_OPTIONS = {
-        connect_timeout:    1,
-        read_timeout:       1,
-        write_timeout:      1,
-      }
+      DEFAULT_REDIS_OPTIONS = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(
+        {
+          connect_timeout: 1,
+          read_timeout: 1,
+          write_timeout: 1,
+        }.freeze,
+        "ActiveSupport::Cache::RedisCacheStore::DEFAULT_REDIS_OPTIONS is deprecated and will be removed in Rails 9.0. Pass timeout options to RedisCacheStore or a configured RedisClient instead.",
+        ActiveSupport.deprecator,
+      )
 
       DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) do
         if logger
@@ -55,73 +68,48 @@ module ActiveSupport
         )
       end
 
-      # The maximum number of entries to receive per SCAN call.
-      SCAN_BATCH_SIZE = 1000
-      private_constant :SCAN_BATCH_SIZE
-
       # Advertise cache versioning support.
       def self.supports_cache_versioning?
         true
       end
 
-      prepend Strategy::LocalCache
+      def self.new(**options)
+        if options[:redis]
+          ActiveSupport.deprecator.warn(<<~MSG.squish)
+            Passing a Redis or ConnectionPool instance via the `:redis` configuration to ActiveSupport::Cache::RedisCacheStore
+            is deprecated and will be removed in Rails 9.0.
 
-      class << self
-        # Factory method to create a new Redis instance.
-        #
-        # Handles four options: :redis block, :redis instance, single :url
-        # string, and multiple :url strings.
-        #
-        #   Option  Class       Result
-        #   :redis  Proc    ->  options[:redis].call
-        #   :redis  Object  ->  options[:redis]
-        #   :url    String  ->  Redis.new(url: …)
-        #   :url    Array   ->  Redis::Distributed.new([{ url: … }, { url: … }, …])
-        #
-        def build_redis(redis: nil, url: nil, **redis_options) # :nodoc:
-          urls = Array(url)
+            RedisCacheStore no longer depends on the `redis` gem, but use the simpler `redis-client`.
 
-          if redis.is_a?(Proc)
-            redis.call
-          elsif redis
-            redis
-          elsif urls.size > 1
-            build_redis_distributed_client(urls: urls, **redis_options)
-          elsif urls.empty?
-            build_redis_client(**redis_options)
-          else
-            build_redis_client(url: urls.first, **redis_options)
-          end
+            Prefer passing a raw `:url` option instead, of if you need more advanced configuration, pass a configured `RedisClient`
+            via the `:client` option.
+          MSG
+          return DeprecatedRedisCacheStore.new(**options)
         end
 
-        private
-          def build_redis_distributed_client(urls:, **redis_options)
-            ::Redis::Distributed.new([], DEFAULT_REDIS_OPTIONS.merge(redis_options)).tap do |dist|
-              urls.each { |u| dist.add_node url: u }
-            end
-          end
-
-          def build_redis_client(**redis_options)
-            ::Redis.new(DEFAULT_REDIS_OPTIONS.merge(redis_options))
-          end
+        super
       end
 
-      attr_reader :max_key_bytesize
+      prepend Strategy::LocalCache
+
       attr_reader :redis
 
       # Creates a new Redis cache store.
       #
-      # There are four ways to provide the Redis client used by the cache: the
-      # +:redis+ param can be a Redis instance or a block that returns a Redis
-      # instance, or the +:url+ param can be a string or an array of strings
-      # which will be used to create a Redis instance or a +Redis::Distributed+
-      # instance.
+      # The +:url+ param can be:
+      #    - A string used to create a RedisClient::Pooled instance.
+      #    - An array of strings used to create a +RedisClient::HashRing+ instance.
       #
       #   Option  Class       Result
-      #   :redis  Proc    ->  options[:redis].call
-      #   :redis  Object  ->  options[:redis]
-      #   :url    String  ->  Redis.new(url: …)
-      #   :url    Array   ->  Redis::Distributed.new([{ url: … }, { url: … }, …])
+      #   :url    String  ->  RedisClient.config(url: …).new_pool
+      #   :url    Array   ->  RedisClient::HashRing.new([RedisClient.config(url: …).new_pool, ...])
+      #
+      # If you need some advanced configuration for the client, or want to use an alternative implementation
+      # like `redis-cluster-client`, you can pass an already configured client via the +:client+ option:
+      #
+      #   config.cache_store = :redis_cache_store, client: RedisClient.config(...)
+      #   config.cache_store = :redis_cache_store, client: [RedisClient.config(...), RedisClient.config(...)]
+      #   config.cache_store = :redis_cache_store, client: -> { RedisClient.config(...) }
       #
       # No namespace is set by default. Provide one if the Redis cache
       # server is shared with other apps: <tt>namespace: 'myapp-cache'</tt>.
@@ -148,22 +136,39 @@ module ActiveSupport
       #   cache.exist?('bar') # => false
       def initialize(error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
         universal_options = redis_options.extract!(*UNIVERSAL_OPTIONS)
+        pool_options = self.class.send(:retrieve_pool_options, redis_options)
 
-        if pool_options = self.class.send(:retrieve_pool_options, redis_options)
-          @redis = ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
+        if redis_options.key?(:client)
+          client = redis_options.delete(:client)
+          clients = Array.wrap(client.respond_to?(:call) ? client.call : client)
         else
-          @redis = self.class.build_redis(**redis_options)
+          urls = Array.wrap(redis_options.delete(:url))
+          urls << nil if urls.empty?
+          clients = urls.map do |url|
+            RedisClient.config(url: url, protocol: 2, **redis_options)
+          end
         end
 
-        @max_key_bytesize = MAX_KEY_BYTESIZE
+        clients = clients.map do |c|
+          if c.respond_to?(:new_pool)
+            c.new_pool(**(pool_options || {}))
+          else
+            c
+          end
+        end
+
+        @redis = if clients.size > 1
+          RedisClient.ring(clients)
+        else
+          clients.first
+        end
+
         @error_handler = error_handler
 
         super(universal_options)
       end
 
-      def inspect
-        "#<#{self.class} options=#{options.inspect} redis=#{redis.inspect}>"
-      end
+      ActiveSupport::InspectBackport.apply(self)
 
       # Cache Store API implementation.
       #
@@ -182,6 +187,10 @@ module ActiveSupport
           end
         end
       end
+
+      # The maximum number of entries to receive per SCAN call.
+      SCAN_BATCH_SIZE = 1000
+      private_constant :SCAN_BATCH_SIZE
 
       # Cache Store API implementation.
       #
@@ -205,16 +214,11 @@ module ActiveSupport
         pattern = namespace_key(matcher, options)
 
         instrument :delete_matched, pattern do
-          redis.then do |c|
-            cursor = "0"
-            # Fetch keys in batches using SCAN to avoid blocking the Redis server.
-            nodes = c.respond_to?(:nodes) ? c.nodes : [c]
-
-            nodes.each do |node|
-              begin
-                cursor, keys = node.scan(cursor, match: pattern, count: SCAN_BATCH_SIZE)
-                node.del(*keys) unless keys.empty?
-              end until cursor == "0"
+          redis.nodes.each do |node|
+            node.with do |conn|
+              conn.scan(match: pattern, count: SCAN_BATCH_SIZE).each_slice(SCAN_BATCH_SIZE).each do |keys|
+                conn.call("unlink", *keys)
+              end
             end
           end
         end
@@ -235,6 +239,11 @@ module ActiveSupport
       #
       # Incrementing a non-numeric value, or a value written without
       # <tt>raw: true</tt>, will fail and return +nil+.
+      #
+      # To read the value later, call #read_counter:
+      #
+      #   cache.increment("baz") # => 7
+      #   cache.read_counter("baz") # 7
       #
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
@@ -262,6 +271,11 @@ module ActiveSupport
       #
       # Decrementing a non-numeric value, or a value written without
       # <tt>raw: true</tt>, will fail and return +nil+.
+      #
+      # To read the value later, call #read_counter:
+      #
+      #   cache.decrement("baz") # => 3
+      #   cache.read_counter("baz") # 3
       #
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)
@@ -292,27 +306,20 @@ module ActiveSupport
           if namespace = merged_options(options)[:namespace]
             delete_matched "*", namespace: namespace
           else
-            redis.then { |c| c.flushdb }
+            redis.nodes.each { |node| node.call("flushdb") }
           end
         end
       end
 
       # Get info from redis servers.
       def stats
-        redis.then { |c| c.info }
+        infos = redis.nodes.map { |node| node.call("info") }
+        infos.size == 1 ? infos.first : infos
       end
 
       private
-        def pipeline_entries(entries, &block)
-          redis.then { |c|
-            if c.is_a?(Redis::Distributed)
-              entries.group_by { |k, _v| c.node_for(k) }.each do |node, sub_entries|
-                node.pipelined { |pipe| yield(pipe, sub_entries) }
-              end
-            else
-              c.pipelined { |pipe| yield(pipe, entries) }
-            end
-          }
+        def instance_variables_to_inspect
+          [:@options, :@redis].freeze
         end
 
         # Store provider interface:
@@ -323,7 +330,8 @@ module ActiveSupport
 
         def read_serialized_entry(key, raw: false, **options)
           failsafe :read_entry do
-            redis.then { |c| c.get(key) }
+            command = options[:delete] ? "getdel" : "get"
+            redis.node_for(key).call(command, key)
           end
         end
 
@@ -333,22 +341,27 @@ module ActiveSupport
           raw = options&.fetch(:raw, false)
 
           keys = names.map { |name| normalize_key(name, options) }
+          keys_index = keys.each_with_index.to_h
 
-          values = failsafe(:read_multi_entries, returning: {}) do
-            redis.then { |c| c.mget(*keys) }
-          end
+          results = {}
 
-          names.zip(values).each_with_object({}) do |(name, value), results|
-            if value
-              entry = deserialize_entry(value, raw: raw)
-              unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(name, options))
-                begin
-                  results[name] = entry.value
-                rescue DeserializationError
+          redis.nodes_for(keys).each do |node, key_subset|
+            failsafe(:read_multi_entries) do
+              node.call("mget", *key_subset).each_with_index do |value, index|
+                if value
+                  results[names[keys_index[key_subset[index]]]] = value
                 end
               end
             end
           end
+
+          results.transform_values! { |value| deserialize_entry(value, raw: raw) }
+          results.reject! do |name, entry|
+            entry.nil? || entry.expired? || entry.mismatched?(normalize_version(name, options))
+          end
+          results.compact!
+          results.transform_values! { |entry| entry&.value }
+          results
         end
 
         # Write an entry to the cache.
@@ -366,17 +379,17 @@ module ActiveSupport
             expires_in += 5.minutes
           end
 
-          modifiers = {}
+          modifiers = []
           if unless_exist || expires_in
-            modifiers[:nx] = unless_exist
-            modifiers[:px] = (1000 * expires_in.to_f).ceil if expires_in
+            modifiers << :nx if unless_exist
+            modifiers << :px << (1000 * expires_in.to_f).ceil if expires_in
           end
 
           if pipeline
-            pipeline.set(key, payload, **modifiers)
+            pipeline.call("set", key, payload, *modifiers)
           else
             failsafe :write_entry, returning: nil do
-              redis.then { |c| !!c.set(key, payload, **modifiers) }
+              redis.node_for(key).call("set", key, payload, *modifiers) == "OK"
             end
           end
         end
@@ -384,44 +397,36 @@ module ActiveSupport
         # Delete an entry from the cache.
         def delete_entry(key, **options)
           failsafe :delete_entry, returning: false do
-            redis.then { |c| c.del(key) == 1 }
+            redis.node_for(key).call("unlink", key) == 1
           end
         end
 
         # Deletes multiple entries in the cache. Returns the number of entries deleted.
         def delete_multi_entries(entries, **_options)
-          failsafe :delete_multi_entries, returning: 0 do
-            redis.then { |c| c.del(entries) }
+          return 0 if entries.empty?
+
+          count = 0
+          redis.nodes_for(*entries).each do |node, keys|
+            failsafe :delete_multi_entries do
+              count += node.call("unlink", *keys)
+            end
           end
+
+          count
         end
 
         # Nonstandard store provider API to write multiple values at once.
         def write_multi_entries(entries, **options)
           return if entries.empty?
 
-          failsafe :write_multi_entries do
-            pipeline_entries(entries) do |pipeline, sharded_entries|
-              options = options.dup
-              options[:pipeline] = pipeline
-              sharded_entries.each do |key, entry|
-                write_entry key, entry, **options
+          redis.nodes_for(entries.keys).each do |node, keys|
+            failsafe :write_multi_entries do
+              node.pipelined do |pipeline|
+                entries.slice(*keys).each do |key, entry|
+                  write_entry key, entry, **options, pipeline: pipeline
+                end
               end
             end
-          end
-        end
-
-        # Truncate keys that exceed 1kB.
-        def normalize_key(key, options)
-          truncate_key super&.b
-        end
-
-        def truncate_key(key)
-          if key && key.bytesize > max_key_bytesize
-            suffix = ":hash:#{ActiveSupport::Digest.hexdigest(key)}"
-            truncate_at = max_key_bytesize - suffix.bytesize
-            "#{key.byteslice(0, truncate_at)}#{suffix}"
-          else
-            key
           end
         end
 
@@ -441,33 +446,25 @@ module ActiveSupport
           end
         end
 
-        def serialize_entries(entries, **options)
-          entries.transform_values do |entry|
-            serialize_entry(entry, **options)
-          end
-        end
-
         def change_counter(key, amount, options)
-          redis.then do |c|
-            c = c.node_for(key) if c.is_a?(Redis::Distributed)
-
+          redis.node_for(key).with do |c|
             expires_in = options[:expires_in]
 
             if expires_in
               if supports_expire_nx?
                 count, _ = c.pipelined do |pipeline|
-                  pipeline.incrby(key, amount)
-                  pipeline.call(:expire, key, expires_in.to_i, "NX")
+                  pipeline.call("incrby", key, amount)
+                  pipeline.call("expire", key, expires_in.to_i, "NX")
                 end
               else
                 count, ttl = c.pipelined do |pipeline|
-                  pipeline.incrby(key, amount)
-                  pipeline.ttl(key)
+                  pipeline.call("incrby", key, amount)
+                  pipeline.call("ttl", key)
                 end
-                c.expire(key, expires_in.to_i) if ttl < 0
+                c.call("expire", key, expires_in.to_i) if ttl < 0
               end
             else
-              count = c.incrby(key, amount)
+              count = c.call("incrby", key, amount)
             end
 
             count
@@ -477,13 +474,13 @@ module ActiveSupport
         def supports_expire_nx?
           return @supports_expire_nx if defined?(@supports_expire_nx)
 
-          redis_versions = redis.then { |c| Array.wrap(c.info("server")).pluck("redis_version") }
+          redis_versions = redis.nodes.map { |n| n.call("info", "server").scan(/edis_version:([\d.]+)/)[0][0] || "0" }
           @supports_expire_nx = redis_versions.all? { |v| Gem::Version.new(v) >= Gem::Version.new("7.0.0") }
         end
 
         def failsafe(method, returning: nil)
           yield
-        rescue ::Redis::BaseError => error
+        rescue ::RedisClient::ConnectionError => error
           @error_handler&.call(method: method, exception: error, returning: returning)
           returning
         end

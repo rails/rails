@@ -55,15 +55,17 @@ class ActiveStorage::Filename
   #   ActiveStorage::Filename.new("foo:bar.jpg").sanitized # => "foo-bar.jpg"
   #   ActiveStorage::Filename.new("foo/bar.jpg").sanitized # => "foo-bar.jpg"
   #
-  # Characters considered unsafe for storage (e.g. \, $, and the RTL override character) are replaced with a dash.
+  # Characters considered unsafe for storage (e.g. \, $, the null character, and the RTL override character) are
+  # replaced with a dash.
   def sanitized
-    @filename.encode(Encoding::UTF_8, invalid: :replace, undef: :replace, replace: "�").strip.tr("\u{202E}%$|:;/<>?*\"\t\r\n\\", "-")
+    @filename.encode(Encoding::UTF_8, invalid: :replace, undef: :replace, replace: "�").strip.tr("\u{202E}\u{0000}%$|:;/<>?*\"\t\r\n\\", "-")
   end
 
   # Returns the sanitized version of the filename.
   def to_s
     sanitized.to_s
   end
+  alias_method :to_str, :to_s
 
   def as_json(*)
     to_s

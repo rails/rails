@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 module TestUrlGeneration
   class WithMountPoint < ActionDispatch::IntegrationTest
@@ -241,6 +242,24 @@ module TestUrlGeneration
         a: {},
         format: "json"
       )
+    end
+
+    class UrlSettingsRactorTest < ActiveSupport::TestCase
+      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::RactorsAssertions
+
+      test "the settings are readable from a non-main Ractor" do
+        expected = [
+          ActionDispatch::Http::URL.secure_protocol,
+          ActionDispatch::Http::URL.tld_length,
+          ActionDispatch::Http::URL.domain_extractor,
+        ]
+
+        assert_equal expected, on_ractor {
+          url = ActionDispatch::Http::URL
+          [url.secure_protocol, url.tld_length, url.domain_extractor]
+        }
+      end
     end
   end
 end

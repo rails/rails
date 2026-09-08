@@ -114,7 +114,7 @@ module Rails
             lib/rails/api/generator.rb
           )
         }
-      }
+      }.freeze
 
       def initialize(name)
         super

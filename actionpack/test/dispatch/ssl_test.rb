@@ -34,9 +34,7 @@ class RedirectSSLTest < SSLTest
     assert_equal redirect[:body].join, @response.body
   end
 
-  def assert_post_redirected(redirect: {}, from: "http://a/b?c=d",
-    to: from.sub("http", "https"))
-
+  def assert_post_redirected(redirect: {}, from: "http://a/b?c=d", to: from.sub("http", "https"))
     self.app = build_app ssl_options: { redirect: redirect }
 
     post from
@@ -65,6 +63,14 @@ class RedirectSSLTest < SSLTest
 
   test "http POST is redirected to https with status 307" do
     assert_post_redirected
+  end
+
+  test "http QUERY is redirected to https with status 307, preserving method and body" do
+    self.app = build_app
+
+    query "http://a/b?c=d"
+    assert_response 307
+    assert_redirected_to "https://a/b?c=d"
   end
 
   test "redirect with custom status" do

@@ -60,7 +60,56 @@ module ActionView
       include ActiveSupport::Testing::ConstantLookup
 
       delegate :lookup_context, to: :controller
-      attr_accessor :controller, :request, :output_buffer, :rendered
+      attr_accessor :controller, :request, :output_buffer
+
+      # Returns the content rendered by the last +render+ call.
+      #
+      # The returned object behaves like a string but also exposes a number of methods
+      # that allows you to parse the content string in formats registered using
+      # <tt>.register_parser</tt>.
+      #
+      # By default includes the following parsers:
+      #
+      # +.html+
+      #
+      # Parse the <tt>rendered</tt> content String into HTML. By default, this means
+      # a <tt>Nokogiri::XML::Node</tt>.
+      #
+      #   test "renders HTML" do
+      #     article = Article.create!(title: "Hello, world")
+      #
+      #     render partial: "articles/article", locals: { article: article }
+      #
+      #     assert_pattern { rendered.html.at("main h1") => { content: "Hello, world" } }
+      #   end
+      #
+      # To parse the rendered content into a <tt>Capybara::Simple::Node</tt>,
+      # re-register an <tt>:html</tt> parser with a call to
+      # <tt>Capybara.string</tt>:
+      #
+      #   register_parser :html, -> rendered { Capybara.string(rendered) }
+      #
+      #   test "renders HTML" do
+      #     article = Article.create!(title: "Hello, world")
+      #
+      #     render partial: article
+      #
+      #     rendered.html.assert_css "h1", text: "Hello, world"
+      #   end
+      #
+      # +.json+
+      #
+      # Parse the <tt>rendered</tt> content String into JSON. By default, this means
+      # a <tt>ActiveSupport::HashWithIndifferentAccess</tt>.
+      #
+      #   test "renders JSON" do
+      #     article = Article.create!(title: "Hello, world")
+      #
+      #     render formats: :json, partial: "articles/article", locals: { article: article }
+      #
+      #     assert_pattern { rendered.json => { title: "Hello, world" } }
+      #   end
+      attr_accessor :rendered
 
       module ClassMethods
         def inherited(descendant) # :nodoc:
@@ -223,7 +272,7 @@ module ActionView
         @request = @controller.request
         @view_flow = ActionView::OutputFlow.new
         @output_buffer = ActionView::OutputBuffer.new
-        @rendered = self.class.content_class.new(+"")
+        _reset_rendered
 
         test_case_instance = self
         controller_class.define_method(:_test_case) { test_case_instance }
@@ -235,64 +284,23 @@ module ActionView
 
       def render(options = {}, local_assigns = {}, &block)
         view.assign(view_assigns)
-        @rendered << output = view.render(options, local_assigns, &block)
-        output
+
+        if @_rendering
+          view.render(options, local_assigns, &block)
+        else
+          _reset_rendered
+          @_rendering = true
+          output = view.render(options, local_assigns, &block)
+          @rendered << output
+          output
+        end
+      ensure
+        @_rendering = false unless @_rendering.nil?
       end
 
       def rendered_views
         @_rendered_views ||= RenderedViewsCollection.new
       end
-
-      ##
-      # :method: rendered
-      #
-      # Returns the content rendered by the last +render+ call.
-      #
-      # The returned object behaves like a string but also exposes a number of methods
-      # that allows you to parse the content string in formats registered using
-      # <tt>.register_parser</tt>.
-      #
-      # By default includes the following parsers:
-      #
-      # +.html+
-      #
-      # Parse the <tt>rendered</tt> content String into HTML. By default, this means
-      # a <tt>Nokogiri::XML::Node</tt>.
-      #
-      #   test "renders HTML" do
-      #     article = Article.create!(title: "Hello, world")
-      #
-      #     render partial: "articles/article", locals: { article: article }
-      #
-      #     assert_pattern { rendered.html.at("main h1") => { content: "Hello, world" } }
-      #   end
-      #
-      # To parse the rendered content into a <tt>Capybara::Simple::Node</tt>,
-      # re-register an <tt>:html</tt> parser with a call to
-      # <tt>Capybara.string</tt>:
-      #
-      #   register_parser :html, -> rendered { Capybara.string(rendered) }
-      #
-      #   test "renders HTML" do
-      #     article = Article.create!(title: "Hello, world")
-      #
-      #     render partial: article
-      #
-      #     rendered.html.assert_css "h1", text: "Hello, world"
-      #   end
-      #
-      # +.json+
-      #
-      # Parse the <tt>rendered</tt> content String into JSON. By default, this means
-      # a <tt>ActiveSupport::HashWithIndifferentAccess</tt>.
-      #
-      #   test "renders JSON" do
-      #     article = Article.create!(title: "Hello, world")
-      #
-      #     render formats: :json, partial: "articles/article", locals: { article: article }
-      #
-      #     assert_pattern { rendered.json => { title: "Hello, world" } }
-      #   end
 
       def _routes
         @controller._routes if @controller.respond_to?(:_routes)
@@ -301,7 +309,6 @@ module ActionView
       class RenderedViewContent < String # :nodoc:
       end
 
-      # Need to experiment if this priority is the best one: rendered => output_buffer
       class RenderedViewsCollection
         def initialize
           @rendered_views ||= Hash.new { |hash, key| hash[key] = [] }
@@ -386,6 +393,7 @@ module ActionView
         :@method_name,
         :@output_buffer,
         :@_partials,
+        :@_rendering,
         :@passed,
         :@rendered,
         :@request,
@@ -399,7 +407,8 @@ module ActionView
         :@view_flow,
         :@_subscribers,
         :@html_document,
-      ]
+        :@__leak_checker_before_env,
+      ].freeze
 
       def _user_defined_ivars
         instance_variables - INTERNAL_IVARS
@@ -413,6 +422,10 @@ module ActionView
         Hash[_user_defined_ivars.map do |ivar|
           [ivar[1..-1].to_sym, instance_variable_get(ivar)]
         end]
+      end
+
+      def _reset_rendered
+        @rendered = self.class.content_class.new(+"")
       end
 
       def method_missing(selector, ...)

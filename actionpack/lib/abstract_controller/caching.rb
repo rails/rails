@@ -32,22 +32,27 @@ module AbstractController
     included do
       extend ConfigMethods
 
-      config_accessor :default_static_extension
+      singleton_class.delegate :default_static_extension, :default_static_extension=, to: :config
+      delegate :default_static_extension, :default_static_extension=, to: :config
       self.default_static_extension ||= ".html"
 
-      config_accessor :perform_caching
+      singleton_class.delegate :perform_caching, :perform_caching=, to: :config
+      delegate :perform_caching, :perform_caching=, to: :config
       self.perform_caching = true if perform_caching.nil?
 
-      config_accessor :enable_fragment_cache_logging
+      singleton_class.delegate :enable_fragment_cache_logging, :enable_fragment_cache_logging=, to: :config
+      delegate :enable_fragment_cache_logging, :enable_fragment_cache_logging=, to: :config
       self.enable_fragment_cache_logging = false
 
-      class_attribute :_view_cache_dependencies, default: []
+      class_attribute :_view_cache_dependencies, default: [].freeze
       helper_method :view_cache_dependencies if respond_to?(:helper_method)
     end
 
     module ClassMethods
       def view_cache_dependency(&dependency)
-        self._view_cache_dependencies += [dependency]
+        self._view_cache_dependencies = [
+          *_view_cache_dependencies, ActiveSupport::Ractors.try_shareable_proc(dependency)
+        ].freeze
       end
     end
 

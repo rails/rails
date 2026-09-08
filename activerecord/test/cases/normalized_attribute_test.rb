@@ -5,12 +5,27 @@ require "models/aircraft"
 require "active_support/core_ext/string/inflections"
 
 class NormalizedAttributeTest < ActiveRecord::TestCase
+  class NormalizedAdminUser < ActiveRecord::Base
+    self.table_name = "admin_users"
+
+    # MariaDB has no native JSON type (json columns are LONGTEXT), so declare
+    # the attribute type explicitly to get json semantics on all adapters.
+    attribute :json_options, :json
+
+    normalizes :json_options, with: -> options { options.transform_keys(&:downcase) }
+  end
+
   class NormalizedAircraft < Aircraft
     normalizes :name, with: -> name { name.presence&.titlecase }
     normalizes :manufactured_at, with: -> time { time.noon }
 
     attr_accessor :validated_name
     validate { self.validated_name = name.dup }
+  end
+
+  class NormalizedEnumAircraft < Aircraft
+    enum :name, { pending: "pending", confirmed: "confirmed" }
+    normalizes :name, with: -> value { value.strip.downcase }
   end
 
   setup do
@@ -27,52 +42,6 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
     assert_equal "Fly Higher", @aircraft.name
   end
 
-  test "normalizes value from assignment" do
-    @aircraft.name = "fly HIGHER"
-    assert_equal "Fly Higher", @aircraft.name
-  end
-
-  test "normalizes changed-in-place value before validation" do
-    @aircraft.name.downcase!
-    assert_equal "fly high", @aircraft.name
-
-    @aircraft.valid?
-    assert_equal "Fly High", @aircraft.validated_name
-  end
-
-  test "normalizes value on demand" do
-    @aircraft.name.downcase!
-    assert_equal "fly high", @aircraft.name
-
-    @aircraft.normalize_attribute(:name)
-    assert_equal "Fly High", @aircraft.name
-  end
-
-  test "normalizes value without record" do
-    assert_equal "Titlecase Me", NormalizedAircraft.normalize_value_for(:name, "titlecase ME")
-  end
-
-  test "casts value when no normalization is declared" do
-    assert_equal 6, NormalizedAircraft.normalize_value_for(:wheels_count, "6")
-  end
-
-  test "casts value before applying normalization" do
-    @aircraft.manufactured_at = @time.to_s
-    assert_equal @time.noon, @aircraft.manufactured_at
-  end
-
-  test "ignores nil by default" do
-    assert_nil NormalizedAircraft.normalize_value_for(:name, nil)
-  end
-
-  test "normalizes nil if apply_to_nil" do
-    including_nil = Class.new(Aircraft) do
-      normalizes :name, with: -> name { name&.titlecase || "Untitled" }, apply_to_nil: true
-    end
-
-    assert_equal "Untitled", including_nil.normalize_value_for(:name, nil)
-  end
-
   test "does not automatically normalize value from database" do
     from_database = NormalizedAircraft.find(Aircraft.create(name: "NOT titlecase").id)
     assert_equal "NOT titlecase", from_database.name
@@ -87,13 +56,26 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
     assert_equal NormalizedAircraft.where(name: nil).to_sql, NormalizedAircraft.where(name: "").to_sql
   end
 
-  test "can stack normalizations" do
-    titlecase_then_reverse = Class.new(NormalizedAircraft) do
-      normalizes :name, with: -> name { name.reverse }
-    end
+  test "normalizes json attribute changed in place after loading from database" do
+    admin_user = NormalizedAdminUser.find(NormalizedAdminUser.create!(json_options: { "FOO" => "bar" }).id)
+    admin_user.json_options["BAZ"] = "qux" # change the attribute in place
 
-    assert_equal "esreveR nehT esaceltiT", titlecase_then_reverse.normalize_value_for(:name, "titlecase THEN reverse")
-    assert_equal "Only Titlecase", NormalizedAircraft.normalize_value_for(:name, "ONLY titlecase")
+    admin_user.validate
+
+    assert_equal({ "foo" => "bar", "baz" => "qux" }, admin_user.json_options)
+  end
+
+  test "normalizes value before enum casting" do
+    aircraft = NormalizedEnumAircraft.new(name: "  Pending  ")
+    assert_equal "pending", aircraft.name
+    assert_predicate aircraft, :pending?
+    assert aircraft.valid?
+  end
+
+  test "still raises for an invalid enum value after normalization" do
+    assert_raises(ArgumentError) do
+      NormalizedEnumAircraft.new(name: "  bogus  ")
+    end
   end
 
   test "minimizes number of times normalization is applied" do

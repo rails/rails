@@ -27,8 +27,6 @@ module Rails
 
             # Any benchmarking setup goes here...
 
-
-
             Benchmark.ips do |x|
               x.report("before") { }
               x.report("after") { }
@@ -59,8 +57,6 @@ module Rails
             require_relative "../../config/environment"
 
             # Any benchmarking setup goes here...
-
-
 
             Benchmark.ips do |x|
               x.report("with_patch") { }

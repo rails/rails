@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -11,7 +12,7 @@ module ActiveSupport
 
         if assertions.zero? && !skipped? && !error?
           file, line = method(name).source_location
-          warn "Test is missing assertions: `#{name}` #{file}:#{line}"
+          warn "Test is missing assertions: `#{name}` #{File.expand_path(file)}:#{line}"
         end
       end
     end

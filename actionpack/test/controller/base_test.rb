@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "active_support/logger"
+require "active_support/testing/ractors_assertions"
 require "controller/fake_models"
 
 # Provide some controller to run the tests on.
@@ -11,6 +12,9 @@ module Submodule
 end
 
 class EmptyController < ActionController::Base
+end
+
+class CatController < ActionController::Base
 end
 
 class SimpleController < ActionController::Base
@@ -72,12 +76,45 @@ class ActionMissingController < ActionController::Base
   end
 end
 
+class WithoutRouterController < ActionController::Base
+  after_action :log_request_details
+
+  def index
+    head :ok
+  end
+
+  private
+    def log_request_details
+      request.route_uri_pattern
+    end
+end
+
+class WithoutRouterTest < ActionController::TestCase
+  tests WithoutRouterController
+
+  def test_request_route_uri_pattern_in_after_action_callback
+    assert_nothing_raised do
+      get :index
+    end
+  end
+end
+
 class ControllerClassTests < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def test_controller_path
     assert_equal "empty", EmptyController.controller_path
     assert_equal EmptyController.controller_path, EmptyController.new.controller_path
     assert_equal "submodule/contained_empty", Submodule::ContainedEmptyController.controller_path
     assert_equal Submodule::ContainedEmptyController.controller_path, Submodule::ContainedEmptyController.new.controller_path
+  end
+
+  def test_controller_path_is_eagerly_set_and_accessible_from_a_ractor
+    value = on_ractor do
+      CatController.controller_path
+    end
+
+    assert_equal("cat", value)
   end
 
   def test_controller_name
@@ -105,6 +142,8 @@ class ControllerClassTests < ActiveSupport::TestCase
 end
 
 class ControllerInstanceTests < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def setup
     @empty = EmptyController.new
     @empty.set_request!(ActionDispatch::Request.empty)
@@ -129,6 +168,16 @@ class ControllerInstanceTests < ActiveSupport::TestCase
     assert_includes ActionController::Base.instance_methods, :status
     assert_equal Set.new(["status", "hello"]), SimpleController.action_methods
     assert_equal Set.new(["status", "hello"]), ChildController.action_methods
+  end
+
+  def test_action_methods_is_ractor_safe_by_default
+    SimpleController.action_methods
+
+    value = on_ractor do
+      SimpleController.action_methods
+    end
+
+    assert_equal Set.new(["status", "hello"]), value
   end
 
   def test_temporary_anonymous_controllers

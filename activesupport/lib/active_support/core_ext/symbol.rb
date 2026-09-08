@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
-require "active_support/core_ext/symbol/starts_ends_with"
+require_relative "symbol/starts_ends_with"

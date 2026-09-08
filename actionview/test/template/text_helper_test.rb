@@ -359,6 +359,9 @@ class TextHelperTest < ActionView::TestCase
     options = { separator: "\n", radius: 1 }
     assert_equal("...very\nvery long\nstring", excerpt("my very\nvery\nvery long\nstring", "long", options))
 
+    options = { separator: "_" }
+    assert_equal("foo", excerpt("foo", "foo", options))
+
     assert_equal excerpt("This is a beautiful morning", "a"),
                  excerpt("This is a beautiful morning", "a", separator: nil)
   end
@@ -396,6 +399,11 @@ class TextHelperTest < ActionView::TestCase
   test "word_wrap when no wrapping is necessary" do
     assert_equal "1", word_wrap("1", line_width: 3)
     assert_equal "", word_wrap("", line_width: 3)
+  end
+
+  test "word_wrap with nil" do
+    assert_equal "", word_wrap(nil)
+    assert_equal "", word_wrap(nil, line_width: 3)
   end
 
   def test_pluralization

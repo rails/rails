@@ -50,7 +50,7 @@ module ActionDispatch
     # would set the session cookie to expire automatically 14 days after creation.
     # Other useful options include `:key`, `:secure`, `:httponly`, and `:same_site`.
     class CookieStore < AbstractSecureStore
-      class SessionId < DelegateClass(Rack::Session::SessionId)
+      class SessionId < ActiveSupport::Delegation::DelegateClass(Rack::Session::SessionId)
         attr_reader :cookie_value
 
         def initialize(session_id, cookie_value = {})
@@ -59,7 +59,7 @@ module ActionDispatch
         end
       end
 
-      DEFAULT_SAME_SITE = proc { |request| request.cookies_same_site_protection } # :nodoc:
+      DEFAULT_SAME_SITE = ActiveSupport::Ractors.shareable_proc { |request| request.cookies_same_site_protection } # :nodoc:
 
       def initialize(app, options = {})
         options[:cookie_only] = true

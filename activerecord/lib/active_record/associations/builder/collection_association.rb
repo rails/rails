@@ -4,10 +4,10 @@ require "active_record/associations"
 
 module ActiveRecord::Associations::Builder # :nodoc:
   class CollectionAssociation < Association # :nodoc:
-    CALLBACKS = [:before_add, :after_add, :before_remove, :after_remove]
+    CALLBACKS = [:before_add, :after_add, :before_remove, :after_remove].freeze
 
     def self.valid_options(options)
-      super + [:before_add, :after_add, :before_remove, :after_remove, :extend]
+      super + [:class_name, :before_add, :after_add, :before_remove, :after_remove, :extend]
     end
 
     def self.define_callbacks(model, reflection)
@@ -60,7 +60,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name.to_s.singularize}_ids
-          association(:#{name}).ids_reader
+          association = association(:#{name})
+          deprecated_associations_api_guard(association, __method__)
+          association.ids_reader
         end
       CODE
     end
@@ -70,7 +72,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name.to_s.singularize}_ids=(ids)
-          association(:#{name}).ids_writer(ids)
+          association = association(:#{name})
+          deprecated_associations_api_guard(association, __method__)
+          association.ids_writer(ids)
         end
       CODE
     end

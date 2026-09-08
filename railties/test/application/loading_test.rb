@@ -89,7 +89,9 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    User
+    assert_nothing_raised do
+      User
+    end
   end
 
   test "load config/environments/environment before Bootstrap initializers" do
@@ -107,6 +109,15 @@ class LoadingTest < ActiveSupport::TestCase
 
     require "#{app_path}/config/environment"
     assert ::Rails.application.config.loaded
+  end
+
+  test "raises RuntimeError when config/environments/ENV.rb file does not exist" do
+    msg = <<~MSG.squish
+      Rails environment has been set to non_existent_environment but
+      config/environments/non_existent_environment.rb does not exist.
+    MSG
+
+    assert_raise(RuntimeError, match: msg) { boot_app "non_existent_environment" }
   end
 
   test "descendants loaded after framework initialization are cleaned on each request if reloading is enabled" do
@@ -189,11 +200,8 @@ class LoadingTest < ActiveSupport::TestCase
   test "does not reload constants on development if custom file watcher always returns false" do
     add_to_config <<-RUBY
       config.enable_reloading = true
-      config.file_watcher = Class.new do
-        def initialize(*); end
+      config.file_watcher = Class.new(ActiveSupport::FileUpdateChecker) do
         def updated?; false; end
-        def execute; end
-        def execute_if_updated; false; end
       end
     RUBY
 
@@ -384,6 +392,39 @@ class LoadingTest < ActiveSupport::TestCase
 
     get "/c"
     assert_equal "3", last_response.body
+  end
+
+  test "after_routes_loaded hooks that access routes do not reload infinitely" do
+    add_to_config <<-RUBY
+      config.enable_reloading = true
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      $draws ||= 0
+      $draws += 1
+      raise "routes drew more than once" if $draws > 1
+      Rails.application.routes.draw do
+        get "/c", to: lambda { |env| [200, {"Content-Type" => "text/plain"}, [$draws.to_s]] }
+      end
+    RUBY
+
+    app_file "config/initializers/after_routes_loaded.rb", <<-RUBY
+      Rails.configuration.after_routes_loaded do
+        # Touch the route set while after_routes_loaded hooks are still running.
+        Rails.application.routes.routes.size
+      end
+    RUBY
+
+    boot_app "development"
+
+    require "rack/test"
+    extend Rack::Test::Methods
+
+    require "#{rails_root}/config/environment"
+
+    get "/c"
+    assert_equal "1", last_response.body
+    assert_equal 1, $draws
   end
 
   test "columns migrations also trigger reloading" do

@@ -1,4 +1,4 @@
-require:
+plugins:
   - rubocop-minitest
   - rubocop-packaging
   - rubocop-performance
@@ -172,6 +172,12 @@ Style/FrozenStringLiteralComment:
     - 'actiontext/db/migrate/**/*.rb'
     - '**/*.md'
 
+Style/MutableConstant:
+  Enabled: true
+  EnforcedStyle: literals
+  Exclude:
+    - '**/*.md'
+
 Style/MapToHash:
   Enabled: true
 
@@ -213,6 +219,9 @@ Layout/TrailingWhitespace:
 
 # Use quotes for string literals when they are enough.
 Style/RedundantPercentQ:
+  Enabled: true
+
+Lint/NestedMethodDefinition:
   Enabled: true
 
 Lint/AmbiguousOperator:
@@ -379,7 +388,7 @@ Performance/RedundantStringChars:
 Performance/StringInclude:
   Enabled: true
 
-Minitest/AssertPredicate:
+Minitest/AssertNil:
   Enabled: true
 
 Minitest/AssertRaisesWithRegexpArgument:

@@ -73,7 +73,7 @@ module CacheLoggingBehavior
   private
     def assert_logs(pattern, &block)
       io = StringIO.new
-      ActiveSupport::Cache::Store.with(logger: Logger.new(io, level: :debug), &block)
+      @cache.with(logger: Logger.new(io, level: :debug), &block)
       assert_match pattern, io.string
     end
 

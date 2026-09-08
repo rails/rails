@@ -5,28 +5,22 @@ module Arel # :nodoc: all
     class Function < Arel::Nodes::NodeExpression
       include Arel::WindowPredications
       include Arel::FilterPredications
-      attr_accessor :expressions, :alias, :distinct
 
-      def initialize(expr, aliaz = nil)
+      attr_accessor :expressions, :distinct
+
+      def initialize(expr)
         super()
         @expressions = expr
-        @alias       = aliaz && SqlLiteral.new(aliaz)
         @distinct    = false
       end
 
-      def as(aliaz)
-        self.alias = SqlLiteral.new(aliaz)
-        self
-      end
-
       def hash
-        [@expressions, @alias, @distinct].hash
+        [@expressions, @distinct].hash
       end
 
       def eql?(other)
         self.class == other.class &&
           self.expressions == other.expressions &&
-          self.alias == other.alias &&
           self.distinct == other.distinct
       end
       alias :== :eql?

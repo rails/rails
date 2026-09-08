@@ -90,8 +90,10 @@ ActiveRecord::Schema.define do
     t.string :name, null: false
     t.references :author_address
     t.references :author_address_extra
+    t.string :author_code
     t.string :organization_id
     t.string :owned_essay_id
+    t.integer :published_author_id
   end
 
   create_table :author_addresses, force: true do |t|
@@ -105,8 +107,9 @@ ActiveRecord::Schema.define do
   end
 
   create_table :auto_id_tests, force: true, id: false do |t|
-    t.primary_key :auto_id
     t.integer     :value
+    t.timestamp   :published_at, default: -> { "CURRENT_TIMESTAMP" }
+    t.primary_key :auto_id
   end
 
   create_table :binaries, force: true do |t|
@@ -137,6 +140,7 @@ ActiveRecord::Schema.define do
     t.column :illustrator_visibility, :integer, **default_zero
     t.column :font_size, :integer, **default_zero
     t.column :difficulty, :integer, **default_zero
+    t.column :rating, :float
     t.column :cover, :string, default: "hard"
     t.column :symbol_status, :string, default: "proposed"
     t.string :isbn
@@ -154,12 +158,19 @@ ActiveRecord::Schema.define do
     t.date :updated_on
   end
 
+  create_table :book_identifiers, id: :integer, force: true do |t|
+    t.references :book
+    t.string :id_type, null: false
+    t.string :id_value, null: false
+  end
+
   create_table :encrypted_books, id: :integer, force: true do |t|
     t.references :author
     t.string :format
     t.column :name, :string, default: "<untitled>", limit: 1024
     t.column :original_name, :string
     t.column :logo, :binary
+    t.json :metadata
 
     t.datetime :created_at
     t.datetime :updated_at
@@ -195,7 +206,7 @@ ActiveRecord::Schema.define do
     t.integer :wheels_count, default: 0, null: false
     t.datetime :wheels_owned_at
     t.integer :bulbs_count
-    t.integer :custom_tyres_count
+    t.integer :custom_tires_count
     t.column :lock_version, :integer, null: false, default: 0
     t.timestamps null: false
   end
@@ -265,6 +276,12 @@ ActiveRecord::Schema.define do
     t.string :author
   end
 
+  create_table :cpk_posts_tags, force: true do |t|
+    t.string :post_title
+    t.string :post_author
+    t.integer :tag_id
+  end
+
   create_table :cpk_comments, force: true do |t|
     t.string :commentable_title
     t.string :commentable_author
@@ -285,6 +302,7 @@ ActiveRecord::Schema.define do
     t.integer :shop_id
     t.string :status
     t.integer :books_count, default: 0
+    t.timestamps
   end
 
   create_table :cpk_order_tags, primary_key: [:order_id, :tag_id], force: true do |t|
@@ -359,6 +377,15 @@ ActiveRecord::Schema.define do
     t.integer :tag_id
   end
 
+  create_table :shipments, force: true do |t|
+    t.integer :region_id
+  end
+
+  create_table :adjustments, force: true do |t|
+    t.integer :region_id
+    t.references :adjustable, polymorphic: true
+  end
+
   create_table :clubs, force: true do |t|
     t.string :name
     t.integer :category_id
@@ -385,6 +412,8 @@ ActiveRecord::Schema.define do
     t.integer :children_count, default: 0
     t.integer :parent_id
     t.references :author, polymorphic: true
+    t.string :person_id
+    t.string :person_type
     # The type of the attribute is a string to make sure preload work when types don't match.
     # See #14855.
     t.string :resource_id
@@ -425,6 +454,10 @@ ActiveRecord::Schema.define do
       if ActiveRecord::TestCase.current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         t.index "(CONCAT_WS(`firm_name`, `name`, _utf8mb4' '))", name: "full_name_index"
       end
+    end
+
+    if supports_disabling_indexes?
+      t.index [:firm_id, :client_of], name: "company_disabled_index", enabled: false
     end
   end
 
@@ -585,6 +618,11 @@ ActiveRecord::Schema.define do
 
   create_table :engines, force: true do |t|
     t.references :car, index: false
+  end
+
+  create_table :enrollments, force: true do |t|
+    t.integer  :program_id
+    t.integer  :member_id
   end
 
   create_table :entrants, force: true do |t|
@@ -940,6 +978,7 @@ ActiveRecord::Schema.define do
     t.integer    :friends_too_count, default: 0
     t.references :best_friend
     t.references :best_friend_of
+    t.string     :external_id
     t.integer    :insures, null: false, default: 0
     t.timestamp :born_at
     t.integer :cars_count, default: 0
@@ -981,6 +1020,7 @@ ActiveRecord::Schema.define do
     t.integer :indestructible_tags_count, default: 0
     t.integer :tags_with_destroy_count, default: 0
     t.integer :tags_with_nullify_count, default: 0
+    t.datetime :deleted_at
   end
 
   create_table :postesques, force: true do |t|
@@ -1015,6 +1055,16 @@ ActiveRecord::Schema.define do
     t.string :name
     t.decimal :price
     t.decimal :discounted_price
+  end
+
+  create_table :program_offerings, force: true do |t|
+    t.integer  :club_id
+    t.integer  :program_id
+    t.datetime :start_date
+  end
+
+  create_table :programs, force: true do |t|
+    t.string   :name
   end
 
   add_check_constraint :products, "price > discounted_price", name: "products_price_check"
@@ -1217,7 +1267,6 @@ ActiveRecord::Schema.define do
     t.string   :type
     t.string   :group
     t.timestamps null: true
-    t.index [:author_name, :title]
   end
 
   create_table :toys, primary_key: :toy_id, force: true do |t|
@@ -1246,7 +1295,7 @@ ActiveRecord::Schema.define do
     t.float :pitch
   end
 
-  create_table :tyres, force: true do |t|
+  create_table :tires, force: true do |t|
     t.integer :car_id
   end
 
@@ -1275,7 +1324,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :humans, force: true do |t|
-    t.string  :name
+    t.string :name
   end
 
   create_table :faces, force: true do |t|
@@ -1411,6 +1460,7 @@ ActiveRecord::Schema.define do
     t.string :overloaded_string_with_limit, limit: 255
     t.string :string_with_default, default: "the original default"
     t.string :inferred_string, limit: 255
+    t.boolean :overloaded_boolean, default: 0
     t.datetime :starts_at, :ends_at
   end
 

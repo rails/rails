@@ -59,6 +59,10 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal 1, liquids[0].molecules.length
   end
 
+  def test_allocated_record_can_see_assocations
+    assert_not_nil Ship.allocate.association(:parts)
+  end
+
   def test_subselect
     author = authors :david
     favs = author.author_favorites
@@ -149,6 +153,26 @@ class AssociationsTest < ActiveRecord::TestCase
     blog_post = sharded_blog_posts(:great_post_blog_one)
 
     assert_equal(blog_post, comment.blog_post)
+  end
+
+  def test_belongs_to_a_model_with_composite_primary_key_sets_inverse_of
+    order = cpk_orders(:cpk_groceries_order_1)
+    store_id, _order_id = order.id
+    book = order.books.create!(id: [store_id, 4], title: "Book")
+
+    assert_same book.order, book.order.books.first.order
+  end
+
+  def test_belongs_to_a_model_with_composite_association_primary_key_sets_inverse_of
+    cpk_order = cpk_orders(:cpk_groceries_order_1)
+    store_id, order_id = cpk_order.id
+    order = Cpk::NonCpkOrder.find(order_id)
+    book = order.books_with_composite_primary_key.create!(id: [store_id, 4], title: "Book")
+    book = Cpk::BookWithNonCpkOrder.find(book.id)
+    associated_order = book.non_cpk_order
+    associated_book = associated_order.books_with_composite_primary_key.to_a.find { |record| record.id == book.id }
+
+    assert_same associated_order, associated_book.non_cpk_order
   end
 
   def test_belongs_to_a_cpk_model_by_id_attribute
@@ -802,7 +826,7 @@ end
 class PreloaderTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :books, :authors, :tags, :taggings, :essays, :categories, :author_addresses,
            :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags, :sharded_tags,
-           :members, :member_details, :organizations, :cpk_orders, :cpk_order_agreements,
+           :members, :member_details, :organizations, :cpk_authors, :cpk_orders, :cpk_books, :cpk_order_agreements,
            :dogs, :other_dogs
 
   def test_preload_with_scope
@@ -832,6 +856,17 @@ class PreloaderTest < ActiveRecord::TestCase
       preloader = ActiveRecord::Associations::Preloader.new(records: relation, associations: :comments)
       preloader.call
     end
+  end
+
+  def test_preload_skips_query_for_nil_foreign_key_even_when_key_types_differ
+    post = Postesque.new(author_id: nil)
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author_with_address).call
+    end
+
+    assert_predicate post.association(:author_with_address), :loaded?
+    assert_nil post.author_with_address
   end
 
   def test_preload_does_not_concatenate_duplicate_records
@@ -933,10 +968,13 @@ class PreloaderTest < ActiveRecord::TestCase
       body: "this post is also about David"
     )
 
+    loaders = nil
     assert_queries_count(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :posts_mentioning_author)
-      preloader.call
+      loaders = preloader.call
     end
+
+    assert_equal 2, loaders.size
 
     assert_predicate david.posts_mentioning_author, :loaded?
     assert_predicate david2.posts_mentioning_author, :loaded?
@@ -1189,7 +1227,9 @@ class PreloaderTest < ActiveRecord::TestCase
 
   def test_preload_does_not_group_same_class_different_scope
     post = posts(:welcome)
-    postesque = Postesque.create(author: Author.last)
+    david = authors(:david)
+    bob = authors(:bob)
+    postesque = Postesque.create(author_id: bob.id)
     postesque.reload
 
     # When the scopes differ in the generated SQL:
@@ -1201,8 +1241,8 @@ class PreloaderTest < ActiveRecord::TestCase
     end
 
     assert_no_queries do
-      post.author_with_the_letter_a
-      postesque.author_with_the_letter_a
+      assert_equal david, post.author_with_the_letter_a
+      assert_equal bob, postesque.author_with_the_letter_a
     end
 
     post.reload
@@ -1215,8 +1255,10 @@ class PreloaderTest < ActiveRecord::TestCase
     end
 
     assert_no_queries do
-      post.author_with_address
-      postesque.author_with_address
+      assert_equal david, post.author_with_address
+      assert_equal bob, postesque.author_with_address
+      assert_predicate post.author_with_address.association(:author_address), :loaded?
+      assert_not_predicate postesque.author_with_address.association(:author_address), :loaded?
     end
   end
 
@@ -1425,6 +1467,20 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_with_unpersisted_records_with_composite_foreign_key_no_ops
+    order = Cpk::Order.new
+    new_book_with_order = Cpk::Book.new(order: order)
+    new_book_without_order = Cpk::Book.new
+    books = [new_book_with_order, new_book_without_order]
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: books, associations: :order).call
+
+      assert_same order, new_book_with_order.order
+      assert_nil new_book_without_order.order
+    end
+  end
+
   def test_preload_wont_set_the_wrong_target
     post = posts(:welcome)
     post.update!(author_id: 54321)
@@ -1543,6 +1599,17 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_keeps_built_has_many_records_with_composite_key_no_ops
+    order = Cpk::Order.new
+    book = order.books.build
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [order], associations: :books).call
+
+      assert_equal [book], order.books.to_a
+    end
+  end
+
   def test_preload_keeps_built_has_many_records_after_query
     post = posts(:welcome)
     comment = post.comments.build
@@ -1575,6 +1642,17 @@ class PreloaderTest < ActiveRecord::TestCase
 
       assert_same author, post.author
     end
+  end
+
+  def test_preload_group_with_klass
+    published_author = PublishedAuthor.create!(name: "PublishedAuthor")
+    PublishedBook.create!(name: "PublishedBook", author_id: published_author.id, isbn: "12345")
+
+    author = Author.create!(name: "Author", published_author_id: published_author.id)
+    Book.create!(name: "Book", author_id: author.id, isbn: "67890")
+
+    result = Author.includes(books: [], published_author: { books: [] }).last
+    assert_equal [PublishedBook], result.published_author.books.map(&:class)
   end
 end
 

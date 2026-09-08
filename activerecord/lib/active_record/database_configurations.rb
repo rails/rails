@@ -36,9 +36,11 @@ module ActiveRecord
     # to respond to `sharded?`. To implement this define the following in an
     # initializer:
     #
-    #   ActiveRecord::DatabaseConfigurations.register_db_config_handler do |env_name, name, url, config|
-    #     next unless config.key?(:vitess)
-    #     VitessConfig.new(env_name, name, config)
+    #   ActiveSupport.on_load(:active_record_database_configurations) do
+    #     ActiveRecord::DatabaseConfigurations.register_db_config_handler do |env_name, name, url, config|
+    #       next unless config.key?(:vitess)
+    #       VitessConfig.new(env_name, name, config)
+    #     end
     #   end
     #
     # Note: applications must handle the condition in which custom config should be
@@ -306,4 +308,6 @@ module ActiveRecord
         url
       end
   end
+
+  ActiveSupport.run_load_hooks(:active_record_database_configurations, DatabaseConfigurations)
 end

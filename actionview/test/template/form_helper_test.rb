@@ -3,6 +3,9 @@
 require "abstract_unit"
 require "controller/fake_models"
 
+require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
+
 class FormHelperTest < ActionView::TestCase
   include RenderERBUtils
 
@@ -589,6 +592,38 @@ class FormHelperTest < ActionView::TestCase
     ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = old_value
   end
 
+  def test_file_field_with_multiple_include_hidden_includes_autocomplete
+    ActionView::Base.with(remove_hidden_field_autocomplete: false) do
+      expected = '<input type="hidden" name="import[file][]" value="" autocomplete="off">' \
+                 '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
+      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true)
+    end
+  end
+
+  def test_file_field_with_multiple_include_hidden_omits_autocomplete
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      expected = '<input type="hidden" name="import[file][]" value="">' \
+                 '<input id="import_file" multiple="multiple" name="import[file][]" type="file" />'
+      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true)
+    end
+  end
+
+  def test_file_field_with_multiple_include_hidden_carries_form_attribute
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      expected = '<input type="hidden" name="import[file][]" value="" form="uploads">' \
+                 '<input id="import_file" multiple="multiple" form="uploads" name="import[file][]" type="file" />'
+      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true, form: "uploads")
+    end
+  end
+
+  def test_file_field_with_multiple_include_hidden_carries_disabled_attribute
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      expected = '<input type="hidden" name="import[file][]" value="" disabled="disabled">' \
+                 '<input id="import_file" disabled="disabled" multiple="multiple" name="import[file][]" type="file" />'
+      assert_dom_equal expected, file_field("import", "file", multiple: true, include_hidden: true, disabled: true)
+    end
+  end
+
   def test_file_field_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
     expected = '<input type="file" name="import[file]" id="import_file" />'
     assert_dom_equal expected, file_field("import", "file", direct_upload: true)
@@ -608,6 +643,25 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, file_field("import", "file", original_options)
 
     assert_equal({ class: "pix", direct_upload: true }, original_options)
+  end
+
+  def test_file_field_with_accept_attribute
+    expected = '<input accept="image/*,video/*" type="file" name="import[file]" />'
+    assert_dom_equal expected, file_field("import", "file", { accept: ["image/*", "video/*"], id: nil })
+  end
+
+  def test_file_field_with_direct_upload_includes_checksum_algorithm
+    @controller = WithActiveStorageRoutesControllers.new
+
+    expected = '<input data-direct-upload-url="http://testtwo.host/rails/active_storage/direct_uploads" data-checksum-algorithm="sha256" type="file" name="import[file]" id="import_file" />'
+    assert_dom_equal expected, file_field("import", "file", direct_upload: true, data_checksum_algorithm: "sha256")
+  end
+
+  def test_file_field_with_direct_upload_defaults_checksum_algorithm_to_md5
+    @controller = WithActiveStorageRoutesControllers.new
+
+    expected = '<input data-direct-upload-url="http://testtwo.host/rails/active_storage/direct_uploads" type="file" name="import[file]" id="import_file" />'
+    assert_dom_equal expected, file_field("import", "file", direct_upload: true)
   end
 
   def test_hidden_field
@@ -653,6 +707,24 @@ class FormHelperTest < ActionView::TestCase
       '<input id="post_title" name="post[title]" type="hidden" value="Something Else" />',
       hidden_field("post", "title", value: "Something Else", autocomplete: nil)
     )
+  end
+
+  def test_hidden_field_omits_autocomplete_when_remove_hidden_field_autocomplete_is_true
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      assert_dom_equal(
+        '<input id="post_title" name="post[title]" type="hidden" value="Hello World" />',
+        hidden_field("post", "title")
+      )
+    end
+  end
+
+  def test_hidden_field_respects_explicit_autocomplete_when_remove_hidden_field_autocomplete_is_true
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      assert_dom_equal(
+        '<input id="session_username" name="session[username]" type="hidden" value="me@example.com" autocomplete="username" />',
+        hidden_field("session", "username", value: "me@example.com", autocomplete: "username")
+      )
+    end
   end
 
   def test_text_field_with_custom_type
@@ -815,6 +887,24 @@ class FormHelperTest < ActionView::TestCase
       '<input name="post[secret]" type="hidden" value="1" autocomplete="off" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       checkbox("post", "secret", {}, 0, 1)
     )
+  end
+
+  def test_checkbox_with_unchecked_value_hidden_autocomplete
+    @post.secret = true
+    assert_dom_equal(
+      '<input name="post[secret]" type="hidden" value="true" autocomplete="off" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="true" />',
+      checkbox("post", "secret", {}, true, true)
+    )
+  end
+
+  def test_checkbox_with_unchecked_value_omits_hidden_autocomplete
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      @post.secret = true
+      assert_dom_equal(
+        '<input name="post[secret]" type="hidden" value="true" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="true" />',
+        checkbox("post", "secret", {}, true, true)
+      )
+    end
   end
 
   def test_checkbox_with_nil_unchecked_value
@@ -1064,19 +1154,30 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_color_field_with_valid_hex_color_string
-    expected = %{<input id="car_color" name="car[color]" type="color" value="#000fff" />}
+    expected = %{<input type="color" value="#000fff" name="car[color]" id="car_color" />}
     assert_dom_equal(expected, color_field("car", "color"))
   end
 
   def test_color_field_with_invalid_hex_color_string
-    expected = %{<input id="car_color" name="car[color]" type="color" value="#000000" />}
+    expected = %{<input type="color" value="#000000" name="car[color]" id="car_color" />}
     @car.color = "#1234TR"
     assert_dom_equal(expected, color_field("car", "color"))
   end
 
+  def test_color_field_with_string_containing_hex_color_substring
+    expected = %{<input type="color" value="#000000" name="car[color]" id="car_color"  />}
+    @car.color = "Not a color #123456 at all"
+    assert_dom_equal(expected, color_field("car", "color"))
+  end
+
   def test_color_field_with_value_attr
-    expected = %{<input id="car_color" name="car[color]" type="color" value="#00FF00" />}
+    expected = %{<input type="color" value="#00FF00" name="car[color]" id="car_color" />}
     assert_dom_equal(expected, color_field("car", "color", value: "#00FF00"))
+  end
+
+  def test_color_field_with_explicit_nil_value
+    expected = %{<input id="car_color" name="car[color]" type="color" />}
+    assert_dom_equal(expected, color_field("car", "color", value: nil))
   end
 
   def test_search_field
@@ -1087,6 +1188,26 @@ class FormHelperTest < ActionView::TestCase
   def test_search_field_with_onsearch_value
     expected = %{<input onsearch="true" type="search" name="contact[notes_query]" id="contact_notes_query" incremental="true" />}
     assert_dom_equal(expected, search_field("contact", "notes_query", onsearch: true))
+  end
+
+  def test_search_field_with_autosave_true_uses_the_reversed_host
+    expected = %{<input autosave="host.test" results="10" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: true))
+  end
+
+  def test_search_field_with_autosave_string_is_left_alone
+    expected = %{<input autosave="com.example.www" results="10" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: "com.example.www"))
+  end
+
+  def test_search_field_with_autosave_does_not_override_given_results
+    expected = %{<input autosave="host.test" results="3" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: true, results: 3))
+  end
+
+  def test_search_field_with_autosave_false_omits_results
+    expected = %{<input autosave="false" type="search" name="contact[notes_query]" id="contact_notes_query" />}
+    assert_dom_equal(expected, search_field("contact", "notes_query", autosave: false))
   end
 
   def test_telephone_field
@@ -1118,6 +1239,11 @@ class FormHelperTest < ActionView::TestCase
     expected = %{<input id="post_written_on" name="post[written_on]" type="date" value="2013-06-29" />}
     value = Date.new(2013, 6, 29)
     assert_dom_equal(expected, date_field("post", "written_on", value: value))
+  end
+
+  def test_date_field_with_nil_value_attr
+    expected = %{<input id="post_written_on" name="post[written_on]" type="date"/>}
+    assert_dom_equal(expected, date_field("post", "written_on", value: nil))
   end
 
   def test_date_field_with_datetime_value_attr
@@ -1387,6 +1513,12 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, week_field("post", "written_on"))
   end
 
+  def test_week_field_with_iso_week_year_boundary
+    expected = %{<input id="post_written_on" name="post[written_on]" type="week" value="2015-W53" />}
+    @post.written_on = DateTime.new(2016, 1, 1, 1, 2, 3)
+    assert_dom_equal(expected, week_field("post", "written_on"))
+  end
+
   def test_url_field
     expected = %{<input id="user_homepage" name="user[homepage]" type="url" />}
     assert_dom_equal(expected, url_field("user", "homepage"))
@@ -1402,6 +1534,16 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal(expected, number_field("order", "quantity", in: 1...10))
     expected = %{<input name="order[quantity]" size="30" max="9" id="order_quantity" type="number" min="1" />}
     assert_dom_equal(expected, number_field("order", "quantity", size: 30, in: 1...10))
+  end
+
+  def test_number_field_with_endless_range
+    expected = %{<input name="order[quantity]" id="order_quantity" type="number" min="18" />}
+    assert_dom_equal(expected, number_field("order", "quantity", in: 18..))
+  end
+
+  def test_number_field_with_beginless_range
+    expected = %{<input name="order[quantity]" max="10" id="order_quantity" type="number" />}
+    assert_dom_equal(expected, number_field("order", "quantity", in: ..10))
   end
 
   def test_range_input
@@ -2607,6 +2749,20 @@ class FormHelperTest < ActionView::TestCase
     expected = whole_form("/posts/123", "namespace_edit_post_123", "edit_post", method: "patch") do
       "<label for='namespace_post_title'>Title</label>" \
       "<input name='post[title]' type='text' id='namespace_post_title' value='Hello World' />"
+    end
+
+    assert_dom_equal expected, @rendered
+  end
+
+  def test_form_for_with_namespace_with_custom_label_for
+    form_for(@post, namespace: "namespace") do |f|
+      concat f.label(:title, for: "my_title")
+      concat f.text_field(:title, id: "my_title")
+    end
+
+    expected = whole_form("/posts/123", "namespace_edit_post_123", "edit_post", method: "patch") do
+      "<label for='namespace_my_title'>Title</label>" \
+      "<input name='post[title]' type='text' id='namespace_my_title' value='Hello World' />"
     end
 
     assert_dom_equal expected, @rendered
@@ -4019,6 +4175,17 @@ class FormHelperTest < ActionView::TestCase
 
   class LabelledFormBuilderSubclass < LabelledFormBuilder; end
 
+  def test_to_partial_path_for_subclass_without_builder_suffix
+    path = nil
+
+    form_for(@post, builder: LabelledFormBuilderSubclass) do |f|
+      path = f.to_partial_path
+      ""
+    end
+
+    assert_equal "labelled_form_builder_subclass", path
+  end
+
   def test_form_for_with_labelled_builder_with_nested_fields_for_with_custom_builder
     klass = nil
 
@@ -4126,6 +4293,12 @@ class FormHelperTest < ActionView::TestCase
     assert_match %r|data-remote="true"|, @rendered
   end
 
+  def test_form_for_nested_html_attributes
+    form_for(@post, html: { hx: { post: "/path", data: { open: false } } }) { }
+
+    assert_dom "form[hx-post=?][hx-data=?]", "/path", { open: false }.to_json
+  end
+
   def test_fields_for_returns_block_result
     output = fields_for(Post.new) { |f| "fields" }
     assert_equal "fields", output
@@ -4156,6 +4329,28 @@ class FormHelperTest < ActionView::TestCase
 
     expected = whole_form("/cpk/books/1-2", "edit_cpk_book_1_2", "edit_cpk_book", method: "patch")
     assert_dom_equal expected, @rendered
+  end
+
+  class FormHelperRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "the settings are readable from a non-main Ractor" do
+      expected = [
+        ActionView::Helpers::FormHelper.form_with_generates_remote_forms,
+        ActionView::Helpers::FormHelper.form_with_generates_ids,
+        ActionView::Helpers::FormHelper.multiple_file_field_include_hidden,
+      ]
+
+      assert_equal expected, on_ractor {
+        helper = ActionView::Helpers::FormHelper
+        [
+          helper.form_with_generates_remote_forms,
+          helper.form_with_generates_ids,
+          helper.multiple_file_field_include_hidden,
+        ]
+      }
+    end
   end
 
   private

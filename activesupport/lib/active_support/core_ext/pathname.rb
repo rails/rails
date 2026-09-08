@@ -1,4 +1,5 @@
+# :markup: markdown
 # frozen_string_literal: true
 
-require "active_support/core_ext/pathname/blank"
-require "active_support/core_ext/pathname/existence"
+require_relative "pathname/blank"
+require_relative "pathname/existence"

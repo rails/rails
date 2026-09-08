@@ -101,6 +101,11 @@ module ActionDispatch
     autoload :Parameters
     autoload :UploadedFile, "action_dispatch/http/upload"
     autoload :URL
+
+    eager_autoload do
+      autoload :Session
+      autoload :Utils
+    end
   end
 
   module Session
@@ -138,16 +143,34 @@ module ActionDispatch
 
   autoload :SystemTestCase, "action_dispatch/system_test_case"
 
-  def eager_load!
+  ##
+  # :singleton-method:
+  #
+  # Specifies if the methods calling redirects in controllers and routes should
+  #  be logged below their relevant log lines. Defaults to false.
+  singleton_class.attr_accessor :verbose_redirect_logs
+  self.verbose_redirect_logs = false
+
+  def self.eager_load!
     super
     Routing.eager_load!
+    Http.eager_load!
   end
 end
 
 autoload :Mime, "action_dispatch/http/mime_type"
 
 ActiveSupport.on_load(:action_view) do
-  ActionView::Base.default_formats ||= Mime::SET.symbols
   ActionView::Template.mime_types_implementation = Mime
   ActionView::LookupContext::DetailsKey.clear
+
+  unless ActionView::Base.default_formats
+    ActionView::Base.default_formats = previous_symbols = Mime.symbols
+    # TODO: remove in Rails 9, when late Mime::Type registration raises
+    Mime::Type.on_change do
+      if !previous_symbols.equal?(Mime.symbols) && ActionView::Base.default_formats.equal?(previous_symbols)
+        ActionView::Base.default_formats = previous_symbols = Mime.symbols
+      end
+    end
+  end
 end

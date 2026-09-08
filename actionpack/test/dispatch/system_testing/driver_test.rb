@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "support/system_helper"
 require "action_dispatch/system_testing/driver"
 require "selenium/webdriver"
 
@@ -120,7 +121,7 @@ class DriverTest < ActiveSupport::TestCase
     expected = {
       "moz:firefoxOptions" => {
         "args" => ["--host=127.0.0.1"],
-        "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        "prefs" => { "remote.active-protocols" => 1, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
       },
       "browserName" => "firefox"
     }
@@ -137,9 +138,24 @@ class DriverTest < ActiveSupport::TestCase
     expected = {
       "moz:firefoxOptions" => {
         "args" => ["-headless", "--host=127.0.0.1"],
-        "prefs" => { "remote.active-protocols" => 3, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
+        "prefs" => { "remote.active-protocols" => 1, "browser.startup.homepage" => "http://www.seleniumhq.com/" }
       },
       "browserName" => "firefox"
+    }
+    assert_driver_capabilities driver, expected
+  end
+
+  test "assert_driver_capabilities ignores unexpected options" do
+    driver = ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome) do |option|
+      option.binary = "/usr/bin/chromium-browser"
+    end
+    driver.use
+
+    expected = {
+      "goog:chromeOptions" => {
+        "args" => ["--disable-search-engine-choice-screen"],
+      },
+      "browserName" => "chrome"
     }
     assert_driver_capabilities driver, expected
   end
@@ -152,29 +168,33 @@ class DriverTest < ActiveSupport::TestCase
     end
   end
 
-  test "preloads browser's driver_path with DriverFinder if a path isn't already specified" do
+  test "preloads browser's driver_path and binary with DriverFinder if a path isn't already specified" do
     original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
     ::Selenium::WebDriver::Chrome::Service.driver_path = nil
 
-    # Our stub must return paths to a real executables, otherwise an internal Selenium assertion will fail.
-    # Note: SeleniumManager is private api
-    found_executable = RbConfig.ruby
-    ::Selenium::WebDriver::SeleniumManager.stub(:binary_paths, { "driver_path" => found_executable, "browser_path" => found_executable }) do
-      ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+    # Note: SeleniumManager and Platform are private api
+    driver = ::Selenium::WebDriver::Platform.stub(:assert_executable, nil) do
+      ::Selenium::WebDriver::SeleniumManager.stub(:binary_paths, { "driver_path" => "chromedriver", "browser_path" => "chrome" }) do
+        ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+      end
     end
 
-    assert_equal found_executable, ::Selenium::WebDriver::Chrome::Service.driver_path
+    assert_equal "chromedriver", ::Selenium::WebDriver::Chrome::Service.driver_path
+    assert_equal "chrome", driver.instance_variable_get(:@browser).options.binary
   ensure
     ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
   end
 
   test "does not overwrite existing driver_path during preload" do
     original_driver_path = ::Selenium::WebDriver::Chrome::Service.driver_path
-    # The driver_path must point to a real executable, otherwise an internal Selenium assertion will fail.
-    ::Selenium::WebDriver::Chrome::Service.driver_path = RbConfig.ruby
 
-    assert_no_changes -> { ::Selenium::WebDriver::Chrome::Service.driver_path } do
-      ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+    # Note: Platform is private api
+    ::Selenium::WebDriver::Platform.stub(:assert_executable, nil) do
+      ::Selenium::WebDriver::Chrome::Service.driver_path = "/path/to/chromedriver"
+
+      assert_no_changes -> { ::Selenium::WebDriver::Chrome::Service.driver_path } do
+        ActionDispatch::SystemTesting::Driver.new(:selenium, screen_size: [1400, 1400], using: :chrome)
+      end
     end
   ensure
     ::Selenium::WebDriver::Chrome::Service.driver_path = original_driver_path
@@ -202,6 +222,20 @@ class DriverTest < ActiveSupport::TestCase
     def assert_driver_capabilities(driver, expected_capabilities)
       capabilities = driver.__send__(:browser_options)[:options].as_json
 
-      assert_equal expected_capabilities, capabilities.slice(*expected_capabilities.keys)
+      expected_capabilities.each do |key, expected_value|
+        actual_value = capabilities[key]
+
+        case expected_value
+        when Array
+          expected_value.each { |item| assert_includes actual_value, item, "Expected #{key} to include #{item}" }
+        when Hash
+          expected_value.each do |sub_key, sub_value|
+            real_value = actual_value&.dig(sub_key)
+            assert_equal sub_value, real_value, "Expected #{key}[#{sub_key}] to be #{sub_value}, got #{real_value}"
+          end
+        else
+          assert_equal expected_value, actual_value, "Expected #{key} to be #{expected_value}, got #{actual_value}"
+        end
+      end
     end
 end

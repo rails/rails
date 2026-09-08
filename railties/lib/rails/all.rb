@@ -16,6 +16,7 @@ require "rails"
 ).each do |railtie|
   begin # rubocop:disable Style/RedundantBegin
     require railtie
-  rescue LoadError
+  rescue LoadError => ex
+    raise unless ex.path == railtie
   end
 end

@@ -5,6 +5,8 @@ require "cases/helper"
 module ActiveRecord
   module ConnectionAdapters
     class ReaperTest < ActiveRecord::TestCase
+      include ActiveRecord::TestCase::WaitForTestHelper
+
       class FakePool
         attr_reader :reaped
         attr_reader :flushed
@@ -29,6 +31,26 @@ module ActiveRecord
         def discarded?
           @discarded
         end
+
+        def prepopulate
+        end
+
+        def preconnect
+        end
+
+        def keep_alive
+        end
+
+        def retire_old_connections
+        end
+
+        def maintainable?
+          !discarded? && !flushed && !reaped
+        end
+
+        def reaper_lock
+          yield
+        end
       end
 
       # A reaper with nil time should never reap connections
@@ -48,9 +70,7 @@ module ActiveRecord
 
         reaper = ConnectionPool::Reaper.new(fp, 0.0001)
         reaper.run
-        until fp.flushed
-          Thread.pass
-        end
+        wait_for(message: "fake pool was not flushed") { fp.flushed }
         assert fp.reaped
         assert fp.flushed
       ensure
@@ -126,7 +146,7 @@ module ActiveRecord
 
       if Process.respond_to?(:fork)
         def test_connection_pool_starts_reaper_in_fork
-          pool_config = duplicated_pool_config(reaping_frequency: "0.0001")
+          pool_config = duplicated_pool_config(reaping_frequency: "0.0001", gssencmode: "disable")
           pool = ConnectionPool.new(pool_config)
           pool.checkout
 
@@ -172,14 +192,54 @@ module ActiveRecord
         ConnectionPool::Reaper.new(discarded_pool, frequency).run
         ConnectionPool::Reaper.new(pool, frequency).run
 
-        until pool.flushed
-          Thread.pass
-        end
+        wait_for(message: "pool was not flushed") { pool.flushed }
 
         assert_not discarded_pool.reaped
         assert pool.reaped
       ensure
         pool.discard!
+      end
+
+      def test_discard_pool_removes_pool_from_registry
+        pool_config = duplicated_pool_config(reaping_frequency: "0.1")
+        pool = ConnectionPool.new(pool_config)
+
+        assert ConnectionPool::Reaper.instance_variable_get(:@pools).any? { |_, refs|
+          refs.any? { |ref| ref.__getobj__ == pool rescue false }
+        }, "pool should be registered with the reaper"
+
+        pool.discard!
+
+        assert ConnectionPool::Reaper.instance_variable_get(:@pools).none? { |_, refs|
+          refs.any? { |ref| ref.__getobj__ == pool rescue false }
+        }, "pool should be removed from reaper registry after discard!"
+      end
+
+      def test_discard_pool_kills_reaper_thread_when_no_pools_remain
+        pool_config = duplicated_pool_config(reaping_frequency: "100")
+        pool = ConnectionPool.new(pool_config)
+
+        thread = ConnectionPool::Reaper.instance_variable_get(:@threads)[100.0]
+        assert thread&.alive?, "reaper thread should be alive before discard!"
+
+        pool.discard!
+
+        assert_not thread.alive?, "reaper thread should be dead after discard!"
+      end
+
+      def test_discard_pool_does_not_kill_thread_when_other_pools_remain
+        pool_config = duplicated_pool_config(reaping_frequency: "100")
+        pool1 = ConnectionPool.new(pool_config)
+        pool2 = ConnectionPool.new(pool_config)
+
+        thread = ConnectionPool::Reaper.instance_variable_get(:@threads)[100.0]
+        assert thread&.alive?, "reaper thread should be alive"
+
+        pool1.discard!
+
+        assert thread.alive?, "reaper thread should stay alive while pool2 is registered"
+      ensure
+        pool2.discard!
       end
 
       private
@@ -195,7 +255,7 @@ module ActiveRecord
 
           child = Thread.new do
             conn = pool.checkout
-            conn.query("SELECT 1") # ensure connected
+            conn.select_rows("SELECT 1") # ensure connected
             event.set
             Thread.stop
           end
@@ -205,10 +265,7 @@ module ActiveRecord
         end
 
         def wait_for_conn_idle(conn, timeout = 5)
-          start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          while conn.in_use? && Process.clock_gettime(Process::CLOCK_MONOTONIC) - start < timeout
-            Thread.pass
-          end
+          wait_for(message: "connection still in use", timeout: timeout) { !conn.in_use? }
         end
     end
   end

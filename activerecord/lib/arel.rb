@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/ractors"
+
 require "arel/errors"
 
 require "arel/crud"
@@ -25,8 +27,10 @@ require "arel/update_manager"
 require "arel/delete_manager"
 require "arel/nodes"
 
+require "active_record/version"
+
 module Arel
-  VERSION = "10.0.0"
+  VERSION = "10.#{ActiveRecord::VERSION::STRING}".freeze
 
   # Wrap a known-safe SQL string for passing to query methods, e.g.
   #
@@ -50,7 +54,9 @@ module Arel
   # Use this option only if the SQL is idempotent, as it could be executed
   # more than once.
   def self.sql(sql_string, *positional_binds, retryable: false, **named_binds)
-    if positional_binds.empty? && named_binds.empty?
+    if Arel::Nodes::SqlLiteral === sql_string
+      sql_string
+    elsif positional_binds.empty? && named_binds.empty?
       Arel::Nodes::SqlLiteral.new(sql_string, retryable: retryable)
     else
       Arel::Nodes::BoundSqlLiteral.new sql_string, positional_binds, named_binds

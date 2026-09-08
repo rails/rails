@@ -26,7 +26,8 @@ module ActionCable
 
       def remove_subscriber(channel, subscriber)
         @sync.synchronize do
-          @subscribers[channel].delete(subscriber)
+          return if !@subscribers.key?(channel)
+          return unless @subscribers[channel].delete(subscriber)
 
           if @subscribers[channel].empty?
             @subscribers.delete channel
@@ -55,6 +56,25 @@ module ActionCable
 
       def invoke_callback(callback, message)
         callback.call message
+      end
+
+      class Async < self
+        def initialize(executor)
+          @executor = executor
+          super()
+        end
+
+        def add_subscriber(*)
+          @executor.post { super }
+        end
+
+        def remove_subscriber(*)
+          @executor.post { super }
+        end
+
+        def invoke_callback(*)
+          @executor.post { super }
+        end
       end
     end
   end

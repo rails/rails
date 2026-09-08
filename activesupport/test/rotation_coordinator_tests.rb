@@ -34,6 +34,17 @@ module RotationCoordinatorTests
       assert_nil roundtrip("message", codec, obsolete_codec)
     end
 
+    test "prioritizes prepended rotations" do
+      @coordinator.prepend(digest: "MD5")
+      codec = @coordinator["salt"]
+
+      old_codec = (make_coordinator.rotate(digest: "MD5"))["salt"]
+      assert_equal "message", roundtrip("message", codec, old_codec)
+
+      new_codec = (make_coordinator.rotate_defaults)["salt"]
+      assert_equal "message", roundtrip("message", new_codec, codec)
+    end
+
     test "raises when building a codec and no rotations are configured" do
       assert_raises { make_coordinator["salt"] }
     end

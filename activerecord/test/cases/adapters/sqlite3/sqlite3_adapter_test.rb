@@ -4,15 +4,23 @@ require "cases/helper"
 require "models/owner"
 require "tempfile"
 require "support/ddl_helper"
+require "support/schema_dumping_helper"
 
 module ActiveRecord
   module ConnectionAdapters
     class SQLite3AdapterTest < ActiveRecord::SQLite3TestCase
       include DdlHelper
+      include SchemaDumpingHelper
 
       self.use_transactional_tests = false
 
       class DualEncoding < ActiveRecord::Base
+      end
+
+      class SQLiteExtensionSpec
+        def self.to_path
+          "/path/to/sqlite3_extension"
+        end
       end
 
       def setup
@@ -90,7 +98,9 @@ module ActiveRecord
       def test_exec_insert
         with_example_table do
           vals = [Relation::QueryAttribute.new("number", 10, Type::Value.new)]
-          @conn.exec_insert("insert into ex (number) VALUES (?)", "SQL", vals)
+          assert_deprecated(ActiveRecord.deprecator) do
+            @conn.exec_insert("insert into ex (number) VALUES (?)", "SQL", vals)
+          end
 
           result = @conn.exec_query(
             "select number from ex where number = ?", "SQL", vals)
@@ -103,7 +113,9 @@ module ActiveRecord
       def test_exec_insert_with_quote
         with_example_table do
           vals = [Relation::QueryAttribute.new("number", 10, Type::Value.new)]
-          @conn.exec_insert("insert into \"ex\" (number) VALUES (?)", "SQL", vals)
+          assert_deprecated(ActiveRecord.deprecator) do
+            @conn.exec_insert("insert into \"ex\" (number) VALUES (?)", "SQL", vals)
+          end
 
           result = @conn.exec_query(
             "select number from \"ex\" where number = ?", "SQL", vals)
@@ -504,10 +516,30 @@ module ActiveRecord
           sql = "INSERT INTO ex (number) VALUES (10)"
           name = "foo"
 
-          pragma_query = ["PRAGMA table_xinfo(\"ex\")", "SCHEMA", []]
-          schema_query = ["SELECT sql FROM (SELECT * FROM sqlite_master UNION ALL SELECT * FROM sqlite_temp_master) WHERE type = 'table' AND name = 'ex'", "SCHEMA", []]
+          tables_query = ["SELECT name FROM pragma_table_list WHERE schema <> 'temp' AND name NOT IN ('sqlite_sequence', 'sqlite_schema') AND type IN ('table','view')", "SCHEMA", []]
+          structure_query = [<<~SQL.squish, "SCHEMA", []]
+            WITH master AS (
+              SELECT name, type, sql FROM sqlite_master
+              UNION ALL
+              SELECT name, type, sql FROM sqlite_temp_master
+            )
+            SELECT m.name AS table_name, CASE WHEN m.type = 'table' THEN m.sql END AS create_table_sql,
+                   t."name", t."type", t."notnull", t."dflt_value", t."pk", t."hidden"
+            FROM master m
+            JOIN pragma_table_xinfo(m.name) t
+            WHERE m.type IN ('table', 'view')
+              AND m.name IN ('ex')
+            ORDER BY m.name, t.cid
+          SQL
           modified_insert_query = [(sql + ' RETURNING "id"'), name, []]
-          assert_logged [pragma_query, schema_query, modified_insert_query] do
+
+          # First insert after with_example_table has reset the schema cache
+          assert_logged [tables_query, structure_query, modified_insert_query] do
+            @conn.insert(sql, name)
+          end
+
+          # Subsequent inserts don't need extra schema queries
+          assert_logged [modified_insert_query] do
             @conn.insert(sql, name)
           end
         end
@@ -517,7 +549,9 @@ module ActiveRecord
         with_example_table do
           sql = "INSERT INTO ex (number) VALUES (10)"
           idval = "vuvuzela"
-          id = @conn.insert(sql, nil, nil, idval)
+          id = assert_deprecated(ActiveRecord.deprecator) do
+            @conn.insert(sql, nil, nil, idval)
+          end
           assert_equal idval, id
         end
       end
@@ -530,8 +564,10 @@ module ActiveRecord
           insert_returning: false,
         )
         with_example_table do
-          result = @conn.exec_insert("insert into ex (number) VALUES ('foo')", nil, [], "id")
-          expect = @conn.query("select max(id) from ex").first.first
+          result = assert_deprecated(ActiveRecord.deprecator) do
+            @conn.exec_insert("insert into ex (number) VALUES ('foo')", nil, [], "id")
+          end
+          expect = @conn.select_value("select max(id) from ex")
           assert_equal expect.to_i, result.rows.first.first
         end
         @conn = original_conn
@@ -545,8 +581,10 @@ module ActiveRecord
           insert_returning: false,
         )
         with_example_table do
-          result = @conn.exec_insert("insert into ex DEFAULT VALUES", nil, [], "id")
-          expect = @conn.query("select max(id) from ex").first.first
+          result = assert_deprecated(ActiveRecord.deprecator) do
+            @conn.exec_insert("insert into ex DEFAULT VALUES", nil, [], "id")
+          end
+          expect = @conn.select_value("select max(id) from ex")
           assert_equal expect.to_i, result.rows.first.first
         end
         @conn = original_conn
@@ -555,7 +593,7 @@ module ActiveRecord
       def test_select_rows
         with_example_table do
           2.times do |i|
-            @conn.create "INSERT INTO ex (number) VALUES (#{i})"
+            @conn.insert "INSERT INTO ex (number) VALUES (#{i})"
           end
           rows = @conn.select_rows "select number, id from ex"
           assert_equal [[0, 1], [1, 2]], rows
@@ -577,7 +615,7 @@ module ActiveRecord
           count_sql = "select count(*) from ex"
 
           @conn.begin_db_transaction
-          @conn.create "INSERT INTO ex (number) VALUES (10)"
+          @conn.insert "INSERT INTO ex (number) VALUES (10)"
 
           assert_equal 1, @conn.select_rows(count_sql).first.first
           @conn.rollback_db_transaction
@@ -649,9 +687,38 @@ module ActiveRecord
         end
       end
 
+      def test_autoincrement_primary_key_is_dumped_as_the_default
+        connection = ActiveRecord::Base.lease_connection
+        connection.create_table :autoincrement_pks, force: true
+        connection.drop_table :integer_pks, if_exists: true
+        connection.execute("CREATE TABLE integer_pks (id integer PRIMARY KEY NOT NULL)")
+
+        output = dump_table_schema("autoincrement_pks", "integer_pks")
+
+        assert_match %r{create_table "autoincrement_pks", force: :cascade}, output
+        assert_match %r{create_table "integer_pks", id: :integer, default: nil, force: :cascade}, output
+      ensure
+        connection.drop_table :autoincrement_pks, if_exists: true
+        connection.drop_table :integer_pks, if_exists: true
+      end
+
       def test_indexes_logs
         with_example_table do
-          assert_logged [["PRAGMA index_list(\"ex\")", "SCHEMA", []]] do
+          index_list_query = [<<~SQL.squish, "SCHEMA", []]
+            WITH master AS (
+              SELECT name, type, sql FROM sqlite_master
+              UNION ALL
+              SELECT name, type, sql FROM sqlite_temp_master
+            )
+            SELECT m.name AS table_name, i.name, i."unique"
+            FROM master m
+            JOIN pragma_index_list(m.name) i
+            WHERE m.type = 'table'
+              AND m.name IN ('ex')
+              AND i.name NOT GLOB 'sqlite_*'
+          SQL
+
+          assert_logged [index_list_query] do
             @conn.indexes("ex")
           end
         end
@@ -707,12 +774,34 @@ module ActiveRecord
         end
       end
 
+      def test_partial_index_with_multiline_where
+        with_example_table do
+          predicate = <<~SQL
+            number > 0 AND
+              'two  spaces' = 'two  spaces'
+          SQL
+          @conn.add_index "ex", :id, name: "fun", where: predicate
+
+          index = @conn.indexes("ex").find { |idx| idx.name == "fun" }
+          assert_equal ["id"], index.columns
+          assert_equal predicate.chomp, index.where
+        end
+      end
+
       if ActiveRecord::Base.lease_connection.supports_expression_index?
         def test_expression_index
           with_example_table do
             @conn.add_index "ex", "max(id, number)", name: "expression"
             index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
             assert_equal "max(id, number)", index.columns
+          end
+        end
+
+        def test_expression_index_with_trailing_newline
+          with_example_table do
+            @conn.execute "CREATE INDEX expression ON ex (number % 10)\n"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "number % 10", index.columns
           end
         end
 
@@ -730,6 +819,37 @@ module ActiveRecord
             index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
             assert_equal "id % 10, max(id, number)", index.columns
             assert_equal "id > 1000", index.where
+          end
+        end
+
+        def test_multiline_expression_index_with_where
+          with_example_table do
+            @conn.execute <<~SQL
+              CREATE INDEX expression
+              ON ex (id % 10,
+                max(id, number))
+              WHERE number > 0
+            SQL
+
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "id % 10,\n  max(id, number)", index.columns
+            assert_equal "number > 0", index.where
+          end
+        end
+
+        def test_schema_dump_with_multiline_expression_index
+          with_example_table do
+            @conn.execute <<~SQL
+              CREATE INDEX expression
+              ON ex (number % 10)
+            SQL
+
+            stream = StringIO.new
+            @conn.create_schema_dumper({}).dump(stream)
+
+            assert_match(/create_table "ex"/, stream.string)
+            assert_includes stream.string, 't.index "number % 10", name: "expression"'
+            assert_no_match(/Could not dump table "ex"/, stream.string)
           end
         end
 
@@ -1071,7 +1191,7 @@ module ActiveRecord
         end
       end
 
-      def test_mixed_case_integer_colum_returns_true_for_rowid
+      def test_mixed_case_integer_column_returns_true_for_rowid
         with_example_table "id_mixed_case InTeGeR PRIMARY KEY" do
           assert @conn.columns("ex").index_by(&:name)["id_mixed_case"].rowid
         end
@@ -1089,7 +1209,268 @@ module ActiveRecord
         end
       end
 
+      def test_rowid_changes_column_equality
+        cast_type = @conn.lookup_cast_type("integer")
+        type_metadata = SqlTypeMetadata.new(sql_type: "integer", type: :integer)
+
+        rowid_column = SQLite3::Column.new("id", cast_type, nil, type_metadata, true, nil, rowid: true)
+        regular_column = SQLite3::Column.new("id", cast_type, nil, type_metadata, true, nil, rowid: false)
+
+        assert_not_equal rowid_column, regular_column
+      end
+
+      def test_generated_type_changes_column_equality
+        cast_type = @conn.lookup_cast_type("string")
+        type_metadata = SqlTypeMetadata.new(sql_type: "varchar", type: :string)
+
+        stored_column = SQLite3::Column.new("name", cast_type, nil, type_metadata, true, nil, generated_type: :stored)
+        virtual_column = SQLite3::Column.new("name", cast_type, nil, type_metadata, true, nil, generated_type: :virtual)
+
+        assert_not_equal stored_column, virtual_column
+      end
+
+      def test_native_database_types_is_mutable
+        assert_not_predicate SQLite3Adapter::NATIVE_DATABASE_TYPES, :frozen?
+      end
+
+      def test_native_database_types_allows_custom_type
+        original = SQLite3Adapter::NATIVE_DATABASE_TYPES.dup
+
+        assert_nothing_raised do
+          SQLite3Adapter::NATIVE_DATABASE_TYPES[:vector] = { name: "F32_BLOB" }
+        end
+
+        assert_equal({ name: "F32_BLOB" }, SQLite3Adapter::NATIVE_DATABASE_TYPES[:vector])
+      ensure
+        SQLite3Adapter::NATIVE_DATABASE_TYPES.replace(original)
+      end
+
+      def test_sqlite_extensions_are_constantized_for_the_client_constructor
+        mock_adapter = Class.new(SQLite3Adapter) do
+          class << self
+            attr_reader :new_client_arg
+
+            def new_client(config)
+              @new_client_arg = config
+            end
+          end
+        end
+
+        conn = mock_adapter.new({
+          database: ":memory:",
+          adapter: "sqlite3",
+          extensions: [
+            "/string/literal/path",
+            "ActiveRecord::ConnectionAdapters::SQLite3AdapterTest::SQLiteExtensionSpec",
+          ]
+        })
+        conn.send(:connect)
+
+        assert_equal(["/string/literal/path", SQLiteExtensionSpec], conn.class.new_client_arg[:extensions])
+      end
+
+      test "path resolution of a relative file path" do
+        database = "storage/production/main.sqlite3"
+        assert_equal("storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/app/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of an absolute file path" do
+        database = "/var/storage/production/main.sqlite3"
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of an absolute URI" do
+        database = "file:/var/storage/production/main.sqlite3"
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of an absolute URI with query params" do
+        database = "file:/var/storage/production/main.sqlite3?vfs=unix-dotfile"
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/var/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of a relative URI" do
+        database = "file:storage/production/main.sqlite3"
+        assert_equal("storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/app/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      test "path resolution of a relative URI with query params" do
+        database = "file:storage/production/main.sqlite3?vfs=unix-dotfile"
+        assert_equal("storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+        assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+
+        with_rails_root do
+          assert_equal("/app/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database))
+          assert_equal("/foo/storage/production/main.sqlite3", SQLite3Adapter.resolve_path(database, root: "/foo"))
+        end
+      end
+
+      def test_alter_table_with_fk_preserves_rows_when_referenced_table_altered
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :authors do |t|
+          t.string :name, null: false
+        end
+
+        conn.create_table :books do |t|
+          t.string  :title, null: false
+          t.integer :author_id, null: false
+        end
+        conn.add_foreign_key :books, :authors, on_delete: :cascade
+
+        conn.execute("INSERT INTO authors (id, name) VALUES (1, 'Douglas Adams');")
+        conn.execute("INSERT INTO books (id, title, author_id) VALUES (42, 'The Hitchhiker''s Guide', 1);")
+        conn.execute("INSERT INTO books (id, title, author_id) VALUES (43, 'Restaurant at the End', 1);")
+
+        initial_book_count = conn.select_value("SELECT COUNT(*) FROM books")
+        assert_equal 2, initial_book_count
+
+        conn.add_column :authors, :email, :string
+
+        book_count = conn.select_value("SELECT COUNT(*) FROM books")
+        author_count = conn.select_value("SELECT COUNT(*) FROM authors")
+
+        assert_equal 2, book_count, "Books were CASCADE deleted when authors table was altered!"
+        assert_equal 1, author_count, "Authors were lost during table alteration!"
+      ensure
+        conn.disconnect! if conn
+      end
+
+      def test_alter_table_with_fk_preserves_rows_when_adding_fk_to_referenced_table
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :groups do |t|
+          t.string :name, null: false
+        end
+
+        conn.create_table :users do |t|
+          t.string :username, null: false
+        end
+
+        conn.create_table :reports do |t|
+          t.string  :title, null: false
+          t.integer :group_id, null: false
+        end
+        conn.add_foreign_key :reports, :groups, on_delete: :cascade
+
+        conn.execute("INSERT INTO groups (id, name) VALUES (1, 'Admin Group');")
+        conn.execute("INSERT INTO users (id, username) VALUES (1, 'alice');")
+        conn.execute("INSERT INTO reports (id, title, group_id) VALUES (1, 'Report A', 1);")
+        conn.execute("INSERT INTO reports (id, title, group_id) VALUES (2, 'Report B', 1);")
+
+        initial_report_count = conn.select_value("SELECT COUNT(*) FROM reports")
+        assert_equal 2, initial_report_count
+
+        conn.add_column :groups, :owner_id, :integer
+        conn.add_foreign_key :groups, :users, column: :owner_id
+
+        report_count = conn.select_value("SELECT COUNT(*) FROM reports")
+        group_count = conn.select_value("SELECT COUNT(*) FROM groups")
+
+        assert_equal 2, report_count, "Reports were CASCADE deleted when groups table was altered!"
+        assert_equal 1, group_count, "Groups were lost during table alteration!"
+      ensure
+        conn.disconnect! if conn
+      end
+
+      def test_alter_table_with_multiple_cascade_fks_preserves_all_data
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :authors do |t|
+          t.string :name, null: false
+        end
+
+        conn.create_table :books do |t|
+          t.string  :title, null: false
+          t.integer :author_id, null: false
+        end
+        conn.add_foreign_key :books, :authors, on_delete: :cascade
+
+        conn.create_table :articles do |t|
+          t.string  :headline, null: false
+          t.integer :author_id, null: false
+        end
+        conn.add_foreign_key :articles, :authors, on_delete: :cascade
+
+        conn.execute("INSERT INTO authors (id, name) VALUES (1, 'Douglas Adams');")
+        conn.execute("INSERT INTO books (id, title, author_id) VALUES (1, 'HHGTTG', 1);")
+        conn.execute("INSERT INTO articles (id, headline, author_id) VALUES (1, 'Towel Day', 1);")
+
+        conn.add_column :authors, :bio, :text
+
+        book_count = conn.select_value("SELECT COUNT(*) FROM books")
+        article_count = conn.select_value("SELECT COUNT(*) FROM articles")
+
+        assert_equal 1, book_count, "Books were CASCADE deleted when authors table was altered!"
+        assert_equal 1, article_count, "Articles were CASCADE deleted when authors table was altered!"
+      ensure
+        conn.disconnect! if conn
+      end
+
+      def test_rename_table_with_cascade_fk_preserves_referencing_data
+        conn = SQLite3Adapter.new(database: ":memory:", adapter: "sqlite3", strict: false)
+
+        conn.create_table :authors do |t|
+          t.string :name, null: false
+        end
+
+        conn.create_table :books do |t|
+          t.string  :title, null: false
+          t.integer :author_id, null: false
+        end
+        conn.add_foreign_key :books, :authors, on_delete: :cascade
+
+        conn.execute("INSERT INTO authors (id, name) VALUES (1, 'Douglas Adams');")
+        conn.execute("INSERT INTO books (id, title, author_id) VALUES (1, 'HHGTTG', 1);")
+
+        conn.rename_table :authors, :writers
+
+        book_count = conn.select_value("SELECT COUNT(*) FROM books")
+        assert_equal 1, book_count, "Books were CASCADE deleted when authors table was renamed!"
+      ensure
+        conn.disconnect! if conn
+      end
+
       private
+        def with_rails_root(&block)
+          mod = Module.new do
+            def self.root
+              Pathname.new("/app")
+            end
+          end
+          stub_const(Object, :Rails, mod, &block)
+        end
+
         def assert_logged(logs)
           subscriber = SQLSubscriber.new
           subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)

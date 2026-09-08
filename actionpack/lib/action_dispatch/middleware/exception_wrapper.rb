@@ -9,7 +9,9 @@ require "rack/utils"
 
 module ActionDispatch
   class ExceptionWrapper
-    cattr_accessor :rescue_responses, default: Hash.new(:internal_server_error).merge!(
+    singleton_class.attr_accessor :rescue_responses, :rescue_templates, :wrapper_exceptions, :silent_exceptions
+
+    @rescue_responses = Hash.new(:internal_server_error).merge!(
       "ActionController::RoutingError"                     => :not_found,
       "AbstractController::ActionNotFound"                 => :not_found,
       "ActionController::MethodNotAllowed"                 => :method_not_allowed,
@@ -18,32 +20,33 @@ module ActionDispatch
       "ActionController::UnknownFormat"                    => :not_acceptable,
       "ActionDispatch::Http::MimeNegotiation::InvalidType" => :not_acceptable,
       "ActionController::MissingExactTemplate"             => :not_acceptable,
-      "ActionController::InvalidAuthenticityToken"         => :unprocessable_entity,
-      "ActionController::InvalidCrossOriginRequest"        => :unprocessable_entity,
+      "ActionController::InvalidAuthenticityToken"         => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
+      "ActionController::InvalidCrossOriginRequest"        => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
       "ActionDispatch::Http::Parameters::ParseError"       => :bad_request,
       "ActionController::BadRequest"                       => :bad_request,
       "ActionController::ParameterMissing"                 => :bad_request,
+      "ActionController::TooManyRequests"                  => :too_many_requests,
       "Rack::QueryParser::ParameterTypeError"              => :bad_request,
       "Rack::QueryParser::InvalidParameterError"           => :bad_request
-    )
+    ).freeze
 
-    cattr_accessor :rescue_templates, default: Hash.new("diagnostics").merge!(
+    @rescue_templates = Hash.new("diagnostics").merge!(
       "ActionView::MissingTemplate"            => "missing_template",
       "ActionController::RoutingError"         => "routing_error",
       "AbstractController::ActionNotFound"     => "unknown_action",
       "ActiveRecord::StatementInvalid"         => "invalid_statement",
       "ActionView::Template::Error"            => "template_error",
       "ActionController::MissingExactTemplate" => "missing_exact_template",
-    )
+    ).freeze
 
-    cattr_accessor :wrapper_exceptions, default: [
+    @wrapper_exceptions = [
       "ActionView::Template::Error"
-    ]
+    ].freeze
 
-    cattr_accessor :silent_exceptions, default: [
+    @silent_exceptions = [
       "ActionController::RoutingError",
       "ActionDispatch::Http::MimeNegotiation::InvalidType"
-    ]
+    ].freeze
 
     attr_reader :backtrace_cleaner, :wrapped_causes, :exception_class_name, :exception
 
@@ -55,7 +58,7 @@ module ActionDispatch
       if exception.is_a?(SyntaxError)
         @exception = ActiveSupport::SyntaxErrorProxy.new(exception)
       end
-      @backtrace = build_backtrace
+      @backtrace = nil
     end
 
     def routing_error?
@@ -103,7 +106,7 @@ module ActionDispatch
     end
 
     def unwrapped_exception
-      if wrapper_exceptions.include?(@exception_class_name)
+      if self.class.wrapper_exceptions.include?(@exception_class_name)
         @exception.cause
       else
         @exception
@@ -119,7 +122,7 @@ module ActionDispatch
     end
 
     def rescue_template
-      @@rescue_templates[@exception_class_name]
+      self.class.rescue_templates[@exception_class_name]
     end
 
     def status_code
@@ -128,7 +131,7 @@ module ActionDispatch
 
     def exception_trace
       trace = application_trace
-      trace = framework_trace if trace.empty? && !silent_exceptions.include?(@exception_class_name)
+      trace = framework_trace if trace.empty? && !self.class.silent_exceptions.include?(@exception_class_name)
       trace
     end
 
@@ -148,15 +151,20 @@ module ActionDispatch
       application_trace_with_ids = []
       framework_trace_with_ids = []
       full_trace_with_ids = []
+      application_traces = application_trace.map(&:to_s)
 
+      full_trace = backtrace_cleaner&.clean_locations(backtrace, :all).presence || backtrace
       full_trace.each_with_index do |trace, idx|
+        filtered_trace = backtrace_cleaner&.clean_frame(trace, :all) || trace
+
         trace_with_id = {
           exception_object_id: @exception.object_id,
           id: idx,
-          trace: trace
+          trace: trace,
+          filtered_trace: filtered_trace,
         }
 
-        if application_trace.include?(trace)
+        if application_traces.include?(filtered_trace.to_s)
           application_trace_with_ids << trace_with_id
         else
           framework_trace_with_ids << trace_with_id
@@ -173,7 +181,7 @@ module ActionDispatch
     end
 
     def self.status_code_for_exception(class_name)
-      Rack::Utils.status_code(@@rescue_responses[class_name])
+      ActionDispatch::Response.rack_status_code(rescue_responses[class_name])
     end
 
     def show?(request)
@@ -192,12 +200,12 @@ module ActionDispatch
     end
 
     def rescue_response?
-      @@rescue_responses.key?(exception.class.name)
+      self.class.rescue_responses.key?(exception.class.name)
     end
 
     def source_extracts
       backtrace.map do |trace|
-        extract_source(trace)
+        extract_source(trace).merge(trace: trace)
       end
     end
 
@@ -230,7 +238,7 @@ module ActionDispatch
     end
 
     private
-      class SourceMapLocation < DelegateClass(Thread::Backtrace::Location) # :nodoc:
+      class SourceMapLocation < ActiveSupport::Delegation::DelegateClass(Thread::Backtrace::Location) # :nodoc:
         def initialize(location, template)
           super(location)
           @template = template
@@ -249,7 +257,9 @@ module ActionDispatch
         end
       end
 
-      attr_reader :backtrace
+      def backtrace
+        @backtrace ||= build_backtrace
+      end
 
       def build_backtrace
         built_methods = {}
@@ -261,13 +271,13 @@ module ActionDispatch
         end
 
         (@exception.backtrace_locations || []).map do |loc|
-          if built_methods.key?(loc.label.to_s)
+          if built_methods.key?(loc.base_label)
             thread_backtrace_location = if loc.respond_to?(:__getobj__)
               loc.__getobj__
             else
               loc
             end
-            SourceMapLocation.new(thread_backtrace_location, built_methods[loc.label.to_s])
+            SourceMapLocation.new(thread_backtrace_location, built_methods[loc.base_label])
           else
             loc
           end

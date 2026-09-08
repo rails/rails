@@ -10,7 +10,7 @@ require "models/post"
 class SerializationTest < ActiveRecord::TestCase
   fixtures :books
 
-  FORMATS = [ :json ]
+  FORMATS = [ :json ].freeze
 
   def setup
     @contact_attributes = {

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "models/owner"
 require "models/pet"
 require "models/topic"
@@ -647,7 +648,7 @@ end
 class CallbackOrderTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
-  module Behaviour
+  module Behavior
     extend ActiveSupport::Concern
 
     included do
@@ -655,6 +656,8 @@ class CallbackOrderTest < ActiveRecord::TestCase
 
       after_commit { |record| record.history << 3 }
       after_commit { |record| record.history << 4 }
+      after_commit(prepend: true) { |record| record.history << "prepend 1" }
+      after_commit(prepend: true) { |record| record.history << "prepend 2" }
       after_save_commit { |record| record.history << "save" }
       after_create_commit { |record| record.history << "create" }
       after_update_commit { |record| record.history << "update" }
@@ -679,26 +682,26 @@ class CallbackOrderTest < ActiveRecord::TestCase
   run_after_transaction_callbacks_in_order_defined_was = ActiveRecord.run_after_transaction_callbacks_in_order_defined
   ActiveRecord.run_after_transaction_callbacks_in_order_defined = true
   class TopicWithCallbacksWithSpecificOrderWithSettingTrue < ActiveRecord::Base
-    include Behaviour
+    include Behavior
   end
   ActiveRecord.run_after_transaction_callbacks_in_order_defined = run_after_transaction_callbacks_in_order_defined_was
 
   run_after_transaction_callbacks_in_order_defined_was = ActiveRecord.run_after_transaction_callbacks_in_order_defined
   ActiveRecord.run_after_transaction_callbacks_in_order_defined = false
   class TopicWithCallbacksWithSpecificOrderWithSettingFalse < ActiveRecord::Base
-    include Behaviour
+    include Behavior
   end
   ActiveRecord.run_after_transaction_callbacks_in_order_defined = run_after_transaction_callbacks_in_order_defined_was
 
   def test_callbacks_run_in_order_defined_in_model_if_using_run_after_transaction_callbacks_in_order_defined
     topic = TopicWithCallbacksWithSpecificOrderWithSettingTrue.new
     topic.save
-    assert_equal [1, 2, 3, 4, "save", "create"], topic.history
+    assert_equal [1, 2, "prepend 2", "prepend 1", 3, 4, "save", "create"], topic.history
 
     topic.clear_history
     topic.approved = true
     topic.save
-    assert_equal [1, 2, 3, 4, "save", "update"], topic.history
+    assert_equal [1, 2, "prepend 2", "prepend 1", 3, 4, "save", "update"], topic.history
 
     topic.clear_history
     topic.transaction do
@@ -710,18 +713,18 @@ class CallbackOrderTest < ActiveRecord::TestCase
 
     topic.clear_history
     topic.destroy
-    assert_equal [1, 2, 3, 4, "destroy"], topic.history
+    assert_equal [1, 2, "prepend 2", "prepend 1", 3, 4, "destroy"], topic.history
   end
 
-  def test_callbacks_run_in_order_defined_in_model_if_not_using_run_after_transaction_callbacks_in_order_defined
+  def test_callbacks_run_in_reverse_order_defined_in_model_if_not_using_run_after_transaction_callbacks_in_order_defined
     topic = TopicWithCallbacksWithSpecificOrderWithSettingFalse.new
     topic.save
-    assert_equal [1, 2, "create", "save", 4, 3], topic.history
+    assert_equal [1, 2, "create", "save", 4, 3, "prepend 1", "prepend 2"], topic.history
 
     topic.clear_history
     topic.approved = true
     topic.save
-    assert_equal [1, 2, "update", "save", 4, 3], topic.history
+    assert_equal [1, 2, "update", "save", 4, 3, "prepend 1", "prepend 2"], topic.history
 
     topic.clear_history
     topic.transaction do
@@ -733,7 +736,7 @@ class CallbackOrderTest < ActiveRecord::TestCase
 
     topic.clear_history
     topic.destroy
-    assert_equal [1, 2, "destroy", 4, 3], topic.history
+    assert_equal [1, 2, "destroy", 4, 3, "prepend 1", "prepend 2"], topic.history
   end
 end
 
@@ -1083,5 +1086,23 @@ class SetCallbackTest < ActiveRecord::TestCase
     expected_history << :after_commit_on_update_2
     expected_history << :after_commit_on_update_1
     assert_equal expected_history, TopicWithCallbacksOnUpdate.history
+  end
+
+  if RUBY_VERSION >= "4.0"
+    def test_transaction_callbacks_with_on_option_are_ractor_shareable
+      ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+        assert_nothing_raised do
+          klass = Class.new do
+            include ActiveSupport::Callbacks
+            include ActiveRecord::Transactions
+
+            def noop; end
+          end
+
+          klass.after_commit :noop, on: [:create, :update]
+          klass.after_rollback :noop, on: :destroy
+        end
+      end
+    end
   end
 end

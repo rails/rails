@@ -25,13 +25,13 @@ class RescueTest < ActiveSupport::TestCase
   test "rescue from deserialization errors" do
     RescueJob.perform_later Person.new(404)
     assert_includes JobBuffer.values, "rescued from DeserializationError"
-    assert_includes JobBuffer.values, "DeserializationError original exception was Person::RecordNotFound"
+    assert_includes JobBuffer.values, "DeserializationError original exception was GlobalID::Locator::RecordNotFound"
     assert_not_includes JobBuffer.values, "performed beautifully"
   end
 
   test "should not wrap DeserializationError in DeserializationError" do
     RescueJob.perform_later [Person.new(404)]
-    assert_includes JobBuffer.values, "DeserializationError original exception was Person::RecordNotFound"
+    assert_includes JobBuffer.values, "DeserializationError original exception was GlobalID::Locator::RecordNotFound"
   end
 
   test "rescue from exceptions that don't inherit from StandardError" do

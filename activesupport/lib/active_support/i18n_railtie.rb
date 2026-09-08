@@ -1,7 +1,9 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support"
 require "active_support/core_ext/array/wrap"
+require "rails/railtie"
 
 # :enddoc:
 
@@ -48,7 +50,7 @@ module I18n
         case setting
         when :railties_load_path
           reloadable_paths = value
-          app.config.i18n.load_path.unshift(*value.flat_map(&:existent))
+          app.config.i18n.load_path.unshift(*value.flat_map(&:expanded_files))
         when :load_path
           I18n.load_path += value
         when :raise_on_missing_translations
@@ -66,8 +68,7 @@ module I18n
 
       if app.config.reloading_enabled?
         directories = watched_dirs_with_extensions(reloadable_paths)
-        root_load_paths = I18n.load_path.select { |path| path.to_s.start_with?(Rails.root.to_s) }
-        reloader = app.config.file_watcher.new(root_load_paths, directories) do
+        reloader = app.config.file_watcher.new(I18n.load_path, directories) do
           I18n.load_path.delete_if { |path| path.to_s.start_with?(Rails.root.to_s) && !File.exist?(path) }
           I18n.load_path |= reloadable_paths.flat_map(&:existent)
         end

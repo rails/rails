@@ -303,7 +303,9 @@ class RelationMergingTest < ActiveRecord::TestCase
   def test_merging_duplicated_annotations
     posts = Post.annotate("foo")
     assert_queries_match(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/\z}) do
-      posts.merge(posts).uniq!(:annotate).to_a
+      assert_deprecated(/`ActiveRecord::Relation#uniq!` is deprecated/, ActiveRecord.deprecator) do
+        posts.merge(posts).uniq!(:annotate).to_a
+      end
     end
 
     assert_queries_match(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/\z}) do
@@ -361,6 +363,14 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
     comment_2.ratings.create!
 
     assert_equal dev.ratings, [rating_1]
+  end
+
+  test "merging where relation having arel equality with null relation" do
+    arel_predicate = Arel::Nodes::NamedFunction.new("ABS", [Post.arel_table[:tags_count]]).eq(0)
+    arel_relation = Post.where(arel_predicate)
+    relation = arel_relation.merge(arel_relation.none)
+    sql = relation.to_sql
+    assert_match("AND", sql)
   end
 
   if ActiveRecord::Base.lease_connection.supports_common_table_expressions?

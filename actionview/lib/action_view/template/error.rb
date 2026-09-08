@@ -27,6 +27,17 @@ module ActionView
     end
   end
 
+  class StrictLocalsError < ArgumentError # :nodoc:
+    def initialize(argument_error, template)
+      message = argument_error.message.
+                  gsub("unknown keyword:", "unknown local:").
+                  gsub("missing keyword:", "missing local:").
+                  gsub("no keywords accepted", "no locals accepted").
+                  concat(" for #{template.short_identifier}")
+      super(message)
+    end
+  end
+
   class MissingTemplate < ActionViewError # :nodoc:
     attr_reader :path, :paths, :prefixes, :partial
 
@@ -249,9 +260,13 @@ module ActionView
     end
 
     def message
-      <<~MESSAGE
-        Encountered a syntax error while rendering template: check #{@offending_code_string}
-      MESSAGE
+      if template.is_a?(Template::Inline)
+        <<~MESSAGE
+          Encountered a syntax error while rendering template: check #{@offending_code_string}
+        MESSAGE
+      else
+        "Encountered a syntax error while rendering template located at: #{template.short_identifier}"
+      end
     end
 
     def annotated_source_code

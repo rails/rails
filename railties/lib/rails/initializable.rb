@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "tsort"
-require "active_support/core_ext/module/delegation"
 
 module Rails
   module Initializable
@@ -46,6 +45,17 @@ module Rails
         @resolve = Hash.new { |hash, key| hash[key] = Set.new }
         @collection = []
         concat(initializers) if initializers
+      end
+
+      def freeze
+        return self if frozen?
+
+        @order.default_proc = nil
+        @resolve.default_proc = nil
+        @order.freeze
+        @resolve.freeze
+        @collection.freeze
+        super
       end
 
       def to_a

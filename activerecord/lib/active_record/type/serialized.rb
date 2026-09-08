@@ -2,16 +2,18 @@
 
 module ActiveRecord
   module Type
-    class Serialized < DelegateClass(ActiveModel::Type::Value) # :nodoc:
+    class Serialized < ActiveSupport::Delegation::DelegateClass(ActiveModel::Type::Value) # :nodoc:
       undef to_yaml if method_defined?(:to_yaml)
 
       include ActiveModel::Type::Helpers::Mutable
+      include QueryPredicates::Decorator
 
       attr_reader :subtype, :coder
 
-      def initialize(subtype, coder)
+      def initialize(subtype, coder, comparable: false)
         @subtype = subtype
         @coder = coder
+        @comparable = comparable
         super(subtype)
       end
 
@@ -34,9 +36,15 @@ module ActiveRecord
 
       def changed_in_place?(raw_old_value, value)
         return false if value.nil?
-        raw_new_value = encoded(value)
-        raw_old_value.nil? != raw_new_value.nil? ||
-          subtype.changed_in_place?(raw_old_value, raw_new_value)
+
+        if @comparable
+          old_value = deserialize(raw_old_value)
+          old_value != value
+        else
+          raw_new_value = encoded(value)
+          raw_old_value.nil? != raw_new_value.nil? ||
+            subtype.changed_in_place?(raw_old_value, raw_new_value)
+        end
       end
 
       def accessor
@@ -58,6 +66,11 @@ module ActiveRecord
       end
 
       private
+        # Prevent Ruby 4.0 "delegator does not forward private method" warning.
+        # Kernel#inspect calls instance_variables_to_inspect which, without this,
+        # triggers Delegator#respond_to_missing? for a private method.
+        define_method(:instance_variables_to_inspect, Kernel.instance_method(:instance_variables))
+
         def default_value?(value)
           value == coder.load(nil)
         end

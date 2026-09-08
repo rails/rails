@@ -8,6 +8,7 @@ require_relative "../constantize_test_cases"
 
 require "active_support/inflector"
 require "active_support/core_ext/string"
+require "active_support/core_ext/object/json"
 require "active_support/time"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/indent"
@@ -212,6 +213,18 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_string_parameterized_nil_separator
+    StringToParameterizeWithNoSeparator.each do |normal, slugged|
+      assert_equal(slugged, normal.parameterize(separator: nil))
+    end
+  end
+
+  def test_string_parameterized_nil_separator_preserve_case
+    StringToParameterizePreserveCaseWithNoSeparator.each do |normal, slugged|
+      assert_equal(slugged, normal.parameterize(separator: nil, preserve_case: true))
+    end
+  end
+
   def test_string_parameterized_underscore
     StringToParameterizeWithUnderscore.each do |normal, slugged|
       assert_equal(slugged, normal.parameterize(separator: "_"))
@@ -296,11 +309,21 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello Wor...", "Hello World!!".truncate(12)
   end
 
+  def test_truncate_with_omission_longer_than_truncate_to
+    assert_equal "[truncated]", "Hello World!".truncate(3, omission: "[truncated]")
+    assert_equal "[...]", "Hello World!".truncate(2, omission: "[...]")
+  end
+
   def test_truncate_with_omission_and_separator
     assert_equal "Hello[...]", "Hello World!".truncate(10, omission: "[...]")
     assert_equal "Hello[...]", "Hello Big World!".truncate(13, omission: "[...]", separator: " ")
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, omission: "[...]", separator: " ")
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: " ")
+  end
+
+  def test_truncate_with_separator_and_omission_longer_than_truncate_to
+    assert_equal "[...]", "Hello Big World!".truncate(2, omission: "[...]", separator: " ")
+    assert_equal "[...]", "Hello Big World!".truncate(2, omission: "[...]", separator: /\s/)
   end
 
   def test_truncate_with_omission_and_regexp_separator
@@ -395,6 +418,15 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello Big[...]", "Hello Big World!".truncate_words(2, omission: "[...]")
   end
 
+  def test_truncate_words_with_zero_count
+    assert_equal "Hello Big World", "Hello Big World".truncate_words(0)
+    assert_equal "Hello Big World", "Hello Big World".truncate_words(0, omission: "[...]")
+  end
+
+  def test_truncate_words_with_negative_count
+    assert_equal "Hello Big World", "Hello Big World".truncate_words(-1)
+  end
+
   def test_truncate_words_with_separator
     assert_equal "Hello<br>Big<br>World!...", "Hello<br>Big<br>World!<br>".truncate_words(3, separator: "<br>")
     assert_equal "Hello<br>Big<br>World!", "Hello<br>Big<br>World!".truncate_words(3, separator: "<br>")
@@ -443,6 +475,22 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "This is a good day to die", original
     assert_equal "This is a good day", original.remove!(" to ", /die/)
     assert_equal "This is a good day", original
+  end
+
+  def test_remove_with_no_patterns_returns_unchanged_copy
+    original = "This is a good day to die"
+    result = original.remove
+
+    assert_equal original, result
+    assert_not_same original, result
+  end
+
+  def test_remove_bang_with_no_patterns_returns_self
+    original = +"This is a good day to die"
+    result = original.remove!
+
+    assert_equal "This is a good day to die", result
+    assert_same original, result
   end
 
   def test_constantize
@@ -610,17 +658,10 @@ class StringConversionsTest < ActiveSupport::TestCase
 
   def test_string_to_time_utc_offset
     with_env_tz "US/Eastern" do
-      if ActiveSupport.to_time_preserves_timezone
-        assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
-        assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
-        assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
-        assert_equal(-3600, "2005-02-27 22:50 -0100".to_time.utc_offset)
-      else
-        assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
-        assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
-        assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
-        assert_equal(-18000, "2005-02-27 22:50 -0100".to_time.utc_offset)
-      end
+      assert_equal 0, "2005-02-27 23:50".to_time(:utc).utc_offset
+      assert_equal(-18000, "2005-02-27 23:50".to_time.utc_offset)
+      assert_equal 0, "2005-02-27 22:50 -0100".to_time(:utc).utc_offset
+      assert_equal(-3600, "2005-02-27 22:50 -0100".to_time.utc_offset)
     end
   end
 
@@ -789,19 +830,11 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
   EUC_JP_STRING = "さよなら".encode("EUC-JP")
   INVALID_UTF8_STRING = "\270\236\010\210\245"
 
-  def test_core_ext_adds_mb_chars
-    assert_respond_to UTF8_STRING, :mb_chars
-  end
-
   def test_string_should_recognize_utf8_strings
     assert_predicate UTF8_STRING, :is_utf8?
     assert_predicate ASCII_STRING, :is_utf8?
     assert_not_predicate EUC_JP_STRING, :is_utf8?
     assert_not_predicate INVALID_UTF8_STRING, :is_utf8?
-  end
-
-  def test_mb_chars_returns_instance_of_proxy_class
-    assert_kind_of ActiveSupport::Multibyte.proxy_class, UTF8_STRING.mb_chars
   end
 end
 
@@ -1083,15 +1116,19 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert_not_predicate string.to_param, :html_safe?
   end
 
+  test "as_json returns a normal string" do
+    string = @string.html_safe
+    assert_not_predicate string.as_json, :html_safe?
+  end
+
+  test "as_json accepts options" do
+    hash = { string: @string.html_safe }
+    assert_not_predicate hash.as_json(only: :string).fetch("string"), :html_safe?
+  end
+
   test "ERB::Util.html_escape should escape unsafe characters" do
     string = '<>&"\''
     expected = "&lt;&gt;&amp;&quot;&#39;"
-    assert_equal expected, ERB::Util.html_escape(string)
-  end
-
-  test "ERB::Util.html_escape should correctly handle invalid UTF-8 strings" do
-    string = "\251 <"
-    expected = "© &lt;"
     assert_equal expected, ERB::Util.html_escape(string)
   end
 
@@ -1106,12 +1143,6 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     assert_equal escaped_string, ERB::Util.html_escape_once(string)
     assert_equal escaped_string, ERB::Util.html_escape_once(escaped_string)
-  end
-
-  test "ERB::Util.html_escape_once should correctly handle invalid UTF-8 strings" do
-    string = "\251 <"
-    expected = "© &lt;"
-    assert_equal expected, ERB::Util.html_escape_once(string)
   end
 
   test "ERB::Util.xml_name_escape should escape unsafe characters for XML names" do

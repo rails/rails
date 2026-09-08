@@ -100,7 +100,8 @@ module ActiveRecord
           db_config = resolve_config_for_connection(database_key)
 
           self.connection_class = true
-          connections << connection_handler.establish_connection(db_config, owner_name: self, role: role, shard: shard.to_sym)
+          shard = shard.to_sym unless shard.is_a? Integer
+          connections << connection_handler.establish_connection(db_config, owner_name: self, role: role, shard: shard)
         end
       end
 
@@ -133,7 +134,10 @@ module ActiveRecord
     #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one_replica) do
     #     Dog.first # finds first Dog record stored on the shard one replica
     #   end
-    def connected_to(role: nil, shard: nil, prevent_writes: false, &blk)
+    #
+    # The +prevent_writes+ option can be passed to block writes on a connection;
+    # it defaults to +true+ when using the +reading+ role.
+    def connected_to(role: nil, shard: nil, prevent_writes: role == ActiveRecord.reading_role, &blk)
       if self != Base && !abstract_class
         raise NotImplementedError, "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes."
       end
@@ -146,12 +150,16 @@ module ActiveRecord
         raise ArgumentError, "must provide a `shard` and/or `role`."
       end
 
+      if role == ActiveRecord.reading_role && !prevent_writes
+        raise ArgumentError, "cannot set `prevent_writes` to false when `role` is `reading`."
+      end
+
       with_role_and_shard(role, shard, prevent_writes, &blk)
     end
 
-    # Connects a role and/or shard to the provided connection names. Optionally +prevent_writes+
-    # can be passed to block writes on a connection. +reading+ will automatically set
-    # +prevent_writes+ to true.
+    # Connects a role and optionally shard to the provided connection names.
+    # The +prevent_writes+ option can be passed to block writes on a connection;
+    # it defaults to +true+ when using the +reading+ role.
     #
     # +connected_to_many+ is an alternative to deeply nested +connected_to+ blocks.
     #
@@ -162,42 +170,56 @@ module ActiveRecord
     #     Dinner.first # Read from meals replica
     #     Person.first # Read from primary writer
     #   end
-    def connected_to_many(*classes, role:, shard: nil, prevent_writes: false)
+    def connected_to_many(*classes, role:, shard: nil, prevent_writes: role == ActiveRecord.reading_role)
       classes = classes.flatten
 
       if self != Base || classes.include?(Base)
         raise NotImplementedError, "connected_to_many can only be called on ActiveRecord::Base."
       end
 
-      prevent_writes = true if role == ActiveRecord.reading_role
+      if role == ActiveRecord.reading_role && !prevent_writes
+        raise ArgumentError, "cannot set `prevent_writes` to false when `role` is `reading`."
+      end
 
       append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: classes)
-      yield
-    ensure
-      connected_to_stack.pop
+      begin
+        yield
+      ensure
+        connected_to_stack.pop
+      end
     end
 
     # Passes the block to +connected_to+ for every +shard+ the
-    # model is configured to connect to (if any), and returns the
-    # results in an array.
+    # model is configured to connect to, and returns the results
+    # in an array. Raises an ArgumentError if the model is not
+    # connected to any shards.
     #
     # Optionally, +role+ and/or +prevent_writes+ can be passed which
-    # will be forwarded to each +connected_to+ call.
-    def connected_to_all_shards(role: nil, prevent_writes: false, &blk)
+    # will be forwarded to each +connected_to+ call. +prevent_writes+
+    # defaults to +true+ when using the +reading+ role.
+    def connected_to_all_shards(role: nil, prevent_writes: role == ActiveRecord.reading_role, &blk)
+      if shard_keys.empty?
+        raise ArgumentError, "`connected_to_all_shards` cannot be called on a model that is not connected to any shards."
+      end
+
       shard_keys.map do |shard|
         connected_to(shard: shard, role: role, prevent_writes: prevent_writes, &blk)
       end
     end
 
-    # Use a specified connection.
+    # Use a specified connection to a role and/or shard.
+    # The +prevent_writes+ option can be passed to block writes on a connection;
+    # it defaults to +true+ when using the +reading+ role.
     #
     # This method is useful for ensuring that a specific connection is
     # being used. For example, when booting a console in readonly mode.
     #
     # It is not recommended to use this method in a request since it
     # does not yield to a block like +connected_to+.
-    def connecting_to(role: default_role, shard: default_shard, prevent_writes: false)
-      prevent_writes = true if role == ActiveRecord.reading_role
+    def connecting_to(role: default_role, shard: default_shard, prevent_writes: role == ActiveRecord.reading_role)
+      if role == ActiveRecord.reading_role && !prevent_writes
+        raise ArgumentError, "cannot set `prevent_writes` to false when `role` is `reading`."
+      end
 
       append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
     end
@@ -209,8 +231,13 @@ module ActiveRecord
     # is useful in cases you're using sharding to provide per-request
     # database isolation.
     def prohibit_shard_swapping(enabled = true)
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] ||= Set.new
       prev_value = ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping]
-      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = enabled
+      if enabled
+        ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = prev_value.dup.add(connection_specification_name)
+      else
+        ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = prev_value.dup.delete(connection_specification_name)
+      end
       yield
     ensure
       ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping] = prev_value
@@ -218,7 +245,7 @@ module ActiveRecord
 
     # Determine whether or not shard swapping is currently prohibited
     def shard_swapping_prohibited?
-      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping]
+      ActiveSupport::IsolatedExecutionState[:active_record_prohibit_shard_swapping]&.include?(connection_specification_name)
     end
 
     # Prevent writing to the database regardless of role.
@@ -236,9 +263,8 @@ module ActiveRecord
       connected_to(role: current_role, prevent_writes: enabled, &block)
     end
 
-    # Returns true if role is the current connected role and/or
-    # current connected shard. If no shard is passed, the default will be
-    # used.
+    # Returns true if +role+ is the current connected role and if +shard+ is the
+    # current connected shard. If no shard is passed, the default will be used.
     #
     #   ActiveRecord::Base.connected_to(role: :writing) do
     #     ActiveRecord::Base.connected_to?(role: :writing) #=> true
@@ -248,7 +274,7 @@ module ActiveRecord
     #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
     #     ActiveRecord::Base.connected_to?(role: :reading, shard: :shard_one) #=> true
     #     ActiveRecord::Base.connected_to?(role: :reading, shard: :default) #=> false
-    #     ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one) #=> true
+    #     ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one) #=> false
     #   end
     def connected_to?(role:, shard: ActiveRecord::Base.default_shard)
       current_role == role.to_sym && current_shard == shard.to_sym
@@ -301,7 +327,7 @@ module ActiveRecord
 
     # Checkouts a connection from the pool, yield it and then check it back in.
     # If a connection was already leased via #lease_connection or a parent call to
-    # #with_connection, that same connection is yieled.
+    # #with_connection, that same connection is yielded.
     # If #lease_connection is called inside the block, the connection won't be checked
     # back in.
     # If #connection is called inside the block, the connection won't be checked back in
@@ -392,19 +418,19 @@ module ActiveRecord
       end
 
       def with_role_and_shard(role, shard, prevent_writes)
-        prevent_writes = true if role == ActiveRecord.reading_role
-
         append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: [self])
-        return_value = yield
-        return_value.load if return_value.is_a? ActiveRecord::Relation
-        return_value
-      ensure
-        self.connected_to_stack.pop
+        begin
+          return_value = yield
+          return_value.load if return_value.is_a? ActiveRecord::Relation
+          return_value
+        ensure
+          self.connected_to_stack.pop
+        end
       end
 
       def append_to_connected_to_stack(entry)
-        if shard_swapping_prohibited? && entry[:shard].present?
-          raise ArgumentError, "cannot swap `shard` while shard swapping is prohibited."
+        if entry[:shard].present? && entry[:klasses].any?(&:shard_swapping_prohibited?)
+          raise ShardSwapProhibitedError, "cannot swap `shard` while shard swapping is prohibited."
         end
 
         connected_to_stack << entry

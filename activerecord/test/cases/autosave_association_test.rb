@@ -17,8 +17,10 @@ require "models/line_item"
 require "models/mouse"
 require "models/order"
 require "models/parrot"
+require "models/person"
 require "models/pirate"
 require "models/project"
+require "models/price_estimate"
 require "models/ship"
 require "models/ship_part"
 require "models/squeak"
@@ -40,6 +42,13 @@ require "models/chef"
 require "models/cake_designer"
 require "models/drink_designer"
 require "models/cpk"
+require "models/human"
+require "models/face"
+require "models/image"
+require "models/sharded/blog"
+require "models/sharded/blog_post"
+require "models/shipment"
+require "models/adjustment"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
   def test_autosave_works_even_when_other_callbacks_update_the_parent_model
@@ -876,6 +885,35 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal no_of_clients + 1, Client.count
   end
 
+  def test_circular_autosave_does_not_validate_children
+    person = Class.new(ActiveRecord::Base) {
+      self.table_name = "readers"
+      validate :should_be_funny
+      def self.name; "Reader"; end
+
+      attribute :catch_phrase, :string
+      attribute :reader_id
+
+      has_many :children, autosave: true, anonymous_class: self
+      belongs_to :parent, autosave: true, anonymous_class: self
+
+      private
+        def should_be_funny
+          unless catch_phrase == "funny"
+            errors.add :base, "not funny"
+          end
+        end
+    }
+    c = person.new(catch_phrase: "boring")
+    c.children << c
+    c.post_id = 0
+    c.person_id = 0
+    c.save
+
+    assert_not_predicate c, :persisted?
+    assert_not_predicate c, :valid?
+  end
+
   def test_parent_should_save_children_record_with_foreign_key_validation_set_in_before_save_callback
     company = NewlyContractedCompany.new(name: "test")
 
@@ -958,7 +996,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     order.save
     order.reload
 
-    assert_equal order_agreements, order.order_agreement_ids
+    assert_equal_unordered order_agreements, order.order_agreement_ids
     assert_equal 2, order.order_agreements.length
     assert_includes order.order_agreements, cpk_order_agreements(:order_agreement_two)
   end
@@ -973,7 +1011,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     order.save
     order.reload
 
-    assert_equal book_ids, order.book_ids
+    assert_equal book_ids.sort, order.book_ids.sort
     assert_equal 2, order.books.length
     assert_includes order.books, cpk_books(:cpk_great_author_first_book)
     assert_includes order.books, cpk_books(:cpk_great_author_second_book)
@@ -1165,6 +1203,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.delete
     Cpk::Book.delete_all
     Cpk::Order.delete_all
+    Cpk::Author.delete_all
   end
 
   # reload
@@ -1264,6 +1303,22 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert book.save
     assert_nil book.reload.order
     assert_nil Cpk::Order.find_by(id: 4, shop_id: 3)
+  end
+
+  def test_autosave_has_one_cpk_association_when_composite_foreign_key_is_manually_set
+    author = Cpk::Author.create!(name: "author")
+    book = Cpk::Book.create!(id: [author.id, 9999], title: "Book")
+    assert_nil book.shop_id
+    assert_nil book.order_id
+
+    order = Cpk::Order.new(id: [1, 100], status: "open")
+    order.book = book
+
+    order.save!
+
+    book.reload
+    assert_equal 1, book.shop_id
+    assert_equal 100, book.order_id
   end
 
   def test_should_skip_validation_on_a_parent_association_if_marked_for_destruction
@@ -1490,6 +1545,84 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_predicate @pirate, :valid?
   end
 
+  def test_should_be_valid_on_habtm_if_persisted_and_unchanged
+    parrot = @pirate.parrots.create!(name: "parrots_1")
+    parrot.update_column(:name, "")
+    parrot.reload
+    assert_not_predicate parrot, :valid?
+
+    new_pirate = Pirate.new(catchphrase: "Arr")
+    new_pirate.parrots = @pirate.parrots
+    new_pirate.save!
+  end
+
+  def test_should_be_invalid_on_habtm_when_any_record_in_the_association_chain_is_invalid_and_was_changed
+    treasure = @pirate.treasures.create!(name: "gold")
+    estimate = treasure.price_estimates.create!(price: 1)
+    estimate.update_columns(price: "not a number")
+
+    assert_not_predicate estimate, :valid?
+
+    treasures = @pirate.treasures.eager_load(:price_estimates).to_a
+    treasures.first.price_estimates.first.price = "not a price"
+    new_pirate = Pirate.new(
+      catchphrase: "Arr",
+      treasures: treasures,
+    )
+
+    assert_raises(ActiveRecord::RecordInvalid) do
+      new_pirate.save!
+    end
+    assert_equal(["Treasures is invalid"], new_pirate.errors.full_messages)
+  end
+
+  def test_should_be_invalid_on_habtm_when_any_record_in_the_association_chain_is_invalid_and_was_changed_with_autosave
+    super_pirate = Class.new(Pirate) do
+      self.table_name = "pirates"
+      has_many :great_treasures, class_name: "Treasure", foreign_key: "looter_id", autosave: true
+
+      def self.name
+        "SuperPirate"
+      end
+    end
+    @pirate = super_pirate.create(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    treasure = @pirate.great_treasures.create!(name: "gold")
+    estimate = treasure.price_estimates.create!(price: 1)
+    estimate.update_columns(price: "not a number")
+
+    assert_not_predicate estimate, :valid?
+
+    treasures = @pirate.great_treasures.eager_load(:price_estimates).to_a
+    treasures.first.price_estimates.first.price = "not a price"
+    new_pirate = super_pirate.new(
+      catchphrase: "Arr",
+      great_treasures: treasures,
+    )
+
+    assert_raises(ActiveRecord::RecordInvalid) do
+      new_pirate.save!
+    end
+    assert_equal(["Great treasures price estimates price is not a number"], new_pirate.errors.full_messages)
+  end
+
+  def test_should_be_valid_on_habtm_when_any_record_in_the_association_chain_is_invalid_but_was_not_changed
+    treasure = @pirate.treasures.create!(name: "gold")
+    estimate = treasure.price_estimates.create!(price: 1)
+    estimate.update_columns(price: "not a number")
+
+    assert_not_predicate estimate, :valid?
+
+    treasures = @pirate.treasures.eager_load(:price_estimates).to_a
+    new_pirate = Pirate.new(
+      catchphrase: "Arr",
+      treasures: treasures,
+    )
+
+    assert_nothing_raised do
+      new_pirate.save!
+    end
+  end
+
   def test_a_child_marked_for_destruction_should_not_be_destroyed_twice_while_saving_habtm
     @pirate.parrots.create!(name: "parrots_1")
 
@@ -1694,7 +1827,42 @@ class TestAutosaveAssociationOnAHasOneAssociation < ActiveRecord::TestCase
     assert_not_predicate ship, :valid?
   end
 
-  def test_recognises_inverse_polymorphic_association_changes_with_same_foreign_key
+  def test_should_not_saved_for_unchanged_sti_type_on_polymorphic_association
+    face = Class.new(Face) do
+      def self.name; "Face"; end
+
+      after_save :count_saves
+
+      def count_saves
+        @count ||= 0
+        @count += 1
+      end
+    end
+
+    super_human = Class.new(SuperHuman) do
+      self.table_name = "humans"
+      def self.name; "SuperHuman"; end
+
+      attribute :name, :string
+
+      # Polymorphic has_one needs to be defined on the child class
+      has_one :polymorphic_face, class_name: "Face", as: :polymorphic_human, inverse_of: :polymorphic_human
+    end
+
+    face_record = face.create!
+
+    super_human_record = super_human.create!(name: "S. Human", polymorphic_face: face_record)
+
+    super_human_record.update!(name: "Super Human")
+
+    assert_equal "Human", face_record.polymorphic_human_type
+    assert_equal super_human_record.id, face_record.polymorphic_human_id
+
+    # Saves on create of face and create of super human, but not update
+    assert_equal 2, face_record.instance_variable_get(:@count)
+  end
+
+  def test_recognizes_inverse_polymorphic_association_changes_with_same_foreign_key
     chef_a = chefs(:gordon_ramsay)
     chef_b = chefs(:marco_pierre_white)
 
@@ -2296,5 +2464,113 @@ class TestAutosaveAssociationOnABelongsToAssociationDefinedAsRecord < ActiveReco
     assert_nothing_raised do
       translation.save!
     end
+  end
+end
+
+class TestAutosaveAssociationWithNestedAttributes < ActiveRecord::TestCase
+  class Part < ActiveRecord::Base
+    self.table_name = "ship_parts"
+  end
+
+  class Ship < ActiveRecord::Base
+    self.table_name = "ships"
+    has_many :parts, class_name: Part.name
+    accepts_nested_attributes_for :parts, allow_destroy: true
+
+    validate :has_at_least_two_parts
+    def has_at_least_two_parts
+      current_parts = parts.select { |p| !p.marked_for_destruction? }
+      errors.add(:parts, "must have at least two parts") if current_parts.size < 2
+    end
+  end
+
+  class Pirate < ActiveRecord::Base
+    self.table_name = "pirates"
+    has_many :ships, class_name: Ship.name
+    accepts_nested_attributes_for :ships, allow_destroy: true
+  end
+
+  def test_should_be_invalid_when_nested_attributes_deletion_breaks_validation
+    pirate = Pirate.create!
+    ship = pirate.ships.new
+    2.times do |i|
+      ship.parts.build
+    end
+    part = ship.parts.first
+    ship.save!
+
+    deletion_params = {
+      "ships_attributes" => {
+        "0" => {
+          "id" => ship.id,
+          "parts_attributes" => {
+            "0" => {
+              "id" => part.id,
+              "_destroy" => "1",
+            },
+          }
+        }
+      }
+    }
+
+    assert_not pirate.update(deletion_params)
+    assert_nothing_raised do
+      part.reload
+    end
+    assert_includes pirate.errors[:"ships.parts"], "must have at least two parts"
+    assert_includes ship.errors[:parts], "must have at least two parts"
+  end
+end
+
+class AutosavePolymorphicInversePrimaryKeyTest < ActiveRecord::TestCase
+  def test_autosave_with_polymorphic_custom_primary_key_from_belongs_to
+    author = Author.new(name: "Author", author_code: "autosave_org_#{SecureRandom.hex(8)}")
+    person = Person.new(first_name: "Person", external_id: "autosave_ext_#{SecureRandom.hex(8)}")
+
+    author_comment = PolymorphicComment.new(body: "Author comment", post_id: 1)
+    author_comment.person = author
+
+    person_comment = PolymorphicComment.new(body: "Person comment", post_id: 1)
+    person_comment.person = person
+
+    author_comment.save!
+    person_comment.save!
+
+    assert_predicate author, :persisted?
+    assert_predicate person, :persisted?
+
+    assert_equal author.author_code, author_comment.person_id
+    assert_equal person.external_id, person_comment.person_id
+
+    assert_equal author, author_comment.reload.person
+    assert_equal person, person_comment.reload.person
+  end
+end
+
+class AutosavePolymorphicShardedPrimaryKeyTest < ActiveRecord::TestCase
+  def test_autosave_polymorphic_belongs_to_with_explicit_foreign_key_to_sharded_target
+    blog = Sharded::Blog.create!
+    post = Sharded::BlogPost.new(title: "Post", blog: blog)
+    image = Image.new(imageable: post)
+
+    image.save!
+
+    assert_predicate post, :persisted?
+    assert_equal post.id, image.imageable_identifier
+    assert_equal "Sharded::BlogPost", image.imageable_class
+    assert_equal post, image.reload.imageable
+  end
+
+  def test_autosave_polymorphic_belongs_to_with_composite_query_constraints_inverse
+    shipment = Shipment.new(region_id: 7)
+    adjustment = Adjustment.new(region_id: 7)
+    adjustment.adjustable = shipment
+
+    adjustment.save!
+
+    assert_predicate shipment, :persisted?
+    assert_equal shipment.id, adjustment.adjustable_id
+    assert_equal "Shipment", adjustment.adjustable_type
+    assert_equal shipment, adjustment.reload.adjustable
   end
 end

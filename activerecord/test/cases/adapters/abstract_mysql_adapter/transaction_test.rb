@@ -7,6 +7,8 @@ module ActiveRecord
   class TransactionTest < ActiveRecord::AbstractMysqlTestCase
     self.use_transactional_tests = false
 
+    include ConnectionHelper
+
     class Sample < ActiveRecord::Base
       self.table_name = "samples"
     end
@@ -33,6 +35,51 @@ module ActiveRecord
 
       Thread.abort_on_exception = @abort
       Thread.report_on_exception = @original_report_on_exception
+    end
+
+    test "begins isolated transactions with separate queries if multi statement disabled" do
+      connection = Sample.lease_connection
+      connection.connect!
+
+      connection.instance_variable_get(:@raw_connection).stub(:set_server_option, -> (*) { flunk "Server option changed!" }) do
+        queries = capture_notifications("sql.active_record") do
+          connection.begin_isolated_db_transaction(:read_committed)
+        end.map { _1.payload[:sql] }
+
+        assert_equal ["SET TRANSACTION ISOLATION LEVEL READ COMMITTED", "BEGIN"], queries
+      ensure
+        connection&.rollback_db_transaction
+      end
+    end
+
+    test "begins isolated transactions with one query if multi statement enabled" do
+      adapter_name = ActiveRecord::Base.lease_connection.adapter_name
+
+      run_without_connection do |orig_connection|
+        case adapter_name
+        when "Trilogy"
+          ActiveRecord::Base.establish_connection(
+            orig_connection.merge(multi_statement: true)
+          )
+        else
+          ActiveRecord::Base.establish_connection(
+            orig_connection.merge(flags: %w[MULTI_STATEMENTS])
+          )
+        end
+
+        connection = Sample.lease_connection
+        connection.send(:max_allowed_packet) # eagerly compute so execute_batch doesn't do it lazily
+
+        connection.instance_variable_get(:@raw_connection).stub(:set_server_option, -> (*) { flunk "Server option changed!" }) do
+          queries = capture_notifications("sql.active_record") do
+            connection.begin_isolated_db_transaction(:read_committed)
+          end.map { _1.payload[:sql] }
+
+          assert_equal ["SET TRANSACTION ISOLATION LEVEL READ COMMITTED;\nBEGIN"], queries
+        ensure
+          connection&.rollback_db_transaction
+        end
+      end
     end
 
     test "raises Deadlocked when a deadlock is encountered" do
@@ -133,7 +180,7 @@ module ActiveRecord
             latch.count_down
             sleep(0.5)
             conn = Sample.lease_connection
-            pid = conn.query_value("SELECT id FROM information_schema.processlist WHERE info LIKE '% FOR UPDATE'")
+            pid = conn.select_value("SELECT id FROM information_schema.processlist WHERE info LIKE '% FOR UPDATE'")
             conn.execute("KILL QUERY #{pid}")
           end
         end
@@ -175,13 +222,13 @@ module ActiveRecord
       end
 
       first_begin_failed = false
-      @connection.singleton_class.define_method(:perform_query) do |raw_connection, sql, *args, **kwargs|
+      @connection.singleton_class.define_method(:perform_query) do |raw_connection, intent, *args, **kwargs|
         # Simulates the first BEGIN attempt failing
-        if sql.include?("BEGIN") && !first_begin_failed
+        if intent.processed_sql.include?("BEGIN") && !first_begin_failed
           first_begin_failed = true
           raise ActiveRecord::ConnectionFailed, "Simulated failure"
         end
-        super(raw_connection, sql, *args, **kwargs)
+        super(raw_connection, intent, *args, **kwargs)
       end
 
       Sample.transaction(isolation: :read_committed) do

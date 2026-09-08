@@ -96,7 +96,6 @@ module ActionController
     #     *   `:script_name` - The portion of the incoming request's URL path that
     #         corresponds to the application. Converts to Rack's `SCRIPT_NAME`.
     #     *   `:input` - The input stream. Converts to Rack's `rack.input`.
-    #
     # *   `defaults` - Default values for the Rack env. Entries are specified in the
     #     same format as `env`. `env` will be merged on top of these values.
     #     `defaults` will be retained when calling #new on a renderer instance.
@@ -126,14 +125,14 @@ module ActionController
 
     # Renders a template to a string, just like
     # ActionController::Rendering#render_to_string.
-    def render(*args)
+    def render(...)
       request = ActionDispatch::Request.new(env_for_request)
       request.routes = controller._routes
 
       instance = controller.new
       instance.set_request! request
       instance.set_response! controller.make_response!(request)
-      instance.render_to_string(*args)
+      instance.render_to_string(...)
     end
     alias_method :render_to_string, :render # :nodoc:
 
@@ -144,7 +143,7 @@ module ActionController
         method:      "REQUEST_METHOD",
         script_name: "SCRIPT_NAME",
         input:       "rack.input"
-      }
+      }.freeze
 
       DEFAULT_ENV = normalize_env(DEFAULTS).freeze # :nodoc:
 

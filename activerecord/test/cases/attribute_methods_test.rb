@@ -15,6 +15,7 @@ require "models/contact"
 require "models/keyboard"
 require "models/numeric_data"
 require "models/cpk"
+require "models/book_identifier"
 
 class AttributeMethodsTest < ActiveRecord::TestCase
   include InTimeZone
@@ -31,7 +32,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   ActiveRecord::Type.register(:epoch_timestamp, EpochTimestamp)
 
-  fixtures :topics, :developers, :companies, :computers
+  fixtures :topics, :developers, :companies, :computers, :book_identifiers
 
   def setup
     @old_matchers = ActiveRecord::Base.send(:attribute_method_patterns).dup
@@ -40,8 +41,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   teardown do
-    ActiveRecord::Base.send(:attribute_method_patterns).clear
-    ActiveRecord::Base.send(:attribute_method_patterns).concat(@old_matchers)
+    ActiveRecord::Base.attribute_method_patterns = @old_matchers
   end
 
   test "#id_value alias is defined if id column exist" do
@@ -52,6 +52,32 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     new_topic_model.define_attribute_methods
     assert_includes new_topic_model.attribute_names, "id"
     assert_includes new_topic_model.attribute_aliases, "id_value"
+  end
+
+  test "#id_value alias does not accumulate duplicates when table_name is reassigned" do
+    klass = Class.new(ActiveRecord::Base)
+
+    klass.table_name = "topics"
+    klass.first
+
+    klass.table_name = "authors"
+    klass.first
+
+    klass.table_name = "topics"
+    klass.first
+
+    assert_equal ["id_value"], klass.send(:aliases_by_attribute_name)["id"]
+  end
+
+  test "#id_value alias is not defined if id_value column exist" do
+    new_book_identifier_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "book_identifiers"
+    end
+
+    new_book_identifier_model.define_attribute_methods
+    assert_includes new_book_identifier_model.attribute_names, "id"
+    assert_includes new_book_identifier_model.attribute_names, "id_value"
+    assert_empty new_book_identifier_model.attribute_aliases
   end
 
   test "aliasing `id` attribute allows reading the column value" do
@@ -73,6 +99,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     topic = Topic.find(1)
     assert_equal 1, topic.id_value
+  end
+
+  test "#id_value returns the value in the id_value column, when id_value column exists" do
+    book_identifier = BookIdentifier.new
+    assert_nil book_identifier.id_value
+
+    book_identifier = BookIdentifier.find(1)
+    assert_equal book_identifiers(:awdr_isbn13).id_value, book_identifier.id_value
   end
 
   test "#id_value alias is not defined if id column doesn't exist" do
@@ -863,7 +897,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       record = Topic.new(id: 1)
       record.written_on = "Jan 01 00:00:00 2014"
       payload = YAML.dump(record)
-      assert_equal record, YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(payload) : YAML.load(payload)
+      assert_equal record, YAML.unsafe_load(payload)
     end
   ensure
     # NOTE: Reset column info because global topics
@@ -1104,16 +1138,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     topic = topic_class.new(title: "New topic")
     assert_equal("New topic", topic.subject_to_be_undefined)
-    assert_equal true, topic_class.method_defined?(:subject_to_be_undefined)
     topic_class.undefine_attribute_methods
-    assert_equal false, topic_class.method_defined?(:subject_to_be_undefined)
 
-    topic.subject_to_be_undefined
-    assert_equal true, topic_class.method_defined?(:subject_to_be_undefined)
-
-    topic_class.undefine_attribute_methods
-    assert_equal true, topic.respond_to?(:subject_to_be_undefined)
-    assert_equal true, topic_class.method_defined?(:subject_to_be_undefined)
+    assert_raises(NoMethodError, match: /undefined method [`']subject_to_be_undefined'/) do
+      topic.subject_to_be_undefined
+    end
   end
 
   test "#define_attribute_methods brings back undefined aliases" do
@@ -1133,6 +1162,31 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     assert_equal true, topic_class.method_defined?(:title_alias_to_be_undefined)
     assert_equal "New topic", topic.title_alias_to_be_undefined
+  end
+
+  test "#define_attribute_methods doesn't connect to the database when schema cache is present" do
+    with_temporary_connection_pool do
+      if in_memory_db?
+        # Separate connections to an in-memory database create an entirely new database,
+        # with an empty schema etc, so we just stub out this schema on the fly.
+        ActiveRecord::Base.connection_pool.with_connection do |connection|
+          connection.create_table :tasks do |t|
+            t.datetime :starting
+            t.datetime :ending
+          end
+        end
+      end
+
+      @target.table_name = "tasks"
+
+      @target.connection_pool.schema_cache.load!
+      @target.connection_pool.schema_cache.add("tasks")
+      @target.connection_pool.disconnect!
+
+      assert_no_queries(include_schema: true) do
+        @target.define_attribute_methods
+      end
+    end
   end
 
   test "define_attribute_method works with both symbol and string" do

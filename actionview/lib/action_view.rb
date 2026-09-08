@@ -37,6 +37,7 @@ module ActionView
   eager_autoload do
     autoload :Base
     autoload :Context
+    autoload :DependencyTracker
     autoload :Digestor
     autoload :Helpers
     autoload :LookupContext
@@ -81,6 +82,7 @@ module ActionView
       autoload :MissingTemplate
       autoload :ActionViewError
       autoload :EncodingError
+      autoload :StrictLocalsError
       autoload :TemplateError
       autoload :SyntaxErrorInTemplate
       autoload :WrongEncodingError
@@ -90,10 +92,26 @@ module ActionView
   autoload :CacheExpiry
   autoload :TestCase
 
+  singleton_class.attr_reader :render_tracker
+
+  def self.render_tracker=(value)
+    @render_tracker = value
+    case value
+    when :ruby
+      DependencyTracker.register_tracker :erb, DependencyTracker::RubyTracker
+    else
+      DependencyTracker.register_tracker :erb, DependencyTracker::ERBTracker
+    end
+    value
+  end
+
+  self.render_tracker = :regex
+
   def self.eager_load!
     super
     ActionView::Helpers.eager_load!
     ActionView::Template.eager_load!
+    ActionView::DependencyTracker.eager_load!
   end
 end
 

@@ -6,6 +6,7 @@ require "generators/shared_generator_tests"
 
 DEFAULT_APP_FILES = %w(
   .dockerignore
+  .env
   .git
   .gitattributes
   .github/dependabot.yml
@@ -30,8 +31,11 @@ DEFAULT_APP_FILES = %w(
   app/views/layouts/mailer.html.erb
   app/views/layouts/mailer.text.erb
   app/views/pwa/manifest.json.erb
+  app/views/pwa/offline.html.erb
   app/views/pwa/service-worker.js
   bin/brakeman
+  bin/bundler-audit
+  bin/ci
   bin/dev
   bin/docker-entrypoint
   bin/rails
@@ -42,7 +46,9 @@ DEFAULT_APP_FILES = %w(
   config.ru
   config/application.rb
   config/boot.rb
+  config/bundler-audit.yml
   config/cable.yml
+  config/ci.rb
   config/credentials.yml.enc
   config/database.yml
   config/environment.rb
@@ -71,20 +77,18 @@ DEFAULT_APP_FILES = %w(
   public/robots.txt
   script/.keep
   storage/.keep
-  test/application_system_test_case.rb
   test/controllers/.keep
   test/fixtures/files/.keep
   test/helpers/.keep
   test/integration/.keep
   test/mailers/.keep
   test/models/.keep
-  test/system/.keep
   test/test_helper.rb
   tmp/.keep
   tmp/pids/.keep
   tmp/storage/.keep
   vendor/.keep
-)
+).freeze
 
 class AppGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -172,7 +176,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     run_app_update
 
-    assert_file defaults_path
+    assert_no_file defaults_path
     assert_no_file "config/initializers/cors.rb"
   end
 
@@ -294,6 +298,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_preserves_skip_bundler_audit
+    run_generator [ destination_root, "--skip-bundler-audit" ]
+
+    FileUtils.cd(destination_root) do
+      assert_no_changes -> { File.exist?("bin/bundler-audit") } do
+        run_app_update
+      end
+    end
+  end
+
   def test_app_update_preserves_skip_rubocop
     run_generator [ destination_root, "--skip-rubocop" ]
 
@@ -405,12 +419,33 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.cd(destination_root) do
       config = "config/application.rb"
       content = File.read(config)
-      File.write(config, content.gsub(/config\.load_defaults #{Rails::VERSION::STRING.to_f}/, "config.load_defaults 5.1"))
+      File.write(config, content.gsub(/config\.load_defaults #{Rails::VERSION::STRING.to_f}/, "config.load_defaults 8.0"))
     end
 
     run_app_update
 
-    assert_file "config/application.rb", /\s+config\.load_defaults 5\.1/
+    assert_file "config/application.rb", /\s+config\.load_defaults 8\.0/
+  end
+
+  def test_app_update_generates_new_framework_defaults_when_load_defaults_is_previous_version
+    run_generator
+
+    defaults_path = "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
+
+    FileUtils.cd(destination_root) do
+      config = "config/application.rb"
+      current_version = "#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR}"
+      previous_version = "#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR - 1}"
+      content = File.read(config)
+
+      File.write(config, content.gsub(/config\.load_defaults #{current_version}/, "config.load_defaults #{previous_version}"))
+    end
+
+    assert_no_file defaults_path
+
+    run_app_update
+
+    assert_file defaults_path
   end
 
   def test_app_update_does_not_change_app_name_when_app_name_is_hyphenated_name
@@ -443,6 +478,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_application_name_is_normalized_in_config
     run_generator [File.join(destination_root, "MyWebSite"), "-d", "postgresql"]
     assert_file "MyWebSite/app/views/layouts/application.html.erb", /content_for\(:title\) \|\| "My Web Site"/
+    assert_file "MyWebSite/app/views/layouts/application.html.erb", /meta\sname="application-name"\scontent="My Web Site/
     assert_file "MyWebSite/config/database.yml", /my_web_site_production/
   end
 
@@ -481,7 +517,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", /"\W+ \d/
+    assert_gem "puma", '">= 7.1"'
   end
 
   def test_action_cable_redis_gems
@@ -492,6 +528,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_configures_decrypted_diffs_by_default
     run_generator
     assert_file ".gitattributes", /\.enc diff=/
+  end
+
+  def test_generator_marks_error_pages_as_generated
+    run_generator
+    assert_file ".gitattributes" do |content|
+      %w[400 404 406-unsupported-browser 422 500].each do |page|
+        assert_match(/^public\/#{Regexp.escape(page)}\.html linguist-generated$/, content)
+      end
+    end
   end
 
   def test_generator_does_not_configure_decrypted_diffs_when_skip_decrypted_diffs_is_given
@@ -544,7 +589,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_directory("test/system")
 
     assert_file ".github/workflows/ci.yml" do |content|
-      assert_no_match(/google-chrome-stable/, content)
+      assert_match(/db:test:prepare test/, content)
+      assert_no_match(/test:system/, content)
+      assert_no_match(/screenshots/, content)
     end
   end
 
@@ -648,10 +695,77 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/brakeman"
   end
 
+  def test_inclusion_of_bundler_audit
+    run_generator
+    assert_gem "bundler-audit"
+  end
+
+  def test_bundler_audit_is_skipped_if_required
+    run_generator [destination_root, "--skip-bundler-audit"]
+
+    assert_no_gem "bundler-audit"
+    assert_no_file "bin/bundler-audit"
+  end
+
   def test_inclusion_of_ci_files
     run_generator
-    assert_file ".github/workflows/ci.yml"
-    assert_file ".github/dependabot.yml"
+    assert_file ".github/workflows/ci.yml" do |yaml|
+      assert_nothing_raised do
+        YAML.load(yaml)
+      end
+    end
+    assert_file ".github/dependabot.yml" do |yaml|
+      assert_nothing_raised do
+        YAML.load(yaml)
+      end
+    end
+  end
+
+  def test_config_ci_includes_seed_step_by_default
+    run_generator [destination_root]
+
+    assert_file "config/ci.rb" do |content|
+      assert_match(/step "Tests: Seeds", "env RAILS_ENV=test bin\/rails db:seed:replant"/, content)
+    end
+  end
+
+  def test_config_ci_does_not_include_test_steps_when_skip_test_is_given
+    run_generator [destination_root, "--skip-test"]
+
+    assert_file "config/ci.rb" do |content|
+      assert_no_match(/step "Tests: Rails"/, content)
+      assert_no_match(/step "Tests: System"/, content)
+      assert_no_match(/step "Tests: Seeds"/, content)
+      assert_no_match(/bin\/rails db:seed:replant/, content)
+    end
+  end
+
+  def test_config_ci_does_not_include_seed_step_when_skip_active_record_is_given
+    run_generator [destination_root, "--skip-active-record"]
+
+    assert_file "config/ci.rb" do |content|
+      assert_no_match(/step "Tests: Seeds"/, content)
+      assert_no_match(/bin\/rails db:seed:replant/, content)
+    end
+  end
+
+  def test_ci_workflow_includes_db_test_prepare_by_default
+    run_generator
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_match(/db:test:prepare test/, content)
+      assert_match(/db:test:prepare test:system/, content)
+    end
+  end
+
+  def test_ci_workflow_does_not_include_db_test_prepare_when_skip_active_record_is_given
+    run_generator [destination_root, "--skip-active-record"]
+    run_app_update
+
+    assert_file ".github/workflows/ci.yml" do |content|
+      assert_no_match(/db:test:prepare/, content)
+      assert_match(/bin\/rails test/, content)
+      assert_match(/bin\/rails test:system/, content)
+    end
   end
 
   def test_ci_files_are_skipped_if_required
@@ -684,6 +798,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file ".kamal/secrets"
   end
 
+  def test_inclusion_of_bootsnap_files
+    generator [destination_root]
+    run_generator_instance
+
+    assert_file "config/bootsnap.rb"
+  end
+
   def test_kamal_files_are_skipped_if_required
     generator [destination_root], ["--skip-kamal"]
     run_generator_instance
@@ -693,6 +814,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_no_file "config/deploy.yml"
     assert_no_file ".kamal/secrets"
+  end
+
+  def test_database_yml_skip_kamal
+    run_generator [destination_root, "--skip-kamal"]
+
+    assert_file("config/database.yml") do |content|
+      assert_match("db/queue_migrate", content)
+      assert_match("db/cache_migrate", content)
+      assert_match("db/cable_migrate", content)
+    end
   end
 
   def test_inclusion_of_kamal_storage_volume
@@ -728,6 +859,33 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "config/deploy.yml" do |content|
       assert_no_match(%r{storage:/rails/storage}, content)
+    end
+  end
+
+  def test_kamal_deploy_yml_includes_asset_path_for_regular_apps
+    generator [destination_root]
+    run_generator_instance
+
+    assert_file "config/deploy.yml" do |content|
+      assert_match(/asset_path: \/rails\/public\/assets/, content)
+    end
+  end
+
+  def test_gitignore_appends_storage_entries_when_active_storage_is_skipped
+    generator [destination_root], ["--skip-active-storage"]
+    run_generator_instance
+
+    assert_file ".gitignore" do |content|
+      assert_match(%r{storage/}, content)
+    end
+  end
+
+  def test_gitignore_does_not_append_storage_entries_when_active_storage_is_skipped_and_database_is_not_sqlite
+    generator [destination_root], ["--skip-active-storage", "--database=postgresql"]
+    run_generator_instance
+
+    assert_file ".gitignore" do |content|
+      assert_no_match(%r{storage/}, content)
     end
   end
 
@@ -816,13 +974,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_bundler_binstub
-    generator([destination_root])
-    run_generator_instance
-
-    assert_equal 1, @bundle_commands.count("binstubs bundler")
-  end
-
   def test_skip_active_job_option
     run_generator [destination_root, "--skip-active-job"]
 
@@ -855,8 +1006,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "jsbundling-rails"
     assert_no_node_files
 
+    assert_file "app/controllers/application_controller.rb" do |content|
+      assert_no_match(/importmap/, content)
+    end
+
     assert_file "config/initializers/content_security_policy.rb" do |content|
       assert_no_match(/policy\.connect_src/, content)
+    end
+
+    assert_file "config/ci.rb" do |content|
+      assert_no_match(/importmap|yarn/, content)
     end
 
     assert_file ".gitattributes" do |content|
@@ -899,6 +1058,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "jsbundling-rails"
   end
 
+  def test_esbuild_without_yarn_installed
+    generator([destination_root], javascript: "esbuild")
+
+    # fallback to latest when yarn is not installed
+    generator.stub :dockerfile_yarn_version, "latest" do
+      quietly { generator.invoke_all }
+    end
+
+    assert_gem "jsbundling-rails"
+    assert_file "Dockerfile" do |content|
+      assert_match(/ARG YARN_VERSION=latest/, content)
+
+      assert_match("RUN corepack enable && yarn set version $YARN_VERSION", content)
+    end
+  end
+
   def test_bun_option
     generator([destination_root], javascript: "bun")
 
@@ -921,6 +1096,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_bun_option_with_js_argument
     run_generator [destination_root, "--js", "bun"]
     assert_gem "jsbundling-rails"
+  end
+
+  def test_bun_without_bun_installed
+    generator([destination_root], javascript: "bun")
+    bun_version = generator.class.const_get(:BUN_VERSION)
+
+    # fallback to constant when bun is not installed
+    generator.stub :dockerfile_bun_version, bun_version do
+      quietly { generator.invoke_all }
+    end
+
+    assert_gem "jsbundling-rails"
+    assert_file "Dockerfile" do |content|
+      assert_match(/ARG BUN_VERSION=#{bun_version}/, content)
+
+      assert_match("RUN bun install --frozen-lockfile", content)
+    end
   end
 
   def test_skip_javascript_option_with_skip_javascript_argument
@@ -1012,6 +1204,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "importmap-rails"
   end
 
+  def test_css_option_with_cssbundling_uses_application_stylesheet_link_tag
+    run_generator [destination_root, "--css=bootstrap"]
+
+    assert_file "app/views/layouts/application.html.erb" do |content|
+      assert_match(/stylesheet_link_tag\s+"application"/, content)
+      assert_no_match(/stylesheet_link_tag\s+:app/, content)
+    end
+  end
+
   def test_default_generator_executes_all_rails_commands
     generator [destination_root]
     run_generator_instance
@@ -1025,6 +1226,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_skip_dev_gems
     run_generator [destination_root, "--skip-dev-gems"]
     assert_no_gem "web-console"
+    assert_no_gem "kamal"
+  end
+
+  def test_kamal_is_in_development_group
+    run_generator
+
+    assert_file "Gemfile" do |content|
+      assert_match(/group :development do\n  # Deploy this application anywhere as a Docker container \[https:\/\/kamal-deploy\.org\]\n  gem "kamal", require: false/, content)
+      assert_no_match(/^gem "kamal", require: false$/, content)
+      assert_equal 1, content.scan(/^group :development do$/).size
+    end
   end
 
   def test_bootsnap
@@ -1061,6 +1273,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_dockerfile_bootsnap_precompile_is_single_threaded
+    skip "bootsnap not included on JRuby" if defined?(JRUBY_VERSION)
+    run_generator [destination_root, "--no-skip-bootsnap"]
+    assert_gem "bootsnap"
+    assert_file "Dockerfile" do |content|
+      assert_match(/bootsnap precompile -j 1 --gemfile/, content)
+      assert_match(/bootsnap precompile -j 1 app\/ lib\//, content)
+    end
+  end
+
   def test_inclusion_of_ruby_version
     run_generator
 
@@ -1091,6 +1313,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     run_generator [destination_root]
     assert_file ".git/HEAD", /main/
+    assert_file ".github/workflows/ci.yml", /branches: \[ main \]/
   ensure
     if !current_default_branch.strip.empty?
       `git config --global init.defaultBranch #{current_default_branch}`
@@ -1106,6 +1329,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     run_generator [destination_root]
     assert_file ".git/HEAD", /master/
+    assert_file ".github/workflows/ci.yml", /branches: \[ master \]/
   ensure
     if current_default_branch && current_default_branch.strip.empty?
       `git config --global --unset init.defaultBranch`
@@ -1193,7 +1417,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file ".gitignore" do |content|
-      assert_match(/config\/master\.key/, content)
+      assert_match("config/*.key", content)
     end
   end
 
@@ -1216,6 +1440,24 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_dockerignore_appends_storage_entries_when_active_storage_is_skipped
+    generator [destination_root], ["--skip-active-storage"]
+    run_generator_instance
+
+    assert_file ".dockerignore" do |content|
+      assert_match(%r{storage/}, content)
+    end
+  end
+
+  def test_dockerignore_does_not_append_storage_entries_when_active_storage_is_skipped_and_database_is_not_sqlite
+    generator [destination_root], ["--skip-active-storage", "--database=postgresql"]
+    run_generator_instance
+
+    assert_file ".dockerignore" do |content|
+      assert_no_match(%r{storage/}, content)
+    end
+  end
+
   def test_dockerfile
     run_generator
 
@@ -1235,11 +1477,29 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/docker-entrypoint"
   end
 
-  def test_system_tests_directory_generated
+  def test_docker_entrypoint_checks_first_two_arguments_so_extra_server_flags_still_trigger_db_prepare
     run_generator
 
-    assert_directory("test/system")
-    assert_file("test/system/.keep")
+    assert_file "bin/docker-entrypoint" do |content|
+      assert_match(/if \[ "\$\{1\}" == "\.\/bin\/rails" \] && \[ "\$\{2\}" == "server" \]; then/, content)
+      assert_no_match(/\$\{@: -2:1\}|\$\{@: -1:1\}/, content)
+    end
+  end
+
+  def test_docker_entrypoint_omits_db_prepare_check_when_skipping_active_record
+    run_generator [destination_root, "--skip-active-record"]
+
+    assert_file "bin/docker-entrypoint" do |content|
+      assert_no_match(/db:prepare/, content)
+    end
+  end
+
+  def test_env
+    run_generator
+
+    assert_file ".env" do |content|
+      assert_match(/Add local environment variables/, content)
+    end
   end
 
   unless Gem.win_platform?
@@ -1262,11 +1522,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_option :skip_active_job
     assert_option :skip_active_storage
     assert_option :skip_bootsnap
+    assert_option :skip_brakeman
+    assert_option :skip_bundler_audit
+    assert_option :skip_ci
     assert_option :skip_dev_gems
+    assert_option :skip_docker
     assert_option :skip_hotwire
     assert_option :skip_javascript
     assert_option :skip_jbuilder
+    assert_option :skip_kamal
+    assert_option :skip_rubocop
+    assert_option :skip_solid
     assert_option :skip_system_test
+    assert_option :skip_thruster
   end
 
   def test_minimal_rails_app_with_no_skip_implied_option
@@ -1296,6 +1564,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /^module MyApp$/
   end
 
+  def test_devcontainer_supports_pretend
+    run_generator [ destination_root, "--devcontainer", "--pretend" ]
+
+    assert_no_file(".devcontainer/devcontainer.json")
+  end
+
   def test_devcontainer
     run_generator [destination_root, "--devcontainer", "--name=my-app"]
 
@@ -1312,6 +1586,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file(".devcontainer/Dockerfile") do |content|
       assert_match(/ARG RUBY_VERSION=#{RUBY_VERSION}/, content)
+      assert_match(/ENV BINDING="0.0.0.0"/, content)
     end
     assert_file("test/application_system_test_case.rb") do |content|
       assert_match(/^    served_by host: "rails-app", port: ENV\["CAPYBARA_SERVER_PORT"\]/, content)
@@ -1327,7 +1602,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
           "context" => "..",
           "dockerfile" => ".devcontainer/Dockerfile"
         },
-        "volumes" => ["../..:/workspaces:cached"],
+        "volumes" => ["../../tmp:/workspaces/tmp:cached", "bundle-cache:/home/vscode/.local/share"],
         "command" => "sleep infinity",
         "depends_on" => ["selenium"]
       }
@@ -1364,7 +1639,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "redis"
 
       expected_redis_config = {
-        "image" => "redis:7.2",
+        "image" => "valkey/valkey:9",
         "restart" => "unless-stopped",
         "volumes" => ["redis-data:/data"]
       }
@@ -1380,7 +1655,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_compose_file do |compose_config|
       assert_not_includes compose_config["services"]["rails-app"]["depends_on"], "redis"
       assert_nil compose_config["services"]["redis"]
-      assert_nil compose_config["volumes"]
+      assert_includes compose_config["volumes"].keys, "bundle-cache"
     end
 
     assert_devcontainer_json_file do |content|
@@ -1395,10 +1670,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "postgres"
 
       expected_postgres_config = {
-        "image" => "postgres:16.1",
+        "image" => "postgres:18",
         "restart" => "unless-stopped",
         "networks" => ["default"],
-        "volumes" => ["postgres-data:/var/lib/postgresql/data"],
+        "volumes" => ["postgres-data:/var/lib/postgresql"],
         "environment" => {
           "POSTGRES_USER" => "postgres",
           "POSTGRES_PASSWORD" => "postgres"
@@ -1436,7 +1711,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
 
       expected_mysql_config = {
-        "image" => "mysql/mysql-server:8.0",
+        "image" => "mysql:9.7",
         "restart" => "unless-stopped",
         "environment" => {
           "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
@@ -1465,7 +1740,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
       expected_mysql_config = {
-        "image" => "mysql/mysql-server:8.0",
+        "image" => "mysql:9.7",
         "restart" => "unless-stopped",
         "environment" => {
           "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
@@ -1607,13 +1882,25 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file(".devcontainer/compose.yaml")
   end
 
+  def test_generated_yml_files_format
+    generator [destination_root]
+    run_generator_instance
+
+    Dir["**/*.yml"].each do |yml_file|
+      assert_file yml_file do |content|
+        assert_no_match(/\n\n\n/, content, "File `#{yml_file}` should not have double empty lines")
+      end
+    end
+  end
+
   private
     def assert_load_defaults
       assert_file "config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
     end
 
     def assert_gem_for_active_storage
-      assert_file "Gemfile", /^# gem "image_processing"/
+      assert_gem "image_processing"
+      assert_gem "ruby-vips", /.*require: false/
     end
 
     def assert_frameworks_are_not_required_when_active_storage_is_skipped
@@ -1630,6 +1917,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     def assert_gems_when_active_storage_is_skipped
       assert_no_gem "image_processing"
+      assert_no_gem "ruby-vips"
     end
 
     def assert_gitattributes_does_not_have_schema_file

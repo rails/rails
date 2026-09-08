@@ -29,6 +29,18 @@ module ActiveRecord
           assert_equal "'Infinity'", @conn.quote(infinity)
         end
 
+        def test_quote_integer
+          assert_equal "42", @conn.quote(42)
+        end
+
+        def test_quote_big_decimal
+          assert_equal "4.2", @conn.quote(BigDecimal("4.2"))
+        end
+
+        def test_quote_rational
+          assert_equal "3/4", @conn.quote(Rational(3, 4))
+        end
+
         def test_quote_range
           range = "1,2]'; SELECT * FROM users; --".."a"
           type = OID::Range.new(Type::Integer.new, :int8range)

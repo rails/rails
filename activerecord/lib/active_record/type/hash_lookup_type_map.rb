@@ -3,7 +3,7 @@
 module ActiveRecord
   module Type
     class HashLookupTypeMap # :nodoc:
-      def initialize(parent = nil)
+      def initialize
         @mapping = {}
         @cache = Concurrent::Map.new do |h, key|
           h.fetch_or_store(key, Concurrent::Map.new)
@@ -26,6 +26,7 @@ module ActiveRecord
         if block
           @mapping[key] = block
         else
+          value.freeze
           @mapping[key] = proc { value }
         end
         @cache.clear
@@ -50,7 +51,7 @@ module ActiveRecord
 
       private
         def perform_fetch(type, *args, &block)
-          @mapping.fetch(type, block).call(type, *args)
+          @mapping.fetch(type, block).call(type, *args).freeze
         end
     end
   end

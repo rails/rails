@@ -33,11 +33,34 @@
       background: #282828;
     }
   }
+
+  .filter {
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .filter label[for="tag"] {
+    margin-right: 10px;
+  }
+
+  .filter select[name="tag"] {
+    border-radius: 8px;
+    padding: 0.25em;
+  }
 </style>
 
 <h2>
   Notes
 </h2>
+
+<div class="filter">
+  <%= form_tag("/rails/info/notes", method: :get) do %>
+    <%= label_tag :tag, "Filter by Tag:" %>
+    <%= select_tag(:tag, options_for_select(Rails::SourceAnnotationExtractor::Annotation.tags, params[:tag]), { include_blank: "All", onchange: "this.form.submit();" }) %>
+  <% end %>
+</div>
 
 <table id="route_table" class="table">
   <thead>

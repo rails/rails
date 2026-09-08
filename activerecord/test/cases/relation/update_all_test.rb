@@ -4,21 +4,28 @@ require "cases/helper"
 require "models/author"
 require "models/category"
 require "models/comment"
+require "models/company"
 require "models/computer"
+require "models/contract"
 require "models/developer"
+require "models/mentor"
+require "models/owner"
 require "models/post"
 require "models/person"
 require "models/pet"
+require "models/pet_treasure"
+require "models/ship"
 require "models/toy"
 require "models/topic"
+require "models/treasure"
 require "models/tag"
 require "models/tagging"
 require "models/warehouse_thing"
 require "models/cpk"
 
 class UpdateAllTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :comments, :developers, :posts, :people, :pets, :toys, :tags,
-    :taggings, "warehouse-things", :cpk_orders, :cpk_order_agreements
+  fixtures :authors, :author_addresses, :comments, :companies, :developers, :owners, :posts, :people, :pets, :toys, :tags,
+    :taggings, :treasures, "warehouse-things", :cpk_orders, :cpk_order_agreements
 
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
@@ -60,8 +67,24 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_not_equal "ig", post.title
   end
 
-  def test_update_all_with_joins
-    pets = Pet.joins(:toys).where(toys: { name: "Bone" })
+  def test_update_all_with_group_by_and_having_without_joins
+    posts = [
+      Post.create!(title: "low", body: "x", legacy_comments_count: 0),
+      Post.create!(title: "mid", body: "x", legacy_comments_count: 3),
+      Post.create!(title: "high", body: "x", legacy_comments_count: 9),
+    ]
+    relation = Post.where(id: posts).group("posts.id").having("MAX(legacy_comments_count) >= 3")
+
+    # Only the rows that survive the HAVING filter must be updated, not every row.
+    assert_equal 2, relation.update_all(title: "updated")
+
+    assert_equal "low", posts[0].reload.title
+    assert_equal "updated", posts[1].reload.title
+    assert_equal "updated", posts[2].reload.title
+  end
+
+  def test_update_all_with_joins_and_limit
+    pets = Pet.joins(:toys).where(toys: { name: "Bone" }).limit(2)
 
     assert_equal true, pets.exists?
     sqls = capture_sql do
@@ -75,11 +98,146 @@ class UpdateAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_all_with_unpermitted_relation_raises_error
+    assert_deprecated("`distinct` is not supported by `update_all`", ActiveRecord.deprecator) do
+      Author.distinct.update_all(name: "Bob")
+    end
+
+    assert_deprecated("`with` is not supported by `update_all`", ActiveRecord.deprecator) do
+      Author.with(limited: Author.where(name: "")).update_all(name: "Bob")
+    end
+  end
+
+  def test_dynamic_update_all_with_one_joined_table
+    update_fragment = if current_adapter?(:TrilogyAdapter, :Mysql2Adapter)
+      "toys.name = pets.name"
+    else # PostgreSQLAdapter, SQLite3Adapter
+      "name = pets.name"
+    end
+
+    toys = Toy.joins(:pet)
+    assert_equal 3, toys.count
+    assert_equal 3, toys.update_all(update_fragment)
+
+    toys.each do |toy|
+      assert_equal toy.pet.name, toy.name
+    end
+  end
+
+  def test_dynamic_update_all_with_a_through_join
+    pet = pets(:parrot)
+    treasure = treasures(:diamond)
+
+    PetTreasure.create(pet: pet, treasure: treasure)
+
+    assert_operator pet.treasures.left_joins(:ship).update_all(name: "Gold"), :>, 0
+    assert_equal("Gold", treasure.reload.name)
+  end
+
+  def test_dynamic_update_all_with_one_join_on_the_target_and_one_indirect_join
+    update_fragment = if current_adapter?(:TrilogyAdapter, :Mysql2Adapter)
+      "toys.name = owners.name"
+    else # PostgreSQLAdapter, SQLite3Adapter
+      "name = owners.name"
+    end
+
+    toys = Toy.joins(pet: [:owner])
+    assert_equal 3, toys.count
+    assert_equal 3, toys.update_all(update_fragment)
+
+    toys.each do |toy|
+      assert_equal toy.pet.owner.name, toy.name
+    end
+  end
+
+  def test_dynamic_update_all_with_two_joins_on_the_target
+    update_fragment = if current_adapter?(:TrilogyAdapter, :Mysql2Adapter)
+      "developers.name = mentors.name"
+    else # PostgreSQLAdapter, SQLite3Adapter
+      "name = mentors.name"
+    end
+
+    jamis, david, poor_jamis = developers(:jamis, :david, :poor_jamis)
+    jamis.update_columns(
+      firm_id: companies(:first_firm).id,
+      mentor_id: Mentor.create!(name: "John").id,
+    )
+    david.update_columns(
+      firm_id: companies(:another_firm).id,
+      mentor_id: Mentor.create!(name: "Goliath").id,
+    )
+    poor_jamis.update_columns(
+      firm_id: companies(:another_firm).id,
+      mentor_id: Mentor.create!(name: "Doe").id,
+    )
+
+    developers = Developer.joins(:firm, :mentor)
+    assert_equal 3, developers.count
+    assert_equal 3, developers.update_all(update_fragment)
+
+    developers.each do |developer|
+      assert_equal developer.name, developer.mentor.name
+    end
+  end
+
   def test_update_all_with_left_joins
     pets = Pet.left_joins(:toys).where(toys: { name: "Bone" })
 
     assert_equal true, pets.exists?
     assert_equal pets.count, pets.update_all(name: "Bob")
+  end
+
+  def test_update_all_with_left_outer_joins_can_reference_joined_table
+    pets = Pet.left_outer_joins(:toys).where(toys: { name: ["Bone", nil] })
+
+    assert_equal true, pets.exists?
+    assert_equal pets.count, pets.update_all(name: Arel.sql("COALESCE(toys.name, 'Toyless')"))
+    assert_equal "Toyless", Pet.where.missing(:toys).first.name
+    assert_not_equal "Toyless", Pet.joins(:toys).first.name
+  end
+
+  def test_update_all_with_string_joins_can_reference_joined_table
+    join = current_adapter?(:Mysql2Adapter, :TrilogyAdapter) ? "LEFT OUTER JOIN" : "FULL OUTER JOIN"
+    pets = Pet.joins("#{join} toys ON toys.pet_id = pets.pet_id").where(toys: { name: ["Bone", nil] })
+
+    assert_equal true, pets.exists?
+    assert_equal pets.count, pets.update_all(name: Arel.sql("COALESCE(toys.name, 'Toyless')"))
+    assert_equal "Toyless", Pet.where.missing(:toys).first.name
+    assert_not_equal "Toyless", Pet.joins(:toys).first.name
+  end
+
+  def test_update_all_with_self_left_joins_can_reference_joined_table
+    lvl2 = Comment.left_joins(parent: :parent).joins(:post).where(parent: { parent: nil }).where.not(parent: nil)
+
+    assert_equal true, lvl2.exists?
+    assert_equal lvl2.count, lvl2.update_all(body: Arel.sql("COALESCE(parent.body, posts.title)"))
+  end
+
+  def test_update_all_with_left_joins_composite_primary_key_can_reference_joined_table
+    orders = Cpk::Order.left_joins(:order_agreements).where(order_agreements: { order_id: nil })
+
+    assert_equal true, orders.exists?
+    assert_equal orders.count, orders.update_all(status: Arel.sql("COALESCE(order_agreements.signature, 'orphan')"))
+    assert_equal orders.count, Cpk::Order.where(status: "orphan").count
+  end
+
+  # Limitations of the implementation
+  if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+    def test_update_all_with_left_joins_unqualified_set_reference_is_ambiguous
+      orders = Cpk::Order.left_joins(:order_agreements).where(order_agreements: { order_id: nil })
+
+      assert_raises(ActiveRecord::StatementInvalid, match: /ambiguous/) do
+        orders.update_all(status: Arel.sql("CONCAT(\"status\", 'orphan')"))
+      end
+    end
+
+    def test_update_all_with_left_joins_unqualified_where_reference_is_ambiguous
+      orders = Cpk::Order.left_joins(:order_agreements).where(order_agreements: { order_id: nil })
+
+      assert_raises(ActiveRecord::StatementInvalid, match: /ambiguous/) do
+        orders.where(Arel.sql("\"status\" != '123'")).update_all(status: "123")
+      end
+    end
   end
 
   def test_update_all_with_includes
@@ -118,7 +276,8 @@ class UpdateAllTest < ActiveRecord::TestCase
     david_previously_updated_at = david.updated_at
     jamis = developers(:jamis)
     jamis_previously_updated_at = jamis.updated_at
-    Developer.where(name: "David").touch_all
+
+    assert_equal 1, Developer.where(name: "David").touch_all
 
     assert_not_equal david_previously_updated_at, david.reload.updated_at
     assert_equal jamis_previously_updated_at, jamis.reload.updated_at
@@ -180,7 +339,7 @@ class UpdateAllTest < ActiveRecord::TestCase
   def test_update_with_ids_on_relation
     topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
     topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
-    topics = TopicWithCallbacks.none
+    topics = TopicWithCallbacks.where(id: [topic1.id, topic2.id])
     topics.update(
       [topic1.id, topic2.id],
       [{ title: "adequaterecord" }, { title: "adequaterecord" }]
@@ -193,6 +352,77 @@ class UpdateAllTest < ActiveRecord::TestCase
     # Testing that the before_update callbacks have run
     assert_equal "David", topic1.reload.author_name
     assert_equal "David", topic2.reload.author_name
+  end
+
+  def test_update_with_ids_outside_of_the_relation_does_not_update_anything
+    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
+    topics = TopicWithCallbacks.where(id: topic1.id)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      topics.update(
+        [topic1.id, topic2.id],
+        [{ title: "adequaterecord" }, { title: "adequaterecord" }]
+      )
+    end
+
+    # The ids are resolved before anything is written, so nothing is updated
+    assert_equal "arel", topic1.reload.title
+    assert_equal "activerecord", topic2.reload.title
+  end
+
+  def test_update_with_a_single_id_outside_of_the_relation_does_not_update_anything
+    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      TopicWithCallbacks.where(id: topic1.id).update(topic2.id, title: "adequaterecord")
+    end
+
+    assert_equal "activerecord", topic2.reload.title
+  end
+
+  def test_update_bang_with_ids_outside_of_the_relation_does_not_update_anything
+    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
+    topics = TopicWithCallbacks.where(id: topic1.id)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      topics.update!(
+        [topic1.id, topic2.id],
+        [{ title: "adequaterecord" }, { title: "adequaterecord" }]
+      )
+    end
+
+    assert_equal "arel", topic1.reload.title
+    assert_equal "activerecord", topic2.reload.title
+  end
+
+  def test_update_bang_with_a_single_id_outside_of_the_relation_does_not_update_anything
+    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      TopicWithCallbacks.where(id: topic1.id).update!(topic2.id, title: "adequaterecord")
+    end
+
+    assert_equal "activerecord", topic2.reload.title
+  end
+
+  def test_update_on_an_association_does_not_reach_outside_of_the_association
+    post = posts(:welcome)
+    comment_of_another_post = comments(:does_it_hurt)
+    assert_not_equal post.id, comment_of_another_post.post_id
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      post.comments.update(comment_of_another_post.id, body: "hijacked")
+    end
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      post.comments.update!([comment_of_another_post.id], [{ body: "hijacked" }])
+    end
+
+    assert_not_equal "hijacked", comment_of_another_post.reload.body
   end
 
   def test_update_on_relation_passing_active_record_object_is_not_permitted
@@ -345,25 +575,25 @@ class UpdateAllTest < ActiveRecord::TestCase
         test_update_with_order_succeeds.call("id DESC")
       end
     end
+  end
 
-    def test_update_all_with_order_and_limit_updates_subset_only
-      author = authors(:david)
-      limited_posts = author.posts_sorted_by_id_limited
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
-      assert_equal "bulk update!", posts(:welcome).body
-      assert_not_equal "bulk update!", posts(:thinking).body
-    end
+  def test_update_all_with_order_and_limit_updates_subset_only
+    author = authors(:david)
+    limited_posts = author.posts_sorted_by_id_limited
+    assert_equal 1, limited_posts.size
+    assert_equal 2, limited_posts.limit(2).size
+    assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
+    assert_equal "bulk update!", posts(:welcome).body
+    assert_not_equal "bulk update!", posts(:thinking).body
+  end
 
-    def test_update_all_with_order_and_limit_and_offset_updates_subset_only
-      author = authors(:david)
-      limited_posts = author.posts_sorted_by_id_limited.offset(1)
-      assert_equal 1, limited_posts.size
-      assert_equal 2, limited_posts.limit(2).size
-      assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
-      assert_equal "bulk update!", posts(:thinking).body
-      assert_not_equal "bulk update!", posts(:welcome).body
-    end
+  def test_update_all_with_order_and_limit_and_offset_updates_subset_only
+    author = authors(:david)
+    limited_posts = author.posts_sorted_by_id_limited.offset(1)
+    assert_equal 1, limited_posts.size
+    assert_equal 2, limited_posts.limit(2).size
+    assert_equal 1, limited_posts.update_all([ "body = ?", "bulk update!" ])
+    assert_equal "bulk update!", posts(:thinking).body
+    assert_not_equal "bulk update!", posts(:welcome).body
   end
 end

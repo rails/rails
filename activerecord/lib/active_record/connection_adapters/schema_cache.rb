@@ -230,13 +230,9 @@ module ActiveRecord
 
         read(filename) do |file|
           if filename.include?(".dump")
-            Marshal.load(file)
+            Marshal.load(file, freeze: true)
           else
-            if YAML.respond_to?(:unsafe_load)
-              YAML.unsafe_load(file)
-            else
-              YAML.load(file)
-            end
+            YAML.unsafe_load(file)
           end
         end
       end
@@ -394,8 +390,25 @@ module ActiveRecord
       end
 
       def add_all(pool) # :nodoc:
-        pool.with_connection do
-          tables_to_cache(pool).each do |table|
+        pool.with_connection do |connection|
+          tables = tables_to_cache(pool)
+
+          tables.each { |table| @data_sources[deep_deduplicate(table)] = true }
+
+          connection.primary_keys(tables).each do |table, primary_keys|
+            primary_key = primary_keys.size > 1 ? primary_keys : primary_keys.first
+            @primary_keys[deep_deduplicate(table)] = deep_deduplicate(primary_key)
+          end
+
+          connection.columns(tables).each do |table, columns|
+            @columns[deep_deduplicate(table)] = deep_deduplicate(columns)
+          end
+
+          connection.indexes(tables).each do |table, indexes|
+            @indexes[deep_deduplicate(table)] = deep_deduplicate(indexes)
+          end
+
+          tables.each do |table|
             add(pool, table)
           end
 
@@ -420,8 +433,7 @@ module ActiveRecord
       def marshal_load(array) # :nodoc:
         @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, _database_version = array
         @indexes ||= {}
-
-        derive_columns_hash_and_deduplicate_values
+        @columns_hash = @columns.transform_values { |columns| columns.index_by(&:name) }
       end
 
       private
@@ -434,7 +446,7 @@ module ActiveRecord
         end
 
         def ignored_table?(table_name)
-          ActiveRecord.schema_cache_ignored_table?(table_name)
+          ActiveRecord.schema_ignored_table?(table_name)
         end
 
         def derive_columns_hash_and_deduplicate_values

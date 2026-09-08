@@ -27,7 +27,11 @@ module ActiveRecord
       records = @records
 
       records_by_id = records.group_by do |record|
-        record[key]
+        if key.is_a?(Array)
+          key.map { |column| record[column] }
+        else
+          record[key]
+        end
       end
 
       records = ids.flat_map { |id| records_by_id[id] }

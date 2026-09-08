@@ -66,7 +66,9 @@ class PolymorphicRoutesTest < ActionController::TestCase
   Routes.draw { }
   include Routes.url_helpers
 
-  default_url_options[:host] = "example.com"
+  def default_url_options
+    { host: "example.com" }
+  end
 
   def setup
     super
@@ -83,7 +85,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
   end
 
   def assert_url(url, args)
-    host = self.class.default_url_options[:host]
+    host = default_url_options[:host]
 
     assert_equal url.delete_prefix("http://#{host}"), polymorphic_path(args)
     assert_equal url, polymorphic_url(args)
@@ -741,7 +743,7 @@ class PolymorphicPathRoutesTest < PolymorphicRoutesTest
   attr_accessor :controller
 
   def assert_url(url, args)
-    host = self.class.default_url_options[:host]
+    host = default_url_options[:host]
 
     assert_equal url.delete_prefix("http://#{host}"), url_for(args)
   end

@@ -4,8 +4,7 @@ module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
     extend ActiveSupport::Concern
-    # :nodoc:
-    ACTIONS = [:create, :destroy, :update]
+    ACTIONS = [:create, :destroy, :update].freeze # :nodoc:
 
     included do
       define_callbacks :commit, :rollback,
@@ -13,7 +12,7 @@ module ActiveRecord
                        scope: [:kind, :name]
     end
 
-    attr_accessor :_new_record_before_last_commit # :nodoc:
+    attr_accessor :_new_record_before_last_commit, :_last_transaction_return_status # :nodoc:
 
     # = Active Record \Transactions
     #
@@ -219,20 +218,39 @@ module ActiveRecord
     # database error will occur because the savepoint has already been
     # automatically released. The following example demonstrates the problem:
     #
-    #   Model.lease_connection.transaction do                           # BEGIN
-    #     Model.lease_connection.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
-    #       Model.lease_connection.create_table(...)                    # active_record_1 now automatically released
-    #     end                                                     # RELEASE SAVEPOINT active_record_1
-    #                                                             # ^^^^ BOOM! database error!
-    #   end
+    #   Model.transaction do                           # BEGIN
+    #     Model.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
+    #       Model.lease_connection.create_table(...)   # active_record_1 now automatically released
+    #     end                                          # RELEASE SAVEPOINT active_record_1
+    #   end                                            # ^^^^ BOOM! database error!
     #
     # Note that "TRUNCATE" is also a MySQL DDL statement!
     module ClassMethods
       # See the ConnectionAdapters::DatabaseStatements#transaction API docs.
       def transaction(**options, &block)
         with_connection do |connection|
-          connection.transaction(**options, &block)
+          connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
+            connection.transaction(**options, &block)
+          end
         end
+      end
+
+      # Makes all transactions the current pool use the isolation level initiated within the block.
+      def with_pool_transaction_isolation_level(isolation_level, &block)
+        if current_transaction.open?
+          raise ActiveRecord::TransactionIsolationError, "cannot set default isolation level while transaction is open"
+        end
+
+        old_level = connection_pool.pool_transaction_isolation_level
+        connection_pool.pool_transaction_isolation_level = isolation_level
+        yield
+      ensure
+        connection_pool.pool_transaction_isolation_level = old_level
+      end
+
+      # Returns the default isolation level for the connection pool, set earlier by #with_pool_transaction_isolation_level.
+      def pool_transaction_isolation_level
+        connection_pool.pool_transaction_isolation_level
       end
 
       # Returns a representation of the current transaction state,
@@ -247,7 +265,7 @@ module ActiveRecord
       end
 
       def before_commit(*args, &block) # :nodoc:
-        set_options_for_callbacks!(args)
+        set_options_for_callbacks!(:before, args)
         set_callback(:before_commit, :before, *args, &block)
       end
 
@@ -264,31 +282,31 @@ module ActiveRecord
       #   after_commit :do_bar_baz, on: [:update, :destroy]
       #
       def after_commit(*args, &block)
-        set_options_for_callbacks!(args, prepend_option)
+        set_options_for_callbacks!(:after, args)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: [ :create, :update ]</tt>.
       def after_save_commit(*args, &block)
-        set_options_for_callbacks!(args, on: [ :create, :update ], **prepend_option)
+        set_options_for_callbacks!(:after, args, on: [ :create, :update ])
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :create</tt>.
       def after_create_commit(*args, &block)
-        set_options_for_callbacks!(args, on: :create, **prepend_option)
+        set_options_for_callbacks!(:after, args, on: :create)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :update</tt>.
       def after_update_commit(*args, &block)
-        set_options_for_callbacks!(args, on: :update, **prepend_option)
+        set_options_for_callbacks!(:after, args, on: :update)
         set_callback(:commit, :after, *args, &block)
       end
 
       # Shortcut for <tt>after_commit :hook, on: :destroy</tt>.
       def after_destroy_commit(*args, &block)
-        set_options_for_callbacks!(args, on: :destroy, **prepend_option)
+        set_options_for_callbacks!(:after, args, on: :destroy)
         set_callback(:commit, :after, *args, &block)
       end
 
@@ -296,7 +314,7 @@ module ActiveRecord
       #
       # Please check the documentation of #after_commit for options.
       def after_rollback(*args, &block)
-        set_options_for_callbacks!(args, prepend_option)
+        set_options_for_callbacks!(:after, args)
         set_callback(:rollback, :after, *args, &block)
       end
 
@@ -307,7 +325,7 @@ module ActiveRecord
         filter_list << options
 
         if name.in?([:commit, :rollback]) && options[:on]
-          fire_on = Array(options[:on])
+          fire_on = Array(options[:on]).freeze
           assert_valid_transaction_action(fire_on)
           options[:if] = [
             -> { transaction_include_any_action?(fire_on) },
@@ -320,25 +338,28 @@ module ActiveRecord
       end
 
       private
-        def prepend_option
-          if ActiveRecord.run_after_transaction_callbacks_in_order_defined
-            { prepend: true }
-          else
-            {}
-          end
-        end
+        def set_options_for_callbacks!(position, args, enforced_options = {})
+          options = args.extract_options!
+          enforced_options.merge!(enforced_prepend_option(position, options))
+          options.merge!(enforced_options)
 
-        def set_options_for_callbacks!(args, enforced_options = {})
-          options = args.extract_options!.merge!(enforced_options)
           args << options
 
           if options[:on]
-            fire_on = Array(options[:on])
+            fire_on = Array(options[:on]).freeze
             assert_valid_transaction_action(fire_on)
             options[:if] = [
               -> { transaction_include_any_action?(fire_on) },
               *options[:if]
             ]
+          end
+        end
+
+        def enforced_prepend_option(position, options)
+          if position == :after && ActiveRecord.run_after_transaction_callbacks_in_order_defined
+            { prepend: !options[:prepend] }
+          else
+            {}
           end
         end
 
@@ -406,19 +427,22 @@ module ActiveRecord
     #
     # This method is available within the context of an ActiveRecord::Base
     # instance.
-    def with_transaction_returning_status
+    def with_transaction_returning_status # :nodoc:
       self.class.with_connection do |connection|
-        status = nil
-        ensure_finalize = !connection.transaction_open?
+        connection.pool.with_pool_transaction_isolation_level(ActiveRecord.default_transaction_isolation_level, connection.transaction_open?) do
+          status = nil
+          ensure_finalize = !connection.transaction_open?
 
-        connection.transaction do
-          add_to_transaction(ensure_finalize || has_transactional_callbacks?)
-          remember_transaction_record_state
+          implicit_persistence_transaction(connection) do
+            add_to_transaction(ensure_finalize || has_transactional_callbacks?)
+            remember_transaction_record_state
 
-          status = yield
-          raise ActiveRecord::Rollback unless status
+            status = yield
+            raise ActiveRecord::Rollback unless status
+          end
+          @_last_transaction_return_status = status
+          status
         end
-        status
       end
     end
 
@@ -433,6 +457,7 @@ module ActiveRecord
       def init_internals
         super
         @_start_transaction_state = nil
+        @_last_transaction_return_status = nil
         @_committed_already_called = nil
         @_new_record_before_last_commit = nil
       end
@@ -470,26 +495,48 @@ module ActiveRecord
           if force_restore_state || restore_state[:level] <= 1
             @new_record = restore_state[:new_record]
             @previously_new_record = restore_state[:previously_new_record]
-            @destroyed  = restore_state[:destroyed]
+            @destroyed = restore_state[:destroyed]
+            locking_column = self.class.locking_column if self.class.locking_enabled?
             @attributes = restore_state[:attributes].map do |attr|
+              if attr.name == locking_column
+                # The locking column is bumped by `_update_row` itself, not the caller, and
+                # `_update_row` writes the new value into the same `@attributes` object that
+                # the snapshot is holding a reference to (because the snapshot wraps the
+                # `AttributeSet` rather than deep-duping it). After a successful save,
+                # `forget_attribute_assignments` reassigns `@attributes`, so subsequent
+                # operations see a clean attribute, but the snapshot retains the dirty one.
+                # Forcibly rebuild the locking column attribute from its (still-correct)
+                # original value so the next save uses the pristine value in the WHERE
+                # clause and doesn't raise `StaleObjectError` after a rollback.
+                next attr.with_value_from_database(attr.original_value)
+              end
               value = @attributes.fetch_value(attr.name)
               attr = attr.with_value_from_user(value) if attr.value != value
               attr
             end
             @mutations_from_database = nil
             @mutations_before_last_save = nil
-            if self.class.composite_primary_key?
-              if restore_state[:id] != @primary_key.map { |col| @attributes.fetch_value(col) }
-                @primary_key.zip(restore_state[:id]).each do |col, val|
-                  @attributes.write_from_user(col, val)
-                end
-              end
-            else
-              if @attributes.fetch_value(@primary_key) != restore_state[:id]
-                @attributes.write_from_user(@primary_key, restore_state[:id])
+            columns = self.class.primary_key_definition.columns
+            restored_id = Array(restore_state[:id])
+            if columns.map { |col| @attributes.fetch_value(col) } != restored_id
+              columns.zip(restored_id).each do |col, val|
+                @attributes.write_from_user(col, val)
               end
             end
             freeze if restore_state[:frozen?]
+          elsif self.class.locking_enabled?
+            # Nested savepoint rollback. The full restore above only runs at the
+            # outermost level, but the same `_update_row` mutation that bumps the
+            # in-memory locking column happens for saves performed inside the
+            # savepoint too. Leaving the bumped value in memory after the
+            # savepoint reverts those rows raises `StaleObjectError` on the next
+            # save in the surrounding transaction. Reset just the locking column
+            # so subsequent saves can match the row that the savepoint restored.
+            locking_column = self.class.locking_column
+            attr = restore_state[:attributes][locking_column]
+            if attr
+              @attributes.write_from_database(locking_column, attr.original_value)
+            end
           end
         end
       end
@@ -518,6 +565,34 @@ module ActiveRecord
 
       def has_transactional_callbacks?
         !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_before_commit_callbacks.empty?
+      end
+
+      # Method called to execute persistence method operations (+save+, +destroy+, +touch+),
+      # creating a transaction on the provided +connection+.
+      #
+      # Override this method to customize transaction behavior, for example to set a specific
+      # isolation level.
+      #
+      # The +connection+ parameter provides access to the current database
+      # connection, allowing conditional logic based on connection state
+      # (e.g., whether a transaction is already open).
+      # The +block+ parameter contains the persistence operation to be executed.
+      #
+      # Example skipping transaction creation if one is already open:
+      #
+      #   class Account < ApplicationRecord
+      #     private
+      #       def implicit_persistence_transaction(connection, &block)
+      #         if connection.transaction_open?
+      #           yield
+      #         else
+      #           super
+      #         end
+      #       end
+      #   end
+      #
+      def implicit_persistence_transaction(connection, &block)
+        connection.transaction(&block)
       end
   end
 end

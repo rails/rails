@@ -117,13 +117,14 @@ module Rails
       end
     end
 
-    DUMMY_IGNORE_OPTIONS = %i[dev edge master template]
+    DUMMY_IGNORE_OPTIONS = %i[dev edge master template].freeze
 
     def generate_test_dummy(force = false)
       opts = options.transform_keys(&:to_sym).except(*DUMMY_IGNORE_OPTIONS)
       opts[:force] = force
       opts[:skip_thruster] = true
       opts[:skip_brakeman] = true
+      opts[:skip_bundler_audit] = true
       opts[:skip_bundle] = true
       opts[:skip_ci] = true
       opts[:skip_kamal] = true

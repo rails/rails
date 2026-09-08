@@ -9,7 +9,7 @@ Example:
         script/my_script.rb
 
     You can run the script using:
-        `ruby script/my_script.rb`
+        `bin/rails runner script/my_script.rb`
 
     You can specify a folder:
         `bin/rails generate script cleanup/my_script`

@@ -14,12 +14,6 @@ module ActiveRecord
         end
 
         private
-          def execute_batch(statements, name = nil, **kwargs)
-            combine_multi_statements(statements).each do |statement|
-              raw_execute(statement, name, batch: true, **kwargs)
-            end
-          end
-
           def last_inserted_id(result)
             if supports_insert_returning?
               super
@@ -38,8 +32,8 @@ module ActiveRecord
             end
           end
 
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
-            reset_multi_statement = if batch && !multi_statements_enabled?
+          def perform_query(raw_connection, intent)
+            reset_multi_statement = if intent.batch && !multi_statements_enabled?
               raw_connection.set_server_option(::Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
               true
             end
@@ -48,32 +42,72 @@ module ActiveRecord
             # made since we established the connection
             raw_connection.query_options[:database_timezone] = default_timezone
 
-            result = if prepare
-              stmt = @statements[sql] ||= raw_connection.prepare(sql)
+            result = nil
+            affected_rows = nil
+            if !intent.has_binds?
+              result = raw_connection.query(intent.processed_sql)
+              # Ref: https://github.com/brianmario/mysql2/pull/1383
+              # As of mysql2 0.5.6 `#affected_rows` might raise Mysql2::Error if a prepared statement
+              # from that same connection was GCed while `#query` released the GVL.
+              # By avoiding to call `#affected_rows` when we have a result, we reduce the likeliness
+              # of hitting the bug.
+              affected_rows = result&.size || raw_connection.affected_rows
+            elsif intent.prepare
+              retry_count = 1
+              begin
+                stmt = @statements[intent.processed_sql] ||= raw_connection.prepare(intent.processed_sql)
+                result = stmt.execute(*intent.type_casted_binds)
+                affected_rows = stmt.affected_rows
+              rescue ::Mysql2::Error => error
+                @statements.delete(intent.processed_sql)
+                # Sometimes for an unknown reason, we get that error.
+                # It suggest somehow that the prepared statement was deallocated
+                # but the client doesn't know it.
+                # But we know that this error is safe to retry, so we do so after
+                # getting rid of the originally cached statement.
+                if error.error_number == Mysql2Adapter::ER_UNKNOWN_STMT_HANDLER
+                  if retry_count.positive?
+                    retry_count -= 1
+                    retry
+                  end
+                end
+                raise
+              end
+            else
+              stmt = raw_connection.prepare(intent.processed_sql)
 
               begin
-                ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-                  stmt.execute(*type_casted_binds)
+                result = stmt.execute(*intent.type_casted_binds)
+                affected_rows = stmt.affected_rows
+
+                # Ref: https://github.com/brianmario/mysql2/pull/1383
+                # by eagerly closing uncached prepared statements, we also reduce the chances of
+                # that bug happening. It can still happen if `#execute` is used as we have no callback
+                # to eagerly close the statement.
+                if result
+                  result.instance_variable_set(:@_ar_stmt_to_close, stmt)
+                else
+                  stmt.close
                 end
               rescue ::Mysql2::Error
-                @statements.delete(sql)
                 stmt.close
                 raise
               end
-              verified!
-            else
-              raw_connection.query(sql)
             end
 
-            @affected_rows_before_warnings = raw_connection.affected_rows
+            intent.notification_payload[:affected_rows] = affected_rows
+            intent.notification_payload[:row_count] = result&.size || 0
 
-            notification_payload[:affected_rows] = @affected_rows_before_warnings
-            notification_payload[:row_count] = result&.size || 0
+            if result.nil?
+              result = ActiveRecord::Result.empty(affected_rows: affected_rows)
+            elsif result.fields.empty?
+              free_raw_result(result)
+              result = ActiveRecord::Result.empty(affected_rows: affected_rows)
+            end
 
             raw_connection.abandon_results!
 
             verified!
-            handle_warnings(sql)
             result
           ensure
             if reset_multi_statement && active?
@@ -81,16 +115,29 @@ module ActiveRecord
             end
           end
 
-          def cast_result(result)
-            if result.nil? || result.fields.empty?
-              ActiveRecord::Result.empty
+          def cast_result(raw_result)
+            return raw_result if raw_result.is_a?(ActiveRecord::Result)
+
+            result = ActiveRecord::Result.new(raw_result.fields, raw_result.to_a)
+            free_raw_result(raw_result)
+            result
+          end
+
+          def affected_rows(raw_result)
+            if raw_result.is_a?(ActiveRecord::Result)
+              raw_result.affected_rows
             else
-              ActiveRecord::Result.new(result.fields, result.to_a)
+              affected_rows = raw_result.size
+              free_raw_result(raw_result)
+              affected_rows
             end
           end
 
-          def affected_rows(result)
-            @affected_rows_before_warnings
+          def free_raw_result(raw_result)
+            raw_result.free
+            if stmt = raw_result.instance_variable_get(:@_ar_stmt_to_close)
+              stmt.close
+            end
           end
       end
     end

@@ -70,6 +70,16 @@ module ActiveRecord
       assert_equal last_developer_timestamp.to_fs(ActiveRecord::Base.cache_timestamp_format), $3
     end
 
+    test "cache_key for a loaded relation with a NULL timestamp matches the unloaded key" do
+      with_timestamp = Topic.create!(title: "with timestamp")
+      without_timestamp = Topic.create!(title: "without timestamp")
+      Topic.where(id: without_timestamp.id).update_all(updated_at: nil)
+
+      relation = -> { Topic.where(id: [with_timestamp.id, without_timestamp.id]) }
+
+      assert_equal relation.call.cache_key, relation.call.load.cache_key
+    end
+
     test "cache_key for relation with table alias" do
       table_alias = Developer.arel_table.alias("omg_developers")
 
@@ -94,6 +104,28 @@ module ActiveRecord
     test "cache_key for loaded relation with includes" do
       comments = Comment.includes(:post).where("posts.type": "Post").load
       assert_match(/\Acomments\/query-(\h+)-(\d+)-(\d+)\z/, comments.cache_key)
+    end
+
+    test "insert_all will update cache_key" do
+      skip unless supports_insert_on_duplicate_skip?
+
+      developers = Developer.all
+      cache_key = developers.cache_key
+
+      developers.insert_all([{ name: "Alice" }, { name: "Bob" }])
+
+      assert_not_equal cache_key, developers.cache_key
+    end
+
+    test "upsert_all will update cache_key" do
+      skip unless supports_insert_on_duplicate_update?
+
+      developers = Developer.all
+      cache_key = developers.cache_key
+
+      developers.upsert_all([{ id: 1, name: "Alice" }, { id: 2, name: "Bob" }])
+
+      assert_not_equal cache_key, developers.cache_key
     end
 
     test "update_all will update cache_key" do

@@ -14,6 +14,17 @@ module ActiveRecord
       @connection.materialize_transactions
     end
 
+    def test_type_map_is_ractor_shareable
+      # This is testing internals. Please feel free to remove this test
+      # or change it when internals change. The point is to make sure
+      # the type map is Ractor shareable.
+      @connection.tables.each do |table|
+        @connection.columns(table).each do |column|
+          assert_ractor_shareable @connection.send(:lookup_cast_type, column.sql_type)
+        end
+      end
+    end
+
     ##
     # PostgreSQL does not support null bytes in strings
     unless current_adapter?(:PostgreSQLAdapter) ||
@@ -37,11 +48,13 @@ module ActiveRecord
     def test_valid_column
       @connection.native_database_types.each_key do |type|
         assert @connection.valid_type?(type)
+        assert @connection.class.valid_type?(type)
       end
     end
 
     def test_invalid_column
       assert_not @connection.valid_type?(:foobar)
+      assert_not @connection.class.valid_type?(:foobar)
     end
 
     def test_tables
@@ -140,6 +153,23 @@ module ActiveRecord
       assert_not_empty result.columns
     end
 
+    test "#exec_query queries return an ActiveRecord::Result with affected rows" do
+      result = @connection.exec_query "INSERT INTO subscribers(nick, name) VALUES('me', 'me'), ('you', 'you')"
+      assert_equal 2, result.affected_rows
+
+      update_result = @connection.exec_query "UPDATE subscribers SET name = 'you' WHERE name = 'me'"
+      assert_equal 1, update_result.affected_rows
+
+      select_result = @connection.exec_query "SELECT * FROM subscribers"
+      assert_not_equal update_result.affected_rows, select_result.affected_rows
+
+      result = @connection.exec_query "DELETE FROM subscribers WHERE name = 'you'"
+      assert_equal 2, result.affected_rows
+
+      result = @connection.exec_query "DELETE FROM subscribers WHERE name = 'you'"
+      assert_equal 0, result.affected_rows
+    end
+
     if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       def test_charset
         assert_not_nil @connection.charset
@@ -233,9 +263,31 @@ module ActiveRecord
         assert_not_nil error.cause
       end
 
-      def test_numeric_value_out_of_ranges_are_translated_to_specific_exception
+      def test_numeric_value_out_of_ranges_on_model_create_are_translated_to_specific_exception
+        assert_raises(ActiveModel::RangeError) do
+          Book.create(author_id: 9223372036854775808)
+        end
+      end
+
+      def test_numeric_value_out_of_ranges_on_model_update_are_translated_to_specific_exception
+        book = Book.create!
+        assert_raises(ActiveModel::RangeError) do
+          book.update(author_id: 9223372036854775808)
+        end
+      end
+
+      def test_numeric_value_out_of_ranges_on_connection_insert_are_translated_to_specific_exception
         error = assert_raises(ActiveRecord::RangeError) do
-          Book.lease_connection.create("INSERT INTO books(author_id) VALUES (9223372036854775808)")
+          Book.lease_connection.insert("INSERT INTO books(author_id) VALUES (9223372036854775808)")
+        end
+
+        assert_not_nil error.cause
+      end
+
+      def test_numeric_value_out_of_ranges_on_connection_update_are_translated_to_specific_exception
+        book = Book.create!
+        error = assert_raises(ActiveRecord::RangeError) do
+          Book.lease_connection.update("UPDATE books SET author_id = 9223372036854775808 WHERE id = #{book.id}")
         end
 
         assert_not_nil error.cause
@@ -263,6 +315,25 @@ module ActiveRecord
       assert_kind_of Exception, error.cause
     end
 
+    class MockDatabaseError < StandardError
+      def result
+        0
+      end
+
+      def error_number
+        0
+      end
+    end
+
+    def test_translated_exceptions_carry_their_cause_without_an_enclosing_rescue
+      native = MockDatabaseError.new("boom")
+
+      translated = @connection.send(:translate_exception_class, native, "SELECT 1", [])
+
+      assert_kind_of ActiveRecord::StatementInvalid, translated
+      assert_same native, translated.cause
+    end
+
     def test_select_all_always_return_activerecord_result
       result = @connection.select_all "SELECT * FROM posts"
       assert result.is_a?(ActiveRecord::Result)
@@ -273,16 +344,22 @@ module ActiveRecord
         binds = [Event.type_for_attribute("id").serialize(1)]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
-        id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        id = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        end
         assert_equal 1, id
 
-        updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        updated = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        end
         assert_equal 1, updated
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
 
-        deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        deleted = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        end
         assert_equal 1, deleted
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
@@ -293,16 +370,22 @@ module ActiveRecord
         binds = [Relation::QueryAttribute.new("id", 1, Event.type_for_attribute("id"))]
         bind_param = Arel::Nodes::BindParam.new(nil)
 
-        id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        id = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        end
         assert_equal 1, id
 
-        updated = @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        updated = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        end
         assert_equal 1, updated
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         assert_equal({ "id" => 1, "title" => "foo" }, result.first)
 
-        deleted = @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        deleted = assert_deprecated(/Passing `binds`/, ActiveRecord.deprecator) do
+          @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        end
         assert_equal 1, deleted
 
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
@@ -338,6 +421,13 @@ module ActiveRecord
 
       assert_match(/ActiveRecord::ConnectionAdapters::\w+:0x[\da-f]+ env_name="\w+" role=:writing>/, output)
     end
+
+    private
+      def assert_ractor_shareable(obj)
+        # rubocop:disable Minitest/AssertWithExpectedArgument
+        assert(Ractor.shareable?(obj), -> { "Expected #{obj} to be shareable, but it wasn't" })
+        # rubocop:enable Minitest/AssertWithExpectedArgument
+      end
   end
 
   class AdapterForeignKeyTest < ActiveRecord::TestCase
@@ -413,12 +503,12 @@ module ActiveRecord
       @connection = ActiveRecord::Base.lease_connection
     end
 
-    def test_create_with_query_cache
+    def test_insert_with_query_cache
       @connection.enable_query_cache!
 
       count = Post.count
 
-      @connection.create("INSERT INTO posts(title, body) VALUES ('', '')")
+      @connection.insert("INSERT INTO posts(title, body) VALUES ('', '')")
 
       assert_equal count + 1, Post.count
     ensure
@@ -480,6 +570,37 @@ module ActiveRecord
       @connection.disable_query_cache!
     end
 
+    def test_empty_all_tables
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.empty_all_tables
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+    end
+
+    def test_empty_all_tables_with_query_cache
+      @connection.enable_query_cache!
+
+      assert_operator Post.count, :>, 0
+      assert_operator Author.count, :>, 0
+      assert_operator AuthorAddress.count, :>, 0
+
+      @connection.empty_all_tables
+
+      assert_equal 0, Post.count
+      assert_equal 0, Author.count
+      assert_equal 0, AuthorAddress.count
+    ensure
+      reset_fixtures("posts", "authors", "author_addresses")
+      @connection.disable_query_cache!
+    end
+
     # test resetting sequences in odd tables in PostgreSQL
     if ActiveRecord::Base.lease_connection.respond_to?(:reset_pk_sequence!)
       require "models/movie"
@@ -503,14 +624,16 @@ module ActiveRecord
     private
       def reset_fixtures(*fixture_names)
         ActiveRecord::FixtureSet.reset_cache
-
-        fixture_names.each do |fixture_name|
-          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, fixture_name)
-        end
+        # Pass all fixtures at once: on PostgreSQL 18.4+, switching back to `ENFORCED` checks
+        # existing rows against the constraint, so loading child fixtures before parents
+        # would raise a FK violation.
+        ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, fixture_names)
       end
   end
 
   class AdapterConnectionTest < ActiveRecord::TestCase
+    include ConnectionHelper
+
     unless in_memory_db?
       self.use_transactional_tests = false
 
@@ -599,6 +722,17 @@ module ActiveRecord
         assert_not_predicate @connection, :active?
       end
 
+      test "active? on a 'clean' recently-used but now-failed connection detects but doesn't fix the problem" do
+        remote_disconnect @connection
+        @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Clean did not verify / fix the connection
+        assert_not_predicate @connection, :active?
+
+        # And nor did the above active? check
+        assert_not_predicate @connection, :active?
+      end
+
       test "verify! restores after remote disconnection" do
         remote_disconnect @connection
         @connection.verify!
@@ -611,10 +745,13 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
-      test "querying a 'clean' failed connection restores and succeeds" do
+      test "querying a 'clean' long-failed connection restores and succeeds" do
         remote_disconnect @connection
 
         @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Backdate last activity to simulate a connection we haven't used in a while
+        @connection.instance_variable_set(:@last_activity, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 5.minutes)
 
         # Clean did not verify / fix the connection
         assert_not_predicate @connection, :active?
@@ -627,10 +764,54 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
+      test "querying a 'clean' recently-used but now-failed connection skips verification" do
+        remote_disconnect @connection
+
+        @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Because the query cannot be retried, and we (mistakenly) believe the
+        # connection is still good, the query will fail. This is what we want,
+        # because the alternative would be excessive reverification.
+        assert_raises(ActiveRecord::AdapterError) do
+          Post.delete_all
+        end
+      end
+
+      test "querying a connection marked for reconnect replaces it first" do
+        previous_connection_id = connection_id_from_server(@connection)
+        @connection.instance_variable_set(:@needs_reconnect, true)
+        @connection.clean! # this simulates a fresh checkout from the pool
+
+        assert_predicate @connection, :needs_reconnect?
+        assert_predicate Post, :exists?
+        assert_not_equal previous_connection_id, connection_id_from_server(@connection)
+        assert_not_predicate @connection, :needs_reconnect?
+      end
+
+      test "a non-StandardError interrupt marks the connection for re-verification" do
+        # A recently-used, verified connection is the state a mid-query interrupt poisons.
+        @connection.execute("SELECT 1")
+        error = Class.new(Exception)
+
+        assert_raises error do
+          @connection.send(:with_raw_connection) do
+            raise error
+          end
+        end
+
+        # It can't be reused on the "verified" flag or the recently-used shortcut, so both
+        # are cleared and the connection is re-verified before its next use.
+        assert_not_predicate @connection, :verified?
+        assert_nil @connection.instance_variable_get(:@last_activity)
+      end
+
       test "quoting a string on a 'clean' failed connection will not prevent reconnecting" do
         remote_disconnect @connection
 
         @connection.clean! # this simulates a fresh checkout from the pool
+
+        # Backdate last activity to simulate a connection we haven't used in a while
+        @connection.instance_variable_set(:@last_activity, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 5.minutes)
 
         # Clean did not verify / fix the connection
         assert_not_predicate @connection, :active?
@@ -660,65 +841,77 @@ module ActiveRecord
         assert_predicate @connection, :active?
       end
 
-      test "idempotent SELECT queries are retried and result in a reconnect" do
-        Post.first
+      test "idempotent SELECT queries allow retries" do
+        notifications = capture_notifications("sql.active_record") do
+          assert (a = Author.first)
+          assert Post.where(id: [1, 2]).first
+          assert Post.where(Arel.sql("id IN (1,2)", retryable: true)).first
+          assert Post.find(1)
+          assert Post.find_by(title: "Welcome to the weblog")
+          assert_predicate Post, :exists?
+          a.books.to_a
+          Author.select(:status).joins(:books).group(:status).to_a
+          Author.group(:name).count
+        end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        remote_disconnect @connection
+        assert_equal 9, notifications.length
 
-        assert Post.first
-        assert_predicate @connection, :active?
-
-        remote_disconnect @connection
-
-        assert Post.where(id: [1, 2]).first
-        assert_predicate @connection, :active?
+        notifications.each do |n|
+          assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
+        end
       end
 
-      test "#find and #find_by queries with known attributes are retried and result in a reconnect" do
-        Post.first
+      test "query cacheable idempotent SELECT queries allow retries" do
+        @connection.enable_query_cache!
 
-        remote_disconnect @connection
+        notifications = capture_notifications("sql.active_record") do
+          assert_not_nil (a = Author.first)
+          assert_not_nil Post.where(id: [1, 2]).first
+          assert Post.where(Arel.sql("id IN (1,2)", retryable: true)).first
+          assert_not_nil Post.find(1)
+          assert_not_nil Post.find_by(title: "Welcome to the weblog")
+          assert_predicate Post, :exists?
+          a.books.to_a
+          Author.select(:status).joins(:books).group(:status).to_a
+          Author.group(:name).count
+        end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert Post.find(1)
-        assert_predicate @connection, :active?
+        assert_equal 9, notifications.length
 
-        remote_disconnect @connection
-
-        assert Post.find_by(title: "Welcome to the weblog")
-        assert_predicate @connection, :active?
+        notifications.each do |n|
+          assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
+        end
+      ensure
+        @connection.disable_query_cache!
       end
 
-      test "queries containing SQL fragments are not retried" do
-        Post.first
+      test "queries containing SQL fragments do not allow retries" do
+        notifications = capture_notifications("sql.active_record") do
+          Post.where("1 = 1").to_a
+          Post.select("title AS custom_title").first
+          Book.find_by("updated_at < ?", 2.weeks.ago)
+        end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        remote_disconnect @connection
+        assert_equal 3, notifications.length
 
-        assert_raises(ActiveRecord::ConnectionFailed) { Post.where("1 = 1").to_a }
-        assert_not_predicate @connection, :active?
-
-        remote_disconnect @connection
-
-        assert_raises(ActiveRecord::ConnectionFailed) { Post.select("title AS custom_title").first }
-        assert_not_predicate @connection, :active?
-
-        remote_disconnect @connection
-
-        assert_raises(ActiveRecord::ConnectionFailed) { Post.find_by("updated_at < ?", 2.weeks.ago) }
-        assert_not_predicate @connection, :active?
+        notifications.each do |n|
+          assert_not n.payload[:allow_retry]
+        end
       end
 
-      test "queries containing SQL functions are not retried" do
-        Post.first
-
-        remote_disconnect @connection
-
+      test "queries containing SQL functions do not allow retries" do
         tags_count_attr = Post.arel_table[:tags_count]
         abs_tags_count = Arel::Nodes::NamedFunction.new("ABS", [tags_count_attr])
 
-        assert_raises(ActiveRecord::ConnectionFailed) do
+        notifications = capture_notifications("sql.active_record") do
           Post.where(abs_tags_count.eq(2)).first
+        end.select { |n| n.payload[:name] != "SCHEMA" }
+
+        assert_equal 1, notifications.length
+
+        notifications.each do |n|
+          assert_not n.payload[:allow_retry]
         end
-        assert_not_predicate @connection, :active?
       end
 
       test "transaction restores after remote disconnection" do
@@ -771,6 +964,20 @@ module ActiveRecord
         assert_operator Post.count, :>, 0
       end
 
+      test "connection failures consume the reconnect allowance" do
+        budget = ActiveRecord::ConnectionAdapters::RetryBudget.new(
+          retries: 2, deadline: nil, reconnectable: true
+        )
+        failure = ActiveRecord::ConnectionFailed.new("connection failed")
+
+        assert @connection.attempt_retry(failure, budget)
+        assert_not_predicate budget, :reconnectable?
+        assert_equal 1, budget.attempts_used
+
+        assert_not @connection.attempt_retry(failure, budget)
+        assert_equal 1, budget.attempts_used
+      end
+
       test "can reconnect and retry queries under limit when retry deadline is set" do
         attempts = 0
         @connection.stub(:retry_deadline, 0.1) do
@@ -811,79 +1018,80 @@ module ActiveRecord
       end
 
       test "#execute is retryable" do
-        conn_id = case @connection.adapter_name
-                  when "Mysql2"
-                    @connection.execute("SELECT CONNECTION_ID()").to_a[0][0]
-                  when "Trilogy"
-                    @connection.execute("SELECT CONNECTION_ID() as connection_id").to_a[0][0]
-                  when "PostgreSQL"
-                    @connection.execute("SELECT pg_backend_pid()").to_a[0]["pg_backend_pid"]
-                  else
-                    skip("kill_connection_from_server unsupported")
-        end
+        initial_connection_id = connection_id_from_server(@connection)
 
-        kill_connection_from_server(conn_id)
+        kill_connection_from_server(initial_connection_id)
 
         @connection.execute("SELECT 1", allow_retry: true)
+
+        assert_not_equal initial_connection_id, connection_id_from_server(@connection)
       end
 
-      private
-        def raw_transaction_open?(connection)
-          case connection.adapter_name
-          when "PostgreSQL"
-            connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
-          when "Mysql2", "Trilogy"
-            begin
-              connection.instance_variable_get(:@raw_connection).query("SAVEPOINT transaction_test")
-              connection.instance_variable_get(:@raw_connection).query("RELEASE SAVEPOINT transaction_test")
+      test "disconnect and recover on #configure_connection failure" do
+        connection = ActiveRecord::Base.connection_pool.send(:new_connection)
 
-              true
-            rescue
-              false
-            end
-          when "SQLite"
-            begin
-              connection.instance_variable_get(:@raw_connection).transaction { nil }
-              false
-            rescue
-              true
-            end
+        failures = [ActiveRecord::ConnectionFailed.new("Oops"), ActiveRecord::ConnectionFailed.new("Oops 2")]
+        connection.singleton_class.define_method(:configure_connection) do
+          if error = failures.pop
+            raise error
           else
-            skip("kill_connection_from_server unsupported")
+            super()
+          end
+        end
+        assert_raises ActiveRecord::ConnectionFailed do
+          connection.exec_query("SELECT 1")
+        end
+
+        assert_equal [[1]], connection.exec_query("SELECT 1").rows
+        assert_empty failures
+      ensure
+        connection&.disconnect!
+      end
+
+      test "disconnect and recover on #configure_connection timeout" do
+        connection = ActiveRecord::Base.connection_pool.send(:new_connection)
+
+        slow = [5]
+        connection.singleton_class.define_method(:configure_connection) do
+          if duration = slow.pop
+            sleep duration
+          end
+          super()
+        end
+
+        assert_raises Timeout::Error do
+          Timeout.timeout(0.2) do
+            connection.exec_query("SELECT 1")
           end
         end
 
-        def remote_disconnect(connection)
-          case connection.adapter_name
-          when "PostgreSQL"
-            # Connection was left in a bad state, need to reconnect to simulate fresh disconnect
-            connection.verify! if connection.instance_variable_get(:@raw_connection).status == ::PG::CONNECTION_BAD
-            unless connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
-              connection.instance_variable_get(:@raw_connection).async_exec("begin")
-            end
-            connection.instance_variable_get(:@raw_connection).async_exec("set idle_in_transaction_session_timeout = '10ms'")
-            sleep 0.05
-          when "Mysql2", "Trilogy"
-            connection.send(:internal_execute, "set @@wait_timeout=1", materialize_transactions: false)
-            sleep 1.2
-          else
-            skip("remote_disconnect unsupported")
-          end
-        end
+        assert_equal [[1]], connection.exec_query("SELECT 1").rows
+        assert_empty slow
+      ensure
+        connection&.disconnect!
+      end
+    end
 
-        def kill_connection_from_server(connection_id)
-          conn = @connection.pool.checkout
-          case conn.adapter_name
-          when "Mysql2", "Trilogy"
-            conn.execute("KILL #{connection_id}")
-          when "PostgreSQL"
-            conn.execute("SELECT pg_cancel_backend(#{connection_id})")
-          else
-            skip("kill_connection_from_server unsupported")
+    unless in_memory_db?
+      test "suppresses notifications when sql_notifications=false" do
+        run_without_connection do |orig_connection|
+          ActiveRecord::Base.establish_connection(orig_connection.merge(sql_notifications: false))
+
+          notifications = capture_notifications("sql.active_record") do
+            Post.first
           end
 
-          conn.close
+          assert_empty notifications
         end
+      end
+
+      test "sql_notifications are enabled by default" do
+        notifications = capture_notifications("sql.active_record") do
+          Post.first
+        end
+
+        assert_not_empty notifications
+      end
     end
   end
 

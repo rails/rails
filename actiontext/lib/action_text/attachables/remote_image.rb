@@ -9,12 +9,16 @@ module ActionText
 
       class << self
         def from_node(node)
-          if node["url"] && content_type_is_image?(node["content-type"])
+          if remote_url?(node["url"]) && content_type_is_image?(node["content-type"])
             new(attributes_from_node(node))
           end
         end
 
         private
+          def remote_url?(url)
+            url && ActionView::Helpers::AssetUrlHelper::URI_REGEXP.match?(url)
+          end
+
           def content_type_is_image?(content_type)
             content_type.to_s.match?(/^image(\/.+|$)/)
           end
@@ -38,6 +42,10 @@ module ActionText
 
       def attachable_plain_text_representation(caption)
         "[#{caption || "Image"}]"
+      end
+
+      def attachable_markdown_representation(caption, attachment_links: false)
+        MarkdownConversion.markdown_link(caption || "Image", url, image: true)
       end
 
       def to_partial_path

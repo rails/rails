@@ -7,6 +7,17 @@ module ActiveRecord
   class StatementInvalidTest < ActiveRecord::TestCase
     fixtures :books
 
+    def setup
+      super
+      @connection = ActiveRecord::Base.connection_pool.send(:new_connection)
+      @connection.connect!
+    end
+
+    def teardown
+      @connection.disconnect!
+      super
+    end
+
     class MockDatabaseError < StandardError
       def result
         0
@@ -19,11 +30,12 @@ module ActiveRecord
 
     test "message contains no sql" do
       sql = Book.where(author_id: 96, cover: "hard").to_sql
+      connection = @connection
+      intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(adapter: connection, processed_sql: sql, name: Book.name)
       error = assert_raises(ActiveRecord::StatementInvalid) do
-        Book.lease_connection.send(:log, sql, Book.name) do
-          Book.lease_connection.send(:with_raw_connection) do
-            raise MockDatabaseError
-          end
+        with_failing_query(connection) do
+          intent.execute!
+          intent.cast_result
         end
       end
       assert_not error.message.include?("SELECT")
@@ -31,16 +43,22 @@ module ActiveRecord
 
     test "statement and binds are set on select" do
       sql = Book.where(author_id: 96, cover: "hard").to_sql
-      binds = [Minitest::Mock.new, Minitest::Mock.new]
+      binds = [123, 456]
+      connection = @connection
+      intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(adapter: connection, processed_sql: sql, name: Book.name, binds: binds)
       error = assert_raises(ActiveRecord::StatementInvalid) do
-        Book.lease_connection.send(:log, sql, Book.name, binds) do
-          Book.lease_connection.send(:with_raw_connection) do
-            raise MockDatabaseError
-          end
+        with_failing_query(connection) do
+          intent.execute!
+          intent.cast_result
         end
       end
       assert_equal error.sql, sql
       assert_equal error.binds, binds
     end
+
+    private
+      def with_failing_query(connection, &block)
+        connection.stub(:perform_query, ->(*) { raise MockDatabaseError }, &block)
+      end
   end
 end

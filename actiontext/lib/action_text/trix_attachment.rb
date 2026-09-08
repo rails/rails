@@ -3,11 +3,12 @@
 # :markup: markdown
 
 module ActionText
+  # DEPRECATED
   class TrixAttachment
     TAG_NAME = "figure"
     SELECTOR = "[data-trix-attachment]"
 
-    COMPOSED_ATTRIBUTES = %w( caption presentation )
+    COMPOSED_ATTRIBUTES = %w( caption presentation ).freeze
     ATTRIBUTES = %w( sgid contentType url href filename filesize width height previewable content ) + COMPOSED_ATTRIBUTES
     ATTRIBUTE_TYPES = {
       "previewable" => ->(value) { value.to_s == "true" },
@@ -15,7 +16,7 @@ module ActionText
       "width"       => ->(value) { Integer(value.to_s, exception: false) },
       "height"      => ->(value) { Integer(value.to_s, exception: false) },
       :default      => ->(value) { value.to_s }
-    }
+    }.freeze
 
     class << self
       def from_attributes(attributes)

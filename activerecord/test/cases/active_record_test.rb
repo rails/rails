@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "rack"
 
 class ActiveRecordTest < ActiveRecord::TestCase
   self.use_transactional_tests = false

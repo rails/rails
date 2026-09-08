@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/deprecated_associations_test_helpers"
 require "models/post"
 require "models/person"
 require "models/reference"
@@ -29,6 +30,9 @@ require "models/categorization"
 require "models/member"
 require "models/membership"
 require "models/club"
+require "models/program"
+require "models/program_offering"
+require "models/enrollment"
 require "models/organization"
 require "models/user"
 require "models/family"
@@ -41,6 +45,21 @@ require "models/cpk"
 require "models/zine"
 require "models/interest"
 require "models/human"
+require "models/dats"
+
+class RedundantJoinAuthor < ActiveRecord::Base
+  self.table_name = "authors"
+
+  has_many :scoped_comments, -> { joins(:post).where.not(posts: { id: nil }) }, class_name: "RedundantJoinComment", foreign_key: :author_id
+  has_many :commented_post_authors, through: :scoped_comments, source: :post_author
+end
+
+class RedundantJoinComment < ActiveRecord::Base
+  self.table_name = "comments"
+
+  belongs_to :post
+  has_one :post_author, through: :post, source: :author
+end
 
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
@@ -71,6 +90,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_through_association_with_left_joins
     assert_equal [comments(:eager_other_comment1)], authors(:mary).comments.merge(Post.left_joins(:comments))
+  end
+
+  def test_has_many_through_with_scope_joining_source_reflection_does_not_add_a_redundant_join
+    commenter = RedundantJoinAuthor.create!(name: "commenter")
+    post_author = Author.create!(name: "post author")
+    post = Post.create!(author: post_author, title: "title", body: "body")
+    RedundantJoinComment.create!(author_id: commenter.id, post: post, body: "comment")
+
+    sql = commenter.commented_post_authors.to_sql
+
+    assert_equal 1, sql.scan(/JOIN #{Regexp.escape(quote_table_name("posts"))}/).size
+    assert_equal [post_author], commenter.commented_post_authors
   end
 
   def test_through_association_with_through_scope_and_nested_where
@@ -945,7 +976,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author.author_favorites.create(favorite_author_id: 1)
     author.author_favorites.create(favorite_author_id: 2)
     author.author_favorites.create(favorite_author_id: 3)
-    assert_equal post.author.author_favorites, post.author_favorites
+    assert_equal_unordered post.author.author_favorites, post.author_favorites
   end
 
   def test_merge_join_association_with_has_many_through_association_proxy
@@ -1061,7 +1092,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author = authors(:david)
     ids = [categories(:general).name, "Unknown"]
     e = assert_raises(ActiveRecord::RecordNotFound) { author.essay_category_ids = ids }
-    msg = "Couldn't find all Categories with 'name': (General, Unknown) (found 1 results, but was looking for 2). Couldn't find Category with name Unknown."
+    msg = %{Couldn't find all Categories with 'name': ("General", "Unknown") (found 1 results, but was looking for 2). Couldn't find Category with name "Unknown".}
     assert_equal msg, e.message
   end
 
@@ -1240,7 +1271,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_includes post.author_addresses, address
     post.author_addresses.delete(address)
-    assert_predicate post[:author_count], :nil?
+    assert_nil post[:author_count]
   end
 
   def test_primary_key_option_on_source
@@ -1424,6 +1455,28 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 2, post.lazy_people_unscope_skimmers.to_a.size
   end
 
+  def test_has_many_through_unscope_respects_join_model_default_scope
+    author = authors(:david)
+
+    active_post = PostWithWhereDefaultScope.create!(
+      author: author,
+      title: "test post",
+      body: "this is an active post"
+    )
+    deleted_post = PostWithWhereDefaultScope.create!(
+      author: author,
+      title: "test post 2",
+      body: "this is a deleted post",
+      deleted_at: Time.now
+    )
+
+    CommentOnPostWithWhereDefaultScope.create!(body: "hi!", post: active_post)
+    CommentOnPostWithWhereDefaultScope.create!(body: "hi!", post: active_post, deleted_at: Time.now)
+    CommentOnPostWithWhereDefaultScope.create!(body: "hi!", post: deleted_post, deleted_at: Time.now)
+
+    assert_equal 2, author.comments_on_posts_with_where_default_scope.count
+  end
+
   def test_has_many_through_add_with_sti_middle_relation
     club = SuperClub.create!(name: "Fight Club")
     member = Member.create!(name: "Tyler Durden")
@@ -1546,6 +1599,21 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_equal [category.id], author.special_categories_with_condition_ids
     assert_equal [], author.nonspecial_categories_with_condition_ids
+  end
+
+  def test_has_many_through_from_same_parent_to_same_child_creates_join_models
+    club = Club.new(name: "Awesome Rails Club")
+    member = club.simple_members.build(name: "Jane Doe")
+
+    program = Program.new(name: "Learn Ruby on Rails")
+    program.members << member
+
+    club.programs << program
+
+    club.save!
+
+    assert_equal(1, program.enrollments.size)
+    assert_equal(1, club.simple_memberships.size)
   end
 
   def test_single_has_many_through_association_with_unpersisted_parent_instance
@@ -1685,6 +1753,31 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal(chapter.book, book)
   end
 
+  def test_delete_all_nullify_on_through_with_composite_source_foreign_key
+    author = Cpk::Author.create!(name: "author")
+    order = Cpk::Order.create!(id: [9999, 30001], status: "open")
+    book = Cpk::Book.create!(id: [author.id, 30001], title: "Book", order: order)
+
+    assert_equal 1, author.orders.count
+
+    author.orders.delete_all(:nullify)
+
+    book.reload
+    assert_nil book.shop_id
+    assert_nil book.order_id
+  end
+
+  def test_ids_reader_with_composite_primary_key_on_source
+    blog = Sharded::Blog.create!
+    post = Sharded::BlogPost.create!(blog_id: blog.id)
+    comment = Sharded::Comment.create!(blog_id: blog.id, blog_post_id: post.id)
+
+    ids = blog.comments_via_post_ids
+
+    assert_kind_of Array, ids
+    assert_equal [[comment.blog_id, comment.id]], ids
+  end
+
   private
     def make_model(name)
       Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
@@ -1703,4 +1796,57 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       lesson.has_many :students, through: :lesson_students, anonymous_class: student
       [lesson, lesson_student, student]
     end
+end
+
+class DeprecatedHasManyThroughAssociationsTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :authors, :author_addresses
+
+  setup do
+    @model = DATS::Author
+    @author = @model.first
+  end
+
+  test "the has_many itself is deprecated" do
+    assert_not_deprecated_association(:comments) do
+      @author.comments
+    end
+
+    assert_deprecated_association(:deprecated_has_many_through, context: context_for_method(:deprecated_has_many_through)) do
+      @author.deprecated_has_many_through
+    end
+  end
+
+  test "the through association is deprecated" do
+    assert_deprecated_association(:deprecated_posts, context: context_for_through(:deprecated_through)) do
+      @author.deprecated_through
+    end
+  end
+
+  test "the source association is deprecated" do
+    assert_deprecated_association(:deprecated_comments, model: DATS::Post, context: context_for_through(:deprecated_source)) do
+      @author.deprecated_source
+    end
+  end
+
+  test "all deprecated" do
+    assert_deprecated_association(:deprecated_all, context: context_for_method(:deprecated_all)) do
+      @author.deprecated_all
+    end
+
+    assert_deprecated_association(:deprecated_posts, context: context_for_through(:deprecated_all)) do
+      @author.deprecated_all
+    end
+
+    assert_deprecated_association(:deprecated_comments, model: DATS::Post, context: context_for_through(:deprecated_all)) do
+      @author.deprecated_all
+    end
+  end
+
+  test "deprecated nested association" do
+    assert_deprecated_association(:deprecated_author_favorites, context: context_for_through(:deprecated_nested)) do
+      @author.deprecated_nested.uniq
+    end
+  end
 end

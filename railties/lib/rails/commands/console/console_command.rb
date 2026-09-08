@@ -4,6 +4,8 @@ require "rails/command/environment_argument"
 
 module Rails
   class Console
+    HELP_HINT = "Type 'help' for help."
+
     def self.start(*args)
       new(*args).start
     end
@@ -25,8 +27,18 @@ module Rails
 
       @console = app.config.console || begin
         require "rails/commands/console/irb_console"
-        IRBConsole.new(app)
+        IRBConsole.new(app, options)
       end
+    end
+
+    def self.startup_lines(sandbox)
+      lines = if sandbox
+        ["Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})",
+         "Any modifications you make will be rolled back on exit"]
+      else
+        ["Loading #{Rails.env} environment (Rails #{Rails.version})"]
+      end
+      lines << HELP_HINT
     end
 
     def sandbox?
@@ -46,14 +58,21 @@ module Rails
       Rails.env = environment
     end
 
+    # Whether to print a startup banner. Defaults to true; pass +--no-banner+
+    # to suppress it for one-off sessions.
+    def banner?
+      options.fetch(:banner, true)
+    end
+
+    def show_default_startup_banner
+      puts Rails::Console.startup_lines(sandbox?)
+    end
+
     def start
       set_environment! if environment?
 
-      if sandbox?
-        puts "Loading #{Rails.env} environment in sandbox (Rails #{Rails.version})"
-        puts "Any modifications you make will be rolled back on exit"
-      else
-        puts "Loading #{Rails.env} environment (Rails #{Rails.version})"
+      if banner?
+        show_default_startup_banner unless console.respond_to?(:show_startup_banner)
       end
 
       console.start
@@ -66,6 +85,14 @@ module Rails
 
       class_option :sandbox, aliases: "-s", type: :boolean, default: nil,
         desc: "Rollback database modifications on exit."
+
+      class_option :skip_executor, type: :boolean, aliases: "-w", desc: "Don't wrap with Rails Executor", default: false
+
+      class_option :query_cache, type: :boolean, aliases: "-q", default: false,
+        desc: "Enable the Active Record query cache for the session (ignored if --skip-executor or -w is used)"
+
+      class_option :banner, type: :boolean, default: true,
+        desc: "Show the console startup banner (use --no-banner to hide)"
 
       def initialize(args = [], local_options = {}, config = {})
         console_options = []
@@ -84,8 +111,20 @@ module Rails
       desc "console", "Start the Rails console"
       def perform
         boot_application!
-        Rails::Console.start(Rails.application, options)
+
+        wrap_with_executor = !options[:skip_executor]
+        conditional_executor(wrap_with_executor, source: "application.console.railties") do
+          disable_query_cache_in_console! if wrap_with_executor && !options[:query_cache]
+          Rails::Console.start(Rails.application, options)
+        end
       end
+
+      private
+        def disable_query_cache_in_console!
+          return unless defined?(ActiveRecord::Base)
+
+          ActiveRecord::Base.connection_handler.each_connection_pool.select(&:query_cache_enabled).each(&:disable_query_cache!)
+        end
     end
   end
 end

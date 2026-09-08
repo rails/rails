@@ -3,6 +3,7 @@
 require "active_model/type"
 
 require "active_record/type/internal/timezone"
+require "active_record/type/query_predicates"
 
 require "active_record/type/date"
 require "active_record/type/date_time"
@@ -43,7 +44,7 @@ module ActiveRecord
       end
 
       def default_value # :nodoc:
-        @default_value ||= Value.new
+        DEFAULT_TYPE
       end
 
       def adapter_name_from(model) # :nodoc:
@@ -65,6 +66,8 @@ module ActiveRecord
     ImmutableString = ActiveModel::Type::ImmutableString
     String = ActiveModel::Type::String
     Value = ActiveModel::Type::Value
+
+    DEFAULT_TYPE = Value.new.freeze # :nodoc:
 
     register(:big_integer, Type::BigInteger, override: false)
     register(:binary, Type::Binary, override: false)

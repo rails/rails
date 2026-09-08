@@ -5,7 +5,7 @@ module Cpk
     attr_accessor :fail_destroy
 
     self.table_name = :cpk_books
-    belongs_to :order, autosave: true, foreign_key: [:shop_id, :order_id], counter_cache: true
+    belongs_to :order, autosave: true, foreign_key: [:shop_id, :order_id], counter_cache: true, touch: true
     belongs_to :order_explicit_fk_pk, class_name: "Cpk::Order", foreign_key: [:shop_id, :order_id], primary_key: [:shop_id, :id]
     belongs_to :author, class_name: "Cpk::Author"
 
@@ -39,6 +39,13 @@ module Cpk
     belongs_to :non_cpk_order, foreign_key: [:order_id]
   end
 
+  class BookWithNonCpkOrder < ActiveRecord::Base
+    self.table_name = :cpk_books
+
+    belongs_to :non_cpk_order, class_name: "Cpk::NonCpkOrder",
+      foreign_key: [:shop_id, :order_id], primary_key: [:shop_id, :id], inverse_of: :books_with_composite_primary_key
+  end
+
   class NullifiedBook < Book
     has_one :chapter, foreign_key: [:author_id, :book_id], dependent: :nullify
   end
@@ -46,5 +53,10 @@ module Cpk
   class BookWithOrderAgreements < Book
     has_many :order_agreements, through: :order
     has_one :order_agreement, through: :order, source: :order_agreements
+  end
+
+  class BookWithRequiredOrder < ActiveRecord::Base
+    self.table_name = :cpk_books
+    belongs_to :order, class_name: "Cpk::Order", foreign_key: [:shop_id, :order_id], primary_key: [:shop_id, :id], optional: false
   end
 end

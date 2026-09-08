@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 require "helper"
-require "active_job/queue_adapters/async_adapter"
 require "jobs/hello_job"
+
+return unless adapter_is?(:async)
 
 class AsyncAdapterTest < ActiveSupport::TestCase
   setup do

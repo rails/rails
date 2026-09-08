@@ -30,6 +30,12 @@ module ActiveStorage::Blob::Analyzable
     update! metadata: metadata.merge(extract_metadata_via_analyzer)
   end
 
+  # Extracts metadata but does not persist it. Used during the upload flow
+  # when the blob hasn't been saved yet.
+  def analyze_without_saving
+    self.metadata = metadata.merge(extract_metadata_via_analyzer)
+  end
+
   # Enqueues an ActiveStorage::AnalyzeJob which calls #analyze, or calls #analyze inline based on analyzer class configuration.
   #
   # This method is automatically called for a blob when it's attached for the first time. You can call it to analyze a blob

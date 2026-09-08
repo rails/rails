@@ -48,7 +48,11 @@ module ActiveRecord
         raise NotImplementedError
       end
 
-      def pool
+      def min_connections
+        raise NotImplementedError
+      end
+
+      def max_connections
         raise NotImplementedError
       end
 
@@ -97,6 +101,10 @@ module ActiveRecord
       end
 
       def use_metadata_table?
+        raise NotImplementedError
+      end
+
+      def dump_schema_migrations?
         raise NotImplementedError
       end
 

@@ -12,8 +12,6 @@ require "active_storage/previewer/mupdf_previewer"
 require "active_storage/previewer/video_previewer"
 
 require "active_storage/analyzer/image_analyzer"
-require "active_storage/analyzer/image_analyzer/image_magick"
-require "active_storage/analyzer/image_analyzer/vips"
 require "active_storage/analyzer/video_analyzer"
 require "active_storage/analyzer/audio_analyzer"
 
@@ -79,20 +77,80 @@ module ActiveStorage
 
     config.eager_load_namespaces << ActiveStorage
 
+    guard_load_hooks(:active_storage_record, :active_storage_attachment, :active_storage_blob, :active_storage_variant_record)
+
     initializer "active_storage.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_storage] = ActiveStorage.deprecator
     end
 
     initializer "active_storage.configs" do
+      config.before_initialize do |app|
+        ActiveStorage.touch_attachment_records = app.config.active_storage.touch_attachment_records != false
+      end
+
       config.after_initialize do |app|
         ActiveStorage.logger            = app.config.active_storage.logger || Rails.logger
         ActiveStorage.variant_processor = app.config.active_storage.variant_processor || :mini_magick
         ActiveStorage.previewers        = app.config.active_storage.previewers || []
         ActiveStorage.analyzers         = app.config.active_storage.analyzers || []
+
+        begin
+          ActiveStorage.variant_transformer =
+            case ActiveStorage.variant_processor
+            when :disabled
+              ActiveStorage::Transformers::NullTransformer
+            when :vips
+              ActiveStorage::Transformers::Vips
+            when :mini_magick
+              ActiveStorage::Transformers::ImageMagick
+            when Class
+              ActiveStorage.variant_processor
+            else
+              raise ArgumentError, <<~ERROR.squish
+                Unknown variant processor #{ActiveStorage.variant_processor.inspect}.
+                Set `config.active_storage.variant_processor` to :vips, :mini_magick, :disabled,
+                or to a transformer class. See ActiveStorage::Transformers::Transformer.
+              ERROR
+            end
+        rescue LoadError => error
+          case error.message
+          when /libvips/
+            ActiveStorage.logger.warn <<~WARNING.squish
+              Using vips to process variants requires the libvips library.
+              Please install libvips using the instructions on the libvips website.
+            WARNING
+          when /image_processing/
+            ActiveStorage.logger.warn <<~WARNING.squish
+              Generating image variants require the image_processing gem.
+              Please add `gem "image_processing", "~> 2.0"` to your Gemfile
+              or set `config.active_storage.variant_processor = :disabled`.
+            WARNING
+          when /ruby-vips/
+            ActiveStorage.logger.warn <<~WARNING.squish
+              Generating image variants with libvips requires the ruby-vips gem.
+              Please add `gem "ruby-vips", "~> 2.3"` to your Gemfile.
+            WARNING
+          when /mini_magick/
+            ActiveStorage.logger.warn <<~WARNING.squish
+              Generating image variants with ImageMagick requires the mini_magick gem.
+              Please add `gem "mini_magick", "~> 5.0"` to your Gemfile.
+            WARNING
+          else
+            raise
+          end
+        end
+
         ActiveStorage.paths             = app.config.active_storage.paths || {}
         ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
         ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
+
+        ActiveStorage.base_controller_parent = app.config.active_storage.base_controller_parent ||
+          if app.config.api_only
+            "::ActionController::API"
+          else
+            "::ActionController::Base"
+          end
 
         ActiveStorage.supported_image_processing_methods += app.config.active_storage.supported_image_processing_methods || []
         ActiveStorage.unsupported_image_processing_arguments = app.config.active_storage.unsupported_image_processing_arguments || %w(
@@ -112,13 +170,16 @@ module ActiveStorage
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.web_image_content_types = app.config.active_storage.web_image_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
-        ActiveStorage.touch_attachment_records = app.config.active_storage.touch_attachment_records != false
         ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
         ActiveStorage.urls_expire_in = app.config.active_storage.urls_expire_in
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
+        ActiveStorage.video_preview_input_arguments = app.config.active_storage.video_preview_input_arguments || ""
+        ActiveStorage.ffprobe_arguments = app.config.active_storage.ffprobe_arguments || ""
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
+        ActiveStorage.analyze = app.config.active_storage.analyze || :later
+        ActiveStorage.streaming_chunk_max_size = app.config.active_storage.streaming_chunk_max_size || 100.megabytes
       end
     end
 
@@ -136,9 +197,9 @@ module ActiveStorage
       end
     end
 
-    initializer "active_storage.services" do
+    initializer "active_storage.services" do |app|
       ActiveSupport.on_load(:active_storage_blob) do
-        configs = Rails.configuration.active_storage.service_configurations ||=
+        configs = app.config.active_storage.service_configurations ||=
           begin
             config_file = Rails.root.join("config/storage/#{Rails.env}.yml")
             config_file = Rails.root.join("config/storage.yml") unless config_file.exist?
@@ -149,7 +210,7 @@ module ActiveStorage
 
         ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(configs)
 
-        if config_choice = Rails.configuration.active_storage.service
+        if config_choice = app.config.active_storage.service
           ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(config_choice)
         end
       end
@@ -171,7 +232,7 @@ module ActiveStorage
     initializer "action_view.configuration" do
       config.after_initialize do |app|
         ActiveSupport.on_load(:action_view) do
-          multiple_file_field_include_hidden = app.config.active_storage.delete(:multiple_file_field_include_hidden)
+          multiple_file_field_include_hidden = app.config.active_storage.multiple_file_field_include_hidden
 
           unless multiple_file_field_include_hidden.nil?
             ActionView::Helpers::FormHelper.multiple_file_field_include_hidden = multiple_file_field_include_hidden

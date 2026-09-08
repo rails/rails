@@ -21,7 +21,7 @@ module Rails
       end
 
       private
-        COMMANDS_IN_USAGE = %w(generate console server test test:system dbconsole new)
+        COMMANDS_IN_USAGE = %w(generate console server test test:system dbconsole new).freeze
         private_constant :COMMANDS_IN_USAGE
 
         def printing_commands_not_in_usage # :nodoc:

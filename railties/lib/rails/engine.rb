@@ -3,7 +3,6 @@
 require "rails/railtie"
 require "rails/engine/railties"
 require "active_support/callbacks"
-require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/try"
 require "pathname"
 
@@ -308,7 +307,7 @@ module Rails
   #     helper MyEngine::SharedEngineHelper
   #   end
   #
-  # If you want to include all of the engine's helpers, you can use the #helper method on an engine's
+  # If you want to include all of the engine's helpers, you can use the #helpers method on an engine's
   # instance:
   #
   #   class ApplicationController < ActionController::Base
@@ -449,6 +448,14 @@ module Rails
       super
     end
 
+    def freeze
+      return self if frozen?
+
+      app
+      @app_build_lock = nil
+      super
+    end
+
     # Load console and invoke the registered hooks.
     # Check Rails::Railtie.console for more info.
     def load_console(app = self)
@@ -543,8 +550,20 @@ module Rails
     # Defines the routes for this engine. If a block is given to
     # routes, it is appended to the engine.
     def routes(&block)
-      @routes ||= config.route_set_class.new_with_config(config)
-      @routes.append(&block) if block_given?
+      if block_given?
+        if @route_blocks
+          @route_blocks << block
+        else
+          @routes ||= config.route_set_class.new_with_config(config)
+          @routes.append(&block)
+        end
+      elsif @routes.nil?
+        @routes = config.route_set_class.new_with_config(config)
+        if @route_blocks
+          blocks, @route_blocks = @route_blocks, nil
+          blocks.each { |b| routes(&b) }
+        end
+      end
       @routes
     end
 
@@ -563,8 +582,14 @@ module Rails
     end
 
     initializer :load_environment_config, before: :load_environment_hook, group: :all do
-      paths["config/environments"].existent.each do |environment|
-        require environment
+      env_files = paths["config/environments"].existent
+
+      if env_files.empty? && any_environment_files?
+        missing_environment_file
+      else
+        env_files.each do |environment|
+          require environment
+        end
       end
     end
 
@@ -590,6 +615,7 @@ module Rails
 
     initializer :make_routes_lazy, before: :bootstrap_hook do |app|
       config.route_set_class = LazyRouteSet if Rails.env.local?
+      routes
     end
 
     initializer :add_routing_paths do |app|
@@ -648,8 +674,9 @@ module Rails
     end
 
     initializer :wrap_reloader_around_load_seed do |app|
+      reloader = app.reloader
       self.class.set_callback(:load_seed, :around) do |engine, seeds_block|
-        app.reloader.wrap(&seeds_block)
+        reloader.wrap(&seeds_block)
       end
     end
 
@@ -688,6 +715,12 @@ module Rails
       end
 
     private
+      def missing_environment_file; end
+
+      def any_environment_files?
+        false
+      end
+
       def load_config_initializer(initializer) # :doc:
         ActiveSupport::Notifications.instrument("load_config_initializer.railties", initializer: initializer) do
           load(initializer)

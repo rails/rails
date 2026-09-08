@@ -196,6 +196,39 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_raise(KeyError) { @mixed.fetch_values(:a, :c) }
   end
 
+  def test_indifferent_fetch_with_default_and_block
+    hash = HashWithIndifferentAccess.new
+    hash[:foo] = 1
+
+    assert_equal 0, hash.fetch(:bar, 0)
+    assert_equal 1, hash.fetch(:foo, 99)
+    assert_equal "bar", hash.fetch(:bar) { |key| key }
+  end
+
+  def test_indifferent_values_at_with_missing_key
+    hash = HashWithIndifferentAccess.new
+    hash[:a] = "x"
+    hash[:b] = "y"
+
+    assert_equal ["x", nil, "y"], hash.values_at(:a, :c, "b")
+  end
+
+  def test_indifferent_dig_returns_nil_for_missing_key
+    data = { foo: { bar: 1 } }.with_indifferent_access
+
+    assert_nil data.dig(:zoo)
+    assert_nil data.dig(:foo, :missing)
+  end
+
+  def test_indifferent_except
+    original = { a: "x", b: "y", c: 10 }.with_indifferent_access
+
+    assert_equal({ c: 10 }.with_indifferent_access, original.except(:a, "b"))
+    assert_instance_of HashWithIndifferentAccess, original.except(:a)
+    assert_equal({ a: "x", b: "y", c: 10 }.with_indifferent_access, original)
+    assert_equal({ c: 10 }.with_indifferent_access, original.without(:a, :b))
+  end
+
   def test_indifferent_reading
     hash = HashWithIndifferentAccess.new
     hash["a"] = 1
@@ -224,6 +257,16 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal 1, hash[:e]
   end
 
+  def test_indifferent_preserves_falsy_default_from_source_hash
+    source = Hash.new(false)
+    source["a"] = 1
+    hash = HashWithIndifferentAccess.new(source)
+
+    assert_equal false, hash.default
+    assert_equal false, hash[:missing]
+    assert_equal 1, hash[:a]
+  end
+
   def test_indifferent_writing
     hash = HashWithIndifferentAccess.new
     hash[:a] = 1
@@ -242,27 +285,37 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     hash[:a] = "a"
     hash["b"] = "b"
 
-    updated_with_strings = hash.update(@strings)
-    updated_with_symbols = hash.update(@symbols)
-    updated_with_mixed = hash.update(@mixed)
+    assert_equal(hash.object_id, hash.update(@strings).object_id)
 
-    assert_equal 1, updated_with_strings[:a]
-    assert_equal 1, updated_with_strings["a"]
-    assert_equal 2, updated_with_strings["b"]
+    hash.update(@symbols)
+    hash.update(@mixed)
+    hash.update(@mixed.with_indifferent_access)
 
-    assert_equal 1, updated_with_symbols[:a]
-    assert_equal 2, updated_with_symbols["b"]
-    assert_equal 2, updated_with_symbols[:b]
+    assert_equal(["a", "b"], hash.keys)
 
-    assert_equal 1, updated_with_mixed[:a]
-    assert_equal 2, updated_with_mixed["b"]
+    assert_equal 1, hash[:a]
+    assert_equal 1, hash["a"]
+    assert_equal 2, hash[:b]
+    assert_equal 2, hash["b"]
+  end
 
-    assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? { |h| h.keys.size == 2 }
+  def test_update_with_block
+    h1 = { "a" => 1, "b" => "x" }.with_indifferent_access
+    h2 = { a: 2, b: "y" }
+
+    merged_hash = h1.update(h2) { |k, v1, v2| [k, v1, v2].join }
+
+    assert_equal(["a", "b"], merged_hash.keys)
+    assert_equal("a12", merged_hash[:a])
+    assert_equal("bxy", merged_hash[:b])
   end
 
   def test_update_with_multiple_arguments
     hash = HashWithIndifferentAccess.new
-    hash.update({ "a" => 1 }, { "b" => 2 })
+    hash.update(
+      { "a" => 1 }.with_indifferent_access,
+      { "b" => 2 }
+    )
 
     assert_equal 1, hash["a"]
     assert_equal 2, hash["b"]
@@ -403,6 +456,13 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
+  def test_indifferent_filter
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).filter { |k, v| v == 1 }
+
+    assert_equal({ "a" => 1 }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
   def test_indifferent_select_bang
     indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
     indifferent_strings.select! { |k, v| v == 1 }
@@ -453,6 +513,16 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal(["x", "b"], hash.keys) # asserting that order of keys is unchanged
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
 
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).transform_keys({ a: :x, y: :z })
+
+    assert_nil(hash["a"])
+    assert_equal(1, hash["x"])
+    assert_equal(2, hash["b"])
+    assert_nil(hash["y"])
+    assert_nil(hash["z"])
+    assert_equal(["x", "b"], hash.keys) # asserting that order of keys is unchanged
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
     hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).transform_keys({ "a" => "A", "q" => "Q" }) { |k| k * 3 }
 
     assert_nil(hash["a"])
@@ -463,9 +533,31 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_equal(["A", "bbb"], hash.keys) # asserting that order of keys is unchanged
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
 
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@integers).transform_keys { |k| k + 1 }
+
+    assert_equal([1, 2], hash.keys)
+
+    repeating_strings = { "a" => 1, "aa" => 2, "aaa" => 3 }
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(repeating_strings).transform_keys { |k| "#{k}a" }
+
+    assert_equal(%w[aa aaa aaaa], hash.keys)
+
     assert_raise TypeError do
       hash.transform_keys(nil)
     end
+
+    hash_with_default = Hash.new(:a)
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default).transform_keys(&:to_s)
+    assert_nil hash.default
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default).transform_keys { |k| k.to_s }
+    assert_nil hash.default
+
+    hash_with_default_proc = Hash.new { |h, k| h[k] = :b }
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default_proc).transform_keys(&:to_s)
+    assert_nil hash.default_proc
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default_proc).transform_keys { |k| k.to_s }
+    assert_nil hash.default_proc
   end
 
   def test_indifferent_deep_transform_keys
@@ -507,6 +599,17 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
 
     hash = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    hash.transform_keys!({ a: :x, y: :z })
+
+    assert_nil(hash["a"])
+    assert_equal(1, hash["x"])
+    assert_equal(2, hash["b"])
+    assert_nil(hash["y"])
+    assert_nil(hash["z"])
+    assert_equal(["x", "b"], hash.keys) # asserting that order of keys is unchanged
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings)
     hash.transform_keys!({ "a" => "A", "q" => "Q" }) { |k| k * 3 }
 
     assert_nil(hash["a"])
@@ -520,6 +623,23 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_raise TypeError do
       hash.transform_keys(nil)
     end
+
+    hash_with_default = Hash.new(:a)
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default).transform_keys!(&:to_s)
+    assert_equal :a, hash.default
+    assert_equal :a, hash_with_default.default
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default).transform_keys! { |k| k.to_s }
+    assert_equal :a, hash.default
+    assert_equal :a, hash_with_default.default
+
+    hash_with_default_proc = Hash.new { |h, k| h[k] = :b }
+    default_proc = hash_with_default_proc.default_proc
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default_proc).transform_keys!(&:to_s)
+    assert_equal default_proc, hash.default_proc
+    hash = ActiveSupport::HashWithIndifferentAccess.new(hash_with_default_proc).transform_keys! { |k| k.to_s }
+    assert_equal default_proc, hash.default_proc
   end
 
   def test_indifferent_deep_transform_keys_bang
@@ -590,6 +710,13 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     roundtrip = mixed_with_default.with_indifferent_access.to_hash
     assert_equal @strings, roundtrip
     assert_equal "1234", roundtrip.default
+
+    # Should preserve the default proc
+    mixed_with_default = @mixed.dup
+    _proc = ->(h, k) { 1 }
+    mixed_with_default.default_proc = _proc
+    roundtrip = mixed_with_default.with_indifferent_access.to_hash
+    assert_equal _proc, roundtrip.default_proc
 
     # Ensure nested hashes are not HashWithIndifferentAccess
     new_to_hash = @nested_mixed.with_indifferent_access.to_hash

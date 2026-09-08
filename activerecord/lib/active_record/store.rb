@@ -45,7 +45,7 @@ module ActiveRecord
   #     store :settings, accessors: [ :login_retry ], suffix: :config
   #   end
   #
-  #   u = User.new(color: 'black', homepage: '37signals.com', parent_name: 'Mary', partner_name: 'Lily')
+  #   u = User.create!(color: 'black', homepage: '37signals.com', parent_name: 'Mary', partner_name: 'Lily')
   #   u.color                          # Accessor stored attribute
   #   u.parent_name                    # Accessor stored attribute with prefix
   #   u.partner_name                   # Accessor stored attribute with custom prefix
@@ -103,6 +103,11 @@ module ActiveRecord
     end
 
     module ClassMethods
+      def inherited(subclass) # :nodoc:
+        super
+        subclass.instance_variable_set(:@local_stored_attributes, nil)
+      end
+
       def store(store_attribute, options = {})
         coder = build_column_serializer(store_attribute, options[:coder], Object, options[:yaml])
         serialize store_attribute, coder: IndifferentCoder.new(store_attribute, coder)
@@ -131,7 +136,15 @@ module ActiveRecord
             ""
           end
 
-        _store_accessors_module.module_eval do
+        mod = if const_defined?(:GeneratedStoreMethods, false)
+          const_get(:GeneratedStoreMethods, false)
+        else
+          mod = const_set(:GeneratedStoreMethods, Module.new)
+          include mod
+          mod
+        end
+
+        mod.module_eval do
           keys.each do |key|
             accessor_key = "#{accessor_prefix}#{key}#{accessor_suffix}"
 
@@ -146,37 +159,45 @@ module ActiveRecord
             define_method("#{accessor_key}_changed?") do
               return false unless attribute_changed?(store_attribute)
               prev_store, new_store = changes[store_attribute]
-              prev_store&.dig(key) != new_store&.dig(key)
+              accessor = store_accessor_for(store_attribute)
+              accessor.get(prev_store, key) != accessor.get(new_store, key)
             end
 
             define_method("#{accessor_key}_change") do
               return unless attribute_changed?(store_attribute)
               prev_store, new_store = changes[store_attribute]
-              [prev_store&.dig(key), new_store&.dig(key)]
+              accessor = store_accessor_for(store_attribute)
+              prev_value, new_value = accessor.get(prev_store, key), accessor.get(new_store, key)
+              [prev_value, new_value] unless prev_value == new_value
             end
 
             define_method("#{accessor_key}_was") do
-              return unless attribute_changed?(store_attribute)
+              return read_store_attribute(store_attribute, key) unless attribute_changed?(store_attribute)
               prev_store, _new_store = changes[store_attribute]
-              prev_store&.dig(key)
+              accessor = store_accessor_for(store_attribute)
+              accessor.get(prev_store, key)
             end
 
             define_method("saved_change_to_#{accessor_key}?") do
               return false unless saved_change_to_attribute?(store_attribute)
               prev_store, new_store = saved_changes[store_attribute]
-              prev_store&.dig(key) != new_store&.dig(key)
+              accessor = store_accessor_for(store_attribute)
+              accessor.get(prev_store, key) != accessor.get(new_store, key)
             end
 
             define_method("saved_change_to_#{accessor_key}") do
               return unless saved_change_to_attribute?(store_attribute)
               prev_store, new_store = saved_changes[store_attribute]
-              [prev_store&.dig(key), new_store&.dig(key)]
+              accessor = store_accessor_for(store_attribute)
+              prev_value, new_value = accessor.get(prev_store, key), accessor.get(new_store, key)
+              [prev_value, new_value] unless prev_value == new_value
             end
 
             define_method("#{accessor_key}_before_last_save") do
               return unless saved_change_to_attribute?(store_attribute)
               prev_store, _new_store = saved_changes[store_attribute]
-              prev_store&.dig(key)
+              accessor = store_accessor_for(store_attribute)
+              accessor.get(prev_store, key)
             end
           end
         end
@@ -186,14 +207,6 @@ module ActiveRecord
         self.local_stored_attributes ||= {}
         self.local_stored_attributes[store_attribute] ||= []
         self.local_stored_attributes[store_attribute] |= keys
-      end
-
-      def _store_accessors_module # :nodoc:
-        @_store_accessors_module ||= begin
-          mod = Module.new
-          include mod
-          mod
-        end
       end
 
       def stored_attributes
@@ -225,39 +238,63 @@ module ActiveRecord
       end
 
       class HashAccessor # :nodoc:
+        def self.get(store_object, key)
+          if store_object
+            store_object[key]
+          end
+        end
+
         def self.read(object, attribute, key)
-          prepare(object, attribute)
-          object.public_send(attribute)[key]
+          get(object.public_send(attribute), key)
         end
 
         def self.write(object, attribute, key, value)
-          prepare(object, attribute)
-          object.public_send(attribute)[key] = value if value != read(object, attribute, key)
+          store_object = prepare(object, attribute)
+          store_object[key] = value if value != store_object[key]
         end
 
         def self.prepare(object, attribute)
-          object.public_send :"#{attribute}=", {} unless object.send(attribute)
+          store_object = object.public_send(attribute)
+
+          if store_object.nil?
+            store_object = {}
+            object.public_send(:"#{attribute}=", store_object)
+          end
+
+          store_object
         end
       end
 
       class StringKeyedHashAccessor < HashAccessor # :nodoc:
+        def self.get(store_object, key)
+          super store_object, Symbol === key ? key.name : key.to_s
+        end
+
         def self.read(object, attribute, key)
-          super object, attribute, key.to_s
+          super object, attribute, Symbol === key ? key.name : key.to_s
         end
 
         def self.write(object, attribute, key, value)
-          super object, attribute, key.to_s, value
+          super object, attribute, Symbol === key ? key.name : key.to_s, value
         end
       end
 
       class IndifferentHashAccessor < ActiveRecord::Store::HashAccessor # :nodoc:
-        def self.prepare(object, store_attribute)
-          attribute = object.send(store_attribute)
-          unless attribute.is_a?(ActiveSupport::HashWithIndifferentAccess)
-            attribute = IndifferentCoder.as_indifferent_hash(attribute)
-            object.public_send :"#{store_attribute}=", attribute
+        def self.get(store_object, key)
+          if store_object
+            IndifferentCoder.as_indifferent_hash(store_object)[key]
           end
-          attribute
+        end
+
+        def self.prepare(object, attribute)
+          store_object = object.public_send(attribute)
+
+          unless store_object.is_a?(ActiveSupport::HashWithIndifferentAccess)
+            store_object = IndifferentCoder.as_indifferent_hash(store_object)
+            object.public_send :"#{attribute}=", store_object
+          end
+
+          store_object
         end
       end
 

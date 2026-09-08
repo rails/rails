@@ -137,13 +137,7 @@ class TestCaseTest < ActionController::TestCase
       send_file(__FILE__)
     end
 
-    def redirect_to_same_controller
-      redirect_to controller: "test", action: "test_uri", id: 5
-    end
 
-    def redirect_to_different_controller
-      redirect_to controller: "fail", id: 5
-    end
 
     def create
       head :created, location: "/resource"
@@ -301,6 +295,25 @@ class TestCaseTest < ActionController::TestCase
   def test_head
     head :test_params
     assert_equal 200, @response.status
+  end
+
+  def test_query
+    query :test_params, params: { foo: "bar" }
+    assert_equal 200, @response.status
+    assert_equal "QUERY", @request.request_method
+    parsed_params = ::JSON.parse(@response.body)
+    assert_equal "bar", parsed_params["foo"]
+  end
+
+  def test_query_sends_params_as_request_body
+    query :test_request_parameters, params: { foo: "bar" }
+    assert_match "foo", @response.body
+    assert_match "bar", @response.body
+  end
+
+  def test_query_does_not_populate_query_string
+    query :test_query_parameters, params: { foo: "bar" }
+    assert_equal({}, ::JSON.parse(@response.body))
   end
 
   def test_process_without_flash

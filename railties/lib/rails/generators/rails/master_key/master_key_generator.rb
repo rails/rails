@@ -32,21 +32,9 @@ module Rails
         end
       end
 
-      def ignore_master_key_file
-        key_file_generator.ignore_key_file(MASTER_KEY_PATH, ignore: key_ignore)
-      end
-
-      def ignore_master_key_file_silently
-        key_file_generator.ignore_key_file_silently(MASTER_KEY_PATH, ignore: key_ignore)
-      end
-
       private
         def key_file_generator
           EncryptionKeyFileGenerator.new([], options)
-        end
-
-        def key_ignore
-          [ "", "# Ignore master key for decrypting credentials and more.", "/#{MASTER_KEY_PATH}", "" ].join("\n")
         end
     end
   end

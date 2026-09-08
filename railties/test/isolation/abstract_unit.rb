@@ -8,7 +8,6 @@
 #
 # It is also good to know what is the bare minimum to get
 # Rails booted up.
-require "active_support/testing/strict_warnings"
 require "fileutils"
 require "shellwords"
 
@@ -18,6 +17,8 @@ require "active_support/testing/autorun"
 require "active_support/testing/stream"
 require "active_support/testing/method_call_assertions"
 require "active_support/test_case"
+require "active_record"
+require "active_record/tasks/database_tasks"
 require "minitest/retry"
 
 if ENV["BUILDKITE"]
@@ -46,7 +47,11 @@ module TestHelpers
     end
 
     def tmp_path(*args)
-      @tmp_path ||= File.realpath(Dir.mktmpdir(nil, File.join(RAILS_FRAMEWORK_ROOT, "tmp")))
+      @tmp_path = nil if @tmp_path && !File.directory?(@tmp_path)
+      @tmp_path ||= begin
+        FileUtils.mkdir_p(File.join(RAILS_FRAMEWORK_ROOT, "tmp"))
+        File.realpath(Dir.mktmpdir(nil, File.join(RAILS_FRAMEWORK_ROOT, "tmp")))
+      end
       File.join(@tmp_path, *args)
     end
 
@@ -59,9 +64,6 @@ module TestHelpers
       end
     end
 
-    def framework_path
-      RAILS_FRAMEWORK_ROOT
-    end
 
     def rails_root
       app_path
@@ -103,13 +105,15 @@ module TestHelpers
   end
 
   module Generation
+    include ActiveSupport::Testing::Stream
+
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
-      @prev_rails_app_class = Rails.app_class
-      @prev_rails_application = Rails.application
+      @prev_rails_app_class ||= Rails.app_class
+      @prev_rails_application ||= Rails.application
       Rails.app_class = Rails.application = nil
 
-      @prev_rails_env = ENV["RAILS_ENV"]
+      @prev_rails_env ||= ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
 
       FileUtils.rm_rf(app_path)
@@ -119,13 +123,6 @@ module TestHelpers
       unless options[:initializers]
         Dir["#{app_path}/config/initializers/**/*.rb"].each do |initializer|
           File.delete(initializer)
-        end
-      end
-
-      routes = File.read("#{app_path}/config/routes.rb")
-      if routes =~ /(\n\s*end\s*)\z/
-        File.open("#{app_path}/config/routes.rb", "w") do |f|
-          f.puts $` + "\nActionDispatch.deprecator.silence { match ':controller(/:action(/:id))(.:format)', via: :all }\n" + $1
         end
       end
 
@@ -152,18 +149,85 @@ module TestHelpers
       add_to_env_config :production, "config.log_level = :error"
     end
 
+    def reset_environment_configs
+      Dir["#{app_path}/config/environments/*.rb"].each do |path|
+        File.write(path, "")
+      end
+    end
+
     def teardown_app
-      ENV["RAILS_ENV"] = @prev_rails_env if @prev_rails_env
+      if @prev_rails_env
+        ENV["RAILS_ENV"] = @prev_rails_env
+      else
+        ENV.delete("RAILS_ENV")
+      end
       Rails.app_class = @prev_rails_app_class if @prev_rails_app_class
       Rails.application = @prev_rails_application if @prev_rails_application
-      FileUtils.rm_rf(tmp_path)
+      FileUtils.rm_rf(@tmp_path) if @tmp_path
+      @tmp_path = nil
+    end
+
+    def with_test_database_cleanup(adapter)
+      pre_existing_databases = list_test_databases(adapter) rescue nil
+      yield
+    ensure
+      if pre_existing_databases
+        drop_test_databases(adapter, list_test_databases(adapter) - pre_existing_databases)
+      end
+    end
+
+    def list_test_databases(adapter)
+      saved_db_config = ActiveRecord::Base.connection_pool.db_config rescue nil
+      ActiveRecord::Base.establish_connection(database_maintenance_config_for(adapter))
+      ActiveRecord::Base.lease_connection.select_values(database_list_sql_for(adapter))
+    ensure
+      ActiveRecord::Base.remove_connection
+      ActiveRecord::Base.establish_connection(saved_db_config) if saved_db_config
+    end
+
+    def drop_test_databases(adapter, databases)
+      saved_db_config = ActiveRecord::Base.connection_pool.db_config rescue nil
+      config = database_maintenance_config_for(adapter)
+      quietly do
+        databases.each do |db|
+          ActiveRecord::Tasks::DatabaseTasks.drop(config.merge(database: db))
+        end
+      end
+    ensure
+      if saved_db_config
+        ActiveRecord::Base.remove_connection rescue nil
+        ActiveRecord::Base.establish_connection(saved_db_config) rescue nil
+      end
+    end
+
+    def database_maintenance_config_for(adapter)
+      case adapter
+      when :postgresql
+        { adapter: "postgresql", database: "postgres" }
+      when :mysql
+        cfg = { adapter: "mysql2", database: "mysql", username: "root" }
+        cfg[:host] = ENV["MYSQL_HOST"] if ENV["MYSQL_HOST"]
+        cfg[:socket] = ENV["MYSQL_SOCK"] if ENV["MYSQL_SOCK"]
+        cfg
+      end
+    end
+
+    def database_list_sql_for(adapter)
+      conn = ActiveRecord::Base.lease_connection
+      pattern = conn.quote("railties_#{Process.pid}_%")
+      case adapter
+      when :postgresql
+        "SELECT datname FROM pg_database WHERE datname LIKE #{pattern}"
+      when :mysql
+        "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE #{pattern}"
+      end
     end
 
     def default_database_configs
       <<-YAML
         default: &default
           adapter: sqlite3
-          pool: 5
+          max_connections: 5
           timeout: 5000
         development:
           <<: *default
@@ -181,7 +245,7 @@ module TestHelpers
       <<-YAML
         default: &default
           adapter: sqlite3
-          pool: 5
+          max_connections: 5
           timeout: 5000
           variables:
             statement_timeout: 1000
@@ -271,7 +335,6 @@ module TestHelpers
       @app.config.active_support.deprecation = :log
       @app.config.log_level = :error
       @app.config.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
-      @app.config.active_support.to_time_preserves_timezone = :zone
 
       yield @app if block_given?
       @app.initialize!
@@ -484,8 +547,16 @@ module TestHelpers
       app_file("app/controllers/#{name}_controller.rb", contents)
     end
 
+    def routes(routes)
+      app_file("config/routes.rb", <<~RUBY)
+        Rails.application.routes.draw do
+          #{routes}
+        end
+      RUBY
+    end
+
     def use_frameworks(arr)
-      to_remove = [:actionmailer, :activerecord, :activestorage, :activejob, :actionmailbox] - arr
+      to_remove = [:actionmailer, :activerecord, :activestorage, :activejob, :actionmailbox, :actiontext] - arr
 
       if to_remove.include?(:activerecord)
         remove_from_config "config.active_record.*"
@@ -501,7 +572,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: postgresql
-            pool: 5
+            max_connections: 5
           development:
             primary:
               <<: *default
@@ -517,7 +588,7 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: postgresql
-            pool: 5
+            max_connections: 5
           development:
             <<: *default
             database: #{database_name}_development
@@ -527,7 +598,11 @@ module TestHelpers
           YAML
         end
       end
-      database_name
+      if block_given?
+        with_test_database_cleanup(:postgresql) { yield database_name }
+      else
+        database_name
+      end
     end
 
     def use_mysql2(multi_db: false)
@@ -537,8 +612,11 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: mysql2
-            pool: 5
+            max_connections: 5
             username: root
+          <% if ENV['MYSQL_CODESPACES'] %>
+            password: 'root'
+          <% end %>
           <% if ENV['MYSQL_HOST'] %>
             host: <%= ENV['MYSQL_HOST'] %>
           <% end %>
@@ -560,8 +638,11 @@ module TestHelpers
           f.puts <<-YAML
           default: &default
             adapter: mysql2
-            pool: 5
+            max_connections: 5
             username: root
+          <% if ENV['MYSQL_CODESPACES'] %>
+            password: 'root'
+          <% end %>
           <% if ENV['MYSQL_HOST'] %>
             host: <%= ENV['MYSQL_HOST'] %>
           <% end %>
@@ -577,7 +658,11 @@ module TestHelpers
           YAML
         end
       end
-      database_name
+      if block_given?
+        with_test_database_cleanup(:mysql) { yield database_name }
+      else
+        database_name
+      end
     end
   end
 
@@ -595,6 +680,14 @@ class ActiveSupport::TestCase
   include TestHelpers::Reload
   include ActiveSupport::Testing::Stream
   include ActiveSupport::Testing::MethodCallAssertions
+
+  private
+    def with_env(env)
+      env.each { |k, v| ENV[k.to_s] = v }
+      yield
+    ensure
+      env.each_key { |k| ENV.delete k.to_s }
+    end
 end
 
 # Create a scope and build a fixture rails app

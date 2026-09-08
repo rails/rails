@@ -4,14 +4,22 @@ module ActiveRecord
   module ConnectionAdapters
     module Trilogy
       module DatabaseStatements
-        def exec_insert(sql, name, binds, pk = nil, sequence_name = nil, returning: nil) # :nodoc:
-          sql, _binds = sql_for_insert(sql, pk, binds, returning)
-          internal_execute(sql, name)
+        def _exec_insert(intent, sequence_name = nil, returning: nil) # :nodoc:
+          apply_returning_to!(intent, returning)
+
+          # AbstractAdapter calls cast_result (returning an AR::Result), but
+          # our last_inserted_id needs the raw Trilogy result object
+          intent.execute!
+          intent.raw_result
         end
 
         private
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
-            reset_multi_statement = if batch && !@config[:multi_statement]
+          def multi_statements_enabled?
+            @config[:multi_statement]
+          end
+
+          def perform_query(raw_connection, intent)
+            reset_multi_statement = if intent.batch && !@config[:multi_statement]
               raw_connection.set_server_option(::Trilogy::SET_SERVER_MULTI_STATEMENTS_ON)
               true
             end
@@ -24,15 +32,14 @@ module ActiveRecord
               raw_connection.query_flags &= ~::Trilogy::QUERY_FLAGS_LOCAL_TIMEZONE
             end
 
-            result = raw_connection.query(sql)
+            result = raw_connection.query(intent.processed_sql)
             while raw_connection.more_results_exist?
               raw_connection.next_result
             end
             verified!
-            handle_warnings(sql)
 
-            notification_payload[:affected_rows] = result.affected_rows
-            notification_payload[:row_count] = result.count
+            intent.notification_payload[:affected_rows] = result.affected_rows
+            intent.notification_payload[:row_count] = result.count
             result
           ensure
             if reset_multi_statement && active?
@@ -42,9 +49,9 @@ module ActiveRecord
 
           def cast_result(result)
             if result.fields.empty?
-              ActiveRecord::Result.empty
+              ActiveRecord::Result.empty(affected_rows: result.affected_rows)
             else
-              ActiveRecord::Result.new(result.fields, result.rows)
+              ActiveRecord::Result.new(result.fields, result.rows, affected_rows: result.affected_rows)
             end
           end
 
@@ -57,12 +64,6 @@ module ActiveRecord
               super
             else
               result.last_insert_id
-            end
-          end
-
-          def execute_batch(statements, name = nil, **kwargs)
-            combine_multi_statements(statements).each do |statement|
-              raw_execute(statement, name, batch: true, **kwargs)
             end
           end
       end

@@ -6,6 +6,8 @@ require "jobs/hello_job"
 require "jobs/provider_jid_job"
 require "active_support/core_ext/numeric/time"
 
+return unless ENV["AJ_INTEGRATION_TESTS"] == "1"
+
 class QueuingTest < ActiveSupport::TestCase
   test "should run jobs enqueued on a listening queue" do
     TestJob.perform_later @id
@@ -13,7 +15,7 @@ class QueuingTest < ActiveSupport::TestCase
     assert_job_executed
   end
 
-  unless adapter_is?(:inline, :async, :sucker_punch)
+  unless adapter_is?(:inline, :async)
     test "should not run jobs queued on a non-listening queue" do
       old_queue = TestJob.queue_name
 
@@ -24,24 +26,6 @@ class QueuingTest < ActiveSupport::TestCase
         assert_job_not_executed
       ensure
         TestJob.queue_name = old_queue
-      end
-    end
-  end
-
-  if adapter_is?(:sidekiq)
-    test "should supply a wrapped class name to Sidekiq" do
-      Sidekiq::Testing.fake! do
-        ::HelloJob.perform_later
-        hash = ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper.jobs.first
-        assert_equal "ActiveJob::QueueAdapters::SidekiqAdapter::JobWrapper", hash["class"]
-        assert_equal "HelloJob", hash["wrapped"]
-      end
-    end
-
-    test "should access provider_job_id inside Sidekiq job" do
-      Sidekiq::Testing.inline! do
-        job = ::ProviderJidJob.perform_later
-        assert_equal "Provider Job ID: #{job.provider_job_id}", JobBuffer.last_value
       end
     end
   end
@@ -90,7 +74,7 @@ class QueuingTest < ActiveSupport::TestCase
     pass
   end
 
-  if adapter_is?(:async, :delayed_job, :sidekiq, :queue_classic)
+  if adapter_is?(:async, :delayed_job, :queue_classic)
     test "should supply a provider_job_id when available for immediate jobs" do
       test_job = TestJob.perform_later @id
       assert test_job.provider_job_id, "Provider job id should be set by provider"

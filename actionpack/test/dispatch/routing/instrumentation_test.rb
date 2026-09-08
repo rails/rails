@@ -8,11 +8,11 @@ class RoutingInstrumentationTest < ActionDispatch::IntegrationTest
       get "redirect", to: redirect("/login")
     end
 
-    event = subscribed("redirect.action_dispatch") { get "/redirect" }
+    notification = assert_notification("redirect.action_dispatch", status: 301, location: "http://www.example.com/login") do
+      get "/redirect"
+    end
 
-    assert_equal 301, event.payload[:status]
-    assert_equal "http://www.example.com/login", event.payload[:location]
-    assert_kind_of ActionDispatch::Request, event.payload[:request]
+    assert_kind_of ActionDispatch::Request, notification.payload[:request]
   end
 
   private
@@ -22,12 +22,5 @@ class RoutingInstrumentationTest < ActionDispatch::IntegrationTest
         routes.draw(&block)
         @app = RoutedRackApp.new routes
       end
-    end
-
-    def subscribed(event_pattern, &block)
-      event = nil
-      subscriber = -> (_event) { event = _event }
-      ActiveSupport::Notifications.subscribed(subscriber, event_pattern, &block)
-      event
     end
 end

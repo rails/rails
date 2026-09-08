@@ -11,8 +11,9 @@
           <tr>
             <td>
               <pre class="line_numbers">
-                <% source_extract[:code].each_key do |line_number| %>
-<span><%= line_number -%></span>
+                <% source_extract[:code].each_key do |line| %>
+                  <% file_url = editor_url(source_extract[:trace], line: line) %>
+<span><%= link_to_if file_url, line, file_url -%></span>
                 <% end %>
               </pre>
             </td>

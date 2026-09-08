@@ -15,6 +15,12 @@ class Club < ActiveRecord::Base
 
   scope :general, -> { left_joins(:category).where(categories: { name: "General" }).unscope(:limit) }
 
+  has_many :program_offerings
+  has_many :programs, through: :program_offerings
+
+  has_many :simple_memberships, class_name: "Membership"
+  has_many :simple_members, through: :simple_memberships, foreign_key: "member_id"
+
   accepts_nested_attributes_for :membership
 
   private

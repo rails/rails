@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/delegation"
 
 module ActiveRecord
   module Delegation # :nodoc:
@@ -42,6 +41,7 @@ module ActiveRecord
 
           cache[klass] = delegate
         end
+        @relation_delegate_cache.freeze
       end
 
       def inherited(child_class)

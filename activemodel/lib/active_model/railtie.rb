@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "active_model"
 require "rails"
+require "active_model"
 
 module ActiveModel
   class Railtie < Rails::Railtie # :nodoc:
@@ -9,16 +9,22 @@ module ActiveModel
 
     config.active_model = ActiveSupport::OrderedOptions.new
 
+    guard_load_hooks(:active_model, :active_model_error, :active_model_secure_password, :active_model_translation)
+
     initializer "active_model.deprecator", before: :load_environment_config do |app|
       app.deprecators[:active_model] = ActiveModel.deprecator
     end
 
     initializer "active_model.secure_password" do
-      ActiveModel::SecurePassword.min_cost = Rails.env.test?
+      ActiveSupport.on_load(:active_model_secure_password) do
+        ActiveModel::SecurePassword.min_cost = Rails.env.test?
+      end
     end
 
-    initializer "active_model.i18n_customize_full_message" do
-      ActiveModel::Error.i18n_customize_full_message = config.active_model.delete(:i18n_customize_full_message) || false
+    initializer "active_model.i18n_customize_full_message" do |app|
+      ActiveSupport.on_load(:active_model_error) do
+        ActiveModel::Error.i18n_customize_full_message = app.config.active_model.i18n_customize_full_message || false
+      end
     end
   end
 end

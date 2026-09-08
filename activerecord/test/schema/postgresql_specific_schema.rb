@@ -2,11 +2,9 @@
 
 ActiveRecord::Schema.define do
   ActiveRecord::TestCase.enable_extension!("uuid-ossp", connection)
-  ActiveRecord::TestCase.enable_extension!("pgcrypto",  connection) if supports_pgcrypto_uuid?
+  ActiveRecord::TestCase.enable_extension!("pgcrypto",  connection)
 
-  uuid_default = supports_pgcrypto_uuid? ? {} : { default: "uuid_generate_v4()" }
-
-  create_table :chat_messages, id: :uuid, force: true, **uuid_default do |t|
+  create_table :chat_messages, id: :uuid, force: true do |t|
     t.text :content
   end
 
@@ -15,11 +13,11 @@ ActiveRecord::Schema.define do
     t.text :content
   end
 
-  create_table :uuid_parents, id: :uuid, force: true, **uuid_default do |t|
+  create_table :uuid_parents, id: :uuid, force: true do |t|
     t.string :name
   end
 
-  create_table :uuid_children, id: :uuid, force: true, **uuid_default do |t|
+  create_table :uuid_children, id: :uuid, force: true do |t|
     t.string :name
     t.uuid :uuid_parent_id
   end
@@ -139,23 +137,23 @@ _SQL
   end
 
   create_table :uuid_comments, force: true, id: false do |t|
-    t.uuid :uuid, primary_key: true, **uuid_default
+    t.uuid :uuid, primary_key: true
     t.string :content
   end
 
   create_table :uuid_entries, force: true, id: false do |t|
-    t.uuid :uuid, primary_key: true, **uuid_default
+    t.uuid :uuid, primary_key: true
     t.string :entryable_type, null: false
     t.uuid :entryable_uuid, null: false
   end
 
   create_table :uuid_items, force: true, id: false do |t|
-    t.uuid :uuid, primary_key: true, **uuid_default
+    t.uuid :uuid, primary_key: true
     t.string :title
   end
 
   create_table :uuid_messages, force: true, id: false do |t|
-    t.uuid :uuid, primary_key: true, **uuid_default
+    t.uuid :uuid, primary_key: true
     t.string :subject
   end
 
@@ -185,17 +183,24 @@ _SQL
   end
 
   if supports_partitioned_indexes?
-    create_table(:measurements, id: false, force: true, options: "PARTITION BY LIST (city_id)") do |t|
-      t.string :city_id, null: false
-      t.date :logdate, null: false
-      t.integer :peaktemp
-      t.integer :unitsales
-      t.index [:logdate, :city_id], unique: true
+    begin
+      previous_unlogged_tables = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables
+      ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = false
+
+      create_table(:measurements, id: false, force: true, options: "PARTITION BY LIST (city_id)") do |t|
+        t.string :city_id, null: false
+        t.date :logdate, null: false
+        t.integer :peaktemp
+        t.integer :unitsales
+        t.index [:logdate, :city_id], unique: true
+      end
+      create_table(:measurements_toronto, id: false, force: true,
+                                          options: "PARTITION OF measurements FOR VALUES IN (1)")
+      create_table(:measurements_concepcion, id: false, force: true,
+                                            options: "PARTITION OF measurements FOR VALUES IN (2)")
+    ensure
+      ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.create_unlogged_tables = previous_unlogged_tables
     end
-    create_table(:measurements_toronto, id: false, force: true,
-                                        options: "PARTITION OF measurements FOR VALUES IN (1)")
-    create_table(:measurements_concepcion, id: false, force: true,
-                                           options: "PARTITION OF measurements FOR VALUES IN (2)")
   end
 
   add_index(:companies, [:firm_id, :type], name: "company_include_index", include: [:name, :account_id])
@@ -220,7 +225,7 @@ _SQL
       CREATE TRIGGER before_insert_trigger
       BEFORE INSERT ON pk_autopopulated_by_a_trigger_records
       FOR EACH ROW
-      EXECUTE FUNCTION populate_column();
+      EXECUTE PROCEDURE populate_column();
     SQL
   end
 end

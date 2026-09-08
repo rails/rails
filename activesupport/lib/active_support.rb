@@ -30,7 +30,6 @@ require "active_support/deprecator"
 require "active_support/logger"
 require "active_support/broadcast_logger"
 require "active_support/lazy_load_hooks"
-require "active_support/core_ext/date_and_time/compatibility"
 
 # :include: ../README.rdoc
 module ActiveSupport
@@ -39,21 +38,29 @@ module ActiveSupport
   autoload :Concern
   autoload :CodeGenerator
   autoload :ActionableError
+  autoload :Configurable
   autoload :ConfigurationFile
+  autoload :ContinuousIntegration
   autoload :CurrentAttributes
+  autoload :DateFormats
   autoload :Dependencies
   autoload :DescendantsTracker
+  autoload :Editor
   autoload :ExecutionWrapper
   autoload :Executor
   autoload :ErrorReporter
+  autoload :EventReporter
   autoload :FileUpdateChecker
   autoload :EventedFileUpdateChecker
   autoload :ForkTracker
   autoload :LogSubscriber
+  autoload :StructuredEventSubscriber
   autoload :IsolatedExecutionState
   autoload :Notifications
+  autoload :ProxyLogger
   autoload :Reloader
   autoload :SecureCompareRotator
+  autoload :TimeFormats
 
   eager_autoload do
     autoload :BacktraceCleaner
@@ -61,7 +68,7 @@ module ActiveSupport
     autoload :Benchmarkable
     autoload :Cache
     autoload :Callbacks
-    autoload :Configurable
+    autoload :ColorizeLogging
     autoload :ClassAttribute
     autoload :Deprecation
     autoload :Delegation
@@ -85,6 +92,7 @@ module ActiveSupport
     autoload :TaggedLogging
     autoload :XmlMini
     autoload :ArrayInquirer
+    autoload :Ractors
   end
 
   autoload :Rescuable
@@ -97,11 +105,30 @@ module ActiveSupport
     NumberHelper.eager_load!
   end
 
-  cattr_accessor :test_order # :nodoc:
-  cattr_accessor :test_parallelization_threshold, default: 50 # :nodoc:
+  singleton_class.attr_accessor :test_order # :nodoc:
+
+  @test_parallelization_threshold = 50
+  singleton_class.attr_accessor :test_parallelization_threshold # :nodoc:
+
+  @parallelize_test_databases = true
+  singleton_class.attr_accessor :parallelize_test_databases # :nodoc:
 
   @error_reporter = ActiveSupport::ErrorReporter.new
   singleton_class.attr_accessor :error_reporter # :nodoc:
+
+  @event_reporter = ActiveSupport::EventReporter.new
+  singleton_class.attr_writer :event_reporter # :nodoc:
+
+  def self.event_reporter # :nodoc:
+    return @event_reporter if ActiveSupport::Ractors.main?
+
+    Ractor[:__event_reporter] ||= ActiveSupport::EventReporter.new
+  end
+
+  cattr_accessor :filter_parameters, default: [] # :nodoc:
+
+  @colorize_logging = true
+  singleton_class.attr_accessor :colorize_logging
 
   def self.cache_format_version
     Cache.format_version
@@ -112,32 +139,41 @@ module ActiveSupport
   end
 
   def self.to_time_preserves_timezone
-    DateAndTime::Compatibility.preserve_timezone
+    ActiveSupport.deprecator.warn(
+      "`config.active_support.to_time_preserves_timezone` is deprecated and will be removed in Rails 8.2"
+    )
+    @to_time_preserves_timezone
   end
 
   def self.to_time_preserves_timezone=(value)
-    if !value
-      ActiveSupport.deprecator.warn(
-        "`to_time` will always preserve the receiver timezone rather than system local time in Rails 8.1. " \
-        "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
-      )
-    elsif value != :zone
-      ActiveSupport.deprecator.warn(
-        "`to_time` will always preserve the full timezone rather than offset of the receiver in Rails 8.1. " \
-        "To opt in to the new behavior, set `config.active_support.to_time_preserves_timezone = :zone`."
-      )
-    end
+    ActiveSupport.deprecator.warn(
+      "`config.active_support.to_time_preserves_timezone` is deprecated and will be removed in Rails 8.2"
+    )
 
-    DateAndTime::Compatibility.preserve_timezone = value
+    @to_time_preserves_timezone = value
   end
 
-  def self.utc_to_local_returns_utc_offset_times
-    DateAndTime::Compatibility.utc_to_local_returns_utc_offset_times
-  end
+  # Change the output of <tt>ActiveSupport::TimeZone.utc_to_local</tt>.
+  #
+  # When +true+, it returns local times with a UTC offset, with +false+ local
+  # times are returned as UTC.
+  #
+  #   # Given this zone:
+  #   zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+  #
+  #   # With `utc_to_local_returns_utc_offset_times = false`, local time is converted to UTC:
+  #   zone.utc_to_local(Time.utc(2000, 1)) # => 1999-12-31 19:00:00 UTC
+  #
+  #   # With `utc_to_local_returns_utc_offset_times = true`, local time is returned with UTC offset:
+  #   zone.utc_to_local(Time.utc(2000, 1)) # => 1999-12-31 19:00:00 -0500
+  singleton_class.attr_accessor :utc_to_local_returns_utc_offset_times
+  @utc_to_local_returns_utc_offset_times = false
 
-  def self.utc_to_local_returns_utc_offset_times=(value)
-    DateAndTime::Compatibility.utc_to_local_returns_utc_offset_times = value
-  end
+  # Specifies whether ActiveSupport::TimeZone#parse raises +ArgumentError+ for
+  # any invalid string, instead of returning +nil+ for strings that contain no
+  # recognizable date information.
+  singleton_class.attr_accessor :raise_on_invalid_time_zone_parse
+  @raise_on_invalid_time_zone_parse = false
 end
 
 autoload :I18n, "active_support/i18n"

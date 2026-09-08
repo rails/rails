@@ -5,7 +5,6 @@ require "yaml"
 require "active_support/duration"
 require "active_support/values/time_zone"
 require "active_support/core_ext/object/acts_like"
-require "active_support/core_ext/date_and_time/compatibility"
 
 module ActiveSupport
   # = Active Support \Time With Zone
@@ -45,13 +44,19 @@ module ActiveSupport
     PRECISIONS = Hash.new { |h, n| h[n] = "%FT%T.%#{n}N" }
     PRECISIONS[0] = "%FT%T"
 
-    include Comparable, DateAndTime::Compatibility
+    include Comparable
     attr_reader :time_zone
 
     def initialize(utc_time, time_zone, local_time = nil, period = nil)
-      @utc = utc_time ? transfer_time_values_to_utc_constructor(utc_time) : nil
       @time_zone, @time = time_zone, local_time
-      @period = @utc ? period : get_period_and_ensure_valid_local_time(period)
+      if utc_time
+        @utc = transfer_time_values_to_utc_constructor(utc_time)
+        @period = period
+      else
+        @utc = nil
+        @period = get_period_and_ensure_valid_local_time(period)
+      end
+      @is_utc = zone == "UTC" || zone == "UCT"
     end
 
     # Returns a <tt>Time</tt> instance that represents the time in +time_zone+.
@@ -103,7 +108,7 @@ module ActiveSupport
     #   Time.zone = 'Eastern Time (US & Canada)'    # => 'Eastern Time (US & Canada)'
     #   Time.zone.now.utc?                          # => false
     def utc?
-      zone == "UTC" || zone == "UCT"
+      @is_utc
     end
     alias_method :gmt?, :utc?
 
@@ -146,7 +151,17 @@ module ActiveSupport
     #
     #   Time.zone.now.xmlschema  # => "2014-12-04T11:02:37-05:00"
     def xmlschema(fraction_digits = 0)
-      "#{time.strftime(PRECISIONS[fraction_digits.to_i])}#{formatted_offset(true, 'Z')}"
+      precision = fraction_digits || 0
+
+      if @is_utc
+        utc.iso8601(precision)
+      else
+        str = time.iso8601(precision)
+        offset = formatted_offset(true, "Z")
+
+        str.sub!(/(Z|[+-]\d{2}:\d{2})\z/, offset)
+        str
+      end
     end
     alias_method :iso8601, :xmlschema
     alias_method :rfc3339, :xmlschema
@@ -165,7 +180,7 @@ module ActiveSupport
     #   # => "2005/02/01 05:15:10 -1000"
     def as_json(options = nil)
       if ActiveSupport::JSON::Encoding.use_standard_json_time_format
-        xmlschema(ActiveSupport::JSON::Encoding.time_precision)
+        xmlschema(ActiveSupport::JSON::Encoding.time_precision).force_encoding(Encoding::UTF_8)
       else
         %(#{time.strftime("%Y/%m/%d %H:%M:%S")} #{formatted_offset(false)})
       end
@@ -208,11 +223,11 @@ module ActiveSupport
     # Accepts an optional <tt>format</tt>:
     # * <tt>:default</tt> - default value, mimics Ruby Time#to_s format.
     # * <tt>:db</tt> - format outputs time in UTC :db time. See Time#to_fs(:db).
-    # * Any key in +Time::DATE_FORMATS+ can be used. See active_support/core_ext/time/conversions.rb.
+    # * Any key in +ActiveSupport::TimeFormats+ can be used. See active_support/core_ext/time/conversions.rb.
     def to_fs(format = :default)
       if format == :db
         utc.to_fs(format)
-      elsif formatter = ::Time::DATE_FORMATS[format]
+      elsif formatter = ::ActiveSupport::TimeFormats.lookup(format)
         formatter.respond_to?(:call) ? formatter.call(self).to_s : strftime(formatter)
       else
         to_s
@@ -299,16 +314,8 @@ module ActiveSupport
       if duration_of_variable_length?(other)
         method_missing(:+, other)
       else
-        begin
-          result = utc + other
-        rescue TypeError
-          result = utc.to_datetime.since(other)
-          ActiveSupport.deprecator.warn(
-            "Adding an instance of #{other.class} to an instance of #{self.class} is deprecated. This behavior will raise " \
-            "a `TypeError` in Rails 8.1."
-          )
-          result.in_time_zone(time_zone)
-        end
+        result = utc + other
+
         result.in_time_zone(time_zone)
       end
     end
@@ -438,11 +445,11 @@ module ActiveSupport
     end
 
     %w(year mon month day mday wday yday hour min sec usec nsec to_date).each do |method_name|
-      class_eval <<-EOV, __FILE__, __LINE__ + 1
+      class_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{method_name}    # def month
           time.#{method_name} #   time.month
         end                   # end
-      EOV
+      RUBY
     end
 
     # Returns Array of parts of Time in sequence of
@@ -491,13 +498,7 @@ module ActiveSupport
     # with the same UTC offset as +self+ or in the local system timezone
     # depending on the setting of +ActiveSupport.to_time_preserves_timezone+.
     def to_time
-      if preserve_timezone == :zone
-        @to_time_with_timezone ||= getlocal(time_zone)
-      elsif preserve_timezone
-        @to_time_with_instance_offset ||= getlocal(utc_offset)
-      else
-        @to_time_with_system_offset ||= getlocal
-      end
+      @to_time_with_timezone ||= getlocal(time_zone)
     end
 
     # So that +self+ <tt>acts_like?(:time)</tt>.
@@ -534,14 +535,6 @@ module ActiveSupport
       initialize(variables[0].utc, ::Time.find_zone(variables[1]), variables[2].utc)
     end
 
-    # respond_to_missing? is not called in some cases, such as when type conversion is
-    # performed with Kernel#String
-    def respond_to?(sym, include_priv = false)
-      # ensure that we're not going to throw and rescue from NoMethodError in method_missing which is slow
-      return false if sym.to_sym == :to_str
-      super
-    end
-
     # Ensure proxy class responds to all methods that underlying time instance
     # responds to.
     def respond_to_missing?(sym, include_priv)
@@ -560,7 +553,9 @@ module ActiveSupport
       SECONDS_PER_DAY = 86400
 
       def incorporate_utc_offset(time, offset)
-        if time.kind_of?(Date)
+        if offset.zero?
+          time
+        elsif time.kind_of?(Date)
           time + Rational(offset, SECONDS_PER_DAY)
         else
           time + offset

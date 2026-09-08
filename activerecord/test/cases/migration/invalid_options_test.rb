@@ -22,7 +22,17 @@ module ActiveRecord
       end
 
       def invalid_add_index_option_exception_message(key)
-        "Unknown key: :#{key}. Valid keys are: :unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct"
+        default_keys = [":unique", ":length", ":order", ":opclass", ":where", ":type", ":using", ":comment", ":algorithm", ":include", ":nulls_not_distinct"]
+
+        if connection.supports_disabling_indexes?
+          default_keys.concat([":enabled"])
+        end
+
+        if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+          default_keys.concat([":lock"])
+        end
+
+        "Unknown key: :#{key}. Valid keys are: #{default_keys.join(", ")}"
       end
 
       def invalid_create_table_option_exception_message(key)
@@ -84,6 +94,26 @@ module ActiveRecord
         )
       ensure
         connection.drop_table :my_table, if_exists: true
+      end
+
+      def test_add_column_with_nullable_primary_key
+        exception = assert_raises(ArgumentError) do
+          add_column "test_models", "other_id", :primary_key, null: true
+        end
+
+        assert_equal(
+          "primary keys cannot be NULL",
+          exception.message
+        )
+
+        exception = assert_raises(ArgumentError) do
+          add_column "test_models", "another_id", :integer, primary_key: true, null: true
+        end
+
+        assert_equal(
+          "primary keys cannot be NULL",
+          exception.message
+        )
       end
 
       def test_add_index_with_invalid_options

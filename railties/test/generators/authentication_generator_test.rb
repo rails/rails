@@ -13,6 +13,14 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
       class ApplicationController < ActionController::Base
       end
     RUBY
+    FileUtils.mkdir_p("#{destination_root}/test")
+    File.write("#{destination_root}/test/test_helper.rb", <<~RUBY)
+      require "rails/test_help"
+      module ActiveSupport
+        class TestCase
+        end
+      end
+    RUBY
 
     copy_gemfile
 
@@ -52,6 +60,15 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
+    assert_file "test/controllers/sessions_controller_test.rb"
+    assert_file "test/controllers/passwords_controller_test.rb"
+    assert_file "test/mailers/previews/passwords_mailer_preview.rb"
+
+    assert_file "test/test_helpers/session_test_helper.rb"
+
+    assert_file "test/test_helper.rb" do |content|
+      assert_match("require_relative \"test_helpers/session_test_helper\"", content)
+    end
   end
 
   def test_authentication_generator_without_bcrypt_in_gemfile
@@ -61,7 +78,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     run_generator_instance
 
-    assert_includes @bundle_commands, [:bundle, "add bcrypt", { capture: true }]
+    assert_includes @bundle_commands, ["add bcrypt", {}, { quiet: true }]
   end
 
   def test_authentication_generator_with_api_flag
@@ -88,7 +105,8 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "config/routes.rb" do |content|
-      assert_match(/resource :session/, content)
+      assert_match(/resource :session, only: \[ :new, :create, :destroy \]/, content)
+      assert_match(/resources :passwords, param: :token, only: \[ :new, :create, :edit, :update \]/, content)
     end
 
     assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
@@ -96,6 +114,33 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/models/user_test.rb"
     assert_file "test/fixtures/users.yml"
+    assert_file "test/mailers/previews/passwords_mailer_preview.rb"
+
+    assert_file "test/test_helpers/session_test_helper.rb"
+
+    assert_file "test/test_helper.rb" do |content|
+      assert_match("require_relative \"test_helpers/session_test_helper\"", content)
+    end
+  end
+
+  def test_create_users_migration_is_skipped_when_user_model_already_exists
+    FileUtils.mkdir_p("#{destination_root}/app/models")
+    File.write("#{destination_root}/app/models/user.rb", <<~RUBY)
+      class User < ApplicationRecord
+      end
+    RUBY
+
+    generator([destination_root], force: true)
+
+    run_generator_instance
+
+    assert_not_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
+    assert_includes @rails_commands, "generate migration CreateSessions user:references ip_address:string user_agent:string --force"
+
+    assert_file "app/models/session.rb"
+    assert_file "app/models/current.rb"
+    assert_file "app/controllers/sessions_controller.rb"
+    assert_file "app/controllers/concerns/authentication.rb"
   end
 
   def test_model_test_is_skipped_if_test_framework_is_given
@@ -105,6 +150,26 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
 
     assert_match(/rspec \[not found\]/, content)
     assert_no_file "test/models/user_test.rb"
+  end
+
+  def test_mailer_preview_is_skipped_if_test_framework_is_given
+    generator([destination_root], ["-t", "rspec"])
+
+    run_generator_instance
+
+    assert_no_file "test/mailers/previews/passwords_mailer_preview.rb"
+  end
+
+  def test_session_test_helper_is_skipped_if_test_framework_is_given
+    generator([destination_root], ["-t", "rspec"])
+
+    run_generator_instance
+
+    assert_no_file "test/test_helpers/session_test_helper.rb"
+    assert_file "test/test_helper.rb" do |test_helper_content|
+      assert_no_match(/session_test_helper/, test_helper_content)
+      assert_no_match(/SessionTestHelper/, test_helper_content)
+    end
   end
 
   def test_connection_class_skipped_without_action_cable
@@ -118,22 +183,44 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     ActionCable.const_set(:Engine, old_value)
   end
 
+  def test_authentication_generator_without_action_mailer
+    old_value = ActionMailer.const_get(:Railtie)
+    ActionMailer.send(:remove_const, :Railtie)
+    generator([destination_root])
+    run_generator_instance
+
+    assert_no_file "app/mailers/application_mailer.rb"
+    assert_no_file "app/mailers/passwords_mailer.rb"
+    assert_no_file "app/views/passwords_mailer/reset.html.erb"
+    assert_no_file "app/views/passwords_mailer/reset.text.erb"
+    assert_no_file "test/mailers/previews/passwords_mailer_preview.rb"
+
+    assert_file "app/controllers/passwords_controller.rb" do |content|
+      assert_no_match(/def create\n    end/, content)
+      assert_no_match(/rate_limit/, content)
+    end
+
+    assert_file "test/controllers/passwords_controller_test.rb" do |content|
+      assert_no_match(/assert_enqueued_email/, content)
+    end
+  ensure
+    ActionMailer.const_set(:Railtie, old_value)
+  end
+
   private
     def run_generator_instance
-      commands = []
-      command_stub ||= -> (command, *args) { commands << [command, *args] }
+      @bundle_commands = []
+      command_stub ||= -> (command, *args) { @bundle_commands << [command, *args] }
 
       @rails_commands = []
       @rails_command_stub ||= -> (command, *_) { @rails_commands << command }
 
       content = nil
-      generator.stub(:execute_command, command_stub) do
+      generator.stub(:bundle_command, command_stub) do
         generator.stub(:rails_command, @rails_command_stub) do
           content = super
         end
       end
-
-      @bundle_commands = commands.filter { |command, _| command == :bundle }
 
       content
     end

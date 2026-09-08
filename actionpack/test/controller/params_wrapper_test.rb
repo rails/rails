@@ -6,7 +6,7 @@ module Admin; class User; end; end
 
 module ParamsWrapperTestHelp
   def with_default_wrapper_options(&block)
-    @controller.class._set_wrapper_options(format: [:json])
+    @controller.class._wrapper_options = ActionController::ParamsWrapper::Options.from_hash(format: [:json])
     @controller.class.inherited(@controller.class)
     yield
   end
@@ -257,7 +257,8 @@ class ParamsWrapperTest < ActionController::TestCase
   end
 
   def test_derived_wrapped_keys_from_nested_attributes
-    def User.nested_attributes_options
+    assert_not_respond_to User, :nested_attributes_options
+    User.define_singleton_method(:nested_attributes_options) do
       { person: {} }
     end
 
@@ -268,6 +269,8 @@ class ParamsWrapperTest < ActionController::TestCase
         assert_parameters("username" => "sikachu", "person_attributes" => { "title" => "Developer" }, "user" => { "username" => "sikachu", "person_attributes" => { "title" => "Developer" } })
       end
     end
+  ensure
+    User.singleton_class.undef_method(:nested_attributes_options)
   end
 end
 

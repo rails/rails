@@ -25,11 +25,12 @@ class SerializersTest < ActiveSupport::TestCase
       DummyValueObject.new(hash["value"])
     end
 
-    private
-      def klass
-        DummyValueObject
-      end
+    def klass
+      DummyValueObject
+    end
   end
+
+  class TestSerializerWithoutKlass < ActiveJob::Serializers::ObjectSerializer; end
 
   setup do
     @value_object = DummyValueObject.new 123
@@ -37,7 +38,7 @@ class SerializersTest < ActiveSupport::TestCase
   end
 
   teardown do
-    ActiveJob::Serializers._additional_serializers = @original_serializers
+    ActiveJob::Serializers.serializers = @original_serializers
   end
 
   test "can't serialize unknown object" do
@@ -83,15 +84,33 @@ class SerializersTest < ActiveSupport::TestCase
     assert_equal DummyValueObject.new(123), ActiveJob::Serializers.deserialize(hash)
   end
 
+  test "resets serializers when directly setting" do
+    class DummySerializerAlt < DummySerializer
+      def klass; DummySerializer end
+    end
+    ActiveJob::Serializers.add_serializers DummySerializer
+    ActiveJob::Serializers.serializers = [DummySerializerAlt]
+    assert ActiveJob::Serializers.serializers.include?(DummySerializerAlt.instance)
+    assert_not ActiveJob::Serializers.serializers.include?(DummySerializer.instance)
+  end
+
   test "adds new serializer" do
     ActiveJob::Serializers.add_serializers DummySerializer
-    assert ActiveJob::Serializers.serializers.include?(DummySerializer)
+    assert ActiveJob::Serializers.serializers.include?(DummySerializer.instance)
   end
 
   test "can't add serializer with the same key twice" do
     ActiveJob::Serializers.add_serializers DummySerializer
     assert_no_difference(-> { ActiveJob::Serializers.serializers.size }) do
       ActiveJob::Serializers.add_serializers DummySerializer
+    end
+  end
+
+  test "raises a deprecation warning if the klass method doesn't exist" do
+    expected_message = "TestSerializerWithoutKlass should implement a public #klass method. This will raise an error in Rails 8.2"
+
+    assert_deprecated(expected_message, ActiveJob.deprecator) do
+      ActiveJob::Serializers.add_serializers TestSerializerWithoutKlass
     end
   end
 end

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 
 class FormTagHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -25,14 +27,23 @@ class FormTagHelperTest < ActionView::TestCase
   def hidden_fields(options = {})
     method = options[:method]
     enforce_utf8 = options.fetch(:enforce_utf8, true)
+    no_autocomplete = options[:no_autocomplete]
 
     (+"").tap do |txt|
       if enforce_utf8
-        txt << %{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />}
+        if no_autocomplete
+          txt << %{<input name="utf8" type="hidden" value="&#x2713;" />}
+        else
+          txt << %{<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />}
+        end
       end
 
       if method && !%w(get post).include?(method.to_s)
-        txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off" />}
+        if no_autocomplete
+          txt << %{<input name="_method" type="hidden" value="#{method}" />}
+        else
+          txt << %{<input name="_method" type="hidden" value="#{method}" autocomplete="off" />}
+        end
       end
     end
   end
@@ -321,10 +332,60 @@ class FormTagHelperTest < ActionView::TestCase
     assert_equal "post[1][title][subtitle][]", value
   end
 
-  def test_hidden_field_tag
-    actual = hidden_field_tag "id", 3
-    expected = %(<input id="id" name="id" type="hidden" value="3" autocomplete="off" />)
-    assert_dom_equal expected, actual
+  def test_hidden_field_tag_default_omits_autocomplete
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      actual = hidden_field_tag "id", 3
+      expected = %(<input id="id" name="id" type="hidden" value="3" />)
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_hidden_field_tag_legacy_includes_autocomplete_off
+    ActionView::Base.with(remove_hidden_field_autocomplete: false) do
+      actual = hidden_field_tag "id", 3
+      expected = %(<input id="id" name="id" type="hidden" value="3" autocomplete="off" />)
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_hidden_field_tag_respects_explicit_autocomplete_when_default_omits
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      actual = hidden_field_tag "username", "me@example.com", autocomplete: "username"
+      expected = %(<input id="username" name="username" type="hidden" value="me@example.com" autocomplete="username" />)
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_hidden_field_tag_respects_explicit_autocomplete_when_legacy_includes_off
+    ActionView::Base.with(remove_hidden_field_autocomplete: false) do
+      actual = hidden_field_tag "username", "me@example.com", autocomplete: "username"
+      expected = %(<input id="username" name="username" type="hidden" value="me@example.com" autocomplete="username" />)
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_hidden_field_tag_with_autocomplete_false_in_legacy_mode
+    ActionView::Base.with(remove_hidden_field_autocomplete: false) do
+      actual = hidden_field_tag "id", 3, autocomplete: nil
+      expected = %(<input id="id" name="id" type="hidden" value="3" />)
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_form_tag_hidden_helpers_omit_autocomplete_by_default
+    ActionView::Base.with(remove_hidden_field_autocomplete: true) do
+      actual = form_tag({}, { method: :patch })
+      expected = whole_form("http://www.example.com", method: :patch, no_autocomplete: true)
+      assert_dom_equal expected, actual
+    end
+  end
+
+  def test_form_tag_hidden_helpers_include_autocomplete_off_in_legacy_mode
+    ActionView::Base.with(remove_hidden_field_autocomplete: false) do
+      actual = form_tag({}, { method: :patch })
+      expected = whole_form("http://www.example.com", method: :patch)
+      assert_dom_equal expected, actual
+    end
   end
 
   def test_hidden_field_tag_with_autocomplete
@@ -352,6 +413,13 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>", file_field_tag("picsplz", class: "pix")
   end
 
+  def test_file_field_tag_with_accept_array
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" accept=\"image/png,image/gif\"/>",
+      file_field_tag("picsplz", accept: ["image/png", "image/gif"])
+    )
+  end
+
   def test_file_field_tag_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
     assert_dom_equal(
       "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>",
@@ -377,6 +445,25 @@ class FormTagHelperTest < ActionView::TestCase
     )
 
     assert_equal({ class: "pix", direct_upload: true }, original_options)
+  end
+
+  def test_file_field_tag_with_direct_upload_includes_checksum_algorithm
+    @controller = WithActiveStorageRoutesControllers.new
+
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\" data-direct-upload-url=\"http://testtwo.host/rails/active_storage/direct_uploads\" data-checksum-algorithm=\"sha256\"/>",
+      file_field_tag("picsplz", class: "pix", direct_upload: true, data_checksum_algorithm: "sha256")
+    )
+  end
+
+  def test_file_field_tag_with_direct_upload_defaults_checksum_algorithm_to_md5
+    @controller = WithActiveStorageRoutesControllers.new
+
+    # Should not override existing data-checksum-algorithm
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\" data-direct-upload-url=\"http://testtwo.host/rails/active_storage/direct_uploads\" data-checksum-algorithm=\"md5\"/>",
+      file_field_tag("picsplz", class: "pix", direct_upload: true, data_checksum_algorithm: "md5")
+    )
   end
 
   def test_password_field_tag
@@ -581,7 +668,7 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_text_field_tag_with_ac_parameters
     actual = text_field_tag "title", ActionController::Parameters.new(key: "value")
-    value = CGI.escapeHTML({ "key" => "value" }.inspect)
+    value = ERB::Util.html_escape({ "key" => "value" }.inspect)
     expected = %(<input id="title" name="title" type="text" value="#{value}" />)
     assert_dom_equal expected, actual
   end
@@ -912,9 +999,102 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, number_field_tag("quantity", nil, in: 1...10))
   end
 
+  def test_number_field_tag_with_endless_range
+    expected = %{<input name="quantity" id="quantity" type="number" min="18" />}
+    assert_dom_equal(expected, number_field_tag("quantity", nil, in: 18..))
+  end
+
+  def test_number_field_tag_with_beginless_range
+    expected = %{<input name="quantity" max="10" id="quantity" type="number" />}
+    assert_dom_equal(expected, number_field_tag("quantity", nil, in: ..10))
+  end
+
   def test_range_input_tag
     expected = %{<input name="volume" step="0.1" max="11" id="volume" type="range" min="0" />}
     assert_dom_equal(expected, range_field_tag("volume", nil, in: 0..11, step: 0.1))
+  end
+
+  def test_range_input_tag_with_endless_range
+    expected = %{<input name="volume" id="volume" type="range" min="0" />}
+    assert_dom_equal(expected, range_field_tag("volume", nil, in: 0..))
+  end
+
+  def test_range_input_tag_with_beginless_range
+    expected = %{<input name="volume" max="11" id="volume" type="range" />}
+    assert_dom_equal(expected, range_field_tag("volume", nil, in: ..11))
+  end
+
+  def test_empty_datalist
+    actual = datalist_tag("countries_datalist")
+    expected = %(<datalist id="countries_datalist"></datalist>)
+    assert_dom_equal(expected, actual)
+  end
+
+  def test_datalist_with_simple_option_tags
+    actual = datalist_tag("countries_datalist", %w[Argentina Brazil Chile])
+    expected = %(
+      <datalist id="countries_datalist">
+        <option value="Argentina">Argentina</option>
+        <option value="Brazil">Brazil</option>
+        <option value="Chile">Chile</option>
+      </datalist>
+    )
+    assert_dom_equal(expected, actual)
+  end
+
+  def test_datalist_with_label_and_value_option_tags
+    actual = datalist_tag("countries_datalist", { "Argentina" => "AR", "Brazil" => "BR", "Chile" => "CL" })
+    expected = %(
+      <datalist id="countries_datalist">
+        <option value="AR">Argentina</option>
+        <option value="BR">Brazil</option>
+        <option value="CL">Chile</option>
+      </datalist>
+    )
+    assert_dom_equal(expected, actual)
+  end
+
+  def test_datalist_with_label_and_value_option_tags_as_arrays
+    actual = datalist_tag("countries_datalist", [%w[Argentina AR], %w[Brazil BR], %w[Chile CL]])
+    expected = %(
+      <datalist id="countries_datalist">
+        <option value="AR">Argentina</option>
+        <option value="BR">Brazil</option>
+        <option value="CL">Chile</option>
+      </datalist>
+    )
+    assert_dom_equal(expected, actual)
+  end
+
+  def test_datalist_with_label_value_and_html_options_option_tags
+    actual = datalist_tag(
+      "countries_datalist",
+      ["Argentina", ["Brazil", { class: "brazilian_option" }], ["Chile", "CL", { disabled: :disabled }]]
+    )
+    expected = %(
+      <datalist id="countries_datalist">
+        <option value="Argentina">Argentina</option>
+        <option value="Brazil" class="brazilian_option">Brazil</option>
+        <option value="CL" disabled="disabled">Chile</option>
+      </datalist>
+    )
+    assert_dom_equal(expected, actual)
+  end
+
+  def test_datalist_with_option_with_data_attribute
+    actual = datalist_tag("countries_datalist", [["Brazil", { data: { beverage: "capirinha" } }]])
+    expected = %(
+      <datalist id="countries_datalist">
+        <option value="Brazil" data-beverage="capirinha">Brazil</option>
+      </datalist>
+    )
+    assert_dom_equal(expected, actual)
+  end
+
+  def test_datalist_with_html_options
+    actual = datalist_tag("countries_datalist", [], { class: "south-america", data: { limit: 3 } })
+    expected = %(<datalist id="countries_datalist" class="south-america" data-limit="3"></datalist>)
+    assert_dom_equal(expected, actual)
   end
 
   def test_field_set_tag_in_erb
@@ -1000,6 +1180,28 @@ class FormTagHelperTest < ActionView::TestCase
 
   def protect_against_forgery?
     false
+  end
+
+  class FormHelperRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "prepend_content_exfiltration_prevention is readable from a non-main Ractor" do
+      assert_equal ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention,
+        on_ractor { ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention }
+    end
+
+    test "the settings are readable from a non-main Ractor" do
+      expected = [
+        ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms,
+        ActionView::Helpers::FormTagHelper.default_enforce_utf8,
+      ]
+
+      assert_equal expected, on_ractor {
+        helper = ActionView::Helpers::FormTagHelper
+        [helper.embed_authenticity_token_in_remote_forms, helper.default_enforce_utf8]
+      }
+    end
   end
 
   private

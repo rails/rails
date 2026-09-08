@@ -79,6 +79,10 @@ module SharedGeneratorTests
 
     default_files.each { |path| assert_file path }
 
+    if default_files.include?("bin/docker-entrypoint")
+      assert File.executable?("#{application_path}/bin/docker-entrypoint")
+    end
+
     assert_file "#{application_path}/config/application.rb", /\s+require\s+["']rails\/all["']/
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
@@ -387,10 +391,12 @@ module SharedGeneratorTests
   def test_generated_files_have_no_rubocop_warnings
     run_generator
 
-    Dir.chdir(destination_root) do
-      output = `./bin/rubocop`
+    quietly do
+      Dir.chdir(destination_root) do
+        output = `./bin/rubocop`
 
-      assert_predicate $?, :success?, "bin/rubocop did not exit successfully:\n#{output}"
+        assert_predicate $?, :success?, "bin/rubocop did not exit successfully:\n#{output}"
+      end
     end
   end
 

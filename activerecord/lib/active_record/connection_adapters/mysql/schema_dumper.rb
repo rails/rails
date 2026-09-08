@@ -5,6 +5,11 @@ module ActiveRecord
     module MySQL
       class SchemaDumper < ConnectionAdapters::SchemaDumper # :nodoc:
         private
+          def read_schema_metadata(tables)
+            super
+            @table_collations = @connection.table_collation(tables)
+          end
+
           def prepare_column_options(column)
             spec = super
             spec[:unsigned] = "true" if column.unsigned?
@@ -63,12 +68,9 @@ module ActiveRecord
           end
 
           def schema_collation(column)
-            if column.collation
-              @table_collation_cache ||= {}
-              @table_collation_cache[table_name] ||=
-                @connection.internal_exec_query("SHOW TABLE STATUS LIKE #{@connection.quote(table_name)}", "SCHEMA").first["Collation"]
-              column.collation.inspect if column.collation != @table_collation_cache[table_name]
-            end
+            return unless column.collation
+
+            column.collation.inspect if column.collation != @table_collations[table_name]
           end
 
           def extract_expression_for_virtual_column(column)
@@ -88,7 +90,7 @@ module ActiveRecord
               # Calling .inspect leads into issues with the query result
               # which already returns escaped quotes.
               # We remove the escape sequence from the result in order to deal with double escaping issues.
-              @connection.query_value(sql, "SCHEMA").gsub("\\'", "'").inspect
+              @connection.query_value(sql).gsub("\\'", "'").inspect
             end
           end
       end

@@ -23,12 +23,40 @@ module ActionController
   module Renderers
     extend ActiveSupport::Concern
 
-    # A Set containing renderer names that correspond to available renderer procs.
-    # Default values are `:json`, `:js`, `:xml`.
-    RENDERERS = Set.new
+    class << self
+      # Returns a Set of renderers name. By default, Action Controller adds the
+      # `json`, `js`, `xml`, `markdown` and `svg` renderers.
+      #
+      # You can use `ActionController::Renderers.all` to see what renderers exists for an application.
+      attr_reader :all # :doc:
+    end
+
+    @all = Set.new.freeze
+    RENDERERS = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(
+      @all,
+      "ActionController::Renderers::RENDERERS is deprecated. Use ActionController.add_renderer, or ActionController.remove_renderer " \
+        "to add or remove renderers. If you need to check which renderers exists for an application, you can instead use " \
+        "ActionController::Renderers.all",
+      ActionController.deprecator,
+    )
+
+    module DeprecatedEscapeJsonResponses # :nodoc:
+      def escape_json_responses=(value)
+        if value
+          ActionController.deprecator.warn(<<~MSG.squish)
+            Setting action_controller.escape_json_responses = true is deprecated and will have no effect in Rails 8.2.
+            Set it to `false`, or remove the config.
+          MSG
+        end
+        super
+      end
+    end
 
     included do
       class_attribute :_renderers, default: Set.new.freeze
+      class_attribute :escape_json_responses, instance_writer: false, instance_accessor: false, default: true
+
+      singleton_class.prepend DeprecatedEscapeJsonResponses
     end
 
     # Used in ActionController::Base and ActionController::API to include all
@@ -37,8 +65,8 @@ module ActionController
       extend ActiveSupport::Concern
       include Renderers
 
-      included do
-        self._renderers = RENDERERS
+      def _all_renderers # :nodoc:
+        _renderers + Renderers.all
       end
     end
 
@@ -72,7 +100,9 @@ module ActionController
     #     end
     def self.add(key, &block)
       define_method(_render_with_renderer_method_name(key), &block)
-      RENDERERS << key.to_sym
+      (@all += [key.to_sym]).freeze
+
+      RENDERERS.target = @all
     end
 
     # This method is the opposite of add method.
@@ -81,12 +111,14 @@ module ActionController
     #
     #     ActionController::Renderers.remove(:csv)
     def self.remove(key)
-      RENDERERS.delete(key.to_sym)
+      (@all -= [key.to_sym]).freeze
       method_name = _render_with_renderer_method_name(key)
       remove_possible_method(method_name)
+
+      RENDERERS.target = @all
     end
 
-    def self._render_with_renderer_method_name(key)
+    def self._render_with_renderer_method_name(key) # :nodoc:
       "_render_with_renderer_#{key}"
     end
 
@@ -99,7 +131,7 @@ module ActionController
       #
       # Both ActionController::Base and ActionController::API include
       # ActionController::Renderers::All, making all renderers available in the
-      # controller. See Renderers::RENDERERS and Renderers.add.
+      # controller. See Renderers.add.
       #
       # Since ActionController::Metal controllers cannot render, the controller must
       # include AbstractController::Rendering, ActionController::Rendering, and
@@ -140,8 +172,8 @@ module ActionController
       _render_to_body_with_renderer(options) || super
     end
 
-    def _render_to_body_with_renderer(options)
-      _renderers.each do |name|
+    def _render_to_body_with_renderer(options) # :nodoc:
+      _all_renderers.each do |name|
         if options.key?(name)
           _process_options(options)
           method_name = Renderers._render_with_renderer_method_name(name)
@@ -151,8 +183,13 @@ module ActionController
       nil
     end
 
+    def _all_renderers # :nodoc:
+      _renderers
+    end
+
     add :json do |json, options|
       json_options = options.except(:callback, :content_type, :status)
+      json_options[:escape] ||= false if !self.class.escape_json_responses? && options[:callback].blank?
       json = json.to_json(json_options) unless json.kind_of?(String)
 
       if options[:callback].present?
@@ -175,6 +212,16 @@ module ActionController
     add :xml do |xml, options|
       self.content_type = :xml if media_type.nil?
       xml.respond_to?(:to_xml) ? xml.to_xml(options) : xml
+    end
+
+    add :markdown do |md, options|
+      self.content_type = :md if media_type.nil?
+      md.respond_to?(:to_markdown) ? md.to_markdown : md
+    end
+
+    add :svg do |svg, options|
+      self.content_type = :svg if media_type.nil?
+      svg.respond_to?(:to_svg) ? svg.to_svg : svg
     end
   end
 end

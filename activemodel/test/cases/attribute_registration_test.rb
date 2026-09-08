@@ -1,16 +1,19 @@
 # frozen_string_literal: true
 
+require "active_support/testing/ractors_assertions"
 require "cases/helper"
 
 module ActiveModel
   class AttributeRegistrationTest < ActiveModel::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
     MyType = Class.new(Type::Value)
     Type.register(MyType.name.to_sym, MyType)
 
     TYPE_1 = MyType.new(precision: 1)
     TYPE_2 = MyType.new(precision: 2)
 
-    MyDecorator = DelegateClass(Type::Value) do
+    MyDecorator = ActiveSupport::Delegation::DelegateClass(Type::Value) do
       attr_reader :name
       alias :cast_type :__getobj__
 
@@ -95,6 +98,29 @@ module ActiveModel
       assert_includes klass._default_attributes, "bar"
       assert_same TYPE_1, klass.attribute_types["foo"]
       assert_same TYPE_2, klass.attribute_types["bar"]
+    end
+
+    if RUBY_VERSION >= "4.0"
+      test "attribute_types can be accessed in a Ractor" do
+        previous = ActiveSupport::Ractors.unshareable_proc_action
+        ActiveSupport::Ractors.unshareable_proc_action = :raise
+
+        klass = class_with do
+          attribute :foo, TYPE_1
+          attribute :bar, TYPE_2
+        end
+
+        klass.attribute_types["foo"]
+
+        foo_type, bar_type = on_ractor do
+          [klass.attribute_types["foo"], klass.attribute_types["bar"]]
+        end
+
+        assert_same TYPE_1, foo_type
+        assert_same TYPE_2, bar_type
+      ensure
+        ActiveSupport::Ractors.unshareable_proc_action = previous
+      end
     end
 
     test "attributes are inherited" do

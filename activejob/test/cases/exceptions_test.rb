@@ -2,6 +2,7 @@
 
 require "helper"
 require "jobs/retry_job"
+require "jobs/retries_job"
 require "jobs/after_discard_retry_job"
 require "models/person"
 require "minitest/mock"
@@ -113,6 +114,21 @@ class ExceptionsTest < ActiveSupport::TestCase
         assert_equal [
           "Raised LongWaitError for the 1st time",
           "Next execution scheduled at #{(Time.now + 3600.seconds + delay_for_jitter).to_f}",
+          "Successfully completed job"
+        ], JobBuffer.values
+      end
+    end
+
+    test "float wait job" do
+      travel_to Time.now
+      random_amount = 1
+      delay_for_jitter = random_amount * 4.5 * ActiveJob::Base.retry_jitter
+
+      Kernel.stub(:rand, random_amount) do
+        RetryJob.perform_later "FloatWaitError", 2, :log_scheduled_at
+        assert_equal [
+          "Raised FloatWaitError for the 1st time",
+          "Next execution scheduled at #{(Time.now + 4.5.seconds + delay_for_jitter).to_f}",
           "Successfully completed job"
         ], JobBuffer.values
       end
@@ -265,6 +281,34 @@ class ExceptionsTest < ActiveSupport::TestCase
       ], JobBuffer.values
     end
 
+    test "custom wait proc with an optional argument" do
+      travel_to Time.now
+
+      RetryJob.perform_later "OptionalArgWaitError", 3, :log_scheduled_at
+
+      assert_equal [
+        "Raised OptionalArgWaitError for the 1st time",
+        "Next execution scheduled at #{(Time.now + 2.seconds).to_f}",
+        "Raised OptionalArgWaitError for the 2nd time",
+        "Next execution scheduled at #{(Time.now + 4.seconds).to_f}",
+        "Successfully completed job"
+      ], JobBuffer.values
+    end
+
+    test "custom wait proc can use the error" do
+      travel_to Time.now
+
+      RetryJob.perform_later "RetryWaitIncludedInError", 3, :log_scheduled_at
+
+      assert_equal [
+        "Raised RetryWaitIncludedInError for the 1st time",
+        "Next execution scheduled at #{(Time.now + 11.seconds).to_f}",
+        "Raised RetryWaitIncludedInError for the 2nd time",
+        "Next execution scheduled at #{(Time.now + 12.seconds).to_f}",
+        "Successfully completed job"
+      ], JobBuffer.values
+    end
+
     test "use individual execution timers when calculating retry delay" do
       travel_to Time.now
 
@@ -306,7 +350,7 @@ class ExceptionsTest < ActiveSupport::TestCase
     end
 
     test "successfully retry job throwing DeserializationError" do
-      RetryJob.perform_later Person.new(404), 5
+      RetryJob.perform_later Person.new(500), 5
       assert_equal ["Raised ActiveJob::DeserializationError for the 5 time"], JobBuffer.values
     end
 
@@ -341,6 +385,25 @@ class ExceptionsTest < ActiveSupport::TestCase
       end
 
       assert_equal ["Raised DefaultsError for the 5th time"], JobBuffer.values
+    end
+
+    test "retrying a job when before_enqueue raised uses the same job object" do
+      job = RetriesJob.new
+      assert_nothing_raised do
+        job.enqueue
+      end
+    end
+
+    test "retrying a job reports error when report: true" do
+      assert_error_reported(ReportedError) do
+        RetryJob.perform_later("ReportedError", 2)
+      end
+    end
+
+    test "discarding a job reports error when report: true" do
+      assert_error_reported(AfterDiscardRetryJob::ReportedError) do
+        AfterDiscardRetryJob.perform_later("AfterDiscardRetryJob::ReportedError", 2)
+      end
     end
 
     test "#after_discard block is run when an unhandled error is raised" do
@@ -378,6 +441,27 @@ class ExceptionsTest < ActiveSupport::TestCase
         "Ran after_discard for job. Message: AfterDiscardRetryJob::CustomDiscardableError"
       ]
       assert_equal expected_array, JobBuffer.values.last(2)
+    end
+  end
+
+  test "retry_on raises ArgumentError for an unsupported wait type" do
+    error = assert_raises(ArgumentError) do
+      Class.new(ActiveJob::Base) do
+        retry_on StandardError, wait: "soon"
+      end
+    end
+    assert_match(/Unsupported argument type for :wait/, error.message)
+  end
+
+  test "retry_on accepts all supported wait types" do
+    assert_nothing_raised do
+      Class.new(ActiveJob::Base) do
+        retry_on StandardError, wait: 5
+        retry_on StandardError, wait: 2.5
+        retry_on StandardError, wait: 5.minutes
+        retry_on StandardError, wait: :polynomially_longer
+        retry_on StandardError, wait: ->(executions) { executions * 2 }
+      end
     end
   end
 end

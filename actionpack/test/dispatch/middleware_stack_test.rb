@@ -67,7 +67,8 @@ class MiddlewareStackTest < ActiveSupport::TestCase
       @stack.use BazMiddleware, true, foo: "bar"
     end
     assert_equal BazMiddleware, @stack.last.klass
-    assert_equal([true, { foo: "bar" }], @stack.last.args)
+    assert_equal [true], @stack.last.args
+    assert_equal({ foo: "bar" }, @stack.last.kwargs)
   end
 
   test "use should push middleware class with block arguments onto the stack" do
@@ -127,7 +128,8 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     @stack.use BazMiddleware, true, foo: "bar"
     @stack.move_before(FooMiddleware, BazMiddleware)
 
-    assert_equal [true, foo: "bar"], @stack.first.args
+    assert_equal [true], @stack.first.args
+    assert_equal({ foo: "bar" }, @stack.first.kwargs)
   end
 
   test "move_before moves middleware before another middleware class" do
@@ -162,7 +164,8 @@ class MiddlewareStackTest < ActiveSupport::TestCase
     @stack.use BazMiddleware, true, foo: "bar"
     @stack.move_after(FooMiddleware, BazMiddleware)
 
-    assert_equal [true, foo: "bar"], @stack[1].args
+    assert_equal [true], @stack[1].args
+    assert_equal({ foo: "bar" }, @stack[1].kwargs)
   end
 
   test "unshift adds a new middleware at the beginning of the stack" do
@@ -193,26 +196,25 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   end
 
   test "instruments the execution of middlewares" do
-    events = []
+    notification_name = "process_middleware.action_dispatch"
 
-    subscriber = proc { |event| events << event }
+    assert_notifications_count(notification_name, 2) do
+      assert_notification(notification_name, { middleware: "MiddlewareStackTest::BarMiddleware" }) do
+        assert_notification(notification_name, { middleware: "MiddlewareStackTest::FooMiddleware" }) do
+          app = Rack::Lint.new(
+            @stack.build(Rack::Lint.new(proc { |env| [200, {}, []] }))
+          )
 
-    ActiveSupport::Notifications.subscribed(subscriber, "process_middleware.action_dispatch") do
-      app = Rack::Lint.new(
-        @stack.build(Rack::Lint.new(proc { |env| [200, {}, []] }))
-      )
-
-      env = Rack::MockRequest.env_for("", {})
-      assert_nothing_raised do
-        app.call(env)
+          env = Rack::MockRequest.env_for("", {})
+          assert_nothing_raised do
+            app.call(env)
+          end
+        end
       end
     end
-
-    assert_equal 2, events.count
-    assert_equal ["MiddlewareStackTest::BarMiddleware", "MiddlewareStackTest::FooMiddleware"], events.map { |e| e.payload[:middleware] }
   end
 
   test "includes a middleware" do
-    assert_equal true, @stack.include?(ActionDispatch::MiddlewareStack::Middleware.new(BarMiddleware, nil, nil))
+    assert_equal true, @stack.include?(ActionDispatch::MiddlewareStack::Middleware.new(BarMiddleware, nil, nil, nil))
   end
 end

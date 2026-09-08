@@ -96,7 +96,24 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert_response :range_not_satisfiable
   end
 
+  test "Byte Range is too big" do
+    with_streaming_chunk_max_size(1.kilobyte) do
+      get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg")), headers: { "Range" => "bytes=0-" }
+      assert_response :range_not_satisfiable
+    end
+  end
+
+  test "Byte Range is too big overall" do
+    with_streaming_chunk_max_size(8.bytes) do
+      get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg")), headers: { "Range" => "bytes=0-5,6-12" }
+      assert_response :range_not_satisfiable
+    end
+  end
+
   test "multiple Byte Ranges" do
+    previous_streaming_max_ranges = ActiveStorage.streaming_max_ranges
+    ActiveStorage.streaming_max_ranges = 2
+
     boundary = SecureRandom.hex
     SecureRandom.stub :hex, boundary do
       get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg")), headers: { "Range" => "bytes=5-9,13-17" }
@@ -122,15 +139,43 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
         response.body
       )
     end
+  ensure
+    ActiveStorage.streaming_max_ranges = previous_streaming_max_ranges
   end
 
   test "uses a Live::Response" do
     # This tests for a regression of #45102. If the controller doesn't respond
-    # with a ActionController::Live::Response, it will serve corrupted files
+    # with an ActionController::Live::Response, it will serve corrupted files
     # over 5mb when using S3 services.
     request = ActionController::TestRequest.create({})
     assert_instance_of ActionController::Live::Response, ActiveStorage::Blobs::ProxyController.make_response!(request)
   end
+
+  test "sessions are disabled" do
+    get rails_storage_proxy_url(create_file_blob(filename: "racecar.jpg"))
+    assert request.session_options[:skip],
+      "Expected request.session_options[:skip] to be true"
+  end
+
+  test "rails_storage_proxy include Content-Length header" do
+    Rails.application.config.active_storage.resolve_model_to_route = :rails_storage_proxy
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    get rails_storage_proxy_url(blob)
+
+    assert_response :success
+    assert_not_nil response.headers["Content-Length"], "Content-Length header should be included in proxy mode"
+    assert_equal blob.byte_size.to_s, response.headers["Content-Length"], "Content-Length header should match blob size"
+  end
+
+  private
+    def with_streaming_chunk_max_size(size)
+      old_size = ActiveStorage.streaming_chunk_max_size
+      ActiveStorage.streaming_chunk_max_size = size
+      yield
+    ensure
+      ActiveStorage.streaming_chunk_max_size = old_size
+    end
 end
 
 class ActiveStorage::Blobs::ExpiringProxyControllerTest < ActionDispatch::IntegrationTest

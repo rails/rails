@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "active_model/attribute_set"
+require "json"
 
 module ActiveModel
   class AttributeSetTest < ActiveModel::TestCase
@@ -288,6 +289,34 @@ module ActiveModel
       assert_equal false, attribute_set == nil
       assert_equal false, attribute_set == 1
       assert_equal true, attribute_set == attribute_set
+    end
+
+    class CustomMutableType < ::ActiveModel::Type::Value
+      def serialize(value)
+        return if value.nil?
+        JSON.dump(value)
+      end
+
+      def deserialize(value)
+        return if value.nil?
+        JSON.parse(value)
+      end
+
+      def changed_in_place?(old_value, new_value)
+        deserialize(old_value) != new_value
+      end
+    end
+
+    test "custom type is mutable" do
+      type = CustomMutableType.new()
+      attribute_set = AttributeSet::Builder.new(foo: type).build_from_database(foo: "[]")
+
+      # Ensure the type cast value is cached
+      attribute_set[:foo].value
+
+      dup = attribute_set.deep_dup
+      dup[:foo].value << "2"
+      assert_not_equal attribute_set[:foo].value, dup[:foo].value
     end
 
     private

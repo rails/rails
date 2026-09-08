@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Active Record Callbacks
 =======================
@@ -650,7 +650,7 @@ class is initialized.
 
 NOTE: The `find_by_*` and `find_by_*!` methods are dynamic finders generated
 automatically for every attribute. Learn more about them in the [Dynamic finders
-section](active_record_querying.html#dynamic-finders).
+section](active_record_querying.html#dynamic-finder-methods).
 
 Conditional Callbacks
 ---------------------
@@ -837,58 +837,57 @@ lead to invalid data.
 [`upsert_all`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Relation.html#method-i-upsert_all
 
-Suppressing Callbacks
----------------------
+Suppressing Saving
+------------------
 
-In certain scenarios, you may need to temporarily prevent certain callbacks from
-being executed within your Rails application. This can be useful when you want
-to skip specific actions during certain operations without permanently disabling
-the callbacks.
+In certain scenarios, you may need to temporarily prevent records from being
+saved within your callbacks.
+This can be useful if you have a record with complex nested associations and want
+to skip saving specific records during certain operations without permanently disabling
+the callbacks or introducing complex conditional logic.
 
-Rails provides a mechanism for suppressing callbacks using the
-[`ActiveRecord::Suppressor`
-module](https://api.rubyonrails.org/classes/ActiveRecord/Suppressor.html). By
-using this module, you can wrap a block of code where you want to suppress
-callbacks, ensuring that they are not executed during that specific operation.
+Rails provides a mechanism to prevent saving records using the
+[`ActiveRecord::Suppressor` module](https://api.rubyonrails.org/classes/ActiveRecord/Suppressor.html).
+By using this module, you can wrap a block of code where you want to avoid
+saving records of a specific type that otherwise would be saved by the code block.
 
-Let's consider a scenario where we have a `User` model with a callback that
-sends a welcome email to new users after they sign up. However, there might be
-cases where we want to create a user without sending the welcome email, such as
-during seeding the database with test data.
+Let's consider a scenario where a user has many notifications.
+Creating a `User` will automatically create a `Notification` record as well.
 
 ```ruby
 class User < ApplicationRecord
-  after_create :send_welcome_email
+  has_many :notifications
 
-  def send_welcome_email
-    puts "Welcome email sent to #{self.email}"
+  after_create :create_welcome_notification
+
+  def create_welcome_notification
+    notifications.create(event: "sign_up")
   end
+end
+
+class Notification < ApplicationRecord
+  belongs_to :user
 end
 ```
 
-In this example, the `after_create` callback triggers the `send_welcome_email`
-method every time a new user is created.
-
-To create a user without sending the welcome email, we can use the
-`ActiveRecord::Suppressor` module as follows:
+To create a user without creating a notification, we can use the
+ActiveRecord::Suppressor module as follows:
 
 ```ruby
-User.suppress do
+Notification.suppress do
   User.create(name: "Jane", email: "jane@example.com")
 end
 ```
 
-In the above code, the `User.suppress` block ensures that the
-`send_welcome_email` callback is not executed during the creation of the "Jane"
-user, allowing us to create the user without sending the welcome email.
+In the above code, the `Notification.suppress` block ensures that the
+`Notification` is not saved during the creation of the "Jane" user.
 
-WARNING: Using the Active Record Suppressor, while potentially beneficial for
-selectively controlling callback execution, can introduce complexity and
-unexpected behavior. Suppressing callbacks can obscure the intended flow of your
+WARNING: Using the Active Record Suppressor can introduce complexity and
+unexpected behavior. Suppressing saving can obscure the intended flow of your
 application, leading to difficulties in understanding and maintaining the
-codebase over time. Carefully consider the implications of suppressing
-callbacks, ensuring thorough documentation and thoughtful testing to mitigate
-risks of unintended side effects, performance issues, and test failures.
+codebase over time. Carefully consider the implications of using the suppressor,
+ensuring thorough documentation and thoughtful testing to mitigate
+risks of unintended side effects and test failures.
 
 Halting Execution
 -----------------
@@ -935,7 +934,7 @@ This exception indicates that the record was not saved due to the callback's
 interruption.
 
 ```ruby
-User.create! # => raises an ActiveRecord::RecordNotSaved
+Product.create! # => raises an ActiveRecord::RecordNotSaved
 ```
 
 
@@ -1212,7 +1211,7 @@ the transaction.
 
 ### Aliases for `after_commit`
 
-Using the `after_commit` callback only on create, update, or delete is common.
+Using the `after_commit` callback only on create, update, or destroy is common.
 Sometimes you may also want to use a single callback for both `create` and
 `update`. Here are some common aliases for these operations:
 
@@ -1337,6 +1336,45 @@ NOTE: This applies to all `after_*_commit` variations too, such as
     https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_save_commit
 [`after_update_commit`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Transactions/ClassMethods.html#method-i-after_update_commit
+
+### Per transaction callback
+
+You can also register transactional callbacks such as `before_commit`, `after_commit` and `after_rollback` on a specific transaction.
+This is handy in situations where you need to perform an action that isn't specific to a model but rather a unit of work.
+
+`ActiveRecord::Base.transaction` yields an `ActiveRecord::Transaction` object, which allows registering the said callbacks on it.
+
+```ruby
+Article.transaction do |transaction|
+  article.update(published: true)
+
+  transaction.after_commit do
+    PublishNotificationMailer.with(article: article).deliver_later
+  end
+end
+```
+
+### `ActiveRecord.after_all_transactions_commit`
+
+[`ActiveRecord.after_all_transactions_commit`][] is a callback that allows you to run code after all the current transactions have been successfully committed to the database.
+
+```ruby
+def publish_article(article)
+  Article.transaction do
+    Post.transaction do
+      ActiveRecord.after_all_transactions_commit do
+        PublishNotificationMailer.with(article: article).deliver_later
+        # An email will be sent after the outermost transaction is committed.
+      end
+    end
+  end
+end
+```
+
+A callback registered to `after_all_transactions_commit` will be triggered after the outermost transaction is committed. If any of the currently open transactions is rolled back, the block is never called.
+In the event that there are no open transactions at the time a callback is registered, the block will be yielded immediately.
+
+[`ActiveRecord.after_all_transactions_commit`]: https://api.rubyonrails.org/classes/ActiveRecord.html#method-c-after_all_transactions_commit
 
 Callback Objects
 ----------------

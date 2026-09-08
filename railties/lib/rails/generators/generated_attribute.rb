@@ -6,8 +6,8 @@ require "active_support/core_ext/string/starts_ends_with"
 module Rails
   module Generators
     class GeneratedAttribute # :nodoc:
-      INDEX_OPTIONS = %w(index uniq)
-      UNIQ_INDEX_OPTIONS = %w(uniq)
+      INDEX_OPTIONS = %w(index uniq).freeze
+      UNIQ_INDEX_OPTIONS = %w(uniq).freeze
       DEFAULT_TYPES = %w(
         attachment
         attachments
@@ -26,7 +26,7 @@ module Rails
         time
         timestamp
         token
-      )
+      ).freeze
 
       attr_accessor :name, :type
       attr_reader   :attr_options
@@ -73,7 +73,7 @@ module Rails
         def valid_type?(type)
           DEFAULT_TYPES.include?(type.to_s) ||
             !defined?(ActiveRecord::Base) ||
-            ActiveRecord::Base.lease_connection.valid_type?(type)
+            ActiveRecord::Base.connection_db_config.adapter_class.valid_type?(type)
         end
 
         def valid_index_type?(index_type)
@@ -230,7 +230,11 @@ module Rails
       end
 
       def inject_index_options
-        has_uniq_index? ? ", unique: true" : ""
+        if has_uniq_index? || token?
+          ", unique: true"
+        else
+          ""
+        end
       end
 
       def options_for_migration
@@ -257,17 +261,23 @@ module Rails
 
       private
         def print_attribute_options
-          if attr_options.empty?
-            ""
-          elsif attr_options[:size]
-            "{#{attr_options[:size]}}"
-          elsif attr_options[:limit]
-            "{#{attr_options[:limit]}}"
-          elsif attr_options[:precision] && attr_options[:scale]
-            "{#{attr_options[:precision]},#{attr_options[:scale]}}"
-          else
-            "{#{attr_options.keys.join(",")}}"
-          end
+          options = attr_options.except(:null)
+          modifier = "!" if attr_options[:null] == false
+
+          body =
+            if options.empty?
+              ""
+            elsif options[:size]
+              "{#{options[:size]}}"
+            elsif options[:limit]
+              "{#{options[:limit]}}"
+            elsif options[:precision] && options[:scale]
+              "{#{options[:precision]},#{options[:scale]}}"
+            else
+              "{#{options.keys.join(",")}}"
+            end
+
+          "#{body}#{modifier}"
         end
     end
   end

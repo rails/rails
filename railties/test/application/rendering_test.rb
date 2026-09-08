@@ -86,5 +86,69 @@ module ApplicationTests
       assert_equal 200, last_response.status
       assert_equal({ format: :awesome, handler: RubbyHandler }.inspect, last_response.body)
     end
+
+    test "template content is dumped if rendered inline and a syntax error is encountered" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: 'pages#show'
+        end
+      RUBY
+
+      app_file "app/controllers/pages_controller.rb", <<-RUBY
+        class PagesController < ApplicationController
+          layout false
+
+          def show
+            render(inline: "<% [ %>")
+          end
+        end
+      RUBY
+
+      app("development")
+
+      get("/", {}, { "HTTPS" => "on" })
+
+      assert_equal 500, last_response.status
+      document = Nokogiri::HTML5.parse(last_response.body)
+      nodes = document.css("div.exception-message>div.message")
+
+      assert_not_empty(nodes)
+      assert_equal("Encountered a syntax error while rendering template: check <% [ %>\n", nodes.first.text)
+    end
+
+    test "template content is not dumped when rendered from file and a syntax error is encountered" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: 'pages#show'
+        end
+      RUBY
+
+      app_file "app/controllers/pages_controller.rb", <<-RUBY
+        class PagesController < ApplicationController
+          layout false
+
+          def show
+          end
+        end
+      RUBY
+
+      app_file "app/views/pages/show.html.erb", <<-RUBY
+        <% [ %>
+      RUBY
+
+      app("development")
+
+      get("/", {}, { "HTTPS" => "on" })
+
+      assert_equal 500, last_response.status
+      document = Nokogiri::HTML5.parse(last_response.body)
+      nodes = document.css("div.exception-message>div.message")
+
+      assert_not_empty(nodes)
+      assert_equal(
+        "Encountered a syntax error while rendering template located at: app/views/pages/show.html.erb",
+        nodes.first.text,
+      )
+    end
   end
 end

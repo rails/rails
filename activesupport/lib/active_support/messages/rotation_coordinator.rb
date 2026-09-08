@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash/slice"
@@ -9,7 +10,7 @@ module ActiveSupport
 
       def initialize(&secret_generator)
         raise ArgumentError, "A secret generator block is required" unless secret_generator
-        @secret_generator = secret_generator
+        @secret_generator = ActiveSupport::Ractors.try_shareable_proc(secret_generator)
         @rotate_options = []
         @on_rotation = nil
         @codecs = {}
@@ -28,6 +29,15 @@ module ActiveSupport
         changing_configuration!
 
         @rotate_options << (block || options)
+
+        self
+      end
+
+      def prepend(**options, &block)
+        raise ArgumentError, "Options cannot be specified when using a block" if block && !options.empty?
+        changing_configuration!
+
+        @rotate_options.unshift(block || options)
 
         self
       end

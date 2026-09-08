@@ -128,7 +128,7 @@ Action Mailer is released under the MIT license:
 
 == Support
 
-API documentation is at
+API documentation is at:
 
 * https://api.rubyonrails.org
 
@@ -136,6 +136,6 @@ Bug reports for the Ruby on \Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 
-Feature requests should be discussed on the rails-core mailing list here:
+Feature requests should be discussed on the rubyonrails-core forum here:
 
 * https://discuss.rubyonrails.org/c/rubyonrails-core

@@ -1,7 +1,9 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "concurrent/map"
 require "active_support/core_ext/object/try"
+require "active_support/ractors"
 
 module ActiveSupport
   module Notifications
@@ -17,24 +19,30 @@ module ActiveSupport
 
     module FanoutIteration # :nodoc:
       private
-        def iterate_guarding_exceptions(collection)
-          exceptions = nil
+        def iterate_guarding_exceptions(collection, &block)
+          case collection.size
+          when 0
+          when 1
+            collection.each(&block)
+          else
+            exceptions = nil
 
-          collection.each do |s|
-            yield s
-          rescue Exception => e
-            exceptions ||= []
-            exceptions << e
-          end
-
-          if exceptions
-            exceptions = exceptions.flat_map do |exception|
-              exception.is_a?(InstrumentationSubscriberError) ? exception.exceptions : [exception]
+            collection.each do |s|
+              yield s
+            rescue Exception => e
+              exceptions ||= []
+              exceptions << e
             end
-            if exceptions.size == 1
-              raise exceptions.first
-            else
-              raise InstrumentationSubscriberError.new(exceptions), cause: exceptions.first
+
+            if exceptions
+              exceptions = exceptions.flat_map do |exception|
+                exception.is_a?(InstrumentationSubscriberError) ? exception.exceptions : [exception]
+              end
+              if exceptions.size == 1
+                raise exceptions.first
+              else
+                raise InstrumentationSubscriberError.new(exceptions), cause: exceptions.first
+              end
             end
           end
 
@@ -53,7 +61,20 @@ module ActiveSupport
         @other_subscribers = []
         @all_listeners_for = Concurrent::Map.new
         @groups_for = Concurrent::Map.new
-        @silenceable_groups_for = Concurrent::Map.new
+      end
+
+      def to_ractor_snapshot # :nodoc:
+        {
+          string_subscribers: Hash[@string_subscribers.keys.zip(@string_subscribers.values)],
+          other_subscribers: @other_subscribers,
+        }
+      end
+
+      def load_ractor_snapshot(snapshot) # :nodoc:
+        string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
+        snapshot[:string_subscribers].each { |name, list| string_subscribers[name] = list.dup }
+        @string_subscribers = string_subscribers
+        @other_subscribers = snapshot[:other_subscribers].dup
       end
 
       def inspect # :nodoc:
@@ -61,14 +82,23 @@ module ActiveSupport
         "#<#{self.class} (#{total_patterns} patterns)>"
       end
 
-      def subscribe(pattern = nil, callable = nil, monotonic: false, &block)
+      def subscribe(pattern = nil, callable = nil, monotonic: false, prepend: false, &block)
+        block = ActiveSupport::Ractors.try_shareable_proc(block) if block
+
         subscriber = Subscribers.new(pattern, callable || block, monotonic)
         @mutex.synchronize do
           case pattern
           when String
-            @string_subscribers[pattern] << subscriber
+            if prepend
+              @string_subscribers[pattern].unshift(subscriber)
+            else
+              @string_subscribers[pattern] << subscriber
+            end
             clear_cache(pattern)
           when NilClass, Regexp
+            if prepend
+              raise ArgumentError, "Cannot prepend Regex subscribers"
+            end
             @other_subscribers << subscriber
             clear_cache
           else
@@ -102,11 +132,9 @@ module ActiveSupport
         if key
           @all_listeners_for.delete(key)
           @groups_for.delete(key)
-          @silenceable_groups_for.delete(key)
         else
           @all_listeners_for.clear
           @groups_for.clear
-          @silenceable_groups_for.clear
         end
       end
 
@@ -184,25 +212,25 @@ module ActiveSupport
           end
       end
 
-      def groups_for(name) # :nodoc:
-        groups = @groups_for.compute_if_absent(name) do
-          all_listeners_for(name).reject(&:silenceable).group_by(&:group_class).transform_values do |s|
-            s.map(&:delegate)
-          end
-        end
+      def group_listeners(listeners) # :nodoc:
+        listeners.group_by(&:group_class).transform_values do |s|
+          s.map(&:delegate).freeze
+        end.freeze
+      end
 
-        silenceable_groups = @silenceable_groups_for.compute_if_absent(name) do
-          all_listeners_for(name).select(&:silenceable).group_by(&:group_class).transform_values do |s|
-            s.map(&:delegate)
-          end
+      def groups_for(name) # :nodoc:
+        silenceable_groups, groups = @groups_for.compute_if_absent(name) do
+          listeners = all_listeners_for(name)
+          listeners.partition(&:silenceable).map { |l| group_listeners(l) }
         end
 
         unless silenceable_groups.empty?
-          groups = groups.dup
           silenceable_groups.each do |group_class, subscriptions|
             active_subscriptions = subscriptions.reject { |s| s.silenced?(name) }
             unless active_subscriptions.empty?
-              groups[group_class] = (groups[group_class] || []) + active_subscriptions
+              groups = groups.dup if groups.frozen?
+              base_groups = groups[group_class]
+              groups[group_class] = base_groups ? base_groups + active_subscriptions : active_subscriptions
             end
           end
         end
@@ -210,30 +238,30 @@ module ActiveSupport
         groups
       end
 
-      # A +Handle+ is used to record the start and finish time of event.
+      # A `Handle` is used to record the start and finish time of event.
       #
       # Both #start and #finish must each be called exactly once.
       #
       # Where possible, it's best to use the block form: ActiveSupport::Notifications.instrument.
-      # +Handle+ is a low-level API intended for cases where the block form can't be used.
+      # `Handle` is a low-level API intended for cases where the block form can't be used.
       #
-      #   handle = ActiveSupport::Notifications.instrumenter.build_handle("my.event", {})
-      #   begin
-      #     handle.start
-      #     # work to be instrumented
-      #   ensure
-      #     handle.finish
-      #   end
+      # ```
+      # handle = ActiveSupport::Notifications.instrumenter.build_handle("my.event", {})
+      # begin
+      #   handle.start
+      #   # work to be instrumented
+      # ensure
+      #   handle.finish
+      # end
+      # ```
       class Handle
         include FanoutIteration
 
-        def initialize(notifier, name, id, payload) # :nodoc:
+        def initialize(name, id, groups, payload) # :nodoc:
           @name = name
           @id = id
           @payload = payload
-          @groups = notifier.groups_for(name).map do |group_klass, grouped_listeners|
-            group_klass.new(grouped_listeners, name, id, payload)
-          end
+          @groups = groups
           @state = :initialized
         end
 
@@ -267,10 +295,31 @@ module ActiveSupport
           end
       end
 
+      module NullHandle # :nodoc:
+        extend self
+
+        def start
+        end
+
+        def finish
+        end
+
+        def finish_with_values(_name, _id, _payload)
+        end
+      end
+
       include FanoutIteration
 
       def build_handle(name, id, payload)
-        Handle.new(self, name, id, payload)
+        groups = groups_for(name).map do |group_klass, grouped_listeners|
+          group_klass.new(grouped_listeners, name, id, payload)
+        end
+
+        if groups.empty?
+          NullHandle
+        else
+          Handle.new(name, id, groups, payload)
+        end
       end
 
       def start(name, id, payload)
@@ -286,8 +335,8 @@ module ActiveSupport
         handle.finish_with_values(name, id, payload)
       end
 
-      def publish(name, *args)
-        iterate_guarding_exceptions(listeners_for(name)) { |s| s.publish(name, *args) }
+      def publish(name, ...)
+        iterate_guarding_exceptions(listeners_for(name)) { |s| s.publish(name, ...) }
       end
 
       def publish_event(event)
@@ -387,9 +436,9 @@ module ActiveSupport
             EventedGroup
           end
 
-          def publish(name, *args)
+          def publish(...)
             if @can_publish
-              @delegate.publish name, *args
+              @delegate.publish(...)
             end
           end
 
@@ -419,8 +468,8 @@ module ActiveSupport
             TimedGroup
           end
 
-          def publish(name, *args)
-            @delegate.call name, *args
+          def publish(...)
+            @delegate.call(...)
           end
         end
 

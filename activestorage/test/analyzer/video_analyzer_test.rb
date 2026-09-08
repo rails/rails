@@ -6,6 +6,12 @@ require "database/setup"
 require "active_storage/analyzer/video_analyzer"
 
 class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
+  setup do
+    if !ENV["BUILDKITE"] && !system("command", "-v", ActiveStorage.paths[:ffprobe] || "ffprobe")
+      skip("ffprobe isn't available")
+    end
+  end
+
   test "analyzing a video" do
     blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
     metadata = extract_metadata_from(blob)
@@ -86,13 +92,25 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     assert_not metadata[:audio]
   end
 
+  test "analyzing a video with ffprobe arguments that exclude the video stream" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+
+    ActiveStorage.with(ffprobe_arguments: "-select_streams a") do
+      metadata = extract_metadata_from(blob)
+
+      assert metadata[:audio]
+      assert_not metadata[:video]
+      assert_not metadata[:width]
+    end
+  end
+
   test "instrumenting analysis" do
-    events = subscribe_events_from("analyze.active_storage")
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
 
-    blob = create_file_blob(filename: "video_without_audio_stream.mp4", content_type: "video/mp4")
-    blob.analyze
-
-    assert_equal 1, events.size
-    assert_equal({ analyzer: "ffprobe" }, events.first.payload)
+    assert_notifications_count("analyze.active_storage", 1) do
+      assert_notification("analyze.active_storage", analyzer: "ffprobe") do
+        blob.analyze
+      end
+    end
   end
 end

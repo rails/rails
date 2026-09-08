@@ -3,7 +3,7 @@
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
-      class TypeMetadata < DelegateClass(SqlTypeMetadata) # :nodoc:
+      class TypeMetadata < ActiveSupport::Delegation::DelegateClass(SqlTypeMetadata) # :nodoc:
         undef to_yaml if method_defined?(:to_yaml)
 
         include Deduplicable
@@ -23,9 +23,11 @@ module ActiveRecord
         alias eql? ==
 
         def hash
-          TypeMetadata.hash ^
-            __getobj__.hash ^
-            extra.hash
+          [
+            TypeMetadata,
+            __getobj__,
+            @extra,
+          ].hash
         end
 
         private

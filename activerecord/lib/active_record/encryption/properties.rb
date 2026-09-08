@@ -14,7 +14,7 @@ module ActiveRecord
     #
     # See +Properties::DEFAULT_PROPERTIES+, Key, Message
     class Properties
-      ALLOWED_VALUE_CLASSES = [String, ActiveRecord::Encryption::Message, Numeric, Integer, Float, BigDecimal, TrueClass, FalseClass, Symbol, NilClass]
+      ALLOWED_VALUE_CLASSES = [String, ActiveRecord::Encryption::Message, Numeric, Integer, Float, BigDecimal, TrueClass, FalseClass, Symbol, NilClass].freeze
 
       delegate_missing_to :data
       delegate :==, :[], :each, :key?, to: :data
@@ -27,7 +27,7 @@ module ActiveRecord
         iv: "iv",
         auth_tag: "at",
         encoding: "e"
-      }
+      }.freeze
 
       DEFAULT_PROPERTIES.each do |name, key|
         define_method name do

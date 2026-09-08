@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Action Mailer Basics
 ====================
@@ -104,7 +104,7 @@ class UserMailer < ApplicationMailer
   def welcome_email
     @user = params[:user]
     @url  = "http://example.com/login"
-    mail(to: @user.email, subject: "Welcome to My Awesome Site")
+    mail(to: @user.email_address, subject: "Welcome to My Awesome Site")
   end
 end
 ```
@@ -156,12 +156,12 @@ Here is a sample HTML template that can be used for the welcome email:
   your username is: <%= @user.login %>.<br>
 </p>
 <p>
-  To login to the site, just follow this link: <%= link_to 'login', login_url %>.
+  To log in to the site, just follow this link: <%= link_to 'login', login_url %>.
 </p>
 <p>Thanks for joining and have a great day!</p>
 ```
 
-NOTE: the above is the content of the `<body>` tag. It will be embedded in the
+NOTE: The above is the content of the `<body>` tag. It will be embedded in the
 default mailer layout, which contains the `<html>` tag. See [Mailer
 layouts](#mailer-views-and-layouts) for more.
 
@@ -178,7 +178,7 @@ Welcome to example.com, <%= @user.name %>
 You have successfully signed up to example.com,
 your username is: <%= @user.login %>.
 
-To login to the site, just follow this link: <%= @url %>.
+To log in to the site, just follow this link: <%= @url %>.
 
 Thanks for joining and have a great day!
 ```
@@ -187,7 +187,7 @@ Notice that in both HTML and text email templates you can use the instance
 variables `@user` and `@url`.
 
 Now, when you call the `mail` method, Action Mailer will detect the two
-templates(text and HTML) and automatically generate a `multipart/alternative`
+templates (text and HTML) and automatically generate a `multipart/alternative`
 email.
 
 ### Call the Mailer
@@ -204,7 +204,7 @@ user is successfully created.
 First, let's create a `User` scaffold:
 
 ```bash
-$ bin/rails generate scaffold user name email login
+$ bin/rails generate scaffold user name email_address login
 $ bin/rails db:migrate
 ```
 
@@ -216,7 +216,7 @@ successfully saved.
 NOTE: We use [`deliver_later`][] to enqueue the email to be sent later. This
 way, the controller action will continue without waiting for the email sending
 code to run. The `deliver_later` method is backed by [Active
-Job](active_job_basics.html#action-mailer).
+Job](active_job_basics.html#example-sending-email).
 
 ```ruby
 class UsersController < ApplicationController
@@ -323,7 +323,7 @@ irb> UserMailer.with(user: user).weekly_summary
        #<User:0x00007f84c9327198
         id: 1,
         name: "Bhumi",
-        email: "hi@gmail.com",
+        email_address: "hi@gmail.com",
         login: "Bhumi",
         created_at: Thu, 06 Jun 2024 17:43:44.424064000 UTC +00:00,
         updated_at: Thu, 06 Jun 2024 17:43:44.424064000 UTC +00:00>},
@@ -449,7 +449,7 @@ the mailer method.
 
 Mailer views are rendered within a layout, similar to controller views. Mailer
 layouts are located in `app/views/layouts`. The default layout is
-`mailer.html.erb` and `mailer.text.erb`. This sections covers various features
+`mailer.html.erb` and `mailer.text.erb`. This section covers various features
 around mailer views and layouts.
 
 ### Configuring Custom View Paths
@@ -457,7 +457,7 @@ around mailer views and layouts.
 It is possible to change the default mailer view for your action in various
 ways, as shown below.
 
-There is a `template_path` and `template_name` option to the `mail` method:
+There are `template_path` and `template_name` options to the `mail` method:
 
 ```ruby
 class UserMailer < ApplicationMailer
@@ -466,7 +466,7 @@ class UserMailer < ApplicationMailer
   def welcome_email
     @user = params[:user]
     @url  = "http://example.com/login"
-    mail(to: @user.email,
+    mail(to: @user.email_address,
          subject: "Welcome to My Awesome Site",
          template_path: "notifications",
          template_name: "hello")
@@ -488,7 +488,7 @@ class UserMailer < ApplicationMailer
   def welcome_email
     @user = params[:user]
     @url  = "http://example.com/login"
-    mail(to: @user.email,
+    mail(to: @user.email_address,
          subject: "Welcome to My Awesome Site") do |format|
       format.html { render "another_template" }
       format.text { render plain: "hello" }
@@ -527,7 +527,7 @@ There is also an [`append_view_path`][] method.
 
 ### Generating URLs in Action Mailer Views
 
-In order to add URLs to your mailer, you need set the `host` value to your
+In order to add URLs to your mailer, you need to set the `host` value to your
 application's domain first. This is because, unlike controllers, the mailer
 instance doesn't have any context about the incoming request.
 
@@ -672,7 +672,7 @@ To use a specific layout for a given email, you can pass in a `layout:
 ```ruby
 class UserMailer < ApplicationMailer
   def welcome_email
-    mail(to: params[:user].email) do |format|
+    mail(to: params[:user].email_address) do |format|
       format.html { render layout: "my_layout" }
       format.text
     end
@@ -699,12 +699,12 @@ For example, to inform all admins of a new registration:
 
 ```ruby
 class AdminMailer < ApplicationMailer
-  default to: -> { Admin.pluck(:email) },
+  default to: -> { Admin.pluck(:email_address) },
           from: "notification@example.com"
 
   def new_registration(user)
     @user = user
-    mail(subject: "New User Signup: #{@user.email}")
+    mail(subject: "New User Signup: #{@user.email_address}")
   end
 end
 ```
@@ -725,7 +725,7 @@ To show the name of the person when they receive the email, you can use
 def welcome_email
   @user = params[:user]
   mail(
-    to: email_address_with_name(@user.email, @user.name),
+    to: email_address_with_name(@user.email_address, @user.name),
     subject: "Welcome to My Awesome Site"
   )
 end
@@ -748,7 +748,7 @@ If the name is blank (`nil` or empty string), it returns the email address.
 
 If you don't pass a subject to the mail method, Action Mailer will try to find
 it in your translations. See the [Internationalization
-Guide](i18n.html#translations-for-action-mailer-e-mail-subjects) for more.
+Guide](i18n.html#action-mailer-e-mail-subjects) for more.
 
 ### Sending Emails without Template Rendering
 
@@ -760,7 +760,7 @@ to `text/html` below. Rails will default to `text/plain` as the content type.
 ```ruby
 class UserMailer < ApplicationMailer
   def welcome_email
-    mail(to: params[:user].email,
+    mail(to: params[:user].email_address,
          body: params[:email_body],
          content_type: "text/html",
          subject: "Already rendered!")
@@ -783,7 +783,7 @@ class UserMailer < ApplicationMailer
     delivery_options = { user_name: params[:company].smtp_user,
                          password: params[:company].smtp_password,
                          address: params[:company].smtp_host }
-    mail(to: @user.email,
+    mail(to: @user.email_address,
          subject: "Please see the Terms and Conditions attached",
          delivery_method_options: delivery_options)
   end
@@ -793,13 +793,18 @@ end
 Action Mailer Callbacks
 -----------------------
 
-Action Mailer allows for you to specify a [`before_action`][],
-[`after_action`][], and [`around_action`][] to configure the message, and
-[`before_deliver`][], [`after_deliver`][] and [`around_deliver`][] to control
-the delivery.
+Action Mailer allows you to specify `*_action` callbacks to configure the message, and `*_deliver` callbacks to control the delivery.
 
-Callbacks can be specified with a block or a symbol representing a method name
-in the mailer class, similar to other callbacks (in controllers or models).
+Here is a list with all the available Action Mailer callbacks, listed **in the order in which they will get called** when sending an email:
+
+* [`before_action`][]
+* [`around_action`][]
+* [`after_action`][]
+* [`before_deliver`][]
+* [`around_deliver`][]
+* [`after_deliver`][]
+
+Callbacks can be specified with a block or a symbol representing a method name in the mailer class, similar to other callbacks (in controllers or models).
 
 Here are some examples of when you may use one of these callbacks with mailers.
 
@@ -914,8 +919,8 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-Mailer callbacks abort further processing if `body` is set to a non-nil value.
-`before_deliver` can abort with `throw :abort`.
+`before_action` callbacks abort further processing if `response_body` is set to a
+non-nil value. `before_deliver` can abort with `throw :abort`.
 
 [`after_action`]:
     https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action
@@ -989,8 +994,8 @@ config.action_mailer.smtp_settings = {
   address:         "smtp.gmail.com",
   port:            587,
   domain:          "example.com",
-  user_name:       Rails.application.credentials.dig(:smtp, :user_name),
-  password:        Rails.application.credentials.dig(:smtp, :password),
+  user_name:       Rails.app.credentials.dig(:smtp, :user_name),
+  password:        Rails.app.credentials.dig(:smtp, :password),
   authentication:  "plain",
   enable_starttls: true,
   open_timeout:    5,
@@ -1008,7 +1013,7 @@ Previewing and Testing Mailers
 ------------------------------
 
 You can find detailed instructions on how to test your mailers in the [testing
-guide](testing.html#testing-your-mailers).
+guide](testing.html#testing-mailers).
 
 ### Previewing Emails
 
@@ -1031,7 +1036,7 @@ Now the preview will be available at
 
 If you change something in the mailer view at
 `app/views/user_mailer/welcome_email.html.erb` or the mailer itself, the preview
-will automatically be updated. A list of previews are also available in
+will automatically be updated. A list of previews is also available in
 <http://localhost:3000/rails/mailers>.
 
 By default, these preview classes live in `test/mailers/previews`. This can be

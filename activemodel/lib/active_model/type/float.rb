@@ -15,14 +15,6 @@ module ActiveModel
     #     attribute :weight, :float
     #   end
     #
-    # Values are cast using their +to_f+ method, except for the following
-    # strings:
-    #
-    # - Blank strings are cast to +nil+.
-    # - <tt>"Infinity"</tt> is cast to +Float::INFINITY+.
-    # - <tt>"-Infinity"</tt> is cast to <tt>-Float::INFINITY</tt>.
-    # - <tt>"NaN"</tt> is cast to +Float::NAN+.
-    #
     #   bag = BagOfCoffee.new
     #
     #   bag.weight = "0.25"
@@ -33,7 +25,16 @@ module ActiveModel
     #
     #   bag.weight = "NaN"
     #   bag.weight # => Float::NAN
+    #
+    # Values are cast using their +to_f+ method, except for the following
+    # strings:
+    #
+    # - Blank strings are cast to +nil+.
+    # - <tt>"Infinity"</tt> is cast to +Float::INFINITY+.
+    # - <tt>"-Infinity"</tt> is cast to <tt>-Float::INFINITY</tt>.
+    # - <tt>"NaN"</tt> is cast to +Float::NAN+.
     class Float < Value
+      include Helpers::Immutable
       include Helpers::Numeric
 
       def type

@@ -32,6 +32,7 @@ require "models/cpk"
 require "concurrent/atomic/count_down_latch"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/kernel/reporting"
+require "active_support/testing/ractors_assertions"
 
 class FirstAbstractClass < ActiveRecord::Base
   self.abstract_class = true
@@ -81,6 +82,7 @@ previous_value, ActiveRecord.raise_on_assign_to_attr_readonly = ActiveRecord.rai
 
 class NonRaisingPost < Post
   attr_readonly :title
+  alias_attribute :headline, :title
 end
 
 ActiveRecord.raise_on_assign_to_attr_readonly = previous_value
@@ -102,6 +104,8 @@ class LintTest < ActiveRecord::TestCase
 end
 
 class BasicsTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   fixtures :topics, :companies, :developers, :projects, :computers, :accounts,
     :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories,
     :posts, :cpk_books
@@ -114,6 +118,10 @@ class BasicsTest < ActiveRecord::TestCase
   def test_generated_relation_methods_module_name
     mod = Post.send(:generated_relation_methods)
     assert_equal "Post::GeneratedRelationMethods", mod.inspect
+  end
+
+  def test_no_anonymous_modules
+    assert_empty Photo.ancestors.select { |m| m.name.nil? }
   end
 
   def test_arel_attribute_normalization
@@ -188,19 +196,25 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_invalid_limit
     assert_raises(ArgumentError) do
-      Topic.limit("asdfadf").to_a
+      Topic.limit("asdfadf")
+    end
+  end
+
+  def test_invalid_offset
+    assert_raises(ArgumentError) do
+      Topic.offset("asdfadf")
     end
   end
 
   def test_limit_should_sanitize_sql_injection_for_limit_without_commas
     assert_raises(ArgumentError) do
-      Topic.limit("1 select * from schema").to_a
+      Topic.limit("1 select * from schema")
     end
   end
 
   def test_limit_should_sanitize_sql_injection_for_limit_with_commas
     assert_raises(ArgumentError) do
-      Topic.limit("1, 7 procedure help()").to_a
+      Topic.limit("1, 7 procedure help()")
     end
   end
 
@@ -397,7 +411,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(topics(:second).title, topics.first.title)
   end
 
-  GUESSED_CLASSES = [Category, Smarts, CreditCard, CreditCard::PinNumber, CreditCard::PinNumber::CvvCode, CreditCard::SubPinNumber, CreditCard::Brand, MasterCreditCard]
+  GUESSED_CLASSES = [Category, Smarts, CreditCard, CreditCard::PinNumber, CreditCard::PinNumber::CvvCode, CreditCard::SubPinNumber, CreditCard::Brand, MasterCreditCard].freeze
 
   def test_table_name_guesses
     assert_equal "topics", Topic.table_name
@@ -835,6 +849,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "changed via []=", post.body
   end
 
+  def test_update_attribute_raises_for_a_readonly_aliased_attribute_when_configured_to_not_raise
+    post = NonRaisingPost.create!(title: "cannot change this", body: "changeable")
+
+    assert_raises(ActiveRecord::ActiveRecordError) { post.update_attribute(:headline, "changed") }
+    assert_raises(ActiveRecord::ActiveRecordError) { post.update_attribute!(:headline, "changed") }
+
+    post.reload
+    assert_equal "cannot change this", post.title
+  end
+
   def test_readonly_attributes_on_belongs_to_association
     assert_equal [ "author_id" ], ReadonlyAuthorPost.readonly_attributes
 
@@ -860,6 +884,14 @@ class BasicsTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::ReadonlyAttributeError) do
       post_without_reload2.update(author: author2)
     end
+  end
+
+  def test_readonly_attributes_are_ractor_safe
+    assert_ractor_shareable ReadonlyAuthorPost._attr_readonly
+  end
+
+  def test_table_name_is_ractor_safe
+    assert_ractor_shareable Topic.table_name
   end
 
   def test_unicode_column_name
@@ -1172,6 +1204,20 @@ class BasicsTest < ActiveRecord::TestCase
       end
     end
 
+    def test_switching_default_time_zone_with_find_by_sql
+      with_env_tz do
+        with_timezone_config default: :utc do
+          default = Default.create!
+          assert_equal Time.utc(2004, 1, 1, 0, 0, 0, 0), default.fixed_time
+
+          ActiveRecord.default_timezone = :local
+
+          time = Default.find_by_sql("SELECT * FROM defaults WHERE id = #{default.id}").first.fixed_time
+          assert_equal Time.local(2004, 1, 1, 0, 0, 0, 0), time
+        end
+      end
+    end
+
     def test_mutating_time_objects
       with_env_tz do
         with_timezone_config default: :local do
@@ -1373,16 +1419,16 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_count_with_join
-    res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.#{QUOTED_TYPE} = 'Post'"
-    res2 = Post.where("posts.#{QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
+    res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.#{ARTest::QUOTED_TYPE} = 'Post'"
+    res2 = Post.where("posts.#{ARTest::QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
     assert_equal res, res2
 
-    res4 = Post.count_by_sql "SELECT COUNT(p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
-    res5 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count
+    res4 = Post.count_by_sql "SELECT COUNT(p.id) FROM posts p, comments co WHERE p.#{ARTest::QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
+    res5 = Post.where("p.#{ARTest::QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count
     assert_equal res4, res5
 
-    res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
-    res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").distinct.count
+    res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments co WHERE p.#{ARTest::QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
+    res7 = Post.where("p.#{ARTest::QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").distinct.count
     assert_equal res6, res7
   end
 
@@ -1524,7 +1570,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_predicate post, :new_record?, "should be a new record"
   end
 
-  def test_marshalling_with_associations_6_1
+  def test_marshalling_with_associations
     post = Post.new
     post.comments.build
 
@@ -1532,21 +1578,6 @@ class BasicsTest < ActiveRecord::TestCase
     post       = Marshal.load(marshalled)
 
     assert_equal 1, post.comments.length
-  end
-
-  def test_marshalling_with_associations_7_1
-    previous_format_version = ActiveRecord::Marshalling.format_version
-    ActiveRecord::Marshalling.format_version = 7.1
-
-    post = Post.new
-    post.comments.build
-
-    marshalled = Marshal.dump(post)
-    post       = Marshal.load(marshalled)
-
-    assert_equal 1, post.comments.length
-  ensure
-    ActiveRecord::Marshalling.format_version = previous_format_version
   end
 
   if Process.respond_to?(:fork) && !in_memory_db?
@@ -1684,6 +1715,18 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  if current_adapter?(:SQLite3Adapter)
+    def test_column_types_on_queries_on_sqlite
+      result = ActiveRecord::Base.lease_connection.exec_query("SELECT id, last_read, created_at FROM topics")
+      assert_equal ActiveRecord::ConnectionAdapters::SQLite3Adapter::SQLite3Integer, result.column_types["id"].class
+      assert_equal ActiveRecord::Type::Date, result.column_types["last_read"].class
+      assert_equal ActiveRecord::Type::DateTime, result.column_types["created_at"].class
+      assert_equal result.column_types[0], result.column_types["id"]
+      assert_equal result.column_types[1], result.column_types["last_read"]
+      assert_equal result.column_types[2], result.column_types["created_at"]
+    end
+  end
+
   def test_typecasting_aliases
     assert_equal 10, Topic.select("10 as tenderlove").first.tenderlove
   end
@@ -1817,6 +1860,31 @@ class BasicsTest < ActiveRecord::TestCase
     assert_respond_to SymbolIgnoredDeveloper.new, :last_name?
   end
 
+  test "permitted columns have attribute methods" do
+    assert_respond_to OnlyColumnsDeveloper.new, OnlyColumnsDeveloper.primary_key
+    assert_respond_to OnlyColumnsDeveloper.new, :name
+    assert_respond_to OnlyColumnsDeveloper.new, :name=
+    assert_respond_to OnlyColumnsDeveloper.new, :name?
+    assert_respond_to OnlyColumnsDeveloper.new, :salary
+    assert_respond_to OnlyColumnsDeveloper.new, :salary=
+    assert_respond_to OnlyColumnsDeveloper.new, :salary?
+    assert_respond_to OnlyColumnsDeveloper.new, :firm_id
+    assert_respond_to OnlyColumnsDeveloper.new, :firm_id=
+    assert_respond_to OnlyColumnsDeveloper.new, :firm_id?
+    assert_respond_to OnlyColumnsDeveloper.new, :mentor_id
+    assert_respond_to OnlyColumnsDeveloper.new, :mentor_id=
+    assert_respond_to OnlyColumnsDeveloper.new, :mentor_id?
+  end
+
+  test "not permitted columns have not attribute methods" do
+    assert_not_respond_to OnlyColumnsDeveloper.new, :first_name
+    assert_not_respond_to OnlyColumnsDeveloper.new, :first_name=
+    assert_not_respond_to OnlyColumnsDeveloper.new, :first_name?
+    assert_not_respond_to OnlyColumnsDeveloper.new, :legacy_created_at
+    assert_not_respond_to OnlyColumnsDeveloper.new, :legacy_created_at=
+    assert_not_respond_to OnlyColumnsDeveloper.new, :legacy_created_at?
+  end
+
   test "ignored columns are stored as an array of string" do
     assert_equal(%w(first_name last_name), Developer.ignored_columns)
     assert_equal(%w(first_name last_name), SymbolIgnoredDeveloper.ignored_columns)
@@ -1855,6 +1923,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert query.include?("name")
   end
 
+  test "only columns are enumerated in SELECT" do
+    query = OnlyColumnsDeveloper.all.to_sql.downcase
+
+    # not in only_columns
+    assert_not query.include?("first_name")
+
+    # in only_columns
+    assert query.include?("name")
+  end
+
   test "column names are quoted when using #from clause and model has ignored columns" do
     assert_not_empty Developer.ignored_columns
     query = Developer.from("developers").to_sql
@@ -1868,15 +1946,53 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "protected environments by default is an array with production" do
-    assert_equal ["production"], ActiveRecord::Base.protected_environments
+    assert_equal ["production"], ActiveRecord.protected_environments
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      assert_equal ["production"], ActiveRecord::Base.protected_environments
+    end
   end
 
   def test_protected_environments_are_stored_as_an_array_of_string
-    previous_protected_environments = ActiveRecord::Base.protected_environments
-    ActiveRecord::Base.protected_environments = [:staging, "production"]
-    assert_equal ["staging", "production"], ActiveRecord::Base.protected_environments
+    previous_protected_environments = ActiveRecord.protected_environments
+
+    ActiveRecord.protected_environments = [:staging, "production"]
+
+    assert_equal ["staging", "production"], ActiveRecord.protected_environments
+    assert_deprecated(ActiveRecord.deprecator) do
+      assert_equal ["staging", "production"], ActiveRecord::Base.protected_environments
+    end
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      ActiveRecord::Base.protected_environments = [:prod, :staging]
+    end
+
+    assert_equal ["prod", "staging"], ActiveRecord.protected_environments
+    assert_deprecated(ActiveRecord.deprecator) do
+      assert_equal ["prod", "staging"], ActiveRecord::Base.protected_environments
+    end
   ensure
-    ActiveRecord::Base.protected_environments = previous_protected_environments
+    ActiveRecord.protected_environments = previous_protected_environments
+  end
+
+  def test_deprecated_protected_environments_on_subclasses
+    model = Class.new(ActiveRecord::Base)
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      assert_equal ["production"], model.protected_environments
+    end
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      model.protected_environments = [:prod]
+    end
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      assert_equal ["prod"], model.protected_environments
+    end
+
+    assert_deprecated(ActiveRecord.deprecator) do
+      assert_equal ["production"], ActiveRecord::Base.protected_environments
+    end
   end
 
   test "#present? and #blank? on ActiveRecord::Base classes" do
@@ -1901,7 +2017,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "`connects_to` can only be called on ActiveRecord::Base or abstract classes", error.message
   end
 
-  test "cannot call connected_to with role and shard on non-abstract classes" do
+  test "cannot call #connected_to with role and shard on non-abstract classes" do
     error = assert_raises(NotImplementedError) do
       Bird.connected_to(role: :reading, shard: :default) { }
     end
@@ -1909,18 +2025,36 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes.", error.message
   end
 
-  test "can call connected_to with role and shard on abstract classes" do
+  test "can call #connected_to with role and shard on abstract classes" do
     SecondAbstractClass.connected_to(role: :reading, shard: :default) do
       assert SecondAbstractClass.connected_to?(role: :reading, shard: :default)
     end
   end
 
-  test "cannot call connected_to on the abstract class that did not establish the connection" do
+  test "cannot call #connected_to on the abstract class that did not establish the connection" do
     error = assert_raises(NotImplementedError) do
       ThirdAbstractClass.connected_to(role: :reading) { }
     end
 
     assert_equal "calling `connected_to` is only allowed on the abstract class that established the connection.", error.message
+  end
+
+  test "#connected_to sets prevent_writes if role is reading" do
+    assert_not SecondAbstractClass.connected_to?(role: :reading)
+    assert_not SecondAbstractClass.current_preventing_writes
+
+    SecondAbstractClass.connected_to(role: :reading) do
+      assert SecondAbstractClass.connected_to?(role: :reading)
+      assert SecondAbstractClass.current_preventing_writes
+    end
+  end
+
+  test "#connected_to cannot be called with the reading role and prevent_writes: false" do
+    error = assert_raises ArgumentError do
+      SecondAbstractClass.connected_to(role: :reading, prevent_writes: false) { }
+    end
+
+    assert_equal "cannot set `prevent_writes` to false when `role` is `reading`.", error.message
   end
 
   test "#connecting_to with role" do
@@ -1949,6 +2083,26 @@ class BasicsTest < ActiveRecord::TestCase
     ActiveRecord::Base.connected_to_stack.pop
   end
 
+  test "#connecting_to sets prevent_writes if role is reading" do
+    assert_not SecondAbstractClass.connected_to?(role: :reading)
+    assert_not SecondAbstractClass.current_preventing_writes
+
+    SecondAbstractClass.connecting_to(role: :reading)
+
+    assert SecondAbstractClass.connected_to?(role: :reading)
+    assert SecondAbstractClass.current_preventing_writes
+  ensure
+    ActiveRecord::Base.connected_to_stack.pop
+  end
+
+  test "#connecting_to cannot be called with the reading role and prevent_writes: false" do
+    error = assert_raises ArgumentError do
+      SecondAbstractClass.connecting_to(role: :reading, prevent_writes: false)
+    end
+
+    assert_equal "cannot set `prevent_writes` to false when `role` is `reading`.", error.message
+  end
+
   test "#connected_to_many cannot be called on anything but ActiveRecord::Base" do
     assert_raises NotImplementedError do
       SecondAbstractClass.connected_to_many([SecondAbstractClass], role: :writing)
@@ -1962,24 +2116,43 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "#connected_to_many sets prevent_writes if role is reading" do
+    assert_not SecondAbstractClass.current_preventing_writes
+    assert_not ActiveRecord::Base.current_preventing_writes
+
     ActiveRecord::Base.connected_to_many([SecondAbstractClass], role: :reading) do
       assert SecondAbstractClass.current_preventing_writes
       assert_not ActiveRecord::Base.current_preventing_writes
     end
   end
 
+  test "#connected_to_many cannot be called with the reading role and prevent_writes: false" do
+    error = assert_raises ArgumentError do
+      ActiveRecord::Base.connected_to_many([SecondAbstractClass], role: :reading, prevent_writes: false) { }
+    end
+
+    assert_equal "cannot set `prevent_writes` to false when `role` is `reading`.", error.message
+  end
+
   test "#connected_to_many with a single argument for classes" do
     ActiveRecord::Base.connected_to_many(SecondAbstractClass, role: :reading) do
-      assert SecondAbstractClass.current_preventing_writes
-      assert_not ActiveRecord::Base.current_preventing_writes
+      assert SecondAbstractClass.connected_to?(role: :reading)
+      assert_not ActiveRecord::Base.connected_to?(role: :reading)
     end
   end
 
   test "#connected_to_many with a multiple classes without brackets works" do
     ActiveRecord::Base.connected_to_many(FirstAbstractClass, SecondAbstractClass, role: :reading) do
-      assert FirstAbstractClass.current_preventing_writes
-      assert SecondAbstractClass.current_preventing_writes
-      assert_not ActiveRecord::Base.current_preventing_writes
+      assert FirstAbstractClass.connected_to?(role: :reading)
+      assert SecondAbstractClass.connected_to?(role: :reading)
+      assert_not ActiveRecord::Base.connected_to?(role: :reading)
     end
   end
+
+  private
+    def with_timezone_config(cfg, &block)
+      super(cfg) do
+        Default.reset_column_information
+        block.call
+      end
+    end
 end

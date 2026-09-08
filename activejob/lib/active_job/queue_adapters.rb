@@ -7,10 +7,8 @@ module ActiveJob
   #
   # * {Backburner}[https://github.com/nesquena/backburner]
   # * {Delayed Job}[https://github.com/collectiveidea/delayed_job]
-  # * {Que}[https://github.com/chanks/que]
   # * {queue_classic}[https://github.com/QueueClassic/queue_classic]
   # * {Resque}[https://github.com/resque/resque]
-  # * {Sidekiq}[https://sidekiq.org]
   # * {Sneakers}[https://github.com/jondot/sneakers]
   # * Please Note: We are not accepting pull requests for new adapters. See the {README}[link:files/activejob/README_md.html] for more details.
   #
@@ -26,10 +24,8 @@ module ActiveJob
   #   |-------------------|-------|--------|------------|------------|---------|---------|
   #   | Backburner        | Yes   | Yes    | Yes        | Yes        | Job     | Global  |
   #   | Delayed Job       | Yes   | Yes    | Yes        | Job        | Global  | Global  |
-  #   | Que               | Yes   | Yes    | Yes        | Job        | No      | Job     |
   #   | queue_classic     | Yes   | Yes    | Yes*       | No         | No      | No      |
   #   | Resque            | Yes   | Yes    | Yes (Gem)  | Queue      | Global  | Yes     |
-  #   | Sidekiq           | Yes   | Yes    | Yes        | Queue      | No      | Job     |
   #   | Sneakers          | Yes   | Yes    | No         | Queue      | Queue   | No      |
   #   | Active Job Async  | Yes   | Yes    | Yes        | No         | No      | No      |
   #   | Active Job Inline | No    | Yes    | N/A        | N/A        | N/A     | N/A     |
@@ -119,9 +115,7 @@ module ActiveJob
     autoload :DelayedJobAdapter
     autoload :QueueClassicAdapter
     autoload :ResqueAdapter
-    autoload :SidekiqAdapter
     autoload :SneakersAdapter
-    autoload :SuckerPunchAdapter
     autoload :TestAdapter
 
     ADAPTER = "Adapter"
@@ -130,8 +124,8 @@ module ActiveJob
     class << self
       # Returns adapter for specified name.
       #
-      #   ActiveJob::QueueAdapters.lookup(:sidekiq)
-      #   # => ActiveJob::QueueAdapters::SidekiqAdapter
+      #   ActiveJob::QueueAdapters.lookup(:async)
+      #   # => ActiveJob::QueueAdapters::AsyncAdapter
       def lookup(name)
         const_get(name.to_s.camelize << ADAPTER)
       end

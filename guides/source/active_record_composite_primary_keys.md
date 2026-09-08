@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Composite Primary Keys
 ======================
@@ -36,7 +36,7 @@ You can create a table with a composite primary key by passing the
 `:primary_key` option to `create_table` with an array value:
 
 ```ruby
-class CreateProducts < ActiveRecord::Migration[8.1]
+class CreateProducts < ActiveRecord::Migration[8.2]
   def change
     create_table :products, primary_key: [:store_id, :sku] do |t|
       t.integer :store_id
@@ -87,7 +87,6 @@ SELECT * FROM products WHERE (store_id = 1 AND sku = 'ABC98765' OR store_id = 7 
 Models with composite primary keys will also use the full composite primary key
 when ordering:
 
-
 ```irb
 irb> product = Product.first
 => #<Product store_id: 1, sku: "ABC98765", description: "Red Hat">
@@ -98,6 +97,23 @@ The SQL equivalent of the above is:
 ```sql
 SELECT * FROM products ORDER BY products.store_id ASC, products.sku ASC LIMIT 1
 ```
+
+Likewise, `last` will use the full composite primary key with the sort direction
+for each column reversed:
+
+```irb
+irb> product = Product.last
+=> #<Product store_id: 7, sku: "ZZZ11111", description: "Green Pants">
+```
+
+The SQL equivalent of the above is:
+
+```sql
+SELECT * FROM products ORDER BY products.store_id DESC, products.sku DESC LIMIT 1
+```
+
+Here, the sort direction is descending for both store_id and sku because both
+columns are part of the composite primary key.
 
 ### Using `#where`
 
@@ -114,11 +130,24 @@ When specifying conditions on methods like `find_by` and `where`, the use
 of `id` will match against an `:id` attribute on the model. This is different
 from `find`, where the ID passed in should be a primary key value.
 
+For example, this `find_by` call matches the `:id` column, not the full
+composite primary key:
+
+```ruby
+Order.find_by(id: 5)
+```
+
+And this `where` call behaves the same way:
+
+```ruby
+Order.where(id: 5)
+```
+
 Take caution when using `find_by(id:)` on models where `:id` is not the primary
 key, such as composite primary key models. See the [Active Record Querying][]
 guide to learn more.
 
-[Active Record Querying]: active_record_querying.html#using-id-as-a-condition
+[Active Record Querying]: active_record_querying.html#conditions-with-id
 
 Associations between Models with Composite Primary Keys
 -------------------------------------------------------
@@ -268,7 +297,7 @@ class BooksController < ApplicationController
     id = params.extract_value(:id)
     # Find the book using the composite ID.
     @book = Book.find(id)
-    # use the default rendering behaviour to render the show view.
+    # use the default rendering behavior to render the show view.
   end
 end
 ```

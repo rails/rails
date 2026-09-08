@@ -2,8 +2,6 @@
 
 # :markup: markdown
 
-require "active_support/core_ext/module/attribute_accessors"
-
 module ActionDispatch
   module Http
     module MimeNegotiation
@@ -14,10 +12,14 @@ module ActionDispatch
       RESCUABLE_MIME_FORMAT_ERRORS = [
         ActionController::BadRequest,
         ActionDispatch::Http::Parameters::ParseError,
-      ]
+      ].freeze
+
+      @ignore_accept_header = false
+      @strict_accept_header = false
+      accessors = singleton_class.attr_accessor :ignore_accept_header, :strict_accept_header
 
       included do
-        mattr_accessor :ignore_accept_header, default: false
+        singleton_class.delegate(*accessors, to: MimeNegotiation)
       end
 
       # The MIME type of the HTTP request, such as [Mime](:xml).
@@ -56,9 +58,14 @@ module ActionDispatch
 
       # Returns the MIME type for the format used in the request.
       #
-      #     GET /posts/5.xml   | request.format => Mime[:xml]
-      #     GET /posts/5.xhtml | request.format => Mime[:html]
-      #     GET /posts/5       | request.format => Mime[:html] or Mime[:js], or request.accepts.first
+      #     # GET /posts/5.xml
+      #     request.format # => Mime[:xml]
+      #
+      #     # GET /posts/5.xhtml
+      #     request.format # => Mime[:html]
+      #
+      #     # GET /posts/5
+      #     request.format # => Mime[:html] or Mime[:js], or request.accepts.first
       #
       def format(_view_path = nil)
         formats.first || Mime::NullType.instance
@@ -86,7 +93,49 @@ module ActionDispatch
         end
       end
 
-      # Sets the variant for template.
+      # Sets the \variant for the response template.
+      #
+      # When determining which template to render, Action View will incorporate
+      # all variants from the request. For example, if an
+      # `ArticlesController#index` action needs to respond to
+      # `request.variant = [:ios, :turbo_native]`, it will render the
+      # first template file it can find in the following list:
+      #
+      # - `app/views/articles/index.html+ios.erb`
+      # - `app/views/articles/index.html+turbo_native.erb`
+      # - `app/views/articles/index.html.erb`
+      #
+      # Variants add context to the requests that views render appropriately.
+      # Variant names are arbitrary, and can communicate anything from the
+      # request's platform (`:android`, `:ios`, `:linux`, `:macos`, `:windows`)
+      # to its browser (`:chrome`, `:edge`, `:firefox`, `:safari`), to the type
+      # of user (`:admin`, `:guest`, `:user`).
+      #
+      # Note: Adding many new variant templates with similarities to existing
+      # template files can make maintaining your view code more difficult.
+      #
+      # #### Parameters
+      #
+      # * `variant` - a symbol name or an array of symbol names for variants
+      #   used to render the response template
+      #
+      # #### Examples
+      #
+      #     class ApplicationController < ActionController::Base
+      #       before_action :determine_variants
+      #
+      #       private
+      #         def determine_variants
+      #           variants = []
+      #
+      #           # some code to determine the variant(s) to use
+      #
+      #           variants << :ios if request.user_agent.include?("iOS")
+      #           variants << :turbo_native if request.user_agent.include?("Turbo Native")
+      #
+      #           request.variant = variants
+      #         end
+      #     end
       def variant=(variant)
         variant = Array(variant)
 
@@ -97,6 +146,18 @@ module ActionDispatch
         end
       end
 
+      # Returns the \variant for the response template as an instance of
+      # ActiveSupport::ArrayInquirer.
+      #
+      #     request.variant = :phone
+      #     request.variant.phone?  # => true
+      #     request.variant.tablet? # => false
+      #
+      #     request.variant = [:phone, :tablet]
+      #     request.variant.phone?                  # => true
+      #     request.variant.desktop?                # => false
+      #     request.variant.any?(:phone, :desktop)  # => true
+      #     request.variant.any?(:desktop, :watch)  # => false
       def variant
         @variant ||= ActiveSupport::ArrayInquirer.new
       end
@@ -168,12 +229,15 @@ module ActionDispatch
         end
 
         def valid_accept_header
-          (xhr? && (accept.present? || content_mime_type)) ||
-            (accept.present? && !accept.match?(BROWSER_LIKE_ACCEPTS))
+          if xhr?
+            accept.present? || content_mime_type
+          elsif accept.present?
+            MimeNegotiation.strict_accept_header || !accept.match?(BROWSER_LIKE_ACCEPTS)
+          end
         end
 
         def use_accept_header
-          !self.class.ignore_accept_header
+          !MimeNegotiation.ignore_accept_header
         end
 
         def format_from_path_extension

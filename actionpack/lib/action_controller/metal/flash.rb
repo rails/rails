@@ -7,7 +7,7 @@ module ActionController # :nodoc:
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_flash_types, instance_accessor: false, default: []
+      class_attribute :_flash_types, instance_accessor: false, default: [].freeze
 
       delegate :flash, to: :request
       add_flash_types(:alert, :notice)
@@ -35,17 +35,15 @@ module ActionController # :nodoc:
         types.each do |type|
           next if _flash_types.include?(type)
 
-          define_method(type) do
-            request.flash[type]
-          end
+          class_eval <<~RUBY, __FILE__, __LINE__ + 1
+            private def #{type}
+              request.flash[:#{type}]
+            end
+          RUBY
           helper_method(type) if respond_to?(:helper_method)
 
-          self._flash_types += [type]
+          self._flash_types = (_flash_types | [type]).freeze
         end
-      end
-
-      def action_methods # :nodoc:
-        @action_methods ||= super - _flash_types.map(&:to_s).to_set
       end
     end
 

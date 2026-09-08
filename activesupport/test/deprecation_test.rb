@@ -120,10 +120,36 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_deprecated(/:bomb:/, @deprecator) { deprecated_object.to_s }
   end
 
+  test "DeprecatedObjectProxy can set the target afterwards" do
+    list = []
+    deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(list, ":bomb:", @deprecator)
+
+    list = [1]
+    assert_deprecated(/:bomb:/, @deprecator) do
+      assert_not_includes(deprecated_object, 1)
+    end
+
+    deprecated_object.target = list
+
+    assert_deprecated(/:bomb:/, @deprecator) do
+      assert_includes(deprecated_object, 1)
+    end
+  end
+
   test "DeprecatedObjectProxy requires a deprecator" do
     assert_raises(ArgumentError) do
       ActiveSupport::Deprecation::DeprecatedObjectProxy.new(Object.new, ":bomb:")
     end
+  end
+
+  test "DeprecatedObjectProxy forwards keyword arguments" do
+    object = Object.new
+    def object.kw(a:)
+      a
+    end
+    deprecated_object = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(object, ":bomb:", @deprecator)
+    result = assert_deprecated(/:bomb:/, @deprecator) { deprecated_object.kw(a: 42) }
+    assert_equal 42, result
   end
 
   test "nil behavior is ignored" do
@@ -263,20 +289,17 @@ class DeprecationTest < ActiveSupport::TestCase
     @deprecator.behavior = :notify
     behavior = @deprecator.behavior.first
 
-    begin
-      events = []
-      ActiveSupport::Notifications.subscribe("deprecation.my_gem_custom") { |*args|
-        events << args.extract_options!
-      }
+    expected_payload = {
+      message: "Some error!",
+      callstack: ["call stack!"],
+      deprecation_horizon: "horizon",
+      gem_name: "MyGem::Custom"
+    }
 
-      behavior.call("Some error!", ["call stack!"], @deprecator)
-      assert_equal 1, events.size
-      assert_equal "Some error!", events.first[:message]
-      assert_equal ["call stack!"], events.first[:callstack]
-      assert_equal "horizon", events.first[:deprecation_horizon]
-      assert_equal "MyGem::Custom", events.first[:gem_name]
-    ensure
-      ActiveSupport::Notifications.unsubscribe("deprecation.my_gem_custom")
+    assert_notifications_count("deprecation.my_gem_custom", 1) do
+      assert_notification("deprecation.my_gem_custom", expected_payload) do
+        behavior.call("Some error!", ["call stack!"], @deprecator)
+      end
     end
   end
 
@@ -309,6 +332,20 @@ class DeprecationTest < ActiveSupport::TestCase
 
     fubar_s = assert_deprecated("@fubar.to_s", @deprecator) { instance.fubar.to_s }
     assert_equal instance.foo_bar.to_s, fubar_s
+  end
+
+  test "DeprecatedInstanceVariableProxy forwards keyword arguments" do
+    instance = Deprecatee.new
+    instance.fubar = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(instance, :foo_bar, "@fubar", deprecator: @deprecator)
+    instance.foo_bar = Object.new
+    def (instance.foo_bar).kw(a:)
+      a
+    end
+
+    result = assert_deprecated(/@fubar\.kw\. Args: #{Regexp.escape([{ a: 42 }].inspect)}/, @deprecator) do
+      instance.fubar.kw(a: 42)
+    end
+    assert_equal 42, result
   end
 
   test "DeprecatedInstanceVariableProxy does not warn on inspect" do
@@ -818,12 +855,6 @@ class DeprecationTest < ActiveSupport::TestCase
       deprecator.warn
     end
 
-    def with_rails_application_deprecators(&block)
-      application = Struct.new(:deprecators).new(ActiveSupport::Deprecation::Deprecators.new)
-      rails = Struct.new(:application).new(application)
-      rails.application.deprecators[:deprecator] = @deprecator
-      stub_const(Object, :Rails, rails, &block)
-    end
 
     def deprecator_with_messages
       klass = Class.new(ActiveSupport::Deprecation)

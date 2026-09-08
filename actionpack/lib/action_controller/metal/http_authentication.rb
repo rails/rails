@@ -76,15 +76,15 @@ module ActionController
           # Enables HTTP Basic authentication.
           #
           # See ActionController::HttpAuthentication::Basic for example usage.
-          def http_basic_authenticate_with(name:, password:, realm: nil, **options)
+          def http_basic_authenticate_with(name:, password:, realm: nil, message: nil, content_type: nil, **options)
             raise ArgumentError, "Expected name: to be a String, got #{name.class}" unless name.is_a?(String)
             raise ArgumentError, "Expected password: to be a String, got #{password.class}" unless password.is_a?(String)
-            before_action(options) { http_basic_authenticate_or_request_with name: name, password: password, realm: realm }
+            before_action(options) { http_basic_authenticate_or_request_with name: name, password: password, realm: realm, message: message, content_type: content_type }
           end
         end
 
-        def http_basic_authenticate_or_request_with(name:, password:, realm: nil, message: nil)
-          authenticate_or_request_with_http_basic(realm, message) do |given_name, given_password|
+        def http_basic_authenticate_or_request_with(name:, password:, realm: nil, message: nil, content_type: nil)
+          authenticate_or_request_with_http_basic(realm, message, content_type) do |given_name, given_password|
             # This comparison uses & so that it doesn't short circuit and uses
             # `secure_compare` so that length information isn't leaked.
             ActiveSupport::SecurityUtils.secure_compare(given_name.to_s, name) &
@@ -92,16 +92,16 @@ module ActionController
           end
         end
 
-        def authenticate_or_request_with_http_basic(realm = nil, message = nil, &login_procedure)
-          authenticate_with_http_basic(&login_procedure) || request_http_basic_authentication(realm || "Application", message)
+        def authenticate_or_request_with_http_basic(realm = nil, message = nil, content_type = nil, &login_procedure)
+          authenticate_with_http_basic(&login_procedure) || request_http_basic_authentication(realm || "Application", message, content_type)
         end
 
         def authenticate_with_http_basic(&login_procedure)
           HttpAuthentication::Basic.authenticate(request, &login_procedure)
         end
 
-        def request_http_basic_authentication(realm = "Application", message = nil)
-          HttpAuthentication::Basic.authentication_request(self, realm, message)
+        def request_http_basic_authentication(realm = "Application", message = nil, content_type = nil)
+          HttpAuthentication::Basic.authentication_request(self, realm, message, content_type)
         end
       end
 
@@ -135,10 +135,11 @@ module ActionController
         "Basic #{::Base64.strict_encode64("#{user_name}:#{password}")}"
       end
 
-      def authentication_request(controller, realm, message)
+      def authentication_request(controller, realm, message = nil, content_type = nil)
         message ||= "HTTP Basic: Access denied.\n"
         controller.headers["WWW-Authenticate"] = %(Basic realm="#{realm.tr('"', "")}")
         controller.status = 401
+        controller.content_type = content_type
         controller.response_body = message
       end
     end
@@ -194,8 +195,8 @@ module ActionController
         # requesting the client to send a Digest.
         #
         # See ActionController::HttpAuthentication::Digest for example usage.
-        def authenticate_or_request_with_http_digest(realm = "Application", message = nil, &password_procedure)
-          authenticate_with_http_digest(realm, &password_procedure) || request_http_digest_authentication(realm, message)
+        def authenticate_or_request_with_http_digest(realm = "Application", message = nil, content_type = nil, &password_procedure)
+          authenticate_with_http_digest(realm, &password_procedure) || request_http_digest_authentication(realm, message, content_type)
         end
 
         # Authenticate using an HTTP Digest. Returns true if authentication is
@@ -206,8 +207,8 @@ module ActionController
 
         # Render an HTTP header requesting the client to send a Digest for
         # authentication.
-        def request_http_digest_authentication(realm = "Application", message = nil)
-          HttpAuthentication::Digest.authentication_request(self, realm, message)
+        def request_http_digest_authentication(realm = "Application", message = nil, content_type = nil)
+          HttpAuthentication::Digest.authentication_request(self, realm, message, content_type)
         end
       end
 
@@ -278,10 +279,11 @@ module ActionController
         controller.headers["WWW-Authenticate"] = %(Digest realm="#{realm}", qop="auth", algorithm=MD5, nonce="#{nonce}", opaque="#{opaque}")
       end
 
-      def authentication_request(controller, realm, message = nil)
+      def authentication_request(controller, realm, message = nil, content_type = nil)
         message ||= "HTTP Digest: Access denied.\n"
         authentication_header(controller, realm)
         controller.status = 401
+        controller.content_type = content_type
         controller.response_body = message
       end
 
@@ -423,34 +425,43 @@ module ActionController
     #
     #     RewriteRule ^(.*)$ dispatch.fcgi [E=X-HTTP_AUTHORIZATION:%{HTTP:Authorization},QSA,L]
     module Token
+      SCHEMES = ["Token", "Bearer", "DPoP"].freeze
       TOKEN_KEY = "token="
-      TOKEN_REGEX = /^(Token|Bearer)\s+/
+      # Matches an RFC 9110 auth-scheme (a `token`: ALPHA / DIGIT / tchar symbols).
+      AUTH_SCHEME_REGEX = /^([0-9A-Za-z!#$%&'*+\-.^_`|~]+)\s+/
       AUTHN_PAIR_DELIMITERS = /(?:,|;|\t)/
       extend self
 
       module ControllerMethods
-        # Authenticate using an HTTP Bearer token, or otherwise render an HTTP header
-        # requesting the client to send a Bearer token. For the authentication to be
+        # Authenticate using an HTTP token, or otherwise render an HTTP header
+        # requesting the client to send a token. For the authentication to be
         # considered successful, `login_procedure` must not return a false value.
         # Typically, the authenticated user is returned.
         #
+        # The optional `scheme` restricts authentication to that scheme (or any of
+        # them, when given an array) and uses it verbatim for the WWW-Authenticate
+        # response header. Any scheme name can be required. When no `scheme` is
+        # given, `"Token"`, `"Bearer"`, and `"DPoP"` are accepted. The request's
+        # authentication scheme is yielded as a downcased symbol in an optional
+        # third argument to `login_procedure`.
+        #
         # See ActionController::HttpAuthentication::Token for example usage.
-        def authenticate_or_request_with_http_token(realm = "Application", message = nil, &login_procedure)
-          authenticate_with_http_token(&login_procedure) || request_http_token_authentication(realm, message)
+        def authenticate_or_request_with_http_token(realm = "Application", message = nil, content_type = nil, scheme: nil, &login_procedure)
+          authenticate_with_http_token(scheme:, &login_procedure) || request_http_token_authentication(realm, message, content_type, scheme:)
         end
 
-        # Authenticate using an HTTP Bearer token. Returns the return value of
+        # Authenticate using an HTTP token. Returns the return value of
         # `login_procedure` if a token is found. Returns `nil` if no token is found.
         #
         # See ActionController::HttpAuthentication::Token for example usage.
-        def authenticate_with_http_token(&login_procedure)
-          Token.authenticate(self, &login_procedure)
+        def authenticate_with_http_token(scheme: nil, &login_procedure)
+          Token.authenticate(self, scheme:, &login_procedure)
         end
 
-        # Render an HTTP header requesting the client to send a Bearer token for
+        # Render an HTTP header requesting the client to send a token for
         # authentication.
-        def request_http_token_authentication(realm = "Application", message = nil)
-          Token.authentication_request(self, realm, message)
+        def request_http_token_authentication(realm = "Application", message = nil, content_type = nil, scheme: nil)
+          Token.authentication_request(self, realm, message, content_type, scheme:)
         end
       end
 
@@ -463,22 +474,30 @@ module ActionController
       # #### Parameters
       #
       # *   `controller` - ActionController::Base instance for the current request.
+      # *   `scheme` - Optional authentication scheme (or array of schemes) to
+      #     allow. Defaults to `SCHEMES`.
       # *   `login_procedure` - Proc to call if a token is present. The Proc should
-      #     take two arguments:
+      #     take two or three arguments:
       #
-      #         authenticate(controller) { |token, options| ... }
+      #         authenticate(controller) { |token, options, scheme| ... }
       #
+      #     The third argument contains the downcased authentication scheme from the
+      #     request, e.g. `:token`, `:bearer`, or `:dpop`.
       #
-      def authenticate(controller, &login_procedure)
-        token, options = token_and_options(controller.request)
-        unless token.blank?
-          login_procedure.call(token, options)
+      def authenticate(controller, scheme: nil, &login_procedure)
+        request = controller.request
+        request_scheme = normalize_scheme(request.authorization.to_s[AUTH_SCHEME_REGEX, 1])
+        schemes = normalize_schemes(scheme.presence || SCHEMES)
+
+        token, options = token_and_options(request)
+        unless token.blank? || !schemes.include?(request_scheme)
+          login_procedure.call(token, options, request_scheme)
         end
       end
 
       # Parses the token and options out of the token Authorization header. The value
-      # for the Authorization header is expected to have the prefix `"Token"` or
-      # `"Bearer"`. If the header looks like this:
+      # for the Authorization header is expected to have the scheme name as a prefix,
+      # for example `"Token"`, `"Bearer"` or `"DPoP"`. If the header looks like this:
       #
       #     Authorization: Token token="abc", nonce="def"
       #
@@ -493,7 +512,7 @@ module ActionController
       #
       def token_and_options(request)
         authorization_request = request.authorization.to_s
-        if authorization_request[TOKEN_REGEX]
+        if authorization_request[AUTH_SCHEME_REGEX]
           params = token_params_from authorization_request
           [params.shift[1], Hash[params].with_indifferent_access]
         end
@@ -514,10 +533,10 @@ module ActionController
       end
 
       # This method takes an authorization body and splits up the key-value pairs by
-      # the standardized `:`, `;`, or `\t` delimiters defined in
+      # the standardized `,`, `;`, or `\t` delimiters defined in
       # `AUTHN_PAIR_DELIMITERS`.
       def raw_params(auth)
-        _raw_params = auth.sub(TOKEN_REGEX, "").split(AUTHN_PAIR_DELIMITERS).map(&:strip)
+        _raw_params = auth.sub(AUTH_SCHEME_REGEX, "").split(AUTHN_PAIR_DELIMITERS).map(&:strip)
         _raw_params.reject!(&:empty?)
 
         if !_raw_params.first&.start_with?(TOKEN_KEY)
@@ -551,12 +570,26 @@ module ActionController
       #
       # *   `controller` - ActionController::Base instance for the outgoing response.
       # *   `realm` - String realm to use in the header.
+      # *   `scheme` - Optional authentication scheme (or array of schemes) to use
+      #     in the header, verbatim. Multiple schemes are emitted as separate
+      #     challenges. Defaults to `"Token"`.
       #
-      def authentication_request(controller, realm, message = nil)
+      def authentication_request(controller, realm, message = nil, content_type = nil, scheme: nil)
+        schemes = Array(scheme).presence || ["Token"]
         message ||= "HTTP Token: Access denied.\n"
-        controller.headers["WWW-Authenticate"] = %(Token realm="#{realm.tr('"', "")}")
-        controller.__send__ :render, plain: message, status: :unauthorized
+        challenges = schemes.map { |s| %(#{s} realm="#{realm.tr('"', "")}") }
+        controller.headers["WWW-Authenticate"] = challenges.join(", ")
+        controller.__send__ :render, plain: message, status: :unauthorized, content_type: content_type
       end
+
+      private
+        def normalize_schemes(schemes)
+          Array(schemes).map { |scheme| normalize_scheme(scheme) }
+        end
+
+        def normalize_scheme(scheme)
+          scheme&.to_s&.downcase&.to_sym
+        end
     end
   end
 end

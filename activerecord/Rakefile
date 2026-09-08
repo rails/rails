@@ -31,12 +31,24 @@ task :test do
   run_without_aborting(*tasks)
 end
 
+adapters = %w( mysql2 trilogy postgresql sqlite3 sqlite3_mem )
+
 namespace :test do
-  task :isolated do
-    tasks = defined?(JRUBY_VERSION) ?
-      %w(isolated_test_jdbcmysql isolated_test_jdbcsqlite3 isolated_test_jdbcpostgresql) :
-      %w(isolated_test_mysql2 isolated_test_trilogy isolated_test_sqlite3 isolated_test_postgresql)
-    run_without_aborting(*tasks)
+  task :railties do
+    ["active_record/railtie"].all? do |railtie|
+      sh(Gem.ruby, "-r", railtie, "-e", "'OK'")
+    end || raise("Failures")
+  end
+
+  desc "Run Active Job integration tests for all adapters"
+  task "integration:active_job" do
+    errors = []
+    adapters.each do |adapter|
+      Rake::Task["test:integration:active_job:#{adapter}"].invoke
+    rescue Exception
+      errors << adapter
+    end
+    abort "Errors running integration for #{errors.join(', ')}" if errors.any?
   end
 
   Rake::TestTask.new(:arel) do |t|
@@ -44,7 +56,10 @@ namespace :test do
     t.test_files = FileList["test/cases/arel/**/*_test.rb"]
 
     t.warning = true
-    t.verbose = true
+    if ENV["CI"]
+      t.verbose = true
+      t.options = "--profile --defer-output"
+    end
   end
 end
 
@@ -56,7 +71,7 @@ namespace :db do
   task drop: ["db:mysql:drop", "db:postgresql:drop"]
 end
 
-%w( mysql2 trilogy postgresql sqlite3 sqlite3_mem ).each do |adapter|
+adapters.each do |adapter|
   namespace :test do
     Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
       adapter_short = adapter[/^[a-z0-9]+/]
@@ -68,7 +83,10 @@ end
 
       t.test_files = files
       t.warning = true
-      t.verbose = true
+      if ENV["CI"]
+        t.verbose = true
+        t.options = "--profile --defer-output"
+      end
       t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
     end
 
@@ -79,100 +97,11 @@ end
           t.libs << "test"
           t.test_files = FileList["test/activejob/*_test.rb"]
           t.warning = true
-          t.verbose = true
+          if ENV["CI"]
+            t.verbose = true
+            t.options = "--profile --defer-output"
+          end
           t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
-        end
-      end
-    end
-
-    namespace :isolated do
-      task adapter => "#{adapter}:env" do
-        adapter_short = adapter[/^[a-z0-9]+/]
-        puts [adapter, adapter_short].inspect
-
-        dash_i = [
-          "test",
-          "lib",
-          "../activesupport/lib",
-          "../activemodel/lib"
-        ].map { |dir| File.expand_path(dir, __dir__) }
-
-        dash_i.reverse_each do |x|
-          $:.unshift(x) unless $:.include?(x)
-        end
-        $-w = true
-
-        require "bundler/setup" unless defined?(Bundler)
-
-        # Every test file loads "cases/helper" first, so doing it
-        # post-fork gains us nothing.
-
-        # We need to dance around minitest autorun, though.
-        require "minitest"
-        Minitest.singleton_class.class_eval do
-          alias_method :_original_autorun, :autorun
-          def autorun
-            # no-op
-          end
-          require "cases/helper"
-          alias_method :autorun, :autorun # suppress redefinition warning
-          alias_method :autorun, :_original_autorun
-        end
-
-        failing_files = []
-
-        test_options = ENV["TESTOPTS"].to_s.split(/[\s]+/)
-
-        test_files = (Dir["test/cases/**/*_test.rb"].reject {
-          |x| x.include?("/adapters/") || x.include?("/encryption/performance")
-        } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).sort
-
-        if ENV["BUILDKITE_PARALLEL_JOB_COUNT"]
-          n = ENV["BUILDKITE_PARALLEL_JOB"].to_i
-          m = ENV["BUILDKITE_PARALLEL_JOB_COUNT"].to_i
-
-          test_files = test_files.each_slice(m).filter_map { |slice| slice[n] }
-        end
-
-        test_files.each do |file|
-          puts "--- #{file}"
-          fake_command = Shellwords.join([
-            FileUtils::RUBY,
-            "-w",
-            *dash_i.map { |dir| "-I#{Pathname.new(dir).relative_path_from(Pathname.pwd)}" },
-            file,
-          ])
-          puts fake_command
-
-          # We could run these in parallel, but pretty much all of the
-          # railties tests already run in parallel, so ¯\_(⊙︿⊙)_/¯
-          Process.waitpid fork {
-            ARGV.clear.concat test_options
-            Rake.application = nil
-
-            Minitest.autorun
-
-            load file
-          }
-
-          unless $?.success?
-            failing_files << file
-            puts "^^^ +++"
-          end
-          puts
-        end
-
-        puts "--- All tests completed"
-        unless failing_files.empty?
-          puts "^^^ +++"
-          puts
-          puts "Failed in:"
-          failing_files.each do |file|
-            puts "  #{file}"
-          end
-          puts
-
-          exit 1
         end
       end
     end
@@ -185,7 +114,10 @@ end
           t.test_files = FileList["test/cases/encryption/performance/*_test.rb"]
 
           t.warning = true
-          t.verbose = true
+          if ENV["CI"]
+            t.verbose = true
+            t.options = "--profile --defer-output"
+          end
           t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
         end
       end
@@ -194,7 +126,6 @@ end
 
   namespace adapter do
     task test: "test_#{adapter}"
-    task isolated_test: "isolated_test_#{adapter}"
 
     # Set the connection environment for the adapter
     task(:env) { ENV["ARCONN"] = adapter }
@@ -202,7 +133,6 @@ end
 
   # Make sure the adapter test evaluates the env setting task
   task "test_#{adapter}" => ["#{adapter}:env", "test:#{adapter}", "test:integration:active_job:#{adapter}"]
-  task "isolated_test_#{adapter}" => ["#{adapter}:env", "test:isolated:#{adapter}"]
 end
 
 namespace :db do
@@ -270,6 +200,17 @@ namespace :db do
 
     desc "Rebuild the PostgreSQL test databases"
     task rebuild: [:drop, :build]
+
+    desc "Regenerate well-known PostgreSQL OID mappings from upstream pg_type.dat and pg_range.dat"
+    task :update_well_known_oids do
+      require_relative "lib/active_record/connection_adapters/postgresql/oid/well_known_generator"
+
+      result = ActiveRecord::ConnectionAdapters::PostgreSQL::OID::WellKnown::Generator.generate!
+      versions = result.fetch(:mappings_by_version).keys.sort
+      latest = result.fetch(:mappings_by_version).fetch(versions.last)
+
+      puts "Updated well_known_values.rb for PostgreSQL versions #{versions.join(", ")} (latest: #{latest[:type_aliases].size} type aliases, #{latest[:array_types].size} arrays, #{latest[:range_types].size} ranges, #{latest[:domain_types].size} domains)"
+    end
   end
 end
 

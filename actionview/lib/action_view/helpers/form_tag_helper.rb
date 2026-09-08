@@ -1,11 +1,9 @@
 # frozen_string_literal: true
 
-require "cgi"
 require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/url_helper"
 require "action_view/helpers/text_helper"
 require "active_support/core_ext/string/output_safety"
-require "active_support/core_ext/module/attribute_accessors"
 
 module ActionView
   module Helpers # :nodoc:
@@ -23,10 +21,11 @@ module ActionView
       include TextHelper
       include ContentExfiltrationPreventionHelper
 
-      mattr_accessor :embed_authenticity_token_in_remote_forms
-      self.embed_authenticity_token_in_remote_forms = nil
+      singleton_class.attr_accessor :embed_authenticity_token_in_remote_forms, :default_enforce_utf8
+      delegate :embed_authenticity_token_in_remote_forms, :default_enforce_utf8, to: FormTagHelper
 
-      mattr_accessor :default_enforce_utf8, default: true
+      self.embed_authenticity_token_in_remote_forms = nil
+      self.default_enforce_utf8 = true
 
       # Starts a form tag that points the action to a URL configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
@@ -306,7 +305,11 @@ module ActionView
       #   # => <input type="hidden" name="collected_input" id="collected_input"
       #        value="" onchange="alert(&#39;Input collected!&#39;)" autocomplete="off" />
       def hidden_field_tag(name, value = nil, options = {})
-        text_field_tag(name, value, options.merge(type: :hidden).with_defaults!(autocomplete: "off"))
+        html_options = options.merge(type: :hidden)
+        unless ActionView::Base.remove_hidden_field_autocomplete
+          html_options[:autocomplete] = "off" unless html_options.key?(:autocomplete)
+        end
+        text_field_tag(name, value, html_options)
       end
 
       # Creates a file upload field. If you are using file uploads then you will also need
@@ -342,9 +345,15 @@ module ActionView
       #   file_field_tag 'user_pic', accept: 'image/png,image/gif,image/jpeg'
       #   # => <input accept="image/png,image/gif,image/jpeg" id="user_pic" name="user_pic" type="file" />
       #
+      #   file_field_tag 'user_pic', accept: ['image/png', 'image/gif']
+      #   # => <input accept="image/png,image/gif" id="user_pic" name="user_pic" type="file" />
+      #
       #   file_field_tag 'file', accept: 'text/html', class: 'upload', value: 'index.html'
       #   # => <input accept="text/html" class="upload" id="file" name="file" type="file" value="index.html" />
       def file_field_tag(name, options = {})
+        if options[:accept].is_a?(Array)
+          options = options.merge(accept: options[:accept].join(","))
+        end
         text_field_tag(name, nil, convert_direct_upload_option_to_url(options.merge(type: :file)))
       end
 
@@ -948,7 +957,7 @@ module ActionView
         options = options.stringify_keys
         options["type"] ||= "number"
         if range = options.delete("in") || options.delete("within")
-          options.update("min" => range.min, "max" => range.max)
+          options.update("min" => range.begin, "max" => (range.max if range.end))
         end
         text_field_tag(name, value, options)
       end
@@ -973,13 +982,36 @@ module ActionView
         number_field_tag(name, value, options.merge(type: :range))
       end
 
+      # Creates a datalist form element.
+      #
+      # The option_tags parameter has the same format as the container parameter from #options_for_select.
+      #
+      # ==== Examples
+      #
+      #   datalist_tag('countries_datalist', ['Argentina', ['Brazil', { class: 'brazilian_option' }],
+      #                ['Chile', 'CL', { disabled: true }]], { class: 'sa-countries-sample' })
+      #   # => <datalist id="countries_datalist" class="sa-countries-sample">
+      #          <option value="Argentina">Argentina</option>
+      #          <option value="Brazil" class="brazilian_option">Brazil</option>
+      #          <option value="CL" disabled="disabled">Chile</option>
+      #        </datalist>
+      def datalist_tag(id, option_tags = nil, html_options = {})
+        option_tags ||= ""
+        content_tag("datalist", options_for_select(option_tags), { "id" => id }.update(html_options.stringify_keys))
+      end
+
       # Creates the hidden UTF-8 enforcer tag. Override this method in a helper
       # to customize the tag.
       def utf8_enforcer_tag
-        # Use raw HTML to ensure the value is written as an HTML entity; it
-        # needs to be the right character regardless of which encoding the
-        # browser infers.
-        '<input name="utf8" type="hidden" value="&#x2713;" autocomplete="off" />'.html_safe
+        options = {
+          type: "hidden",
+          name: "utf8",
+          value: "&#x2713;".html_safe
+        }
+
+        options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
+
+        tag(:input, options)
       end
 
       private
@@ -1047,9 +1079,9 @@ module ActionView
         end
 
         def form_tag_with_body(html_options, content)
-          output = form_tag_html(html_options)
-          output << content.to_s if content
-          output.safe_concat("</form>")
+          extra_tags = extra_tags_for_form(html_options)
+          html = content_tag(:form, safe_join([extra_tags, content]), html_options)
+          prevent_content_exfiltration(html)
         end
 
         # see http://www.w3.org/TR/html4/types.html#type-name
@@ -1080,6 +1112,9 @@ module ActionView
           elsif respond_to?(:main_app) && main_app.respond_to?(:rails_direct_uploads_url)
             options["data-direct-upload-url"] = main_app.rails_direct_uploads_url
           end
+
+          # Set checksum algorithm if explicitly provided
+          options["data-checksum-algorithm"] = options.delete(:data_checksum_algorithm)
 
           options
         end

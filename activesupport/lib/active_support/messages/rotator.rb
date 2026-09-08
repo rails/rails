@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -13,6 +14,11 @@ module ActiveSupport
 
       def rotate(*args, **options)
         fall_back_to build_rotation(*args, **options)
+      end
+
+      def on_rotation(&on_rotation)
+        @on_rotation = on_rotation
+        self
       end
 
       def fall_back_to(fallback)
@@ -38,6 +44,11 @@ module ActiveSupport
 
           throw thrown, error
         end
+      end
+
+      def initialize_dup(*)
+        super
+        @rotations = @rotations.dup
       end
 
       private

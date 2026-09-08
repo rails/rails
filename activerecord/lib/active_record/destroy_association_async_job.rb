@@ -15,7 +15,7 @@ module ActiveRecord
     def perform(
       owner_model_name: nil, owner_id: nil,
       association_class: nil, association_ids: nil, association_primary_key_column: nil,
-      ensuring_owner_was_method: nil
+      ensuring_owner_was_method: nil, **_options
     )
       association_model = association_class.constantize
       owner_class = owner_model_name.constantize

@@ -45,7 +45,6 @@ module Rails
         def ensure_encryption_key_has_been_added
           return if encrypted_configuration.key?
           encryption_key_file_generator.add_key_file(key_path)
-          encryption_key_file_generator.ignore_key_file(key_path)
         end
 
         def ensure_encrypted_configuration_has_been_added

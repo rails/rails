@@ -51,24 +51,32 @@ module ActionView
         end
       end
 
+      def callable_cache_key
+        if @options[:cached].is_a?(Hash) && @options[:cached][:key].respond_to?(:call)
+          @options[:cached][:key]
+        elsif @options[:cached].respond_to?(:call)
+          @options[:cached]
+        end
+      end
+
       def callable_cache_key?
-        @options[:cached].respond_to?(:call)
+        callable_cache_key.present?
       end
 
       def collection_by_cache_keys(view, template, collection)
-        seed = callable_cache_key? ? @options[:cached] : ->(i) { i }
+        seed = callable_cache_key? ? callable_cache_key : ->(i) { i }
 
         digest_path = view.digest_path_from_template(template)
         collection.preload! if callable_cache_key?
 
         collection.each_with_object([{}, []]) do |item, (hash, ordered_keys)|
-          key = expanded_cache_key(seed.call(item), view, template, digest_path)
+          key = expanded_cache_key(seed.call(item), view, digest_path)
           ordered_keys << key
           hash[key] = item
         end
       end
 
-      def expanded_cache_key(key, view, template, digest_path)
+      def expanded_cache_key(key, view, digest_path)
         key = view.combined_fragment_cache_key(view.cache_fragment_name(key, digest_path: digest_path))
         key.frozen? ? key.dup : key # #read_multi & #write may require mutability, Dalli 2.6.0.
       end
@@ -111,7 +119,11 @@ module ActionView
         end
 
         unless entries_to_write.empty?
-          collection_cache.write_multi(entries_to_write)
+          if @options[:cached].is_a?(Hash) && @options[:cached].key?(:expires_in)
+            collection_cache.write_multi(entries_to_write, expires_in: @options[:cached][:expires_in])
+          else
+            collection_cache.write_multi(entries_to_write)
+          end
         end
 
         keyed_partials

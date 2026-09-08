@@ -1,9 +1,21 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Ruby on Rails 8.0 Release Notes
 ===============================
 
 Highlights in Rails 8.0:
+
+* Kamal 2.
+* Thruster.
+* Solid Cable.
+* Solid Cache.
+* Propshaft is used by default.
+* Authentication system generator.
+
+These release notes cover only the major changes. To learn about various bug
+fixes and changes, please refer to the changelogs or check out the [list of
+commits](https://github.com/rails/rails/commits/8-0-stable) in the main Rails
+repository on GitHub.
 
 --------------------------------------------------------------------------------
 
@@ -21,6 +33,55 @@ guide.
 Major Features
 --------------
 
+### Kamal 2
+
+Rails now comes preconfigured with [Kamal 2](https://kamal-deploy.org/) for
+deploying your application. Kamal takes a fresh Linux box and turns it into an
+application or accessory server with just a single “kamal setup” command.
+
+Kamal 2 also includes a proxy called [Kamal Proxy](https://github.com/basecamp/kamal-proxy)
+to replace the generic Traefik option it used at launch.
+
+### Thruster
+
+The Dockerfile has been upgraded to include a new proxy called
+[Thruster](https://github.com/basecamp/thruster), which sits in front of the
+Puma web server to provide X-Sendfile acceleration, asset caching, and asset
+compression.
+
+### Solid Cable
+
+[Solid Cable](https://github.com/rails/solid_cable) replaces Redis to act as
+the pubsub server to relay WebSocket messages from the application to clients
+connected to different processes. Solid Cable retains the messages sent in
+the database for a day by default.
+
+### Solid Cache
+
+[Solid Cache](https://github.com/rails/solid_cache) replaces either
+Redis or Memcached for storing HTML fragment caches in particular.
+
+### Solid Queue
+
+[Solid Queue](https://github.com/rails/solid_queue) replaces the need for
+Redis, also a separate job-running framework, like Resque, Delayed Job, or
+Sidekiq.
+
+For high-performance installations, it’s built on the new `FOR UPDATE SKIP LOCKED`
+mechanism first introduced in PostgreSQL 9.5, but now also available in MySQL 8.0
+and beyond. It also works with SQLite.
+
+### Propshaft
+
+[Propshaft](https://github.com/rails/propshaft) is now the default asset
+pipeline, replacing the old Sprockets system.
+
+### Authentication
+
+[Authentication system generator](https://github.com/rails/rails/pull/52328),
+creates a starting point for a session-based, password-resettable,
+metadata-tracking authentication system.
+
 Railties
 --------
 
@@ -37,6 +98,13 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Remove deprecated support to extend Rails console through `Rails::ConsoleMethods`.
 
 ### Deprecations
+
+*   Deprecate requiring `"rails/console/methods"`.
+
+*   Deprecate modifying `STATS_DIRECTORIES` in favor of
+    `Rails::CodeStatistics.register_directory`.
+
+*   Deprecate `bin/rake stats` in favor of `bin/rails stats`.
 
 ### Notable changes
 
@@ -64,7 +132,12 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate drawing routes with multiple paths to make routing faster.
+
 ### Notable changes
+
+*   Introduce safer, more explicit params handling method with [`params#expect`](https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-expect) such that
+    `params.expect(table: [ :attr ])` replaces `params.require(:table).permit(:attr)`.
 
 Action View
 -----------
@@ -119,7 +192,16 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate the `retries` option for the `SQLite3Adapter` in favor of
+    `timeout`.
+
 ### Notable changes
+
+*   Running `db:migrate` on a fresh database now loads the schema before running
+    migrations. Subsequent calls will run pending migrations.
+    (If you need the previous behavior of running migrations from scratch instead of loading the
+    schema file, this can be done by running `db:migrate:reset` which
+    _will drop and recreate the database before running migrations_)
 
 Active Storage
 --------------
@@ -129,6 +211,8 @@ Please refer to the [Changelog][active-storage] for detailed changes.
 ### Removals
 
 ### Deprecations
+
+*    Deprecate the Azure backend for Active Storage.
 
 ### Notable changes
 
@@ -158,6 +242,10 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Deprecations
 
+*   Deprecate `Benchmark.ms`.
+
+*   Deprecate addition and `since` between two `Time` and `ActiveSupport::TimeWithZone`.
+
 ### Notable changes
 
 Active Job
@@ -170,6 +258,11 @@ Please refer to the [Changelog][active-job] for detailed changes.
 *   Remove deprecated `config.active_job.use_big_decimal_serializer`.
 
 ### Deprecations
+
+*   Deprecate `enqueue_after_transaction_commit`.
+
+*   Deprecate internal `SuckerPunch` adapter in favor of the adapter included
+    with the `sucker_punch` gem.
 
 ### Notable changes
 

@@ -6,23 +6,18 @@ module ActiveRecord
       class SchemaCreation < SchemaCreation # :nodoc:
         private
           delegate :quoted_include_columns_for_index, to: :@conn
-
-          def visit_AlterTable(o)
-            sql = super
-            sql << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")
-            sql << o.exclusion_constraint_adds.map { |con| visit_AddExclusionConstraint con }.join(" ")
-            sql << o.unique_constraint_adds.map { |con| visit_AddUniqueConstraint con }.join(" ")
-          end
+          delegate :database_version, to: :@conn
 
           def visit_AddForeignKey(o)
             super.dup.tap do |sql|
-              sql << " NOT VALID" unless o.validate?
+              sql << " NOT VALID" unless o.foreign_key.validate?
             end
           end
 
           def visit_ForeignKeyDefinition(o)
             super.dup.tap do |sql|
               sql << " DEFERRABLE INITIALLY #{o.deferrable.to_s.upcase}" if o.deferrable
+              sql << " NOT ENFORCED" unless o.enforced?
             end
           end
 
@@ -30,8 +25,8 @@ module ActiveRecord
             super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
           end
 
-          def visit_ValidateConstraint(name)
-            "VALIDATE CONSTRAINT #{quote_column_name(name)}"
+          def visit_ValidateConstraint(o)
+            "VALIDATE CONSTRAINT #{quote_column_name(o.name)}"
           end
 
           def visit_ExclusionConstraintDefinition(o)
@@ -68,11 +63,11 @@ module ActiveRecord
           end
 
           def visit_AddExclusionConstraint(o)
-            "ADD #{accept(o)}"
+            "ADD #{accept(o.exclusion_constraint)}"
           end
 
           def visit_AddUniqueConstraint(o)
-            "ADD #{accept(o)}"
+            "ADD #{accept(o.unique_constraint)}"
           end
 
           def visit_ChangeColumnDefinition(o)
@@ -99,7 +94,7 @@ module ActiveRecord
               if options[:default].nil?
                 change_column_sql << ", ALTER COLUMN #{quoted_column_name} DROP DEFAULT"
               else
-                quoted_default = quote_default_expression(options[:default], column)
+                quoted_default = quote_default_expression_for_column_definition(options[:default], column)
                 change_column_sql << ", ALTER COLUMN #{quoted_column_name} SET DEFAULT #{quoted_default}"
               end
             end
@@ -126,16 +121,17 @@ module ActiveRecord
             end
 
             if as = options[:as]
-              sql << " GENERATED ALWAYS AS (#{as})"
+              stored = options[:stored]
 
-              if options[:stored]
-                sql << " STORED"
-              else
+              if stored != true && database_version < 18_00_00
                 raise ArgumentError, <<~MSG
-                  PostgreSQL currently does not support VIRTUAL (not persisted) generated columns.
+                  PostgreSQL versions before 18 do not support VIRTUAL (not persisted) generated columns.
                   Specify 'stored: true' option for '#{options[:column].name}'
                 MSG
               end
+
+              sql << " GENERATED ALWAYS AS (#{as})"
+              sql << (stored ? " STORED" : " VIRTUAL")
             end
             super
           end

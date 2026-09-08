@@ -354,6 +354,56 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "openid#login", @response.body
   end
 
+  def test_query
+    draw do
+      query "search", to: "search#index"
+    end
+
+    query "/search"
+    assert_equal "search#index", @response.body
+    assert_equal "/search", search_path
+  end
+
+  def test_query_route_on_collection
+    draw do
+      resources :products do
+        collection do
+          query :search
+        end
+      end
+    end
+
+    query "/products/search"
+    assert_equal "products#search", @response.body
+    assert_equal "/products/search", search_products_path
+  end
+
+  def test_query_via_all
+    draw do
+      match "search", via: :all, to: "search#index"
+    end
+
+    # Previously a QUERY request was refused with a 405 before routing ran,
+    # so via: :all routes never received it.
+    query "/search"
+    assert_equal "search#index", @response.body
+  end
+
+  def test_query_via_match
+    draw do
+      match "search", via: :query, to: "search#index"
+    end
+
+    query "/search"
+    assert_equal "search#index", @response.body
+
+    get "/search"
+    assert_equal 404, @response.status
+
+    post "/search"
+    assert_equal 404, @response.status
+  end
+
   def test_websocket
     draw do
       connect "chat/live", to: "chat#live"
@@ -886,6 +936,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "replies#unmark_as_answer", @response.body
   end
 
+  def test_scope_with_deprecated_except_hash_option
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        scope({ except: :destroy }) do
+          resources :posts
+        end
+      end
+    end
+
+    get "/posts"
+    assert_equal "posts#index", @response.body
+
+    delete "/posts/1"
+    assert_equal "pass", @response.headers["x-cascade"]
+  end
+
   def test_resource_routes_with_only_and_except
     draw do
       resources :posts, only: [:index, :show] do
@@ -988,13 +1054,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_resource_does_not_modify_passed_options
     options = { id: /.+?/, format: /json|xml/ }
-    draw { resource :user, options }
+    draw { resource :user, **options }
     assert_equal({ id: /.+?/, format: /json|xml/ }, options)
   end
 
   def test_resources_does_not_modify_passed_options
     options = { id: /.+?/, format: /json|xml/ }
-    draw { resources :users, options }
+    draw { resources :users, **options }
     assert_equal({ id: /.+?/, format: /json|xml/ }, options)
   end
 
@@ -1182,6 +1248,52 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     get "/usuarios"
     assert_equal "/usuarios", users_root_path
     assert_equal "users/home#index", @response.body
+  end
+
+  def test_namespace_with_deprecated_path_hash_option
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        namespace :users, { path: "usuarios" } do
+          root to: "home#index"
+        end
+      end
+    end
+
+    get "/usuarios"
+    assert_equal "/usuarios", users_root_path
+    assert_equal "users/home#index", @response.body
+  end
+
+  def test_namespace_with_deprecated_shallow_path_hash_option
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        namespace :foo, { shallow_path: "bar" } do
+          resources :posts, only: [:index, :show] do
+            resources :comments, only: [:index, :show], shallow: true
+          end
+        end
+      end
+    end
+
+    get "/bar/comments/2"
+    assert_equal "/bar/comments/2", foo_comment_path("2")
+    assert_equal "foo/comments#show", @response.body
+  end
+
+  def test_namespace_with_deprecated_shallow_prefix_hash_option
+    assert_deprecated(ActionDispatch.deprecator) do
+      draw do
+        namespace :foo, { shallow_prefix: "bar" } do
+          resources :posts, only: [:index, :show] do
+            resources :comments, only: [:index, :show], shallow: true
+          end
+        end
+      end
+    end
+
+    get "/foo/comments/2"
+    assert_equal "/foo/comments/2", bar_comment_path("2")
+    assert_equal "foo/comments#show", @response.body
   end
 
   def test_namespaced_shallow_routes_with_module_option
@@ -1549,20 +1661,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_match_with_many_paths_containing_a_slash
-    assert_deprecated(ActionDispatch.deprecator) do
+    assert_raises(ArgumentError) do
       draw do
         get "get/first", "get/second", "get/third", to: "get#show"
       end
     end
-
-    get "/get/first"
-    assert_equal "get#show", @response.body
-
-    get "/get/second"
-    assert_equal "get#show", @response.body
-
-    get "/get/third"
-    assert_equal "get#show", @response.body
   end
 
   def test_match_shorthand_with_no_scope
@@ -1588,19 +1691,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_match_shorthand_with_multiple_paths_inside_namespace
-    assert_deprecated(ActionDispatch.deprecator) do
+    assert_raises(ArgumentError) do
       draw do
         namespace :proposals do
           put "activate", "inactivate"
         end
       end
     end
-
-    put "/proposals/activate"
-    assert_equal "proposals#activate", @response.body
-
-    put "/proposals/inactivate"
-    assert_equal "proposals#inactivate", @response.body
   end
 
   def test_match_shorthand_inside_namespace_with_controller
@@ -2107,32 +2204,10 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
     end
 
-    assert_equal "/account", account_path
     assert_raise(NoMethodError) { new_account_path }
 
     get "/account/new"
     assert_equal 404, status
-
-    get "/account"
-    assert_equal 200, status
-  end
-
-  def test_resource_merges_options_from_scope_hash
-    draw do
-      scope_options = { only: :show }
-      scope scope_options do
-        resource :account
-      end
-    end
-
-    assert_equal "/account", account_path
-    assert_raise(NoMethodError) { new_account_path }
-
-    get "/account/new"
-    assert_equal 404, status
-
-    get "/account"
-    assert_equal 200, status
   end
 
   def test_resources_merges_options_from_scope
@@ -2688,6 +2763,71 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       url_for(controller: "photos", action: "index", username: nil)
   end
 
+  def test_url_generator_treats_blank_strings_like_nil_for_optional_segments
+    draw do
+      get "(/locale/:locale)(/currency/:currency)/products(/:id)" => "products#show"
+    end
+
+    assert_equal "http://www.example.com/currency/USD/products/123",
+      url_for(controller: "products", action: "show", locale: "", currency: "USD", id: 123)
+    assert_equal "http://www.example.com/currency/USD/products/123",
+      url_for(controller: "products", action: "show", locale: nil, currency: "USD", id: 123)
+
+    assert_equal "http://www.example.com/locale/en/products/123",
+      url_for(controller: "products", action: "show", locale: "en", currency: "", id: 123)
+    assert_equal "http://www.example.com/locale/en/products/123",
+      url_for(controller: "products", action: "show", locale: "en", currency: nil, id: 123)
+
+    assert_equal "http://www.example.com/locale/en/currency/USD/products",
+      url_for(controller: "products", action: "show", locale: "en", currency: "USD", id: "")
+    assert_equal "http://www.example.com/locale/en/currency/USD/products",
+      url_for(controller: "products", action: "show", locale: "en", currency: "USD", id: nil)
+
+    assert_equal "http://www.example.com/locale/false/currency/USD/products/123",
+      url_for(controller: "products", action: "show", locale: false, currency: "USD", id: 123)
+
+    assert_equal "http://www.example.com/currency/USD/products/123?filter=",
+      url_for(controller: "products", action: "show", locale: "", currency: "USD", id: 123, filter: "")
+  end
+
+  def test_url_generator_preserves_empty_strings_for_required_segments
+    draw do
+      get "/products/:id" => "products#show"
+    end
+
+    assert_equal "http://www.example.com/products/",
+      url_for(controller: "products", action: "show", id: "")
+  end
+
+  def test_url_generator_omits_nested_optional_groups_for_empty_strings
+    draw do
+      get "(/locale/:locale(/currency/:currency))/products" => "products#index"
+    end
+
+    assert_equal "http://www.example.com/products",
+      url_for(controller: "products", action: "index", locale: "", currency: "USD")
+    assert_equal "http://www.example.com/locale/en/products",
+      url_for(controller: "products", action: "index", locale: "en", currency: "")
+  end
+
+  def test_url_generator_omits_whole_optional_group_when_one_part_is_empty
+    draw do
+      get "(/a/:a_id/:b_id)/products" => "products#index"
+    end
+
+    assert_equal "http://www.example.com/products",
+      url_for(controller: "products", action: "index", a_id: "", b_id: "2")
+  end
+
+  def test_url_generator_also_removes_whitespace_only_optional_segments
+    draw do
+      get "(/locale/:locale)/products" => "products#index"
+    end
+
+    assert_equal "http://www.example.com/products",
+      url_for(controller: "products", action: "index", locale: " ")
+  end
+
   def test_url_recognition_for_optional_static_segments
     draw do
       scope "(groups)" do
@@ -3238,6 +3378,36 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get "/italians/painters/michelangelo"
     assert_equal "italians#painters", @response.body
+  end
+
+  def test_mount_with_hash_constraints
+    draw do
+      mount lambda { |env| [200, {}, ["mounted"]] },
+        at: "/app",
+        constraints: { subdomain: "admin" }
+    end
+
+    get "http://admin.example.com/app"
+    assert_equal 200, status
+    assert_equal "mounted", @response.body
+
+    get "http://www.example.com/app"
+    assert_equal 404, status
+  end
+
+  def test_mount_inside_hash_constraints
+    draw do
+      constraints subdomain: "admin" do
+        mount lambda { |env| [200, {}, ["mounted"]] }, at: "/app"
+      end
+    end
+
+    get "http://admin.example.com/app"
+    assert_equal 200, status
+    assert_equal "mounted", @response.body
+
+    get "http://www.example.com/app"
+    assert_equal 404, status
   end
 
   def test_custom_resource_actions_defined_using_string
@@ -4220,14 +4390,15 @@ class TestDefaultScope < ActionDispatch::IntegrationTest
 end
 
 class TestHttpMethods < ActionDispatch::IntegrationTest
-  RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT)
-  RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK)
-  RFC3253 = %w(VERSION-CONTROL REPORT CHECKOUT CHECKIN UNCHECKOUT MKWORKSPACE UPDATE LABEL MERGE BASELINE-CONTROL MKACTIVITY)
-  RFC3648 = %w(ORDERPATCH)
-  RFC3744 = %w(ACL)
-  RFC5323 = %w(SEARCH)
-  RFC4791 = %w(MKCALENDAR)
-  RFC5789 = %w(PATCH)
+  RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT).freeze
+  RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK).freeze
+  RFC3253 = %w(VERSION-CONTROL REPORT CHECKOUT CHECKIN UNCHECKOUT MKWORKSPACE UPDATE LABEL MERGE BASELINE-CONTROL MKACTIVITY).freeze
+  RFC3648 = %w(ORDERPATCH).freeze
+  RFC3744 = %w(ACL).freeze
+  RFC5323 = %w(SEARCH).freeze
+  RFC4791 = %w(MKCALENDAR).freeze
+  RFC5789 = %w(PATCH).freeze
+  RFC10008 = %w(QUERY).freeze
 
   def simple_app(response)
     lambda { |env| [ 200, { "Content-Type" => "text/plain" }, [response] ] }
@@ -4241,13 +4412,13 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
     @app = RoutedRackApp.new routes
 
     routes.draw do
-      (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789).each do |method|
+      (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789 + RFC10008).each do |method|
         match "/" => s.simple_app(method), :via => method.underscore.to_sym
       end
     end
   end
 
-  (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789).each do |method|
+  (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789 + RFC10008).each do |method|
     test "request method #{method.underscore} can be matched" do
       get "/", headers: { "REQUEST_METHOD" => method }
       assert_equal method, @response.body
@@ -5020,49 +5191,6 @@ class TestDefaultUrlOptions < ActionDispatch::IntegrationTest
   end
 end
 
-class TestErrorsInController < ActionDispatch::IntegrationTest
-  class ::PostsController < ActionController::Base
-    def foo
-      nil.i_do_not_exist
-    end
-
-    def bar
-      NonExistingClass.new
-    end
-  end
-
-  Routes = ActionDispatch::Routing::RouteSet.new
-  Routes.draw do
-    ActionDispatch.deprecator.silence do
-      get "/:controller(/:action)"
-    end
-  end
-
-  APP = build_app Routes
-
-  def app
-    APP
-  end
-
-  def test_legit_no_method_errors_are_not_caught
-    get "/posts/foo"
-    assert_equal 500, response.status
-  end
-
-  def test_legit_name_errors_are_not_caught
-    get "/posts/bar"
-    assert_equal 500, response.status
-  end
-
-  def test_legit_routing_not_found_responses
-    get "/posts/baz"
-    assert_equal 404, response.status
-
-    get "/i_do_not_exist"
-    assert_equal 404, response.status
-  end
-end
-
 class TestPartialDynamicPathSegments < ActionDispatch::IntegrationTest
   Routes = ActionDispatch::Routing::RouteSet.new
   Routes.draw do
@@ -5085,7 +5213,7 @@ class TestPartialDynamicPathSegments < ActionDispatch::IntegrationTest
     APP
   end
 
-  def test_paths_with_partial_dynamic_segments_are_recognised
+  def test_paths_with_partial_dynamic_segments_are_recognized
     get "/david-bowie/changes-song"
     assert_equal 200, response.status
     assert_params artist: "david-bowie", song: "changes"
@@ -5226,7 +5354,7 @@ class TestInternalRoutingParams < ActionDispatch::IntegrationTest
     APP
   end
 
-  def test_paths_with_partial_dynamic_segments_are_recognised
+  def test_paths_with_partial_dynamic_segments_are_recognized
     get "/test_internal/123"
     assert_equal 200, response.status
 

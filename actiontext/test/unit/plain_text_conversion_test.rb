@@ -52,6 +52,15 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<h2> through <h6> tags are separated by two new lines" do
+    (2..6).each do |level|
+      assert_converted_to(
+        "Hello world!\n\nHow are you?",
+        "<h#{level}>Hello world!</h#{level}><div>How are you?</div>"
+      )
+    end
+  end
+
   test "<li> tags are separated by one new line" do
     assert_converted_to(
       "• one\n• two\n• three",
@@ -120,7 +129,7 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
       "Hello world!\nHow are you?",
       ActionText::Fragment.wrap("<div>Hello world!</div><div></div>").tap do |fragment|
         node = fragment.source.children.last
-        1_000.times do
+        10_000.times do
           child = node.clone
           child.parent = node
           node = child
@@ -141,6 +150,30 @@ class ActionText::PlainTextConversionTest < ActiveSupport::TestCase
     assert_converted_to(
       "Hello\nHow are you?",
       "<strong>Hello<br></strong>How are you?"
+    )
+  end
+
+  test "script tags are ignored" do
+    assert_converted_to(
+      "Hello world!",
+      <<~HTML
+        <script type="javascript">
+          console.log("message");
+        </script>
+        <div><strong>Hello </strong>world!</div>
+      HTML
+    )
+  end
+
+  test "style tags are ignored" do
+    assert_converted_to(
+      "Hello world!",
+      <<~HTML
+        <style type="text/css">
+          body { color: red; }
+        </style>
+        <div><strong>Hello </strong>world!</div>
+      HTML
     )
   end
 

@@ -2,6 +2,8 @@
 
 # :markup: markdown
 
+require "active_support/core_ext/string/filters"
+
 module ActionCable
   module Server
     # # Action Cable Server Broadcasting
@@ -21,10 +23,12 @@ module ActionCable
     #     ActionCable.server.broadcast \
     #       "web_notifications_1", { title: "New things!", body: "All that's fit for print" }
     #
-    #     # Client-side CoffeeScript, which assumes you've already requested the right to send web notifications:
-    #     App.cable.subscriptions.create "WebNotificationsChannel",
-    #       received: (data) ->
-    #         new Notification data['title'], body: data['body']
+    #     # Client-side JavaScript, which assumes you've already requested the right to send web notifications:
+    #     App.cable.subscriptions.create("WebNotificationsChannel", {
+    #       received: function(data) {
+    #         new Notification(data['title'], { body: data['body'] })
+    #       }
+    #     })
     module Broadcasting
       # Broadcast a hash directly to a named `broadcasting`. This will later be JSON
       # encoded.

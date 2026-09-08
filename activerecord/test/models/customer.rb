@@ -33,7 +33,7 @@ end
 class Money
   attr_reader :amount, :currency
 
-  EXCHANGE_RATES = { "USD_TO_DKK" => 6, "DKK_TO_USD" => 0.6 }
+  EXCHANGE_RATES = { "USD_TO_DKK" => 6, "DKK_TO_USD" => 0.6 }.freeze
 
   def initialize(amount, currency = "USD")
     @amount, @currency = amount, currency

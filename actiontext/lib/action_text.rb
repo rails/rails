@@ -17,11 +17,14 @@ module ActionText
   autoload :AttachmentGallery
   autoload :Attachment
   autoload :Attribute
+  autoload :BottomUpReducer
   autoload :Content
+  autoload :Editor
   autoload :Encryption
   autoload :Fragment
   autoload :FixtureSet
   autoload :HtmlConversion
+  autoload :MarkdownConversion
   autoload :PlainTextConversion
   autoload :Rendering
   autoload :Serialization
@@ -39,6 +42,7 @@ module ActionText
     extend ActiveSupport::Autoload
 
     autoload :Caching
+    autoload :Conversion
     autoload :Minification
     autoload :TrixConversion
   end

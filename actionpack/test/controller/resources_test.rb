@@ -18,6 +18,10 @@ module Backoffice
   end
 end
 
+module Products
+  class ImagesController < ResourcesController; end
+end
+
 class ResourcesTest < ActionController::TestCase
   def test_default_restful_routes
     with_restful_routing :messages do
@@ -76,7 +80,7 @@ class ResourcesTest < ActionController::TestCase
   def test_multiple_resources_with_options
     expected_options = { controller: "threads", action: "index" }
 
-    with_restful_routing :messages, :comments, expected_options.slice(:controller) do
+    with_restful_routing :messages, :comments, controller: "threads" do
       assert_recognizes(expected_options, path: "comments")
       assert_recognizes(expected_options, path: "messages")
     end
@@ -506,6 +510,23 @@ class ResourcesTest < ActionController::TestCase
         namespace: "backoffice/admin/",
         name_prefix: "backoffice_admin_product_",
         path_prefix: "backoffice/admin/products/1/",
+        shallow: true,
+        options: { product_id: "1" }
+    end
+  end
+
+  def test_shallow_with_module
+    with_routing do |set|
+      set.draw do
+        resources :products do
+          resources :images, module: :products, shallow: true
+        end
+      end
+
+      assert_simply_restful_for :images,
+        controller: "products/images",
+        name_prefix: "product_",
+        path_prefix: "products/1/",
         shallow: true,
         options: { product_id: "1" }
     end
@@ -1124,6 +1145,30 @@ class ResourcesTest < ActionController::TestCase
     end
   end
 
+  def test_assert_routing_fails_when_patch_is_not_recognized
+    with_routing do |set|
+      set.draw do
+        match "/products", to: "products#show", via: [:get, :post, :put, :delete, :query]
+      end
+
+      assert_raises(Minitest::Assertion) do
+        assert_routing({ method: "all", path: "/products" }, { controller: "products", action: "show" })
+      end
+    end
+  end
+
+  def test_assert_routing_fails_when_query_is_not_recognized
+    with_routing do |set|
+      set.draw do
+        match "/products", to: "products#show", via: [:get, :post, :put, :patch, :delete]
+      end
+
+      assert_raises(Minitest::Assertion) do
+        assert_routing({ method: "all", path: "/products" }, { controller: "products", action: "show" })
+      end
+    end
+  end
+
   def test_singleton_resource_name_is_not_singularized
     with_singleton_resources(:products) do
       assert_singleton_restful_for :products
@@ -1131,7 +1176,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_invalid_only_option_for_resources
-    expected_message = ":only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo, :bar]"
+    expected_message = "Route `resources :products` - :only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo, :bar]"
     assert_raise(ArgumentError, match: expected_message) do
       with_routing do |set|
         set.draw do
@@ -1142,7 +1187,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_invalid_only_option_for_singleton_resource
-    expected_message = ":only and :except must include only [:show, :create, :update, :destroy, :new, :edit], but also included [:foo, :bar]"
+    expected_message = "Route `resource :products` - :only and :except must include only [:show, :create, :update, :destroy, :new, :edit], but also included [:foo, :bar]"
     assert_raise(ArgumentError, match: expected_message) do
       with_routing do |set|
         set.draw do
@@ -1153,7 +1198,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_invalid_except_option_for_resources
-    expected_message = ":only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo]"
+    expected_message = "Route `resources :products` - :only and :except must include only [:index, :create, :new, :show, :update, :destroy, :edit], but also included [:foo]"
 
     assert_raise(ArgumentError, match: expected_message) do
       with_routing do |set|
@@ -1165,7 +1210,7 @@ class ResourcesTest < ActionController::TestCase
   end
 
   def test_invalid_except_option_for_singleton_resource
-    expected_message = ":only and :except must include only [:show, :create, :update, :destroy, :new, :edit], but also included [:foo]"
+    expected_message = "Route `resource :products` - :only and :except must include only [:show, :create, :update, :destroy, :new, :edit], but also included [:foo]"
     assert_raise(ArgumentError, match: expected_message) do
       with_routing do |set|
         set.draw do
@@ -1176,17 +1221,15 @@ class ResourcesTest < ActionController::TestCase
   end
 
   private
-    def with_restful_routing(*args)
-      options = args.extract_options!
+    def with_restful_routing(*args, **options)
       collection_methods = options.delete(:collection)
       member_methods = options.delete(:member)
       path_prefix = options.delete(:path_prefix)
-      args.push(options)
 
       with_routing do |set|
         set.draw do
           scope(path_prefix || "") do
-            resources(*args) do
+            resources(*args, **options) do
               if collection_methods
                 collection do
                   collection_methods.each do |name, method|
@@ -1414,13 +1457,6 @@ class ResourcesTest < ActionController::TestCase
       assert_equal expected, actual, "Error on route: #{route}(#{options.inspect})"
     end
 
-    def assert_resource_methods(expected, resource, action_method, method)
-      assert_equal expected.length, resource.send("#{action_method}_methods")[method].size, "#{resource.send("#{action_method}_methods")[method].inspect}"
-      expected.each do |action|
-        assert_includes resource.send("#{action_method}_methods")[method], action,
-          "#{method} not in #{action_method} methods: #{resource.send("#{action_method}_methods")[method].inspect}"
-      end
-    end
 
     def assert_resource_allowed_routes(controller, options, shallow_options, allowed, not_allowed, path = controller)
       shallow_path = "#{path}/#{shallow_options[:id]}"

@@ -4,7 +4,7 @@
 class ActiveStorage::PurgeJob < ActiveStorage::BaseJob
   queue_as { ActiveStorage.queues[:purge] }
 
-  discard_on ActiveRecord::RecordNotFound
+  discard_on ActiveRecord::RecordNotFound, ActiveJob::DeserializationError::RecordNotFound
   retry_on ActiveRecord::Deadlocked, attempts: 10, wait: :polynomially_longer
 
   def perform(blob)

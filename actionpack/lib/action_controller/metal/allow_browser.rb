@@ -2,11 +2,18 @@
 
 # :markup: markdown
 
+require "active_support/ractors"
+
 module ActionController # :nodoc:
   module AllowBrowser
     extend ActiveSupport::Concern
 
     module ClassMethods
+      DEFAULT_UNSUPPORTED_BROWSER_RESPONSE = ActiveSupport::Ractors.shareable_lambda do
+        render file: Rails.root.join("public/406-unsupported-browser.html"), layout: false, status: :not_acceptable
+      end
+      private_constant :DEFAULT_UNSUPPORTED_BROWSER_RESPONSE
+
       # Specify the browser versions that will be allowed to access all actions (or
       # some, as limited by `only:` or `except:`). Only browsers matched in the hash
       # or named set passed to `versions:` will be blocked if they're below the
@@ -14,7 +21,7 @@ module ActionController # :nodoc:
       # aren't reporting a user-agent header, will be allowed access.
       #
       # A browser that's blocked will by default be served the file in
-      # public/406-unsupported-browser.html with a HTTP status code of "406 Not
+      # public/406-unsupported-browser.html with an HTTP status code of "406 Not
       # Acceptable".
       #
       # In addition to specifically named browser versions, you can also pass
@@ -54,15 +61,15 @@ module ActionController # :nodoc:
       #       # In addition to the browsers blocked by ApplicationController, also block Opera below 104 and Chrome below 119 for the show action.
       #       allow_browser versions: { opera: 104, chrome: 119 }, only: :show
       #     end
-      def allow_browser(versions:, block: -> { render file: Rails.root.join("public/406-unsupported-browser.html"), layout: false, status: :not_acceptable }, **options)
-        before_action -> { allow_browser(versions: versions, block: block) }, **options
+      def allow_browser(versions:, block: nil, **options)
+        require "useragent"
+
+        before_action -> { allow_browser(versions: versions, block: block || DEFAULT_UNSUPPORTED_BROWSER_RESPONSE) }, **options
       end
     end
 
     private
       def allow_browser(versions:, block:)
-        require "useragent"
-
         if BrowserBlocker.new(request, versions: versions).blocked?
           ActiveSupport::Notifications.instrument("browser_block.action_controller", request: request, versions: versions) do
             block.is_a?(Symbol) ? send(block) : instance_exec(&block)
@@ -72,8 +79,8 @@ module ActionController # :nodoc:
 
       class BrowserBlocker # :nodoc:
         SETS = {
-          modern: { safari: 17.2, chrome: 120, firefox: 121, opera: 106, ie: false }
-        }
+          modern: { safari: 17.2, chrome: 120, firefox: 121, opera: 106, ie: false }.freeze
+        }.freeze
 
         attr_reader :request, :versions
 

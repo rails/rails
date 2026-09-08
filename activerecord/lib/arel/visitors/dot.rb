@@ -34,7 +34,6 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_Function(o)
           visit_edge o, "expressions"
           visit_edge o, "distinct"
-          visit_edge o, "alias"
         end
 
         def visit_Arel_Nodes_Unary(o)
@@ -108,14 +107,12 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_Extract(o)
           visit_edge o, "expressions"
-          visit_edge o, "alias"
         end
 
         def visit_Arel_Nodes_NamedFunction(o)
           visit_edge o, "name"
           visit_edge o, "expressions"
           visit_edge o, "distinct"
-          visit_edge o, "alias"
         end
 
         def visit_Arel_Nodes_InsertStatement(o)
@@ -123,6 +120,7 @@ module Arel # :nodoc: all
           visit_edge o, "columns"
           visit_edge o, "values"
           visit_edge o, "select"
+          visit_edge o, "returning"
         end
 
         def visit_Arel_Nodes_SelectCore(o)
@@ -153,7 +151,9 @@ module Arel # :nodoc: all
           visit_edge o, "orders"
           visit_edge o, "limit"
           visit_edge o, "offset"
+          visit_edge o, "comment"
           visit_edge o, "key"
+          visit_edge o, "returning"
         end
 
         def visit_Arel_Nodes_DeleteStatement(o)
@@ -162,7 +162,9 @@ module Arel # :nodoc: all
           visit_edge o, "orders"
           visit_edge o, "limit"
           visit_edge o, "offset"
+          visit_edge o, "comment"
           visit_edge o, "key"
+          visit_edge o, "returning"
         end
 
         def visit_Arel_Table(o)

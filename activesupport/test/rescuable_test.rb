@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 class WraithAttack < StandardError
 end
@@ -122,6 +123,8 @@ class CoolStargate < Stargate
 end
 
 class RescuableTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def setup
     @stargate = Stargate.new
     @cool_stargate = CoolStargate.new
@@ -172,5 +175,16 @@ class RescuableTest < ActiveSupport::TestCase
   def test_rescue_handles_loops_in_exception_cause_chain
     @stargate.dispatch :looped_crash
     assert_equal "unhandled", @stargate.result
+  end
+
+  def test_rescue_handlers_are_ractor_safe
+    klass = Class.new do
+      include ActiveSupport::Rescuable
+
+      rescue_from NoMethodError, with: :foo
+      rescue_from ArgumentError, &ActiveSupport::Ractors.shareable_proc { }
+    end
+
+    assert_ractor_shareable klass.rescue_handlers
   end
 end

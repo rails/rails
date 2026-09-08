@@ -7,6 +7,11 @@ module ActiveRecord
   module Attributes
     extend ActiveSupport::Concern
     include ActiveModel::AttributeRegistration
+    include ActiveModel::Attributes::Normalization
+
+    ActiveModel::Attributes::Normalization::NormalizedValueType.include(
+      Type::QueryPredicates::NormalizedValueTypeDecorator
+    )
 
     # = Active Record \Attributes
     module ClassMethods
@@ -21,28 +26,34 @@ module ActiveRecord
       # your domain objects across much of Active Record, without having to
       # rely on implementation details or monkey patching.
       #
-      # +name+ The name of the methods to define attribute methods for, and the
-      # column which this will persist to.
+      # ==== Parameters
       #
-      # +cast_type+ A symbol such as +:string+ or +:integer+, or a type object
-      # to be used for this attribute. If this parameter is not passed, the previously
-      # defined type (if any) will be used.
-      # Otherwise, the type will be ActiveModel::Type::Value.
-      # See the examples below for more information about providing custom type objects.
+      # [+name+]
+      #   The name of the methods to define attribute methods for, and the
+      #   column which this will persist to.
+      #
+      # [+cast_type+]
+      #   A symbol such as +:string+ or +:integer+, or a type object to be used
+      #   for this attribute. If this parameter is not passed, the previously
+      #   defined type (if any) will be used. Otherwise, the type will be
+      #   ActiveModel::Type::Value. See the examples below for more information
+      #   about providing custom type objects.
       #
       # ==== Options
       #
-      # The following options are accepted:
+      # [+:default+]
+      #   The default value to use when no value is provided. If this option is
+      #   not passed, the previously defined default value (if any) on the
+      #   superclass or in the schema will be used. Otherwise, the default will
+      #   be +nil+.
       #
-      # +default+ The default value to use when no value is provided. If this option
-      # is not passed, the previously defined default value (if any) on the superclass or in the schema will be used.
-      # Otherwise, the default will be +nil+.
+      # [+:array+]
+      #   (PostgreSQL only) Specifies that the type should be an array. See the
+      #   examples below.
       #
-      # +array+ (PostgreSQL only) specifies that the type should be an array (see the
-      # examples below).
-      #
-      # +range+ (PostgreSQL only) specifies that the type should be a range (see the
-      # examples below).
+      # [+:range+]
+      #   (PostgreSQL only) Specifies that the type should be a range. See the
+      #   examples below.
       #
       # When using a symbol for +cast_type+, extra options are forwarded to the
       # constructor of the type object.
@@ -178,8 +189,8 @@ module ActiveRecord
       #       @currency_converter = currency_converter
       #     end
       #
-      #     # value will be the result of +deserialize+ or
-      #     # +cast+. Assumed to be an instance of +Money+ in
+      #     # value will be the result of #deserialize or
+      #     # #cast. Assumed to be an instance of Money in
       #     # this case.
       #     def serialize(value)
       #       value_in_bitcoins = @currency_converter.convert_to_bitcoins(value)
@@ -217,17 +228,22 @@ module ActiveRecord
       # is provided so it can be used by plugin authors, application code
       # should probably use ClassMethods#attribute.
       #
-      # +name+ The name of the attribute being defined. Expected to be a +String+.
+      # ==== Parameters
       #
-      # +cast_type+ The type object to use for this attribute.
+      # [+name+]
+      #   The name of the attribute being defined. Expected to be a +String+.
       #
-      # +default+ The default value to use when no value is provided. If this option
-      # is not passed, the previous default value (if any) will be used.
-      # Otherwise, the default will be +nil+. A proc can also be passed, and
-      # will be called once each time a new value is needed.
+      # [+cast_type+]
+      #   The type object to use for this attribute.
       #
-      # +user_provided_default+ Whether the default value should be cast using
-      # +cast+ or +deserialize+.
+      # [+default+]
+      #   The default value to use when no value is provided. If this option
+      #   is not passed, the previous default value (if any) will be used.
+      #   Otherwise, the default will be +nil+. A proc can also be passed, and
+      #   will be called once each time a new value is needed.
+      #
+      # [+user_provided_default+]
+      #   Whether the default value should be cast using +cast+ or +deserialize+.
       def define_attribute(
         name,
         cast_type,
@@ -239,17 +255,15 @@ module ActiveRecord
       end
 
       def _default_attributes # :nodoc:
-        @default_attributes ||= begin
-          attributes_hash = with_connection do |connection|
-            columns_hash.transform_values do |column|
-              ActiveModel::Attribute.from_database(column.name, column.default, type_for_column(connection, column))
-            end
-          end
+        schema_context.attributes.defaults
+      end
 
-          attribute_set = ActiveModel::AttributeSet.new(attributes_hash)
-          apply_pending_attribute_modifications(attribute_set)
-          attribute_set
-        end
+      def attribute_types # :nodoc:
+        schema_context.attributes.types
+      end
+
+      def type_for_column(column) # :nodoc:
+        hook_attribute_type(column.name, super)
       end
 
       ##
@@ -271,7 +285,7 @@ module ActiveRecord
         end
 
       private
-        NO_DEFAULT_PROVIDED = Object.new # :nodoc:
+        NO_DEFAULT_PROVIDED = Object.new.freeze # :nodoc:
         private_constant :NO_DEFAULT_PROVIDED
 
         def define_default_attribute(name, value, type, from_user:)
@@ -291,15 +305,12 @@ module ActiveRecord
         end
 
         def reset_default_attributes
+          ([self] + descendants).each(&:undefine_attribute_methods)
           reload_schema_from_cache
         end
 
         def resolve_type_name(name, **options)
           Type.lookup(name, **options, adapter: Type.adapter_name_from(self))
-        end
-
-        def type_for_column(connection, column)
-          hook_attribute_type(column.name, super)
         end
     end
   end

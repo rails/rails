@@ -61,6 +61,8 @@ module ApplicationTests
 
           == Removing old logs and tempfiles ==
         OUTPUT
+      ensure
+        rails "db:drop", allow_failure: true
       end
     end
   end

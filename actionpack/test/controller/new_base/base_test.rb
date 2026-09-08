@@ -27,6 +27,10 @@ module Dispatching
       render body: "actions: #{action_methods.to_a.sort.join(', ')}"
     end
 
+    # Shadow one of the internal methods
+    def translate
+    end
+
     private
       def authenticate
       end
@@ -119,13 +123,14 @@ module Dispatching
         modify_response_body_twice
         modify_response_body
         show_actions
+        translate
       )), SimpleController.action_methods
 
       assert_equal Set.new, EmptyController.action_methods
       assert_equal Set.new, Submodule::ContainedEmptyController.action_methods
 
       get "/dispatching/simple/show_actions"
-      assert_body "actions: index, modify_response_body, modify_response_body_twice, modify_response_headers, show_actions"
+      assert_body "actions: index, modify_response_body, modify_response_body_twice, modify_response_headers, show_actions, translate"
     end
   end
 end

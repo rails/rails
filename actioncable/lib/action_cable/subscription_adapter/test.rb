@@ -21,11 +21,11 @@ module ActionCable
       end
 
       def broadcasts(channel)
-        channels_data[channel] ||= []
+        channels_data[String(channel)] ||= []
       end
 
       def clear_messages(channel)
-        channels_data[channel] = []
+        channels_data[String(channel)] = []
       end
 
       def clear

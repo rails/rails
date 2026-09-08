@@ -13,6 +13,17 @@ end
 require "action_mailer/railtie"
 require "minitest/autorun"
 
+class TestApp < Rails::Application
+  config.load_defaults Rails::VERSION::STRING.to_f
+  config.root = __dir__
+  config.eager_load = false
+  config.hosts << "example.org"
+  config.secret_key_base = "secret_key_base"
+
+  config.logger = Logger.new($stdout)
+end
+Rails.application.initialize!
+
 class TestMailer < ActionMailer::Base
   def hello_world
     @message = "Hello, world"

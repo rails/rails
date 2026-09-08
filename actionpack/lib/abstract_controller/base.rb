@@ -3,8 +3,8 @@
 # :markup: markdown
 
 require "abstract_controller/error"
-require "active_support/configurable"
 require "active_support/descendants_tracker"
+require "active_support/inspect_backport"
 require "active_support/core_ext/module/anonymous"
 require "active_support/core_ext/module/attr_internal"
 
@@ -47,7 +47,7 @@ module AbstractController
     # Returns the formats that can be processed by the controller.
     attr_internal :formats
 
-    include ActiveSupport::Configurable
+    class_attribute :config, instance_predicate: false, default: ActiveSupport::OrderedOptions.new
     extend ActiveSupport::DescendantsTracker
 
     class << self
@@ -65,6 +65,7 @@ module AbstractController
         unless klass.instance_variable_defined?(:@abstract)
           klass.instance_variable_set(:@abstract, false)
         end
+        klass.config = ActiveSupport::InheritableOptions.new(config)
         super
       end
 
@@ -86,23 +87,17 @@ module AbstractController
         controller.public_instance_methods(true) - methods
       end
 
-      # A list of method names that should be considered actions. This includes all
+      # A `Set` of method names that should be considered actions. This includes all
       # public instance methods on a controller, less any internal methods (see
       # internal_methods), adding back in any methods that are internal, but still
       # exist on the class itself.
-      #
-      # #### Returns
-      # *   `Set` - A set of all methods that should be considered actions.
-      #
       def action_methods
         @action_methods ||= begin
           # All public instance methods of this class, including ancestors except for
           # public instance methods of Base and its ancestors.
           methods = public_instance_methods(true) - internal_methods
-          # Be sure to include shadowed public instance methods of this class.
-          methods.concat(public_instance_methods(false))
-          methods.map!(&:to_s)
-          methods.to_set
+          methods.map!(&:name)
+          methods.to_set.freeze
         end
       end
 
@@ -121,11 +116,12 @@ module AbstractController
       #
       #     MyApp::MyPostsController.controller_path # => "my_app/my_posts"
       #
-      # #### Returns
-      # *   `String`
-      #
       def controller_path
-        @controller_path ||= name.delete_suffix("Controller").underscore unless anonymous?
+        @controller_path ||= name.delete_suffix("Controller").underscore.freeze unless anonymous?
+      end
+
+      def configure # :nodoc:
+        yield config
       end
 
       # Refresh the cached action_methods when a new action_method is added.
@@ -147,10 +143,6 @@ module AbstractController
     # The actual method that is called is determined by calling #method_for_action.
     # If no method can handle the action, then an AbstractController::ActionNotFound
     # error is raised.
-    #
-    # #### Returns
-    # *   `self`
-    #
     def process(action, ...)
       @_action_name = action.to_s
 
@@ -201,11 +193,17 @@ module AbstractController
       true
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
+    def config # :nodoc:
+      @_config ||= self.class.config.inheritable_copy
     end
 
+    ActiveSupport::InspectBackport.apply(self)
+
     private
+      def instance_variables_to_inspect
+        [].freeze
+      end
+
       # Returns true if the name can be considered an action because it has a method
       # defined in the controller.
       #

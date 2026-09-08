@@ -54,7 +54,7 @@ module ActiveModel
     #
     #   person = Person.new(id: 1, name: "bob")
     #   person.slice(:id, :name)
-    #   => { "id" => 1, "name" => "bob" }
+    #   # => { "id" => 1, "name" => "bob" }
     #
     #--
     # Implemented by ActiveModel::Access#slice.
@@ -68,7 +68,7 @@ module ActiveModel
     #
     #   person = Person.new(id: 1, name: "bob")
     #   person.values_at(:id, :name)
-    #   => [1, "bob"]
+    #   # => [1, "bob"]
     #
     #--
     # Implemented by ActiveModel::Access#values_at.

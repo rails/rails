@@ -35,6 +35,14 @@ module Arel # :nodoc: all
           collect_nodes_for o.wheres, collector, " WHERE ", " AND "
           collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
+          maybe_visit o.comment, collector
+
+          if o.returning.empty?
+            collector
+          else
+            collector << " RETURNING "
+            visit o.returning, collector
+          end
         end
 
         def visit_Arel_Nodes_UpdateStatement(o, collector)
@@ -48,6 +56,14 @@ module Arel # :nodoc: all
           collect_nodes_for o.wheres, collector, " WHERE ", " AND "
           collect_nodes_for o.orders, collector, " ORDER BY "
           maybe_visit o.limit, collector
+          maybe_visit o.comment, collector
+
+          if o.returning.empty?
+            collector
+          else
+            collector << " RETURNING "
+            visit o.returning, collector
+          end
         end
 
         def visit_Arel_Nodes_InsertStatement(o, collector)
@@ -68,20 +84,19 @@ module Arel # :nodoc: all
             maybe_visit o.values, collector
           elsif o.select
             maybe_visit o.select, collector
-          else
+          end
+
+          if o.returning.empty?
             collector
+          else
+            collector << " RETURNING "
+            visit o.returning, collector
           end
         end
 
         def visit_Arel_Nodes_Exists(o, collector)
           collector << "EXISTS ("
-          collector = visit(o.expressions, collector) << ")"
-          if o.alias
-            collector << " AS "
-            visit o.alias, collector
-          else
-            collector
-          end
+          visit(o.expressions, collector) << ")"
         end
 
         def visit_Arel_Nodes_Casted(o, collector)
@@ -348,6 +363,12 @@ module Arel # :nodoc: all
 
           if values.empty?
             collector << @connection.quote(nil)
+          elsif o.attribute.respond_to?(:comparison_expression)
+            # Comparison values need SQL around each bind, so they cannot use
+            # the collector's bulk bind path.
+            binds = values.map(&o.proc_for_binds)
+            expressions = binds.map { |bind| o.attribute.comparison_expression(bind) }
+            collector = inject_join(expressions, collector, ", ")
           else
             collector.add_binds(values, o.proc_for_binds, &bind_block)
           end
@@ -388,13 +409,7 @@ module Arel # :nodoc: all
           collector << o.name
           collector << "("
           collector << "DISTINCT " if o.distinct
-          collector = inject_join(o.expressions, collector, ", ") << ")"
-          if o.alias
-            collector << " AS "
-            visit o.alias, collector
-          else
-            collector
-          end
+          inject_join(o.expressions, collector, ", ") << ")"
         end
 
         def visit_Arel_Nodes_Extract(o, collector)
@@ -655,6 +670,14 @@ module Arel # :nodoc: all
           end
         end
 
+        def visit_Arel_Nodes_CaseSensitiveEquality(o, collector)
+          visit @connection.case_sensitive_comparison(o.left, o.right), collector
+        end
+
+        def visit_Arel_Nodes_CaseInsensitiveEquality(o, collector)
+          visit @connection.case_insensitive_comparison(o.left, o.right), collector
+        end
+
         def visit_Arel_Nodes_IsNotDistinctFrom(o, collector)
           if o.right.nil?
             collector = visit o.left, collector
@@ -748,7 +771,7 @@ module Arel # :nodoc: all
           collector << quote_table_name(join_name) << "." << quote_column_name(o.name)
         end
 
-        BIND_BLOCK = proc { "?" }
+        BIND_BLOCK = ActiveSupport::Ractors.shareable_proc { "?" }
         private_constant :BIND_BLOCK
 
         def bind_block; BIND_BLOCK; end
@@ -757,13 +780,21 @@ module Arel # :nodoc: all
           collector.add_bind(o, &bind_block)
         end
 
+        def visit_ActiveRecord_PredicateBuilder_ComparisonAttribute(o, collector)
+          visit o.expression, collector
+        end
+
+        def visit_ActiveRecord_PredicateBuilder_ComparisonValue(o, collector)
+          visit o.expression, collector
+        end
+
         def visit_Arel_Nodes_BindParam(o, collector)
           collector.add_bind(o.value, &bind_block)
         end
 
         def visit_Arel_Nodes_SqlLiteral(o, collector)
           collector.preparable = false
-          collector.retryable = o.retryable
+          collector.retryable &&= o.retryable
           collector << o.to_s
         end
 
@@ -922,7 +953,7 @@ module Arel # :nodoc: all
         # on MySQL (even when aliasing the tables), but MySQL allows using JOIN directly in
         # an UPDATE statement, so in the MySQL visitor we redefine this to do that.
         def prepare_update_statement(o)
-          if o.key && (has_limit_or_offset_or_orders?(o) || has_join_sources?(o))
+          if o.key && (has_limit_or_offset_or_orders?(o) || has_join_sources?(o) || has_group_by_and_having?(o))
             stmt = o.clone
             stmt.limit = nil
             stmt.offset = nil
@@ -938,6 +969,21 @@ module Arel # :nodoc: all
           end
         end
         alias :prepare_delete_statement :prepare_update_statement
+
+        # Used by dialects that support `UPDATE ... FROM` (PostgreSQL, SQLite).
+        # Join clauses cannot reference the target table, so alias the updated
+        # table, place the entire relation in the FROM clause, and add a
+        # self-join (which requires the primary key).
+        def prepare_update_statement_with_self_join(o)
+          stmt = o.clone
+          stmt.relation, stmt.wheres = o.relation.clone, o.wheres.clone
+          stmt.relation.right = [stmt.relation.left, *stmt.relation.right]
+          stmt.relation.left = stmt.relation.left.alias("__active_record_update_alias")
+          Array.wrap(o.key).each do |key|
+            stmt.wheres << key.eq(stmt.relation.left[key.name])
+          end
+          stmt
+        end
 
         # FIXME: we should probably have a 2-pass visitor for this
         def build_subselect(key, o)
@@ -998,13 +1044,7 @@ module Arel # :nodoc: all
           if o.distinct
             collector << "DISTINCT "
           end
-          collector = inject_join(o.expressions, collector, ", ") << ")"
-          if o.alias
-            collector << " AS "
-            visit o.alias, collector
-          else
-            collector
-          end
+          inject_join(o.expressions, collector, ", ") << ")"
         end
 
         def is_distinct_from(o, collector)

@@ -21,7 +21,7 @@ module ActiveRecord
       # New migration functionality that will never be backward compatible should be added directly to `ActiveRecord::Migration`.
       #
       # There are classes for each prior Rails version. Each class descends from the *next* Rails version, so:
-      # 5.2 < 6.0 < 6.1 < 7.0 < 7.1 < 7.2 < 8.0 < 8.1
+      # 5.2 < 6.0 < 6.1 < 7.0 < 7.1 < 7.2 < 8.0 < 8.1 < 8.2
       #
       # If you are introducing new migration functionality that should only apply from Rails 7 onward, then you should
       # find the class that immediately precedes it (6.1), and override the relevant migration methods to undo your changes.
@@ -29,9 +29,33 @@ module ActiveRecord
       # For example, Rails 6 added a default value for the `precision` option on datetime columns. So in this file, the `V5_2`
       # class sets the value of `precision` to `nil` if it's not explicitly provided. This way, the default value will not apply
       # for migrations written for 5.2, but will for migrations written for 6.0.
-      V8_1 = Current
+      V8_2 = Current
+
+      class V8_1 < V8_2
+      end
 
       class V8_0 < V8_1
+        module RemoveForeignKeyColumnMatch
+          def remove_foreign_key(*args, **options)
+            options[:_skip_column_match] = true
+            super
+          end
+        end
+
+        module TableDefinition
+          def remove_foreign_key(to_table = nil, **options)
+            options[:_skip_column_match] = true
+            super
+          end
+        end
+
+        include RemoveForeignKeyColumnMatch
+
+        private
+          def compatible_table_definition(t)
+            t.singleton_class.prepend(TableDefinition)
+            super
+          end
       end
 
       class V7_2 < V8_0
@@ -157,9 +181,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
       end
@@ -220,20 +242,12 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
       end
 
       class V6_0 < V6_1
-        class ReferenceDefinition < ConnectionAdapters::ReferenceDefinition
-          def index_options(table_name)
-            as_options(index)
-          end
-        end
-
         module TableDefinition
           def references(*args, **options)
             options[:_uses_legacy_reference_index_name] = true
@@ -263,9 +277,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
       end
@@ -291,16 +303,16 @@ module ActiveRecord
         end
 
         module CommandRecorder
-          def invert_transaction(args, &block)
-            [:transaction, args, block]
+          def invert_transaction(args, kwargs, &block)
+            [:transaction, args, kwargs, block]
           end
 
-          def invert_change_column_comment(args)
-            [:change_column_comment, args]
+          def invert_change_column_comment(args, kwargs)
+            [:change_column_comment, args, kwargs]
           end
 
-          def invert_change_table_comment(args)
-            [:change_table_comment, args]
+          def invert_change_table_comment(args, kwargs)
+            [:change_table_comment, args, kwargs]
           end
         end
 
@@ -311,17 +323,13 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
 
           def command_recorder
             recorder = super
-            class << recorder
-              prepend CommandRecorder
-            end
+            recorder.singleton_class.prepend(CommandRecorder)
             recorder
           end
       end
@@ -409,9 +417,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
       end
@@ -445,7 +451,7 @@ module ActiveRecord
           super
         end
 
-        def index_exists?(table_name, column_name, **options)
+        def index_exists?(table_name, column_name = nil, **options)
           column_names = Array(column_name).map(&:to_s)
           options[:name] =
             if options[:name].present?
@@ -463,9 +469,7 @@ module ActiveRecord
 
         private
           def compatible_table_definition(t)
-            class << t
-              prepend TableDefinition
-            end
+            t.singleton_class.prepend(TableDefinition)
             super
           end
 

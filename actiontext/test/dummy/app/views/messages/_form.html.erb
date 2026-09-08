@@ -17,8 +17,22 @@
   </div>
 
   <div class="field">
+    <trix-toolbar id="toolbar">
+      <button type="button" tabindex="-1" data-trix-action="attachFiles">Attach Files</button>
+      <% Person.all.each do |person| %>
+        <button type="button" tabindex="-1" data-trix-action="x-attach">
+          Mention <%= person.name %>
+
+          <%= tag.template(
+            render(partial: person.to_editor_content_attachment_partial_path, object: person, as: :person),
+            data: { action_text_attachment: { sgid: person.attachable_sgid } }
+          ) %>
+        </button>
+      <% end %>
+    </trix-toolbar>
+
     <%= form.label :content, "Message content label" %>
-    <%= form.rich_textarea :content, class: "trix-content",
+    <%= form.rich_textarea :content, class: "trix-content", toolbar: "toolbar",
           placeholder: "Your message here", aria: { label: "Message content aria-label" } %>
   </div>
 

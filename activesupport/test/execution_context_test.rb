@@ -2,11 +2,14 @@
 
 require_relative "abstract_unit"
 require "active_support/execution_context/test_helper"
+require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 
 class ExecutionContextTest < ActiveSupport::TestCase
   # ExecutionContext is automatically reset in Rails app via executor hooks set in railtie
   # But not in Active Support's own test suite.
   include ActiveSupport::ExecutionContext::TestHelper
+  include ActiveSupport::Testing::RactorsAssertions
 
   test "#set restore the modified keys when the block exits" do
     assert_nil ActiveSupport::ExecutionContext.to_h[:foo]
@@ -27,6 +30,26 @@ class ExecutionContextTest < ActiveSupport::TestCase
     assert_equal "present", ActiveSupport::ExecutionContext.to_h[:multi_assignment]
   end
 
+  test "#pop after #flush does not corrupt execution context" do
+    ActiveSupport::ExecutionContext.with(nestable: true) do
+      # simulate executor hooks from active_support/railtie.rb
+      executor = Class.new(ActiveSupport::Executor)
+
+      executor.to_run do
+        ActiveSupport::ExecutionContext.push
+      end
+      executor.to_complete do
+        ActiveSupport::ExecutionContext.pop
+      end
+      executor.wrap do
+        # simulate app.reloader.before_class_unload hooks from active_support/railtie.rb
+        ActiveSupport::ExecutionContext.flush
+      end
+
+      assert_equal({}, ActiveSupport::ExecutionContext.to_h)
+    end
+  end
+
   test "#set coerce keys to symbol" do
     ActiveSupport::ExecutionContext.set("foo" => "bar") do
       assert_equal "bar", ActiveSupport::ExecutionContext.to_h[:foo]
@@ -43,5 +66,13 @@ class ExecutionContextTest < ActiveSupport::TestCase
     context = ActiveSupport::ExecutionContext.to_h
     context[:foo] = 43
     assert_equal 42, ActiveSupport::ExecutionContext.to_h[:foo]
+  end
+
+  test "callbacks are ractor safe" do
+    ActiveSupport::ExecutionContext.with(after_change_callbacks: [].freeze) do
+      ActiveSupport::ExecutionContext.after_change(&ActiveSupport::Ractors.shareable_proc { })
+
+      assert_ractor_shareable ActiveSupport::ExecutionContext.after_change_callbacks
+    end
   end
 end

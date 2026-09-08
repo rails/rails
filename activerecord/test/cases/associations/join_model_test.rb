@@ -15,8 +15,8 @@ require "models/edge"
 require "models/book"
 require "models/citation"
 require "models/aircraft"
-require "models/engine"
 require "models/car"
+require "models/engine"
 
 class AssociationsJoinModelTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
@@ -402,7 +402,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_find_conditions
-    options = { where: "comments.#{QUOTED_TYPE}='SpecialComment'", order: "comments.id" }
+    options = { where: "comments.#{ARTest::QUOTED_TYPE}='SpecialComment'", order: "comments.id" }
     assert_equal comments(:does_it_hurt), authors(:david).comments.merge(options).first
   end
 
@@ -677,7 +677,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_preload_polymorph_many_types
-    taggings = Tagging.all.merge!(includes: :taggable, where: ["taggable_type != ?", "FakeModel"]).to_a
+    taggings = Tagging.all.merge!(includes: :taggable, where: ["taggable_type != ?", "FakeModel"], order: "taggings.id").to_a
     assert_no_queries do
       taggings.first.taggable.id
       taggings[1].taggable.id
@@ -770,6 +770,12 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
       Post.eager_load(:nonexistent_relation).includes(:nonexistent_relation).where(nonexistent_relation: { name: "Rochester" }).find(1)
     }
     assert_equal("Can't join 'Post' to association named 'nonexistent_relation'; perhaps you misspelled it?", includes_and_eager_load_error.message)
+  end
+
+  def test_eager_association_with_scope_with_string_joins
+    assert_nothing_raised do
+      Post.joins(:very_special_comment_with_string_joins).first
+    end
   end
 
   private

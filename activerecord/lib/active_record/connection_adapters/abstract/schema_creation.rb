@@ -17,18 +17,24 @@ module ActiveRecord
         :options_include_default?, :supports_indexes_in_create?, :use_foreign_keys?,
         :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?,
         :supports_index_include?, :supports_exclusion_constraints?, :supports_unique_constraints?,
-        :supports_nulls_not_distinct?,
+        :supports_nulls_not_distinct?, :lookup_cast_type,
         to: :@conn, private: true
 
       private
         def visit_AlterTable(o)
-          sql = +"ALTER TABLE #{quote_table_name(o.name)} "
-          sql << o.adds.map { |col| accept col }.join(" ")
-          sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
-          sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
-          sql << o.check_constraint_adds.map { |con| visit_AddCheckConstraint con }.join(" ")
-          sql << o.check_constraint_drops.map { |con| visit_DropCheckConstraint con }.join(" ")
-          sql << o.constraint_drops.map { |con| visit_DropConstraint con }.join(" ")
+          "ALTER TABLE #{quote_table_name(o.name)} #{o.operations.map { |op| accept(op) }.join(', ')}"
+        end
+
+        def visit_DropColumn(o)
+          "DROP COLUMN #{quote_column_name(o.name)}"
+        end
+
+        def visit_RenameColumn(o)
+          "RENAME COLUMN #{quote_column_name(o.from_name)} TO #{quote_column_name(o.to_name)}"
+        end
+
+        def visit_ChangeColumnNull(o)
+          "ALTER COLUMN #{quote_column_name(o.name)} #{o.null ? 'DROP' : 'SET'} NOT NULL"
         end
 
         def visit_ColumnDefinition(o)
@@ -94,11 +100,11 @@ module ActiveRecord
         end
 
         def visit_AddForeignKey(o)
-          "ADD #{accept(o)}"
+          "ADD #{accept(o.foreign_key)}"
         end
 
-        def visit_DropConstraint(name)
-          "DROP CONSTRAINT #{quote_column_name(name)}"
+        def visit_DropConstraint(o)
+          "DROP CONSTRAINT #{quote_column_name(o.name)}"
         end
         alias :visit_DropForeignKey :visit_DropConstraint
         alias :visit_DropCheckConstraint :visit_DropConstraint
@@ -127,7 +133,7 @@ module ActiveRecord
         end
 
         def visit_AddCheckConstraint(o)
-          "ADD #{accept(o)}"
+          "ADD #{accept(o.check_constraint)}"
         end
 
         def quoted_columns(o)
@@ -148,7 +154,7 @@ module ActiveRecord
         end
 
         def add_column_options!(sql, options)
-          sql << " DEFAULT #{quote_default_expression(options[:default], options[:column])}" if options_include_default?(options)
+          sql << " DEFAULT #{quote_default_expression_for_column_definition(options[:default], options[:column])}" if options_include_default?(options)
           # must explicitly check for :null to allow change_column to work on migrations
           if options[:null] == false
             sql << " NOT NULL"
@@ -160,6 +166,11 @@ module ActiveRecord
             sql << " PRIMARY KEY"
           end
           sql
+        end
+
+        def quote_default_expression_for_column_definition(default, column_definition)
+          column_definition.cast_type = lookup_cast_type(column_definition.sql_type)
+          quote_default_expression(default, column_definition)
         end
 
         def to_sql(sql)

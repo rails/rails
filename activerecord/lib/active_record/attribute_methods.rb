@@ -20,7 +20,7 @@ module ActiveRecord
       include Serialization
     end
 
-    RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name superclass)
+    RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name superclass).freeze
 
     class GeneratedAttributeMethods < Module # :nodoc:
       LOCK = Monitor.new
@@ -81,7 +81,6 @@ module ActiveRecord
         attribute_method_patterns.each do |pattern|
           alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
         end
-        attribute_method_patterns_cache.clear
       end
 
       def alias_attribute_method_definition(code_generator, pattern, new_name, old_name) # :nodoc:
@@ -113,13 +112,14 @@ module ActiveRecord
           unless abstract_class?
             load_schema
             super(attribute_names)
-            alias_attribute :id_value, :id if _has_attribute?("id")
+            alias_attribute :id_value, :id if _has_attribute?("id") && !_has_attribute?("id_value")
           end
 
-          @attribute_methods_generated = true
-
           generate_alias_attributes
+
+          @attribute_methods_generated = true
         end
+
         true
       end
 
@@ -293,9 +293,8 @@ module ActiveRecord
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
       if @attributes
-        if name = self.class.symbol_column_to_string(name.to_sym)
-          return _has_attribute?(name)
-        end
+        name = name.name if name.is_a?(Symbol)
+        return _has_attribute?(name) if self.class.columns_hash.key?(name)
       end
 
       true
@@ -461,36 +460,6 @@ module ActiveRecord
     end
 
     private
-      def respond_to_missing?(name, include_private = false)
-        if self.class.define_attribute_methods
-          # Some methods weren't defined yet.
-          return true if self.class.method_defined?(name)
-          return true if include_private && self.class.private_method_defined?(name)
-        end
-
-        super
-      end
-
-      def method_missing(name, ...)
-        unless self.class.attribute_methods_generated?
-          if self.class.method_defined?(name)
-            # The method is explicitly defined in the model, but calls a generated
-            # method with super. So we must resume the call chain at the right step.
-            last_method = method(name)
-            last_method = last_method.super_method while last_method.super_method
-            self.class.define_attribute_methods
-            if last_method.super_method
-              return last_method.super_method.call(...)
-            end
-          elsif self.class.define_attribute_methods
-            # Some attribute methods weren't generated yet, we retry the call
-            return public_send(name, ...)
-          end
-        end
-
-        super
-      end
-
       def attribute_method?(attr_name)
         @attributes&.key?(attr_name)
       end

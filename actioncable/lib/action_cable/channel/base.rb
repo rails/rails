@@ -4,6 +4,7 @@
 
 require "active_support/rescuable"
 require "active_support/parameter_filter"
+require "concurrent"
 
 module ActionCable
   module Channel
@@ -132,7 +133,11 @@ module ActionCable
               # Except for public instance methods of Base and its ancestors
               ActionCable::Channel::Base.public_instance_methods(true) +
               # Be sure to include shadowed public instance methods of this class
-              public_instance_methods(false)).uniq.map(&:to_s)
+              public_instance_methods(false) -
+              # Except the internal methods
+              internal_methods).uniq
+
+            methods.map!(&:name)
             methods.to_set
           end
         end
@@ -150,6 +155,10 @@ module ActionCable
             super
             clear_action_methods!
           end
+
+          def internal_methods
+            super
+          end
       end
 
       def initialize(connection, identifier, params = {})
@@ -165,6 +174,7 @@ module ActionCable
 
         @reject_subscription = nil
         @subscription_confirmation_sent = nil
+        @unsubscribed = false
 
         delegate_connection_identifiers
       end
@@ -189,10 +199,11 @@ module ActionCable
       # confirms or rejects the subscription.
       def subscribe_to_channel
         run_callbacks :subscribe do
-          subscribed
+          subscribed unless subscription_rejected?
         end
 
         reject_subscription if subscription_rejected?
+
         ensure_confirmation_sent
       end
 
@@ -200,9 +211,14 @@ module ActionCable
       # cleanup with callbacks. This method is not intended to be called directly by
       # the user. Instead, override the #unsubscribed callback.
       def unsubscribe_from_channel # :nodoc:
+        @unsubscribed = true
         run_callbacks :unsubscribe do
           unsubscribed
         end
+      end
+
+      def unsubscribed? # :nodoc:
+        @unsubscribed
       end
 
       private

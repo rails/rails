@@ -8,7 +8,7 @@
 
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {
-    <%= features.map { |key, value| "\"#{key}\": #{value.as_json}" }.join(",\n    ") %>
+    <%= features.map { |key, value| "\"#{key}\": #{value.to_json}" }.join(",\n    ") %>
   },
 
 <%- if !container_env.empty? -%>

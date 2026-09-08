@@ -249,6 +249,16 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select "input[type=hidden][name='user[category_ids]'][value='']", count: 0
   end
 
+  test "collection radio label for attribute matches input id when collection value is nil" do
+    with_collection_radio_buttons :user, :active, [["Yes", true], ["Undefined", nil]], :last, :first
+
+    assert_select "input[type=radio][value=true]#user_active_true"
+    assert_select "label[for=user_active_true]", "Yes"
+    assert_select "input[type=radio]#user_active"
+    assert_select "label[for=user_active]", "Undefined"
+    assert_no_select "label[for=user_active_]"
+  end
+
   # COLLECTION CHECK BOXES
   test "collection check boxes accepts a collection and generate a series of checkboxes for value method" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
@@ -270,6 +280,13 @@ class FormCollectionsHelperTest < ActionView::TestCase
     with_collection_checkboxes :user, :category_ids, collection, :id, :name, {}, { name: "user[other_category_ids][]" }
 
     assert_select "input[type=hidden][name='user[other_category_ids][]'][value=''][autocomplete='off']", count: 1
+  end
+
+  test "collection check boxes generates a hidden field using the given :form in :html_options" do
+    collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
+    with_collection_checkboxes :user, :category_ids, collection, :id, :name, {}, { form: "my_form" }
+
+    assert_select "input[type=hidden][value=''][autocomplete='off'][form='my_form']", count: 1
   end
 
   test "collection check boxes generates a hidden field with index if it was provided" do
@@ -539,5 +556,15 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select "label.false[for=user_active_false]", "false" do
       assert_select "input#user_active_false[type=checkbox]"
     end
+  end
+
+  test "collection check boxes label for attribute matches input id when collection value is nil" do
+    with_collection_checkboxes :user, :active, [["Yes", true], ["Undefined", nil]], :last, :first
+
+    assert_select "input[type=checkbox][value=true]#user_active_true"
+    assert_select "label[for=user_active_true]", "Yes"
+    assert_select "input[type=checkbox]#user_active"
+    assert_select "label[for=user_active]", "Undefined"
+    assert_no_select "label[for=user_active_]"
   end
 end

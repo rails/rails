@@ -3,6 +3,7 @@
 require "openssl"
 require "base64"
 require "active_support/core_ext/object/blank"
+require "active_support/inspect_backport"
 require "active_support/security_utils"
 require "active_support/messages/codec"
 require "active_support/messages/rotator"
@@ -154,6 +155,8 @@ module ActiveSupport
     #   not URL-safe. In other words, they can contain "+" and "/". If you want to
     #   generate URL-safe strings (in compliance with "Base 64 Encoding with URL
     #   and Filename Safe Alphabet" in RFC 4648), you can pass +true+.
+    #   Note that MessageVerifier will always accept both URL-safe and URL-unsafe
+    #   encoded messages, to allow a smooth transition between the two settings.
     #
     # [+:force_legacy_metadata_serializer+]
     #   Whether to use the legacy metadata serializer, which serializes the
@@ -313,11 +316,20 @@ module ActiveSupport
       deserialize_with_metadata(decode(extract_encoded(message)), **options)
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-    end
+    ActiveSupport::InspectBackport.apply(self)
 
     private
+      def instance_variables_to_inspect
+        [].freeze
+      end
+
+      def decode(encoded, url_safe: @url_safe)
+        catch :invalid_message_format do
+          return super
+        end
+        super(encoded, url_safe: !url_safe)
+      end
+
       def sign_encoded(encoded)
         digest = generate_digest(encoded)
         encoded << SEPARATOR << digest

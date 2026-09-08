@@ -1,7 +1,9 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
-  # = Backtrace Cleaner
+  # Backtrace Cleaner
+  # =================
   #
   # Backtraces often include many lines that are not relevant for the context
   # under review. This makes it hard to find the signal amongst the backtrace
@@ -16,11 +18,13 @@ module ActiveSupport
   # is to exclude the output of a noisy library from the backtrace, so that you
   # can focus on the rest.
   #
-  #   bc = ActiveSupport::BacktraceCleaner.new
-  #   root = "#{Rails.root}/"
-  #   bc.add_filter   { |line| line.delete_prefix(root) } # strip the Rails.root prefix
-  #   bc.add_silencer { |line| /puma|rubygems/.match?(line) } # skip any lines from puma or rubygems
-  #   bc.clean(exception.backtrace) # perform the cleanup
+  # ```
+  # bc = ActiveSupport::BacktraceCleaner.new
+  # root = "#{Rails.root}/"
+  # bc.add_filter   { |line| line.delete_prefix(root) } # strip the Rails.root prefix
+  # bc.add_silencer { |line| /puma|rubygems/.match?(line) } # skip any lines from puma or rubygems
+  # bc.clean(exception.backtrace) # perform the cleanup
+  # ```
   #
   # To reconfigure an existing BacktraceCleaner (like the default one in \Rails)
   # and show as much data as possible, you can always call
@@ -56,8 +60,22 @@ module ActiveSupport
     end
     alias :filter :clean
 
+    # Given an array of Thread::Backtrace::Location objects, returns an array
+    # with the clean ones:
+    #
+    # ```
+    # clean_locations = backtrace_cleaner.clean_locations(caller_locations)
+    # ```
+    #
+    # Filters and silencers receive strings as usual. However, the `path`
+    # attributes of the locations in the returned array are the original,
+    # unfiltered ones, since locations are immutable.
+    def clean_locations(locations, kind = :silent)
+      locations.select { |location| clean_frame(location, kind) }
+    end
+
     # Returns the frame with all filters applied.
-    # returns +nil+ if the frame was silenced.
+    # returns `nil` if the frame was silenced.
     def clean_frame(frame, kind = :silent)
       frame = frame.to_s
       @filters.each do |f|
@@ -74,21 +92,84 @@ module ActiveSupport
       end
     end
 
+    # Thread.each_caller_location does not accept a start in Ruby < 3.4.
+    if Thread.method(:each_caller_location).arity == 0
+      # Returns the first clean frame of the caller's backtrace, or `nil`.
+      #
+      # Frames are strings.
+      def first_clean_frame(kind = :silent)
+        caller_location_skipped = false
+
+        Thread.each_caller_location do |location|
+          unless caller_location_skipped
+            caller_location_skipped = true
+            next
+          end
+
+          frame = clean_frame(location, kind)
+          return frame if frame
+        end
+      end
+
+      # Returns the first clean location of the caller's call stack, or `nil`.
+      #
+      # Locations are Thread::Backtrace::Location objects. Since they are
+      # immutable, their `path` attributes are the original ones, but filters
+      # are applied internally so silencers can still rely on them.
+      def first_clean_location(kind = :silent)
+        caller_location_skipped = false
+
+        Thread.each_caller_location do |location|
+          unless caller_location_skipped
+            caller_location_skipped = true
+            next
+          end
+
+          return location if clean_frame(location, kind)
+        end
+      end
+    else
+      # Returns the first clean frame of the caller's backtrace, or `nil`.
+      #
+      # Frames are strings.
+      def first_clean_frame(kind = :silent)
+        Thread.each_caller_location(2) do |location|
+          frame = clean_frame(location, kind)
+          return frame if frame
+        end
+      end
+
+      # Returns the first clean location of the caller's call stack, or `nil`.
+      #
+      # Locations are Thread::Backtrace::Location objects. Since they are
+      # immutable, their `path` attributes are the original ones, but filters
+      # are applied internally so silencers can still rely on them.
+      def first_clean_location(kind = :silent)
+        Thread.each_caller_location(2) do |location|
+          return location if clean_frame(location, kind)
+        end
+      end
+    end
+
     # Adds a filter from the block provided. Each line in the backtrace will be
     # mapped against this filter.
     #
-    #   # Will turn "/my/rails/root/app/models/person.rb" into "app/models/person.rb"
-    #   root = "#{Rails.root}/"
-    #   backtrace_cleaner.add_filter { |line| line.start_with?(root) ? line.from(root.size) : line }
+    # ```
+    # # Will turn "/my/rails/root/app/models/person.rb" into "app/models/person.rb"
+    # root = "#{Rails.root}/"
+    # backtrace_cleaner.add_filter { |line| line.delete_prefix(root) }
+    # ```
     def add_filter(&block)
       @filters << block
     end
 
-    # Adds a silencer from the block provided. If the silencer returns +true+
+    # Adds a silencer from the block provided. If the silencer returns `true`
     # for a given line, it will be excluded from the clean backtrace.
     #
-    #   # Will reject all lines that include the word "puma", like "/gems/puma/server.rb" or "/app/my_puma_server/rb"
-    #   backtrace_cleaner.add_silencer { |line| /puma/.match?(line) }
+    # ```
+    # # Will reject all lines that include the word "puma", like "/gems/puma/server.rb" or "/app/my_puma_server/rb"
+    # backtrace_cleaner.add_silencer { |line| /puma/.match?(line) }
+    # ```
     def add_silencer(&block)
       @silencers << block
     end
@@ -121,19 +202,19 @@ module ActiveSupport
 
         gems_regexp = %r{\A(#{gems_paths.join('|')})/(bundler/)?gems/([^/]+)-([\w.]+)/(.*)}
         gems_result = '\3 (\4) \5'
-        add_filter { |line| line.sub(gems_regexp, gems_result) }
+        add_filter(&Ractors.shareable_proc  { |line| line.sub(gems_regexp, gems_result) })
       end
 
       def add_core_silencer
-        add_silencer { |line| line.include?("<internal:") }
+        add_silencer(&Ractors.shareable_proc { |line| line.include?("<internal:") })
       end
 
       def add_gem_silencer
-        add_silencer { |line| FORMATTED_GEMS_PATTERN.match?(line) }
+        add_silencer(&Ractors.shareable_proc  { |line| FORMATTED_GEMS_PATTERN.match?(line) })
       end
 
       def add_stdlib_silencer
-        add_silencer { |line| line.start_with?(RbConfig::CONFIG["rubylibdir"]) }
+        add_silencer(&Ractors.shareable_proc  { |line| line.start_with?(RbConfig::CONFIG["rubylibdir"]) })
       end
 
       def filter_backtrace(backtrace)

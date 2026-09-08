@@ -49,7 +49,15 @@ class ToQueryTest < ActiveSupport::TestCase
   end
 
   def test_empty_array
-    assert_equal "person%5B%5D=", [].to_query("person")
+    assert_equal "person%5B%5D", [].to_query("person")
+  end
+
+  def test_array_with_empty_hash
+    assert_query_equal "a%5B%5D=1&a%5B%5D=2", a: [1, {}, 2]
+  end
+
+  def test_array_with_empty_array
+    assert_query_equal "a%5B%5D=1&a%5B%5D=2", a: [1, [], 2]
   end
 
   def test_nested_empty_hash
@@ -59,7 +67,7 @@ class ToQueryTest < ActiveSupport::TestCase
       a: 1, b: { c: 3, d: {} }
     assert_query_equal "",
       a: { b: { c: {} } }
-    assert_query_equal "b%5Bc%5D=false&b%5Be%5D=&b%5Bf%5D=&p=12",
+    assert_query_equal "b%5Bc%5D=false&b%5Be%5D&b%5Bf%5D=&p=12",
       p: 12, b: { c: false, e: nil, f: "" }
     assert_query_equal "b%5Bc%5D=3&b%5Bf%5D=",
       b: { c: 3, k: {}, f: "" }

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
 
 Action Text Overview
 ====================
@@ -181,13 +181,13 @@ content as follows:
 
 `ActionText::RichText#to_s` safely transforms RichText into an HTML String. On
 the other hand `ActionText::RichText#to_plain_text` returns a string that is not
-HTML safe and should not be rendered in browsers. You can learn more about
-Action Text's sanitization process in the [`ActionText::RichText`
+HTML safe and should not be rendered in browsers without additional sanitization.
+You can learn more about Action Text's sanitization process in the [`ActionText::RichText`
 documentation](https://api.rubyonrails.org/classes/ActionText/RichText.html).
 
 NOTE: If there's an attached resource within `content` field, it might not show
 properly unless you have the necessary [dependencies for Active
-Storage](active_storage_overview.html#requirements) installed.
+Storage](active_storage_overview.html#third-party-software) installed.
 
 ## Customizing the Rich Text Content Editor (Trix)
 
@@ -251,7 +251,7 @@ Storage as well as attachments that are linked to a Signed GlobalID.
 
 When uploading an image within your rich text editor, it uses Action Text which
 in turn uses Active Storage. However, [Active Storage has some
-dependencies](active_storage_overview.html#requirements) which are not provided
+dependencies](active_storage_overview.html#third-party-software) which are not provided
 by Rails. To use the built-in previewers, you must install these libraries.
 
 Some, but not all of these libraries are required and they are dependent on the
@@ -262,12 +262,29 @@ not being installed.
 
 #### Attachment Direct Upload JavaScript Events
 
+Action Text dispatches [Active Storage Direct Upload
+Events](active_storage_overview.html#direct-upload-javascript-events) during the
+File attachment lifecycle.
+
+In addition to the typical `event.detail` properties, Action Text also
+dispatches events with an
+[`event.detail.attachment`](https://github.com/basecamp/trix/?tab=readme-ov-file#inserting-a-file)
+property.
+
 | Event name | Event target | Event data (`event.detail`) | Description |
 | --- | --- | --- | --- |
-| `direct-upload:start` | `<input>` | `{id, file}` | A direct upload is starting. |
-| `direct-upload:progress` | `<input>` | `{id, file, progress}` | As requests to store files progress. |
-| `direct-upload:error` | `<input>` | `{id, file, error}` | An error occurred. An `alert` will display unless this event is canceled. |
-| `direct-upload:end` | `<input>` | `{id, file}` | A direct upload has ended. |
+| `direct-upload:initialize` | `<trix-editor>` | `{id, file, attachment}` | Dispatched for every file after form submission. |
+| `direct-upload:start` | `<trix-editor>` | `{id, file, attachment}` | A direct upload is starting. |
+| `direct-upload:before-blob-request` | `<trix-editor>` | `{id, file, xhr, attachment}` | Before making a request to your application for direct upload metadata. |
+| `direct-upload:before-storage-request` | `<trix-editor>` | `{id, file, xhr, attachment}` | Before making a request to store a file. |
+| `direct-upload:progress` | `<trix-editor>` | `{id, file, progress, attachment}` | As requests to store files progress. |
+| `direct-upload:error` | `<trix-editor>` | `{id, file, error, attachment}` | An error occurred. An `alert` will display unless this event is canceled. |
+| `direct-upload:end` | `<trix-editor>` | `{id, file, attachment}` | A direct upload has ended. |
+
+NOTE: It is possible for files uploaded by Action Text through [Active Storage
+Direct Uploads](active_storage_overview.html#direct-uploads) to never be
+embedded within rich text content. Consider [purging unattached
+uploads](active_storage_overview.html#purging-unattached-uploads-and-detach) regularly.
 
 ### Signed GlobalID
 

@@ -23,7 +23,7 @@ class ActionCable::SubscriptionAdapter::BaseTest < ActionCable::TestCase
 
   test "#subscribe returns NotImplementedError by default" do
     callback = lambda { puts "callback" }
-    success_callback = lambda { puts "success" }
+    success_callback = lambda { raise "success shouldn't be called" }
 
     assert_raises NotImplementedError do
       BrokenAdapter.new(@server).subscribe("channel", callback, success_callback)
@@ -48,11 +48,14 @@ class ActionCable::SubscriptionAdapter::BaseTest < ActionCable::TestCase
 
   test "#subscribe is implemented" do
     callback = lambda { puts "callback" }
-    success_callback = lambda { puts "success" }
+    success_callbacked = false
+    success_callback = lambda { success_callbacked = true }
 
     assert_nothing_raised do
       SuccessAdapter.new(@server).subscribe("channel", callback, success_callback)
     end
+
+    assert success_callbacked
   end
 
   test "#unsubscribe is implemented" do

@@ -109,7 +109,7 @@ module Rails
     end
 
     def bin
-      exclude_pattern = Regexp.union([(/thrust/ if skip_thruster?), (/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?)].compact)
+      exclude_pattern = Regexp.union([(/thrust/ if skip_thruster?), (/rubocop/ if skip_rubocop?), (/brakeman/ if skip_brakeman?), (/bundler-audit/ if skip_bundler_audit?)].compact)
       directory "bin", { exclude_pattern: exclude_pattern } do |content|
         "#{shebang}\n" + content
       end
@@ -127,7 +127,10 @@ module Rails
         template "routes.rb" unless options[:update]
         template "application.rb"
         template "environment.rb"
-        template "cable.yml" unless options[:update] || options[:skip_action_cable]
+        template "bundler-audit.yml" unless skip_bundler_audit?
+        template "bootsnap.rb" if depend_on_bootsnap?
+        template "cable.yml" unless options[:update] || skip_action_cable?
+        template "ci.rb"
         template "puma.rb"
         template "storage.yml" unless options[:update] || skip_active_storage?
 
@@ -140,6 +143,8 @@ module Rails
     def config_when_updating
       action_cable_config_exist       = File.exist?("config/cable.yml")
       active_storage_config_exist     = File.exist?("config/storage.yml")
+      ci_config_exist                 = File.exist?("config/ci.rb")
+      bundle_audit_config_exist       = File.exist?("config/bundler-audit.yml")
       rack_cors_config_exist          = File.exist?("config/initializers/cors.rb")
       assets_config_exist             = File.exist?("config/initializers/assets.rb")
       asset_app_stylesheet_exist      = File.exist?("app/assets/stylesheets/application.css")
@@ -149,12 +154,16 @@ module Rails
 
       config
 
-      if !options[:skip_action_cable] && !action_cable_config_exist
+      if !skip_action_cable? && !action_cable_config_exist
         template "config/cable.yml"
       end
 
       if !skip_active_storage? && !active_storage_config_exist
         template "config/storage.yml"
+      end
+
+      if !ci_config_exist
+        template "config/ci.rb"
       end
 
       if skip_asset_pipeline? && !assets_config_exist
@@ -169,10 +178,19 @@ module Rails
         remove_file "config/initializers/cors.rb"
       end
 
+      if !skip_bundler_audit? && !bundle_audit_config_exist
+        template "config/bundler-audit.yml"
+      end
+
       if options[:api]
         unless csp_config_exist
           remove_file "config/initializers/content_security_policy.rb"
         end
+      end
+
+      current_version = "#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR}"
+      if remove_new_framework_defaults?(config_target_version, current_version)
+        remove_file "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
       end
     end
 
@@ -182,7 +200,12 @@ module Rails
       require "rails/generators/rails/master_key/master_key_generator"
       master_key_generator = Rails::Generators::MasterKeyGenerator.new([], quiet: options[:quiet], force: options[:force])
       master_key_generator.add_master_key_file_silently
-      master_key_generator.ignore_master_key_file_silently
+    end
+
+    def env
+      return if options[:pretend] || options[:dummy_app]
+
+      template "env", ".env"
     end
 
     def credentials
@@ -244,9 +267,10 @@ module Rails
     end
 
     def system_test
-      empty_directory_with_keep_file "test/system"
-
-      template "test/application_system_test_case.rb"
+      if devcontainer? && depends_on_system_test?
+        empty_directory_with_keep_file "test/system"
+        template "test/application_system_test_case.rb"
+      end
     end
 
     def tmp
@@ -272,9 +296,10 @@ module Rails
         dev: options[:dev],
         node: using_node?,
         app_name: app_name,
-        skip_solid: options[:skip_solid]
+        app_folder: File.basename(app_path),
+        skip_solid: options[:skip_solid],
+        pretend: options[:pretend]
       }
-
       Rails::Generators::DevcontainerGenerator.new([], devcontainer_options).invoke_all
     end
   end
@@ -305,11 +330,19 @@ module Rails
             :skip_active_job,
             :skip_active_storage,
             :skip_bootsnap,
+            :skip_brakeman,
+            :skip_bundler_audit,
+            :skip_ci,
             :skip_dev_gems,
+            :skip_docker,
             :skip_hotwire,
             :skip_javascript,
             :skip_jbuilder,
+            :skip_kamal,
+            :skip_rubocop,
+            :skip_solid,
             :skip_system_test,
+            :skip_thruster
           ],
           api: [
             :skip_asset_pipeline,
@@ -319,7 +352,7 @@ module Rails
           implications + more_implications
         end
 
-      META_OPTIONS = [:minimal] # :nodoc:
+      META_OPTIONS = [:minimal].freeze # :nodoc:
 
       def self.apply_rails_template(template, destination) # :nodoc:
         generator = new([destination], { template: template }, { destination_root: destination })
@@ -406,7 +439,8 @@ module Rails
         build(:master_key)
       end
 
-      def create_credentials
+      def create_creds
+        build(:env)
         build(:credentials)
         build(:credentials_diff_enroll)
       end
@@ -455,7 +489,7 @@ module Rails
       end
 
       def create_system_test_files
-        build(:system_test) if depends_on_system_test?
+        build(:system_test)
       end
 
       def create_storage_files
@@ -563,7 +597,6 @@ module Rails
       public_task :apply_rails_template
       public_task :run_bundle
       public_task :add_bundler_platforms
-      public_task :generate_bundler_binstub
       public_task :run_javascript
       public_task :run_hotwire
       public_task :run_css
@@ -581,6 +614,10 @@ module Rails
     # :startdoc:
 
     private
+      def remove_new_framework_defaults?(target_version, current_version)
+        Gem::Version.new(target_version.to_s) >= Gem::Version.new(current_version.to_s)
+      end
+
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)
         create_file(*args, &block)

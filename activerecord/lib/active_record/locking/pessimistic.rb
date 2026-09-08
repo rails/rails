@@ -44,12 +44,14 @@ module ActiveRecord
     #
     # You can start a transaction and acquire the lock in one go by calling
     # <tt>with_lock</tt> with a block. The block is called from within
-    # a transaction, the object is already locked. Example:
+    # a transaction, the object is already locked, and the transaction is
+    # yielded so you can register callbacks. Example:
     #
     #   account = Account.first
-    #   account.with_lock do
+    #   account.with_lock do |transaction|
     #     # This block is called within a transaction,
     #     # account is already locked.
+    #     transaction.after_commit { puts "hello" }
     #     account.balance -= 100
     #     account.save!
     #   end
@@ -67,6 +69,10 @@ module ActiveRecord
       # or pass true for "FOR UPDATE" (the default, an exclusive row lock). Returns
       # the locked record.
       def lock!(lock = true)
+        if self.class.current_preventing_writes
+          raise ActiveRecord::ReadOnlyError, "Lock query attempted while in readonly mode"
+        end
+
         if persisted?
           if has_changes_to_save?
             raise(<<-MSG.squish)
@@ -79,11 +85,13 @@ module ActiveRecord
 
           reload(lock: lock)
         end
+
         self
       end
 
       # Wraps the passed block in a transaction, reloading the object with a
-      # lock before yielding. You can pass the SQL locking clause
+      # lock before yielding. Yields the current transaction so you can
+      # register callbacks. You can pass the SQL locking clause
       # as an optional argument (see #lock!).
       #
       # You can also pass options like <tt>requires_new:</tt>, <tt>isolation:</tt>,
@@ -92,9 +100,9 @@ module ActiveRecord
       def with_lock(*args)
         transaction_opts = args.extract_options!
         lock = args.present? ? args.first : true
-        transaction(**transaction_opts) do
+        transaction(**transaction_opts) do |transaction|
           lock!(lock)
-          yield
+          yield transaction
         end
       end
     end

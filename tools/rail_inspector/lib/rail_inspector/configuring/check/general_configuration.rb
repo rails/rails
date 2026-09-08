@@ -14,14 +14,14 @@ module RailInspector
           def call
             visitor = Visitor::Attribute.new
             visitor.visit(app_config_tree)
-            visitor.attribute_map[APP_CONFIG_CONST]["attr_accessor"]
+            visitor.attribute_map[APP_CONFIG_CONST][:attr_accessor]
           end
 
           private
             APP_CONFIG_CONST = "Rails::Application::Configuration"
 
             def app_config_tree
-              @checker.parse(APPLICATION_CONFIGURATION_PATH)
+              @checker.files.application_configuration.parse
             end
         end
 

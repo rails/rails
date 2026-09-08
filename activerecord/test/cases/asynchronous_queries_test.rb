@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "support/connection_helper"
 require "models/post"
 
 module AsynchronousQueriesSharedTests
+  include ActiveRecord::TestCase::WaitForTestHelper
+
   def test_async_select_failure
     if in_memory_db?
       assert_raises ActiveRecord::StatementInvalid do
@@ -44,41 +45,30 @@ module AsynchronousQueriesSharedTests
   end
 
   def test_async_query_foreground_fallback
-    status = {}
-
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      if event.payload[:sql] == "SELECT * FROM does_not_exists"
-        status[:executed] = true
-        status[:async] = event.payload[:async]
-      end
-    end
-
-    @connection.pool.stub(:schedule_query, proc { }) do
-      if in_memory_db?
-        assert_raises ActiveRecord::StatementInvalid do
-          @connection.select_all "SELECT * FROM does_not_exists", async: true
-        end
-      else
-        future_result = @connection.select_all "SELECT * FROM does_not_exists", async: true
-        assert_kind_of ActiveRecord::FutureResult, future_result
-        assert_raises ActiveRecord::StatementInvalid do
-          future_result.result
+    events = capture_notifications("sql.active_record") do
+      @connection.pool.stub(:schedule_query, proc { }) do
+        if in_memory_db?
+          assert_raises ActiveRecord::StatementInvalid do
+            @connection.select_all "SELECT * FROM does_not_exists", async: true
+          end
+        else
+          future_result = @connection.select_all "SELECT * FROM does_not_exists", async: true
+          assert_kind_of ActiveRecord::FutureResult, future_result
+          assert_raises ActiveRecord::StatementInvalid do
+            future_result.result
+          end
         end
       end
     end
 
-    assert_equal true, status[:executed]
-    assert_equal false, status[:async]
-  ensure
-    ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    event = events.find { _1.payload[:sql] == "SELECT * FROM does_not_exists" }
+    assert_not_nil event
+    assert_equal false, event.payload[:async]
   end
 
   private
     def wait_for_future_result(result)
-      500.times do
-        break unless result.pending?
-        sleep 0.02
-      end
+      wait_for(message: "future result still pending", timeout: 10, interval: 0.02) { !result.pending? }
     end
 end
 
@@ -92,29 +82,145 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
   end
 
   def test_async_select_all
-    status = {}
+    events = capture_notifications("sql.active_record") do
+      future_result = @connection.select_all "SELECT * FROM posts", async: true
 
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      if event.payload[:sql] == "SELECT * FROM posts"
-        status[:executed] = true
-        status[:async] = event.payload[:async]
+      if in_memory_db?
+        assert_kind_of ActiveRecord::FutureResult::Complete, future_result
+      else
+        assert_kind_of ActiveRecord::FutureResult, future_result
+        wait_for_future_result(future_result)
+      end
+
+      assert_kind_of ActiveRecord::Result, future_result.result
+    end
+
+    event = events.find { _1.payload[:sql] == "SELECT * FROM posts" }
+    assert_not_nil event
+    assert_equal @connection.supports_concurrent_connections?, event.payload[:async]
+  end
+
+  def test_async_query_retries_query_failure
+    skip unless @connection.async_enabled?
+
+    failure = ActiveRecord::LockWaitTimeout.new("lock wait timeout")
+    matching = ->(intent) { intent.name == "Async Retry" }
+
+    with_async_query_failures([failure], matching: matching) do |attempts|
+      future_result = @connection.select_all(
+        "SELECT 1 AS value", "Async Retry", async: true, allow_retry: true
+      )
+      wait_for_future_result(future_result)
+
+      assert_equal 2, attempts.value
+      assert_equal [[1]], future_result.result.rows
+    end
+  end
+
+  def test_async_query_reports_failure_after_retries_are_exhausted
+    skip unless @connection.async_enabled?
+    skip unless @connection.connection_retries > 0
+
+    failure = ActiveRecord::LockWaitTimeout.new("lock wait timeout")
+    matching = ->(intent) { intent.name == "Async Retry Exhausted" }
+
+    with_async_query_failures([failure], matching: matching, repeat_last: true) do |attempts|
+      future_result = @connection.select_all(
+        "SELECT 1 AS value", "Async Retry Exhausted", async: true, allow_retry: true
+      )
+      wait_for_async_query(@connection)
+
+      assert_operator attempts.value, :>, 1
+      error = assert_raises(ActiveRecord::LockWaitTimeout) { future_result.result }
+      assert_equal "lock wait timeout", error.message
+    end
+  end
+
+  def test_async_query_retries_connection_failure
+    skip unless @connection.async_enabled?
+
+    failure = ActiveRecord::ConnectionFailed.new("connection failed")
+    matching = ->(intent) { intent.name == "Async Connection Retry" }
+
+    with_async_query_failures([failure], matching: matching) do |attempts|
+      future_result = @connection.select_all(
+        "SELECT 1 AS value", "Async Connection Retry", async: true, allow_retry: true
+      )
+      wait_for_future_result(future_result)
+
+      assert_equal 2, attempts.value
+      assert_equal [[1]], future_result.result.rows
+    end
+  end
+
+  def test_async_query_foreground_fallback_retries_query_failure
+    skip unless @connection.async_enabled?
+
+    failure = ActiveRecord::LockWaitTimeout.new("lock wait timeout")
+    matching = ->(intent) { intent.name == "Async Fallback Retry" }
+
+    with_async_query_failures([failure], matching: matching) do |attempts|
+      @connection.pool.stub(:schedule_query, proc { }) do
+        future_result = @connection.select_all(
+          "SELECT 1 AS value", "Async Fallback Retry", async: true, allow_retry: true
+        )
+
+        assert_equal [[1]], future_result.result.rows
+      end
+
+      assert_equal 2, attempts.value
+    end
+  end
+
+  def test_load_async_retries_query_failure
+    skip unless @connection.async_enabled?
+
+    failure = ActiveRecord::LockWaitTimeout.new("lock wait timeout")
+    matching = ->(intent) { intent.name == "Post Load" }
+
+    with_async_query_failures([failure], matching: matching) do |attempts|
+      deferred_posts = Post.where(id: -1).load_async
+      wait_for_async_query(@connection)
+
+      assert_equal 2, attempts.value
+      assert_empty deferred_posts.to_a
+    end
+  end
+
+  private
+    def with_async_query_failures(failures, matching:, repeat_last: false)
+      adapter_class = @connection.class
+      original_perform_query = adapter_class.instance_method(:perform_query)
+      visibility = if adapter_class.private_instance_methods(false).include?(:perform_query)
+        :private
+      elsif adapter_class.protected_instance_methods(false).include?(:perform_query)
+        :protected
+      elsif adapter_class.instance_methods(false).include?(:perform_query)
+        :public
+      end
+      attempts = Concurrent::AtomicFixnum.new
+
+      adapter_class.send(:define_method, :perform_query) do |raw_connection, intent|
+        if matching.call(intent)
+          attempt = attempts.increment
+          failure = failures[attempt - 1]
+          failure ||= failures.last if repeat_last
+          raise failure if failure
+        end
+
+        original_perform_query.bind_call(self, raw_connection, intent)
+      end
+      adapter_class.send(:private, :perform_query)
+
+      yield attempts
+    ensure
+      if visibility
+        adapter_class.send(:define_method, :perform_query, original_perform_query)
+        adapter_class.send(visibility, :perform_query)
+      else
+        adapter_class.send(:remove_method, :perform_query)
       end
     end
-
-    future_result = @connection.select_all "SELECT * FROM posts", async: true
-
-    if in_memory_db?
-      assert_kind_of ActiveRecord::FutureResult::Complete, future_result
-    else
-      assert_kind_of ActiveRecord::FutureResult, future_result
-      wait_for_future_result(future_result)
-    end
-
-    assert_kind_of ActiveRecord::Result, future_result.result
-    assert_equal @connection.supports_concurrent_connections?, status[:async]
-  ensure
-    ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
-  end
 end
 
 class AsynchronousQueriesWithTransactionalTest < ActiveRecord::TestCase
@@ -127,6 +233,10 @@ class AsynchronousQueriesWithTransactionalTest < ActiveRecord::TestCase
 end
 
 class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
+  def teardown
+    clean_up_connection_handler
+  end
+
   def test_null_configuration_uses_a_single_null_executor_by_default
     old_value = ActiveRecord.async_query_executor
     ActiveRecord.async_query_executor = nil
@@ -145,7 +255,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
 
     assert_equal 2, handler.connection_pool_list(:all).count
   ensure
-    clean_up_connection_handler
     ActiveRecord.async_query_executor = old_value
   end
 
@@ -178,7 +287,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal 2, handler.connection_pool_list(:all).count
     assert_equal async_pool1, async_pool2
   ensure
-    clean_up_connection_handler
     ActiveRecord.async_query_executor = old_value
   end
 
@@ -215,7 +323,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal 2, handler.connection_pool_list(:all).count
     assert_equal async_pool1, async_pool2
   ensure
-    clean_up_connection_handler
     ActiveRecord.global_executor_concurrency = old_concurrency
     ActiveRecord.async_query_executor = old_value
     ActiveRecord.instance_variable_set(:@global_thread_pool_async_query_executor, old_global_thread_pool_async_query_executor)
@@ -269,7 +376,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal 2, handler.connection_pool_list(:all).count
     assert_not_equal async_pool1, async_pool2
   ensure
-    clean_up_connection_handler
     ActiveRecord.async_query_executor = old_value
   end
 
@@ -304,7 +410,6 @@ class AsynchronousExecutorTypeTest < ActiveRecord::TestCase
     assert_equal 2, handler.connection_pool_list(:all).count
     assert_not_equal async_pool1, async_pool2
   ensure
-    clean_up_connection_handler
     ActiveRecord.async_query_executor = old_value
   end
 end

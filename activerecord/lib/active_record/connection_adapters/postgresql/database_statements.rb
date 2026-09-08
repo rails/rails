@@ -4,20 +4,23 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module DatabaseStatements
-        def explain(arel, binds = [], options = [])
-          sql    = build_explain_clause(options) + " " + to_sql(arel, binds)
-          result = internal_exec_query(sql, "EXPLAIN", binds)
+        def explain(arel_or_sql, binds = [], options = [])
+          sql, binds = to_sql_and_binds(arel_or_sql, binds)
+          sql = build_explain_clause(options) + " " + sql
+          result = select_all(sql, "EXPLAIN", binds)
           PostgreSQL::ExplainPrettyPrinter.new.pp(result)
         end
 
         # Queries the database and returns the results in an Array-like object
-        def query(sql, name = nil) # :nodoc:
-          result = internal_execute(sql, name)
+        def query_rows(sql, name = "SCHEMA", allow_retry: true, materialize_transactions: false) # :nodoc:
+          intent = internal_build_intent(sql, name, allow_retry:, materialize_transactions:)
+          intent.execute!
+          result = intent.raw_result
           result.map_types!(@type_map_for_results).values
         end
 
         READ_QUERY = ActiveRecord::ConnectionAdapters::AbstractAdapter.build_read_query_regexp(
-          :close, :declare, :fetch, :move, :set, :show
+          :close, :declare, :fetch, :move, :set, :show, :reset
         ) # :nodoc:
         private_constant :READ_QUERY
 
@@ -27,62 +30,50 @@ module ActiveRecord
           !READ_QUERY.match?(sql.b)
         end
 
-        # Executes an SQL statement, returning a PG::Result object on success
-        # or raising a PG::Error exception otherwise.
-        #
-        # Setting +allow_retry+ to true causes the db to reconnect and retry
-        # executing the SQL statement in case of a connection-related exception.
-        # This option should only be enabled for known idempotent queries.
-        #
-        # Note: the PG::Result object is manually memory managed; if you don't
-        # need it specifically, you may want consider the <tt>exec_query</tt> wrapper.
-        def execute(...) # :nodoc:
+        def insert(arel_or_sql, name = nil, pk = nil, id_value = nil, sequence_name = nil, binds = [], returning: nil) # :nodoc:
+          sequence_name, pk = resolve_currval_for_insert(arel_or_sql, pk, sequence_name, returning)
           super
-        ensure
-          @notice_receiver_sql_warnings = []
         end
 
         def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil, returning: nil) # :nodoc:
-          if use_insert_returning? || pk == false
+          sequence_name, pk = resolve_currval_for_insert(sql, pk, sequence_name, returning)
+          super
+        end
+
+        def _exec_insert(intent, sequence_name = nil, returning: nil) # :nodoc:
+          if @use_insert_returning || !returning.nil?
             super
           else
-            result = internal_exec_query(sql, name, binds)
-            unless sequence_name
-              table_ref = extract_table_ref_from_insert_sql(sql)
-              if table_ref
-                pk = primary_key(table_ref) if pk.nil?
-                pk = suppress_composite_primary_key(pk)
-                sequence_name = default_sequence_name(table_ref, pk)
-              end
-              return result unless sequence_name
-            end
-            last_insert_id_result(sequence_name)
+            intent.execute!
+            result = intent.cast_result
+            return result unless sequence_name
+            query_all("SELECT currval(#{quote(sequence_name)})", "SQL")
           end
         end
 
         # Begins a transaction.
         def begin_db_transaction # :nodoc:
-          internal_execute("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("BEGIN", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         def begin_isolated_db_transaction(isolation) # :nodoc:
-          internal_execute("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+          query_command("BEGIN ISOLATION LEVEL #{transaction_isolation_levels.fetch(isolation)}", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 
         # Commits a transaction.
         def commit_db_transaction # :nodoc:
-          internal_execute("COMMIT", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+          query_command("COMMIT", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         # Aborts a transaction.
         def exec_rollback_db_transaction # :nodoc:
           cancel_any_running_query
-          internal_execute("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+          query_command("ROLLBACK", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         def exec_restart_db_transaction # :nodoc:
           cancel_any_running_query
-          internal_execute("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, materialize_transactions: true)
+          query_command("ROLLBACK AND CHAIN", "TRANSACTION", allow_retry: false, materialize_transactions: true)
         end
 
         # From https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
@@ -95,6 +86,10 @@ module ActiveRecord
 
         def build_explain_clause(options = [])
           return "EXPLAIN" if options.empty?
+
+          options = options.flat_map do |option|
+            option.is_a?(Hash) ? option.to_a.map { |nested| nested.join(" ") } : option
+          end
 
           "EXPLAIN (#{options.join(", ").upcase})"
         end
@@ -120,25 +115,75 @@ module ActiveRecord
           execute("SET CONSTRAINTS #{constraints} #{deferred.to_s.upcase}")
         end
 
+        def execute_batch(statements, name = nil, **kwargs) # :nodoc:
+          intent = QueryIntent.new(
+            adapter: self,
+            processed_sql: combine_multi_statements(statements),
+            name: name,
+            batch: true,
+            binds: kwargs[:binds] || [],
+            prepare: kwargs[:prepare] || false,
+            allow_async: kwargs[:async] || false,
+            allow_retry: kwargs[:allow_retry] || false,
+            materialize_transactions: kwargs[:materialize_transactions] != false
+          )
+          intent.execute!
+          intent.finish
+        end
+
         private
-          IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR]
+          IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR].freeze
           private_constant :IDLE_TRANSACTION_STATUSES
+
+          # When RETURNING is globally disabled, a positional `pk` was
+          # historically the signal to use the currval fallback in
+          # `_exec_insert`. Resolve `sequence_name` from the caller's `pk` (or
+          # the schema cache's primary key) so the fallback still runs against
+          # the intended sequence — including on tables where a `BEFORE INSERT`
+          # trigger short-circuits `RETURNING` (e.g. partitioned inheritance).
+          # Then drop `pk` to skip the abstract's translation into `returning:`
+          # (which would force the RETURNING path and bypass the fallback).
+          def resolve_currval_for_insert(arel_or_sql, pk, sequence_name, returning)
+            return [sequence_name, pk] if @use_insert_returning
+            return [sequence_name, pk] if !returning.nil? || pk == false
+
+            if sequence_name.nil? && (table_ref = table_ref_for_insert(arel_or_sql))
+              effective_pk = pk || schema_cache.primary_keys(table_ref)
+              sequence_name = default_sequence_name(table_ref, effective_pk) if effective_pk
+            end
+
+            [sequence_name, nil]
+          end
 
           def cancel_any_running_query
             return if @raw_connection.nil? || IDLE_TRANSACTION_STATUSES.include?(@raw_connection.transaction_status)
 
-            @raw_connection.cancel
+            # Skip @raw_connection.cancel (PG::Connection#cancel) when using libpq >= 18 with pg < 1.6.0,
+            # because the pg gem cannot obtain the backend_key in that case.
+            # This method is only called from exec_rollback_db_transaction and exec_restart_db_transaction.
+            # Even without cancel, rollback will still run. However, since any running
+            # query must finish first, the rollback may take longer.
+            if !(PG.library_version >= 18_00_00 && Gem::Version.new(PG::VERSION) < Gem::Version.new("1.6.0"))
+              @raw_connection.cancel
+            end
             @raw_connection.block
           rescue PG::Error
           end
 
-          def perform_query(raw_connection, sql, binds, type_casted_binds, prepare:, notification_payload:, batch: false)
-            update_typemap_for_default_timezone
-            result = if prepare
+          def perform_query(raw_connection, intent)
+            if fatal = consume_notice_receiver_fatal_error
+              raise fatal
+            end
+
+            raw_connection.discard_results
+
+            if intent.prepare
               begin
-                stmt_key = prepare_statement(sql, binds, raw_connection)
-                notification_payload[:statement_name] = stmt_key
-                raw_connection.exec_prepared(stmt_key, type_casted_binds)
+                stmt_key = prepare_statement(intent.processed_sql, intent.binds, raw_connection)
+                intent.notification_payload[:statement_name] = stmt_key
+                raw_connection.send_query_prepared(stmt_key, intent.type_casted_binds)
+                result = get_result(raw_connection)
+                result&.check
               rescue PG::FeatureNotSupported => error
                 if is_cached_plan_failure?(error)
                   # Nothing we can do if we are in a transaction because all commands
@@ -148,7 +193,7 @@ module ActiveRecord
                   else
                     @lock.synchronize do
                       # outside of transactions we can simply flush this query and retry
-                      @statements.delete sql_key(sql)
+                      @statements.delete sql_key(intent.processed_sql)
                     end
                     retry
                   end
@@ -156,34 +201,59 @@ module ActiveRecord
 
                 raise
               end
-            elsif binds.nil? || binds.empty?
-              raw_connection.async_exec(sql)
             else
-              raw_connection.exec_params(sql, type_casted_binds)
+              if intent.has_binds?
+                raw_connection.send_query_params(intent.processed_sql, intent.type_casted_binds)
+              else
+                raw_connection.send_query(intent.processed_sql)
+              end
+
+              result = get_result(raw_connection)
+              result&.check
             end
 
             verified!
-            handle_warnings(result)
 
-            notification_payload[:affected_rows] = result.cmd_tuples
-            notification_payload[:row_count] = result.count
+            intent.notification_payload[:affected_rows] = result.cmd_tuples
+            intent.notification_payload[:row_count] = result.ntuples
             result
           end
 
           def cast_result(result)
-            if result.fields.empty?
-              result.clear
-              return ActiveRecord::Result.empty
+            ar_result = if result.fields.empty?
+              ActiveRecord::Result.empty(affected_rows: result.cmd_tuples)
+            else
+              fields = result.fields
+              types = Array.new(fields.size)
+              field_types = Array.new(fields.size)
+              missing_oids = []
+
+              fields.size.times do |index|
+                ftype = result.ftype(index)
+                field_types[index] = ftype
+                missing_oids << ftype unless type_map.key?(ftype)
+              end
+
+              if missing_oids.any?
+                load_additional_types(missing_oids)
+
+                fields.size.times do |index|
+                  ftype = field_types[index]
+                  next if type_map.key?(ftype)
+
+                  register_unknown_oid_type(ftype, fields[index])
+                end
+              end
+
+              fields.size.times do |index|
+                ftype = field_types[index]
+                fmod  = result.fmod(index)
+                types[index] = get_oid_type(ftype, fmod, fields[index])
+              end
+
+              ActiveRecord::Result.new(fields, result.values, types.freeze, affected_rows: result.cmd_tuples)
             end
 
-            types = {}
-            fields = result.fields
-            fields.each_with_index do |fname, i|
-              ftype = result.ftype i
-              fmod  = result.fmod i
-              types[fname] = types[i] = get_oid_type(ftype, fmod, fname)
-            end
-            ar_result = ActiveRecord::Result.new(fields, result.values, types.freeze)
             result.clear
             ar_result
           end
@@ -194,38 +264,30 @@ module ActiveRecord
             affected_rows
           end
 
-          def execute_batch(statements, name = nil, **kwargs)
-            raw_execute(combine_multi_statements(statements), name, batch: true, **kwargs)
-          end
-
           def build_truncate_statements(table_names)
             ["TRUNCATE TABLE #{table_names.map(&method(:quote_table_name)).join(", ")}"]
           end
 
-          # Returns the current ID of a table's sequence.
-          def last_insert_id_result(sequence_name)
-            internal_exec_query("SELECT currval(#{quote(sequence_name)})", "SQL")
-          end
-
-          def returning_column_values(result)
-            result.rows.first
-          end
-
-          def suppress_composite_primary_key(pk)
-            pk unless pk.is_a?(Array)
-          end
-
-          def handle_warnings(sql)
-            @notice_receiver_sql_warnings.each do |warning|
-              next if warning_ignored?(warning)
-
-              warning.sql = sql
-              ActiveRecord.db_warnings_action.call(warning)
-            end
+          def collect_warnings(_result)
+            warnings, @notice_receiver_sql_warnings = @notice_receiver_sql_warnings, []
+            warnings
           end
 
           def warning_ignored?(warning)
             ["WARNING", "ERROR", "FATAL", "PANIC"].exclude?(warning.level) || super
+          end
+
+          def get_result(raw_connection)
+            result = nil
+            while incoming = raw_connection.get_result
+              result&.clear
+              result = incoming
+
+              if result.result_status == PG::PGRES_FATAL_ERROR
+                result.check if connection_terminating_severity?(result)
+              end
+            end
+            result
           end
       end
     end

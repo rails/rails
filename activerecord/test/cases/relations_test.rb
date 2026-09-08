@@ -2,6 +2,7 @@
 
 require "pp"
 require "cases/helper"
+require "support/deprecated_associations_test_helpers.rb"
 require "models/tag"
 require "models/tagging"
 require "models/post"
@@ -19,15 +20,18 @@ require "models/contract"
 require "models/bird"
 require "models/car"
 require "models/engine"
-require "models/tyre"
+require "models/tire"
 require "models/minivan"
 require "models/possession"
 require "models/reader"
 require "models/category"
 require "models/categorization"
 require "models/edge"
+require "models/clothing_item"
+require "models/wheel"
 require "models/subscriber"
 require "models/cpk"
+require "models/dats"
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans, :cpk_orders
@@ -46,12 +50,12 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_two_scopes_with_includes_should_not_drop_any_include
     # heat habtm cache
-    car = Car.incl_engines.incl_tyres.first
-    car.tyres.length
+    car = Car.incl_engines.incl_tires.first
+    car.tires.length
     car.engines.length
 
-    car = Car.incl_engines.incl_tyres.first
-    assert_no_queries { car.tyres.length }
+    car = Car.incl_engines.incl_tires.first
+    assert_no_queries { car.tires.length }
     assert_no_queries { car.engines.length }
   end
 
@@ -169,16 +173,16 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_subquery
     relation = Topic.where(approved: true)
-    assert_equal relation.to_a, Topic.select("*").from(relation).to_a
-    assert_equal relation.to_a, Topic.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Topic.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Topic.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Topic.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Topic.select("a.*").from(relation, :a).to_a
   end
 
   def test_finding_with_subquery_with_binds
     relation = Post.first.comments
-    assert_equal relation.to_a, Comment.select("*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Comment.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("a.*").from(relation, :a).to_a
   end
 
   def test_finding_with_subquery_without_select_does_not_change_the_select
@@ -251,9 +255,21 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_subquery_with_eager_loading_in_from
     relation = Comment.includes(:post).where("posts.type": "Post").order(:id)
-    assert_equal relation.to_a, Comment.select("*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Comment.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+  end
+
+  unless current_adapter?(:SQLite3Adapter)
+    def test_select_with_union_in_from
+      arel1 = Comment.where(id: 1).arel
+      arel2 = Comment.where(id: 2).arel
+      union = Arel::Nodes::Union.new(arel1, arel2)
+      expected = [comments(:greetings), comments(:more_greetings)]
+
+      assert_equal_unordered expected, Comment.select("subquery.*").from(union).to_a
+      assert_equal_unordered expected, Comment.select("a.*").from(union, :a).to_a
+    end
   end
 
   def test_finding_with_subquery_with_eager_loading_in_where
@@ -365,9 +381,36 @@ class RelationTest < ActiveRecord::TestCase
   end if current_adapter?(:PostgreSQLAdapter)
 
   def test_default_reverse_order_on_table_without_primary_key
-    assert_raises(ActiveRecord::IrreversibleOrderError) do
+    error = assert_raises(ActiveRecord::IrreversibleOrderError) do
       Edge.all.reverse_order
     end
+    assert_match(/Relation has no order values/, error.message)
+  end
+
+  def test_default_reverse_order_on_table_without_primary_key_with_implicit_order_column
+    ordered_edge = Class.new(Edge) do
+      self.implicit_order_column = "source_id"
+    end
+
+    ordered_edge.delete_all
+
+    edge_1 = ordered_edge.create!(source_id: 1, sink_id: 2)
+    edge_2 = ordered_edge.create!(source_id: 2, sink_id: 3)
+    assert_equal edge_1.source_id, ordered_edge.all.first.source_id
+    assert_equal edge_2.source_id, ordered_edge.all.reverse_order.first.source_id
+  end
+
+  def test_reverse_order_uses_query_constraints
+    ClothingItem.delete_all
+    # Insert so that the id order is the reverse of the query_constraints order,
+    # to catch a reverse_order that falls back to ordering by the primary key.
+    zzz = ClothingItem.create!(clothing_type: "zzz", color: "red")
+    aaa = ClothingItem.create!(clothing_type: "aaa", color: "blue")
+
+    assert_equal aaa.id, ClothingItem.all.first.id
+    assert_equal zzz.id, ClothingItem.all.last.id
+    assert_equal zzz.id, ClothingItem.all.reverse_order.first.id
+    assert_equal aaa.id, ClothingItem.all.reverse_order.last.id
   end
 
   def test_order_with_hash_and_symbol_generates_the_same_sql
@@ -435,6 +478,16 @@ class RelationTest < ActiveRecord::TestCase
   def test_reorder_deduplication
     topics = Topic.reorder("id desc", "id desc")
     assert_equal ["id desc"], topics.order_values
+  end
+
+  def test_regroup_deduplication
+    topics = Topic.regroup(:author_id, :author_id)
+    assert_equal [:author_id], topics.group_values
+  end
+
+  def test_default_order_deduplication
+    topics = Topic.default_order("id desc", "id desc")
+    assert_equal ["id desc"], topics.default_order_values
   end
 
   def test_finding_with_reorder_by_aliased_attributes
@@ -1350,13 +1403,13 @@ class RelationTest < ActiveRecord::TestCase
   def test_create_with_block
     sparrow = Bird.create do |bird|
       bird.name = "sparrow"
-      bird.color = "grey"
+      bird.color = "gray"
     end
 
     assert_kind_of Bird, sparrow
     assert_predicate sparrow, :persisted?
     assert_equal "sparrow", sparrow.name
-    assert_equal "grey", sparrow.color
+    assert_equal "gray", sparrow.color
   end
 
   def test_create_bang_with_array
@@ -1536,7 +1589,7 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     relation.stub(:find_by, find_by_mock) do
-      relation.stub(:find_by!, find_by_mock) do # create_or_find_by always call find_by! on retry
+      relation.stub(:take!, find_by_mock) do # use :take! instead of :find_by! because of the rewhere change
         assert_equal bob, relation.find_or_create_by(nick: "bob")
       end
     end
@@ -1578,6 +1631,48 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal subscriber, Subscriber.create_or_find_by(nick: "bob")
     assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
+  end
+
+  def test_create_or_find_by_with_polluted_scope
+    subscriber = Subscriber.create!(nick: "bob")
+
+    scoped_relation = Subscriber.where(nick: "alice")
+
+    assert_equal subscriber, scoped_relation.create_or_find_by(nick: "bob")
+  end
+
+  def test_create_or_find_by_bang_with_polluted_scope
+    subscriber = Subscriber.create!(nick: "bob")
+    scoped_relation = Subscriber.where(nick: "alice")
+
+    assert_equal subscriber, scoped_relation.create_or_find_by!(nick: "bob")
+  end
+
+  def test_create_or_find_by_rollbacks_a_transaction
+    assert_no_difference(-> { Car.count }) do
+      car = BrokenCar.create_or_find_by(name: "Civic")
+
+      assert_instance_of(BrokenCar, car)
+      assert_not_predicate(car, :persisted?)
+    end
+  end
+
+  def test_create_or_find_by_bang_rollbacks_a_transaction
+    assert_no_difference(-> { Car.count }) do
+      car = BrokenCar.create_or_find_by!(name: "Civic")
+
+      assert_instance_of(BrokenCar, car)
+      assert_not_predicate(car, :persisted?)
+    end
+  end
+
+  def test_create_or_find_by_on_a_collections_rollbacks_a_transaction_when_owner_is_not_persisted
+    car = BrokenCar.create(name: "Civic")
+    assert_not_predicate(car, :persisted?)
+
+    assert_raises(ActiveRecord::RecordNotSaved) do
+      car.wheels.create_or_find_by!(size: 1500)
+    end
   end
 
   def test_create_or_find_by_with_block
@@ -1730,7 +1825,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_anonymous_extension
     relation = Post.where(author_id: 1).order("id ASC").extending do
-      def author
+      def author # rubocop:disable Lint/NestedMethodDefinition
         "lifo"
       end
     end
@@ -1953,6 +2048,25 @@ class RelationTest < ActiveRecord::TestCase
     assert_nil relation.order_values.first
   end
 
+  def test_default_order
+    comments = posts(:welcome).comments.default_order(:body)
+    assert_equal [2, 1], comments.pluck(:id)
+    assert_equal 2, comments.first.id
+
+    comments = comments.order(:id)
+    assert_equal [1, 2], comments.pluck(:id)
+    assert_equal 1, comments.first.id
+  end
+
+  def test_reverse_order_reverses_default_order
+    # reverse_order should reverse the default order, just like a regular
+    # order, rather than discarding it in favor of the primary key.
+    assert_equal Post.order("title ASC").reverse_order.ids, Post.default_order("title ASC").reverse_order.ids
+
+    relation = Post.default_order("title ASC").reverse_order
+    assert_match(/ORDER BY title DESC/, relation.to_sql)
+  end
+
   def test_reorder_with_first
     post = nil
 
@@ -2106,13 +2220,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "relations show the records in #inspect" do
-    relation = Post.limit(2)
-    assert_equal "#<ActiveRecord::Relation [#{Post.limit(2).map(&:inspect).join(', ')}]>", relation.inspect
+    relation = Post.order(:id).limit(2)
+    assert_equal "#<ActiveRecord::Relation [#{Post.order(:id).limit(2).map(&:inspect).join(', ')}]>", relation.inspect
   end
 
   test "relations limit the records in #inspect at 10" do
-    relation = Post.limit(11)
-    assert_equal "#<ActiveRecord::Relation [#{Post.limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
+    relation = Post.order(:id).limit(11)
+    assert_equal "#<ActiveRecord::Relation [#{Post.order(:id).limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
   end
 
   test "relations don't load all records in #inspect" do
@@ -2510,5 +2624,231 @@ class CreateOrFindByWithinTransactions < ActiveRecord::TestCase
 
         assert_equal 1, Subscriber.where(nick: "bob").count
       end
+  end
+end
+
+class DeprecatedAssociationsRelationSimpleTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :cars
+
+  setup do
+    @model = DATS::Car
+  end
+
+  test "includes reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.includes(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_preload) do
+      @model.includes(:deprecated_tires).to_a
+    end
+  end
+
+  test "eager_load reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.eager_load(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.eager_load(:deprecated_tires).to_a
+    end
+  end
+
+  test "preload reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.preload(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_preload) do
+      @model.preload(:deprecated_tires).to_a
+    end
+  end
+
+  test "extract_associated reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.extract_associated(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_preload) do
+      @model.extract_associated(:deprecated_tires).to_a
+    end
+  end
+
+  test "joins reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.joins(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.joins(:deprecated_tires).to_a
+    end
+  end
+
+  test "left_outer_joins reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.left_outer_joins(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.left_outer_joins(:deprecated_tires).to_a
+    end
+  end
+
+  test "left_joins reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.left_joins(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.left_joins(:deprecated_tires).to_a
+    end
+  end
+
+  test "associated reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.where.associated(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.where.associated(:deprecated_tires).to_a
+    end
+  end
+
+  test "missing reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.where.missing(:tires).to_a
+    end
+
+    assert_deprecated_association(:deprecated_tires, context: context_for_join) do
+      @model.where.missing(:deprecated_tires).to_a
+    end
+  end
+end
+
+class DeprecatedAssociationsRelationComplexTest < ActiveRecord::TestCase
+  include DeprecatedAssociationsTestHelpers
+
+  fixtures :posts, :authors, :author_addresses
+
+  setup do
+    @model = DATS::Post
+  end
+
+  test "includes reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.includes(:comments, author: :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_preload) do
+      @model.includes(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_preload) do
+      @model.includes(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+  end
+
+  test "eager_load reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.eager_load(:comments, author: :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_join) do
+      @model.eager_load(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_join) do
+      @model.eager_load(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+  end
+
+  test "preload reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.preload(:comments, author: :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_preload) do
+      @model.preload(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_preload) do
+      @model.preload(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+  end
+
+  test "joins reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.joins(:comments, author: :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_join) do
+      @model.joins(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_join) do
+      @model.joins(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+  end
+
+  test "left_outer_joins reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.left_outer_joins(:comments, author: :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_join) do
+      @model.left_outer_joins(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_join) do
+      @model.left_outer_joins(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+  end
+
+  test "left_joins reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.left_joins(:comments, author: :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_join) do
+      @model.left_joins(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_join) do
+      @model.left_joins(:deprecated_comments, author: :deprecated_author_favorites).to_a
+    end
+  end
+
+  test "associated reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.where.associated(:comments, :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_join) do
+      @model.where.associated(:deprecated_comments, :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_through(:author_favorites)) do
+      # :author_favorites is correct, this one is a has_many through and
+      # :deprecated_author_favorites is a nested one.
+      @model.where.associated(:deprecated_comments, :author_favorites).to_a
+    end
+  end
+
+  test "missing reports deprecated associations" do
+    assert_not_deprecated_association(:tires) do
+      @model.where.missing(:comments, :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_comments, context: context_for_join) do
+      @model.where.missing(:deprecated_comments, :author_favorites).to_a
+    end
+
+    assert_deprecated_association(:deprecated_author_favorites, model: DATS::Author, context: context_for_through(:author_favorites)) do
+      # :author_favorites is correct, this one is a has_many through and
+      # :deprecated_author_favorites is a nested one we get a notification for.
+      @model.where.missing(:deprecated_comments, :author_favorites).to_a
+    end
   end
 end

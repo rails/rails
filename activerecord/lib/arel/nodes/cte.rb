@@ -29,7 +29,7 @@ module Arel # :nodoc: all
       end
 
       def to_table
-        Arel::Table.new(name)
+        Arel::Table.new(name: name)
       end
     end
   end

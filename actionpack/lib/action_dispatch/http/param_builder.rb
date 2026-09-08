@@ -16,15 +16,27 @@ module ActionDispatch
       @param_depth_limit = param_depth_limit
     end
 
-    cattr_accessor :ignore_leading_brackets
-
-    LEADING_BRACKETS_COMPAT = defined?(::Rack::RELEASE) && ::Rack::RELEASE.to_s.start_with?("2.")
-
-    cattr_accessor :default
-    self.default = make_default(100)
+    singleton_class.attr_accessor :default
+    self.default = make_default(100).freeze
 
     class << self
       delegate :from_query_string, :from_pairs, :from_hash, to: :default
+
+      def ignore_leading_brackets
+        ActionDispatch.deprecator.warn <<~MSG
+          ActionDispatch::ParamBuilder.ignore_leading_brackets is deprecated and have no effect and will be removed in Rails 8.2.
+        MSG
+
+        @ignore_leading_brackets
+      end
+
+      def ignore_leading_brackets=(value)
+        ActionDispatch.deprecator.warn <<~MSG
+          ActionDispatch::ParamBuilder.ignore_leading_brackets is deprecated and have no effect and will be removed in Rails 8.2.
+        MSG
+
+        @ignore_leading_brackets = value
+      end
     end
 
     def from_query_string(qs, separator: nil, encoding_template: nil)
@@ -49,14 +61,14 @@ module ActionDispatch
 
     def from_hash(hash, encoding_template: nil)
       # Force encodings from encoding template
-      hash = Request::Utils::CustomParamEncoder.encode_for_template(hash, encoding_template)
+      hash = Http::Utils::CustomParamEncoder.encode_for_template(hash, encoding_template)
 
       # Assert valid encoding
-      Request::Utils.check_param_encoding(hash)
+      Http::Utils.check_param_encoding(hash)
 
       # Convert hashes to HWIA (or UploadedFile), and deep-munge nils
       # out of arrays
-      hash = Request::Utils.normalize_encode_params(hash)
+      hash = Http::Utils.normalize_encode_params(hash)
 
       hash
     end
@@ -69,30 +81,15 @@ module ActionDispatch
           # nil name, treat same as empty string (required by tests)
           k = after = ""
         elsif depth == 0
-          if ignore_leading_brackets || (ignore_leading_brackets.nil? && LEADING_BRACKETS_COMPAT)
-            # Rack 2 compatible behavior, ignore leading brackets
-            if name =~ /\A[\[\]]*([^\[\]]+)\]*/
-              k = $1
-              after = $' || ""
-
-              if !ignore_leading_brackets && (k != $& || !after.empty? && !after.start_with?("["))
-                ActionDispatch.deprecator.warn("Skipping over leading brackets in parameter name #{name.inspect} is deprecated and will parse differently in Rails 8.1 or Rack 3.0.")
-              end
-            else
-              k = name
-              after = ""
-            end
+          # Start of parsing, don't treat [] or [ at start of string specially
+          if start = name.index("[", 1)
+            # Start of parameter nesting, use part before brackets as key
+            k = name[0, start]
+            after = name[start, name.length]
           else
-            # Start of parsing, don't treat [] or [ at start of string specially
-            if start = name.index("[", 1)
-              # Start of parameter nesting, use part before brackets as key
-              k = name[0, start]
-              after = name[start, name.length]
-            else
-              # Plain parameter with no nesting
-              k = name
-              after = ""
-            end
+            # Plain parameter with no nesting
+            k = name
+            after = ""
           end
         elsif name.start_with?("[]")
           # Array nesting
@@ -111,6 +108,10 @@ module ActionDispatch
 
         return if k.empty?
 
+        unless k.valid_encoding?
+          raise InvalidParameterError, "Invalid encoding for parameter: #{k}"
+        end
+
         if depth == 0 && String === v
           # We have to wait until we've found the top part of the name,
           # because that's what the encoding template is configured with
@@ -127,7 +128,7 @@ module ActionDispatch
 
         if after == ""
           if k == "[]" && depth != 0
-            return (v || !ActionDispatch::Request::Utils.perform_deep_munge) ? [v] : []
+            return (v || !Http::Utils.perform_deep_munge) ? [v] : []
           else
             params[k] = v
           end
@@ -136,7 +137,7 @@ module ActionDispatch
         elsif after == "[]"
           params[k] ||= []
           raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-          params[k] << v if v || !ActionDispatch::Request::Utils.perform_deep_munge
+          params[k] << v if v || !Http::Utils.perform_deep_munge
         elsif after.start_with?("[]")
           # Recognize x[][y] (hash inside array) parameters
           unless after[2] == "[" && after.end_with?("]") && (child_key = after[3, after.length - 4]) && !child_key.empty? && !child_key.index("[") && !child_key.index("]")
@@ -161,10 +162,6 @@ module ActionDispatch
 
       def make_params
         ActiveSupport::HashWithIndifferentAccess.new
-      end
-
-      def new_depth_limit(param_depth_limit)
-        self.class.new @params_class, param_depth_limit
       end
 
       def params_hash_type?(obj)

@@ -61,41 +61,16 @@ module ActiveModel
             end
           end
 
-          ISO_DATETIME = /
-            \A
-            (\d{4})-(\d\d)-(\d\d)(?:T|\s)            # 2020-06-20T
-            (\d\d):(\d\d):(\d\d)(?:\.(\d{1,6})\d*)?  # 10:20:30.123456
-            (?:(Z(?=\z)|[+-]\d\d)(?::?(\d\d))?)?     # +09:00
-            \z
-          /x
+          def fast_string_to_time(string)
+            return unless string.include?("-") #  Time.new("1234") # => 1234-01-01 00:00:00
 
-          if Time.new(2000, 1, 1, 0, 0, 0, "-00:00").yday != 1 # Early 3.2.x had a bug
-            # BUG: Wrapping the Time object with Time.at because Time.new with `in:` in Ruby 3.2.0
-            # used to return an invalid Time object
-            # see: https://bugs.ruby-lang.org/issues/19292
-            def fast_string_to_time(string)
-              return unless string.include?("-") #  Time.new("1234") # => 1234-01-01 00:00:00
-
-              if is_utc?
-                ::Time.at(::Time.new(string, in: "UTC"))
-              else
-                ::Time.new(string)
-              end
-            rescue ArgumentError
-              nil
+            if is_utc?
+              ::Time.new(string, in: "UTC")
+            else
+              ::Time.new(string)
             end
-          else
-            def fast_string_to_time(string)
-              return unless string.include?("-") #  Time.new("1234") # => 1234-01-01 00:00:00
-
-              if is_utc?
-                ::Time.new(string, in: "UTC")
-              else
-                ::Time.new(string)
-              end
-            rescue ArgumentError
-              nil
-            end
+          rescue ArgumentError
+            nil
           end
       end
     end

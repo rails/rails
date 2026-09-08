@@ -65,12 +65,12 @@ module ActiveModel
       end
 
       test "uses #serialize_cast_value when a delegate class prepends SerializeCastValue" do
-        delegate_class = DelegateClass(IncludesModule) { prepend SerializeCastValue }
+        delegate_class = ActiveSupport::Delegation::DelegateClass(IncludesModule) { prepend SerializeCastValue }
         assert_serializes_using :serialize_cast_value, delegate_class.new(IncludesModule.new)
       end
 
       test "uses #serialize_cast_value when a delegate class subclass includes SerializeCastValue" do
-        delegate_subclass = Class.new(DelegateClass(IncludesModule)) { include SerializeCastValue }
+        delegate_subclass = Class.new(ActiveSupport::Delegation::DelegateClass(IncludesModule)) { include SerializeCastValue }
         assert_serializes_using :serialize_cast_value, delegate_subclass.new(IncludesModule.new)
       end
 

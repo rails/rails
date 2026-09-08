@@ -50,7 +50,7 @@ module ActiveStorage
     # by ActiveSupport::Testing::FileFixtures.file_fixture, and upload
     # the file to the Service
     #
-    # === Examples
+    # ==== Examples
     #
     #   # tests/fixtures/active_storage/blobs.yml
     #   second_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob(

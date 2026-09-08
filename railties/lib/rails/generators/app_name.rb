@@ -3,7 +3,7 @@
 module Rails
   module Generators
     module AppName # :nodoc:
-      RESERVED_NAMES = %w(application destroy plugin runner test)
+      RESERVED_NAMES = %w(application destroy plugin runner test).freeze
 
       private
         def app_name

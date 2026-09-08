@@ -37,6 +37,8 @@ class TestApp < Rails::Application
       service: "Disk"
     }
   }
+
+  config.active_job.queue_adapter = :inline
 end
 Rails.application.initialize!
 

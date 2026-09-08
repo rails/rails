@@ -118,10 +118,13 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
 
         def test_add_check_constraint_with_if_not_exists_options
           @connection.add_check_constraint :trades, "quantity > 0"
+          assert_equal 1, @connection.check_constraints("trades").size
 
           assert_nothing_raised do
             @connection.add_check_constraint :trades, "quantity > 0", if_not_exists: true
           end
+
+          assert_equal 1, @connection.check_constraints("trades").size
         end
 
         if supports_non_unique_constraint_name?
@@ -196,7 +199,7 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
 
             output = dump_table_schema "trades"
 
-            assert_match %r{\s+t.check_constraint "quantity > 0", name: "quantity_check", validate: false$}, output
+            assert_match %r{\s+add_check_constraint "trades", "quantity > 0", name: "quantity_check", validate: false$}, output
           end
 
           def test_schema_dumping_with_validate_true
@@ -274,6 +277,10 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
             @connection.remove_check_constraint :trades, name: "quantity_check", if_exists: true
           end
 
+          assert_nothing_raised do
+            @connection.remove_check_constraint :trades, "quantity > 0", if_exists: true
+          end
+
           error = assert_raises ArgumentError do
             @connection.remove_check_constraint :trades, name: "quantity_check"
           end
@@ -310,6 +317,40 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
 
           assert_equal 0, @connection.check_constraints("trades").size
         end
+      end
+    end
+  end
+
+  class CheckConstraintViolationTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    class Trade < ActiveRecord::Base
+    end
+
+    setup do
+      @connection = ActiveRecord::Base.lease_connection
+      @connection.create_table "trades", force: true do |t|
+        t.integer :price
+        t.integer :quantity
+        t.check_constraint "price > 0", name: "price_check"
+      end
+    end
+
+    teardown do
+      @connection.drop_table "trades", if_exists: true
+    end
+
+    def test_check_constraint_violation_on_insert
+      assert_raises(ActiveRecord::CheckViolation) do
+        Trade.create(price: -10, quantity: 5)
+      end
+    end
+
+    def test_check_constraint_violation_on_update
+      trade = Trade.create(price: 100, quantity: 5)
+
+      assert_raises(ActiveRecord::CheckViolation) do
+        trade.update(price: -10)
       end
     end
   end

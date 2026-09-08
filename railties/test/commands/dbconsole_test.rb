@@ -29,7 +29,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
         "database" => "foo_test",
         "user" => "foo",
         "password" => "bar",
-        "pool" => "5",
+        "max_connections" => "5",
         "timeout" => "3000"
       }
     }
@@ -47,16 +47,16 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_config_with_database_url_only
-    ENV["DATABASE_URL"] = "postgresql://foo:bar@localhost:9000/foo_test?pool=5&timeout=3000"
+    ENV["DATABASE_URL"] = "postgresql://foo:bar@localhost:9000/foo_test?max_connections=5&timeout=3000"
     expected = {
-      adapter:  "postgresql",
-      host:     "localhost",
-      port:     9000,
-      database: "foo_test",
-      username: "foo",
-      password: "bar",
-      pool:     "5",
-      timeout:  "3000"
+      adapter:         "postgresql",
+      host:            "localhost",
+      port:            9000,
+      database:        "foo_test",
+      username:        "foo",
+      password:        "bar",
+      max_connections: "5",
+      timeout:         "3000"
     }.sort
 
     app_db_config(nil) do
@@ -66,17 +66,17 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   def test_config_choose_database_url_if_exists
     host = "database-url-host.com"
-    ENV["DATABASE_URL"] = "postgresql://foo:bar@#{host}:9000/foo_test?pool=5&timeout=3000"
+    ENV["DATABASE_URL"] = "postgresql://foo:bar@#{host}:9000/foo_test?max_connections=5&timeout=3000"
     sample_config = {
       "test" => {
-        "adapter"  => "postgresql",
-        "host"     => "not-the-#{host}",
-        "port"     => 9000,
-        "database" => "foo_test",
-        "username" => "foo",
-        "password" => "bar",
-        "pool"     => "5",
-        "timeout"  => "3000"
+        "adapter"         => "postgresql",
+        "host"            => "not-the-#{host}",
+        "port"            => 9000,
+        "database"        => "foo_test",
+        "username"        => "foo",
+        "password"        => "bar",
+        "max_connections" => "5",
+        "timeout"         => "3000"
       }
     }
     app_db_config(sample_config) do

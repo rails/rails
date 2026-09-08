@@ -12,10 +12,9 @@ module ActiveJob
         hash["value"].constantize
       end
 
-      private
-        def klass
-          Module
-        end
+      def klass
+        Module
+      end
     end
   end
 end

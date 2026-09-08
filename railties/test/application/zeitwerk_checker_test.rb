@@ -5,6 +5,7 @@ require "rails/zeitwerk_checker"
 
 class ZeitwerkCheckerTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
+  teardown :teardown_app
 
   def setup
     build_app

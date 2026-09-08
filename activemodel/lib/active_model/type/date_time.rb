@@ -25,11 +25,8 @@ module ActiveModel
     #   event.start.sec   # => 0
     #   event.start.zone  # => "EAT"
     #
-    # String values are parsed using the ISO 8601 datetime format. Partial
-    # time-only formats are also accepted.
-    #
-    #   event.start = "06:07:08+09:00"
-    #   event.start.utc # => 1999-12-31 21:07:08 UTC
+    # String values are parsed using the ISO 8601 datetime format. Use the
+    # +:time+ type instead to parse partial time-only values.
     #
     # The degree of sub-second precision can be customized when declaring an
     # attribute:
@@ -48,6 +45,14 @@ module ActiveModel
 
       def type
         :datetime
+      end
+
+      def mutable? # :nodoc:
+        # Time#zone can be mutated by #utc or #localtime
+        # However when serializing the time zone will always
+        # be coerced and even if the zone was mutated Time instances
+        # remain equal, so we don't need to implement `#changed_in_place?`
+        true
       end
 
       private

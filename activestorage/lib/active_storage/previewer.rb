@@ -27,7 +27,7 @@ module ActiveStorage
     end
 
     private
-      # Downloads the blob to a tempfile on disk. Yields the tempfile.
+      # Downloads the blob to a tempfile on disk. See ActiveStorage::Blob#open for details.
       def download_blob_to_tempfile(&block) # :doc:
         blob.open tmpdir: tmpdir, &block
       end
@@ -79,7 +79,7 @@ module ActiveStorage
         to.binmode
 
         open_tempfile do |err|
-          IO.popen(argv, err: err) { |out| IO.copy_stream(out, to) }
+          IO.popen(argv, in: IO::NULL, err: err) { |out| IO.copy_stream(out, to) }
           err.rewind
 
           unless $?.success?

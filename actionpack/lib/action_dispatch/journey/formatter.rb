@@ -60,8 +60,13 @@ module ActionDispatch
 
       def generate(name, options, path_parameters)
         original_options = options.dup
-        path_params = options.delete(:path_params) || {}
-        options = path_params.merge(options)
+        path_params = options.delete(:path_params)
+        if path_params.is_a?(Hash)
+          options = path_params.merge(options)
+        else
+          path_params = nil
+          options = options.dup
+        end
         constraints = path_parameters.merge(options)
         missing_keys = nil
 
@@ -79,11 +84,16 @@ module ActionDispatch
             # top-level params' normal behavior of generating query_params should be
             # preserved even if the same key is also a bind_param
             parameterized_parts.key?(key) || route.defaults.key?(key) ||
-              (path_params.key?(key) && !original_options.key?(key))
+              (path_params&.key?(key) && !original_options.key?(key))
           end
 
           defaults       = route.defaults
           required_parts = route.required_parts
+
+          # After query param extraction, so empty values are consumed as path parts.
+          parameterized_parts.delete_if do |key, value|
+            value.to_s.blank? && !required_parts.include?(key)
+          end
 
           route.parts.reverse_each do |key|
             break if defaults[key].nil? && parameterized_parts[key].present?
@@ -109,6 +119,12 @@ module ActionDispatch
       def eager_load!
         cache
         nil
+      end
+
+      def freeze
+        eager_load!
+
+        super
       end
 
       private

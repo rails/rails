@@ -121,15 +121,24 @@ module RenderStreaming
 
     test "rendering with template exception logs the exception" do
       io = StringIO.new
-      _old, ActionView::Base.logger = ActionView::Base.logger, ActiveSupport::Logger.new(io)
+      old_error_reporter, ActiveSupport.error_reporter = ActiveSupport.error_reporter, nil
+      old_logger, ActionView::Base.logger = ActionView::Base.logger, ActiveSupport::Logger.new(io)
 
       begin
         get "/render_streaming/basic/template_exception"
         io.rewind
         assert_match "Ruby was here!", io.read
       ensure
-        ActionView::Base.logger = _old
+        ActiveSupport.error_reporter = old_error_reporter
+        ActionView::Base.logger = old_logger
       end
+    end
+
+    test "rendering with template exception reports error" do
+      error_report = assert_error_reported do
+        get "/render_streaming/basic/template_exception"
+      end
+      assert_match "Ruby was here!", error_report.error.message
     end
 
     def assert_streaming!(status, headers, body)

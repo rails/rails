@@ -39,6 +39,8 @@ class Person < ActiveRecord::Base
   has_many :agents_posts_authors, through: :agents_posts, source: :author
   has_many :essays, primary_key: "first_name", foreign_key: "writer_id"
 
+  has_many :polymorphic_comments, as: :person, primary_key: :external_id
+
   scope :males,   -> { where(gender: "M") }
 
   attr_readonly :born_at
@@ -129,7 +131,7 @@ class NestedPerson < ActiveRecord::Base
 end
 
 module Insure
-  INSURES = %W{life annuality}
+  INSURES = %W{life annuality}.freeze
 
   def self.load(mask)
     INSURES.select do |insure|
@@ -147,4 +149,9 @@ class SerializedPerson < ActiveRecord::Base
   self.table_name = "people"
 
   serialize :insures, coder: Insure
+end
+
+class LockVersionValidatedPerson < ActiveRecord::Base
+  self.table_name = "people"
+  validates :lock_version, numericality: { only_integer: true }, allow_nil: false
 end
