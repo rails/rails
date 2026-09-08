@@ -5,7 +5,11 @@ const {module} = QUnit
 
 // These tests ensure the client prevents race conditions in subscription management caused by the fact that the server process commands concurrently.
 // We use the same scenario: rapid subscribe-unsubscribe-subscribe command sequence. Depending on the order of server-side completeness and confirmation message delivery, various state corruptions might occur.
-module("ActionCable.Subscriptions race conditions", () => {
+module("ActionCable.Subscriptions race conditions", (hooks) => {
+  const originalCooldownInterval = ActionCable.Subscriptions.subscribeCooldownInterval
+  hooks.beforeEach(() => ActionCable.Subscriptions.subscribeCooldownInterval = 60)
+  hooks.afterEach(() => ActionCable.Subscriptions.subscribeCooldownInterval = originalCooldownInterval)
+
   // Fast subscribe, slow unsubscribe: the unsubscribe is the last command to complete server-side.
   //
   // Here is the race condition we had previously and want to protect against with this test:
@@ -97,7 +101,7 @@ module("ActionCable.Subscriptions race conditions", () => {
         assert.ok(serverSubscriptions[second.identifier], "server agrees the channel is subscribed")
         assert.equal(consumer.subscriptions.guarantor.pendingSubscriptions.length, 0, "no pending subscriptions")
         done()
-      }, 50)
+      }, 150)
     }, 50)
   })
 })
