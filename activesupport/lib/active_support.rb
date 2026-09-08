@@ -117,13 +117,7 @@ module ActiveSupport
   singleton_class.attr_accessor :error_reporter # :nodoc:
 
   @event_reporter = ActiveSupport::EventReporter.new
-  singleton_class.attr_writer :event_reporter # :nodoc:
-
-  def self.event_reporter # :nodoc:
-    return @event_reporter if ActiveSupport::Ractors.main?
-
-    Ractor[:__event_reporter] ||= ActiveSupport::EventReporter.new
-  end
+  singleton_class.attr_accessor :event_reporter # :nodoc:
 
   cattr_accessor :filter_parameters, default: [] # :nodoc:
 

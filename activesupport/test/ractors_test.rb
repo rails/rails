@@ -56,6 +56,17 @@ class RactorsTest < ActiveSupport::TestCase
       assert_equal :bar, object.foo
     end
 
+    def test_non_main_ractors_cannot_read_the_event_reporter_before_it_is_shareable
+      error = Ractor.new do
+        ActiveSupport.event_reporter
+        nil
+      rescue Ractor::IsolationError => e
+        e
+      end.value
+
+      assert_kind_of Ractor::IsolationError, error
+    end
+
     def test_ractor_make_shareable_returns_a_shareable_object
       string = +"hello"
       assert_not ActiveSupport::Ractors.shareable?(string)
