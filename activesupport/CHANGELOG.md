@@ -1,3 +1,7 @@
+*   Add `on_load: nil` to `ActiveSupport::JSON.decode` to prevent automatic object creation.
+
+    *Rodrigo Argumedo*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
     when a local cache is active.
 
