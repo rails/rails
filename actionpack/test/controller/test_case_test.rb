@@ -297,6 +297,25 @@ class TestCaseTest < ActionController::TestCase
     assert_equal 200, @response.status
   end
 
+  def test_query
+    query :test_params, params: { foo: "bar" }
+    assert_equal 200, @response.status
+    assert_equal "QUERY", @request.request_method
+    parsed_params = ::JSON.parse(@response.body)
+    assert_equal "bar", parsed_params["foo"]
+  end
+
+  def test_query_sends_params_as_request_body
+    query :test_request_parameters, params: { foo: "bar" }
+    assert_match "foo", @response.body
+    assert_match "bar", @response.body
+  end
+
+  def test_query_does_not_populate_query_string
+    query :test_query_parameters, params: { foo: "bar" }
+    assert_equal({}, ::JSON.parse(@response.body))
+  end
+
   def test_process_without_flash
     process :set_flash
     assert_equal "><", flash["test"]

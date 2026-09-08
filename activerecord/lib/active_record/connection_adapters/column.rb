@@ -22,7 +22,7 @@ module ActiveRecord
         @cast_type = cast_type
         @sql_type_metadata = sql_type_metadata
         @null = null
-        @default = default.nil? || cast_type.mutable? ? default : cast_type.deserialize(default)
+        @default = default
         @default_function = default_function
         @collation = collation
         @comment = comment

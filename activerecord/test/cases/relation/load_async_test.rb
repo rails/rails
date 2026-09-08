@@ -155,17 +155,17 @@ module ActiveRecord
         latch1 = Concurrent::CountDownLatch.new
         latch2 = Concurrent::CountDownLatch.new
 
-        old_log = ActiveRecord::Base.connection.method(:log)
-        ActiveRecord::Base.connection.singleton_class.undef_method(:log)
+        connection = ActiveRecord::Base.connection
+        old_start_intent_log = connection.method(:start_intent_log)
+        connection.singleton_class.undef_method(:start_intent_log)
 
-        ActiveRecord::Base.connection.singleton_class.define_method(:log) do |intent, *args, **kwargs, &block|
-          unless intent.ran_async
-            return old_log.call(intent, *args, **kwargs, &block)
+        connection.singleton_class.define_method(:start_intent_log) do |intent|
+          if intent.ran_async
+            latch1.count_down
+            latch2.wait
           end
 
-          latch1.count_down
-          latch2.wait
-          old_log.call(intent, *args, **kwargs, &block)
+          old_start_intent_log.call(intent)
         end
 
         Post.async_count
@@ -176,8 +176,8 @@ module ActiveRecord
         end
       ensure
         latch2.count_down
-        ActiveRecord::Base.connection.singleton_class.undef_method(:log)
-        ActiveRecord::Base.connection.singleton_class.define_method(:log, old_log)
+        connection.singleton_class.undef_method(:start_intent_log)
+        connection.singleton_class.define_method(:start_intent_log, old_start_intent_log)
       end
     end
 
@@ -250,7 +250,7 @@ module ActiveRecord
 
     def test_pluck
       titles = Post.where(author_id: 1).pluck(:title)
-      assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+      assert_equal_unordered titles, Post.where(author_id: 1).load_async.pluck(:title)
     end
 
     def test_count
@@ -277,7 +277,7 @@ module ActiveRecord
     def test_load_async_pluck_with_query_cache
       titles = Post.where(author_id: 1).pluck(:title)
       Post.cache do
-        assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+        assert_equal_unordered titles, Post.where(author_id: 1).load_async.pluck(:title)
       end
     end
 
@@ -386,7 +386,7 @@ module ActiveRecord
 
       def test_pluck
         titles = Post.where(author_id: 1).pluck(:title)
-        assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+        assert_equal_unordered titles, Post.where(author_id: 1).load_async.pluck(:title)
       end
 
       def test_size
@@ -528,7 +528,7 @@ module ActiveRecord
 
       def test_pluck
         titles = Post.where(author_id: 1).pluck(:title)
-        assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+        assert_equal_unordered titles, Post.where(author_id: 1).load_async.pluck(:title)
       end
 
       def test_size

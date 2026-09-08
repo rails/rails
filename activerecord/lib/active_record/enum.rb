@@ -168,6 +168,8 @@ module ActiveRecord
     end
 
     class EnumType < Type::Value # :nodoc:
+      include Type::QueryPredicates::Decorator
+
       delegate :type, to: :subtype
 
       def initialize(name, mapping, subtype, raise_on_invalid_values: true)

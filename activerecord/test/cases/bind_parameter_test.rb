@@ -322,7 +322,7 @@ if ActiveRecord::Base.lease_connection.prepared_statements
           old_logger = ActiveRecord::LogSubscriber.logger
           ActiveRecord::LogSubscriber.logger = logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
           StructuredEventSubscriber.new.sql(event)
-          assert_match %r(\[\[nil, "abcd"\]\]\z), logger.logged(:debug).last
+          assert_match %r(\[\["\$1", "abcd"\]\]\z), logger.logged(:debug).last
         ensure
           ActiveRecord::LogSubscriber.logger = old_logger
         end

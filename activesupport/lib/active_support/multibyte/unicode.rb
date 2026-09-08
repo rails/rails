@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -25,7 +26,7 @@ module ActiveSupport
       # Replaces all ISO-8859-1 or CP1252 characters by their UTF-8 equivalent
       # resulting in a valid UTF-8 string.
       #
-      # Passing +true+ will forcibly tidy all bytes, assuming that the string's
+      # Passing `true` will forcibly tidy all bytes, assuming that the string's
       # encoding is entirely CP1252 or ISO-8859-1.
       def tidy_bytes(string, force = false)
         return string if string.empty? || string.ascii_only?

@@ -123,8 +123,8 @@ module Rails
       @revision          = nil
       @revision_initialized = false
 
-      @executor          = Class.new(ActiveSupport::Executor)
-      @reloader          = Class.new(ActiveSupport::Reloader)
+      @executor          = Class.new(ActiveSupport::Executor).set_temporary_name("ActiveSupport::Executor(#{inspect})")
+      @reloader          = Class.new(ActiveSupport::Reloader).set_temporary_name("ActiveSupport::Reloader(#{inspect})")
       @reloader.executor = @executor
 
       @autoloaders = Rails::Autoloaders.new
@@ -162,11 +162,7 @@ module Rails
 
     # Reload application routes regardless if they changed or not.
     def reload_routes!
-      if routes_reloader.execute_unless_loaded
-        routes_reloader.loaded = false
-      else
-        routes_reloader.reload!
-      end
+      routes_reloader.reload!
     end
 
     def reload_routes_unless_loaded # :nodoc:
@@ -677,10 +673,25 @@ module Rails
 
       @autoloaders, @reloaders, @routes_reloader = nil, nil, nil
 
+      ActionView::PathRegistry.make_shareable! if defined?(ActionView::PathRegistry)
+
+      if defined?(AbstractController::Base)
+        [AbstractController::Base, *AbstractController::Base.descendants].each do |controller|
+          Ractor.make_shareable(controller.config)
+        end
+      end
+
       Ractor.make_shareable(self)
       Ractor.make_shareable(Rails.event)
       Ractor.make_shareable(Rails.error)
       Ractor.make_shareable(Rails.backtrace_cleaner)
+      ActionView::DependencyTracker.share_registry if defined?(ActionView)
+
+      begin
+        require "rack/ractorize"
+      rescue LoadError
+        raise "rack/ractorize not available, but required for Ractor support."
+      end
     end
 
   protected

@@ -30,10 +30,6 @@ module ActionView
     end
 
     module ObjectRendering # :nodoc:
-      PREFIXED_PARTIAL_NAMES = Concurrent::Map.new do |h, k|
-        h.compute_if_absent(k) { Concurrent::Map.new }
-      end
-
       def initialize(lookup_context, options)
         super
         @context_prefix = lookup_context.prefixes.first
@@ -83,9 +79,15 @@ module ActionView
           end
 
           if view.prefix_partial_path_with_controller_namespace
-            PREFIXED_PARTIAL_NAMES[@context_prefix][path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
+            prefixed_partial_names[@context_prefix][path] ||= merge_prefix_into_object_path(@context_prefix, path.dup)
           else
             path
+          end
+        end
+
+        def prefixed_partial_names
+          ActiveSupport::Ractors.store_if_absent(:action_view_prefixed_partial_names) do
+            Concurrent::Map.new { |h, k| h.compute_if_absent(k) { Concurrent::Map.new } }
           end
         end
 

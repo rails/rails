@@ -960,7 +960,7 @@ module ActionController
     # This includes the keys from the root hash and from all nested hashes and
     # arrays. The values are unchanged.
     def deep_transform_keys!(&block)
-      @parameters = _deep_transform_keys_in_object(@parameters, &block).to_unsafe_h
+      @parameters = _deep_transform_keys_in_object!(@parameters, &block)
       self
     end
 
@@ -977,7 +977,7 @@ module ActionController
     #       user: { email: "  ALICE@EXAMPLE.COM  ", profile: { bio: "  Hello world  " } }
     #     )
     #     params.deep_transform_values { |v| v.is_a?(String) ? v.strip.downcase : v }
-    #     # => #<ActionController::Parameters {"user"=>#<ActionController::Parameters {"email"=>"alice@example.com", "profile"=>#<ActionController::Parameters {"bio"=>"hello world"} permitted: false>} permitted: false>} permitted: false>
+    #     # => #<ActionController::Parameters {"user"=>{"email"=>"alice@example.com", "profile"=>{"bio"=>"hello world"}}} permitted: false>
     def deep_transform_values(&block)
       new_instance_with_inherited_permitted_status(
         _deep_transform_values_in_object(@parameters, &block)

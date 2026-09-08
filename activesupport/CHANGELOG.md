@@ -6,6 +6,78 @@
 
     *Anton Zaharia*
 
+*   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
+    when a local cache is active.
+
+    Previously, if some keys were served from the local cache and others from the
+    underlying store, `fetch_multi` returned the local cache hits first instead of
+    following the order of the requested keys.
+
+    *Mueez Afzal*
+
+*   Return a UTC time from `Time.rfc3339` for strings with the "Z" UTC designator.
+
+    ```ruby
+    Time.rfc3339("2026-08-07T10:00:00Z")
+    # Before: 2026-08-07 10:00:00 +0000 (utc? => false)
+    # After:  2026-08-07 10:00:00 UTC   (utc? => true)
+    ```
+
+    This matches Ruby's `Time.rfc3339`, which is expected to be included in
+    Ruby 4.1.
+    The resulting time value is unchanged, but serialized forms such as
+    `as_json` now end in "Z" instead of "+00:00". Call `getlocal("+00:00")`
+    to keep the previous representation:
+
+    ```ruby
+    Time.rfc3339("2026-08-07T10:00:00Z").getlocal("+00:00")
+    # => 2026-08-07 10:00:00 +0000 (utc? => false)
+    ```
+
+    *Yasuo Honda*
+
+*   Add `Pacific Time (Canada)` and `Alberta` to `ActiveSupport::TimeZone::MAPPING`.
+
+    British Columbia and Alberta no longer share winter clocks with US Pacific
+    and Mountain time. The existing `Pacific Time (US & Canada)` and
+    `Mountain Time (US & Canada)` entries remain mapped to `America/Los_Angeles`
+    and `America/Denver` for compatibility. Prefer `Pacific Time (Canada)` /
+    `Alberta` (or the IANA identifiers `America/Vancouver` /
+    `America/Edmonton`) for users in those regions.
+
+    *Said Kaldybaev*
+
+*   Fix `Range#sum` with a falsey initial value.
+
+    Summing an integer range with a falsey starting value (such as nil or false)
+    treated that value as zero. It now keeps the starting value as given, matching
+    array and enumerable sum.
+
+    *Said Kaldybaev*
+
+*   Add `ActiveSupport.raise_on_invalid_time_zone_parse`.
+
+    Raise `ArgumentError` on `ActiveSupport::TimeZone#parse` for any invalid
+    string. Historically, strings without recognizable date information
+    (e.g. `"foobar"`) returned `nil`, while strings with out-of-range date
+    components (e.g. `"9000"`) raised `ArgumentError`. When enabled, both
+    cases raise `ArgumentError`, matching the Ruby standard library's `Time.parse`.
+
+    *Said Kaldybaev*
+
+*   Raise `ActiveSupport::ConfigurationFile::FormatError` when parsing malformed YAML.
+
+    *Nikita Vasilevsky*
+
+*   Preserve sub-second precision when subtracting a `DateTime` from a `Time`.
+
+    `Time - DateTime` converted both sides via `to_f`, so microsecond-level
+    `DateTime` values lost precision. The difference is now computed from exact
+    rational timestamps, matching `Time.at(DateTime)` and
+    `ActiveSupport::TimeWithZone - DateTime`.
+
+    *Said Kaldybaev*
+
 *   Deprecate `ActiveSupport::Cache::RedisCacheStore::DEFAULT_REDIS_OPTIONS`.
 
     The `redis-client` implementation no longer reads this constant. Pass
@@ -40,7 +112,16 @@
 
     Almost all of the standard Logger interface is supported.
 
-    *Jean Boussier*
+    In addition it can be set to ignore messages matching given patterns.
+
+    Useful to silence noisy logs from gems that your application may not care
+    about, without needing to change the log level and losing other useful logs.
+
+    ```ruby
+    SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger).ignore(/Noisy/)
+    ```
+
+    *Jean Boussier*, *Federico Carrocera*
 
 *   Include call options in `Cache#exist?` instrumentation payload,
     consistent with `read`, `write`, and `delete`.

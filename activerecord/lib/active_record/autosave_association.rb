@@ -487,17 +487,17 @@ module ActiveRecord
         if autosave && record.marked_for_destruction?
           record.destroy
         elsif autosave != false
-          primary_key = Array(reflection.active_record_primary_key).map(&:to_s)
-          primary_key_value = primary_key.map { |key| _read_attribute(key) }
+          primary_key = ActiveRecord::Key.for(reflection.active_record_primary_key)
+          primary_key_value = primary_key.map { |key| read_attribute(key) }
           return unless (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, primary_key_value)
 
           unless reflection.through_reflection
-            foreign_key = Array(reflection.foreign_key)
+            foreign_key = ActiveRecord::Key.for(reflection.foreign_key)
             primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
 
             primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
-              association_id = _read_attribute(primary_key)
-              record[foreign_key] = association_id unless record[foreign_key] == association_id
+              association_id = read_attribute(primary_key)
+              record.write_attribute(foreign_key, association_id) unless record.read_attribute(foreign_key) == association_id
             end
             association.set_inverse_instance(record)
           end
@@ -516,22 +516,22 @@ module ActiveRecord
         record.new_record? ||
           (association_foreign_key_changed?(reflection, record, key) ||
           inverse_polymorphic_association_changed?(reflection, record)) ||
-          record.will_save_change_to_attribute?(reflection.foreign_key)
+          ActiveRecord::Key.for(reflection.foreign_key).any? { |fk| record.will_save_change_to_attribute?(record.class.attribute_aliases[fk] || fk) }
       end
 
       def association_foreign_key_changed?(reflection, record, key)
         return false if reflection.through_reflection?
 
-        foreign_key = Array(reflection.foreign_key)
-        return false unless foreign_key.all? { |key| record._has_attribute?(key) }
+        foreign_key = ActiveRecord::Key.for(reflection.foreign_key)
+        return false unless foreign_key.all? { |key| record.has_attribute?(key) }
 
-        foreign_key.map { |key| record._read_attribute(key) } != Array(key)
+        foreign_key.map { |key| record.read_attribute(key) } != Array(key)
       end
 
       def inverse_polymorphic_association_changed?(reflection, record)
         return false unless reflection.inverse_of&.polymorphic?
 
-        class_name = record._read_attribute(reflection.inverse_of.foreign_type)
+        class_name = record.read_attribute(reflection.inverse_of.foreign_type)
         reflection.active_record.polymorphic_name != class_name
       end
 
@@ -551,8 +551,8 @@ module ActiveRecord
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?
-            foreign_key = Array(reflection.foreign_key)
-            foreign_key.each { |key| self[key] = nil }
+            foreign_key = ActiveRecord::Key.for(reflection.foreign_key)
+            foreign_key.each { |key| write_attribute(key, nil) }
             record.destroy
           elsif autosave != false
             saved = if record.new_record? || (autosave && record.changed_for_autosave?)
@@ -566,13 +566,13 @@ module ActiveRecord
             end
 
             if association.updated?
-              primary_key = Array(reflection.association_primary_key(record.class)).map(&:to_s)
-              foreign_key = Array(reflection.foreign_key)
+              primary_key = ActiveRecord::Key.for(reflection.association_primary_key(record.class))
+              foreign_key = ActiveRecord::Key.for(reflection.foreign_key)
 
               primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
               primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
-                association_id = record._read_attribute(primary_key)
-                self[foreign_key] = association_id unless self[foreign_key] == association_id
+                association_id = record.read_attribute(primary_key)
+                write_attribute(foreign_key, association_id) unless read_attribute(foreign_key) == association_id
               end
               association.loaded!
             end

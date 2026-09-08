@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash/keys"
@@ -6,54 +7,67 @@ require "active_support/core_ext/hash/except"
 require "active_support/core_ext/hash/slice"
 
 module ActiveSupport
-  # = \Hash With Indifferent Access
+  # \Hash With Indifferent Access
+  # =============================
   #
-  # Implements a hash where keys <tt>:foo</tt> and <tt>"foo"</tt> are considered
+  # Implements a hash where keys `:foo` and `"foo"` are considered
   # to be the same.
   #
-  #   rgb = ActiveSupport::HashWithIndifferentAccess.new
+  # ```
+  # rgb = ActiveSupport::HashWithIndifferentAccess.new
   #
-  #   rgb[:black] = '#000000'
-  #   rgb[:black]  # => '#000000'
-  #   rgb['black'] # => '#000000'
+  # rgb[:black] = '#000000'
+  # rgb[:black]  # => '#000000'
+  # rgb['black'] # => '#000000'
   #
-  #   rgb['white'] = '#FFFFFF'
-  #   rgb[:white]  # => '#FFFFFF'
-  #   rgb['white'] # => '#FFFFFF'
+  # rgb['white'] = '#FFFFFF'
+  # rgb[:white]  # => '#FFFFFF'
+  # rgb['white'] # => '#FFFFFF'
+  # ```
   #
   # Internally symbols are mapped to strings when used as keys in the entire
-  # writing interface (calling <tt>[]=</tt>, <tt>merge</tt>, etc). This
+  # writing interface (calling `[]=`, `merge`, etc). This
   # mapping belongs to the public interface. For example, given:
   #
-  #   hash = ActiveSupport::HashWithIndifferentAccess.new(a: 1)
+  # ```
+  # hash = ActiveSupport::HashWithIndifferentAccess.new(a: 1)
+  # ```
   #
   # You are guaranteed that the key is returned as a string:
   #
-  #   hash.keys # => ["a"]
+  # ```
+  # hash.keys # => ["a"]
+  # ```
   #
   # Technically other types of keys are accepted:
   #
-  #   hash = ActiveSupport::HashWithIndifferentAccess.new(a: 1)
-  #   hash[0] = 0
-  #   hash # => {"a"=>1, 0=>0}
+  # ```
+  # hash = ActiveSupport::HashWithIndifferentAccess.new(a: 1)
+  # hash[0] = 0
+  # hash # => {"a"=>1, 0=>0}
+  # ```
   #
   # but this class is intended for use cases where strings or symbols are the
   # expected keys and it is convenient to understand both as the same. For
-  # example the +params+ hash in Ruby on \Rails.
+  # example the `params` hash in Ruby on \Rails.
   #
-  # Note that core extensions define <tt>Hash#with_indifferent_access</tt>:
+  # Note that core extensions define `Hash#with_indifferent_access`:
   #
-  #   rgb = { black: '#000000', white: '#FFFFFF' }.with_indifferent_access
+  # ```
+  # rgb = { black: '#000000', white: '#FFFFFF' }.with_indifferent_access
+  # ```
   #
   # which may be handy.
   #
   # To access this class outside of \Rails, require the core extension with:
   #
-  #   require "active_support/core_ext/hash/indifferent_access"
+  # ```
+  # require "active_support/core_ext/hash/indifferent_access"
+  # ```
   #
   # which will, in turn, require this file.
   class HashWithIndifferentAccess < Hash
-    # Returns +true+ so that <tt>Array#extract_options!</tt> finds members of
+    # Returns `true` so that `Array#extract_options!` finds members of
     # this class.
     def extractable_options?
       true
@@ -91,26 +105,30 @@ module ActiveSupport
 
     # Assigns a new value to the hash:
     #
-    #   hash = ActiveSupport::HashWithIndifferentAccess.new
-    #   hash[:key] = 'value'
+    # ```
+    # hash = ActiveSupport::HashWithIndifferentAccess.new
+    # hash[:key] = 'value'
+    # ```
     #
-    # This value can be later fetched using either +:key+ or <tt>'key'</tt>.
+    # This value can be later fetched using either `:key` or `'key'`.
     #
     # If the value is a Hash or contains one or multiple Hashes, they will be
-    # converted to +HashWithIndifferentAccess+.
+    # converted to `HashWithIndifferentAccess`.
     def []=(key, value)
       regular_writer(convert_key(key), convert_value(value, conversion: :assignment))
     end
 
     # Assigns a new value to the hash:
     #
-    #   hash = ActiveSupport::HashWithIndifferentAccess.new
-    #   hash[:key] = 'value'
+    # ```
+    # hash = ActiveSupport::HashWithIndifferentAccess.new
+    # hash[:key] = 'value'
+    # ```
     #
-    # This value can be later fetched using either +:key+ or <tt>'key'</tt>.
+    # This value can be later fetched using either `:key` or `'key'`.
     #
     # If the value is a Hash or contains one or multiple Hashes, they will be
-    # converted to +HashWithIndifferentAccess+. unless `convert_value: false`
+    # converted to `HashWithIndifferentAccess`. unless `convert_value: false`
     # is set.
     def store(key, value, convert_value: true)
       value = convert_value(value, conversion: :assignment) if convert_value
@@ -119,32 +137,36 @@ module ActiveSupport
 
     # Updates the receiver in-place, merging in the hashes passed as arguments:
     #
-    #   hash_1 = ActiveSupport::HashWithIndifferentAccess.new
-    #   hash_1[:key] = 'value'
+    # ```
+    # hash_1 = ActiveSupport::HashWithIndifferentAccess.new
+    # hash_1[:key] = 'value'
     #
-    #   hash_2 = ActiveSupport::HashWithIndifferentAccess.new
-    #   hash_2[:key] = 'New Value!'
+    # hash_2 = ActiveSupport::HashWithIndifferentAccess.new
+    # hash_2[:key] = 'New Value!'
     #
-    #   hash_1.update(hash_2) # => {"key"=>"New Value!"}
+    # hash_1.update(hash_2) # => {"key"=>"New Value!"}
     #
-    #   hash = ActiveSupport::HashWithIndifferentAccess.new
-    #   hash.update({ "a" => 1 }, { "b" => 2 }) # => { "a" => 1, "b" => 2 }
+    # hash = ActiveSupport::HashWithIndifferentAccess.new
+    # hash.update({ "a" => 1 }, { "b" => 2 }) # => { "a" => 1, "b" => 2 }
+    # ```
     #
     # The arguments can be either an
-    # +ActiveSupport::HashWithIndifferentAccess+ or a regular +Hash+.
+    # `ActiveSupport::HashWithIndifferentAccess` or a regular `Hash`.
     # In either case the merge respects the semantics of indifferent access.
     #
-    # If the argument is a regular hash with keys +:key+ and <tt>"key"</tt> only one
+    # If the argument is a regular hash with keys `:key` and `"key"` only one
     # of the values end up in the receiver, but which one is unspecified.
     #
     # When given a block, the value for duplicated keys will be determined
     # by the result of invoking the block with the duplicated key, the value
-    # in the receiver, and the value in +other_hash+. The rules for duplicated
+    # in the receiver, and the value in `other_hash`. The rules for duplicated
     # keys follow the semantics of indifferent access:
     #
-    #   hash_1[:key] = 10
-    #   hash_2['key'] = 12
-    #   hash_1.update(hash_2) { |key, old, new| old + new } # => {"key"=>22}
+    # ```
+    # hash_1[:key] = 10
+    # hash_2['key'] = 12
+    # hash_1.update(hash_2) { |key, old, new| old + new } # => {"key"=>22}
+    # ```
     def update(*other_hashes, &block)
       if other_hashes.size == 1
         update_with_single_argument(other_hashes.first, block)
@@ -160,10 +182,12 @@ module ActiveSupport
 
     # Checks the hash for a key matching the argument passed in:
     #
-    #   hash = ActiveSupport::HashWithIndifferentAccess.new
-    #   hash['key'] = 'value'
-    #   hash.key?(:key)  # => true
-    #   hash.key?('key') # => true
+    # ```
+    # hash = ActiveSupport::HashWithIndifferentAccess.new
+    # hash['key'] = 'value'
+    # hash.key?(:key)  # => true
+    # hash.key?('key') # => true
+    # ```
     def key?(key)
       super(convert_key(key))
     end
@@ -172,70 +196,80 @@ module ActiveSupport
     alias_method :has_key?, :key?
     alias_method :member?, :key?
 
-    # Same as <tt>Hash#[]</tt> where the key passed as argument can be
+    # Same as `Hash#[]` where the key passed as argument can be
     # either a string or a symbol:
     #
-    #   counters = ActiveSupport::HashWithIndifferentAccess.new
-    #   counters[:foo] = 1
+    # ```
+    # counters = ActiveSupport::HashWithIndifferentAccess.new
+    # counters[:foo] = 1
     #
-    #   counters['foo'] # => 1
-    #   counters[:foo]  # => 1
-    #   counters[:zoo]  # => nil
+    # counters['foo'] # => 1
+    # counters[:foo]  # => 1
+    # counters[:zoo]  # => nil
+    # ```
     def [](key)
       super(convert_key(key))
     end
 
-    # Same as <tt>Hash#assoc</tt> where the key passed as argument can be
+    # Same as `Hash#assoc` where the key passed as argument can be
     # either a string or a symbol:
     #
-    #   counters = ActiveSupport::HashWithIndifferentAccess.new
-    #   counters[:foo] = 1
+    # ```
+    # counters = ActiveSupport::HashWithIndifferentAccess.new
+    # counters[:foo] = 1
     #
-    #   counters.assoc('foo') # => ["foo", 1]
-    #   counters.assoc(:foo)  # => ["foo", 1]
-    #   counters.assoc(:zoo)  # => nil
+    # counters.assoc('foo') # => ["foo", 1]
+    # counters.assoc(:foo)  # => ["foo", 1]
+    # counters.assoc(:zoo)  # => nil
+    # ```
     def assoc(key)
       super(convert_key(key))
     end
 
-    # Same as <tt>Hash#fetch</tt> where the key passed as argument can be
+    # Same as `Hash#fetch` where the key passed as argument can be
     # either a string or a symbol:
     #
-    #   counters = ActiveSupport::HashWithIndifferentAccess.new
-    #   counters[:foo] = 1
+    # ```
+    # counters = ActiveSupport::HashWithIndifferentAccess.new
+    # counters[:foo] = 1
     #
-    #   counters.fetch('foo')          # => 1
-    #   counters.fetch(:bar, 0)        # => 0
-    #   counters.fetch(:bar) { |key| 0 } # => 0
-    #   counters.fetch(:zoo)           # => KeyError: key not found: "zoo"
+    # counters.fetch('foo')          # => 1
+    # counters.fetch(:bar, 0)        # => 0
+    # counters.fetch(:bar) { |key| 0 } # => 0
+    # counters.fetch(:zoo)           # => KeyError: key not found: "zoo"
+    # ```
     def fetch(key, *extras)
       super(convert_key(key), *extras)
     end
 
-    # Same as <tt>Hash#dig</tt> where the key passed as argument can be
+    # Same as `Hash#dig` where the key passed as argument can be
     # either a string or a symbol:
     #
-    #   counters = ActiveSupport::HashWithIndifferentAccess.new
-    #   counters[:foo] = { bar: 1 }
+    # ```
+    # counters = ActiveSupport::HashWithIndifferentAccess.new
+    # counters[:foo] = { bar: 1 }
     #
-    #   counters.dig('foo', 'bar')     # => 1
-    #   counters.dig(:foo, :bar)       # => 1
-    #   counters.dig(:zoo)             # => nil
+    # counters.dig('foo', 'bar')     # => 1
+    # counters.dig(:foo, :bar)       # => 1
+    # counters.dig(:zoo)             # => nil
+    # ```
     def dig(*args)
       args[0] = convert_key(args[0]) if args.size > 0
       super(*args)
     end
 
-    # Same as <tt>Hash#default</tt> where the key passed as argument can be
+    # Same as `Hash#default` where the key passed as argument can be
     # either a string or a symbol:
     #
-    #   hash = ActiveSupport::HashWithIndifferentAccess.new(1)
-    #   hash.default                   # => 1
+    # ```
+    # hash = ActiveSupport::HashWithIndifferentAccess.new(1)
+    # hash.default                   # => 1
     #
-    #   hash = ActiveSupport::HashWithIndifferentAccess.new { |hash, key| key }
-    #   hash.default                   # => nil
-    #   hash.default('foo')            # => 'foo'
-    #   hash.default(:foo)             # => 'foo'
+    # hash = ActiveSupport::HashWithIndifferentAccess.new { |hash, key| key }
+    # hash.default                   # => nil
+    # hash.default('foo')            # => 'foo'
+    # hash.default(:foo)             # => 'foo'
+    # ```
     def default(key = (no_key = true))
       if no_key
         super()
@@ -246,10 +280,12 @@ module ActiveSupport
 
     # Returns an array of the values at the specified indices:
     #
-    #   hash = ActiveSupport::HashWithIndifferentAccess.new
-    #   hash[:a] = 'x'
-    #   hash[:b] = 'y'
-    #   hash.values_at('a', 'b') # => ["x", "y"]
+    # ```
+    # hash = ActiveSupport::HashWithIndifferentAccess.new
+    # hash[:a] = 'x'
+    # hash[:b] = 'y'
+    # hash.values_at('a', 'b') # => ["x", "y"]
+    # ```
     def values_at(*keys)
       keys.map! { |key| convert_key(key) }
       super
@@ -258,12 +294,14 @@ module ActiveSupport
     # Returns an array of the values at the specified indices, but also
     # raises an exception when one of the keys can't be found.
     #
-    #   hash = ActiveSupport::HashWithIndifferentAccess.new
-    #   hash[:a] = 'x'
-    #   hash[:b] = 'y'
-    #   hash.fetch_values('a', 'b') # => ["x", "y"]
-    #   hash.fetch_values('a', 'c') { |key| 'z' } # => ["x", "z"]
-    #   hash.fetch_values('a', 'c') # => KeyError: key not found: "c"
+    # ```
+    # hash = ActiveSupport::HashWithIndifferentAccess.new
+    # hash[:a] = 'x'
+    # hash[:b] = 'y'
+    # hash.fetch_values('a', 'b') # => ["x", "y"]
+    # hash.fetch_values('a', 'c') { |key| 'z' } # => ["x", "z"]
+    # hash.fetch_values('a', 'c') # => KeyError: key not found: "c"
+    # ```
     def fetch_values(*indices, &block)
       indices.map! { |key| convert_key(key) }
       super
@@ -271,35 +309,39 @@ module ActiveSupport
 
     # Returns a shallow copy of the hash.
     #
-    #   hash = ActiveSupport::HashWithIndifferentAccess.new({ a: { b: 'b' } })
-    #   dup  = hash.dup
-    #   dup[:a][:c] = 'c'
+    # ```
+    # hash = ActiveSupport::HashWithIndifferentAccess.new({ a: { b: 'b' } })
+    # dup  = hash.dup
+    # dup[:a][:c] = 'c'
     #
-    #   hash[:a][:c] # => "c"
-    #   dup[:a][:c]  # => "c"
+    # hash[:a][:c] # => "c"
+    # dup[:a][:c]  # => "c"
+    # ```
     def dup
       copy_defaults(self.class.new(self))
     end
 
-    # This method has the same semantics of +update+, except it does not
+    # This method has the same semantics of `update`, except it does not
     # modify the receiver but rather returns a new hash with indifferent
     # access with the result of the merge.
     def merge(*hashes, &block)
       dup.update(*hashes, &block)
     end
 
-    # Like +merge+ but the other way around: Merges the receiver into the
+    # Like `merge` but the other way around: Merges the receiver into the
     # argument and returns a new hash with indifferent access as result:
     #
-    #   hash = ActiveSupport::HashWithIndifferentAccess.new
-    #   hash['a'] = nil
-    #   hash.reverse_merge(a: 0, b: 1) # => {"a"=>nil, "b"=>1}
+    # ```
+    # hash = ActiveSupport::HashWithIndifferentAccess.new
+    # hash['a'] = nil
+    # hash.reverse_merge(a: 0, b: 1) # => {"a"=>nil, "b"=>1}
+    # ```
     def reverse_merge(other_hash)
       super(cast(other_hash))
     end
     alias_method :with_defaults, :reverse_merge
 
-    # Same semantics as +reverse_merge+ but modifies the receiver in-place.
+    # Same semantics as `reverse_merge` but modifies the receiver in-place.
     def reverse_merge!(other_hash)
       super(cast(other_hash))
     end
@@ -307,8 +349,10 @@ module ActiveSupport
 
     # Replaces the contents of this hash with other_hash.
     #
-    #   h = { "a" => 100, "b" => 200 }
-    #   h.replace({ "c" => 300, "d" => 400 }) # => {"c"=>300, "d"=>400}
+    # ```
+    # h = { "a" => 100, "b" => 200 }
+    # h.replace({ "c" => 300, "d" => 400 }) # => {"c"=>300, "d"=>400}
+    # ```
     def replace(other_hash)
       super(cast(other_hash))
     end
@@ -319,9 +363,12 @@ module ActiveSupport
     end
 
     # Returns a hash with indifferent access that includes everything except given keys.
-    #   hash = { a: "x", b: "y", c: 10 }.with_indifferent_access
-    #   hash.except(:a, "b") # => {c: 10}.with_indifferent_access
-    #   hash                 # => { a: "x", b: "y", c: 10 }.with_indifferent_access
+    #
+    # ```
+    # hash = { a: "x", b: "y", c: 10 }.with_indifferent_access
+    # hash.except(:a, "b") # => {c: 10}.with_indifferent_access
+    # hash                 # => { a: "x", b: "y", c: 10 }.with_indifferent_access
+    # ```
     def except(*keys)
       dup.except!(*keys)
     end

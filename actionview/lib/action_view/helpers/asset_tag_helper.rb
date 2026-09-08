@@ -22,12 +22,16 @@ module ActionView
       include AssetUrlHelper
       include TagHelper
 
-      mattr_accessor :image_loading
-      mattr_accessor :image_decoding
-      mattr_accessor :preload_links_header
-      mattr_accessor :apply_stylesheet_media_default
-      mattr_accessor :auto_include_nonce_for_scripts
-      mattr_accessor :auto_include_nonce_for_styles
+      settings = [
+        :image_loading,
+        :image_decoding,
+        :preload_links_header,
+        :apply_stylesheet_media_default,
+        :auto_include_nonce_for_scripts,
+        :auto_include_nonce_for_styles,
+      ]
+      singleton_class.attr_accessor(*settings)
+      delegate(*settings, to: AssetTagHelper)
 
       # Returns an HTML script tag for each of the +sources+ provided.
       #

@@ -62,7 +62,7 @@ module ActiveJob
           step :step do
           end
         when :resume_step
-          self.continuation = ActiveJob::Continuation.new(self, "completed" => [], "current" => ["step", { "job" => self, "resumed" => true }])
+          self.continuation = ActiveJob::Continuation.new(self, "completed" => [], "current" => ["step", nil])
           step :step do
           end
         end

@@ -1,3 +1,71 @@
+*   Mark the generated `public/*.html` error pages as `linguist-generated` in
+    the default `.gitattributes`.
+
+    The five error pages generated since Rails 8.0 total about 36 KB of HTML,
+    more than the Ruby in a freshly generated application, so GitHub reported
+    new Rails applications as HTML repositories. Marking the pages as generated
+    excludes them from language statistics, as is already done for
+    `db/schema.rb`.
+
+    *Irina Nazarova*
+
+*   A generated application's ci.yml file now sets `timeout-minutes: 15` for
+    each job to prevent transisent network errors, etc. from hanging the
+    action until the default 360 minutes kicks in and potentially eat up an
+    org's allotted runner minutes.
+
+    *Tony Drake*
+
+*   Make mounted route helpers (e.g. `main_app`, engine mount proxies) trigger
+    the lazy route load instead of raising `NoMethodError` when called before
+    routes are drawn.
+
+    Named url helpers already loaded routes on demand, but mounted helpers are
+    only defined when `mount` runs during the route draw, so calling one first
+    (in the console or a test) failed until something else drew the routes.
+
+    *Abdelkader Boudih*
+
+*   Report zero tests instead of raising a `LoadError` when a `bin/rails test:*`
+    folder command names a folder the application does not have.
+
+    A generated application has no `test/system` folder, so the `system-test`
+    job in the generated `.github/workflows/ci.yml` failed on the first push
+    with `cannot load such file -- <app>/test/system (LoadError)`. The same
+    happened for `bin/rails test:channels`, `test:jobs`, `test:mailboxes`,
+    `test:units`, `test:functionals`, and `test:generators`, which all name
+    folders that an application does not necessarily have.
+
+    *Ariel Rzezak*
+
+*   Add `--no-banner` to `bin/rails console` to suppress the startup banner.
+
+    Users can already set `IRB.conf[:SHOW_BANNER] = false` in `.irbrc`; this
+    flag is for one-off or scripted sessions without editing config.
+
+    ```bash
+    bin/rails console --no-banner
+    ```
+
+    *Said Kaldybaev*
+
+*   Show a Rails-flavored startup banner (a small logo, Rails/Ruby
+    version, a rotating tip about console helpers like `app`/`reload!`, and
+    `Rails.root`) when starting `bin/rails console`.
+
+    `rails console` bypassed IRB's normal startup path, so the banner IRB
+    shows when run directly via `irb` (see ruby/irb#1183) never appeared in
+    a Rails console session.
+
+    Set `RAILS_TIPS=false` to hide the rotating tip.
+
+    *Elia Gamberi*
+
+*   Don't filter nonexistent i18n paths on initialize. This negatively impacts
+    applications with lots of translation files.
+
+    *Gannon McGibbon*
+
 *   Validate subcommand in `rails plugin` command.
 
     `rails plugin foo bar` silently ignored the invalid subcommand "foo"

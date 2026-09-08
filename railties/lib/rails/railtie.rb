@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/rails"
 require "rails/initializable"
 require "active_support/descendants_tracker"
 require "active_support/inflector"

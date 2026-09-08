@@ -176,7 +176,7 @@ want to use `products_count`. These counter caches update anytime a
 `WishlistProduct` is created or destroyed.
 
 The `uniqueness` validation also tells Rails to check if a product is already on
-the wishlist. This is paired with the unique index on the wishlist_product table
+the wishlist. This is paired with the unique index on the wishlist_products table
 so that it's also validated at the database level.
 
 Finally, let's update `app/models/wishlist.rb` with it's associations:

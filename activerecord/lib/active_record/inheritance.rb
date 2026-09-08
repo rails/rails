@@ -25,7 +25,7 @@ module ActiveRecord
   #
   #   Company.new.changed? # => false
   #   Firm.new.changed?    # => true
-  #   Firm.new.changes     # => {"type"=>["","Firm"]}
+  #   Firm.new.changes     # => {"type"=>[nil, "Firm"]}
   #
   # If you don't have a type column defined in your table, single-table inheritance won't
   # be triggered. In that case, it'll work just like normal subclasses with no special magic

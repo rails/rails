@@ -88,6 +88,33 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.service = previous_service
     end
 
+    # libvips names its ImageMagick loader after the major version it was built
+    # against, and Vips.block does nothing for a name it cannot find, so pass both.
+    VIPS_MAGICK_LOADERS = %w( VipsForeignLoadMagick VipsForeignLoadMagick7 ).freeze
+    VIPS_SVG_LOADERS = %w( VipsForeignLoadSvg ).freeze
+
+    # libvips can set an operation's blocked state but not read it, so probe once here, before any
+    # test has had the chance to change it, by opening a file that only an unfuzzed loader reads.
+    VIPS_LOADERS_DISABLED_AT_BOOT =
+      if defined?(::Vips)
+        begin
+          ::Vips::Image.new_from_file(File.expand_path("fixtures/files/colors.bmp", __dir__))
+          false
+        rescue ::Vips::Error
+          true
+        end
+      else
+        true
+      end
+
+    def with_vips_loaders_enabled(*class_names)
+      class_names.each { |class_name| Vips.block(class_name, false) }
+
+      yield
+    ensure
+      class_names.each { |class_name| Vips.block(class_name, VIPS_LOADERS_DISABLED_AT_BOOT) }
+    end
+
     def with_strict_loading_by_default(&block)
       strict_loading_was = ActiveRecord::Base.strict_loading_by_default
       ActiveRecord::Base.strict_loading_by_default = true

@@ -4,7 +4,6 @@ require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/url_helper"
 require "action_view/helpers/text_helper"
 require "active_support/core_ext/string/output_safety"
-require "active_support/core_ext/module/attribute_accessors"
 
 module ActionView
   module Helpers # :nodoc:
@@ -22,10 +21,11 @@ module ActionView
       include TextHelper
       include ContentExfiltrationPreventionHelper
 
-      mattr_accessor :embed_authenticity_token_in_remote_forms
-      self.embed_authenticity_token_in_remote_forms = nil
+      singleton_class.attr_accessor :embed_authenticity_token_in_remote_forms, :default_enforce_utf8
+      delegate :embed_authenticity_token_in_remote_forms, :default_enforce_utf8, to: FormTagHelper
 
-      mattr_accessor :default_enforce_utf8, default: true
+      self.embed_authenticity_token_in_remote_forms = nil
+      self.default_enforce_utf8 = true
 
       # Starts a form tag that points the action to a URL configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
@@ -345,9 +345,15 @@ module ActionView
       #   file_field_tag 'user_pic', accept: 'image/png,image/gif,image/jpeg'
       #   # => <input accept="image/png,image/gif,image/jpeg" id="user_pic" name="user_pic" type="file" />
       #
+      #   file_field_tag 'user_pic', accept: ['image/png', 'image/gif']
+      #   # => <input accept="image/png,image/gif" id="user_pic" name="user_pic" type="file" />
+      #
       #   file_field_tag 'file', accept: 'text/html', class: 'upload', value: 'index.html'
       #   # => <input accept="text/html" class="upload" id="file" name="file" type="file" value="index.html" />
       def file_field_tag(name, options = {})
+        if options[:accept].is_a?(Array)
+          options = options.merge(accept: options[:accept].join(","))
+        end
         text_field_tag(name, nil, convert_direct_upload_option_to_url(options.merge(type: :file)))
       end
 

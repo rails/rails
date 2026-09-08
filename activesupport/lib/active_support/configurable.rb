@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 ActiveSupport.deprecator.warn <<~MSG
@@ -10,9 +11,10 @@ require "active_support/concern"
 require "active_support/ordered_options"
 
 module ActiveSupport
-  # = Active Support \Configurable
+  # Active Support \Configurable
+  # ============================
   #
-  # Configurable provides a <tt>config</tt> method to store and retrieve
+  # Configurable provides a `config` method to store and retrieve
   # configuration options as an OrderedOptions.
   module Configurable
     extend ActiveSupport::Concern
@@ -35,17 +37,19 @@ module ActiveSupport
     module ClassMethods
       # Reads and writes attributes from a configuration OrderedOptions.
       #
-      #   require "active_support/configurable"
+      # ```
+      # require "active_support/configurable"
       #
-      #   class User
-      #     include ActiveSupport::Configurable
-      #   end
+      # class User
+      #   include ActiveSupport::Configurable
+      # end
       #
-      #   User.config.allowed_access = true
-      #   User.config.level = 1
+      # User.config.allowed_access = true
+      # User.config.level = 1
       #
-      #   User.config.allowed_access # => true
-      #   User.config.level          # => 1
+      # User.config.allowed_access # => true
+      # User.config.level          # => 1
+      # ```
       def config
         @_config ||= if respond_to?(:superclass) && superclass.respond_to?(:config)
           superclass.config.inheritable_copy
@@ -57,19 +61,21 @@ module ActiveSupport
 
       # Configure values from within the passed block.
       #
-      #   require "active_support/configurable"
+      # ```
+      # require "active_support/configurable"
       #
-      #   class User
-      #     include ActiveSupport::Configurable
-      #   end
+      # class User
+      #   include ActiveSupport::Configurable
+      # end
       #
-      #   User.config.allowed_access # => nil
+      # User.config.allowed_access # => nil
       #
-      #   User.configure do |config|
-      #     config.allowed_access = true
-      #   end
+      # User.configure do |config|
+      #   config.allowed_access = true
+      # end
       #
-      #   User.config.allowed_access # => true
+      # User.config.allowed_access # => true
+      # ```
       def configure
         yield config
       end
@@ -79,69 +85,79 @@ module ActiveSupport
       #
       # Defines both class and instance config accessors.
       #
-      #   class User
-      #     include ActiveSupport::Configurable
-      #     config_accessor :allowed_access
-      #   end
+      # ```
+      # class User
+      #   include ActiveSupport::Configurable
+      #   config_accessor :allowed_access
+      # end
       #
-      #   User.allowed_access # => nil
-      #   User.allowed_access = false
-      #   User.allowed_access # => false
+      # User.allowed_access # => nil
+      # User.allowed_access = false
+      # User.allowed_access # => false
       #
-      #   user = User.new
-      #   user.allowed_access # => false
-      #   user.allowed_access = true
-      #   user.allowed_access # => true
+      # user = User.new
+      # user.allowed_access # => false
+      # user.allowed_access = true
+      # user.allowed_access # => true
       #
-      #   User.allowed_access # => false
+      # User.allowed_access # => false
+      # ```
       #
       # The attribute name must be a valid method name in Ruby.
       #
-      #   class User
-      #     include ActiveSupport::Configurable
-      #     config_accessor :"1_Badname"
+      # ```
+      # class User
+      #   include ActiveSupport::Configurable
+      #   config_accessor :"1_Badname"
+      # end
+      # # => NameError: invalid config attribute name
+      # ```
+      #
+      # To omit the instance writer method, pass `instance_writer: false`.
+      # To omit the instance reader method, pass `instance_reader: false`.
+      #
+      # ```
+      # class User
+      #   include ActiveSupport::Configurable
+      #   config_accessor :allowed_access, instance_reader: false, instance_writer: false
+      # end
+      #
+      # User.allowed_access = false
+      # User.allowed_access # => false
+      #
+      # User.new.allowed_access = true # => NoMethodError
+      # User.new.allowed_access        # => NoMethodError
+      # ```
+      #
+      # Or pass `instance_accessor: false`, to omit both instance methods.
+      #
+      # ```
+      # class User
+      #   include ActiveSupport::Configurable
+      #   config_accessor :allowed_access, instance_accessor: false
+      # end
+      #
+      # User.allowed_access = false
+      # User.allowed_access # => false
+      #
+      # User.new.allowed_access = true # => NoMethodError
+      # User.new.allowed_access        # => NoMethodError
+      # ```
+      #
+      # Also you can pass `default` or a block to set up the attribute with a default value.
+      #
+      # ```
+      # class User
+      #   include ActiveSupport::Configurable
+      #   config_accessor :allowed_access, default: false
+      #   config_accessor :hair_colors do
+      #     [:brown, :black, :blonde, :red]
       #   end
-      #   # => NameError: invalid config attribute name
+      # end
       #
-      # To omit the instance writer method, pass <tt>instance_writer: false</tt>.
-      # To omit the instance reader method, pass <tt>instance_reader: false</tt>.
-      #
-      #   class User
-      #     include ActiveSupport::Configurable
-      #     config_accessor :allowed_access, instance_reader: false, instance_writer: false
-      #   end
-      #
-      #   User.allowed_access = false
-      #   User.allowed_access # => false
-      #
-      #   User.new.allowed_access = true # => NoMethodError
-      #   User.new.allowed_access        # => NoMethodError
-      #
-      # Or pass <tt>instance_accessor: false</tt>, to omit both instance methods.
-      #
-      #   class User
-      #     include ActiveSupport::Configurable
-      #     config_accessor :allowed_access, instance_accessor: false
-      #   end
-      #
-      #   User.allowed_access = false
-      #   User.allowed_access # => false
-      #
-      #   User.new.allowed_access = true # => NoMethodError
-      #   User.new.allowed_access        # => NoMethodError
-      #
-      # Also you can pass <tt>default</tt> or a block to set up the attribute with a default value.
-      #
-      #   class User
-      #     include ActiveSupport::Configurable
-      #     config_accessor :allowed_access, default: false
-      #     config_accessor :hair_colors do
-      #       [:brown, :black, :blonde, :red]
-      #     end
-      #   end
-      #
-      #   User.allowed_access # => false
-      #   User.hair_colors # => [:brown, :black, :blonde, :red]
+      # User.allowed_access # => false
+      # User.hair_colors # => [:brown, :black, :blonde, :red]
+      # ```
       def config_accessor(*names, instance_reader: true, instance_writer: true, instance_accessor: true, default: nil) # :doc:
         names.each do |name|
           raise NameError.new("invalid config attribute name") unless /\A[_A-Za-z]\w*\z/.match?(name)
@@ -173,19 +189,21 @@ module ActiveSupport
 
     # Reads and writes attributes from a configuration OrderedOptions.
     #
-    #   require "active_support/configurable"
+    # ```
+    # require "active_support/configurable"
     #
-    #   class User
-    #     include ActiveSupport::Configurable
-    #   end
+    # class User
+    #   include ActiveSupport::Configurable
+    # end
     #
-    #   user = User.new
+    # user = User.new
     #
-    #   user.config.allowed_access = true
-    #   user.config.level = 1
+    # user.config.allowed_access = true
+    # user.config.level = 1
     #
-    #   user.config.allowed_access # => true
-    #   user.config.level          # => 1
+    # user.config.allowed_access # => true
+    # user.config.level          # => 1
+    # ```
     def config
       @_config ||= self.class.config.inheritable_copy
     end

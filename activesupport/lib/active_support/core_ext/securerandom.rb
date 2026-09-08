@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "securerandom"
@@ -9,44 +10,50 @@ module SecureRandom
 
   # SecureRandom.base58 generates a random base58 string.
   #
-  # The argument _n_ specifies the length of the random string to be generated.
+  # The argument *n* specifies the length of the random string to be generated.
   #
-  # If _n_ is not specified or is +nil+, 16 is assumed. It may be larger in the future.
+  # If *n* is not specified or is `nil`, 16 is assumed. It may be larger in the future.
   #
   # The result may contain alphanumeric characters except 0, O, I, and l.
   #
-  #   p SecureRandom.base58 # => "4kUgL2pdQMSCQtjE"
-  #   p SecureRandom.base58(24) # => "77TMHrHJFvFDwodq8w7Ev2m7"
+  # ```
+  # p SecureRandom.base58 # => "4kUgL2pdQMSCQtjE"
+  # p SecureRandom.base58(24) # => "77TMHrHJFvFDwodq8w7Ev2m7"
+  # ```
   def self.base58(n = 16)
     alphanumeric(n, chars: BASE58_ALPHABET)
   end
 
   # SecureRandom.base36 generates a random base36 string in lowercase.
   #
-  # The argument _n_ specifies the length of the random string to be generated.
+  # The argument *n* specifies the length of the random string to be generated.
   #
-  # If _n_ is not specified or is +nil+, 16 is assumed. It may be larger in the future.
-  # This method can be used over +base58+ if a deterministic case key is necessary.
+  # If *n* is not specified or is `nil`, 16 is assumed. It may be larger in the future.
+  # This method can be used over `base58` if a deterministic case key is necessary.
   #
   # The result will contain alphanumeric characters in lowercase.
   #
-  #   p SecureRandom.base36 # => "4kugl2pdqmscqtje"
-  #   p SecureRandom.base36(24) # => "77tmhrhjfvfdwodq8w7ev2m7"
+  # ```
+  # p SecureRandom.base36 # => "4kugl2pdqmscqtje"
+  # p SecureRandom.base36(24) # => "77tmhrhjfvfdwodq8w7ev2m7"
+  # ```
   def self.base36(n = 16)
     alphanumeric(n, chars: BASE36_ALPHABET)
   end
 
   # SecureRandom.base32 generates a random Crockford base32 string in uppercase.
   #
-  # The argument _n_ specifies the length of the random string to be generated.
+  # The argument *n* specifies the length of the random string to be generated.
   #
-  # If _n_ is not specified or is +nil+, 16 is assumed. It may be larger in the future.
-  # This method can be used over +base58+ if a case-insensitive key that's unambiguous to humans is necessary.
+  # If *n* is not specified or is `nil`, 16 is assumed. It may be larger in the future.
+  # This method can be used over `base58` if a case-insensitive key that's unambiguous to humans is necessary.
   #
   # The result may contain alphanumeric characters in uppercase except I, L, O, and U.
   #
-  #   p SecureRandom.base32 # => "PAK1NG78CM1HJ44A"
-  #   p SecureRandom.base32(24) # => "BN9EAB8RG9BNTTC9BX7P5JGJ"
+  # ```
+  # p SecureRandom.base32 # => "PAK1NG78CM1HJ44A"
+  # p SecureRandom.base32(24) # => "BN9EAB8RG9BNTTC9BX7P5JGJ"
+  # ```
   def self.base32(n = 16)
     alphanumeric(n, chars: BASE32_ALPHABET)
   end

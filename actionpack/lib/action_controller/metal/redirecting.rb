@@ -116,6 +116,7 @@ module ActionController
     #
     # The `action_on_open_redirect` configuration option controls the behavior when an unsafe
     # redirect is detected:
+    #
     # * `:log` - Logs a warning but allows the redirect
     # * `:notify` - Sends an Active Support notification and structured event for monitoring
     # * `:raise` - Raises an UnsafeRedirectError

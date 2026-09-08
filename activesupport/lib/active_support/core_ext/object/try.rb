@@ -5,31 +5,29 @@ require "delegate"
 
 module ActiveSupport
   module Tryable # :nodoc:
-    def try(*args, &block)
-      if args.empty? && block_given?
+    def try(*args, **kwargs, &block)
+      if args.empty? && kwargs.empty? && block_given?
         if block.arity == 0
           instance_eval(&block)
         else
           yield self
         end
       elsif respond_to?(args.first)
-        public_send(*args, &block)
+        public_send(*args, **kwargs, &block)
       end
     end
-    ruby2_keywords(:try)
 
-    def try!(*args, &block)
-      if args.empty? && block_given?
+    def try!(*args, **kwargs, &block)
+      if args.empty? && kwargs.empty? && block_given?
         if block.arity == 0
           instance_eval(&block)
         else
           yield self
         end
       else
-        public_send(*args, &block)
+        public_send(*args, **kwargs, &block)
       end
     end
-    ruby2_keywords(:try!)
   end
 end
 

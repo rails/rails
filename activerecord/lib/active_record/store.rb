@@ -45,7 +45,7 @@ module ActiveRecord
   #     store :settings, accessors: [ :login_retry ], suffix: :config
   #   end
   #
-  #   u = User.new(color: 'black', homepage: '37signals.com', parent_name: 'Mary', partner_name: 'Lily')
+  #   u = User.create!(color: 'black', homepage: '37signals.com', parent_name: 'Mary', partner_name: 'Lily')
   #   u.color                          # Accessor stored attribute
   #   u.parent_name                    # Accessor stored attribute with prefix
   #   u.partner_name                   # Accessor stored attribute with custom prefix

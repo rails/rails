@@ -232,11 +232,15 @@ module Rails
         expanded.select { |d| File.directory?(d) }
       end
 
+      def expanded_files
+        expanded.select { |file| !File.extname(file).empty? }
+      end
+
       alias to_a expanded
 
       private
         def files_in(path)
-          files = Dir.glob(@glob, base: path)
+          files = Dir.glob(@glob, base: path, sort: false)
           files -= @exclude if @exclude
           files.map! { |file| File.join(path, file) }
           files.sort

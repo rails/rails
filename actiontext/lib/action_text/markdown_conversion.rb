@@ -18,31 +18,61 @@ module ActionText
   module MarkdownConversion
     extend self
 
-    # Converts a Nokogiri HTML +node+ into a Markdown string.
+    RAW_MARKDOWN_TAG_NAME = "action-text-markdown" # :nodoc:
+
+    # Converts a Nokogiri HTML `node` into a Markdown string.
     #
     #     node = Nokogiri::HTML4.fragment("<p>Hello <strong>world</strong></p>")
     #     MarkdownConversion.node_to_markdown(node) # => "Hello **world**"
+    #
+    # NOTE: text inside `<action-text-markdown>` elements is emitted without escaping, so this
+    # method is not safe for untrusted content. Convert user-supplied markup through
+    # ActionText::Content, which strips those elements while canonicalizing.
     def node_to_markdown(node)
       BottomUpReducer.new(node).reduce do |n, child_values|
         markdown_for_node(n, child_values)
       end.strip
     end
 
-    # Returns a Markdown link: +[title](url)+.
+    # Returns a copy of `fragment` with `<action-text-markdown>` elements replaced by their
+    # children, leaving the text to be escaped like any other.
     #
-    # Escapes metacharacters in +title+, and percent-encodes characters in +url+ that would break
+    # #render_attachment wraps already-rendered Markdown in that element so #node_to_markdown
+    # emits it without escaping. Only Action Text may do that, so ActionText::Content unwraps
+    # the element while canonicalizing: anything carrying it at that point came from outside
+    # the framework.
+    def fragment_by_unwrapping_raw_markdown_tags(fragment)
+      ActionText::Fragment.wrap(fragment).update do |source|
+        source.css(RAW_MARKDOWN_TAG_NAME).each do |node|
+          node.replace(node.children)
+        end
+      end
+    end
+
+    # Returns an element holding `attachment`'s Markdown, for `ActionText::Content#to_markdown` to
+    # substitute in place of the attachment. #node_to_markdown emits the element's text verbatim
+    # rather than escaping it as ordinary Markdown source.
+    def render_attachment(attachment, attachment_links: false)
+      ActionText::HtmlConversion.create_element(RAW_MARKDOWN_TAG_NAME).tap do |node|
+        node.content = attachment.to_markdown(attachment_links: attachment_links)
+      end
+    end
+
+    # Returns a Markdown link: `[title](url)`.
+    #
+    # Escapes metacharacters in `title`, and percent-encodes characters in `url` that would break
     # the link syntax.
     #
     #     MarkdownConversion.markdown_link("photo", "https://example.com/photo_(large).png")
     #     # => "[photo](https://example.com/photo_%28large%29.png)"
     #
-    # Pass <tt>image: true</tt> to produce an image link (+![title](url)+).
+    # Pass `image: true` to produce an image link (`![title](url)`).
     #
     #     MarkdownConversion.markdown_link("photo", "https://example.com/photo.png", image: true)
     #     # => "![photo](https://example.com/photo.png)"
     #
-    # If the URI scheme is not allowed (per +Rails::HTML::Sanitizer.allowed_uri?+), returns the
-    # escaped title wrapped in escaped brackets (+\[title\]+).
+    # If the URI scheme is not allowed (per `Rails::HTML::Sanitizer.allowed_uri?`), returns the
+    # escaped title wrapped in escaped brackets (`\[title\]`).
     #
     #     MarkdownConversion.markdown_link("click", "javascript:alert(1)")
     #     # => "\\[click\\]"
@@ -54,7 +84,7 @@ module ActionText
       end
     end
 
-    # Backslash-escapes CommonMark metacharacters in +text+ so they are treated
+    # Backslash-escapes CommonMark metacharacters in `text` so they are treated
     # as literal characters by Markdown renderers.
     #
     #     MarkdownConversion.escape_markdown_text("**Important**")
@@ -77,12 +107,11 @@ module ActionText
         | \A\+(?=\s|\z)       # leading plus before space: list item
         | \A\d+\K\.(?=\s|\z)  # leading "1." with trailing space: ordered list item (only the dot is matched)
       /x
-      SKIP_ESCAPING_PARENTS = %w[ action-text-markdown code pre ].freeze
-      INLINE_ELEMENTS = %w[
-        action-text-markdown
+      SKIP_ESCAPING_PARENTS = [ RAW_MARKDOWN_TAG_NAME, "code", "pre" ].freeze
+      INLINE_ELEMENTS = [ RAW_MARKDOWN_TAG_NAME, *%w[
         a abbr b bdi bdo cite code data del dfn em i kbd mark q
         rp rt ruby s samp small span strong sub sup time u var
-      ].freeze
+      ] ].freeze
       LEADING_PRETTY_PRINT_WHITESPACE = /\A\s*\n\s*/
       TRAILING_PRETTY_PRINT_WHITESPACE = /\s*\n\s*\z/
       private_constant :BOLD_TAGS, :ITALIC_TAGS, :LIST_BULLET, :LIST_INDENT, :ENCODE_HREF_CHARS,
@@ -193,10 +222,16 @@ module ActionText
       def visit_a(node, child_values)
         inner = join_children(child_values)
         if (href = node["href"]) && Rails::HTML::Sanitizer.allowed_uri?(href)
-          "[#{inner}](#{encode_href(href)})"
+          "[#{flatten_to_inline(inner)}](#{encode_href(href)})"
         else
           inner
         end
+      end
+
+      def flatten_to_inline(text)
+        return text unless text.match?(/[\r\n]/)
+
+        text.gsub(/[\r\n]+/, " ")
       end
 
       def visit_tr(node, child_values)

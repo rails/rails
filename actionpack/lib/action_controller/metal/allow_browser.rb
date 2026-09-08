@@ -2,11 +2,18 @@
 
 # :markup: markdown
 
+require "active_support/ractors"
+
 module ActionController # :nodoc:
   module AllowBrowser
     extend ActiveSupport::Concern
 
     module ClassMethods
+      DEFAULT_UNSUPPORTED_BROWSER_RESPONSE = ActiveSupport::Ractors.shareable_lambda do
+        render file: Rails.root.join("public/406-unsupported-browser.html"), layout: false, status: :not_acceptable
+      end
+      private_constant :DEFAULT_UNSUPPORTED_BROWSER_RESPONSE
+
       # Specify the browser versions that will be allowed to access all actions (or
       # some, as limited by `only:` or `except:`). Only browsers matched in the hash
       # or named set passed to `versions:` will be blocked if they're below the
@@ -54,10 +61,10 @@ module ActionController # :nodoc:
       #       # In addition to the browsers blocked by ApplicationController, also block Opera below 104 and Chrome below 119 for the show action.
       #       allow_browser versions: { opera: 104, chrome: 119 }, only: :show
       #     end
-      def allow_browser(versions:, block: -> { render file: Rails.root.join("public/406-unsupported-browser.html"), layout: false, status: :not_acceptable }, **options)
+      def allow_browser(versions:, block: nil, **options)
         require "useragent"
 
-        before_action -> { allow_browser(versions: versions, block: block) }, **options
+        before_action -> { allow_browser(versions: versions, block: block || DEFAULT_UNSUPPORTED_BROWSER_RESPONSE) }, **options
       end
     end
 

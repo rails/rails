@@ -74,6 +74,54 @@ module ActiveSupport
       assert_equal %w(LOG DEBUG INFO WARN ERROR FATAL UNKNOWN), @io.string.split("\n")
     end
 
+    def test_ignore
+      assert_same @logger, @logger.ignore(/IGNORED/)
+      @logger.ignore(/DROPPED/, "SKIPPED")
+
+      @logger.error("IGNORED-1")
+      @logger.add(::Logger::ERROR, "DROPPED-2")
+      @logger.error("SKIPPED")
+      @logger.error("PASSES")
+
+      assert_equal %w(PASSES), @io.string.split("\n")
+    end
+
+    def test_ignore_only_affects_the_receiver
+      other = ProxyLogger.new(@real_logger)
+      @logger.ignore(/IGNORED/)
+
+      other.error("IGNORED")
+
+      assert_equal %w(IGNORED), @io.string.split("\n")
+    end
+
+    def test_ignore_forwards_messages_with_an_invalid_encoding
+      @logger.ignore(/IGNORED/)
+
+      @logger.error("PASSES \xE9".dup.force_encoding(Encoding::UTF_8))
+
+      assert_includes @io.string.b, "PASSES"
+    end
+
+    def test_ignore_matches_non_string_messages
+      @logger.ignore(/IGNORED/)
+
+      @logger.error([:IGNORED, 1])
+      @logger.error([:PASSES, 1])
+
+      assert_equal ["[:PASSES, 1]"], @io.string.split("\n")
+    end
+
+    def test_ignore_preserves_progname
+      @real_logger.formatter = ->(severity, _time, progname, msg) { "#{severity}|#{progname}|#{msg}\n" }
+      @logger.ignore(/IGNORED/)
+
+      @logger.error("PASSES-1")
+      @logger.add(::Logger::ERROR, "PASSES-2", "PROG")
+
+      assert_equal ["ERROR||PASSES-1", "ERROR|PROG|PASSES-2"], @io.string.split("\n")
+    end
+
     def test_all_block_delegators
       @logger.log(::Logger::DEBUG) { "LOG" }
       @logger.debug { "DEBUG" }

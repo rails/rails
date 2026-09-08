@@ -26,6 +26,16 @@ class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
     end
   end
 
+  test "previewing a video that the input arguments exclude" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+
+    ActiveStorage.with(video_preview_input_arguments: "-codec_whitelist none") do
+      assert_raises ActiveStorage::PreviewError do
+        ActiveStorage::Previewer::VideoPreviewer.new(blob).preview
+      end
+    end
+  end
+
   test "previewing a video that can't be previewed" do
     blob = create_file_blob(filename: "report.pdf", content_type: "video/mp4")
 

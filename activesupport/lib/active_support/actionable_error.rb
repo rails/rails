@@ -1,14 +1,16 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/class/attribute"
 
 module ActiveSupport
-  # = Actionable Errors
+  # Actionable Errors
+  # =================
   #
   # Actionable errors lets you define actions to resolve an error.
   #
-  # To make an error actionable, include the +ActiveSupport::ActionableError+
-  # module and invoke the +action+ class macro to define the action. An action
+  # To make an error actionable, include the `ActiveSupport::ActionableError`
+  # module and invoke the `action` class macro to define the action. An action
   # needs a name and a block to execute.
   module ActionableError
     extend Concern
@@ -37,13 +39,15 @@ module ActiveSupport
     module ClassMethods
       # Defines an action that can resolve the error.
       #
-      #   class PendingMigrationError < MigrationError
-      #     include ActiveSupport::ActionableError
+      # ```
+      # class PendingMigrationError < MigrationError
+      #   include ActiveSupport::ActionableError
       #
-      #     action "Run pending migrations" do
-      #       ActiveRecord::Tasks::DatabaseTasks.migrate
-      #     end
+      #   action "Run pending migrations" do
+      #     ActiveRecord::Tasks::DatabaseTasks.migrate
       #   end
+      # end
+      # ```
       def action(name, &block)
         self._actions = _actions.merge(name => block)
       end

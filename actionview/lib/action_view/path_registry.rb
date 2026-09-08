@@ -53,5 +53,16 @@ module ActionView # :nodoc:
     def self.all_file_system_resolvers
       @file_system_resolvers.values
     end
+
+    def self.make_shareable! # :nodoc:
+      view = ActionView::LookupContext.view_context_class.new(ActionView::LookupContext.new([]), {}, nil)
+      all_file_system_resolvers.each do |resolver|
+        resolver.eager_load_templates(view)
+        resolver.freeze
+      end
+
+      @file_system_resolver_mutex.synchronize { Ractor.make_shareable(@file_system_resolvers) }
+      Ractor.make_shareable(@view_paths_by_class)
+    end
   end
 end

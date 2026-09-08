@@ -12,13 +12,14 @@ module ActionDispatch
   # stack](https://guides.rubyonrails.org/rails_on_rack.html#action-dispatcher-middleware-stack)
   # in the guides.
   class MiddlewareStack
-    class Middleware
-      attr_reader :args, :block, :klass
+    class Middleware # :nodoc:
+      attr_reader :args, :kwargs, :block, :klass
 
-      def initialize(klass, args, block)
-        @klass = klass
-        @args  = args
-        @block = block
+      def initialize(klass, args, kwargs, block)
+        @klass  = klass
+        @args   = args
+        @kwargs = kwargs
+        @block  = block
       end
 
       def name; klass.name; end
@@ -41,7 +42,7 @@ module ActionDispatch
       end
 
       def build(app)
-        klass.new(app, *args, &block)
+        klass.new(app, *args, **kwargs, &block)
       end
 
       def build_instrumented(app)
@@ -51,7 +52,7 @@ module ActionDispatch
 
     # This class is used to instrument the execution of a single middleware. It
     # proxies the `call` method transparently and instruments the method call.
-    class InstrumentationProxy
+    class InstrumentationProxy # :nodoc:
       EVENT_NAME = "process_middleware.action_dispatch"
 
       def initialize(middleware, class_name)
@@ -94,35 +95,31 @@ module ActionDispatch
       middlewares[i]
     end
 
-    def unshift(klass, *args, &block)
-      middlewares.unshift(build_middleware(klass, args, block))
+    def unshift(klass, *args, **kwargs, &block)
+      middlewares.unshift(build_middleware(klass, args, kwargs, block))
     end
-    ruby2_keywords(:unshift)
 
     def initialize_copy(other)
       self.middlewares = other.middlewares.dup
     end
 
-    def insert(index, klass, *args, &block)
+    def insert(index, klass, *args, **kwargs, &block)
       index = assert_index(index, :before)
-      middlewares.insert(index, build_middleware(klass, args, block))
+      middlewares.insert(index, build_middleware(klass, args, kwargs, block))
     end
-    ruby2_keywords(:insert)
 
     alias_method :insert_before, :insert
 
-    def insert_after(index, *args, &block)
+    def insert_after(index, ...)
       index = assert_index(index, :after)
-      insert(index + 1, *args, &block)
+      insert(index + 1, ...)
     end
-    ruby2_keywords(:insert_after)
 
-    def swap(target, *args, &block)
+    def swap(target, ...)
       index = assert_index(target, :before)
-      insert(index, *args, &block)
+      insert(index, ...)
       middlewares.delete_at(index + 1)
     end
-    ruby2_keywords(:swap)
 
     # Deletes a middleware from the middleware stack.
     #
@@ -158,10 +155,9 @@ module ActionDispatch
       middlewares.insert(target_index + 1, source_middleware)
     end
 
-    def use(klass, *args, &block)
-      middlewares.push(build_middleware(klass, args, block))
+    def use(klass, *args, **kwargs, &block)
+      middlewares.push(build_middleware(klass, args, kwargs, block))
     end
-    ruby2_keywords(:use)
 
     def build(app = nil, &block)
       instrumenting = ActiveSupport::Notifications.notifier.listening?(InstrumentationProxy::EVENT_NAME)
@@ -181,8 +177,8 @@ module ActionDispatch
         i
       end
 
-      def build_middleware(klass, args, block)
-        Middleware.new(klass, args, block)
+      def build_middleware(klass, args, kwargs, block)
+        Middleware.new(klass, args, kwargs, block)
       end
 
       def index_of(klass)

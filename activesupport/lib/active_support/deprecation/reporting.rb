@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "rbconfig"
@@ -13,8 +14,10 @@ module ActiveSupport
       # Outputs a deprecation warning to the output configured by
       # ActiveSupport::Deprecation#behavior.
       #
-      #   ActiveSupport::Deprecation.new.warn('something broke!')
-      #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
+      # ```
+      # ActiveSupport::Deprecation.new.warn('something broke!')
+      # # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
+      # ```
       def warn(message = nil, callstack = nil)
         return if silenced
 
@@ -30,14 +33,16 @@ module ActiveSupport
 
       # Silence deprecation warnings within the block.
       #
-      #   deprecator = ActiveSupport::Deprecation.new
-      #   deprecator.warn('something broke!')
-      #   # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
+      # ```
+      # deprecator = ActiveSupport::Deprecation.new
+      # deprecator.warn('something broke!')
+      # # => "DEPRECATION WARNING: something broke! (called from your_code.rb:1)"
       #
-      #   deprecator.silence do
-      #     deprecator.warn('something broke!')
-      #   end
-      #   # => nil
+      # deprecator.silence do
+      #   deprecator.warn('something broke!')
+      # end
+      # # => nil
+      # ```
       def silence(&block)
         begin_silence
         block.call
@@ -58,34 +63,36 @@ module ActiveSupport
       end
 
       # Allow previously disallowed deprecation warnings within the block.
-      # <tt>allowed_warnings</tt> can be an array containing strings, symbols, or regular
+      # `allowed_warnings` can be an array containing strings, symbols, or regular
       # expressions. (Symbols are treated as strings). These are compared against
       # the text of deprecation warning messages generated within the block.
       # Matching warnings will be exempt from the rules set by
       # ActiveSupport::Deprecation#disallowed_warnings.
       #
-      # The optional <tt>if:</tt> argument accepts a truthy/falsy value or an object that
-      # responds to <tt>.call</tt>. If truthy, then matching warnings will be allowed.
+      # The optional `if:` argument accepts a truthy/falsy value or an object that
+      # responds to `.call`. If truthy, then matching warnings will be allowed.
       # If falsey then the method yields to the block without allowing the warning.
       #
-      #   deprecator = ActiveSupport::Deprecation.new
-      #   deprecator.disallowed_behavior = :raise
-      #   deprecator.disallowed_warnings = [
-      #     "something broke"
-      #   ]
+      # ```
+      # deprecator = ActiveSupport::Deprecation.new
+      # deprecator.disallowed_behavior = :raise
+      # deprecator.disallowed_warnings = [
+      #   "something broke"
+      # ]
       #
+      # deprecator.warn('something broke!')
+      # # => ActiveSupport::DeprecationException
+      #
+      # deprecator.allow ['something broke'] do
       #   deprecator.warn('something broke!')
-      #   # => ActiveSupport::DeprecationException
+      # end
+      # # => nil
       #
-      #   deprecator.allow ['something broke'] do
-      #     deprecator.warn('something broke!')
-      #   end
-      #   # => nil
-      #
-      #   deprecator.allow ['something broke'], if: Rails.env.production? do
-      #     deprecator.warn('something broke!')
-      #   end
-      #   # => ActiveSupport::DeprecationException for dev/test, nil for production
+      # deprecator.allow ['something broke'], if: Rails.env.production? do
+      #   deprecator.warn('something broke!')
+      # end
+      # # => ActiveSupport::DeprecationException for dev/test, nil for production
+      # ```
       def allow(allowed_warnings = :all, if: true, &block)
         conditional = binding.local_variable_get(:if)
         conditional = conditional.call if conditional.respond_to?(:call)
@@ -106,12 +113,14 @@ module ActiveSupport
       private
         # Outputs a deprecation warning message
         #
-        #   deprecated_method_warning(:method_name)
-        #   # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon}"
-        #   deprecated_method_warning(:method_name, :another_method)
-        #   # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon} (use another_method instead)"
-        #   deprecated_method_warning(:method_name, "Optional message")
-        #   # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon} (Optional message)"
+        # ```
+        # deprecated_method_warning(:method_name)
+        # # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon}"
+        # deprecated_method_warning(:method_name, :another_method)
+        # # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon} (use another_method instead)"
+        # deprecated_method_warning(:method_name, "Optional message")
+        # # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon} (Optional message)"
+        # ```
         def deprecated_method_warning(method_name, message = nil)
           warning = "#{method_name} is deprecated and will be removed from #{gem_name} #{deprecation_horizon}"
           case message

@@ -109,10 +109,6 @@ module FakeRecord
       @connection.tables.include? name.to_s
     end
 
-    def columns_hash
-      @connection.columns_hash
-    end
-
     def schema_cache
       @connection
     end

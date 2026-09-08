@@ -66,6 +66,10 @@ module ActionView
       ActionView::Template.frozen_string_literal = frozen_string_literal
     end
 
+    config.after_initialize do
+      ActiveSupport::Ractors.make_shareable(ActionView::Template::Handlers::ERB.escape_ignore_list)
+    end
+
     config.after_initialize do |app|
       ActionView::Helpers::AssetTagHelper.image_loading = app.config.action_view.delete(:image_loading)
       ActionView::Helpers::AssetTagHelper.image_decoding = app.config.action_view.delete(:image_decoding)
@@ -94,6 +98,13 @@ module ActionView
 
     initializer "action_view.logger" do
       ActiveSupport.on_load(:action_view) { self.logger ||= Rails.logger }
+    end
+
+    initializer "action_view.root" do
+      ActiveSupport.on_load(:action_view) do
+        ActionView::StructuredEventSubscriber.rails_root = "#{Rails.root}/".freeze
+        ActionView::LogSubscriber.rails_root = "#{Rails.root}/".freeze
+      end
     end
 
     initializer "action_view.caching" do |app|

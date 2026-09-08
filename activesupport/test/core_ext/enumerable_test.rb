@@ -176,6 +176,13 @@ class EnumerableTests < ActiveSupport::TestCase
     assert_typed_equal 5.0, (10..0).sum(5.0), Float
   end
 
+  def test_range_sum_falsey_initial_value
+    assert_raises(NoMethodError) { (1..4).sum(nil) }
+    assert_raises(NoMethodError) { (1..4).sum(false) }
+    assert_nil (10..0).sum(nil)
+    assert_equal false, (10..0).sum(false)
+  end
+
   def test_array_sums
     enum = [5, 15, 10]
     assert_equal 30, enum.sum

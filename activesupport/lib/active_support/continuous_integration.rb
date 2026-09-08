@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -7,20 +8,22 @@ module ActiveSupport
   #
   # Example:
   #
-  #   ActiveSupport::ContinuousIntegration.run do
-  #     step "Setup", "bin/setup --skip-server"
-  #     step "Style: Ruby", "bin/rubocop"
-  #     step "Security: Gem audit", "bin/bundler-audit"
-  #     step "Tests: Rails", "bin/rails test test:system"
+  # ```
+  # ActiveSupport::ContinuousIntegration.run do
+  #   step "Setup", "bin/setup --skip-server"
+  #   step "Style: Ruby", "bin/rubocop"
+  #   step "Security: Gem audit", "bin/bundler-audit"
+  #   step "Tests: Rails", "bin/rails test test:system"
   #
-  #     if success?
-  #       step "Signoff: Ready for merge and deploy", "gh signoff"
-  #     else
-  #       failure "Skipping signoff; CI failed.", "Fix the issues and try again."
-  #     end
+  #   if success?
+  #     step "Signoff: Ready for merge and deploy", "gh signoff"
+  #   else
+  #     failure "Skipping signoff; CI failed.", "Fix the issues and try again."
   #   end
+  # end
+  # ```
   #
-  # Starting with Rails 8.1, a default +bin/ci+ and +config/ci.rb+ file are created to provide out-of-the-box CI.
+  # Starting with Rails 8.1, a default `bin/ci` and `config/ci.rb` file are created to provide out-of-the-box CI.
   class ContinuousIntegration
     COLORS = {
       banner: "\033[1;32m",   # Green
@@ -43,18 +46,20 @@ module ActiveSupport
     #
     # Example:
     #
-    #   ActiveSupport::ContinuousIntegration.run do
-    #     step "Setup", "bin/setup --skip-server"
-    #     step "Style: Ruby", "bin/rubocop"
-    #     step "Security: Gem audit", "bin/bundler-audit"
-    #     step "Tests: Rails", "bin/rails test test:system"
+    # ```
+    # ActiveSupport::ContinuousIntegration.run do
+    #   step "Setup", "bin/setup --skip-server"
+    #   step "Style: Ruby", "bin/rubocop"
+    #   step "Security: Gem audit", "bin/bundler-audit"
+    #   step "Tests: Rails", "bin/rails test test:system"
     #
-    #     if success?
-    #       step "Signoff: Ready for merge and deploy", "gh signoff"
-    #     else
-    #       failure "Skipping signoff; CI failed.", "Fix the issues and try again."
-    #     end
+    #   if success?
+    #     step "Signoff: Ready for merge and deploy", "gh signoff"
+    #   else
+    #     failure "Skipping signoff; CI failed.", "Fix the issues and try again."
     #   end
+    # end
+    # ```
     def self.run(title = "Continuous Integration", subtitle = "Running tests, style checks, and security audits", &block)
       ENV["CI"] = "true"
       new.tap { |ci| ci.run(title, subtitle, &block) }
@@ -72,12 +77,14 @@ module ActiveSupport
     end
 
     # Declare a step with a title and a command. The command can either be given as a single string or as multiple
-    # strings that will be passed to +system+ as individual arguments (and therefore correctly escaped for paths etc).
+    # strings that will be passed to `system` as individual arguments (and therefore correctly escaped for paths etc).
     #
     # Examples:
     #
-    #   step "Setup", "bin/setup"
-    #   step "Single test", "bin/rails", "test", "--name", "test_that_is_one"
+    # ```
+    # step "Setup", "bin/setup"
+    # step "Single test", "bin/rails", "test", "--name", "test_that_is_one"
+    # ```
     def step(title, *command)
       previous_trap = Signal.trap("INT") { abort colorize("\n❌ #{title} interrupted", :error) }
       report_step(title, command) do
@@ -90,7 +97,7 @@ module ActiveSupport
     end
 
     # Declare a group of steps that can be run in parallel. Steps within the group are collected first,
-    # then executed either concurrently (when +parallel+ > 1) or sequentially (when +parallel+ is 1).
+    # then executed either concurrently (when `parallel` > 1) or sequentially (when `parallel` is 1).
     #
     # When running in parallel, each step's output is captured to avoid interleaving, and a progress
     # display shows which steps are currently running.
@@ -99,16 +106,18 @@ module ActiveSupport
     #
     # Examples:
     #
-    #   group "Checks", parallel: 3 do
-    #     step "Style: Ruby", "bin/rubocop"
-    #     step "Security: Brakeman", "bin/brakeman --quiet"
-    #     step "Security: Gem audit", "bin/bundler-audit"
-    #   end
+    # ```
+    # group "Checks", parallel: 3 do
+    #   step "Style: Ruby", "bin/rubocop"
+    #   step "Security: Brakeman", "bin/brakeman --quiet"
+    #   step "Security: Gem audit", "bin/bundler-audit"
+    # end
     #
-    #   group "Tests" do
-    #     step "Unit tests", "bin/rails test"
-    #     step "System tests", "bin/rails test:system"
-    #   end
+    # group "Tests" do
+    #   step "Unit tests", "bin/rails test"
+    #   step "System tests", "bin/rails test:system"
+    # end
+    # ```
     def group(name, parallel: 1, &block)
       if parallel <= 1
         instance_eval(&block)
@@ -132,8 +141,10 @@ module ActiveSupport
     #
     # Examples:
     #
-    #   heading "Smoke Testing", "End-to-end tests verifying key functionality", padding: false
-    #   heading "Skipping video encoding tests", "Install FFmpeg to run these tests", type: :error
+    # ```
+    # heading "Smoke Testing", "End-to-end tests verifying key functionality", padding: false
+    # heading "Skipping video encoding tests", "Install FFmpeg to run these tests", type: :error
+    # ```
     #
     # See ActiveSupport::ContinuousIntegration::COLORS for a complete list of options.
     def heading(heading, subtitle = nil, type: :banner, padding: true)
@@ -145,8 +156,10 @@ module ActiveSupport
     #
     # Examples:
     #
-    #   echo "This is going to be green!", type: :success
-    #   echo "This is going to be red!", type: :error
+    # ```
+    # echo "This is going to be green!", type: :success
+    # echo "This is going to be red!", type: :error
+    # ```
     #
     # See ActiveSupport::ContinuousIntegration::COLORS for a complete list of options.
     def echo(text, type:)

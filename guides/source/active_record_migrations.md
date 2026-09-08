@@ -1664,7 +1664,7 @@ key constraints][] in the database.
 In practice, foreign key constraints and unique indexes are generally considered
 safer when enforced at the database level. Although Active Record does not
 provide direct support for working with these database-level features, you can
-still use the execute method to run arbitrary SQL commands.
+still use the `execute` method to run arbitrary SQL commands.
 
 It's worth emphasizing that while the Active Record pattern emphasizes keeping
 intelligence within models, neglecting to implement foreign keys and unique

@@ -385,6 +385,10 @@ module ActiveStorage
 
   mattr_accessor :video_preview_arguments, default: "-y -vframes 1 -f image2"
 
+  mattr_accessor :video_preview_input_arguments, default: ""
+
+  mattr_accessor :ffprobe_arguments, default: ""
+
   module Transformers
     extend ActiveSupport::Autoload
 

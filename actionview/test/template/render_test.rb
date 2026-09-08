@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "controller/fake_models"
 require "test_renderable"
+require "active_support/testing/ractors_assertions"
 require "active_model/validations"
 
 class TestController < ActionController::Base
@@ -1107,6 +1108,45 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
       "1 | 2 | 3 | 4 | 4",
       "1 | 2 | 3 | 4 | 6"
     ], splited_result
+  end
+
+  class ObjectRenderingRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    class ModelType
+      def to_partial_path
+        "model_types/model_type"
+      end
+    end
+
+    def self.render_object_partial
+      resolver = ActionView::FixtureResolver.new(
+        "admin/model_types/_model_type.html.erb" => "Hello from <%= model_type.to_partial_path %>"
+      )
+      details = { locale: [:en], formats: [:html], variants: [], handlers: [:erb] }
+      lookup_context = ActionView::LookupContext.new([resolver], details, ["admin/posts"])
+      view = ActionView::Base.with_empty_template_cache.with_context(lookup_context)
+      view.render(partial: ModelType.new)
+    end
+
+    test "renders an object partial with a namespaced partial name inside a non-main Ractor" do
+      Mime.eager_load!
+      rendered_on_main = self.class.render_object_partial
+      assert_equal "Hello from model_types/model_type", rendered_on_main
+
+      ActionView::Template::Handlers::ERB.escape_ignore_list.freeze
+      ActiveSupport::Ractors.unshareable_proc_action = :raise
+      ActiveSupport::Notifications.send(:record_subscriptions)
+
+      I18n::Config.prepend(Module.new do
+        def available_locales = [:en].freeze
+      end)
+
+      rendered_in_ractor = on_ractor { ObjectRenderingRactorTest.render_object_partial }
+
+      assert_equal rendered_on_main, rendered_in_ractor
+    end
   end
 
   private

@@ -771,6 +771,32 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal(topics(:second).title, topics.first.title)
   end
 
+  if ActiveRecord::Base.lease_connection.prepared_statements
+    def test_find_by_sql_with_positional_placeholder_binds_the_value
+      payload = capture_query_payload("Topic Load") do
+        Topic.find_by_sql ["SELECT * FROM topics WHERE author_name = ?", "Mary"]
+      end
+      assert_equal ["Mary"], payload[:binds]
+      assert_no_match(/'Mary'/, payload[:sql])
+    end
+
+    def test_find_by_sql_with_named_placeholder_binds_the_value
+      payload = capture_query_payload("Topic Load") do
+        Topic.find_by_sql ["SELECT * FROM topics WHERE author_name = :name", { name: "Mary" }]
+      end
+      assert_equal ["Mary"], payload[:binds]
+      assert_no_match(/'Mary'/, payload[:sql])
+    end
+
+    def test_count_by_sql_with_positional_placeholder_binds_the_value
+      payload = capture_query_payload("Topic Count") do
+        Topic.count_by_sql ["SELECT COUNT(*) FROM topics WHERE author_name = ?", "Mary"]
+      end
+      assert_equal ["Mary"], payload[:binds]
+      assert_no_match(/'Mary'/, payload[:sql])
+    end
+  end
+
   def test_find_by_sql_with_sti_on_joined_table
     accounts = Account.find_by_sql("SELECT * FROM accounts INNER JOIN companies ON companies.id = accounts.firm_id")
     assert_equal [Account], accounts.collect(&:class).uniq
@@ -2135,5 +2161,16 @@ class FinderTest < ActiveRecord::TestCase
           "MercedesCar"
         end
       end)
+    end
+
+    def capture_query_payload(name)
+      payload = nil
+      subscription = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, event_payload|
+        payload = event_payload if event_payload[:name] == name
+      end
+      yield
+      payload
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription) if subscription
     end
 end

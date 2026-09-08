@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 class ParamBuilderTest < ActiveSupport::TestCase
   # Much of the behavioral details are covered by long-standing
@@ -27,5 +28,19 @@ class ParamBuilderTest < ActiveSupport::TestCase
 
     result = ActionDispatch::ParamBuilder.from_query_string("[foo][bar]=baz")
     assert_equal({ "[foo]" => { "bar" => "baz" } }, result)
+  end
+
+  class RactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "default builder is Ractor shareable" do
+      assert_ractor_shareable ActionDispatch::ParamBuilder.default
+    end
+
+    test "parses a query string through the default builder on a non-main Ractor" do
+      params = on_ractor { ActionDispatch::ParamBuilder.from_query_string("a=1&b[c]=2") }
+
+      assert_equal({ "a" => "1", "b" => { "c" => "2" } }, params)
+    end
   end
 end

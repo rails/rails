@@ -2,6 +2,7 @@
 
 module ActiveRecord
   class PredicateBuilder # :nodoc:
+    require "active_record/relation/predicate_builder/comparison"
     require "active_record/relation/predicate_builder/array_handler"
     require "active_record/relation/predicate_builder/basic_object_handler"
     require "active_record/relation/predicate_builder/range_handler"
@@ -13,11 +14,9 @@ module ActiveRecord
       @table = table
       @handlers = []
 
-      register_handler(BasicObject, BasicObjectHandler.new(self))
-      register_handler(Range, RangeHandler.new(self))
-      register_handler(Relation, RelationHandler.new)
-      register_handler(Array, ArrayHandler.new(self))
-      register_handler(Set, ArrayHandler.new(self))
+      register_handlers
+
+      ActiveSupport::Ractors.make_shareable(self)
     end
 
     def build_from_hash(attributes, &block)
@@ -46,6 +45,11 @@ module ActiveRecord
     #       )
     #     end
     #     ActiveRecord::PredicateBuilder.new("users").register_handler(MyCustomDateRange, handler)
+    #
+    # The column exposes its effective type through +type_caster+. Call
+    # <tt>fetch_attribute { |attribute| ... }</tt> to access the underlying
+    # logical Arel attribute when a type supplies a comparison expression. The
+    # handler is responsible for constructing its right-hand side.
     def register_handler(klass, handler)
       @handlers.unshift([klass, handler])
     end
@@ -56,16 +60,35 @@ module ActiveRecord
 
     def build(attribute, value, operator = nil)
       value = value.id if value.respond_to?(:id)
-      if operator ||= table.type(attribute.name).force_equality?(value) && :eq
-        bind = build_bind_attribute(attribute.name, value)
-        attribute.public_send(operator, bind)
+      type = attribute.type_caster
+      attribute = predicate_attribute(attribute, type)
+
+      if operator ||= type.force_equality?(value) && :eq
+        attribute.public_send(operator, predicate_value(attribute, value))
       else
         handler_for(value).call(attribute, value)
       end
     end
 
-    def build_bind_attribute(column_name, value)
-      Relation::QueryAttribute.new(column_name, value, table.type(column_name))
+    def predicate_attribute(attribute, type = attribute.type_caster)
+      if !attribute.is_a?(ComparisonAttribute) && Type::QueryPredicates.type?(type)
+        ComparisonAttribute.new(attribute, type)
+      else
+        attribute
+      end
+    end
+
+    def predicate_value(attribute, value)
+      if Arel.arel_node?(value)
+        attribute.is_a?(ComparisonAttribute) ? attribute.comparison_expression(value) : value
+      else
+        build_bind_attribute(attribute, value)
+      end
+    end
+
+    def build_bind_attribute(attribute, value)
+      bind = Relation::QueryAttribute.new(attribute.name, value, attribute.type_caster)
+      attribute.is_a?(ComparisonAttribute) ? ComparisonValue.new(bind) : bind
     end
 
     def resolve_arel_attribute(table_name, column_name, &block)
@@ -81,6 +104,14 @@ module ActiveRecord
     protected
       attr_writer :table
 
+      def register_handlers
+        register_handler(BasicObject, BasicObjectHandler.new(self))
+        register_handler(Range, RangeHandler.new(self))
+        register_handler(Relation, RelationHandler.new)
+        register_handler(Array, ArrayHandler.new(self))
+        register_handler(Set, ArrayHandler.new(self))
+      end
+
       def expand_from_hash(attributes, &block)
         return [Arel.sql("1=0", retryable: true)] if attributes.empty?
 
@@ -93,7 +124,8 @@ module ActiveRecord
           if key.is_a?(Array)
             queries = Array(value).map do |ids_set|
               raise ArgumentError, "Expected corresponding value for #{key} to be an Array" unless ids_set.is_a?(Array)
-              expand_from_hash(key.zip(ids_set).to_h)
+              attributes = convert_dot_notation_to_hash(key.zip(ids_set).to_h)
+              expand_from_hash(attributes)
             end
             grouping_queries(queries)
           elsif value.is_a?(Hash) && !table.has_column?(key)
@@ -156,7 +188,13 @@ module ActiveRecord
         if queries.one?
           queries.first
         else
-          queries.map! { |query| query.reduce(&:and) }
+          queries.map! { |query|
+            if query.one?
+              query
+            else
+              Arel::Nodes::And.new(query)
+            end
+          }
           queries = Arel::Nodes::Or.new(queries)
           Arel::Nodes::Grouping.new(queries)
         end
