@@ -494,6 +494,26 @@ module ActionCable::StreamTests
       end
     end
 
+    test "fastlane broadcasts deliver the pre-encoded message without going through transmit" do
+      server.config.fastlane_broadcasts_enabled = true
+
+      run_in_eventmachine do
+        open_connection
+        receive(command: "subscribe", channel: MultiChatChannel.name, identifiers: {})
+        wait_for_async
+
+        assert_not_called socket, :transmit do
+          server.broadcast "main_room", { foo: "bar" }
+          wait_for_async
+        end
+
+        assert_equal(
+          { "identifier" => { channel: MultiChatChannel.name }.to_json, "message" => { "foo" => "bar" } },
+          socket.last_transmission
+        )
+      end
+    end
+
     test "subscription confirmation should only be sent out once with multiple stream_from" do
       run_in_eventmachine do
         open_connection

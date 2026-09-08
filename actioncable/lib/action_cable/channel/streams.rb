@@ -97,7 +97,7 @@ module ActionCable
 
         # Build a stream handler by wrapping the user-provided callback with a decoder
         # or defaulting to a JSON-decoding retransmitter.
-        handler = worker_pool_stream_handler(broadcasting, callback || block, coder: coder)
+        handler = build_stream_handler(broadcasting, callback || block, coder: coder)
         streams[broadcasting] = handler
 
         pubsub.subscribe(broadcasting, handler, lambda do
@@ -160,12 +160,12 @@ module ActionCable
 
         # Always wrap the outermost handler to invoke the user handler on the worker
         # pool rather than blocking the event loop.
-        def worker_pool_stream_handler(broadcasting, user_handler, coder: nil)
+        def build_stream_handler(broadcasting, user_handler, coder: nil)
           handler = stream_handler(broadcasting, user_handler, coder: coder)
 
           if user_handler
             -> message do
-              connection.perform_work handler, :call, message
+              connection.perform_work handler, :call, message.data
             end
           else
             handler
@@ -185,19 +185,29 @@ module ActionCable
 
         # May be overridden to change the default stream handling behavior which decodes
         # JSON and transmits to the client.
-        #
-        # TODO: Room for optimization. Update transmit API to be coder-aware so we can
-        # no-op when pubsub and connection are both JSON-encoded. Then we can skip
-        # decode+encode if we're just proxying messages.
         def default_stream_handler(broadcasting, coder:)
+          if connection.config.fastlane_broadcasts_enabled && !coder
+            return opt_stream_handler(broadcasting)
+          end
+
           coder ||= ActiveSupport::JSON
           stream_transmitter stream_decoder(coder: coder), broadcasting: broadcasting
+        end
+
+        # Optimized stream handler that simply retransmits the message without
+        # encoding/decoding or instrumenting.
+        #
+        # May be overridden to add instrumentation, logging, etc.
+        def opt_stream_handler(_broadcasting)
+          -> message do
+            connection.raw_transmit message.encoded_for(@identifier)
+          end
         end
 
         def stream_decoder(handler = nil, coder:)
           if coder
             -> message do
-              message = coder.decode(message)
+              message = coder.decode(String(message))
 
               if handler
                 handler.(message)

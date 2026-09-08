@@ -2,9 +2,35 @@
 
 # :markup: markdown
 
+require "concurrent/map"
+
 module ActionCable
   module SubscriptionAdapter
     class SubscriberMap
+      # A broadcast payload shared by all subscribers of a channel. It caches the
+      # encoded cable message per channel identifier, so the payload is decoded and
+      # re-encoded once per identifier rather than once per subscriber.
+      #
+      class Message < Struct.new(:data) # :nodoc:
+        def initialize(...)
+          super
+          @cache = Concurrent::Map.new
+        end
+
+        def encoded_for(identifier)
+          @cache.compute_if_absent(identifier) do
+            ActiveSupport::JSON.encode({ identifier: identifier, message: ActiveSupport::JSON.decode(data) })
+          end
+        end
+
+        # Behave like the underlying payload string for subscribers that expect one.
+        def to_s = data
+        alias_method :to_str, :to_s
+
+        def ==(other) = data == other
+        def <=>(other) = data <=> other
+      end
+
       def initialize
         @subscribers = Hash.new { |h, k| h[k] = [] }
         @sync = Mutex.new
@@ -41,6 +67,8 @@ module ActionCable
           return if !@subscribers.key?(channel)
           @subscribers[channel].dup
         end
+
+        message = Message.new(message)
 
         list.each do |subscriber|
           invoke_callback(subscriber, message)

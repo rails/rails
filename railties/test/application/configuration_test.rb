@@ -4071,6 +4071,29 @@ module ApplicationTests
       assert_kind_of ActiveSupport::HashWithIndifferentAccess, ActionCable.server.config.cable
     end
 
+    test "config.action_cable.fastlane_broadcasts_enabled defaults to true for new apps" do
+      app "development"
+
+      assert_equal true, ActionCable.server.config.fastlane_broadcasts_enabled
+    end
+
+    test "config.action_cable.fastlane_broadcasts_enabled can be set to false for new apps" do
+      add_to_config "config.action_cable.fastlane_broadcasts_enabled = false"
+
+      app "development"
+
+      assert_equal false, ActionCable.server.config.fastlane_broadcasts_enabled
+    end
+
+    test "config.action_cable.fastlane_broadcasts_enabled defaults to false for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+
+      app "development"
+
+      assert_equal false, ActionCable.server.config.fastlane_broadcasts_enabled
+    end
+
     test "action_text.config.attachment_tag_name is 'action-text-attachment' with Rails 6 defaults" do
       add_to_config 'config.load_defaults "6.1"'
 

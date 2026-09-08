@@ -61,6 +61,7 @@ Below are the default values associated with each target version. In cases of co
 #### Default Values for Target Version 8.2
 
 - [`ActiveSupport.raise_on_invalid_time_zone_parse`](#activesupport-raise-on-invalid-time-zone-parse): `true`
+- [`config.action_cable.fastlane_broadcasts_enabled`](#config-action-cable-fastlane-broadcasts-enabled): `true`
 - [`config.action_controller.default_protect_from_forgery_with`](#config-action-controller-default-protect-from-forgery-with): `:exception`
 - [`config.action_controller.forgery_protection_verification_strategy`](#config-action-controller-forgery-protection-verification-strategy): `:header_only`
 - [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
@@ -3562,6 +3563,20 @@ only the configured origins.
 
 Determines the request origins which will be accepted by the cable server.
 The default value is `/https?:\/\/localhost:\d+/` in the `development` environment.
+
+#### `config.action_cable.fastlane_broadcasts_enabled`
+
+Determines whether broadcasted messages are encoded once per channel identifier
+instead of once per subscriber. When enabled, messages streamed to clients
+without a custom callback or coder skip the per-subscriber JSON decode and
+re-encode. Such messages do not emit the `transmit.action_cable` notification.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
 
 ### Configuring Active Storage
 
