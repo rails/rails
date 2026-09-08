@@ -1,3 +1,13 @@
+*   Honor `config.active_storage.streaming_max_ranges`.
+
+    The setting was documented but never read, so the number of ranges a byte
+    range request may contain stayed at 1. Applications that raised the limit
+    by assigning `ActiveStorage.streaming_max_ranges` directly should move the
+    value to `config.active_storage.streaming_max_ranges`, which now takes
+    precedence.
+
+    *Carlos Daniel Pohlod*
+
 *   Forward other options from `has_one_attached` and `has_many_attached` to the attachment association.
 
     ```ruby
