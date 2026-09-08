@@ -41,21 +41,6 @@ module ActionCable
           raise("No Action Cable URL configured -- please configure this at config.action_cable.url")
         )
       end
-
-      private
-        def config_url
-          ActionCable.server.config.url
-        end
-
-        def config_mount_path
-          if (path = ActionCable.server.config.mount_path).present?
-            if (root = Rails.configuration.relative_url_root).present?
-              File.join(root, path).to_s
-            else
-              path
-            end
-          end
-        end
     end
   end
 end
