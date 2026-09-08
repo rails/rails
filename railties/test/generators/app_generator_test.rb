@@ -530,6 +530,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file ".gitattributes", /\.enc diff=/
   end
 
+  def test_generator_marks_error_pages_as_generated
+    run_generator
+    assert_file ".gitattributes" do |content|
+      %w[400 404 406-unsupported-browser 422 500].each do |page|
+        assert_match(/^public\/#{Regexp.escape(page)}\.html linguist-generated$/, content)
+      end
+    end
+  end
+
   def test_generator_does_not_configure_decrypted_diffs_when_skip_decrypted_diffs_is_given
     run_generator [destination_root, "--skip-decrypted-diffs"]
     assert_file ".gitattributes" do |content|
