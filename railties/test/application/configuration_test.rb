@@ -4469,6 +4469,20 @@ module ApplicationTests
       assert_equal "-codec_whitelist h264", ActiveStorage.ffprobe_arguments
     end
 
+    test "ActiveStorage.streaming_max_ranges is 1 by default" do
+      app "development"
+
+      assert_equal 1, ActiveStorage.streaming_max_ranges
+    end
+
+    test "ActiveStorage.streaming_max_ranges can be configured" do
+      add_to_config "config.active_storage.streaming_max_ranges = 5"
+
+      app "development"
+
+      assert_equal 5, ActiveStorage.streaming_max_ranges
+    end
+
     test "ActiveStorage.variant_processor uses mini_magick without Rails 7 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 
