@@ -4,6 +4,7 @@ require "helper"
 require "jobs/retry_job"
 require "jobs/retries_job"
 require "jobs/after_discard_retry_job"
+require "jobs/missing_wait_method_job"
 require "models/person"
 require "minitest/mock"
 
@@ -309,6 +310,34 @@ class ExceptionsTest < ActiveSupport::TestCase
       ], JobBuffer.values
     end
 
+    test "custom wait method retrying job" do
+      travel_to Time.now
+
+      RetryJob.perform_later "MethodWaitError", 3, :log_scheduled_at
+
+      assert_equal [
+        "Raised MethodWaitError for the 1st time",
+        "Next execution scheduled at #{(Time.now + 3.seconds).to_f}",
+        "Raised MethodWaitError for the 2nd time",
+        "Next execution scheduled at #{(Time.now + 6.seconds).to_f}",
+        "Successfully completed job"
+      ], JobBuffer.values
+    end
+
+    test "custom wait method can use the error" do
+      travel_to Time.now
+
+      RetryJob.perform_later "MethodWaitWithErrorError", 3, :log_scheduled_at
+
+      assert_equal [
+        "Raised MethodWaitWithErrorError for the 1st time",
+        "Next execution scheduled at #{(Time.now + 11.seconds).to_f}",
+        "Raised MethodWaitWithErrorError for the 2nd time",
+        "Next execution scheduled at #{(Time.now + 12.seconds).to_f}",
+        "Successfully completed job"
+      ], JobBuffer.values
+    end
+
     test "use individual execution timers when calculating retry delay" do
       travel_to Time.now
 
@@ -453,6 +482,12 @@ class ExceptionsTest < ActiveSupport::TestCase
     assert_match(/Unsupported argument type for :wait/, error.message)
   end
 
+  test "retry_on raises ArgumentError when the wait method is not defined on the job" do
+    error = assert_raises(ArgumentError) { MissingWaitMethodJob.perform_now }
+    assert_equal "Unsupported argument for :wait, expected :polynomially_longer or the name of " \
+      "an instance method on MissingWaitMethodJob, but got :missing_wait", error.message
+  end
+
   test "retry_on accepts all supported wait types" do
     assert_nothing_raised do
       Class.new(ActiveJob::Base) do
@@ -461,6 +496,7 @@ class ExceptionsTest < ActiveSupport::TestCase
         retry_on StandardError, wait: 5.minutes
         retry_on StandardError, wait: :polynomially_longer
         retry_on StandardError, wait: ->(executions) { executions * 2 }
+        retry_on StandardError, wait: :custom_wait
       end
     end
   end
