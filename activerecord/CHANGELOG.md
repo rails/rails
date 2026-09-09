@@ -1,3 +1,22 @@
+*   Add `config.active_record.mysql_adapter_unsigned_primary_keys`.
+
+    When enabled, the MySQL adapters (`mysql2` and `trilogy`) create integer
+    primary keys as unsigned columns, and integer `references`/`belongs_to`
+    columns default to unsigned as well so that they keep matching the primary
+    keys they point to. `unsigned: false` keeps an individual primary key or
+    reference signed, and the schema dumper spells out the signedness of any
+    primary key that differs from the default so that, once the schema has
+    been re-dumped, `db:schema:load` recreates existing tables as they are.
+
+        # config/application.rb
+        config.active_record.mysql_adapter_unsigned_primary_keys = true
+
+    The setting is off by default.
+
+    Fixes #40967.
+
+    *Joshua Pinter*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the

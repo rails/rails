@@ -24,6 +24,24 @@ module ActiveRecord
           super
         end
 
+        def add_reference(table_name, ref_name, **options) # :nodoc:
+          super(table_name, ref_name, **unsigned_reference_options(options))
+        end
+        alias :add_belongs_to :add_reference
+
+        # With +unsigned_primary_keys+ enabled, integer reference columns default to
+        # unsigned so that they match the primary keys they point to.
+        def unsigned_reference_options(options) # :nodoc:
+          return options if !unsigned_primary_keys || options.key?(:unsigned)
+
+          type = options.fetch(:type, :bigint)
+          if type && [:integer, :bigint].include?(type.to_sym)
+            options.merge(unsigned: true)
+          else
+            options
+          end
+        end
+
         def remove_foreign_key(from_table, to_table = nil, **options)
           # RESTRICT is by default in MySQL.
           options.delete(:on_update) if options[:on_update] == :restrict
