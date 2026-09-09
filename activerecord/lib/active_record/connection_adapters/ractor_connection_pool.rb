@@ -10,8 +10,7 @@ module ActiveRecord
       Lease = Struct.new(:connection, :sticky)
 
       # Dispatches schema cache lookups to the schema cache of this pool's
-      # main-Ractor counterpart (not to whatever pool `ActiveRecord::Base`
-      # currently resolves to). The full BoundSchemaReflection interface is
+      # main-Ractor counterpart. The full BoundSchemaReflection interface is
       # defined up front so lookups never pay `method_missing` dispatch.
       class SchemaCacheProxy
         def initialize(pool)
@@ -177,10 +176,11 @@ module ActiveRecord
         connection.release_connection
       end
 
-      # Mirrors ConnectionPool#pin_connection!: the main pool is pinned for
-      # connection identity (every checkout yields the same physical
-      # connection), while the pinned transaction is started here so it lives
-      # on the worker-side proxy's transaction manager and worker
+      # Mirrors ConnectionPool#pin_connection!: both the main pool and this
+      # pool are pinned for connection identity, so every checkout yields the
+      # same physical connection. Transaction management on the pinned
+      # connection is the caller's responsibility; transactions begun on the
+      # leased proxy live on its transaction manager, so worker-side
       # transactions nest as savepoints. The pinned proxy is shared by every
       # thread of this Ractor, like the pinned connection of a real pool.
       def pin_connection!(lock_thread)
@@ -193,7 +193,6 @@ module ActiveRecord
           connection = state.pinned_connection
           connection.lock_thread = ActiveSupport::IsolatedExecutionState.context if lock_thread
           connection.pinned = true
-          connection.begin_transaction joinable: false, _lazy: false
         rescue Exception
           # A leaked identity pin would hand the (possibly dirty) physical
           # connection to every later checkout.
@@ -206,23 +205,11 @@ module ActiveRecord
         state = self.state
         raise "There isn't a pinned connection #{object_id}" unless state.pinned_connection
 
-        connection = state.pinned_connection
-        clean = true
         begin
           state.pinned_depth -= 1
 
-          if connection.transaction_open?
-            connection.rollback_transaction
-          else
-            # Something committed or rolled back the pinned transaction
-            clean = false
-            connection.reset!
-          end
-        ensure
-          # Even when the rollback fails (e.g. the pinned physical connection
-          # was discarded underneath us), the identity pin must be released or
-          # every later checkout inherits the broken connection.
           if state.pinned_depth.zero?
+            connection = state.pinned_connection
             state.pinned_connection = nil
             connection.pinned = false
             connection.lock_thread = nil
@@ -230,9 +217,12 @@ module ActiveRecord
             connection.expire if connection.in_use?
             connection.release_connection
           end
+        ensure
+          # Even when releasing the local pin fails, the main-pool identity
+          # pin must be released or every later checkout inherits the broken
+          # connection.
           RactorConnectionProxy.unpin_main_pool_connection(@connection_name, @role, @shard, @pool_token, connection_pool: self)
         end
-        clean
       end
 
       # Backs `AbstractAdapter#throw_away!`.

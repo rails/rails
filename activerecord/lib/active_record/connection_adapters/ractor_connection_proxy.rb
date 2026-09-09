@@ -186,20 +186,20 @@ module ActiveRecord
           end
         end
 
-        # Backs RactorConnectionPool#pin_connection!. Pins connection
-        # identity only: the pinned transaction is driven by the worker so it
-        # lives on the proxy's transaction manager, letting worker-side
-        # transactions nest as savepoints.
+        # Backs RactorConnectionPool#pin_connection!, pinning the main pool's
+        # connection identity. The pinned transaction, if any, is begun by the
+        # caller on the worker-side proxy, so it lives on the proxy's
+        # transaction manager and worker-side transactions nest as savepoints.
         def pin_main_pool_connection(connection_name, role, shard, lock_thread, connection_pool: nil)
           shareable_connection_name = shareable_copy(connection_name.to_s)
           pin_lock_thread = !!lock_thread
           main_operation(connection_pool: connection_pool) do
-            main_pool(shareable_connection_name, role, shard).pin_connection!(pin_lock_thread, transaction: false)
+            main_pool(shareable_connection_name, role, shard).pin_connection!(pin_lock_thread)
             nil
           end
         end
 
-        # Backs RactorConnectionPool#unpin_connection!; the worker finishes
+        # Backs RactorConnectionPool#unpin_connection!; the caller finishes
         # the pinned transaction before releasing the identity pin. The pin
         # dies with its pool: when the named pool was replaced or removed
         # (pool token mismatch, see PoolConfig#pool_token), there is nothing
@@ -210,7 +210,7 @@ module ActiveRecord
             pool = main_connection_handler.retrieve_connection_pool(
               shareable_connection_name, role: role, shard: shard, strict: false
             )
-            pool.unpin_connection!(transaction: false) if pool && pool.pool_config.pool_token == pool_token
+            pool.unpin_connection! if pool && pool.pool_config.pool_token == pool_token
             nil
           end
         end

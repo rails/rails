@@ -758,6 +758,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   test "query cache is cleared for all thread when a connection is shared" do
     ActiveRecord::Base.connection_pool.pin_connection!(ActiveSupport::IsolatedExecutionState.context)
+    ActiveRecord::Base.lease_connection.begin_transaction(joinable: false, _lazy: false)
 
     begin
       assert_cache :off
@@ -786,6 +787,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
       assert_cache :clean
     ensure
+      ActiveRecord::Base.lease_connection.rollback_transaction
       ActiveRecord::Base.connection_pool.unpin_connection!
     end
   end

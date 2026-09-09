@@ -1163,37 +1163,23 @@ module ActiveRecord
         assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
       end
 
-      def test_pin_connection_opens_a_transaction
-        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
+      def test_pin_connection_does_not_open_a_transaction
         @pool.pin_connection!(true)
-        assert_instance_of RealTransaction, @pool.lease_connection.current_transaction
+        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
         @pool.unpin_connection!
-        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
-      end
-
-      def test_unpin_connection_returns_whether_transaction_has_been_rolledback
-        @pool.pin_connection!(true)
-        assert_equal true, @pool.unpin_connection!
-
-        @pool.pin_connection!(true)
-        @pool.lease_connection.commit_transaction
-        assert_equal false, @pool.unpin_connection!
-
-        @pool.pin_connection!(true)
-        @pool.lease_connection.rollback_transaction
-        assert_equal false, @pool.unpin_connection!
       end
 
       def test_pin_connection_nesting
-        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
         @pool.pin_connection!(true)
-        assert_instance_of RealTransaction, @pool.lease_connection.current_transaction
+        pinned_connection = @pool.checkout
         @pool.pin_connection!(true)
-        assert_instance_of SavepointTransaction, @pool.lease_connection.current_transaction
+        assert_same pinned_connection, @pool.checkout
+
         @pool.unpin_connection!
-        assert_instance_of RealTransaction, @pool.lease_connection.current_transaction
+        # The outer pin still holds the connection.
+        assert_same pinned_connection, @pool.checkout
+
         @pool.unpin_connection!
-        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
 
         assert_raises(RuntimeError, match: /There isn't a pinned connection/) do
           @pool.unpin_connection!

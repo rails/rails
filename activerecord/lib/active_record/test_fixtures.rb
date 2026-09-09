@@ -203,7 +203,7 @@ module ActiveRecord
         pools.each do |pool|
           pool.pin_connection!(lock_threads)
           @fixture_connection_pools << pool
-          pool.lease_connection
+          pool.lease_connection.begin_transaction(joinable: false, _lazy: false)
         end
 
         # When connections are established in the future, begin a transaction too
@@ -220,7 +220,7 @@ module ActiveRecord
               if !@fixture_connection_pools.include?(pool) && transactional_tests_for_pool?(pool)
                 pool.pin_connection!(lock_threads)
                 @fixture_connection_pools << pool
-                pool.lease_connection
+                pool.lease_connection.begin_transaction(joinable: false, _lazy: false)
               end
             end
           end
@@ -230,8 +230,23 @@ module ActiveRecord
       def teardown_transactional_fixtures
         ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
 
-        unless @fixture_connection_pools.map(&:unpin_connection!).all?
-          # Something caused the transaction to be committed or rolled back
+        clean = true
+        @fixture_connection_pools.each do |pool|
+          connection = pool.lease_connection
+          begin
+            if connection.transaction_open?
+              connection.rollback_transaction
+            else
+              # Something caused the transaction to be committed or rolled back
+              clean = false
+              connection.reset!
+            end
+          ensure
+            pool.unpin_connection!
+          end
+        end
+
+        unless clean
           # We can no longer trust the database is in a clean state.
           @@already_loaded_fixtures.clear
         end

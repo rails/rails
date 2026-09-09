@@ -1111,9 +1111,10 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   def test_transaction_created_on_connection_notification
     connection = Class.new do
       attr_accessor :pool
+      attr_accessor :begin_transaction_called
 
-      def transaction_open?; end
-      def begin_transaction(*args); end
+      def transaction_open?; true; end
+      def begin_transaction(*args); @begin_transaction_called = true; end
       def rollback_transaction(*args); end
       def connect!; end
     end.new
@@ -1125,7 +1126,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
-      def unpin_connection!; @connection.rollback_transaction; true; end
+      def unpin_connection!; end
     end.new(connection)
 
     connection.pool.db_config = Class.new do
@@ -1136,6 +1137,8 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     assert_called_with(pool, :pin_connection!, [true]) do
       fire_connection_notification(connection.pool)
     end
+
+    assert(connection.begin_transaction_called, "Expected <mock connection>#begin_transaction to be called but was not")
   end
 
   def test_notification_established_transactions_are_rolled_back
@@ -1159,7 +1162,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
-      def unpin_connection!; @connection.rollback_transaction; true; end
+      def unpin_connection!; end
     end.new(connection)
 
     connection.pool.db_config = Class.new do
@@ -1177,7 +1180,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     connection = Class.new do
       attr_accessor :pool
 
-      def transaction_open?; end
+      def transaction_open?; true; end
       def begin_transaction(*args); end
       def rollback_transaction(*args); end
       def connect!; end
@@ -1190,7 +1193,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
-      def unpin_connection!; @connection.rollback_transaction; true; end
+      def unpin_connection!; end
     end.new(connection)
 
     connection.pool.db_config = Class.new do

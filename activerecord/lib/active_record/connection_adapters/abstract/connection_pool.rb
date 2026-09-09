@@ -365,7 +365,10 @@ module ActiveRecord
         connection_lease.sticky.nil?
       end
 
-      def pin_connection!(lock_thread, transaction: true) # :nodoc:
+      # Pins the connection so that every checkout returns the same connection.
+      # Transaction management on the pinned connection is the caller's
+      # responsibility.
+      def pin_connection!(lock_thread) # :nodoc:
         @pinned_connection ||= (connection_lease&.connection || checkout)
         @pinned_connections_depth += 1
 
@@ -377,27 +380,15 @@ module ActiveRecord
 
         @pinned_connection.lock_thread = ActiveSupport::IsolatedExecutionState.context if lock_thread
         @pinned_connection.pinned = true
-        @pinned_connection.begin_transaction joinable: false, _lazy: false if transaction
       end
 
-      def unpin_connection!(transaction: true) # :nodoc:
+      def unpin_connection! # :nodoc:
         raise "There isn't a pinned connection #{object_id}" unless @pinned_connection
 
-        clean = true
         @pinned_connection.lock.synchronize do
           @pinned_connections_depth -= 1
           connection = @pinned_connection
           @pinned_connection = nil if @pinned_connections_depth.zero?
-
-          if transaction
-            if connection.transaction_open?
-              connection.rollback_transaction
-            else
-              # Something committed or rolled back the transaction
-              clean = false
-              connection.reset!
-            end
-          end
 
           if @pinned_connection.nil?
             connection.pinned = false
@@ -406,8 +397,6 @@ module ActiveRecord
             checkin(connection)
           end
         end
-
-        clean
       end
 
       def connection_descriptor # :nodoc:
