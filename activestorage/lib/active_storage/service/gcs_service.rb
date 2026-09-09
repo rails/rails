@@ -227,6 +227,8 @@ module ActiveStorage
           resource = "projects/-/serviceAccounts/#{issuer}"
           response = iam_client.sign_service_account_blob(resource, request)
           response.signed_blob
+        rescue Signet::AuthorizationError => e
+          raise ActiveStorage::AuthorizationError, e.message
         end
       end
 

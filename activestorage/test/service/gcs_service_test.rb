@@ -214,6 +214,21 @@ if SERVICE_CONFIGURATIONS[:gcs]
         WebMock.disable!
       end
 
+      test "signer wraps authorization errors from the IAM client" do
+        WebMock.enable!
+        config_with_adc = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ iam: true }) }
+        service = ActiveStorage::Service.configure(:gcs, config_with_adc)
+
+        stub_request(:post, "https://www.googleapis.com/oauth2/v4/token")
+          .to_return(status: 400, body: { error: "invalid_grant", error_subtype: "invalid_rapt" }.to_json)
+        key = SecureRandom.base58(24)
+        assert_raises(ActiveStorage::AuthorizationError) do
+          service.url(key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
+        end
+      ensure
+        WebMock.disable!
+      end
+
       test "overridden IAM client credentials" do
         WebMock.enable!
         config_with_adc = { gcs: SERVICE_CONFIGURATIONS[:gcs].merge({ iam: true }) }
