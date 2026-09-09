@@ -19,6 +19,7 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         add_to_env_config "production", "config.public_file_server.enabled = false" # Requires release of https://github.com/rack/rack/pull/2469
         add_to_env_config "production", "config.cache_store = :null_store"
         add_to_env_config "production", "config.action_cable.mount_path = nil"
+        add_to_env_config "production", "config.active_job.queue_adapter = :inline" # the async adapter holds a thread pool
       end
 
       def teardown
@@ -96,6 +97,23 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         main_size = GreetingsController._view_paths.size
         assert_operator main_size, :>, 0
         assert_equal main_size, on_ractor { GreetingsController._view_paths.size }
+      end
+
+      test "jobs are performed from a non-main Ractor" do
+        app_file "app/jobs/hello_job.rb", <<~RUBY
+          class HelloJob < ApplicationJob
+            def perform(name)
+              "Hello, \#{name}"
+            end
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ActiveJob::Base.queue_adapter
+        assert_equal "Hello, worker", on_ractor { HelloJob.perform_now("worker") }
       end
 
       test "error reporting works after the application is ractorized" do

@@ -686,6 +686,12 @@ module Rails
         ActiveRecord::Base.descendants.each(&:make_reflections_shareable!)
       end
 
+      if defined?(ActiveJob::Base)
+        [ActiveJob::Base, *ActiveJob::Base.descendants].each do |job|
+          Ractor.make_shareable(job.queue_adapter)
+        end
+      end
+
       Ractor.make_shareable(self)
       Ractor.make_shareable(Rails.env)
       Ractor.make_shareable(Rails.logger)
