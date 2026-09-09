@@ -62,7 +62,7 @@ module ActionCable
 
       attr_reader :subscriptions, :logger
 
-      delegate :pubsub, :executor, :config, :broadcast, to: :server
+      delegate :pubsub, :config, :broadcast, :post, :timer, :schedule, to: :server
       delegate :env, :request, :protocol, :perform_work, to: :socket, allow_nil: true
 
       def initialize(server, socket)

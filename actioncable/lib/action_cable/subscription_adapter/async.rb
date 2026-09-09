@@ -7,7 +7,7 @@ module ActionCable
     class Async < Inline # :nodoc:
       private
         def new_subscriber_map
-          SubscriberMap::Async.new(executor)
+          SubscriberMap::Async.new(server)
         end
     end
   end

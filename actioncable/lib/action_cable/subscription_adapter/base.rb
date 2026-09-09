@@ -8,7 +8,7 @@ module ActionCable
       delegate :logger, to: :config
 
       def initialize(server)
-        @executor = server.executor
+        @server = server
         @config = server.config
       end
 
@@ -34,7 +34,7 @@ module ActionCable
       end
 
       private
-        attr_reader :executor, :config
+        attr_reader :server, :config
     end
   end
 end
