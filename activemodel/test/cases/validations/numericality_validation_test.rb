@@ -237,6 +237,28 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_valid_values([1, 2, 3])
   end
 
+  def test_validates_numericality_with_multiple_of
+    Topic.validates_numericality_of :approved, multiple_of: 2
+
+    assert_invalid_values([-1, 1, 3], "must be a multiple of 2")
+    assert_valid_values([-2, 0, 2, 4])
+  end
+
+  def test_validates_numericality_with_multiple_of_using_decimals
+    Topic.validates_numericality_of :approved, multiple_of: 0.1
+
+    assert_invalid_values([0.15, "0.25"], "must be a multiple of 0.1")
+    assert_valid_values([0.3, "0.5"])
+  end
+
+  def test_validates_numericality_with_multiple_of_positive_only
+    Topic.validates_numericality_of :approved, multiple_of: 2, greater_than: 0
+
+    assert_invalid_values([-2, -1, 0], "must be greater than 0")
+    assert_invalid_values([1, 3], "must be a multiple of 2")
+    assert_valid_values([2, 4, 6])
+  end
+
   def test_validates_numericality_with_in_and_proc_as_value
     Topic.validates_numericality_of :approved, in: ->(o) { 1..3 }
 

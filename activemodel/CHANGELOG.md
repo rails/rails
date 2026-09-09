@@ -1,3 +1,27 @@
+*   Add a `multiple_of` option to the `numericality` validator.
+
+      ```ruby
+      class MyModel
+        validates :offset, numericality: { multiple_of: 7 }
+      end
+
+      model = MyModel.new
+
+      model.offset = -7
+      model.valid? # => true
+
+      model.offset = 0
+      model.valid? # => true
+
+      model.offset = 7
+      model.valid? # => true
+
+      model.offset = 10
+      model.valid? # => false
+      ```
+
+    *Joshua Young*
+
 *   Implement `ActiveModel::Type::Binary::Data#as_json`
 
     Delegates JSON conversion to the underlying binary data value (instead of
