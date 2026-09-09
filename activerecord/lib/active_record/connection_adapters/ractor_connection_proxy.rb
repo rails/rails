@@ -14,9 +14,12 @@ module ActiveRecord
     # worker-side query pipeline locally and forwards everything else to a
     # token-pinned physical connection on the main Ractor.
     class RactorConnectionProxy < AbstractAdapter # :nodoc:
+      autoload :MySQLProxy, "active_record/connection_adapters/ractor_connection_proxy/mysql_proxy"
+      autoload :PostgreSQLProxy, "active_record/connection_adapters/ractor_connection_proxy/postgresql_proxy"
+      autoload :SQLite3Proxy, "active_record/connection_adapters/ractor_connection_proxy/sqlite3_proxy"
+
       ADAPTER_NAME = "RactorProxy"
 
-      CAPABILITY_METHOD_PATTERN = /\Asupports_.*\?\z/
       PLACEHOLDER_LOGGER = Object.new.freeze
 
       # Raised on the worker when the main-side error class cannot be
@@ -52,10 +55,6 @@ module ActiveRecord
       @next_token = 0
       @connections_lock = Mutex.new
 
-      # Main-Ractor-only cache of computed per-adapter-class transport
-      # surfaces.
-      @remote_adapter_methods = {}.compare_by_identity
-
       class << self
         attr_reader :connections
 
@@ -63,8 +62,23 @@ module ActiveRecord
           shareable_connection_name = shareable_copy(connection_name.to_s)
           main_operation do
             connection = main_pool(shareable_connection_name, role, shard).checkout
-            token = register_connection(connection)
-            ActiveSupport::Ractors.make_shareable([token, connection_profile(connection)], copy: true)
+            begin
+              # Eager: a token-pinned connection is `leased`, so the pipeline's
+              # ensure_connection_ready will neither connect nor verify it (see
+              # skip_verification?); it must be usable up front — and the
+              # capability flags in the profile may consult the database
+              # version.
+              connection.connect!
+              # Built on the main Ractor; resolving the proxy class inside
+              # rejects unsupported adapters before a token is pinned, and
+              # workers never load proxy classes themselves.
+              profile = connection.ractor_connection_profile
+              token = register_connection(connection)
+            rescue Exception
+              connection.pool.checkin(connection)
+              raise
+            end
+            ActiveSupport::Ractors.make_shareable([token, profile], copy: true)
           end
         end
 
@@ -368,51 +382,9 @@ module ActiveRecord
           end
         end
 
-        # Methods that must keep their (worker-local) AbstractAdapter
-        # implementations even when a concrete adapter overrides them: the
-        # query pipeline entry points (which must build worker-side intents),
-        # exception translation (main-side errors arrive pre-translated), and
-        # physical connection machinery that only makes sense next to the raw
-        # connection on the main Ractor.
-        ALWAYS_LOCAL_METHODS = %i[
-          execute exec_query exec_insert exec_delete exec_update exec_insert_all
-          _exec_insert insert update delete truncate truncate_tables execute_batch
-          select_all select_one select_value select_values select_rows
-          query_all query_rows query_values query_value query_one query_command
-          cacheable_query to_sql to_sql_and_binds
-          translate_exception translate_exception_class retryable_query_error?
-          type_map extended_type_map_key
-          reconnect connect! configure_connection attempt_configure_connection
-          check_version default_prepared_statements
-          _run_checkin_callbacks _run_checkout_callbacks
-        ].freeze
-
-        # Per-Ractor cache of the remote-dispatch modules built from a connection profile.
-        def remote_dispatch_module(profile)
-          cache = (ActiveSupport::Ractors[:active_record_ractor_dispatch_modules] ||= {})
-          cache[profile[:adapter_class_name]] ||= Module.new do
-            profile[:remote_methods].each do |method_name|
-              define_method(method_name) do |*args, **kwargs, &block|
-                if block
-                  raise ActiveRecordError,
-                    "Cannot forward a block to #{method_name} on the main-Ractor connection"
-                end
-                # Remote adapter methods may write through the physical
-                # connection (e.g. SQLite3#add_column); a lazily begun
-                # worker-side transaction must reach it first, or rolling the
-                # transaction back would not cover the remote work. Pure
-                # reads (capabilities, quoting) never touch the database and
-                # must not materialize a lazy transaction.
-                materialize_transactions unless RactorConnectionProxy.pure_remote_method?(method_name)
-                remote_adapter_call(method_name, args, kwargs)
-              end
-            end
-          end
-        end
-
         # Methods that never touch the database: quoting/typing helpers and
-        # feature flags. Safe to dispatch without materializing lazy
-        # worker-side transactions.
+        # feature flags. method_missing dispatches of such methods must not
+        # materialize lazy worker-side transactions.
         PURE_REMOTE_METHOD_PATTERN = /\A(?:quote|type_to_sql\z|valid_type\?\z|supports_)/
         def pure_remote_method?(method_name)
           PURE_REMOTE_METHOD_PATTERN.match?(method_name)
@@ -524,10 +496,6 @@ module ActiveRecord
           end
 
           def register_connection(connection)
-            # Eager: a token-pinned connection is `leased`, so the pipeline's
-            # ensure_connection_ready will neither connect nor verify it (see
-            # skip_verification?); it must be usable up front.
-            connection.connect!
             # Not folded into connect! (the shared bootstrap for every
             # adapter): only this callsite knows the connection is being
             # pinned. steal! clears the flag when the lease is taken back.
@@ -609,89 +577,6 @@ module ActiveRecord
               strict: true,
             )
           end
-
-          def connection_profile(connection)
-            klass = connection.class
-            {
-              adapter_class_name: klass.name,
-              adapter_name: connection.adapter_name,
-              prepared_statements: connection.instance_variable_get(:@prepared_statements),
-              remote_methods: remote_adapter_methods(klass),
-              referential_integrity_module_name: referential_integrity_module_name(klass),
-              table_definition_class_name: connection.send(:create_table_definition, "__ractor_probe__").class.name,
-              capabilities: capability_snapshot(connection),
-            }
-          end
-
-          # Zero-arity feature flags answered up front, so workers never pay
-          # a dispatch for them — and can still answer them after the token
-          # has been released (e.g. a lazy transaction on a checked-in
-          # connection).
-          def capability_snapshot(connection)
-            remote_adapter_methods(connection.class).each_with_object({}) do |method_name, snapshot|
-              next unless CAPABILITY_METHOD_PATTERN.match?(method_name)
-              next unless connection.respond_to?(method_name) && connection.method(method_name).arity == 0
-
-              begin
-                snapshot[method_name] = connection.public_send(method_name)
-              rescue StandardError
-                # Answered per-call through the ordinary dispatch instead.
-              end
-            end
-          end
-
-          # `disable_referential_integrity` wraps a caller block that must run
-          # on the worker, so it cannot be dispatched remotely. When the
-          # concrete adapter implements it in a standalone module written
-          # against the query pipeline (e.g. SQLite3::ReferentialIntegrity),
-          # the proxy extends that module and runs it locally instead.
-          def referential_integrity_module_name(klass)
-            owner = klass.instance_method(:disable_referential_integrity).owner
-            owner.name if owner != AbstractAdapter && !owner.is_a?(Class)
-          end
-
-          # The computed transport surface for one concrete adapter class:
-          # every method the concrete class overrides from AbstractAdapter —
-          # instance-level, or class-level behind an instance delegator (e.g.
-          # `quote_column_name`) — minus the worker pipeline/lifecycle methods
-          # the proxy implements itself.
-          def remote_adapter_methods(klass)
-            @remote_adapter_methods[klass] ||= begin
-              base = AbstractAdapter
-              boundary = local_boundary_methods
-
-              instance_candidates = (
-                base.instance_methods + base.protected_instance_methods + base.private_instance_methods
-              ).uniq
-              overridden = instance_candidates.select do |name|
-                !boundary.include?(name) &&
-                  klass.instance_method(name).owner != base.instance_method(name).owner
-              end
-
-              class_candidates = (base.methods + base.protected_methods + base.private_methods).uniq
-              class_overridden = class_candidates.select do |name|
-                next false if boundary.include?(name)
-                next false unless base.method_defined?(name) || base.private_method_defined?(name) ||
-                  base.protected_method_defined?(name)
-                begin
-                  klass.method(name).owner != base.method(name).owner
-                rescue NameError
-                  false
-                end
-              end
-
-              ActiveSupport::Ractors.make_shareable((overridden | class_overridden).sort)
-            end
-          end
-
-          def local_boundary_methods
-            @local_boundary_methods ||= (
-              RactorConnectionProxy.instance_methods(false) +
-              RactorConnectionProxy.protected_instance_methods(false) +
-              RactorConnectionProxy.private_instance_methods(false) +
-              ALWAYS_LOCAL_METHODS
-            ).to_set.freeze
-          end
       end
 
       def initialize(pool, connection_token, profile, config)
@@ -707,13 +592,6 @@ module ActiveRecord
         @quoted_column_names = {}
         @quoted_table_names = {}
         @last_query_response = nil
-        extend(self.class.remote_dispatch_module(profile))
-        # Extended after the dispatch module so its local, pipeline-driven
-        # `disable_referential_integrity` shadows the remote (block-refusing)
-        # dispatch. Adapters without such a module keep the loud remote error.
-        if ri_module_name = profile[:referential_integrity_module_name]
-          extend(Object.const_get(ri_module_name))
-        end
       end
 
       def adapter_name
@@ -773,7 +651,7 @@ module ActiveRecord
         if token = @connection_token
           @connection_token = nil
           @raw_connection = nil
-          self.class.discard_connection(token)
+          RactorConnectionProxy.discard_connection(token)
         end
         reset_transaction
       end
@@ -788,7 +666,7 @@ module ActiveRecord
         if token = @connection_token
           @connection_token = nil
           @raw_connection = nil
-          self.class.checkin_connection(token)
+          RactorConnectionProxy.checkin_connection(token)
         end
       end
 
@@ -797,7 +675,7 @@ module ActiveRecord
         if token = @connection_token
           @connection_token = nil
           @raw_connection = nil
-          self.class.remove_connection(token)
+          RactorConnectionProxy.remove_connection(token)
         end
       end
 
@@ -812,7 +690,7 @@ module ActiveRecord
       # Whether this proxy's token still names a live, checked-out main-side
       # connection (see RactorConnectionProxy.connection_pinned?).
       def holds_main_connection? # :nodoc:
-        !!(@connection_token && self.class.connection_pinned?(@connection_token))
+        !!(@connection_token && RactorConnectionProxy.connection_pinned?(@connection_token))
       end
 
       def native_database_types
@@ -835,8 +713,8 @@ module ActiveRecord
         return [] if binds.nil? || binds.empty?
 
         copy = !ActiveSupport::Ractors.main?
-        self.class.cast_binds_on_connection(
-          @connection_token, copy ? self.class.dump_binds(binds) : binds, copy: copy, connection_pool: @pool
+        RactorConnectionProxy.cast_binds_on_connection(
+          @connection_token, copy ? RactorConnectionProxy.dump_binds(binds) : binds, copy: copy, connection_pool: @pool
         )
       end
 
@@ -881,9 +759,9 @@ module ActiveRecord
 
           copy = !ActiveSupport::Ractors.main?
           sql, compiled_binds, compiled_preparable, compiled_allow_retry =
-            self.class.compile_on_connection(
+            RactorConnectionProxy.compile_on_connection(
               @connection_token,
-              copy ? self.class.dump_object(arel_or_sql, "an Arel AST") : arel_or_sql,
+              copy ? RactorConnectionProxy.dump_object(arel_or_sql, "an Arel AST") : arel_or_sql,
               preparable,
               allow_retry,
               prepared_statements: prepared_statements?,
@@ -919,12 +797,12 @@ module ActiveRecord
           when Arel::Collectors::SubstituteBinds
             :substitute_binds
           else
-            copy ? self.class.dump_object(collector, "the Arel collector #{collector.class}") : collector
+            copy ? RactorConnectionProxy.dump_object(collector, "the Arel collector #{collector.class}") : collector
           end
 
-        value, preparable, retryable = self.class.visitor_compile_on_connection(
+        value, preparable, retryable = RactorConnectionProxy.visitor_compile_on_connection(
           @connection_token,
-          copy ? self.class.dump_object(node, "an Arel AST") : node,
+          copy ? RactorConnectionProxy.dump_object(node, "an Arel AST") : node,
           collector_payload,
           copy: copy,
           connection_pool: @pool,
@@ -952,7 +830,7 @@ module ActiveRecord
           raise ActiveRecordError, "Schema statements can only be executed on the main Ractor"
         end
 
-        self.class.schema_creation_accept_on_connection(@connection_token, node, connection_pool: @pool)
+        RactorConnectionProxy.schema_creation_accept_on_connection(@connection_token, node, connection_pool: @pool)
       end
 
       # See RactorConnectionProxy.begin_transaction_on_connection: the
@@ -960,23 +838,23 @@ module ActiveRecord
       # through its own TransactionManager, keeping the main side aware of
       # the worker's transaction depth.
       def begin_db_transaction # :nodoc:
-        self.class.begin_transaction_on_connection(@connection_token, nil, true, connection_pool: @pool)
+        RactorConnectionProxy.begin_transaction_on_connection(@connection_token, nil, true, connection_pool: @pool)
       end
 
       def begin_isolated_db_transaction(isolation) # :nodoc:
-        self.class.begin_transaction_on_connection(@connection_token, isolation, true, connection_pool: @pool)
+        RactorConnectionProxy.begin_transaction_on_connection(@connection_token, isolation, true, connection_pool: @pool)
       end
 
       def begin_deferred_transaction(isolation_level = nil) # :nodoc:
-        self.class.begin_transaction_on_connection(@connection_token, isolation_level, false, connection_pool: @pool)
+        RactorConnectionProxy.begin_transaction_on_connection(@connection_token, isolation_level, false, connection_pool: @pool)
       end
 
       def commit_db_transaction # :nodoc:
-        self.class.commit_transaction_on_connection(@connection_token, connection_pool: @pool)
+        RactorConnectionProxy.commit_transaction_on_connection(@connection_token, connection_pool: @pool)
       end
 
       def exec_rollback_db_transaction # :nodoc:
-        self.class.rollback_transaction_on_connection(@connection_token, connection_pool: @pool)
+        RactorConnectionProxy.rollback_transaction_on_connection(@connection_token, connection_pool: @pool)
       end
 
       def exec_restart_db_transaction # :nodoc:
@@ -998,11 +876,11 @@ module ActiveRecord
         end
 
         def table_definition_class
-          @table_definition_class ||= Object.const_get(@adapter_profile[:table_definition_class_name])
+          @adapter_profile[:table_definition_class]
         end
 
         def adapter_class
-          @adapter_class ||= Object.const_get(@adapter_profile[:adapter_class_name])
+          @adapter_profile[:adapter_class]
         end
 
         # The concrete adapter's type map, not AbstractAdapter's generic one:
@@ -1037,7 +915,7 @@ module ActiveRecord
             copy: copy,
           )
 
-          response = self.class.query_connection(@connection_token, request, connection_pool: @pool)
+          response = RactorConnectionProxy.query_connection(@connection_token, request, connection_pool: @pool)
           @last_query_response = response
           intent.notification_payload[:affected_rows] = response.affected_rows
           intent.notification_payload[:row_count] = response.row_count
@@ -1065,6 +943,31 @@ module ActiveRecord
           @last_query_response&.last_inserted_id
         end
 
+        # Forwards one DB-touching adapter method to the token-pinned
+        # main-Ractor connection. Remote adapter methods may write through
+        # the physical connection (e.g. SQLite3#add_column); a lazily begun
+        # worker-side transaction must reach it first, or rolling the
+        # transaction back would not cover the remote work.
+        def remote_dispatch(method_name, *args, **kwargs, &block)
+          if block
+            raise ActiveRecordError, "Cannot forward a block to #{method_name} on the main-Ractor connection"
+          end
+
+          materialize_transactions
+          remote_adapter_call(method_name, args, kwargs)
+        end
+
+        # Forwards an adapter method that never touches the database
+        # (capabilities, quoting, typing); must not materialize lazy
+        # worker-side transactions.
+        def pure_remote_dispatch(method_name, *args, **kwargs, &block)
+          if block
+            raise ActiveRecordError, "Cannot forward a block to #{method_name} on the main-Ractor connection"
+          end
+
+          remote_adapter_call(method_name, args, kwargs)
+        end
+
         def remote_adapter_call(method_name, args = [], kwargs = {})
           if args.empty? && kwargs.empty? && CAPABILITY_METHOD_PATTERN.match?(method_name)
             capabilities = @adapter_profile[:capabilities]
@@ -1080,10 +983,10 @@ module ActiveRecord
           if args.empty? && kwargs.empty? && CAPABILITY_METHOD_PATTERN.match?(method_name)
             @remote_capability_memo.fetch(method_name) do
               @remote_capability_memo[method_name] =
-                self.class.call_connection(@connection_token, method_name, args, kwargs, connection_pool: @pool)
+                RactorConnectionProxy.call_connection(@connection_token, method_name, args, kwargs, connection_pool: @pool)
             end
           else
-            self.class.call_connection(@connection_token, method_name, args, kwargs, connection_pool: @pool)
+            RactorConnectionProxy.call_connection(@connection_token, method_name, args, kwargs, connection_pool: @pool)
           end
         end
 
@@ -1094,9 +997,9 @@ module ActiveRecord
             raise ActiveRecordError, "Cannot forward a block to #{name} on the main-Ractor connection"
           end
 
-          # See remote_dispatch_module: remote work must land inside a lazily
+          # See #remote_dispatch: remote work must land inside a lazily
           # begun worker-side transaction.
-          materialize_transactions unless self.class.pure_remote_method?(name)
+          materialize_transactions unless RactorConnectionProxy.pure_remote_method?(name)
           remote_adapter_call(name, args, kwargs)
         end
 

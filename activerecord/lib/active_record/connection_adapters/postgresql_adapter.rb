@@ -72,6 +72,10 @@ module ActiveRecord
           end
         end
 
+        def ractor_connection_proxy_class # :nodoc:
+          RactorConnectionProxy::PostgreSQLProxy
+        end
+
         def dbconsole(config, options = {})
           pg_config = config.configuration_hash.deep_dup
 
@@ -209,6 +213,17 @@ module ActiveRecord
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
+
+      def ractor_connection_capabilities # :nodoc:
+        super.merge(
+          supports_close_prepared?: supports_close_prepared?,
+          supports_force_drop_database?: supports_force_drop_database?,
+          supports_identity_columns?: supports_identity_columns?,
+          supports_insert_on_conflict?: supports_insert_on_conflict?,
+          supports_native_partitioning?: supports_native_partitioning?,
+          supports_pgcrypto_uuid?: supports_pgcrypto_uuid?,
+        )
+      end
 
       def supports_bulk_alter?
         true

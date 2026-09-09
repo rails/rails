@@ -60,6 +60,10 @@ module ActiveRecord
       end
 
       class << self
+        def ractor_connection_proxy_class # :nodoc:
+          RactorConnectionProxy::MySQLProxy
+        end
+
         def dbconsole(config, options = {})
           mysql_config = config.configuration_hash
 

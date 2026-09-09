@@ -53,6 +53,7 @@ module ActiveRecord
 
       SIMPLE_INT = /\A\d+\z/
       COMMENT_REGEX = %r{(?:--.*\n)|/\*(?:[^*]|\*[^/])*\*/}
+      CAPABILITY_METHOD_PATTERN = /\Asupports_.*\?\z/ # :nodoc:
 
       attr_reader :pool
       attr_reader :visitor, :owner, :logger, :lock
@@ -98,6 +99,81 @@ module ActiveRecord
         else
           raise ArgumentError, "default_timezone must be either 'utc' or 'local'"
         end
+      end
+
+      # The RactorConnectionProxy subclass standing in for this adapter's
+      # connections on worker Ractors. Adapters opt in by returning a
+      # subclass that hand-defines the remote adapter surface: every method
+      # the adapter overrides or adds on top of AbstractAdapter, minus the
+      # worker-local query pipeline (execute, select_all, ...), exception
+      # translation, and the physical-connection machinery the proxy
+      # implements itself.
+      def self.ractor_connection_proxy_class # :nodoc:
+        raise ActiveRecordError, "#{name} does not support Ractor connections"
+      end
+
+      # Everything a Ractor connection proxy needs to know about this
+      # connection, as plain shareable data. Requires an established
+      # connection: the capability flags may consult the database version.
+      def ractor_connection_profile # :nodoc:
+        {
+          proxy_class: self.class.ractor_connection_proxy_class,
+          adapter_class: self.class,
+          adapter_name: adapter_name,
+          prepared_statements: @prepared_statements,
+          table_definition_class: create_table_definition("__ractor_probe__").class,
+          capabilities: ractor_connection_capabilities,
+        }
+      end
+
+      # Zero-arity feature flags answered up front, so workers never pay a
+      # dispatch for them — and can still answer them after the connection
+      # token has been released (e.g. a lazy transaction on a checked-in
+      # connection). Adapters with flags of their own merge them in an
+      # override.
+      def ractor_connection_capabilities # :nodoc:
+        {
+          supports_advisory_locks?: supports_advisory_locks?,
+          supports_bulk_alter?: supports_bulk_alter?,
+          supports_check_constraints?: supports_check_constraints?,
+          supports_comments?: supports_comments?,
+          supports_comments_in_create?: supports_comments_in_create?,
+          supports_common_table_expressions?: supports_common_table_expressions?,
+          supports_concurrent_connections?: supports_concurrent_connections?,
+          supports_datetime_with_precision?: supports_datetime_with_precision?,
+          supports_ddl_transactions?: supports_ddl_transactions?,
+          supports_deferrable_constraints?: supports_deferrable_constraints?,
+          supports_disabling_indexes?: supports_disabling_indexes?,
+          supports_enforced_foreign_keys?: supports_enforced_foreign_keys?,
+          supports_exclusion_constraints?: supports_exclusion_constraints?,
+          supports_explain?: supports_explain?,
+          supports_expression_index?: supports_expression_index?,
+          supports_extensions?: supports_extensions?,
+          supports_foreign_keys?: supports_foreign_keys?,
+          supports_foreign_tables?: supports_foreign_tables?,
+          supports_index_include?: supports_index_include?,
+          supports_index_sort_order?: supports_index_sort_order?,
+          supports_indexes_in_create?: supports_indexes_in_create?,
+          supports_insert_conflict_target?: supports_insert_conflict_target?,
+          supports_insert_on_duplicate_skip?: supports_insert_on_duplicate_skip?,
+          supports_insert_on_duplicate_update?: supports_insert_on_duplicate_update?,
+          supports_insert_returning?: supports_insert_returning?,
+          supports_json?: supports_json?,
+          supports_lazy_transactions?: supports_lazy_transactions?,
+          supports_materialized_views?: supports_materialized_views?,
+          supports_nulls_not_distinct?: supports_nulls_not_distinct?,
+          supports_optimizer_hints?: supports_optimizer_hints?,
+          supports_partial_index?: supports_partial_index?,
+          supports_partitioned_indexes?: supports_partitioned_indexes?,
+          supports_restart_db_transaction?: supports_restart_db_transaction?,
+          supports_savepoints?: supports_savepoints?,
+          supports_transaction_isolation?: supports_transaction_isolation?,
+          supports_unique_constraints?: supports_unique_constraints?,
+          supports_update_returning?: supports_update_returning?,
+          supports_validate_constraints?: supports_validate_constraints?,
+          supports_views?: supports_views?,
+          supports_virtual_columns?: supports_virtual_columns?,
+        }
       end
 
       DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with].freeze # :nodoc:

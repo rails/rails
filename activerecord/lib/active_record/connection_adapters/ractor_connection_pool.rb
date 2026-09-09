@@ -161,7 +161,7 @@ module ActiveRecord
         end
 
         connection_token, profile = RactorConnectionProxy.checkout_connection(@connection_name, @role, @shard)
-        connection = RactorConnectionProxy.new(self, connection_token, profile, db_config.configuration_hash)
+        connection = profile[:proxy_class].new(self, connection_token, profile, db_config.configuration_hash)
         connection.lease
         connection.query_cache = query_cache
         connection
