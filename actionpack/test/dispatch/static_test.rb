@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "zlib"
+require "fileutils"
 
 class StaticTest < ActiveSupport::TestCase
   DummyApp = lambda { |env|
@@ -319,6 +320,28 @@ class StaticTest < ActiveSupport::TestCase
       assert_equal file, response.body
       assert_equal "gzip", response.headers["content-encoding"]
     end
+  end
+
+  def test_serves_files_with_callable_headers
+    headers = {
+      "cache-control" => ->(path, _) {
+        path.start_with?("/assets/") ? "public, max-age=31536000" : "public, max-age=86400"
+      }
+    }
+
+    @app = build_app(DummyApp, @root, headers: headers)
+
+    assets_dir = File.join(@root, "assets")
+    FileUtils.mkdir_p(assets_dir)
+    with_static_file "/assets/app.js" do
+      response = get("/assets/app.js")
+      assert_equal "public, max-age=31536000", response.headers["cache-control"]
+      assert_not_includes response.headers["cache-control"].to_s, "Proc"
+    end
+
+    response = get("/foo/bar.html")
+    assert_equal "public, max-age=86400", response.headers["cache-control"]
+    assert_not_includes response.headers["cache-control"].to_s, "Proc"
   end
 
   def test_ignores_unknown_http_methods
