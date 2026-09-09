@@ -17,6 +17,10 @@ module ActionView
         # Default implementation used.
         class_attribute :erb_implementation, default: Erubi
 
+        # The ERB implementation used for templates with the HTML format.
+        # When nil, HTML templates compile through erb_implementation.
+        class_attribute :html_erb_implementation, default: nil
+
         # Do not escape templates of these mime types.
         class_attribute :escape_ignore_list, default: ["text/plain"]
 
@@ -91,10 +95,18 @@ module ActionView
             options[:postamble] = "@output_buffer.safe_append='<!-- END #{template.short_identifier} -->';@output_buffer"
           end
 
-          self.class.erb_implementation.new(erb, options).src
+          implementation_for(template).new(erb, options).src
         end
 
       private
+        def implementation_for(template)
+          if (implementation = self.class.html_erb_implementation) && template.format == :html
+            implementation
+          else
+            self.class.erb_implementation
+          end
+        end
+
         def valid_encoding(string, encoding)
           # If a magic encoding comment was found, tag the
           # String with this encoding. This is for a case
