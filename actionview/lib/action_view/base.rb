@@ -219,6 +219,25 @@ module ActionView # :nodoc:
       # Strip trailing newlines from rendered output. Defaults to <tt>false</tt>.
       delegate :erb_trim_mode=, :erb_implementation=, :escape_ignore_list=, :strip_trailing_newlines=, to: "ActionView::Template::Handlers::ERB"
 
+      # The ERB implementation used for templates with the HTML format. Accepts
+      # <tt>:herb</tt>, <tt>:erubi</tt>, or a class. Setting it to <tt>:erubi</tt>
+      # or +nil+ leaves HTML templates to erb_implementation, like every other
+      # format. Defaults to +nil+.
+      def html_erb_implementation=(implementation)
+        ActionView::Template::Handlers::ERB.html_erb_implementation =
+          case implementation
+          when :herb
+            ActionView::Template::Handlers::ERB::Herb
+          when :erubi, nil
+            nil
+          when Class
+            implementation
+          else
+            raise ArgumentError, "html_erb_implementation must be :herb, :erubi, or a class, " \
+              "got #{implementation.inspect}"
+          end
+      end
+
       def cache_template_loading
         ActionView::Resolver.caching?
       end
