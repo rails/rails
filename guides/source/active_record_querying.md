@@ -1745,7 +1745,7 @@ ActiveModel::MissingAttributeError: missing attribute '<attribute>' for Book
 ```
 
 In the above example, `<attribute>` would be the requested attribute. The `id`
-method will not raise the `ActiveRecord::MissingAttributeError`, so exercise
+method will not raise the `ActiveModel::MissingAttributeError`, so exercise
 caution when working with associations, which need the `id` method to function
 properly.
 
