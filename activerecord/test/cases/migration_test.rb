@@ -5,6 +5,7 @@ require "cases/migration/helper"
 require "bigdecimal/util"
 require "concurrent/atomic/count_down_latch"
 require "active_support/core_ext/object/with"
+require "tmpdir"
 
 require "models/person"
 require "models/topic"
@@ -639,6 +640,51 @@ class MigrationTest < ActiveRecord::TestCase
 
       assert_no_column Person, :last_name,
         "On error, the Migrator should revert schema changes but it did not."
+    end
+
+    if current_adapter?(:SQLite3Adapter)
+      def test_table_rebuild_inside_migration_transaction_preserves_cascade_children
+        connection = ActiveRecord::Base.lease_connection
+        connection.create_table(:migration_authors) { |table| table.string :name, null: false }
+        connection.add_check_constraint(
+          :migration_authors,
+          "length(name) > 0",
+          name: "migration_authors_name_present"
+        )
+        connection.create_table(:migration_books) do |table|
+          table.references :migration_author,
+            null: false,
+            foreign_key: { to_table: :migration_authors, on_delete: :cascade }
+        end
+        connection.execute("INSERT INTO migration_authors (id, name) VALUES (1, 'Douglas Adams')")
+        connection.execute("INSERT INTO migration_books (id, migration_author_id) VALUES (1, 1)")
+
+        Dir.mktmpdir do |directory|
+          File.write(
+            File.join(directory, "20260909000000_remove_migration_author_name_check.rb"),
+            <<~RUBY
+              class RemoveMigrationAuthorNameCheck < ActiveRecord::Migration[8.1]
+                def change
+                  remove_check_constraint :migration_authors, name: "migration_authors_name_present"
+                end
+              end
+            RUBY
+          )
+
+          migration_context = ActiveRecord::MigrationContext.new(directory, @schema_migration, @internal_metadata)
+          migration_context.migrate
+        end
+
+        assert_equal 1, connection.select_value("SELECT COUNT(*) FROM migration_authors")
+        assert_equal 1, connection.select_value("SELECT COUNT(*) FROM migration_books")
+        assert_equal 1, connection.select_value("PRAGMA foreign_keys")
+
+        connection.execute("DELETE FROM migration_authors WHERE id = 1")
+        assert_equal 0, connection.select_value("SELECT COUNT(*) FROM migration_books")
+      ensure
+        connection&.drop_table(:migration_books, if_exists: true)
+        connection&.drop_table(:migration_authors, if_exists: true)
+      end
     end
 
     def test_migration_without_transaction
