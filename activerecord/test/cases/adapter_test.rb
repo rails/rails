@@ -419,7 +419,7 @@ module ActiveRecord
     test "inspect does not show secrets" do
       output = @connection.inspect
 
-      assert_match(/ActiveRecord::ConnectionAdapters::\w+:0x[\da-f]+ env_name="\w+" role=:writing>/, output)
+      assert_match(/ActiveRecord::ConnectionAdapters::[\w:]+:0x[\da-f]+ env_name="\w+" role=:writing>/, output)
     end
 
     private

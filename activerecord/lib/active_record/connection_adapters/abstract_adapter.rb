@@ -122,6 +122,8 @@ module ActiveRecord
           adapter_name: adapter_name,
           prepared_statements: @prepared_statements,
           table_definition_class: create_table_definition("__ractor_probe__").class,
+          arel_visitor_class: @visitor.class,
+          bind_params_length: bind_params_length,
           capabilities: ractor_connection_capabilities,
         }
       end

@@ -137,7 +137,7 @@ module ActiveRecord
         # QUOTING =================================================
 
         def cast_bound_value(...)
-          remote_dispatch(:cast_bound_value, ...)
+          pure_remote_dispatch(:cast_bound_value, ...)
         end
 
         def quoted_binary(...)
@@ -231,7 +231,7 @@ module ActiveRecord
         end
 
         def case_sensitive_comparison(...)
-          remote_dispatch(:case_sensitive_comparison, ...)
+          pure_remote_dispatch(:case_sensitive_comparison, ...)
         end
 
         def change_column(...)
@@ -382,7 +382,7 @@ module ActiveRecord
           # ADAPTER SPECIFIC ========================================
 
           def can_perform_case_insensitive_comparison_for?(...)
-            remote_dispatch(:can_perform_case_insensitive_comparison_for?, ...)
+            pure_remote_dispatch(:can_perform_case_insensitive_comparison_for?, ...)
           end
 
           def drop_table_sql(...)

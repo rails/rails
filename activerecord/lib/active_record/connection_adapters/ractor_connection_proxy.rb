@@ -6,7 +6,6 @@ require "ractor/dispatch"
 require "active_record/connection_adapters/ractor_connection_proxy/query_request"
 require "active_record/connection_adapters/ractor_connection_proxy/query_response"
 require "active_record/connection_adapters/ractor_connection_proxy/schema_creation_proxy"
-require "active_record/connection_adapters/ractor_connection_proxy/visitor_proxy"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -317,61 +316,9 @@ module ActiveRecord
           end
         end
 
-        # Compiles an Arel AST with the concrete adapter's `to_sql_and_binds`,
-        # preserving its prepared-statement, collector, and retryability
-        # semantics. Returns `[sql, binds_payload, preparable, allow_retry]`
-        # (`binds` raw, not a payload, when `copy` is false).
-        def compile_on_connection(connection_token, ast, preparable, allow_retry, prepared_statements: true, copy: true, connection_pool: nil)
-          main_operation(connection_pool: connection_pool) do
-            connection = fetch_connection(connection_token)
-            compile = -> do
-              connection.to_sql_and_binds(copy ? Marshal.load(ast) : ast, [], preparable, allow_retry)
-            end
-            sql, binds, compiled_preparable, compiled_allow_retry =
-              if prepared_statements
-                compile.call
-              else
-                # The worker sits inside an `unprepared_statement` section;
-                # that state is execution-local, so it must be re-established
-                # around the main-side compile (it substitutes binds).
-                connection.unprepared_statement(&compile)
-              end
-            if copy
-              ActiveSupport::Ractors.make_shareable(
-                [sql, Marshal.dump(binds), compiled_preparable, compiled_allow_retry], copy: true
-              )
-            else
-              [sql, binds, compiled_preparable, compiled_allow_retry]
-            end
-          end
-        end
-
-        # Compiles an Arel node with the concrete adapter's visitor and the
-        # caller's collector, reconstructed on the main Ractor. Returns
-        # `[value_payload, preparable, retryable]` (`value` raw when `copy`
-        # is false).
-        def visitor_compile_on_connection(connection_token, node, collector_payload, copy: true, connection_pool: nil)
-          main_operation(connection_pool: connection_pool) do
-            connection = fetch_connection(connection_token)
-            compiled_node = copy ? Marshal.load(node) : node
-            collector =
-              case collector_payload
-              when nil then Arel::Collectors::SQLString.new
-              when :substitute_binds
-                Arel::Collectors::SubstituteBinds.new(connection, Arel::Collectors::SQLString.new)
-              else
-                copy ? Marshal.load(collector_payload) : collector_payload
-              end
-            value = connection.visitor.compile(compiled_node, collector)
-            preparable = collector.preparable if collector.respond_to?(:preparable)
-            retryable = collector.retryable if collector.respond_to?(:retryable)
-            if copy
-              ActiveSupport::Ractors.make_shareable([Marshal.dump(value), preparable, retryable], copy: true)
-            else
-              [value, preparable, retryable]
-            end
-          end
-        end
+        # (No main-side Arel compilation: workers compile ASTs locally with
+        # the concrete adapter's visitor class from the connection profile;
+        # only the quoting callbacks the visitor makes dispatch here.)
 
         # Renders one schema definition object (e.g. CreateIndexDefinition)
         # with the concrete adapter's SchemaCreation visitor. Returns the DDL
@@ -580,11 +527,11 @@ module ActiveRecord
       end
 
       def initialize(pool, connection_token, profile, config)
+        @adapter_profile = profile
         super(nil, PLACEHOLDER_LOGGER, nil, config)
         @connection_token = connection_token
         @logger = nil
         @pool = pool
-        @adapter_profile = profile
         @prepared_statements = profile[:prepared_statements]
         @raw_connection = connection_token
         @verified = true
@@ -746,33 +693,13 @@ module ActiveRecord
         end
       end
 
-      def to_sql_and_binds(arel_or_sql, binds = [], preparable = nil, allow_retry = false) # :nodoc:
-        if arel_or_sql.respond_to?(:ast)
-          arel_or_sql = arel_or_sql.ast
-        end
-
-        if Arel.arel_node?(arel_or_sql) && !(String === arel_or_sql)
-          unless binds.empty?
-            raise "Passing bind parameters with an arel AST is forbidden. " \
-              "The values must be stored on the AST directly"
-          end
-
-          copy = !ActiveSupport::Ractors.main?
-          sql, compiled_binds, compiled_preparable, compiled_allow_retry =
-            RactorConnectionProxy.compile_on_connection(
-              @connection_token,
-              copy ? RactorConnectionProxy.dump_object(arel_or_sql, "an Arel AST") : arel_or_sql,
-              preparable,
-              allow_retry,
-              prepared_statements: prepared_statements?,
-              copy: copy,
-              connection_pool: @pool,
-            )
-          [sql, copy ? Marshal.load(compiled_binds) : compiled_binds, compiled_preparable, compiled_allow_retry]
-        else
-          super
-        end
-      end
+      # Arel compilation runs locally: the concrete visitor class comes from
+      # the connection profile (see #arel_visitor), and its connection
+      # callbacks (quote, quote_table_name, cast_bound_value, ...) dispatch
+      # individually as pure remote calls. `unprepared_statement` state and
+      # collector semantics (preparable/retryable) are worker-local, exactly
+      # as on a single-manager adapter, so AbstractAdapter#to_sql_and_binds
+      # needs no override.
 
       # Raw driver results cannot cross the Ractor boundary; `execute`
       # returns a materialized ActiveRecord::Result instead.
@@ -786,33 +713,6 @@ module ActiveRecord
         intent = internal_build_intent(sql, name, allow_retry: allow_retry)
         intent.execute!
         intent.cast_result
-      end
-
-      def remote_visitor_compile(node, collector) # :nodoc:
-        copy = !ActiveSupport::Ractors.main?
-        collector_payload =
-          case collector
-          when nil
-            nil
-          when Arel::Collectors::SubstituteBinds
-            :substitute_binds
-          else
-            copy ? RactorConnectionProxy.dump_object(collector, "the Arel collector #{collector.class}") : collector
-          end
-
-        value, preparable, retryable = RactorConnectionProxy.visitor_compile_on_connection(
-          @connection_token,
-          copy ? RactorConnectionProxy.dump_object(node, "an Arel AST") : node,
-          collector_payload,
-          copy: copy,
-          connection_pool: @pool,
-        )
-
-        if collector
-          collector.preparable = preparable if collector.respond_to?(:preparable=) && !preparable.nil?
-          collector.retryable = retryable if collector.respond_to?(:retryable=) && !retryable.nil?
-        end
-        copy ? Marshal.load(value) : value
       end
 
       # DDL is rendered by the concrete adapter's SchemaCreation on the main
@@ -862,8 +762,17 @@ module ActiveRecord
       end
 
       private
+        # The concrete adapter's visitor, bound to this proxy: dialect SQL
+        # generation runs on the worker, and the visitor's quoting callbacks
+        # reach the physical connection through the proxy's remote dispatch.
         def arel_visitor
-          VisitorProxy.new(self)
+          @adapter_profile[:arel_visitor_class].new(self)
+        end
+
+        # From the profile: consulted on every prepared compile
+        # (to_sql_and_binds), so it must not cost a dispatch.
+        def bind_params_length
+          @adapter_profile[:bind_params_length]
         end
 
         # Definition objects are built locally (the caller's block mutates

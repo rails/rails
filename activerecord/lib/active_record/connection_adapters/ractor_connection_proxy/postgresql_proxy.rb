@@ -467,7 +467,7 @@ module ActiveRecord
           # ADAPTER SPECIFIC ========================================
 
           def can_perform_case_insensitive_comparison_for?(...)
-            remote_dispatch(:can_perform_case_insensitive_comparison_for?, ...)
+            pure_remote_dispatch(:can_perform_case_insensitive_comparison_for?, ...)
           end
 
           def fetch_column_definitions(...)

@@ -695,6 +695,25 @@ module ActiveRecord
           assert_equal expected, result
         end
 
+        def test_worker_compiles_arel_locally_matching_the_main_side_compile
+          t = Arel::Table.new(name: "topics")
+          ast = t.project(Arel.star).where(t[:id].eq(Arel::Nodes::BindParam.new(1))).ast
+          expected = without_ractor_proxy do
+            ActiveRecord::Base.lease_connection.to_sql_and_binds(ast)
+          end
+
+          compiled = on_ractor do
+            # Rebuilt on the worker: an Arel AST is not Ractor-shareable.
+            table = Arel::Table.new(name: "topics")
+            arel = table.project(Arel.star).where(table[:id].eq(Arel::Nodes::BindParam.new(1))).ast
+            result = ActiveRecord::Base.lease_connection.to_sql_and_binds(arel)
+            ActiveRecord::Base.release_connection
+            result
+          end
+
+          assert_equal expected, compiled
+        end
+
         def test_cold_model_entry_points_currently_require_shareable_model_state
           # Known prerequisite, deliberately visible: model classes memoize
           # state in class instance variables on first use, which a non-main

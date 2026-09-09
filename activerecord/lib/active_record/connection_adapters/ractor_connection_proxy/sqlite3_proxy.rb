@@ -324,10 +324,6 @@ module ActiveRecord
 
           # ADAPTER SPECIFIC ========================================
 
-          def bind_params_length
-            remote_dispatch(:bind_params_length)
-          end
-
           def fetch_column_definitions(...)
             remote_dispatch(:fetch_column_definitions, ...)
           end
