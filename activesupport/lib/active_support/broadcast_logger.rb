@@ -162,7 +162,7 @@ module ActiveSupport
 
     # Sets the log level to `Logger::DEBUG` for the whole broadcast.
     def debug!
-      dispatch(:debug!)
+      @broadcasts.each(&:debug!)
     end
 
     # True if the log level allows entries with severity `Logger::INFO` to be written
@@ -173,7 +173,7 @@ module ActiveSupport
 
     # Sets the log level to `Logger::INFO` for the whole broadcast.
     def info!
-      dispatch(:info!)
+      @broadcasts.each(&:info!)
     end
 
     # True if the log level allows entries with severity `Logger::WARN` to be written
@@ -184,7 +184,7 @@ module ActiveSupport
 
     # Sets the log level to `Logger::WARN` for the whole broadcast.
     def warn!
-      dispatch(:warn!)
+      @broadcasts.each(&:warn!)
     end
 
     # True if the log level allows entries with severity `Logger::ERROR` to be written
@@ -195,7 +195,7 @@ module ActiveSupport
 
     # Sets the log level to `Logger::ERROR` for the whole broadcast.
     def error!
-      dispatch(:error!)
+      @broadcasts.each(&:error!)
     end
 
     # True if the log level allows entries with severity `Logger::FATAL` to be written
@@ -206,7 +206,7 @@ module ActiveSupport
 
     # Sets the log level to `Logger::FATAL` for the whole broadcast.
     def fatal!
-      dispatch(:fatal!)
+      @broadcasts.each(&:fatal!)
     end
 
     def initialize_copy(other)
