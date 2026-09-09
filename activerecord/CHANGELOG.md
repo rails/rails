@@ -1,3 +1,8 @@
+*   Fix `keepalive: false` in `database.yml` being ignored and falling back to the
+    600 second default, since `false || 600` is truthy in Ruby.
+
+    *Joe Sak*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the

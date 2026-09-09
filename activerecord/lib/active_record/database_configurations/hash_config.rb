@@ -141,7 +141,10 @@ module ActiveRecord
       end
 
       def keepalive
-        keepalive = (configuration_hash[:keepalive] || 600).to_f
+        keepalive = configuration_hash.fetch(:keepalive, 600)
+        return nil if keepalive == false
+        keepalive = 600 if keepalive.nil? || keepalive == true
+        keepalive = keepalive.to_f
         keepalive if keepalive > 0
       end
 
