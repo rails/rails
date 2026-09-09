@@ -3355,7 +3355,7 @@ SELECT COUNT(DISTINCT customers.id) FROM customers
   WHERE (customers.first_name = "Ryan" AND orders.status = 0)
 ```
 
-assuming that Order has `enum status: [ :shipped, :being_packed, :cancelled ]`.
+assuming that Order has `enum :status, [ :shipped, :being_packed, :cancelled ]`.
 
 ### `count`
 
