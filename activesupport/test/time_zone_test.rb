@@ -1004,3 +1004,19 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_not_includes ca_zones.map(&:name), "America/Edmonton"
   end
 end
+
+class TimeZoneRactorTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::RactorsAssertions
+
+  def test_zones_are_usable_from_a_non_main_ractor_once_shared
+    ActiveSupport::TimeZone.make_shareable!
+
+    assert_equal "Europe/Paris", on_ractor { ActiveSupport::TimeZone["Paris"].tzinfo.name }
+    assert_equal "Europe/Paris", on_ractor { ActiveSupport::TimeZone["Europe/Paris"].tzinfo.name }
+    assert_equal 3600, on_ractor { ActiveSupport::TimeZone["Paris"].utc_offset }
+    assert_equal "2026-07-01 14:00:00 +0200", on_ractor { Time.utc(2026, 7, 1, 12).in_time_zone("Paris").to_s }
+    assert_equal "Asia/Tokyo", on_ractor { Time.use_zone("Tokyo") { Time.zone.tzinfo.name } }
+    assert_includes on_ractor { ActiveSupport::TimeZone.country_zones(:fr).map(&:name) }, "Paris"
+  end
+end
