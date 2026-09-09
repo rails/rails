@@ -138,8 +138,7 @@ module ActiveSupport
 
     LOGGER_METHODS = %w[
       << log add debug info warn error fatal unknown
-      level= sev_threshold= close
-      formatter formatter=
+      close formatter
     ].freeze # :nodoc:
     LOGGER_METHODS.each do |method|
       class_eval <<~RUBY, __FILE__, __LINE__ + 1
@@ -147,6 +146,18 @@ module ActiveSupport
           dispatch(:#{method}, ...)
         end
       RUBY
+    end
+
+    def level=(level)
+      @broadcasts.each { |logger| logger.level = level }
+    end
+
+    def sev_threshold=(level)
+      @broadcasts.each { |logger| logger.sev_threshold = level }
+    end
+
+    def formatter=(formatter)
+      @broadcasts.each { |logger| logger.formatter = formatter }
     end
 
     # Returns the lowest level of all the loggers in the broadcast.
