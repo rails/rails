@@ -2,6 +2,7 @@
 
 require "active_support/execution_wrapper"
 require "active_support/executor"
+require "active_support/ractors"
 
 module ActiveSupport
   # = Active Support \Reloader
@@ -82,10 +83,13 @@ module ActiveSupport
     end
 
     class_attribute :executor, default: Executor
-    class_attribute :check, default: lambda { false }
+    class_attribute :check, default: Ractors.shareable_proc { false }
 
     def self.check! # :nodoc:
-      @should_reload ||= check.call
+      return @should_reload if @should_reload
+
+      should_reload = check.call
+      @should_reload = should_reload if should_reload
     end
 
     def self.reloaded! # :nodoc:
