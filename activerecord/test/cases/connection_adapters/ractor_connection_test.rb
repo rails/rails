@@ -195,7 +195,7 @@ module ActiveRecord
         def test_handler_retrieve_connection_pool_for_base
           pool = RactorConnectionHandler.instance.retrieve_connection_pool("ActiveRecord::Base")
           assert_equal "primary", pool.db_config.name
-          assert_equal ["ActiveRecord::Base", :writing, :default, RactorConnectionProxy.pool_token(main_pool)], pool.key
+          assert_equal ["ActiveRecord::Base", :writing, :default, main_pool.pool_config.pool_token], pool.key
         end
 
         def test_handler_retrieve_connection_pool_returns_nil_for_unknown
@@ -765,7 +765,7 @@ module ActiveRecord
             # The identity of the main pool this spec names, as spec_for
             # records it; keeps every facade built from this helper sharing
             # one worker-side lease.
-            pool_token: RactorConnectionProxy.pool_token(main_pool),
+            pool_token: main_pool.pool_config.pool_token,
           }
         end
     end

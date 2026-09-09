@@ -47,11 +47,8 @@ module ActiveRecord
         end
       end
 
-      # Main-Ractor-only registry of token-pinned physical connections. Pool
-      # tokens are minted from the same sequence: every identity that crosses
-      # the Ractor boundary is a token issued here.
+      # Main-Ractor-only registry of token-pinned physical connections.
       @connections = {}
-      @pool_tokens = ObjectSpace::WeakKeyMap.new
       @next_token = 0
       @connections_lock = Mutex.new
 
@@ -61,14 +58,6 @@ module ActiveRecord
 
       class << self
         attr_reader :connections
-
-        # Identity token of a main-Ractor pool instance, minted rather than a
-        # raw object id (object ids can be recycled after GC, which could
-        # alias a replaced pool with a fresh one). Re-establishing a
-        # connection replaces the pool and therefore its token.
-        def pool_token(pool)
-          @connections_lock.synchronize { @pool_tokens[pool] ||= (@next_token += 1) }
-        end
 
         def checkout_connection(connection_name, role, shard)
           shareable_connection_name = shareable_copy(connection_name.to_s)
@@ -200,14 +189,15 @@ module ActiveRecord
         # Backs RactorConnectionPool#unpin_connection!; the worker finishes
         # the pinned transaction before releasing the identity pin. The pin
         # dies with its pool: when the named pool was replaced or removed
-        # (pool token mismatch), there is nothing left to unpin.
+        # (pool token mismatch, see PoolConfig#pool_token), there is nothing
+        # left to unpin.
         def unpin_main_pool_connection(connection_name, role, shard, pool_token, connection_pool: nil)
           shareable_connection_name = shareable_copy(connection_name.to_s)
           main_operation(connection_pool: connection_pool) do
             pool = main_connection_handler.retrieve_connection_pool(
               shareable_connection_name, role: role, shard: shard, strict: false
             )
-            pool.unpin_connection!(transaction: false) if pool && self.pool_token(pool) == pool_token
+            pool.unpin_connection!(transaction: false) if pool && pool.pool_config.pool_token == pool_token
             nil
           end
         end

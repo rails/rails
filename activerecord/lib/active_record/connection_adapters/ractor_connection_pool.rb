@@ -37,7 +37,7 @@ module ActiveRecord
           connection_name: descriptor.name.to_s.freeze,
           role: pool_config.role,
           shard: pool_config.shard,
-          pool_token: RactorConnectionProxy.pool_token(pool),
+          pool_token: pool_config.pool_token,
         }
         copy ? ActiveSupport::Ractors.make_shareable(spec, copy: true) : spec
       end
