@@ -141,8 +141,15 @@ module ActiveRecord
       end
 
       def keepalive
-        keepalive = (configuration_hash[:keepalive] || 600).to_f
-        keepalive if keepalive > 0
+        case keepalive = configuration_hash[:keepalive]
+        when false
+          nil
+        when nil, true
+          600.0 # default
+        else
+          keepalive = keepalive.to_f
+          keepalive if keepalive > 0.0
+        end
       end
 
       def adapter
