@@ -4,9 +4,11 @@ module ActiveJob
   module QueuePriority
     extend ActiveSupport::Concern
 
+    singleton_class.attr_accessor :default_priority # :nodoc:
+
     # Includes the ability to override the default queue priority.
     module ClassMethods
-      mattr_accessor :default_priority
+      delegate :default_priority, :default_priority=, to: QueuePriority
 
       # Specifies the priority of the queue to create the job with.
       #
@@ -38,7 +40,7 @@ module ActiveJob
       #   end
       def queue_with_priority(priority = nil, &block)
         if block_given?
-          self.priority = block
+          self.priority = ActiveSupport::Ractors.try_shareable_proc(block)
         else
           self.priority = priority
         end
@@ -46,7 +48,7 @@ module ActiveJob
     end
 
     included do
-      class_attribute :priority, instance_accessor: false, default: -> { self.class.default_priority }
+      class_attribute :priority, instance_accessor: false, default: ActiveSupport::Ractors.shareable_proc { self.class.default_priority }
     end
 
     # Returns the priority that the job will be created with

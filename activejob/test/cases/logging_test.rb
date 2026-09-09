@@ -15,6 +15,7 @@ require "jobs/disable_log_job"
 require "jobs/abort_before_enqueue_job"
 require "jobs/enqueue_error_job"
 require "models/person"
+require "active_support/testing/ractors_assertions"
 
 class LoggingTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -499,5 +500,16 @@ class LoggingTest < ActiveSupport::TestCase
     @logger.level = ERROR
     perform_enqueued_jobs { RetryJob.perform_later "DiscardableError", 2 }
     assert_match(/Discarded RetryJob \(Job ID: .*?\) due to a DiscardableError.*\./, @logger.messages)
+  end
+end
+
+class LoggingRactorTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::RactorsAssertions
+
+  def test_logger_is_readable_from_a_non_main_ractor
+    ActiveJob::Base.logger = Ractor.make_shareable(ActiveSupport::Logger.new(nil))
+
+    assert on_ractor { ActiveJob::Base.logger.equal?(HelloJob.new.logger) }
   end
 end
