@@ -759,42 +759,32 @@ module ActiveRecord
       # transformers, transaction bookkeeping, or retries — and materializes
       # the outcome.
       def execute_raw_intent(intent) # :nodoc:
-        result = nil
-        warnings = nil
-        last_id = nil
-
         @lock.synchronize do
-          raw_result = nil
-          begin
-            ensure_connection_ready(allow_retry: intent.allow_retry, materialize_transactions: false)
-            raw_result = perform_query(@raw_connection, intent)
-          rescue ::RangeError
-            # Re-raised untranslated: the calling pipeline handles RangeError
-            # with the empty-result fast path (see QueryIntent#run_query!).
-            raise
-          rescue => error
-            raise translate_exception_class(error, intent.processed_sql, intent.binds)
-          end
+          raw_result =
+            begin
+              ensure_connection_ready(allow_retry: intent.allow_retry, materialize_transactions: false)
+              perform_query(@raw_connection, intent)
+            rescue ::RangeError
+              # Re-raised untranslated: the calling pipeline handles RangeError
+              # with the empty-result fast path (see QueryIntent#run_query!).
+              raise
+            rescue => error
+              raise translate_exception_class(error, intent.processed_sql, intent.binds)
+            end
 
           result = cast_result(raw_result)
-          last_id = begin
-            last_inserted_id(result)
-          rescue StandardError
+
+          warnings =
             begin
-              last_inserted_id(raw_result)
+              collect_warnings(raw_result)
             rescue StandardError
+              # Best effort: a warning-collection failure (e.g. `SHOW WARNINGS`
+              # on a dropped connection) must not discard a successful query.
               nil
             end
-          end
 
-          warnings = begin
-            collect_warnings(raw_result)
-          rescue StandardError
-            nil
-          end
+          [result, warnings, raw_intent_last_inserted_id(raw_result, result)]
         end
-
-        [result, warnings, last_id]
       end
 
       def start_intent_log(intent) # :nodoc:
@@ -1015,6 +1005,14 @@ module ActiveRecord
 
         def last_inserted_id(result)
           single_value_from_rows(result.rows)
+        end
+
+        # The last inserted id computed eagerly for a raw intent: the raw
+        # driver result cannot cross the Ractor boundary, so it is read before
+        # the response is marshaled. Adapters whose +last_inserted_id+ reads
+        # the raw result (see Trilogy) override this to pass it instead.
+        def raw_intent_last_inserted_id(raw_result, result)
+          last_inserted_id(result)
         end
 
         def returning_column_values(result)
