@@ -1,5 +1,5 @@
-*   Fix `keepalive: false` in `database.yml` being ignored and falling back to the
-    600 second default, since `false || 600` is truthy in Ruby.
+*   Fix `keepalive: false` in `database.yml` falling back to the
+    600 second default.
 
     *Joe Sak*
 
