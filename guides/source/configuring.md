@@ -3829,6 +3829,11 @@ Can be used to toggle generation of the direct upload route, without
 affecting the other Active Storage routes. Has no effect if
 `config.active_storage.draw_routes` is `false`. The default is `true`.
 
+When set to `false`, Action Text's `rich_textarea` renders without a
+`data-direct-upload-url` unless one is passed explicitly, and a Trix editor
+without that attribute hides its attach button and ignores dropped or pasted
+files.
+
 #### `config.active_storage.resolve_model_to_route`
 
 Can be used to globally change how Active Storage files are delivered.
