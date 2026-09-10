@@ -36,4 +36,9 @@ class InstrumentationTest < ActiveSupport::TestCase
   test "discard emits a discard event" do
     assert_notifications_count("discard.active_job", 1) { RetryJob.perform_later("DiscardableError", 6) }
   end
+
+  test "clears execution context" do
+    HelloJob.perform_now("World!")
+    assert_nil ActiveSupport::ExecutionContext.to_h[:job]
+  end
 end
