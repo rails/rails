@@ -28,6 +28,21 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
       class_attribute :emulate_booleans, default: true
 
+      class_attribute :cli_arg_map, instance_accessor: false, default: {
+        host: "--host",
+        port: "--port",
+        socket: "--socket",
+        username: "--user",
+        password: "--password",
+        encoding: "--default-character-set",
+        sslca: "--ssl-ca",
+        sslcert: "--ssl-cert",
+        sslcapath: "--ssl-capath",
+        sslcipher: "--ssl-cipher",
+        sslkey: "--ssl-key",
+        ssl_mode: "--ssl-mode"
+      }.freeze
+
       NATIVE_DATABASE_TYPES = { # rubocop:disable Style/MutableConstant
         primary_key: "bigint auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
@@ -60,22 +75,14 @@ module ActiveRecord
       end
 
       class << self
+        def cli_args(config) # :nodoc:
+          cli_arg_map.filter_map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }
+        end
+
         def dbconsole(config, options = {})
           mysql_config = config.configuration_hash
 
-          args = {
-            host: "--host",
-            port: "--port",
-            socket: "--socket",
-            username: "--user",
-            encoding: "--default-character-set",
-            sslca: "--ssl-ca",
-            sslcert: "--ssl-cert",
-            sslcapath: "--ssl-capath",
-            sslcipher: "--ssl-cipher",
-            sslkey: "--ssl-key",
-            ssl_mode: "--ssl-mode"
-          }.filter_map { |opt, arg| "#{arg}=#{mysql_config[opt]}" if mysql_config[opt] }
+          args = cli_args(mysql_config.except(:password))
 
           if mysql_config[:password] && options[:include_password]
             args << "--password=#{mysql_config[:password]}"

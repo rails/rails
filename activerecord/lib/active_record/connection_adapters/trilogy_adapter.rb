@@ -18,6 +18,20 @@ module ActiveRecord
 
       include Trilogy::DatabaseStatements
 
+      # Trilogy spells its SSL options with underscores, and supports certificate
+      # revocation lists, which mysql2 does not.
+      self.cli_arg_map = cli_arg_map
+        .except(:sslca, :sslcert, :sslcapath, :sslcipher, :sslkey)
+        .merge(
+          ssl_ca: "--ssl-ca",
+          ssl_cert: "--ssl-cert",
+          ssl_capath: "--ssl-capath",
+          ssl_cipher: "--ssl-cipher",
+          ssl_key: "--ssl-key",
+          ssl_crl: "--ssl-crl",
+          ssl_crlpath: "--ssl-crlpath"
+        ).freeze
+
       SSL_MODES = {
         SSL_MODE_DISABLED: ::Trilogy::SSL_DISABLED,
         SSL_MODE_PREFERRED: ::Trilogy::SSL_PREFERRED_NOVERIFY,
