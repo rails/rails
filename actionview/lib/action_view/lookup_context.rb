@@ -143,32 +143,27 @@ module ActionView
       attr_reader :view_paths, :html_fallback_for_js
 
       def find(name, prefixes = [], partial = false, keys = [], options = {})
-        name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(options)
         @view_paths.find(name, prefixes, partial, details, details_key, keys)
       end
 
       def find!(name, prefixes = [], partial = false, keys = [], options = {})
-        name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(options)
         @view_paths.find!(name, prefixes, partial, details, details_key, keys)
       end
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
-        name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(options)
         @view_paths.find_all(name, prefixes, partial, details, details_key, keys)
       end
 
       def exists?(name, prefixes = [], partial = false, keys = [], **options)
-        name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for(options)
         @view_paths.exists?(name, prefixes, partial, details, details_key, keys)
       end
       alias :template_exists? :exists?
 
       def any?(name, prefixes = [], partial = false)
-        name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for_any
         @view_paths.exists?(name, prefixes, partial, details, details_key, [])
       end
@@ -229,25 +224,6 @@ module ActionView
             [details, nil]
           end
         end
-      end
-
-      # Fix when prefix is specified as part of the template name
-      def normalize_name(name, prefixes)
-        name = name.to_s
-        idx = name.rindex("/")
-        return name, prefixes.presence || [""] unless idx
-
-        path_prefix = name[0, idx]
-        path_prefix = path_prefix.from(1) if path_prefix.start_with?("/")
-        name = name.from(idx + 1)
-
-        if !prefixes || prefixes.empty?
-          prefixes = [path_prefix]
-        else
-          prefixes = prefixes.map { |p| "#{p}/#{path_prefix}" }
-        end
-
-        return name, prefixes
       end
     end
 

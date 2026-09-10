@@ -11,6 +11,8 @@ module ActionView # :nodoc:
   class PathSet # :nodoc:
     include Enumerable
 
+    EMPTY_PREFIXES = [""].freeze
+
     attr_reader :paths
 
     delegate :[], :include?, :size, :each, to: :paths
@@ -38,8 +40,8 @@ module ActionView # :nodoc:
     end
 
     def find(path, prefixes, partial, details, details_key, locals)
-      search_combinations(prefixes) do |resolver, prefix|
-        template = resolver.find(path, prefix, partial, details, details_key, locals)
+      search_combinations(path, prefixes, paths) do |resolver, name, prefix|
+        template = resolver.find(name, prefix, partial, details, details_key, locals)
         return template if template
       end
       nil
@@ -47,12 +49,12 @@ module ActionView # :nodoc:
 
     def find!(path, prefixes, partial, details, details_key, locals)
       find(path, prefixes, partial, details, details_key, locals) ||
-        raise(MissingTemplate.new(self, path, prefixes, partial, details, details_key, locals))
+        raise(missing_template(path, prefixes, partial, details, details_key, locals))
     end
 
     def find_all(path, prefixes, partial, details, details_key, locals)
-      search_combinations(prefixes) do |resolver, prefix|
-        templates = resolver.find_all(path, prefix, partial, details, details_key, locals)
+      search_combinations(path, prefixes, paths) do |resolver, name, prefix|
+        templates = resolver.find_all(name, prefix, partial, details, details_key, locals)
         return templates unless templates.empty?
       end
       []
@@ -63,13 +65,44 @@ module ActionView # :nodoc:
     end
 
     private
-      def search_combinations(prefixes)
+      # Combines each prefix as it is yielded rather than up front, since
+      # callers stop at the first hit.
+      def search_combinations(path, prefixes, resolvers)
+        path = path.to_s
+        idx = path.rindex("/")
         prefixes = Array(prefixes)
-        prefixes.each do |prefix|
-          paths.each do |resolver|
-            yield resolver, prefix
+
+        unless idx
+          prefixes = EMPTY_PREFIXES if prefixes.empty?
+          prefixes.each do |prefix|
+            resolvers.each { |resolver| yield resolver, path, prefix }
+          end
+          return
+        end
+
+        path_prefix = path[0, idx]
+        path_prefix = path_prefix.from(1) if path_prefix.start_with?("/")
+        name = path.from(idx + 1)
+
+        if prefixes.empty?
+          resolvers.each { |resolver| yield resolver, name, path_prefix }
+        else
+          prefixes.each do |prefix|
+            combined = "#{prefix}/#{path_prefix}"
+            resolvers.each { |resolver| yield resolver, name, combined }
           end
         end
+      end
+
+      def missing_template(path, prefixes, partial, details, details_key, locals)
+        name = nil
+        searched = []
+        # A single placeholder resolver, so each prefix is listed once.
+        search_combinations(path, prefixes, [nil]) do |_resolver, normalized, prefix|
+          name = normalized
+          searched << prefix
+        end
+        MissingTemplate.new(self, name, searched, partial, details, details_key, locals)
       end
 
       def typecast(paths)
