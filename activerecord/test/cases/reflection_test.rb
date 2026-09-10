@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "models/topic"
 require "models/customer"
 require "models/comment"
@@ -14,6 +15,7 @@ require "models/author"
 require "models/organization"
 require "models/post"
 require "models/tagging"
+require "models/categorization"
 require "models/category"
 require "models/book"
 require "models/subscriber"
@@ -260,6 +262,75 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal Address, Customer.reflect_on_aggregation(:address).klass
 
     assert_equal Money, Customer.reflect_on_aggregation(:balance).klass
+  end
+
+  def test_reflection_hashes_are_frozen
+    assert_predicate Topic.aggregate_reflections, :frozen?
+    assert_predicate Customer.aggregate_reflections, :frozen?
+    assert_predicate Topic._reflections, :frozen?
+  end
+
+  if RUBY_VERSION >= "4.0"
+    def test_association_reflections_can_be_read_from_a_ractor_in_ractor_mode
+      ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+        Categorization.make_reflections_shareable!
+
+        assert Ractor.shareable?(Categorization._reflections)
+
+        result = Ractor.new do
+          belongs_to = Categorization.reflect_on_association(:category)
+          through = Categorization.reflect_on_association(:post_taggings)
+
+          [
+            belongs_to.klass.name,
+            belongs_to.foreign_key,
+            belongs_to.inverse_of.name,
+            belongs_to.counter_cache_column,
+            through.through_reflection?,
+            through.klass.name,
+          ]
+        end.value
+
+        assert_equal(
+          ["Category", "category_id", :categorizations, "categorizations_count", true, "Tagging"],
+          result
+        )
+      end
+    ensure
+      Categorization.reset_column_information
+    end
+
+    def test_aggregate_reflections_can_be_read_from_a_ractor_in_ractor_mode
+      ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+        Customer.make_reflections_shareable!
+
+        assert Ractor.shareable?(Customer.aggregate_reflections)
+
+        mapping, klass_name = Ractor.new do
+          reflection = Customer.reflect_on_aggregation(:balance)
+          [reflection.mapping, reflection.klass.name]
+        end.value
+
+        assert_equal [[:balance, :amount]], mapping
+        assert_equal "Money", klass_name
+      end
+    ensure
+      Customer.reset_column_information
+    end
+
+    def test_association_scopes_are_shareable_and_readable_from_a_ractor_in_ractor_mode
+      model = Class.new(ActiveRecord::Base) do
+        set_temporary_name "ractor_scoped_model"
+        self.table_name = "posts"
+        belongs_to :parent, ->(record) { order(:id) }, anonymous_class: self, foreign_key: "author_id", optional: true
+      end
+
+      ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+        model.make_reflections_shareable!
+
+        assert Ractor.shareable?(model.reflect_on_association(:parent).scope)
+      end
+    end
   end
 
   def test_reflect_on_all_autosave_associations

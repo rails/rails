@@ -681,6 +681,10 @@ module Rails
         end
       end
 
+      if defined?(ActiveRecord::Base)
+        ActiveRecord::Base.descendants.each(&:make_reflections_shareable!)
+      end
+
       Ractor.make_shareable(self)
       Ractor.make_shareable(Rails.env)
       Ractor.make_shareable(Rails.logger)
