@@ -2583,6 +2583,7 @@ class CreateOrFindByWithinTransactions < ActiveRecord::TestCase
 
     def teardown
       Subscriber.delete_all
+      ClothingItem.where(clothing_type: "concurrent creation", color: "blue").delete_all
     end
 
     def test_multiple_find_or_create_by_within_transactions
@@ -2593,7 +2594,94 @@ class CreateOrFindByWithinTransactions < ActiveRecord::TestCase
       duel { Subscriber.find_or_create_by!(nick: "bob") }
     end
 
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      [:repeatable_read, :read_committed].each do |isolation|
+        define_method("test_three_concurrent_find_or_create_by_within_#{isolation}_transactions") do
+          three_concurrent_creates(:find_or_create_by, isolation)
+        end
+
+        define_method("test_three_concurrent_find_or_create_by_bang_within_#{isolation}_transactions") do
+          three_concurrent_creates(:find_or_create_by!, isolation)
+        end
+
+        define_method("test_three_concurrent_find_or_create_by_with_secondary_unique_index_within_#{isolation}_transactions") do
+          # Secondary-index duplicate checks can serialize before both INSERTs
+          # raise, so do not wait for both errors before allowing the readbacks.
+          three_concurrent_creates(:find_or_create_by, isolation,
+            model: ClothingItem, attributes: { clothing_type: "concurrent creation", color: "blue" },
+            synchronize_duplicate_inserts: false)
+        end
+
+        define_method("test_three_concurrent_find_or_create_by_within_savepoints_in_#{isolation}_transactions") do
+          three_concurrent_creates(:find_or_create_by, isolation, requires_new: true) do
+            assert_equal 1, Subscriber.lease_connection.open_transactions
+            Subscriber.create!(nick: "after_#{Thread.current.object_id}")
+          end
+
+          assert_equal 2, Subscriber.where("nick LIKE 'after_%'").count
+        end
+      end
+    end
+
     private
+      def three_concurrent_creates(method, isolation, model: Subscriber, attributes: { nick: "bob" }, requires_new: false, synchronize_duplicate_inserts: true)
+        assert_nil model.find_by(attributes)
+
+        ready = Concurrent::CountDownLatch.new(2)
+        winner_committed = Concurrent::Event.new
+        duplicate_inserts = Concurrent::CyclicBarrier.new(2) if synchronize_duplicate_inserts
+        threads = []
+
+        subscriber = ->(*args) do
+          payload = args.last
+          if duplicate_inserts && threads.include?(Thread.current) && payload[:exception_object].is_a?(ActiveRecord::RecordNotUnique)
+            # Both duplicate INSERTs must hold their shared record locks before
+            # either transaction attempts the readback.
+            raise "Timed out waiting for duplicate INSERTs" unless duplicate_inserts.wait(10)
+          end
+        end
+
+        ActiveSupport::Notifications.subscribed(subscriber, "sql.active_record") do
+          2.times do
+            threads << Thread.new do
+              Thread.current.report_on_exception = false
+              model.transaction(isolation: isolation) do
+                # Read in the outer transaction so requires_new uses a savepoint
+                # instead of restarting the parent transaction.
+                model.find_by(attributes) if requires_new
+                record = model.transaction(requires_new: requires_new) do
+                  if requires_new
+                    assert_instance_of ActiveRecord::ConnectionAdapters::SavepointTransaction, model.lease_connection.current_transaction
+                  end
+
+                  model.public_send(method, attributes) do
+                    # The initial SELECT has missed the row, establishing a stale
+                    # snapshot under REPEATABLE READ before the winner commits.
+                    ready.count_down
+                    raise "Timed out waiting for the winner to commit" unless winner_committed.wait(10)
+                  end
+                end
+                yield if block_given?
+                record
+              end
+            end
+          end
+
+          assert ready.wait(10), "Timed out waiting for the initial SELECTs"
+          winner = model.transaction { model.create!(attributes) }
+          winner_committed.set
+
+          threads.each do |thread|
+            assert thread.join(15), "Timed out waiting for find_or_create_by"
+            assert_equal winner, thread.value
+          end
+          assert_equal 1, model.where(attributes).count
+        end
+      ensure
+        threads&.each { |thread| thread.kill if thread.alive? }
+        threads&.each { |thread| thread.join unless thread.status.nil? }
+      end
+
       def duel
         assert_nil Subscriber.find_by(nick: "bob")
 
