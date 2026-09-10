@@ -87,7 +87,60 @@ module ApplicationTests
       assert_includes(output, "Unknown variant processor :nope")
     end
 
+    def test_mini_magick_transformer_boots_with_unsecurable_vips
+      add_to_config "config.active_storage.variant_processor = :mini_magick"
+      add_ruby_vips_stub "module Vips; end"
+
+      output = run_command("puts :booted")
+
+      assert_includes(output, "booted")
+    end
+
+    def test_vips_transformer_raises_at_boot_with_unsecurable_vips
+      add_to_config "config.active_storage.variant_processor = :vips"
+      add_ruby_vips_stub "module Vips; end"
+
+      output = run_command("puts :booted")
+
+      assert_not_includes(output, "booted")
+      assert_includes(output, "remove the ruby-vips gem from your Gemfile. (RuntimeError)")
+    end
+
+    def test_block_untrusted_runs_before_initializers_without_vips_transformer
+      add_to_config "config.active_storage.variant_processor = :mini_magick"
+      add_ruby_vips_stub <<~'RUBY'
+        module Vips
+          def self.block_untrusted(state) = puts("block_untrusted(#{state})")
+        end
+      RUBY
+      app_file "config/initializers/probe.rb", 'puts "initializer"'
+
+      output = run_command("puts :booted")
+
+      assert_equal %w[block_untrusted(true) initializer booted], output.lines.map(&:chomp).grep(/^(block_untrusted|initializer|booted)/)
+    end
+
     private
+      def add_ruby_vips_stub(source)
+        FileUtils.mkdir_p app_path("ruby-vips", "lib")
+
+        File.write app_path("ruby-vips", "ruby-vips.gemspec"), <<~RUBY
+          Gem::Specification.new do |spec|
+            spec.name = "ruby-vips"
+            spec.version = "2.3.0"
+            spec.summary = "ruby-vips stub"
+            spec.authors = [ "Rails test" ]
+            spec.files = [ "lib/ruby-vips.rb" ]
+          end
+        RUBY
+
+        File.write app_path("ruby-vips", "lib", "ruby-vips.rb"), source
+
+        File.open app_path("Gemfile"), "a" do |f|
+          f.puts %(gem "ruby-vips", path: "#{app_path("ruby-vips")}")
+        end
+      end
+
       def run_command(cmd)
         Dir.chdir(app_path) do
           Bundler.with_original_env do

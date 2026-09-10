@@ -32,13 +32,22 @@ if ActiveStorage::VIPS_AVAILABLE
     # image_processing is only needed to generate variants, not to analyze blobs.
   end
 
-  unless Vips.respond_to?(:block_untrusted)
-    raise <<~ERROR.squish
-      libvips's unfuzzed operations are not safe to use with untrusted content, and Active Storage
-      cannot disable them. Disabling them requires libvips 8.13 or later and ruby-vips 2.2.1 or
-      later. Please upgrade libvips and ruby-vips, or remove the ruby-vips gem from your Gemfile.
-    ERROR
-  end
+  ActiveStorage::VIPS_UNSECURABLE = !Vips.respond_to?(:block_untrusted) # :nodoc:
+  Vips.block_untrusted(true) unless ActiveStorage::VIPS_UNSECURABLE
+else
+  ActiveStorage::VIPS_UNSECURABLE = false # :nodoc:
+end
 
-  Vips.block_untrusted(true)
+module ActiveStorage
+  # Raises when the installed libvips and ruby-vips cannot disable the unfuzzed loaders and savers.
+  # Called before Active Storage hands untrusted content to libvips.
+  def self.require_securable_vips! # :nodoc:
+    if VIPS_UNSECURABLE
+      raise <<~ERROR.squish
+        libvips's unfuzzed operations are not safe to use with untrusted content, and Active Storage
+        cannot disable them. Disabling them requires libvips 8.13 or later and ruby-vips 2.2.1 or
+        later. Please upgrade libvips and ruby-vips, or remove the ruby-vips gem from your Gemfile.
+      ERROR
+    end
+  end
 end

@@ -1,3 +1,13 @@
+*   Boot with an unsupported libvips or ruby-vips unless the variant processor uses it.
+
+    An installed libvips or ruby-vips too old to block the unfuzzed loaders raised during application
+    boot for every variant processor. Active Storage now raises only when the `:vips` processor loads
+    or the Vips analyzer reads an image, so `:mini_magick` applications boot again.
+
+    Fixes #58394.
+
+    *Mike Dalessio*
+
 *   Marcel 2 for content type detection
 
     Broader and more precise MIME type detection, security hardening, and uses canonical types
