@@ -86,6 +86,17 @@ class TrixEditorTest < ApplicationSystemTestCase
     end
   end
 
+  test "hides the attach button when the direct upload route is not drawn" do
+    with_editor :trix do
+      without_direct_upload_route do
+        visit new_message_url
+
+        assert_no_button "Attach Files"
+        assert_button "Mention #{people(:alice).name}"
+      end
+    end
+  end
+
   def assert_editor_attachment(attachable, &block)
     attachment_attribute = "data-trix-attachment"
 
