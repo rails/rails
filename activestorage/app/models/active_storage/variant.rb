@@ -126,7 +126,7 @@ class ActiveStorage::Variant
   def process_from_io(io) # :nodoc:
     return if processed?
 
-    variation.transform(io) do |output|
+    variation.transform(io, blob: blob) do |output|
       service.upload(key, output, content_type: content_type)
     end
   end
@@ -134,7 +134,7 @@ class ActiveStorage::Variant
   private
     def process
       blob.open do |input|
-        variation.transform(input) do |output|
+        variation.transform(input, blob: blob) do |output|
           service.upload(key, output, content_type: content_type)
         end
       end
