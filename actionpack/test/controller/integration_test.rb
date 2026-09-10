@@ -655,7 +655,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     with_test_route_set do |controller|
       with_live_controller(controller) do
         with_default_headers "a" => "1", "b" => "2" do
-          get "/get"
+          get "/get", env: { "SERVER_PROTOCOL" => "HTTP/1.1" }
         end
       end
     end
