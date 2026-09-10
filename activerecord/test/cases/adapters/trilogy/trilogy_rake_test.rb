@@ -361,7 +361,21 @@ module ActiveRecord
       assert_called_with(
         Kernel,
         :system,
-        ["mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
+        ["mysqldump", "--ssl-mode=VERIFY_CA", "--ssl-ca=ca.crt", "--ssl-crl=crl.pem", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
+        returns: true
+      ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+            @configuration.merge("ssl_ca" => "ca.crt", "ssl_crl" => "crl.pem", "ssl_mode" => "VERIFY_CA"),
+            filename)
+        end
+    end
+
+    def test_structure_dump_ignores_ssl_options_trilogy_does_not_accept
+      filename = "awesome-file.sql"
+      assert_called_with(
+        Kernel,
+        :system,
+        ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
         returns: true
       ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(

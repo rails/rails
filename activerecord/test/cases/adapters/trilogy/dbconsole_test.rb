@@ -18,20 +18,22 @@ module ActiveRecord
 
       def test_mysql_full
         config = make_db_config(
-          adapter:   "trilogy",
-          database:  "db",
-          host:      "localhost",
-          port:      1234,
-          socket:    "socket",
-          username:  "user",
-          password:  "qwerty",
-          encoding:  "UTF-8",
-          sslca:     "/path/to/ca-cert.pem",
-          sslcert:   "/path/to/client-cert.pem",
-          sslcapath: "/path/to/cacerts",
-          sslcipher: "DHE-RSA-AES256-SHA",
-          sslkey:    "/path/to/client-key.pem",
-          ssl_mode:  "VERIFY_IDENTITY"
+          adapter:     "trilogy",
+          database:    "db",
+          host:        "localhost",
+          port:        1234,
+          socket:      "socket",
+          username:    "user",
+          password:    "qwerty",
+          encoding:    "UTF-8",
+          ssl_ca:      "/path/to/ca-cert.pem",
+          ssl_cert:    "/path/to/client-cert.pem",
+          ssl_capath:  "/path/to/cacerts",
+          ssl_cipher:  "DHE-RSA-AES256-SHA",
+          ssl_key:     "/path/to/client-key.pem",
+          ssl_crl:     "/path/to/crl.pem",
+          ssl_crlpath: "/path/to/crls",
+          ssl_mode:    "VERIFY_IDENTITY"
         )
 
         args = [
@@ -41,16 +43,31 @@ module ActiveRecord
           "--socket=socket",
           "--user=user",
           "--default-character-set=UTF-8",
+          "--ssl-mode=VERIFY_IDENTITY",
           "--ssl-ca=/path/to/ca-cert.pem",
           "--ssl-cert=/path/to/client-cert.pem",
           "--ssl-capath=/path/to/cacerts",
           "--ssl-cipher=DHE-RSA-AES256-SHA",
           "--ssl-key=/path/to/client-key.pem",
-          "--ssl-mode=VERIFY_IDENTITY",
+          "--ssl-crl=/path/to/crl.pem",
+          "--ssl-crlpath=/path/to/crls",
           "-p", "db"
         ]
 
         assert_find_cmd_and_exec_called_with(args) do
+          TrilogyAdapter.dbconsole(config)
+        end
+      end
+
+      def test_mysql_ignores_ssl_options_trilogy_does_not_accept
+        config = make_db_config(
+          adapter:   "trilogy",
+          database:  "db",
+          sslca:     "/path/to/ca-cert.pem",
+          sslcapath: "/path/to/cacerts"
+        )
+
+        assert_find_cmd_and_exec_called_with([%w[mysql mysql5], "db"]) do
           TrilogyAdapter.dbconsole(config)
         end
       end

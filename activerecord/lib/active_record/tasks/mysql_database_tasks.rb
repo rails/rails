@@ -61,22 +61,7 @@ module ActiveRecord
         end
 
         def prepare_command_options
-          args = {
-            host:      "--host",
-            port:      "--port",
-            socket:    "--socket",
-            username:  "--user",
-            password:  "--password",
-            encoding:  "--default-character-set",
-            sslca:     "--ssl-ca",
-            sslcert:   "--ssl-cert",
-            sslcapath: "--ssl-capath",
-            sslcipher: "--ssl-cipher",
-            sslkey:    "--ssl-key",
-            ssl_mode:  "--ssl-mode"
-          }.filter_map { |opt, arg| "#{arg}=#{configuration_hash[opt]}" if configuration_hash[opt] }
-
-          args
+          db_config.adapter_class.cli_args(configuration_hash)
         end
     end
   end
