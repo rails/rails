@@ -960,6 +960,11 @@
       return this.element.dataset.blobUrlTemplate;
     }
   }
+  addEventListener("trix-file-accept", (event => {
+    if (!event.target.dataset.directUploadUrl) {
+      event.preventDefault();
+    }
+  }));
   addEventListener("trix-attachment-add", (event => {
     const {attachment: attachment, target: target} = event;
     if (attachment.file) {

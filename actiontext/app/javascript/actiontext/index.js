@@ -1,5 +1,11 @@
 import { AttachmentUpload } from "./attachment_upload"
 
+addEventListener("trix-file-accept", event => {
+  if (!event.target.dataset.directUploadUrl) {
+    event.preventDefault()
+  }
+})
+
 addEventListener("trix-attachment-add", event => {
   const { attachment, target } = event
 

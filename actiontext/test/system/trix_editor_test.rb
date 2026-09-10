@@ -70,6 +70,22 @@ class TrixEditorTest < ApplicationSystemTestCase
     end
   end
 
+  test "ignores inserted files when the direct upload route is not drawn" do
+    with_editor :trix do
+      without_direct_upload_route do
+        visit new_message_url
+
+        execute_script <<~JS, find(:rich_text_area)
+          arguments[0].editor.insertFile(new File(["racecar"], "racecar.jpg", { type: "image/jpeg" }))
+        JS
+
+        within :rich_text_area do
+          assert_no_selector "figure[data-trix-attachment]"
+        end
+      end
+    end
+  end
+
   def assert_editor_attachment(attachable, &block)
     attachment_attribute = "data-trix-attachment"
 
