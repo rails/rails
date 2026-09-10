@@ -179,4 +179,72 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     message2.content = ""
     assert_not_predicate message2, :valid?
   end
+
+  test "overriding has_rich_text getter works" do
+    message = Message.create!(subject: "Greetings", content: "<h1>Hello world</h1>")
+
+    assert_equal "Hello world", message.content.to_plain_text
+
+    begin
+      Message.class_eval do
+        def content
+          super.to_plain_text.upcase
+        end
+      end
+
+      assert_equal "HELLO WORLD", message.content
+    ensure
+      Message.remove_method :content
+    end
+  end
+
+  test "overriding has_rich_text setter works" do
+    Message.class_eval do
+      def content=(body)
+        super("<h1>#{body}</h1>")
+      end
+    end
+
+    message = Message.create!(subject: "Greetings", content: "Hello world")
+    assert_equal "<h1>Hello world</h1>", message.content.body.to_html
+  ensure
+    Message.remove_method :content=
+  end
+
+  test "overriding has_rich_text setter works with store_if_blank: false" do
+    MessageWithoutBlanks.class_eval do
+      def content=(body)
+        super(body.presence && "<h1>#{body}</h1>")
+      end
+    end
+
+    assert_difference("ActionText::RichText.count" => 1) do
+      message = MessageWithoutBlanks.create!(subject: "Greetings", content: "Hello world")
+      assert_equal "<h1>Hello world</h1>", message.content.body.to_html
+    end
+
+    assert_difference("ActionText::RichText.count" => 0) do
+      assert_not_predicate MessageWithoutBlanks.create!(subject: "Greetings", content: ""), :content?
+    end
+  ensure
+    MessageWithoutBlanks.remove_method :content=
+  end
+
+  test "overriding has_rich_text predicate works" do
+    message = Message.create!(subject: "Greetings", content: "Hello world")
+
+    assert_predicate message, :content?
+
+    begin
+      Message.class_eval do
+        def content?
+          !super
+        end
+      end
+
+      assert_not_predicate message, :content?
+    ensure
+      Message.remove_method :content?
+    end
+  end
 end
