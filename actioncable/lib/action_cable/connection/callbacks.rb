@@ -6,10 +6,10 @@ module ActionCable
   module Connection
     # = Action Cable \Connection \Callbacks
     #
-    # The {before_command}[rdoc-ref:ClassMethods#before_command],
-    # {after_command}[rdoc-ref:ClassMethods#after_command], and
-    # {around_command}[rdoc-ref:ClassMethods#around_command] callbacks are
-    # invoked when sending commands to the client, such as when subscribing,
+    # The [before_command](rdoc-ref:ClassMethods#before_command),
+    # [after_command](rdoc-ref:ClassMethods#after_command), and
+    # [around_command](rdoc-ref:ClassMethods#around_command) callbacks are invoked
+    # when receiving commands from the client, such as when subscribing,
     # unsubscribing, or performing an action.
     #
     # ==== Example

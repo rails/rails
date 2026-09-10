@@ -535,6 +535,8 @@ GEM
       railties (>= 6.0.0)
     tailwindcss-rails (2.0.21-arm64-darwin)
       railties (>= 6.0.0)
+    tailwindcss-rails (2.0.21-x86_64-linux)
+      railties (>= 6.0.0)
     terser (1.1.13)
       execjs (>= 0.3.0, < 3)
     thor (1.3.0)
@@ -579,6 +581,8 @@ GEM
 PLATFORMS
   aarch64-linux
   arm64-darwin-24
+  arm64-darwin-25
+  x86_64-linux
 
 DEPENDENCIES
   activerecord-jdbcmysql-adapter (>= 1.3.0)
