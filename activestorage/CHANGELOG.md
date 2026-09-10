@@ -1,3 +1,13 @@
+*   Honor `config.active_storage.streaming_max_ranges`.
+
+    The setting was documented but never read, so the number of ranges a byte
+    range request may contain stayed at 1. Applications that raised the limit
+    by assigning `ActiveStorage.streaming_max_ranges` directly should move the
+    value to `config.active_storage.streaming_max_ranges`, which now takes
+    precedence.
+
+    *Carlos Daniel Pohlod*
+
 *   Marcel 2 for content type detection
 
     Broader and more precise MIME type detection, security hardening, and uses canonical types
