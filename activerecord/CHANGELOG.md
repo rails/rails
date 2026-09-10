@@ -1,3 +1,11 @@
+*   Fix reusing available records when preloading `has_one :through` associations.
+
+    Matching now uses each component association's keys rather than applying the
+    source association's keys to the outer owner, which could select an unrelated
+    record.
+
+    *Matthew Draper*
+
 *   Fix `has_many`/`has_one :through` associations with `disable_joins: true`
     raising when the owner's foreign key is composite.
 

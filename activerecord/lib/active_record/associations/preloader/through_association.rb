@@ -5,6 +5,10 @@ module ActiveRecord
   module Associations
     class Preloader
       class ThroughAssociation < Association # :nodoc:
+        # Available records are matched by the component loaders, not the outer owner.
+        def associate_records_from_unscoped(*)
+        end
+
         def preloaded_records
           @preloaded_records ||= source_preloaders.flat_map(&:preloaded_records)
         end
