@@ -37,12 +37,12 @@ Section
 ### Sub Section
 ```
 
-When writing headings, capitalize all words except for prepositions, conjunctions, internal articles, and forms of the verb "to be":
+When writing headings, capitalize all words except for articles, prepositions, conjunctions, and forms of the verb "to be":
 
 ```markdown
 #### Assertions and Testing Jobs inside Components
 #### Middleware Stack is an Array
-#### When are Objects Saved?
+#### When are the Objects Saved?
 ```
 
 Use the same inline formatting as regular text:
