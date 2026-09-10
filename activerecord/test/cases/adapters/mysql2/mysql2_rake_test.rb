@@ -313,7 +313,7 @@ module ActiveRecord
 
     def test_structure_dump_with_ignore_tables
       filename = "awesome-file.sql"
-      ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
+      stub_dumped_database_connection(["foo", "bar", "prefix_foo", "ignored_foo"]) do
         ActiveRecord.stub(:schema_ignored_tables, [/^prefix_/, "ignored_foo"]) do
           assert_called_with(
             Kernel,
@@ -325,6 +325,34 @@ module ActiveRecord
           end
         end
       end
+    end
+
+    def test_structure_dump_reads_ignored_tables_from_the_database_being_dumped
+      filename = "awesome-file.sql"
+      dumped_config = nil
+      connection = Minitest::Mock.new
+      connection.expect(:data_sources, ["prefix_in_dumped_database"])
+      connection.expect(:disconnect!, nil)
+
+      # A matching table in whichever database ActiveRecord::Base happens to be
+      # connected to must not be what gets excluded.
+      ActiveRecord::Base.lease_connection.stub(:data_sources, ["prefix_in_ambient_database"]) do
+        ActiveRecord.stub(:schema_ignored_tables, [/^prefix_/]) do
+          adapter_class.stub(:new, ->(config) { dumped_config = config; connection }) do
+            assert_called_with(
+              Kernel,
+              :system,
+              ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.prefix_in_dumped_database", "test-db", {}],
+              returns: true
+            ) do
+              ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+            end
+          end
+        end
+      end
+
+      assert_equal "test-db", dumped_config[:database]
+      connection.verify
     end
 
     def test_warn_when_external_structure_dump_command_execution_fails
@@ -371,6 +399,19 @@ module ActiveRecord
     end
 
     private
+      def adapter_class
+        ActiveRecord::Base.configurations.resolve(@configuration).adapter_class
+      end
+
+      def stub_dumped_database_connection(data_sources, &block)
+        connection = Minitest::Mock.new
+        connection.expect(:data_sources, data_sources)
+        connection.expect(:disconnect!, nil)
+
+        adapter_class.stub(:new, connection, &block)
+        connection.verify
+      end
+
       def with_structure_dump_flags(flags)
         old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
         ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
