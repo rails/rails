@@ -63,13 +63,16 @@ module Rails
 
         if (yaml = credentials.read)
           begin
-            value = YAML.load(yaml)
+            value = YAML.load(yaml, aliases: true, filename: content_path)
             value = path.split(".").inject(value) do |doc, key|
               doc.fetch(key)
             end
             say value.to_s
           rescue KeyError, NoMethodError
             say_error "Invalid or missing credential path: #{path}"
+            exit 1
+          rescue Psych::SyntaxError => error
+            say_error "Invalid YAML in credentials: #{error.message}"
             exit 1
           end
         else
