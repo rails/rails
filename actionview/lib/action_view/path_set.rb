@@ -41,10 +41,8 @@ module ActionView # :nodoc:
 
     def find(path, prefixes, partial, details, details_key, locals)
       search_combinations(path, prefixes, paths) do |resolver, name, prefix|
-        template = resolver.find(name, prefix, partial, details, details_key, locals)
-        return template if template
+        resolver.find(name, prefix, partial, details, details_key, locals)
       end
-      nil
     end
 
     def find!(path, prefixes, partial, details, details_key, locals)
@@ -55,9 +53,8 @@ module ActionView # :nodoc:
     def find_all(path, prefixes, partial, details, details_key, locals)
       search_combinations(path, prefixes, paths) do |resolver, name, prefix|
         templates = resolver.find_all(name, prefix, partial, details, details_key, locals)
-        return templates unless templates.empty?
-      end
-      []
+        templates unless templates.empty?
+      end || []
     end
 
     def exists?(path, prefixes, partial, details, details_key, locals)
@@ -72,26 +69,38 @@ module ActionView # :nodoc:
         idx = path.rindex("/")
         prefixes = Array(prefixes)
 
-        unless idx
-          prefixes = EMPTY_PREFIXES if prefixes.empty?
-          prefixes.each do |prefix|
-            resolvers.each { |resolver| yield resolver, path, prefix }
-          end
-          return
-        end
-
-        path_prefix = path[0, idx]
-        path_prefix = path_prefix.from(1) if path_prefix.start_with?("/")
-        name = path.from(idx + 1)
-
-        if prefixes.empty?
-          resolvers.each { |resolver| yield resolver, name, path_prefix }
+        if idx
+          path_prefix = path[0, idx]
+          path_prefix = path_prefix.from(1) if path_prefix.start_with?("/")
+          name = path.from(idx + 1)
         else
-          prefixes.each do |prefix|
-            combined = "#{prefix}/#{path_prefix}"
-            resolvers.each { |resolver| yield resolver, name, combined }
-          end
+          name = path
         end
+
+        i = 0
+        count = prefixes.empty? ? 1 : prefixes.length
+
+        while i < count
+          prefix =
+            if prefixes.empty?
+              path_prefix || ""
+            elsif path_prefix
+              "#{prefixes[i]}/#{path_prefix}"
+            else
+              prefixes[i]
+            end
+
+          j = 0
+          while j < resolvers.length
+            found = yield resolvers[j], name, prefix
+            return found if found
+            j += 1
+          end
+
+          i += 1
+        end
+
+        nil
       end
 
       def missing_template(path, prefixes, partial, details, details_key, locals)
@@ -101,6 +110,7 @@ module ActionView # :nodoc:
         search_combinations(path, prefixes, [nil]) do |_resolver, normalized, prefix|
           name = normalized
           searched << prefix
+          nil
         end
         MissingTemplate.new(self, name, searched, partial, details, details_key, locals)
       end
