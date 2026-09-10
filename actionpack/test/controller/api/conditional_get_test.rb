@@ -64,6 +64,13 @@ class ConditionalGetApiTest < ActionController::TestCase
     assert_response :not_modified
   end
 
+  def test_if_none_match_contains_asterisk_in_quoted_etag
+    @request.if_none_match = '"foo,*,bar"'
+    get :one
+    assert_response :success
+    assert_equal "Hi!", @response.body
+  end
+
   def test_etag_matches
     @request.if_none_match = weak_etag([:foo, 123])
     get :one
