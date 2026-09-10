@@ -70,11 +70,26 @@ class ActionCable::Server::Socket::ClientSocketTest < ActionCable::TestCase
     end
   end
 
+  test "a forced close finishes a pending graceful close without waiting for the peer" do
+    run_in_eventmachine do
+      # Use an RFC 6455 handshake: unlike the Draft75 fallback, its close waits for the peer's close frame
+      connection = open_connection("HTTP_SEC_WEBSOCKET_VERSION" => "13", "HTTP_SEC_WEBSOCKET_KEY" => "dGhlIHNhbXBsZSBub25jZQ==")
+
+      connection.close
+      wait_for_async
+      assert connection.connected, "graceful close must wait for the peer"
+
+      connection.close!
+      wait_for_async
+      assert_not connection.connected
+    end
+  end
+
   private
-    def open_connection
+    def open_connection(headers = {})
       env = Rack::MockRequest.env_for "/test",
         "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
-        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
+        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com", **headers
       io, client_io = \
         begin
           Socket.pair(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
