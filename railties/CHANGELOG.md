@@ -1,3 +1,17 @@
+*   Route `/.well-known/change-password` to the password reset page.
+
+    Browsers and password managers use this well-known URL to send people
+    straight to a site's change password page, typically after warning them that
+    a saved password appeared in a breach. The route is a temporary redirect, as
+    the specification requires the well-known URL not host the page itself.
+
+        get "/.well-known/change-password", to: redirect("/passwords/new", status: 302)
+
+    API-only applications skip the route, since they generate no pages to
+    redirect to.
+
+    *Matheus Richard*
+
 *   Mark the generated `public/*.html` error pages as `linguist-generated` in
     the default `.gitattributes`.
 

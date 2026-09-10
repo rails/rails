@@ -40,6 +40,10 @@ module Rails
       end
 
       def configure_authentication_routes
+        unless options.api?
+          route %(get "/.well-known/change-password", to: redirect("/passwords/new", status: 302))
+        end
+
         route "resources :passwords, param: :token, only: [ :new, :create, :edit, :update ]"
         route "resource :session, only: [ :new, :create, :destroy ]"
       end
