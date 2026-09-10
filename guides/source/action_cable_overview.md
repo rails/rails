@@ -167,7 +167,7 @@ end
 #### Connection Callbacks
 
 [`ActionCable::Connection::Callbacks`][] provides callback hooks that are
-invoked when sending commands to the client, such as when subscribing,
+invoked when receiving commands from the client, such as when subscribing,
 unsubscribing, or performing an action:
 
 * [`before_command`][]
