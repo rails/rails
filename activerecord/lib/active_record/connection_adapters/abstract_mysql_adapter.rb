@@ -201,6 +201,16 @@ module ActiveRecord
         end
       end
 
+      def create_or_find_by_lock # :nodoc:
+        # A shared lock provides a current read under REPEATABLE READ without
+        # upgrading the shared record lock acquired by a duplicate INSERT.
+        if mariadb? || database_version < "8.0.1"
+          "LOCK IN SHARE MODE"
+        else
+          "FOR SHARE"
+        end
+      end
+
       def supports_json?
         !mariadb? && database_version >= "5.7.8"
       end
