@@ -49,15 +49,21 @@ module ActiveRecord
         end
 
         ignore_tables = ActiveRecord.schema_ignored_tables
-        if ignore_tables.any?
-          ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
-          args += ignore_tables.flat_map { |table| ["-T", table] }
+        dumped_search_path = nil
+
+        with_target_connection do |conn|
+          if ignore_tables.any?
+            ignored = conn.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
+            args += ignored.flat_map { |table| ["-T", table] }
+          end
+
+          dumped_search_path = conn.schema_search_path
         end
 
         args << db_config.database
         run_cmd("pg_dump", *args)
         remove_sql_header_comments(filename)
-        File.open(filename, "a") { |f| f << "SET search_path TO #{connection.schema_search_path};\n\n" }
+        File.open(filename, "a") { |f| f << "SET search_path TO #{dumped_search_path};\n\n" }
       end
 
       def structure_load(filename, extra_flags)
