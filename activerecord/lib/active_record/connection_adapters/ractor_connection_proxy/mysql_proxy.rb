@@ -162,8 +162,16 @@ module ActiveRecord
           remote_dispatch(:default_insert_value, ...)
         end
 
-        def explain(...)
-          remote_dispatch(:explain, ...)
+        # Compiles and executes worker-side like any other query; only the
+        # capability-dependent clause is resolved remotely.
+        def explain(arel_or_sql, binds = [], options = [])
+          sql, binds = to_sql_and_binds(arel_or_sql, binds)
+          sql = pure_remote_dispatch(:build_explain_clause, options) + " " + sql
+          start   = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+          result  = select_all(sql, "EXPLAIN", binds)
+          elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+
+          MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
         end
 
         def high_precision_current_timestamp
@@ -184,8 +192,10 @@ module ActiveRecord
           remote_dispatch(:create_index_definition, ...)
         end
 
-        def create_schema_dumper(...)
-          remote_dispatch(:create_schema_dumper, ...)
+        # Built locally against the proxy: the dumper only drives the
+        # dispatchable connection interface and must not cross itself.
+        def create_schema_dumper(options)
+          MySQL::SchemaDumper.create(self, options)
         end
 
         def create_table(...)
@@ -224,10 +234,6 @@ module ActiveRecord
 
         def build_create_index_definition(...)
           remote_dispatch(:build_create_index_definition, ...)
-        end
-
-        def build_insert_sql(...)
-          remote_dispatch(:build_insert_sql, ...)
         end
 
         def case_sensitive_comparison(...)

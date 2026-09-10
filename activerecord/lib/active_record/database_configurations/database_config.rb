@@ -7,6 +7,7 @@ module ActiveRecord
     # as this is the parent class for the types of database configuration objects.
     class DatabaseConfig # :nodoc:
       attr_reader :env_name, :name
+      attr_accessor :ractor_origin_pool_token # :nodoc:
 
       def initialize(env_name, name)
         @env_name = env_name

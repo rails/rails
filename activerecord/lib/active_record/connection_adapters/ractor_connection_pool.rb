@@ -28,17 +28,32 @@ module ActiveRecord
 
       attr_reader :db_config, :role, :shard, :key
 
-      def self.spec_for(pool, copy: true) # :nodoc:
+      def self.spec_for(pool) # :nodoc:
         pool_config = pool.pool_config
         descriptor = pool_config.connection_descriptor
+        db_config = pool_config.db_config.dup
+        # See RactorConnectionHandler.identity_db_config.
+        db_config.ractor_origin_pool_token = pool_config.pool_token
         spec = {
-          db_config: pool_config.db_config,
+          db_config: db_config,
           connection_name: descriptor.name.to_s.freeze,
           role: pool_config.role,
           shard: pool_config.shard,
           pool_token: pool_config.pool_token,
         }
-        copy ? ActiveSupport::Ractors.make_shareable(spec, copy: true) : spec
+        ActiveSupport::Ractors.make_shareable(spec, copy: true)
+      end
+
+      # Resolves a spec-copied db_config back to the db_config of its origin
+      # pool; nil when the config is not a pool copy or the pool is gone.
+      def self.origin_db_config(db_config)
+        return nil unless db_config.is_a?(DatabaseConfigurations::DatabaseConfig)
+        return nil unless token = db_config.ractor_origin_pool_token
+
+        origin = ActiveRecord::Base.default_connection_handler.connection_pool_list(:all).find do |pool|
+          pool.pool_config.pool_token == token
+        end
+        origin&.pool_config&.db_config
       end
 
       def self.for_spec(spec)

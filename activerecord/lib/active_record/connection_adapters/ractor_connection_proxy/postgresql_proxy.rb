@@ -211,8 +211,13 @@ module ActiveRecord
 
         # DATABASE STATEMENTS =====================================
 
-        def explain(...)
-          remote_dispatch(:explain, ...)
+        # Compiles and executes worker-side like any other query; only the
+        # clause is resolved remotely.
+        def explain(arel_or_sql, binds = [], options = [])
+          sql, binds = to_sql_and_binds(arel_or_sql, binds)
+          sql = pure_remote_dispatch(:build_explain_clause, options) + " " + sql
+          result = select_all(sql, "EXPLAIN", binds)
+          PostgreSQL::ExplainPrettyPrinter.new.pp(result)
         end
 
         def high_precision_current_timestamp
@@ -277,8 +282,10 @@ module ActiveRecord
           remote_dispatch(:columns_for_distinct, ...)
         end
 
-        def create_schema_dumper(...)
-          remote_dispatch(:create_schema_dumper, ...)
+        # Built locally against the proxy: the dumper only drives the
+        # dispatchable connection interface and must not cross itself.
+        def create_schema_dumper(options)
+          PostgreSQL::SchemaDumper.create(self, options)
         end
 
         def default_sequence_name(...)
@@ -341,10 +348,6 @@ module ActiveRecord
 
         def add_enum_value(...)
           remote_dispatch(:add_enum_value, ...)
-        end
-
-        def build_insert_sql(...)
-          remote_dispatch(:build_insert_sql, ...)
         end
 
         def create_enum(...)

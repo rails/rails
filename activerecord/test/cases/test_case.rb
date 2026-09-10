@@ -232,7 +232,7 @@ module ActiveRecord
     end
 
     def with_temporary_connection_pool(&block)
-      pool_config = ActiveRecord::Base.connection_pool.pool_config
+      pool_config = without_ractor_proxy { ActiveRecord::Base.connection_pool }.pool_config
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
       pool_config.stub(:pool, new_pool, &block)

@@ -1028,7 +1028,7 @@ module ActiveRecord
       end
 
       test "disconnect and recover on #configure_connection failure" do
-        connection = ActiveRecord::Base.connection_pool.send(:new_connection)
+        connection = without_ractor_proxy { ActiveRecord::Base.connection_pool }.send(:new_connection)
 
         failures = [ActiveRecord::ConnectionFailed.new("Oops"), ActiveRecord::ConnectionFailed.new("Oops 2")]
         connection.singleton_class.define_method(:configure_connection) do
@@ -1049,7 +1049,7 @@ module ActiveRecord
       end
 
       test "disconnect and recover on #configure_connection timeout" do
-        connection = ActiveRecord::Base.connection_pool.send(:new_connection)
+        connection = without_ractor_proxy { ActiveRecord::Base.connection_pool }.send(:new_connection)
 
         slow = [5]
         connection.singleton_class.define_method(:configure_connection) do

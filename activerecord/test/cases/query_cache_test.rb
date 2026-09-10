@@ -286,7 +286,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_paths, ["tasks"], {}, ActiveRecord::Base)
       end
 
-      ActiveRecord::Base.connection_pool.connections.each do |conn|
+      without_ractor_proxy { ActiveRecord::Base.connection_pool }.connections.each do |conn|
         assert_cache :off, conn
       end
 
@@ -338,7 +338,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert_cache :off, thread_2_connection
       }.call({})
 
-      ActiveRecord::Base.connection_pool.connections.each do |conn|
+      without_ractor_proxy { ActiveRecord::Base.connection_pool }.connections.each do |conn|
         assert_cache :off, conn
       end
     end

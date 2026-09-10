@@ -243,7 +243,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
 
       assert_not connection.active?
-      assert_not Topic.connection_pool.connections.include?(connection)
+      assert_not without_ractor_proxy { Topic.connection_pool }.connections.include?(connection)
     ensure
       ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end
@@ -287,7 +287,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
       assert_equal "rollback failed", exception.message
       assert_not connection.active?
-      assert_not Topic.connection_pool.connections.include?(connection)
+      assert_not without_ractor_proxy { Topic.connection_pool }.connections.include?(connection)
       assert_equal "The Fifth Topic of the day", topic.reload.title
     ensure
       ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
@@ -306,7 +306,7 @@ class TransactionTest < ActiveRecord::TestCase
       end
       assert_equal "begin failed", exception.message
       assert_not connection.active?
-      assert_not Topic.connection_pool.connections.include?(connection)
+      assert_not without_ractor_proxy { Topic.connection_pool }.connections.include?(connection)
     ensure
       ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end
@@ -329,7 +329,7 @@ class TransactionTest < ActiveRecord::TestCase
       thread.kill
       thread.join
       assert_not connection.active?
-      assert_not Topic.connection_pool.connections.include?(connection)
+      assert_not without_ractor_proxy { Topic.connection_pool }.connections.include?(connection)
     ensure
       ActiveRecord::Base.connection_handler.clear_all_connections!(:all)
     end

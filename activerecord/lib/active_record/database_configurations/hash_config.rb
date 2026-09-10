@@ -39,6 +39,9 @@ module ActiveRecord
         super(env_name, name)
         @configuration_hash = configuration_hash.symbolize_keys.freeze
         validate_configuration!
+        query_log_tags = @configuration_hash[:query_log_tags]
+        @query_log_tags_format = (query_log_tags["format"]&.to_sym if query_log_tags.is_a?(Hash))
+        @query_log_tags_prepend_comment = (query_log_tags["prepend_comment"] if query_log_tags.is_a?(Hash))
       end
 
       # Determines whether a database configuration is for a replica / readonly
@@ -109,19 +112,7 @@ module ActiveRecord
         configuration_hash[:query_log_tags]
       end
 
-      def query_log_tags_format # :nodoc:
-        return @query_log_tags_format if defined? @query_log_tags_format
-
-        config = query_log_tags_config
-        @query_log_tags_format = (config["format"]&.to_sym if config.is_a?(Hash))
-      end
-
-      def query_log_tags_prepend_comment # :nodoc:
-        return @query_log_tags_prepend_comment if defined? @query_log_tags_prepend_comment
-
-        config = query_log_tags_config
-        @query_log_tags_prepend_comment = (config["prepend_comment"] if config.is_a?(Hash))
-      end
+      attr_reader :query_log_tags_format, :query_log_tags_prepend_comment # :nodoc:
 
       def max_queue
         max_threads * 4

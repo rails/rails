@@ -63,29 +63,49 @@ module ActiveRecord
 
       def establish_connection(config, owner_name: Base, role: Base.current_role, shard: Base.current_shard, clobber: false)
         connection_owner_name = owner_name
-        copy = !ActiveSupport::Ractors.main?
-        db_config = copy ? RactorConnectionProxy.shareable_copy(config) : config
+        db_config = RactorConnectionProxy.shareable_copy(config)
         connection_role = role
         connection_shard = shard
         clobber_existing = clobber
 
         pool_spec = ActiveSupport::Ractors.on_main do
           pool = ActiveRecord::Base.default_connection_handler.establish_connection(
-            copy ? db_config.dup : db_config,
+            RactorConnectionHandler.identity_db_config(db_config),
             owner_name: connection_owner_name,
             role: connection_role,
             shard: connection_shard,
             clobber: clobber_existing,
           )
-          RactorConnectionPool.spec_for(pool, copy: copy)
+          RactorConnectionPool.spec_for(pool)
         end
 
         RactorConnectionPool.for_spec(pool_spec)
       end
 
+      # The main handler decides pool reuse by config identity, which a
+      # boundary copy always fails. Resolves a copy back to its identity
+      # anchor — origin pool config or value-equal registry entry; ad-hoc
+      # configs match neither and rebuild the pool, like a direct call.
+      def self.identity_db_config(db_config)
+        return db_config unless db_config.is_a?(DatabaseConfigurations::HashConfig)
+
+        if origin = RactorConnectionPool.origin_db_config(db_config)
+          return origin
+        end
+
+        registered = ActiveRecord::Base.configurations.configs_for(
+          env_name: db_config.env_name, name: db_config.name, include_hidden: true
+        )
+        if registered && registered.class == db_config.class &&
+            registered.configuration_hash == db_config.configuration_hash
+          registered
+        else
+          db_config.dup
+        end
+      end
+
       def remove_connection_pool(connection_name, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard)
         shareable_connection_name = RactorConnectionProxy.shareable_copy(connection_name.to_s)
-        copy = !ActiveSupport::Ractors.main?
         connection_role = role
         connection_shard = shard
 
@@ -94,7 +114,7 @@ module ActiveRecord
             shareable_connection_name, role: connection_role, shard: connection_shard
           )
         end
-        copy ? RactorConnectionProxy.shareable_copy(db_config) : db_config
+        RactorConnectionProxy.shareable_copy(db_config)
       end
 
       def main_ractor_handler

@@ -748,9 +748,17 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_internal_metadata_not_used_when_not_enabled
     @internal_metadata.drop_table
-    original_config = @pool.db_config.instance_variable_get(:@configuration_hash)
+    original_db_config = @pool.db_config
+    original_config = original_db_config.instance_variable_get(:@configuration_hash)
     modified_config = original_config.dup.merge(use_metadata_table: false)
-    @pool.db_config.instance_variable_set(:@configuration_hash, modified_config)
+    if ractor_proxy?
+      # A proxied pool carries a frozen config snapshot; swap, don't mutate.
+      modified_db_config = original_db_config.dup
+      modified_db_config.instance_variable_set(:@configuration_hash, modified_config)
+      @pool.instance_variable_set(:@db_config, modified_db_config)
+    else
+      original_db_config.instance_variable_set(:@configuration_hash, modified_config)
+    end
 
     assert_not @internal_metadata.enabled?
     assert_not @internal_metadata.table_exists?
@@ -762,7 +770,11 @@ class MigrationTest < ActiveRecord::TestCase
     assert_not @internal_metadata[:environment]
     assert_not @internal_metadata.table_exists?
   ensure
-    @pool.db_config.instance_variable_set(:@configuration_hash, original_config)
+    if ractor_proxy? && original_db_config
+      @pool.instance_variable_set(:@db_config, original_db_config)
+    elsif original_config
+      original_db_config.instance_variable_set(:@configuration_hash, original_config)
+    end
     @internal_metadata.create_table
   end
 
@@ -1198,8 +1210,10 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     def clear_statement_cache(model)
-      model.connection_handler.each_connection_pool do |pool|
-        pool.connections.each(&:clear_cache!)
+      without_ractor_proxy do
+        model.connection_handler.each_connection_pool do |pool|
+          pool.connections.each(&:clear_cache!)
+        end
       end
     end
 

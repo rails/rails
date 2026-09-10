@@ -146,18 +146,16 @@ module ActiveRecord
         end
 
         def main_pool_specs(role = nil)
-          copy = !ActiveSupport::Ractors.main?
           main_operation do
             specs = main_connection_handler.connection_pool_list(role).map do |pool|
-              RactorConnectionPool.spec_for(pool, copy: copy)
+              RactorConnectionPool.spec_for(pool)
             end
-            copy ? ActiveSupport::Ractors.make_shareable(specs, copy: false) : specs
+            ActiveSupport::Ractors.make_shareable(specs, copy: false)
           end
         end
 
         def main_pool_spec(connection_name, role, shard, strict)
           shareable_connection_name = shareable_copy(connection_name.to_s)
-          copy = !ActiveSupport::Ractors.main?
           main_operation do
             pool = main_connection_handler.retrieve_connection_pool(
               shareable_connection_name,
@@ -165,24 +163,24 @@ module ActiveRecord
               shard: shard,
               strict: strict,
             )
-            pool && RactorConnectionPool.spec_for(pool, copy: copy)
+            pool && RactorConnectionPool.spec_for(pool)
           end
         end
 
         def dispatch_to_main_pool(connection_name, role, shard, method_name, args, kwargs, connection_pool: nil)
           shareable_connection_name = shareable_copy(connection_name.to_s)
-          shareable_args = shareable_copy(args)
-          shareable_kwargs = shareable_copy(kwargs)
+          shareable_args = shareable_args_copy(args)
+          shareable_kwargs = shareable_kwargs_copy(kwargs)
           dispatched_method = method_name.to_sym
-          # Pool maintenance surfaces main-Ractor state (physical connections,
-          # pool internals) that cannot cross a Ractor boundary. A main-Ractor
-          # caller (self-proxy) crosses no boundary and may hold it directly.
-          copy_result = !ActiveSupport::Ractors.main?
 
           main_operation(connection_pool: connection_pool) do
-            result = main_pool(shareable_connection_name, role, shard)
-              .__send__(dispatched_method, *shareable_args, **shareable_kwargs)
-            copy_result ? shareable_copy(result) : result
+            # Pool maintenance surfacing main-Ractor state (physical
+            # connections, pool internals) cannot cross the boundary; the copy
+            # raises for such results even in a self-proxy run.
+            shareable_copy(
+              main_pool(shareable_connection_name, role, shard)
+                .__send__(dispatched_method, *shareable_args, **shareable_kwargs)
+            )
           end
         end
 
@@ -259,9 +257,8 @@ module ActiveRecord
 
         def dispatch_to_main_schema_cache(connection_name, role, shard, method_name, args, kwargs, connection_token: nil, connection_pool: nil)
           shareable_connection_name = shareable_copy(connection_name.to_s)
-          copy = !ActiveSupport::Ractors.main?
-          shareable_args = copy ? shareable_copy(args) : args
-          shareable_kwargs = copy ? shareable_copy(kwargs) : kwargs
+          shareable_args = shareable_args_copy(args)
+          shareable_kwargs = shareable_kwargs_copy(kwargs)
           dispatched_method = method_name.to_sym
 
           main_operation(connection_pool: connection_pool) do
@@ -272,29 +269,29 @@ module ActiveRecord
                 # (e.g. DDL inside an open transaction), so lookups bind to
                 # the token-pinned connection instead of letting the pool
                 # check out a second one.
-                BoundSchemaReflection.for_lone_connection(pool.schema_reflection, fetch_connection(connection_token))
+                connection = fetch_connection(connection_token)
+                # The permanently-leased physical never self-reconnects;
+                # match the checkout_and_verify a pool checkout would get.
+                connection.connect! unless connection.connected?
+                BoundSchemaReflection.for_lone_connection(pool.schema_reflection, connection)
               else
                 pool.schema_cache
               end
-            result = schema_cache.__send__(dispatched_method, *shareable_args, **shareable_kwargs)
-            copy ? shareable_copy(result) : result
+            shareable_copy(schema_cache.__send__(dispatched_method, *shareable_args, **shareable_kwargs))
           end
         end
 
         # Generic dispatch of one adapter method to the token-pinned
-        # connection. Arguments and results cross a Ractor boundary only for
-        # off-main callers; a main-Ractor caller (self-proxy) passes and
-        # receives the live objects, exactly as a direct adapter call would.
+        # connection. Arguments and results always cross as shareable copies,
+        # keeping a self-proxy run faithful to the worker boundary.
         def call_connection(connection_token, method_name, args, kwargs, connection_pool: nil)
-          copy = !ActiveSupport::Ractors.main?
-          shareable_args = copy ? shareable_copy(args) : args
-          shareable_kwargs = copy ? shareable_copy(kwargs) : kwargs
+          shareable_args = shareable_args_copy(args)
+          shareable_kwargs = shareable_kwargs_copy(kwargs)
           dispatched_method = method_name.to_sym
 
           main_operation(connection_pool: connection_pool) do
             connection = fetch_connection(connection_token)
-            result = connection.__send__(dispatched_method, *shareable_args, **shareable_kwargs)
-            copy ? shareable_copy(result) : result
+            shareable_copy(connection.__send__(dispatched_method, *shareable_args, **shareable_kwargs))
           end
         end
 
@@ -308,11 +305,10 @@ module ActiveRecord
           end
         end
 
-        def cast_binds_on_connection(connection_token, binds, copy: true, connection_pool: nil)
+        def cast_binds_on_connection(connection_token, binds_payload, connection_pool: nil)
           main_operation(connection_pool: connection_pool) do
             connection = fetch_connection(connection_token)
-            result = connection.type_casted_binds(copy ? Marshal.load(binds) : binds)
-            copy ? shareable_copy(result) : result
+            shareable_copy(connection.type_casted_binds(Marshal.load(binds_payload)))
           end
         end
 
@@ -373,8 +369,36 @@ module ActiveRecord
         def shareable_copy(value)
           return value if ActiveSupport::Ractors.shareable?(value)
 
+          if value.is_a?(Proc)
+            # Procs cannot be marshaled; a capture-free one becomes shareable
+            # rebound to a nil self, anything capturing state raises loudly.
+            if value.lambda?
+              return ActiveSupport::Ractors.shareable_lambda(&value)
+            else
+              return ActiveSupport::Ractors.shareable_proc(&value)
+            end
+          end
+
           copy = Marshal.load(Marshal.dump(value))
           ActiveSupport::Ractors.make_shareable(copy)
+        end
+
+        # Whole-graph Marshal copy, falling back to element-wise only when a
+        # member (e.g. a raw-SQL default proc) needs its own crossing strategy.
+        def shareable_args_copy(args)
+          return args if ActiveSupport::Ractors.shareable?(args)
+
+          shareable_copy(args)
+        rescue TypeError
+          ActiveSupport::Ractors.make_shareable(args.map { |arg| shareable_copy(arg) }, copy: false)
+        end
+
+        def shareable_kwargs_copy(kwargs)
+          return kwargs if ActiveSupport::Ractors.shareable?(kwargs)
+
+          shareable_copy(kwargs)
+        rescue TypeError
+          ActiveSupport::Ractors.make_shareable(kwargs.transform_values { |value| shareable_copy(value) }, copy: false)
         end
 
         def dump_object(value, description)
@@ -386,7 +410,19 @@ module ActiveRecord
         def dump_binds(binds)
           return nil if binds.nil? || binds.empty?
 
-          dump_object(binds, "bind parameters")
+          dump_object(binds.map { |bind| boundary_safe_bind(bind) }, "bind parameters")
+        end
+
+        # Attribute types may close over procs (normalized attributes,
+        # serialized coders); the database value is resolved locally and
+        # crosses as a plain attribute with a pass-through type.
+        def boundary_safe_bind(bind)
+          return bind unless bind.is_a?(ActiveModel::Attribute)
+          return bind if bind.value_before_type_cast.is_a?(StatementCache::Substitute)
+
+          safe = Relation::QueryAttribute.new(bind.name, bind.value_for_database, ActiveModel::Type.default_value)
+          safe.value_for_database # resolve the memo so a frozen copy never mutates
+          safe
         end
 
         def dump_column_types(result)
@@ -659,22 +695,28 @@ module ActiveRecord
       def type_casted_binds(binds)
         return [] if binds.nil? || binds.empty?
 
-        copy = !ActiveSupport::Ractors.main?
         RactorConnectionProxy.cast_binds_on_connection(
-          @connection_token, copy ? RactorConnectionProxy.dump_binds(binds) : binds, copy: copy, connection_pool: @pool
+          @connection_token, RactorConnectionProxy.dump_binds(binds), connection_pool: @pool
         )
       end
 
       # Mirrors AbstractAdapter#raw_connection against the physical
       # connection: lazily begun worker transactions materialize first and
-      # the connection counts as dirty. The raw handle itself can only be
-      # held by a main-Ractor caller (self-proxy); a worker caller gets the
-      # loud transport error.
+      # the connection counts as dirty. The raw handle cannot cross the
+      # dispatch boundary, so it is fetched from the registry directly and
+      # only a main-Ractor caller may hold it.
       def raw_connection
+        unless ActiveSupport::Ractors.main?
+          raise ActiveRecordError, "The raw connection of a Ractor-proxied connection can only be accessed from the main Ractor"
+        end
+        unless @connection_token
+          raise ConnectionNotEstablished, "The Ractor-pinned connection has been released"
+        end
+
         materialize_transactions
         disable_lazy_transactions!
         @raw_connection_dirty = true
-        remote_adapter_call(:raw_connection)
+        RactorConnectionProxy.connections.fetch(@connection_token).raw_connection
       end
 
       # Checkout/checkin callbacks are class-level AS::Callbacks state, which
@@ -731,6 +773,21 @@ module ActiveRecord
         end
 
         RactorConnectionProxy.schema_creation_accept_on_connection(@connection_token, node, connection_pool: @pool)
+      end
+
+      # InsertAll SQL is rendered by the concrete adapter against the live
+      # builder, which (like schema definition graphs) cannot cross the
+      # boundary, so insert_all/upsert_all is main-Ractor only.
+      def build_insert_sql(insert) # :nodoc:
+        unless ActiveSupport::Ractors.main?
+          raise ActiveRecordError, "insert_all/upsert_all can only be executed on the main Ractor"
+        end
+        unless @connection_token
+          raise ConnectionNotEstablished, "The Ractor-pinned connection has been released"
+        end
+
+        materialize_transactions
+        RactorConnectionProxy.connections.fetch(@connection_token).build_insert_sql(insert)
       end
 
       # See RactorConnectionProxy.begin_transaction_on_connection: the
@@ -813,7 +870,6 @@ module ActiveRecord
         end
 
         def perform_query(_raw_connection, intent)
-          copy = !ActiveSupport::Ractors.main?
           request = QueryRequest.new(
             sql: intent.processed_sql,
             binds: intent.binds,
@@ -821,7 +877,6 @@ module ActiveRecord
             prepare: intent.prepare,
             batch: intent.batch,
             allow_retry: intent.allow_retry,
-            copy: copy,
           )
 
           response = RactorConnectionProxy.query_connection(@connection_token, request, connection_pool: @pool)

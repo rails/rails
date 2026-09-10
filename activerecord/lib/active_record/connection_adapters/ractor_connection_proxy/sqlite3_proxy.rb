@@ -169,8 +169,13 @@ module ActiveRecord
           remote_dispatch(:default_insert_value, ...)
         end
 
-        def explain(...)
-          remote_dispatch(:explain, ...)
+        # Compiles and executes worker-side like any other query; dispatching
+        # would require live binds to cross the boundary.
+        def explain(arel_or_sql, binds = [], _options = [])
+          sql, _ = to_sql_and_binds(arel_or_sql, binds)
+          sql = "EXPLAIN QUERY PLAN " + sql
+          result = query_rows(sql, "EXPLAIN")
+          SQLite3::ExplainPrettyPrinter.new.pp(result)
         end
 
         def high_precision_current_timestamp
@@ -199,8 +204,10 @@ module ActiveRecord
           remote_dispatch(:check_constraints, ...)
         end
 
-        def create_schema_dumper(...)
-          remote_dispatch(:create_schema_dumper, ...)
+        # Built locally against the proxy: the dumper only drives the
+        # dispatchable connection interface and must not cross itself.
+        def create_schema_dumper(options)
+          SQLite3::SchemaDumper.create(self, options)
         end
 
         def indexes(...)
@@ -231,10 +238,6 @@ module ActiveRecord
 
         def add_timestamps(...)
           remote_dispatch(:add_timestamps, ...)
-        end
-
-        def build_insert_sql(...)
-          remote_dispatch(:build_insert_sql, ...)
         end
 
         def change_column(...)
