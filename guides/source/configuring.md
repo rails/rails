@@ -1559,7 +1559,7 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.active_record.query_log_tags_enabled`
 
-Specifies whether or not to enable adapter-level query comments. Defaults to `false`, but is set to `true` in the default generated `config/environments/development.rb` file.When this is set to `true` database prepared statements will be automatically disabled. If prepared statements are desired in conjunction with `query_log_tags` you must explicitly opt-out of ActiveRecords disabling mechanism: `config.active_record.disable_preprared_statments = false`.
+Specifies whether or not to enable adapter-level query comments. Defaults to `false`, but is set to `true` in the default generated `config/environments/development.rb` file. When this is set to `true`, database prepared statements will be automatically disabled. If prepared statements are desired in conjunction with `query_log_tags` you must explicitly opt-out of Active Record's disabling mechanism: `config.active_record.disable_prepared_statements = false`.
 
 Note: High cardinality comments can cause degraded db performance as the database may not be able to rely on a query plan cache. If forcing prepared statements with query log tags high cardinality values should be avoided. For example, `:request_id` or `admin_id`. Even basic `controller#action` tags can cause high cardinality on basic queries such as a current_user lookup since it will happen across many endpoints.
 
@@ -1602,9 +1602,21 @@ Defaults to `false`.
 
 #### `config.active_record.schema_cache_ignored_tables`
 
-Define the list of table that should be ignored when generating the schema
-cache. It accepts an `Array` of strings, representing the table names, or
-regular expressions.
+**Note:** This configuration is deprecated in favor of
+[`config.active_record.schema_ignored_tables`](#config-active-record-schema-ignored-tables),
+and will be removed in a future Rails version. It is now an alias for that
+option, so setting it also excludes the tables from the schema file.
+
+#### `config.active_record.schema_ignored_tables`
+
+Define the list of tables that should be ignored when generating the schema
+cache and the schema file. It accepts an `Array` of strings, representing the
+table names, or regular expressions.
+
+**Note:** This configuration replaces the deprecated
+[`config.active_record.schema_cache_ignored_tables`](#config-active-record-schema-cache-ignored-tables)
+and [`ActiveRecord::SchemaDumper.ignore_tables`](#activerecord-schemadumper-ignore-tables)
+options.
 
 #### `config.active_record.verbose_query_logs`
 
@@ -1857,6 +1869,11 @@ You should run `bin/rails db:migrate` to rebuild your schema.rb if you change th
 
 Accepts an array of tables that should _not_ be included in any generated schema file.
 
+**Note:** This configuration is deprecated in favor of
+[`config.active_record.schema_ignored_tables`](#config-active-record-schema-ignored-tables),
+and will be removed in a future Rails version. It is now an alias for that
+option, so setting it also excludes the tables from the schema cache.
+
 #### `ActiveRecord::SchemaDumper.fk_ignore_pattern`
 
 Allows setting a different regular expression that will be used to decide
@@ -1986,6 +2003,42 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 8.1                   | `true`               |
+
+#### `config.active_record.shuffle_unordered_selects`
+
+Shuffles the rows of every `SELECT` Active Record generates that has no `ORDER BY` clause.
+
+The order of such a query is not specified: the database is free to return the rows in any order, and that
+order can change when an index is added, when the data grows, or when the query planner changes its mind.
+Enabling this option makes the lack of order explicit, so code and tests that accidentally depend on the
+order a particular database happens to return today fail immediately instead of breaking later.
+
+```ruby
+# config/environments/test.rb
+config.active_record.shuffle_unordered_selects = true
+```
+
+The order is fully random and drawn again on every execution, so a query cannot accidentally settle into an
+order that an assertion keeps passing against.
+
+The option is best effort, and two things bound what it can surface.
+
+The first is that Active Record has to recognise the query, which it does from the Arel it built. A query that
+reaches it as already-compiled SQL is left alone: SQL you wrote yourself, and association loading, `find` and
+`find_by`, which are served from a precompiled statement by `ActiveRecord::StatementCache`. Relations, `pluck`,
+calculations and eager loading are covered, inside a query cache block or out.
+
+The second is that rows are shuffled after the database has returned them, so the option cannot change *which*
+rows come back. Queries ending in `LIMIT 1` are unaffected — `find`, `find_by`, `take`, `pick`, `exists?`,
+`has_one` and `belongs_to` — which makes this weaker than SQLite's `reverse_unordered_selects` pragma. A query
+with an `ORDER BY` is never shuffled even when that ordering is not a total order, so ties on a non-unique
+column stay hidden. And the SQL in your log is the SQL that was sent, so replaying it by hand will not
+reproduce the order your application saw.
+
+This is a development aid intended for the test or development environments, and it is never enabled by
+`config.load_defaults`.
+
+The default value is `false`.
 
 ### Configuring Action Controller
 
@@ -3883,13 +3936,13 @@ Using the `config/database.yml` file you can specify all the information needed 
 development:
   adapter: postgresql
   database: blog_development
-  pool: 5
+  max_connections: 5
 ```
 
 This will connect to the database named `blog_development` using the `postgresql` adapter. This same information can be stored in a URL and provided via an environment variable like this:
 
 ```ruby
-ENV["DATABASE_URL"] # => "postgresql://localhost/blog_development?pool=5"
+ENV["DATABASE_URL"] # => "postgresql://localhost/blog_development?max_connections=5"
 ```
 
 The `config/database.yml` file contains sections for three different environments in which Rails can run by default:
@@ -3902,7 +3955,7 @@ If you wish, you can manually specify a URL inside of your `config/database.yml`
 
 ```yaml
 development:
-  url: postgresql://localhost/blog_development?pool=5
+  url: postgresql://localhost/blog_development?max_connections=5
 ```
 
 The `config/database.yml` file can contain ERB tags `<%= %>`. Anything in the tags will be evaluated as Ruby code. You can use this to pull out data from an environment variable or to perform calculations to generate the needed connection information.
@@ -3971,7 +4024,7 @@ If non-duplicate information is provided you will get all unique values, environ
 $ cat config/database.yml
 development:
   adapter: sqlite3
-  pool: 5
+  max_connections: 5
 
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
@@ -3980,12 +4033,12 @@ $ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
     @env_name="development", @spec_name="primary",
-    @config={"adapter"=>"postgresql", "database"=>"my_database", "host"=>"localhost", "pool"=>5}
+    @config={"adapter"=>"postgresql", "database"=>"my_database", "host"=>"localhost", "max_connections"=>5}
     @url="postgresql://localhost/my_database">
   ]
 ```
 
-Since pool is not in the `ENV['DATABASE_URL']` provided connection information its information is merged in. Since `adapter` is duplicate, the `ENV['DATABASE_URL']` connection information wins.
+Since max_connections is not in the `ENV['DATABASE_URL']` provided connection information its information is merged in. Since `adapter` is duplicate, the `ENV['DATABASE_URL']` connection information wins.
 
 The only way to explicitly not use the connection information in `ENV['DATABASE_URL']` is to specify an explicit URL connection using the `"url"` sub key:
 
@@ -4028,7 +4081,7 @@ Here's the section of the default configuration file (`config/database.yml`) wit
 development:
   adapter: sqlite3
   database: storage/development.sqlite3
-  pool: 5
+  max_connections: 5
   timeout: 5000
 ```
 
@@ -4056,7 +4109,7 @@ development:
   adapter: mysql2
   encoding: utf8mb4
   database: blog_development
-  pool: 5
+  max_connections: 5
   username: root
   password:
   socket: /tmp/mysql.sock
@@ -4083,7 +4136,7 @@ development:
   adapter: postgresql
   encoding: unicode
   database: blog_development
-  pool: 5
+  max_connections: 5
 ```
 
 By default Active Record uses a database feature called advisory locks. You might need to disable this feature if you're using an external connection pooler like PgBouncer:
@@ -4633,7 +4686,7 @@ Active Record database connections are managed by [`ActiveRecord::ConnectionAdap
 development:
   adapter: sqlite3
   database: storage/development.sqlite3
-  pool: 5
+  max_connections: 5
   timeout: 5000
 ```
 
@@ -4650,7 +4703,7 @@ ActiveRecord::ConnectionTimeoutError - could not obtain a database connection wi
 ```
 
 If you get the above error, you might want to increase the size of the
-connection pool by incrementing the `pool` option in `database.yml`
+connection pool by incrementing the `max_connections` option in `database.yml`
 
 NOTE. If you are running in a multi-threaded environment, there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited number of connections.
 

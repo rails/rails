@@ -101,8 +101,15 @@ module ActionDispatch
       def eager_load!
         path.eager_load!
         parts
+        required_parts
         required_defaults
         nil
+      end
+
+      def freeze
+        eager_load!
+
+        super
       end
 
       # Needed for `bin/rails routes`. Picks up succinctly defined requirements for a

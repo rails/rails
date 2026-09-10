@@ -25,7 +25,9 @@ module ActiveRecord
         owner = association.owner
         chain = get_chain(reflection, association, scope.alias_tracker)
 
-        scope.extending! reflection.extensions
+        extensions = reflection.extensions
+        scope.extending!(extensions) unless extensions.empty?
+
         scope = add_constraints(scope, owner, chain)
         scope.default_order!(reflection.options[:default_order]) if reflection.options[:default_order].present?
         scope.limit!(1) unless reflection.collection?
@@ -64,12 +66,12 @@ module ActiveRecord
           primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
           primary_key_foreign_key_pairs.each do |join_key, foreign_key|
             value = transform_value(owner.read_attribute(foreign_key))
-            scope = apply_scope(scope, table, join_key, value)
+            scope = apply_scope(scope, reflection, table, join_key, value)
           end
 
           if reflection.type
             polymorphic_type = transform_value(owner.class.polymorphic_name)
-            scope = apply_scope(scope, table, reflection.type, polymorphic_type)
+            scope = apply_scope(scope, reflection, table, reflection.type, polymorphic_type)
           end
 
           scope
@@ -86,14 +88,18 @@ module ActiveRecord
           table = reflection.aliased_table
           foreign_table = next_reflection.aliased_table
 
+          predicate_builder = scope.predicate_builder
           primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
           constraints = primary_key_foreign_key_pairs.map do |join_primary_key, foreign_key|
-            table[join_primary_key].eq(foreign_table[foreign_key])
+            join_primary_key_attribute = predicate_builder.predicate_attribute(table[join_primary_key])
+            foreign_key_attribute = predicate_builder.predicate_attribute(foreign_table[foreign_key])
+
+            join_primary_key_attribute.eq(foreign_key_attribute)
           end.inject(&:and)
 
           if reflection.type
             value = transform_value(next_reflection.klass.polymorphic_name)
-            scope = apply_scope(scope, table, reflection.type, value)
+            scope = apply_scope(scope, reflection, table, reflection.type, value)
           end
 
           scope.joins!(join(foreign_table, constraints))
@@ -137,6 +143,7 @@ module ActiveRecord
               if scope_chain_item == chain_head.scope
                 scope.merge! item.except(:where, :includes, :unscope, :order)
               elsif !item.references_values.empty?
+                item.joins_values = item.joins_values.reject { |join| redundant_join?(item, chain, join) }
                 scope.merge! item.only(:joins, :left_outer_joins)
 
                 associations = item.eager_load_values | item.includes_values
@@ -160,12 +167,26 @@ module ActiveRecord
           scope
         end
 
-        def apply_scope(scope, table, key, value)
+        def apply_scope(scope, reflection, table, key, value)
           if scope.table == table
             scope.where!(key => value)
           else
-            scope.where!(table.name => { key => value })
+            scope.references_values |= [Arel.sql(table.name, retryable: true)]
+            predicate_builder = reflection.klass.predicate_builder.with(TableMetadata.new(reflection.klass, table))
+            scope.where!(predicate_builder[key, value])
           end
+        end
+
+        def redundant_join?(item, chain, join)
+          return false unless join.is_a?(Symbol)
+
+          reflection = item.model._reflect_on_association(join)
+
+          # Dropping a collection join would change how many rows the query
+          # returns, so only singular ones are considered redundant here.
+          return false unless reflection && !reflection.collection? && !reflection.through_reflection?
+
+          chain.drop(1).any? { |chain_reflection| chain_reflection == reflection }
         end
 
         def eval_scope(reflection, scope, owner)

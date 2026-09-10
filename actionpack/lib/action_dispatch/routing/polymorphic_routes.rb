@@ -357,6 +357,7 @@ module ActionDispatch
               CACHE[:url][action]  = build action, "url"
               CACHE[:path][action] = build action, "path"
             end
+            ActiveSupport::Ractors.make_shareable(CACHE)
         end
     end
   end

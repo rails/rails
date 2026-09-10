@@ -47,6 +47,20 @@ require "models/interest"
 require "models/human"
 require "models/dats"
 
+class RedundantJoinAuthor < ActiveRecord::Base
+  self.table_name = "authors"
+
+  has_many :scoped_comments, -> { joins(:post).where.not(posts: { id: nil }) }, class_name: "RedundantJoinComment", foreign_key: :author_id
+  has_many :commented_post_authors, through: :scoped_comments, source: :post_author
+end
+
+class RedundantJoinComment < ActiveRecord::Base
+  self.table_name = "comments"
+
+  belongs_to :post
+  has_one :post_author, through: :post, source: :author
+end
+
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
@@ -76,6 +90,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_through_association_with_left_joins
     assert_equal [comments(:eager_other_comment1)], authors(:mary).comments.merge(Post.left_joins(:comments))
+  end
+
+  def test_has_many_through_with_scope_joining_source_reflection_does_not_add_a_redundant_join
+    commenter = RedundantJoinAuthor.create!(name: "commenter")
+    post_author = Author.create!(name: "post author")
+    post = Post.create!(author: post_author, title: "title", body: "body")
+    RedundantJoinComment.create!(author_id: commenter.id, post: post, body: "comment")
+
+    sql = commenter.commented_post_authors.to_sql
+
+    assert_equal 1, sql.scan(/JOIN #{Regexp.escape(quote_table_name("posts"))}/).size
+    assert_equal [post_author], commenter.commented_post_authors
   end
 
   def test_through_association_with_through_scope_and_nested_where

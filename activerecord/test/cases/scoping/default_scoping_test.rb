@@ -116,6 +116,62 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match(/firm_id/, update_sql)
   end
 
+  def test_all_without_all_queries_is_not_deprecated
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      DeveloperWithDefaultMentorScopeAllQueries.all
+    end
+  end
+
+  def test_all_with_explicit_nil_all_queries_is_deprecated
+    klass = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+
+    wheres = assert_deprecated(/The `all_queries` keyword argument to `ActiveRecord::Base\.all` is deprecated/, ActiveRecord.deprecator) do
+      klass.all(all_queries: nil).where_values_hash
+    end
+
+    assert_includes wheres, "mentor_id"
+    assert_includes wheres, "firm_id"
+  end
+
+  def test_all_with_false_all_queries_is_deprecated
+    klass = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+
+    wheres = assert_deprecated(/The `all_queries` keyword argument to `ActiveRecord::Base\.all` is deprecated/, ActiveRecord.deprecator) do
+      klass.all(all_queries: false).where_values_hash
+    end
+
+    assert_not_includes wheres, "mentor_id"
+    assert_not_includes wheres, "firm_id"
+  end
+
+  def test_all_with_all_queries_ignores_non_global_current_scope
+    klass = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+
+    wheres = assert_deprecated(/The `all_queries` keyword argument to `ActiveRecord::Base\.all` is deprecated/, ActiveRecord.deprecator) do
+      klass.where(salary: 80_000).scoping do
+        klass.all(all_queries: true).where_values_hash
+      end
+    end
+
+    assert_not_includes wheres, "mentor_id"
+    assert_includes wheres, "firm_id"
+    assert_not_includes wheres, "salary"
+  end
+
+  def test_all_with_all_queries_includes_global_current_scope
+    klass = DeveloperWithIncludedMentorDefaultScopeNotAllQueriesAndDefaultScopeFirmWithAllQueries
+
+    wheres = assert_deprecated(/The `all_queries` keyword argument to `ActiveRecord::Base\.all` is deprecated/, ActiveRecord.deprecator) do
+      klass.unscoped.where(salary: 80_000).scoping(all_queries: true) do
+        klass.all(all_queries: true).where_values_hash
+      end
+    end
+
+    assert_not_includes wheres, "mentor_id"
+    assert_includes wheres, "firm_id"
+    assert_includes wheres, "salary"
+  end
+
   def test_default_scope_runs_on_create
     Mentor.create!
     create_sql = capture_sql { DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen") }.second
@@ -203,6 +259,20 @@ class DefaultScopingTest < ActiveRecord::TestCase
     update_sql = capture_sql { dev.update_columns(name: "Not Nikita") }.first
 
     assert_no_match(/AND$/, update_sql)
+  end
+
+  def test_default_scope_doesnt_run_on_increment
+    dev = DeveloperwithDefaultMentorScopeNot.create!(name: "Eileen")
+    update_sql = capture_sql { dev.increment!(:salary) }.first
+
+    assert_no_match(/mentor_id/, update_sql)
+  end
+
+  def test_default_scope_with_all_queries_runs_on_increment
+    dev = DeveloperWithDefaultMentorScopeAllQueries.create!(name: "Eileen")
+    update_sql = capture_sql { dev.increment!(:salary) }.first
+
+    assert_match(/mentor_id/, update_sql)
   end
 
   def test_default_scope_doesnt_run_on_destroy

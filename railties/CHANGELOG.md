@@ -1,3 +1,31 @@
+*   Mark the generated `public/*.html` error pages as `linguist-generated` in
+    the default `.gitattributes`.
+
+    The five error pages generated since Rails 8.0 total about 36 KB of HTML,
+    more than the Ruby in a freshly generated application, so GitHub reported
+    new Rails applications as HTML repositories. Marking the pages as generated
+    excludes them from language statistics, as is already done for
+    `db/schema.rb`.
+
+    *Irina Nazarova*
+
+*   A generated application's ci.yml file now sets `timeout-minutes: 15` for
+    each job to prevent transisent network errors, etc. from hanging the
+    action until the default 360 minutes kicks in and potentially eat up an
+    org's allotted runner minutes.
+
+    *Tony Drake*
+
+*   Make mounted route helpers (e.g. `main_app`, engine mount proxies) trigger
+    the lazy route load instead of raising `NoMethodError` when called before
+    routes are drawn.
+
+    Named url helpers already loaded routes on demand, but mounted helpers are
+    only defined when `mount` runs during the route draw, so calling one first
+    (in the console or a test) failed until something else drew the routes.
+
+    *Abdelkader Boudih*
+
 *   Report zero tests instead of raising a `LoadError` when a `bin/rails test:*`
     folder command names a folder the application does not have.
 

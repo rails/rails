@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 class Workshop
   extend ActiveModel::Naming
@@ -815,6 +816,16 @@ class NavigationHelperTest < ActiveSupport::TestCase
 
   def request_forgery_protection_token
     "form_token"
+  end
+
+  class NavigationHelperRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "button_to_generates_button_tag is readable from a non-main Ractor" do
+      assert_equal ActionView::Helpers::NavigationHelper.button_to_generates_button_tag,
+        on_ractor { ActionView::Helpers::NavigationHelper.button_to_generates_button_tag }
+    end
   end
 
   private

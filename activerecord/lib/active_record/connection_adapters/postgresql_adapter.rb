@@ -37,6 +37,10 @@ module ActiveRecord
     #   as a string of comma-separated schema names.
     # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO
     #   <encoding></tt> call on the connection.
+    # * <tt>:error_verbosity</tt> - An optional verbosity level (one of the <tt>PG::PQERRORS_*</tt>
+    #   constants) passed to libpq's <tt>PQsetErrorVerbosity</tt>, controlling whether the
+    #   <tt>DETAIL</tt>, <tt>HINT</tt>, and <tt>CONTEXT</tt> fields are included in raised error
+    #   messages.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
     # * <tt>:variables</tt> - An optional hash of additional parameters that
@@ -1147,6 +1151,10 @@ module ActiveRecord
 
           if @config[:encoding]
             @raw_connection.set_client_encoding(@config[:encoding])
+          end
+
+          if @config[:error_verbosity]
+            @raw_connection.set_error_verbosity(@config[:error_verbosity])
           end
 
           @notice_receiver_fatal_error = nil

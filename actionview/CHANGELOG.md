@@ -1,3 +1,12 @@
+*   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
+    the current template when it starts with a period, mirroring the existing
+    behavior for the key argument.
+
+    Calling `translate("bar", scope: ".foo")` from `posts/index.html.erb` is
+    now equivalent to calling `translate("posts.index.foo.bar")`.
+
+    *Ben Sheldon*
+
 *   Join an Array `:accept` option with commas in `file_field_tag`.
 
     Previously, passing `accept: ["image/png", "image/gif"]` rendered

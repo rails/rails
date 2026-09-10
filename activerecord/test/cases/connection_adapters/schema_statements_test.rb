@@ -8,7 +8,7 @@ module ActiveRecord
       self.use_transactional_tests = false
 
       WHOLE_SCHEMA_READERS = %i[
-        columns indexes primary_keys foreign_keys
+        columns indexes primary_keys foreign_keys table_options
         check_constraints exclusion_constraints unique_constraints
       ].freeze
 
@@ -32,9 +32,15 @@ module ActiveRecord
           listed = @connection.public_send(reader, tables)
 
           tables.each do |table|
-            assert_equal attributes(@connection.public_send(reader, table)),
-              attributes(listed.fetch(table)),
-              "#{reader} disagreed about #{table}"
+            one = attributes(@connection.public_send(reader, table))
+            many = attributes(listed.fetch(table))
+
+            # An adapter with nothing to report for a reader answers nil for every table.
+            if one.nil?
+              assert_nil many, "#{reader} disagreed about #{table}"
+            else
+              assert_equal one, many, "#{reader} disagreed about #{table}"
+            end
           end
         end
       end
@@ -138,7 +144,7 @@ module ActiveRecord
           case value
           when Array
             value.all?(String) ? value : value.map { |element| attributes(element) }.sort_by(&:to_s)
-          when String, nil then value
+          when Hash, String, nil then value
           else value.instance_variables.sort.index_with { |ivar| value.instance_variable_get(ivar) }
           end
         end

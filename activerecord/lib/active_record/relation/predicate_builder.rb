@@ -2,6 +2,7 @@
 
 module ActiveRecord
   class PredicateBuilder # :nodoc:
+    require "active_record/relation/predicate_builder/comparison"
     require "active_record/relation/predicate_builder/array_handler"
     require "active_record/relation/predicate_builder/basic_object_handler"
     require "active_record/relation/predicate_builder/range_handler"
@@ -38,12 +39,17 @@ module ActiveRecord
     # for any value that <tt>===</tt> the class given. For example:
     #
     #     MyCustomDateRange = Struct.new(:start, :end)
-    #     handler = proc do |column, range, type|
+    #     handler = proc do |column, range|
     #       Arel::Nodes::Between.new(column,
     #         Arel::Nodes::And.new([range.start, range.end])
     #       )
     #     end
     #     ActiveRecord::PredicateBuilder.new("users").register_handler(MyCustomDateRange, handler)
+    #
+    # The column exposes its effective type through +type_caster+. Call
+    # <tt>fetch_attribute { |attribute| ... }</tt> to access the underlying
+    # logical Arel attribute when a type supplies a comparison expression. The
+    # handler is responsible for constructing its right-hand side.
     def register_handler(klass, handler)
       @handlers.unshift([klass, handler])
     end
@@ -53,51 +59,36 @@ module ActiveRecord
     end
 
     def build(attribute, value, operator = nil)
-      type = table.type(attribute.name)
-
-      predicate_for(attribute, value, operator, type)
-    end
-
-    def predicate_for(attribute, value, operator, type)
       value = value.id if value.respond_to?(:id)
+      type = attribute.type_caster
+      attribute = predicate_attribute(attribute, type)
 
       if operator ||= type.force_equality?(value) && :eq
-        if type.transforms_query_predicates?
-          right = query_value(attribute, value, type)
-          left = right.nil? ? attribute : type.query_attribute(attribute)
-        else
-          right = build_bind_attribute(attribute.name, value, type)
-          left = attribute
-        end
-
-        left.public_send(operator, right)
+        attribute.public_send(operator, predicate_value(attribute, value))
       else
-        handler_for(value).call(attribute, value, type)
+        handler_for(value).call(attribute, value)
       end
     end
 
-    def array_predicate_for(attribute, values, type, transformable)
-      if transformable
-        type.query_attribute(attribute).in(
-          values.map { |value| query_value(attribute, value, type) }
-        )
+    def predicate_attribute(attribute, type = attribute.type_caster)
+      if !attribute.is_a?(ComparisonAttribute) && Type::QueryPredicates.type?(type)
+        ComparisonAttribute.new(attribute, type)
       else
-        Arel::Nodes::HomogeneousIn.new(values, attribute, :in)
+        attribute
       end
     end
 
-    def range_predicate_for(attribute, range, type)
-      type.query_attribute(attribute).between(
-        RangeHandler::RangeWithBinds.new(
-          query_value(attribute, range.begin, type),
-          query_value(attribute, range.end, type),
-          range.exclude_end?
-        )
-      )
+    def predicate_value(attribute, value)
+      if Arel.arel_node?(value)
+        attribute.is_a?(ComparisonAttribute) ? attribute.comparison_expression(value) : value
+      else
+        build_bind_attribute(attribute, value)
+      end
     end
 
-    def build_bind_attribute(column_name, value, type)
-      Relation::QueryAttribute.new(column_name, value, type)
+    def build_bind_attribute(attribute, value)
+      bind = Relation::QueryAttribute.new(attribute.name, value, attribute.type_caster)
+      attribute.is_a?(ComparisonAttribute) ? ComparisonValue.new(bind) : bind
     end
 
     def resolve_arel_attribute(table_name, column_name, &block)
@@ -233,13 +224,6 @@ module ActiveRecord
 
       def handler_for(object)
         @handlers.detect { |klass, _| klass === object }.last
-      end
-
-      def query_value(attribute, value, type)
-        bind = build_bind_attribute(attribute.name, value, type)
-        return bind if bind.nil? || bind.infinite? || bind.unboundable?
-
-        type.query_value(attribute, value, predicate_builder: self)
       end
   end
 end

@@ -674,8 +674,9 @@ module Rails
     end
 
     initializer :wrap_reloader_around_load_seed do |app|
+      reloader = app.reloader
       self.class.set_callback(:load_seed, :around) do |engine, seeds_block|
-        app.reloader.wrap(&seeds_block)
+        reloader.wrap(&seeds_block)
       end
     end
 

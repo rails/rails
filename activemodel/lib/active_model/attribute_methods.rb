@@ -496,6 +496,8 @@ module ActiveModel
         end
 
         class AttributeMethodPatternSet # :nodoc:
+          include Enumerable
+
           def initialize(patterns)
             @patterns = patterns.freeze
             @affixed = patterns.reject { |pattern| pattern.prefix.empty? && pattern.suffix.empty? }.freeze

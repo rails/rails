@@ -38,6 +38,39 @@ module Rails
         end
       end
 
+      # Mounted helpers are only defined when `mount` runs during the route
+      # draw. _path/_url names are left to method_missing_module, which owns
+      # them and relies on reload_routes_unless_loaded returning true only to
+      # the caller that performed the load.
+      module MountedHelpers
+        extend ActiveSupport::Concern
+
+        include ActionDispatch::Routing::RouteSet::MountedHelpers
+
+        private
+          def method_missing(method_name, ...)
+            if method_name.end_with?("_path", "_url")
+              super
+            else
+              Rails.application&.reload_routes_unless_loaded
+              if ActionDispatch::Routing::RouteSet::MountedHelpers.method_defined?(method_name)
+                public_send(method_name, ...)
+              else
+                super
+              end
+            end
+          end
+
+          def respond_to_missing?(method_name, include_private = false)
+            if method_name.end_with?("_path", "_url")
+              super
+            else
+              Rails.application&.reload_routes_unless_loaded
+              ActionDispatch::Routing::RouteSet::MountedHelpers.method_defined?(method_name) || super
+            end
+          end
+      end
+
       def initialize(config = DEFAULT_CONFIG)
         super
         self.named_routes = NamedRouteCollection.new
@@ -83,6 +116,20 @@ module Rails
       def routes
         Rails.application&.reload_routes_unless_loaded
         super
+      end
+
+      def mounted_helpers
+        MountedHelpers
+      end
+
+      def define_mounted_helper(name, script_namer = nil)
+        super
+
+        return if MountedHelpers.method_defined?(name)
+
+        shared = ActionDispatch::Routing::RouteSet::MountedHelpers
+        MountedHelpers.define_method("_#{name}", shared.instance_method("_#{name}"))
+        MountedHelpers.define_method(name, shared.instance_method(name))
       end
 
       private

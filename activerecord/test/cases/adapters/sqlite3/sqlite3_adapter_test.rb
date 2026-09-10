@@ -4,11 +4,13 @@ require "cases/helper"
 require "models/owner"
 require "tempfile"
 require "support/ddl_helper"
+require "support/schema_dumping_helper"
 
 module ActiveRecord
   module ConnectionAdapters
     class SQLite3AdapterTest < ActiveRecord::SQLite3TestCase
       include DdlHelper
+      include SchemaDumpingHelper
 
       self.use_transactional_tests = false
 
@@ -515,12 +517,24 @@ module ActiveRecord
           name = "foo"
 
           tables_query = ["SELECT name FROM pragma_table_list WHERE schema <> 'temp' AND name NOT IN ('sqlite_sequence', 'sqlite_schema') AND type IN ('table','view')", "SCHEMA", []]
-          pragma_query = ["PRAGMA table_xinfo(\"ex\")", "SCHEMA", []]
-          schema_query = ["SELECT sql FROM (SELECT * FROM sqlite_master UNION ALL SELECT * FROM sqlite_temp_master) WHERE type = 'table' AND name = 'ex'", "SCHEMA", []]
+          structure_query = [<<~SQL.squish, "SCHEMA", []]
+            WITH master AS (
+              SELECT name, type, sql FROM sqlite_master
+              UNION ALL
+              SELECT name, type, sql FROM sqlite_temp_master
+            )
+            SELECT m.name AS table_name, CASE WHEN m.type = 'table' THEN m.sql END AS create_table_sql,
+                   t."name", t."type", t."notnull", t."dflt_value", t."pk", t."hidden"
+            FROM master m
+            JOIN pragma_table_xinfo(m.name) t
+            WHERE m.type IN ('table', 'view')
+              AND m.name IN ('ex')
+            ORDER BY m.name, t.cid
+          SQL
           modified_insert_query = [(sql + ' RETURNING "id"'), name, []]
 
           # First insert after with_example_table has reset the schema cache
-          assert_logged [tables_query, pragma_query, schema_query, modified_insert_query] do
+          assert_logged [tables_query, structure_query, modified_insert_query] do
             @conn.insert(sql, name)
           end
 
@@ -673,9 +687,38 @@ module ActiveRecord
         end
       end
 
+      def test_autoincrement_primary_key_is_dumped_as_the_default
+        connection = ActiveRecord::Base.lease_connection
+        connection.create_table :autoincrement_pks, force: true
+        connection.drop_table :integer_pks, if_exists: true
+        connection.execute("CREATE TABLE integer_pks (id integer PRIMARY KEY NOT NULL)")
+
+        output = dump_table_schema("autoincrement_pks", "integer_pks")
+
+        assert_match %r{create_table "autoincrement_pks", force: :cascade}, output
+        assert_match %r{create_table "integer_pks", id: :integer, default: nil, force: :cascade}, output
+      ensure
+        connection.drop_table :autoincrement_pks, if_exists: true
+        connection.drop_table :integer_pks, if_exists: true
+      end
+
       def test_indexes_logs
         with_example_table do
-          assert_logged [["PRAGMA index_list(\"ex\")", "SCHEMA", []]] do
+          index_list_query = [<<~SQL.squish, "SCHEMA", []]
+            WITH master AS (
+              SELECT name, type, sql FROM sqlite_master
+              UNION ALL
+              SELECT name, type, sql FROM sqlite_temp_master
+            )
+            SELECT m.name AS table_name, i.name, i."unique"
+            FROM master m
+            JOIN pragma_index_list(m.name) i
+            WHERE m.type = 'table'
+              AND m.name IN ('ex')
+              AND i.name NOT GLOB 'sqlite_*'
+          SQL
+
+          assert_logged [index_list_query] do
             @conn.indexes("ex")
           end
         end

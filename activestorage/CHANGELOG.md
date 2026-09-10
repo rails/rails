@@ -1,3 +1,10 @@
+*   Marcel 2 for content type detection
+
+    Broader and more precise MIME type detection, security hardening, and uses canonical types
+    instead of aliases (`text/x-yaml` → `application/yaml`).
+
+    *Jeremy Daer*
+
 *   Allow ffmpeg and ffprobe input arguments to be configured.
 
     Two new configuration parameters are introduced.

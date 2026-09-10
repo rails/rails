@@ -94,7 +94,7 @@ module ActiveSupport
         end
       end
 
-      if RUBY_VERSION >= "4.0"
+      if defined?(Ractor) && RUBY_VERSION >= "4.0"
         def on_main(obj = nil, &block)
           if Ractor.main?
             obj.instance_eval(&block)
@@ -146,8 +146,14 @@ module ActiveSupport
         end
 
       else
-        def main?
-          Ractor.current == Ractor.main
+        if defined?(Ractor)
+          def main?
+            Ractor.current == Ractor.main
+          end
+        else
+          def main?
+            true
+          end
         end
 
         def on_main(obj = nil, &block)
@@ -172,39 +178,56 @@ module ActiveSupport
       end
     end
 
-    # Returns the value stored under +key+ in the current Ractor's local
-    # storage. Returns +nil+ when nothing has been stored under +key+ yet.
-    #
-    # Each Ractor has an isolated local storage, so values set in one Ractor
-    # are not visible to any other.
-    def self.[](key)
-      Ractor.current[key]
-    end
-
-    # Stores +value+ under +key+ in the current Ractor's local storage.
-    # The value is only visible to the current Ractor, and other
-    # Ractors have their own independent storage.
-    def self.[]=(key, value)
-      Ractor.current[key] = value
-    end
-
-    if Ractor.respond_to?(:store_if_absent)
+    if defined?(Ractor)
       # Returns the value stored under +key+ in the current Ractor's local
-      # storage, running +block+ to compute and store it on first access, by
-      # delegating to +Ractor.store_if_absent+. Concurrent threads in the
-      # same Ractor initialize the value only once.
-      def self.store_if_absent(key, &block)
-        Ractor.store_if_absent(key, &block)
+      # storage. Returns +nil+ when nothing has been stored under +key+ yet.
+      #
+      # Each Ractor has an isolated local storage, so values set in one Ractor
+      # are not visible to any other.
+      def self.[](key)
+        Ractor.current[key]
+      end
+
+      # Stores +value+ under +key+ in the current Ractor's local storage.
+      # The value is only visible to the current Ractor, and other
+      # Ractors have their own independent storage.
+      def self.[]=(key, value)
+        Ractor.current[key] = value
+      end
+
+      if Ractor.respond_to?(:store_if_absent)
+        # Returns the value stored under +key+ in the current Ractor's local
+        # storage, running +block+ to compute and store it on first access, by
+        # delegating to +Ractor.store_if_absent+. Concurrent threads in the
+        # same Ractor initialize the value only once.
+        def self.store_if_absent(key, &block)
+          Ractor.store_if_absent(key, &block)
+        end
+      else
+        @local_storage_lock = Mutex.new
+
+        # Same contract as +Ractor.store_if_absent+ (Ruby 3.4) on top of the
+        # Ractor-local storage that predates it: the value is initialized at
+        # most once even when the Ractor's threads race, with an unsynchronized
+        # fast path for the common hit.
+        def self.store_if_absent(key, &block)
+          Ractor.current[key] || @local_storage_lock.synchronize { Ractor.current[key] ||= block.call }
+        end
       end
     else
+      @local_storage = {}
       @local_storage_lock = Mutex.new
 
-      # Same contract as +Ractor.store_if_absent+ (Ruby 3.4) on top of the
-      # Ractor-local storage that predates it: the value is initialized at
-      # most once even when the Ractor's threads race, with an unsynchronized
-      # fast path for the common hit.
+      def self.[](key)
+        @local_storage_lock.synchronize { @local_storage[key] }
+      end
+
+      def self.[]=(key, value)
+        @local_storage_lock.synchronize { @local_storage[key] = value }
+      end
+
       def self.store_if_absent(key, &block)
-        Ractor.current[key] || @local_storage_lock.synchronize { Ractor.current[key] ||= block.call }
+        @local_storage_lock.synchronize { @local_storage[key] ||= block.call }
       end
     end
   end

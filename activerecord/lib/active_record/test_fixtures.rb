@@ -193,13 +193,16 @@ module ActiveRecord
         setup_shared_connection_pool
 
         # Begin transactions for connections already established
-        @fixture_connection_pools = ActiveRecord::Base.connection_handler.connection_pool_list(:writing)
+        pools = ActiveRecord::Base.connection_handler.connection_pool_list(:writing)
 
         # Filter to pools that want to use transactions
-        @fixture_connection_pools.select! { |pool| transactional_tests_for_pool?(pool) }
+        pools.select! { |pool| transactional_tests_for_pool?(pool) }
 
-        @fixture_connection_pools.each do |pool|
+        # Record each pool as it is pinned. Teardown raises for a pool it is
+        # asked to unpin that never was, which buries whatever stopped it.
+        pools.each do |pool|
           pool.pin_connection!(lock_threads)
+          @fixture_connection_pools << pool
           pool.lease_connection
         end
 
@@ -216,8 +219,8 @@ module ActiveRecord
               # Don't begin a transaction if we've already done so, or are not using them for this pool
               if !@fixture_connection_pools.include?(pool) && transactional_tests_for_pool?(pool)
                 pool.pin_connection!(lock_threads)
-                pool.lease_connection
                 @fixture_connection_pools << pool
+                pool.lease_connection
               end
             end
           end

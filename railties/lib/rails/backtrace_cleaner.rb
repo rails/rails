@@ -9,7 +9,7 @@ module Rails
 
     class << self
       def root
-        @root ||= Rails.root && "#{Rails.root}/"
+        @root ||= Rails.root && "#{Rails.root}/".freeze
       end
     end
 

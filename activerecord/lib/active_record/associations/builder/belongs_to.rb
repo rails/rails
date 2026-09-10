@@ -28,8 +28,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.add_counter_cache_callbacks(model, reflection)
       cache_column = reflection.counter_cache_column
 
+      name = reflection.name
       model.after_update lambda { |record|
-        association = association(reflection.name)
+        association = association(name)
 
         if association.saved_change_to_target?
           association.increment_counters
@@ -110,8 +111,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.add_default_callbacks(model, reflection)
+      name = reflection.name
+      default = reflection.options[:default]
       model.before_validation lambda { |o|
-        o.association(reflection.name).default(&reflection.options[:default])
+        o.association(name).default(&default)
       }
     end
 
@@ -144,15 +147,17 @@ module ActiveRecord::Associations::Builder # :nodoc:
         if ActiveRecord.belongs_to_required_validates_foreign_key
           model.validates_presence_of reflection.name, message: :required
         else
+          name = reflection.name
+          polymorphic = reflection.polymorphic?
           condition = lambda { |record|
-            association = record.association(reflection.name)
+            association = record.association(name)
 
             fk_missing_or_changed = association.foreign_key.any? do |fk|
               record.read_attribute(fk).nil? || record.attribute_changed?(fk)
             end
 
             fk_missing_or_changed ||
-              (reflection.polymorphic? && (record.read_attribute(association.foreign_type).nil? || record.attribute_changed?(association.foreign_type)))
+              (polymorphic && (record.read_attribute(association.foreign_type).nil? || record.attribute_changed?(association.foreign_type)))
           }
 
           model.validates_presence_of reflection.name, message: :required, if: condition

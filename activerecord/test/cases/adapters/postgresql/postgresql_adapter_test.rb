@@ -251,6 +251,19 @@ module ActiveRecord
         connection&.disconnect!
       end
 
+      def test_configure_connection_error_verbosity
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(error_verbosity: PG::PQERRORS_TERSE)
+        )
+        connection.connect!
+
+        previous_verbosity = connection.raw_connection.set_error_verbosity(PG::PQERRORS_DEFAULT)
+        assert_equal PG::PQERRORS_TERSE, previous_verbosity
+      ensure
+        connection&.disconnect!
+      end
+
       def test_configure_connection_variables_are_set
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
@@ -1462,6 +1475,28 @@ module ActiveRecord
           assert_nothing_raised do
             @connection.exec_query("SELECT 1")
           end
+        end
+      end
+
+      def test_query_intent_defers_warnings_until_result_is_observed
+        warning_sql = "do $$ BEGIN RAISE WARNING 'PostgreSQL SQL warning'; END; $$"
+        warnings = []
+        warning_action = ->(warning) { warnings << [warning.message, warning.sql] }
+        intent = ActiveRecord::ConnectionAdapters::QueryIntent.new(
+          adapter: @connection,
+          raw_sql: warning_sql,
+          name: "WARNING"
+        )
+
+        with_db_warnings_action(warning_action) do
+          intent.execute!
+          assert_empty warnings
+
+          intent.cast_result
+          assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
+
+          intent.cast_result
+          assert_equal [["PostgreSQL SQL warning", warning_sql]], warnings
         end
       end
 

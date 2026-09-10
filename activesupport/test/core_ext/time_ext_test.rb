@@ -1331,19 +1331,33 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       Time.rfc3339("1999-12-31")
     end
 
-    assert_equal "invalid date", exception.message
+    assert_match(/\Ainvalid (date|rfc3339 format)/, exception.message)
 
     exception = assert_raises(ArgumentError) do
       Time.rfc3339("1999-12-31T19:00:00")
     end
 
-    assert_equal "invalid date", exception.message
+    assert_match(/\Ainvalid (date|rfc3339 format)/, exception.message)
 
     exception = assert_raises(ArgumentError) do
       Time.rfc3339("foobar")
     end
 
-    assert_equal "invalid date", exception.message
+    assert_match(/\Ainvalid (date|rfc3339 format)/, exception.message)
+  end
+
+  def test_rfc3339_parse_with_utc_designator
+    time = Time.rfc3339("1999-12-31T19:00:00Z")
+
+    assert_predicate time, :utc?
+    assert_equal Time.utc(1999, 12, 31, 19, 0, 0), time
+  end
+
+  def test_rfc3339_parse_with_numeric_zero_offset
+    time = Time.rfc3339("1999-12-31T19:00:00+00:00")
+
+    assert_not_predicate time, :utc?
+    assert_equal 0, time.utc_offset
   end
 
   def test_prev_day

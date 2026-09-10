@@ -170,6 +170,7 @@ ActiveRecord::Schema.define do
     t.column :name, :string, default: "<untitled>", limit: 1024
     t.column :original_name, :string
     t.column :logo, :binary
+    t.json :metadata
 
     t.datetime :created_at
     t.datetime :updated_at
@@ -1266,7 +1267,6 @@ ActiveRecord::Schema.define do
     t.string   :type
     t.string   :group
     t.timestamps null: true
-    t.index [:author_name, :title]
   end
 
   create_table :toys, primary_key: :toy_id, force: true do |t|
@@ -1324,7 +1324,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :humans, force: true do |t|
-    t.string  :name
+    t.string :name
   end
 
   create_table :faces, force: true do |t|

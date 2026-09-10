@@ -9,13 +9,15 @@ class RactorsTest < ActiveSupport::TestCase
     assert ActiveSupport::Ractors.main?
   end
 
-  def test_main_is_false_on_a_non_main_ractor
-    ractor = Ractor.new do
-      ActiveSupport::Ractors.main?
-    end
-    value = ractor.respond_to?(:value) ? ractor.value : ractor.take
+  if defined?(Ractor)
+    def test_main_is_false_on_a_non_main_ractor
+      ractor = Ractor.new do
+        ActiveSupport::Ractors.main?
+      end
+      value = ractor.respond_to?(:value) ? ractor.value : ractor.take
 
-    assert_not value
+      assert_not value
+    end
   end
 
   def test_store_if_absent_computes_once_and_returns_the_stored_value
@@ -33,7 +35,7 @@ class RactorsTest < ActiveSupport::TestCase
     assert_equal "value", ActiveSupport::Ractors[:as_ractors_test_storage]
   end
 
-  if RUBY_VERSION >= "4.0"
+  if defined?(Ractor) && RUBY_VERSION >= "4.0"
     def test_on_main_runs_block_on_main_ractor
       value = Ractor.new do
         ActiveSupport::Ractors.on_main { Ractor.main? }
@@ -52,6 +54,17 @@ class RactorsTest < ActiveSupport::TestCase
       end.join
 
       assert_equal :bar, object.foo
+    end
+
+    def test_non_main_ractors_cannot_read_the_event_reporter_before_it_is_shareable
+      error = Ractor.new do
+        ActiveSupport.event_reporter
+        nil
+      rescue Ractor::IsolationError => e
+        e
+      end.value
+
+      assert_kind_of Ractor::IsolationError, error
     end
 
     def test_ractor_make_shareable_returns_a_shareable_object

@@ -114,6 +114,8 @@ module Rails
 
       def revert
         route_sets.each do |routes|
+          next if routes.frozen?
+
           routes.disable_clear_and_finalize = false
         end
       end

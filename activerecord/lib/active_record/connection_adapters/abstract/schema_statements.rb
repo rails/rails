@@ -16,8 +16,11 @@ module ActiveRecord
         {}
       end
 
+      # Returns the options the given table was created with, or a Hash of them
+      # keyed by table name when given an Array of tables.
       def table_options(table_name)
-        nil
+        result = fetch_table_options(Array(table_name).map(&:to_s))
+        table_name.is_a?(Array) ? result : result[table_name.to_s]
       end
 
       # Returns the table comment that's stored in database metadata.
@@ -1721,6 +1724,10 @@ module ActiveRecord
       end
 
       private
+        def fetch_table_options(tables)
+          tables.index_with(nil)
+        end
+
         def fetch_column_definitions(tables)
           tables.index_with { |table| column_definitions(table) }
         end

@@ -121,6 +121,12 @@ module ActionDispatch
         nil
       end
 
+      def freeze
+        eager_load!
+
+        super
+      end
+
       private
         def extract_parameterized_parts(route, options, recall)
           parameterized_parts = recall.merge(options)

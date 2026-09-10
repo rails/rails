@@ -162,6 +162,8 @@ module Rails
         reloader.eager_load = app.config.eager_load
         reloaders << reloader
 
+        app.reloader.singleton_class.attr_accessor :routes_reloader
+        app.reloader.routes_reloader = reloader
         app.reloader.to_run do
           # We configure #execute rather than #execute_if_updated because if
           # autoloaded constants are cleared we need to reload routes also in
@@ -173,7 +175,7 @@ module Rails
           # might not be necessary, but in order to be more precise we need
           # some sort of reloaders dependency support, to be added.
           require_unload_lock!
-          reloader.execute
+          self.class.routes_reloader.execute
           ActiveSupport.run_load_hooks(:after_routes_loaded, self)
         end
 

@@ -650,7 +650,7 @@ module ActiveRecord
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
       counters = { attribute => change, touch: touch }
 
-      self.class.unscoped.where!(_query_constraints_hash).update_counters(counters)
+      self.class.all_queries_scope.where!(_query_constraints_hash).update_counters(counters)
       public_send(:"clear_#{attribute}_change")
       self
     end
@@ -832,15 +832,10 @@ module ActiveRecord
       def _find_record(options)
         all_queries = options ? options[:all_queries] : nil
         base = if all_queries
-          self.class.default_scoped(all_queries: true)
+          self.class.all_queries_scope
         else
           self.class.all
         end
-
-        if all_queries && (current_scope = self.class.global_current_scope)
-          base = base.merge!(current_scope)
-        end
-
         base = base.preload(strict_loaded_associations)
 
         if options && options[:lock]

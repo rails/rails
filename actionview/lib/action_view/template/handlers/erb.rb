@@ -8,6 +8,7 @@ module ActionView
     module Handlers
       class ERB # :nodoc:
         autoload :Erubi, "action_view/template/handlers/erb/erubi"
+        autoload :Herb, "action_view/template/handlers/erb/herb"
 
         # Specify trim mode for the ERB compiler. Defaults to '-'.
         # See ERB documentation for suitable values.

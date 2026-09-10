@@ -36,9 +36,17 @@ module ActionDispatch
 
         def eager_load!
           required_names
+          optional_names
+          requirements_for_missing_keys_check
           offsets
           to_regexp
-          @ast = nil
+          @ast = nil if @ast
+        end
+
+        def freeze
+          eager_load!
+
+          super
         end
 
         def requirements_anchored?

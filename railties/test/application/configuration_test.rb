@@ -340,6 +340,13 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.public_path
     end
 
+    test "Rails.app executor and reloader are named" do
+      app "development"
+
+      assert Rails.app.executor.name.starts_with?("ActiveSupport::Executor(#<AppTemplate::Application:")
+      assert Rails.app.reloader.name.starts_with?("ActiveSupport::Reloader(#<AppTemplate::Application:")
+    end
+
     test "config.enable_reloading is !config.cache_classes" do
       app "development"
 
@@ -2087,6 +2094,17 @@ module ApplicationTests
         Rails.logger.flush
 
         assert_includes File.read(app_path("log/ractor.log")), "[request-id] hello"
+      end
+
+      test "config.action_dispatch.default_headers can still be mutated after ActionDispatch::Response is loaded" do
+        app "development"
+
+        assert_predicate(ActionDispatch::Response.default_headers, :frozen?)
+        assert_not Rails.application.config.action_dispatch.default_headers.frozen?
+
+        assert_nothing_raised do
+          Rails.application.config.action_dispatch.default_headers["X-Custom-Header"] = "custom"
+        end
       end
     end
 
@@ -5488,6 +5506,8 @@ module ApplicationTests
         app "development"
 
         assert_ractor_shareable(ActiveRecord.query_transformers)
+        assert_ractor_shareable(ActiveRecord::Base.time_zone_aware_types)
+        assert_ractor_shareable(ActiveRecord::Base.skip_time_zone_conversion_for_attributes)
       end
     end
 

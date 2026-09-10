@@ -223,6 +223,84 @@ module Rails
         )
       end
 
+      test "mounted helpers lazily load routes" do
+        require "#{app_path}/config/environment"
+
+        helpers = Class.new { include Rails.application.routes.mounted_helpers }.new
+
+        assert_not_operator(:plugin_engine, :in?, Rails.application.routes.mounted_helpers.instance_methods)
+        assert_equal("/plugin/posts", helpers.plugin_engine.posts_path)
+        assert_equal("/", helpers.main_app.root_path)
+      end
+
+      test "mounted helpers lazily load routes when checking respond_to?" do
+        require "#{app_path}/config/environment"
+
+        helpers = Class.new { include Rails.application.routes.mounted_helpers }.new
+
+        assert_not_operator(:plugin_engine, :in?, Rails.application.routes.mounted_helpers.instance_methods)
+        assert_operator(helpers, :respond_to?, :plugin_engine)
+      end
+
+      test "unrelated missing methods on mounted helpers still raise NoMethodError" do
+        require "#{app_path}/config/environment"
+
+        helpers = Class.new { include Rails.application.routes.mounted_helpers }.new
+
+        assert_raises(NoMethodError) { helpers.not_a_mounted_helper }
+        assert_not helpers.respond_to?(:to_ary)
+      end
+
+      # Mirrors SystemTestCase's proxy, where the mounted helper hooks run
+      # before the url helper hooks and must not consume the route load.
+      test "url helpers still lazily load routes when mounted helpers are included in the same class" do
+        require "#{app_path}/config/environment"
+
+        assert_equal("/", url_and_mounted_helpers.root_path)
+      end
+
+      test "url helpers still lazily load routes on respond_to? when mounted helpers are included in the same class" do
+        require "#{app_path}/config/environment"
+
+        assert_operator(url_and_mounted_helpers, :respond_to?, :root_path)
+      end
+
+      test "mounted helpers module of the lazy route set exposes helpers defined by mount" do
+        require "#{app_path}/config/environment"
+
+        Rails.application.reload_routes_unless_loaded
+
+        assert Rails.application.routes.mounted_helpers.method_defined?(:main_app)
+        assert Rails.application.routes.mounted_helpers.method_defined?(:plugin_engine)
+        assert_not Rails.application.routes.mounted_helpers.method_defined?(:url_options)
+      end
+
+      test "plain route sets keep the shared mounted helpers module without lazy hooks" do
+        require "#{app_path}/config/environment"
+
+        shared = ActionDispatch::Routing::RouteSet::MountedHelpers
+
+        assert_equal(Rails::Engine::LazyRouteSet::MountedHelpers, Rails.application.routes.mounted_helpers)
+        assert_equal(shared, ActionDispatch::Routing::RouteSet.new.mounted_helpers)
+        assert_not_includes(shared.private_instance_methods, :method_missing)
+        assert_not_includes(shared.private_instance_methods, :respond_to_missing?)
+      end
+
+      test "integration tests can call a mounted helper before any request" do
+        app_file "test/integration/mounted_helper_test.rb", <<~RUBY
+          require "test_helper"
+
+          class MountedHelperTest < ActionDispatch::IntegrationTest
+            test "mounted helper resolves before first request" do
+              assert_equal "/plugin/posts", plugin_engine.posts_path
+            end
+          end
+        RUBY
+
+        output = rails("test", "test/integration/mounted_helper_test.rb")
+        assert_match("0 failures, 0 errors", output)
+      end
+
       private
         # Parks the initial route draw until $route_draw_resume is signaled,
         # so a test can deterministically overlap it with other threads.
@@ -294,6 +372,13 @@ module Rails
 
         def engine_url_helpers
           Plugin::Engine.routes.url_helpers
+        end
+
+        def url_and_mounted_helpers
+          Class.new {
+            include Rails.application.routes.url_helpers
+            include Rails.application.routes.mounted_helpers
+          }.new
         end
     end
   end

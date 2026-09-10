@@ -1014,10 +1014,6 @@ class RouteSetTest < ActiveSupport::TestCase
     @set = make_set
   end
 
-  def request
-    @request ||= ActionController::TestRequest.new
-  end
-
   def default_route_set
     @default_route_set ||= begin
       set = ActionDispatch::Routing::RouteSet.new
