@@ -499,15 +499,27 @@ end
 
 Some useful modules you may wish to include are:
 
-|                                                                       |                                                                                                                                            |
-| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`ActionController::MimeResponds`][]                                  | Use `respond_to` in controllers for multi-format responses                                                                                 |
-| [`AbstractController::Translation`][]                                 | Support for the `l` and `t` localization and translation methods                                                                           |
-| [`ActionController::HttpAuthentication::Basic::ControllerMethods`][]  | Basic HTTP Authentication                                                                                                                  |
-| [`ActionController::HttpAuthentication::Digest::ControllerMethods`][] | Authentication using HTTP digests                                                                                                          |
-| [`ActionController::HttpAuthentication::Token::ControllerMethods`][]  | Athentication using tokens                                                                                                                 |
-| [`ActionView::Layouts`][]                                             | Support for layouts when rendering. This might be useful with JBuilder                                                                     |
-| [`ActionController::Cookies`][]                                       | Support for cookies, which includes support for signed and encrypted cookies. This requires the `ActionDispatch::Cookies` Rack middleware. |
+* [`ActionController::MimeResponds`][] <br>
+  Use `respond_to` in controllers for multi-format responses
+
+* [`AbstractController::Translation`][] <br>
+  Support for the `l` and `t` localization and translation methods
+
+* [`ActionController::HttpAuthentication::Basic::ControllerMethods`][] <br>
+  Basic HTTP Authentication
+
+* [`ActionController::HttpAuthentication::Digest::ControllerMethods`][] <br>
+  Authentication using HTTP digests
+
+* [`ActionController::HttpAuthentication::Token::ControllerMethods`][] <br>
+  Athentication using tokens
+
+* [`ActionView::Layouts`][] <br>
+  Support for layouts when rendering. This might be useful with JBuilder.
+
+* [`ActionController::Cookies`][] <br>
+  Support for cookies, which includes support for signed and encrypted
+  cookies. This requires the `ActionDispatch::Cookies` Rack middleware.
 
 [`ActionController::MimeResponds`]:
   https://api.rubyonrails.org/classes/ActionController/MimeResponds.html
