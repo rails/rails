@@ -9,15 +9,6 @@ class ActionText::FormHelperTest < ActionView::TestCase
     @output_buffer = super
   end
 
-  def without_direct_uploads_route
-    ActiveStorage.draw_direct_upload_route = false
-    Rails.application.reload_routes!
-    yield
-  ensure
-    ActiveStorage.draw_direct_upload_route = true
-    Rails.application.reload_routes!
-  end
-
   teardown do
     I18n.backend.reload!
   end
@@ -49,7 +40,7 @@ class ActionText::FormHelperTest < ActionView::TestCase
   test "#rich_textarea_tag helper when the direct upload route is not drawn" do
     message = Message.new
 
-    without_direct_uploads_route do
+    without_direct_upload_route do
       concat rich_textarea_tag :content, message.content, { input: "trix_input_1" }
     end
 
@@ -125,7 +116,7 @@ class ActionText::FormHelperTest < ActionView::TestCase
   end
 
   test "form with rich text area when the direct upload route is not drawn" do
-    without_direct_uploads_route do
+    without_direct_upload_route do
       form_with model: Message.new, scope: :message do |form|
         form.rich_textarea :content
       end
