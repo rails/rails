@@ -1,3 +1,8 @@
+*   Fix duplicated record creation when using nested attributes and `create_with`
+    on an association.
+
+    *Jerome Dalbert*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the

@@ -237,6 +237,15 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     end
   end
 
+  def test_should_not_create_duplicates_with_create_with_on_association
+    ship = Ship.create!(name: "Black Pearl")
+    part = ship.parts
+      .create_with(trinkets_attributes: [{ name: "Necklace" }])
+      .find_or_create_by!(name: "Stern")
+
+    assert_equal 1, part.trinkets.count
+  end
+
   def test_updating_models_with_cpk_provided_as_strings
     book = Cpk::Book.create!(id: [1, 2], shop_id: 3)
     book.chapters.create!(id: [1, 3], title: "Title")
