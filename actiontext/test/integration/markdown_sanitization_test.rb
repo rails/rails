@@ -25,6 +25,18 @@ class ActionText::MarkdownSanitizationTest < ActionDispatch::IntegrationTest
     assert_equal ESCAPED, rich_text.reload.body.to_markdown
   end
 
+  test "a blank line cannot break the payload out of a code span" do
+    assert_equal "`a #{PAYLOAD}`", markdown_for("<code>a<br><br>#{PAYLOAD}</code>")
+  end
+
+  test "a heading cannot break the payload out of a code block" do
+    assert_equal "# `#{PAYLOAD}`", markdown_for("<h1><pre>#{PAYLOAD}</pre></h1>")
+  end
+
+  test "a table cell cannot break the payload out of a code block" do
+    assert_equal "| `#{PAYLOAD}` |", markdown_for("<table><tr><td><pre>#{PAYLOAD}</pre></td></tr></table>")
+  end
+
   private
     def markdown_for(content)
       post messages_path, params: { message: { subject: "x", content: content } }

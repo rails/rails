@@ -397,6 +397,69 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<code> containing a blank line keeps its content in one code span" do
+    assert_converted_to(
+      "`a [click](javascript:alert(1))`",
+      "<code>a<br><br>[click](javascript:alert(1))</code>"
+    )
+  end
+
+  test "<code> containing a line break keeps its content in one code span" do
+    assert_converted_to(
+      "`a [click](javascript:alert(1))`",
+      "<code>a<br>[click](javascript:alert(1))</code>"
+    )
+  end
+
+  test "<pre> inside a heading is flattened into an inline code span" do
+    assert_converted_to(
+      "# `[click](javascript:alert(1))`",
+      "<h1><pre>[click](javascript:alert(1))</pre></h1>"
+    )
+  end
+
+  test "<pre> inside <summary> is flattened into an inline code span" do
+    assert_converted_to(
+      "**`[click](javascript:alert(1))`**",
+      "<details><summary><pre>[click](javascript:alert(1))</pre></summary></details>"
+    )
+  end
+
+  test "<pre> inside a table cell is flattened into an inline code span" do
+    assert_converted_to(
+      "| `[click](javascript:alert(1))` | x |",
+      "<table><tr><td><pre>[click](javascript:alert(1))</pre></td><td>x</td></tr></table>"
+    )
+  end
+
+  test "<pre> inside a table header cell is flattened into an inline code span" do
+    assert_converted_to(
+      "| `[click](javascript:alert(1))` |\n| --- |",
+      "<table><tr><th><pre>[click](javascript:alert(1))</pre></th></tr></table>"
+    )
+  end
+
+  test "<pre> inside <strong> is flattened into an inline code span" do
+    assert_converted_to(
+      "**`[click](javascript:alert(1))`**",
+      "<strong><pre>[click](javascript:alert(1))</pre></strong>"
+    )
+  end
+
+  test "<pre> inside <em> is flattened into an inline code span" do
+    assert_converted_to(
+      "*`[click](javascript:alert(1))`*",
+      "<em><pre>[click](javascript:alert(1))</pre></em>"
+    )
+  end
+
+  test "<pre> inside <del> is flattened into an inline code span" do
+    assert_converted_to(
+      "~~`[click](javascript:alert(1))`~~",
+      "<del><pre>[click](javascript:alert(1))</pre></del>"
+    )
+  end
+
   test "<ul> tags are converted to unordered lists" do
     assert_converted_to(
       "before\n\n- one\n- two\n- three\n\nafter",
@@ -603,21 +666,21 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
 
   test "<a> tags containing <pre> are flattened into an inline code span" do
     assert_converted_to(
-      "[``` puts 1 ``` ](https://example.com)",
+      "[`puts 1`](https://example.com)",
       '<a href="https://example.com"><pre>puts 1</pre></a>'
     )
   end
 
   test "<a> tags containing multiline <pre> are flattened into an inline code span" do
     assert_converted_to(
-      "[``` line one line two ``` ](https://example.com)",
+      "[`line one line two`](https://example.com)",
       "<a href=\"https://example.com\"><pre>line one\nline two</pre></a>"
     )
   end
 
   test "<a> tags containing <pre> with backticks are flattened into an inline code span" do
     assert_converted_to(
-      "[```` a ``` b ```` ](https://example.com)",
+      "[````a ``` b````](https://example.com)",
       '<a href="https://example.com"><pre>a ``` b</pre></a>'
     )
   end
@@ -673,26 +736,26 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
 
   test "<a> tags containing <pre> with CRLF line endings are flattened into an inline code span" do
     assert_converted_to(
-      "[``` line one line two ``` ](https://example.com)",
+      "[`line one line two`](https://example.com)",
       "<a href=\"https://example.com\"><pre>line one\r\nline two</pre></a>"
     )
   end
 
   test "<a> tags containing <pre> with CR line endings are flattened into an inline code span" do
     assert_converted_to(
-      "[``` line one line two ``` ](https://example.com)",
+      "[`line one line two`](https://example.com)",
       "<a href=\"https://example.com\"><pre>line one\rline two</pre></a>"
     )
   end
 
   test "<a> tags containing <pre> with CR line endings from an HTML4-parsed fragment are flattened" do
     fragment = Nokogiri::HTML4.fragment("<a href=\"https://example.com\"><pre>line one\rline two</pre></a>")
-    assert_equal "[``` line one line two ``` ](https://example.com)", ActionText::MarkdownConversion.node_to_markdown(fragment)
+    assert_equal "[`line one line two`](https://example.com)", ActionText::MarkdownConversion.node_to_markdown(fragment)
   end
 
   test "<a> tags containing <pre> with CRLF line endings from an HTML4-parsed fragment are flattened" do
     fragment = Nokogiri::HTML4.fragment("<a href=\"https://example.com\"><pre>line one\r\nline two</pre></a>")
-    assert_equal "[``` line one line two ``` ](https://example.com)", ActionText::MarkdownConversion.node_to_markdown(fragment)
+    assert_equal "[`line one line two`](https://example.com)", ActionText::MarkdownConversion.node_to_markdown(fragment)
   end
 
   test "<a> tags containing <br> are flattened into link text" do

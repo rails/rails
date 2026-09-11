@@ -112,10 +112,11 @@ module ActionText
         a abbr b bdi bdo cite code data del dfn em i kbd mark q
         rp rt ruby s samp small span strong sub sup time u var
       ] ].freeze
+      SINGLE_LINE_ANCESTORS = [ *INLINE_ELEMENTS, *%w[h1 h2 h3 h4 h5 h6 summary td th] ].freeze
       LEADING_PRETTY_PRINT_WHITESPACE = /\A\s*\n\s*/
       TRAILING_PRETTY_PRINT_WHITESPACE = /\s*\n\s*\z/
       private_constant :BOLD_TAGS, :ITALIC_TAGS, :LIST_BULLET, :LIST_INDENT, :ENCODE_HREF_CHARS,
-        :MARKDOWN_METACHARACTERS, :SKIP_ESCAPING_PARENTS, :INLINE_ELEMENTS,
+        :MARKDOWN_METACHARACTERS, :SKIP_ESCAPING_PARENTS, :INLINE_ELEMENTS, :SINGLE_LINE_ANCESTORS,
         :LEADING_PRETTY_PRINT_WHITESPACE, :TRAILING_PRETTY_PRINT_WHITESPACE
 
       def markdown_for_node(node, child_values)
@@ -177,10 +178,15 @@ module ActionText
         end
       end
 
-      def visit_pre(_node, child_values)
+      def visit_pre(node, child_values)
         inner = join_children(child_values).delete_prefix("\n").delete_suffix("\n")
-        fence = code_fence(inner)
-        "#{fence}\n#{inner}\n#{fence}\n\n"
+
+        if single_line_context?(node)
+          inline_code(inner)
+        else
+          fence = code_fence(inner)
+          "#{fence}\n#{inner}\n#{fence}\n\n"
+        end
       end
 
       def visit_p(_node, child_values)
@@ -365,7 +371,12 @@ module ActionText
         "`" * [3, max_run + 1].max
       end
 
+      # A code span cannot hold a blank line: the blank line closes the paragraph before the
+      # closing backtick string arrives, and the content is released as Markdown source.
+      # Markdown turns the line endings inside a code span into spaces anyway, so collapse
+      # them here and the delimiter always holds.
       def inline_code(content)
+        content = flatten_to_inline(content)
         max_run = content.scan(/`+/).map(&:length).max || 0
         fence = "`" * [1, max_run + 1].max
         if content.start_with?("`") || content.end_with?("`")
@@ -405,6 +416,14 @@ module ActionText
 
       def encode_href(href)
         URI::RFC2396_PARSER.escape(href, ENCODE_HREF_CHARS)
+      end
+
+      # A fenced code block opens only at the start of a line. Inside a link, a heading, a
+      # table cell or an inline element, the parent visitor lays its children out on one
+      # line, so the fence would land mid-line and never open, releasing the `pre` content
+      # that #markdown_for_node emits unescaped. See SKIP_ESCAPING_PARENTS.
+      def single_line_context?(node)
+        node.ancestors.any? { |ancestor| ancestor.element? && ancestor.name.in?(SINGLE_LINE_ANCESTORS) }
       end
 
       def skip_markdown_escaping?(node)
