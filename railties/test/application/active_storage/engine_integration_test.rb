@@ -87,7 +87,39 @@ module ApplicationTests
       assert_includes(output, "Unknown variant processor :nope")
     end
 
+    def test_boots_when_ruby_vips_cannot_load_its_libraries
+      File.open("#{app_path}/Gemfile", "a") { |f| f.puts 'gem "image_processing", "~> 2.0"' }
+      add_ruby_vips_stub 'require "vips"'
+      File.write app_path("ruby-vips", "lib", "vips.rb"), <<~'RUBY'
+        raise LoadError, "Could not open library 'glib-2.0.0': dlopen(glib-2.0.0, 0x0005): tried: 'glib-2.0.0' (no such file)."
+      RUBY
+
+      output = run_command("puts :booted")
+
+      assert_includes(output, "booted")
+    end
+
     private
+      def add_ruby_vips_stub(source)
+        FileUtils.mkdir_p app_path("ruby-vips", "lib")
+
+        File.write app_path("ruby-vips", "ruby-vips.gemspec"), <<~RUBY
+          Gem::Specification.new do |spec|
+            spec.name = "ruby-vips"
+            spec.version = "2.3.0"
+            spec.summary = "ruby-vips stub"
+            spec.authors = [ "Rails test" ]
+            spec.files = [ "lib/ruby-vips.rb" ]
+          end
+        RUBY
+
+        File.write app_path("ruby-vips", "lib", "ruby-vips.rb"), source
+
+        File.open app_path("Gemfile"), "a" do |f|
+          f.puts %(gem "ruby-vips", path: "#{app_path("ruby-vips")}")
+        end
+      end
+
       def run_command(cmd)
         Dir.chdir(app_path) do
           Bundler.with_original_env do

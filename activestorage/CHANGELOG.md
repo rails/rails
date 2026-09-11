@@ -1,3 +1,13 @@
+*   Boot when ruby-vips cannot load its libraries.
+
+    `active_storage/vips` only swallowed a `LoadError` whose message named libvips or ruby-vips.
+    ruby-vips loads glib before libvips, so on a machine without libvips the error named glib-2.0
+    and the application failed to boot.
+
+    Fixes #58723.
+
+    *Mike Dalessio*
+
 *   Marcel 2 for content type detection
 
     Broader and more precise MIME type detection, security hardening, and uses canonical types
