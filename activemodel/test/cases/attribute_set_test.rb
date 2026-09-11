@@ -120,6 +120,44 @@ module ActiveModel
       assert_equal [:foo], attributes.keys
     end
 
+    test "keys keeps value-present and defaulted attributes, drops uninitialized, in order" do
+      defaults = { qux: Attribute.from_user(:qux, 9, Type::Integer.new) }
+      builder = AttributeSet::Builder.new(
+        { foo: Type::Integer.new, bar: Type::Float.new, qux: Type::Integer.new }, defaults
+      )
+      attributes = builder.build_from_database(foo: "1")
+
+      assert_equal [:foo, :qux], attributes.keys
+    end
+
+    test "keys returns value-present names in values order, dropping interleaved uninitialized ones" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new, baz: Type::String.new)
+      attributes = builder.build_from_database(foo: "1", baz: "hi")
+
+      assert_equal [:foo, :baz], attributes.keys
+    end
+
+    test "keys does not materialize an attribute for value-present names" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Integer.new)
+      attributes = builder.build_from_database(foo: "1", bar: "2")
+
+      attributes.keys
+
+      # NOTE: @attributes is the lazy materialization cache. Probing
+      # self[name].initialized? per column (the pre-optimization path) would
+      # populate it with a FromDatabase per column; staying empty proves keys
+      # allocated no Attribute for the value-present names.
+      assert_empty attributes.instance_variable_get(:@attributes)
+    end
+
+    test "keys agrees with key? when an uninitialized attribute overrides a value-present slot" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Integer.new)
+      attributes = builder.build_from_database(foo: "1", bar: "2")
+      attributes[:foo] = Attribute.uninitialized(:foo, Type::Integer.new)
+
+      assert_equal attributes.key?(:foo), attributes.keys.include?(:foo)
+    end
+
     test "uninitialized attributes return false for key?" do
       attributes = attributes_with_uninitialized_key
       assert attributes.key?(:foo)
@@ -137,6 +175,15 @@ module ActiveModel
 
       assert_equal 1, attributes.fetch_value(:foo)
       assert_equal 2.2, attributes.fetch_value(:bar)
+    end
+
+    test "fetch_value serves a value-present name after keys has listed it" do
+      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
+      attributes = builder.build_from_database(foo: "1.1", bar: "2.2")
+
+      attributes.keys
+
+      assert_equal 1, attributes.fetch_value(:foo)
     end
 
     test "fetch_value returns nil for unknown attributes" do
