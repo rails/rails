@@ -4,7 +4,7 @@ class CreateActiveStorageVariantRecords < ActiveRecord::Migration[6.0]
 
     # Use Active Record's configured type for primary key
     create_table :active_storage_variant_records, id: primary_key_type, if_not_exists: true do |t|
-      t.belongs_to :blob, null: false, index: false, type: blobs_primary_key_type
+      t.belongs_to :blob, null: false, index: false, **blobs_primary_key_options
       t.string :variation_digest, null: false
 
       t.index %i[ blob_id variation_digest ], name: "index_active_storage_variant_records_uniqueness", unique: true
@@ -18,9 +18,11 @@ class CreateActiveStorageVariantRecords < ActiveRecord::Migration[6.0]
       config.options[config.orm][:primary_key_type] || :primary_key
     end
 
-    def blobs_primary_key_type
+    def blobs_primary_key_options
       pkey_name = connection.primary_key(:active_storage_blobs)
       pkey_column = connection.columns(:active_storage_blobs).find { |c| c.name == pkey_name }
-      pkey_column.bigint? ? :bigint : pkey_column.type
+      options = { type: pkey_column.bigint? ? :bigint : pkey_column.type }
+      options[:unsigned] = pkey_column.unsigned? if pkey_column.respond_to?(:unsigned?)
+      options
     end
 end

@@ -91,8 +91,17 @@ module ActiveRecord
             options[:unsigned] = true
           end
 
+          if options[:primary_key] && unsigned_primary_key?(type, options)
+            options[:unsigned] = true
+          end
+
           super
         end
+
+        def references(*args, **options) # :nodoc:
+          super(*args, **@conn.unsigned_reference_options(options))
+        end
+        alias :belongs_to :references
 
         private
           def valid_column_definition_options
@@ -109,6 +118,12 @@ module ActiveRecord
             end
 
             type
+          end
+
+          # With +unsigned_primary_keys+ enabled, integer primary keys are unsigned
+          # unless the column says otherwise.
+          def unsigned_primary_key?(type, options)
+            @conn.unsigned_primary_keys && [:integer, :bigint].include?(type) && !options.key?(:unsigned)
           end
       end
 

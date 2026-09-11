@@ -28,6 +28,21 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
       class_attribute :emulate_booleans, default: true
 
+      ##
+      # :singleton-method:
+      # By default, integer primary keys and +references+ columns are signed. Set
+      # this to +true+ to have the MySQL adapters create them as unsigned columns
+      # instead, so that reference columns keep matching the primary keys they
+      # point to. Pass <tt>unsigned: false</tt> to an individual primary key or
+      # reference to keep it signed.
+      #
+      #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.unsigned_primary_keys = true
+      #
+      # Or, for both the mysql2 and trilogy adapters, in application.rb:
+      #
+      #   config.active_record.mysql_adapter_unsigned_primary_keys = true
+      class_attribute :unsigned_primary_keys, default: false
+
       NATIVE_DATABASE_TYPES = { # rubocop:disable Style/MutableConstant
         primary_key: "bigint auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },

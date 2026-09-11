@@ -1692,6 +1692,30 @@ The default value depends on the `config.load_defaults` target version:
 | 8.2                   | `true`               |
 
 
+#### `config.active_record.mysql_adapter_unsigned_primary_keys`
+
+Specifies whether the MySQL adapters (`mysql2` and `trilogy`) create integer primary keys as unsigned columns. When enabled, integer `references` and `belongs_to` columns default to unsigned as well, so that they keep matching the primary keys they point to and foreign key constraints between them can be created. Non-integer keys are not affected.
+
+```ruby
+config.active_record.mysql_adapter_unsigned_primary_keys = true
+```
+
+Pass `unsigned: false` to a reference to point at a table that kept a signed primary key:
+
+```ruby
+create_table :invoices do |t|
+  t.references :legacy_account, unsigned: false, foreign_key: true
+end
+```
+
+Pass it to `create_table` instead to keep a new table's own primary key signed: `create_table :legacy_items, unsigned: false` (or `id: { type: :bigint, unsigned: false }`).
+
+The setting applies to every schema definition, including migrations and `db/schema.rb` files written before it was enabled. The schema dumper records the signedness of every integer primary key that differs from the default, so when enabling the setting in an existing application, run `bin/rails db:schema:dump` against a database that already has the tables and commit the regenerated `db/schema.rb` in the same change: existing signed primary keys are written as `id: { type: :bigint, unsigned: false }` and load back unchanged.
+
+WARNING: A `db/schema.rb` dumped before the setting was enabled does not load cleanly once it is on. Its bare `create_table` calls now produce unsigned primary keys while its `t.bigint "author_id"` columns stay signed, so its `add_foreign_key` lines fail with `ActiveRecord::MismatchedForeignKey`. Replaying old migrations from an empty database has the same problem, so set up new databases from the re-dumped schema file. Columns added with `t.bigint` or `t.integer` rather than `t.references` are never adjusted.
+
+Defaults to `false`.
+
 #### `config.active_record.async_query_executor`
 
 Specifies how asynchronous queries are pooled.

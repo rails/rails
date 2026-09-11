@@ -31,11 +31,22 @@ module ActiveRecord
           def column_spec_for_primary_key(column)
             spec = super
             spec.delete(:auto_increment) if column.type == :integer && column.auto_increment?
+
+            if @connection.unsigned_primary_keys? && column.type == :integer
+              # Unsigned is the default now, so a signed primary key has to say so
+              # explicitly for the dump to load back as signed.
+              if default_primary_key?(column)
+                spec.delete(:unsigned)
+              elsif !column.unsigned?
+                spec[:unsigned] = "false"
+              end
+            end
+
             spec
           end
 
           def default_primary_key?(column)
-            super && column.auto_increment? && !column.unsigned?
+            super && column.auto_increment? && column.unsigned? == @connection.unsigned_primary_keys?
           end
 
           def explicit_primary_key_default?(column)
