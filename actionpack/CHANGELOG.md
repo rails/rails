@@ -1,3 +1,13 @@
+*   Fix a deadlock between `ActionController::Live` and code reloading in
+    development.
+
+    A queued unload could block the Live child thread while waiting for the
+    parent request, which was itself waiting for the child to commit the
+    response.
+
+    Fixes #56888.
+
+    *Pim Vermeyden*
 *   Check `PATCH` and `QUERY` in `assert_recognizes` and `assert_routing` with `method: :all`.
 
     Both assertions only recognized the path for `GET`, `POST`, `PUT` and

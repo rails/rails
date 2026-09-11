@@ -327,35 +327,33 @@ module ActionController
       # This processes the action in a child thread. It lets us return the response
       # code and headers back up the Rack stack, and still process the body in
       # parallel with sending data to the client.
-      new_controller_thread do
-        ActiveSupport::Dependencies.interlock.running do
-          t2 = Thread.current
+      ActiveSupport::Dependencies.interlock.continue_running(method(:new_controller_thread)) do
+        t2 = Thread.current
 
-          # Since we're processing the view in a different thread, copy the thread locals
-          # from the main thread to the child thread. :'(
-          locals.each { |k, v| t2[k] = v }
+        # Since we're processing the view in a different thread, copy the thread locals
+        # from the main thread to the child thread. :'(
+        locals.each { |k, v| t2[k] = v }
 
-          ActiveSupport::IsolatedExecutionState.share_with(context, except: self.class.live_streaming_excluded_keys) do
-            super(name)
-          rescue => e
-            if @_response.committed?
-              begin
-                @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
-                @_response.stream.call_on_error
-              rescue => exception
-                log_error(exception)
-              ensure
-                log_error(e)
-                @_response.stream.close
-              end
-            else
-              error = e
+        ActiveSupport::IsolatedExecutionState.share_with(context, except: self.class.live_streaming_excluded_keys) do
+          super(name)
+        rescue => e
+          if @_response.committed?
+            begin
+              @_response.stream.write(ActionView::Base.streaming_completion_on_exception) if request.format == :html
+              @_response.stream.call_on_error
+            rescue => exception
+              log_error(exception)
+            ensure
+              log_error(e)
+              @_response.stream.close
             end
-          ensure
-            clean_up_thread_locals(locals, t2)
-
-            @_response.commit!
+          else
+            error = e
           end
+        ensure
+          clean_up_thread_locals(locals, t2)
+
+          @_response.commit!
         end
       end
 
