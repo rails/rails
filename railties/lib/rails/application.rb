@@ -674,6 +674,7 @@ module Rails
       @autoloaders, @reloaders, @routes_reloader = nil, nil, nil
 
       ActionView::PathRegistry.make_shareable! if defined?(ActionView::PathRegistry)
+      ActiveSupport::TimeZone.make_shareable!
 
       if defined?(AbstractController::Base)
         [AbstractController::Base, *AbstractController::Base.descendants].each do |controller|
