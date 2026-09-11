@@ -146,7 +146,7 @@ SELECT * FROM products WHERE store_id = 3 AND sku = "XYZ12345"
 
 NOTE: The `find` method expects the values in the same order as the columns were declared in `primary_key` when querying with composite primary key. Also, if only one value is provided, such as `Product.find(3)`, then Rails raises an `ActiveRecord::RecordNotFound` error.
 
-To find multiple records with composite IDs, you can pass an array of arrays to `find`. For example, to find the products with primary keys [1, "ABC98765"] and [7, "ZZZ11111"]
+To find multiple records with composite IDs, you can pass an array of arrays to `find`. For example, to find the products with primary keys `[1, "ABC98765"]` and `[7, "ZZZ11111"]`
 
 ```irb
 irb> products = Product.find([[1, "ABC98765"], [7, "ZZZ11111"]])
@@ -211,8 +211,8 @@ SELECT * FROM products WHERE (store_id = 1 AND sku = 'ABC98765' OR store_id = 7 
 
 WARNING: When using  `where` or `find_by`, the key `id` matches against an `:id` attribute on the model only (if the model has one). It does not resolve to the full composite primary key the way `find` does. Use `find` when you want to look up a record by its full composite primary key. See the [Active Record Querying](active_record_querying.html#conditions-with-id) guide for more detail.
 
-Associations between Models with Composite Primary Keys
--------------------------------------------------------
+Associations
+------------
 
 Rails can generally infer the primary key to foreign key relationships between associated models. However, when using composite primary keys, Rails typically defaults to using only part of the composite key (usually the `id` column) unless explicitly instructed otherwise. This default behavior only works if the model's composite primary key contains the `:id` column *and* that column is unique for all records.
 
@@ -408,5 +408,5 @@ When another table references a composite primary key, the foreign key columns o
 You can add the index manually in your migration:
 
 ```ruby
-add_index :books, [:order_store_id, :order_number]
+add_index :books, [:order_store_id, :order_sku]
 ```
