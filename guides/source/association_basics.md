@@ -620,6 +620,12 @@ object, use the `build_association` method. This method creates a new, unsaved
 instance of the associated object, allowing you to work with it before deciding
 to save it.
 
+WARNING: Although the object returned by `build_association` is not saved,
+building it replaces the current target of the association. If the existing
+target is persisted, Rails immediately removes it according to the association's
+`:dependent` option. For example, with `dependent: :destroy`, the existing
+target is destroyed before the newly built object is saved.
+
 Use `autosave: false` when you want to control the saving behavior of the
 associated objects for the model. This setting prevents the associated object
 from being saved automatically when the parent object is saved. In contrast, use
