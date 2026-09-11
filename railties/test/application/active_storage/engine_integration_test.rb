@@ -54,6 +54,18 @@ module ApplicationTests
       assert_includes(output, "ActiveStorage::Transformers::Vips")
     end
 
+    def test_boots_when_a_ruby_vips_native_dependency_is_missing
+      add_ruby_vips_stub <<~RUBY
+        raise LoadError, "Could not open library 'glib-2.0.0': no such file"
+      RUBY
+
+      output = run_command("puts :booted")
+
+      assert_predicate $?, :success?
+      assert_includes(output, "booted")
+      assert_not_includes(output, "undefined method 'analysis=' for nil")
+    end
+
     def test_disabled_transformer_missing_gem_no_warning
       add_to_config "config.active_storage.variant_processor = :disabled"
 

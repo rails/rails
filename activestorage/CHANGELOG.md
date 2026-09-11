@@ -1,3 +1,10 @@
+*   Allow applications to boot when loading ruby-vips fails because one of its
+    native dependencies, such as glib, is not installed.
+
+    Fixes #58723.
+
+    *Nicolas Vandenbogaerde*
+
 *   Boot with an unsupported libvips or ruby-vips unless the variant processor uses it.
 
     An installed libvips or ruby-vips too old to block the unfuzzed loaders raised during application
