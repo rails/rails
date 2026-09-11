@@ -143,22 +143,38 @@ module ActionView
       attr_reader :view_paths, :html_fallback_for_js
 
       def find(name, prefixes = [], partial = false, keys = [], options = {})
-        details, details_key = detail_args_for(options)
+        if options.empty? # most common path
+          details, details_key = @details, self.details_key
+        else
+          details, details_key = detail_args_for(options)
+        end
         @view_paths.find(name, prefixes, partial, details, details_key, keys)
       end
 
       def find!(name, prefixes = [], partial = false, keys = [], options = {})
-        details, details_key = detail_args_for(options)
+        if options.empty?
+          details, details_key = @details, self.details_key
+        else
+          details, details_key = detail_args_for(options)
+        end
         @view_paths.find!(name, prefixes, partial, details, details_key, keys)
       end
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
-        details, details_key = detail_args_for(options)
+        if options.empty?
+          details, details_key = @details, self.details_key
+        else
+          details, details_key = detail_args_for(options)
+        end
         @view_paths.find_all(name, prefixes, partial, details, details_key, keys)
       end
 
       def exists?(name, prefixes = [], partial = false, keys = [], **options)
-        details, details_key = detail_args_for(options)
+        if options.empty?
+          details, details_key = @details, self.details_key
+        else
+          details, details_key = detail_args_for(options)
+        end
         @view_paths.exists?(name, prefixes, partial, details, details_key, keys)
       end
       alias :template_exists? :exists?
@@ -194,7 +210,6 @@ module ActionView
 
       # Compute details hash and key according to user options (e.g. passed from #render).
       def detail_args_for(options) # :doc:
-        return @details, details_key if options.empty? # most common path.
         user_details = @details.merge(options)
 
         if @cache
