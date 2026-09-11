@@ -1,3 +1,14 @@
+*   Include default headers in `ActionController::Live` responses.
+
+    Previously, responses from `ActionController::Live` controllers, including
+    the Active Storage proxy controllers, were served over HTTP/1.1 without
+    `config.action_dispatch.default_headers` such as `X-Content-Type-Options`
+    and `X-Frame-Options`.
+
+    Fixes #53402.
+
+    *Tony Novak*
+
 *   Check `PATCH` and `QUERY` in `assert_recognizes` and `assert_routing` with `method: :all`.
 
     Both assertions only recognized the path for `GET`, `POST`, `PUT` and
