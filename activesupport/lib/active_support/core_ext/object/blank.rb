@@ -155,6 +155,36 @@ class Symbol
   end
 end
 
+module ActiveSupport
+  module Blank # :nodoc:
+    # Byte scanner behind String#blank? for ASCII-only and valid UTF-8 strings.
+    # Kept out of String#blank? so that method has no local variables, which
+    # YJIT initializes on every call; that shows on empty strings.
+    def self.whitespace_only?(string)
+      i = 0
+      size = string.bytesize
+      while i < size
+        byte = string.getbyte(i)
+        if byte == 32 || (byte >= 9 && byte <= 13)
+          i += 1
+        elsif byte == 0xc2 # U+0085, U+00A0
+          codepoint = 0x80 | (string.getbyte(i + 1) & 0x3f)
+          return false unless codepoint == 0x85 || codepoint == 0xa0
+          i += 2
+        elsif byte >= 0xe1 && byte <= 0xe3 # U+1680, U+2000..U+200A, U+2028, U+2029, U+202F, U+205F, U+3000
+          codepoint = ((byte & 0x0f) << 12) | ((string.getbyte(i + 1) & 0x3f) << 6) | (string.getbyte(i + 2) & 0x3f)
+          return false unless codepoint == 0x1680 || (codepoint >= 0x2000 && codepoint <= 0x200a) || codepoint == 0x2028 ||
+            codepoint == 0x2029 || codepoint == 0x202f || codepoint == 0x205f || codepoint == 0x3000
+          i += 3
+        else
+          return false
+        end
+      end
+      true
+    end
+  end
+end
+
 class String
   BLANK_RE = /\A[[:space:]]*\z/
   ENCODED_BLANKS = Concurrent::Map.new do |h, enc|
@@ -178,19 +208,41 @@ class String
   #
   # @return [true, false]
   def blank?
-    # The regexp that matches blank strings is expensive. For the case of empty
-    # strings we can speed up this method (~3.5x) with an empty? call. The
-    # penalty for the rest of strings is marginal.
-    empty? ||
+    return true if empty?
+
+    # Scanning bytes beats the regexp engine under YJIT and allocates nothing.
+    # It is exact for ASCII-only strings and for valid UTF-8; other encodings
+    # keep using the regexp, which knows each encoding's whitespace table.
+    if ascii_only?
+      # A printable first character settles it without another call.
+      getbyte(0) <= 32 && ActiveSupport::Blank.whitespace_only?(self)
+    elsif encoding == Encoding::UTF_8 && valid_encoding?
+      ActiveSupport::Blank.whitespace_only?(self)
+    else
       begin
         BLANK_RE.match?(self)
       rescue Encoding::CompatibilityError
-        ENCODED_BLANKS[self.encoding].match?(self)
+        ENCODED_BLANKS[encoding].match?(self)
       end
+    end
   end
 
+  # Mirrors #blank? instead of calling it: the extra method call costs about
+  # as much as the check itself.
   def present? # :nodoc:
-    !blank?
+    return false if empty?
+
+    if ascii_only?
+      getbyte(0) > 32 || !ActiveSupport::Blank.whitespace_only?(self)
+    elsif encoding == Encoding::UTF_8 && valid_encoding?
+      !ActiveSupport::Blank.whitespace_only?(self)
+    else
+      begin
+        !BLANK_RE.match?(self)
+      rescue Encoding::CompatibilityError
+        !ENCODED_BLANKS[encoding].match?(self)
+      end
+    end
   end
 end
 

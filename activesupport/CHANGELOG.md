@@ -1,3 +1,13 @@
+*   Speed up `String#blank?` and `String#present?` by scanning bytes instead of
+    running a regexp.
+
+    ASCII-only and UTF-8 strings are checked with a byte loop that allocates
+    nothing and, under YJIT, runs 1.6x to 11x faster than the regexp engine
+    depending on the input. Other encodings still use the Unicode-aware regexp.
+    Behavior is unchanged.
+
+    *Yaroslav Markin*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
     when a local cache is active.
 
