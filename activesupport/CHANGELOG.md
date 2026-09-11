@@ -1,3 +1,11 @@
+*   Setting an `ActiveSupport::CurrentAttributes` attribute to `nil` removes its
+    key from `#attributes` instead of storing `nil`.
+
+    An unset attribute already reads as `nil`, so a `nil` value and an absent key
+    are equivalent and `#attributes` stays free of empty keys.
+
+    *Anton Zaharia*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
     when a local cache is active.
 
