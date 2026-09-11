@@ -717,6 +717,43 @@ class RequestParamsParsing < BaseRequestTest
     assert_match "Invalid request parameters:", err.message
   end
 
+  # Rack::BadRequest was introduced in Rack 3.1
+  if defined?(Rack::BadRequest)
+    test "request_parameters raises BadRequest when the multipart boundary is too long" do
+      boundary = "A" * 71
+      input = "--#{boundary}\r\ncontent-disposition: form-data; name=\"foo\"\r\n\r\nbar\r\n--#{boundary}--\r\n"
+      request = stub_request(
+        "CONTENT_TYPE" => "multipart/form-data; boundary=#{boundary}",
+        "CONTENT_LENGTH" => input.bytesize.to_s,
+        "REQUEST_METHOD" => "PUT",
+        :input => input
+      )
+
+      err = assert_raises(ActionController::BadRequest) do
+        request.request_parameters
+      end
+
+      assert_match "Invalid request parameters: multipart boundary size too large", err.message
+    end
+
+    test "request_parameters raises BadRequest when the multipart file limit is exceeded" do
+      parts = (Rack::Utils.multipart_file_limit + 1).times.map do |i|
+        "--AaB03x\r\ncontent-disposition: form-data; name=\"f#{i}\"; filename=\"f#{i}\"\r\ncontent-type: text/plain\r\n\r\nx\r\n"
+      end
+      input = parts.join + "--AaB03x--\r\n"
+      request = stub_request(
+        "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+        "CONTENT_LENGTH" => input.bytesize.to_s,
+        "REQUEST_METHOD" => "POST",
+        :input => input
+      )
+
+      assert_raises(ActionController::BadRequest) do
+        request.request_parameters
+      end
+    end
+  end
+
   test "request_parameters raises BadRequest when content length is higher than actual data length" do
     request = stub_request(
       "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
