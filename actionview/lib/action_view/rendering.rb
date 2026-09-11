@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "concurrent/map"
 require "action_view/view_paths"
 require "active_support/core_ext/module/attr_internal"
 
@@ -83,13 +84,25 @@ module ActionView
       def view_context_class
         klass = ActionView::LookupContext.view_context_class
 
-        @view_context_class ||= build_view_context_class(klass, supports_path?, _routes, _helpers)
+        if ActiveSupport::Ractors.main?
+          @view_context_class ||= build_view_context_class(klass, supports_path?, _routes, _helpers)
 
-        if klass.changed?(@view_context_class)
-          @view_context_class = build_view_context_class(klass, supports_path?, _routes, _helpers)
+          if klass.changed?(@view_context_class)
+            @view_context_class = build_view_context_class(klass, supports_path?, _routes, _helpers)
+          end
+
+          @view_context_class
+        else
+          view_context_classes = ActiveSupport::Ractors.store_if_absent(:action_view_context_classes) { Concurrent::Map.new }
+          view_context_class = view_context_classes[self]
+
+          if !view_context_class || klass.changed?(view_context_class)
+            view_context_class = build_view_context_class(klass, supports_path?, _routes, _helpers)
+            view_context_classes[self] = view_context_class
+          end
+
+          view_context_class
         end
-
-        @view_context_class
       end
     end
 
