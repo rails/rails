@@ -15,16 +15,14 @@ module ActionView
   class LookupContext # :nodoc:
     attr_accessor :prefixes
 
-    singleton_class.attr_accessor :default_procs
-    self.default_procs = {}.freeze
-
-    def self.registered_details
-      self.default_procs.keys
-    end
+    singleton_class.attr_reader :default_procs, :registered_details
+    @default_procs = {}.freeze
+    @registered_details = [].freeze
 
     def self.register_detail(name, &block)
       block = ActiveSupport::Ractors.shareable_proc(&block)
-      self.default_procs = self.default_procs.merge(name => block).freeze
+      @default_procs = @default_procs.merge(name => block).freeze
+      @registered_details = @default_procs.keys.freeze
 
       Accessors.define_method(:"default_#{name}", &block)
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
