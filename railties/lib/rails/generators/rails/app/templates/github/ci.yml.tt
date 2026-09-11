@@ -12,6 +12,7 @@ jobs:
 <%- unless skip_brakeman? && skip_bundler_audit? -%>
   scan_ruby:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
@@ -36,6 +37,7 @@ jobs:
 <%- if using_importmap? -%>
   scan_js:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
@@ -53,6 +55,7 @@ jobs:
 <%- unless skip_rubocop? -%>
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       RUBOCOP_CACHE_ROOT: tmp/rubocop
     steps:
@@ -81,6 +84,7 @@ jobs:
 <% unless options[:skip_test] -%>
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     <%- if options[:database] == "sqlite3" -%>
     # services:
@@ -154,6 +158,7 @@ jobs:
 
   system-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     <%- if options[:database] == "sqlite3" -%>
     # services:

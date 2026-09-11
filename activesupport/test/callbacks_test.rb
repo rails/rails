@@ -2,6 +2,8 @@
 
 require_relative "abstract_unit"
 require "active_support/core_ext/kernel/singleton_class"
+require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 
 module CallbacksTest
   class Record
@@ -201,9 +203,7 @@ module CallbacksTest
     before_save Proc.new { |r| r.history << "b00m" }, if: :yes, unless: :yes
 
     def yes; true; end
-    def other_yes; true; end
     def no; false; end
-    def other_no; false; end
 
     def save
       run_callbacks :save
@@ -581,6 +581,8 @@ module CallbacksTest
   end
 
   class CallbacksTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
     def test_save_person
       person = Person.new
       assert_equal [], person.history
@@ -597,6 +599,112 @@ module CallbacksTest
         [:after_save, :proc],
         [:after_save, :symbol]
       ], person.history
+    end
+
+    if RUBY_VERSION >= "4.0"
+      def test_callbacks_are_ractor_shareable
+        [:raise, :warn].each do |unshareable_proc_action|
+          ActiveSupport::Ractors.with(unshareable_proc_action:) do
+            klass = Class.new do
+              include ActiveSupport::Callbacks
+
+              define_callbacks :save, terminator: ->(_target, result_lambda) { result_lambda.call == false }
+
+              set_callback :save, :before, -> { events << :before }, if: -> { true }
+              set_callback :save, :around, ->(_record, block) {
+                events << :around_before
+                block.call
+                events << :around_after
+              }
+              set_callback :save, :after, ->(record) { record.events << :after }, unless: -> { false }
+
+              attr_reader :events
+
+              def initialize
+                @events = []
+              end
+
+              def save
+                run_callbacks(:save) { events << :save }
+              end
+            end
+
+            assert_ractor_shareable klass
+
+            assert_equal [:before, :around_before, :save, :after, :around_after], Ractor.new(klass) { |callback_class|
+              record = callback_class.new
+              record.save
+              record.events
+            }.value
+          end
+        end
+      end
+
+      def test_user_supplied_callback_procs_use_unshareable_proc_action
+        ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+          object = Object.new
+
+          assert_raises(Ractor::IsolationError) do
+            Class.new do
+              include ActiveSupport::Callbacks
+              define_callbacks :save
+              set_callback :save, :before, -> { object }
+            end
+          end
+        end
+      end
+
+      def test_user_supplied_callback_condition_procs_use_unshareable_proc_action
+        ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+          object = Object.new
+
+          assert_raises(Ractor::IsolationError) do
+            Class.new do
+              include ActiveSupport::Callbacks
+              define_callbacks :save
+              set_callback :save, :before, :save, if: -> { object }
+            end
+          end
+        end
+      end
+
+      def test_user_supplied_callback_terminator_procs_use_unshareable_proc_action
+        ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+          object = Object.new
+
+          assert_raises(Ractor::IsolationError) do
+            Class.new do
+              include ActiveSupport::Callbacks
+              define_callbacks :save, terminator: ->(_target, _result_lambda) { object }
+            end
+          end
+        end
+      end
+
+      def test_skip_callback_with_proc_filter_when_ractor_shareable
+        ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+          filter_proc = ->(record) { record.events << :before_proc }
+
+          klass = Class.new do
+            include ActiveSupport::Callbacks
+            define_callbacks :save
+            set_callback :save, :before, filter_proc
+            attr_accessor :events
+            def initialize; @events = []; end
+            def save; run_callbacks(:save) { @events << :save }; end
+          end
+
+          assert_ractor_shareable klass
+
+          klass.skip_callback(:save, :before, filter_proc)
+
+          assert_equal [:save], Ractor.new(klass) { |k|
+            record = k.new
+            record.save
+            record.events
+          }.value
+        end
+      end
     end
   end
 
@@ -1235,27 +1343,27 @@ module CallbacksTest
     end
 
     def before_save_2
-      @history <<  __method__.to_s
+      @history << __method__.to_s
     end
 
     def around_save_1
-      @history <<  __method__.to_s + "_before"
+      @history << __method__.to_s + "_before"
       yield
-      @history <<  __method__.to_s + "_after"
+      @history << __method__.to_s + "_after"
     end
 
     def around_save_2
-      @history <<  __method__.to_s + "_before"
+      @history << __method__.to_s + "_before"
       yield
-      @history <<  __method__.to_s + "_after"
+      @history << __method__.to_s + "_after"
     end
 
     def after_save_1
-      @history <<  __method__.to_s
+      @history << __method__.to_s
     end
 
     def after_save_2
-      @history <<  __method__.to_s
+      @history << __method__.to_s
     end
   end
 

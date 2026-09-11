@@ -87,6 +87,18 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "Hello", render
   end
 
+  def test_render_with_a_different_compiled_method_container_raises
+    @template = new_template
+    assert_equal "Hello", render
+
+    other_context = Context.with_empty_template_cache.empty
+    error = assert_raises(ActionView::Template::Error) do
+      @template.render(other_context, {})
+    end
+    assert_kind_of ArgumentError, error.cause
+    assert_match "compiled to render with", error.message
+  end
+
   def test_basic_template_does_html_escape
     @template = new_template("<%= apostrophe %>")
     assert_equal "l&#39;apostrophe", render

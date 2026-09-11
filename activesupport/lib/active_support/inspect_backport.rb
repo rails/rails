@@ -1,21 +1,24 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
-  # Provides a Ruby 4.0-compatible +inspect+ method for Ruby < 4.0.
+  # Provides a Ruby 4.0-compatible `inspect` method for Ruby < 4.0.
   #
-  # Ruby 4.0 introduced +instance_variables_to_inspect+, which lets classes
-  # control which instance variables appear in +inspect+ output without
-  # overriding +inspect+ entirely. This module backports that behavior so
-  # classes can define +instance_variables_to_inspect+ on any Ruby version.
+  # Ruby 4.0 introduced `instance_variables_to_inspect`, which lets classes
+  # control which instance variables appear in `inspect` output without
+  # overriding `inspect` entirely. This module backports that behavior so
+  # classes can define `instance_variables_to_inspect` on any Ruby version.
   #
-  #   class MyClass
-  #     ActiveSupport::InspectBackport.apply(self)
+  # ```
+  # class MyClass
+  #   ActiveSupport::InspectBackport.apply(self)
   #
-  #     private
-  #       def instance_variables_to_inspect
-  #         [:@name, :@status].freeze
-  #       end
-  #   end
+  #   private
+  #     def instance_variables_to_inspect
+  #       [:@name, :@status].freeze
+  #     end
+  # end
+  # ```
   module InspectBackport # :nodoc:
     class << self
       if RUBY_VERSION < "4"

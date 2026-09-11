@@ -34,6 +34,7 @@ module ActionCable
     # ## Basic example
     #
     # Functional tests are written as follows:
+    #
     # 1.  First, one uses the `subscribe` method to simulate subscription creation.
     # 2.  Then, one asserts whether the current state is as expected. "State" can be
     #     anything: transmitted messages, subscribed streams, etc.

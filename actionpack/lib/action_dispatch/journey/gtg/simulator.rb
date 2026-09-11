@@ -5,14 +5,6 @@
 module ActionDispatch
   module Journey # :nodoc:
     module GTG # :nodoc:
-      class MatchData # :nodoc:
-        attr_reader :memos
-
-        def initialize(memos)
-          @memos = memos
-        end
-      end
-
       class Simulator # :nodoc:
         STATIC_TOKENS = Array.new(64)
         STATIC_TOKENS[".".ord] = "."

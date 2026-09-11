@@ -265,7 +265,11 @@ module ActiveRecord
 
     module ClassMethods
       def initialize_find_by_cache # :nodoc:
-        @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
+        ActiveSupport::Ractors[find_by_statement_cache_key] = { true => Concurrent::Map.new, false => Concurrent::Map.new }
+      end
+
+      def find_by_statement_cache_key # :nodoc:
+        @find_by_statement_cache_key ||= "active_record_find_by_statement_cache_#{object_id}".to_sym
       end
 
       def find(*ids) # :nodoc:
@@ -416,8 +420,7 @@ module ActiveRecord
       end
 
       def cached_find_by_statement(connection, key, &block) # :nodoc:
-        cache = @find_by_statement_cache[connection.prepared_statements]
-        cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
+        schema_context.cached_find_by_statement(connection, key, &block)
       end
 
       private
@@ -436,7 +439,7 @@ module ActiveRecord
 
           subclass.class_eval do
             @arel_table = Arel::Table.new(klass: self)
-            @predicate_builder = nil
+            @predicate_builder = PredicateBuilder.new(TableMetadata.new(self, @arel_table))
             @inspection_filter = nil
             @filter_attributes ||= nil
             @generated_association_methods ||= nil

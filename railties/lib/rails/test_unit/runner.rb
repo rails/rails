@@ -24,7 +24,6 @@ module Rails
 
     class Runner
       TEST_FOLDERS = [:models, :helpers, :channels, :controllers, :mailers, :integration, :jobs, :mailboxes].freeze
-      PATH_ARGUMENT_PATTERN = %r"^(?!/.+/$)[.\w]*[/\\]"
       mattr_reader :filters, default: []
       mattr_reader :load_test_files, default: false
 
@@ -125,9 +124,6 @@ module Rails
             arg.start_with?("/") && arg.end_with?("/")
           end
 
-          def path_argument?(arg)
-            PATH_ARGUMENT_PATTERN.match?(arg)
-          end
 
           def list_tests(patterns)
             tests = Rake::FileList[patterns.any? ? patterns : default_test_glob]

@@ -68,7 +68,7 @@ module ActiveRecord
           end
 
           def exclusion_constraints_in_create(table, stream)
-            if (exclusion_constraints = @connection.exclusion_constraints(table)).any?
+            if (exclusion_constraints = @exclusion_constraints[table]).any?
               exclusion_constraint_statements = exclusion_constraints.map do |exclusion_constraint|
                 parts = [ exclusion_constraint.expression.inspect ]
                 parts << "where: #{exclusion_constraint.where.inspect}" if exclusion_constraint.where
@@ -84,7 +84,7 @@ module ActiveRecord
           end
 
           def unique_constraints_in_create(table, stream)
-            if (unique_constraints = @connection.unique_constraints(table)).any?
+            if (unique_constraints = @unique_constraints[table]).any?
               unique_constraint_statements = unique_constraints.map do |unique_constraint|
                 parts = [ unique_constraint.column.inspect ]
                 parts << "nulls_not_distinct: #{unique_constraint.nulls_not_distinct.inspect}" if unique_constraint.nulls_not_distinct

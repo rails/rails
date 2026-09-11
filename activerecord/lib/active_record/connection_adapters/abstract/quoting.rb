@@ -198,7 +198,7 @@ module ActiveRecord
       def sanitize_as_sql_comment(value) # :nodoc:
         # Sanitize a string to appear within an SQL comment
         # For compatibility, this also surrounding "/*+", "/*", and "*/"
-        # charcacters, possibly with single surrounding space.
+        # characters, possibly with single surrounding space.
         # Then follows that by replacing any internal "*/" or "/*" with
         # "* /" or "/ *"
         comment = value.to_s.dup

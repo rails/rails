@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/delegation"
@@ -11,9 +12,11 @@ module ActiveSupport
     #
     # This is stateless and thread-safe, so a single instance can be shared.
     #
-    #   ActiveSupport::Notifications.null_instrumenter.instrument("sql.active_record") do
-    #     # executes without any notification overhead
-    #   end
+    # ```
+    # ActiveSupport::Notifications.null_instrumenter.instrument("sql.active_record") do
+    #   # executes without any notification overhead
+    # end
+    # ```
     class NullInstrumenter
       class NullHandle # :nodoc:
         def start; end
@@ -93,14 +96,14 @@ module ActiveSupport
         end
       end
 
-      # Returns a "handle" for an event with the given +name+ and +payload+.
+      # Returns a "handle" for an event with the given `name` and `payload`.
       #
       # #start and #finish must each be called exactly once on the returned object.
       #
       # Where possible, it's best to use #instrument, which will record the
       # start and finish of the event and correctly handle any exceptions.
-      # +build_handle+ is a low-level API intended for cases where using
-      # +instrument+ isn't possible.
+      # `build_handle` is a low-level API intended for cases where using
+      # `instrument` isn't possible.
       #
       # See ActiveSupport::Notifications::Fanout::Handle.
       def build_handle(name, payload)
@@ -111,12 +114,12 @@ module ActiveSupport
         Event.new(name, nil, nil, @id, payload)
       end
 
-      # Send a start notification with +name+ and +payload+.
+      # Send a start notification with `name` and `payload`.
       def start(name, payload)
         @notifier.start name, @id, payload
       end
 
-      # Send a finish notification with +name+ and +payload+.
+      # Send a finish notification with `name` and `payload`.
       def finish(name, payload)
         @notifier.finish name, @id, payload
       end
@@ -214,15 +217,17 @@ module ActiveSupport
       # Returns the difference in milliseconds between when the execution of the
       # event started and when it ended.
       #
-      #   ActiveSupport::Notifications.subscribe('wait') do |event|
-      #     @event = event
-      #   end
+      # ```
+      # ActiveSupport::Notifications.subscribe('wait') do |event|
+      #   @event = event
+      # end
       #
-      #   ActiveSupport::Notifications.instrument('wait') do
-      #     sleep 1
-      #   end
+      # ActiveSupport::Notifications.instrument('wait') do
+      #   sleep 1
+      # end
       #
-      #   @event.duration # => 1000.138
+      # @event.duration # => 1000.138
+      # ```
       def duration
         @end - @time
       end

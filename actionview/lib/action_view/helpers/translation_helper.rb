@@ -44,12 +44,18 @@ module ActionView
       # individually by passing <tt>raise: true</tt> as an option to
       # <tt>translate</tt>.
       #
-      # Second, if the key starts with a period <tt>translate</tt> will scope
-      # the key by the current partial. Calling <tt>translate(".foo")</tt> from
-      # the <tt>people/index.html.erb</tt> template is equivalent to calling
-      # <tt>translate("people.index.foo")</tt>. This makes it less
-      # repetitive to translate many keys within the same partial and provides
-      # a convention to scope keys consistently.
+      # Second, if the key or the +:scope+ option starts with a period,
+      # <tt>translate</tt> will scope it by the current partial. Calling
+      # <tt>translate(".foo")</tt> or <tt>translate("bar", scope: ".foo")</tt>
+      # from the <tt>people/index.html.erb</tt> template is equivalent to
+      # calling <tt>translate("people.index.foo")</tt> or
+      # <tt>translate("bar", scope: "people.index.foo")</tt> respectively.
+      # This makes it less repetitive to translate many keys within the same
+      # partial and provides a convention to scope keys consistently. The key
+      # takes precedence: if the key itself starts with a period, the
+      # +:scope+ option's own leading period is left as-is rather than
+      # expanded, preserving the pre-existing behavior for calls like
+      # <tt>translate(".bar", scope: ".foo")</tt>.
       #
       # Third, the translation will be marked as <tt>html_safe</tt> if the key
       # has the suffix "_html" or the last element of the key is "html". Calling
@@ -77,6 +83,8 @@ module ActionView
         alternatives = if options.key?(:default)
           options[:default].is_a?(Array) ? options.delete(:default).compact : [options.delete(:default)]
         end
+
+        options[:scope] = scope_option_by_partial(options[:scope]) if options[:scope] && !key&.start_with?(".")
 
         options[:raise] = true if options[:raise].nil? && TranslationHelper.raise_on_missing_translations
         default = MISSING_TRANSLATION
@@ -125,17 +133,33 @@ module ActionView
         NO_DEFAULT = [].freeze
         private_constant :NO_DEFAULT
 
+        def scope_prefix
+          @_scope_key_by_partial_cache ||= {}
+          @_scope_key_by_partial_cache[@virtual_path] ||= @virtual_path.gsub(%r{/_?}, ".")
+        end
+
         def scope_key_by_partial(key)
           if key&.start_with?(".")
             if @virtual_path
-              @_scope_key_by_partial_cache ||= {}
-              @_scope_key_by_partial_cache[@virtual_path] ||= @virtual_path.gsub(%r{/_?}, ".")
-              "#{@_scope_key_by_partial_cache[@virtual_path]}#{key}"
+              "#{scope_prefix}#{key}"
             else
               raise "Cannot use t(#{key.inspect}) shortcut because path is not available"
             end
           else
             key
+          end
+        end
+
+        def scope_option_by_partial(scope)
+          if (scope.is_a?(String) || scope.is_a?(Symbol)) && scope.start_with?(".")
+            if @virtual_path
+              resolved = "#{scope_prefix}#{scope}"
+              scope.is_a?(Symbol) ? resolved.to_sym : resolved
+            else
+              raise "Cannot use scope: #{scope.inspect} shortcut because path is not available"
+            end
+          else
+            scope
           end
         end
 

@@ -1,114 +1,126 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
-  # = Active Support \Concern
+  # Active Support \Concern
+  # =======================
   #
   # A typical module looks like this:
   #
-  #   module M
-  #     def self.included(base)
-  #       base.extend ClassMethods
-  #       base.class_eval do
-  #         scope :disabled, -> { where(disabled: true) }
-  #       end
-  #     end
-  #
-  #     module ClassMethods
-  #       ...
-  #     end
-  #   end
-  #
-  # By using +ActiveSupport::Concern+ the above module could instead be
-  # written as:
-  #
-  #   require "active_support/concern"
-  #
-  #   module M
-  #     extend ActiveSupport::Concern
-  #
-  #     included do
+  # ```
+  # module M
+  #   def self.included(base)
+  #     base.extend ClassMethods
+  #     base.class_eval do
   #       scope :disabled, -> { where(disabled: true) }
   #     end
-  #
-  #     class_methods do
-  #       ...
-  #     end
   #   end
   #
-  # Moreover, it gracefully handles module dependencies. Given a +Foo+ module
-  # and a +Bar+ module which depends on the former, we would typically write the
+  #   module ClassMethods
+  #     ...
+  #   end
+  # end
+  # ```
+  #
+  # By using `ActiveSupport::Concern` the above module could instead be
+  # written as:
+  #
+  # ```
+  # require "active_support/concern"
+  #
+  # module M
+  #   extend ActiveSupport::Concern
+  #
+  #   included do
+  #     scope :disabled, -> { where(disabled: true) }
+  #   end
+  #
+  #   class_methods do
+  #     ...
+  #   end
+  # end
+  # ```
+  #
+  # Moreover, it gracefully handles module dependencies. Given a `Foo` module
+  # and a `Bar` module which depends on the former, we would typically write the
   # following:
   #
-  #   module Foo
-  #     def self.included(base)
-  #       base.class_eval do
-  #         def self.method_injected_by_foo
-  #           ...
-  #         end
-  #       end
-  #     end
-  #   end
-  #
-  #   module Bar
-  #     def self.included(base)
-  #       base.method_injected_by_foo
-  #     end
-  #   end
-  #
-  #   class Host
-  #     include Foo # We need to include this dependency for Bar
-  #     include Bar # Bar is the module that Host really needs
-  #   end
-  #
-  # But why should +Host+ care about +Bar+'s dependencies, namely +Foo+? We
-  # could try to hide these from +Host+ directly including +Foo+ in +Bar+:
-  #
-  #   module Bar
-  #     include Foo
-  #     def self.included(base)
-  #       base.method_injected_by_foo
-  #     end
-  #   end
-  #
-  #   class Host
-  #     include Bar
-  #   end
-  #
-  # Unfortunately this won't work, since when +Foo+ is included, its <tt>base</tt>
-  # is the +Bar+ module, not the +Host+ class. With +ActiveSupport::Concern+,
-  # module dependencies are properly resolved:
-  #
-  #   require "active_support/concern"
-  #
-  #   module Foo
-  #     extend ActiveSupport::Concern
-  #     included do
+  # ```
+  # module Foo
+  #   def self.included(base)
+  #     base.class_eval do
   #       def self.method_injected_by_foo
   #         ...
   #       end
   #     end
   #   end
+  # end
   #
-  #   module Bar
-  #     extend ActiveSupport::Concern
-  #     include Foo
+  # module Bar
+  #   def self.included(base)
+  #     base.method_injected_by_foo
+  #   end
+  # end
   #
-  #     included do
-  #       self.method_injected_by_foo
+  # class Host
+  #   include Foo # We need to include this dependency for Bar
+  #   include Bar # Bar is the module that Host really needs
+  # end
+  # ```
+  #
+  # But why should `Host` care about `Bar`'s dependencies, namely `Foo`? We
+  # could try to hide these from `Host` directly including `Foo` in `Bar`:
+  #
+  # ```
+  # module Bar
+  #   include Foo
+  #   def self.included(base)
+  #     base.method_injected_by_foo
+  #   end
+  # end
+  #
+  # class Host
+  #   include Bar
+  # end
+  # ```
+  #
+  # Unfortunately this won't work, since when `Foo` is included, its `base`
+  # is the `Bar` module, not the `Host` class. With `ActiveSupport::Concern`,
+  # module dependencies are properly resolved:
+  #
+  # ```
+  # require "active_support/concern"
+  #
+  # module Foo
+  #   extend ActiveSupport::Concern
+  #   included do
+  #     def self.method_injected_by_foo
+  #       ...
   #     end
   #   end
+  # end
   #
-  #   class Host
-  #     include Bar # It works, now Bar takes care of its dependencies
+  # module Bar
+  #   extend ActiveSupport::Concern
+  #   include Foo
+  #
+  #   included do
+  #     self.method_injected_by_foo
   #   end
+  # end
   #
-  # === Prepending concerns
+  # class Host
+  #   include Bar # It works, now Bar takes care of its dependencies
+  # end
+  # ```
   #
-  # Just like <tt>include</tt>, concerns also support <tt>prepend</tt> with a corresponding
-  # <tt>prepended do</tt> callback. <tt>module ClassMethods</tt> or <tt>class_methods do</tt> are
+  # ### Prepending concerns
+  #
+  # Just like `include`, concerns also support `prepend` with a corresponding
+  # `prepended do` callback. `module ClassMethods` or `class_methods do` are
   # prepended as well.
   #
-  # <tt>prepend</tt> is also used for any dependencies.
+  # `prepend` is also used for any dependencies.
   module Concern
     class MultipleIncludedBlocks < StandardError # :nodoc:
       def initialize
@@ -154,7 +166,7 @@ module ActiveSupport
 
     # Evaluate given block in context of base class,
     # so that you can write class macros here.
-    # When you define more than one +included+ block, it raises an exception.
+    # When you define more than one `included` block, it raises an exception.
     def included(base = nil, &block)
       if base.nil?
         if instance_variable_defined?(:@_included_block)
@@ -171,7 +183,7 @@ module ActiveSupport
 
     # Evaluate given block in context of base class,
     # so that you can write class macros here.
-    # When you define more than one +prepended+ block, it raises an exception.
+    # When you define more than one `prepended` block, it raises an exception.
     def prepended(base = nil, &block)
       if base.nil?
         if instance_variable_defined?(:@_prepended_block)
@@ -189,23 +201,25 @@ module ActiveSupport
     # Define class methods from given block.
     # You can define private class methods as well.
     #
-    #   module Example
-    #     extend ActiveSupport::Concern
+    # ```
+    # module Example
+    #   extend ActiveSupport::Concern
     #
-    #     class_methods do
-    #       def foo; puts 'foo'; end
+    #   class_methods do
+    #     def foo; puts 'foo'; end
     #
-    #       private
-    #         def bar; puts 'bar'; end
-    #     end
+    #     private
+    #       def bar; puts 'bar'; end
     #   end
+    # end
     #
-    #   class Buzz
-    #     include Example
-    #   end
+    # class Buzz
+    #   include Example
+    # end
     #
-    #   Buzz.foo # => "foo"
-    #   Buzz.bar # => private method 'bar' called for Buzz:Class(NoMethodError)
+    # Buzz.foo # => "foo"
+    # Buzz.bar # => private method 'bar' called for Buzz:Class(NoMethodError)
+    # ```
     def class_methods(&class_methods_module_definition)
       mod = const_defined?(:ClassMethods, false) ?
         const_get(:ClassMethods) :

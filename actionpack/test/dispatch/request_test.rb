@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 class BaseRequestTest < ActiveSupport::TestCase
   def setup
@@ -14,6 +15,23 @@ class BaseRequestTest < ActiveSupport::TestCase
   def url_for(options = {})
     options = { host: "www.example.com" }.merge!(options)
     ActionDispatch::Http::URL.url_for(options)
+  end
+
+  class RactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "LOCALHOST is Ractor shareable" do
+      assert_ractor_shareable ActionDispatch::Request::LOCALHOST
+    end
+
+    test "local? matches loopback addresses on a non-main Ractor" do
+      local = on_ractor do
+        ActionDispatch::Request.new("REMOTE_ADDR" => "127.0.0.1", "action_dispatch.remote_ip" => "::1").local?
+      end
+
+      assert local
+    end
   end
 
   private
@@ -897,10 +915,38 @@ class RequestMethod < BaseRequestTest
       request.method(:POST)
     end
   end
+
+  test "QUERY method is recognized" do
+    request = stub_request("REQUEST_METHOD" => "QUERY")
+
+    assert_equal "QUERY", request.request_method
+    assert_equal :query, request.request_method_symbol
+    assert_predicate request, :query?
+    assert_not_predicate request, :get?
+    assert_not_predicate request, :post?
+  end
+
+  test "query? returns false when the request is not a QUERY" do
+    request = stub_request("REQUEST_METHOD" => "GET")
+
+    assert_not_predicate request, :query?
+  end
+
+  test "post masquerading as query" do
+    request = stub_request(
+      "REQUEST_METHOD" => "QUERY",
+      "rack.methodoverride.original_method" => "POST"
+    )
+
+    assert_equal "POST", request.method
+    assert_equal :post, request.method_symbol
+    assert_equal "QUERY", request.request_method
+    assert_predicate request, :query?
+  end
 end
 
 class RequestSafety < BaseRequestTest
-  %w[GET HEAD OPTIONS TRACE].each do |method|
+  %w[GET HEAD QUERY OPTIONS TRACE].each do |method|
     test "#{method} is a safe method" do
       request = stub_request("REQUEST_METHOD" => method)
       assert_predicate request, :safe_method?
@@ -1700,5 +1746,28 @@ class RequestCacheControlDirectives < BaseRequestTest
     assert_equal 60, request.cache_control_directives.max_age
     assert_not_predicate request.cache_control_directives, :no_cache?
     assert_not_predicate request.cache_control_directives, :no_store?
+  end
+end
+
+class RequestMimeNegotiationSettingsTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
+  test "the negotiation settings are readable from a non-main Ractor" do
+    assert_equal [false, false], on_ractor {
+      [
+        ActionDispatch::Http::MimeNegotiation.ignore_accept_header,
+        ActionDispatch::Request.strict_accept_header,
+      ]
+    }
+  end
+
+  test "request classes delegate the settings to the module" do
+    old = ActionDispatch::Request.ignore_accept_header
+    ActionDispatch::Request.ignore_accept_header = true
+
+    assert_equal true, ActionDispatch::Http::MimeNegotiation.ignore_accept_header
+    assert_equal true, ActionDispatch::TestRequest.ignore_accept_header
+  ensure
+    ActionDispatch::Request.ignore_accept_header = old
   end
 end

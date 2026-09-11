@@ -103,6 +103,14 @@ module ActiveStorage
               ActiveStorage::Transformers::Vips
             when :mini_magick
               ActiveStorage::Transformers::ImageMagick
+            when Class
+              ActiveStorage.variant_processor
+            else
+              raise ArgumentError, <<~ERROR.squish
+                Unknown variant processor #{ActiveStorage.variant_processor.inspect}.
+                Set `config.active_storage.variant_processor` to :vips, :mini_magick, :disabled,
+                or to a transformer class. See ActiveStorage::Transformers::Transformer.
+              ERROR
             end
         rescue LoadError => error
           case error.message
@@ -167,6 +175,8 @@ module ActiveStorage
         ActiveStorage.content_types_allowed_inline = app.config.active_storage.content_types_allowed_inline || []
         ActiveStorage.binary_content_type = app.config.active_storage.binary_content_type || "application/octet-stream"
         ActiveStorage.video_preview_arguments = app.config.active_storage.video_preview_arguments || "-y -vframes 1 -f image2"
+        ActiveStorage.video_preview_input_arguments = app.config.active_storage.video_preview_input_arguments || ""
+        ActiveStorage.ffprobe_arguments = app.config.active_storage.ffprobe_arguments || ""
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
         ActiveStorage.analyze = app.config.active_storage.analyze || :later
         ActiveStorage.streaming_chunk_max_size = app.config.active_storage.streaming_chunk_max_size || 100.megabytes

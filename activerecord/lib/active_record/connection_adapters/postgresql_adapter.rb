@@ -37,12 +37,14 @@ module ActiveRecord
     #   as a string of comma-separated schema names.
     # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO
     #   <encoding></tt> call on the connection.
+    # * <tt>:error_verbosity</tt> - An optional verbosity level (one of the <tt>PG::PQERRORS_*</tt>
+    #   constants) passed to libpq's <tt>PQsetErrorVerbosity</tt>, controlling whether the
+    #   <tt>DETAIL</tt>, <tt>HINT</tt>, and <tt>CONTEXT</tt> fields are included in raised error
+    #   messages.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
     # * <tt>:variables</tt> - An optional hash of additional parameters that
     #   will be used in <tt>SET SESSION key = val</tt> calls on the connection.
-    # * <tt>:insert_returning</tt> - An optional boolean to control the use of <tt>RETURNING</tt> for <tt>INSERT</tt> statements
-    #   defaults to true.
     #
     # Any further options are used as connection parameters to libpq. See
     # https://www.postgresql.org/docs/current/static/libpq-connect.html for the
@@ -403,7 +405,18 @@ module ActiveRecord
         @notice_receiver_sql_warnings = []
         @notice_receiver_fatal_error = nil
 
-        @use_insert_returning = @config.key?(:insert_returning) ? self.class.type_cast_config_to_boolean(@config[:insert_returning]) : true
+        @use_insert_returning = if @config.key?(:insert_returning)
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            The `insert_returning` option in database configurations is deprecated
+            and will be removed in Rails 9.0. The option only affects single-row
+            INSERT statements; other paths such as `insert_all`, `upsert_all`, and
+            RETURNING for `update` already use RETURNING when the database supports
+            it, so the option cannot fully disable RETURNING.
+          MSG
+          self.class.type_cast_config_to_boolean(@config[:insert_returning])
+        else
+          true
+        end
       end
 
       def connected?
@@ -703,6 +716,7 @@ module ActiveRecord
       def use_insert_returning?
         @use_insert_returning
       end
+      deprecate :use_insert_returning?, deprecator: ActiveRecord.deprecator
 
       # Returns the version of the connected PostgreSQL server.
       def get_database_version # :nodoc:
@@ -1139,6 +1153,10 @@ module ActiveRecord
             @raw_connection.set_client_encoding(@config[:encoding])
           end
 
+          if @config[:error_verbosity]
+            @raw_connection.set_error_verbosity(@config[:error_verbosity])
+          end
+
           @notice_receiver_fatal_error = nil
           @raw_connection.set_notice_receiver do |result|
             next if capture_fatal_notice(result)
@@ -1202,7 +1220,7 @@ module ActiveRecord
             if @config[:schema_order]
               ActiveRecord.deprecator.warn(<<~MSG.squish)
                 The `schema_order` option in PostgreSQL database configurations is
-                deprecated and will be removed in Rails 8.3. Use `schema_search_path` instead.
+                deprecated and will be removed in Rails 9.0. Use `schema_search_path` instead.
               MSG
             end
             self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
@@ -1263,6 +1281,40 @@ module ActiveRecord
                  AND a.attnum > 0 AND NOT a.attisdropped
                ORDER BY a.attnum
           SQL
+        end
+
+        def fetch_column_definitions(tables)
+          fetch_by_schema(tables) do |schema, group|
+            rows = query_rows(<<~SQL)
+              SELECT a.attname, format_type(a.atttypid, a.atttypmod),
+                     pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
+                     c.collname, col_description(a.attrelid, a.attnum) AS comment,
+                     #{supports_identity_columns? ? 'attidentity' : quote('')} AS identity,
+                     #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated,
+                     r.relname
+              FROM (
+                SELECT DISTINCT ON (cls.relname) cls.oid, cls.relname
+                FROM pg_class cls
+                JOIN pg_namespace n ON n.oid = cls.relnamespace
+                WHERE n.nspname = #{schema}
+                  AND cls.relname IN (#{quoted_table_names(group)})
+                ORDER BY cls.relname, array_position(current_schemas(false), n.nspname)
+              ) r
+              JOIN pg_attribute a ON a.attrelid = r.oid
+              LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
+              LEFT JOIN pg_type t ON a.atttypid = t.oid
+              LEFT JOIN pg_collation c ON a.attcollation = c.oid AND a.attcollation <> t.typcollation
+              WHERE a.attnum > 0 AND NOT a.attisdropped
+              ORDER BY r.relname, a.attnum
+            SQL
+            by_name = rows.group_by(&:last)
+
+            group.index_with do |table|
+              fields = rows_for(by_name, table)
+
+              fields.empty? ? column_definitions(table) : fields
+            end
+          end
         end
 
         def arel_visitor

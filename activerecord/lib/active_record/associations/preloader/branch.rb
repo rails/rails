@@ -89,19 +89,34 @@ module ActiveRecord
         end
 
         def preloaders_for_reflection(reflection, reflection_records)
-          reflection_records.group_by do |record|
-            klass = record.association(association).klass
+          if reflection.scope && reflection.scope.arity != 0
+            reflection_records.map do |record|
+              klass = record.association(association).klass
 
-            if reflection.scope && reflection.scope.arity != 0
               # For instance dependent scopes, the scope is potentially
               # different for each record. To allow this we'll group each
-              # object separately into its own preloader
+              # object separately unless the resulting scopes are equivalent.
               reflection_scope = reflection.join_scopes(klass.arel_table, klass.predicate_builder, klass, record).inject(&:merge!)
-            end
 
-            [klass, reflection_scope]
-          end.map do |(rhs_klass, reflection_scope), rs|
-            preloader_for(reflection).new(rhs_klass, rs, reflection, scope, reflection_scope, associate_by_default)
+              [klass, reflection_scope, record]
+            end.group_by do |klass, reflection_scope, _|
+              [
+                klass,
+                reflection_scope.table_name,
+                reflection_scope.model.connection_specification_name,
+                reflection_scope.values_for_queries,
+              ]
+            end.map do |_preloader_key, values|
+              rhs_klass, reflection_scope = values.first
+              records = values.map { |_, _, record| record }
+              preloader_for(reflection).new(rhs_klass, records, reflection, scope, reflection_scope, associate_by_default)
+            end
+          else
+            reflection_records.group_by do |record|
+              record.association(association).klass
+            end.map do |rhs_klass, records|
+              preloader_for(reflection).new(rhs_klass, records, reflection, scope, nil, associate_by_default)
+            end
           end
         end
 

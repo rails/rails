@@ -35,10 +35,11 @@ module ActionController # :nodoc:
         types.each do |type|
           next if _flash_types.include?(type)
 
-          define_method(type) do
-            request.flash[type]
-          end
-          private type
+          class_eval <<~RUBY, __FILE__, __LINE__ + 1
+            private def #{type}
+              request.flash[:#{type}]
+            end
+          RUBY
           helper_method(type) if respond_to?(:helper_method)
 
           self._flash_types = (_flash_types | [type]).freeze

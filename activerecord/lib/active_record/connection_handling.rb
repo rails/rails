@@ -190,13 +190,18 @@ module ActiveRecord
     end
 
     # Passes the block to +connected_to+ for every +shard+ the
-    # model is configured to connect to (if any), and returns the
-    # results in an array.
+    # model is configured to connect to, and returns the results
+    # in an array. Raises an ArgumentError if the model is not
+    # connected to any shards.
     #
     # Optionally, +role+ and/or +prevent_writes+ can be passed which
     # will be forwarded to each +connected_to+ call. +prevent_writes+
     # defaults to +true+ when using the +reading+ role.
     def connected_to_all_shards(role: nil, prevent_writes: role == ActiveRecord.reading_role, &blk)
+      if shard_keys.empty?
+        raise ArgumentError, "`connected_to_all_shards` cannot be called on a model that is not connected to any shards."
+      end
+
       shard_keys.map do |shard|
         connected_to(shard: shard, role: role, prevent_writes: prevent_writes, &blk)
       end
@@ -269,7 +274,7 @@ module ActiveRecord
     #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
     #     ActiveRecord::Base.connected_to?(role: :reading, shard: :shard_one) #=> true
     #     ActiveRecord::Base.connected_to?(role: :reading, shard: :default) #=> false
-    #     ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one) #=> true
+    #     ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one) #=> false
     #   end
     def connected_to?(role:, shard: ActiveRecord::Base.default_shard)
       current_role == role.to_sym && current_shard == shard.to_sym

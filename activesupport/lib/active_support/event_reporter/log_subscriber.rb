@@ -1,4 +1,7 @@
+# :markup: markdown
 # frozen_string_literal: true
+
+require "active_support/core_ext/class/attribute"
 
 module ActiveSupport
   class EventReporter
@@ -24,13 +27,9 @@ module ActiveSupport
         attr_accessor :namespace
 
         def subscription_filter
-          namespace = self.namespace.to_s
+          prefix = "#{namespace}.".freeze
           proc do |event|
-            name = event[:name]
-            if (dot_idx = name.index("."))
-              event_namespace = name[0, dot_idx]
-              namespace == event_namespace
-            end
+            event[:name].start_with?(prefix)
           end
         end
       end

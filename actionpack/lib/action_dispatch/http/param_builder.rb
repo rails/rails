@@ -16,7 +16,7 @@ module ActionDispatch
       @param_depth_limit = param_depth_limit
     end
 
-    cattr_accessor :default
+    singleton_class.attr_accessor :default
     self.default = make_default(100).freeze
 
     class << self
@@ -162,10 +162,6 @@ module ActionDispatch
 
       def make_params
         ActiveSupport::HashWithIndifferentAccess.new
-      end
-
-      def new_depth_limit(param_depth_limit)
-        self.class.new @params_class, param_depth_limit
       end
 
       def params_hash_type?(obj)

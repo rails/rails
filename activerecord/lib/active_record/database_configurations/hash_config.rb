@@ -213,6 +213,10 @@ module ActiveRecord
         configuration_hash.fetch(:use_metadata_table, true)
       end
 
+      def dump_schema_migrations? # :nodoc:
+        configuration_hash.fetch(:dump_schema_migrations, ActiveRecord.dump_schema_migrations)
+      end
+
       private
         def schema_file_type(format)
           case format.to_sym

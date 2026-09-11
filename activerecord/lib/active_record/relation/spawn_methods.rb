@@ -30,17 +30,17 @@ module ActiveRecord
     #
     # For conditions that exist in both relations, those from <tt>other</tt> will take precedence.
     # To find the intersection of two relations, use QueryMethods#and.
-    def merge(other, *rest)
+    def merge(other)
       if other.is_a?(Array)
         records & other
       elsif other
-        spawn.merge!(other, *rest)
+        spawn.merge!(other)
       else
         raise ArgumentError, "invalid argument: #{other.inspect}."
       end
     end
 
-    def merge!(other, *rest) # :nodoc:
+    def merge!(other) # :nodoc:
       if other.is_a?(Hash)
         Relation::HashMerger.new(self, other).merge
       elsif other.is_a?(Relation)

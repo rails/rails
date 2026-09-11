@@ -38,7 +38,7 @@ module ActiveRecord
         args.concat(Array(extra_flags)) if extra_flags
         args << db_config.database
 
-        ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
+        ignore_tables = ActiveRecord.schema_ignored_tables
         if ignore_tables.any?
           ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
           condition = ignore_tables.map { |table| connection.quote(table) }.join(", ")

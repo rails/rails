@@ -28,7 +28,7 @@ module ActionDispatch
     include ActionDispatch::ContentSecurityPolicy::Request
     include Rack::Request::Env
 
-    LOCALHOST   = Regexp.union [/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]
+    LOCALHOST = Regexp.union([/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]).freeze
 
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
@@ -129,8 +129,10 @@ module ActionDispatch
     RFC4791 = %w(MKCALENDAR).freeze
     # HTTP methods from [RFC 5789: PATCH Method for HTTP](https://www.ietf.org/rfc/rfc5789.txt)
     RFC5789 = %w(PATCH).freeze
+    # HTTP methods from [RFC 10008: The HTTP QUERY Method](https://www.ietf.org/rfc/rfc10008.txt)
+    RFC10008 = %w(QUERY).freeze
 
-    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789
+    HTTP_METHODS = RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789 + RFC10008
 
     # Populate the HTTP method lookup cache.
     HTTP_METHOD_LOOKUP = HTTP_METHODS.each.with_object({}) { |method, hash|
@@ -205,13 +207,20 @@ module ActionDispatch
       HTTP_METHOD_LOOKUP[request_method]
     end
 
+    # Checks the HTTP request method (or verb) to see if it was of type `QUERY`.
+    # QUERY is a safe and idempotent HTTP method for queries with a request body,
+    # defined in [RFC 10008: The HTTP QUERY Method](https://www.ietf.org/rfc/rfc10008.txt).
+    def query?
+      request_method == "QUERY"
+    end
+
     # Returns the original value of the environment's REQUEST_METHOD, even if it was
     # overridden by middleware. See #request_method for more information.
     #
     # For debugging purposes, when called with arguments this method will fall back
     # to Object#method
-    def method(*args)
-      if args.empty?
+    def method(*args, **kwargs)
+      if args.empty? && kwargs.empty?
         @method ||= check_method(
           get_header("rack.methodoverride.original_method") ||
           get_header("REQUEST_METHOD")
@@ -220,7 +229,6 @@ module ActionDispatch
         super
       end
     end
-    ruby2_keywords(:method)
 
     # Returns a symbol form of the #method.
     def method_symbol
@@ -283,7 +291,7 @@ module ActionDispatch
 
     # The `String` MIME type of the request.
     #
-    #     # get "/articles"
+    #     # post "/articles", params: { title: "Rails" }
     #     request.media_type # => "application/x-www-form-urlencoded"
     def media_type
       content_mime_type&.to_s
@@ -470,10 +478,10 @@ module ActionDispatch
       authorization.to_s[/\ABearer (.+)\z/i, 1]
     end
 
-    # True if the request method is safe per RFC 9110 §9.2.1
-    # (GET, HEAD, OPTIONS, or TRACE).
+    # True if the request method is safe per RFC 9110 §9.2.1 (GET, HEAD,
+    # OPTIONS, or TRACE) or RFC 10008 (QUERY).
     def safe_method?
-      get? || head? || options? || trace?
+      get? || head? || query? || options? || trace?
     end
 
     # True if the request method may modify resources. Inverse of #safe_method?.

@@ -26,6 +26,8 @@ module Arel # :nodoc: all
         as = nil
       end
       @table_alias = as
+
+      ActiveSupport::Ractors.make_shareable(self)
     end
 
     def name

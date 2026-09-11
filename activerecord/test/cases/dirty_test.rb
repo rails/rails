@@ -997,7 +997,7 @@ class DirtyTest < ActiveRecord::TestCase
     record_with_defaults.update!(random_number: 140)
 
     assert_equal [1050, 1400], record_with_defaults.previous_changes[:virtual_stored_number]
-  end if current_adapter?(:PostgreSQLAdapter)
+  end if current_adapter?(:PostgreSQLAdapter) && supports_virtual_columns?
 
   private
     def with_partial_writes(klass, on = true)

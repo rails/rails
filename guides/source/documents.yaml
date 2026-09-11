@@ -66,6 +66,32 @@
         the Rails framework. This guide provides you with all you need to get
         started using Active Model classes.
 -
+  name: Routing and Controllers
+  documents:
+    -
+      name: Rails Routing from the Outside In
+      url: routing.html
+      description: >
+        The Rails router recognizes URLs and dispatches them to a controller's
+        action. This guide covers the user-facing features of Rails routing.
+        If you want to understand how to use routing in your own Rails
+        applications, start here.
+    -
+      name: Action Controller Overview
+      url: action_controller_overview.html
+      description: >
+        Action Controllers are the core of a web request in Rails.
+        This guide covers how controllers work and how they fit into the
+        request cycle of your application. Topics include accessing parameters in controller actions, using sessions and cookies, controller callbacks.
+    -
+      name: Action Controller Advanced Topics
+      url: action_controller_advanced_topics.html
+      description: >
+        This guide covers a number of advanced topics related to controllers in
+        a Rails application such as protecting against cross-site request
+        forgery, HTTP authentication, data streaming, and dealing with
+        exceptions, log filtering, and more.
+-
   name: Views
   documents:
     -
@@ -93,29 +119,6 @@
         the need to handle form control naming and its numerous attributes.
         Rails does away with this complexity by providing view helpers for
         generating form markup.
--
-  name: Controllers
-  documents:
-    -
-      name: Action Controller Overview
-      url: action_controller_overview.html
-      description: >
-        Action Controllers are the core of a web request in Rails.
-        This guide covers how controllers work and how they fit into the
-        request cycle of your application. Topics include accessing parameters in controller actions, using sessions and cookies, controller callbacks.
-    -
-      name: Action Controller Advanced Topics
-      url: action_controller_advanced_topics.html
-      description: >
-        This guide covers a number of advanced topics related to controllers in a Rails application such as protecting against cross-site request forgery, HTTP authentication, data streaming, and dealing with exceptions, log filtering, and more.
-    -
-      name: Rails Routing from the Outside In
-      url: routing.html
-      description: >
-        The Rails router recognizes URLs and dispatches them to a controller's
-        action. This guide covers the user-facing features of Rails routing.
-        If you want to understand how to use routing in your own Rails
-        applications, start here.
 -
   name: Other Components
   documents:

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/values/time_zone"
+
 module ActionView
   module Helpers
     module Tags # :nodoc:

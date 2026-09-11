@@ -97,7 +97,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
       record_with_defaults.update!(random_number: 105)
       assert_equal 1050,  record_with_defaults.virtual_stored_number
-    end
+    end if supports_virtual_columns?
 
     def test_returning_columns_on_update_does_not_include_id
       record_with_defaults = Default.create

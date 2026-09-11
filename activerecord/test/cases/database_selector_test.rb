@@ -298,6 +298,34 @@ module ActiveRecord
       assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "GET")
     end
 
+    def test_the_middleware_chooses_reading_role_with_QUERY_request
+      middleware = ActiveRecord::Middleware::DatabaseSelector.new(lambda { |env|
+        assert ActiveRecord::Base.connected_to?(role: :reading)
+        [200, {}, ["body"]]
+      })
+      cache = ActiveSupport::Cache::MemoryStore.new
+      middleware = ActionDispatch::Session::CacheStore.new(middleware, cache: cache, key: "_session_id")
+
+      assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "QUERY")
+    end
+
+    def test_the_middleware_chooses_primary_for_QUERY_request_within_the_write_window
+      roles = []
+      middleware = ActiveRecord::Middleware::DatabaseSelector.new(lambda { |env|
+        roles << (ActiveRecord::Base.connected_to?(role: :writing) ? :writing : :reading)
+        [200, {}, ["body"]]
+      })
+      cache = ActiveSupport::Cache::MemoryStore.new
+      middleware = ActionDispatch::Session::CacheStore.new(middleware, cache: cache, key: "_session_id")
+      middleware = ActionDispatch::Cookies.new(middleware)
+
+      _, headers, _ = middleware.call("REQUEST_METHOD" => "POST")
+      cookie = headers["set-cookie"]
+      middleware.call("REQUEST_METHOD" => "QUERY", "HTTP_COOKIE" => cookie)
+
+      assert_equal [:writing, :writing], roles
+    end
+
     class ReadonlyResolver < ActiveRecord::Middleware::DatabaseSelector::Resolver
       def reading_request?(request)
         true

@@ -121,7 +121,7 @@ class Releaser < Rake::TaskLib
         [*FRAMEWORKS, "rails"].each do |fw|
           path = gem_path(fw)
           sha = ::Digest::SHA256.file(path)
-          puts "#{sha}  #{path}"
+          puts checksum_line(sha, path)
         end
         puts
       end
@@ -228,6 +228,18 @@ class Releaser < Rake::TaskLib
     "#{framework}.gemspec"
   end
 
+  def checksum_line(sha, path)
+    if github_actions?
+      # Surface the checksum as a notice annotation in the GitHub Actions run,
+      # keeping the same "sha  path" format so it can be copied directly into the release post.
+      # See https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#setting-a-notice-message
+      file = File.expand_path(path)
+      "::notice file=#{file},title=SHA-256::#{sha}  #{path}"
+    else
+      "#{sha}  #{path}"
+    end
+  end
+
   def update_versions(framework)
     return if framework == "rails"
 
@@ -290,6 +302,10 @@ class Releaser < Rake::TaskLib
   end
 
   private
+    def github_actions?
+      ENV["GITHUB_ACTIONS"] == "true"
+    end
+
     FILES_TO_IGNORE = %w(
       RAILS_VERSION
       CHANGELOG

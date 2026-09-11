@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "yaml"
@@ -8,29 +9,32 @@ require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
-  # = Encrypted Configuration
+  # Encrypted Configuration
+  # =======================
   #
   # Provides convenience methods on top of EncryptedFile to access values stored
   # as encrypted YAML.
   #
-  # Values can be accessed via +Hash+ methods, such as +fetch+ and +dig+, or via
+  # Values can be accessed via `Hash` methods, such as `fetch` and `dig`, or via
   # dynamic accessor methods, similar to OrderedOptions.
   #
-  #   my_config = ActiveSupport::EncryptedConfiguration.new(...)
-  #   my_config.read # => "some_secret: 123\nsome_namespace:\n  another_secret: 456"
+  # ```
+  # my_config = ActiveSupport::EncryptedConfiguration.new(...)
+  # my_config.read # => "some_secret: 123\nsome_namespace:\n  another_secret: 456"
   #
-  #   my_config[:some_secret]
-  #   # => 123
-  #   my_config.some_secret
-  #   # => 123
-  #   my_config.dig(:some_namespace, :another_secret)
-  #   # => 456
-  #   my_config.some_namespace.another_secret
-  #   # => 456
-  #   my_config.fetch(:foo)
-  #   # => KeyError
-  #   my_config.foo!
-  #   # => KeyError
+  # my_config[:some_secret]
+  # # => 123
+  # my_config.some_secret
+  # # => 123
+  # my_config.dig(:some_namespace, :another_secret)
+  # # => 456
+  # my_config.some_namespace.another_secret
+  # # => 456
+  # my_config.fetch(:foo)
+  # # => KeyError
+  # my_config.foo!
+  # # => KeyError
+  # ```
   #
   class EncryptedConfiguration < EncryptedFile
     class InvalidContentError < RuntimeError
@@ -59,17 +63,23 @@ module ActiveSupport
     end
 
     # Find singular or nested keys.
-    # Raises +KeyError+ if not found or nil.
+    # Raises `KeyError` if not found or nil.
     #
     # Given configuration:
-    #   db_port: null
-    #   database:
-    #     host: "db.example.com"
+    #
+    # ```
+    # db_port: null
+    # database:
+    #   host: "db.example.com"
+    # ```
     #
     # Examples:
-    #   require(:database, :host) # => "db.example.com"
-    #   require(:missing)         # => KeyError
-    #   require(:db_port)         # => KeyError (nil values are treated as missing)
+    #
+    # ```
+    # require(:database, :host) # => "db.example.com"
+    # require(:missing)         # => KeyError
+    # require(:db_port)         # => KeyError (nil values are treated as missing)
+    # ```
     def require(*key)
       value = dig(*key)
 
@@ -81,20 +91,26 @@ module ActiveSupport
     end
 
     # Find singular or nested keys.
-    # Returns +nil+ if the key isn't found.
-    # If a +default+ value is defined, it (or its callable value) will be returned on a missing key or nil value.
+    # Returns `nil` if the key isn't found.
+    # If a `default` value is defined, it (or its callable value) will be returned on a missing key or nil value.
     #
     # Given configuration:
-    #   db_port: null
-    #   database:
-    #     host: "db.example.com"
+    #
+    # ```
+    # db_port: null
+    # database:
+    #   host: "db.example.com"
+    # ```
     #
     # Examples:
-    #   option(:database, :host)               # => "db.example.com"
-    #   option(:missing)                       # => nil
-    #   option(:missing, default: "localhost")        # => "localhost"
-    #   option(:missing, default: -> { "localhost" }) # => "localhost"
-    #   option(:db_port, default: 5432)               # => 5432 (nil values use default)
+    #
+    # ```
+    # option(:database, :host)               # => "db.example.com"
+    # option(:missing)                       # => nil
+    # option(:missing, default: "localhost")        # => "localhost"
+    # option(:missing, default: -> { "localhost" }) # => "localhost"
+    # option(:db_port, default: 5432)               # => 5432 (nil values use default)
+    # ```
     def option(*key, default: nil)
       value = dig(*key)
 
@@ -130,11 +146,13 @@ module ActiveSupport
 
     # Returns the decrypted content as a Hash with symbolized keys.
     #
-    #   my_config = ActiveSupport::EncryptedConfiguration.new(...)
-    #   my_config.read # => "some_secret: 123\nsome_namespace:\n  another_secret: 456"
+    # ```
+    # my_config = ActiveSupport::EncryptedConfiguration.new(...)
+    # my_config.read # => "some_secret: 123\nsome_namespace:\n  another_secret: 456"
     #
-    #   my_config.config
-    #   # => { some_secret: 123, some_namespace: { another_secret: 456 } }
+    # my_config.config
+    # # => { some_secret: 123, some_namespace: { another_secret: 456 } }
+    # ```
     #
     def config
       @config ||= deep_symbolize_keys(deserialize(read))
@@ -142,11 +160,13 @@ module ActiveSupport
 
     # Returns an array of symbolized keys from the decrypted configuration.
     #
-    #   my_config = ActiveSupport::EncryptedConfiguration.new(...)
-    #   my_config.read # => "some_secret: 123\nsome_namespace:\n  another_secret: 456"
+    # ```
+    # my_config = ActiveSupport::EncryptedConfiguration.new(...)
+    # my_config.read # => "some_secret: 123\nsome_namespace:\n  another_secret: 456"
     #
-    #   my_config.keys
-    #   # => [:some_secret, :some_namespace]
+    # my_config.keys
+    # # => [:some_secret, :some_namespace]
+    # ```
     #
     def keys
       config.keys

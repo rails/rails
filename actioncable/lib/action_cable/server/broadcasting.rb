@@ -2,6 +2,8 @@
 
 # :markup: markdown
 
+require "active_support/core_ext/string/filters"
+
 module ActionCable
   module Server
     # # Action Cable Server Broadcasting

@@ -12,11 +12,13 @@ rescue LoadError
 end
 
 require "redis-client"
+require "active_support/deprecation"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/numeric/time"
 require "active_support/digest"
 require "active_support/inspect_backport"
+require "active_support/core_ext/string/filters"
 
 module ActiveSupport
   module Cache
@@ -45,11 +47,15 @@ module ActiveSupport
     #     cache.read("greeting")                 # => nil
     #
     class RedisCacheStore < Store
-      DEFAULT_REDIS_OPTIONS = {
-        connect_timeout:    1,
-        read_timeout:       1,
-        write_timeout:      1,
-      }.freeze
+      DEFAULT_REDIS_OPTIONS = ActiveSupport::Deprecation::DeprecatedObjectProxy.new(
+        {
+          connect_timeout: 1,
+          read_timeout: 1,
+          write_timeout: 1,
+        }.freeze,
+        "ActiveSupport::Cache::RedisCacheStore::DEFAULT_REDIS_OPTIONS is deprecated and will be removed in Rails 9.0. Pass timeout options to RedisCacheStore or a configured RedisClient instead.",
+        ActiveSupport.deprecator,
+      )
 
       DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) do
         if logger
@@ -71,7 +77,7 @@ module ActiveSupport
         if options[:redis]
           ActiveSupport.deprecator.warn(<<~MSG.squish)
             Passing a Redis or ConnectionPool instance via the `:redis` configuration to ActiveSupport::Cache::RedisCacheStore
-            is deprecated and will be removed in Rails 8.3.
+            is deprecated and will be removed in Rails 9.0.
 
             RedisCacheStore no longer depends on the `redis` gem, but use the simpler `redis-client`.
 
@@ -300,14 +306,15 @@ module ActiveSupport
           if namespace = merged_options(options)[:namespace]
             delete_matched "*", namespace: namespace
           else
-            redis.then { |c| c.flushdb }
+            redis.nodes.each { |node| node.call("flushdb") }
           end
         end
       end
 
       # Get info from redis servers.
       def stats
-        redis.then { |c| c.info }
+        infos = redis.nodes.map { |node| node.call("info") }
+        infos.size == 1 ? infos.first : infos
       end
 
       private
@@ -436,12 +443,6 @@ module ActiveSupport
             entry.value.to_s
           else
             super(entry, raw: raw, **options)
-          end
-        end
-
-        def serialize_entries(entries, **options)
-          entries.transform_values do |entry|
-            serialize_entry(entry, **options)
           end
         end
 

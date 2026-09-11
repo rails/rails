@@ -173,16 +173,16 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_subquery
     relation = Topic.where(approved: true)
-    assert_equal relation.to_a, Topic.select("*").from(relation).to_a
-    assert_equal relation.to_a, Topic.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Topic.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Topic.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Topic.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Topic.select("a.*").from(relation, :a).to_a
   end
 
   def test_finding_with_subquery_with_binds
     relation = Post.first.comments
-    assert_equal relation.to_a, Comment.select("*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Comment.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("a.*").from(relation, :a).to_a
   end
 
   def test_finding_with_subquery_without_select_does_not_change_the_select
@@ -255,9 +255,9 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_subquery_with_eager_loading_in_from
     relation = Comment.includes(:post).where("posts.type": "Post").order(:id)
-    assert_equal relation.to_a, Comment.select("*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Comment.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("a.*").from(relation, :a).to_a
   end
 
   unless current_adapter?(:SQLite3Adapter)
@@ -267,8 +267,8 @@ class RelationTest < ActiveRecord::TestCase
       union = Arel::Nodes::Union.new(arel1, arel2)
       expected = [comments(:greetings), comments(:more_greetings)]
 
-      assert_equal expected, Comment.select("subquery.*").from(union).to_a
-      assert_equal expected, Comment.select("a.*").from(union, :a).to_a
+      assert_equal_unordered expected, Comment.select("subquery.*").from(union).to_a
+      assert_equal_unordered expected, Comment.select("a.*").from(union, :a).to_a
     end
   end
 
@@ -2220,13 +2220,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "relations show the records in #inspect" do
-    relation = Post.limit(2)
-    assert_equal "#<ActiveRecord::Relation [#{Post.limit(2).map(&:inspect).join(', ')}]>", relation.inspect
+    relation = Post.order(:id).limit(2)
+    assert_equal "#<ActiveRecord::Relation [#{Post.order(:id).limit(2).map(&:inspect).join(', ')}]>", relation.inspect
   end
 
   test "relations limit the records in #inspect at 10" do
-    relation = Post.limit(11)
-    assert_equal "#<ActiveRecord::Relation [#{Post.limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
+    relation = Post.order(:id).limit(11)
+    assert_equal "#<ActiveRecord::Relation [#{Post.order(:id).limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
   end
 
   test "relations don't load all records in #inspect" do

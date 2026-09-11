@@ -855,12 +855,6 @@ class DeprecationTest < ActiveSupport::TestCase
       deprecator.warn
     end
 
-    def with_rails_application_deprecators(&block)
-      application = Struct.new(:deprecators).new(ActiveSupport::Deprecation::Deprecators.new)
-      rails = Struct.new(:application).new(application)
-      rails.application.deprecators[:deprecator] = @deprecator
-      stub_const(Object, :Rails, rails, &block)
-    end
 
     def deprecator_with_messages
       klass = Class.new(ActiveSupport::Deprecation)

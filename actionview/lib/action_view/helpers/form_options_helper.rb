@@ -5,6 +5,7 @@ require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/array/wrap"
 require "action_view/helpers/text_helper"
+require "active_support/values/time_zone"
 
 module ActionView
   module Helpers # :nodoc:

@@ -37,6 +37,13 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_equal "redis://localhost:6379", @cache.redis.config.server_url
     end
 
+    test "default Redis options constant is deprecated" do
+      options = assert_deprecated(/RedisCacheStore::DEFAULT_REDIS_OPTIONS is deprecated/, ActiveSupport.deprecator) do
+        ActiveSupport::Cache::RedisCacheStore::DEFAULT_REDIS_OPTIONS.to_h
+      end
+      assert_equal({ connect_timeout: 1, read_timeout: 1, write_timeout: 1 }, options)
+    end
+
     test "no URLs uses Redis client with default settings" do
       @cache = ActiveSupport::Cache::RedisCacheStore.new(url: [])
       assert_equal 1, @cache.redis.connect_timeout
@@ -66,6 +73,34 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_kind_of ::RedisClient::HashRing, @cache.redis
       assert_equal REDIS_URLS.size, @cache.redis.nodes.size
       assert_equal REDIS_URLS.map { |u| u.delete_suffix("/0") }, @cache.redis.nodes.map { |n| n.config.server_url }
+    end
+
+    test "clear without a namespace issues FLUSHDB on each HashRing node" do
+      @cache = build url: REDIS_URLS
+      flushed = []
+
+      @cache.redis.nodes.each do |node|
+        node.define_singleton_method(:call) do |command, *|
+          flushed << command
+          "OK"
+        end
+      end
+
+      @cache.clear
+
+      assert_equal ["flushdb"] * REDIS_URLS.size, flushed
+    end
+
+    test "stats collects INFO from each HashRing node" do
+      @cache = build url: REDIS_URLS
+
+      @cache.redis.nodes.each_with_index do |node, index|
+        node.define_singleton_method(:call) do |command, *|
+          "info-#{index}" if command == "info"
+        end
+      end
+
+      assert_equal ["info-0", "info-1"], @cache.stats
     end
 
     test "one :client Config" do
@@ -130,6 +165,30 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       def build(**kwargs)
         ActiveSupport::Cache::RedisCacheStore.new(url: REDIS_URL, **kwargs).tap(&:redis)
       end
+  end
+
+  class CommandsTest < ActiveSupport::TestCase
+    setup do
+      skip "Redis server is not up" unless REDIS_UP
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(client: RedisClient.config(url: REDIS_URL), pool: false)
+    end
+
+    teardown do
+      @cache&.redis&.close
+    end
+
+    test "clear without a namespace flushes the database" do
+      @cache.write("foo", "bar")
+      assert_equal "bar", @cache.read("foo")
+
+      @cache.clear
+
+      assert_nil @cache.read("foo")
+    end
+
+    test "stats returns server info" do
+      assert_match(/redis_version/, @cache.stats)
+    end
   end
 
   class StoreTest < ActiveSupport::TestCase

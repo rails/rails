@@ -1,12 +1,13 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "date"
 
 class DateTime
   class << self
-    # Returns <tt>Time.zone.now.to_datetime</tt> when <tt>Time.zone</tt> or
-    # <tt>config.time_zone</tt> are set, otherwise returns
-    # <tt>Time.now.to_datetime</tt>.
+    # Returns `Time.zone.now.to_datetime` when `Time.zone` or
+    # `config.time_zone` are set, otherwise returns
+    # `Time.now.to_datetime`.
     def current
       ::Time.zone ? ::Time.zone.now.to_datetime : ::Time.now.to_datetime
     end
@@ -14,40 +15,48 @@ class DateTime
 
   # Returns the number of seconds since 00:00:00.
   #
-  #   DateTime.new(2012, 8, 29,  0,  0,  0).seconds_since_midnight # => 0
-  #   DateTime.new(2012, 8, 29, 12, 34, 56).seconds_since_midnight # => 45296
-  #   DateTime.new(2012, 8, 29, 23, 59, 59).seconds_since_midnight # => 86399
+  # ```
+  # DateTime.new(2012, 8, 29,  0,  0,  0).seconds_since_midnight # => 0
+  # DateTime.new(2012, 8, 29, 12, 34, 56).seconds_since_midnight # => 45296
+  # DateTime.new(2012, 8, 29, 23, 59, 59).seconds_since_midnight # => 86399
+  # ```
   def seconds_since_midnight
     sec + (min * 60) + (hour * 3600)
   end
 
   # Returns the number of seconds until 23:59:59.
   #
-  #   DateTime.new(2012, 8, 29,  0,  0,  0).seconds_until_end_of_day # => 86399
-  #   DateTime.new(2012, 8, 29, 12, 34, 56).seconds_until_end_of_day # => 41103
-  #   DateTime.new(2012, 8, 29, 23, 59, 59).seconds_until_end_of_day # => 0
+  # ```
+  # DateTime.new(2012, 8, 29,  0,  0,  0).seconds_until_end_of_day # => 86399
+  # DateTime.new(2012, 8, 29, 12, 34, 56).seconds_until_end_of_day # => 41103
+  # DateTime.new(2012, 8, 29, 23, 59, 59).seconds_until_end_of_day # => 0
+  # ```
   def seconds_until_end_of_day
     end_of_day.to_i - to_i
   end
 
-  # Returns the fraction of a second as a +Rational+
+  # Returns the fraction of a second as a `Rational`
   #
-  #   DateTime.new(2012, 8, 29, 0, 0, 0.5).subsec # => (1/2)
+  # ```
+  # DateTime.new(2012, 8, 29, 0, 0, 0.5).subsec # => (1/2)
+  # ```
   def subsec
     sec_fraction
   end
 
   # Returns a new DateTime where one or more of the elements have been changed
-  # according to the +options+ parameter. The time options (<tt>:hour</tt>,
-  # <tt>:min</tt>, <tt>:sec</tt>) reset cascadingly, so if only the hour is
+  # according to the `options` parameter. The time options (`:hour`,
+  # `:min`, `:sec`) reset cascadingly, so if only the hour is
   # passed, then minute and sec is set to 0. If the hour and minute is passed,
-  # then sec is set to 0. The +options+ parameter takes a hash with any of these
-  # keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>, <tt>:hour</tt>,
-  # <tt>:min</tt>, <tt>:sec</tt>, <tt>:offset</tt>, <tt>:start</tt>.
+  # then sec is set to 0. The `options` parameter takes a hash with any of these
+  # keys: `:year`, `:month`, `:day`, `:hour`,
+  # `:min`, `:sec`, `:offset`, `:start`.
   #
-  #   DateTime.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => DateTime.new(2012, 8, 1, 22, 35, 0)
-  #   DateTime.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => DateTime.new(1981, 8, 1, 22, 35, 0)
-  #   DateTime.new(2012, 8, 29, 22, 35, 0).change(year: 1981, hour: 0) # => DateTime.new(1981, 8, 29, 0, 0, 0)
+  # ```
+  # DateTime.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => DateTime.new(2012, 8, 1, 22, 35, 0)
+  # DateTime.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => DateTime.new(1981, 8, 1, 22, 35, 0)
+  # DateTime.new(2012, 8, 29, 22, 35, 0).change(year: 1981, hour: 0) # => DateTime.new(1981, 8, 29, 0, 0, 0)
+  # ```
   def change(options)
     if new_nsec = options[:nsec]
       raise ArgumentError, "Can't change both :nsec and :usec at the same time: #{options.inspect}" if options[:usec]
@@ -72,9 +81,9 @@ class DateTime
   end
 
   # Uses Date to provide precise Time calculations for years, months, and days.
-  # The +options+ parameter takes a hash with any of these keys: <tt>:years</tt>,
-  # <tt>:months</tt>, <tt>:weeks</tt>, <tt>:days</tt>, <tt>:hours</tt>,
-  # <tt>:minutes</tt>, <tt>:seconds</tt>.
+  # The `options` parameter takes a hash with any of these keys: `:years`,
+  # `:months`, `:weeks`, `:days`, `:hours`,
+  # `:minutes`, `:seconds`.
   #
   # Just like Date#advance, increments are applied in order of time units from
   # largest to smallest. This order can affect the result around the end of a
@@ -167,7 +176,7 @@ class DateTime
   end
   alias :at_end_of_minute :end_of_minute
 
-  # Returns a <tt>Time</tt> instance of the simultaneous time in the system timezone.
+  # Returns a `Time` instance of the simultaneous time in the system timezone.
   def localtime(utc_offset = nil)
     utc = new_offset(0)
 
@@ -178,10 +187,12 @@ class DateTime
   end
   alias_method :getlocal, :localtime
 
-  # Returns a <tt>Time</tt> instance of the simultaneous time in the UTC timezone.
+  # Returns a `Time` instance of the simultaneous time in the UTC timezone.
   #
-  #   DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24))     # => Mon, 21 Feb 2005 10:11:12 -0600
-  #   DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24)).utc # => Mon, 21 Feb 2005 16:11:12 UTC
+  # ```
+  # DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24))     # => Mon, 21 Feb 2005 10:11:12 -0600
+  # DateTime.civil(2005, 2, 21, 10, 11, 12, Rational(-6, 24)).utc # => Mon, 21 Feb 2005 16:11:12 UTC
+  # ```
   def utc
     utc = new_offset(0)
 
@@ -194,7 +205,7 @@ class DateTime
   alias_method :getutc, :utc
   alias_method :gmtime, :utc
 
-  # Returns +true+ if <tt>offset == 0</tt>.
+  # Returns `true` if `offset == 0`.
   def utc?
     offset == 0
   end

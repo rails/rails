@@ -377,6 +377,20 @@ module ActionCable::StreamTests
       end
     end
 
+    test "default stream handlers do not run through the worker pool" do
+      run_in_eventmachine do
+        open_connection
+        subscribe_to identifiers: { id: 1 }
+
+        assert_not_called socket, :perform_work do
+          server.broadcast "test_room_1", { foo: "bar" }
+          wait_for_async
+        end
+
+        assert_equal({ "foo" => "bar" }, socket.last_transmission.fetch("message"))
+      end
+    end
+
     test "subscription confirmation should only be sent out once with multiple stream_from" do
       run_in_eventmachine do
         open_connection

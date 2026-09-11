@@ -858,6 +858,17 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_skips_query_for_nil_foreign_key_even_when_key_types_differ
+    post = Postesque.new(author_id: nil)
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [post], associations: :author_with_address).call
+    end
+
+    assert_predicate post.association(:author_with_address), :loaded?
+    assert_nil post.author_with_address
+  end
+
   def test_preload_does_not_concatenate_duplicate_records
     post = posts(:welcome)
     post.reload
@@ -957,10 +968,13 @@ class PreloaderTest < ActiveRecord::TestCase
       body: "this post is also about David"
     )
 
+    loaders = nil
     assert_queries_count(2) do
       preloader = ActiveRecord::Associations::Preloader.new(records: [david, david2, bob], associations: :posts_mentioning_author)
-      preloader.call
+      loaders = preloader.call
     end
+
+    assert_equal 2, loaders.size
 
     assert_predicate david.posts_mentioning_author, :loaded?
     assert_predicate david2.posts_mentioning_author, :loaded?
@@ -1213,7 +1227,9 @@ class PreloaderTest < ActiveRecord::TestCase
 
   def test_preload_does_not_group_same_class_different_scope
     post = posts(:welcome)
-    postesque = Postesque.create(author: Author.last)
+    david = authors(:david)
+    bob = authors(:bob)
+    postesque = Postesque.create(author_id: bob.id)
     postesque.reload
 
     # When the scopes differ in the generated SQL:
@@ -1225,8 +1241,8 @@ class PreloaderTest < ActiveRecord::TestCase
     end
 
     assert_no_queries do
-      post.author_with_the_letter_a
-      postesque.author_with_the_letter_a
+      assert_equal david, post.author_with_the_letter_a
+      assert_equal bob, postesque.author_with_the_letter_a
     end
 
     post.reload
@@ -1239,8 +1255,10 @@ class PreloaderTest < ActiveRecord::TestCase
     end
 
     assert_no_queries do
-      post.author_with_address
-      postesque.author_with_address
+      assert_equal david, post.author_with_address
+      assert_equal bob, postesque.author_with_address
+      assert_predicate post.author_with_address.association(:author_address), :loaded?
+      assert_not_predicate postesque.author_with_address.association(:author_address), :loaded?
     end
   end
 

@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 begin
@@ -14,7 +15,8 @@ require "active_support/core_ext/numeric/time"
 
 module ActiveSupport
   module Cache
-    # = Memcached \Cache \Store
+    # Memcached \Cache \Store
+    # =======================
     #
     # A cache store implementation which stores data in Memcached:
     # https://memcached.org
@@ -22,11 +24,12 @@ module ActiveSupport
     # This is currently the most popular cache store for production websites.
     #
     # Special features:
-    # - Clustering and load balancing. One can specify multiple memcached servers,
-    #   and +MemCacheStore+ will load balance between all available servers. If a
-    #   server goes down, then +MemCacheStore+ will ignore it until it comes back up.
     #
-    # +MemCacheStore+ implements the Strategy::LocalCache strategy which
+    # - Clustering and load balancing. One can specify multiple memcached servers,
+    #   and `MemCacheStore` will load balance between all available servers. If a
+    #   server goes down, then `MemCacheStore` will ignore it until it comes back up.
+    #
+    # `MemCacheStore` implements the Strategy::LocalCache strategy which
     # implements an in-memory cache inside of a block.
     class MemCacheStore < Store
       # These options represent behavior overridden by this implementation and should
@@ -45,10 +48,12 @@ module ActiveSupport
       # - ENV["MEMCACHE_SERVERS"] (if defined)
       # - "127.0.0.1:11211"        (otherwise)
       #
-      #   ActiveSupport::Cache::MemCacheStore.build_mem_cache
-      #     # => #<Dalli::Client:0x007f98a47d2028 @servers=["127.0.0.1:11211"], @options={}, @ring=nil>
-      #   ActiveSupport::Cache::MemCacheStore.build_mem_cache('localhost:10290')
-      #     # => #<Dalli::Client:0x007f98a47b3a60 @servers=["localhost:10290"], @options={}, @ring=nil>
+      # ```
+      # ActiveSupport::Cache::MemCacheStore.build_mem_cache
+      #   # => #<Dalli::Client:0x007f98a47d2028 @servers=["127.0.0.1:11211"], @options={}, @ring=nil>
+      # ActiveSupport::Cache::MemCacheStore.build_mem_cache('localhost:10290')
+      #   # => #<Dalli::Client:0x007f98a47b3a60 @servers=["localhost:10290"], @options={}, @ring=nil>
+      # ```
       def self.build_mem_cache(*addresses) # :nodoc:
         addresses = addresses.flatten
         options = addresses.extract_options!
@@ -62,14 +67,16 @@ module ActiveSupport
         end
       end
 
-      # Creates a new +MemCacheStore+ object, with the given memcached server
+      # Creates a new `MemCacheStore` object, with the given memcached server
       # addresses. Each address is either a host name, or a host-with-port string
       # in the form of "host_name:port". For example:
       #
-      #   ActiveSupport::Cache::MemCacheStore.new("localhost", "server-downstairs.localnetwork:8229")
+      # ```
+      # ActiveSupport::Cache::MemCacheStore.new("localhost", "server-downstairs.localnetwork:8229")
+      # ```
       #
-      # If no addresses are provided, but <tt>ENV['MEMCACHE_SERVERS']</tt> is defined, it will be used instead. Otherwise,
-      # +MemCacheStore+ will connect to localhost:11211 (the default memcached port).
+      # If no addresses are provided, but `ENV['MEMCACHE_SERVERS']` is defined, it will be used instead. Otherwise,
+      # `MemCacheStore` will connect to localhost:11211 (the default memcached port).
       def initialize(*addresses)
         addresses = addresses.flatten
         options = addresses.extract_options!
@@ -105,32 +112,38 @@ module ActiveSupport
       # Behaves the same as ActiveSupport::Cache::Store#write, but supports
       # additional options specific to memcached.
       #
-      # ==== Additional Options
+      # #### Additional Options
       #
-      # * <tt>raw: true</tt> - Sends the value directly to the server as raw
+      # * `raw: true` - Sends the value directly to the server as raw
       #   bytes. The value must be a string or number. You can use memcached
-      #   direct operations like +increment+ and +decrement+ only on raw values.
+      #   direct operations like `increment` and `decrement` only on raw values.
 
       # Increment a cached integer value using the memcached incr atomic operator.
       # Returns the updated value.
       #
-      # If the key is unset or has expired, it will be set to +amount+:
+      # If the key is unset or has expired, it will be set to `amount`:
       #
-      #   cache.increment("foo") # => 1
-      #   cache.increment("bar", 100) # => 100
+      # ```
+      # cache.increment("foo") # => 1
+      # cache.increment("bar", 100) # => 100
+      # ```
       #
-      # To set a specific value, call #write passing <tt>raw: true</tt>:
+      # To set a specific value, call #write passing `raw: true`:
       #
-      #   cache.write("baz", 5, raw: true)
-      #   cache.increment("baz") # => 6
+      # ```
+      # cache.write("baz", 5, raw: true)
+      # cache.increment("baz") # => 6
+      # ```
       #
       # Incrementing a non-numeric value, or a value written without
-      # <tt>raw: true</tt>, will fail and return +nil+.
+      # `raw: true`, will fail and return `nil`.
       #
       # To read the value later, call #read_counter:
       #
-      #   cache.increment("baz") # => 7
-      #   cache.read_counter("baz") # 7
+      # ```
+      # cache.increment("baz") # => 7
+      # cache.read_counter("baz") # 7
+      # ```
       def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
@@ -148,20 +161,26 @@ module ActiveSupport
       # If the key is unset or has expired, it will be set to 0. Memcached
       # does not support negative counters.
       #
-      #   cache.decrement("foo") # => 0
+      # ```
+      # cache.decrement("foo") # => 0
+      # ```
       #
-      # To set a specific value, call #write passing <tt>raw: true</tt>:
+      # To set a specific value, call #write passing `raw: true`:
       #
-      #   cache.write("baz", 5, raw: true)
-      #   cache.decrement("baz") # => 4
+      # ```
+      # cache.write("baz", 5, raw: true)
+      # cache.decrement("baz") # => 4
+      # ```
       #
       # Decrementing a non-numeric value, or a value written without
-      # <tt>raw: true</tt>, will fail and return +nil+.
+      # `raw: true`, will fail and return `nil`.
       #
       # To read the value later, call #read_counter:
       #
-      #   cache.decrement("baz") # => 3
-      #   cache.read_counter("baz") # 3
+      # ```
+      # cache.decrement("baz") # => 3
+      # cache.read_counter("baz") # 3
+      # ```
       def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
@@ -259,6 +278,17 @@ module ActiveSupport
         # Delete an entry from the cache.
         def delete_entry(key, **options)
           rescue_error_with(false) { @data.with { |c| c.delete(key) } }
+        end
+
+        # Dalli's delete_multi doesn't return the deleted count before version 5.0.6.
+        if Gem::Version.new(Dalli::VERSION) >= Gem::Version.new("5.0.6")
+          def delete_multi_entries(entries, **options)
+            return 0 if entries.empty?
+
+            rescue_error_with(0) do
+              @data.with { |c| c.delete_multi(entries) }
+            end
+          end
         end
 
         def serialize_entry(entry, raw: false, **options)

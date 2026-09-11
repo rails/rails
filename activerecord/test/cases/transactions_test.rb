@@ -427,15 +427,6 @@ class TransactionTest < ActiveRecord::TestCase
     assert_not_predicate Topic.find(2), :approved?, "Second should have been unapproved"
   end
 
-  def transaction_with_return
-    Topic.transaction do
-      @first.approved  = true
-      @second.approved = false
-      @first.save
-      @second.save
-      return
-    end
-  end
 
   def transaction_with_shallow_return
     Topic.transaction do
@@ -1420,7 +1411,26 @@ class TransactionTest < ActiveRecord::TestCase
 
     transaction.commit
 
-    assert_nil transaction.state.nullify!
+    assert_deprecated(/nullify!/, ActiveRecord.deprecator) do
+      assert_nil transaction.state.nullify!
+    end
+  end
+
+  def test_deprecated_transaction_state_predicates
+    state = ActiveRecord::ConnectionAdapters::TransactionState.new
+
+    state.full_commit!
+    assert_deprecated(/fully_committed\?/, ActiveRecord.deprecator) do
+      assert_predicate state, :fully_committed?
+    end
+    assert_deprecated(/completed\?/, ActiveRecord.deprecator) do
+      assert_predicate state, :fully_completed?
+    end
+
+    state.full_rollback!
+    assert_deprecated(/fully_rolledback\?/, ActiveRecord.deprecator) do
+      assert_predicate state, :fully_rolledback?
+    end
   end
 
   def test_transaction_rollback_with_primarykeyless_tables

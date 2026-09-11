@@ -6,7 +6,7 @@ module ActiveRecord
       include MonitorMixin
 
       attr_reader :db_config, :role, :shard, :connection_descriptor
-      attr_writer :schema_reflection, :server_version
+      attr_writer :schema_reflection
 
       def schema_reflection
         @schema_reflection ||= SchemaReflection.new(db_config.lazy_schema_cache_path)

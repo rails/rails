@@ -1,16 +1,18 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "weakref"
 
 module ActiveSupport
-  # = Active Support Descendants Tracker
+  # Active Support Descendants Tracker
+  # ==================================
   #
   # This module provides an internal implementation to track descendants
-  # which is faster than iterating through +ObjectSpace+.
+  # which is faster than iterating through `ObjectSpace`.
   #
-  # However Ruby 3.1 provide a fast native +Class#subclasses+ method,
+  # However Ruby 3.1 provide a fast native `Class#subclasses` method,
   # so if you know your code won't be executed on older rubies, including
-  # +ActiveSupport::DescendantsTracker+ does not provide any benefit.
+  # `ActiveSupport::DescendantsTracker` does not provide any benefit.
   module DescendantsTracker
     @clear_disabled = false
 

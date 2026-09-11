@@ -235,6 +235,24 @@ module ActiveRecord
         assert_equal true, config.database_tasks?
       end
 
+      def test_dump_schema_migrations_can_be_configured_per_database
+        ActiveRecord.stub(:dump_schema_migrations, true) do
+          config = HashConfig.new("default_env", "primary", adapter: "abstract")
+          assert_predicate config, :dump_schema_migrations?
+
+          config = HashConfig.new("default_env", "primary", dump_schema_migrations: false, adapter: "abstract")
+          assert_not_predicate config, :dump_schema_migrations?
+        end
+
+        ActiveRecord.stub(:dump_schema_migrations, false) do
+          config = HashConfig.new("default_env", "primary", adapter: "abstract")
+          assert_not_predicate config, :dump_schema_migrations?
+
+          config = HashConfig.new("default_env", "primary", dump_schema_migrations: true, adapter: "abstract")
+          assert_predicate config, :dump_schema_migrations?
+        end
+      end
+
       def test_schema_cache_path_default_for_primary
         config = HashConfig.new("default_env", "primary", adapter: "abstract")
         assert_equal "db/schema_cache.yml", config.default_schema_cache_path

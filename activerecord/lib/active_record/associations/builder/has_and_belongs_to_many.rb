@@ -16,7 +16,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
           attr_accessor :left_model
           attr_accessor :name
           attr_accessor :table_name_resolver
-          attr_accessor :left_reflection
           attr_accessor :right_reflection
         end
 
@@ -33,7 +32,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
         def self.add_left_association(name, options)
           belongs_to name, required: false, **options
-          self.left_reflection = _reflect_on_association(name)
         end
 
         def self.add_right_association(name, options)

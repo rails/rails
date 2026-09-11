@@ -2137,7 +2137,7 @@ of these subscribers.
 Let's generate a model called Subscriber to store these email addresses and
 associate them with the respective product.
 
-NOTE: Here we are not specifying a type for `email` as rails automatically defaults to a `string` when a type is not given for migrations.
+NOTE: Here we are not specifying a type for `email` as Rails automatically defaults to a `string` when a type is not given for migrations.
 
 ```bash
 $ bin/rails generate model Subscriber product:belongs_to email

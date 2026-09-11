@@ -422,12 +422,12 @@ If the resulting lines are too wide, say 200 columns or more, put the comment ab
 ```ruby
 # def self.find_by_login_and_activated(*args)
 #   options = args.extract_options!
-#   ...
+#   # ...
 # end
 self.class_eval %{
   def self.#{method_id}(*args)
     options = args.extract_options!
-    ...
+    # ...
   end
 }, __FILE__, __LINE__
 ```

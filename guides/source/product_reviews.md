@@ -4,7 +4,7 @@ Product Reviews
 ===============
 
 This guide covers adding Reviews to the e-commerce application you created in
-the [Getting Started Guide](getting_started.html)). We will use the code from
+the [Getting Started Guide](getting_started.html). We will use the code from
 the [Wishlists Guide](wishlists.html) as a starting place.
 
 After reading this guide, you will know how to:
@@ -90,7 +90,7 @@ $ bin/rails db:migrate
    -> 0.0036s
 -- add_column(:products, :reviews_count, :integer, {default: 0})
    -> 0.0005s
--- add_column(:products, :rating, :decimal, {precision: 2, scale: 1})
+-- add_column(:products, :rating, :decimal, {precision: 2, scale: 1, default: 0})
    -> 0.0004s
 == 20260421200530 CreateReviews: migrated (0.0045s) ===========================
 ```
@@ -361,7 +361,7 @@ is always set.
 
 ## Displaying Product Reviews
 
-We need to a way to view these product reviews next. Let's use a two-column
+We need a way to view these product reviews next. Let's use a two-column
 layout that shows an overview of ratings on the left and the reviews on the
 right.
 
@@ -566,7 +566,7 @@ average rating on the `Product`.
 
 To solve this, we can add a callback to the `Review` model to update the
 associated `Product` rating. This works very similarly to a counter cache, but
-instead we're calcuating an average.
+instead we're calculating an average.
 
 Let's add the callback to `app/models/review.rb`:
 
@@ -625,7 +625,8 @@ class Review < ApplicationRecord
 
   scope :rated, ->(rating) { rating.present? ? where(rating: rating.to_i) : all }
 
-  validates :body, :rating, presence: true
+  validates :body, presence: true
+  validates :rating, presence: true, numericality: { in: 1..5, only_integer: true }
 
   after_commit :update_product_rating
 
@@ -967,9 +968,9 @@ By default, Rails will replace all of the existing images when a new value is
 assigned. To preserve existing images when editing a review, we need to create
 hidden fields for each image that's already uploaded. These hidden fields use
 the image's `signed_id` to reference the existing ActiveRecord object and also
-ensures that it wasn't tampered with. We use `multiple: true` so Rails generates
+ensure that it wasn't tampered with. We use `multiple: true` so Rails generates
 the correct name to add the `images` param as an array. We also disable the `id`
-generated for this fields since it would generate duplicates and we don't need
+generated for these fields since it would generate duplicates and we don't need
 them.
 
 With that added, store admins can now view, edit, and delete reviews as needed.
@@ -1175,7 +1176,7 @@ $ bin/rails generate integration_test reviews
       create    test/integration/reviews_test.rb
 ```
 
-In `test/integrations/reviews_test.rb`, let's add a test that submits a review
+In `test/integration/reviews_test.rb`, let's add a test that submits a review
 as a logged-in user.
 
 ```ruby
