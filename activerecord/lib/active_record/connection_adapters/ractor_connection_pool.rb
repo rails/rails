@@ -427,12 +427,15 @@ module ActiveRecord
         end
 
         def method_missing(name, *args, **kwargs, &block)
+          return super if name == :marshal_dump || name == :_dump
           return super if block
 
           RactorConnectionProxy.dispatch_to_main_pool(@connection_name, @role, @shard, name, args, kwargs, connection_pool: self)
         end
 
-        def respond_to_missing?(_name, _include_private = false)
+        def respond_to_missing?(name, _include_private = false)
+          return false if name == :marshal_dump || name == :_dump
+
           true
         end
     end

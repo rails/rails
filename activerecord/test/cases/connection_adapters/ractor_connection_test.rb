@@ -451,6 +451,57 @@ module ActiveRecord
           assert_match(/fk mismatch/, raised.message)
         end
 
+        # --- proxy: query retries ---
+
+        def test_connection_failure_is_not_retried_without_allow_retry
+          conn = proxy_connection
+          main_side = RactorConnectionProxy.connections.values.first
+
+          close_connection(main_side)
+
+          assert_raises(ActiveRecord::ConnectionNotEstablished, ActiveRecord::ConnectionFailed) do
+            conn.select_all("SELECT 42")
+          end
+
+          # The next query verify-reconnects and succeeds.
+          assert_equal 1, conn.select_value("SELECT 1")
+        end
+
+        def test_allow_retry_reconnects_a_dead_connection_and_restores_clean_transaction_state
+          conn = proxy_connection
+          main_side = RactorConnectionProxy.connections.values.first
+
+          conn.transaction do
+            # BEGIN reaches the physical connection while it is still alive
+            conn.materialize_transactions
+            close_connection(main_side)
+
+            assert_equal [[42]], conn.select_all("SELECT 42", nil, [], allow_retry: true).rows
+
+            # The retry reconnected the connection with
+            # restore_transactions, re-materializing the mirror transaction on
+            # the new connection; the worker transaction continues seamlessly.
+            assert main_side.transaction_open?
+            conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('retried', 1)"))
+          end
+
+          assert_equal ["retried"], conn.select_values("SELECT name FROM #{widgets_table}")
+        end
+
+        def test_allow_retry_does_not_retry_inside_a_dirty_transaction
+          conn = proxy_connection
+          main_side = RactorConnectionProxy.connections.values.first
+
+          assert_raises(ActiveRecord::ConnectionNotEstablished, ActiveRecord::ConnectionFailed) do
+            conn.transaction do
+              conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('doomed', 1)"))
+              close_connection(main_side)
+            end
+          end
+
+          assert_equal [], conn.select_values("SELECT name FROM #{widgets_table}")
+        end
+
         # --- proxy: lifecycle ---
 
         def test_close_returns_connection_to_pool_and_clears_lease
@@ -753,6 +804,10 @@ module ActiveRecord
 
         def proxy_connection
           RactorConnectionHandler.instance.retrieve_connection("ActiveRecord::Base")
+        end
+
+        def close_connection(main_side)
+          main_side.instance_variable_get(:@raw_connection).close
         end
 
         def install_shareable_notifications_snapshot

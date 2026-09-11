@@ -597,6 +597,7 @@ module ActiveRecord
 
       def verify!
         remote_adapter_call(:verify!)
+        @needs_reconnect = false
         @verified = true
         self
       end
@@ -616,6 +617,7 @@ module ActiveRecord
         # single-manager adapter.
         remote_adapter_call(:reconnect!, [], { restore_transactions: false })
         reset_transaction(restore: restore_transactions) { }
+        @needs_reconnect = false
         @verified = true
         self
       end
@@ -626,6 +628,7 @@ module ActiveRecord
         # Returning the token to the pool here would strand the worker-side
         # lease on a dead proxy.
         remote_adapter_call(:disconnect!) if @connection_token
+        @needs_reconnect = false
         @verified = false
         reset_transaction
       end
@@ -794,28 +797,48 @@ module ActiveRecord
       # worker-materialized transaction reaches the physical connection
       # through its own TransactionManager, keeping the main side aware of
       # the worker's transaction depth.
+      #
+      # The begin verbs run under with_raw_connection(allow_retry: true),
+      # matching the concrete adapters' own BEGIN commands.
       def begin_db_transaction # :nodoc:
-        RactorConnectionProxy.begin_transaction_on_connection(@connection_token, nil, true, connection_pool: @pool)
+        with_raw_connection(allow_retry: true, materialize_transactions: false) do
+          RactorConnectionProxy.begin_transaction_on_connection(@connection_token, nil, true, connection_pool: @pool)
+        end
       end
 
       def begin_isolated_db_transaction(isolation) # :nodoc:
-        RactorConnectionProxy.begin_transaction_on_connection(@connection_token, isolation, true, connection_pool: @pool)
+        with_raw_connection(allow_retry: true, materialize_transactions: false) do
+          RactorConnectionProxy.begin_transaction_on_connection(@connection_token, isolation, true, connection_pool: @pool)
+        end
       end
 
       def begin_deferred_transaction(isolation_level = nil) # :nodoc:
-        RactorConnectionProxy.begin_transaction_on_connection(@connection_token, isolation_level, false, connection_pool: @pool)
+        with_raw_connection(allow_retry: true, materialize_transactions: false) do
+          RactorConnectionProxy.begin_transaction_on_connection(@connection_token, isolation_level, false, connection_pool: @pool)
+        end
       end
 
+      # Commit/rollback/restart run under with_raw_connection like the
+      # concrete adapters' own COMMIT/ROLLBACK commands, so a connection
+      # error downgrades the worker-side state (@verified/@needs_reconnect)
+      # and the next use verify-reconnects instead of trusting a dead
+      # connection. No retry: whether a failed COMMIT landed is unknowable.
       def commit_db_transaction # :nodoc:
-        RactorConnectionProxy.commit_transaction_on_connection(@connection_token, connection_pool: @pool)
+        with_raw_connection(materialize_transactions: false) do
+          RactorConnectionProxy.commit_transaction_on_connection(@connection_token, connection_pool: @pool)
+        end
       end
 
       def exec_rollback_db_transaction # :nodoc:
-        RactorConnectionProxy.rollback_transaction_on_connection(@connection_token, connection_pool: @pool)
+        with_raw_connection(materialize_transactions: false) do
+          RactorConnectionProxy.rollback_transaction_on_connection(@connection_token, connection_pool: @pool)
+        end
       end
 
       def exec_restart_db_transaction # :nodoc:
-        remote_adapter_call(:restart_db_transaction)
+        with_raw_connection(materialize_transactions: false) do
+          remote_adapter_call(:restart_db_transaction)
+        end
       end
 
       private

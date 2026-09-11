@@ -832,7 +832,7 @@ module ActiveRecord
             InvalidForeignKey.new(message, sql: sql, binds: binds, connection_pool: @pool)
           elsif exception.message.match?(/CHECK constraint failed: .*/i)
             CheckViolation.new(message, sql: sql, binds: binds, connection_pool: @pool)
-          elsif exception.message.match?(/called on a closed database/i)
+          elsif exception.message.match?(/(cannot use|called on) a closed database/i)
             ConnectionNotEstablished.new(exception, connection_pool: @pool)
           elsif exception.is_a?(::SQLite3::BusyException)
             StatementTimeout.new(message, sql: sql, binds: binds, connection_pool: @pool)

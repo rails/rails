@@ -221,7 +221,6 @@ module ActiveRecord
           supports_identity_columns?: supports_identity_columns?,
           supports_insert_on_conflict?: supports_insert_on_conflict?,
           supports_native_partitioning?: supports_native_partitioning?,
-          supports_pgcrypto_uuid?: supports_pgcrypto_uuid?,
         )
       end
 

@@ -1066,6 +1066,32 @@ module ActiveRecord
         end
       end
 
+      def test_closed_database_errors_are_translated_to_connection_not_established
+        @conn.connect!
+
+        # A pre-flight close is healed by ensure_connection_ready, so the
+        # translation only fires when the connection dies mid-flight. sqlite3
+        # 2.x raises "cannot use a closed database" from most methods --
+        # including total_changes, the first thing perform_query touches.
+        error = assert_raises ActiveRecord::ConnectionNotEstablished do
+          @conn.send(:with_raw_connection) do |raw_connection|
+            raw_connection.close
+            raw_connection.total_changes
+          end
+        end
+        assert_equal @conn.pool, error.connection_pool
+
+        # prepare raises its own message, "prepare called on a closed
+        # database".
+        @conn.reconnect!
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          @conn.send(:with_raw_connection) do |raw_connection|
+            raw_connection.close
+            raw_connection.prepare("SELECT 1")
+          end
+        end
+      end
+
       def test_db_is_not_readonly_when_readonly_option_is_false
         conn = SQLite3Adapter.new(
           database: ":memory:",
