@@ -9,7 +9,7 @@ class FakeActiveRecordAdapter < ActiveRecord::ConnectionAdapters::AbstractAdapte
   end
 
   def self.ractor_connection_proxy_class
-    ActiveRecord::ConnectionAdapters::RactorConnectionProxy
+    ActiveRecord::ConnectionAdapters::RactorConnectionHandler::AbstractProxyAdapter
   end
 
   def initialize(...)

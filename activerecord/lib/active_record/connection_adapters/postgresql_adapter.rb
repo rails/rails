@@ -73,7 +73,7 @@ module ActiveRecord
         end
 
         def ractor_connection_proxy_class # :nodoc:
-          RactorConnectionProxy::PostgreSQLProxy
+          RactorConnectionHandler::PostgreSQLProxyAdapter
         end
 
         def dbconsole(config, options = {})

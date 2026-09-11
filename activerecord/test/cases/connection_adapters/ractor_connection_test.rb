@@ -34,7 +34,7 @@ module ActiveRecord
         end
 
         teardown do
-          RactorConnectionProxy.checkin_all_connections
+          RactorConnectionHandler::Proxy.checkin_all_connections
           drop_widgets_table
           ActiveRecord::Base.connection_handler.clear_active_connections!
         end
@@ -44,7 +44,7 @@ module ActiveRecord
         def test_pool_initializes_from_spec
           config = db_config
           spec = pool_spec(config: config)
-          pool = RactorConnectionPool.new(spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(spec)
           assert_equal config, pool.db_config
           assert_equal :writing, pool.role
           assert_equal :default, pool.shard
@@ -52,13 +52,13 @@ module ActiveRecord
         end
 
         def test_lease_connection_checks_out_once_and_marks_sticky
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
 
           assert_not pool.active_connection?
           assert pool.permanent_lease?
 
           conn = pool.lease_connection
-          assert_kind_of RactorConnectionProxy, conn
+          assert_kind_of RactorConnectionHandler::AbstractProxyAdapter, conn
           assert pool.active_connection?
           assert_not pool.permanent_lease?
 
@@ -67,7 +67,7 @@ module ActiveRecord
         end
 
         def test_release_connection_returns_connection_and_clears_lease
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
           pool.lease_connection
 
           assert pool.release_connection
@@ -79,17 +79,17 @@ module ActiveRecord
         end
 
         def test_with_connection_yields_and_releases_when_not_sticky
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
 
           yielded = nil
           pool.with_connection { |c| yielded = c }
 
-          assert_kind_of RactorConnectionProxy, yielded
+          assert_kind_of RactorConnectionHandler::AbstractProxyAdapter, yielded
           assert_not pool.active_connection?
         end
 
         def test_with_connection_keeps_lease_when_already_sticky
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
           conn = pool.lease_connection
 
           pool.with_connection { |c| assert_same conn, c }
@@ -98,21 +98,21 @@ module ActiveRecord
         end
 
         def test_with_connection_prevent_permanent_checkout_releases_after
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
 
-          pool.with_connection(prevent_permanent_checkout: true) { |c| assert_kind_of RactorConnectionProxy, c }
+          pool.with_connection(prevent_permanent_checkout: true) { |c| assert_kind_of RactorConnectionHandler::AbstractProxyAdapter, c }
 
           assert_not pool.active_connection?
         end
 
         def test_query_cache_starts_disabled
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
           assert_not pool.query_cache_enabled
           assert pool.dirties_query_cache
         end
 
         def test_enable_and_disable_query_cache_bang
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
           pool.enable_query_cache!
           assert pool.query_cache_enabled
 
@@ -121,7 +121,7 @@ module ActiveRecord
         end
 
         def test_disable_query_cache_block_restores_previous_state
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
           pool.enable_query_cache!
 
           inside = nil
@@ -132,7 +132,7 @@ module ActiveRecord
         end
 
         def test_enable_query_cache_block_restores_previous_state
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
           assert_not pool.query_cache_enabled
 
           inside = nil
@@ -147,7 +147,7 @@ module ActiveRecord
           ActiveRecord.default_transaction_isolation_level = nil
 
           yielded = false
-          RactorConnectionPool.new(pool_spec).with_pool_transaction_isolation_level(:serializable, false) do
+          RactorConnectionHandler::ProxyConnectionPool.new(pool_spec).with_pool_transaction_isolation_level(:serializable, false) do
             yielded = true
           end
           assert yielded
@@ -157,7 +157,7 @@ module ActiveRecord
 
         def test_with_pool_transaction_isolation_level_sets_and_restores
           previous = ActiveRecord.default_transaction_isolation_level
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
           ActiveRecord.default_transaction_isolation_level = :read_committed
 
           observed = nil
@@ -173,7 +173,7 @@ module ActiveRecord
 
         def test_with_pool_transaction_isolation_level_raises_when_transaction_open_and_level_differs
           previous = ActiveRecord.default_transaction_isolation_level
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
           ActiveRecord.default_transaction_isolation_level = :read_committed
           pool.pool_transaction_isolation_level = :serializable
 
@@ -188,7 +188,7 @@ module ActiveRecord
 
         def test_handler_connection_pool_list_returns_ractor_pools
           pools = RactorConnectionHandler.instance.connection_pool_list
-          assert pools.all? { |p| p.is_a?(RactorConnectionPool) }
+          assert pools.all? { |p| p.is_a?(RactorConnectionHandler::ProxyConnectionPool) }
           assert_includes pools.map { |p| p.db_config.name }, "primary"
         end
 
@@ -216,7 +216,7 @@ module ActiveRecord
 
         def test_handler_retrieve_connection_returns_proxy
           conn = RactorConnectionHandler.instance.retrieve_connection("ActiveRecord::Base")
-          assert_kind_of RactorConnectionProxy, conn
+          assert_kind_of RactorConnectionHandler::AbstractProxyAdapter, conn
         end
 
         def test_handler_clear_active_connections_releases
@@ -257,7 +257,7 @@ module ActiveRecord
 
         def test_token_pinned_connection_delegates_reconnect_decisions
           conn = proxy_connection
-          main_side = RactorConnectionProxy.connections.values.first
+          main_side = RactorConnectionHandler::Proxy.connections.values.first
 
           assert_not main_side.send(:reconnect_can_restore_state?)
 
@@ -267,7 +267,7 @@ module ActiveRecord
 
         def test_stale_pinned_connection_does_not_reconnect_away_an_open_transaction
           conn = proxy_connection
-          main_side = RactorConnectionProxy.connections.values.first
+          main_side = RactorConnectionHandler::Proxy.connections.values.first
           main_side.define_singleton_method(:reconnect!) do |**|
             raise "the concrete adapter must not reconnect a token-pinned connection on its own"
           end
@@ -336,7 +336,7 @@ module ActiveRecord
         if current_adapter?(:SQLite3Adapter)
           def test_insert_returns_generated_id_when_adapter_reads_id_from_the_connection
             conn = proxy_connection
-            main_side = RactorConnectionProxy.connections.values.first
+            main_side = RactorConnectionHandler::Proxy.connections.values.first
 
             # Emulate a MySQL-shaped adapter: no INSERT ... RETURNING, the
             # generated id is read off the physical connection after the query.
@@ -431,14 +431,14 @@ module ActiveRecord
         end
 
         def test_transport_error_reconstruction
-          response = RactorConnectionProxy::ErrorResponse.new(
+          response = RactorConnectionHandler::Proxy::ErrorResponse.new(
             ActiveRecord::StatementInvalid.new("boom", sql: "SELECT 1")
           )
           assert_ractor_shareable(response)
 
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
           raised = assert_raises(ActiveRecord::StatementInvalid) do
-            RactorConnectionProxy.raise_transport_error(response, connection_pool: pool)
+            RactorConnectionHandler::Proxy.raise_transport_error(response, connection_pool: pool)
           end
           assert_equal "boom", raised.message
           assert_equal "SELECT 1", raised.sql
@@ -448,12 +448,12 @@ module ActiveRecord
         def test_transport_error_falls_back_to_remote_error_preserving_class_name
           # MismatchedForeignKey cannot be rebuilt from (message, sql), so the
           # transport surfaces a RemoteError that names the original class.
-          response = RactorConnectionProxy::ErrorResponse.new(
+          response = RactorConnectionHandler::Proxy::ErrorResponse.new(
             ActiveRecord::MismatchedForeignKey.new(message: "fk mismatch")
           )
 
-          raised = assert_raises(RactorConnectionProxy::RemoteError) do
-            RactorConnectionProxy.raise_transport_error(response)
+          raised = assert_raises(RactorConnectionHandler::Proxy::RemoteError) do
+            RactorConnectionHandler::Proxy.raise_transport_error(response)
           end
           assert_equal "ActiveRecord::MismatchedForeignKey", raised.remote_class_name
           assert_match(/fk mismatch/, raised.message)
@@ -463,7 +463,7 @@ module ActiveRecord
 
         def test_connection_failure_is_not_retried_without_allow_retry
           conn = proxy_connection
-          main_side = RactorConnectionProxy.connections.values.first
+          main_side = RactorConnectionHandler::Proxy.connections.values.first
 
           close_connection(main_side)
 
@@ -477,7 +477,7 @@ module ActiveRecord
 
         def test_allow_retry_reconnects_a_dead_connection_and_restores_clean_transaction_state
           conn = proxy_connection
-          main_side = RactorConnectionProxy.connections.values.first
+          main_side = RactorConnectionHandler::Proxy.connections.values.first
 
           conn.transaction do
             # BEGIN reaches the physical connection while it is still alive
@@ -498,7 +498,7 @@ module ActiveRecord
 
         def test_allow_retry_does_not_retry_inside_a_dirty_transaction
           conn = proxy_connection
-          main_side = RactorConnectionProxy.connections.values.first
+          main_side = RactorConnectionHandler::Proxy.connections.values.first
 
           assert_raises(ActiveRecord::ConnectionNotEstablished, ActiveRecord::ConnectionFailed) do
             conn.transaction do
@@ -513,27 +513,27 @@ module ActiveRecord
         # --- proxy: lifecycle ---
 
         def test_close_returns_connection_to_pool_and_clears_lease
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
           conn = pool.lease_connection
 
           conn.close
 
           assert_not pool.active_connection?
           assert_not conn.connected?
-          assert_empty RactorConnectionProxy.connections
+          assert_empty RactorConnectionHandler::Proxy.connections
 
           # The pool hands out a fresh, working connection afterwards.
           assert_equal 1, pool.lease_connection.select_value("SELECT 1")
         end
 
         def test_throw_away_removes_connection_from_both_pools
-          pool = RactorConnectionPool.new(pool_spec)
+          pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
           conn = pool.checkout
 
           assert_nothing_raised { conn.throw_away! }
 
           assert_not conn.connected?
-          assert_empty RactorConnectionProxy.connections
+          assert_empty RactorConnectionHandler::Proxy.connections
         end
 
         def test_checkin_all_connections_releases_stranded_tokens
@@ -545,9 +545,9 @@ module ActiveRecord
             nil
           end
 
-          assert_equal 1, RactorConnectionProxy.connections.size
-          RactorConnectionProxy.checkin_all_connections
-          assert_empty RactorConnectionProxy.connections
+          assert_equal 1, RactorConnectionHandler::Proxy.connections.size
+          RactorConnectionHandler::Proxy.checkin_all_connections
+          assert_empty RactorConnectionHandler::Proxy.connections
         end
 
         # --- ordinary entry points from a worker Ractor ---

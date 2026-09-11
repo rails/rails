@@ -101,7 +101,7 @@ module ActiveRecord
         end
       end
 
-      # The RactorConnectionProxy subclass standing in for this adapter's
+      # The RactorConnectionHandler::AbstractProxyAdapter subclass standing in for this adapter's
       # connections on worker Ractors. Adapters opt in by returning a
       # subclass that hand-defines the remote adapter surface: every method
       # the adapter overrides or adds on top of AbstractAdapter, minus the
@@ -470,7 +470,7 @@ module ActiveRecord
         end
       end
 
-      # When true, this is the physical backend of a RactorConnectionProxy,
+      # When true, this is the physical backend of a RactorConnectionHandler::AbstractProxyAdapter,
       # whose transaction manager owns the transaction state: the connection
       # neither restores that state on reconnect nor instruments the mirror
       # transactions begun on it.

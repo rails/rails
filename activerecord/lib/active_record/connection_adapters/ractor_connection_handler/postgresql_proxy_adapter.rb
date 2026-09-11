@@ -2,12 +2,12 @@
 
 # :markup: markdown
 
-require "active_record/connection_adapters/ractor_connection_proxy"
+require "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter"
 require "active_record/connection_adapters/postgresql/referential_integrity"
 
 module ActiveRecord
   module ConnectionAdapters
-    class RactorConnectionProxy < AbstractAdapter # :nodoc:
+    class RactorConnectionHandler # :nodoc:
       # Worker-Ractor stand-in for PostgreSQLAdapter connections,
       # hand-defining the adapter methods it must dispatch to the
       # token-pinned main-Ractor connection: everything the adapter
@@ -26,7 +26,7 @@ module ActiveRecord
       # wrap or drive caller-visible work that must run on the worker, so
       # they cannot be dispatched remotely; the included ReferentialIntegrity
       # module runs them locally through the query pipeline instead.
-      class PostgreSQLProxy < RactorConnectionProxy
+      class PostgreSQLProxyAdapter < AbstractProxyAdapter # :nodoc:
         include PostgreSQL::ReferentialIntegrity
 
         # CAPABILITIES ============================================

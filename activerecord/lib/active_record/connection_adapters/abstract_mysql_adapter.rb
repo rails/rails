@@ -61,7 +61,7 @@ module ActiveRecord
 
       class << self
         def ractor_connection_proxy_class # :nodoc:
-          RactorConnectionProxy::MySQLProxy
+          RactorConnectionHandler::MysqlProxyAdapter
         end
 
         def dbconsole(config, options = {})

@@ -111,13 +111,11 @@ module AdapterHelper
   end
 
   def main_ractor_connection(connection)
+    handler = ActiveRecord::ConnectionAdapters::RactorConnectionHandler
     # Only check for a proxy when its class is genuinely loaded: nothing can
-    # be a proxy otherwise, and the is_a? autoload would raise on Ruby < 4
-    # (ractor-dispatch requires Ractor::Port).
-    if ActiveRecord::ConnectionAdapters.autoload?(:RactorConnectionProxy).nil? &&
-        ActiveRecord::ConnectionAdapters.const_defined?(:RactorConnectionProxy) &&
-        connection.is_a?(ActiveRecord::ConnectionAdapters::RactorConnectionProxy)
-      ActiveRecord::ConnectionAdapters::RactorConnectionProxy.connections.fetch(connection.connection_token)
+    # be a proxy otherwise, and the is_a? would needlessly autoload it.
+    if handler.autoload?(:AbstractProxyAdapter).nil? && handler.const_defined?(:AbstractProxyAdapter, false) && connection.is_a?(handler::AbstractProxyAdapter)
+      handler::Proxy.fetch_connection(connection.connection_token)
     else
       connection
     end

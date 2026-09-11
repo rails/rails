@@ -2,11 +2,11 @@
 
 # :markup: markdown
 
-require "active_record/connection_adapters/ractor_connection_proxy"
+require "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter"
 
 module ActiveRecord
   module ConnectionAdapters
-    class RactorConnectionProxy < AbstractAdapter # :nodoc:
+    class RactorConnectionHandler # :nodoc:
       # Worker-Ractor stand-in for SQLite3Adapter connections,
       # hand-defining the adapter methods it must dispatch to the
       # token-pinned main-Ractor connection: everything the adapter
@@ -24,7 +24,7 @@ module ActiveRecord
       # `disable_referential_integrity` wraps a caller block that must run on
       # the worker, so it cannot be dispatched remotely; it is defined below
       # to run locally through the query pipeline instead.
-      class SQLite3Proxy < RactorConnectionProxy
+      class SQLite3ProxyAdapter < AbstractProxyAdapter # :nodoc:
         def disable_referential_integrity
           old_foreign_keys = query_value("PRAGMA foreign_keys", nil)
           old_defer_foreign_keys = query_value("PRAGMA defer_foreign_keys", nil)

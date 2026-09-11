@@ -68,7 +68,7 @@ module ActiveRecord
         end
 
         def ractor_connection_proxy_class # :nodoc:
-          RactorConnectionProxy::SQLite3Proxy
+          RactorConnectionHandler::SQLite3ProxyAdapter
         end
 
         def native_database_types # :nodoc:
