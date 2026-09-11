@@ -542,7 +542,8 @@ It supports a number of bundlers such as [Bun](https://bun.sh),
 [Readme](https://github.com/rails/jsbundling-rails/blob/main/README.md) for
 further details.
 
-The output from your chosen builder will be written to `app/assets/builds/`
+The bundlers are configured to build files from `app/javascript/`
+by default, and the output will be written to `app/assets/builds/`
 where Propshaft will pick it up for fingerprinting and delivery.
 
 Include `jsbundling-rails` with one of the supported builders in a new Rails app
