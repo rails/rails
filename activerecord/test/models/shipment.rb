@@ -3,7 +3,7 @@
 class Shipment < ActiveRecord::Base
   has_many :adjustments,
     as: :adjustable,
-    foreign_key: [:region_id, :adjustable_id],
-    primary_key: [:region_id, :id],
+    foreign_key: :adjustable_id,
+    query_constraints: [:region_id],
     inverse_of: :adjustable
 end

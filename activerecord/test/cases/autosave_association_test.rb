@@ -452,6 +452,19 @@ class TestDefaultAutosaveAssociationOnABelongsToAssociation < ActiveRecord::Test
     assert_equal apple, final_cut.firm
   end
 
+  def test_direct_foreign_key_assignment_wins_over_a_stale_new_target
+    account = Account.new
+    new_firm = Firm.new(name: "New firm")
+    existing_firm = companies(:first_firm)
+
+    account.firm = new_firm
+    account.firm_id = existing_firm.id
+    account.save!(validate: false)
+
+    assert_not_predicate new_firm, :persisted?
+    assert_equal existing_firm.id, account.firm_id
+  end
+
   def test_store_two_association_with_one_save
     num_orders = Order.count
     num_customers = Customer.count

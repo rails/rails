@@ -50,16 +50,15 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     BookDestroyAsync.delete_all
   end
 
-  test "destroying a record destroys has_many :through associated by composite primary key using a job" do
+  test "destroying a record destroys has_many :through associated by query constraints using a job" do
     blog = Sharded::Blog.create!
     blog_post = Sharded::BlogPostDestroyAsync.create!(blog_id: blog.id)
 
     tag1 = Sharded::Tag.create!(name: "Short Read", blog_id: blog.id)
     tag2 = Sharded::Tag.create!(name: "Science", blog_id: blog.id)
 
-    blog_post.tags << [tag1, tag2]
-
-    blog_post.save!
+    Sharded::BlogPostTag.create!(blog_id: blog.id, blog_post_id: blog_post.id, tag_id: tag1.id)
+    Sharded::BlogPostTag.create!(blog_id: blog.id, blog_post_id: blog_post.id, tag_id: tag2.id)
 
     assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
       blog_post.destroy
@@ -168,15 +167,27 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     BookDestroyAsync.delete_all
   end
 
-  test "belongs to associated by composite primary key" do
-    blog = Sharded::Blog.create!
-    blog_post = Sharded::BlogPostDestroyAsync.create!(blog_id: blog.id)
-    comment = Sharded::CommentDestroyAsync.create!(body: "Great post! :clap:")
+  test "belongs to associated by query constraints" do
+    blog = Sharded::Blog.create!(id: 100)
+    blog_post = Sharded::BlogPostDestroyAsync.create!(id: 200, blog_id: blog.id)
+    comment = Sharded::CommentDestroyAsync.create!(body: "Great post! :clap:", blog_id: blog.id)
 
     comment.blog_post = blog_post
     comment.save!
 
-    assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+    # The owner supplies the sharding constraint while assignment only writes
+    # blog_post_id. Distinct explicit IDs guarantee the writable key cannot be
+    # confused with blog_id when this file runs in isolation.
+    assert_equal blog_post.blog_id, comment.blog_id
+    assert_equal blog_post.id, comment.blog_post_id
+
+    job_args = lambda do |args|
+      options = args.first
+      options[:association_primary_key_column] == ["blog_id", "id"] &&
+        options[:association_ids] == [[blog.id, blog_post.id]]
+    end
+
+    assert_enqueued_with(job: ActiveRecord::DestroyAssociationAsyncJob, args: job_args) do
       comment.destroy
     end
 

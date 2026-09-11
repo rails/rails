@@ -7,5 +7,6 @@ module Sharded
 
     belongs_to :blog_post
     belongs_to :tag
+    belongs_to :tag_with_decoupled_qc, class_name: "Sharded::Tag", foreign_key: :tag_id, query_constraints: :blog_id
   end
 end
