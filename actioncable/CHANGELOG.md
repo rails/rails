@@ -1,3 +1,20 @@
+*   Make executor and WebSocket server configurable.
+
+    You can provide a custom implementation of an executor (timers and async callbacks) or a WebSocket server (low-level WebSocket connections handling):
+
+    ```ruby
+    config.action_cable.executor = -> (server) { MyCustomNonThreadedExecutor.new(server, foo: "bar") }
+    config.action_cable.websocket_server = -> (server) { MyCustomWebSocketHandler.new(server) }
+    ```
+
+    The `server` parameter provides a current `ActionCable::Server::Base` instance (which acts as an Action Cable application container).
+
+    *Vladimir Dementyev*
+
+*   Make heartbeat (ping) interval configurable via `config.action_cable.beat_interval`
+
+    *Vladimir Dementyev*
+
 *   Move `ActionCable::Server::Configuration` to `ActionCable::Configuration`.
 
     The old constant remains available as an alias.

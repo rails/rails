@@ -10,15 +10,17 @@ module ActionCable
     # This connection object is also responsible for handling encoding and decoding of messages, so the user-level
     # connection object shouldn't know about such details.
     class Socket
-      attr_reader :server, :env, :protocol, :logger, :connection
+      attr_reader :server, :websocket_server, :env, :protocol, :logger, :connection
       private attr_reader :worker_pool
 
-      delegate :event_loop, :pubsub, :config, to: :server
+      delegate :config, :event_loop, to: :websocket_server
 
-      def initialize(server, env, coder: ActiveSupport::JSON)
-        @server, @env, @coder = server, env, coder
+      def initialize(websocket_server, env, coder: ActiveSupport::JSON)
+        @websocket_server, @env, @coder = websocket_server, env, coder
 
-        @worker_pool = server.worker_pool
+        @server = websocket_server.server
+        @worker_pool = websocket_server.worker_pool
+
         @logger = server.new_tagged_logger { request }
 
         @websocket      = WebSocket.new(env, self, event_loop)

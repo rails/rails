@@ -11,8 +11,6 @@ module ActionCable
     # you can't use this collection as a full list of all of the connections
     # established against your application. Instead, use RemoteConnections for that.
     module Connections # :nodoc:
-      BEAT_INTERVAL = 3
-
       def connections = connections_map.values
 
       def each_connection(...)
@@ -28,17 +26,6 @@ module ActionCable
 
       def remove_connection(connection)
         connections_map.delete connection.object_id
-      end
-
-      # WebSocket connection implementations differ on when they'll mark a connection
-      # as stale. We basically never want a connection to go stale, as you then can't
-      # rely on being able to communicate with the connection. To solve this, a 3
-      # second heartbeat runs on all connections. If the beat fails, we automatically
-      # disconnect.
-      def setup_heartbeat_timer
-        @heartbeat_timer ||= executor.timer(BEAT_INTERVAL) do
-          executor.post { each_connection(&:beat) }
-        end
       end
 
       def open_connections_statistics

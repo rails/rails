@@ -61,8 +61,8 @@ class BaseTest < ActionCable::TestCase
     end
   end
 
-  test "#restart shuts down worker pool" do
-    assert_called(@server.worker_pool, :halt) do
+  test "#restart restarts websocker_server" do
+    assert_called(@server.websocket_server, :restart) do
       @server.restart
     end
   end
@@ -73,19 +73,35 @@ class BaseTest < ActionCable::TestCase
     end
   end
 
-  test "#restart shuts down the heartbeat timer" do
-    @server.send(:setup_heartbeat_timer)
-    timer = @server.instance_variable_get(:@heartbeat_timer)
-    assert_predicate timer, :running?
-
-    @server.restart
-
-    assert_not timer.running?
-    assert_nil @server.instance_variable_get(:@heartbeat_timer)
-  end
-
   test "server configuration is available from ActionCable" do
     assert_same ActionCable::Configuration, ActionCable::Server::Configuration
     assert_instance_of ActionCable::Configuration, ActionCable::Server::Base.config
+  end
+
+  test "uses configured executor" do
+    executor = []
+
+    config = ActionCable::Configuration.new
+    config.executor = -> (server) { executor.tap { _1 << server } }
+
+    @server = ActionCable::Server::Base.new(config:)
+
+    assert_same @server.executor, executor
+    assert_same @server.executor[0], @server
+  end
+
+  test "uses configured websocket server" do
+    ws_class = Data.define(:server) do
+      def call(env) = [418, {}, ["It's tea time!"]]
+    end
+
+    config = ActionCable::Configuration.new
+    config.websocket_server = -> (server) { ws_class.new(server) }
+
+    @server = ActionCable::Server::Base.new(config:)
+
+    assert_instance_of ws_class, @server.websocket_server
+    assert_same @server.websocket_server.server, @server
+    assert_equal 418, @server.call({})[0]
   end
 end

@@ -83,7 +83,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
   end
 
   test "#broadcast" do
-    connection = Connection.new(ActionCable.server, ActionCable::Server::Socket.new(ActionCable.server, {}))
+    connection = Connection.new(ActionCable.server, ActionCable::Server::Socket.new(ActionCable.server.websocket_server, {}))
 
     messages = capture_broadcasts("test") do
       connection.broadcast("test", { message: "hello" })
