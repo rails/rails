@@ -56,8 +56,7 @@ The core component of the Rails asset pipeline is
 for reading source assets, fingerprinting them, and placing them in the
 `public/` folder. It **DOES NOT** do any transpiling or bundling. Other gems
 need to be plugged into Propshaft for this functionality. See
-[Advanced CSS and JavaScript Management](#advanced-css-and-javascript-management)
-below.
+[Managing CSS and JavaScript Files and Dependencies](#managing-css-and-javascript-files-and-dependencies) below.
 
 NOTE: The advent of HTTP/2 has reduced the need for bundling JavaScript and CSS
 into a single file. Multiple files can be served in parallel over a single
@@ -206,7 +205,7 @@ stylesheet.
 NOTE: Ensure your CSS is loaded in the correct order for any cascading logic. If
 alphabetical order is not suitable, link each stylesheet individually or
 consider bundling your files. See the
-[Advanced CSS and JavaScript Management section](#advanced-css-and-javascript-management)
+[Managing CSS and JavaScript Files and Dependencies](#managing-css-and-javascript-files-and-dependencies)
 below.
 
 When using [Turbo](https://turbo.hotwired.dev) (which is included in Rails by
