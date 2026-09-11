@@ -60,7 +60,7 @@ class ActiveStorage::Variation
   end
 
   def format
-    transformations.fetch(:format, :png).tap do |format|
+    transformations.fetch(:format) { ActiveStorage.default_variant_format }.tap do |format|
       if Marcel::Magic.by_extension(format.to_s).nil?
         raise ArgumentError, "Invalid variant format (#{format.inspect})"
       end

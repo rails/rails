@@ -70,6 +70,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
+- [`config.active_storage.default_variant_format`](#config-active-storage-default-variant-format): `:webp`
 
 #### Default Values for Target Version 8.1
 
@@ -3683,7 +3684,8 @@ config.active_storage.variable_content_types = %w(image/png image/gif image/jpeg
 #### `config.active_storage.web_image_content_types`
 
 Accepts an array of strings regarded as web image content types in which
-variants can be processed without being converted to the fallback PNG format.
+variants can be processed without being converted to the format set by
+[`config.active_storage.default_variant_format`](#config-active-storage-default-variant-format).
 For example, if you want to use `AVIF` variants in your application you can add
 `image/avif` to this array.
 
@@ -3693,6 +3695,23 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | ----------------------------------------------- |
 | (original)            | `%w(image/png image/jpeg image/gif)`            |
 | 7.2                   | `%w(image/png image/jpeg image/gif image/webp)` |
+
+#### `config.active_storage.default_variant_format`
+
+Sets the format of variants generated from images that are not web images (see [`config.active_storage.web_image_content_types`](#config-active-storage-web-image-content-types)), such as TIFF, BMP, or HEIC files. Variants of web images keep the format of the original image.
+
+```ruby
+config.active_storage.default_variant_format = :webp
+```
+
+Passing `format:` to `variant` still takes precedence for a specific variant.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `:png`               |
+| 8.2                   | `:webp`              |
 
 #### `config.active_storage.content_types_to_serve_as_binary`
 

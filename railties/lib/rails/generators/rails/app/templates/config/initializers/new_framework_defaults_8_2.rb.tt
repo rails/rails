@@ -94,6 +94,16 @@
 #++
 # Rails.application.config.active_storage.analyze = :immediately
 
+###
+# Generate WEBP variants from images that are not web images, such as TIFF,
+# BMP, or HEIC files. Variants of web images keep the format of the original.
+#
+# WEBP variants are smaller than the PNG variants generated before, and all
+# major browsers support them. Existing variants of affected images will be
+# regenerated the next time they are requested.
+#++
+# Rails.application.config.active_storage.default_variant_format = :webp
+
 # Controls whether the `rescue_from_handled.action_controller` notification payload includes the full backtrace.
 #
 # When set to `:array`, the full backtrace is included as an array of strings.
