@@ -62,7 +62,7 @@ module ActiveRecord
           main_operation do
             connection = main_pool(shareable_connection_name, role, shard).checkout
             begin
-              # Eager: a token-pinned connection is `leased`, so the pipeline's
+              # Eager: a token-pinned connection is `proxied`, so the pipeline's
               # ensure_connection_ready will neither connect nor verify it (see
               # skip_verification?); it must be usable up front — and the
               # capability flags in the profile may consult the database
@@ -219,15 +219,13 @@ module ActiveRecord
         # issuing a second BEGIN. The mirror carries the worker
         # transaction's joinable flag, so both remote-side `transaction`
         # nesting and adapter-specific BEGIN modes (e.g. SQLite immediate vs
-        # deferred) behave exactly as in a single-manager run.
+        # deferred) behave exactly as in a single-manager run. The mirror
+        # emits no transaction.active_record events: the connection is
+        # `proxied`, and the worker-side proxy's manager instruments.
         def begin_transaction_on_connection(connection_token, isolation, joinable, connection_pool: nil)
           main_operation(connection_pool: connection_pool) do
             connection = fetch_connection(connection_token)
-            if isolation
-              connection.begin_transaction(isolation: isolation, joinable: joinable, _lazy: false, instrument: false)
-            else
-              connection.begin_transaction(joinable: joinable, _lazy: false, instrument: false)
-            end
+            connection.begin_transaction(isolation: isolation, joinable: joinable, _lazy: false)
             nil
           end
         end
@@ -268,7 +266,7 @@ module ActiveRecord
                 # the token-pinned connection instead of letting the pool
                 # check out a second one.
                 connection = fetch_connection(connection_token)
-                # The permanently-leased physical never self-reconnects;
+                # The permanently-proxied physical never self-reconnects;
                 # match the checkout_and_verify a pool checkout would get.
                 connection.connect! unless connection.connected?
                 BoundSchemaReflection.for_lone_connection(pool.schema_reflection, connection)
@@ -480,7 +478,7 @@ module ActiveRecord
             # Not folded into connect! (the shared bootstrap for every
             # adapter): only this callsite knows the connection is being
             # pinned. steal! clears the flag when the lease is taken back.
-            connection.leased = true
+            connection.proxied = true
             @connections_lock.synchronize do
               token = (@next_token += 1)
               @connections[token] = connection

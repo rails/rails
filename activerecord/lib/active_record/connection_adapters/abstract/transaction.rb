@@ -110,14 +110,10 @@ module ActiveRecord
       end
     end
 
-    # For transactions that are pure connection bookkeeping (e.g. the Ractor
-    # connection proxy's main-side mirrors of worker-owned transactions):
-    # they must not emit transaction.active_record events.
-    class NullTransactionInstrumenter # :nodoc:
-      def start; end
-      def finish(_outcome); end
+    module NullTransactionInstrumenter # :nodoc:
+      def self.start; end
+      def self.finish(_outcome); end
     end
-    NULL_TRANSACTION_INSTRUMENTER = NullTransactionInstrumenter.new.freeze
 
     class NullTransaction # :nodoc:
       def state; end
@@ -172,7 +168,7 @@ module ActiveRecord
         @isolation_level = isolation
       end
 
-      def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false, instrument: true)
+      def initialize(connection, isolation: nil, joinable: true, run_commit_callbacks: false)
         super()
         @connection = connection
         @state = TransactionState.new
@@ -186,10 +182,10 @@ module ActiveRecord
         @dirty = false
         @user_transaction = joinable ? ActiveRecord::Transaction.new(self) : ActiveRecord::Transaction::NULL_TRANSACTION
         @instrumenter =
-          if instrument
-            TransactionInstrumenter.new(connection: connection, transaction: @user_transaction)
+          if connection.proxied?
+            NullTransactionInstrumenter
           else
-            NULL_TRANSACTION_INSTRUMENTER
+            TransactionInstrumenter.new(connection: connection, transaction: @user_transaction)
           end
       end
 
@@ -540,7 +536,7 @@ module ActiveRecord
         @lazy_transactions_enabled = true
       end
 
-      def begin_transaction(isolation: nil, joinable: true, _lazy: true, instrument: true)
+      def begin_transaction(isolation: nil, joinable: true, _lazy: true)
         @connection.lock.synchronize do
           run_commit_callbacks = !current_transaction.joinable?
           transaction =
@@ -549,8 +545,7 @@ module ActiveRecord
                 @connection,
                 isolation: isolation,
                 joinable: joinable,
-                run_commit_callbacks: run_commit_callbacks,
-                instrument: instrument
+                run_commit_callbacks: run_commit_callbacks
               )
             elsif current_transaction.restartable?
               RestartParentTransaction.new(
@@ -558,8 +553,7 @@ module ActiveRecord
                 current_transaction,
                 isolation: isolation,
                 joinable: joinable,
-                run_commit_callbacks: run_commit_callbacks,
-                instrument: instrument
+                run_commit_callbacks: run_commit_callbacks
               )
             else
               SavepointTransaction.new(
@@ -568,8 +562,7 @@ module ActiveRecord
                 current_transaction,
                 isolation: isolation,
                 joinable: joinable,
-                run_commit_callbacks: run_commit_callbacks,
-                instrument: instrument
+                run_commit_callbacks: run_commit_callbacks
               )
             end
 

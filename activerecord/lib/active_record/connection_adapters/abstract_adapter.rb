@@ -276,7 +276,7 @@ module ActiveRecord
         @last_activity = nil
         @verified = false
         @needs_reconnect = false
-        @leased = false
+        @proxied = false
         @unfinalized_intents = []
 
         @pool_jitter = rand * max_jitter
@@ -451,7 +451,7 @@ module ActiveRecord
 
             @owner = ActiveSupport::IsolatedExecutionState.context
           end
-          @leased = false
+          @proxied = false
         else
           raise ActiveRecordError, "Cannot steal connection, it is not currently leased."
         end
@@ -470,9 +470,15 @@ module ActiveRecord
         end
       end
 
-      # When true, an external owner (e.g. a worker-Ractor proxy) holds this
-      # connection's transaction state.
-      attr_writer :leased # :nodoc:
+      # When true, this is the physical backend of a RactorConnectionProxy,
+      # whose transaction manager owns the transaction state: the connection
+      # neither restores that state on reconnect nor instruments the mirror
+      # transactions begun on it.
+      attr_writer :proxied # :nodoc:
+
+      def proxied? # :nodoc:
+        @proxied
+      end
 
       # Seconds since this connection was established. nil if not
       # connected; infinity if the connection has been explicitly
@@ -1169,7 +1175,7 @@ module ActiveRecord
 
       private
         def reconnect_can_restore_state?
-          !@leased && transaction_manager.restorable? && !@raw_connection_dirty
+          !@proxied && transaction_manager.restorable? && !@raw_connection_dirty
         end
 
         # Lock the monitor, ensure we're properly connected and
