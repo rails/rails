@@ -17,3 +17,13 @@ bulbul:
   pet_id: 4
   name: bulbul
   owner_id: 1
+
+kiwi_sr:
+  pet_id: 5
+  name: kiwi
+  owner_id: 3
+
+kiwi_jr:
+  pet_id: 6
+  name: kiwi
+  owner_id: 3
