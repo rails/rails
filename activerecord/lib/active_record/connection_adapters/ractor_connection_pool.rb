@@ -28,19 +28,6 @@ module ActiveRecord
 
       attr_reader :db_config, :role, :shard, :key
 
-      def self.spec_for(pool) # :nodoc:
-        pool_config = pool.pool_config
-        descriptor = pool_config.connection_descriptor
-        spec = {
-          db_config: pool_config.db_config,
-          connection_name: descriptor.name.to_s.freeze,
-          role: pool_config.role,
-          shard: pool_config.shard,
-          pool_token: pool_config.pool_token,
-        }
-        ActiveSupport::Ractors.make_shareable(spec, copy: true)
-      end
-
       def self.for_spec(spec)
         pools = (ActiveSupport::Ractors[:active_record_ractor_pools] ||= Concurrent::Map.new)
         key = [spec.fetch(:connection_name), spec.fetch(:role), spec.fetch(:shard), spec.fetch(:pool_token)]

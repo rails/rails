@@ -79,7 +79,7 @@ module ActiveRecord
             shard: connection_shard,
             clobber: clobber_existing,
           )
-          RactorConnectionPool.spec_for(pool)
+          pool.pool_config.pool_spec
         end
 
         RactorConnectionPool.for_spec(pool_spec)

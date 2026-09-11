@@ -844,9 +844,6 @@ module ActiveRecord
             connection_name: connection_name.to_s.freeze,
             role: role,
             shard: shard,
-            # The identity of the main pool this spec names, as spec_for
-            # records it; keeps every facade built from this helper sharing
-            # one worker-side lease.
             pool_token: main_pool.pool_config.pool_token,
           }
         end

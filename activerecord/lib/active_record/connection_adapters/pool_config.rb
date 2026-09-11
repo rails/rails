@@ -78,6 +78,17 @@ module ActiveRecord
         @pool_token || synchronize { @pool_token ||= self.class.next_pool_token }
       end
 
+      def pool_spec
+        spec = {
+          db_config: db_config,
+          connection_name: connection_descriptor.name.to_s.freeze,
+          role: role,
+          shard: shard,
+          pool_token: pool_token,
+        }
+        ActiveSupport::Ractors.make_shareable(spec, copy: true)
+      end
+
       def discard_pool!
         return unless @pool
 

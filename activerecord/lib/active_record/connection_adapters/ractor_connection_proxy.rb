@@ -147,9 +147,7 @@ module ActiveRecord
 
         def main_pool_specs(role = nil)
           main_operation do
-            specs = main_connection_handler.connection_pool_list(role).map do |pool|
-              RactorConnectionPool.spec_for(pool)
-            end
+            specs = main_connection_handler.connection_pool_list(role).map { |pool| pool.pool_config.pool_spec }
             ActiveSupport::Ractors.make_shareable(specs, copy: false)
           end
         end
@@ -163,7 +161,7 @@ module ActiveRecord
               shard: shard,
               strict: strict,
             )
-            pool && RactorConnectionPool.spec_for(pool)
+            pool && pool.pool_config.pool_spec
           end
         end
 
