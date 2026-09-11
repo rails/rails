@@ -151,25 +151,18 @@ class FileSystemResolverRactorTest < ActiveSupport::TestCase
       resolver.eager_load_templates
       resolver.freeze
 
-      rendered = on_ractor(resolver) do |resolver|
+      main_view_class = ActionView::LookupContext.view_context_class
+      rendered, worker_view_class = on_ractor(resolver) do |resolver|
         details = { locale: [:en].freeze, formats: [:html].freeze, variants: [].freeze, handlers: [:erb].freeze }.freeze
         template = resolver.find_all("card", "test", true, details, nil, [:post])[0]
-        # Keep the compiled method container local to the Ractor that compiles the template.
-        view = Class.new do
-          def compiled_method_container
-            self.class
-          end
+        view_class = ActionView::LookupContext.view_context_class
+        view = view_class.new(ActionView::LookupContext.new([], details), {}, nil)
 
-          def _run(method, template, locals, buffer, add_to_stack:, has_strict_locals:, &block)
-            @output_buffer = buffer
-            public_send(method, locals, buffer, &block)
-          end
-        end.new
-
-        template.render(view, { post: "hello" })
+        [template.render(view, { post: "hello" }), view_class]
       end
 
       assert_equal "hello", rendered
+      assert_not_same main_view_class, worker_view_class if RUBY_VERSION >= "4.0"
     end
   end
 end
