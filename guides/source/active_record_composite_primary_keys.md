@@ -1,4 +1,5 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON <https://guides.rubyonrails.org>.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON
+<https://guides.rubyonrails.org>.**
 
 Composite Primary Keys
 ======================
@@ -29,13 +30,23 @@ or in applications where the schema has been designed to partition data across
 isolate data per customer or tenant (multitenancy). Composite primary keys is an
 Active Record feature that spans migrations, query methods, and associations.
 
+For example, an inventory tracking application may have a table where each row
+is identified by a `store_id` and a product's `sku` (stock keeping unit)
+together but neither column alone identifies a row on its own. Active Record
+supports this by allowing you to declare `[:store_id, :sku]` as the primary key
+as detailed in a
+[section](#declaring-composite-primary-keys-and-creating-migrations) below.
+
 NOTE: Composite primary keys do increase complexity and can be slower than a
 single primary key column. Ensure your use case requires a composite primary key
 before using one.
 
 ### Using `query_constraints` as an Alternative
 
-In cases where your table has a conventional `id` column but you want Active Record to scope queries using an additional column, you can use [`query_constraints`](https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-query_constraints) instead of redefining the primary key entirely. For example:
+In cases where your table has a conventional `id` column but you want Active
+Record to _scope_ queries using an additional column, you can use
+[`query_constraints`](https://api.rubyonrails.org/classes/ActiveRecord/Persistence/ClassMethods.html#method-i-query_constraints)
+instead of redefining the primary key entirely. For example:
 
 ```ruby
 class Developer < ActiveRecord::Base
@@ -43,7 +54,9 @@ class Developer < ActiveRecord::Base
 end
 ```
 
-This keeps `id` as the primary key at the database level while instructing Active Record to always include `company_id` in queries, updates, and deletes for `Developers`.
+This keeps `id` as the primary key at the database level while instructing
+Active Record to always include `company_id` in queries, updates, and deletes
+for `Developers`.
 
 For example, given a developer record with `company_id: 5`:
 
@@ -52,7 +65,8 @@ irb> developer = Developer.find_by(company_id: 5, name: "Alice")
 => #<Developer id: 1, company_id: 5, name: "Alice">
 ```
 
-With `query_constraints`, any subsequent query or update on that record will automatically include `company_id` as well:
+With `query_constraints`, any subsequent query or update on that record will
+automatically include `company_id` as well:
 
 ```irb
 irb> developer.update!(name: "Bob")
@@ -68,13 +82,16 @@ Without `query_constraints`, that same update would only scope on `id`:
 UPDATE developers SET name = 'Bob' WHERE id = 1
 ```
 
-Query Constraints is a lighter weight option when you don't need a true composite primary key but want Rails to treat a combination of columns as the effective identity when querying.
+Query Constraints is a lighter weight option when you don't need a true
+composite primary key but want Rails to treat a combination of columns as the
+effective identity when querying.
 
 
 Declaring Composite Primary Keys and Creating Migrations
 --------------------------------------------------------
 
-To create a table with a composite primary key, you can pass an array to the `primary_key:` option in the database migration:
+To create a table with a composite primary key, you can pass an array to the
+`primary_key:` option in the database migration:
 
 ```ruby
 class CreateProducts < ActiveRecord::Migration[8.2]
@@ -89,7 +106,8 @@ class CreateProducts < ActiveRecord::Migration[8.2]
 end
 ```
 
-After running the migration above, your `schema.rb` file reflects the composite key:
+After running the migration above, your `schema.rb` file reflects the composite
+key:
 
 ```ruby
 # db/schema.rb
@@ -104,11 +122,18 @@ end
 add_foreign_key "products", "stores", column: "store_id", primary_key: "id"
 ```
 
-When using a composite primary key, uniqueness is enforced by the combination of columns rather than a single auto-incrementing `id`. In the above example, `store_id` is a foreign key to a `stores` table, and `sku` would be a string the application provides (like "ABC-123"). Neither needs to be auto-generated, their combination is what's unique.
+When using a composite primary key, uniqueness is enforced by the combination of
+columns rather than a single auto-incrementing `id`. In the above example,
+`store_id` is a foreign key to a `stores` table, and `sku` would be a string the
+application provides (like "ABC-123"). Neither needs to be auto-generated, their
+combination is what's unique.
 
-NOTE: If your composite primary key contains no conventional `id` column, you are responsible for ensuring uniqueness, through application logic, UUIDs, etc.
+NOTE: If your composite primary key contains no conventional `id` column, you
+are responsible for ensuring uniqueness, through application logic, UUIDs, etc.
 
-Rails also supports declaring composite primary keys at the model level via [`self.primary_key`](https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/PrimaryKey/ClassMethods.html) method:
+Rails also supports declaring composite primary keys at the model level via
+[`self.primary_key`](https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/PrimaryKey/ClassMethods.html)
+method:
 
 ```ruby
 class Order < ApplicationRecord
@@ -116,7 +141,8 @@ class Order < ApplicationRecord
 end
 ```
 
-This tells Active Record that records are uniquely identified by the combination of both columns, not a single `id`.
+This tells Active Record that records are uniquely identified by the combination
+of both columns, not a single `id`.
 
 In most cases, you don't need to declare this at all. Rails detects the primary
 key automatically from the database at runtime. So as long as your migration has
@@ -130,8 +156,9 @@ Querying Models
 
 ### Using `find`
 
-If your table uses a composite primary key, you'll need to pass an array
-when using `find` to locate a record. For example, to find the product with `store_id` 3 and `sku` "XYZ12345":
+If your table uses a composite primary key, you'll need to pass an array when
+using `find` to locate a record. For example, to find the product with
+`store_id` 3 and `sku` "XYZ12345":
 
 ```irb
 irb> product = Product.find([3, "XYZ12345"])
@@ -144,9 +171,14 @@ The above Active Record method results in the following SQL:
 SELECT * FROM products WHERE store_id = 3 AND sku = "XYZ12345"
 ```
 
-NOTE: The `find` method expects the values in the same order as the columns were declared in `primary_key` when querying with composite primary key. Also, if only one value is provided, such as `Product.find(3)`, then Rails raises an `ActiveRecord::RecordNotFound` error.
+NOTE: The `find` method expects the values in the same order as the columns were
+declared in `primary_key` when querying with composite primary key. Also, if
+only one value is provided, such as `Product.find(3)`, then Rails raises an
+`ActiveRecord::RecordNotFound` error.
 
-To find multiple records with composite IDs, you can pass an array of arrays to `find`. For example, to find the products with primary keys `[1, "ABC98765"]` and `[7, "ZZZ11111"]`
+To find multiple records with composite IDs, you can pass an array of arrays to
+`find`. For example, to find the products with primary keys `[1, "ABC98765"]`
+and `[7, "ZZZ11111"]`
 
 ```irb
 irb> products = Product.find([[1, "ABC98765"], [7, "ZZZ11111"]])
@@ -195,13 +227,15 @@ both columns are part of the composite primary key.
 
 ### Using `where`
 
-Hash conditions for `where` can query against multiple composite key values at once by passing an array of value pairs as well:
+Hash conditions for `where` can query against multiple composite key values at
+once by passing an array of value pairs as well:
 
 ```ruby
 Product.where(Product.primary_key => [[1, "ABC98765"], [7, "ZZZ11111"]])
 ```
 
-This returns all products matching either `[store_id: 1, sku: "ABC98765"]` or `[store_id: 7, sku: "ZZZ11111"]`.
+This returns all products matching either `[store_id: 1, sku: "ABC98765"]` or
+`[store_id: 7, sku: "ZZZ11111"]`.
 
 This generates the following SQL:
 
@@ -209,12 +243,21 @@ This generates the following SQL:
 SELECT * FROM products WHERE (store_id = 1 AND sku = 'ABC98765' OR store_id = 7 AND sku = 'ZZZ11111')
 ```
 
-WARNING: When using  `where` or `find_by`, the key `id` matches against an `:id` attribute on the model only (if the model has one). It does not resolve to the full composite primary key the way `find` does. Use `find` when you want to look up a record by its full composite primary key. See the [Active Record Querying](active_record_querying.html#conditions-with-id) guide for more detail.
+WARNING: When using  `where` or `find_by`, the key `id` matches against an `:id`
+attribute on the model only (if the model has one). It does not resolve to the
+full composite primary key the way `find` does. Use `find` when you want to look
+up a record by its full composite primary key. See the [Active Record
+Querying](active_record_querying.html#conditions-with-id) guide for more detail.
 
 Associations
 ------------
 
-Rails can generally infer the primary key to foreign key relationships between associated models. However, when using composite primary keys, Rails typically defaults to using only part of the composite key (usually the `id` column) unless explicitly instructed otherwise. This default behavior only works if the model's composite primary key contains the `:id` column *and* that column is unique for all records.
+Rails can generally infer the primary key to foreign key relationships between
+associated models. However, when using composite primary keys, Rails typically
+defaults to using only part of the composite key (usually the `id` column)
+unless explicitly instructed otherwise. This default behavior only works if the
+model's composite primary key contains the `:id` column *and* that column is
+unique for all records.
 
 Consider the following example:
 
@@ -229,7 +272,9 @@ class Book < ApplicationRecord
 end
 ```
 
-The composite primary key for `Order` is `[:store_id, :id]` but Rails will take just the `:id` column as the primary key for the association, making `order_id` the foreign key on `Book`.
+The composite primary key for `Order` is `[:store_id, :id]` but Rails will take
+just the `:id` column as the primary key for the association, making `order_id`
+the foreign key on `Book`.
 
 Below we create an `Order` and a `Book` associated with it:
 
@@ -245,17 +290,27 @@ For the last line, Rails generates the following SQL to access the `order`:
 SELECT * FROM orders WHERE id = 2
 ```
 
-NOTE: When `id` is part of a composite primary key, Active Record's `id` accessor refers to the *entire* composite key rather than the individual `id` column. You assign it as `id: [1, 2]` which maps to `store_id: 1` and `id: 2`. Attempting to assign the `id` to a single value (`Order.create!(store_id: 1, id: 2)`) results in a `TypeError`, which can be a bit surprising.
+NOTE: When `id` is part of a composite primary key, Active Record's `id`
+accessor refers to the *entire* composite key rather than the individual `id`
+column. You assign it as `id: [1, 2]` which maps to `store_id: 1` and `id: 2`.
+Attempting to assign the `id` to a single value (`Order.create!(store_id: 1, id:
+2)`) results in a `TypeError`, which can be a bit surprising.
 
 NOTE: We use `reload` above because we want to see the SQL. Without it,
 `book.order` returns the cached version without querying the database, so no SQL
 is generated.
 
-You can see that Rails uses the order's `id` in its query, rather than both the `store_id` and the `id`. In this case, the `id` is sufficient because the model's composite primary key does in fact contain the `id` column, *and* the column is unique for all records.
+You can see that Rails uses the order's `id` in its query, rather than both the
+`store_id` and the `id`. In this case, the `id` is sufficient because the
+model's composite primary key does in fact contain the `id` column, *and* the
+column is unique for all records.
 
-However, if the above requirement is not met, you can explicitly set the `foreign_key` option on the association. Then, all columns specified in the foreign key will be used when querying the associated records.
+However, if the above requirement is not met, you can explicitly set the
+`foreign_key` option on the association. Then, all columns specified in the
+foreign key will be used when querying the associated records.
 
-For example, consider an `Author` model whose composite primary key contains no `:id` column at all:
+For example, consider an `Author` model whose composite primary key contains no
+`:id` column at all:
 
 ```ruby
 class Author < ApplicationRecord
@@ -268,7 +323,8 @@ class Book < ApplicationRecord
 end
 ```
 
-In this setup, `Book` belongs to `Author` and the a composite foreign key is specified as `[:author_first_name, :author_last_name]`.
+In this setup, `Book` belongs to `Author` and the a composite foreign key is
+specified as `[:author_first_name, :author_last_name]`.
 
 Create an `Author` and a `Book` associated with it:
 
@@ -278,7 +334,8 @@ book = author.books.create!(title: "A Cool Book")
 book.reload.author
 ```
 
-Rails will now use both `first_name` and `last_name` from the composite primary key in the SQL query for `Author`:
+Rails will now use both `first_name` and `last_name` from the composite primary
+key in the SQL query for `Author`:
 
 ```sql
 SELECT * FROM authors WHERE first_name = 'Jane' AND last_name = 'Doe'
@@ -325,7 +382,8 @@ the parameters and update the record.
 
 Composite key parameters contain multiple values in one parameter so we need to
 extract each value and pass them to Active Record. We can use the
-[`extract_value`](https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-extract_value) method for this.
+[`extract_value`](https://api.rubyonrails.org/classes/ActionController/Parameters.html#method-i-extract_value)
+method for this.
 
 Given the following controller:
 
@@ -349,14 +407,14 @@ get "/books/:id", to: "books#show"
 
 When a user opens the URL `/books/4_2`, the controller will extract the
 composite key value `["4", "2"]` and pass it to `Book.find` to render the right
-record in the view. The `extract_value` method may be used to extract arrays
-out of any delimited parameters.
+record in the view. The `extract_value` method may be used to extract arrays out
+of any delimited parameters.
 
 Fixtures
 --------
 
-Fixtures for composite primary key tables are similar to normal tables.
-When using an `id` column, the column may be omitted as usual:
+Fixtures for composite primary key tables are similar to normal tables. When
+using an `id` column, the column may be omitted as usual:
 
 ```ruby
 class Book < ApplicationRecord
@@ -372,8 +430,8 @@ alices_adventure_in_wonderland:
   title: "Alice's Adventures in Wonderland"
 ```
 
-However, in order to support composite primary key relationships,
-you must use the `composite_identify` method:
+However, in order to support composite primary key relationships, you must use
+the `composite_identify` method:
 
 ```ruby
 class BookOrder < ApplicationRecord
@@ -399,11 +457,20 @@ Performance and Indexing
 
 ### Column Order Matters
 
-A composite primary key creates a database index on its columns in the order they are declared. A CPK of `[:store_id, :sku]` means the database can efficiently use that index for queries filtering on `store_id` alone, or `store_id` and `sku` together, but not `sku` alone. The leading column should be the one you filter on most frequently. In a multi-tenant application, placing the tenant identifier first (e.g. `store_id`) makes sense, since almost every query will be scoped to a store.
+A composite primary key creates a database index on its columns in the order
+they are declared. A CPK of `[:store_id, :sku]` means the database can
+efficiently use that index for queries filtering on `store_id` alone, or
+`store_id` and `sku` together, but not `sku` alone. The leading column should be
+the one you filter on most frequently. In a multi-tenant application, placing
+the tenant identifier first (e.g. `store_id`) makes sense, since almost every
+query will be scoped to a store.
 
 ### Index Foreign Key Columns Manually
 
-When another table references a composite primary key, the foreign key columns on that table need their own index. Unlike single column foreign keys, Rails does not add these automatically. Without an explicit index, any join or association query back to the parent table will result in a full table scan.
+When another table references a composite primary key, the foreign key columns
+on that table need their own index. Unlike single column foreign keys, Rails
+does not add these automatically. Without an explicit index, any join or
+association query back to the parent table will result in a full table scan.
 
 You can add the index manually in your migration:
 
