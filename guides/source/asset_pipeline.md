@@ -366,19 +366,33 @@ WARNING: SRI only works in secure contexts (HTTPS) or during local development.
 The integrity hashes are automatically omitted when serving over HTTP in
 production for security reasons.
 
-Advanced CSS and JavaScript Management
---------------------------------------
+Managing CSS and JavaScript Files and Dependencies
+--------------------------------------------------
 
-Since Propshaft doesn't transpile or bundle CSS and JavaScript, Rails provides a
-number of gems should you wish to to do so. These gems augment Propshaft by
-applying transformations to the source files before _handing them over_ to
-Propshaft for fingerprinting and delivery.
+Rails provides a number of gems that plug into Propshaft to help manage
+CSS and JavaScript files, and optionally transpile and bundle them.
+
+In this section, we'll discuss the following gems:
+
+* [`importmap-rails`][]: Generates a [JavaScript Import Map](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script/type/importmap).
+
+* [`jsbundling-rails`][]: Provides integration with a number of JavaScript bundlers.
+
+* [`cssbundling-rails`][]: Simplifies the installation of supported CSS frameworks and processors.
+
+These gems augment Propshaft by processing the source files
+before _handing them over_ to Propshaft for fingerprinting
+and delivery.
+
+[`importmap-rails`]: https://github.com/rails/importmap-rails
+[`jsbundling-rails`]: https://github.com/rails/jsbundling-rails
+[`cssbundling-rails`]: https://github.com/rails/cssbundling-rails
 
 ### JavaScript Import Map
 
 A [JavaScript import map](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script/type/importmap)
 is the default mechanism to deliver JavaScript in Rails apps. The functionality
-is provided by the [`importmap-rails`](https://github.com/rails/importmap-rails)
+is provided by the [`importmap-rails`][]
 gem.
 
 An import map allows JavaScript files to be delivered separately without
@@ -520,9 +534,9 @@ Additional entry points can be declared using:
 ### Bundling and Transpiling JavaScript
 
 If your application's JavaScript requires a _build_ step, use the
-[`jsbundling-rails`](https://github.com/rails/jsbundling-rails) gem.
+[`jsbundling-rails`][] gem.
 
-It supports a number of builders such as [Bun](https://bun.sh),
+It supports a number of bundlers such as [Bun](https://bun.sh),
 [esbuild](https://esbuild.github.io/), [rollup.js](https://rollupjs.org/), and
 [Webpack](https://webpack.js.org/). See the
 [Readme](https://github.com/rails/jsbundling-rails/blob/main/README.md) for
@@ -572,7 +586,7 @@ that:
 ### Bundling and Transpiling CSS
 
 To bundle and transpile CSS in your Rails application, you can use the
-[`cssbundling-rails`](https://github.com/rails/cssbundling-rails) gem.
+[`cssbundling-rails`][] gem.
 
 It supports a number of CSS processors and frameworks such as
 [Tailwind CSS](https://tailwindcss.com/),
