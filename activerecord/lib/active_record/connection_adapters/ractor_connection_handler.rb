@@ -69,8 +69,11 @@ module ActiveRecord
         clobber_existing = clobber
 
         pool_spec = ActiveSupport::Ractors.on_main do
+          # The boundary copy compares equal to the existing pool's config
+          # (HashConfig#==), so the main handler reuses the pool exactly like
+          # a direct call with an equal config.
           pool = ActiveRecord::Base.default_connection_handler.establish_connection(
-            RactorConnectionHandler.identity_db_config(db_config),
+            db_config,
             owner_name: connection_owner_name,
             role: connection_role,
             shard: connection_shard,
@@ -80,28 +83,6 @@ module ActiveRecord
         end
 
         RactorConnectionPool.for_spec(pool_spec)
-      end
-
-      # The main handler decides pool reuse by config identity, which a
-      # boundary copy always fails. Resolves a copy back to its identity
-      # anchor — origin pool config or value-equal registry entry; ad-hoc
-      # configs match neither and rebuild the pool, like a direct call.
-      def self.identity_db_config(db_config)
-        return db_config unless db_config.is_a?(DatabaseConfigurations::HashConfig)
-
-        if origin = RactorConnectionPool.origin_db_config(db_config)
-          return origin
-        end
-
-        registered = ActiveRecord::Base.configurations.configs_for(
-          env_name: db_config.env_name, name: db_config.name, include_hidden: true
-        )
-        if registered && registered.class == db_config.class &&
-            registered.configuration_hash == db_config.configuration_hash
-          registered
-        else
-          db_config.dup
-        end
       end
 
       def remove_connection_pool(connection_name, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard)

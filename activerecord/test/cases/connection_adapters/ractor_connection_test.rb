@@ -202,6 +202,14 @@ module ActiveRecord
           assert_nil RactorConnectionHandler.instance.retrieve_connection_pool("Nonexistent::Base")
         end
 
+        def test_handler_establish_connection_reuses_the_main_pool_for_a_config_copy
+          pool_before = main_pool
+          pool = RactorConnectionHandler.instance.establish_connection(pool_before.db_config)
+
+          assert_equal ["ActiveRecord::Base", :writing, :default, pool_before.pool_config.pool_token], pool.key
+          assert_same pool_before, main_pool
+        end
+
         def test_handler_connected_false_for_unknown
           assert_not RactorConnectionHandler.instance.connected?("Nonexistent::Base")
         end

@@ -51,7 +51,7 @@ module ActiveRecord
           base_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base")
           default_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool("ActiveRecord::Base", shard: :default)
 
-          assert_equal [:default, :shard_one], pool_manager("ActiveRecord::Base").shard_names
+          assert_equal [:default, :shard_one], pool_manager("ActiveRecord::Base").shard_names.sort
           assert_equal base_pool, default_pool
           assert_equal "test/db/primary.sqlite3", default_pool.db_config.database
           assert_equal "primary", default_pool.db_config.name
@@ -137,7 +137,7 @@ module ActiveRecord
           base_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(connection_description_name)
           default_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(connection_description_name, shard: 0)
 
-          assert_equal [0, 1], pool_manager(connection_description_name).shard_names
+          assert_equal [0, 1], pool_manager(connection_description_name).shard_names.sort
           assert_equal base_pool, default_pool
           assert_equal "test/db/primary.sqlite3", default_pool.db_config.database
           assert_equal "primary", default_pool.db_config.name

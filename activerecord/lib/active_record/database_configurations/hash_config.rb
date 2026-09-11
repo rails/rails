@@ -44,6 +44,19 @@ module ActiveRecord
         @query_log_tags_prepend_comment = (query_log_tags["prepend_comment"] if query_log_tags.is_a?(Hash))
       end
 
+      def ==(other)
+        other.is_a?(DatabaseConfig) && comparable_values == other.comparable_values
+      end
+      alias :eql? :==
+
+      def hash # :nodoc:
+        comparable_values.hash
+      end
+
+      def comparable_values # :nodoc:
+        super << configuration_hash
+      end
+
       # Determines whether a database configuration is for a replica / readonly
       # connection. If the `replica` key is present in the config, `replica?` will
       # return `true`.

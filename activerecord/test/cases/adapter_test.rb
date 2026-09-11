@@ -212,6 +212,7 @@ module ActiveRecord
         assert_predicate ActiveRecord::Base.lease_connection, :prepared_statements?
 
         ActiveRecord.disable_prepared_statements = true
+        ActiveRecord::Base.remove_connection
         ActiveRecord::Base.establish_connection(db_config.configuration_hash.merge(prepared_statements: true))
         assert_not_predicate ActiveRecord::Base.lease_connection, :prepared_statements?
       ensure
