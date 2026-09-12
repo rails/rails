@@ -1,3 +1,16 @@
+*   Stop an uploaded filename choosing the extension of the tempfile Active
+    Storage hands to an external tool.
+
+    `ActiveStorage::Blob#open` named its tempfile after the uploaded filename,
+    extension and all. Tools that select a decoder from the extension alone,
+    such as FFmpeg's AviSynth demuxer on `.avs`, therefore took their
+    instructions from the uploader. The extension is now kept only when it
+    denotes the blob's recorded media type, and dropped otherwise.
+
+    [GHSA-v924-7rp8-4mxh]
+
+    *Mike Dalessio*
+
 *   Restrict the formats ffmpeg and ffprobe will open when previewing and
     analyzing video and audio.
 
