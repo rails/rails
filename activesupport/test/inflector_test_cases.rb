@@ -253,7 +253,12 @@ module InflectorTestCases
     "employee id etc" => "Employee id etc",
     "underground"     => "Underground",
     "_id"             => "Id",
-    "_external_id"    => "External"
+    "_external_id"    => "External",
+    "EMPLOYEE_SALARY" => "Employee salary",
+    "Employee_Salary" => "Employee salary",
+    "1st_place"       => "1st place",
+    "ßtraße"          => "SStraße",
+    "élan_vital"      => "Élan vital"
   }.freeze
 
   UnderscoreToHumanWithKeepIdSuffix = {
