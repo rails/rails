@@ -149,6 +149,12 @@ module ActionView
       end
     end
 
+    def all_unbound_templates # :nodoc:
+      template_glob("**/*").map do |template|
+        build_unbound_template(template)
+      end
+    end
+
     def built_templates # :nodoc:
       @unbound_templates.values.flatten.flat_map(&:built_templates)
     end
