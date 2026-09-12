@@ -1,3 +1,14 @@
+*   Avoid deadlocks when concurrent `find_or_create_by` calls read back the same
+    record within MySQL transactions.
+
+    Use a shared lock for the read after a duplicate insert, preserving visibility
+    under REPEATABLE READ without upgrading competing shared locks to exclusive locks.
+    This also applies to `create_or_find_by` and the bang variants of both methods.
+
+    Fixes #54281.
+
+    *Kirsten Westeinde*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the

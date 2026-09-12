@@ -281,7 +281,7 @@ module ActiveRecord
         record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
-          rewhere(attributes).lock.take!
+          rewhere(attributes).lock(connection.create_or_find_by_lock).take!
         else
           rewhere(attributes).take!
         end
@@ -301,7 +301,7 @@ module ActiveRecord
         record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
-          rewhere(attributes).lock.take!
+          rewhere(attributes).lock(connection.create_or_find_by_lock).take!
         else
           rewhere(attributes).take!
         end

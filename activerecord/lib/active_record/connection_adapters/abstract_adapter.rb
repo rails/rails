@@ -681,6 +681,11 @@ module ActiveRecord
       def drop_virtual_table(*) # :nodoc:
       end
 
+      # Lock used to read an existing record after a duplicate INSERT in a transaction.
+      def create_or_find_by_lock # :nodoc:
+        true
+      end
+
       def advisory_locks_enabled? # :nodoc:
         supports_advisory_locks? && @advisory_locks_enabled
       end
