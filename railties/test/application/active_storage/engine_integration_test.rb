@@ -120,6 +120,33 @@ module ApplicationTests
       assert_equal %w[block_untrusted(true) initializer booted], output.lines.map(&:chomp).grep(/^(block_untrusted|initializer|booted)/)
     end
 
+    def test_boots_when_ruby_vips_cannot_load_its_libraries
+      File.open("#{app_path}/Gemfile", "a") { |f| f.puts 'gem "image_processing", "~> 2.0"' }
+      add_ruby_vips_stub 'require "vips"'
+      File.write app_path("ruby-vips", "lib", "vips.rb"), <<~'RUBY'
+        raise LoadError, "Could not open library 'glib-2.0.0': dlopen(glib-2.0.0, 0x0005): tried: 'glib-2.0.0' (no such file)."
+      RUBY
+
+      output = run_command("puts :booted")
+
+      assert_includes(output, "booted")
+    end
+
+    def test_does_not_require_ruby_vips_again_after_it_fails_to_load
+      File.open("#{app_path}/Gemfile", "a") { |f| f.puts 'gem "image_processing", "~> 2.0"' }
+      add_ruby_vips_stub 'require "vips"'
+      File.write app_path("ruby-vips", "lib", "vips.rb"), <<~'RUBY'
+        raise "ruby-vips was required again after it failed to load" if $vips_required
+        $vips_required = true
+        raise LoadError, "Could not open library 'glib-2.0.0': dlopen(glib-2.0.0, 0x0005): tried: 'glib-2.0.0' (no such file)."
+      RUBY
+
+      output = run_command("puts :booted")
+
+      assert_includes(output, "Using vips to process variants requires the libvips library")
+      assert_includes(output, "booted")
+    end
+
     private
       def add_ruby_vips_stub(source)
         FileUtils.mkdir_p app_path("ruby-vips", "lib")
