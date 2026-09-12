@@ -1,3 +1,14 @@
+*   Boot when libvips is missing.
+
+    An application with the ruby-vips gem installed but no libvips could not start. Active Storage
+    now treats any `LoadError` from requiring ruby-vips as ruby-vips being unavailable, and stops
+    loading `image_processing/vips` once it is. The application boots and logs a warning that
+    generating variants needs libvips.
+
+    Fixes #58723.
+
+    *Mike Dalessio*, *Vandenbogaerde Nicolas*
+
 *   Boot with an unsupported libvips or ruby-vips unless the variant processor uses it.
 
     An installed libvips or ruby-vips too old to block the unfuzzed loaders raised during application

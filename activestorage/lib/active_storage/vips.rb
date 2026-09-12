@@ -17,9 +17,8 @@ begin
   gem "ruby-vips"
   require "ruby-vips"
   ActiveStorage::VIPS_AVAILABLE = true # :nodoc:
-rescue LoadError => error
+rescue LoadError
   ActiveStorage::VIPS_AVAILABLE = false # :nodoc:
-  raise error unless error.message.match?(/libvips|ruby-vips/)
 end
 
 if ActiveStorage::VIPS_AVAILABLE
