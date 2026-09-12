@@ -1,3 +1,11 @@
+*   Speed up `ActiveSupport::Inflector.humanize` when no acronyms are defined.
+
+    Downcasing the string and capitalizing it now use `String#downcase!` and
+    `#capitalize!` instead of a regexp with a block per word, which makes it
+    3x to 6x faster with 3 allocations instead of 10 to 12. Output is unchanged.
+
+    *Yaroslav Markin*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
     when a local cache is active.
 
