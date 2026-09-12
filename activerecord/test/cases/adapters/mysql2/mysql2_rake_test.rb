@@ -390,7 +390,7 @@ module ActiveRecord
 
     def test_structure_load
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
+      expected_command = ["mysql", "--init-command", "SET FOREIGN_KEY_CHECKS = 0", "--noop", "--database", "test-db", { in: filename }]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags(["--noop"]) do
@@ -401,7 +401,7 @@ module ActiveRecord
 
     def test_structure_load_with_hash_extra_flags_for_a_different_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
+      expected_command = ["mysql", "--init-command", "SET FOREIGN_KEY_CHECKS = 0", "--database", "test-db", { in: filename }]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags({ postgresql: ["--noop"] }) do
@@ -412,10 +412,22 @@ module ActiveRecord
 
     def test_structure_load_with_hash_extra_flags_for_the_correct_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
+      expected_command = ["mysql", "--init-command", "SET FOREIGN_KEY_CHECKS = 0", "--noop", "--database", "test-db", { in: filename }]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags({ mysql2: ["--noop"] }) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+        end
+      end
+    end
+
+    def test_structure_load_keeps_init_command_from_extra_flags
+      filename = "awesome-file.sql"
+      init_command = "--init-command=SET SESSION sql_require_primary_key = 0"
+      expected_command = ["mysql", "--init-command", "SET FOREIGN_KEY_CHECKS = 0", init_command, "--database", "test-db", { in: filename }]
+
+      assert_called_with(Kernel, :system, expected_command, returns: true) do
+        with_structure_load_flags([init_command]) do
           ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
         end
       end

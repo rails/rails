@@ -1,3 +1,10 @@
+*   Make `db:schema:load` work with MySQL client 9.4 and later.
+
+    The client rejects the `SOURCE` command by default from 9.4.0 on, so the SQL
+    structure file is now read from standard input.
+
+    *Yasuo Honda*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the
