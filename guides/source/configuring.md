@@ -3952,6 +3952,9 @@ any one name admits a demuxer that registers several, so `mov` also admits
 MP4, M4A and 3GP files.
 
 Set this to `nil` to let ffmpeg choose any demuxer it was built with.
+Setting it to `nil`, or adding `hls`, lets ffprobe follow the segments of a
+playlist an upload names, such as an `.m3u` file declared `audio/x-mpegurl`,
+whose extension `ActiveStorage::Blob#open` keeps.
 
 The default value is
 `%w[ mov matroska avi mpeg mpegts flv asf ogg mp3 wav flac aac aiff caf ]`.
