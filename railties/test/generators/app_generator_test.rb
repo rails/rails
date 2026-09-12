@@ -1477,13 +1477,31 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/docker-entrypoint"
   end
 
-  def test_docker_entrypoint_checks_first_two_arguments_so_extra_server_flags_still_trigger_db_prepare
+  def test_docker_entrypoint_prepares_database_for_rails_server_with_thruster_prefix_or_extra_flags
     run_generator
 
-    assert_file "bin/docker-entrypoint" do |content|
-      assert_match(/if \[ "\$\{1\}" == "\.\/bin\/rails" \] && \[ "\$\{2\}" == "server" \]; then/, content)
-      assert_no_match(/\$\{@: -2:1\}|\$\{@: -1:1\}/, content)
+    entrypoint = File.expand_path("bin/docker-entrypoint", destination_root)
+    fake_rails = File.expand_path("bin/rails", destination_root)
+    File.write(fake_rails, "#!/bin/bash\necho \"CALLED: ./bin/rails $@\"\n")
+    FileUtils.chmod("+x", fake_rails)
+
+    # bin/rails server can be invoked directly, prefixed by Thruster
+    # (the default in generated Dockerfiles), and/or with extra flags
+    # like -b for network binding. db:prepare must run in every case.
+    matching_commands = [
+      %w(./bin/rails server),
+      %w(./bin/rails server -b 0.0.0.0),
+      %w(./bin/thrust ./bin/rails server),
+      %w(./bin/thrust ./bin/rails server -b 0.0.0.0),
+    ]
+
+    matching_commands.each do |command|
+      output = IO.popen([entrypoint, *command], chdir: destination_root, err: [:child, :out], &:read)
+      assert_match(/CALLED: \.\/bin\/rails db:prepare/, output, "expected db:prepare to run for: #{command.join(" ")}")
     end
+
+    output = IO.popen([entrypoint, "bash", "-c", "echo hi"], chdir: destination_root, err: [:child, :out], &:read)
+    assert_no_match(/db:prepare/, output)
   end
 
   def test_docker_entrypoint_omits_db_prepare_check_when_skipping_active_record
