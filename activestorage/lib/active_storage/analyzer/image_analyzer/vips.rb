@@ -17,6 +17,8 @@ module ActiveStorage
           return {}
         end
 
+        ActiveStorage.require_securable_vips!
+
         download_blob_to_tempfile do |file|
           image = instrument("vips") do
             # ruby-vips will raise Vips::Error if it can't find an appropriate loader for the file

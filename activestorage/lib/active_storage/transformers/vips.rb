@@ -7,6 +7,7 @@
 # active_storage/vips has already loaded image_processing/vips, but requiring it here is what
 # raises LoadError when the gem is missing, which the engine reports as an actionable warning.
 require "active_storage/vips"
+ActiveStorage.require_securable_vips!
 require "image_processing/vips"
 
 module ActiveStorage
