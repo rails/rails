@@ -570,8 +570,8 @@ end
 
 A subclass registering its own pinned callback lands after the one of its
 parent, just like any callback registered later. At the outermost end that means
-the parent's callback stays the first to run; at the innermost end it means the
-subclass's callback becomes the last to run.
+the parent's callback stays the outer one; at the innermost end it means the
+subclass's callback becomes the inner one.
 
 ```ruby
 class ArticlesController < ApplicationController

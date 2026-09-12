@@ -843,7 +843,10 @@ module ActiveSupport
         # * <tt>:outermost</tt> - The counterpart of <tt>:innermost</tt>. If
         #   +true+, the callback is kept furthest from the event, before every
         #   callback that is not itself <tt>:outermost</tt>, including the ones
-        #   prepended later on by subclasses.
+        #   prepended later on by subclasses. A +before+ callback registered this
+        #   way runs before all of them, an +around+ callback wraps all of them,
+        #   and an +after+ callback runs after all of them, since +after+
+        #   callbacks run in reverse order.
         #
         #   <tt>:prepend</tt> puts a callback in front of the callbacks
         #   registered so far, but it cannot keep it there, since the next
@@ -853,7 +856,7 @@ module ActiveSupport
         #     class ApplicationRecord < ActiveRecord::Base
         #       self.abstract_class = true
         #
-        #       # Every other callback, prepended or not, sees the audit context.
+        #       # Every regular callback, prepended or not, sees the audit context.
         #       around_save :with_audit_context, outermost: true
         #     end
         #
@@ -870,10 +873,10 @@ module ActiveSupport
         #     # before callback that is not innermost.
         #
         #   A subclass that registers its own pinned callback lands after the one
-        #   of its parent, just like any callback registered later: at the
-        #   outermost end the parent's callback stays the first to run, and at
-        #   the innermost end the subclass's becomes the last to run. Setting
-        #   both options on the same callback raises an +ArgumentError+.
+        #   of its parent, just like any callback registered later, so at the
+        #   outermost end the parent's callback stays the outer one, and at the
+        #   innermost end the subclass's becomes the inner one. Setting both
+        #   options on the same callback raises an +ArgumentError+.
         #
         def set_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
