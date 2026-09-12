@@ -348,7 +348,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
 
   test "nested <blockquote> tags produce nested quotes" do
     assert_converted_to(
-      "> this is a quote\n> > of a quote",
+      "> this is a quote\n> \n> > of a quote",
       "<blockquote>this is a quote<blockquote>of a quote</blockquote></blockquote>"
     )
   end
@@ -439,6 +439,83 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<pre> inside a <template> in a table row is flattened into an inline code span" do
+    assert_converted_to(
+      "| `[click](javascript:alert(1))` |",
+      "<table><tr><template><pre>[click](javascript:alert(1))</pre></template></tr></table>"
+    )
+  end
+
+  test "<pre> in a table row from an HTML4-parsed fragment is flattened into an inline code span" do
+    fragment = Nokogiri::HTML4.fragment("<table><tr><div><pre>[click](javascript:alert(1))</pre></div></tr></table>")
+    assert_equal "| `[click](javascript:alert(1))` |", ActionText::MarkdownConversion.node_to_markdown(fragment)
+  end
+
+  test "<pre> in an <ol> item is indented to the width of the marker so the fence holds" do
+    assert_converted_to(
+      "1. ```\n   [click](javascript:alert(1))\n   ```",
+      "<ol><li><pre>[click](javascript:alert(1))</pre></li></ol>"
+    )
+  end
+
+  test "<pre> in the tenth <ol> item is indented to the width of the wider marker" do
+    assert_converted_to(
+      "#{(1..9).map { |i| "#{i}. x" }.join("\n")}\n10. ```\n    [click](javascript:alert(1))\n    ```",
+      "<ol>#{"<li>x</li>" * 9}<li><pre>[click](javascript:alert(1))</pre></li></ol>"
+    )
+  end
+
+  test "a nested <ol> is indented to the width of the marker it sits under" do
+    assert_converted_to(
+      "1. one\n   1. nested",
+      "<ol><li>one<ol><li>nested</li></ol></li></ol>"
+    )
+  end
+
+  test "<code> content starting with whitespace gets a wider code span delimiter" do
+    assert_converted_to(
+      "`` [click](javascript:alert(1))``",
+      "<code> [click](javascript:alert(1))</code>"
+    )
+    assert_converted_to(
+      "``\t[click](javascript:alert(1))``",
+      "<code>\t[click](javascript:alert(1))</code>"
+    )
+  end
+
+  test "<pre> that follows a sibling starts its own block" do
+    assert_converted_to(
+      "before\n\n```\n[click](javascript:alert(1))\n```",
+      "<div>before</div><figure><pre>[click](javascript:alert(1))</pre></figure>"
+    )
+    assert_converted_to(
+      "lead\n\n```\n[click](javascript:alert(1))\n```",
+      "<div>lead<pre>[click](javascript:alert(1))</pre></div>"
+    )
+  end
+
+  test "<pre> in a container that has more content after it still starts its own block" do
+    assert_converted_to(
+      "before\n\n```\n[click](javascript:alert(1))\n```\n\nafter",
+      "<div>before</div><figure><pre>[click](javascript:alert(1))</pre>after</figure>"
+    )
+  end
+
+  test "<div> holding a <pre> reports itself as a block" do
+    assert_converted_to(
+      "before\n\n```\n[click](javascript:alert(1))\n```\n\nafter",
+      "<div>before</div><div><pre>[click](javascript:alert(1))</pre>after</div>"
+    )
+  end
+
+  test "<pre> with CR line endings from an HTML4-parsed fragment keeps every line in the fence" do
+    fragment = Nokogiri::HTML4.fragment("<ol><li><pre>one\rtwo</pre></li></ol>")
+    assert_equal "1. ```\n   one\n   two\n   ```", ActionText::MarkdownConversion.node_to_markdown(fragment)
+
+    fragment = Nokogiri::HTML4.fragment("<blockquote><pre>one\r\ntwo</pre></blockquote>")
+    assert_equal "> ```\n> one\n> two\n> ```", ActionText::MarkdownConversion.node_to_markdown(fragment)
+  end
+
   test "<pre> inside <strong> is flattened into an inline code span" do
     assert_converted_to(
       "**`[click](javascript:alert(1))`**",
@@ -485,6 +562,13 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_converted_to(
       "- one\n  - nested\n- two",
       "<ul><li>one<ul><li>nested</li></ul></li><li>two</li></ul>"
+    )
+  end
+
+  test "an <ol> item holding only a nested <ol> keeps its marker" do
+    assert_converted_to(
+      "1.   1. c",
+      "<ol><li><ol><li><ol><li>c</li></ol></li></ol></li></ol>"
     )
   end
 
