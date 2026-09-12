@@ -1392,4 +1392,241 @@ module CallbacksTest
       assert_equal ["after_save_2", "after_save_1"], klass.history
     end
   end
+
+  class NestedCallbacksRecord
+    include ActiveSupport::Callbacks
+
+    define_callbacks :save
+
+    attr_reader :history
+
+    def initialize
+      @history = []
+    end
+
+    def save
+      run_callbacks(:save) { @history << "save" }
+    end
+
+    %w( parent parent_outermost parent_innermost child grandchild_outermost grandchild_innermost ).each do |name|
+      define_method("before_#{name}") { @history << "before_#{name}" }
+      define_method("after_#{name}") { @history << "after_#{name}" }
+      define_method("around_#{name}") do |&block|
+        @history << "around_#{name}_before"
+        block.call
+        @history << "around_#{name}_after"
+      end
+    end
+  end
+
+  class ParentWithNestedCallbacks < NestedCallbacksRecord
+    set_callback :save, :before, :before_parent_outermost, outermost: true
+    set_callback :save, :around, :around_parent_outermost, outermost: true
+    set_callback :save, :after, :after_parent_outermost, outermost: true
+
+    set_callback :save, :before, :before_parent_innermost, innermost: true
+    set_callback :save, :around, :around_parent_innermost, innermost: true
+    set_callback :save, :after, :after_parent_innermost, innermost: true
+
+    set_callback :save, :before, :before_parent
+    set_callback :save, :around, :around_parent
+    set_callback :save, :after, :after_parent
+  end
+
+  class ChildWithNestedCallbacks < ParentWithNestedCallbacks
+    set_callback :save, :before, :before_child
+    set_callback :save, :around, :around_child
+    set_callback :save, :after, :after_child
+  end
+
+  class GrandChildWithNestedCallbacks < ChildWithNestedCallbacks
+    set_callback :save, :before, :before_grandchild_innermost, innermost: true
+  end
+
+  module PrependingCallbackConcern
+    extend ActiveSupport::Concern
+
+    included do
+      set_callback :save, :before, :before_child, prepend: true
+    end
+  end
+
+  class NestedCallbacksTest < ActiveSupport::TestCase
+    def test_innermost_callbacks_run_after_the_appended_ones
+      assert_equal [
+        "before_parent_outermost",
+        "around_parent_outermost_before",
+        "before_parent",
+        "around_parent_before",
+        "before_parent_innermost",
+        "around_parent_innermost_before",
+        "save",
+        "after_parent_innermost",
+        "around_parent_innermost_after",
+        "after_parent",
+        "around_parent_after",
+        "after_parent_outermost",
+        "around_parent_outermost_after",
+      ], ParentWithNestedCallbacks.new.tap(&:save).history
+    end
+
+    def test_innermost_callbacks_run_after_the_ones_appended_by_subclasses
+      assert_equal [
+        "before_parent_outermost",
+        "around_parent_outermost_before",
+        "before_parent",
+        "around_parent_before",
+        "before_child",
+        "around_child_before",
+        "before_parent_innermost",
+        "around_parent_innermost_before",
+        "save",
+        "after_parent_innermost",
+        "around_parent_innermost_after",
+        "after_child",
+        "around_child_after",
+        "after_parent",
+        "around_parent_after",
+        "after_parent_outermost",
+        "around_parent_outermost_after",
+      ], ChildWithNestedCallbacks.new.tap(&:save).history
+    end
+
+    def test_innermost_callbacks_keep_the_order_they_were_set_in
+      history = GrandChildWithNestedCallbacks.new.tap(&:save).history
+
+      assert_equal ["before_parent_outermost", "before_parent", "before_child", "before_parent_innermost", "before_grandchild_innermost"],
+        history.grep(/\Abefore_/)
+    end
+
+    def test_innermost_callbacks_can_be_skipped
+      klass = Class.new(ParentWithNestedCallbacks) do
+        skip_callback :save, :before, :before_parent_innermost
+      end
+
+      assert_equal ["before_parent_outermost", "before_parent"], klass.new.tap(&:save).history.grep(/\Abefore_/)
+    end
+
+    def test_innermost_callbacks_can_be_conditionally_skipped
+      klass = Class.new(ParentWithNestedCallbacks) do
+        attr_accessor :skip_it
+        skip_callback :save, :before, :before_parent_innermost, if: :skip_it
+      end
+
+      record = klass.new
+      record.skip_it = true
+      assert_equal ["before_parent_outermost", "before_parent"], record.tap(&:save).history.grep(/\Abefore_/)
+
+      record = klass.new
+      record.skip_it = false
+      assert_equal ["before_parent_outermost", "before_parent", "before_parent_innermost"], record.tap(&:save).history.grep(/\Abefore_/)
+    end
+
+    def test_conditionally_skipping_an_innermost_callback_keeps_it_innermost
+      klass = Class.new(ParentWithNestedCallbacks) do
+        attr_accessor :skip_it
+        skip_callback :save, :before, :before_parent_innermost, if: :skip_it
+        set_callback :save, :before, :before_child
+      end
+
+      record = klass.new
+      record.skip_it = false
+      assert_equal ["before_parent_outermost", "before_parent", "before_child", "before_parent_innermost"],
+        record.tap(&:save).history.grep(/\Abefore_/)
+    end
+
+    def test_setting_an_innermost_callback_again_without_the_option_moves_it_back
+      klass = Class.new(ParentWithNestedCallbacks) do
+        set_callback :save, :before, :before_parent_innermost
+        set_callback :save, :before, :before_child
+      end
+
+      assert_equal ["before_parent_outermost", "before_parent", "before_parent_innermost", "before_child"],
+        klass.new.tap(&:save).history.grep(/\Abefore_/)
+    end
+
+    def test_setting_an_innermost_callback_twice_does_not_duplicate_it
+      klass = Class.new(ParentWithNestedCallbacks) do
+        set_callback :save, :before, :before_parent_innermost, innermost: true
+      end
+
+      assert_equal ["before_parent_outermost", "before_parent", "before_parent_innermost"],
+        klass.new.tap(&:save).history.grep(/\Abefore_/)
+    end
+
+    def test_outermost_callbacks_run_before_the_prepended_ones
+      klass = Class.new(ParentWithNestedCallbacks) do
+        set_callback :save, :before, :before_child, prepend: true
+      end
+
+      assert_equal ["before_parent_outermost", "before_child", "before_parent", "before_parent_innermost"],
+        klass.new.tap(&:save).history.grep(/\Abefore_/)
+    end
+
+    def test_outermost_callbacks_run_before_the_ones_prepended_by_a_concern_included_later
+      klass = Class.new(ParentWithNestedCallbacks) do
+        include PrependingCallbackConcern
+      end
+
+      assert_equal ["before_parent_outermost", "before_child", "before_parent", "before_parent_innermost"],
+        klass.new.tap(&:save).history.grep(/\Abefore_/)
+    end
+
+    def test_outermost_callbacks_keep_the_order_they_were_set_in
+      klass = Class.new(ParentWithNestedCallbacks) do
+        set_callback :save, :before, :before_grandchild_outermost, outermost: true
+      end
+
+      assert_equal ["before_parent_outermost", "before_grandchild_outermost", "before_parent", "before_parent_innermost"],
+        klass.new.tap(&:save).history.grep(/\Abefore_/)
+    end
+
+    def test_prepending_an_outermost_callback_puts_it_in_front_of_the_other_outermost_ones
+      klass = Class.new(ParentWithNestedCallbacks) do
+        set_callback :save, :before, :before_grandchild_outermost, outermost: true, prepend: true
+      end
+
+      assert_equal ["before_grandchild_outermost", "before_parent_outermost", "before_parent", "before_parent_innermost"],
+        klass.new.tap(&:save).history.grep(/\Abefore_/)
+    end
+
+    def test_prepending_an_innermost_callback_puts_it_in_front_of_the_other_innermost_ones
+      klass = Class.new(ParentWithNestedCallbacks) do
+        set_callback :save, :before, :before_grandchild_innermost, innermost: true, prepend: true
+      end
+
+      assert_equal ["before_parent_outermost", "before_parent", "before_grandchild_innermost", "before_parent_innermost"],
+        klass.new.tap(&:save).history.grep(/\Abefore_/)
+    end
+
+    def test_the_options_are_ignored_when_false
+      klass = Class.new(ParentWithNestedCallbacks) do
+        set_callback :save, :before, :before_child, innermost: false
+        set_callback :save, :before, :before_grandchild_outermost, outermost: false
+      end
+
+      assert_equal ["before_parent_outermost", "before_parent", "before_child",
+                    "before_grandchild_outermost", "before_parent_innermost"],
+        klass.new.tap(&:save).history.grep(/\Abefore_/)
+    end
+
+    def test_a_callback_cannot_be_both_outermost_and_innermost
+      error = assert_raises(ArgumentError) do
+        Class.new(ParentWithNestedCallbacks) do
+          set_callback :save, :before, :before_child, outermost: true, innermost: true
+        end
+      end
+
+      assert_equal "Cannot set a callback as both :outermost and :innermost", error.message
+    end
+
+    def test_reset_callbacks_also_resets_nested_callbacks
+      klass = Class.new(ParentWithNestedCallbacks) do
+        reset_callbacks :save
+      end
+
+      assert_predicate klass.send(:get_callbacks, :save), :empty?
+      assert_equal ["save"], klass.new.tap(&:save).history
+    end
+  end
 end

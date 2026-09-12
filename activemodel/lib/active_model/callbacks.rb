@@ -128,21 +128,21 @@ module ActiveModel
     private
       def _define_before_model_callback(klass, callback)
         klass.define_singleton_method("before_#{callback}") do |*args, **options, &block|
-          options.assert_valid_keys(:if, :unless, :prepend)
+          options.assert_valid_keys(:if, :unless, :prepend, :innermost, :outermost)
           set_callback(:"#{callback}", :before, *args, options, &block)
         end
       end
 
       def _define_around_model_callback(klass, callback)
         klass.define_singleton_method("around_#{callback}") do |*args, **options, &block|
-          options.assert_valid_keys(:if, :unless, :prepend)
+          options.assert_valid_keys(:if, :unless, :prepend, :innermost, :outermost)
           set_callback(:"#{callback}", :around, *args, options, &block)
         end
       end
 
       def _define_after_model_callback(klass, callback)
         klass.define_singleton_method("after_#{callback}") do |*args, **options, &block|
-          options.assert_valid_keys(:if, :unless, :prepend)
+          options.assert_valid_keys(:if, :unless, :prepend, :innermost, :outermost)
           options[:prepend] = true
           conditional = ActiveSupport::Callbacks::Conditionals::Value.new { |v|
             v != false

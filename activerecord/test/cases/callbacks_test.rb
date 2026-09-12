@@ -479,7 +479,7 @@ class CallbacksTest < ActiveRecord::TestCase
         before_save(on: :create) { }
       end
     end
-    assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message
+    assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend, :innermost, :outermost", exception.message
   end
 
   def test_around_save_doesnt_allow_on_option
@@ -488,7 +488,7 @@ class CallbacksTest < ActiveRecord::TestCase
         around_save(on: :create) { }
       end
     end
-    assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message
+    assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend, :innermost, :outermost", exception.message
   end
 
   def test_after_save_doesnt_allow_on_option
@@ -497,6 +497,6 @@ class CallbacksTest < ActiveRecord::TestCase
         after_save(on: :create) { }
       end
     end
-    assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message
+    assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend, :innermost, :outermost", exception.message
   end
 end
