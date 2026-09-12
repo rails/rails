@@ -1,3 +1,19 @@
+*   Speed up JSON escaping with `String#tr!` on Ruby 4.1+.
+
+    `ActiveSupport::JSON.encode` escaped `<`, `>`, `&`, U+2028 and U+2029 by
+    forcing the generated JSON to BINARY and running `gsub!` over it. Ruby 4.1
+    accepts a Hash of pairs in `String#tr!`, which does the same substitution in
+    a single pass, with no Regexp and no encoding round-trip.
+
+    Escaping is 2x to 10x faster on documents that are large or contain many
+    escapable characters, and allocates fewer intermediate strings. Documents
+    smaller than roughly 128 bytes with nothing to escape are marginally
+    slower, since `tr!` builds a translation table where a pre-compiled Regexp
+    just fails to match. Strings that aren't valid UTF-8 keep taking the
+    `gsub!` path.
+
+    *Jean Boussier*, *Federico Carrocera*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
     when a local cache is active.
 

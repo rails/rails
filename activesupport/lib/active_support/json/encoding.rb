@@ -83,6 +83,18 @@ module ActiveSupport
       FULL_ESCAPE_REGEX = Regexp.union(*ESCAPED_CHARS.keys).freeze
       JS_SEPARATORS_REGEX = Regexp.union(U2028, U2029).freeze
 
+      UTF8_ESCAPED_CHARS = {
+        "\u2028" => -'\u2028',
+        "\u2029" => -'\u2029',
+        ">" => -'\u003e',
+        "<" => -'\u003c',
+        "&" => -'\u0026',
+      }.freeze
+      UTF8_HTML_ENTITIES = UTF8_ESCAPED_CHARS.except("\u2028", "\u2029").freeze
+      UTF8_JS_SEPARATORS = UTF8_ESCAPED_CHARS.slice("\u2028", "\u2029").freeze
+
+      TR_ESCAPE_SUPPORTED = Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("4.1.0")
+
       class JSONGemEncoder # :nodoc:
         attr_reader :options
 
@@ -99,17 +111,30 @@ module ActiveSupport
 
           return json unless @options.fetch(:escape, true)
 
-          json.force_encoding(::Encoding::BINARY)
-          if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
-            if Encoding.escape_js_separators_in_json
-              json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
-            else
-              json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
+          if TR_ESCAPE_SUPPORTED && json.encoding == ::Encoding::UTF_8 && json.valid_encoding?
+            if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
+              if Encoding.escape_js_separators_in_json
+                json.tr!(UTF8_ESCAPED_CHARS)
+              else
+                json.tr!(UTF8_HTML_ENTITIES)
+              end
+            elsif Encoding.escape_js_separators_in_json
+              json.tr!(UTF8_JS_SEPARATORS)
             end
-          elsif Encoding.escape_js_separators_in_json
-            json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
+            json
+          else
+            json.force_encoding(::Encoding::BINARY)
+            if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
+              if Encoding.escape_js_separators_in_json
+                json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
+              else
+                json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
+              end
+            elsif Encoding.escape_js_separators_in_json
+              json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
+            end
+            json.force_encoding(::Encoding::UTF_8)
           end
-          json.force_encoding(::Encoding::UTF_8)
         end
 
         private
@@ -209,17 +234,30 @@ module ActiveSupport
 
             return json unless @escape
 
-            json.force_encoding(::Encoding::BINARY)
-            if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
-              if Encoding.escape_js_separators_in_json
-                json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
-              else
-                json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
+            if TR_ESCAPE_SUPPORTED && json.encoding == ::Encoding::UTF_8 && json.valid_encoding?
+              if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
+                if Encoding.escape_js_separators_in_json
+                  json.tr!(UTF8_ESCAPED_CHARS)
+                else
+                  json.tr!(UTF8_HTML_ENTITIES)
+                end
+              elsif Encoding.escape_js_separators_in_json
+                json.tr!(UTF8_JS_SEPARATORS)
               end
-            elsif Encoding.escape_js_separators_in_json
-              json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
+              json
+            else
+              json.force_encoding(::Encoding::BINARY)
+              if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
+                if Encoding.escape_js_separators_in_json
+                  json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
+                else
+                  json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
+                end
+              elsif Encoding.escape_js_separators_in_json
+                json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
+              end
+              json.force_encoding(::Encoding::UTF_8)
             end
-            json.force_encoding(::Encoding::UTF_8)
           end
         end
       end
