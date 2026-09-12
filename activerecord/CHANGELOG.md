@@ -1,3 +1,12 @@
+*   Pass Trilogy's SSL configuration to the `mysql` and `mysqldump` commands.
+
+    The flags were built from a key map that only listed mysql2's option
+    spellings, so Trilogy's underscored ones (`ssl_ca`, `ssl_capath`, ...) were
+    dropped. Each adapter now maps the options its own driver accepts, and
+    `TrilogyAdapter` also passes `ssl_crl` and `ssl_crlpath`.
+
+    *Ngan Pham*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the
