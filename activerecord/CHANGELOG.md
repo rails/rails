@@ -1,3 +1,14 @@
+*   Read the tables excluded from a `:sql` structure dump from the database being
+    dumped.
+
+    `structure_dump` matched `schema_ignored_tables` against the tables of
+    whichever database `ActiveRecord::Base` happened to be connected to, so in a
+    multi-database application a matching table in the dumped database was not
+    excluded. On PostgreSQL the `search_path` appended to the dump came from the
+    same connection.
+
+    *Ngan Pham*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the
