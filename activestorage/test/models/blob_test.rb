@@ -222,6 +222,47 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "open drops a filename extension the content type does not account for" do
+    blob = create_blob(data: 'Import("/etc/passwd")', filename: "attack.avs", content_type: "video/mp4")
+
+    assert_equal "video/mp4", blob.content_type
+
+    blob.open do |file|
+      assert File.basename(file.path).start_with?("ActiveStorage-#{blob.id}-")
+      assert_equal "", File.extname(file.path)
+    end
+  end
+
+  test "open drops a filename extension Marcel does not recognize" do
+    blob = create_blob(data: 'Import("/etc/passwd")', filename: "attack.avs", content_type: "application/octet-stream")
+
+    blob.open { |file| assert_equal "", File.extname(file.path) }
+  end
+
+  test "open drops a filename extension that denotes a different content type" do
+    blob = create_blob(data: "Hello world!", filename: "hello.jpg", content_type: "video/mp4", identify: false)
+
+    blob.open { |file| assert_equal "", File.extname(file.path) }
+  end
+
+  test "open drops a video extension from an image blob before ImageMagick can delegate it to ffmpeg" do
+    blob = create_blob(data: "#EXTM3U\n#EXTINF:1,\nfile:///etc/hostname\n", filename: "evil.mp4", content_type: "image/png", identify: false)
+
+    blob.open { |file| assert_equal "", File.extname(file.path) }
+  end
+
+  test "open compares the filename extension against the media type alone" do
+    blob = create_file_blob(filename: "icon.svg", content_type: "image/SVG+XML; charset=utf-8", identify: false)
+
+    blob.open { |file| assert_equal ".svg", File.extname(file.path) }
+  end
+
+  test "open keeps a filename extension the content type accounts for" do
+    create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg").open do |file|
+      assert file.path.end_with?(".jpg")
+    end
+  end
+
   test "open in a custom tmpdir" do
     create_file_blob(filename: "racecar.jpg").open(tmpdir: tmpdir = Dir.mktmpdir) do |file|
       assert_predicate file, :binmode?
