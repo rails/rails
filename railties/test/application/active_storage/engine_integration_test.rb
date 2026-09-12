@@ -96,7 +96,9 @@ module ApplicationTests
 
       output = run_command("puts :booted")
 
+      assert_predicate $?, :success?
       assert_includes(output, "booted")
+      assert_includes(output, "Using vips to process variants requires the libvips library.")
     end
 
     private
