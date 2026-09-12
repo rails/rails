@@ -1,3 +1,29 @@
+*   Reset the autosave callbacks guard on a duplicated record.
+
+    The autosave callbacks share `@_already_called`, which says which of them are
+    running on a given record. `ActiveRecord::Core#initialize_dup` resets a few
+    instance variables by hand rather than going through `init_internals`, where
+    that guard is reset, so a record duplicated while the record it was copied
+    from was inside its own autosave started life with the guard already raised
+    and skipped that association: no `INSERT` was issued and nothing was raised.
+
+    ```ruby
+    class Bird < ActiveRecord::Base
+      belongs_to :pirate
+
+      after_update do
+        copy = pirate.dup            # taken inside the pirate's own autosave
+        copy.birds = [Bird.new(name: "Cockatoo")]
+        copy.save!
+        copy.birds # => [] before this fix, and no INSERT was attempted
+      end
+    end
+
+    pirate.update!(birds_attributes: [{ id: bird.id, name: "Canary" }])
+    ```
+
+    *Anton Hetmanov*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the

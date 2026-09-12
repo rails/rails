@@ -281,6 +281,16 @@ module ActiveRecord
       new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
     end
 
+    def initialize_dup(other) # :nodoc:
+      super
+      # +@_already_called+ says which of these callbacks are running on this very
+      # record. #initialize_dup does not go through #init_internals, where it is
+      # reset, so without this a record duplicated while the record it was copied
+      # from is inside its own autosave would start with the guard already raised
+      # and skip that association without saving it or raising.
+      @_already_called = nil
+    end
+
     def validating_belongs_to_for?(association)
       @validating_belongs_to_for ||= {}
       @validating_belongs_to_for[association]
