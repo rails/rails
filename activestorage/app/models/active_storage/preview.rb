@@ -31,7 +31,7 @@
 # These libraries are not provided by \Rails. You must install them yourself to use the built-in previewers. Before you
 # install and use third-party software, make sure you understand the licensing implications of doing so.
 class ActiveStorage::Preview
-  include ActiveStorage::Blob::Servable
+  include ActiveStorage::Servable
 
   class UnprocessedError < StandardError; end
 
@@ -102,9 +102,7 @@ class ActiveStorage::Preview
   private
     def process
       previewer.preview(service_name: blob.service_name) do |attachable|
-        ActiveRecord::Base.connected_to(role: ActiveRecord.writing_role) do
-          image.attach(attachable)
-        end
+        with_writing_role { image.attach(attachable) }
       end
     end
 

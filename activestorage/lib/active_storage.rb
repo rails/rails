@@ -23,11 +23,13 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require "active_record"
 require "active_support"
 require "active_support/rails"
+require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/numeric/time"
 require "active_support/core_ext/numeric/bytes"
+require "concurrent/array"
+require "concurrent/map"
 
 require "active_storage/version"
 require "active_storage/deprecator"
@@ -41,9 +43,18 @@ require "openssl"
 module ActiveStorage
   extend ActiveSupport::Autoload
 
+  @@blob_class           = "ActiveStorage::Blob"
+  @@attachment_class     = "ActiveStorage::Attachment"
+  @@variant_record_class = "ActiveStorage::VariantRecord"
+
+  # Metadata keys Active Storage owns internally and must not accept from direct-upload clients.
+  PROTECTED_BLOB_METADATA = %w(analyzed identified composed).freeze
+  private_constant :PROTECTED_BLOB_METADATA
+
   autoload :Attached
   autoload :FixtureSet
   autoload :Service
+  autoload :Services
   autoload :Previewer
   autoload :Analyzer
 
@@ -359,6 +370,63 @@ module ActiveStorage
   mattr_accessor :service_urls_expire_in, default: 5.minutes
   mattr_accessor :touch_attachment_records, default: true
   mattr_accessor :urls_expire_in
+
+  class << self
+    def blob_class
+      @blob_class_resolved ||= @@blob_class.constantize
+    end
+
+    def blob_class=(klass_or_name)
+      @@blob_class = class_name(klass_or_name)
+      @blob_class_resolved = nil
+    end
+
+    def attachment_class
+      @attachment_class_resolved ||= @@attachment_class.constantize
+    end
+
+    def attachment_class=(klass_or_name)
+      @@attachment_class = class_name(klass_or_name)
+      @attachment_class_resolved = nil
+    end
+
+    def variant_record_class
+      @variant_record_class_resolved ||= @@variant_record_class.constantize
+    end
+
+    def variant_record_class=(klass_or_name)
+      @@variant_record_class = class_name(klass_or_name)
+      @variant_record_class_resolved = nil
+    end
+
+    def clear_class_indirection_cache # :nodoc:
+      @blob_class_resolved = nil
+      @attachment_class_resolved = nil
+      @variant_record_class_resolved = nil
+    end
+
+    # Removes metadata keys that Active Storage owns internally.
+    def filter_blob_metadata(metadata)
+      if metadata.is_a?(Hash)
+        metadata.without(*PROTECTED_BLOB_METADATA)
+      else
+        metadata
+      end
+    end
+
+    private
+      def class_name(klass_or_name)
+        if klass_or_name.is_a?(String)
+          raise ArgumentError, "Active Storage class names cannot be blank" if klass_or_name.empty?
+
+          klass_or_name
+        elsif klass_or_name.respond_to?(:name) && klass_or_name.name
+          klass_or_name.name
+        else
+          raise ArgumentError, "Active Storage class configuration must be a class name or named class"
+        end
+      end
+  end
 
   # Configures the mount point for the default Active Storage routes. Accepts any
   # value supported by `scope`, such as a string path prefix or a hash of routing

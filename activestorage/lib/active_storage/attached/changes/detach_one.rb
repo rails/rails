@@ -2,6 +2,8 @@
 
 module ActiveStorage
   class Attached::Changes::DetachOne # :nodoc:
+    include ActiveStorage::Attached::Changes::OwnerDispatch
+
     attr_reader :name, :record, :attachment
 
     def initialize(name, record, attachment)
@@ -19,6 +21,7 @@ module ActiveStorage
       def reset
         record.attachment_changes.delete(name)
         record.public_send("#{name}_attachment=", nil)
+        record.public_send("#{name}_blob=", nil) unless ar_owner?
       end
   end
 end

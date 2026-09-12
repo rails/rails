@@ -2,51 +2,7 @@
 
 module ActiveStorage
   module Reflection
-    class HasAttachedReflection < ActiveRecord::Reflection::MacroReflection # :nodoc:
-      def variant(name, transformations)
-        named_variants[name] = NamedVariant.new(transformations)
-      end
-
-      def named_variants
-        @named_variants ||= {}
-      end
-    end
-
-    # Holds all the metadata about a has_one_attached attachment as it was
-    # specified in the Active Record class.
-    class HasOneAttachedReflection < HasAttachedReflection # :nodoc:
-      def macro
-        :has_one_attached
-      end
-    end
-
-    # Holds all the metadata about a has_many_attached attachment as it was
-    # specified in the Active Record class.
-    class HasManyAttachedReflection < HasAttachedReflection # :nodoc:
-      def macro
-        :has_many_attached
-      end
-    end
-
-    module ReflectionExtension # :nodoc:
-      def add_attachment_reflection(model, name, reflection)
-        model.attachment_reflections = model.attachment_reflections.merge(name.to_s => reflection)
-      end
-
-      private
-        def reflection_class_for(macro)
-          case macro
-          when :has_one_attached
-            HasOneAttachedReflection
-          when :has_many_attached
-            HasManyAttachedReflection
-          else
-            super
-          end
-        end
-    end
-
-    module ActiveRecordExtensions
+    module Extensions
       extend ActiveSupport::Concern
 
       included do
@@ -68,6 +24,44 @@ module ActiveStorage
         def reflect_on_attachment(attachment)
           attachment_reflections[attachment.to_s]
         end
+      end
+    end
+
+    class ActiveModelHasAttachedReflection # :nodoc:
+      attr_reader :active_record, :name, :options
+
+      def initialize(active_record, name, options)
+        @active_record = active_record
+        @name = name
+        @options = options
+      end
+
+      def variant(name, transformations)
+        named_variants[name] = ActiveStorage::NamedVariant.new(transformations)
+      end
+
+      def named_variants
+        @named_variants ||= {}
+      end
+
+      def macro
+        raise NotImplementedError
+      end
+    end
+
+    # Holds all the metadata about a has_one_attached attachment as it was
+    # specified in an Active Model class.
+    class ActiveModelHasOneAttachedReflection < ActiveModelHasAttachedReflection # :nodoc:
+      def macro
+        :has_one_attached
+      end
+    end
+
+    # Holds all the metadata about a has_many_attached attachment as it was
+    # specified in an Active Model class.
+    class ActiveModelHasManyAttachedReflection < ActiveModelHasAttachedReflection # :nodoc:
+      def macro
+        :has_many_attached
       end
     end
   end

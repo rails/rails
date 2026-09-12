@@ -4,7 +4,7 @@
 Active Storage Overview
 =======================
 
-This guide covers how to attach files to your Active Record models.
+This guide covers how to attach files to your application records.
 
 After reading this guide, you will know:
 
@@ -14,14 +14,21 @@ After reading this guide, you will know:
 * How to generate an image representation of a non-image file (e.g. PDF).
 * How to send file uploads directly from browsers to a storage service.
 * How to set up cloud storage services to work with Active Storage.
+* How to use Active Storage with a custom non-Active Record backend.
 
 --------------------------------------------------------------------------------
 
 What is Active Storage?
 -----------------------
 
-Active Storage facilitates attaching files to Active Record objects and
+Active Storage facilitates attaching files to application records and
 uploading those files to your server or to a cloud storage service.
+
+By default, Active Storage stores blob, attachment, and variant records in
+Active Record models. Applications that do not use Active Record can provide
+custom storage classes instead. See
+[Custom Active Storage Backends](active_storage_custom_backend.html) for the
+backend contract.
 
 Active Storage supports image variants (e.g. resizing) and can transform and
 store variants of uploaded images. Using Active Storage, you can also generate
@@ -71,6 +78,11 @@ associations](association_basics.html#polymorphic-associations), which store
 Ruby class names in the database, you will need to manually update Active
 Storage tables if you rename related Ruby classes (e.g.
 `active_storage_attachments.record_type` table and column).
+
+NOTE: Applications that use Active Storage without Active Record do not run this
+migration. They must configure custom `blob_class`, `attachment_class`, and
+`variant_record_class` values supplied by a backend gem. See
+[Custom Active Storage Backends](active_storage_custom_backend.html).
 
 ### Third Party Software
 
@@ -439,6 +451,11 @@ Querying Attached Files
 Since Active Storage attachments are Active Record associations, you can use the
 usual [query methods](active_record_querying.html) to look up records associated
 with attachments in the Active Storage related tables.
+
+NOTE: This section applies to the default Active Record storage backend. Custom
+non-Active Record backends expose `*_attachments` and `*_blobs` collection
+objects for attachment access, but SQL joins and Active Record eager-loading
+scopes are not available unless the backend implements them separately.
 
 ### `has_one_attached`
 
