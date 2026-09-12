@@ -118,3 +118,15 @@
 # `ArgumentError`, matching the Ruby standard library's `Time.parse`.
 #++
 # ActiveSupport.raise_on_invalid_time_zone_parse = true
+
+###
+# Compile HTML+ERB templates with Herb.
+#
+# Herb parses HTML+ERB as one syntax tree and reports structural problems,
+# such as an unclosed tag, at compile time with their template location.
+# Templates that compile render the same output as with Erubi.
+#
+# All other template formats keep compiling through Erubi. Set to `:erubi`
+# to continue to compile HTML templates through Erubi.
+#++
+# Rails.application.config.action_view.html_erb_implementation = :herb

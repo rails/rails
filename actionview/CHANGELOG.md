@@ -1,3 +1,16 @@
+*   Add `config.action_view.html_erb_implementation` to select the ERB
+    implementation for templates with the HTML format.
+
+    With `config.load_defaults 8.2`, HTML templates compile through Herb,
+    an ERB implementation that parses HTML+ERB and reports structural
+    problems, such as an unclosed tag, at compile time with their template
+    location. Templates that compile render the same output as with Erubi.
+
+    Set the option to `:erubi` to continue to compile HTML templates through
+    Erubi. All other template formats keep using Erubi.
+
+    *Marco Roth*
+
 *   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
     the current template when it starts with a period, mirroring the existing
     behavior for the key argument.
