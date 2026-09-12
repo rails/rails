@@ -1,3 +1,55 @@
+*   Add `:innermost` and `:outermost` options to
+    `ActiveSupport::Callbacks::ClassMethods#set_callback`.
+
+    A callback registered with `innermost: true` is kept closest to the event, so
+    every callback that is not itself `:innermost`, including the ones registered
+    later on by subclasses, runs before it. This makes it possible for a base
+    class to register a callback that depends on the state its subclasses set up.
+
+    ```ruby
+    class Base
+      include ActiveSupport::Callbacks
+      define_callbacks :save
+      set_callback :save, :before, :check_invariants, innermost: true
+    end
+
+    class Post < Base
+      set_callback :save, :before, :assign_defaults
+    end
+
+    # Post runs :assign_defaults, then :check_invariants.
+    ```
+
+    `outermost: true` is the counterpart: the callback is kept furthest from the
+    event, so every callback that is not itself `:outermost`, including the ones
+    prepended later on by subclasses, runs after it.
+
+    ```ruby
+    class Base
+      include ActiveSupport::Callbacks
+      define_callbacks :save
+      set_callback :save, :before, :set_current_tenant, outermost: true
+    end
+
+    class Post < Base
+      set_callback :save, :before, :authorize, prepend: true
+    end
+
+    # Post runs :set_current_tenant, then :authorize.
+    ```
+
+    Both options only say which end of the chain the callback belongs to, they do
+    not make it unique. Several callbacks can share an end, where they keep the
+    order they were registered in, and `prepend: true` still moves a callback in
+    front of the ones it shares that end with. Setting both options on the same
+    callback raises an `ArgumentError`.
+
+    The options are available wherever Active Support callbacks are, including
+    Active Record models, Action Controller controllers, Action Mailer mailers,
+    and Active Job jobs.
+
+    *Roman Sklenar*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
     when a local cache is active.
 

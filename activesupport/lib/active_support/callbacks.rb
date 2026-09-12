@@ -252,14 +252,30 @@ module ActiveSupport
           @filter          = try_shareable_proc(filter)
           @if              = check_conditionals(options[:if])
           @unless          = check_conditionals(options[:unless])
+          @outermost       = !!options[:outermost]
+          @innermost       = !!options[:innermost]
+
+          if @outermost && @innermost
+            raise ArgumentError, "Cannot set a callback as both :outermost and :innermost"
+          end
 
           compiled
+        end
+
+        def outermost?
+          @outermost
+        end
+
+        def innermost?
+          @innermost
         end
 
         def merge_conditional_options(chain, if_option:, unless_option:)
           options = {
             if: @if.dup,
-            unless: @unless.dup
+            unless: @unless.dup,
+            outermost: @outermost,
+            innermost: @innermost
           }
 
           options[:if].concat     Array(unless_option)
@@ -662,11 +678,11 @@ module ActiveSupport
         end
 
         def append(*callbacks)
-          callbacks.each { |c| append_one(c) }
+          callbacks.each { |c| insert_one(c, prepend: false) }
         end
 
         def prepend(*callbacks)
-          callbacks.each { |c| prepend_one(c) }
+          callbacks.each { |c| insert_one(c, prepend: true) }
         end
 
         def freeze
@@ -693,18 +709,29 @@ module ActiveSupport
             end
           end
 
-          def append_one(callback)
+          def insert_one(callback, prepend:)
             @all_callbacks = nil
             @single_callbacks.clear
             remove_duplicates(callback)
-            @chain.push(callback)
+            @chain.insert(insertion_index(callback, prepend), callback)
           end
 
-          def prepend_one(callback)
-            @all_callbacks = nil
-            @single_callbacks.clear
-            remove_duplicates(callback)
-            @chain.unshift(callback)
+          # The chain is ordered from the outermost callback to the innermost
+          # one, and is partitioned into the outermost, the regular, and the
+          # innermost callbacks. A callback is inserted at the inside end of its
+          # own partition, or at the outside end of it when prepended.
+          def insertion_index(callback, prepend)
+            if callback.outermost?
+              prepend ? 0 : @chain.count(&:outermost?)
+            elsif callback.innermost?
+              prepend ? first_innermost_index : @chain.length
+            else
+              prepend ? @chain.count(&:outermost?) : first_innermost_index
+            end
+          end
+
+          def first_innermost_index
+            @chain.index(&:innermost?) || @chain.length
           end
 
           def remove_duplicates(callback)
@@ -787,6 +814,70 @@ module ActiveSupport
         #   an argument.
         # * <tt>:prepend</tt> - If +true+, the callback will be prepended to the
         #   existing chain rather than appended.
+        # * <tt>:innermost</tt> - If +true+, the callback is kept closest to the
+        #   event, after every callback that is not itself <tt>:innermost</tt>,
+        #   including the ones registered later on by subclasses. A +before+
+        #   callback registered this way runs after all of them, an +around+
+        #   callback is wrapped by all of them, and an +after+ callback runs
+        #   before all of them, since +after+ callbacks run in reverse order.
+        #
+        #   Callbacks are otherwise run from the base class down, which makes it
+        #   impossible for a base class to act on the state its subclasses set
+        #   up. This option lifts that restriction:
+        #
+        #     class ApplicationRecord < ActiveRecord::Base
+        #       self.abstract_class = true
+        #
+        #       # Runs once every subclass has filled in its own attributes.
+        #       before_save :recompute_search_index, innermost: true
+        #     end
+        #
+        #     class Article < ApplicationRecord
+        #       before_save :render_body_html
+        #       before_save :extract_mentions
+        #     end
+        #
+        #     # Article runs :render_body_html, :extract_mentions, and only then
+        #     # :recompute_search_index.
+        #
+        # * <tt>:outermost</tt> - The counterpart of <tt>:innermost</tt>. If
+        #   +true+, the callback is kept furthest from the event, before every
+        #   callback that is not itself <tt>:outermost</tt>, including the ones
+        #   prepended later on by subclasses. A +before+ callback registered this
+        #   way runs before all of them, an +around+ callback wraps all of them,
+        #   and an +after+ callback runs after all of them, since +after+
+        #   callbacks run in reverse order.
+        #
+        #   <tt>:prepend</tt> puts a callback in front of the callbacks
+        #   registered so far, but it cannot keep it there, since the next
+        #   <tt>:prepend</tt> wins. Use this option for the callback that
+        #   establishes the context every other callback relies on:
+        #
+        #     class ApplicationRecord < ActiveRecord::Base
+        #       self.abstract_class = true
+        #
+        #       # Every regular callback, prepended or not, sees the audit context.
+        #       around_save :with_audit_context, outermost: true
+        #     end
+        #
+        #   Both options only say which end of the chain the callback belongs to,
+        #   they do not make it unique. Several callbacks can share an end, where
+        #   they keep the order they were registered in, and <tt>:prepend</tt>
+        #   still moves a callback in front of the ones it shares that end with:
+        #
+        #     set_callback :save, :before, :check_invariants, innermost: true
+        #     set_callback :save, :before, :notify, innermost: true
+        #     set_callback :save, :before, :reload, innermost: true, prepend: true
+        #
+        #     # Runs :reload, :check_invariants, and then :notify, after every
+        #     # before callback that is not innermost.
+        #
+        #   A subclass that registers its own pinned callback lands after the one
+        #   of its parent, just like any callback registered later, so at the
+        #   outermost end the parent's callback stays the outer one, and at the
+        #   innermost end the subclass's becomes the inner one. Setting both
+        #   options on the same callback raises an +ArgumentError+.
+        #
         def set_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
 

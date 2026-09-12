@@ -1,3 +1,42 @@
+*   Add `innermost_before_action`, `innermost_around_action`,
+    `innermost_after_action`, and their `outermost_*` counterparts.
+
+    They are shorthands for the `:innermost` and `:outermost` options added to
+    `ActiveSupport::Callbacks`, which controller callbacks accept like any other
+    option.
+
+    A callback registered with `innermost: true` is kept closest to the action,
+    so every regular `before_action`, including the ones registered later on by
+    subclasses, runs before it. This makes it possible for a base controller to
+    register a callback that depends on the state its subclasses set up.
+
+    ```ruby
+    class ApplicationController < ActionController::Base
+      before_action :authorize_record, innermost: true, only: %i[ show edit ]
+      # or: innermost_before_action :authorize_record, only: %i[ show edit ]
+    end
+
+    class ArticlesController < ApplicationController
+      before_action :set_record # runs before :authorize_record
+    end
+    ```
+
+    `outermost: true` is the counterpart: the callback is kept furthest from the
+    action, so every regular `before_action`, including the ones prepended later
+    on by a concern included later, runs after it.
+
+    ```ruby
+    class ApplicationController < ActionController::Base
+      before_action :set_current_tenant, outermost: true
+    end
+
+    class ArticlesController < ApplicationController
+      prepend_before_action :authenticate # runs after :set_current_tenant
+    end
+    ```
+
+    *Roman Sklenar*
+
 *   Include default headers in `ActionController::Live` responses.
 
     Previously, responses from `ActionController::Live` controllers, including
