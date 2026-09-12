@@ -336,6 +336,17 @@ module ActiveRecord
       connection_pool.with_connection(prevent_permanent_checkout: prevent_permanent_checkout, &block)
     end
 
+    def with_query_connection(async:, &block) # :nodoc:
+      if async
+        pool = connection_pool
+        ActiveRecord::AsyncQueryExecutionSemaphore.reserve(pool) do
+          pool.with_connection(&block)
+        end
+      else
+        with_connection(&block)
+      end
+    end
+
     attr_writer :connection_specification_name
 
     # Returns the connection specification name from the current class or its parent.

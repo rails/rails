@@ -1,3 +1,15 @@
+*   Add `ActiveRecord.with_async_query_execution_limit` to limit concurrent
+    queries started by `load_async` and `async_*` methods within a block.
+
+    The limit is shared across all connection pools in the current execution
+    context. Once the limit is reached, further calls wait for an earlier query
+    to complete before checking out a connection. Calls made while the caller
+    already holds a connection from the target pool are not limited.
+
+    The limit must be a positive integer. Nested calls raise `ArgumentError`.
+
+    *Yuhi Sato*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the

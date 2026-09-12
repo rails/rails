@@ -1194,7 +1194,7 @@ module ActiveRecord
     #
     #   ASYNC Post Load (0.0ms) (db time 2ms)  SELECT "posts".* FROM "posts" LIMIT 100
     def load_async
-      with_connection do |c|
+      model.with_query_connection(async: true) do |c|
         return load if !c.async_enabled?
 
         unless loaded?
@@ -1506,7 +1506,7 @@ module ActiveRecord
           if where_clause.contradiction?
             [].freeze
           elsif eager_loading?
-            model.with_connection do |c|
+            model.with_query_connection(async: async) do |c|
               apply_join_dependency do |relation, join_dependency|
                 if relation.null_relation?
                   [].freeze
@@ -1518,7 +1518,7 @@ module ActiveRecord
               end
             end
           else
-            model.with_connection do |c|
+            model.with_query_connection(async: async) do |c|
               model._query_by_sql(c, arel, async: async)
             end
           end
