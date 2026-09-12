@@ -1,3 +1,16 @@
+*   Fix custom serializers being ignored when `ActiveJob::Arguments` is loaded before initializers.
+
+    If a gem required `active_job/arguments` during boot, the `:active_job_arguments`
+    load hook ran before `config/initializers` populated `config.active_job.custom_serializers`.
+    Serializers registered the documented way were then never added, and `perform_later`
+    raised `ActiveJob::SerializationError` for those types.
+
+    The load hook is now registered after config initializers so an already-loaded
+    `Arguments` module still sees the complete list, while registration remains
+    deferred until first use when `Arguments` has not been loaded yet.
+
+    *leslieJt*
+
 *   Fix continuation step cursors losing their type when a job is interrupted
     and resumed.
 
