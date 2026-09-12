@@ -1,3 +1,14 @@
+*   Fix connection checkout blocking past the configured `checkout_timeout` while
+    waiting behind background connection maintenance.
+
+    `ConnectionPool#try_to_queue_for_background_connection` waited up to a
+    hardcoded 100 seconds for a connection tied up in maintenance (e.g. a keepalive
+    ping), regardless of the pool's configured `checkout_timeout`. If maintenance
+    stalled (a slow or unresponsive database server), checkout could block for far
+    longer than the caller asked for.
+
+    *Joe Sak*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the

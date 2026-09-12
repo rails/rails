@@ -1161,13 +1161,13 @@ module ActiveRecord
           # <tt>synchronize { conn.lease }</tt> in this method, but by leaving it to <tt>@available.poll</tt>
           # and +try_to_checkout_new_connection+ we can piggyback on +synchronize+ sections
           # of the said methods and avoid an additional +synchronize+ overhead.
-          if conn = @available.poll || try_to_queue_for_background_connection || try_to_checkout_new_connection
+          if conn = @available.poll || try_to_queue_for_background_connection(checkout_timeout) || try_to_checkout_new_connection
             conn
           else
             reap
             # Retry after reaping, which may return an available connection,
             # remove an inactive connection, or both
-            if conn = @available.poll || try_to_queue_for_background_connection || try_to_checkout_new_connection
+            if conn = @available.poll || try_to_queue_for_background_connection(checkout_timeout) || try_to_checkout_new_connection
               conn
             else
               @available.poll(checkout_timeout)
@@ -1189,16 +1189,17 @@ module ActiveRecord
         # If background connections are available, this method will block and
         # return a connection. If no background connections are available, it
         # will immediately return +nil+.
-        def try_to_queue_for_background_connection
+        def try_to_queue_for_background_connection(checkout_timeout)
           return unless @maintaining > 0
 
           synchronize do
             return unless @maintaining > @available.num_waiting
 
-            # We are guaranteed the "maintaining" thread will return its promised
-            # connection within one maintenance-unit of time. Thus we can safely
-            # do a blocking wait with (functionally) no timeout.
-            @available.poll(100)
+            # Maintenance work (e.g. a keepalive ping) can stall for reasons outside
+            # our control, such as a slow or unresponsive database server, so this
+            # wait must stay bounded by the caller's own checkout_timeout rather than
+            # assume maintenance always finishes quickly.
+            @available.poll(checkout_timeout)
           end
         end
 
