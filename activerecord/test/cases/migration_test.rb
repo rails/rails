@@ -1145,6 +1145,83 @@ class MigrationTest < ActiveRecord::TestCase
         e.message
       )
     end
+
+    def test_with_advisory_lock_does_not_mask_an_original_error_when_release_raises
+      migration = Class.new(ActiveRecord::Migration::Current).new
+      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata, 100)
+      connection = migrator.send(:connection)
+      original_error = RuntimeError.new("migration failed")
+      release_error = ActiveRecord::ConnectionNotEstablished.new("connection lost")
+      log = StringIO.new
+      logger = ActiveSupport::Logger.new(log)
+
+      ActiveRecord::Base.stub(:logger, logger) do
+        migrator.stub(:load_migrated, nil) do
+          connection.stub(:get_advisory_lock, true) do
+            connection.stub(:release_advisory_lock, ->(*) { raise release_error }) do
+              error = assert_raises(RuntimeError) do
+                migrator.send(:with_advisory_lock) { raise original_error }
+              end
+
+              assert_same original_error, error
+            end
+          end
+        end
+      end
+
+      assert_match(
+        /Failed to release advisory lock: ActiveRecord::ConnectionNotEstablished: connection lost/,
+        log.string
+      )
+    end
+
+    def test_with_advisory_lock_does_not_mask_an_original_error_when_release_returns_false
+      migration = Class.new(ActiveRecord::Migration::Current).new
+      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata, 100)
+      connection = migrator.send(:connection)
+      original_error = RuntimeError.new("migration failed")
+      log = StringIO.new
+      logger = ActiveSupport::Logger.new(log)
+
+      ActiveRecord::Base.stub(:logger, logger) do
+        migrator.stub(:load_migrated, nil) do
+          connection.stub(:get_advisory_lock, true) do
+            connection.stub(:release_advisory_lock, false) do
+              error = assert_raises(RuntimeError) do
+                migrator.send(:with_advisory_lock) { raise original_error }
+              end
+
+              assert_same original_error, error
+            end
+          end
+        end
+      end
+
+      assert_match(/Failed to release advisory lock/, log.string)
+    end
+
+    def test_with_advisory_lock_translates_a_release_exception_when_no_error_is_propagating
+      migration = Class.new(ActiveRecord::Migration::Current).new
+      migrator = ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata, 100)
+      connection = migrator.send(:connection)
+      release_error = ActiveRecord::ConnectionNotEstablished.new("connection lost")
+
+      migrator.stub(:load_migrated, nil) do
+        connection.stub(:get_advisory_lock, true) do
+          connection.stub(:release_advisory_lock, ->(*) { raise release_error }) do
+            error = assert_raises(ActiveRecord::ConcurrentMigrationError) do
+              migrator.send(:with_advisory_lock) { }
+            end
+
+            assert_match(
+              /#{ActiveRecord::ConcurrentMigrationError::RELEASE_LOCK_FAILED_MESSAGE}/,
+              error.message
+            )
+            assert_same release_error, error.cause
+          end
+        end
+      end
+    end
   end
 
   def test_migration_say_basic

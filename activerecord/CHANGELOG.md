@@ -1,3 +1,20 @@
+*   Do not transparently reconnect when acquiring or releasing an advisory
+    lock after its database session is lost.
+
+    Advisory locks belong to a database session. Once a lock is held,
+    `get_advisory_lock` and `release_advisory_lock` now raise a connection error
+    instead of reconnecting and running the lock operation on a different
+    session. While a lock acquired through `get_advisory_lock` is held, other
+    queries on the same connection also raise instead of reconnecting without
+    the lock. A connection with no held advisory locks and no other
+    non-restorable state can reconnect before acquiring its first lock.
+
+    If a migration and its advisory lock release both fail, the migrator now
+    preserves the migration's original exception. A release failure after a
+    successful migration still raises `ConcurrentMigrationError`.
+
+    *Mutsutoshi Yoshimoto*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the
