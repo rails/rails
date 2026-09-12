@@ -255,6 +255,96 @@ class FilterTest < ActionController::TestCase
       end
   end
 
+  class InnermostFilterController < TestController
+    innermost_before_action :wonderful_life
+    innermost_around_action :its_a_wrap
+    innermost_after_action :the_end
+
+    private
+      def wonderful_life
+        @ran_filter ||= []
+        @ran_filter << "wonderful_life"
+      end
+
+      def its_a_wrap
+        @ran_filter ||= []
+        @ran_filter << "its_a_wrap_before"
+        yield
+        @ran_filter << "its_a_wrap_after"
+      end
+
+      def the_end
+        @ran_filter ||= []
+        @ran_filter << "the_end"
+      end
+  end
+
+  class OutermostFilterController < TestController
+    outermost_before_action :once_upon_a_time
+
+    private
+      def once_upon_a_time
+        @ran_filter ||= []
+        @ran_filter << "once_upon_a_time"
+      end
+  end
+
+  class OutermostFilterInheritedController < OutermostFilterController
+    prepend_before_action :wonderful_life
+
+    private
+      def wonderful_life
+        @ran_filter ||= []
+        @ran_filter << "wonderful_life"
+      end
+  end
+
+  class InnermostFilterInheritedController < InnermostFilterController
+    before_action :beautiful_day
+    around_action :another_day
+    after_action :good_night
+
+    private
+      def beautiful_day
+        @ran_filter ||= []
+        @ran_filter << "beautiful_day"
+      end
+
+      def another_day
+        @ran_filter ||= []
+        @ran_filter << "another_day_before"
+        yield
+        @ran_filter << "another_day_after"
+      end
+
+      def good_night
+        @ran_filter ||= []
+        @ran_filter << "good_night"
+      end
+  end
+
+  class NestedOptionFilterController < TestController
+    before_action :wonderful_life, innermost: true
+    before_action :once_upon_a_time, outermost: true
+    before_action :beautiful_day, innermost: false
+
+    private
+      def wonderful_life
+        @ran_filter ||= []
+        @ran_filter << "wonderful_life"
+      end
+
+      def once_upon_a_time
+        @ran_filter ||= []
+        @ran_filter << "once_upon_a_time"
+      end
+
+      def beautiful_day
+        @ran_filter ||= []
+        @ran_filter << "beautiful_day"
+      end
+  end
+
   class SkippingAndLimitedController < TestController
     skip_before_action :ensure_login
     before_action :ensure_login, only: :index
@@ -591,6 +681,60 @@ class FilterTest < ActionController::TestCase
     test_process(PrependingController)
     assert_equal %w( wonderful_life ensure_login ),
       @controller.instance_variable_get(:@ran_filter)
+  end
+
+  def test_innermost_action
+    assert_equal [ :ensure_login, :wonderful_life ], InnermostFilterController.before_actions
+  end
+
+  def test_innermost_action_is_kept_innermost_when_a_subclass_appends_its_own_actions
+    assert_equal [ :ensure_login, :beautiful_day, :wonderful_life ], InnermostFilterInheritedController.before_actions
+  end
+
+  def test_running_innermost_actions
+    test_process(InnermostFilterInheritedController)
+    assert_equal %w( ensure_login beautiful_day another_day_before wonderful_life its_a_wrap_before
+                     the_end its_a_wrap_after good_night another_day_after ),
+      @controller.instance_variable_get(:@ran_filter)
+  end
+
+  def test_outermost_action
+    assert_equal [ :once_upon_a_time, :ensure_login ], OutermostFilterController.before_actions
+  end
+
+  def test_outermost_action_is_kept_outermost_when_a_subclass_prepends_its_own_actions
+    assert_equal [ :once_upon_a_time, :wonderful_life, :ensure_login ],
+      OutermostFilterInheritedController.before_actions
+  end
+
+  def test_outermost_actions_keep_the_order_they_were_registered_in
+    controller = Class.new(OutermostFilterController) do
+      outermost_before_action :in_a_land_far_far_away
+      def self.name; "AnotherOutermostFilterController"; end
+    end
+
+    assert_equal [ :once_upon_a_time, :in_a_land_far_far_away, :ensure_login ], controller.before_actions
+  end
+
+  def test_running_outermost_actions
+    test_process(OutermostFilterInheritedController)
+    assert_equal %w( once_upon_a_time wonderful_life ensure_login ),
+      @controller.instance_variable_get(:@ran_filter)
+  end
+
+  def test_the_nesting_options_are_accepted_by_the_regular_action_callbacks
+    assert_equal [ :once_upon_a_time, :ensure_login, :beautiful_day, :wonderful_life ],
+      NestedOptionFilterController.before_actions
+  end
+
+  def test_the_nesting_options_and_their_callbacks_are_interchangeable
+    controller = Class.new(TestController) do
+      outermost_before_action :once_upon_a_time
+      innermost_before_action :wonderful_life
+      def self.name; "EquivalentFilterController"; end
+    end
+
+    assert_equal [ :once_upon_a_time, :ensure_login, :wonderful_life ], controller.before_actions
   end
 
   def test_running_actions_with_proc

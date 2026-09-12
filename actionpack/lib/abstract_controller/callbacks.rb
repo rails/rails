@@ -15,12 +15,40 @@ module AbstractController
   # *   `append_before_action`
   # *   `around_action`
   # *   `before_action`
+  # *   `innermost_after_action`
+  # *   `innermost_around_action`
+  # *   `innermost_before_action`
+  # *   `outermost_after_action`
+  # *   `outermost_around_action`
+  # *   `outermost_before_action`
   # *   `prepend_after_action`
   # *   `prepend_around_action`
   # *   `prepend_before_action`
   # *   `skip_after_action`
   # *   `skip_around_action`
   # *   `skip_before_action`
+  #
+  # Callbacks run in the order they are registered, and the ones inherited from a
+  # parent controller come first. Think of the chain as a set of layers wrapped
+  # around the action: the callbacks registered first are the outermost ones, the
+  # ones registered last are the closest to the action.
+  #
+  # `prepend_before_action` and its siblings move a callback to the front of the
+  # chain, and the `:innermost` and `:outermost` options pin it to one end of it,
+  # where no regular callback registered later on, by a subclass or otherwise,
+  # can displace it:
+  #
+  #     class ApplicationController < ActionController::Base
+  #       before_action :set_current_tenant, outermost: true
+  #       before_action :authorize_record, innermost: true, only: %i[ show edit ]
+  #     end
+  #
+  #     class ArticlesController < ApplicationController
+  #       before_action :set_article # runs after :set_current_tenant, before :authorize_record
+  #     end
+  #
+  # The `innermost_*_action` and `outermost_*_action` callbacks are shorthands for
+  # the same options.
   module Callbacks
     extend ActiveSupport::Concern
 
@@ -154,6 +182,50 @@ module AbstractController
       # cancelled.
 
       ##
+      # :method: outermost_before_action
+      #
+      # :call-seq: outermost_before_action(names, block)
+      #
+      # Append a callback that is kept furthest from the action: every regular
+      # `before_action`, including the ones prepended later on by subclasses, runs
+      # after it. See _insert_callbacks for parameter details.
+      #
+      # `prepend_before_action` puts a callback in front of the callbacks registered
+      # so far, but it cannot stay there, since the next `prepend_before_action`
+      # wins. Use this for the callback that establishes the context every other
+      # callback relies on, such as the tenant a request belongs to. It does not
+      # have to be the only one: several of them keep the order they were
+      # registered in, and a subclass registering its own lands after it, so this
+      # one stays the first to run.
+      #
+      #     class ApplicationController < ActionController::Base
+      #       outermost_before_action :set_current_tenant
+      #
+      #       private
+      #         def set_current_tenant
+      #           Current.tenant = Tenant.find_by!(host: request.host)
+      #         end
+      #     end
+      #
+      #     module Authentication
+      #       extend ActiveSupport::Concern
+      #
+      #       included do
+      #         # Needs Current.tenant, and has to run before everything else.
+      #         prepend_before_action :authenticate
+      #       end
+      #     end
+      #
+      # The concern keeps working the way it was written, no matter which
+      # controller includes it or in which order.
+      #
+      # If the callback renders or redirects, the action will not run. If there are
+      # additional callbacks scheduled to run after that callback, they are also
+      # cancelled.
+      #
+      # Shorthand for `before_action names, outermost: true`.
+
+      ##
       # :method: skip_before_action
       #
       # :call-seq: skip_before_action(names)
@@ -172,6 +244,48 @@ module AbstractController
       # cancelled.
 
       ##
+      # :method: innermost_before_action
+      #
+      # :call-seq: innermost_before_action(names, block)
+      #
+      # Append a callback that is kept closest to the action: every regular
+      # `before_action`, including the ones registered later on by subclasses,
+      # runs before it. See _insert_callbacks for parameter details.
+      #
+      # Callbacks otherwise run from the base controller down, which makes it
+      # impossible for a base controller to act on a record its subclasses load.
+      # This is what authorization, canonical redirects, breadcrumbs, or conditional
+      # GET support in a base controller usually need:
+      #
+      #     class ApplicationController < ActionController::Base
+      #       innermost_before_action :authorize_record, only: %i[ show edit update destroy ]
+      #       innermost_before_action :set_cache_headers, only: :show
+      #
+      #       private
+      #         def authorize_record
+      #           head :forbidden unless Current.user.can?(action_name, @record)
+      #         end
+      #
+      #         def set_cache_headers
+      #           fresh_when(@record)
+      #         end
+      #     end
+      #
+      #     class ArticlesController < ApplicationController
+      #       before_action :set_record # runs before :authorize_record
+      #     end
+      #
+      # Without it, every subclass has to remember to re-register the inherited
+      # callback after its own, which is easy to get wrong and impossible to
+      # enforce.
+      #
+      # If the callback renders or redirects, the action will not run. If there are
+      # additional callbacks scheduled to run after that callback, they are also
+      # cancelled.
+      #
+      # Shorthand for `before_action names, innermost: true`.
+
+      ##
       # :method: after_action
       #
       # :call-seq: after_action(names, block)
@@ -186,6 +300,26 @@ module AbstractController
       # Prepend a callback after actions. See _insert_callbacks for parameter details.
 
       ##
+      # :method: outermost_after_action
+      #
+      # :call-seq: outermost_after_action(names, block)
+      #
+      # Append a callback that is kept furthest from the action: every regular
+      # `after_action`, including the ones prepended later on by subclasses, runs
+      # before it, since `after_action` callbacks run in reverse order. See
+      # _insert_callbacks for parameter details.
+      #
+      # Useful to tear down what an `outermost_before_action` set up, once every
+      # other callback is done with it.
+      #
+      #     class ApplicationController < ActionController::Base
+      #       outermost_before_action :set_current_tenant
+      #       outermost_after_action :reset_current_tenant
+      #     end
+      #
+      # Shorthand for `after_action names, outermost: true`.
+
+      ##
       # :method: skip_after_action
       #
       # :call-seq: skip_after_action(names)
@@ -198,6 +332,25 @@ module AbstractController
       # :call-seq: append_after_action(names, block)
       #
       # Append a callback after actions. See _insert_callbacks for parameter details.
+
+      ##
+      # :method: innermost_after_action
+      #
+      # :call-seq: innermost_after_action(names, block)
+      #
+      # Append a callback that is kept closest to the action: every regular
+      # `after_action`, including the ones registered later on by subclasses, runs
+      # after it, since `after_action` callbacks run in reverse order. See
+      # _insert_callbacks for parameter details.
+      #
+      # Useful to capture what the action did before any subclass gets a chance to
+      # alter it.
+      #
+      #     class ApplicationController < ActionController::Base
+      #       innermost_after_action :record_audit_entry, only: %i[ create update destroy ]
+      #     end
+      #
+      # Shorthand for `after_action names, innermost: true`.
 
       ##
       # :method: around_action
@@ -215,6 +368,33 @@ module AbstractController
       # details.
 
       ##
+      # :method: outermost_around_action
+      #
+      # :call-seq: outermost_around_action(names, block)
+      #
+      # Append a callback that is kept furthest from the action: every regular
+      # `around_action`, including the ones prepended later on by subclasses, is
+      # wrapped by it. See _insert_callbacks for parameter details.
+      #
+      # It observes everything that the callbacks registered after it do,
+      # including what they raise, render, or redirect, which is what request-wide
+      # instrumentation and error reporting need:
+      #
+      #     class ApplicationController < ActionController::Base
+      #       outermost_around_action :report_errors
+      #
+      #       private
+      #         def report_errors
+      #           yield
+      #         rescue => error
+      #           ErrorReporter.report(error, context: { action: action_name })
+      #           raise
+      #         end
+      #     end
+      #
+      # Shorthand for `around_action names, outermost: true`.
+
+      ##
       # :method: skip_around_action
       #
       # :call-seq: skip_around_action(names)
@@ -227,6 +407,32 @@ module AbstractController
       # :call-seq: append_around_action(names, block)
       #
       # Append a callback around actions. See _insert_callbacks for parameter details.
+
+      ##
+      # :method: innermost_around_action
+      #
+      # :call-seq: innermost_around_action(names, block)
+      #
+      # Append a callback that is kept closest to the action: every regular
+      # `around_action`, including the ones registered later on by subclasses,
+      # wraps it. See _insert_callbacks for parameter details.
+      #
+      # Useful when the callback has to wrap the action alone, with no other
+      # callback inside it: measuring how long the action itself takes, or opening
+      # a transaction only once the records the action needs are loaded and
+      # authorized.
+      #
+      #     class ApplicationController < ActionController::Base
+      #       innermost_around_action :wrap_in_transaction, only: %i[ create update destroy ]
+      #
+      #       private
+      #         def wrap_in_transaction(&block)
+      #           ApplicationRecord.transaction(&block)
+      #         end
+      #     end
+      #
+      # Shorthand for `around_action names, innermost: true`.
+
       # set up before_action, prepend_before_action, skip_before_action, etc. for each
       # of before, after, and around.
       [:before, :after, :around].each do |callback|
@@ -239,6 +445,18 @@ module AbstractController
         define_method "prepend_#{callback}_action" do |*names, &blk|
           _insert_callbacks(names, blk) do |name, options|
             set_callback(:process_action, callback, name, options.merge(prepend: true))
+          end
+        end
+
+        define_method "outermost_#{callback}_action" do |*names, &blk|
+          _insert_callbacks(names, blk) do |name, options|
+            set_callback(:process_action, callback, name, options.merge(outermost: true))
+          end
+        end
+
+        define_method "innermost_#{callback}_action" do |*names, &blk|
+          _insert_callbacks(names, blk) do |name, options|
+            set_callback(:process_action, callback, name, options.merge(innermost: true))
           end
         end
 
