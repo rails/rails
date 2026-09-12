@@ -169,6 +169,8 @@ class AggregationsTest < ActiveRecord::TestCase
 end
 
 class OverridingAggregationsTest < ActiveRecord::TestCase
+  fixtures :customers
+
   class DifferentName; end
 
   class Person < ActiveRecord::Base
@@ -179,8 +181,23 @@ class OverridingAggregationsTest < ActiveRecord::TestCase
     composed_of :composed_of, class_name: "DifferentName", mapping: %w(different_person_first_name first_name)
   end
 
+  class SpecialCustomer < Customer
+    composed_of :balance, class_name: "Money", mapping: %i(balance amount)
+  end
+
   def test_composed_of_aggregation_redefinition_reflections_should_differ_and_not_inherited
     assert_not_equal Person.reflect_on_aggregation(:composed_of),
                      DifferentPerson.reflect_on_aggregation(:composed_of)
+  end
+
+  def test_subclass_redefining_self_named_aggregation_reads_the_underlying_attribute
+    assert_equal 50, SpecialCustomer.find(customers(:david).id).balance.amount
+  end
+
+  def test_subclass_redefining_self_named_aggregation_writes_the_underlying_attribute
+    customer = SpecialCustomer.find(customers(:david).id)
+    customer.balance = Money.new(100)
+
+    assert_equal 100, customer["balance"]
   end
 end

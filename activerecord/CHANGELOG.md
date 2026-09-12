@@ -1,3 +1,7 @@
+*   Extract `composed_of` from `ActiveRecord::Aggregations` into `ActiveModel::Aggregations`.
+
+    *Ben Sheldon*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the
