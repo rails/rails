@@ -192,9 +192,8 @@ module ActiveSupport
       "Samoa"                        => "Pacific/Apia"
     }
 
-    UTC_OFFSET_WITH_COLON = "%s%02d:%02d" # :nodoc:
-    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(":", "").freeze # :nodoc:
-    private_constant :UTC_OFFSET_WITH_COLON, :UTC_OFFSET_WITHOUT_COLON
+    TWO_DIGITS = Array.new(60) { |n| format("%02d", n).freeze }.freeze # :nodoc:
+    private_constant :TWO_DIGITS
 
     @lazy_zones_map = Concurrent::Map.new
     @country_zones  = Concurrent::Map.new
@@ -207,11 +206,12 @@ module ActiveSupport
       # ActiveSupport::TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
       # ```
       def seconds_to_utc_offset(seconds, colon = true)
-        format = colon ? UTC_OFFSET_WITH_COLON : UTC_OFFSET_WITHOUT_COLON
-        sign = (seconds < 0 ? "-" : "+")
+        sign = seconds < 0 ? "-" : "+"
         hours = seconds.abs / 3600
         minutes = (seconds.abs % 3600) / 60
-        format % [sign, hours, minutes]
+        hours = TWO_DIGITS[hours] || format("%02d", hours)
+        minutes = TWO_DIGITS[minutes]
+        colon ? "#{sign}#{hours}:#{minutes}" : "#{sign}#{hours}#{minutes}"
       end
 
       def find_tzinfo(name)

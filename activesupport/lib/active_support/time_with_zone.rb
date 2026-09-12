@@ -156,11 +156,7 @@ module ActiveSupport
       if @is_utc
         utc.iso8601(precision)
       else
-        str = time.iso8601(precision)
-        offset = formatted_offset(true, "Z")
-
-        str.sub!(/(Z|[+-]\d{2}:\d{2})\z/, offset)
-        str
+        transfer_time_values_to_utc_constructor(utc).getlocal(utc_offset).iso8601(precision)
       end
     end
     alias_method :iso8601, :xmlschema
@@ -213,7 +209,11 @@ module ActiveSupport
 
     # Returns a string of the object's date and time.
     def to_s
-      "#{time.strftime("%Y-%m-%d %H:%M:%S")} #{formatted_offset(false, 'UTC')}" # mimicking Ruby Time#to_s format
+      if @is_utc
+        transfer_time_values_to_utc_constructor(utc).to_s
+      else
+        transfer_time_values_to_utc_constructor(utc).getlocal(utc_offset).to_s
+      end
     end
 
     # Returns a string of the object's date and time.

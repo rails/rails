@@ -1,3 +1,13 @@
+*   Speed up `TimeWithZone#xmlschema`, `#as_json`, `#to_s`, and
+    `TimeZone.seconds_to_utc_offset`.
+
+    Formatting a `TimeWithZone` outside UTC no longer goes through `format`
+    and a regexp: `xmlschema` and `as_json` are 2.6x to 3x faster with 2
+    allocations instead of 6, `formatted_offset` 1.7x, `to_s` 1.2x. Output is
+    unchanged.
+
+    *Yaroslav Markin*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
     when a local cache is active.
 
