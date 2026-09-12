@@ -84,6 +84,10 @@ module ActionView
     class Start # :nodoc:
       include Utils
 
+      def silenced?(_name)
+        !ActiveSupport.event_reporter.debug_mode?
+      end
+
       def start(name, id, payload)
         ActiveSupport.event_reporter.debug("action_view.render_start",
           filter_payload: false,
