@@ -4549,6 +4549,10 @@ class TestRedirectInterpolation < ActionDispatch::IntegrationTest
       get "/foo/:id" => redirect("/foo/bar/%{id}")
       get "/bar/:id" => redirect(path: "/foo/bar/%{id}")
       get "/baz/:id" => redirect("/baz?id=%{id}&foo=?&bar=1#id-%{id}")
+      get "/leading/:name" => redirect("/%{name}/account")
+      get "/glob/*path" => redirect("/files/%{path}")
+      get "/mix/:locale/*rest" => redirect("/%{locale}/%{rest}")
+      get "/opt/:id" => redirect(path: "/%{id}/next")
       get "/foo/bar/:id" => ok
       get "/baz" => ok
     end
@@ -4573,6 +4577,27 @@ class TestRedirectInterpolation < ActionDispatch::IntegrationTest
 
     get "/baz/1%201"
     verify_redirect "http://www.example.com/baz?id=1+1&foo=?&bar=1#id-1%201"
+  end
+
+  test "path redirect interpolates ordinary params with segment escaping" do
+    get "/leading/%2Fevil%2Eexample"
+    verify_redirect "http://www.example.com/%2Fevil.example/account"
+
+    get "/opt/%2Fevil%2Eexample"
+    verify_redirect "http://www.example.com/%2Fevil.example/next"
+  end
+
+  test "path redirect interpolates wildcard params with path escaping" do
+    get "/glob/a/b/c"
+    verify_redirect "http://www.example.com/files/a/b/c"
+  end
+
+  test "path redirect mixes segment and path escaping" do
+    get "/mix/en/a/b"
+    verify_redirect "http://www.example.com/en/a/b"
+
+    get "/mix/%2Fevil%2Eexample/a/b"
+    verify_redirect "http://www.example.com/%2Fevil.example/a/b"
   end
 
 private
