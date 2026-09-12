@@ -21,7 +21,7 @@ module ActiveJob
       ActiveSupport.on_load(:active_job) { self.logger = ::Rails.logger }
     end
 
-    initializer "active_job.custom_serializers" do |app|
+    initializer "active_job.custom_serializers", after: :load_config_initializers do |app|
       ActiveSupport.on_load(:active_job_arguments) do
         custom_serializers = app.config.active_job.custom_serializers
         ActiveJob::Serializers.add_serializers custom_serializers

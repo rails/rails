@@ -22,21 +22,39 @@ module ApplicationTests
     end
 
     test "custom serializers are loaded for Arguments#serialize" do
-      app_file "config/initializers/custom_serializers.rb", <<~RUBY
-        class Money; end
-
-        class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
-          def klass = Money
-          def serialize(money) = {}
-          def deserialize(hash) = Money.new
-        end
-
-        Rails.configuration.active_job.custom_serializers << MoneySerializer
-      RUBY
+      add_custom_serializer_initializer
 
       app "development"
 
       assert_equal([{}], ActiveJob::Arguments.serialize([Money.new]))
     end
+
+    test "custom serializers are loaded when Arguments was required before initializers" do
+      application_path = "#{app_path}/config/application.rb"
+      contents = File.read(application_path)
+      contents.sub!(/Bundler\.require\(\*Rails\.groups\)/, "\\0\nrequire \"active_job/arguments\"")
+      File.write(application_path, contents)
+
+      add_custom_serializer_initializer
+
+      app "development"
+
+      assert_equal([{}], ActiveJob::Arguments.serialize([Money.new]))
+    end
+
+    private
+      def add_custom_serializer_initializer
+        app_file "config/initializers/custom_serializers.rb", <<~RUBY
+          class Money; end
+
+          class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
+            def klass = Money
+            def serialize(money) = {}
+            def deserialize(hash) = Money.new
+          end
+
+          Rails.configuration.active_job.custom_serializers << MoneySerializer
+        RUBY
+      end
   end
 end
