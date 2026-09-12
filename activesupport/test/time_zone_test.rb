@@ -783,6 +783,15 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "-05:30", ActiveSupport::TimeZone.seconds_to_utc_offset(-19_800)
   end
 
+  def test_seconds_to_utc_offset_ignores_seconds
+    assert_equal "+02:30", ActiveSupport::TimeZone.seconds_to_utc_offset(9_017)
+    assert_equal "-02:30", ActiveSupport::TimeZone.seconds_to_utc_offset(-9_017, true)
+  end
+
+  def test_seconds_to_utc_offset_with_more_than_59_hours
+    assert_equal "+100:00", ActiveSupport::TimeZone.seconds_to_utc_offset(360_000)
+  end
+
   def test_formatted_offset_positive
     zone = ActiveSupport::TimeZone["New Delhi"]
     assert_equal "+05:30", zone.formatted_offset
@@ -893,6 +902,14 @@ class TimeZoneTest < ActiveSupport::TestCase
     twz = ActiveSupport::TimeZone["Eastern Time (US & Canada)"].local(2000, 1, 1)
 
     assert_equal ["2000-01-01 00:00:00 -0500", "Sat, 01 Jan 2000 00:00:00 -0500"], on_ractor(twz) { |t| [t.to_s, t.rfc2822] }
+  end
+
+  def test_xmlschema_and_inspect_in_ractor
+    twz = ActiveSupport::TimeZone["Eastern Time (US & Canada)"].local(2000, 1, 1)
+    utc = ActiveSupport::TimeZone["UTC"].local(2000, 1, 1)
+
+    assert_equal ["2000-01-01T00:00:00.000-05:00", "2000-01-01T00:00:00Z", "2000-01-01 00:00:00.000000000 EST -05:00"],
+      on_ractor(twz, utc) { |t, u| [t.xmlschema(3), u.xmlschema, t.inspect] }
   end
 
   def test_us_zones
