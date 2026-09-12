@@ -962,7 +962,11 @@
   }
   addEventListener("trix-initialize", (event => {
     if (!event.target.dataset.directUploadUrl) {
-      event.target.toolbarElement.querySelectorAll("[data-trix-action=attachFiles]").forEach((button => button.remove()));
+      event.target.toolbarElement.querySelectorAll("[data-trix-action=attachFiles]").forEach((button => {
+        const group = button.closest("[data-trix-button-group]");
+        button.remove();
+        if (group && group.childElementCount === 0) group.remove();
+      }));
     }
   }));
   addEventListener("trix-file-accept", (event => {
