@@ -107,6 +107,39 @@ module ActionDispatch
       end
     end
 
+    class MultilineMessageSyntaxError < SyntaxError; end
+
+    test "#source_extracts only treats message lines with a location as trace entries" do
+      exception = begin
+        raise MultilineMessageSyntaxError, <<~MESSAGE
+          Compilation Errors:
+
+          Error #1: RubyParse
+            File: [source]
+            Location: Line 1, Column 8
+          lib/file.rb:42: unexpected end-of-input
+        MESSAGE
+      rescue SyntaxError => ex
+        ex
+      end
+
+      wrapper = ExceptionWrapper.new(nil, exception)
+      traces = wrapper.source_extracts.map { |extract| extract[:trace].to_s }
+
+      assert_includes traces, "lib/file.rb:42: unexpected end-of-input"
+      assert_not traces.any? { |trace| trace.include?("Compilation Errors") }
+    end
+
+    test "#source_fragment skips a path that is not a file" do
+      exception = begin index; rescue TestError => ex; ex; end
+
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      Rails.stub(:root, Pathname.new(File.expand_path("..", __dir__))) do
+        assert_nil wrapper.send(:source_fragment, "dispatch", 1)
+      end
+    end
+
     test "#source_extracts works with nil backtrace_locations" do
       exception = begin eval "class Foo; yield; end"; rescue SyntaxError => ex; ex; end
 
