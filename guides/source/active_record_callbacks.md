@@ -197,7 +197,7 @@ establishes the context every other callback relies on.
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 
-  # Every other callback, prepended or not, sees the audit context.
+  # Every regular callback, prepended or not, sees the audit context.
   around_save :with_audit_context, outermost: true
 end
 ```
@@ -207,13 +207,17 @@ make it unique. Several callbacks can share an end, where they keep the order
 they were registered in, and `prepend: true` still moves a callback in front of
 the ones it shares that end with. A subclass registering its own pinned callback
 lands after the one of its parent, so at the outermost end the parent's callback
-stays the first to run, and at the innermost end the subclass's becomes the last
-to run. Setting both options on the same callback raises an `ArgumentError`.
+stays the outer one, and at the innermost end the subclass's becomes the inner
+one. Setting both options on the same callback raises an `ArgumentError`.
 
 NOTE: Since `after_*` callbacks run in reverse order, an `innermost` one runs
-before the regular ones and an `outermost` one after them. Active Record always
-registers them as `prepend` so that they run in declaration order, which is also
-why passing `prepend: true` to an `after_*` callback has no effect.
+before the regular ones and an `outermost` one after them. Active Record
+registers the model ones (`after_save`, `after_create`, and so on) as `prepend`
+so that they run in declaration order, which is also why passing `prepend: true`
+to them has no effect. The transactional ones (`after_commit` and
+`after_rollback`) are ordered by
+[`config.active_record.run_after_transaction_callbacks_in_order_defined`](configuring.html#config-active-record-run-after-transaction-callbacks-in-order-defined)
+instead, and `prepend: true` does change their order.
 
 Available Callbacks
 -------------------
