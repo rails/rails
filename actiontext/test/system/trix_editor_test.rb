@@ -92,6 +92,7 @@ class TrixEditorTest < ApplicationSystemTestCase
         visit new_message_url
 
         assert_no_button "Attach Files"
+        assert_no_selector "[data-trix-button-group=file-tools]"
         assert_button "Mention #{people(:alice).name}"
       end
     end
