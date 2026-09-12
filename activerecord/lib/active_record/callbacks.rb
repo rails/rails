@@ -287,6 +287,10 @@ module ActiveRecord
     module ClassMethods
       include ActiveModel::Callbacks
 
+      def invoke_skip_callback_monitor(caller) # :nodoc:
+        skip_callback_monitor&.call(caller)
+      end
+
       ##
       # :method: after_initialize
       #
@@ -410,6 +414,8 @@ module ActiveRecord
 
     included do
       include ActiveModel::Validations::Callbacks
+
+      class_attribute :skip_callback_monitor, default: nil, instance_reader: false, instance_writer: false, instance_predicate: false
 
       define_model_callbacks :initialize, :find, :touch, only: :after
       define_model_callbacks :save, :create, :update, :destroy

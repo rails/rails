@@ -800,6 +800,30 @@ important business rules and application logic in callbacks that you do not want
 to bypass. Bypassing them without understanding the potential implications may
 lead to invalid data.
 
+### Monitoring Bypassed Callbacks
+
+If you want to record or react whenever callbacks are bypassed, you can set
+`skip_callback_monitor` on your model:
+
+```ruby
+class ApplicationRecord < ActiveRecord::Base
+  self.skip_callback_monitor = ->(caller) {
+    Rails.logger.warn "#{caller.class} bypassed Active Record callbacks"
+  }
+end
+```
+
+The hook receives the current caller object as its argument:
+
+* the record instance for `update_columns` and `delete`
+* the relation instance for `update_all` and `delete_all`
+* the `InsertAll` instance for `insert_all`, `insert_all!`, and `upsert_all`
+
+Higher-level methods such as `update_column`, `increment!`, `decrement!`,
+`touch_all`, `update_counters`, `delete_by`, `insert`, and `upsert` delegate to
+these lower-level methods, so the hook is still called exactly once per
+operation.
+
 [`decrement!`]:
     https://api.rubyonrails.org/classes/ActiveRecord/Persistence.html#method-i-decrement-21
 [`decrement_counter`]:

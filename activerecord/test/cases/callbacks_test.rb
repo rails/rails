@@ -129,6 +129,13 @@ class ContextualCallbacksDeveloper < ActiveRecord::Base
   end
 end
 
+class ParentSkipCallbackMonitorDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+end
+
+class ChildSkipCallbackMonitorDeveloper < ParentSkipCallbackMonitorDeveloper
+end
+
 class CallbackHaltedDeveloper < ActiveRecord::Base
   self.table_name = "developers"
 
@@ -498,5 +505,56 @@ class CallbacksTest < ActiveRecord::TestCase
       end
     end
     assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message
+  end
+
+  def test_skip_callback_monitor_is_not_called_when_not_set
+    dev = ParentSkipCallbackMonitorDeveloper.create!(name: "NoHook")
+    assert dev.update_columns(name: "Still NoHook")
+  ensure
+    ParentSkipCallbackMonitorDeveloper.skip_callback_monitor = nil
+  end
+
+  def test_update_columns_invokes_skip_callback_monitor_with_record
+    calls = []
+    ParentSkipCallbackMonitorDeveloper.skip_callback_monitor = ->(record) { calls << record }
+    dev = ParentSkipCallbackMonitorDeveloper.create!(name: "Hooked")
+    dev.update_columns(name: "Updated")
+    assert_equal [dev], calls
+  ensure
+    ParentSkipCallbackMonitorDeveloper.skip_callback_monitor = nil
+  end
+
+  def test_update_column_invokes_skip_callback_monitor_once
+    calls = []
+    ParentSkipCallbackMonitorDeveloper.skip_callback_monitor = ->(record) { calls << record }
+    dev = ParentSkipCallbackMonitorDeveloper.create!(name: "Hooked")
+    dev.update_column(:name, "Updated")
+    assert_equal [dev], calls
+  ensure
+    ParentSkipCallbackMonitorDeveloper.skip_callback_monitor = nil
+  end
+
+  def test_delete_invokes_skip_callback_monitor_with_record
+    calls = []
+    ParentSkipCallbackMonitorDeveloper.skip_callback_monitor = ->(record) { calls << record }
+    dev = ParentSkipCallbackMonitorDeveloper.create!(name: "Hooked")
+    dev.delete
+    assert_equal [dev], calls
+  ensure
+    ParentSkipCallbackMonitorDeveloper.skip_callback_monitor = nil
+  end
+
+  def test_subclass_skip_callback_monitor_overrides_parent
+    parent_calls = []
+    child_calls = []
+    ParentSkipCallbackMonitorDeveloper.skip_callback_monitor = ->(record) { parent_calls << record }
+    ChildSkipCallbackMonitorDeveloper.skip_callback_monitor = ->(record) { child_calls << record }
+    dev = ChildSkipCallbackMonitorDeveloper.create!(name: "Child")
+    dev.update_columns(name: "Updated")
+    assert_equal [], parent_calls
+    assert_equal [dev], child_calls
+  ensure
+    ParentSkipCallbackMonitorDeveloper.skip_callback_monitor = nil
+    ChildSkipCallbackMonitorDeveloper.skip_callback_monitor = nil
   end
 end

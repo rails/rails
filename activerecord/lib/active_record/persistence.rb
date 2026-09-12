@@ -405,7 +405,11 @@ module ActiveRecord
     # callbacks or any <tt>:dependent</tt> association
     # options, use #destroy.
     def delete
-      _delete_row if persisted?
+      if persisted?
+        self.class.invoke_skip_callback_monitor(self)
+        _delete_row
+      end
+
       @destroyed = true
       @previously_new_record = false
       freeze
@@ -593,6 +597,8 @@ module ActiveRecord
       raise ActiveRecordError, "cannot update a new record" if new_record?
       raise ActiveRecordError, "cannot update a destroyed record" if destroyed?
       _raise_readonly_record_error if readonly?
+
+      self.class.invoke_skip_callback_monitor(self)
 
       attributes = attributes.transform_keys do |key|
         name = key.to_s
