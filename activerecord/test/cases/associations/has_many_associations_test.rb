@@ -2170,6 +2170,51 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal [], firm.public_send("clients=", [])
   end
 
+  def test_replace_with_equal_but_distinct_instances_replaces_them_in_place
+    firm = companies(:first_firm)
+    firm.clients.load
+    originals = firm.clients.to_a
+    assert_operator originals.length, :>, 1
+
+    fresh = originals.map { |client| Client.find(client.id) }
+    firm.clients = fresh
+
+    target = firm.association(:clients).target
+    assert_equal originals.map(&:id), target.map(&:id)
+    target.each_with_index do |record, index|
+      assert_same fresh[index], record
+    end
+  end
+
+  def test_replace_matches_the_first_index_when_the_target_holds_equal_records
+    firm = companies(:first_firm)
+    firm.clients.load
+    association = firm.association(:clients)
+
+    first = association.target.first
+    association.target.unshift(Client.find(first.id))
+    assert_equal association.target[0], association.target[1]
+
+    replacement = Client.find(first.id)
+    association.send(:replace_common_records_in_memory, [replacement], association.target)
+
+    assert_same replacement, association.target[0], "the first equal record should have been replaced"
+    assert_same first, association.target[1], "the later equal record should have been left alone"
+  end
+
+  def test_replace_does_not_overwrite_existing_records_with_a_new_one
+    firm = companies(:first_firm)
+    firm.clients.load
+    existing = firm.clients.to_a
+    new_client = Client.new(name: "New Client")
+
+    firm.clients = existing + [new_client]
+
+    target = firm.association(:clients).target
+    assert_equal existing.map(&:id), target.first(existing.length).map(&:id)
+    assert_same new_client, target.last
+  end
+
   def test_transactions_when_replacing_on_persisted
     good = Client.new(name: "Good")
     bad  = Client.new(name: "Bad", raise_on_save: true)
