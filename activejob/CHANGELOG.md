@@ -1,3 +1,18 @@
+*   Add `config.active_job.immutable_arguments` to keep job argument mutations
+    from leaking into retries.
+
+    When enabled, Active Job deep-dups arguments before calling `perform`.
+    Mutations of the `perform` parameters no longer change the arguments used
+    on the next retry. Mutating `job.arguments` still updates the stored
+    arguments, so jobs that intentionally persist state there continue to work.
+
+    New applications (`config.load_defaults 8.2`) enable this by default.
+    Existing applications keep the previous behavior until they opt in via
+    `config/initializers/new_framework_defaults_8_2.rb` or by setting
+    `config.active_job.immutable_arguments = true`.
+
+    *Said Kaldybaev*
+
 *   Fix continuation step cursors losing their type when a job is interrupted
     and resumed.
 
