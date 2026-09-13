@@ -1,3 +1,8 @@
+*   Allow the `/up` health check page to render with background color under
+    a strict Content-Security-Policy.
+
+    *Christian Schmidt*
+
 *   Mark the generated `public/*.html` error pages as `linguist-generated` in
     the default `.gitattributes`.
 
