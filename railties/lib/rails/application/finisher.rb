@@ -112,8 +112,8 @@ module Rails
           ActiveSupport::Dependencies.interlock.start_running
         end
 
-        def self.complete(_state)
-          ActiveSupport::Dependencies.interlock.done_running
+        def self.complete(owner)
+          ActiveSupport::Dependencies.interlock.done_running(owner)
         end
       end
 
