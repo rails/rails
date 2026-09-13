@@ -5,9 +5,11 @@ require "active_support/core_ext/object/try"
 module ActiveStorage
   # = Active Storage \Attached \Model
   #
-  # Provides the class-level DSL for declaring an Active Record model's attachments.
+  # Provides the class-level DSL for declaring an application's attachments.
   module Attached::Model
     extend ActiveSupport::Concern
+
+    mattr_accessor :pending_service_validations, default: Concurrent::Array.new
 
     ##
     # :method: *_attachment
@@ -118,55 +120,8 @@ module ActiveStorage
       # When renaming classes that use <tt>has_one_attached</tt>, make sure to also update the class names in the
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
-      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil)
-        Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
-
-        generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
-          # frozen_string_literal: true
-          def #{name}
-            @active_storage_attached ||= {}
-            @active_storage_attached[:#{name}] ||= ActiveStorage::Attached::One.new("#{name}", self)
-          end
-
-          def #{name}=(attachable)
-            attachment_changes["#{name}"] =
-              if attachable.nil? || attachable == ""
-                ActiveStorage::Attached::Changes::DeleteOne.new("#{name}", self)
-              else
-                ActiveStorage::Attached::Changes::CreateOne.new("#{name}", self, attachable)
-              end
-          end
-        CODE
-
-        has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
-        has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
-
-        scope :"with_attached_#{name}", -> {
-          if ActiveStorage.track_variants
-            includes("#{name}_attachment": { blob: {
-              variant_records: { image_attachment: :blob },
-              preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
-            } })
-          else
-            includes("#{name}_attachment": :blob)
-          end
-        }
-
-        before_validation { attachment_changes[name.to_s]&.analyze }
-
-        after_save { attachment_changes[name.to_s]&.save }
-
-        after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
-
-        reflection = ActiveRecord::Reflection.create(
-          :has_one_attached,
-          name,
-          nil,
-          { dependent: dependent, service_name: service, analyze: analyze },
-          self
-        )
-        yield reflection if block_given?
-        ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
+      def has_one_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil, &block)
+        Attached::Builder.for(self).build_one(name, dependent: dependent, service: service, strict_loading: strict_loading, analyze: analyze, &block)
       end
 
       # Specifies the relation between multiple attachments and the model.
@@ -230,76 +185,50 @@ module ActiveStorage
       # When renaming classes that use <tt>has_many</tt>, make sure to also update the class names in the
       # <tt>active_storage_attachments.record_type</tt> polymorphic type column of
       # the corresponding rows.
-      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil)
-        Attached::Model.validate_service_configuration(service, self, name) unless service.is_a?(Proc)
-
-        generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
-          # frozen_string_literal: true
-          def #{name}
-            @active_storage_attached ||= {}
-            @active_storage_attached[:#{name}] ||= ActiveStorage::Attached::Many.new("#{name}", self)
-          end
-
-          def #{name}=(attachables)
-            attachables = Array(attachables).compact_blank
-            pending_uploads = attachment_changes["#{name}"].try(:pending_uploads)
-
-            attachment_changes["#{name}"] = if attachables.none?
-              ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
-            else
-              ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables, pending_uploads: pending_uploads)
-            end
-          end
-        CODE
-
-        has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy, strict_loading: strict_loading
-        has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob, strict_loading: strict_loading
-
-        scope :"with_attached_#{name}", -> {
-          if ActiveStorage.track_variants
-            includes("#{name}_attachments": { blob: {
-              variant_records: { image_attachment: :blob },
-              preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
-            } })
-          else
-            includes("#{name}_attachments": :blob)
-          end
-        }
-
-        before_validation { attachment_changes[name.to_s]&.analyze }
-
-        after_save { attachment_changes[name.to_s]&.save }
-
-        after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
-
-        reflection = ActiveRecord::Reflection.create(
-          :has_many_attached,
-          name,
-          nil,
-          { dependent: dependent, service_name: service, analyze: analyze },
-          self
-        )
-        yield reflection if block_given?
-        ActiveRecord::Reflection.add_attachment_reflection(self, name, reflection)
+      def has_many_attached(name, dependent: :purge_later, service: nil, strict_loading: false, analyze: nil, &block)
+        Attached::Builder.for(self).build_many(name, dependent: dependent, service: service, strict_loading: strict_loading, analyze: analyze, &block)
       end
     end
 
     class << self
       def validate_service_configuration(service_name, model_class, association_name) # :nodoc:
         if service_name
-          ActiveStorage::Blob.services.fetch(service_name) do
-            raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{association_name}"
-          end
+          validate_named_service_configuration(service_name, model_class, association_name)
         else
           validate_global_service_configuration(model_class)
         end
       end
 
       private
+        def validate_named_service_configuration(service_name, model_class, association_name)
+          if active_record_owner_class?(model_class)
+            ActiveStorage::Blob.services.fetch(service_name) do
+              raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{association_name}"
+            end
+          elsif ActiveStorage::Services.registry.nil?
+            pending_service_validations << [ model_class, association_name, service_name ]
+          else
+            ActiveStorage::Services.fetch(service_name) do
+              raise ArgumentError, "Cannot configure service #{service_name.inspect} for #{model_class}##{association_name}"
+            end
+          end
+        end
+
         def validate_global_service_configuration(model_class)
-          if model_class.connected? && ActiveStorage::Blob.table_exists? && Rails.configuration.active_storage.service.nil?
+          if active_record_owner_class?(model_class)
+            return unless model_class.respond_to?(:connected?) && model_class.connected? && ActiveStorage::Blob.table_exists?
+            return unless Rails.configuration.active_storage.service.nil?
+
             raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
           end
+
+          if !active_record_owner_class?(model_class) && Rails.configuration.active_storage.service.nil?
+            raise RuntimeError, "Missing Active Storage service name. Specify Active Storage service name for config.active_storage.service in config/environments/#{Rails.env}.rb"
+          end
+        end
+
+        def active_record_owner_class?(model_class)
+          defined?(::ActiveRecord::Base) && model_class < ::ActiveRecord::Base
         end
     end
 
@@ -310,20 +239,38 @@ module ActiveStorage
     end
 
     def changed_for_autosave? # :nodoc:
-      super || attachment_changes.any?
+      if defined?(super)
+        super || attachment_changes.any?
+      else
+        attachment_changes.any?
+      end
     end
 
     def initialize_dup(*) # :nodoc:
       super
-      @active_storage_attached = nil
-      @attachment_changes = nil
+      clear_active_storage_attachment_memoizations
     end
 
     def reload(*) # :nodoc:
-      super.tap { @attachment_changes = nil }
+      if defined?(super)
+        super.tap do
+          if active_record_owner_instance?
+            @attachment_changes = nil
+          else
+            clear_active_storage_attachment_memoizations
+          end
+        end
+      else
+        clear_active_storage_attachment_memoizations
+        self
+      end
     end
 
     def becomes(klass) # :nodoc:
+      unless defined?(super)
+        raise NoMethodError, "super: no superclass method `becomes' for #{self}"
+      end
+
       super.tap do |became|
         attachment_changes = @attachment_changes&.each_value do |change|
           change.record = became
@@ -331,5 +278,24 @@ module ActiveStorage
         became.attachment_changes = attachment_changes
       end
     end
+
+    private
+      def clear_active_storage_attachment_memoizations
+        remove_instance_variable(:@active_storage_attached) if instance_variable_defined?(:@active_storage_attached)
+        remove_instance_variable(:@attachment_changes) if instance_variable_defined?(:@attachment_changes)
+
+        return unless self.class.respond_to?(:attachment_reflections)
+
+        self.class.attachment_reflections.each_key do |name|
+          %w[attachment blob attachments blobs].each do |suffix|
+            ivar = :"@#{name}_#{suffix}"
+            remove_instance_variable(ivar) if instance_variable_defined?(ivar)
+          end
+        end
+      end
+
+      def active_record_owner_instance?
+        defined?(::ActiveRecord::Base) && is_a?(::ActiveRecord::Base)
+      end
   end
 end

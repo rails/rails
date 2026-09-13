@@ -15,6 +15,6 @@ module ActiveStorage::SetBlob # :nodoc:
     end
 
     def blob_scope
-      ActiveStorage::Blob
+      ActiveStorage.blob_class
     end
 end
