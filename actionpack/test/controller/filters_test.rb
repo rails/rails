@@ -345,6 +345,28 @@ class FilterTest < ActionController::TestCase
       end
   end
 
+  class ConditionalNestedFilterController < TestController
+    before_action :happily_ever_after, innermost: true, only: :show
+    before_action :the_morning_after, innermost: true, except: :show
+    before_action :beautiful_day
+
+    private
+      def happily_ever_after
+        @ran_filter ||= []
+        @ran_filter << "happily_ever_after"
+      end
+
+      def the_morning_after
+        @ran_filter ||= []
+        @ran_filter << "the_morning_after"
+      end
+
+      def beautiful_day
+        @ran_filter ||= []
+        @ran_filter << "beautiful_day"
+      end
+  end
+
   class SkippingAndLimitedController < TestController
     skip_before_action :ensure_login
     before_action :ensure_login, only: :index
@@ -735,6 +757,17 @@ class FilterTest < ActionController::TestCase
     end
 
     assert_equal [ :once_upon_a_time, :ensure_login, :wonderful_life ], controller.before_actions
+  end
+
+  def test_a_conditional_action_is_pinned_like_any_other
+    assert_equal [ :ensure_login, :beautiful_day, :happily_ever_after, :the_morning_after ],
+      ConditionalNestedFilterController.before_actions
+  end
+
+  def test_a_pinned_action_still_honors_its_condition
+    test_process(ConditionalNestedFilterController)
+    assert_equal %w( ensure_login beautiful_day happily_ever_after ),
+      @controller.instance_variable_get(:@ran_filter)
   end
 
   def test_running_actions_with_proc
