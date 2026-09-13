@@ -19,6 +19,7 @@ module ActionCable
     attr_accessor :precompile_assets
     attr_accessor :health_check_path, :health_check_application
     attr_writer :pubsub_adapter
+    attr_accessor :fastlane_broadcasts_enabled
 
     def initialize
       @log_tags = []
@@ -30,6 +31,8 @@ module ActionCable
       @disable_request_forgery_protection = false
       @allow_same_origin_as_host = true
       @filter_parameters = []
+
+      @fastlane_broadcasts_enabled = false
 
       @health_check_application = ->(env) {
         [200, { Rack::CONTENT_TYPE => "text/html", "date" => Time.now.httpdate }, []]

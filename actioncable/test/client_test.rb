@@ -73,6 +73,7 @@ class ClientTest < ActionCable::TestCase
 
     # and now the "real" setup for our test:
     server.config.disable_request_forgery_protection = true
+    server.config.fastlane_broadcasts_enabled = true
   end
 
   def with_puma_server(rack_app = ActionCable.server, port = 3099)
