@@ -53,6 +53,10 @@ Rails/IndexWith:
 Style/AndOr:
   Enabled: true
 
+# Align `end` with the line that starts the block.
+Layout/BlockAlignment:
+  Enabled: true
+
 Layout/ClosingHeredocIndentation:
   Enabled: true
 

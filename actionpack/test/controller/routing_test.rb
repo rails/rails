@@ -308,9 +308,9 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     rs.draw do
       get "/posts/:id(/*filters)", constraints: { filters: /.+?/ },
         to: lambda { |e|
-        params = e["action_dispatch.request.path_parameters"]
-        [200, {}, ["foo"]]
-      }
+          params = e["action_dispatch.request.path_parameters"]
+          [200, {}, ["foo"]]
+        }
     end
     assert_equal "foo", get(URI("http://example.org/posts/1/foo.js"))
     assert_equal({ id: "1", filters: "foo", format: "js" }, params)
