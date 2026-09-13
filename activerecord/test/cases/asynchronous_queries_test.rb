@@ -200,6 +200,7 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
       end
       attempts = Concurrent::AtomicFixnum.new
 
+      adapter_class.silence_redefinition_of_method(:perform_query)
       adapter_class.send(:define_method, :perform_query) do |raw_connection, intent|
         if matching.call(intent)
           attempt = attempts.increment
@@ -215,6 +216,7 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
       yield attempts
     ensure
       if visibility
+        adapter_class.silence_redefinition_of_method(:perform_query)
         adapter_class.send(:define_method, :perform_query, original_perform_query)
         adapter_class.send(visibility, :perform_query)
       else

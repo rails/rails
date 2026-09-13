@@ -329,7 +329,9 @@ module ActiveRecord
             assert_not_nil ActiveRecord::Base.connection_pool.schema_reflection.instance_variable_get(:@cache)
 
             # assert cache is still empty on new connection (precondition for the
-            # following to show it is loading because of the config change)
+            # following to show it is loading because of the config change).
+            # Establishing with an equal config reuses the pool, so drop it first.
+            ActiveRecord::Base.remove_connection
             ActiveRecord::Base.establish_connection(new_config)
 
             assert File.exist?(tempfile)
@@ -337,6 +339,7 @@ module ActiveRecord
 
             # cache is loaded upon connection when lazily loading is on
             ActiveRecord.with(lazily_load_schema_cache: true) do
+              ActiveRecord::Base.remove_connection
               ActiveRecord::Base.establish_connection(new_config)
               ActiveRecord::Base.connection_pool.lease_connection.verify!
 

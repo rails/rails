@@ -11,6 +11,22 @@ module ARTest
     ENV["ARCONN"] || config["default_connection"]
   end
 
+  # Whether this test run is proxied though ractor connection handling or not.
+  def self.ractor_proxy?
+    connection_name.end_with?("_ractor")
+  end
+
+  def self.without_ractor_proxy
+    handler_was = ActiveSupport::IsolatedExecutionState[:active_record_connection_handler]
+    handler = ActiveRecord::Base.connection_handler
+    if handler.is_a?(ActiveRecord::ConnectionAdapters::RactorConnectionHandler)
+      ActiveRecord::Base.connection_handler = handler.main_ractor_handler
+    end
+    yield
+  ensure
+    ActiveRecord::Base.connection_handler = handler_was
+  end
+
   def self.test_configuration_hashes
     config.fetch("connections").fetch(connection_name) do
       puts "Connection #{connection_name.inspect} not found. Available connections: #{config['connections'].keys.join(', ')}"
@@ -18,8 +34,21 @@ module ARTest
     end
   end
 
+  # In a proxied run, every thread and worker Ractor must resolve to the
+  # Ractor handler (a thread-local assignment would only cover the boot
+  # thread), while `default_connection_handler` keeps owning the real pools.
+  # Prepended to Base's singleton class, so Core.ractor_connection_handler's
+  # main-Ractor guard is overridden without redefining it. A plain `def` in a
+  # named module carries no closure, so worker Ractors may call it.
+  module RactorProxy
+    def ractor_connection_handler
+      ActiveRecord::ConnectionAdapters::RactorConnectionHandler.instance
+    end
+  end
+
   def self.connect
     ActiveRecord.async_query_executor = :global_thread_pool
+    ActiveRecord::Base.singleton_class.prepend(RactorProxy) if ractor_proxy?
     puts "Using #{connection_name}#{ " with prepared statements" if ENV["MYSQL_PREPARED_STATEMENTS"]}"
 
     if ENV["BUILDKITE"]

@@ -8,6 +8,10 @@ class FakeActiveRecordAdapter < ActiveRecord::ConnectionAdapters::AbstractAdapte
     attr_reader :columns
   end
 
+  def self.ractor_connection_proxy_class
+    ActiveRecord::ConnectionAdapters::RactorConnectionHandler::AbstractProxyAdapter
+  end
+
   def initialize(...)
     super
     @data_sources = []

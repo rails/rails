@@ -105,3 +105,19 @@ connections:
       database: ':memory:'
       pragmas:
         reverse_unordered_selects: true
+
+  sqlite3_ractor:
+    arunit:
+      adapter: sqlite3
+      database: <%= FIXTURES_ROOT %>/fixture_database_ractor.sqlite3
+      timeout:  5000
+      strict:   true
+      pragmas:
+        reverse_unordered_selects: true
+    arunit2:
+      adapter: sqlite3
+      database: <%= FIXTURES_ROOT %>/fixture_database_2_ractor.sqlite3
+      timeout:  5000
+      strict:   true
+      pragmas:
+        reverse_unordered_selects: true
