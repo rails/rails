@@ -425,6 +425,16 @@ class TextHelperTest < ActionView::TestCase
     assert_equal("12 berries", pluralize(12, "berry"))
   end
 
+  def test_pluralization_without_count
+    assert_equal("count", pluralize(1, "count", count: false))
+    assert_equal("counts", pluralize(2, "count", count: false))
+    assert_equal("count", pluralize("1", "count", count: false))
+    assert_equal("counts", pluralize("2", "count", count: false))
+    assert_equal("counters", pluralize(2, "count", "counters", count: false))
+    assert_equal("counters", pluralize(2, "count", plural: "counters", count: false))
+    assert_equal("people", pluralize(nil, "person", count: false))
+  end
+
   def test_localized_pluralization
     old_locale = I18n.locale
 
@@ -438,6 +448,7 @@ class TextHelperTest < ActionView::TestCase
       assert_equal("1 region",   pluralize(1, "region"))
       assert_equal("2 regionen", pluralize(2, "region"))
       assert_equal("2 regions",  pluralize(2, "region", locale: :en))
+      assert_equal("regionen",   pluralize(2, "region", count: false))
     ensure
       I18n.locale = old_locale
     end
