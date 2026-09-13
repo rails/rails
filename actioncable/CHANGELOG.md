@@ -1,3 +1,7 @@
+*   Prevent subscription race conditions in Action Cable JS client.
+
+    *Vladimir Dementyev*
+
 *   Move `ActionCable::Server::Configuration` to `ActionCable::Configuration`.
 
     The old constant remains available as an alias.
