@@ -111,9 +111,12 @@
 
     Previously, assigning `nil` preserved every foreign key column in these
     cases. Shared columns are now preserved only when the foreign key has
-    another column that can be nulled instead.
+    another column that can be nulled instead. The same applies to `has_one`
+    and `has_many` associations declared with `dependent: :nullify` when the
+    owner is destroyed, which nulled the shared columns and left the record
+    with an incomplete primary key.
 
-    *Matthew Draper*
+    *Matthew Draper*, *Carlos Daniel Pohlod*
 
 *   `ActiveRecord::Relation#update` and `#update!` no longer escape the relation
     when given ids.
