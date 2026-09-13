@@ -27,6 +27,10 @@ module ActiveSupport
         self
       end
 
+      def nested?
+        !@stack.empty?
+      end
+
       def flush
         @stack = Array.new(@stack.size) { {} }
         @store = {}
@@ -95,8 +99,9 @@ module ActiveSupport
       end
 
       def pop
-        if @nestable
-          record.pop
+        context = IsolatedExecutionState[:active_support_execution_context]
+        if context&.nested?
+          context.pop
         else
           clear
         end
