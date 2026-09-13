@@ -25,21 +25,23 @@ module ActiveRecord
 
         when :destroy
           # No point in executing the counter update since we're going to destroy the parent anyway
-          load_target.each { |t| t.destroyed_by_association = reflection }
+          load_target_for_dependent_destroy.each { |t| t.destroyed_by_association = reflection }
           destroy_all
         when :destroy_async
-          load_target.each do |t|
+          persisted_target = load_persisted_target_for_dependent_destroy
+
+          target.each do |t|
             t.destroyed_by_association = reflection
           end
 
-          unless target.empty?
-            association_class = target.first.class
+          unless persisted_target.empty?
+            association_class = persisted_target.first.class
             if association_class.query_constraints_list
               primary_key_column = association_class.query_constraints_list
-              ids = target.collect { |assoc| primary_key_column.map { |col| assoc.public_send(col) } }
+              ids = persisted_target.collect { |assoc| primary_key_column.map { |col| assoc.public_send(col) } }
             else
               primary_key_column = association_class.primary_key
-              ids = target.collect { |assoc| assoc.public_send(primary_key_column) }
+              ids = persisted_target.collect { |assoc| assoc.public_send(primary_key_column) }
             end
 
             ids.each_slice(owner.class.destroy_association_async_batch_size || ids.size) do |ids_batch|
@@ -64,6 +66,29 @@ module ActiveRecord
       end
 
       private
+        # Persisted records may have been added without updating a loaded target.
+        # Re-read the association so dependent destruction uses the database as
+        # its source of truth, while retaining unsaved and changed target records.
+        def load_target_for_dependent_destroy
+          return load_target if owner.new_record?
+
+          load_persisted_target_for_dependent_destroy
+          target
+        end
+
+        # Return fresh database records for async identifiers while separately
+        # merging them into the target to retain unsaved and changed state.
+        def load_persisted_target_for_dependent_destroy
+          return load_target.select(&:persisted?) if owner.new_record?
+
+          persisted = reflection.klass.uncached do
+            skip_strict_loading { find_target }
+          end
+
+          self.target = merge_target_lists(persisted.dup, target)
+          persisted
+        end
+
         # Returns the number of records in this collection.
         #
         # If the association has a counter cache it gets that value. Otherwise
