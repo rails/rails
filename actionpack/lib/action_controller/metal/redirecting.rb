@@ -116,6 +116,7 @@ module ActionController
     #
     # The `action_on_open_redirect` configuration option controls the behavior when an unsafe
     # redirect is detected:
+    #
     # * `:log` - Logs a warning but allows the redirect
     # * `:notify` - Sends an Active Support notification and structured event for monitoring
     # * `:raise` - Raises an UnsafeRedirectError
@@ -241,7 +242,8 @@ module ActionController
     #     url_from("http://example.com/profile")  # => "http://example.com/profile"
     #     url_from("http://evil.com/profile")     # => nil
     #
-    # Subdomains are considered part of the host:
+    # Subdomains are included when comparing hosts. The hostname must match exactly
+    # for a redirect to be considered internal.
     #
     #     # If request.host is on https://example.com or https://app.example.com, you'd get:
     #     url_from("https://dev.example.com/profile") # => nil

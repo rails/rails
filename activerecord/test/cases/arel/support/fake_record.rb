@@ -109,10 +109,6 @@ module FakeRecord
       @connection.tables.include? name.to_s
     end
 
-    def columns_hash
-      @connection.columns_hash
-    end
-
     def schema_cache
       @connection
     end
@@ -124,6 +120,13 @@ module FakeRecord
 
   class Base
     attr_accessor :connection_pool
+    singleton_class.attr_accessor :table_name
+
+    class << self
+      def type_caster
+        nil
+      end
+    end
 
     def initialize
       @connection_pool = ConnectionPool.new

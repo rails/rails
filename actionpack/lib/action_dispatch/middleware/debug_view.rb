@@ -9,7 +9,7 @@ require "action_view/base"
 
 module ActionDispatch
   class DebugView < ActionView::Base # :nodoc:
-    RESCUES_TEMPLATE_PATHS = [File.expand_path("templates", __dir__)]
+    RESCUES_TEMPLATE_PATHS = [File.expand_path("templates", __dir__)].freeze
     HOST_APP_PATH = ENV["RAILS_HOST_APP_PATH"]
 
     def initialize(assigns)

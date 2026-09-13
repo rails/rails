@@ -183,7 +183,7 @@ module ActionDispatch
         end
 
         class HelperMethodBuilder # :nodoc:
-          CACHE = { path: {}, url: {} }
+          CACHE = { path: {}, url: {} }.freeze
 
           def self.get(action, type)
             type = type.to_sym
@@ -357,6 +357,7 @@ module ActionDispatch
               CACHE[:url][action]  = build action, "url"
               CACHE[:path][action] = build action, "path"
             end
+            ActiveSupport::Ractors.make_shareable(CACHE)
         end
     end
   end

@@ -215,7 +215,20 @@ module ActiveRecord
 
     def initialize_copy(other)
       @rows = rows.dup
-      @hash_rows    = nil
+      @hash_rows = nil
+      @indexed_rows = nil
+    end
+
+    def shuffle_rows(arel) # :nodoc:
+      return self if rows.size < 2
+      return self unless ConnectionAdapters::QueryIntent.shuffle_rows?(arel)
+
+      dup.shuffle!
+    end
+
+    def shuffle! # :nodoc:
+      @rows = @rows.shuffle
+      self
     end
 
     def freeze # :nodoc:

@@ -45,7 +45,7 @@ gem "uri", ">= 0.13.1", require: false
 gem "prism"
 
 group :rubocop do
-  gem "rubocop", "1.79.2", require: false
+  gem "rubocop", "1.90.0", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
@@ -70,6 +70,7 @@ end
 
 # Active Support
 gem "dalli"
+gem "redis-client", ">= 0.28.0"
 gem "listen", "~> 3.3", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
@@ -117,7 +118,9 @@ group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.11", require: false
 
-  gem "image_processing", "~> 1.2"
+  gem "image_processing", "~> 2.0"
+  gem "ruby-vips", "~> 2.3"
+  gem "mini_magick", "~> 5.0"
 end
 
 # Action Mailbox

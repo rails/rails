@@ -21,6 +21,7 @@ module ActiveSupport
     autoload :MemCacheStore,    "active_support/cache/mem_cache_store"
     autoload :NullStore,        "active_support/cache/null_store"
     autoload :RedisCacheStore,  "active_support/cache/redis_cache_store"
+    autoload :DeprecatedRedisCacheStore,  "active_support/cache/deprecated_redis_cache_store"
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
@@ -38,11 +39,11 @@ module ActiveSupport
       :skip_nil,
       :raw,
       :max_key_size,
-    ]
+    ].freeze
 
     # Mapping of canonical option names to aliases that a store will recognize.
     OPTION_ALIASES = {
-      expires_in: [:expire_in, :expired_in]
+      expires_in: [:expire_in, :expired_in].freeze
     }.freeze
 
     DEFAULT_COMPRESS_LIMIT = 1.kilobyte
@@ -477,7 +478,7 @@ module ActiveSupport
           end
 
           if entry
-            get_entry_value(entry, name, options)
+            get_entry_value(entry, key, options)
           else
             save_block_result_to_cache(name, key, options, &block)
           end
@@ -701,7 +702,7 @@ module ActiveSupport
         return 0 if names.empty?
 
         options = merged_options(options)
-        names.map! { |key| normalize_key(key, options) }
+        names = names.map { |key| normalize_key(key, options) }
 
         instrument_multi(:delete_multi, names, options) do
           delete_multi_entries(names, **options)
@@ -715,7 +716,7 @@ module ActiveSupport
         options = merged_options(options)
         key = normalize_key(name, options)
 
-        instrument(:exist?, key) do |payload|
+        instrument(:exist?, key, options) do |payload|
           entry = read_entry(key, **options, event: payload)
           (entry && !entry.expired? && !entry.mismatched?(normalize_version(name, options))) || false
         end
@@ -983,7 +984,7 @@ module ActiveSupport
         end
 
         def expand_and_namespace_key(key, options = nil)
-          str_key = expanded_key(key)
+          str_key = key.class == ::String ? key : expanded_key(key)
           raise(ArgumentError, "key cannot be blank") if !str_key || str_key.empty?
 
           namespace_key str_key, options
@@ -1065,28 +1066,37 @@ module ActiveSupport
         end
 
         def instrument(operation, key, options = nil, &block)
-          _instrument(operation, key: key, options: options, &block)
+          unless silence?
+            logger&.debug do
+              debug_key = ": #{key}" if key
+              debug_options = " (#{options.inspect})" unless options.blank?
+              "Cache #{operation}#{debug_key}#{debug_options}"
+            end
+          end
+
+          payload = {
+            store: self.class.name,
+            key: key
+          }
+          payload.merge!(options) if options.is_a?(Hash)
+          ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) do
+            block&.call(payload)
+          end
         end
 
         def instrument_multi(operation, keys, options = nil, &block)
-          _instrument(operation, multi: true, key: keys, options: options, &block)
-        end
-
-        def _instrument(operation, multi: false, options: nil, **payload, &block)
-          if logger && logger.debug? && !silence?
-            debug_key =
-              if multi
-                ": #{payload[:key].size} key(s) specified"
-              elsif payload[:key]
-                ": #{payload[:key]}"
-              end
-
-            debug_options = " (#{options.inspect})" unless options.blank?
-
-            logger.debug "Cache #{operation}#{debug_key}#{debug_options}"
+          unless silence?
+            logger&.debug do
+              debug_key = ": #{keys.size} key(s) specified"
+              debug_options = " (#{options.inspect})" unless options.blank?
+              "Cache #{operation}#{debug_key}#{debug_options}"
+            end
           end
 
-          payload[:store] = self.class.name
+          payload = {
+            store: self.class.name,
+            key: keys
+          }
           payload.merge!(options) if options.is_a?(Hash)
           ActiveSupport::Notifications.instrument("cache_#{operation}.active_support", payload) do
             block&.call(payload)
@@ -1109,8 +1119,8 @@ module ActiveSupport
           entry
         end
 
-        def get_entry_value(entry, name, options)
-          instrument(:fetch_hit, name, options)
+        def get_entry_value(entry, key, options)
+          instrument(:fetch_hit, key, options)
           entry.value
         end
 

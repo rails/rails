@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/inflector"
@@ -5,7 +6,9 @@ require "active_support/inflector"
 class Module
   # Returns the name of the module containing this one.
   #
-  #   M::N.module_parent_name # => "M"
+  # ```
+  # M::N.module_parent_name # => "M"
+  # ```
   def module_parent_name
     if defined?(@parent_name)
       @parent_name
@@ -21,19 +24,24 @@ class Module
 
   # Returns the module which contains this one according to its name.
   #
-  #   module M
-  #     module N
-  #     end
+  # ```
+  # module M
+  #   module N
   #   end
-  #   X = M::N
+  # end
+  # X = M::N
   #
-  #   M::N.module_parent # => M
-  #   X.module_parent    # => M
+  # M::N.module_parent # => M
+  # X.module_parent    # => M
+  # ```
   #
   # The parent of top-level and anonymous modules is Object.
   #
-  #   M.module_parent          # => Object
-  #   Module.new.module_parent # => Object
+  #
+  # ```
+  # M.module_parent          # => Object
+  # Module.new.module_parent # => Object
+  # ```
   def module_parent
     module_parent_name ? ActiveSupport::Inflector.constantize(module_parent_name) : Object
   end
@@ -41,15 +49,17 @@ class Module
   # Returns all the parents of this module according to its name, ordered from
   # nested outwards. The receiver is not contained within the result.
   #
-  #   module M
-  #     module N
-  #     end
+  # ```
+  # module M
+  #   module N
   #   end
-  #   X = M::N
+  # end
+  # X = M::N
   #
-  #   M.module_parents    # => [Object]
-  #   M::N.module_parents # => [M, Object]
-  #   X.module_parents    # => [M, Object]
+  # M.module_parents    # => [Object]
+  # M::N.module_parents # => [M, Object]
+  # X.module_parents    # => [M, Object]
+  # ```
   def module_parents
     parents = []
     if module_parent_name

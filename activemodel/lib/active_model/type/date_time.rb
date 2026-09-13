@@ -25,11 +25,8 @@ module ActiveModel
     #   event.start.sec   # => 0
     #   event.start.zone  # => "EAT"
     #
-    # String values are parsed using the ISO 8601 datetime format. Partial
-    # time-only formats are also accepted.
-    #
-    #   event.start = "06:07:08+09:00"
-    #   event.start.utc # => 1999-12-31 21:07:08 UTC
+    # String values are parsed using the ISO 8601 datetime format. Use the
+    # +:time+ type instead to parse partial time-only values.
     #
     # The degree of sub-second precision can be customized when declaring an
     # attribute:

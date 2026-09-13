@@ -55,17 +55,19 @@ module ActiveRecord
           raise MinimumLengthError, "Token requires a minimum length of #{MINIMUM_TOKEN_LENGTH} characters."
         end
 
-        prefix = "#{attribute}_" if prefix == true
+        token_length = length
+        token_prefix = prefix == true ? "#{attribute}_" : prefix
 
         if prefix
-          generate_token = -> do
-            token = self.generate_unique_secure_token(length: length)
+          token_generator = -> do
+            token = self.generate_unique_secure_token(length: token_length)
 
-            "#{prefix}#{token}"
+            "#{token_prefix}#{token}"
           end
         else
-          generate_token = -> { self.generate_unique_secure_token(length: length) }
+          token_generator = -> { self.generate_unique_secure_token(length: token_length) }
         end
+        generate_token = ActiveSupport::Ractors.try_shareable_proc(token_generator)
 
         # Load securerandom only when has_secure_token is used.
         require "active_support/core_ext/securerandom"

@@ -67,7 +67,7 @@ module LocalCacheBehavior
       @cache.write(key, value)
       assert_equal value, @cache.read(key)
 
-      @cache.send(:bypass_local_cache) { @cache.write(key, other_value) }
+      @cache.send(:use_temporary_local_cache, nil) { @cache.write(key, other_value) }
       assert_equal value, @cache.read(key)
 
       @cache.cleanup
@@ -110,7 +110,7 @@ module LocalCacheBehavior
     value = SecureRandom.alphanumeric
     @cache.with_local_cache do
       assert_nil @cache.read(key)
-      @cache.send(:bypass_local_cache) { @cache.write(key, value) }
+      @cache.send(:use_temporary_local_cache, nil) { @cache.write(key, value) }
       assert_nil @cache.read(key)
     end
   end
@@ -211,6 +211,20 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_increment_miss
+    key = SecureRandom.uuid
+    @cache.with_local_cache do
+      @cache.write(key, 5, raw: true)
+      @peek.delete(key)
+
+      @cache.increment(key)
+
+      expected = @peek.read(key, raw: true)
+      assert_equal 1, Integer(expected)
+      assert_equal expected, @cache.read(key, raw: true)
+    end
+  end
+
   def test_local_cache_of_decrement
     key = SecureRandom.uuid
     @cache.with_local_cache do
@@ -221,6 +235,22 @@ module LocalCacheBehavior
 
       expected = @peek.read(key, raw: true)
       assert_equal 2, Integer(expected)
+      assert_equal expected, @cache.read(key, raw: true)
+    end
+  end
+
+  def test_local_cache_of_decrement_miss
+    key = SecureRandom.uuid
+    @cache.with_local_cache do
+      @cache.write(key, 5, raw: true)
+      @peek.delete(key)
+
+      @cache.decrement(key)
+
+      expected = @peek.read(key, raw: true)
+      unless expected == "0" # Memcached doesn't go negative
+        assert_equal(-1, Integer(expected))
+      end
       assert_equal expected, @cache.read(key, raw: true)
     end
   end
@@ -244,6 +274,22 @@ module LocalCacheBehavior
 
       results = @peek.read_multi(known_missing_key, existing_key, unknown_key)
       assert_equal expected, results
+    end
+  end
+
+  def test_local_cache_of_fetch_multi_preserves_order
+    first_key = SecureRandom.uuid
+    cached_key = SecureRandom.uuid
+    last_key = SecureRandom.uuid
+
+    @cache.with_local_cache do
+      # Seed the local cache so that only the middle key is a local hit.
+      @cache.increment(cached_key)
+
+      results = @cache.fetch_multi(first_key, cached_key, last_key) { |key| "yielded-#{key}" }
+
+      assert_equal [first_key, cached_key, last_key], results.keys
+      assert_not_equal "yielded-#{cached_key}", results[cached_key]
     end
   end
 
@@ -298,7 +344,7 @@ module LocalCacheBehavior
     key = "key#{rand}"
     @cache.with_local_cache do
       @cache.write(key, "foo")
-      @cache.send(:bypass_local_cache) { @cache.write(key, "bar") }
+      @cache.send(:use_temporary_local_cache, nil) { @cache.write(key, "bar") }
 
       assert_equal({ key => "foo" }, @cache.read_multi(key))
     end

@@ -117,6 +117,19 @@ module ActiveRecord
       assert_equal 10, notification.payload[:row_count]
     end
 
+    def test_payload_exception_on_failed_query
+      error = nil
+      notifications = capture_notifications("sql.active_record") do
+        error = assert_raises(ActiveRecord::StatementInvalid) do
+          ActiveRecord::Base.lease_connection.select_all("SELECT * FROM non_existent_table_for_notification")
+        end
+      end
+
+      notification = notifications.find { _1.payload[:sql].match?("non_existent_table_for_notification") }
+      assert_equal [error.class.name, error.message], notification.payload[:exception]
+      assert_same error, notification.payload[:exception_object]
+    end
+
     def test_payload_row_count_on_cache
       Book.create!(name: "row count book")
 
@@ -207,41 +220,24 @@ module ActiveRecord
 
   module TransactionInSqlActiveRecordPayloadTests
     def test_payload_without_an_open_transaction
-      asserted = false
-
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-        if event.payload.fetch(:name) == "Book Count"
-          assert_nil event.payload.fetch(:transaction)
-          asserted = true
-        end
-      end
-
-      Book.count
-
-      assert asserted
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber)
-    end
-
-    def test_payload_with_an_open_transaction
-      asserted = false
-      expected_transaction = nil
-
-      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-        if event.payload.fetch(:name) == "Book Count"
-          assert_same expected_transaction, event.payload.fetch(:transaction)
-          asserted = true
-        end
-      end
-
-      Book.transaction do |transaction|
-        expected_transaction = transaction
+      notification = assert_notification("sql.active_record", name: "Book Count") do
         Book.count
       end
 
-      assert asserted
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber)
+      assert_nil notification.payload.fetch(:transaction)
+    end
+
+    def test_payload_with_an_open_transaction
+      expected_transaction = nil
+
+      notification = assert_notification("sql.active_record", name: "Book Count") do
+        Book.transaction do |transaction|
+          expected_transaction = transaction
+          Book.count
+        end
+      end
+
+      assert_same expected_transaction, notification.payload.fetch(:transaction)
     end
   end
 

@@ -325,7 +325,7 @@ module ActionView
       #   word_wrap('Once upon a time', line_width: 1, break_sequence: "\r\n")
       #   # => "Once\r\nupon\r\na\r\ntime"
       def word_wrap(text, line_width: 80, break_sequence: "\n")
-        return +"" if text.empty?
+        return +"" if text.nil? || text.empty?
 
         # Match up to `line_width` characters, followed by one of
         #   (1) non-newline whitespace plus an optional newline
@@ -370,7 +370,7 @@ module ActionView
       #   # => "<p>We want to put a paragraph...</p>\n\n<p>...right there.</p>"
       #
       #   simple_format("Look ma! A class!", class: 'description')
-      #   # => "<p class='description'>Look ma! A class!</p>"
+      #   # => "<p class=\"description\">Look ma! A class!</p>"
       #
       #   simple_format("<blink>Unblinkable.</blink>")
       #   # => "<p>Unblinkable.</p>"

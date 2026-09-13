@@ -68,7 +68,7 @@ module ActionText
       "#{editor_name}-editor"
     end
 
-    def render_in(view_context)
+    def render_in(view_context, ...)
       options[:class] ||= "#{editor_name}-content"
 
       view_context.content_tag(element_name, nil, options, &@block)

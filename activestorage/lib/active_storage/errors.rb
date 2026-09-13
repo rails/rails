@@ -26,4 +26,8 @@ module ActiveStorage
 
   # Raised when a Previewer is unable to generate a preview image.
   class PreviewError < Error; end
+
+  # Raised when a storage key resolves to a path outside the service's root
+  # directory, indicating a potential path traversal attack.
+  class InvalidKeyError < Error; end
 end

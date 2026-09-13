@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "securerandom"
@@ -6,18 +7,22 @@ class File
   # Write to a file atomically. Useful for situations where you don't
   # want other processes or threads to see half-written files.
   #
-  #   File.atomic_write('important.file') do |file|
-  #     file.write('hello')
-  #   end
+  # ```
+  # File.atomic_write('important.file') do |file|
+  #   file.write('hello')
+  # end
+  # ```
   #
   # This method needs to create a temporary file. By default it will create it
   # in the same directory as the destination file. If you don't like this
   # behavior you can provide a different directory but it must be on the
   # same physical filesystem as the file you're trying to write.
   #
-  #   File.atomic_write('/data/something.important', '/data/tmp') do |file|
-  #     file.write('hello')
-  #   end
+  # ```
+  # File.atomic_write('/data/something.important', '/data/tmp') do |file|
+  #   file.write('hello')
+  # end
+  # ```
   def self.atomic_write(file_name, temp_dir = dirname(file_name))
     old_stat = begin
       File.stat(file_name)

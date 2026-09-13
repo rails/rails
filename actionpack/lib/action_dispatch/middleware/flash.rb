@@ -51,7 +51,7 @@ module ActionDispatch
     KEY = "action_dispatch.request.flash_hash"
 
     module RequestMethods
-      # Access the contents of the flash. Returns a ActionDispatch::Flash::FlashHash.
+      # Access the contents of the flash. Returns an ActionDispatch::Flash::FlashHash.
       #
       # See ActionDispatch::Flash for example usage.
       def flash

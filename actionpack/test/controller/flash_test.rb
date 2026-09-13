@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "active_support/messages/rotation_configuration"
+require "active_support/testing/ractors_assertions"
 
 class FlashTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -100,6 +101,8 @@ class FlashTest < ActionController::TestCase
   end
 
   tests TestController
+
+  include ActiveSupport::Testing::RactorsAssertions
 
   def test_flash
     get :set_flash
@@ -244,6 +247,18 @@ class FlashTest < ActionController::TestCase
       add_flash_types :bar
     end
     assert_not TestController._flash_types.include?(:bar)
+  end
+
+  def test_flash_types_are_ractor_safe
+    assert_ractor_shareable TestController._flash_types
+
+    assert_nothing_raised do
+      on_ractor do
+        c = TestController.new
+        c.set_request! ActionDispatch::Request.new({})
+        c.send(:alert)
+      end
+    end
   end
 end
 

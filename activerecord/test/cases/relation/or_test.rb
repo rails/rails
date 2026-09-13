@@ -13,7 +13,7 @@ module ActiveRecord
 
     def test_or_with_relation
       expected = Post.where("id = 1 or id = 2").to_a
-      assert_equal expected, Post.where("id = 1").or(Post.where("id = 2")).to_a
+      assert_equal_unordered expected, Post.where("id = 1").or(Post.where("id = 2")).to_a
     end
 
     def test_or_identity
@@ -79,15 +79,15 @@ module ActiveRecord
     end
 
     def test_or_with_unscope_where
-      expected = Post.where("id = 1 or id = 2")
+      expected = Post.where("id = 1 or id = 2").sort_by(&:id)
       partial = Post.where("id = 1 and id != 2")
-      assert_equal expected, partial.or(partial.unscope(:where).where("id = 2")).to_a
+      assert_equal expected, partial.or(partial.unscope(:where).where("id = 2")).sort_by(&:id)
     end
 
     def test_or_with_unscope_where_column
-      expected = Post.where("id = 1 or id = 2")
+      expected = Post.where("id = 1 or id = 2").sort_by(&:id)
       partial = Post.where(id: 1).where.not(id: 2)
-      assert_equal expected, partial.or(partial.unscope(where: :id).where("id = 2")).to_a
+      assert_equal expected, partial.or(partial.unscope(where: :id).where("id = 2")).sort_by(&:id)
     end
 
     def test_or_with_unscope_order
@@ -112,7 +112,7 @@ module ActiveRecord
 
     def test_or_with_named_scope
       expected = Post.where("id = 1 or body LIKE '\%a\%'").to_a
-      assert_equal expected, Post.where("id = 1").or(Post.containing_the_letter_a)
+      assert_equal_unordered expected, Post.where("id = 1").or(Post.containing_the_letter_a)
     end
 
     def test_or_inside_named_scope
@@ -130,7 +130,7 @@ module ActiveRecord
       p = Post.where("id = 1")
       p.load
       assert_equal true, p.loaded?
-      assert_equal expected, p.or(Post.where("id = 2")).to_a
+      assert_equal_unordered expected, p.or(Post.where("id = 2")).to_a
     end
 
     def test_or_with_non_relation_object_raises_error

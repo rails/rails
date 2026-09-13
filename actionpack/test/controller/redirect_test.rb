@@ -223,11 +223,6 @@ class RedirectController < ActionController::Base
   end
 
   def rescue_errors(e) raise e end
-
-  private
-    def dashboard_url(id, message)
-      url_for action: "dashboard", params: { "id" => id, "message" => message }
-    end
 end
 
 class RedirectTest < ActionController::TestCase

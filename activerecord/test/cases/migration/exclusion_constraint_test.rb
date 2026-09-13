@@ -92,6 +92,17 @@ if ActiveRecord::Base.lease_connection.supports_exclusion_constraints?
           assert_equal "daterange(start_date, end_date) WITH &&", constraint.expression
         end
 
+        def test_add_exclusion_constraint_with_multiline_expression
+          @connection.add_exclusion_constraint :invoices,
+            "daterange(start_date, CASE WHEN end_date IS NULL THEN 'infinity'::date ELSE end_date END, '[]') WITH &&",
+            using: :gist
+
+          constraint = @connection.exclusion_constraints("invoices").first
+
+          assert_includes constraint.expression, "CASE"
+          assert_includes constraint.expression, "WITH &&"
+        end
+
         def test_add_exclusion_constraint_deferrable_false
           @connection.add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, deferrable: false
 
@@ -170,6 +181,16 @@ if ActiveRecord::Base.lease_connection.supports_exclusion_constraints?
               raise ActiveRecord::Rollback
             end
           end
+        end
+
+        def test_exclusion_constraint_exists
+          @connection.add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, name: "invoices_date_overlap", deferrable: :deferred
+
+          assert @connection.exclusion_constraint_exists?(:invoices, name: "invoices_date_overlap")
+          assert @connection.exclusion_constraint_exists?(:invoices, name: "invoices_date_overlap", deferrable: :deferred)
+          assert_not @connection.exclusion_constraint_exists?(:non_invoices, name: "invoices_date_overlap")
+          assert_not @connection.exclusion_constraint_exists?(:invoices, name: "other_check")
+          assert_not @connection.exclusion_constraint_exists?(:invoices, name: "invoices_date_overlap", deferrable: :immediate)
         end
 
         def test_remove_exclusion_constraint

@@ -100,12 +100,10 @@ module ActionCable
         handler = worker_pool_stream_handler(broadcasting, callback || block, coder: coder)
         streams[broadcasting] = handler
 
-        connection.server.event_loop.post do
-          pubsub.subscribe(broadcasting, handler, lambda do
-            ensure_confirmation_sent
-            logger.info "#{self.class.name} is streaming from #{broadcasting}"
-          end)
-        end
+        pubsub.subscribe(broadcasting, handler, lambda do
+          ensure_confirmation_sent
+          logger.info "#{self.class.name} is streaming from #{broadcasting}"
+        end)
       end
 
       # Start streaming the pubsub queue for the `broadcastables` in this channel. Optionally,
@@ -115,12 +113,14 @@ module ActionCable
       # Pass `coder: ActiveSupport::JSON` to decode messages as JSON before passing to
       # the callback. Defaults to `coder: nil` which does no decoding, passes raw
       # messages.
-      def stream_for(broadcastables, callback = nil, coder: nil, &block)
-        stream_from(broadcasting_for(broadcastables), callback || block, coder: coder)
+      def stream_for(broadcastables, ...)
+        stream_from(broadcasting_for(broadcastables), ...)
       end
 
       # Unsubscribes streams from the named `broadcasting`.
       def stop_stream_from(broadcasting)
+        broadcasting = String(broadcasting)
+
         callback = streams.delete(broadcasting)
         if callback
           pubsub.unsubscribe(broadcasting, callback)
@@ -163,8 +163,12 @@ module ActionCable
         def worker_pool_stream_handler(broadcasting, user_handler, coder: nil)
           handler = stream_handler(broadcasting, user_handler, coder: coder)
 
-          -> message do
-            connection.worker_pool.async_invoke handler, :call, message, connection: connection
+          if user_handler
+            -> message do
+              connection.perform_work handler, :call, message
+            end
+          else
+            handler
           end
         end
 
@@ -193,24 +197,29 @@ module ActionCable
           stream_transmitter stream_decoder(coder: coder), broadcasting: broadcasting
         end
 
-        def stream_decoder(handler = identity_handler, coder:)
+        def stream_decoder(handler = nil, coder:)
           if coder
-            -> message { handler.(coder.decode(message)) }
+            -> message do
+              message = coder.decode(message)
+
+              if handler
+                handler.(message)
+              else
+                message
+              end
+            end
           else
             handler
           end
         end
 
-        def stream_transmitter(handler = identity_handler, broadcasting:)
+        def stream_transmitter(handler = nil, broadcasting:)
           via = "streamed from #{broadcasting}"
 
           -> (message) do
-            transmit handler.(message), via: via
+            message = handler.(message) if handler
+            transmit message, via: via
           end
-        end
-
-        def identity_handler
-          -> message { message }
         end
     end
   end

@@ -46,6 +46,21 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal "2005-02-01",          date.to_fs(:iso8601)
   end
 
+  def test_date_formats_can_be_extended
+    ActiveSupport::DateFormats.stub(:lookup, ->(format) { { custom_date_format: "%B %Y" }[format] }) do
+      assert_equal "February 2005", Date.new(2005, 2, 21).to_fs(:custom_date_format)
+    end
+  end
+
+  def test_deprecated_to_fs_custom_date_format
+    assert_deprecated(ActiveSupport.deprecator) do
+      Date::DATE_FORMATS[:custom] = "%B %Y"
+    end
+    assert_equal "February 2005", Date.new(2005, 2, 21).to_fs(:custom)
+  ensure
+    ActiveSupport::DateFormats::DEPRECATED_LIST.delete(:custom)
+  end
+
   def test_readable_inspect
     assert_equal "Mon, 21 Feb 2005", Date.new(2005, 2, 21).readable_inspect
     assert_equal Date.new(2005, 2, 21).readable_inspect, Date.new(2005, 2, 21).inspect

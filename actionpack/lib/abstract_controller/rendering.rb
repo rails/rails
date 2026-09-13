@@ -43,11 +43,11 @@ module AbstractController
     # to be overridden in order to still return a string.
     def render_to_string(*args, &block)
       options = _normalize_render(*args, &block)
-      render_to_body(options)
+      render_to_body(options, &block)
     end
 
     # Performs the actual template rendering.
-    def render_to_body(options = {})
+    def render_to_body(options = {}, &block)
     end
 
     # Returns `Content-Type` of rendered content.
@@ -55,7 +55,7 @@ module AbstractController
       Mime[:text]
     end
 
-    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %i(@_action_name @_response_body @_formats @_prefixes)
+    DEFAULT_PROTECTED_INSTANCE_VARIABLES = %i(@_action_name @_response_body @_formats @_prefixes).freeze
 
     # This method should return a hash with assigns. You can overwrite this
     # configuration per controller.

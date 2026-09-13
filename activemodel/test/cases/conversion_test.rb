@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 require "models/contact"
 require "models/helicopter"
 
 class ConversionTest < ActiveModel::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   test "to_model default implementation returns self" do
     contact = Contact.new
     assert_equal contact, contact.to_model
@@ -60,6 +63,32 @@ class ConversionTest < ActiveModel::TestCase
 
   test "to_partial_path handles non-standard model_name" do
     assert_equal "attack_helicopters/ah-64", Helicopter::Apache.new.to_partial_path
+  end
+
+  test "to_partial_path initializes its cache on the main Ractor" do
+    model_class = Class.new do
+      include ActiveModel::Conversion
+
+      def self.name
+        "RactorModel"
+      end
+    end
+
+    assert_equal "ractor_models/ractor_model", on_ractor(model_class) { |klass| klass.new.to_partial_path }
+  end
+
+  test "to_partial_path on a model implementing .model_name returns a frozen string" do
+    helicopter = Helicopter::Apache.new
+
+    assert_respond_to(helicopter.class, :model_name)
+    assert_predicate(helicopter.to_partial_path, :frozen?)
+  end
+
+  test "to_partial_path on a model not implementing .model_name returns a frozen string" do
+    helicopter = Helicopter::Comanche.new
+
+    assert_not_respond_to(helicopter.class, :model_name)
+    assert_predicate(helicopter.to_partial_path, :frozen?)
   end
 
   test "#to_param_delimiter allows redefining the delimiter used in #to_param" do

@@ -25,6 +25,11 @@ class ArrayInquirerTest < ActiveSupport::TestCase
     assert @array_inquirer.any?(:api)
   end
 
+  def test_any_without_candidates
+    assert @array_inquirer.any?
+    assert_not ActiveSupport::ArrayInquirer.new([]).any?
+  end
+
   def test_any_with_block
     assert @array_inquirer.any? { |v| v == :mobile }
     assert_not @array_inquirer.any? { |v| v == :desktop }

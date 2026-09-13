@@ -758,14 +758,15 @@ body.guide {
       display: flex;
       flex-direction: column;
       flex-wrap: wrap;
+      column-gap: 2em;
       max-height: 60em;
       width: 100%;
 
       .guides-section {
         flex: auto;
-        margin: 0 2em 0.5em 0;
+        margin: 0 0 0.5em 0;
         text-align: left;
-        width: 33%;
+        width: calc((100% - 4em) / 3);
 
         dt,
         dd {

@@ -134,7 +134,7 @@ config.action_mailbox.ingress = :mailgun
 ```
 
 [Configure
-Mailgun](https://documentation.mailgun.com/docs/mailgun/user-manual/receive-forward-store/)
+Mailgun](https://documentation.mailgun.com/docs/mailgun/user-manual/receive-forward-store/receive-http)
 to forward inbound emails to
 `/rails/action_mailbox/mailgun/inbound_emails/mime`. If your application lived
 at `https://example.com`, you would specify the fully-qualified URL
@@ -471,7 +471,7 @@ controller mounted at `/rails/conductor/action_mailbox/inbound_emails`, which
 gives you an index of all the InboundEmails in the system, their state of
 processing, and a form to create a new InboundEmail as well.
 
-Here is and example of testing an inbound email with Action Mailbox TestHelpers.
+Here is an example of testing an inbound email with Action Mailbox TestHelpers.
 
 ```ruby
 class ForwardsMailboxTest < ActionMailbox::TestCase

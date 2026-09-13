@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require_relative "time/acts_like"

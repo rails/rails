@@ -130,53 +130,13 @@ module ActiveRecord
       # it is preferred to use {update_all}[rdoc-ref:Relation#update_all]
       # for updating all records in a single query.
       def update(id = :all, attributes)
-        if id.is_a?(Array)
-          if id.any?(ActiveRecord::Base)
-            raise ArgumentError,
-              "You are passing an array of ActiveRecord::Base instances to `update`. " \
-              "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
-          end
-          id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
-            object.update(attributes[idx])
-          }
-        elsif id == :all
-          all.each { |record| record.update(attributes) }
-        else
-          if ActiveRecord::Base === id
-            raise ArgumentError,
-              "You are passing an instance of ActiveRecord::Base to `update`. " \
-              "Please pass the id of the object by calling `.id`."
-          end
-          object = find(id)
-          object.update(attributes)
-          object
-        end
+        all.update(id, attributes)
       end
 
       # Updates the object (or multiple objects) just like #update but calls #update! instead
       # of +update+, so an exception is raised if the record is invalid and saving will fail.
       def update!(id = :all, attributes)
-        if id.is_a?(Array)
-          if id.any?(ActiveRecord::Base)
-            raise ArgumentError,
-              "You are passing an array of ActiveRecord::Base instances to `update!`. " \
-              "Please pass the ids of the objects by calling `pluck(:id)` or `map(&:id)`."
-          end
-          id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
-            object.update!(attributes[idx])
-          }
-        elsif id == :all
-          all.each { |record| record.update!(attributes) }
-        else
-          if ActiveRecord::Base === id
-            raise ArgumentError,
-              "You are passing an instance of ActiveRecord::Base to `update!`. " \
-              "Please pass the id of the object by calling `.id`."
-          end
-          object = find(id)
-          object.update!(attributes)
-          object
-        end
+        all.update!(id, attributes)
       end
 
       # Accepts a list of attribute names to be used in the WHERE clause
@@ -212,7 +172,7 @@ module ActiveRecord
       def query_constraints(*columns_list)
         raise ArgumentError, "You must specify at least one column to be used in querying" if columns_list.empty?
 
-        @query_constraints_list = columns_list.map(&:to_s)
+        @query_constraints_list = columns_list.map { |column| -column.to_s }.freeze
         @has_query_constraints = @query_constraints_list
       end
 
@@ -221,7 +181,9 @@ module ActiveRecord
       end
 
       def query_constraints_list # :nodoc:
-        @query_constraints_list ||= if base_class? || primary_key != base_class.primary_key
+        return @query_constraints_list if @query_constraints_list
+
+        if base_class? || primary_key != base_class.primary_key
           primary_key if primary_key.is_a?(Array)
         else
           base_class.query_constraints_list
@@ -237,13 +199,9 @@ module ActiveRecord
 
       def _insert_record(connection, values, returning) # :nodoc:
         primary_key = self.primary_key
-        primary_key_value = nil
 
         if prefetch_primary_key? && primary_key
-          values[primary_key] ||= begin
-            primary_key_value = next_sequence_value
-            _default_attributes[primary_key].with_cast_value(primary_key_value)
-          end
+          values[primary_key] ||= _default_attributes[primary_key].with_cast_value(next_sequence_value)
         end
 
         im = Arel::InsertManager.new(arel_table)
@@ -254,28 +212,22 @@ module ActiveRecord
           im.insert(values.transform_keys { |name| arel_table[name] })
         end
 
-        connection.insert(
-          im, "#{self} Create", primary_key || false, primary_key_value,
-          returning: returning
-        )
+        connection.insert(im, "#{self} Create", returning: returning)
       end
 
       def _update_record(values, constraints) # :nodoc:
-        constraints = constraints.map { |name, value| predicate_builder[name, value] }
-
-        default_constraint = build_default_constraint
-        constraints << default_constraint if default_constraint
-
-        if current_scope = self.global_current_scope
-          constraints << current_scope.where_clause.ast
-        end
-
-        um = Arel::UpdateManager.new(arel_table)
-        um.set(values.transform_keys { |name| arel_table[name] })
-        um.wheres = constraints
+        um = _build_update_manager(values, constraints)
 
         with_connection do |c|
           c.update(um, "#{self} Update")
+        end
+      end
+
+      def _update_record_with_result(values, constraints, returning) # :nodoc:
+        um = _build_update_manager(values, constraints)
+
+        with_connection do |c|
+          c.update_with_result(um, "#{self} Update", returning: returning)
         end
       end
 
@@ -301,7 +253,7 @@ module ActiveRecord
         def inherited(subclass)
           super
           subclass.class_eval do
-            @_query_constraints_list = nil
+            @query_constraints_list = nil
             @has_query_constraints = false
           end
         end
@@ -330,6 +282,22 @@ module ActiveRecord
 
           default_where_clause = default_scoped(all_queries: true).where_clause
           default_where_clause.ast unless default_where_clause.empty?
+        end
+
+        def _build_update_manager(values, constraints)
+          constraints = constraints.map { |name, value| predicate_builder[name, value] }
+
+          default_constraint = build_default_constraint
+          constraints << default_constraint if default_constraint
+
+          if current_scope = self.global_current_scope
+            constraints << current_scope.where_clause.ast
+          end
+
+          Arel::UpdateManager.new(arel_table).tap do |update_manager|
+            update_manager.set(values.transform_keys { |name| arel_table[name] })
+            update_manager.wheres = constraints
+          end
         end
     end
 
@@ -496,6 +464,7 @@ module ActiveRecord
         becoming.instance_variable_set(:@new_record, new_record?)
         becoming.instance_variable_set(:@previously_new_record, previously_new_record?)
         becoming.instance_variable_set(:@destroyed, destroyed?)
+        becoming.instance_variable_set(:@marked_for_destruction, marked_for_destruction?)
         becoming.errors.copy!(errors)
       end
 
@@ -532,6 +501,7 @@ module ActiveRecord
     # Also see #update_column.
     def update_attribute(name, value)
       name = name.to_s
+      name = self.class.attribute_aliases[name] || name
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
@@ -554,6 +524,7 @@ module ActiveRecord
     # ActiveRecord::Callbacks for further details.
     def update_attribute!(name, value)
       name = name.to_s
+      name = self.class.attribute_aliases[name] || name
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
@@ -677,7 +648,9 @@ module ActiveRecord
 
       increment(attribute, by)
       change = public_send(attribute) - (public_send(:"#{attribute}_in_database") || 0)
-      self.class.update_counters(id, attribute => change, touch: touch)
+      counters = { attribute => change, touch: touch }
+
+      self.class.all_queries_scope.where!(_query_constraints_hash).update_counters(counters)
       public_send(:"clear_#{attribute}_change")
       self
     end
@@ -858,7 +831,12 @@ module ActiveRecord
 
       def _find_record(options)
         all_queries = options ? options[:all_queries] : nil
-        base = self.class.all(all_queries: all_queries).preload(strict_loaded_associations)
+        base = if all_queries
+          self.class.all_queries_scope
+        else
+          self.class.all
+        end
+        base = base.preload(strict_loaded_associations)
 
         if options && options[:lock]
           base.lock(options[:lock]).find_by!(_in_memory_query_constraints_hash)
@@ -915,10 +893,36 @@ module ActiveRecord
       end
 
       def _update_row(attribute_names, attempted_action = "update")
-        self.class._update_record(
-          attributes_with_values(attribute_names),
-          _query_constraints_hash
-        )
+        returning_columns = self.class.with_connection do |c|
+          if c.supports_update_returning?
+            self.class._returning_columns_for_update(c)
+          else
+            []
+          end
+        end
+
+        if returning_columns.present?
+          result = self.class._update_record_with_result(
+            attributes_with_values(attribute_names),
+            _query_constraints_hash,
+            returning_columns
+          )
+
+          returning_values = result.rows.first
+
+          returning_columns.zip(returning_values).each do |column, value|
+            _write_attribute(column, value)
+          end if returning_values.present?
+
+          result.affected_rows
+        else
+          result = self.class._update_record(
+            attributes_with_values(attribute_names),
+            _query_constraints_hash,
+          )
+
+          result
+        end
       end
 
       def create_or_update(**, &block)

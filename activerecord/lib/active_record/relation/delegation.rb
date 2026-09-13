@@ -41,6 +41,7 @@ module ActiveRecord
 
           cache[klass] = delegate
         end
+        @relation_delegate_cache.freeze
       end
 
       def inherited(child_class)

@@ -25,15 +25,15 @@ module ActiveRecord
   #
   #   Company.new.changed? # => false
   #   Firm.new.changed?    # => true
-  #   Firm.new.changes     # => {"type"=>["","Firm"]}
+  #   Firm.new.changes     # => {"type"=>[nil, "Firm"]}
   #
   # If you don't have a type column defined in your table, single-table inheritance won't
   # be triggered. In that case, it'll work just like normal subclasses with no special magic
   # for differentiating between them or reloading the right type with find.
   #
-  # Note, all the attributes for all the cases are kept in the same table.
-  # Read more:
-  # * https://www.martinfowler.com/eaaCatalog/singleTableInheritance.html
+  # All subclasses share the same database table. See the
+  # {Single Table Inheritance pattern}[https://www.martinfowler.com/eaaCatalog/singleTableInheritance.html]
+  # for more background.
   #
   module Inheritance
     extend ActiveSupport::Concern
@@ -92,7 +92,9 @@ module ActiveRecord
 
       def finder_needs_type_condition? # :nodoc:
         # This is like this because benchmarking justifies the strange :false stuff
-        :true == (@finder_needs_type_condition ||= descends_from_active_record? ? :false : :true)
+        :true == (@finder_needs_type_condition || ActiveSupport::Ractors.on_main(self) do
+          @finder_needs_type_condition ||= descends_from_active_record? ? :false : :true
+        end)
       end
 
       # Returns the first class in the inheritance hierarchy that descends from either an
@@ -244,6 +246,7 @@ module ActiveRecord
         end
 
         def reload_schema_from_cache(*) # :nodoc:
+          @finder_needs_type_condition = nil
           if @_new_optimized
             singleton_class.remove_method(:new)
             @_new_optimized = false

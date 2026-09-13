@@ -1,3 +1,197 @@
+*   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
+    the current template when it starts with a period, mirroring the existing
+    behavior for the key argument.
+
+    Calling `translate("bar", scope: ".foo")` from `posts/index.html.erb` is
+    now equivalent to calling `translate("posts.index.foo.bar")`.
+
+    *Ben Sheldon*
+
+*   Join an Array `:accept` option with commas in `file_field_tag`.
+
+    Previously, passing `accept: ["image/png", "image/gif"]` rendered
+    `accept="image/png image/gif"`, while the HTML `accept` attribute is a
+    comma-separated list. It now renders `accept="image/png,image/gif"`,
+    matching the object-based `file_field`.
+
+    *Kenta Ishizaki*
+
+*   `current_page?` matches HTTP QUERY requests
+    ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) with
+    `method: :query`. The default `method: :get` deliberately does not match
+    QUERY.
+
+    *Jeremy Daer*
+
+*   Configuring ERB options is now to be made on the ActionView::Base class.
+
+    The `ActionView::Template::Handlers::ERB` class is now private API. Applications
+    that used to configure ERB options such as `escape_ignore_list` now need
+    to do this on the `ActionView::Base` class or on the railtie `config.action_view`
+    configuration.
+
+    ```ruby
+    ActionView::Base.erb_trim_mode = nil
+    ActionView::Base.erb_implementation = ERB
+    ActionView::Base.escape_ignore_list = ["text/csv"]
+    ActionView::Base.strip_trailing_newlines = false
+    ```
+
+    *Edouard Chin*
+
+*   Fix `search_field` raising `NameError` when passed `autosave: true`.
+
+    *Hammad Khan*
+
+*   Deprecate registering dependency trackers after application initialization.
+
+    Calling `ActionView::DependencyTracker.register_tracker` after application initialization will
+    raise a FrozenError in the next version of Rails.
+
+    Instead, register trackers during application initialization, wrapped in a call to
+    `ActiveSupport.on_load(:action_view)` to wait until Action View is available.
+
+    *Étienne Barrié*
+
+*   Extract `current_page?`, `button_to`, and `link_to` methods to
+    `ActionView::Helpers::NavigationHelper`
+
+    *Sean Doyle*
+
+*   Accept `Date` and `Numeric` inputs in `relative_time_in_words`.
+
+    Passing a `Date` or a `Numeric` raised `ArgumentError` instead of returning
+    a distance string, unlike `distance_of_time_in_words` which accepts them.
+
+    *Kenta Ishizaki*
+
+*   Support endless and beginless ranges in `number_field_tag` and
+    `range_field_tag`.
+
+    Previously, passing an endless (`18..`) or beginless (`..10`) range as the
+    `:in`/`:within` option raised `RangeError`. Now an endless range renders
+    `min` without `max`, and a beginless range renders `max` without `min`,
+    matching `number_field` and `range_field`.
+
+    *Kenta Ishizaki*
+
+*   Honor an explicit `value:` option in `color_field`, including `nil`.
+
+    Previously, passing `value: nil` was ignored and the field still pre-filled
+    from the model's stored color. Now an explicitly provided `value:` is
+    honored, and the stored color is only used when no `value:` option is given.
+
+    *Kenta Ishizaki*
+
+*   Calling `safe_join` in a view no longer fallbacks to the `$,` global variable.
+
+    Previously, calling `safe_join` would use `$,` by default to separate elements.
+    Ruby has deprecated the usage of setting `$,` for more than 10 years and its usage
+    in `safe_join` was never documented.
+
+    If your application relied on this behaviour, make sure to explicitly pass the separator
+    to `safe_join` as the default is now `nil` (no separation).
+
+    *Edouard Chin*
+
+*   Fix `ActionView::TestCase#render` to reset `rendered`.
+    The behavior was changed when memoization was added in #51093. Now it once again conforms to the documentation.
+
+    *Jeroen Versteeg*
+
+*   Fix `FormBuilder#to_partial_path` returning `nil` for subclasses whose
+    name does not end in `Builder`.
+
+    *Kenta Ishizaki*
+
+*   Fix `collection_radio_buttons` and `collection_check_boxes` generating
+    a label `for` attribute that does not match the input `id` when a
+    collection value is `nil`.
+
+    *Kenta Ishizaki*
+
+*   Pass render options and block to calls to `#render_in`
+
+    ```ruby
+    class Greeting
+      def render_in(view_context, **)
+        if block_given?
+          view_context.render(html: yield)
+        else
+          view_context.render(inline: <<~ERB.strip, **)
+            Hello <%= local_assigns[:name] || "World" %>
+          ERB
+        end
+      end
+    end
+
+    render(Greeting.new)                                        # => "Hello, World"
+    render(Greeting.new, name: "Local")                         # => "Hello, Local"
+    render(renderable: Greeting.new, locals: { name: "Local" }) # => "Hello, Local"
+    render(Greeting.new) { "Hello, Block" }                     # => "Hello, Block"
+    ```
+
+    *Sean Doyle*
+
+*   Add `f.datalist` to `FormBuilder`
+
+    Example:
+
+        <%= form_with model: @post do |f| %>
+           <%# Wire the input to the datalist using the same derived id: %>
+           <%= f.text_field :country, list: f.field_id(:country, :datalist) %>
+           <%= f.datalist  :country, ["Argentina", "Brazil", "Chile"] %>
+        <% end %>
+
+          Produces:
+          <input list="post_country_datalist" type="text"
+                 name="post[country]" id="post_country" />
+          <datalist id="post_country_datalist">
+            <option value="Argentina">Argentina</option>
+            <option value="Brazil">Brazil</option>
+            <option value="Chile">Chile</option>
+          </datalist>
+
+      *Tahsin Hasan*
+
+*   Add `datalist_tag` to create `datalist` form elements.
+
+    Example:
+
+        datalist_tag('countries_datalist', ['Argentina', ['Brazil', { class: 'brazilian_option' }],
+                     ['Chile', 'CL', { disabled: true }]], { class: 'sa-countries-sample' })
+        => <datalist id="countries_datalist" class="sa-countries-sample">
+             <option value="Argentina">Argentina</option>
+             <option value="Brazil" class="brazilian_option">Brazil</option>
+             <option value="CL" disabled="disabled">Chile</option>
+           </datalist>
+
+    *Willian Gustavo Veiga*
+
+*   Render `Hash` and keyword options as dasherized HTML attributes
+
+    ```ruby
+    tag.button "POST to /clicked", hx: { post: "/clicked", swap: :outerHTML, data: { json: true } }
+
+    # => <button hx-post="/clicked" hx-swap="outerHTML" hx-data="{&quot;json&quot;:true}">POST to /clicked</button>
+    ```
+
+    *Sean Doyle*
+
+*   `ViewReloader#deactivate` removes the `file_system_resolver_hooks` callback
+    so forked processes that clear reloaders no longer trigger filesystem scans
+    on every `prepend_view_path`.
+
+    *Dave Ariens*
+
+*   Defer the View watcher build until view paths are actually registered.
+
+    *Hugo Vacher*
+
+*   Skip blank attribute names in tag helpers to avoid generating invalid HTML.
+
+    *Mike Dalessio*
+
 *   Fix tag parameter content being overwritten instead of combined with tag block content.
     Before `tag.div("Hello ") { "World" }` would just return `<div>World</div>`, now it returns `<div>Hello World</div>`.
 

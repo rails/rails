@@ -4,6 +4,7 @@
 
 require "active_support/rescuable"
 require "active_support/parameter_filter"
+require "concurrent"
 
 module ActionCable
   module Channel
@@ -198,10 +199,11 @@ module ActionCable
       # confirms or rejects the subscription.
       def subscribe_to_channel
         run_callbacks :subscribe do
-          subscribed
+          subscribed unless subscription_rejected?
         end
 
         reject_subscription if subscription_rejected?
+
         ensure_confirmation_sent
       end
 

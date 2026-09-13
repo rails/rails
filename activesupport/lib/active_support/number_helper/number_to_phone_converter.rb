@@ -30,14 +30,10 @@ module ActiveSupport
 
         def convert_without_area_code(number)
           default_pattern = /(\d{0,3})(\d{3})(\d{4})$/
-          number.gsub!(regexp_pattern(default_pattern),
-                       "\\1#{delimiter}\\2#{delimiter}\\3")
-          number.slice!(0, 1) if start_with_delimiter?(number)
+          number.gsub!(regexp_pattern(default_pattern)) do
+            $1.empty? ? "#{$2}#{delimiter}#{$3}" : "#{$1}#{delimiter}#{$2}#{delimiter}#{$3}"
+          end
           number
-        end
-
-        def start_with_delimiter?(number)
-          delimiter.present? && number.start_with?(delimiter)
         end
 
         def delimiter

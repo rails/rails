@@ -8,7 +8,7 @@ class ActiveRecord::Encryption::CipherTest < ActiveRecord::EncryptionTestCase
     @key = ActiveRecord::Encryption.key_generator.generate_random_key
   end
 
-  test "encrypts returns a encrypted test that can be decrypted with the same key" do
+  test "encrypts returns an encrypted test that can be decrypted with the same key" do
     encrypted_text = @cipher.encrypt("clean text", key: @key)
     assert_equal "clean text", @cipher.decrypt(encrypted_text, key: @key)
   end

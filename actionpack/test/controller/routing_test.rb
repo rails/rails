@@ -59,11 +59,8 @@ end
 class MockController
   def self.build(helpers, additional_options = {})
     Class.new do
-      define_method :url_options do
-        options = super()
-        options[:protocol] ||= "http"
-        options[:host] ||= "test.host"
-        options.merge(additional_options)
+      define_method :default_url_options do
+        { protocol: "http", host: "test.host" }.merge(additional_options)
       end
 
       include helpers
@@ -1015,10 +1012,6 @@ class RouteSetTest < ActiveSupport::TestCase
   def setup
     super
     @set = make_set
-  end
-
-  def request
-    @request ||= ActionController::TestRequest.new
   end
 
   def default_route_set
