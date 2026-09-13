@@ -1257,6 +1257,67 @@ You can learn more about [Recurring
 Tasks](https://github.com/rails/solid_queue?tab=readme-ov-file#recurring-tasks)
 in the Solid Queue documentation.
 
+### Batch Jobs
+
+Solid Queue supports grouping jobs into batches, so you can track the progress
+of a set of jobs as a whole and run a callback when all of them are done. For
+example, you might import a large file with one job per row, then send a
+notification once every row has been processed.
+
+A batch can fire three callbacks, depending on how it ends:
+
+- `on_finish`: runs when all the jobs have finished, including retries, even if
+  some of them failed.
+- `on_success`: runs when all the jobs have succeeded, including retries. It
+  won't run if any job failed, but it will run if jobs were discarded using
+  `discard_on`.
+- `on_failure`: runs when all the jobs have finished, including retries, and one
+  or more of them failed.
+
+Callbacks are regular jobs. They can access the batch they belong to through
+the `batch` accessor:
+
+```ruby
+class ImportRowJob < ApplicationJob
+  def perform(row)
+    # ... import the row
+  end
+end
+
+class ImportCompletedJob < ApplicationJob
+  def perform
+    Rails.logger.info "All #{batch.completed_jobs} rows imported!"
+  end
+end
+
+SolidQueue::Batch.enqueue(
+  description: "Nightly imports",
+  on_success: ImportCompletedJob,
+  user_id: 123
+) do
+  5.times { |i| ImportRowJob.perform_later(i) }
+end
+```
+
+In the above example:
+
+- The five `ImportRowJob`s are enqueued inside the block, so they belong to the
+  batch.
+- `ImportCompletedJob` runs once, after all five of them have succeeded.
+- The `:description` option gives the batch a human-readable label.
+- Any other keyword arguments, like `user_id: 123`, are stored as the batch's
+  `metadata`. You can also pass a `metadata:` hash explicitly.
+
+NOTE: If you installed Solid Queue before version 1.7, batches need database
+tables that your app doesn't have yet. Add them by running
+`bin/rails solid_queue:update` followed by `bin/rails db:migrate`. Until then,
+jobs work as usual, and starting a batch raises
+`SolidQueue::Batch::PendingMigrations`.
+
+You can learn more about [Batch
+Jobs](https://github.com/rails/solid_queue?tab=readme-ov-file#batch-jobs) in the
+Solid Queue documentation.
+
 Alternate Queuing Backends
 --------------------------
 
