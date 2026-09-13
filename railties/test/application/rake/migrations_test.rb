@@ -468,6 +468,24 @@ module ApplicationTests
         end
       end
 
+      test "schema generation when dump_schema_after_migration is true disable_schema_dump is true" do
+        add_to_config("config.active_record.dump_schema_after_migration = true")
+
+        app_file "config/database.yml", <<~EOS
+          development:
+            adapter: sqlite3
+            database: 'dev_db'
+            disable_schema_dump: true
+        EOS
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
+
+          assert_not File.exist?("db/schema.rb"), "should not dump schema when configured not to"
+        end
+      end
+
       test "schema generation when dump_schema_after_migration is set" do
         add_to_config("config.active_record.dump_schema_after_migration = false")
 
