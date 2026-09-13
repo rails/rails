@@ -23,6 +23,20 @@ class ActionText::JobRenderTest < ActiveJob::TestCase
     end
   end
 
+  test "renders content attachments" do
+    message = Message.create!(content: '<action-text-attachment content-type="text/html" content="&lt;strong&gt;Hello&lt;/strong&gt;"></action-text-attachment>')
+
+    Dir.mktmpdir do |dir|
+      file = File.join(dir, "broadcast.html")
+
+      BroadcastJob.perform_later(file, message)
+      perform_enqueued_jobs
+
+      rendered = ActionText.html_document_fragment_class.parse(File.read(file))
+      assert_select rendered, ".attachment--content strong", text: "Hello"
+    end
+  end
+
   private
     def with_default_url_options(default_url_options)
       original_default_url_options = Dummy::Application.default_url_options
