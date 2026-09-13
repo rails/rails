@@ -167,7 +167,7 @@ module ActiveRecord
         #   data = File.read(Rails.root.join("tmp/output.pdf"))
         #   Document.create(payload: data)
         #
-        # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/datatype-binary.html]
+        # See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/datatype-binary.html]
 
         ##
         # :method: cidr
@@ -278,8 +278,6 @@ module ActiveRecord
         # The PostgreSQL +enum+ type can be used directly as a column, or mapped to
         # an {ActiveRecord::Enum}[https://api.rubyonrails.org/classes/ActiveRecord/Enum.html]
         # to add model-level helpers and validations.
-        #
-        # Example:
         #
         # Creating an enum type and using it in a new table:
         #
@@ -411,7 +409,7 @@ module ActiveRecord
         #
         # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/hstore.html] and {Hstore functions and operators}[https://www.postgresql.org/docs/current/static/hstore.html#id-1.11.7.26.5]
         #
-        # 💡 When to use +hstore+ vs +jsonb+?
+        # ### When to use +hstore+ vs +jsonb+?
         #
         # Use +hstore+ for a simple, flat key-value store where both keys and values are strings.
         # It’s lightweight and efficient for storing unstructured settings or metadata. If nested structures are
@@ -431,7 +429,7 @@ module ActiveRecord
         #     t.inet "ip_address"
         #   end
         #
-        # Assigning and querying values as strings:
+        # Assign and query values as strings:
         #
         #   device = Device.create(ip_address: "192.168.1.1")
         #   device.ip_address.class
@@ -538,7 +536,7 @@ module ActiveRecord
         #
         #   Event.where("payload->>'kind' = ?", "user_renamed")
         #
-        # 💡 Tip: Use +store_accessor+ to define typed accessors on +jsonb+ columns.
+        # **Tip:** Use +store_accessor+ to define typed accessors on +jsonb+ columns.
         #
         # 🔗 See also: {PostgreSQL JSON/JSONB type definition}[https://www.postgresql.org/docs/current/static/datatype-json.html] and {PostgreSQL JSON functions and operators}[https://www.postgresql.org/docs/current/static/functions-json.html]
 
@@ -632,7 +630,9 @@ module ActiveRecord
         #
         # Example:
         #
-        #   t.money :price
+        #   create_table :products do |t|
+        #     t.money :price
+        #   end
         #
         # A money value stores fixed-point currency, with locale-aware formatting.
         #
