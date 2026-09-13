@@ -20,8 +20,8 @@ class ActionText::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   end
 
   teardown do
-     Rails.application = Rails.application.instance
-   end
+    Rails.application = Rails.application.instance
+  end
 
   test "installs JavaScript dependencies with yarn by default" do
     FileUtils.touch("#{destination_root}/package.json")

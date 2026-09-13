@@ -364,10 +364,10 @@ module ActiveRecord
         ["mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
         returns: true
       ) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(
-            @configuration.merge("sslca" => "ca.crt"),
-            filename)
-        end
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+          @configuration.merge("sslca" => "ca.crt"),
+          filename)
+      end
     end
 
     private
