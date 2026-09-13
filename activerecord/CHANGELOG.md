@@ -1,3 +1,8 @@
+*   Fix grouped relation cache versions to count every group and use the newest
+    grouped timestamp.
+
+    *Ousama Benyounes*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the
