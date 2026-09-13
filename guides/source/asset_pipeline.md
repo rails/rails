@@ -932,8 +932,8 @@ Some key steps in the migration include:
     bundle remove sass-rails
     ```
 
-2. Delete the `config/assets.rb` and `assets/config/manifest.js` files from your
-   project.
+2. Delete the `config/initializers/assets.rb` and `app/assets/config/manifest.js`
+   files from your project.
 
 3. If you've already upgraded to Rails 8, then Propshaft is already included in
    your application. Otherwise, install it using `bundle add propshaft`.
