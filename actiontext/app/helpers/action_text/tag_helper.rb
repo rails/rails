@@ -15,7 +15,8 @@ module ActionText
     # *   `:class` - Defaults to "trix-content" so that default styles will be
     #     applied. Setting this to a different value will prevent default styles
     #     from being applied.
-    # *   `[:data][:direct_upload_url]` - Defaults to `rails_direct_uploads_url`.
+    # *   `[:data][:direct_upload_url]` - Defaults to `rails_direct_uploads_url`,
+    #     if that route is defined.
     # *   `[:data][:blob_url_template]` - Defaults to
     #     `rails_service_blob_url(":signed_id", ":filename")`.
     #
@@ -38,7 +39,9 @@ module ActionText
       options[:name]  ||= name
 
       options[:data] ||= {}
-      options[:data][:direct_upload_url] ||= main_app.rails_direct_uploads_url
+      if main_app.respond_to?(:rails_direct_uploads_url)
+        options[:data][:direct_upload_url] ||= main_app.rails_direct_uploads_url
+      end
       options[:data][:blob_url_template] ||= main_app.rails_service_blob_url(":signed_id", ":filename")
 
       render RichText.editor.editor_tag(options, &block)
@@ -68,7 +71,8 @@ module ActionView::Helpers
     # *   `:class` - Defaults to "trix-content" which ensures default styling is
     #     applied.
     # *   `:value` - Adds a default value to the HTML input tag.
-    # *   `[:data][:direct_upload_url]` - Defaults to `rails_direct_uploads_url`.
+    # *   `[:data][:direct_upload_url]` - Defaults to `rails_direct_uploads_url`,
+    #     if that route is defined.
     # *   `[:data][:blob_url_template]` - Defaults to
     #     `rails_service_blob_url(":signed_id", ":filename")`.
     #

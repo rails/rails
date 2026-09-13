@@ -1,3 +1,9 @@
+*   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
+
+    When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.
+
+    *Niklas Häusele*
+
 *   Boot when libvips is missing.
 
     An application with the ruby-vips gem installed but no libvips could not start. Active Storage
