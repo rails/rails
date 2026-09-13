@@ -527,6 +527,10 @@ module ActiveRecord
         current_transaction.isolation = old_isolation if isolation_override
       end
 
+      def transaction_for_migration(&block) # :nodoc:
+        transaction(&block)
+      end
+
       attr_reader :transaction_manager # :nodoc:
 
       delegate :within_new_transaction, :open_transactions, :current_transaction, :begin_transaction,

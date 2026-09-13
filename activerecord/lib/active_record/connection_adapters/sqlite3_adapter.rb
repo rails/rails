@@ -198,6 +198,12 @@ module ActiveRecord
         true
       end
 
+      def transaction_for_migration(&block) # :nodoc:
+        disable_referential_integrity do
+          transaction(&block)
+        end
+      end
+
       def supports_savepoints?
         true
       end
