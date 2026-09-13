@@ -64,6 +64,16 @@ module ActiveRecord
         assert_equal 600, config.keepalive
       end
 
+      def test_keepalive_false_disables_it
+        config = HashConfig.new("default_env", "primary", keepalive: false, adapter: "abstract")
+        assert_nil config.keepalive
+      end
+
+      def test_keepalive_zero_disables_it
+        config = HashConfig.new("default_env", "primary", keepalive: 0, adapter: "abstract")
+        assert_nil config.keepalive
+      end
+
       def test_max_connections_unlimited_when_nil
         config = HashConfig.new("default_env", "primary", max_connections: nil, adapter: "abstract")
         assert_nil config.max_connections

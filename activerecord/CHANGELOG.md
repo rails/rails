@@ -1,3 +1,8 @@
+*   Fix `keepalive: false` in `database.yml` falling back to the
+    600 second default.
+
+    *Joe Sak*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the
