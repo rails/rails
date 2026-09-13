@@ -1599,6 +1599,19 @@ module CallbacksTest
         klass.new.tap(&:save).history.grep(/\Abefore_/)
     end
 
+    def test_prepending_an_innermost_after_callback_puts_it_in_front_of_the_other_innermost_ones
+      klass = Class.new(NestedCallbacksRecord) do
+        set_callback :save, :after, :after_parent_innermost, innermost: true
+        set_callback :save, :after, :after_grandchild_innermost, innermost: true, prepend: true
+        set_callback :save, :after, :after_parent
+      end
+
+      # +after+ callbacks run in reverse order, so being in front of the ones sharing the
+      # innermost end means running after them, and the innermost end still runs first.
+      assert_equal ["after_parent_innermost", "after_grandchild_innermost", "after_parent"],
+        klass.new.tap(&:save).history.grep(/\Aafter_/)
+    end
+
     def test_the_options_are_ignored_when_false
       klass = Class.new(ParentWithNestedCallbacks) do
         set_callback :save, :before, :before_child, innermost: false
