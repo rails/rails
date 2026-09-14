@@ -1854,16 +1854,43 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
     assert_nil klass.primary_key
     assert_nil klass.query_constraints_list
+    assert_not_predicate klass, :has_query_constraints?
   end
 
   def test_query_constraints_list_is_nil_for_non_cpk_model
     assert_nil Post.query_constraints_list
     assert_nil Dashboard.query_constraints_list
+    assert_not_predicate Post, :has_query_constraints?
   end
 
   def test_query_constraints_list_equals_to_composite_primary_key
     assert_equal(["shop_id", "id"], Cpk::Order.query_constraints_list)
     assert_equal(["author_id", "id"], Cpk::Book.query_constraints_list)
+  end
+
+  def test_schema_context_stores_query_constraint_lists
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      query_constraints :title, :id
+    end
+
+    context = klass.schema_context
+
+    assert_predicate context, :has_query_constraints?
+    assert_predicate klass, :has_query_constraints?
+    assert_equal ["title", "id"], context.query_constraints_list
+    assert_equal ["title", "id"], context.composite_query_constraints_list
+    assert_same context.query_constraints_list, klass.query_constraints_list
+    assert_same context.composite_query_constraints_list, klass.composite_query_constraints_list
+  end
+
+  def test_schema_context_derives_query_constraints_from_a_composite_primary_key
+    context = Cpk::Order.schema_context
+
+    assert_not_predicate context, :has_query_constraints?
+    assert_not_predicate Cpk::Order, :has_query_constraints?
+    assert_equal ["shop_id", "id"], context.query_constraints_list
+    assert_same context.query_constraints_list, context.composite_query_constraints_list
   end
 
   def test_child_keeps_parents_query_constraints
@@ -1872,6 +1899,9 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
     used_clothing_item = clothing_items(:used_blue_jeans)
     assert_uses_query_constraints_on_reload(used_clothing_item, ["clothing_type", "color"])
+
+    assert_predicate ClothingItem, :has_query_constraints?
+    assert_not_predicate ClothingItem::Used, :has_query_constraints?
   end
 
   def test_child_keeps_parents_query_constraints_derived_from_composite_pk
@@ -1898,5 +1928,6 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
   def test_child_class_with_query_constraints_overrides_parents
     assert_equal(["clothing_type", "color", "size"], ClothingItem::Sized.query_constraints_list)
+    assert_predicate ClothingItem::Sized, :has_query_constraints?
   end
 end
