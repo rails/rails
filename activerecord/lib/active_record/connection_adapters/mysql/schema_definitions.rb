@@ -64,6 +64,17 @@ module ActiveRecord
         def disabled?
           !@enabled
         end
+
+        def as_schema_json
+          json = super
+          json["disabled"] = true unless @enabled
+          json
+        end
+
+        def init_from_schema_json(coder, references)
+          super
+          @enabled = !coder["disabled"]
+        end
       end
 
       # = Active Record MySQL Adapter \Table Definition

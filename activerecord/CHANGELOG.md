@@ -1,3 +1,10 @@
+*   Active Record schema caches can now be dumped in JSON format.
+
+    Enabled by configuring `schema_cache_path` with a path ending in `.json`,
+    it is noticeably faster than the existing YAML and Marshal based dumpers.
+
+    *Iliana Hadzhiatanasova*
+
 *   Fix PostgreSQL primary key introspection for covering indexes.
 
     `pg_index.indkey` includes non-key columns added with `INCLUDE`. Primary
