@@ -552,5 +552,18 @@ module ActiveRecord
           YAML.unsafe_load(data)
         end
     end
+
+    class JsonFormatTest < ActiveRecord::TestCase
+      include DumpAndLoadTests
+
+      private
+        def format_extension
+          ".json"
+        end
+
+        def load(data)
+          JSONSchemaCacheSerializer.load(data)
+        end
+    end
   end
 end

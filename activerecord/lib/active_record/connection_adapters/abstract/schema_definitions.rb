@@ -61,7 +61,51 @@ module ActiveRecord
           (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct)
       end
 
+      def as_schema_json
+        {
+          "table" => @table,
+          "name" => @name,
+          "unique" => @unique || nil,
+          "columns" => @columns,
+          "lengths" => @lengths.presence,
+          "orders" => @orders.presence,
+          "opclasses" => @opclasses.presence,
+          "where" => @where,
+          "type" => @type,
+          "using" => @using,
+          "include" => @include,
+          "nulls_not_distinct" => @nulls_not_distinct,
+          "comment" => @comment,
+          "invalid" => !@valid || nil
+        }
+      end
+
+      def init_from_schema_json(coder, references)
+        @table = coder["table"]
+        @name = coder["name"]
+        @unique = coder["unique"] || false
+        @columns = coder["columns"]
+        @lengths = coder["lengths"] || {}
+        @orders = symbolize_concise_options(coder["orders"])
+        @opclasses = symbolize_concise_options(coder["opclasses"])
+        @where = coder["where"]
+        @type = coder["type"]&.to_sym
+        @using = coder["using"]&.to_sym
+        @include = coder["include"]
+        @nulls_not_distinct = coder["nulls_not_distinct"]
+        @comment = coder["comment"]
+        @valid = !coder["invalid"]
+      end
+
       private
+        def symbolize_concise_options(options)
+          case options
+          when String then options.to_sym
+          when Hash then options.transform_values(&:to_sym)
+          else {}
+          end
+        end
+
         def concise_options(options)
           if columns.size == options.size && options.values.uniq.size == 1
             options.values.first
