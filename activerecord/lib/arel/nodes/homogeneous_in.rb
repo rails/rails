@@ -25,7 +25,7 @@ module Arel # :nodoc: all
       end
 
       def invert
-        Arel::Nodes::HomogeneousIn.new(values, attribute, type == :in ? :notin : :in)
+        self.class.new(values, attribute, type == :in ? :notin : :in)
       end
 
       def left

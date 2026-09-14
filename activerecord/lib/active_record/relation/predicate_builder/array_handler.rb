@@ -20,7 +20,7 @@ module ActiveRecord
           case values.length
           when 0 then NullPredicate
           when 1 then predicate_builder.build(attribute, values.first)
-          else Arel::Nodes::HomogeneousIn.new(values, attribute, :in)
+          else homogeneous_in(values, attribute)
           end
 
         if nils
@@ -39,6 +39,10 @@ module ActiveRecord
 
       private
         attr_reader :predicate_builder
+
+        def homogeneous_in(values, attribute)
+          Arel::Nodes::HomogeneousIn.new(values, attribute, :in)
+        end
 
         module NullPredicate # :nodoc:
           def self.or(other)
