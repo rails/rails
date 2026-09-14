@@ -138,15 +138,35 @@ module ActiveSupport
 
     LOGGER_METHODS = %w[
       << log add debug info warn error fatal unknown
-      level= sev_threshold= close
-      formatter formatter=
+      close formatter
     ].freeze # :nodoc:
     LOGGER_METHODS.each do |method|
       class_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{method}(...)
-          dispatch(:#{method}, ...)
+          return if @broadcasts.empty?
+
+          # One logger can't execute a block twice, so it needs to be memoized
+          # before being handed to more than one logger.
+          return dispatch_block(:#{method}, ...) if block_given? && @broadcasts.size > 1
+
+          # Call all loggers, but only return the first logger's value
+          result = @broadcasts[0].#{method}(...)
+          1.upto(@broadcasts.size - 1) { |i| @broadcasts[i].#{method}(...) }
+          result
         end
       RUBY
+    end
+
+    def level=(level)
+      @broadcasts.each { |logger| logger.level = level }
+    end
+
+    def sev_threshold=(level)
+      @broadcasts.each { |logger| logger.sev_threshold = level }
+    end
+
+    def formatter=(formatter)
+      @broadcasts.each { |logger| logger.formatter = formatter }
     end
 
     # Returns the lowest level of all the loggers in the broadcast.
@@ -162,7 +182,7 @@ module ActiveSupport
 
     # Sets the log level to `Logger::DEBUG` for the whole broadcast.
     def debug!
-      dispatch(:debug!)
+      @broadcasts.each(&:debug!)
     end
 
     # True if the log level allows entries with severity `Logger::INFO` to be written
@@ -173,7 +193,7 @@ module ActiveSupport
 
     # Sets the log level to `Logger::INFO` for the whole broadcast.
     def info!
-      dispatch(:info!)
+      @broadcasts.each(&:info!)
     end
 
     # True if the log level allows entries with severity `Logger::WARN` to be written
@@ -184,7 +204,7 @@ module ActiveSupport
 
     # Sets the log level to `Logger::WARN` for the whole broadcast.
     def warn!
-      dispatch(:warn!)
+      @broadcasts.each(&:warn!)
     end
 
     # True if the log level allows entries with severity `Logger::ERROR` to be written
@@ -195,7 +215,7 @@ module ActiveSupport
 
     # Sets the log level to `Logger::ERROR` for the whole broadcast.
     def error!
-      dispatch(:error!)
+      @broadcasts.each(&:error!)
     end
 
     # True if the log level allows entries with severity `Logger::FATAL` to be written
@@ -206,7 +226,7 @@ module ActiveSupport
 
     # Sets the log level to `Logger::FATAL` for the whole broadcast.
     def fatal!
-      dispatch(:fatal!)
+      @broadcasts.each(&:fatal!)
     end
 
     def initialize_copy(other)
@@ -217,24 +237,27 @@ module ActiveSupport
     end
 
     private
-      def dispatch(method, *args, **kwargs, &block)
-        if block_given?
-          # Maintain semantics that the first logger yields the block
-          # as normal, but subsequent loggers won't re-execute the block.
-          # Instead, the initial result is immediately returned.
-          called, result = false, nil
-          block = proc { |*args, **kwargs|
-            if called then result
+      # Complex dispatch for multiple loggers with a block given.
+      # The first logger to yield executes the block as normal. Subsequent
+      # loggers reuse the initial result
+      def dispatch_block(method, *args, **kwargs)
+        result = nil
+        called, memo = false, nil
+
+        @broadcasts.each_with_index do |logger, i|
+          value = logger.send(method, *args, **kwargs) do |*args, **kwargs|
+            if called
+              memo
             else
               called = true
-              result = yield(*args, **kwargs)
+              memo = yield(*args, **kwargs)
             end
-          }
+          end
+
+          result = value if i.zero?
         end
 
-        @broadcasts.map { |logger|
-          logger.send(method, *args, **kwargs, &block)
-        }.first
+        result
       end
 
       def method_missing(name, ...)

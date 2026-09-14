@@ -199,8 +199,6 @@ module Rails
           else
             app.reloader.check = lambda { true }
           end
-        else
-          app.reloader.check = lambda { false }
         end
 
         if config.reloading_enabled?

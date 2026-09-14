@@ -279,6 +279,16 @@ module ActiveSupport
         @zones_map = nil
       end
 
+      def make_shareable! # :nodoc:
+        all
+        TZInfo::Timezone.all_identifiers.each { |identifier| self[identifier] }
+        TZInfo::Country.all_codes.each { |code| country_zones(code) }
+
+        @lazy_zones_map = ActiveSupport::Ractors.make_shareable(@lazy_zones_map.each_pair.to_h)
+        @country_zones  = ActiveSupport::Ractors.make_shareable(@country_zones.each_pair.to_h)
+        ActiveSupport::Ractors.make_shareable(MAPPING)
+      end
+
       private
         def load_country_zones(code)
           country = TZInfo::Country.get(code)

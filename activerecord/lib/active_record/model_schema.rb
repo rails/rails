@@ -578,6 +578,12 @@ module ActiveRecord
         end
       end
 
+      def make_reflections_shareable! # :nodoc:
+        ActiveSupport::Ractors.try_make_shareable(aggregate_reflections)
+        ActiveSupport::Ractors.try_make_shareable(_reflections)
+        normalized_reflections
+      end
+
       protected
         def initialize_load_schema_monitor
           @load_schema_monitor = Monitor.new
