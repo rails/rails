@@ -289,19 +289,22 @@ module ActionView
       #   pluralize(3, 'person', plural: 'users')
       #   # => "3 users"
       #
+      #   pluralize(3, 'person', count: false)
+      #   # => "people"
+      #
       #   pluralize(0, 'person')
       #   # => "0 people"
       #
       #   pluralize(2, 'Person', locale: :de)
       #   # => "2 Personen"
-      def pluralize(count, singular, plural_arg = nil, plural: plural_arg, locale: I18n.locale)
-        word = if count == 1 || count.to_s.match?(/^1(\.0+)?$/)
+      def pluralize(number, singular, plural_arg = nil, plural: plural_arg, locale: I18n.locale, count: true)
+        word = if number == 1 || number.to_s.match?(/^1(\.0+)?$/)
           singular
         else
           plural || singular.pluralize(locale)
         end
 
-        "#{count || 0} #{word}"
+        count ? "#{number || 0} #{word}" : word
       end
 
       # Wraps the +text+ into lines no longer than +line_width+ width. This method

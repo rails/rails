@@ -186,6 +186,7 @@ Returns the singular or plural form of a word based on the value of a number.
 pluralize(1, "person") # => 1 person
 pluralize(2, "person") # => 2 people
 pluralize(3, "person", plural: "users") # => 3 users
+pluralize(2, "person", count: false) # => people
 ```
 
 See the [`pluralize` API
