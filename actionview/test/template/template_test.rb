@@ -360,6 +360,16 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "<p>caf\u{E9} \u{FC}</p>", render
   end
 
+  def test_strict_locals_with_non_ascii_default_values_in_an_ascii_only_template
+    # \xC3\xA9 = U+00E9 (e with acute)
+    source = "<%# locals: (label: \"caf\xC3\xA9\") -%>\n<p><%= label %></p>"
+    assert_equal Encoding::ASCII_8BIT, source.encoding
+
+    @template = new_template(source)
+    assert_equal Encoding::UTF_8, render.encoding
+    assert_equal "<p>caf\u{E9}</p>", render
+  end
+
   def test_error_when_template_isnt_valid_utf8
     e = assert_raises ActionView::Template::Error do
       @template = new_template("hello \xFCmlat", virtual_path: nil)
