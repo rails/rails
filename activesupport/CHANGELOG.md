@@ -1,3 +1,7 @@
+*   Improve `number_to_delimited` performance when `delimiter_pattern` is not specified.
+
+    *Shinichi Maeshima*
+
 *   Silence Dalli 4.0+ warning when using `ActiveSupport::Cache::MemCacheStore`.
 
     *zzak*
