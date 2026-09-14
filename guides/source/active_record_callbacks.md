@@ -160,6 +160,65 @@ effects during commit. <br><br> Instead, you can assign values directly (e.g.,
 `self.attribute = "value"`) in `before_create`, `before_update`, or earlier
 callbacks for a safer approach.
 
+### Callback Ordering in Inheritance Hierarchies
+
+Callbacks run in the order they are registered, and the ones inherited from a
+parent class come first. That makes it impossible for a base class to register a
+callback that depends on the state its subclasses set up, because the base class
+body is evaluated first.
+
+The `:innermost` option lifts that restriction: the callback is kept closest to
+the event, so every callback that is not itself `:innermost`, including the ones
+registered later on by subclasses, runs before it.
+
+```ruby
+class ApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
+
+  # Runs once every subclass has filled in its own attributes.
+  before_save :recompute_search_index, innermost: true
+end
+
+class Article < ApplicationRecord
+  before_save :render_body_html
+  before_save :extract_mentions
+end
+
+# Article runs :render_body_html, :extract_mentions, and only then
+# :recompute_search_index.
+```
+
+The `:outermost` option does the opposite: the callback is kept furthest from
+the event, so every callback that is not itself `:outermost`, including the ones
+prepended later on by subclasses, runs after it. Use it for the callback that
+establishes the context every other callback relies on.
+
+```ruby
+class ApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
+
+  # Every regular callback, prepended or not, sees the audit context.
+  around_save :with_audit_context, outermost: true
+end
+```
+
+Both options only say which end of the chain a callback belongs to, they do not
+make it unique. Several callbacks can share an end, where they keep the order
+they were registered in, and `prepend: true` still moves a callback in front of
+the ones it shares that end with. A subclass registering its own pinned callback
+lands after the one of its parent, so at the outermost end the parent's callback
+stays the outer one, and at the innermost end the subclass's becomes the inner
+one. Setting both options on the same callback raises an `ArgumentError`.
+
+NOTE: Since `after_*` callbacks run in reverse order, an `innermost` one runs
+before the regular ones and an `outermost` one after them. Active Record
+registers the model ones (`after_save`, `after_create`, and so on) as `prepend`
+so that they run in declaration order, which is also why passing `prepend: true`
+to them has no effect. The transactional ones (`after_commit` and
+`after_rollback`) are ordered by
+[`config.active_record.run_after_transaction_callbacks_in_order_defined`](configuring.html#config-active-record-run-after-transaction-callbacks-in-order-defined)
+instead, and `prepend: true` does change their order.
+
 Available Callbacks
 -------------------
 

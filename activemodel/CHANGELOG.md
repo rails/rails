@@ -1,3 +1,25 @@
+*   Accept the `:innermost` and `:outermost` callback options in the callbacks
+    defined by `define_model_callbacks`.
+
+    A callback registered with `innermost: true` is kept closest to the event, so
+    every callback that is not itself `:innermost`, including the ones registered
+    later on by subclasses, runs before it. `outermost: true` does the opposite.
+
+    ```ruby
+    class ApplicationRecord < ActiveRecord::Base
+      self.abstract_class = true
+      before_save :recompute_search_index, innermost: true
+    end
+
+    class Article < ApplicationRecord
+      before_save :render_body_html
+    end
+
+    # Article runs :render_body_html, then :recompute_search_index.
+    ```
+
+    *Roman Sklenar*
+
 *   Implement `ActiveModel::Type::Binary::Data#as_json`
 
     Delegates JSON conversion to the underlying binary data value (instead of
