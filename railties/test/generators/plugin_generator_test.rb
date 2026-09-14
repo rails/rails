@@ -808,6 +808,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_no_directory "app/helpers"
       assert_no_directory "app/views"
 
+      FileUtils.cd(current_path)
       FileUtils.rm_rf destination_root
     end
   end
