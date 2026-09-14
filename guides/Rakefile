@@ -22,12 +22,6 @@ namespace :guides do
       generate_guides
     end
 
-    desc "Generate .mobi file"
-    task :kindle do
-      warn("DEPRECATION WARNING: The guides:generate:kindle rake task is deprecated and will be removed in 7.2. Run rake guides:generate:epub instead.")
-      Rake::Task["guides:generate:epub"].invoke
-    end
-
     desc "Generate .epub file"
     task :epub do
       ENV["EPUB"] = "1"
@@ -82,7 +76,7 @@ Guides are taken from the source directory, and the result goes into the
 output directory. Assets are stored under files, and copied to output/files as
 part of the generation process.
 
-You can generate HTML, Kindle or both formats using the `guides:generate` task.
+You can generate the HTML or the EPUB guides using the `guides:generate` task.
 
 All of these processes are handled via rake tasks, here's a full list of them:
 

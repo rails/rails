@@ -2095,6 +2095,17 @@ module ApplicationTests
 
         assert_includes File.read(app_path("log/ractor.log")), "[request-id] hello"
       end
+
+      test "config.action_dispatch.default_headers can still be mutated after ActionDispatch::Response is loaded" do
+        app "development"
+
+        assert_predicate(ActionDispatch::Response.default_headers, :frozen?)
+        assert_not Rails.application.config.action_dispatch.default_headers.frozen?
+
+        assert_nothing_raised do
+          Rails.application.config.action_dispatch.default_headers["X-Custom-Header"] = "custom"
+        end
+      end
     end
 
     test "respond_to? accepts include_private" do
@@ -4413,6 +4424,21 @@ module ApplicationTests
       assert_not_includes(output, "rails_direct_uploads")
     end
 
+    test "ActiveStorage.draw_direct_upload_route can be configured via config.active_storage.draw_direct_upload_route" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_storage.draw_direct_upload_route = false
+        end
+      RUBY
+
+      output = rails("routes")
+      assert_not_includes(output, "rails_direct_uploads")
+      assert_includes(output, "rails_service_blob")
+      assert_includes(output, "rails_blob_representation")
+      assert_includes(output, "rails_disk_service")
+      assert_includes(output, "update_rails_disk_service")
+    end
+
     test "ActiveStorage.video_preview_arguments uses the old arguments without Rails 7 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 
@@ -5495,6 +5521,8 @@ module ApplicationTests
         app "development"
 
         assert_ractor_shareable(ActiveRecord.query_transformers)
+        assert_ractor_shareable(ActiveRecord::Base.time_zone_aware_types)
+        assert_ractor_shareable(ActiveRecord::Base.skip_time_zone_conversion_for_attributes)
       end
     end
 

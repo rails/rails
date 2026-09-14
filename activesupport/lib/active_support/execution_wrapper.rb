@@ -11,6 +11,7 @@ module ActiveSupport
     Null = Object.new # :nodoc:
     def Null.complete! # :nodoc:
     end
+    Null.freeze
 
     define_callbacks :run
     define_callbacks :complete

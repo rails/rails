@@ -456,15 +456,15 @@ module ActiveRecord
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
         if eager_loading && has_limit_or_offset? && !(
-            using_limitable_reflections?(join_dependency.reflections) &&
-            using_limitable_reflections?(
-              construct_join_dependency(
-                select_association_list(joins_values).concat(
-                  select_association_list(left_outer_joins_values)
-                ), nil
-              ).reflections
-            )
+          using_limitable_reflections?(join_dependency.reflections) &&
+          using_limitable_reflections?(
+            construct_join_dependency(
+              select_association_list(joins_values).concat(
+                select_association_list(left_outer_joins_values)
+              ), nil
+            ).reflections
           )
+        )
           relation = skip_query_cache_if_necessary do
             model.with_connection do |c|
               c.distinct_relation_for_primary_key(relation)

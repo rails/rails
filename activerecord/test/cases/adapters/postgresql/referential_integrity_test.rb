@@ -129,6 +129,30 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_re_enables_triggers_when_the_block_raises
+    skip if @connection.supports_enforced_foreign_keys?
+
+    @connection.create_table :ri_test_parents, force: true
+    @connection.create_table :ri_test_children, force: true do |t|
+      t.bigint :parent_id, null: false
+    end
+    @connection.add_foreign_key :ri_test_children, :ri_test_parents, column: :parent_id, name: :ri_test_fk
+
+    begin
+      assert_raises(RuntimeError) do
+        @connection.disable_referential_integrity do
+          assert_not_empty disabled_triggers(:ri_test_children)
+          raise "boom"
+        end
+      end
+
+      assert_empty disabled_triggers(:ri_test_children)
+    ensure
+      # A failure here would leave every table without foreign keys for the rest of the suite.
+      @connection.execute(@connection.tables.map { |name| "ALTER TABLE #{@connection.quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
+    end
+  end
+
   def test_disable_referential_integrity_with_partitioned_to_partitioned_fk
     skip unless @connection.supports_enforced_foreign_keys?
 
@@ -429,5 +453,12 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
   private
     def assert_transaction_is_not_broken
       assert_equal 1, @connection.select_value("SELECT 1")
+    end
+
+    def disabled_triggers(table)
+      @connection.select_all(<<~SQL)
+        SELECT * FROM pg_trigger
+        WHERE tgrelid = #{@connection.quote(table)}::regclass AND tgenabled = 'D'
+      SQL
     end
 end

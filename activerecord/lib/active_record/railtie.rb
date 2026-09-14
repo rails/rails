@@ -101,7 +101,7 @@ module ActiveRecord
     initializer "active_record.postgresql_time_zone_aware_types" do
       ActiveSupport.on_load(:active_record_postgresqladapter) do
         ActiveSupport.on_load(:active_record) do
-          ActiveRecord::Base.time_zone_aware_types << :timestamptz
+          (ActiveRecord::Base.time_zone_aware_types += [:timestamptz]).freeze
         end
       end
     end
@@ -461,6 +461,11 @@ To keep using the current cache store, you can turn off cache versioning entirel
     initializer "active_record.share_configs" do
       config.after_initialize do
         ActiveSupport::Ractors.make_shareable(ActiveRecord.query_transformers)
+
+        ActiveSupport.on_load(:active_record) do
+          ActiveRecord::Base.time_zone_aware_types.freeze
+          ActiveRecord::Base.skip_time_zone_conversion_for_attributes.freeze
+        end
       end
     end
   end

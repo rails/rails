@@ -760,7 +760,7 @@ module ActiveRecord
               SELECT table_name AS 'table', table_collation AS 'collation'
               FROM information_schema.tables
               WHERE table_schema = #{schema}
-                AND table_name IN (#{quoted_table_names(group)})
+                AND table_name #{table_name_predicate(group)}
             SQL
 
             group.index_with { |table| by_name[bare_table_name(table)] }
@@ -769,8 +769,6 @@ module ActiveRecord
 
         def fetch_foreign_keys(tables)
           fetch_by_schema(tables) do |schema, group|
-            names = quoted_table_names(group)
-
             # MySQL returns 1 row for each column of composite foreign keys.
             by_name = query_all(<<~SQL).group_by { |row| row["from_table"] }
               SELECT fk.table_name AS 'from_table',
@@ -787,7 +785,7 @@ module ActiveRecord
               WHERE fk.referenced_column_name IS NOT NULL
                 AND fk.table_schema = #{schema}
                 AND rc.constraint_schema = #{schema}
-                AND fk.table_name IN (#{names}) AND rc.table_name IN (#{names})
+                AND fk.table_name #{table_name_predicate(group)} AND rc.table_name #{table_name_predicate(group)}
             SQL
 
             group.index_with { |table| build_foreign_keys(table, rows_for(by_name, table)) }
@@ -798,8 +796,6 @@ module ActiveRecord
           raise NotImplementedError unless supports_check_constraints?
 
           fetch_by_schema(tables) do |schema, group|
-            names = quoted_table_names(group)
-
             sql = +<<~SQL
               SELECT tc.table_name AS 'table',
                      cc.constraint_name AS 'name',
@@ -808,10 +804,10 @@ module ActiveRecord
               JOIN information_schema.table_constraints tc
               USING (constraint_schema, constraint_name)
               WHERE tc.table_schema = #{schema}
-                AND tc.table_name IN (#{names})
+                AND tc.table_name #{table_name_predicate(group)}
                 AND cc.constraint_schema = #{schema}
             SQL
-            sql << " AND cc.table_name IN (#{names})" if mariadb?
+            sql << " AND cc.table_name #{table_name_predicate(group)}" if mariadb?
 
             by_name = query_all(sql).group_by { |row| row["table"] }
 
@@ -826,7 +822,7 @@ module ActiveRecord
               FROM information_schema.statistics
               WHERE index_name = 'PRIMARY'
                 AND table_schema = #{schema}
-                AND table_name IN (#{quoted_table_names(group)})
+                AND table_name #{table_name_predicate(group)}
               ORDER BY table_name, seq_in_index
             SQL
 
@@ -1075,7 +1071,7 @@ module ActiveRecord
                      collation_name AS 'Collation', column_comment AS 'Comment'
               FROM information_schema.columns
               WHERE table_schema = #{schema}
-                AND table_name IN (#{quoted_table_names(group)})
+                AND table_name #{table_name_predicate(group)}
               ORDER BY table_name, ordinal_position
             SQL
 

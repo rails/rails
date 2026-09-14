@@ -650,9 +650,30 @@ upload your private files to a server).
 
 The above `template.rb` file uses helper methods such as `after_bundle` and
 `rails_command` and also adds user interactivity with methods like `yes?`. All
-of these methods are part of the [Rails Template
-API][`Rails::Generators::Actions`]. The following sections shows how to use
-more of these methods with examples.
+of these methods are part of the [Rails Generators API](#rails-generators-api).
+
+### Customizing the Generator Instance
+
+The application template is evaluated in the context of a
+`Rails::Generators::AppGenerator` instance. It uses the
+[`apply`](https://www.rubydoc.info/gems/thor/Thor/Actions#apply-instance_method)
+action provided by Thor.
+
+This means you can extend and change the instance to match your needs.
+
+For example by overwriting the `source_paths` method to contain the
+location of your template. Now methods like `copy_file` will accept
+relative paths to your template's location:
+
+```ruby
+# ~/my_template/template.rb
+def source_paths
+  [__dir__]
+end
+
+# copies ~/my_template/initializer.rb
+copy_file "initializer.rb", "config/initializers/my_initializer.rb"
+```
 
 Rails Generators API
 --------------------

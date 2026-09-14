@@ -251,6 +251,19 @@ module ActiveRecord
         connection&.disconnect!
       end
 
+      def test_configure_connection_error_verbosity
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(
+          db_config.configuration_hash.merge(error_verbosity: PG::PQERRORS_TERSE)
+        )
+        connection.connect!
+
+        previous_verbosity = connection.raw_connection.set_error_verbosity(PG::PQERRORS_DEFAULT)
+        assert_equal PG::PQERRORS_TERSE, previous_verbosity
+      ensure
+        connection&.disconnect!
+      end
+
       def test_configure_connection_variables_are_set
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         connection = ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.new(

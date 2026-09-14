@@ -1020,7 +1020,7 @@ module ActiveRecord
               # that has it, the way ::regclass would for a single table.
               by_name = query_all(<<~SQL).group_by { |row| row["table_name"] }
                 SELECT t.relname AS table_name, a.attname AS column_name
-                FROM pg_index i
+                FROM pg_constraint cons
                 JOIN (
                   SELECT DISTINCT ON (c.relname) c.oid, c.relname
                   FROM pg_class c
@@ -1028,12 +1028,12 @@ module ActiveRecord
                   WHERE n.nspname = #{schema}
                     AND c.relname IN (#{quoted_table_names(group)})
                   ORDER BY c.relname, array_position(current_schemas(false), n.nspname)
-                ) t ON t.oid = i.indrelid
+                ) t ON t.oid = cons.conrelid
                 JOIN pg_attribute a
-                  ON a.attrelid = i.indrelid
-                  AND a.attnum = ANY(i.indkey)
-                WHERE i.indisprimary
-                ORDER BY t.relname, array_position(i.indkey, a.attnum)
+                  ON a.attrelid = cons.conrelid
+                  AND a.attnum = ANY(cons.conkey)
+                WHERE cons.contype = 'p'
+                ORDER BY t.relname, array_position(cons.conkey, a.attnum)
               SQL
 
               group.index_with { |table| rows_for(by_name, table).map { |row| row["column_name"] } }

@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/string/output_safety"
 
 module ActionView
   module Helpers
     module ContentExfiltrationPreventionHelper
-      mattr_accessor :prepend_content_exfiltration_prevention, default: false
+      singleton_class.attr_accessor :prepend_content_exfiltration_prevention
+      self.prepend_content_exfiltration_prevention = false
+      delegate :prepend_content_exfiltration_prevention, to: ContentExfiltrationPreventionHelper
 
       # Close any open attributes before each form tag. This prevents attackers from
       # injecting partial tags that could leak markup offsite.

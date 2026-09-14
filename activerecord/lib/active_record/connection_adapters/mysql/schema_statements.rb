@@ -104,7 +104,7 @@ module ActiveRecord
                        index_comment AS 'Index_comment'#{optional_columns}
                 FROM information_schema.statistics
                 WHERE table_schema = #{schema}
-                  AND table_name IN (#{quoted_table_names(group)})
+                  AND table_name #{table_name_predicate(group)}
                   AND index_name != 'PRIMARY'
                 ORDER BY table_name, index_name, seq_in_index
               SQL
@@ -297,6 +297,10 @@ module ActiveRecord
             scope[:name] = quote(name) if name
             scope[:type] = quote(type) if type
             scope
+          end
+
+          def table_name_predicate(table_names)
+            table_names.one? ? "= #{quoted_table_names(table_names)}" : "IN (#{quoted_table_names(table_names)})"
           end
 
           def bare_table_name(table)

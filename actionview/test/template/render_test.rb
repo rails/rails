@@ -1138,6 +1138,7 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
       ActionView::Template::Handlers::ERB.escape_ignore_list.freeze
       ActiveSupport::Ractors.unshareable_proc_action = :raise
       ActiveSupport::Notifications.send(:record_subscriptions)
+      Ractor.make_shareable(ActiveSupport.event_reporter)
 
       I18n::Config.prepend(Module.new do
         def available_locales = [:en].freeze

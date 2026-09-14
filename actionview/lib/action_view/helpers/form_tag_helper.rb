@@ -4,7 +4,6 @@ require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/url_helper"
 require "action_view/helpers/text_helper"
 require "active_support/core_ext/string/output_safety"
-require "active_support/core_ext/module/attribute_accessors"
 
 module ActionView
   module Helpers # :nodoc:
@@ -22,10 +21,11 @@ module ActionView
       include TextHelper
       include ContentExfiltrationPreventionHelper
 
-      mattr_accessor :embed_authenticity_token_in_remote_forms
-      self.embed_authenticity_token_in_remote_forms = nil
+      singleton_class.attr_accessor :embed_authenticity_token_in_remote_forms, :default_enforce_utf8
+      delegate :embed_authenticity_token_in_remote_forms, :default_enforce_utf8, to: FormTagHelper
 
-      mattr_accessor :default_enforce_utf8, default: true
+      self.embed_authenticity_token_in_remote_forms = nil
+      self.default_enforce_utf8 = true
 
       # Starts a form tag that points the action to a URL configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.

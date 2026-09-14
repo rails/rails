@@ -31,13 +31,13 @@ module ActiveRecord
 
               WARNING
               raise e
-            end
-
-            begin
-              transaction(requires_new: true) do
-                execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
+            ensure
+              begin
+                transaction(requires_new: true) do
+                  execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
+                end
+              rescue ActiveRecord::ActiveRecordError
               end
-            rescue ActiveRecord::ActiveRecordError
             end
           end
         end
