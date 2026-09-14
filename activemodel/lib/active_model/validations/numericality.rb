@@ -12,15 +12,16 @@ module ActiveModel
 
       RANGE_CHECKS = { in: :in? }.freeze
       NUMBER_CHECKS = { odd: :odd?, even: :even? }.freeze
+      MULTIPLE_CHECK = :multiple_of
 
-      RESERVED_OPTIONS = COMPARE_CHECKS.keys + NUMBER_CHECKS.keys + RANGE_CHECKS.keys + [:only_integer, :only_numeric]
+      RESERVED_OPTIONS = COMPARE_CHECKS.keys + NUMBER_CHECKS.keys + RANGE_CHECKS.keys + [MULTIPLE_CHECK, :only_integer, :only_numeric]
 
       INTEGER_REGEX = /\A[+-]?\d+\z/
 
       HEXADECIMAL_REGEX = /\A[+-]?0[xX]/
 
       def check_validity!
-        options.slice(*COMPARE_CHECKS.keys).each do |option, value|
+        options.slice(*COMPARE_CHECKS.keys, MULTIPLE_CHECK).each do |option, value|
           unless value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
             raise ArgumentError, ":#{option} must be a number, a symbol or a proc"
           end
@@ -51,6 +52,11 @@ module ActiveModel
             unless value.to_i.public_send(NUMBER_CHECKS[option])
               record.errors.add(attr_name, option, **filtered_options(value))
             end
+          elsif option == MULTIPLE_CHECK
+            option_value = option_as_number(record, option_value, precision, scale)
+            unless multiple_of?(value, option_value)
+              record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
+            end
           elsif RANGE_CHECKS.include?(option)
             option_value = resolve_value(record, option_value)
             unless option_value.is_a?(Range)
@@ -69,6 +75,10 @@ module ActiveModel
       end
 
     private
+      def multiple_of?(value, divisor)
+        divisor == 0 ? value == 0 : value % divisor == 0
+      end
+
       def option_as_number(record, option_value, precision, scale)
         parse_as_number(resolve_value(record, option_value), precision, scale)
       end
@@ -190,6 +200,9 @@ module ActiveModel
       # * <tt>:other_than</tt> - Specifies the value must be other than the
       #   supplied value. The default error message for this option is _"must be
       #   other than %{count}"_.
+      # * <tt>:multiple_of</tt> - Specifies the value must be a multiple of
+      #   the supplied value. The default error message for this option
+      #   is _"must be a multiple of %{count}"_.
       # * <tt>:odd</tt> - Specifies the value must be an odd number. The default
       #   error message for this option is _"must be odd"_.
       # * <tt>:even</tt> - Specifies the value must be an even number. The
@@ -212,6 +225,7 @@ module ActiveModel
       # * <tt>:only_integer</tt>
       # * <tt>:other_than</tt>
       # * <tt>:in</tt>
+      # * <tt>:multiple_of</tt>
       #
       # For example:
       #
