@@ -1867,16 +1867,104 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
     assert_nil klass.primary_key
     assert_nil klass.query_constraints_list
+    assert_not_predicate klass, :has_query_constraints?
   end
 
   def test_query_constraints_list_is_nil_for_non_cpk_model
     assert_nil Post.query_constraints_list
     assert_nil Dashboard.query_constraints_list
+    assert_not_predicate Post, :has_query_constraints?
   end
 
   def test_query_constraints_list_equals_to_composite_primary_key
     assert_equal(["shop_id", "id"], Cpk::Order.query_constraints_list)
     assert_equal(["author_id", "id"], Cpk::Book.query_constraints_list)
+  end
+
+  def test_schema_context_stores_query_constraint_lists
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      query_constraints :title, :id
+    end
+
+    context = klass.schema_context
+
+    assert_predicate context, :has_query_constraints?
+    assert_predicate klass, :has_query_constraints?
+    assert_equal ["title", "id"], context.query_constraints_list
+    assert_equal ["title", "id"], context.composite_query_constraints_list
+    assert_same context.query_constraints_list, klass.query_constraints_list
+    assert_same context.composite_query_constraints_list, klass.composite_query_constraints_list
+  end
+
+  def test_schema_context_derives_query_constraints_from_a_composite_primary_key
+    context = Cpk::Order.schema_context
+
+    assert_not_predicate context, :has_query_constraints?
+    assert_not_predicate Cpk::Order, :has_query_constraints?
+    assert_equal ["shop_id", "id"], context.query_constraints_list
+    assert_same context.query_constraints_list, context.composite_query_constraints_list
+  end
+
+  def test_query_constraints_defined_after_schema_load
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    topic = klass.find(topics(:first).id)
+    context = klass.schema_context
+
+    assert_not_predicate klass, :has_query_constraints?
+    klass.query_constraints :title, :id
+
+    assert_predicate klass, :has_query_constraints?
+    assert_equal ["title", "id"], klass.query_constraints_list
+    assert_equal ["title", "id"], klass.composite_query_constraints_list
+    assert_not_same context, klass.schema_context
+    assert_nil context.query_constraints_list
+    assert_uses_query_constraints_on_reload(topic, ["title", "id"])
+  end
+
+  def test_query_constraints_redefined_after_schema_load
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      query_constraints :title, :id
+    end
+    topic = klass.find(topics(:first).id)
+    context = klass.schema_context
+
+    klass.query_constraints :author_name, :id
+
+    assert_predicate klass, :has_query_constraints?
+    assert_equal ["author_name", "id"], klass.query_constraints_list
+    assert_equal ["author_name", "id"], klass.composite_query_constraints_list
+    assert_equal ["title", "id"], context.query_constraints_list
+    assert_uses_query_constraints_on_reload(topic, ["author_name", "id"])
+  end
+
+  def test_query_constraints_refresh_loaded_descendant_schemas
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    child = Class.new(klass)
+    grandchild = Class.new(child)
+    child_with_constraints = Class.new(klass) do
+      query_constraints :author_name, :id
+    end
+
+    assert_nil child.query_constraints_list
+    assert_nil grandchild.query_constraints_list
+    assert_equal ["author_name", "id"], child_with_constraints.query_constraints_list
+
+    klass.query_constraints :title, :id
+
+    [child, grandchild].each do |descendant|
+      assert_not_predicate descendant, :has_query_constraints?
+      assert_equal ["title", "id"], descendant.query_constraints_list
+      assert_equal ["title", "id"], descendant.composite_query_constraints_list
+    end
+    assert_predicate child_with_constraints, :has_query_constraints?
+    assert_equal ["author_name", "id"], child_with_constraints.query_constraints_list
+    assert_equal ["author_name", "id"], child_with_constraints.composite_query_constraints_list
   end
 
   def test_child_keeps_parents_query_constraints
@@ -1885,6 +1973,9 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
     used_clothing_item = clothing_items(:used_blue_jeans)
     assert_uses_query_constraints_on_reload(used_clothing_item, ["clothing_type", "color"])
+
+    assert_predicate ClothingItem, :has_query_constraints?
+    assert_not_predicate ClothingItem::Used, :has_query_constraints?
   end
 
   def test_child_keeps_parents_query_constraints_derived_from_composite_pk
@@ -1911,5 +2002,6 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
   def test_child_class_with_query_constraints_overrides_parents
     assert_equal(["clothing_type", "color", "size"], ClothingItem::Sized.query_constraints_list)
+    assert_predicate ClothingItem::Sized, :has_query_constraints?
   end
 end

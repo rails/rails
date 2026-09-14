@@ -618,6 +618,10 @@ module ActiveRecord
           @_returning_columns_for_update = nil
         end
 
+        def schema_loaded?
+          @schema_context&.schema_loaded? || false
+        end
+
       private
         def inherited(child_class)
           super
@@ -627,10 +631,6 @@ module ActiveRecord
             @ignored_columns = nil
             @only_columns = nil
           end
-        end
-
-        def schema_loaded?
-          @schema_context&.schema_loaded? || false
         end
 
         def load_schema!
