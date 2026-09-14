@@ -20,12 +20,13 @@ module Rails
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x,
-                    :content_security_policy_report_only,
                     :content_security_policy_nonce_generator, :content_security_policy_nonce_directives,
                     :content_security_policy_nonce_auto,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
                     :dom_testing_default_html_version, :yjit, :action_on_early_load_hook
+
+      attr_writer :content_security_policy_report_only
 
       attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
@@ -627,6 +628,17 @@ module Rails
           @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
         else
           @content_security_policy
+        end
+      end
+
+      # Configures a separate ActionDispatch::ContentSecurityPolicy that is sent in
+      # the `Content-Security-Policy-Report-Only` header. Set to `true` instead to
+      # send the `content_security_policy` as report-only.
+      def content_security_policy_report_only(&block)
+        if block_given?
+          @content_security_policy_report_only = ActionDispatch::ContentSecurityPolicy.new(&block)
+        else
+          @content_security_policy_report_only
         end
       end
 

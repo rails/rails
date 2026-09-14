@@ -1,3 +1,10 @@
+*   Allow `config.content_security_policy_report_only` to accept a block that
+    defines a separate report-only policy.
+
+    Fixes #40452.
+
+    *Shaun Russell*
+
 *   Mark the generated `public/*.html` error pages as `linguist-generated` in
     the default `.gitattributes`.
 

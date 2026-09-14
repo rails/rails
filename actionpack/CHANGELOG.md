@@ -1,3 +1,11 @@
+*   Allow `content_security_policy_report_only` to accept a block, so a
+    `Content-Security-Policy-Report-Only` header can be sent alongside the
+    `Content-Security-Policy` header.
+
+    Fixes #40452.
+
+    *Shaun Russell*
+
 *   Include default headers in `ActionController::Live` responses.
 
     Previously, responses from `ActionController::Live` controllers, including

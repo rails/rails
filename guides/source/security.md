@@ -1522,6 +1522,39 @@ class PostsController < ApplicationController
 end
 ```
 
+To roll out a stricter policy gradually, keep enforcing your current policy and
+report violations of the new one. Pass a block to define a separate policy that
+is sent in the `Content-Security-Policy-Report-Only` header, alongside the
+`Content-Security-Policy` header:
+
+```ruby
+Rails.application.configure do
+  config.content_security_policy do |policy|
+    policy.default_src :self, :https
+    policy.script_src  :self, :https, :unsafe_inline
+  end
+
+  config.content_security_policy_report_only do |policy|
+    policy.default_src :self, :https
+    policy.script_src  :self, :https
+    policy.report_uri  "/csp-violation-report-endpoint"
+  end
+end
+```
+
+Like `content_security_policy`, the report-only policy can be overridden or
+removed in a controller:
+
+```ruby
+class PostsController < ApplicationController
+  content_security_policy_report_only only: :index do |policy|
+    policy.img_src :self
+  end
+
+  content_security_policy_report_only false, only: :show
+end
+```
+
 [`Content-Security-Policy-Report-Only`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only
 [`report-uri`]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri
 
