@@ -1105,21 +1105,15 @@ module ActiveRecord
                 SELECT t1.relname AS from_table, t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid#{conenforced_column},
                   (
                     SELECT array_agg(a.attname ORDER BY idx)
-                    FROM (
-                      SELECT idx, c.conkey[idx] AS conkey_elem
-                      FROM generate_subscripts(c.conkey, 1) AS idx
-                    ) indexed_conkeys
+                    FROM unnest(c.conkey) WITH ORDINALITY AS k(attnum, idx)
                     JOIN pg_attribute a ON a.attrelid = t1.oid
-                    AND a.attnum = indexed_conkeys.conkey_elem
+                    AND a.attnum = k.attnum
                   ) AS conkey_names,
                   (
                     SELECT array_agg(a.attname ORDER BY idx)
-                    FROM (
-                      SELECT idx, c.confkey[idx] AS confkey_elem
-                      FROM generate_subscripts(c.confkey, 1) AS idx
-                    ) indexed_confkeys
+                    FROM unnest(c.confkey) WITH ORDINALITY AS k(attnum, idx)
                     JOIN pg_attribute a ON a.attrelid = t2.oid
-                    AND a.attnum = indexed_confkeys.confkey_elem
+                    AND a.attnum = k.attnum
                   ) AS confkey_names
                 FROM pg_constraint c
                 JOIN tables t1 ON c.conrelid = t1.oid
@@ -1226,12 +1220,9 @@ module ActiveRecord
                 SELECT t.relname AS table_name, c.conname, c.conrelid, c.condeferrable, c.condeferred, pg_get_constraintdef(c.oid) AS constraintdef,
                 (
                   SELECT array_agg(a.attname ORDER BY idx)
-                  FROM (
-                    SELECT idx, c.conkey[idx] AS conkey_elem
-                    FROM generate_subscripts(c.conkey, 1) AS idx
-                  ) indexed_conkeys
+                  FROM unnest(c.conkey) WITH ORDINALITY AS k(attnum, idx)
                   JOIN pg_attribute a ON a.attrelid = t.oid
-                  AND a.attnum = indexed_conkeys.conkey_elem
+                  AND a.attnum = k.attnum
                 ) AS conkey_names
                 FROM pg_constraint c
                 JOIN tables t ON c.conrelid = t.oid
