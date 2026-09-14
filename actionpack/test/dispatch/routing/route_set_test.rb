@@ -15,7 +15,7 @@ module ActionDispatch
         end
 
         def call(env)
-          [ 200, { "Content-Type" => "text/plain" }, [response] ]
+          [ 200, { "Content-Type" => "text/plain" }, [@response] ]
         end
       end
 
@@ -31,6 +31,18 @@ module ActionDispatch
         end
 
         assert_not_empty @set
+      end
+
+      test "dispatching a request to a route added with a rack app" do
+        draw do
+          get "foo", to: SimpleApp.new("foo#index")
+        end
+
+        env = Rack::MockRequest.env_for("/foo", "REQUEST_METHOD" => "GET")
+        status, _headers, body = @set.call(env)
+
+        assert_equal 200, status
+        assert_equal ["foo#index"], body.each.to_a
       end
 
       class FooController < ActionController::Base
