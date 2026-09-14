@@ -13,8 +13,18 @@ module ActiveRecord::Associations
     end
 
     def nullified_owner_attributes
+      primary_key = ActiveRecord::Key.for(reflection.klass.primary_key)
+      foreign_key = ActiveRecord::Key.for(reflection.foreign_key)
+
+      # Preserve shared primary key columns only if another foreign key
+      # column can be cleared to disassociate the record.
+      preserve_primary_key = foreign_key.any? { |key| !primary_key.include?(key) }
+
       Hash.new.tap do |attrs|
-        ActiveRecord::Key.for(reflection.foreign_key).each { |foreign_key| attrs[foreign_key] = nil }
+        foreign_key.each do |foreign_key_column|
+          next if preserve_primary_key && primary_key.include?(foreign_key_column)
+          attrs[foreign_key_column] = nil
+        end
         attrs[reflection.type] = nil if reflection.type.present?
       end
     end
