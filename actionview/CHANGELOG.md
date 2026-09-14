@@ -1,3 +1,8 @@
+*   Report the original ERB line for template syntax errors instead of the
+    corresponding line in the generated Ruby source.
+
+    *aouxwoux*
+
 *   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
     the current template when it starts with a period, mirroring the existing
     behavior for the key argument.
