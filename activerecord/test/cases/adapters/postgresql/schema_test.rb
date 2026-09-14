@@ -515,6 +515,20 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_table_options_for_a_name_a_view_shadows_reads_the_view
+    @connection.execute "CREATE VIEW #{SCHEMA_NAME}.shadowed AS SELECT 1 AS id"
+    @connection.execute "CREATE TABLE #{SCHEMA2_NAME}.shadowed (id integer)"
+    @connection.execute "COMMENT ON TABLE #{SCHEMA2_NAME}.shadowed IS 'in schema two'"
+
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
+      assert_empty @connection.table_options("shadowed")
+    end
+
+    with_schema_search_path("#{SCHEMA2_NAME}, #{SCHEMA_NAME}") do
+      assert_equal({ comment: "in schema two" }, @connection.table_options("shadowed"))
+    end
+  end
+
   def test_constraints_for_a_name_in_two_schemas_read_the_first_on_the_search_path
     add_constraints_to_things(SCHEMA_NAME, "one")
     add_constraints_to_things(SCHEMA2_NAME, "two")
