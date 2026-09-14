@@ -1,3 +1,8 @@
+*   Fix `rails test` to load all installed Minitest plugins when using Minitest
+    6 - same behavior as Minitest 5 had built-in.
+
+    *Benjamin Quorning*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
     when a local cache is active.
 
