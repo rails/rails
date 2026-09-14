@@ -272,15 +272,6 @@ module ActiveSupport
           @kind == _kind && (filter == _filter || (@original_filter == _filter.object_id))
         end
 
-        def duplicates?(other)
-          case @filter
-          when Symbol
-            matches?(other.kind, other.filter)
-          else
-            false
-          end
-        end
-
         def compiled
           @compiled ||=
             begin
@@ -630,13 +621,18 @@ module ActiveSupport
         def delete(o)
           @all_callbacks = nil
           @single_callbacks.clear
-          @chain.delete(o)
+          result = @chain.delete(o)
+          if o.is_a?(Callback) && o.filter.is_a?(Symbol)
+            chain_index.delete([o.kind, o.filter])
+          end
+          result
         end
 
         def clear
           @all_callbacks = nil
           @single_callbacks.clear
           @chain.clear
+          @chain_index = {}
           self
         end
 
@@ -645,6 +641,7 @@ module ActiveSupport
           @single_callbacks = {}
           @chain     = other.chain.dup
           @mutex     = Mutex.new
+          @chain_index = other.chain_index.dup
         end
 
         def compile(type)
@@ -685,6 +682,10 @@ module ActiveSupport
         protected
           attr_reader :chain
 
+          def chain_index
+            @chain_index ||= {}
+          end
+
         private
           def compile_sequence(type)
             final_sequence = CallbackSequence.new
@@ -698,6 +699,7 @@ module ActiveSupport
             @single_callbacks.clear
             remove_duplicates(callback)
             @chain.push(callback)
+            chain_index[[callback.kind, callback.filter]] = callback if callback.filter.is_a?(Symbol)
           end
 
           def prepend_one(callback)
@@ -705,12 +707,19 @@ module ActiveSupport
             @single_callbacks.clear
             remove_duplicates(callback)
             @chain.unshift(callback)
+            chain_index[[callback.kind, callback.filter]] = callback if callback.filter.is_a?(Symbol)
           end
 
           def remove_duplicates(callback)
             @all_callbacks = nil
             @single_callbacks.clear
-            @chain.delete_if { |c| callback.duplicates?(c) }
+
+            return unless callback.filter.is_a?(Symbol)
+
+            key = [callback.kind, callback.filter]
+            if (existing = chain_index.delete(key))
+              @chain.delete(existing)
+            end
           end
 
           class DefaultTerminator # :nodoc:
