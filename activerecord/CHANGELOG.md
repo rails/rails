@@ -1,3 +1,13 @@
+*   Read PostgreSQL indexes and constraints from the table an unqualified name resolves to.
+
+    `indexes`, `foreign_keys`, `check_constraints`, `unique_constraints` and
+    `exclusion_constraints` matched a name against every schema on the search
+    path, so a name carried by two schemas came back with both tables' indexes
+    and constraints. They now resolve the name the way `::regclass` does, as
+    `primary_keys` and `table_options` already did.
+
+    *Ryuta Kamizono*
+
 *   Replace the `mysql5` fallback in `ActiveRecord.database_cli` with `mariadb`.
 
     *Ryuta Kamizono*
