@@ -64,7 +64,7 @@ class Time
       # Creates a `Time` instance from an RFC 3339 string.
       #
       # ```
-      # Time.rfc3339('1999-12-31T14:00:00-10:00') # => 2000-01-01 00:00:00 -1000
+      # Time.rfc3339('1999-12-31T14:00:00-10:00') # => 1999-12-31 14:00:00 -1000
       # ```
       #
       # If the time or offset components are missing then an `ArgumentError` will be raised.
