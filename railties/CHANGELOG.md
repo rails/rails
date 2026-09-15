@@ -1,3 +1,8 @@
+*   Allow custom Thor commands in `lib/commands` by loading the application
+    when a command is not found so that `lib` is added to the $LOAD_PATH.
+
+    *Ben Sheldon*
+
 *   Mark the generated `public/*.html` error pages as `linguist-generated` in
     the default `.gitattributes`.
 
