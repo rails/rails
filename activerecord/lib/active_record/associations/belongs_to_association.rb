@@ -25,20 +25,21 @@ module ActiveRecord
         when :destroy
           raise ActiveRecord::Rollback unless target.destroy
         when :destroy_async
-          primary_key_column = reflection.active_record_primary_key
-          ids = foreign_key.map { |col| owner.public_send(col) }
-
           association_class = if reflection.polymorphic?
-            owner.public_send(foreign_type)
+            target.class
           else
             reflection.klass
           end
+
+          primary_key_column = reflection.query_primary_key(association_class)
+          query_foreign_key = ActiveRecord::Key.for(reflection.query_foreign_key)
+          ids = query_foreign_key.map { |column| owner.public_send(column) }
 
           enqueue_destroy_association(
             owner_model_name: owner.class.to_s,
             owner_id: owner.id,
             association_class: association_class.to_s,
-            association_ids: foreign_key.composite? ? [ids] : ids,
+            association_ids: query_foreign_key.composite? ? [ids] : ids,
             association_primary_key_column: primary_key_column,
             ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
           )
@@ -81,11 +82,11 @@ module ActiveRecord
           model_was = klass
         end
 
-        values = foreign_key.map { |fk| owner.attribute_before_last_save(fk) }
-        foreign_key_was = foreign_key.composite? ? (values if values.all?) : values.first
+        foreign_key_values = foreign_key.map { |fk| owner.attribute_before_last_save(fk) }
+        foreign_key_was = foreign_key.composite? ? foreign_key_values.all? : foreign_key_values.first
 
         if foreign_key_was && model_was < ActiveRecord::Base
-          update_counters_via_scope(model_was, foreign_key_was, -1)
+          update_counters_via_scope(model_was, -1, before_last_save: true)
         end
       end
 
@@ -121,14 +122,23 @@ module ActiveRecord
             if target && !stale_target?
               target.increment!(reflection.counter_cache_column, by, touch: reflection.options[:touch])
             else
-              update_counters_via_scope(klass, foreign_key.value_of(owner), by)
+              update_counters_via_scope(klass, by)
             end
           end
         end
 
-        def update_counters_via_scope(klass, values, by)
-          primary_key = ActiveRecord::Key.for(primary_key(klass))
-          scope = klass.all_queries_scope.where!(primary_key.where_hash(values))
+        def update_counters_via_scope(klass, by, before_last_save: false)
+          constraints = reflection.query_key_mapping(klass).to_h do |active_record_column, associated_record_column|
+            active_record_column = owner.class.attribute_aliases[active_record_column] || active_record_column
+            value = if before_last_save
+              owner.attribute_before_last_save(active_record_column)
+            else
+              owner.read_attribute(active_record_column)
+            end
+
+            [associated_record_column, value]
+          end
+          scope = klass.all_queries_scope.where!(constraints)
           scope.update_counters(reflection.counter_cache_column => by, touch: reflection.options[:touch])
         end
 
@@ -141,7 +151,12 @@ module ActiveRecord
         end
 
         def replace_keys(record, force: false)
-          target_key_values = record ? ActiveRecord::Key.for(primary_key(record.class)).map { |col| record.read_attribute(col) } : []
+          target_key = if record
+            reflection.query_key_mapping(record.class).foreign_key_associated_record_columns
+          end
+          target_key = ActiveRecord::Key.for(target_key)
+
+          target_key_values = target_key.map { |key| record.read_attribute(key) }
           owner_key_values = foreign_key.map { |fk| owner.read_attribute(fk) }
 
           return if !force && owner_key_values == target_key_values
@@ -172,10 +187,16 @@ module ActiveRecord
         end
 
         def stale_state
-          values = foreign_key.map do |fk|
-            owner.read_attribute(fk) { |n| owner.send(:missing_attribute, n, caller) }
+          keys = if reflection.options[:query_constraints]
+            reflection.foreign_key
+          else
+            reflection.query_foreign_key
           end
-          foreign_key.composite? ? (values if values.any?) : values.first
+          key = ActiveRecord::Key.for(keys)
+          values = key.map do |column|
+            owner.read_attribute(column) { |name| owner.send(:missing_attribute, name, caller) }
+          end
+          key.composite? ? (values if values.any?) : values.first
         end
     end
   end
