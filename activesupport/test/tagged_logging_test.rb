@@ -196,6 +196,31 @@ class TaggedLoggingWithoutBlockTest < ActiveSupport::TestCase
     assert_equal "[BCX] Dull story\n[BCX] [OMG] Cool story\n[BCX] Funky time\n", @output.string
   end
 
+  # Non-block #tagged applies tags to the returned logger (shared across threads),
+  # but block #tagged on that logger must still isolate per thread — otherwise
+  # combining the two forms leaks block tags (see #48787).
+  test "block tags on non-block tagged logger are isolated per thread" do
+    logger = @logger.tagged("BASE_TAG")
+    logger.tagged("BCX") do
+      Thread.new do
+        logger.info "Dull story"
+        logger.tagged("OMG") { logger.info "Cool story" }
+      end.join
+      logger.info "Funky time"
+    end
+    assert_equal "[BASE_TAG] Dull story\n[BASE_TAG] [OMG] Cool story\n[BASE_TAG] [BCX] Funky time\n", @output.string
+  end
+
+  test "block tags on non-block tagged logger do not leak after thread finishes" do
+    logger = @logger.tagged("BCX")
+    Thread.new do
+      logger.info "Dull story"
+      logger.tagged("OMG") { logger.info "Cool story" }
+    end.join
+    logger.info "Funky time"
+    assert_equal "[BCX] Dull story\n[BCX] [OMG] Cool story\n[BCX] Funky time\n", @output.string
+  end
+
   test "keeps each tag in their own instance" do
     other_output = StringIO.new
     other_logger = ActiveSupport::TaggedLogging.new(Logger.new(other_output))
