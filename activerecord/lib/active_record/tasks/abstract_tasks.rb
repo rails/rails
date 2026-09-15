@@ -58,9 +58,16 @@ module ActiveRecord
 
         def run_cmd_error(cmd, args)
           msg = +"failed to execute:\n"
-          msg << "#{cmd} #{args.join(' ')}\n\n"
+          msg << "#{cmd} #{filter_sensitive_args(args).join(' ')}\n\n"
           msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
           msg
+        end
+
+        # The failed command is echoed back, so anything secret it was given has
+        # to be kept out of the message.
+        def filter_sensitive_args(args)
+          filtered = "--password=#{ActiveSupport::ParameterFilter::FILTERED}"
+          args.map { |arg| arg.to_s.sub(/\A--password=.+/m, filtered) }
         end
 
         def with_temporary_pool(db_config, migration_class, clobber: false)
