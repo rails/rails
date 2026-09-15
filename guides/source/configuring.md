@@ -2475,9 +2475,9 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.action_dispatch.perform_deep_munge`
 
-Configures whether `deep_munge` method should be performed on the parameters.
-See [Security Guide](security.html#unsafe-query-generation) for more
-information. It defaults to `true`.
+Configures whether `deep_munge` method should be performed on the request parameters. This method automatically filters an array parameter to remove `nil` objects, which may be used to add undesireable `IS NULL` clauses to a SQL query.
+
+See [CVE-2012-2660](https://groups.google.com/g/rubyonrails-security/c/8SA-M3as7A8/m/Mr9fi9X4kNgJ), [CVE-2012-2694](https://groups.google.com/g/rubyonrails-security/c/jILZ34tAHF4/m/7x0hLH-o0-IJ), and [CVE-2013-0155](https://groups.google.com/g/rubyonrails-security/c/c7jT-EeN9eI/m/L0u4e87zYGMJ) for further information.
 
 #### `config.action_dispatch.rescue_responses`
 
