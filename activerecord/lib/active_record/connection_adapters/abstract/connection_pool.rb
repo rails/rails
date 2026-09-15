@@ -1205,10 +1205,11 @@ module ActiveRecord
           synchronize do
             return unless @maintaining > @available.num_waiting
 
-            # We are guaranteed the "maintaining" thread will return its promised
-            # connection within one maintenance-unit of time. Thus we can safely
-            # do a blocking wait with (functionally) no timeout.
-            @available.poll(100)
+            # Maintenance work (e.g. a keepalive ping) can stall for reasons outside
+            # our control, such as a slow or unresponsive database server, so this
+            # wait must stay bounded by the caller's own checkout_timeout rather than
+            # assume maintenance always finishes quickly.
+            @available.poll(checkout_timeout)
           end
         end
 
