@@ -1,3 +1,10 @@
+*   Make `db:schema:load` work with MySQL client 9.4 and later.
+
+    The client rejects the `SOURCE` command by default from 9.4.0 on, so the SQL
+    structure file is now read from standard input.
+
+    *Yasuo Honda*
+
 *   Fix PostgreSQL primary key introspection for covering indexes.
 
     `pg_index.indkey` includes non-key columns added with `INCLUDE`. Primary
