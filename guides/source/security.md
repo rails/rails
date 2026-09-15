@@ -1637,6 +1637,9 @@ class PostsController < ApplicationController
 end
 ```
 
+The CSP may be set as a `<meta>` tag in the document's `<head>`, or sent as an HTTP response
+header. Rails uses the latter approach.
+
 [`Content-Security-Policy` (CSP)]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
 
 #### Monitoring CSP Violations
@@ -1745,7 +1748,17 @@ Rails.app.config.content_security_policy_nonce_generator = -> request { SecureRa
 each request. However, the trade-off here is that it is incompatible
 with [conditional GET caching](caching_with_rails.html#conditional-get-support)
 because new nonces will result in new ETag values for every request.
-An alternative would be to use the session ID:
+
+It is also incompatible with the [Turbo](https://turbo.hotwired.dev)
+JavaScript library that ships with Rails. The CSP is activated by the
+browser when an HTML document is loaded for the first time, and lives as
+long as the document. Turbo intercepts link clicks and form submissions and
+then uses JavaScript to perform those requests and update the page. This means
+that the document isn't reloaded during page navigation. The
+nonce defined in the CSP during the initial page load is locked in
+for the lifetime of the document.
+
+An alternative option is to use the session ID as the nonce:
 
 ```ruby
 Rails.app.config.content_security_policy_nonce_generator = -> request { request.session.id.to_s }
@@ -1754,6 +1767,19 @@ Rails.app.config.content_security_policy_nonce_generator = -> request { request.
 This generation method is compatible with ETags, however its security
 depends on the session ID being sufficiently random and not being exposed
 in insecure cookies.
+
+A caveat here is that the session will not yet exist when a user visits
+your website for the very first time — meaning a valid nonce cannot
+be generated. If you require a nonce from a user's very first visit,
+you'll need to generate a random nonce and then store it in a session for
+future requests.
+
+```ruby
+config.content_security_policy_nonce_generator = ->(request) {
+  request.session[:nonce] ||= SecureRandom.base64(16)
+  request.session[:nonce]
+}
+```
 
 By default, nonces will be applied to `script-src` and `style-src`
 if a nonce generator is defined.
@@ -1802,11 +1828,6 @@ to dynamically add scripts to a page.
   <%= csp_meta_tag %>
 </head>
 ```
-
-Bear in mind that if your nonce is available in a meta tag, it can
-just as easily by used by an attacker who has achieved XSS to inject
-their own script with a valid nonce into your page. Use this technique
-with extreme caution.
 
 ### `Feature-Policy` Header
 
