@@ -248,6 +248,7 @@ module ActiveRecord
           release_connection
         end
         alias :flush! :disconnect!
+        alias :clear_reloadable_connections! :disconnect!
 
         def disable_query_cache(dirties: true)
           cache = query_cache
@@ -472,35 +473,10 @@ module ActiveRecord
           end
 
           def main_pool_value(method_name)
-            dispatch_to_main_pool(method_name, [], {})
-          end
-
-          def dispatch_to_main_pool(method_name, args, kwargs)
             connection_name, role, shard = @connection_name, @role, @shard
-            shareable_args = shareable_args_copy(args)
-            shareable_kwargs = shareable_kwargs_copy(kwargs)
-
             main_operation(connection_pool: self) do
-              # Pool maintenance surfacing main-Ractor state (physical
-              # connections, pool internals) cannot cross the boundary; the copy
-              # raises for such results even in a self-proxy run.
-              shareable_copy(
-                main_pool(connection_name, role, shard).__send__(method_name, *shareable_args, **shareable_kwargs)
-              )
+              shareable_copy(main_pool(connection_name, role, shard).public_send(method_name))
             end
-          end
-
-          def method_missing(name, *args, **kwargs, &block)
-            return super if name == :marshal_dump || name == :_dump
-            return super if block
-
-            dispatch_to_main_pool(name, args, kwargs)
-          end
-
-          def respond_to_missing?(name, _include_private = false)
-            return false if name == :marshal_dump || name == :_dump
-
-            true
           end
       end
     end
