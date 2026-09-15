@@ -1,3 +1,15 @@
+*   Fix thread isolation for `ActiveSupport::TaggedLogging` instances created without a block.
+
+    Previously, calling `logger.tagged(*tags)` without a block replaced the formatter's
+    `tag_stack` with an instance variable, causing block-scoped tagging (e.g. `logger.tagged(...) { ... }`)
+    and push/pop operations to share and mutate the same tag stack across concurrent threads.
+    Now, instance-level tags are preserved across threads while dynamic tags remain properly
+    isolated per thread/fiber. Also ensure cloned formatters do not share thread keys.
+
+    Fixes #48787.
+
+    *Americo Savinon*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#read_multi`
     when a local cache is active.
 
