@@ -7,6 +7,18 @@
 
     *Mueez Afzal*
 
+*   Fix `ActiveSupport::Duration#inspect` after integer division.
+
+    Dividing a duration by an integer can leave an empty `parts` hash while
+    `value` still reflects the total seconds (for example, `1.hour / 10`).
+    Adding that duration to another one previously dropped those seconds from
+    `inspect` output. Empty `parts` are now treated as `{ seconds: value }`
+    when merging durations.
+
+    Fixes #42802.
+
+    *Edil Talantbek uulu*
+
 *   Return a UTC time from `Time.rfc3339` for strings with the "Z" UTC designator.
 
     ```ruby

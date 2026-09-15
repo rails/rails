@@ -114,6 +114,14 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "0 seconds",                       (10 % 5.seconds).inspect
     assert_equal "10 minutes",                      (10.minutes + 0.seconds).inspect
     assert_equal "3600 seconds",                    (1.day / 24).inspect
+    assert_equal "361 seconds",                     (1.second + 1.hour / 10).inspect
+    assert_equal "361 seconds",                     (1.hour / 10 + 1.second).inspect
+    assert_equal "361 seconds",                     (1.hour / 10 + 1).inspect
+    assert_equal "361 seconds",                     (1 + 1.hour / 10).inspect
+    assert_equal "1 minute and 361 seconds",        (1.minute + 361).inspect
+    assert_equal "1 minute and 361 seconds",        (361 + 1.minute).inspect
+    assert_equal "361.5 seconds",                   (361 + 0.5.seconds).inspect
+    assert_equal "361.5 seconds",                   (0.5.seconds + 361).inspect
   end
 
   def test_inspect_ignores_locale
@@ -173,6 +181,11 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration, 1.second + 1.second
     assert_equal 2.seconds, 1.second + 1
     assert_instance_of ActiveSupport::Duration, 1.second + 1
+  end
+
+  def test_plus_parts_after_integer_division
+    assert_equal({ seconds: 361 }, (1.second + 1.hour / 10).parts)
+    assert_equal({ seconds: 361 }, (1.hour / 10 + 1.second).parts)
   end
 
   def test_minus
@@ -486,6 +499,7 @@ class DurationTest < ActiveSupport::TestCase
 
     assert_equal({ days: 1, seconds: 10 }, (scalar + 1.day).parts)
     assert_equal({ days: -1, seconds: 10 }, (scalar + -1.day).parts)
+    assert_equal({ seconds: 370 }, (scalar + (1.hour / 10)).parts)
   end
 
   def test_scalar_minus
@@ -515,6 +529,7 @@ class DurationTest < ActiveSupport::TestCase
 
     assert_equal({ days: -1, seconds: 10 }, (scalar - 1.day).parts)
     assert_equal({ days: 1, seconds: 10 }, (scalar - -1.day).parts)
+    assert_equal({ seconds: -350 }, (scalar - (1.hour / 10)).parts)
   end
 
   def test_scalar_multiply
