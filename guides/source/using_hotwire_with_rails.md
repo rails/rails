@@ -254,6 +254,77 @@ The custom action can now be rendered with a more readable syntax:
 <%= turbo_stream.add_class(:posts, "font-bold") %>
 ```
 
+### Content Security Policy
+
+Rails supports the use of a [Content Security Policy (CSP)](security.html#content-security-policy-header)
+to restrict the loading of external content such as scripts,
+stylesheets, or images. If you're unfamiliar
+with how a Content Security Policy works, refer to the
+[Security guide](security.html#content-security-policy-header).
+This section outlines the extra considerations required when
+using a CSP in Rails with Turbo.
+
+Rails sets the CSP using an HTTP response header, and it is activated
+by the browser when an HTML document is loaded. Since Turbo intercepts
+all link clicks and form submissions — instead triggering the HTTP
+requests and updating the page using JavaScript, the HTML document
+is never reloaded during page navigation. Hence, the CSP defined on
+the page's first load is active until the document is fully reloaded
+(by a page refresh, for example).
+
+Due to this behavior, Turbo requires a _nonce_ (which explicitly allows
+inline `<script>` elements to execute) that is constant for the duration
+of a session, such as the session ID.
+
+```ruby
+# config/content_security_policy.rb
+
+# ...
+
+# The session ID will be defined in the CSP, and be set as a
+# `nonce` attribute in `<script>` elements, allowing them
+# to execute.
+# Note that a user will not have a valid session for their
+# first ever request to your app, resulting in an invalid
+# nonce for that request.
+config.content_security_policy_nonce_generator = ->(request) {
+  request.session.id.to_s
+}
+
+# To work around the above issue, you may use a randomly
+# generated value and store it in the session.
+config.content_security_policy_nonce_generator = ->(request) {
+  request.session[:nonce] ||= SecureRandom.base64(16)
+  request.session[:nonce]
+}
+```
+
+Generating a unique nonce for each request isn't compatible with
+Turbo because the HTML document isn't reloaded during navigation,
+meaning the CSP cannot be updated with a new request-specific nonce.
+
+Additionally, Rails renders the nonce for the current request in a `<meta>`
+tag in the document's head using the `csp_meta_tag` method.
+
+```html+erb
+<%# app/views/layouts/application.html.erb %>
+<%# ... %>
+
+<%= csp_meta_tag %>
+
+<%# ... %>
+```
+
+When an HTTP response received by Turbo contains `<script>`
+elements, it will read the nonce from this `<meta>` tag, and set it as
+the value for the `nonce` attribute on the element to activate it. When
+using a request-specific nonce, the nonce in the meta tag will not
+match the nonce in the active CSP, and hence will not allow the script
+to execute.
+
+Further information can be found in the
+[security guide](security.html#adding-a-nonce).
+
 Turbo Streams over Action Cable
 -------------------------------
 
