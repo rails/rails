@@ -45,13 +45,17 @@ module ActiveRecord
     # The regular {ActiveRecord::Base#save}[rdoc-ref:Persistence#save] method is replaced
     # with this when the validations module is mixed in, which it is by default.
     def save(**options)
-      perform_validations(options) ? super : false
+      with_autosave_association_validation_context(options) do
+        perform_validations(options) ? super : false
+      end
     end
 
     # Attempts to save the record just like {ActiveRecord::Base#save}[rdoc-ref:Base#save] but
     # will raise an ActiveRecord::RecordInvalid exception instead of returning +false+ if the record is not valid.
     def save!(**options)
-      perform_validations(options) ? super : raise_validation_error
+      with_autosave_association_validation_context(options) do
+        perform_validations(options) ? super : raise_validation_error
+      end
     end
 
     # Runs all the validations within the specified context. Returns +true+ if
@@ -85,6 +89,19 @@ module ActiveRecord
 
     def raise_validation_error
       raise(RecordInvalid.new(self))
+    end
+
+    def autosave_association_validations_skipped?
+      @_skip_autosave_association_validations
+    end
+
+    def with_autosave_association_validation_context(options)
+      previous_validation_state = @_skip_autosave_association_validations
+      @_skip_autosave_association_validations = options[:validate] == false
+
+      yield
+    ensure
+      @_skip_autosave_association_validations = previous_validation_state
     end
 
     def perform_validations(options = {})
