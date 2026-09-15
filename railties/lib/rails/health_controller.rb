@@ -37,6 +37,10 @@ module Rails
   class HealthController < ActionController::Base
     rescue_from(Exception) { render_down }
 
+    content_security_policy do |policy|
+      policy.style_src_attr :unsafe_inline
+    end
+
     def show
       render_up
     end
