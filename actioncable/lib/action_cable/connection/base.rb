@@ -117,6 +117,10 @@ module ActionCable
         socket.transmit(data)
       end
 
+      def raw_transmit(data) # :nodoc:
+        socket.raw_transmit(data)
+      end
+
       # Close the connection.
       def close(reason: nil, reconnect: true)
         transmit(

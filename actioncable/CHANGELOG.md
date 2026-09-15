@@ -1,3 +1,12 @@
+*   Add `config.action_cable.fastlane_broadcasts_enabled` to encode broadcasted
+    messages once per channel identifier instead of once per subscriber.
+
+    When enabled, messages sent via `ActionCable.server.broadcast` are only decoded-encoded from/to JSON once per channel identifier and not for every connected client. This significantly reduces the broadcasting latency.
+
+    The option is enabled by default for applications with `config.load_defaults 8.2`.
+
+    *Vladimir Dementyev*
+
 *   Move `ActionCable::Server::Configuration` to `ActionCable::Configuration`.
 
     The old constant remains available as an alias.
