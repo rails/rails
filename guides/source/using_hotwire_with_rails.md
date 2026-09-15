@@ -266,8 +266,8 @@ using a CSP in Rails with Turbo.
 
 Rails sets the CSP using an HTTP response header, and it is activated
 by the browser when an HTML document is loaded. Since Turbo intercepts
-all link clicks and form submissions — instead triggering the HTTP
-requests and updating the page using JavaScript, the HTML document
+all link clicks and form submissions to perform the HTTP
+request and update the page using JavaScript, the HTML document
 is never reloaded during page navigation. Hence, the CSP defined on
 the page's first load is active until the document is fully reloaded
 (by a page refresh, for example).
