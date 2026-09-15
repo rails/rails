@@ -123,7 +123,7 @@ class TaggedLoggingTest < ActiveSupport::TestCase
   end
 
   test "cloned formatter does not share thread key even after access" do
-    @logger.tagged("TAG1") {}
+    @logger.tagged("TAG1") { }
 
     other_logger = ActiveSupport::TaggedLogging.new(@logger)
     other_logger.push_tags("TAG2")
