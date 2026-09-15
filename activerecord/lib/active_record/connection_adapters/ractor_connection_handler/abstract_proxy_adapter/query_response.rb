@@ -6,9 +6,10 @@ module ActiveRecord
   module ConnectionAdapters
     class RactorConnectionHandler # :nodoc:
       class AbstractProxyAdapter < AbstractAdapter # :nodoc:
-        # Shareable response for the main-side `query` operation.
+        # Shareable response for the main-side `query` operation; the worker
+        # materializes it into a Result via `to_result`.
         class QueryResponse
-          attr_reader :columns, :rows, :affected_rows, :row_count, :last_inserted_id
+          attr_reader :affected_rows, :row_count
 
           def initialize(result, affected_rows, row_count, last_inserted_id, warnings)
             @columns = result.columns
@@ -28,13 +29,15 @@ module ActiveRecord
             ActiveSupport::Ractors.make_shareable(self, copy: false)
           end
 
-          def warnings
-            @warnings_payload ? Marshal.load(@warnings_payload) : []
-          end
-
           def to_result
-            column_types = @column_types_payload && Marshal.load(@column_types_payload)
-            ActiveRecord::Result.new(@columns, @rows, column_types, affected_rows: @affected_rows)
+            Result.new(
+              @columns,
+              @rows,
+              @column_types_payload && Marshal.load(@column_types_payload),
+              affected_rows: @affected_rows,
+              warnings: @warnings_payload && Marshal.load(@warnings_payload),
+              last_inserted_id: @last_inserted_id,
+            )
           end
         end
       end

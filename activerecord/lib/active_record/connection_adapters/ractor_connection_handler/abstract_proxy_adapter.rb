@@ -15,6 +15,7 @@ module ActiveRecord
       class AbstractProxyAdapter < AbstractAdapter # :nodoc:
         autoload :QueryRequest, "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter/query_request"
         autoload :QueryResponse, "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter/query_response"
+        autoload :Result, "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter/result"
         autoload :SchemaCreationProxy, "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter/schema_creation_proxy"
 
         include Proxy
@@ -40,7 +41,6 @@ module ActiveRecord
           @capabilities = profile[:capabilities]
           @quoted_column_names = {}
           @quoted_table_names = {}
-          @last_query_response = nil
         end
 
         def adapter_name
@@ -213,20 +213,10 @@ module ActiveRecord
         # collector semantics (preparable/retryable) are worker-local, exactly
         # as on a single-manager adapter, so AbstractAdapter#to_sql_and_binds
         # needs no override.
-
-        # Raw driver results cannot cross the Ractor boundary; `execute`
-        # returns a materialized ActiveRecord::Result instead.
-        def execute(sql, name = nil, allow_retry: false)
-          # The dirtying wrapper QueryCache.dirties_query_cache installed on
-          # AbstractAdapter#execute is shadowed by this override; replicate it.
-          if pool.dirties_query_cache
-            ActiveRecord::Base.clear_query_caches_for_current_thread
-          end
-
-          intent = internal_build_intent(sql, name, allow_retry: allow_retry)
-          intent.execute!
-          intent.cast_result
-        end
+        #
+        # Neither does `execute`: raw driver results cannot cross the Ractor
+        # boundary, so the proxy's raw result (see #perform_query) is already a
+        # materialized ActiveRecord::Result, and `execute` returns it as is.
 
         # DDL is rendered by the concrete adapter's SchemaCreation on the main
         # Ractor; the concrete `schema_creation` object itself holds the raw
@@ -349,6 +339,11 @@ module ActiveRecord
             nil
           end
 
+          # The response crosses the boundary as a shareable QueryResponse and
+          # is materialized here into the proxy's Result: the raw result of
+          # this adapter, carrying the warnings and generated id alongside the
+          # rows so the hooks below read everything off the result of the query
+          # they are asked about.
           def perform_query(_raw_connection, intent)
             request = QueryRequest.new(
               sql: intent.processed_sql,
@@ -363,29 +358,26 @@ module ActiveRecord
             response = main_operation(connection_pool: @pool) do
               request.perform(fetch_connection(token))
             end
-            @last_query_response = response
             intent.notification_payload[:affected_rows] = response.affected_rows
             intent.notification_payload[:row_count] = response.row_count
-            response
-          end
-
-          def cast_result(response)
             response.to_result
           end
 
-          def affected_rows(response)
-            response.affected_rows
+          def cast_result(result)
+            result
           end
 
-          def collect_warnings(response)
-            response.is_a?(QueryResponse) ? response.warnings : []
+          def affected_rows(result)
+            result.affected_rows
           end
 
-          # The generated ID as computed by the concrete adapter on the main
-          # Ractor right after the query (e.g. `last_id` for MySQL inserts
-          # without RETURNING).
-          def last_inserted_id(_result)
-            @last_query_response&.last_inserted_id
+          # nil when the query failed before producing a result.
+          def collect_warnings(result)
+            result&.warnings
+          end
+
+          def last_inserted_id(result)
+            result.last_inserted_id
           end
 
           # Forwards one DB-touching adapter method to the token-pinned
