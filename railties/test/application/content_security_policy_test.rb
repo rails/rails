@@ -119,6 +119,70 @@ module ApplicationTests
       assert_policy "default-src 'self' https:", report_only: true
     end
 
+    test "global report only content security policy block in an initializer" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render html: "<h1>Welcome to Rails!</h1>"
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy_report_only do |p|
+          p.default_src :self, :https
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policy "default-src 'self' https:", report_only: true
+    end
+
+    test "global content security policy and report only content security policy block in an initializer" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render html: "<h1>Welcome to Rails!</h1>"
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.configure do
+          config.content_security_policy do |p|
+            p.default_src :self, :https
+          end
+
+          config.content_security_policy_report_only do |p|
+            p.default_src :self
+            p.script_src :self
+          end
+
+          config.content_security_policy_nonce_generator = proc { "iyhD0Yc0W+c=" }
+          config.content_security_policy_nonce_directives = %w(script-src)
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policies "default-src 'self' https:", "default-src 'self'; script-src 'self' 'nonce-iyhD0Yc0W+c='"
+    end
+
     test "global content security policy nonce directives in an initializer" do
       controller :pages, <<-RUBY
         class PagesController < ApplicationController
@@ -211,6 +275,41 @@ module ApplicationTests
       assert_policy "default-src 'self' https:", report_only: true
     end
 
+    test "override report only content security policy block in a controller" do
+      controller :pages, <<-RUBY
+        class PagesController < ApplicationController
+          content_security_policy_report_only do |p|
+            p.img_src "https://example.com"
+          end
+
+          def index
+            render html: "<h1>Welcome to Rails!</h1>"
+          end
+        end
+      RUBY
+
+      app_file "config/initializers/content_security_policy.rb", <<-RUBY
+        Rails.application.config.content_security_policy do |p|
+          p.default_src :self, :https
+        end
+
+        Rails.application.config.content_security_policy_report_only do |p|
+          p.default_src :self
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          root to: "pages#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/"
+      assert_policies "default-src 'self' https:", "default-src 'self'; img-src https://example.com"
+    end
+
     test "global content security policy added to rack app" do
       app_file "config/initializers/content_security_policy.rb", <<-RUBY
         Rails.application.config.content_security_policy do |p|
@@ -249,6 +348,12 @@ module ApplicationTests
 
         assert_nil last_response.headers[unexpected_header]
         assert_equal expected, last_response.headers[expected_header]
+      end
+
+      def assert_policies(expected, expected_report_only)
+        assert_equal 200, last_response.status
+        assert_equal expected, last_response.headers["Content-Security-Policy"]
+        assert_equal expected_report_only, last_response.headers["Content-Security-Policy-Report-Only"]
       end
   end
 end

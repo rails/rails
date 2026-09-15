@@ -51,8 +51,19 @@ module ActionController # :nodoc:
         end
       end
 
-      # Overrides the globally configured `Content-Security-Policy-Report-Only`
-      # header:
+      # Overrides parts of the globally configured
+      # `Content-Security-Policy-Report-Only` header. The report-only policy is
+      # sent alongside the `Content-Security-Policy` header, so a stricter policy
+      # can be tested without enforcing it:
+      #
+      #     class PostsController < ApplicationController
+      #       content_security_policy_report_only do |policy|
+      #         policy.script_src :self
+      #       end
+      #     end
+      #
+      # Without a block, the `Content-Security-Policy` is sent as
+      # `Content-Security-Policy-Report-Only` instead of being enforced:
       #
       #     class PostsController < ApplicationController
       #       content_security_policy_report_only only: :index
@@ -63,16 +74,24 @@ module ActionController # :nodoc:
       #     class PostsController < ApplicationController
       #       content_security_policy_report_only false, only: :index
       #     end
-      def content_security_policy_report_only(report_only = true, **options)
+      def content_security_policy_report_only(enabled = true, **options, &block)
         before_action(options) do
-          request.content_security_policy_report_only = report_only
+          if !enabled
+            request.content_security_policy_report_only = false
+          elsif block_given?
+            policy = current_content_security_policy_report_only
+            instance_exec(policy, &block)
+            request.content_security_policy_report_only = policy
+          else
+            request.content_security_policy_report_only = true
+          end
         end
       end
     end
 
     private
       def content_security_policy?
-        request.content_security_policy
+        request.content_security_policy || report_only_policy.present?
       end
 
       def content_security_policy_nonce
@@ -81,6 +100,17 @@ module ActionController # :nodoc:
 
       def current_content_security_policy
         request.content_security_policy&.clone || ActionDispatch::ContentSecurityPolicy.new
+      end
+
+      def current_content_security_policy_report_only
+        report_only_policy&.clone || ActionDispatch::ContentSecurityPolicy.new
+      end
+
+      # `request.content_security_policy_report_only` is either a boolean or a
+      # separate policy.
+      def report_only_policy
+        policy = request.content_security_policy_report_only
+        policy if policy.is_a?(ActionDispatch::ContentSecurityPolicy)
       end
   end
 end

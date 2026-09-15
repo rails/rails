@@ -26,4 +26,10 @@
 #
 #   # Report violations without enforcing the policy.
 #   # config.content_security_policy_report_only = true
+#
+#   # Or, report violations of a separate policy while still enforcing the one above.
+#   # config.content_security_policy_report_only do |policy|
+#   #   policy.script_src :self
+#   #   policy.report_uri "/csp-violation-report-endpoint"
+#   # end
 # end
