@@ -3,6 +3,8 @@
 require "cases/helper"
 
 class ReservedWordTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   self.use_instantiated_fixtures = true
   self.use_transactional_tests = false
 

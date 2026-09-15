@@ -110,6 +110,11 @@ module ActiveRecord
       end
     end
 
+    module NullTransactionInstrumenter # :nodoc:
+      def self.start; end
+      def self.finish(_outcome); end
+    end
+
     class NullTransaction # :nodoc:
       def state; end
       def closed?; true; end
@@ -176,7 +181,12 @@ module ActiveRecord
         @lazy_enrollment_records = nil
         @dirty = false
         @user_transaction = joinable ? ActiveRecord::Transaction.new(self) : ActiveRecord::Transaction::NULL_TRANSACTION
-        @instrumenter = TransactionInstrumenter.new(connection: connection, transaction: @user_transaction)
+        @instrumenter =
+          if connection.proxied?
+            NullTransactionInstrumenter
+          else
+            TransactionInstrumenter.new(connection: connection, transaction: @user_transaction)
+          end
       end
 
       def dirty!

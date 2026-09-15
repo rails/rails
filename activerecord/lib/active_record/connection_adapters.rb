@@ -6,7 +6,7 @@ module ActiveRecord
   module ConnectionAdapters
     extend ActiveSupport::Autoload
 
-    @adapters = {}
+    @adapters = {}.freeze
 
     class << self
       # Registers a custom database adapter.
@@ -20,7 +20,7 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters.register("mysql", "ActiveRecord::ConnectionAdapters::TrilogyAdapter", "active_record/connection_adapters/trilogy_adapter")
       #
       def register(name, class_name, path = class_name.underscore)
-        @adapters[name.to_s] = [class_name, path]
+        @adapters = ActiveSupport::Ractors.make_shareable(@adapters.merge(name.to_s => [class_name, path]))
       end
 
       def resolve(adapter_name) # :nodoc:
@@ -77,6 +77,7 @@ module ActiveRecord
     autoload :PoolConfig
     autoload :PoolManager
     autoload :QueryIntent
+    autoload :RactorConnectionHandler, "active_record/connection_adapters/ractor_connection_handler"
     autoload :RetryBudget
     autoload :SchemaCache
     autoload :BoundSchemaReflection, "active_record/connection_adapters/schema_cache"

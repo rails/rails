@@ -34,6 +34,25 @@ class Reminder < ActiveRecord::Base; end
 class Thing < ActiveRecord::Base; end
 
 class MigrationTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy :test_migration_context_with_default_schema_migration,
+    :test_migrator_versions, :test_name_collision_across_dbs,
+    :test_migration_detection_without_schema_migration_table,
+    :test_create_table_raises_if_already_exists, :test_create_table_with_if_not_exists_true,
+    :test_create_table_raises_for_long_table_names,
+    :test_create_table_with_indexes_and_if_not_exists_true,
+    :test_create_table_with_force_true_does_not_drop_nonexisting_table,
+    :test_add_table_with_decimals, :test_internal_metadata_stores_environment,
+    :test_internal_metadata_stores_environment_when_migration_fails,
+    :test_internal_metadata_stores_environment_when_other_data_exists,
+    :test_internal_metadata_not_used_when_not_enabled,
+    :test_internal_metadata_create_table_wont_be_affected_by_schema_cache,
+    :test_schema_migration_create_table_wont_be_affected_by_schema_cache,
+    :test_rename_table_with_prefix_and_suffix, :test_add_drop_table_with_prefix_and_suffix,
+    :test_create_table_with_binary_column, :test_create_table_with_query,
+    :test_create_table_with_query_from_relation,
+    :test_allows_sqlite3_rollback_on_invalid_column_type,
+    :test_decimal_scale_without_precision_should_raise
+
   self.use_transactional_tests = false
 
   fixtures :people
@@ -748,9 +767,17 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_internal_metadata_not_used_when_not_enabled
     @internal_metadata.drop_table
-    original_config = @pool.db_config.instance_variable_get(:@configuration_hash)
+    original_db_config = @pool.db_config
+    original_config = original_db_config.instance_variable_get(:@configuration_hash)
     modified_config = original_config.dup.merge(use_metadata_table: false)
-    @pool.db_config.instance_variable_set(:@configuration_hash, modified_config)
+    if ractor_proxy?
+      # A proxied pool carries a frozen config snapshot; swap, don't mutate.
+      modified_db_config = original_db_config.dup
+      modified_db_config.instance_variable_set(:@configuration_hash, modified_config)
+      @pool.instance_variable_set(:@db_config, modified_db_config)
+    else
+      original_db_config.instance_variable_set(:@configuration_hash, modified_config)
+    end
 
     assert_not @internal_metadata.enabled?
     assert_not @internal_metadata.table_exists?
@@ -762,7 +789,11 @@ class MigrationTest < ActiveRecord::TestCase
     assert_not @internal_metadata[:environment]
     assert_not @internal_metadata.table_exists?
   ensure
-    @pool.db_config.instance_variable_set(:@configuration_hash, original_config)
+    if ractor_proxy? && original_db_config
+      @pool.instance_variable_set(:@db_config, original_db_config)
+    elsif original_config
+      original_db_config.instance_variable_set(:@configuration_hash, original_config)
+    end
     @internal_metadata.create_table
   end
 
@@ -1198,8 +1229,10 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     def clear_statement_cache(model)
-      model.connection_handler.each_connection_pool do |pool|
-        pool.connections.each(&:clear_cache!)
+      without_ractor_proxy do
+        model.connection_handler.each_connection_pool do |pool|
+          pool.connections.each(&:clear_cache!)
+        end
       end
     end
 
@@ -1231,6 +1264,8 @@ class MigrationTest < ActiveRecord::TestCase
 end
 
 class ReservedWordsMigrationTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   def test_drop_index_from_table_named_values
     connection = Person.lease_connection
     connection.create_table :values, force: true do |t|
@@ -1247,6 +1282,8 @@ class ReservedWordsMigrationTest < ActiveRecord::TestCase
 end
 
 class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   def test_drop_index_by_name
     connection = Person.lease_connection
     connection.create_table :values, force: true do |t|
@@ -2023,6 +2060,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   end
 
   class MigrationStrategyTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     class TestStrategy < ActiveRecord::Migration::DefaultStrategy
       attr_reader :called
 
