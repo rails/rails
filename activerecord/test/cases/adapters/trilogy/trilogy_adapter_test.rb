@@ -7,6 +7,10 @@ require "models/post"
 require "timeout"
 
 class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
+  uses_transaction :test_timeout_in_transaction_doesnt_query_closed_connection,
+    :test_timeout_in_fixture_set_insertion_doesnt_query_closed_connection,
+    :test_timeout_without_referential_integrity_doesnt_query_closed_connection
+
   setup do
     @conn = ActiveRecord::Base.lease_connection
   end
@@ -19,11 +23,9 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "timeout in transaction doesnt query closed connection" do
-    assert_raises(Timeout::Error) do
-      Timeout.timeout(0.1) do
-        @conn.transaction do
-          @conn.execute("SELECT SLEEP(1)")
-        end
+    assert_timeout_and_remove_connection do
+      @conn.transaction do
+        @conn.execute("SELECT SLEEP(1)")
       end
     end
   end
@@ -35,19 +37,15 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
       ]]
     ] * 2000
 
-    assert_raises(Timeout::Error) do
-      Timeout.timeout(0.1) do
-        @conn.insert_fixtures_set(fixtures)
-      end
+    assert_timeout_and_remove_connection do
+      @conn.insert_fixtures_set(fixtures)
     end
   end
 
   test "timeout without referential integrity doesnt query closed connection" do
-    assert_raises(Timeout::Error) do
-      Timeout.timeout(0.1) do
-        @conn.disable_referential_integrity do
-          @conn.execute("SELECT SLEEP(1)")
-        end
+    assert_timeout_and_remove_connection do
+      @conn.disable_referential_integrity do
+        @conn.execute("SELECT SLEEP(1)")
       end
     end
   end
@@ -472,4 +470,14 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
 
     assert_not notification_sent, "#{notification} notification was sent"
   end
+
+  private
+    def assert_timeout_and_remove_connection(&block)
+      assert_raises(Timeout::Error) do
+        Timeout.timeout(0.1, &block)
+      end
+    ensure
+      ActiveRecord::Base.connection_pool.remove(@conn) if @conn
+      @conn = nil
+    end
 end

@@ -79,15 +79,15 @@ module ActiveRecord
     end
 
     def test_or_with_unscope_where
-      expected = Post.where("id = 1 or id = 2")
+      expected = Post.where("id = 1 or id = 2").sort_by(&:id)
       partial = Post.where("id = 1 and id != 2")
-      assert_equal expected, partial.or(partial.unscope(:where).where("id = 2")).to_a
+      assert_equal expected, partial.or(partial.unscope(:where).where("id = 2")).sort_by(&:id)
     end
 
     def test_or_with_unscope_where_column
-      expected = Post.where("id = 1 or id = 2")
+      expected = Post.where("id = 1 or id = 2").sort_by(&:id)
       partial = Post.where(id: 1).where.not(id: 2)
-      assert_equal expected, partial.or(partial.unscope(where: :id).where("id = 2")).to_a
+      assert_equal expected, partial.or(partial.unscope(where: :id).where("id = 2")).sort_by(&:id)
     end
 
     def test_or_with_unscope_order
