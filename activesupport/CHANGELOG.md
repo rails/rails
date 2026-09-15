@@ -1,3 +1,13 @@
+*   Fix thread isolation when combining block and non-block `ActiveSupport::TaggedLogging#tagged`.
+
+    Non-block `#tagged` still returns a logger with applied tags shared across
+    threads. Block `#tagged` on that logger now keeps its tags in thread-/fiber-
+    local storage again, so they no longer leak across threads.
+
+    Fixes #48787
+
+    *Americo Savinon*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#read_multi`
     when a local cache is active.
 
