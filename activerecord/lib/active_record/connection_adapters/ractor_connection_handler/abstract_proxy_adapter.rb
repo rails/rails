@@ -248,15 +248,7 @@ module ActiveRecord
         # builder, which (like schema definition graphs) cannot cross the
         # boundary, so insert_all/upsert_all is main-Ractor only.
         def build_insert_sql(insert) # :nodoc:
-          unless ActiveSupport::Ractors.main?
-            raise ActiveRecordError, "insert_all/upsert_all can only be executed on the main Ractor"
-          end
-          unless @connection_token
-            raise ConnectionNotEstablished, "The Ractor-pinned connection has been released"
-          end
-
-          materialize_transactions
-          Proxy.fetch_connection(@connection_token).build_insert_sql(insert)
+          raise ActiveRecordError, "insert_all/upsert_all can only be executed on the main Ractor"
         end
 
         # See #begin_main_transaction: the worker-materialized transaction

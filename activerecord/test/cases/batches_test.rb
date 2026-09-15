@@ -9,6 +9,11 @@ require "models/cpk"
 class EachTest < ActiveRecord::TestCase
   fixtures :posts, :subscribers, :developers, :cpk_orders
 
+  skip_under_ractor_proxy :"test_.find_each_with_multiple_column_ordering_and_using_composite_primary_key",
+    :"test_.in_batches_should_start_from_the_start_option_when_using_composite_primary_key_with_multiple_column_ordering",
+    :"test_.in_batches_should_end_at_the_finish_option_when_using_composite_primary_key_with_multiple_column_ordering",
+    :"test_.in_batches_with_scope_and_multiple_column_ordering_and_using_composite_primary_key"
+
   def setup
     @posts = Post.order("id asc")
     @total = Post.count

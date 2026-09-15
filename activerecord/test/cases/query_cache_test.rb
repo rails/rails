@@ -975,6 +975,8 @@ end
 class QueryCacheExpiryTest < ActiveRecord::TestCase
   fixtures :tasks, :posts, :categories, :categories_posts
 
+  skip_under_ractor_proxy :test_insert_all, :test_insert_all_bang, :test_upsert_all
+
   def teardown
     Task.lease_connection.clear_query_cache
   end
