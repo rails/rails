@@ -60,7 +60,8 @@ module ActiveSupport
           location = __getobj__.backtrace_locations[0]
           ["#{location.path}:#{location.lineno}: #{__getobj__}"]
         else
-          __getobj__.to_s.split("\n")
+          # Only message lines with a file location on them are trace entries
+          __getobj__.to_s.split("\n").grep(/:\d+/)
         end
       end
   end
