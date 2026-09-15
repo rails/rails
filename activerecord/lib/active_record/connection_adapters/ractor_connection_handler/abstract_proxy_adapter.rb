@@ -360,7 +360,7 @@ module ActiveRecord
             )
 
             token = @connection_token
-            response = main_operation(sql: request.sql, connection_pool: @pool) do
+            response = main_operation(connection_pool: @pool) do
               request.perform(fetch_connection(token))
             end
             @last_query_response = response

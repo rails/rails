@@ -437,26 +437,33 @@ module ActiveRecord
           assert_ractor_shareable(response)
 
           pool = RactorConnectionHandler::ProxyConnectionPool.new(pool_spec)
-          raised = assert_raises(ActiveRecord::StatementInvalid) do
-            RactorConnectionHandler::Proxy.raise_transport_error(response, connection_pool: pool)
-          end
-          assert_equal "boom", raised.message
-          assert_equal "SELECT 1", raised.sql
-          assert_same pool, raised.connection_pool
+          error = response.exception(connection_pool: pool)
+          assert_instance_of ActiveRecord::StatementInvalid, error
+          assert_equal "boom", error.message
+          assert_equal "SELECT 1", error.sql
+          assert_same pool, error.connection_pool
         end
 
-        def test_transport_error_falls_back_to_remote_error_preserving_class
-          # MismatchedForeignKey cannot be rebuilt from (message, sql), so the
-          # transport surfaces a RemoteError that carries the original class.
+        def test_transport_error_reconstructs_classes_with_custom_constructors
+          # MismatchedForeignKey takes keyword-only arguments and holds a
+          # lambda: reconstruction bypasses the constructor and the lambda
+          # crosses as a shareable one.
           response = RactorConnectionHandler::Proxy::ErrorResponse.new(
-            ActiveRecord::MismatchedForeignKey.new(message: "fk mismatch")
+            ActiveRecord::MismatchedForeignKey.new(
+              message: "fk mismatch", sql: "ALTER TABLE widgets", query_parser: ->(sql) { { table: sql } }
+            )
           )
+          assert_ractor_shareable(response)
 
-          raised = assert_raises(RactorConnectionHandler::Proxy::RemoteError) do
-            RactorConnectionHandler::Proxy.raise_transport_error(response)
-          end
-          assert_same ActiveRecord::MismatchedForeignKey, raised.remote_class
-          assert_match(/fk mismatch/, raised.message)
+          error = response.exception
+          assert_instance_of ActiveRecord::MismatchedForeignKey, error
+          assert_match(/fk mismatch/, error.message)
+          assert_equal "ALTER TABLE widgets", error.sql
+
+          query_parser = error.instance_variable_get(:@query_parser)
+          assert_ractor_shareable(query_parser)
+          assert_predicate query_parser, :lambda?
+          assert_equal({ table: "widgets" }, query_parser.call("widgets"))
         end
 
         def test_transport_error_reconstructs_anonymous_error_classes
@@ -464,10 +471,9 @@ module ActiveRecord
           response = RactorConnectionHandler::Proxy::ErrorResponse.new(klass.new("error"))
           assert_ractor_shareable(response)
 
-          raised = assert_raises(klass) do
-            RactorConnectionHandler::Proxy.raise_transport_error(response)
-          end
-          assert_equal "error", raised.message
+          error = response.exception
+          assert_instance_of klass, error
+          assert_equal "error", error.message
         end
 
         # --- proxy: query retries ---
@@ -518,7 +524,7 @@ module ActiveRecord
             end
           end
 
-          assert_equal [], conn.select_values("SELECT name FROM #{widgets_table}")
+          assert_equal [], proxy_connection.select_values("SELECT name FROM #{widgets_table}")
         end
 
         # --- proxy: lifecycle ---
@@ -616,14 +622,14 @@ module ActiveRecord
         end
 
         def test_database_error_class_crosses_the_boundary
-          error_class, message = on_ractor do
+          error_class, message, sql, pool_is_workers = on_ractor do
             pool = ConnectionAdapters::RactorConnectionHandler.instance.retrieve_connection_pool("ActiveRecord::Base")
             conn = pool.lease_connection
             begin
               conn.select_value("SELECT * FROM nonexistent_ractor_table")
-              ["no error", nil]
+              ["no error", nil, nil, nil]
             rescue => e
-              [e.class.name, e.message]
+              [e.class.name, e.message, e.sql, e.connection_pool.equal?(pool)]
             ensure
               pool.release_connection
             end
@@ -631,6 +637,8 @@ module ActiveRecord
 
           assert_equal "ActiveRecord::StatementInvalid", error_class
           assert_match(/nonexistent_ractor_table/, message)
+          assert_equal "SELECT * FROM nonexistent_ractor_table", sql
+          assert pool_is_workers
         end
 
         def test_schema_statement_rendering_raises_from_worker_ractor

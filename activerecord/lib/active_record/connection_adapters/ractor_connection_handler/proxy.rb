@@ -22,32 +22,27 @@ module ActiveRecord
       # `main_operation` blocks. The main-side half — the token registry and
       # the lookups it serves — exists only on the module.
       module Proxy # :nodoc:
-        # Raised on the worker when the main-side error cannot be rebuilt
-        # from its message. Preserves the original class.
-        class RemoteError < ActiveRecordError
-          attr_reader :remote_class
-
-          def initialize(message = nil, remote_class = nil)
-            @remote_class = remote_class
-            super(message)
-          end
-        end
-
-        # Shareable response describing a main-side failure. The worker
-        # re-raises the original exception class from it. Classes are always
-        # shareable, so the class itself crosses rather than its name.
         class ErrorResponse
-          attr_reader :error_class, :message, :sql, :backtrace
-
-          def initialize(error, sql: nil)
+          def initialize(error)
             @error_class = error.class
             @message = error.message.to_s
-            @sql = ((error.respond_to?(:sql) && error.sql) || sql)&.to_s
             @backtrace = error.backtrace
+            @ivars = error.instance_variables.excluding(:@connection_pool).to_h do |name|
+              value = error.instance_variable_get(name)
+              value = value.is_a?(Proc) ?
+                ActiveSupport::Ractors.shareable_proc(&value) :
+                ActiveSupport::Ractors.make_shareable(value)
+              [name, value]
+            end
             ActiveSupport::Ractors.make_shareable(self, copy: false)
-          rescue Ractor::Error
-            @backtrace = nil
-            ActiveSupport::Ractors.make_shareable(self, copy: false)
+          end
+
+          def exception(connection_pool: nil)
+            error = @error_class.allocate.exception(@message)
+            @ivars.each { |name, value| error.instance_variable_set(name, value) }
+            error.instance_variable_set(:@connection_pool, connection_pool) if error.is_a?(AdapterError)
+            error.set_backtrace(@backtrace) if @backtrace
+            error
           end
         end
 
@@ -60,47 +55,24 @@ module ActiveRecord
         # the dispatch port (by reference when shareable, else as a native
         # copy), and a main-side error travels back as an ErrorResponse and
         # is re-raised on the calling side.
-        def main_operation(sql: nil, connection_pool: nil, &block)
+        def main_operation(connection_pool: nil, &block)
           if ActiveSupport::Ractors.main?
             begin
               return Proxy.instance_exec(&block)
-            rescue ActiveRecordError => error
+            rescue AdapterError => error
               # Main-side translation attached the physical pool; point the
-              # error at the pool the caller actually holds, exactly as the
-              # worker path's raise_transport_error does.
-              if connection_pool && error.respond_to?(:connection_pool)
-                error.instance_variable_set(:@connection_pool, connection_pool)
-              end
+              # error at the pool the caller holds, as ErrorResponse does.
+              error.instance_variable_set(:@connection_pool, connection_pool) if connection_pool
               raise
             end
           end
 
           operation = ActiveSupport::Ractors.shareable_proc(self: Proxy, &block)
           outcome = ActiveSupport::Ractors.on_main do
-            Proxy.capture_transport_errors(sql: sql) { operation.call }
+            Proxy.capture_transport_errors { operation.call }
           end
-          raise_transport_error(outcome, connection_pool: connection_pool) if outcome.is_a?(ErrorResponse)
+          raise outcome.exception(connection_pool: connection_pool) if outcome.is_a?(ErrorResponse)
           outcome
-        end
-
-        def raise_transport_error(response, connection_pool: nil)
-          klass = response.error_class
-
-          error =
-            begin
-              if klass <= ActiveRecord::StatementInvalid
-                klass.new(response.message, sql: response.sql, connection_pool: connection_pool)
-              elsif klass <= ActiveRecord::AdapterError
-                klass.new(response.message, connection_pool: connection_pool)
-              else
-                klass.new(response.message)
-              end
-            rescue ArgumentError, TypeError
-              RemoteError.new("#{klass}: #{response.message}", klass)
-            end
-
-          error.set_backtrace(response.backtrace) if response.backtrace
-          raise error
         end
 
         def dump_binds(binds)
@@ -215,10 +187,10 @@ module ActiveRecord
           attr_reader :connections
 
           # Only public because `on_main` blocks run with a nil `self`.
-          def capture_transport_errors(sql: nil)
+          def capture_transport_errors
             yield
           rescue => error
-            ErrorResponse.new(error, sql: sql)
+            ErrorResponse.new(error)
           end
 
           # The handler that owns the real pools on the main Ractor. Resolved
