@@ -49,6 +49,7 @@ class File
       end
 
       return_val = yield temp_file
+      temp_file.close
     rescue => error
       temp_file.close rescue nil
       unlink(temp_file.path) rescue nil
