@@ -399,6 +399,10 @@ module Rails
           end
 
           ActiveSupport.raise_on_invalid_time_zone_parse = true
+
+          if respond_to?(:action_view)
+            action_view.precompile_templates = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

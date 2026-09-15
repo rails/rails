@@ -118,3 +118,14 @@
 # `ArgumentError`, matching the Ruby standard library's `Time.parse`.
 #++
 # ActiveSupport.raise_on_invalid_time_zone_parse = true
+
+###
+# Precompile view templates at boot time.
+#
+# When enabled (and config.eager_load is also true), all view templates are
+# eagerly compiled during application startup. This improves cold render times
+# and allows more memory to be shared via copy-on-write on forking web servers
+# like Puma (clustered mode) and Unicorn. Templates are detected by scanning
+# views, controllers, and helpers for render calls.
+#++
+# Rails.application.config.action_view.precompile_templates = true
