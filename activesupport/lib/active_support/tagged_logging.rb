@@ -36,7 +36,11 @@ module ActiveSupport
     module Formatter # :nodoc:
       # This method is invoked when a log event occurs.
       def call(severity, timestamp, progname, msg)
-        super(severity, timestamp, progname, tag_stack.format_message(msg))
+        super(severity, timestamp, progname, tagged_message(msg))
+      end
+
+      def tagged_message(msg)
+        tag_stack.format_message(msg)
       end
 
       def tagged(*tags)
@@ -69,7 +73,7 @@ module ActiveSupport
       end
 
       def tags_text
-        tag_stack.format_message("")
+        tagged_message("")
       end
 
       def freeze
@@ -116,11 +120,29 @@ module ActiveSupport
       end
     end
 
+    # Stores tags applied via non-block `#tagged` on the formatter instance so
+    # they are always present for that logger, while block `#tagged` continues
+    # to use the thread-/fiber-local `tag_stack` for isolation.
     module LocalTagStorage # :nodoc:
-      attr_accessor :tag_stack
+      attr_accessor :local_tags
 
       def self.extended(base)
-        base.tag_stack = TagStack.new
+        base.local_tags = []
+      end
+
+      def current_tags
+        local_tags + tag_stack.tags
+      end
+
+      def tagged_message(msg)
+        tags = current_tags
+        if tags.empty?
+          msg
+        elsif tags.size == 1
+          "[#{tags[0]}] #{msg}"
+        else
+          "[#{tags.join("] [")}] #{msg}"
+        end
       end
     end
 
@@ -164,7 +186,7 @@ module ActiveSupport
       else
         logger = ActiveSupport::TaggedLogging.new(self)
         logger.formatter.extend LocalTagStorage
-        logger.push_tags(*formatter.current_tags, *tags)
+        logger.formatter.local_tags = [*formatter.current_tags, *tags].flatten.reject(&:blank?)
         logger
       end
     end
