@@ -37,7 +37,7 @@ module ActiveRecord
           @prepared_statements = profile[:prepared_statements]
           @raw_connection = connection_token
           @verified = true
-          @remote_capability_memo = {}
+          @capabilities = profile[:capabilities]
           @quoted_column_names = {}
           @quoted_table_names = {}
           @last_query_response = nil
@@ -415,19 +415,8 @@ module ActiveRecord
 
           def remote_adapter_call(method_name, args = [], kwargs = {})
             if args.empty? && kwargs.empty? && CAPABILITY_METHOD_PATTERN.match?(method_name)
-              capabilities = @adapter_profile[:capabilities]
-              if capabilities&.key?(method_name)
-                return capabilities[method_name]
-              end
-            end
-
-            unless @connection_token
-              raise ConnectionNotEstablished, "The Ractor-pinned connection has been released"
-            end
-
-            if args.empty? && kwargs.empty? && CAPABILITY_METHOD_PATTERN.match?(method_name)
-              @remote_capability_memo.fetch(method_name) do
-                @remote_capability_memo[method_name] = call_main_connection(method_name, args, kwargs)
+              @capabilities.fetch(method_name) do
+                @capabilities[method_name] = call_main_connection(method_name, args, kwargs)
               end
             else
               call_main_connection(method_name, args, kwargs)
@@ -438,7 +427,10 @@ module ActiveRecord
           # connection. Arguments and results always cross as shareable copies,
           # keeping a self-proxy run faithful to the worker boundary.
           def call_main_connection(method_name, args, kwargs)
-            token = @connection_token
+            unless token = @connection_token
+              raise ConnectionNotEstablished, "The Ractor-pinned connection has been released"
+            end
+
             shareable_args = shareable_args_copy(args)
             shareable_kwargs = shareable_kwargs_copy(kwargs)
 
