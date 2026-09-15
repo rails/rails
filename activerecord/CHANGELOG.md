@@ -1,3 +1,8 @@
+*   Fix `keepalive: false` in `database.yml` falling back to the
+    600 second default.
+
+    *Joe Sak*
+
 *   Fix connection checkout blocking past the configured `checkout_timeout` while
     waiting behind background connection maintenance.
 
