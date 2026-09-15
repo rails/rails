@@ -1,3 +1,7 @@
+*   Extract `composed_of` from `ActiveRecord::Aggregations` into `ActiveModel::Aggregations`.
+
+    *Ben Sheldon*
+
 *   Fix PostgreSQL primary key introspection for covering indexes.
 
     `pg_index.indkey` includes non-key columns added with `INCLUDE`. Primary
