@@ -1,3 +1,12 @@
+*   Allow large Mailgun inbound email payloads to exceed Rack's default query parser limit.
+
+    Add `ActionMailbox::Ingresses::Mailgun::RequestParser` and `config.action_mailbox.mailgun_payload_size_limit`
+    (defaulting to `25.megabytes`) to allow Mailgun MIME payloads to exceed Rack's 4MB query parser limit.
+
+    Fixes #57822.
+
+    *Kacper Madej*, *Nicolas Vandenbogaerde*
+
 *   Return `422 Unprocessable Content` for malformed Mailgun, Postmark, and SendGrid raw email parameters.
 
     *Andrii Furmanets*
