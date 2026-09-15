@@ -11,12 +11,12 @@ module ActiveRecord
           attr_reader :columns, :rows, :affected_rows, :row_count, :last_inserted_id
 
           def initialize(result, affected_rows, row_count, last_inserted_id, warnings)
-            @columns = Proxy.shareable_copy(result.columns)
-            @rows = Proxy.shareable_copy(result.rows)
+            @columns = result.columns
+            @rows = result.rows
             @column_types_payload = Proxy.dump_column_types(result)
             @affected_rows = affected_rows
             @row_count = row_count
-            @last_inserted_id = Proxy.shareable_copy(last_inserted_id)
+            @last_inserted_id = last_inserted_id
             @warnings_payload =
               unless warnings.nil? || warnings.empty?
                 begin

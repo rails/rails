@@ -74,8 +74,8 @@ module ActiveRecord
         def dispatch_to_main_schema_cache(method_name, args, kwargs) # :nodoc:
           connection_name, role, shard = @connection_name, @role, @shard
           connection_token = connection_lease.connection&.connection_token
-          shareable_args = shareable_args_copy(args)
-          shareable_kwargs = shareable_kwargs_copy(kwargs)
+          main_args = ActiveSupport::Ractors.make_shareable(args)
+          main_kwargs = ActiveSupport::Ractors.make_shareable(kwargs)
 
           main_operation(connection_pool: self) do
             pool = main_pool(connection_name, role, shard)
@@ -93,7 +93,7 @@ module ActiveRecord
               else
                 pool.schema_cache
               end
-            shareable_copy(schema_cache.__send__(method_name, *shareable_args, **shareable_kwargs))
+            schema_cache.public_send(method_name, *main_args, **main_kwargs)
           end
         end
 
@@ -475,7 +475,7 @@ module ActiveRecord
           def main_pool_value(method_name)
             connection_name, role, shard = @connection_name, @role, @shard
             main_operation(connection_pool: self) do
-              shareable_copy(main_pool(connection_name, role, shard).public_send(method_name))
+              main_pool(connection_name, role, shard).public_send(method_name)
             end
           end
       end

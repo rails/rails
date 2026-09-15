@@ -17,10 +17,10 @@ module ActiveRecord
             @prepare = !!prepare
             @batch = !!batch
             @allow_retry = !!allow_retry
-            @sql = Proxy.shareable_copy(sql)
-            @name = Proxy.shareable_copy(name)
+            @sql = sql
+            @name = name
             @binds_payload = Proxy.dump_binds(binds)
-            ActiveSupport::Ractors.make_shareable(self, copy: false)
+            ActiveSupport::Ractors.make_shareable(self)
           end
 
           def binds

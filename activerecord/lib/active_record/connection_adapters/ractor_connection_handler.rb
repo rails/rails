@@ -56,7 +56,7 @@ module ActiveRecord
       end
 
       def retrieve_connection_pool(connection_name, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard, strict: false)
-        shareable_connection_name = shareable_copy(connection_name.to_s)
+        shareable_connection_name = ActiveSupport::Ractors.make_shareable(connection_name.to_s)
         connection_role = role
         connection_shard = shard
         strict_lookup = strict
@@ -103,13 +103,13 @@ module ActiveRecord
 
       def establish_connection(config, owner_name: Base, role: Base.current_role, shard: Base.current_shard, clobber: false)
         connection_owner_name = owner_name
-        db_config = shareable_copy(config)
+        db_config = ActiveSupport::Ractors.make_shareable(config)
         connection_role = role
         connection_shard = shard
         clobber_existing = clobber
 
         pool_spec = main_operation do
-          # The boundary copy compares equal to the existing pool's config
+          # The frozen config compares equal to the existing pool's config
           # (HashConfig#==), so the main handler reuses the pool exactly like
           # a direct call with an equal config.
           pool = main_connection_handler.establish_connection(
@@ -126,16 +126,15 @@ module ActiveRecord
       end
 
       def remove_connection_pool(connection_name, role: ActiveRecord::Base.current_role, shard: ActiveRecord::Base.current_shard)
-        shareable_connection_name = shareable_copy(connection_name.to_s)
+        shareable_connection_name = ActiveSupport::Ractors.make_shareable(connection_name.to_s)
         connection_role = role
         connection_shard = shard
 
-        db_config = main_operation do
+        main_operation do
           main_connection_handler.remove_connection_pool(
             shareable_connection_name, role: connection_role, shard: connection_shard
           )
         end
-        shareable_copy(db_config)
       end
 
       def main_ractor_handler

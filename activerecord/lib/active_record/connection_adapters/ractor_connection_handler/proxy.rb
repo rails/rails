@@ -13,8 +13,8 @@ module ActiveRecord
       # and shard; physical connections by the token this module hands out
       # when a connection is pinned to a worker. `main_operation` runs a
       # block on the main Ractor with this module as `self`, so the block
-      # resolves those addresses (`main_pool`, `fetch_connection`) and copies
-      # its result back (`shareable_copy`) without naming the module.
+      # resolves those addresses (`main_pool`, `fetch_connection`) without
+      # naming the module.
       #
       # The worker-callable half is a set of module functions: stand-ins
       # include the module and call them unqualified (privately), while
@@ -56,9 +56,10 @@ module ActiveRecord
         # Runs `block` on the main Ractor with this module as `self`. A
         # main-Ractor caller (self-proxy) runs it inline and errors propagate
         # as the original exception objects. For a worker caller the block
-        # must capture only shareable objects and return a shareable value; a
-        # main-side error travels back as an ErrorResponse and is re-raised
-        # on the calling side.
+        # must capture only shareable objects; its result crosses through
+        # the dispatch port (by reference when shareable, else as a native
+        # copy), and a main-side error travels back as an ErrorResponse and
+        # is re-raised on the calling side.
         def main_operation(sql: nil, connection_pool: nil, &block)
           if ActiveSupport::Ractors.main?
             begin
@@ -100,41 +101,6 @@ module ActiveRecord
 
           error.set_backtrace(response.backtrace) if response.backtrace
           raise error
-        end
-
-        def shareable_copy(value)
-          return value if ActiveSupport::Ractors.shareable?(value)
-
-          if value.is_a?(Proc)
-            # Procs cannot be marshaled; a capture-free one becomes shareable
-            # rebound to a nil self, anything capturing state raises loudly.
-            if value.lambda?
-              return ActiveSupport::Ractors.shareable_lambda(&value)
-            else
-              return ActiveSupport::Ractors.shareable_proc(&value)
-            end
-          end
-
-          copy = Marshal.load(Marshal.dump(value))
-          ActiveSupport::Ractors.make_shareable(copy)
-        end
-
-        # Whole-graph Marshal copy, falling back to element-wise only when a
-        # member (e.g. a raw-SQL default proc) needs its own crossing strategy.
-        def shareable_args_copy(args)
-          return args if ActiveSupport::Ractors.shareable?(args)
-
-          shareable_copy(args)
-        rescue TypeError
-          ActiveSupport::Ractors.make_shareable(args.map { |arg| shareable_copy(arg) }, copy: false)
-        end
-
-        def shareable_kwargs_copy(kwargs)
-          return kwargs if ActiveSupport::Ractors.shareable?(kwargs)
-
-          shareable_copy(kwargs)
-        rescue TypeError
-          ActiveSupport::Ractors.make_shareable(kwargs.transform_values { |value| shareable_copy(value) }, copy: false)
         end
 
         def dump_binds(binds)

@@ -24,13 +24,13 @@ class FakeActiveRecordAdapter < ActiveRecord::ConnectionAdapters::AbstractAdapte
   end
 
   def merge_column(table_name, name, sql_type = nil, options = {})
-    @columns[table_name] << ActiveRecord::ConnectionAdapters::Column.new(
+    @columns[table_name] += [ActiveRecord::ConnectionAdapters::Column.new(
       name.to_s,
       lookup_cast_type(sql_type),
       options[:default],
       fetch_type_metadata(sql_type),
       options[:null],
-    )
+    )]
   end
 
   def columns(table_name)

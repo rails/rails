@@ -167,7 +167,7 @@ module ActiveRecord
           token = @connection_token
           binds_payload = dump_binds(binds)
           main_operation(connection_pool: @pool) do
-            shareable_copy(fetch_connection(token).type_casted_binds(Marshal.load(binds_payload)))
+            fetch_connection(token).type_casted_binds(Marshal.load(binds_payload))
           end
         end
 
@@ -424,18 +424,19 @@ module ActiveRecord
           end
 
           # Generic dispatch of one adapter method to the token-pinned
-          # connection. Arguments and results always cross as shareable copies,
-          # keeping a self-proxy run faithful to the worker boundary.
+          # connection. Arguments cross as shareable objects (frozen in place,
+          # never copied) in a self-proxy run too, keeping it faithful to the
+          # worker boundary.
           def call_main_connection(method_name, args, kwargs)
             unless token = @connection_token
               raise ConnectionNotEstablished, "The Ractor-pinned connection has been released"
             end
 
-            shareable_args = shareable_args_copy(args)
-            shareable_kwargs = shareable_kwargs_copy(kwargs)
+            main_args = ActiveSupport::Ractors.make_shareable(args)
+            main_kwargs = ActiveSupport::Ractors.make_shareable(kwargs)
 
             main_operation(connection_pool: @pool) do
-              shareable_copy(fetch_connection(token).__send__(method_name, *shareable_args, **shareable_kwargs))
+              fetch_connection(token).__send__(method_name, *main_args, **main_kwargs)
             end
           end
 
