@@ -370,8 +370,6 @@ module ActiveRecord
           end
 
           def cast_result(response)
-            return response if response.is_a?(ActiveRecord::Result)
-
             response.to_result
           end
 
