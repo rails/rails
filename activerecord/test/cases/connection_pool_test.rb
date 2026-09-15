@@ -1418,6 +1418,67 @@ module ActiveRecord
         end
       end
 
+      def test_checkout_retries_when_pinned_connection_lock_is_replaced
+        connection = @pool.checkout
+        connection.lock_thread = Thread.current
+
+        checkout_started = Concurrent::CountDownLatch.new
+        continue_checkout = Concurrent::CountDownLatch.new
+        replacement_lock_locked = Concurrent::CountDownLatch.new
+        replacement_lock_attempted = Concurrent::CountDownLatch.new
+
+        original_lock = connection.lock
+        original_lock_wrapper = Object.new
+        original_lock_wrapper.define_singleton_method(:synchronize) do |&block|
+          checkout_started.count_down
+          raise "checkout did not continue" unless continue_checkout.wait(1)
+          original_lock.synchronize(&block)
+        end
+        connection.instance_variable_set(:@lock, original_lock_wrapper)
+
+        @pool.instance_variable_set(:@pinned_connection, connection)
+        checkout_thread = Thread.new { @pool.checkout }
+
+        assert checkout_started.wait(1)
+
+        connection.lock_thread = Thread.current
+        replacement_lock = connection.lock
+        checkout_thread_id = checkout_thread.object_id
+        replacement_lock_wrapper = Object.new
+        replacement_lock_wrapper.define_singleton_method(:synchronize) do |&block|
+          replacement_lock_attempted.count_down if Thread.current.object_id == checkout_thread_id
+          replacement_lock.synchronize(&block)
+        end
+        connection.instance_variable_set(:@lock, replacement_lock_wrapper)
+        connection.define_singleton_method(:verify) { lock.synchronize { } }
+
+        pool_thread = Thread.new do
+          connection.lock.synchronize do
+            replacement_lock_locked.count_down
+            continue_checkout.count_down
+            raise "checkout did not attempt the replacement lock" unless replacement_lock_attempted.wait(1)
+            @pool.synchronize { }
+          end
+        end
+
+        assert replacement_lock_locked.wait(1)
+        assert pool_thread.join(1), "pool lock could not be acquired while holding the replacement connection lock"
+        assert checkout_thread.join(1), "checkout did not complete"
+        assert_same connection, checkout_thread.value
+        pool_thread.value
+      ensure
+        continue_checkout&.count_down
+        [pool_thread, checkout_thread].compact.each do |thread|
+          thread.kill
+          thread.join
+        end
+        @pool.instance_variable_set(:@pinned_connection, nil)
+        if connection
+          connection.lock_thread = nil
+          @pool.checkin(connection) if connection.in_use?
+        end
+      end
+
       def test_disconnect_and_clear_reloadable_connections_are_able_to_preempt_other_waiting_threads
         with_single_connection_pool(checkout_timeout: 1.0) do |pool|
           [:disconnect, :disconnect!, :clear_reloadable_connections, :clear_reloadable_connections!].each do |group_action_method|
