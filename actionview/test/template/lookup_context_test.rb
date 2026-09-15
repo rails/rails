@@ -208,17 +208,20 @@ if RUBY_VERSION >= "4.0"
     test "view_context_class has a Ractor-local compiled method container" do
       main_class = ActionView::LookupContext.view_context_class
 
-      worker_class, singleton_container, instance_container, reset_class = on_ractor do
+      worker_class, singleton_container, instance_container, reset_class, reset_instance_container = on_ractor do
         klass = ActionView::LookupContext.view_context_class
         ActionView::LookupContext.reset_view_context_class
+        reset_klass = ActionView::LookupContext.view_context_class
         [klass, klass.compiled_method_container, klass.allocate.compiled_method_container,
-          ActionView::LookupContext.view_context_class]
+          reset_klass, reset_klass.allocate.compiled_method_container]
       end
 
-      assert_not_same main_class, worker_class
-      assert_same worker_class, singleton_container
+      assert_operator worker_class, :<, main_class
+      assert_same main_class, singleton_container
       assert_same worker_class, instance_container
       assert_not_same worker_class, reset_class
+      assert_operator reset_class, :<, main_class
+      assert_same reset_class, reset_instance_container
     end
 
     test "controller view_context_class is Ractor-local" do
@@ -231,12 +234,12 @@ if RUBY_VERSION >= "4.0"
       worker_base_class, worker_class, compiled_method_container = on_ractor(controller) do |klass|
         base_class = ActionView::LookupContext.view_context_class
         view_class = klass.view_context_class
-        [base_class, view_class, view_class.compiled_method_container]
+        [base_class, view_class, view_class.allocate.compiled_method_container]
       end
 
       assert_not_same main_class, worker_class
       assert_same worker_base_class, worker_class.superclass
-      assert_same worker_base_class, compiled_method_container
+      assert_same worker_class, compiled_method_container
     end
 
     if RUBY_VERSION >= "4.0"
