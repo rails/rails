@@ -1,3 +1,11 @@
+*   Preserve the requested key order in `ActiveSupport::Cache::Store#read_multi`
+    when a local cache is active.
+
+    `fetch_multi` was fixed for this, but `read_multi` still returned the local
+    cache hits first instead of following the order of the requested keys.
+
+    *Carlos Daniel Pohlod*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
     when a local cache is active.
 
