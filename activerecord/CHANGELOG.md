@@ -1,3 +1,7 @@
+*   Fix passing Trilogy SSL options to `mysql` and `mysqldump` commands.
+
+    *Ngan Pham*
+
 *   Fix `keepalive: false` in `database.yml` falling back to the
     600 second default.
 
