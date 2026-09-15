@@ -217,7 +217,9 @@ module ActiveRecord
       def initialize_attributes(record, except_from_scope_attributes = nil) # :nodoc:
         except_from_scope_attributes ||= {}
         skip_assign = [reflection.foreign_key, reflection.type].compact
-        assigned_keys = record.changed_attribute_names_to_save
+        assigned_keys = record.send(:attributes_with_values, record.changed_attribute_names_to_save).each_with_object([]) do |(key, attribute), keys|
+          keys << key unless attribute.is_a?(ActiveModel::Attribute::UserProvidedDefault)
+        end
         assigned_keys += except_from_scope_attributes.keys.map(&:to_s)
         attributes = scope_for_create.except!(*(assigned_keys - skip_assign))
         record.send(:_assign_attributes, attributes) if attributes.any?
