@@ -31,6 +31,10 @@ require "models/cpk/chapter_destroy_async"
 class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   include ActiveJob::TestHelper
 
+  setup do
+    EssayDestroyAsync.destroyed_ids.clear
+  end
+
   test "destroying a record destroys the has_many :through records using a job" do
     tag = Tag.create!(name: "Der be treasure")
     tag2 = Tag.create!(name: "Der be rum")
@@ -272,6 +276,145 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     BookDestroyAsync.delete_all
   end
 
+  test "has_many destroys records created after an empty association was loaded" do
+    book = BookDestroyAsync.create!(name: "Stale target")
+    assert_empty book.essays.load
+
+    essays = 2.times.map { |index| EssayDestroyAsync.create!(name: "Essay #{index}", book_id: book.id) }
+    assert_empty book.essays
+
+    assert_enqueues_destroy_association(essays.map(&:id)) do
+      book.destroy
+    end
+
+    perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+
+    assert_empty EssayDestroyAsync.where(id: essays.map(&:id))
+    assert_equal essays.map(&:id), EssayDestroyAsync.destroyed_ids
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "has_many merges records created after a non-empty association was loaded" do
+    book = BookDestroyAsync.create!(name: "Partially stale target")
+    loaded_essay = EssayDestroyAsync.create!(name: "Loaded", book_id: book.id)
+    assert_equal [loaded_essay], book.essays.load
+    added_essay = EssayDestroyAsync.create!(name: "Added later", book_id: book.id)
+    assert_equal [loaded_essay], book.essays
+    essays = [loaded_essay, added_essay]
+
+    assert_enqueues_destroy_association(essays.map(&:id)) do
+      book.destroy
+    end
+
+    perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+
+    assert_empty EssayDestroyAsync.where(id: essays.map(&:id))
+    assert_equal essays.map(&:id), EssayDestroyAsync.destroyed_ids
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "has_many uses persisted identifiers while preserving changed target records" do
+    book = BookDestroyAsync.create!(name: "Changed target")
+    essay = EssayDestroyAsync.create!(name: "Persisted", book_id: book.id)
+    loaded_essay = book.essays.load.first
+    loaded_essay.name = "Changed in memory"
+
+    assert_enqueues_destroy_association([essay.id]) do
+      book.destroy
+    end
+
+    assert_same loaded_essay, book.essays.target.first
+    assert_equal "Changed in memory", book.essays.target.first.name
+
+    perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+
+    assert_not EssayDestroyAsync.exists?(essay.id)
+    assert_equal [essay.id], EssayDestroyAsync.destroyed_ids
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "has_many destroys records from an unloaded association" do
+    book = BookDestroyAsync.create!(name: "Unloaded target")
+    essays = 2.times.map { |index| EssayDestroyAsync.create!(name: "Essay #{index}", book_id: book.id) }
+    assert_not_predicate book.essays, :loaded?
+
+    assert_enqueues_destroy_association(essays.map(&:id)) do
+      book.destroy
+    end
+
+    perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+
+    assert_empty EssayDestroyAsync.where(id: essays.map(&:id))
+    assert_equal essays.map(&:id), EssayDestroyAsync.destroyed_ids
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "has_many destroys records created through the association" do
+    book = BookDestroyAsync.create!(name: "Association-created target")
+    essays = 2.times.map { |index| book.essays.create!(name: "Essay #{index}") }
+
+    assert_enqueues_destroy_association(essays.map(&:id)) do
+      book.destroy
+    end
+
+    perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+
+    assert_empty EssayDestroyAsync.where(id: essays.map(&:id))
+    assert_equal essays.map(&:id), EssayDestroyAsync.destroyed_ids
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "has_many does not enqueue unsaved target records" do
+    book = BookDestroyAsync.create!(name: "Mixed target")
+    unsaved_essay = book.essays.build(name: "Unsaved")
+    persisted_essay = EssayDestroyAsync.create!(name: "Persisted", book_id: book.id)
+
+    assert_enqueues_destroy_association([persisted_essay.id]) do
+      book.destroy
+    end
+
+    assert_not_predicate unsaved_essay, :persisted?
+    assert_not_predicate unsaved_essay, :destroyed?
+
+    perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+
+    assert_not EssayDestroyAsync.exists?(persisted_essay.id)
+    assert_equal [persisted_essay.id], EssayDestroyAsync.destroyed_ids
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "scoped has_many only destroys records in the association scope" do
+    book = BookDestroyAsyncWithScopedEssays.create!(name: "Scoped target")
+    assert_empty book.essays.load
+    included = EssayDestroyAsync.create!(name: "In scope", book_id: book.id)
+    excluded = EssayDestroyAsync.create!(name: "Out of scope", book_id: book.id)
+
+    assert_enqueues_destroy_association([included.id]) do
+      book.destroy
+    end
+
+    perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+
+    assert_not EssayDestroyAsync.exists?(included.id)
+    assert EssayDestroyAsync.exists?(excluded.id)
+    assert_equal [included.id], EssayDestroyAsync.destroyed_ids
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsyncWithScopedEssays.delete_all
+  end
+
   test "has_many with STI parent class destroys all children class records" do
     book = BookDestroyAsync.create!
     LongEssayDestroyAsync.create!(book: book)
@@ -438,4 +581,13 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     Tag.delete_all
     BookDestroyAsync.delete_all
   end
+
+  private
+    def assert_enqueues_destroy_association(ids, &block)
+      job_args = ->(args) { args.first[:association_ids] == ids }
+
+      assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+        assert_enqueued_with(job: ActiveRecord::DestroyAssociationAsyncJob, args: job_args, &block)
+      end
+    end
 end
