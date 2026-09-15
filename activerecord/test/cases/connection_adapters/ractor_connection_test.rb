@@ -445,9 +445,9 @@ module ActiveRecord
           assert_same pool, raised.connection_pool
         end
 
-        def test_transport_error_falls_back_to_remote_error_preserving_class_name
+        def test_transport_error_falls_back_to_remote_error_preserving_class
           # MismatchedForeignKey cannot be rebuilt from (message, sql), so the
-          # transport surfaces a RemoteError that names the original class.
+          # transport surfaces a RemoteError that carries the original class.
           response = RactorConnectionHandler::Proxy::ErrorResponse.new(
             ActiveRecord::MismatchedForeignKey.new(message: "fk mismatch")
           )
@@ -455,8 +455,19 @@ module ActiveRecord
           raised = assert_raises(RactorConnectionHandler::Proxy::RemoteError) do
             RactorConnectionHandler::Proxy.raise_transport_error(response)
           end
-          assert_equal "ActiveRecord::MismatchedForeignKey", raised.remote_class_name
+          assert_same ActiveRecord::MismatchedForeignKey, raised.remote_class
           assert_match(/fk mismatch/, raised.message)
+        end
+
+        def test_transport_error_reconstructs_anonymous_error_classes
+          klass = Class.new(StandardError)
+          response = RactorConnectionHandler::Proxy::ErrorResponse.new(klass.new("error"))
+          assert_ractor_shareable(response)
+
+          raised = assert_raises(klass) do
+            RactorConnectionHandler::Proxy.raise_transport_error(response)
+          end
+          assert_equal "error", raised.message
         end
 
         # --- proxy: query retries ---

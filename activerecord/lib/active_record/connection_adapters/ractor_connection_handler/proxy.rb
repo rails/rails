@@ -22,24 +22,25 @@ module ActiveRecord
       # `main_operation` blocks. The main-side half — the token registry and
       # the lookups it serves — exists only on the module.
       module Proxy # :nodoc:
-        # Raised on the worker when the main-side error class cannot be
-        # reconstructed. Preserves the original class name.
+        # Raised on the worker when the main-side error cannot be rebuilt
+        # from its message. Preserves the original class.
         class RemoteError < ActiveRecordError
-          attr_reader :remote_class_name
+          attr_reader :remote_class
 
-          def initialize(message = nil, remote_class_name = nil)
-            @remote_class_name = remote_class_name
+          def initialize(message = nil, remote_class = nil)
+            @remote_class = remote_class
             super(message)
           end
         end
 
         # Shareable response describing a main-side failure. The worker
-        # reconstructs and raises the original exception class from it.
+        # re-raises the original exception class from it. Classes are always
+        # shareable, so the class itself crosses rather than its name.
         class ErrorResponse
-          attr_reader :class_name, :message, :sql, :backtrace
+          attr_reader :error_class, :message, :sql, :backtrace
 
           def initialize(error, sql: nil)
-            @class_name = error.class.name.to_s
+            @error_class = error.class
             @message = error.message.to_s
             @sql = ((error.respond_to?(:sql) && error.sql) || sql)&.to_s
             @backtrace = error.backtrace
@@ -82,27 +83,21 @@ module ActiveRecord
         end
 
         def raise_transport_error(response, connection_pool: nil)
-          klass = begin
-            constant = Object.const_get(response.class_name)
-            constant if constant.is_a?(Class) && constant <= Exception
-          rescue NameError
-            nil
-          end
+          klass = response.error_class
 
           error =
             begin
-              if klass && klass <= ActiveRecord::StatementInvalid
+              if klass <= ActiveRecord::StatementInvalid
                 klass.new(response.message, sql: response.sql, connection_pool: connection_pool)
-              elsif klass && klass <= ActiveRecord::AdapterError
+              elsif klass <= ActiveRecord::AdapterError
                 klass.new(response.message, connection_pool: connection_pool)
-              elsif klass
+              else
                 klass.new(response.message)
               end
             rescue ArgumentError, TypeError
-              nil
+              RemoteError.new("#{klass}: #{response.message}", klass)
             end
 
-          error ||= RemoteError.new("#{response.class_name}: #{response.message}", response.class_name)
           error.set_backtrace(response.backtrace) if response.backtrace
           raise error
         end
