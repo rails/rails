@@ -112,7 +112,9 @@ module ActionView
         end
       else
         cache = ActiveSupport::Ractors.store_if_absent(:action_view_context_class) { Concurrent::Map.new }
-        cache.compute_if_absent(:class) { base.with_empty_template_cache }
+        cache.compute_if_absent(:class) do
+          Class.new(@view_context_class) { def compiled_method_container = self.class }
+        end
       end
     end
     @view_context_mutex = Mutex.new

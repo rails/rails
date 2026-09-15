@@ -165,4 +165,37 @@ class FileSystemResolverRactorTest < ActiveSupport::TestCase
       assert_not_same main_view_class, worker_view_class if RUBY_VERSION >= "4.0"
     end
   end
+
+  test "strict locals templates precompiled in the main Ractor render inside a non-main Ractor" do
+    Dir.mktmpdir do |dir|
+      Dir.mkdir(File.join(dir, "test"))
+      File.write(File.join(dir, "test", "hello.html.erb"), "<%# locals: () %>Hi")
+
+      Mime.eager_load!
+      ActionView::Template::Handlers::ERB.escape_ignore_list.freeze
+
+      # Make sure subscriptions are Ractor-shareable
+      ActiveSupport::Ractors.unshareable_proc_action = :raise
+      # Nothing subscribes after, so record manually
+      ActiveSupport::Notifications.send(:record_subscriptions)
+
+      details = { locale: [:en].freeze, formats: [:html].freeze, variants: [].freeze, handlers: [:erb].freeze }.freeze
+      resolver = ActionView::FileSystemResolver.new(dir)
+      main_view_class = ActionView::LookupContext.view_context_class
+      main_view = main_view_class.new(ActionView::LookupContext.new([], details), {}, nil)
+      resolver.eager_load_templates(main_view)
+      resolver.freeze
+
+      rendered, worker_view_class = on_ractor(resolver, details) do |resolver, details|
+        template = resolver.find_all("hello", "test", false, details, nil, [])[0]
+        view_class = ActionView::LookupContext.view_context_class
+        view = view_class.new(ActionView::LookupContext.new([], details), {}, nil)
+
+        [template.render(view, {}), view_class]
+      end
+
+      assert_equal "Hi", rendered
+      assert_operator worker_view_class, :<, main_view_class
+    end
+  end
 end
