@@ -515,7 +515,7 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder, &block)
       coder = LegacyYamlAdapter.convert(coder)
-      attributes = ActiveModel::AttributeSet::YAMLEncoder.decode(coder, self.class.attribute_types)
+      attributes = ActiveModel::AttributeSet::YAMLEncoder.decode(coder, self.class.attribute_types, self.class)
       init_with_attributes(attributes, coder["new_record"], &block)
     end
 

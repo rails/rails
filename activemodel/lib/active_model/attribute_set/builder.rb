@@ -5,22 +5,23 @@ require "active_model/attribute"
 module ActiveModel
   class AttributeSet # :nodoc:
     class Builder # :nodoc:
-      attr_reader :types, :default_attributes
+      attr_reader :types, :default_attributes, :model_class
 
-      def initialize(types, default_attributes = {})
+      def initialize(types, default_attributes = {}, model_class = nil)
         @types = types
         @default_attributes = default_attributes
+        @model_class = model_class
       end
 
       def build_from_database(values = {}, additional_types = {})
-        LazyAttributeSet.new(values, types, additional_types, default_attributes)
+        LazyAttributeSet.new(values, types, additional_types, default_attributes, {}, model_class)
       end
     end
   end
 
   class LazyAttributeSet < AttributeSet # :nodoc:
-    def initialize(values, types, additional_types, default_attributes, attributes = {})
-      super(attributes)
+    def initialize(values, types, additional_types, default_attributes, attributes = {}, model_class = nil)
+      super(attributes, model_class)
       @values = values
       @types = types
       @additional_types = additional_types
@@ -39,7 +40,7 @@ module ActiveModel
     end
 
     def fetch_value(name, &block)
-      if attr = @attributes[name]
+      if attr = @attributes[name] || virtual_attribute(name)
         return attr.value(&block)
       end
 

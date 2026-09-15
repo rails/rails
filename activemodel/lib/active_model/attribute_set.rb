@@ -9,12 +9,13 @@ module ActiveModel
   class AttributeSet # :nodoc:
     delegate :each_value, :fetch, :except, to: :attributes
 
-    def initialize(attributes)
+    def initialize(attributes, model_class = nil)
       @attributes = attributes
+      @model_class = model_class
     end
 
     def [](name)
-      @attributes[name] || default_attribute(name)
+      @attributes[name] || virtual_attribute(name) || default_attribute(name)
     end
 
     def []=(name, value)
@@ -52,17 +53,20 @@ module ActiveModel
     end
 
     def write_from_database(name, value)
-      @attributes[name] = self[name].with_value_from_database(value)
+      new_attribute = self[name].with_value_from_database(value)
+      @attributes[name] = new_attribute if @attributes.key?(name)
     end
 
     def write_from_user(name, value)
       raise FrozenError, "can't modify frozen attributes" if frozen?
-      @attributes[name] = self[name].with_value_from_user(value)
+      new_attribute = self[name].with_value_from_user(value)
+      @attributes[name] = new_attribute if @attributes.key?(name)
       value
     end
 
     def write_cast_value(name, value)
-      @attributes[name] = self[name].with_cast_value(value)
+      new_attribute = self[name].with_cast_value(value)
+      @attributes[name] = new_attribute if @attributes.key?(name)
     end
 
     def freeze
@@ -71,7 +75,7 @@ module ActiveModel
     end
 
     def deep_dup
-      AttributeSet.new(attributes.transform_values(&:dup_or_share))
+      AttributeSet.new(attributes.transform_values(&:dup_or_share), model_class)
     end
 
     def initialize_dup(_)
@@ -96,7 +100,7 @@ module ActiveModel
 
     def map(&block)
       new_attributes = attributes.transform_values(&block)
-      AttributeSet.new(new_attributes)
+      AttributeSet.new(new_attributes, model_class)
     end
 
     def reverse_merge!(target_attributes)
@@ -108,11 +112,16 @@ module ActiveModel
     end
 
     protected
-      attr_reader :attributes
+      attr_reader :attributes, :model_class
 
     private
       def default_attribute(name)
         Attribute.null(name)
+      end
+
+      def virtual_attribute(name)
+        return unless model_class && (definition = model_class.store_attribute_definitions[name])
+        definition.build_attribute(name, self)
       end
   end
 end

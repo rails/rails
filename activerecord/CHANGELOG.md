@@ -1,3 +1,57 @@
+*   `store_accessor` no longer drifts from standard attribute methods.
+
+    `store_accessor` hand-rolled its own subset of Dirty methods
+    (`_changed?`, `_change`, `_was`, `saved_change_to_*?`,
+    `saved_change_to_*`, `_before_last_save`) when it was added. Later
+    additions to standard attribute methods (`_previous_change`,
+    `_change_to_be_saved`, etc.) were never propagated, so the two sets
+    diverged over time.
+
+    Store-accessor keys now share the standard attribute method
+    generation path and can no longer fall behind. The additions:
+
+    * `?` predicate (via `ActiveRecord::AttributeMethods::Query`)
+    * `_will_change!`, `_previously_changed?`, `_previous_change`,
+      `_previously_was`, `restore_*!`, `clear_*_change` (via
+      `ActiveModel::Dirty`)
+    * `_before_type_cast`, `_for_database`, `_came_from_user?` (via
+      `ActiveRecord::AttributeMethods::BeforeTypeCast`)
+    * `will_save_change_to_*?`, `*_change_to_be_saved`, `*_in_database`
+      (via `ActiveRecord::AttributeMethods::Dirty`)
+
+    *Ryuta Kamizono*
+
+*   Deprecate `read_store_attribute` and `write_store_attribute`.
+
+    `store_accessor` now generates standard attribute methods, so overrides
+    should call `super` instead of these internal helpers.
+
+    Before:
+
+    ```ruby
+    def phone_number
+      read_store_attribute(:settings, :phone_number).gsub(...)
+    end
+
+    def phone_number=(value)
+      write_store_attribute(:settings, :phone_number, value.gsub(...))
+    end
+    ```
+
+    After:
+
+    ```ruby
+    def phone_number
+      super&.gsub(...)
+    end
+
+    def phone_number=(value)
+      super(value&.gsub(...))
+    end
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fix PostgreSQL primary key introspection for covering indexes.
 
     `pg_index.indkey` includes non-key columns added with `INCLUDE`. Primary

@@ -340,7 +340,7 @@ class StoreTest < ActiveRecord::TestCase
   end
 
   test "all stored attributes are returned" do
-    assert_equal [:color, :homepage, :favorite_food], Admin::User.stored_attributes[:settings]
+    assert_equal [:color, :homepage, :favorite_food, :phone_number], Admin::User.stored_attributes[:settings]
   end
 
   test "stored_attributes are tracked per class" do
@@ -431,6 +431,25 @@ class StoreTest < ActiveRecord::TestCase
 
     assert_raises ActiveRecord::ConfigurationError do
       user.color = "blue"
+    end
+  end
+
+  test "reading a store accessor on a frozen record" do
+    user = Admin::User.find(@john.id).freeze
+
+    assert_equal "black", user.color
+    assert_equal "black", user.color
+  end
+
+  test "read_store_attribute is deprecated" do
+    assert_deprecated(/read_store_attribute/, ActiveRecord.deprecator) do
+      @john.send(:read_store_attribute, :settings, :color)
+    end
+  end
+
+  test "write_store_attribute is deprecated" do
+    assert_deprecated(/write_store_attribute/, ActiveRecord.deprecator) do
+      @john.send(:write_store_attribute, :settings, :color, "purple")
     end
   end
 end
