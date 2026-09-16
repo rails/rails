@@ -646,9 +646,24 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_nothing_raised do
       @twz.period
       @twz.time
+      @twz.utc?
       @twz.to_datetime
       @twz.to_time
     end
+  end
+
+  def test_utc_predicate_on_frozen_instance
+    assert_equal false, @twz.freeze.utc?
+    assert_equal true, ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["UTC"]).freeze.utc?
+  end
+
+  def test_to_s_and_xmlschema_on_frozen_instance
+    utc = ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["UTC"]).freeze
+    @twz.freeze
+    assert_equal "1999-12-31 19:00:00 -0500", @twz.to_s
+    assert_equal "1999-12-31T19:00:00-05:00", @twz.xmlschema
+    assert_equal "2000-01-01 00:00:00 UTC", utc.to_s
+    assert_equal "2000-01-01T00:00:00Z", utc.xmlschema
   end
 
   def test_method_missing_with_non_time_return_value
@@ -691,6 +706,28 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   def test_nsec_returns_sec_fraction_when_datetime_is_wrapped
     twz = ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 1, 0, 0, Rational(1, 2)), @time_zone)
     assert_equal 500000000, twz.nsec
+  end
+
+  def test_utc_to_local_conversion_saves_period_in_instance_variable
+    assert_nil @twz.instance_variable_get("@period")
+    @twz.time
+    assert_kind_of TZInfo::TimezonePeriod, @twz.instance_variable_get("@period")
+  end
+
+  def test_utc_predicate_does_not_require_period_lookup_on_initialization
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["UTC"])
+    assert_nil twz.instance_variable_get("@period")
+    assert_equal true, twz.utc?
+  end
+
+  def test_utc_predicate_survives_marshal_and_yaml_round_trips
+    utc = ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["UTC"])
+    [@twz, utc].each do |twz|
+      assert_equal twz.utc?, Marshal.load(Marshal.dump(twz)).utc?
+      assert_equal twz.utc?, YAML.unsafe_load(twz.to_yaml).utc?
+      assert_equal twz.utc?, twz.dup.utc?
+      assert_equal twz.utc?, twz.freeze.clone.utc?
+    end
   end
 
   def test_instance_created_with_local_time_returns_correct_utc_time

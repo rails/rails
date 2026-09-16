@@ -1,3 +1,10 @@
+*   Avoid an eager time zone period lookup when instantiating `ActiveSupport::TimeWithZone`.
+
+    Restores 8.0 instantiation performance for `Time.zone.now`, `Time#in_time_zone`
+    and `TimeWithZone` arithmetic, which regressed in 8.1.
+
+    *Phil Schalm*
+
 *   Fix `ActiveSupport::BroadcastLogger#tagged` when broadcasting to more than
     one tagging logger..
 
