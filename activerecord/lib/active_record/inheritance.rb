@@ -338,7 +338,7 @@ module ActiveRecord
           type_name = base_class.type_for_attribute(inheritance_column).cast(type_name)
           subclass = sti_class_for(type_name)
 
-          unless subclass == self || descendants.include?(subclass)
+          unless subclass == self || subclass < self
             raise SubclassNotFound, "Invalid single-table inheritance type: #{subclass.name} is not a subclass of #{name}"
           end
 

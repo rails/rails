@@ -1,3 +1,11 @@
+*   Avoid materializing the whole `descendants` list when resolving an STI subclass.
+
+    `find_sti_class` checked `descendants.include?(subclass)`, which rebuilds and
+    scans the subclass tree on every record instantiation. `subclass < self` is
+    equivalent and allocation free.
+
+    *Vadim Hvistik*
+
 *   Active Record schema caches can now be dumped in JSON format.
 
     Enabled by configuring `schema_cache_path` with a path ending in `.json`,

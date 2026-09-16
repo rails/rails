@@ -330,6 +330,15 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::SubclassNotFound) { Company.new(type: "Account") }
   end
 
+  def test_sti_class_lookup_does_not_materialize_descendants
+    assert_not_called(Company, :descendants) do
+      assert_kind_of Firm, Company.instantiate("id" => 1, "type" => "Firm")
+      assert_kind_of Agency, Company.instantiate("id" => 1, "type" => "Agency")
+      assert_kind_of VerySpecialClient, Company.instantiate("id" => 1, "type" => "VerySpecialClient")
+      assert_raise(ActiveRecord::SubclassNotFound) { Company.instantiate("id" => 1, "type" => "Account") }
+    end
+  end
+
   def test_where_new_with_invalid_type
     assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").new }
   end
