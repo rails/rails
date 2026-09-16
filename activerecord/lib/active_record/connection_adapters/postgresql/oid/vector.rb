@@ -15,6 +15,15 @@ module ActiveRecord
             @subtype = subtype
           end
 
+          def as_schema_json
+            { "delim" => delim, "subtype" => subtype }
+          end
+
+          def init_from_schema_json(coder, references)
+            @delim = coder["delim"]
+            @subtype = references[coder["subtype"]]
+          end
+
           # FIXME: this should probably split on +delim+ and use +subtype+
           # to cast the values.  Unfortunately, the current Rails behavior
           # is to just return the string.

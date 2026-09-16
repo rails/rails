@@ -74,6 +74,7 @@ module ActiveRecord
     end
 
     autoload :Column
+    autoload :JSONSchemaCacheSerializer, "active_record/connection_adapters/schema_cache_serializer"
     autoload :PoolConfig
     autoload :PoolManager
     autoload :QueryIntent

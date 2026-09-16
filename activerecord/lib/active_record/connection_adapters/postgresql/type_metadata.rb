@@ -34,6 +34,16 @@ module ActiveRecord
           ].hash
         end
 
+        def as_schema_json
+          { "type_metadata" => __getobj__, "oid" => oid, "fmod" => fmod }
+        end
+
+        def init_from_schema_json(coder, references)
+          __setobj__(references[coder["type_metadata"]])
+          @oid = coder["oid"]
+          @fmod = coder["fmod"]
+        end
+
         private
           def deduplicated
             __setobj__(__getobj__.deduplicate)
