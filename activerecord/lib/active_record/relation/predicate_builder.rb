@@ -126,7 +126,8 @@ module ActiveRecord
               raise ArgumentError, "Expected corresponding value for #{key} to be an Array" unless ids_set.is_a?(Array)
               expand_from_hash(convert_dot_notation_to_hash(key.zip(ids_set).to_h))
             end
-            grouping_queries(queries)
+
+            grouping_queries(queries, key.first)
           elsif value.is_a?(Hash) && !table.has_column?(key)
             table.associated_table(key, &block)
               .predicate_builder.expand_from_hash(value.stringify_keys)
@@ -155,7 +156,7 @@ module ActiveRecord
               query == attributes ? self[key, value] : expand_from_hash(query)
             end
 
-            grouping_queries(queries)
+            grouping_queries(queries, Array(associated_reflection.join_foreign_key).first)
           elsif table.aggregated_with?(key)
             mapping = table.reflect_on_aggregation(key).mapping
             values = value.nil? ? [nil] : Array.wrap(value)
@@ -172,7 +173,7 @@ module ActiveRecord
                 end
               end
 
-              grouping_queries(queries)
+              grouping_queries(queries, mapping.first.first)
             end
           else
             self[key, value]
@@ -183,8 +184,10 @@ module ActiveRecord
     private
       attr_reader :table
 
-      def grouping_queries(queries)
-        if queries.one?
+      def grouping_queries(queries, attribute)
+        if queries.empty?
+          self[attribute, []]
+        elsif queries.one?
           queries.first
         else
           queries.map! { |query|
