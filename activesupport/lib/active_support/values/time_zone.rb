@@ -330,6 +330,7 @@ module ActiveSupport
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
+      @utc = constant_utc_zone?(@tzinfo)
 
       ActiveSupport::Ractors.make_shareable(self)
     end
@@ -344,6 +345,13 @@ module ActiveSupport
     # Returns the offset of this time zone from UTC in seconds.
     def utc_offset
       @utc_offset || tzinfo&.current_period&.base_utc_offset
+    end
+
+    # Returns true if this zone has a single constant period whose
+    # abbreviation is UTC or UCT, so every `TimeWithZone` in it is `utc?`
+    # without needing a period lookup.
+    def utc? # :nodoc:
+      @utc
     end
 
     # Returns a formatted string of the offset from UTC, or an alternative
@@ -649,6 +657,14 @@ module ActiveSupport
     end
 
     private
+      def constant_utc_zone?(tzinfo)
+        # Any instant will do: only a zone with no transitions at all yields a
+        # period with neither a start nor an end transition.
+        period = tzinfo.period_for_utc(::Time.utc(2000))
+        period.start_transition.nil? && period.end_transition.nil? &&
+          (period.abbreviation == "UTC" || period.abbreviation == "UCT")
+      end
+
       def parts_to_time(parts, now)
         raise ArgumentError, "invalid date" if parts.nil?
         if parts.empty?

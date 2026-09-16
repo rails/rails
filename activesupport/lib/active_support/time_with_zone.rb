@@ -121,8 +121,10 @@ module ActiveSupport
       if @is_utc.nil?
         # The period lookup is comparatively expensive, so it's deferred until
         # something actually needs it rather than being performed on every
-        # allocation.
-        @is_utc = zone == "UTC" || zone == "UCT"
+        # allocation, and skipped entirely for zones that are always UTC. No
+        # zone in tzdata has a UTC abbreviation without being one of those, so
+        # the fallback only matters for custom tzinfo objects.
+        @is_utc = time_zone.utc? || zone == "UTC" || zone == "UCT"
       end
       @is_utc
     end
