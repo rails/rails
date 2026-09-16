@@ -496,4 +496,50 @@ class TestERBTemplate < ActiveSupport::TestCase
 
     assert_equal expected, new_template(source).translate_location(nil, spot)
   end
+
+  def test_html_templates_use_erb_implementation_by_default
+    @template = new_template("<p><%= hello %>", format: :html)
+
+    assert_equal "<p>Hello", render
+  end
+
+  def test_html_templates_use_html_erb_implementation_when_set
+    ActionView::Base.html_erb_implementation = ActionView::Template::Handlers::ERB::Herb
+    @template = new_template("<div><%= hello %>", format: :html)
+
+    exception = assert_raises(ActionView::SyntaxErrorInTemplate) { render }
+
+    assert_includes exception.cause.message, "Opening tag `<div>` at (1:1) doesn't have a matching closing tag"
+  ensure
+    ActionView::Base.html_erb_implementation = nil
+  end
+
+  def test_non_html_templates_keep_erb_implementation_when_html_erb_implementation_is_set
+    ActionView::Base.html_erb_implementation = ActionView::Template::Handlers::ERB::Herb
+    @template = new_template("<div><%= hello %>", format: :text)
+
+    assert_equal "<div>Hello", render
+  ensure
+    ActionView::Base.html_erb_implementation = nil
+  end
+
+  def test_html_erb_implementation_accepts_symbols
+    ActionView::Base.html_erb_implementation = :herb
+
+    assert_equal ActionView::Template::Handlers::ERB::Herb, ActionView::Template::Handlers::ERB.html_erb_implementation
+
+    ActionView::Base.html_erb_implementation = :erubi
+
+    assert_nil ActionView::Template::Handlers::ERB.html_erb_implementation
+  ensure
+    ActionView::Base.html_erb_implementation = nil
+  end
+
+  def test_html_erb_implementation_rejects_unknown_values
+    error = assert_raises(ArgumentError) do
+      ActionView::Base.html_erb_implementation = :haml
+    end
+
+    assert_includes error.message, ":haml"
+  end
 end

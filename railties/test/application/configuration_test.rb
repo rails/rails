@@ -3472,6 +3472,7 @@ module ApplicationTests
 
     test "config.active_job.verbose_enqueue_logs defaults to true in development" do
       restore_default_config
+
       app "development"
 
       assert ActiveJob.verbose_enqueue_logs
@@ -3481,6 +3482,51 @@ module ApplicationTests
       app "production"
 
       assert_not ActiveJob.verbose_enqueue_logs
+    end
+
+    test "config.action_view.html_erb_implementation defaults to Herb for new apps" do
+      restore_default_config
+
+      app "production"
+
+      assert_equal ActionView::Template::Handlers::ERB::Herb, ActionView::Template::Handlers::ERB.html_erb_implementation
+    end
+
+    test "config.action_view.html_erb_implementation is nil before the 8.2 defaults" do
+      restore_default_config
+
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+
+      app "production"
+
+      assert_nil ActionView::Template::Handlers::ERB.html_erb_implementation
+    end
+
+    test "config.action_view.html_erb_implementation can be set back to :erubi" do
+      restore_default_config
+
+      app_file "config/initializers/html_erb_implementation.rb", <<-RUBY
+        Rails.application.config.action_view.html_erb_implementation = :erubi
+      RUBY
+
+      app "production"
+
+      assert_nil ActionView::Template::Handlers::ERB.html_erb_implementation
+    end
+
+    test "config.action_view.html_erb_implementation can be set to :herb before the 8.2 defaults" do
+      restore_default_config
+
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app_file "config/initializers/html_erb_implementation.rb", <<-RUBY
+        Rails.application.config.action_view.html_erb_implementation = :herb
+      RUBY
+
+      app "production"
+
+      assert_equal ActionView::Template::Handlers::ERB::Herb, ActionView::Template::Handlers::ERB.html_erb_implementation
     end
 
     test "config.active_job.enqueue_after_transaction_commit defaults to true for new apps" do
