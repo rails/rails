@@ -166,7 +166,11 @@ module ActiveRecord
       end
 
       def create_current(environment = env, name = nil)
-        each_current_configuration(environment, name) { |db_config| create(db_config) }
+        each_current_configuration(environment, name) do |db_config|
+          with_temporary_connection(db_config) do
+            create(db_config)
+          end
+        end
 
         migration_class.establish_connection(environment.to_sym)
       end
@@ -222,7 +226,11 @@ module ActiveRecord
       end
 
       def drop_current(environment = env)
-        each_current_configuration(environment) { |db_config| drop(db_config) }
+        each_current_configuration(environment) do |db_config|
+          with_temporary_connection(db_config) do
+            drop(db_config)
+          end
+        end
       end
 
       def empty_all_tables(db_config)
