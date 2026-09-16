@@ -720,6 +720,14 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal true, twz.utc?
   end
 
+  def test_utc_predicate_does_not_require_period_lookup_for_always_utc_zones
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["UTC"])
+    assert_equal true, twz.utc?
+    assert_equal "2000-01-01T00:00:00Z", twz.xmlschema
+    assert_equal "2000-01-01 00:00:00 UTC", twz.to_s
+    assert_nil twz.instance_variable_get("@period")
+  end
+
   def test_utc_predicate_survives_marshal_and_yaml_round_trips
     utc = ActiveSupport::TimeWithZone.new(Time.utc(2000), ActiveSupport::TimeZone["UTC"])
     [@twz, utc].each do |twz|
