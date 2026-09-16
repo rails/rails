@@ -38,6 +38,20 @@ class RateLimitedController < ActionController::Base
     head :ok
   end
 
+  def limited_in_action
+    if params[:fail] == "1"
+      rate_limiting to: 2, within: 2.seconds, by: -> { params[:rate_limit_key] }
+      head :unauthorized
+    else
+      head :ok
+    end
+  end
+
+  def limited_in_action_with_defaults
+    rate_limiting to: 2, within: 2.seconds
+    head :ok
+  end
+
   private
     def by_method
       params[:rate_limit_key]
@@ -244,6 +258,33 @@ class RateLimitingTest < ActionController::TestCase
 
     get :limited_with_key, params: { rate_limit_key: "user/2" }
     assert_response :ok
+  end
+
+  test "calling rate_limiting directly from within an action only counts requests that reach it" do
+    get :limited_in_action, params: { fail: "0" }
+    get :limited_in_action, params: { fail: "0" }
+    get :limited_in_action, params: { fail: "0" }
+    assert_response :ok
+
+    get :limited_in_action, params: { fail: "1", rate_limit_key: "user" }
+    assert_response :unauthorized
+
+    get :limited_in_action, params: { fail: "1", rate_limit_key: "user" }
+    assert_response :unauthorized
+
+    assert_raises ActionController::TooManyRequests do
+      get :limited_in_action, params: { fail: "1", rate_limit_key: "user" }
+    end
+  end
+
+  test "calling rate_limiting directly from within an action with default options" do
+    get :limited_in_action_with_defaults
+    get :limited_in_action_with_defaults
+    assert_response :ok
+
+    assert_raises ActionController::TooManyRequests do
+      get :limited_in_action_with_defaults
+    end
   end
 
   test "cross-controller rate limit" do
