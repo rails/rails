@@ -15,7 +15,8 @@
             else
               rate_limiting to: 10, within: 3.minutes, by: -> { params[:email] },
                 with: -> { redirect_to new_session_path, alert: "Try again later." }
-              redirect_to new_session_path, alert: "Try again."
+            return if performed?
+            redirect_to new_session_path, alert: "Try again."
             end
           end
         end

@@ -261,6 +261,7 @@ class RateLimitingTest < ActionController::TestCase
   end
 
   test "calling rate_limiting directly from within an action only counts requests that reach it" do
+    assert RateLimitedController.public_method_defined?(:rate_limiting)
     get :limited_in_action, params: { fail: "0" }
     get :limited_in_action, params: { fail: "0" }
     get :limited_in_action, params: { fail: "0" }

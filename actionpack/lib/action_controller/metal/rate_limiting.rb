@@ -115,7 +115,8 @@ module ActionController # :nodoc:
     #         else
     #           rate_limiting to: 10, within: 3.minutes, by: -> { params[:email] },
     #             with: -> { redirect_to new_session_path, alert: "Try again later." }
-    #           redirect_to new_session_path, alert: "Try again."
+      return if performed?
+      redirect_to new_session_path, alert: "Try again."
     #         end
     #       end
     #     end
@@ -123,7 +124,7 @@ module ActionController # :nodoc:
     # Prefer `rate_limit` for the common case of limiting one or more actions wholesale.
     # Reach for `rate_limiting` only when that decision depends on logic that runs
     # inside the action itself.
-    def rate_limiting(to:, within:, by: -> { request.remote_ip }, with: -> { raise TooManyRequests }, store: cache_store, name: nil, scope: controller_path)
+    def rate_limiting(to:, within:, by: -> { request.remote_ip }, with: -> { raise TooManyRequests }, store: self.class.cache_store, name: nil, scope: controller_path)
       by = by.is_a?(Symbol) ? send(by) : instance_exec(&by)
       by = by.cache_key if by.respond_to?(:cache_key)
       to = to.is_a?(Symbol) ? send(to) : (to.respond_to?(:call) ? instance_exec(&to) : to)
