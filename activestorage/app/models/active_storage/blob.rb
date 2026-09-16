@@ -313,7 +313,7 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.compose(keys, key, **service_metadata)
   end
 
-  # Checks that the file associated with this blob exist on the service.
+  # Checks that the file associated with this blob exists on the service.
   def exist?
     service.exist?(key)
   end
