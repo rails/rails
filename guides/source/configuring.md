@@ -4123,7 +4123,7 @@ development:
   max_connections: 5
   username: root
   password:
-  socket: /tmp/mysql.sock
+  host: 127.0.0.1
 ```
 
 If your development database has a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the `development` section as appropriate.
