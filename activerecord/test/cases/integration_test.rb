@@ -221,6 +221,14 @@ class IntegrationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_cache_key_only_needs_primary_key_with_versioning_on
+    with_cache_versioning do
+      dev = Developer.select(:id).first
+
+      assert_equal "developers/#{dev.id}", dev.cache_key
+    end
+  end
+
   def test_cache_version_changes_with_versioning_on
     with_cache_versioning do
       developer     = Developer.first
