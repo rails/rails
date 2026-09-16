@@ -247,7 +247,7 @@ module ActiveRecord
   )
 
   singleton_class.attr_accessor :database_cli
-  self.database_cli = { postgresql: "psql", mysql: %w[mysql mysql5], sqlite: "sqlite3" }
+  self.database_cli = { postgresql: "psql", mysql: %w[mysql mariadb], sqlite: "sqlite3" }
 
   singleton_class.attr_reader :default_timezone
 

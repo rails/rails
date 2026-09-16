@@ -11,7 +11,7 @@ module ActiveRecord
       def test_trilogy
         config = make_db_config(adapter: "trilogy", database: "db")
 
-        assert_find_cmd_and_exec_called_with([%w[mysql mysql5], "db"]) do
+        assert_find_cmd_and_exec_called_with([%w[mysql mariadb], "db"]) do
           TrilogyAdapter.dbconsole(config)
         end
       end
@@ -37,7 +37,7 @@ module ActiveRecord
         )
 
         args = [
-          %w[mysql mysql5],
+          %w[mysql mariadb],
           "--host=localhost",
           "--port=1234",
           "--socket=socket",
@@ -67,7 +67,7 @@ module ActiveRecord
           sslcapath: "/path/to/cacerts"
         )
 
-        assert_find_cmd_and_exec_called_with([%w[mysql mysql5], "db"]) do
+        assert_find_cmd_and_exec_called_with([%w[mysql mariadb], "db"]) do
           TrilogyAdapter.dbconsole(config)
         end
       end
@@ -75,7 +75,7 @@ module ActiveRecord
       def test_mysql_include_password
         config = make_db_config(adapter: "trilogy", database: "db", username: "user", password: "qwerty")
 
-        assert_find_cmd_and_exec_called_with([%w[mysql mysql5], "--user=user", "--password=qwerty", "db"]) do
+        assert_find_cmd_and_exec_called_with([%w[mysql mariadb], "--user=user", "--password=qwerty", "db"]) do
           TrilogyAdapter.dbconsole(config, include_password: true)
         end
       end

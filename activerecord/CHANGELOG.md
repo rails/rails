@@ -1,3 +1,7 @@
+*   Replace the `mysql5` fallback in `ActiveRecord.database_cli` with `mariadb`.
+
+    *Ryuta Kamizono*
+
 *   Active Record schema caches can now be dumped in JSON format.
 
     Enabled by configuring `schema_cache_path` with a path ending in `.json`,
