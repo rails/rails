@@ -192,7 +192,7 @@ module ActiveRecord
           if options[:collation] == :no_collation
             options.delete(:collation)
           else
-            options[:collation] ||= column.collation if conn.send(:text_type?, type)
+            options[:collation] ||= column.collation if conn.text_type?(type)
           end
 
           unless options.key?(:auto_increment)
