@@ -106,48 +106,10 @@ module ActiveRecord
 
       TYPE_MAP = Type::TypeMap.new.tap { |m| initialize_type_map(m) }
 
-      def supports_json?
-        !mariadb? && database_version >= "5.7.8"
-      end
-
-      def supports_comments?
-        true
-      end
-
-      def supports_comments_in_create?
-        true
-      end
-
-      def supports_savepoints?
-        true
-      end
-
-      def savepoint_errors_invalidate_transactions?
-        true
-      end
-
-      def supports_lazy_transactions?
-        true
-      end
-
-      def connected?
-        !(@raw_connection.nil? || @raw_connection.closed?)
-      end
-
       def active?
         connected? && @lock.synchronize { @raw_connection&.ping; verified! } || false
       rescue ::Trilogy::Error
         false
-      end
-
-      alias reset! reconnect!
-
-      def disconnect!
-        @lock.synchronize do
-          super
-          @raw_connection&.close
-          @raw_connection = nil
-        end
       end
 
       def discard!
@@ -159,10 +121,6 @@ module ActiveRecord
       end
 
       private
-        def text_type?(type)
-          TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
-        end
-
         def error_number(exception)
           exception.error_code if exception.respond_to?(:error_code)
         end
@@ -177,10 +135,6 @@ module ActiveRecord
           @raw_connection&.close
           @raw_connection = nil
           connect
-        end
-
-        def full_version
-          database_version.full_version_string
         end
 
         def get_full_version
@@ -204,10 +158,6 @@ module ActiveRecord
           end
 
           super
-        end
-
-        def default_prepared_statements
-          false
         end
 
         ActiveRecord::Type.register(:immutable_string, adapter: :trilogy) do |_, **args|
