@@ -20,8 +20,11 @@ module ActiveModel
         options.slice(*COMPARE_CHECKS.keys).each do |option, raw_option_value|
           option_value = resolve_value(record, raw_option_value)
 
-          if value.nil? || value.blank?
-            return record.errors.add(attr_name, :blank, **error_options(value, option_value))
+          if value.blank?
+            unless record.errors.added?(attr_name, :blank)
+              record.errors.add(attr_name, :blank, **error_options(value, option_value))
+            end
+            return
           end
 
           unless value.public_send(COMPARE_CHECKS[option], option_value)
