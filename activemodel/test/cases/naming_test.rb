@@ -221,6 +221,7 @@ class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
   end
 
   def test_accessible_from_a_ractor
+    force_skip "This test triggers: https://github.com/fxn/zeitwerk/pull/344"
     fake_model = Class.new do
       extend ActiveModel::Translation
 

@@ -66,6 +66,7 @@ class ConversionTest < ActiveModel::TestCase
   end
 
   test "to_partial_path initializes its cache on the main Ractor" do
+    force_skip "This test triggers: https://github.com/fxn/zeitwerk/pull/344"
     model_class = Class.new do
       include ActiveModel::Conversion
 

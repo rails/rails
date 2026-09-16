@@ -102,24 +102,27 @@ module ActiveModel
 
     if RUBY_VERSION >= "4.0"
       test "attribute_types can be accessed in a Ractor" do
-        previous = ActiveSupport::Ractors.unshareable_proc_action
-        ActiveSupport::Ractors.unshareable_proc_action = :raise
+        force_skip "This test triggers: https://github.com/fxn/zeitwerk/pull/344"
+        begin
+          previous = ActiveSupport::Ractors.unshareable_proc_action
+          ActiveSupport::Ractors.unshareable_proc_action = :raise
 
-        klass = class_with do
-          attribute :foo, TYPE_1
-          attribute :bar, TYPE_2
+          klass = class_with do
+            attribute :foo, TYPE_1
+            attribute :bar, TYPE_2
+          end
+
+          klass.attribute_types["foo"]
+
+          foo_type, bar_type = on_ractor do
+            [klass.attribute_types["foo"], klass.attribute_types["bar"]]
+          end
+
+          assert_same TYPE_1, foo_type
+          assert_same TYPE_2, bar_type
+        ensure
+          ActiveSupport::Ractors.unshareable_proc_action = previous
         end
-
-        klass.attribute_types["foo"]
-
-        foo_type, bar_type = on_ractor do
-          [klass.attribute_types["foo"], klass.attribute_types["bar"]]
-        end
-
-        assert_same TYPE_1, foo_type
-        assert_same TYPE_2, bar_type
-      ensure
-        ActiveSupport::Ractors.unshareable_proc_action = previous
       end
     end
 
