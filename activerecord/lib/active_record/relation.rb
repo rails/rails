@@ -604,6 +604,8 @@ module ActiveRecord
 
       return 0 if @none
 
+      model.invoke_skip_callback_monitor(self)
+
       invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
         value = @values[method]
         method == :distinct ? value : value&.any?
@@ -1076,6 +1078,8 @@ module ActiveRecord
     #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support distinct
     def delete_all
       return 0 if @none
+
+      model.invoke_skip_callback_monitor(self)
 
       invalid_methods = INVALID_METHODS_FOR_UPDATE_AND_DELETE_ALL.select do |method|
         value = @values[method]
