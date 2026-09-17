@@ -93,11 +93,12 @@ module ActiveRecord
       end
 
       def max_age
-        v = configuration_hash[:max_age]&.to_i
-        if v && v > 0
-          v
-        else
+        case v = configuration_hash[:max_age]
+        when nil, false, true
           Float::INFINITY
+        else
+          v = v.to_i
+          v > 0 ? v : Float::INFINITY
         end
       end
 
@@ -132,12 +133,27 @@ module ActiveRecord
       end
 
       def reaping_frequency # :nodoc:
-        configuration_hash.fetch(:reaping_frequency, default_reaping_frequency)&.to_f
+        case frequency = configuration_hash.fetch(:reaping_frequency, default_reaping_frequency)
+        when nil, false
+          nil
+        when true
+          default_reaping_frequency.to_f # default
+        else
+          frequency.to_f
+        end
       end
 
       def idle_timeout
-        timeout = configuration_hash.fetch(:idle_timeout, 300).to_f
-        timeout if timeout > 0
+        default = 300
+        case timeout = configuration_hash.fetch(:idle_timeout, default)
+        when nil, false
+          nil
+        when true
+          default.to_f
+        else
+          timeout = timeout.to_f
+          timeout if timeout > 0
+        end
       end
 
       def keepalive
