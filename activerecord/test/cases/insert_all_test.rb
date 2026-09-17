@@ -16,6 +16,12 @@ class ReadonlyNameBook < Book
   attr_readonly :name
 end
 
+class BookWithDefaultScope < ActiveRecord::Base
+  self.table_name = "books"
+
+  default_scope { where(format: "paperback") }
+end
+
 class InsertAllTest < ActiveRecord::TestCase
   fixtures :books
 
@@ -884,6 +890,76 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_difference "author.books.count", +1 do
       author.books.upsert_all([{ name: "My little book", isbn: "1974522598" }])
     end
+  end
+
+  def test_upsert_all_does_not_write_default_scope_attributes_to_existing_records
+    skip unless supports_insert_on_duplicate_update?
+
+    book = Book.create!(name: "Rework", format: "ebook")
+
+    BookWithDefaultScope.upsert_all([{ id: book.id, name: "Remote" }])
+
+    book.reload
+    assert_equal "Remote", book.name
+    assert_equal "ebook", book.format
+  end
+
+  def test_upsert_all_does_not_write_default_scope_attributes_the_caller_passed_to_existing_records
+    skip unless supports_insert_on_duplicate_update?
+
+    book = Book.create!(name: "Rework", format: "ebook")
+
+    BookWithDefaultScope.upsert_all([{ id: book.id, name: "Remote", format: "hardcover" }])
+
+    book.reload
+    assert_equal "Remote", book.name
+    assert_equal "ebook", book.format
+  end
+
+  def test_upsert_all_stamps_default_scope_attributes_on_new_records
+    skip unless supports_insert_on_duplicate_update?
+
+    assert_difference "Book.where(format: 'paperback').count", +1 do
+      BookWithDefaultScope.upsert_all([{ name: "Remote" }])
+    end
+  end
+
+  def test_upsert_all_on_relation_does_not_reassign_existing_records
+    skip unless supports_insert_on_duplicate_update?
+
+    author = Author.create!(name: "Jimmy")
+    second_author = Author.create!(name: "Bob")
+    book = second_author.books.create!(name: "My little book", isbn: "1974522598")
+
+    author.books.upsert_all([{ id: book.id, name: "My little book, revised" }])
+
+    book.reload
+    assert_equal "My little book, revised", book.name
+    assert_equal second_author.id, book.author_id
+  end
+
+  def test_upsert_all_writes_default_scope_attributes_with_update_only
+    skip unless supports_insert_on_duplicate_update?
+
+    book = Book.create!(name: "Rework", format: "ebook")
+
+    BookWithDefaultScope.upsert_all([{ id: book.id, name: "Remote" }], update_only: [:format])
+
+    book.reload
+    assert_equal "paperback", book.format
+    assert_equal "Rework", book.name
+  end
+
+  def test_upsert_all_with_nothing_to_update_but_the_default_scope_leaves_existing_records_alone
+    skip unless supports_insert_on_duplicate_update?
+
+    book = Book.create!(name: "Rework", format: "ebook")
+
+    assert_no_difference "Book.count" do
+      BookWithDefaultScope.upsert_all([{ id: book.id }])
+    end
+
+    assert_equal "ebook", book.reload.format
   end
 
   def test_upsert_all_on_relation_precedence

@@ -1,3 +1,23 @@
+*   `upsert_all` no longer writes default scope attributes to rows that already exist.
+
+    Attributes coming from the relation's scope were added to the `ON CONFLICT DO UPDATE`
+    clause, so upserting through a scoped relation rewrote those columns on rows that were
+    already there. On a model with `default_scope { where(deleted_at: nil) }` that restored
+    every soft deleted row the upsert touched, even though the caller never mentioned
+    `deleted_at`.
+
+    Scope attributes still fill in rows that are being inserted, which is what makes
+    `author.books.insert_all` stamp `author_id`. They are only dropped from the update
+    clause, matching `default_scope`, which is not applied while updating a record, and
+    `update_all`, which puts the scope in `WHERE` and never in `SET`. `update_only:` writes
+    a scope column on purpose.
+
+    An `upsert_all` left with nothing to update but scope columns now behaves like
+    `on_duplicate: :skip`. On PostgreSQL that means `returning` no longer reports those
+    rows.
+
+    *Filip Sučić*
+
 *   Read PostgreSQL indexes and constraints from the table an unqualified name resolves to.
 
     `indexes`, `foreign_keys`, `check_constraints`, `unique_constraints` and
