@@ -1,3 +1,11 @@
+*   Accept booleans for `idle_timeout`, `reaping_frequency` and `max_age` in `database.yml`.
+
+    These options raised `NoMethodError` on boot when set to a boolean, which YAML
+    also produces for `off`/`no` and `on`/`yes`. `false` now disables them, like the
+    documented `0`, and `true` uses the default, matching `keepalive`.
+
+    *Carlos Daniel Pohlod*
+
 *   Read PostgreSQL indexes and constraints from the table an unqualified name resolves to.
 
     `indexes`, `foreign_keys`, `check_constraints`, `unique_constraints` and
