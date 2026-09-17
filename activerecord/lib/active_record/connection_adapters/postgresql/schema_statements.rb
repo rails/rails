@@ -996,10 +996,9 @@ module ActiveRecord
                 SELECT t.relname AS table_name,
                        pg_catalog.obj_description(t.oid, 'pg_class') AS comment,
                        #{supports_native_partitioning? ? "pg_catalog.pg_get_partkeydef(t.oid)" : "NULL"} AS partition_key,
-                       parent.relname AS parent
+                       i.inhparent::regclass::text AS parent
                 FROM tables t
                 LEFT JOIN pg_inherits i ON i.inhrelid = t.oid
-                LEFT JOIN pg_class parent ON i.inhparent = parent.oid
                 WHERE t.relkind IN ('r', 'p')
                 ORDER BY t.relname, i.inhseqno
               SQL
@@ -1102,22 +1101,21 @@ module ActiveRecord
 
               rows = query_all(<<~SQL)
                 #{resolved_tables(schema, group)}
-                SELECT t1.relname AS from_table, t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid#{conenforced_column},
+                SELECT t.relname AS from_table, c.confrelid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid#{conenforced_column},
                   (
                     SELECT array_agg(a.attname ORDER BY idx)
                     FROM unnest(c.conkey) WITH ORDINALITY AS k(attnum, idx)
-                    JOIN pg_attribute a ON a.attrelid = t1.oid
+                    JOIN pg_attribute a ON a.attrelid = c.conrelid
                     AND a.attnum = k.attnum
                   ) AS conkey_names,
                   (
                     SELECT array_agg(a.attname ORDER BY idx)
                     FROM unnest(c.confkey) WITH ORDINALITY AS k(attnum, idx)
-                    JOIN pg_attribute a ON a.attrelid = t2.oid
+                    JOIN pg_attribute a ON a.attrelid = c.confrelid
                     AND a.attnum = k.attnum
                   ) AS confkey_names
                 FROM pg_constraint c
-                JOIN tables t1 ON c.conrelid = t1.oid
-                JOIN pg_class t2 ON c.confrelid = t2.oid
+                JOIN tables t ON c.conrelid = t.oid
                 WHERE c.contype = 'f'
                 ORDER BY c.conname
               SQL
