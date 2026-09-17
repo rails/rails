@@ -71,6 +71,16 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_authentication_generator_adds_change_password_well_known_route
+    generator([destination_root])
+
+    run_generator_instance
+
+    assert_file "config/routes.rb" do |content|
+      assert_match(%r{get "/\.well-known/change-password", to: redirect\("/passwords/new", status: 302\)}, content)
+    end
+  end
+
   def test_authentication_generator_without_bcrypt_in_gemfile
     File.write("#{destination_root}/Gemfile", File.read("#{destination_root}/Gemfile").sub(/# gem "bcrypt".*\n/, ""))
 
@@ -107,6 +117,7 @@ class AuthenticationGeneratorTest < Rails::Generators::TestCase
     assert_file "config/routes.rb" do |content|
       assert_match(/resource :session, only: \[ :new, :create, :destroy \]/, content)
       assert_match(/resources :passwords, param: :token, only: \[ :new, :create, :edit, :update \]/, content)
+      assert_no_match(%r{/\.well-known/change-password}, content)
     end
 
     assert_includes @rails_commands, "generate migration CreateUsers email_address:string!:uniq password_digest:string! --force"
