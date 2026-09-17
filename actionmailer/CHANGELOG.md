@@ -1,3 +1,13 @@
+*   Fix `ActionMailer.deliver_all_later` not being available until
+    `ActionMailer::MessageDelivery` was autoloaded.
+
+    *fatkodima*
+
+*   Fix `ActionMailer::Base.mail` not returning a `MessageDelivery` in Rails 8.1+.
+
+    *Andrii Furmanets*
+
+
 ## Rails 8.1.3.1 (July 29, 2026) ##
 
 *   No changes.

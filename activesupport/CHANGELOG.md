@@ -1,3 +1,135 @@
+*   Fix the debug error page rendering for `SyntaxError`s with multi-line messages.
+
+    *Marco Roth*
+
+*   Make `ActiveSupport::JSON.decode` compatible with the upcoming `json` 3.0 gem.
+
+    *Earlopain*
+
+*   Fix `number_to_human_size` crashing for sizes above a terabyte by supporting
+    petabyte, exabyte, and zettabyte storage units.
+
+    *Kenta Ishizaki*
+
+*   Fix `Range#sole` raising `NoMethodError` when the enumerable core extension
+    isn't already loaded.
+
+    *Kenta Ishizaki*
+
+*   Fix `ActiveSupport::Cache::FileStore` raising `NameError` for `FileUtils`
+    when `fileutils` isn't already loaded.
+
+    *Kenta Ishizaki*
+
+*   Fix `Enumerable#in_order_of` with `filter: true` dropping `nil` elements
+    explicitly named in the series.
+
+    *Kenta Ishizaki*
+
+*   Keep `HashWithIndifferentAccess#filter` returning a `HashWithIndifferentAccess`
+    instead of a plain `Hash`.
+
+    *Kenta Ishizaki*
+
+*   Fix `number_to_human` and `number_to_human_size` crashing when `:precision` is `nil`.
+
+    *Kenta Ishizaki*
+
+*   Fix `ActiveSupport::InheritableOptions#to_h` to recursively flatten nested
+    `InheritableOptions` parents.
+
+    *Andrew Novoselac*
+
+*   Fix `ActiveSupport::StructuredEventSubscriber.debug_only` leaking debug-only
+    methods across subscriber subclasses.
+
+    *Kenta Ishizaki*
+
+*   Fix `ActiveSupport::Inflector#transliterate` mutating the caller's string.
+
+    *Kenta Ishizaki*
+
+*   Fix `Hash.from_xml` raising `Date::Error` on `type="date"` values surrounded
+    by whitespace.
+
+    *Kenta Ishizaki*
+
+*   Fix `Time#advance` and `DateTime#advance` mutating the options hash passed
+    by the caller.
+
+    *Kenta Ishizaki*
+
+*   Fix `ActiveSupport::Cache::MemoryStore#cleanup` raising `NoMethodError` when
+    used with a non-`DupCoder` serializer.
+
+    *Kenta Ishizaki*
+
+*   Fix `String#truncate` with `:separator` misbehaving when the `:omission` is
+    longer than the target length.
+
+    *Kenta Ishizaki*
+
+*   Fix `ActiveSupport::Cache::Store#delete_multi` mutating the names array passed
+    by the caller.
+
+    *Kenta Ishizaki*
+
+*   Fix `number_to_currency` crashing on a negative number when `:precision` is `nil`.
+
+    *Kenta Ishizaki*
+
+*   Fix `TimeZone#strptime` with `%s` dropping the sub-second fraction of the timestamp.
+
+    *Kenta Ishizaki*
+
+*   Fix `HashWithIndifferentAccess.new` dropping a falsy (`false` or `0`) default
+    value from the source hash.
+
+    *Kenta Ishizaki*
+
+*   Fix `Range#include?` and `Range#===` raising on exclusive non-integer sub-ranges.
+
+    *Kenta Ishizaki*
+
+*   Fix `number_to_delimited` corrupting numbers that begin with a `+` or `-` sign.
+
+    *Kenta Ishizaki*
+
+*   Fix `ActiveSupport::InheritableOptions#==` raising `NoMethodError` when compared
+    with a non-Hash object.
+
+    *Kenta Ishizaki*
+
+*   Fix `Enumerable#in_order_of` with `filter: false` dropping elements whose keyed
+    value is `nil`.
+
+    *Hammad Khan*
+
+*   Stop the DRb service when shutting down parallel test workers, preventing it
+    from lingering after the test run.
+
+    *Shuta Mugikura*
+
+*   Preserve the encoding of `ActiveSupport::SafeBuffer` values round-tripped through
+    `ActiveSupport::MessagePack`.
+
+    *Rafael Mendonça França*
+
+*   Fix `number_to_phone` without an area code stripping a leading delimiter when the
+    number itself coincidentally starts with the delimiter string.
+
+    *Tahsin Hasan*
+
+*   Update `ActiveSupport::TimeZone` mappings to use the current IANA identifiers
+    `Europe/Kyiv` (was `Europe/Kiev`) and `Asia/Yangon` (was `Asia/Rangoon`).
+
+    *tsymbalenkovlad*
+
+*   Use the faster string-based delimiter logic by default in `number_to_delimited`,
+    instead of the regular expression fallback.
+
+    *Shinichi Maeshima*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
     when a local cache is active.
 

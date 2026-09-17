@@ -1,3 +1,27 @@
+*   Fix `retry_job` to preserve `wait_until`, `queue`, and `priority` options when
+    `enqueue_after_transaction_commit` defers the enqueue.
+
+    *Said Kaldybaev*
+
+*   Clear a stale `enqueue_error` when `perform_all_later` successfully re-enqueues a job.
+
+    *Kenta Ishizaki*
+
+*   Clear `enqueue_error` when a job is successfully re-enqueued via `enqueue`.
+
+    *Kenta Ishizaki*
+
+*   Fix `resume_job` not receiving the exception when resuming a continuation after
+    an error, causing `exception_executions` to not be recorded correctly.
+
+    *Kenta Ishizaki*
+
+*   Fix `ActiveJob.perform_all_later` not being available until `ActiveJob::Enqueuing`
+    was autoloaded.
+
+    *fatkodima*
+
+
 ## Rails 8.1.3.1 (July 29, 2026) ##
 
 *   No changes.

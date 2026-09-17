@@ -1,3 +1,302 @@
+*   Filter the database password out of failed `db:` task command error messages.
+
+    *Ngan Pham*
+
+*   Fix `ActiveRecord::TypeCaster::Connection` sometimes leaking a checked-out
+    connection.
+
+    *Hartley McGuire*
+
+*   Fix PostgreSQL exclusion constraints with multiline expressions being parsed
+    incorrectly during schema introspection.
+
+    *Jake McAllister*
+
+*   Fix async `ActiveRecord::StatementCache#execute` raising an error for
+    out-of-range bind values instead of returning an empty result.
+
+    *viralpraxis*
+
+*   Fix `where` clauses with column-tuple syntax not resolving references to
+    other tables.
+
+    *Chris Gunther*
+
+*   Fix `distinct: true` being ignored by `average`.
+
+    *Kenta Ishizaki*
+
+*   Fix `belongs_to` change tracking for composite foreign keys.
+
+    Only the first foreign key column was checked for changes; now all foreign
+    key columns are checked.
+
+    *Anas Khan*
+
+*   Make `add_column(if_not_exists: true)` reversible.
+
+    *Kenta Ishizaki*
+
+*   Quote the index name in MySQL `enable_index` and `disable_index`.
+
+    Unquoted index names containing special characters could cause SQL syntax
+    errors.
+
+    *Kenta Ishizaki*
+
+*   Make `remove_foreign_key(if_exists: true)` reversible.
+
+    *Kenta Ishizaki*
+
+*   Fix `distinct: true` being ignored by grouped `sum`.
+
+    *Kenta Ishizaki*
+
+*   Return an `ActiveRecord::Promise` from `async_ids` on a contradictory
+    relation, instead of a plain `ActiveRecord::Result`.
+
+    *Kenta Ishizaki*
+
+*   Fix reversibility check for `drop_virtual_table`.
+
+    The wrong argument was extracted, so the check for whether options were
+    given could pass or fail incorrectly.
+
+    *Kenta Ishizaki*
+
+*   Fix `remove_check_constraint(if_exists: true)` incorrectly raising when
+    removing by expression.
+
+    The `if_exists` check did not pass the expression to
+    `check_constraint_exists?`, so it could not find the constraint.
+
+    *Kenta Ishizaki*
+
+*   Clear PostgreSQL notices as they are handled, preventing warnings from
+    leaking to subsequent queries.
+
+    *Matthew Draper*
+
+*   Fix `WeakThreadKeyMap` raising "can't add a new key into hash during
+    iteration" when connections are checked in from multiple threads.
+
+    *Matthew Draper*
+
+*   Continue pool disconnect after a connection's cleanup or disconnect raises.
+
+    Previously, a failure on one connection aborted the teardown, stranding
+    remaining connections and their resources.
+
+    *Matthew Draper*
+
+*   Fix race condition between `preconnect` and the connection pool reaper.
+
+    *Yasuo Honda*
+
+*   Fix `in_order_of` raising when the column is a CTE reference.
+
+    *viralpraxis*
+
+*   Fix `content_columns` including composite primary key components.
+
+    Only the first primary key column was excluded; now all primary key columns
+    are excluded.
+
+    *Kenta Ishizaki*
+
+*   Treat `remove_column` with options but no type as irreversible.
+
+    Previously, `remove_column(:table, :column, default: nil)` would not raise
+    `IrreversibleMigration` because the options hash was mistaken for a column
+    type.
+
+    *Kenta Ishizaki*
+
+*   Fix `counter_cache_column` crashing when `:counter_cache` is given as a
+    Hash without a `:column` key.
+
+    *Kenta Ishizaki*
+
+*   Coerce `seeds` and `use_metadata_table` to booleans in `UrlConfig`.
+
+    When configured via `DATABASE_URL`, these options were left as strings
+    instead of being coerced to booleans like `replica` and `database_tasks`.
+
+    *Kenta Ishizaki*
+
+*   Fix `excluding` (and its `without` alias) to work with composite primary key
+    models. Records passed to `excluding` are now matched by their full composite id
+    instead of being looked up by a single primary key column.
+
+    *Kenta Ishizaki*
+
+*   Fix `Relation#delete` raising on a single composite primary key id.
+
+    `Model.delete(id)` now wraps a single composite id in an array before building
+    the `WHERE` clause, so a single record can be deleted by its composite id.
+
+    *Kenta Ishizaki*
+
+*   Fix reading a composite primary key after a partial `select` returning the
+    raw value instead of `nil` for unselected key columns.
+
+    The attribute defaults builder excluded only the single primary key column from
+    defaults; for composite primary keys it left the unselected key columns in the
+    defaults, so `record.id` returned an array of raw column values instead of
+    `[nil, nil]`. All primary key columns are now excluded.
+
+    *Kenta Ishizaki*
+
+*   Fix `find` with an empty array on a composite primary key model returning the
+    argument array instead of `[]`.
+
+    `Model.find([])` now returns a fresh empty array for composite primary key
+    models, matching single-key models.
+
+    *Kenta Ishizaki*
+
+*   Fix `find` with an order clause and an offset past the end of the ids raising
+    `RecordNotFound` instead of returning an empty result.
+
+    *Kenta Ishizaki*
+
+*   Fix `in_order_of` dropping values that cannot be serialized for the column
+    instead of turning them into an `IS NULL` match.
+
+    Out-of-range integers and unknown enum keys are now ignored rather than
+    silently matching rows with `NULL` in that column. When all requested values
+    are unrepresentable, the relation returns no rows instead of building an empty
+    `CASE` expression.
+
+    *Kenta Ishizaki*
+
+*   Fix stale `finder_needs_type_condition?` memo after the schema cache is reloaded.
+
+    When an STI model's `type` column was removed and re-added (e.g. via a
+    migration) and `reset_column_information` was called, the cached
+    `finder_needs_type_condition` value was not cleared, so queries could omit the
+    STI type condition. The memo is now reset on `reload_schema_from_cache`.
+
+    *Kenta Ishizaki*
+
+*   Fix PostgreSQL schema dump to qualify `enum_type` when the same enum name exists
+    in different schemas.
+
+    Previously the dumped `enum_type` used the bare type name, which could resolve to
+    the wrong enum in another schema. It now uses the schema-qualified name.
+
+    *fatkodima*
+
+*   Fix PostgreSQL index introspection to parse opclasses from another schema.
+
+    Index expressions using a schema-qualified opclass (e.g.
+    `USING gin(position test_schema.gin_trgm_ops)`) are now parsed correctly so the
+    opclass is captured without the schema prefix.
+
+    *Nicolas Vandenboegaerde*
+
+*   Fix `belongs_to` `:touch` with composite foreign keys.
+
+    Touching the parent record when a `belongs_to` with a composite foreign key
+    changes or is destroyed now correctly resolves the old and new parent by all
+    foreign key columns.
+
+    *Romulo Storel*
+
+*   Fix `add_index` `comment:` option on a schema-qualified PostgreSQL table.
+
+    The `COMMENT ON INDEX` statement now schema-qualifies the index name, so the
+    comment is applied to the index in the correct schema instead of raising.
+
+    *Tobias Egli*
+
+*   Fix `check_all_foreign_keys_valid!` on PostgreSQL partitioned tables.
+
+    The validation query previously matched constraints by name across all tables in
+    the schema, marking unrelated constraints (including partition children) as not
+    validated. It now scopes the update to the specific table.
+
+    *Alexis Andrieu*
+
+*   Revert stable sorting of columns and indexes in serialized schema caches.
+
+    `SchemaCache#encode_with` no longer sorts a table's columns and indexes by name
+    when writing the cache, restoring the pre-8.1 behavior.
+
+    *Jean Boussier*
+
+*   Fix `only_columns` to enumerate columns in the `SELECT` clause.
+
+    Models using `only_columns` were generating `SELECT *` instead of an explicit
+    column list, which could select columns that were meant to be excluded.
+
+    *sarub0b0*
+
+*   Fix `eager_load` with a composite primary key and an explicit `select`.
+
+    The join dependency used the single primary key value to build aliases; for
+    composite primary keys it now uses the full array of primary key columns, so
+    eager loading with a custom `select` no longer drops the association records.
+
+    *fatkodima*
+
+*   Fix `find_signed` with a composite primary key.
+
+    `find_signed` now wraps the decoded id in an array so `find_by` matches against
+    all primary key columns, instead of silently returning `nil`.
+
+    *Kenta Ishizaki*
+
+*   Fix `with_connection(prevent_permanent_checkout: true)` clearing a sticky lease
+    that was already set by `lease_connection`.
+
+    A `with_connection` call with `prevent_permanent_checkout: true` no longer resets
+    `lease.sticky` to its previous value when the connection was already sticky, so
+    the connection remains checked out after the block.
+
+    *Ben Sheldon*
+
+*   Fix `reset_counters` to cast string ids to the primary key type.
+
+    `reset_counters` called with a string id (the form ids take from request params)
+    failed to find the record for both single and composite primary keys. Each id is
+    now cast against its own column type.
+
+    *fatkodima*
+
+*   Fix `belongs_to` presence validation for composite foreign keys.
+
+    The required-association validation only checked the first foreign key column.
+    For composite foreign keys it now considers the association present only when
+    none of the foreign key columns are `nil`, and changed when any of them changed.
+
+    *Felix Descoteaux*
+
+*   Fix preloading a `belongs_to` with a composite foreign key when some key columns
+    are `nil`.
+
+    The preloader now skips owners whose composite key has any `nil` component
+    instead of issuing a query that matches unrelated rows.
+
+    *Rose Wiegley*
+
+*   Fix `belongs_to` inverse matching with composite foreign keys.
+
+    `inversable?` compared a single foreign key column against a single primary key,
+    so `belongs_to` associations with composite foreign keys never matched their
+    inverse. Foreign key and primary key values are now compared component by
+    component.
+
+    *Martin Samson*
+
+*   Fix `validate_table_length!` to ignore the schema prefix on PostgreSQL.
+
+    Schema-qualified table names (e.g. `"schema.very_long_table_name"`) were
+    incorrectly rejected as exceeding the table name length limit because the schema
+    prefix was counted. The schema is now stripped before checking the length.
+
+    *fatkodima*
+
 *   Fix passing Trilogy SSL options to `mysql` and `mysqldump` commands.
 
     *Ngan Pham*
