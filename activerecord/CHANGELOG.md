@@ -1,3 +1,10 @@
+*   Share frozen column names across `ActiveRecord::Result` instances.
+
+    Retain the strings returned by `String#-@` instead of discarding them.
+    This reduces memory retained by query results without adding a cache.
+
+    *Sam Schmidt*
+
 *   Read PostgreSQL indexes and constraints from the table an unqualified name resolves to.
 
     `indexes`, `foreign_keys`, `check_constraints`, `unique_constraints` and

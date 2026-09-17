@@ -13,6 +13,31 @@ module ActiveRecord
       ], affected_rows: 3)
     end
 
+    test "column names are shared across results" do
+      first = Result.new([+"col_1"], [[1]])
+      second = Result.new(["col_1".dup.freeze].freeze, [[2]])
+
+      assert_same first.columns.first, second.columns.first
+      assert_predicate first.columns.first, :frozen?
+    end
+
+    test "changes to input column names do not change row lookup" do
+      name = +"col_1"
+      result = Result.new([name], [[1]])
+      row = result.indexed_rows.first
+
+      name.replace("changed")
+
+      assert result.includes_column?("col_1")
+      assert_equal 1, row["col_1"]
+      assert_equal [{ "col_1" => 1 }], result.to_a
+    end
+
+    test "empty results share one column array" do
+      assert_same Result.empty.columns, Result.new([], []).columns
+      assert_same Result.empty.columns, Result.new([].freeze, []).columns
+    end
+
     test "includes_column?" do
       assert result.includes_column?("col_1")
       assert_not result.includes_column?("foo")
