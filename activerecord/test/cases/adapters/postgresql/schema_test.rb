@@ -407,6 +407,11 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     do_dump_index_tests_for_schema("public, #{SCHEMA_NAME}", INDEX_A_COLUMN, INDEX_B_COLUMN_S1, INDEX_D_COLUMN, INDEX_E_COLUMN)
   end
 
+  def test_dump_indexes_for_a_name_in_two_schemas_reads_the_first_on_the_search_path
+    do_dump_index_tests_for_schema("#{SCHEMA_NAME}, #{SCHEMA2_NAME}", INDEX_A_COLUMN, INDEX_B_COLUMN_S1, INDEX_D_COLUMN, INDEX_E_COLUMN)
+    do_dump_index_tests_for_schema("#{SCHEMA2_NAME}, #{SCHEMA_NAME}", INDEX_A_COLUMN, INDEX_B_COLUMN_S2, INDEX_D_COLUMN, INDEX_E_COLUMN)
+  end
+
   def test_dump_indexes_for_table_with_scheme_specified_in_name
     indexes = @connection.indexes("#{SCHEMA_NAME}.#{TABLE_NAME}")
     assert_equal 5, indexes.size
@@ -507,6 +512,39 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
     with_schema_search_path("#{SCHEMA2_NAME}, #{SCHEMA_NAME}") do
       assert_equal({ comment: "in schema two" }, @connection.table_options(TABLE_NAME))
+    end
+  end
+
+  def test_table_options_for_a_name_a_view_shadows_reads_the_view
+    @connection.execute "CREATE VIEW #{SCHEMA_NAME}.shadowed AS SELECT 1 AS id"
+    @connection.execute "CREATE TABLE #{SCHEMA2_NAME}.shadowed (id integer)"
+    @connection.execute "COMMENT ON TABLE #{SCHEMA2_NAME}.shadowed IS 'in schema two'"
+
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
+      assert_empty @connection.table_options("shadowed")
+    end
+
+    with_schema_search_path("#{SCHEMA2_NAME}, #{SCHEMA_NAME}") do
+      assert_equal({ comment: "in schema two" }, @connection.table_options("shadowed"))
+    end
+  end
+
+  def test_constraints_for_a_name_in_two_schemas_read_the_first_on_the_search_path
+    add_constraints_to_things(SCHEMA_NAME, "one")
+    add_constraints_to_things(SCHEMA2_NAME, "two")
+
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
+      assert_equal ["things_fk_one"], @connection.foreign_keys(TABLE_NAME).map(&:name)
+      assert_equal ["things_check_one"], @connection.check_constraints(TABLE_NAME).map(&:name)
+      assert_equal ["things_unique_one"], @connection.unique_constraints(TABLE_NAME).map(&:name)
+      assert_equal ["things_exclusion_one"], @connection.exclusion_constraints(TABLE_NAME).map(&:name)
+    end
+
+    with_schema_search_path("#{SCHEMA2_NAME}, #{SCHEMA_NAME}") do
+      assert_equal ["things_fk_two"], @connection.foreign_keys(TABLE_NAME).map(&:name)
+      assert_equal ["things_check_two"], @connection.check_constraints(TABLE_NAME).map(&:name)
+      assert_equal ["things_unique_two"], @connection.unique_constraints(TABLE_NAME).map(&:name)
+      assert_equal ["things_exclusion_two"], @connection.exclusion_constraints(TABLE_NAME).map(&:name)
     end
   end
 
@@ -623,6 +661,16 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   private
+    def add_constraints_to_things(schema_name, suffix)
+      @connection.execute <<~SQL
+        ALTER TABLE #{schema_name}.#{TABLE_NAME}
+          ADD CONSTRAINT things_fk_#{suffix} FOREIGN KEY (id) REFERENCES #{schema_name}.#{PK_TABLE_NAME} (id),
+          ADD CONSTRAINT things_check_#{suffix} CHECK (name IS NOT NULL),
+          ADD CONSTRAINT things_unique_#{suffix} UNIQUE (email),
+          ADD CONSTRAINT things_exclusion_#{suffix} EXCLUDE USING gist (tsrange(moment, moment) WITH &&)
+      SQL
+    end
+
     def columns(table_name)
       @connection.send(:column_definitions, table_name).map do |name, type, default|
         "#{name} #{type}" + (default ? " default #{default}" : "")
