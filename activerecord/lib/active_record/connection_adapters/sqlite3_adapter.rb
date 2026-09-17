@@ -230,10 +230,6 @@ module ActiveRecord
         true
       end
 
-      def supports_datetime_with_precision?
-        true
-      end
-
       def supports_json?
         true
       end

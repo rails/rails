@@ -334,6 +334,12 @@ module ActiveRecord
       assert_same native, translated.cause
     end
 
+    def test_supports_datetime_with_precision_is_deprecated
+      assert_deprecated(/supports_datetime_with_precision\?/, ActiveRecord.deprecator) do
+        assert @connection.supports_datetime_with_precision?
+      end
+    end
+
     def test_select_all_always_return_activerecord_result
       result = @connection.select_all "SELECT * FROM posts"
       assert result.is_a?(ActiveRecord::Result)

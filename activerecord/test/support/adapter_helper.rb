@@ -74,7 +74,6 @@ module AdapterHelper
     supports_insert_on_duplicate_update?
     supports_insert_conflict_target?
     supports_optimizer_hints?
-    supports_datetime_with_precision?
     supports_nulls_not_distinct?
     supports_identity_columns?
     supports_virtual_columns?

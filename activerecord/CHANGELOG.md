@@ -1,3 +1,12 @@
+*   Deprecate `supports_datetime_with_precision?`.
+
+    The check existed for MySQL 5.5 and older, which had no sub-second
+    precision on `DATETIME`, `TIME` and `TIMESTAMP` columns. Every database
+    Active Record supports now has it, so the method always returns true and
+    no longer guards anything.
+
+    *Ryuta Kamizono*
+
 *   Read PostgreSQL indexes and constraints from the table an unqualified name resolves to.
 
     `indexes`, `foreign_keys`, `check_constraints`, `unique_constraints` and
