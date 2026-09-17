@@ -149,7 +149,7 @@ module ActionCable
       end
 
       def beat
-        if socket.unresponsive?
+        if socket.respond_to?(:unresponsive?) && socket.unresponsive?
           close(reason: ActionCable::INTERNAL[:disconnect_reasons][:no_pong])
           # Force-close socket so it doesn't linger
           socket.close!
@@ -177,7 +177,7 @@ module ActionCable
           # the connection monitor state is reset after a successful websocket connection.
           # It also confirms the protocol extensions enabled for this connection (if any).
           message = { type: ActionCable::INTERNAL[:message_types][:welcome] }
-          message[:extensions] = socket.extensions if socket.extensions.present?
+          message[:extensions] = socket.extensions if socket.respond_to?(:extensions) && socket.extensions.present?
           transmit message
         end
     end

@@ -136,6 +136,20 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     assert_equal [1234567890], pongs
   end
 
+  test "works with a socket that does not support pongs" do
+    connection = Connection.new(ActionCable.server, TestSocket.new)
+
+    assert_called_with(connection.socket, :transmit, [{ type: "welcome" }]) do
+      connection.handle_open
+    end
+
+    freeze_time do
+      assert_called_with(connection.socket, :transmit, [{ type: "ping", message: Time.now.to_i }]) do
+        connection.beat
+      end
+    end
+  end
+
   test "#broadcast" do
     connection = Connection.new(ActionCable.server, ActionCable::Server::Socket.new(ActionCable.server, {}))
 
