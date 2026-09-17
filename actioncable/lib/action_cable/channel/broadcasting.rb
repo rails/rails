@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 # :markup: markdown
@@ -17,7 +18,9 @@ module ActionCable
 
         # Returns a unique broadcasting identifier for this `model` in this channel:
         #
-        #     CommentsChannel.broadcasting_for("all") # => "comments:all"
+        # ```
+        # CommentsChannel.broadcasting_for("all") # => "comments:all"
+        # ```
         #
         # You can pass an array of objects as a target (e.g. Active Record model), and it would
         # be serialized into a string under the hood.

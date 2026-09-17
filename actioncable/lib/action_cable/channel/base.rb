@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 # :markup: markdown
@@ -33,15 +34,17 @@ module ActionCable
     # variables to keep reference to objects that future subscriber requests can
     # interact with. Here's a quick example:
     #
-    #     class ChatChannel < ApplicationCable::Channel
-    #       def subscribed
-    #         @room = Chat::Room[params[:room_number]]
-    #       end
+    # ```
+    # class ChatChannel < ApplicationCable::Channel
+    #   def subscribed
+    #     @room = Chat::Room[params[:room_number]]
+    #   end
     #
-    #       def speak(data)
-    #         @room.speak data, user: current_user
-    #       end
-    #     end
+    #   def speak(data)
+    #     @room.speak data, user: current_user
+    #   end
+    # end
+    # ```
     #
     # The #speak action simply uses the Chat::Room object that was created when the
     # channel was first subscribed to by the consumer when that subscriber wants to
@@ -57,28 +60,30 @@ module ActionCable
     #
     # Example:
     #
-    #     class AppearanceChannel < ApplicationCable::Channel
-    #       def subscribed
-    #         @connection_token = generate_connection_token
-    #       end
+    # ```
+    # class AppearanceChannel < ApplicationCable::Channel
+    #   def subscribed
+    #     @connection_token = generate_connection_token
+    #   end
     #
-    #       def unsubscribed
-    #         current_user.disappear @connection_token
-    #       end
+    #   def unsubscribed
+    #     current_user.disappear @connection_token
+    #   end
     #
-    #       def appear(data)
-    #         current_user.appear @connection_token, on: data['appearing_on']
-    #       end
+    #   def appear(data)
+    #     current_user.appear @connection_token, on: data['appearing_on']
+    #   end
     #
-    #       def away
-    #         current_user.away @connection_token
-    #       end
+    #   def away
+    #     current_user.away @connection_token
+    #   end
     #
-    #       private
-    #         def generate_connection_token
-    #           SecureRandom.hex(36)
-    #         end
+    #   private
+    #     def generate_connection_token
+    #       SecureRandom.hex(36)
     #     end
+    # end
+    # ```
     #
     # In this example, the subscribed and unsubscribed methods are not callable
     # methods, as they were already declared in ActionCable::Channel::Base, but
@@ -97,12 +102,14 @@ module ActionCable
     # A channel can reject a subscription request in the #subscribed callback by
     # invoking the #reject method:
     #
-    #     class ChatChannel < ApplicationCable::Channel
-    #       def subscribed
-    #         @room = Chat::Room[params[:room_number]]
-    #         reject unless current_user.can_access?(@room)
-    #       end
-    #     end
+    # ```
+    # class ChatChannel < ApplicationCable::Channel
+    #   def subscribed
+    #     @room = Chat::Room[params[:room_number]]
+    #     reject unless current_user.can_access?(@room)
+    #   end
+    # end
+    # ```
     #
     # In this example, the subscription will be rejected if the `current_user` does
     # not have access to the chat room. On the client-side, the `Channel#rejected`
@@ -125,7 +132,7 @@ module ActionCable
         # class itself.
         #
         # #### Returns
-        # *   `Set` - A set of all methods that should be considered actions.
+        # * `Set` - A set of all methods that should be considered actions.
         def action_methods
           @action_methods ||= begin
             # All public instance methods of this class, including ancestors

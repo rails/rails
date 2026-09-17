@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 # :markup: markdown
@@ -18,15 +19,17 @@ module ActionCable
     # (the broadcaster and the channel subscriber). Here's an example of a channel
     # that allows subscribers to get all new comments on a given page:
     #
-    #     class CommentsChannel < ApplicationCable::Channel
-    #       def follow(data)
-    #         stream_from "comments_for_#{data['recording_id']}"
-    #       end
+    # ```
+    # class CommentsChannel < ApplicationCable::Channel
+    #   def follow(data)
+    #     stream_from "comments_for_#{data['recording_id']}"
+    #   end
     #
-    #       def unfollow
-    #         stop_all_streams
-    #       end
-    #     end
+    #   def unfollow
+    #     stop_all_streams
+    #   end
+    # end
+    # ```
     #
     # Based on the above example, the subscribers of this channel will get whatever
     # data is put into the, let's say, `comments_for_45` broadcasting as soon as
@@ -34,44 +37,52 @@ module ActionCable
     #
     # An example broadcasting for this channel looks like so:
     #
-    #     ActionCable.server.broadcast "comments_for_45", { author: 'DHH', content: 'Rails is just swell' }
+    # ```
+    # ActionCable.server.broadcast "comments_for_45", { author: 'DHH', content: 'Rails is just swell' }
+    # ```
     #
     # If you have a stream that is related to a model, then the broadcasting used
     # can be generated from the model and channel. The following example would
     # subscribe to a broadcasting like `comments:Z2lkOi8vVGVzdEFwcC9Qb3N0LzE`.
     #
-    #     class CommentsChannel < ApplicationCable::Channel
-    #       def subscribed
-    #         post = Post.find(params[:id])
-    #         stream_for post
-    #       end
-    #     end
+    # ```
+    # class CommentsChannel < ApplicationCable::Channel
+    #   def subscribed
+    #     post = Post.find(params[:id])
+    #     stream_for post
+    #   end
+    # end
+    # ```
     #
     # You can then broadcast to this channel using:
     #
-    #     CommentsChannel.broadcast_to(@post, @comment)
+    # ```
+    # CommentsChannel.broadcast_to(@post, @comment)
+    # ```
     #
     # If you don't just want to parlay the broadcast unfiltered to the subscriber,
     # you can also supply a callback that lets you alter what is sent out. The below
     # example shows how you can use this to provide performance introspection in the
     # process:
     #
-    #     class ChatChannel < ApplicationCable::Channel
-    #       def subscribed
-    #         @room = Chat::Room[params[:room_number]]
+    # ```
+    # class ChatChannel < ApplicationCable::Channel
+    #   def subscribed
+    #     @room = Chat::Room[params[:room_number]]
     #
-    #         stream_for @room, coder: ActiveSupport::JSON do |message|
-    #           if message['originated_at'].present?
-    #             elapsed_time = (Time.now.to_f - message['originated_at']).round(2)
+    #     stream_for @room, coder: ActiveSupport::JSON do |message|
+    #       if message['originated_at'].present?
+    #         elapsed_time = (Time.now.to_f - message['originated_at']).round(2)
     #
-    #             ActiveSupport::Notifications.instrument :performance, measurement: 'Chat.message_delay', value: elapsed_time, action: :timing
-    #             logger.info "Message took #{elapsed_time}s to arrive"
-    #           end
-    #
-    #           transmit message
-    #         end
+    #         ActiveSupport::Notifications.instrument :performance, measurement: 'Chat.message_delay', value: elapsed_time, action: :timing
+    #         logger.info "Message took #{elapsed_time}s to arrive"
     #       end
+    #
+    #       transmit message
     #     end
+    #   end
+    # end
+    # ```
     #
     # You can stop streaming from all broadcasts by calling #stop_all_streams.
     module Streams
