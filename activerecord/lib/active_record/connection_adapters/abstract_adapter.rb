@@ -103,10 +103,13 @@ module ActiveRecord
       DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with].freeze # :nodoc:
       private_constant :DEFAULT_READ_QUERY
 
+      TRAILING_REGEX = %r{(?:\s|/\*(?:[^*]|\*[^/])*\*/|--[^\n]*(?:\n|\z))*}
+      private_constant :TRAILING_REGEX
+
       def self.build_read_query_regexp(*parts) # :nodoc:
         parts += DEFAULT_READ_QUERY
         parts = parts.map { |part| /#{part}/i }
-        /\A(?:[(\s]|#{COMMENT_REGEX})*#{Regexp.union(*parts)}/
+        /\A(?:[(\s]|#{COMMENT_REGEX})*#{Regexp.union(*parts)}[^;]*(?:;#{TRAILING_REGEX})?\z/
       end
 
       def self.find_cmd_and_exec(commands, *args) # :doc:
