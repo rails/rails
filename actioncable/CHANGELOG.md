@@ -1,3 +1,7 @@
+*   Allow `redis-rb` 6 in the Action Cable Redis subscription adapter.
+
+    *Shuta Mugikura*
+
 *   Fix the PostgreSQL subscription adapter dropping broadcasts to long multibyte stream names.
 
     PostgreSQL identifiers are limited to 63 *bytes*, and the adapter hashes any

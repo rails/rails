@@ -1,3 +1,53 @@
+*   Fix the debug error page to not attempt to read source fragments from
+    directory paths.
+
+    *Marco Roth*
+
+*   Apply source value mappings to dynamic Permissions Policy sources.
+
+    Dynamic Permissions Policy sources (procs) now have source mappings applied
+    to their resolved values, the same as static sources.
+
+    *Kenta Ishizaki*
+
+*   Allow `ActionDispatch::Http::URL.path_for` with `trailing_slash: true` and a
+    blank path to accept query params and an anchor.
+
+    Previously the blank path used a frozen `"/"`, which raised a `FrozenError`
+    when appending the query string.
+
+    *Kenta Ishizaki*
+
+*   Avoid mutating the `params` hash passed to `ActionDispatch::Http::URL.url_for`.
+
+    *Kenta Ishizaki*
+
+*   Honor falsy values (e.g. `format: false`, `anchor: false`) passed in the
+    deprecated positional-hash form of routing DSL methods.
+
+    Previously, `false` values were silently dropped without emitting a
+    deprecation warning, causing the deprecated hash form to produce different
+    routes than the keyword form.
+
+    *Kenta Ishizaki*
+
+*   Honor the deprecated `namespace` hash `:path`, `:shallow_path`, and
+    `:shallow_prefix` options when passed as `false`.
+
+    *Kenta Ishizaki*
+
+*   Fix the deprecated `scope` hash `:except` option to apply to `except`
+    instead of `only`.
+
+    *Kenta Ishizaki*
+
+*   Reject malformed hosts with extra ports in `ActionDispatch::HostAuthorization`.
+
+    When an allowed host is configured with an explicit port, a `Host` header
+    with an additional port (e.g. `www.example.com:80:80`) is no longer accepted.
+
+    *Andrii Furmanets*
+
 *   Fix `url_for` to leave out an optional part of a route when its value is a
     blank string, the same way it already does for `nil`.
 

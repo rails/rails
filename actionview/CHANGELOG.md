@@ -1,3 +1,8 @@
+*   Fix the `:ruby` render tracker not being registered for ERB templates when
+    `eager_load` is enabled.
+
+    *Gabriel Quaresma*
+
 *   Fix `Encoding::CompatibilityError` when digesting templates with non-ASCII
     content via `DependencyTracker::RubyTracker`.
 

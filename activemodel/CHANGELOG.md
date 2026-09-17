@@ -1,3 +1,18 @@
+*   Fix `ActiveModel::Errors#import` mutating the override options hash passed to it.
+
+    *Kenta Ishizaki*
+
+*   Fix `normalizes` not detecting in-place changes for attributes whose database
+    cast type differs from the attribute type (e.g. JSON columns), causing
+    normalization to be skipped on validation.
+
+    *Chedli Bourguiba*
+
+*   Fix `alias_attribute` accumulating duplicate entries in `aliases_by_attribute_name`
+    when called multiple times with the same arguments.
+
+    *Nicholas Jakobsen*
+
 *   Fix `normalizes` re-applying normalizations on every validation of an
     unpersisted record, and speed up validation of normalized attributes.
 

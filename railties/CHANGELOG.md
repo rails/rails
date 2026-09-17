@@ -1,3 +1,48 @@
+*   Include the offending value in the `secret_key_base=` error message.
+
+    *Jean Boussier*
+
+*   Load database config when a connection is absent from the shared section.
+
+    `database_configuration` no longer raises `NoMethodError` when a shared
+    config section is missing a subsection for a particular connection name.
+
+    *Kenta Ishizaki*
+
+*   Round-trip the `null: false` attribute modifier in `GeneratedAttribute#to_s`.
+
+    `rails generate` now emits the `!` modifier for attributes with `null: false`,
+    so the generated command string can be used to regenerate the same migration.
+
+    *Kenta Ishizaki*
+
+*   Fix infinite route reload when `after_routes_loaded` hooks access routes.
+
+    The `:loading` state is now held across `after_routes_loaded` hooks, so a
+    hook that touches routes no longer triggers a redundant reload.
+
+    *Chedli Bourguiba*
+
+*   Fix `LazyRouteSet` thrashing when `url_helpers` are included into `Object`.
+
+    `method_missing` and `respond_to_missing?` now only trigger a route reload
+    for methods ending in `_path` or `_url`, preventing every `respond_to?`
+    call from re-entering the route loader.
+
+    *Chedli Bourguiba*
+
+*   Add `RoutesReloader#loaded` to check whether routes have been loaded.
+
+    *Rafael Mendonça França*
+
+*   Mark routes as loaded when the routes reloader executes standalone.
+
+    `RoutesReloader#execute` now sets the load state to `loaded`, so calling
+    it directly (outside of `execute_unless_loaded`) no longer leaves the
+    reloader in a state where routes are considered unloaded.
+
+    *Kenta Ishizaki*
+
 *   Make mounted route helpers (e.g. `main_app`, engine mount proxies) trigger
     the lazy route load instead of raising `NoMethodError` when called before
     routes are drawn.
