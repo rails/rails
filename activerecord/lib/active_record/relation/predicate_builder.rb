@@ -93,8 +93,7 @@ module ActiveRecord
           if key.is_a?(Array)
             queries = Array(value).map do |ids_set|
               raise ArgumentError, "Expected corresponding value for #{key} to be an Array" unless ids_set.is_a?(Array)
-              attributes = convert_dot_notation_to_hash(key.zip(ids_set).to_h)
-              expand_from_hash(attributes)
+              expand_from_hash(convert_dot_notation_to_hash(key.zip(ids_set).to_h))
             end
             grouping_queries(queries)
           elsif value.is_a?(Hash) && !table.has_column?(key)
