@@ -1,3 +1,11 @@
+*   Accept booleans for `idle_timeout`, `reaping_frequency` and `max_age` in `database.yml`.
+
+    These options raised `NoMethodError` on boot when set to a boolean, which YAML
+    also produces for `off`/`no` and `on`/`yes`. `false` now disables them, like the
+    documented `0`, and `true` uses the default, matching `keepalive`.
+
+    *Carlos Daniel Pohlod*
+
 *   Do not schema-qualify PostgreSQL extensions whose control file fixes their
     schema, nor tables and enum types in the current schema, when dumping
     `db/schema.rb`.
