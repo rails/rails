@@ -32,6 +32,7 @@ module ActiveRecord
         @keys = @inserts.first.keys
       end
 
+      @assigned_keys = @keys
       @scope_attributes = relation.scope_for_create.except(@model.inheritance_column)
       @keys |= @scope_attributes.keys
 
@@ -54,7 +55,7 @@ module ActiveRecord
     end
 
     def updatable_columns
-      @updatable_columns ||= keys - readonly_columns - unique_by_columns
+      @updatable_columns ||= @assigned_keys - @scope_attributes.keys - readonly_columns - unique_by_columns
     end
 
     def primary_keys
