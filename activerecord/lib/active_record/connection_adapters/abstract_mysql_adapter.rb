@@ -28,6 +28,21 @@ module ActiveRecord
       #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
       class_attribute :emulate_booleans, default: true
 
+      class_attribute :cli_arg_map, instance_accessor: false, default: {
+        host: "--host",
+        port: "--port",
+        socket: "--socket",
+        username: "--user",
+        password: "--password",
+        encoding: "--default-character-set",
+        sslca: "--ssl-ca",
+        sslcert: "--ssl-cert",
+        sslcapath: "--ssl-capath",
+        sslcipher: "--ssl-cipher",
+        sslkey: "--ssl-key",
+        ssl_mode: "--ssl-mode"
+      }.freeze
+
       NATIVE_DATABASE_TYPES = { # rubocop:disable Style/MutableConstant
         primary_key: "bigint auto_increment PRIMARY KEY",
         string:      { name: "varchar", limit: 255 },
@@ -60,22 +75,14 @@ module ActiveRecord
       end
 
       class << self
+        def cli_args(config) # :nodoc:
+          cli_arg_map.filter_map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }
+        end
+
         def dbconsole(config, options = {})
           mysql_config = config.configuration_hash
 
-          args = {
-            host: "--host",
-            port: "--port",
-            socket: "--socket",
-            username: "--user",
-            encoding: "--default-character-set",
-            sslca: "--ssl-ca",
-            sslcert: "--ssl-cert",
-            sslcapath: "--ssl-capath",
-            sslcipher: "--ssl-cipher",
-            sslkey: "--ssl-key",
-            ssl_mode: "--ssl-mode"
-          }.filter_map { |opt, arg| "#{arg}=#{mysql_config[opt]}" if mysql_config[opt] }
+          args = cli_args(mysql_config.except(:password))
 
           if mysql_config[:password] && options[:include_password]
             args << "--password=#{mysql_config[:password]}"
@@ -198,6 +205,30 @@ module ActiveRecord
         end
       end
 
+      def supports_json?
+        !mariadb? && database_version >= "5.7.8"
+      end
+
+      def supports_comments?
+        true
+      end
+
+      def supports_comments_in_create?
+        true
+      end
+
+      def supports_savepoints?
+        true
+      end
+
+      def savepoint_errors_invalidate_transactions?
+        true
+      end
+
+      def supports_lazy_transactions?
+        true
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})", nil, materialize_transactions: true) == 1
       end
@@ -238,10 +269,18 @@ module ActiveRecord
         end
       end
 
-      # Must return the MySQL error number from the exception, if the exception has an
-      # error number.
-      def error_number(exception) # :nodoc:
-        raise NotImplementedError
+      def connected?
+        !(@raw_connection.nil? || @raw_connection.closed?)
+      end
+
+      alias :reset! :reconnect!
+
+      def disconnect!
+        @lock.synchronize do
+          super
+          @raw_connection&.close
+          @raw_connection = nil
+        end
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -585,6 +624,11 @@ module ActiveRecord
         index.using == :btree || super
       end
 
+      def text_type?(type) # :nodoc:
+        cast_type = self.class::TYPE_MAP.lookup(type)
+        cast_type.is_a?(Type::String) || cast_type.is_a?(Type::Text)
+      end
+
       def empty_all_tables # :nodoc:
         table_names = tables - [pool.schema_migration.table_name, pool.internal_metadata.table_name]
         return if table_names.empty?
@@ -721,6 +765,14 @@ module ActiveRecord
       EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
       private
+        def full_version
+          database_version.full_version_string
+        end
+
+        def default_prepared_statements
+          false
+        end
+
         # `SHOW CREATE TABLE` is the only place MySQL reports a table's options, and
         # it reads one table at a time.
         def fetch_table_options(tables)
@@ -897,6 +949,12 @@ module ActiveRecord
 
         def warning_ignored?(warning)
           warning.level == "Note" || super
+        end
+
+        # Must return the MySQL error number from the exception, if the exception has an
+        # error number.
+        def error_number(exception)
+          raise NotImplementedError
         end
 
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html

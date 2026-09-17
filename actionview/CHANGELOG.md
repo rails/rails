@@ -1,3 +1,11 @@
+*   Add a `herb:check` rake task to verify that the application's HTML+ERB
+    templates compile through Herb.
+
+    The task lists every template Herb rejects with its path and error, and
+    exits with a non-zero status when there are any.
+
+    *Marco Roth*
+
 *   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
     the current template when it starts with a period, mirroring the existing
     behavior for the key argument.

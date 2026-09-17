@@ -1,10 +1,12 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "logger"
 require "active_support/logger_silence"
 
 module ActiveSupport
-  # = Active Support Proxy Logger
+  # Active Support Proxy Logger
+  # ===========================
   #
   # The proxy logger, is a logger that forwards all received logs to another
   # logger, but has its own independent severity level.
@@ -13,12 +15,16 @@ module ActiveSupport
   # the same logger as the rest of your application, but to have a different severity
   # level because it is logging too much:
   #
-  #   SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger, :error)
+  # ```
+  # SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger, :error)
+  # ```
   #
   # It can also ignore individual messages matching given patterns, when a
   # library is only noisy on some logs your application doesn't care about:
   #
-  #   SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger).ignore(/Noisy/)
+  # ```
+  # SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger).ignore(/Noisy/)
+  # ```
   #
   # Almost all of the standard Logger interface is supported.
   #
@@ -38,15 +44,17 @@ module ActiveSupport
 
     # Registers patterns of messages to ignore. Ignored messages aren't
     # forwarded to the underlying logger, whatever their severity. Returns
-    # +self+, so it can be chained on the constructor.
+    # `self`, so it can be chained on the constructor.
     #
     # Regexps are matched against the message, strings are matched literally:
     #
-    #   logger.ignore(/Noisy/, 'Also noisy')
-    #   logger.error('Noisy message') # not forwarded
-    #   logger.error('Also noisy')    # not forwarded
+    # ```
+    # logger.ignore(/Noisy/, 'Also noisy')
+    # logger.error('Noisy message') # not forwarded
+    # logger.error('Also noisy')    # not forwarded
+    # ```
     #
-    # Patterns are matched against +message.to_s+, so lazily generated messages
+    # Patterns are matched against `message.to_s`, so lazily generated messages
     # are evaluated even when they end up ignored.
     def ignore(*patterns)
       return self if patterns.empty?
@@ -56,24 +64,26 @@ module ActiveSupport
       self
     end
 
-    # Logging severity threshold (e.g. <tt>Logger::INFO</tt>).
+    # Logging severity threshold (e.g. `Logger::INFO`).
     def level
       local_level || @level
     end
 
-    # Sets the log level; returns +severity+.
+    # Sets the log level; returns `severity`.
     #
-    # Argument +severity+ may be an integer, a string, or a symbol:
+    # Argument `severity` may be an integer, a string, or a symbol:
     #
-    #   logger.level = Logger::ERROR # => 3
-    #   logger.level = 3             # => 3
-    #   logger.level = 'error'       # => "error"
-    #   logger.level = :error        # => :error
+    # ```
+    # logger.level = Logger::ERROR # => 3
+    # logger.level = 3             # => 3
+    # logger.level = 'error'       # => "error"
+    # logger.level = :error        # => :error
+    # ```
     def level=(severity)
       @level = ::Logger::Severity.coerce(severity)
     end
 
-    # Closes the logger; returns +nil+:
+    # Closes the logger; returns `nil`:
     # Further logs won't be emitted.
     def close
       @logger = nil
@@ -84,36 +94,36 @@ module ActiveSupport
       @logger = logger
     end
 
-    # Returns +true+ if the log level allows entries with severity
-    # Logger::DEBUG to be written, +false+ otherwise.
+    # Returns `true` if the log level allows entries with severity
+    # Logger::DEBUG to be written, `false` otherwise.
     def debug?; level <= DEBUG; end
 
     # Sets the log level to Logger::DEBUG.
     def debug!; self.level = DEBUG; end
 
-    # Returns +true+ if the log level allows entries with severity
-    # Logger::INFO to be written, +false+ otherwise.
+    # Returns `true` if the log level allows entries with severity
+    # Logger::INFO to be written, `false` otherwise.
     def info?; level <= INFO; end
 
     # Sets the log level to Logger::INFO.
     def info!; self.level = INFO; end
 
-    # Returns +true+ if the log level allows entries with severity
-    # Logger::WARN to be written, +false+ otherwise.
+    # Returns `true` if the log level allows entries with severity
+    # Logger::WARN to be written, `false` otherwise.
     def warn?; level <= WARN; end
 
     # Sets the log level to Logger::WARN.
     def warn!; self.level = WARN; end
 
-    # Returns +true+ if the log level allows entries with severity
-    # Logger::ERROR to be written, +false+ otherwise.
+    # Returns `true` if the log level allows entries with severity
+    # Logger::ERROR to be written, `false` otherwise.
     def error?; level <= ERROR; end
 
     # Sets the log level to Logger::ERROR.
     def error!; self.level = ERROR; end
 
-    # Returns +true+ if the log level allows entries with severity
-    # Logger::FATAL to be written, +false+ otherwise.
+    # Returns `true` if the log level allows entries with severity
+    # Logger::FATAL to be written, `false` otherwise.
     def fatal?; level <= FATAL; end
 
     # Sets the log level to Logger::FATAL.
@@ -124,15 +134,19 @@ module ActiveSupport
     #
     # Examples:
     #
-    #   logger = ActiveSupport::ProxyLogger.new(Logger.new($stderr), :error)
-    #   logger.add(Logger::INFO, 'Will not show')
-    #   logger.add(Logger::ERROR, 'No good')
-    #   logger.add(Logger::ERROR, 'No good', 'gnum')
+    # ```
+    # logger = ActiveSupport::ProxyLogger.new(Logger.new($stderr), :error)
+    # logger.add(Logger::INFO, 'Will not show')
+    # logger.add(Logger::ERROR, 'No good')
+    # logger.add(Logger::ERROR, 'No good', 'gnum')
+    # ```
     #
     # Output:
     #
-    #   E, [2022-05-12T16:25:55.349414 #36328] ERROR -- mung: No good
-    #   E, [2022-05-12T16:26:35.841134 #36328] ERROR -- gnum: No good
+    # ```
+    # E, [2022-05-12T16:25:55.349414 #36328] ERROR -- mung: No good
+    # E, [2022-05-12T16:26:35.841134 #36328] ERROR -- gnum: No good
+    # ```
     #
     # These convenience methods have implicit severity:
     #
@@ -166,16 +180,20 @@ module ActiveSupport
     end
     alias_method :log, :add
 
-    # Forward the given +msg+ to the underlying logger with no formatting
+    # Forward the given `msg` to the underlying logger with no formatting
     # returns the number of characters written,
-    # or +nil+ if the underlying logger is +nil+:
+    # or `nil` if the underlying logger is `nil`:
     #
-    #   logger = ProxyLogger.new(Logger.new($stderr))
-    #   logger << 'My message.' # => 10
+    # ```
+    # logger = ProxyLogger.new(Logger.new($stderr))
+    # logger << 'My message.' # => 10
+    # ```
     #
     # Output:
     #
-    #   My message.
+    # ```
+    # My message.
+    # ```
     #
     def <<(msg)
       if @logger
@@ -183,35 +201,35 @@ module ActiveSupport
       end
     end
 
-    # Equivalent to calling #add with severity <tt>Logger::DEBUG</tt>.
+    # Equivalent to calling #add with severity `Logger::DEBUG`.
     def debug(progname = nil, &block)
       add(DEBUG, nil, progname, &block)
     end
 
-    # Equivalent to calling #add with severity <tt>Logger::INFO</tt>.
+    # Equivalent to calling #add with severity `Logger::INFO`.
     def info(progname = nil, &block)
       add(INFO, nil, progname, &block)
     end
 
-    # Equivalent to calling #add with severity <tt>Logger::WARN</tt>.
+    # Equivalent to calling #add with severity `Logger::WARN`.
     #
     def warn(progname = nil, &block)
       add(WARN, nil, progname, &block)
     end
 
-    # Equivalent to calling #add with severity <tt>Logger::ERROR</tt>.
+    # Equivalent to calling #add with severity `Logger::ERROR`.
     #
     def error(progname = nil, &block)
       add(ERROR, nil, progname, &block)
     end
 
-    # Equivalent to calling #add with severity <tt>Logger::FATAL</tt>.
+    # Equivalent to calling #add with severity `Logger::FATAL`.
     #
     def fatal(progname = nil, &block)
       add(FATAL, nil, progname, &block)
     end
 
-    # Equivalent to calling #add with severity <tt>Logger::UNKNOWN</tt>.
+    # Equivalent to calling #add with severity `Logger::UNKNOWN`.
     #
     def unknown(progname = nil, &block)
       add(UNKNOWN, nil, progname, &block)

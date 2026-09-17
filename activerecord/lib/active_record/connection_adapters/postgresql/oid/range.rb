@@ -13,6 +13,15 @@ module ActiveRecord
             @type = type
           end
 
+          def as_schema_json
+            { "subtype" => subtype, "type" => @type }
+          end
+
+          def init_from_schema_json(coder, references)
+            @subtype = references[coder["subtype"]]
+            @type = coder["type"]&.to_sym
+          end
+
           def type_cast_for_schema(value)
             from = bound_for_schema(value.begin)
             to   = bound_for_schema(value.end)

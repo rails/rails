@@ -145,6 +145,16 @@ module ActiveModel
         raise NoMethodError
       end
 
+      def as_schema_json
+        { "precision" => precision, "scale" => scale, "limit" => limit }
+      end
+
+      def init_from_schema_json(coder, references)
+        @precision = coder["precision"]
+        @scale = coder["scale"]
+        @limit = coder["limit"]
+      end
+
       private
         # Convenience method for types which do not need separate type casting
         # behavior for user and database inputs. Called by Value#cast for

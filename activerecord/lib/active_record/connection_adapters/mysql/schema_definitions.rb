@@ -64,6 +64,17 @@ module ActiveRecord
         def disabled?
           !@enabled
         end
+
+        def as_schema_json
+          json = super
+          json["disabled"] = true unless @enabled
+          json
+        end
+
+        def init_from_schema_json(coder, references)
+          super
+          @enabled = !coder["disabled"]
+        end
       end
 
       # = Active Record MySQL Adapter \Table Definition
@@ -181,7 +192,7 @@ module ActiveRecord
           if options[:collation] == :no_collation
             options.delete(:collation)
           else
-            options[:collation] ||= column.collation if conn.send(:text_type?, type)
+            options[:collation] ||= column.collation if conn.text_type?(type)
           end
 
           unless options.key?(:auto_increment)

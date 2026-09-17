@@ -944,10 +944,28 @@ module ActiveRecord
         end
 
         private
+          # An unqualified name resolves to the first schema on the search path that
+          # has it, the way ::regclass would for a single table. The readers join
+          # what they read against this, so a name is read from the one table it
+          # names rather than from every schema on the path that also has it.
+          def resolved_tables(schema, tables)
+            <<~SQL.chomp
+              WITH tables AS (
+                SELECT DISTINCT ON (c.relname) c.oid, c.relname, c.relkind
+                FROM pg_class c
+                JOIN pg_namespace n ON n.oid = c.relnamespace
+                WHERE n.nspname = #{schema}
+                  AND c.relname IN (#{quoted_table_names(tables)})
+                ORDER BY c.relname, array_position(current_schemas(false), n.nspname)
+              )
+            SQL
+          end
+
           def fetch_indexes(tables)
             fetch_by_schema(tables) do |schema, group|
               # t.relname comes last so #build_indexes can keep reading columns by position.
               rows = query_rows(<<~SQL)
+                #{resolved_tables(schema, group)}
                 SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid),
                                 pg_catalog.obj_description(i.oid, 'pg_class') AS comment, d.indisvalid,
                                 ARRAY(
@@ -955,13 +973,11 @@ module ActiveRecord
                                   FROM generate_subscripts(d.indkey, 1) AS k
                                   ORDER BY k
                                 ) AS columns, t.relname
-                FROM pg_class t
+                FROM tables t
                 INNER JOIN pg_index d ON t.oid = d.indrelid
                 INNER JOIN pg_class i ON d.indexrelid = i.oid
-                LEFT JOIN pg_namespace n ON n.oid = t.relnamespace
                 WHERE i.relkind IN ('i', 'I')
                   AND d.indisprimary = 'f'
-                  AND n.nspname = #{schema} AND t.relname IN (#{quoted_table_names(group)})
                 ORDER BY i.relname
               SQL
               by_name = rows.group_by(&:last)
@@ -973,22 +989,18 @@ module ActiveRecord
           def fetch_table_options(tables)
             fetch_by_schema(tables) do |schema, group|
               # A table comes back once per parent it inherits from, and once if it
-              # inherits from nothing.
+              # inherits from nothing. A name that resolves to something other than
+              # a table has no table options to read.
               by_name = query_all(<<~SQL).group_by { |row| row["table_name"] }
-                SELECT t.relname AS table_name, t.comment, t.partition_key, parent.relname AS parent
-                FROM (
-                  SELECT DISTINCT ON (c.relname) c.oid, c.relname,
-                         pg_catalog.obj_description(c.oid, 'pg_class') AS comment,
-                         #{supports_native_partitioning? ? "pg_catalog.pg_get_partkeydef(c.oid)" : "NULL"} AS partition_key
-                  FROM pg_class c
-                  JOIN pg_namespace n ON n.oid = c.relnamespace
-                  WHERE n.nspname = #{schema}
-                    AND c.relname IN (#{quoted_table_names(group)})
-                    AND c.relkind IN ('r', 'p')
-                  ORDER BY c.relname, array_position(current_schemas(false), n.nspname)
-                ) t
+                #{resolved_tables(schema, group)}
+                SELECT t.relname AS table_name,
+                       pg_catalog.obj_description(t.oid, 'pg_class') AS comment,
+                       #{supports_native_partitioning? ? "pg_catalog.pg_get_partkeydef(t.oid)" : "NULL"} AS partition_key,
+                       parent.relname AS parent
+                FROM tables t
                 LEFT JOIN pg_inherits i ON i.inhrelid = t.oid
                 LEFT JOIN pg_class parent ON i.inhparent = parent.oid
+                WHERE t.relkind IN ('r', 'p')
                 ORDER BY t.relname, i.inhseqno
               SQL
 
@@ -1016,24 +1028,16 @@ module ActiveRecord
 
           def fetch_primary_keys(tables)
             fetch_by_schema(tables) do |schema, group|
-              # An unqualified name resolves to the first schema on the search path
-              # that has it, the way ::regclass would for a single table.
               by_name = query_all(<<~SQL).group_by { |row| row["table_name"] }
+                #{resolved_tables(schema, group)}
                 SELECT t.relname AS table_name, a.attname AS column_name
-                FROM pg_constraint cons
-                JOIN (
-                  SELECT DISTINCT ON (c.relname) c.oid, c.relname
-                  FROM pg_class c
-                  JOIN pg_namespace n ON n.oid = c.relnamespace
-                  WHERE n.nspname = #{schema}
-                    AND c.relname IN (#{quoted_table_names(group)})
-                  ORDER BY c.relname, array_position(current_schemas(false), n.nspname)
-                ) t ON t.oid = cons.conrelid
+                FROM pg_constraint c
+                JOIN tables t ON c.conrelid = t.oid
                 JOIN pg_attribute a
-                  ON a.attrelid = cons.conrelid
-                  AND a.attnum = ANY(cons.conkey)
-                WHERE cons.contype = 'p'
-                ORDER BY t.relname, array_position(cons.conkey, a.attnum)
+                  ON a.attrelid = c.conrelid
+                  AND a.attnum = ANY(c.conkey)
+                WHERE c.contype = 'p'
+                ORDER BY t.relname, array_position(c.conkey, a.attnum)
               SQL
 
               group.index_with { |table| rows_for(by_name, table).map { |row| row["column_name"] } }
@@ -1097,31 +1101,24 @@ module ActiveRecord
               conenforced_column = supports_enforced_foreign_keys? ? ", c.conenforced AS enforced" : ""
 
               rows = query_all(<<~SQL)
+                #{resolved_tables(schema, group)}
                 SELECT t1.relname AS from_table, t2.oid::regclass::text AS to_table, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid, c.condeferrable AS deferrable, c.condeferred AS deferred, c.conrelid, c.confrelid#{conenforced_column},
                   (
                     SELECT array_agg(a.attname ORDER BY idx)
-                    FROM (
-                      SELECT idx, c.conkey[idx] AS conkey_elem
-                      FROM generate_subscripts(c.conkey, 1) AS idx
-                    ) indexed_conkeys
+                    FROM unnest(c.conkey) WITH ORDINALITY AS k(attnum, idx)
                     JOIN pg_attribute a ON a.attrelid = t1.oid
-                    AND a.attnum = indexed_conkeys.conkey_elem
+                    AND a.attnum = k.attnum
                   ) AS conkey_names,
                   (
                     SELECT array_agg(a.attname ORDER BY idx)
-                    FROM (
-                      SELECT idx, c.confkey[idx] AS confkey_elem
-                      FROM generate_subscripts(c.confkey, 1) AS idx
-                    ) indexed_confkeys
+                    FROM unnest(c.confkey) WITH ORDINALITY AS k(attnum, idx)
                     JOIN pg_attribute a ON a.attrelid = t2.oid
-                    AND a.attnum = indexed_confkeys.confkey_elem
+                    AND a.attnum = k.attnum
                   ) AS confkey_names
                 FROM pg_constraint c
-                JOIN pg_class t1 ON c.conrelid = t1.oid
+                JOIN tables t1 ON c.conrelid = t1.oid
                 JOIN pg_class t2 ON c.confrelid = t2.oid
-                JOIN pg_namespace n ON c.connamespace = n.oid
                 WHERE c.contype = 'f'
-                  AND n.nspname = #{schema} AND t1.relname IN (#{quoted_table_names(group)})
                 ORDER BY c.conname
               SQL
               by_name = rows.group_by { |row| row["from_table"] }
@@ -1157,12 +1154,11 @@ module ActiveRecord
           def fetch_check_constraints(tables)
             fetch_by_schema(tables) do |schema, group|
               rows = query_all(<<~SQL)
+                #{resolved_tables(schema, group)}
                 SELECT t.relname AS table_name, conname, pg_get_constraintdef(c.oid, true) AS constraintdef, c.convalidated AS valid
                 FROM pg_constraint c
-                JOIN pg_class t ON c.conrelid = t.oid
-                JOIN pg_namespace n ON n.oid = c.connamespace
+                JOIN tables t ON c.conrelid = t.oid
                 WHERE c.contype = 'c'
-                  AND n.nspname = #{schema} AND t.relname IN (#{quoted_table_names(group)})
               SQL
               by_name = rows.group_by { |row| row["table_name"] }
 
@@ -1185,12 +1181,11 @@ module ActiveRecord
           def fetch_exclusion_constraints(tables)
             fetch_by_schema(tables) do |schema, group|
               rows = query_all(<<~SQL)
+                #{resolved_tables(schema, group)}
                 SELECT t.relname AS table_name, conname, pg_get_constraintdef(c.oid) AS constraintdef, c.condeferrable, c.condeferred
                 FROM pg_constraint c
-                JOIN pg_class t ON c.conrelid = t.oid
-                JOIN pg_namespace n ON n.oid = c.connamespace
+                JOIN tables t ON c.conrelid = t.oid
                 WHERE c.contype = 'x'
-                  AND n.nspname = #{schema} AND t.relname IN (#{quoted_table_names(group)})
               SQL
               by_name = rows.group_by { |row| row["table_name"] }
 
@@ -1221,21 +1216,17 @@ module ActiveRecord
           def fetch_unique_constraints(tables)
             fetch_by_schema(tables) do |schema, group|
               rows = query_all(<<~SQL)
+                #{resolved_tables(schema, group)}
                 SELECT t.relname AS table_name, c.conname, c.conrelid, c.condeferrable, c.condeferred, pg_get_constraintdef(c.oid) AS constraintdef,
                 (
                   SELECT array_agg(a.attname ORDER BY idx)
-                  FROM (
-                    SELECT idx, c.conkey[idx] AS conkey_elem
-                    FROM generate_subscripts(c.conkey, 1) AS idx
-                  ) indexed_conkeys
+                  FROM unnest(c.conkey) WITH ORDINALITY AS k(attnum, idx)
                   JOIN pg_attribute a ON a.attrelid = t.oid
-                  AND a.attnum = indexed_conkeys.conkey_elem
+                  AND a.attnum = k.attnum
                 ) AS conkey_names
                 FROM pg_constraint c
-                JOIN pg_class t ON c.conrelid = t.oid
-                JOIN pg_namespace n ON n.oid = c.connamespace
+                JOIN tables t ON c.conrelid = t.oid
                 WHERE c.contype = 'u'
-                  AND n.nspname = #{schema} AND t.relname IN (#{quoted_table_names(group)})
               SQL
               by_name = rows.group_by { |row| row["table_name"] }
 
