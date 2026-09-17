@@ -1,24 +1,30 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "time"
 require "base64"
 require "bigdecimal"
 require "bigdecimal/util"
+require "active_support/core_ext/date/conversions"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/date_time/calculations"
 
 module ActiveSupport
-  # = \XmlMini
+  # \XmlMini
+  # ========
   #
   # To use the much faster libxml parser:
-  #   gem "libxml-ruby"
-  #   XmlMini.backend = 'LibXML'
+  #
+  # ```
+  # gem "libxml-ruby"
+  # XmlMini.backend = 'LibXML'
+  # ```
   module XmlMini
     extend self
 
     # This module decorates files deserialized using Hash.from_xml with
-    # the <tt>original_filename</tt> and <tt>content_type</tt> methods.
+    # the `original_filename` and `content_type` methods.
     module FileLike # :nodoc:
       attr_writer :original_filename, :content_type
 
@@ -68,7 +74,7 @@ module ActiveSupport
         "symbol"       => Proc.new { |symbol|  symbol.to_s.to_sym },
         "date"         => Proc.new { |date|    ::Date.strptime(date.to_s.strip, "%Y-%m-%d") },
         "datetime"     => Proc.new { |time|    Time.xmlschema(time).utc rescue ::DateTime.parse(time).utc },
-        "duration"     => Proc.new { |duration| Duration.parse(duration) },
+        "duration"     => Proc.new { |duration| Duration.parse(duration.to_s.strip) },
         "integer"      => Proc.new { |integer| integer.to_i },
         "float"        => Proc.new { |float|   float.to_f },
         "decimal"      => Proc.new do |number|

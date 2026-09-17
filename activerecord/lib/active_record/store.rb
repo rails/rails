@@ -45,7 +45,7 @@ module ActiveRecord
   #     store :settings, accessors: [ :login_retry ], suffix: :config
   #   end
   #
-  #   u = User.new(color: 'black', homepage: '37signals.com', parent_name: 'Mary', partner_name: 'Lily')
+  #   u = User.create!(color: 'black', homepage: '37signals.com', parent_name: 'Mary', partner_name: 'Lily')
   #   u.color                          # Accessor stored attribute
   #   u.parent_name                    # Accessor stored attribute with prefix
   #   u.partner_name                   # Accessor stored attribute with custom prefix
@@ -172,7 +172,7 @@ module ActiveRecord
             end
 
             define_method("#{accessor_key}_was") do
-              return unless attribute_changed?(store_attribute)
+              return read_store_attribute(store_attribute, key) unless attribute_changed?(store_attribute)
               prev_store, _new_store = changes[store_attribute]
               accessor = store_accessor_for(store_attribute)
               accessor.get(prev_store, key)

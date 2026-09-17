@@ -6,8 +6,9 @@ require "active_support/core_ext/erb/util"
 module ActionView
   class Template
     module Handlers
-      class ERB
+      class ERB # :nodoc:
         autoload :Erubi, "action_view/template/handlers/erb/erubi"
+        autoload :Herb, "action_view/template/handlers/erb/herb"
 
         # Specify trim mode for the ERB compiler. Defaults to '-'.
         # See ERB documentation for suitable values.
@@ -22,7 +23,7 @@ module ActionView
         # Strip trailing newlines from rendered output
         class_attribute :strip_trailing_newlines, default: false
 
-        ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
+        ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*").freeze
 
         LocationParsingError = Class.new(StandardError) # :nodoc:
 
@@ -62,7 +63,7 @@ module ActionView
           nil
         end
 
-        def call(template, source)
+        def call(template, source, implementation: nil, **overrides)
           # First, convert to BINARY, so in case the encoding is
           # wrong, we can still find an encoding tag
           # (<%# encoding %>) inside the String using a regular
@@ -90,7 +91,7 @@ module ActionView
             options[:postamble] = "@output_buffer.safe_append='<!-- END #{template.short_identifier} -->';@output_buffer"
           end
 
-          self.class.erb_implementation.new(erb, options).src
+          (implementation || self.class.erb_implementation).new(erb, options.merge(overrides)).src
         end
 
       private

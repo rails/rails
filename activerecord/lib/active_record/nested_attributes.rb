@@ -300,7 +300,7 @@ module ActiveRecord
     #     }
     #   }
     module ClassMethods
-      REJECT_ALL_BLANK_PROC = proc { |attributes| attributes.all? { |key, value| key == "_destroy" || value.blank? } }
+      REJECT_ALL_BLANK_PROC = ActiveSupport::Ractors.shareable_proc { |attributes| attributes.all? { |key, value| key == "_destroy" || value.blank? } }
 
       # Defines an attributes writer for the specified association(s).
       #
@@ -621,7 +621,7 @@ module ActiveRecord
 
       def raise_nested_attributes_record_not_found!(association_name, record_id)
         model = self.class._reflect_on_association(association_name).klass.name
-        raise RecordNotFound.new("Couldn't find #{model} with ID=#{record_id} for #{self.class.name} with ID=#{id}",
+        raise RecordNotFound.new("Couldn't find #{model} with ID=#{record_id.inspect} for #{self.class.name} with ID=#{id}",
                                  model, "id", record_id)
       end
 

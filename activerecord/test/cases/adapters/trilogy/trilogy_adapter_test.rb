@@ -306,6 +306,8 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
 
     # rollback transaction so it doesn't bleed into other tests
     @conn.rollback_db_transaction
+  ensure
+    @conn.singleton_class.send(:remove_method, :perform_query)
   end
 
   test "#commit_db_transaction raises error" do
@@ -315,6 +317,8 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
         @conn.commit_db_transaction
       end
     end
+  ensure
+    @conn.singleton_class.send(:remove_method, :perform_query)
   end
 
   test "#rollback_db_transaction raises error" do
@@ -324,6 +328,8 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
         @conn.rollback_db_transaction
       end
     end
+  ensure
+    @conn.singleton_class.send(:remove_method, :perform_query)
   end
 
   test "#select_value returns a single value" do

@@ -2,7 +2,16 @@
 
 module ActionView
   class DependencyTracker # :nodoc:
-    class ERBTracker # :nodoc:
+    # = Action View ERB Dependency Tracker
+    #
+    # Finds the dependencies of an ERB template by scanning its source with
+    # regular expressions for +render+ calls and <tt># Template Dependency:</tt>
+    # comments.
+    #
+    # Because it matches against the source, it also handles template languages
+    # whose +render+ calls look like Ruby.
+    class ERBTracker
+      # :stopdoc:
       EXPLICIT_DEPENDENCY = /# Template Dependency: (\S+)/
 
       # A valid ruby identifier - suitable for class, method and specially variable names

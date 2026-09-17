@@ -156,6 +156,19 @@ module ActiveRecord
       assert_not_includes model.column_names, column_name.to_s, msg
     end
 
+    def assert_equal_unordered(expected, actual, message = nil)
+      expected = expected.to_a
+      actual = actual.to_a
+
+      unmatched = actual.dup
+      aligned = expected.each_with_object([]) do |element, result|
+        index = unmatched.index(element)
+        result << unmatched.delete_at(index) if index
+      end
+
+      assert_equal expected, aligned + unmatched, message
+    end
+
     def with_has_many_inversing(model = ActiveRecord::Base)
       old = model.has_many_inversing
       model.has_many_inversing = true

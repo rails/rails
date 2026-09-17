@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 #--
@@ -57,6 +58,7 @@ module ActiveSupport
   autoload :StructuredEventSubscriber
   autoload :IsolatedExecutionState
   autoload :Notifications
+  autoload :ProxyLogger
   autoload :Reloader
   autoload :SecureCompareRotator
   autoload :TimeFormats
@@ -146,21 +148,29 @@ module ActiveSupport
     @to_time_preserves_timezone = value
   end
 
-  # Change the output of <tt>ActiveSupport::TimeZone.utc_to_local</tt>.
+  # Change the output of `ActiveSupport::TimeZone.utc_to_local`.
   #
-  # When +true+, it returns local times with a UTC offset, with +false+ local
+  # When `true`, it returns local times with a UTC offset, with `false` local
   # times are returned as UTC.
   #
-  #   # Given this zone:
-  #   zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+  # ```
+  # # Given this zone:
+  # zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
   #
-  #   # With `utc_to_local_returns_utc_offset_times = false`, local time is converted to UTC:
-  #   zone.utc_to_local(Time.utc(2000, 1)) # => 1999-12-31 19:00:00 UTC
+  # # With `utc_to_local_returns_utc_offset_times = false`, local time is converted to UTC:
+  # zone.utc_to_local(Time.utc(2000, 1)) # => 1999-12-31 19:00:00 UTC
   #
-  #   # With `utc_to_local_returns_utc_offset_times = true`, local time is returned with UTC offset:
-  #   zone.utc_to_local(Time.utc(2000, 1)) # => 1999-12-31 19:00:00 -0500
+  # # With `utc_to_local_returns_utc_offset_times = true`, local time is returned with UTC offset:
+  # zone.utc_to_local(Time.utc(2000, 1)) # => 1999-12-31 19:00:00 -0500
+  # ```
   singleton_class.attr_accessor :utc_to_local_returns_utc_offset_times
   @utc_to_local_returns_utc_offset_times = false
+
+  # Specifies whether ActiveSupport::TimeZone#parse raises `ArgumentError` for
+  # any invalid string, instead of returning `nil` for strings that contain no
+  # recognizable date information.
+  singleton_class.attr_accessor :raise_on_invalid_time_zone_parse
+  @raise_on_invalid_time_zone_parse = false
 end
 
 autoload :I18n, "active_support/i18n"

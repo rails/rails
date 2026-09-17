@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 # :markup: markdown
@@ -22,11 +23,13 @@ module ActionCable
         # Pass a method name or lambda argument or provide a block to call. Specify the
         # calling period in seconds using the `every:` keyword argument.
         #
-        #     periodically :transmit_progress, every: 5.seconds
+        # ```
+        # periodically :transmit_progress, every: 5.seconds
         #
-        #     periodically every: 3.minutes do
-        #       transmit action: :update_count, count: current_count
-        #     end
+        # periodically every: 3.minutes do
+        #   transmit action: :update_count, count: current_count
+        # end
+        # ```
         #
         def periodically(callback_or_method_name = nil, every:, &block)
           callback =

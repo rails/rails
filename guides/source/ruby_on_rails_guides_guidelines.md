@@ -37,12 +37,12 @@ Section
 ### Sub Section
 ```
 
-When writing headings, capitalize all words except for prepositions, conjunctions, internal articles, and forms of the verb "to be":
+When writing headings, capitalize all words except for articles, prepositions, conjunctions, and forms of the verb "to be":
 
 ```markdown
 #### Assertions and Testing Jobs inside Components
 #### Middleware Stack is an Array
-#### When are Objects Saved?
+#### When are the Objects Saved?
 ```
 
 Use the same inline formatting as regular text:
@@ -118,6 +118,21 @@ store(dev)> Product.first
 => #<Product:0x00000001221f6260 id: 1, name: "T-Shirt", created_at: "2024-11-09 16:35:01.117836000 +0000", updated_at: "2024-11-09 16:35:01.117836000 +0000">
 ```
 ````
+
+### Shortening Examples
+
+If an example has a lot of lines that are irrelevant in the context, use an
+ellipsis. Comment out the ellipsis if the example is executable code:
+
+````markdown
+```ruby
+class User < ApplicationRecord
+  validates :name, presence: true
+  # ...
+end
+```
+````
+
 
 ### Code Highlighting
 
@@ -344,13 +359,14 @@ $ bundle exec rake guides:validate
 
 Particularly, titles get an ID generated from their content and this often leads to duplicates.
 
-Kindle Guides
--------------
+EPUB Guides
+-----------
 
 ### Generation
 
-To generate guides for the Kindle, use the following rake task:
+To generate the guides as an EPUB, readable on a Kindle and other e-readers,
+use the following rake task:
 
 ```bash
-$ bundle exec rake guides:generate:kindle
+$ bundle exec rake guides:generate:epub
 ```

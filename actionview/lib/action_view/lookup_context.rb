@@ -15,15 +15,14 @@ module ActionView
   class LookupContext # :nodoc:
     attr_accessor :prefixes
 
-    singleton_class.attr_accessor :default_procs
-    self.default_procs = {}.freeze
-
-    def self.registered_details
-      self.default_procs.keys
-    end
+    singleton_class.attr_reader :default_procs, :registered_details
+    @default_procs = {}.freeze
+    @registered_details = [].freeze
 
     def self.register_detail(name, &block)
-      self.default_procs = self.default_procs.merge(name => block).freeze
+      block = ActiveSupport::Ractors.shareable_proc(&block)
+      @default_procs = @default_procs.merge(name => block).freeze
+      @registered_details = @default_procs.keys.freeze
 
       Accessors.define_method(:"default_#{name}", &block)
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
@@ -56,23 +55,19 @@ module ActionView
     class DetailsKey # :nodoc:
       alias :eql? :equal?
 
-      @details_keys = Concurrent::Map.new
-      @digest_cache = Concurrent::Map.new
-      @view_context_mutex = Mutex.new
-
       def self.digest_cache(details)
-        @digest_cache[details_cache_key(details)] ||= Concurrent::Map.new
+        digest_cache_store.compute_if_absent(details_cache_key(details)) { Concurrent::Map.new }
       end
 
       def self.details_cache_key(details)
-        @details_keys.fetch(details) do
+        details_keys.fetch(details) do
           if formats = details[:formats]
             if normalized = Template.normalized_formats(formats)
               details = details.dup
               details[:formats] = normalized
             end
           end
-          @details_keys[details] ||= TemplateDetails::Requested.new(**details)
+          details_keys[details] ||= TemplateDetails::Requested.new(**details)
         end
       end
 
@@ -80,21 +75,39 @@ module ActionView
         ActionView::PathRegistry.all_resolvers.each do |resolver|
           resolver.clear_cache
         end
-        @view_context_class = nil
-        @details_keys.clear
-        @digest_cache.clear
+        ActionView::LookupContext.reset_view_context_class
+        details_keys.clear
+        digest_cache_store.clear
       end
 
       def self.digest_caches
-        @digest_cache.values
+        digest_cache_store.values
       end
 
-      def self.view_context_class
-        @view_context_mutex.synchronize do
-          @view_context_class ||= ActionView::Base.with_empty_template_cache
-        end
+      def self.details_keys
+        ActiveSupport::Ractors.store_if_absent(:action_view_details_keys) { Concurrent::Map.new }
+      end
+      private_class_method :details_keys
+
+      def self.digest_cache_store
+        ActiveSupport::Ractors.store_if_absent(:action_view_digest_caches) { Concurrent::Map.new }
+      end
+      private_class_method :digest_cache_store
+    end
+
+    def self.reset_view_context_class
+      @view_context_mutex.synchronize { @view_context_class = nil }
+    end
+
+    def self.view_context_class
+      return @view_context_class if @view_context_class
+      base = ActionView::Base # prevent recursive locking
+      @view_context_mutex.synchronize do
+        @view_context_class = base.with_empty_template_cache
       end
     end
+    @view_context_mutex = Mutex.new
+    ActiveSupport.on_load(:action_view) { ActionView::LookupContext.view_context_class }
 
     # Add caching behavior on top of Details.
     module DetailsCache
@@ -128,32 +141,43 @@ module ActionView
       attr_reader :view_paths, :html_fallback_for_js
 
       def find(name, prefixes = [], partial = false, keys = [], options = {})
-        name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(options)
+        if options.empty? # most common path
+          details, details_key = @details, self.details_key
+        else
+          details, details_key = detail_args_for(options)
+        end
         @view_paths.find(name, prefixes, partial, details, details_key, keys)
       end
 
       def find!(name, prefixes = [], partial = false, keys = [], options = {})
-        name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(options)
+        if options.empty?
+          details, details_key = @details, self.details_key
+        else
+          details, details_key = detail_args_for(options)
+        end
         @view_paths.find!(name, prefixes, partial, details, details_key, keys)
       end
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
-        name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(options)
+        if options.empty?
+          details, details_key = @details, self.details_key
+        else
+          details, details_key = detail_args_for(options)
+        end
         @view_paths.find_all(name, prefixes, partial, details, details_key, keys)
       end
 
       def exists?(name, prefixes = [], partial = false, keys = [], **options)
-        name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(options)
+        if options.empty?
+          details, details_key = @details, self.details_key
+        else
+          details, details_key = detail_args_for(options)
+        end
         @view_paths.exists?(name, prefixes, partial, details, details_key, keys)
       end
       alias :template_exists? :exists?
 
       def any?(name, prefixes = [], partial = false)
-        name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for_any
         @view_paths.exists?(name, prefixes, partial, details, details_key, [])
       end
@@ -184,7 +208,6 @@ module ActionView
 
       # Compute details hash and key according to user options (e.g. passed from #render).
       def detail_args_for(options) # :doc:
-        return @details, details_key if options.empty? # most common path.
         user_details = @details.merge(options)
 
         if @cache
@@ -214,25 +237,6 @@ module ActionView
             [details, nil]
           end
         end
-      end
-
-      # Fix when prefix is specified as part of the template name
-      def normalize_name(name, prefixes)
-        name = name.to_s
-        idx = name.rindex("/")
-        return name, prefixes.presence || [""] unless idx
-
-        path_prefix = name[0, idx]
-        path_prefix = path_prefix.from(1) if path_prefix.start_with?("/")
-        name = name.from(idx + 1)
-
-        if !prefixes || prefixes.empty?
-          prefixes = [path_prefix]
-        else
-          prefixes = prefixes.map { |p| "#{p}/#{path_prefix}" }
-        end
-
-        return name, prefixes
       end
     end
 

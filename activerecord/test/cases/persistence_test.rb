@@ -97,7 +97,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
       record_with_defaults.update!(random_number: 105)
       assert_equal 1050,  record_with_defaults.virtual_stored_number
-    end
+    end if supports_virtual_columns?
 
     def test_returning_columns_on_update_does_not_include_id
       record_with_defaults = Default.create
@@ -476,6 +476,16 @@ class PersistenceTest < ActiveRecord::TestCase
       assert_equal books.sort, destroyed.sort
       assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
     end
+  end
+
+  def test_destroy_with_empty_array_of_composite_primary_keys
+    assert_no_difference("Cpk::Book.count") do
+      assert_equal [], Cpk::Book.destroy([])
+    end
+  end
+
+  def test_update_with_empty_array_of_composite_primary_keys
+    assert_equal [], Cpk::Book.update([], [])
   end
 
   def test_destroy_with_invalid_ids_for_a_model_that_expects_composite_keys

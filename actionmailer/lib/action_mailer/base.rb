@@ -497,7 +497,7 @@ module ActionMailer
 
     include ActionView::Layouts
 
-    PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [:@_action_has_layout]
+    PROTECTED_IVARS = (AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [:@_action_has_layout]).freeze
 
     helper ActionMailer::MailHelper
 
@@ -614,8 +614,11 @@ module ActionMailer
 
       def action_methods
         methods = super
-        methods.add("mail") if self == ActionMailer::Base
-        methods
+        if self == ActionMailer::Base
+          methods.dup.add("mail").freeze
+        else
+          methods
+        end
       end
 
     private
@@ -653,11 +656,11 @@ module ActionMailer
       @_message = Mail.new
     end
 
-    def process(method_name, *args) # :nodoc:
+    def process(method_name, *args, **kwargs) # :nodoc:
       payload = {
         mailer: self.class.name,
         action: method_name,
-        args: args
+        args: kwargs.empty? ? args : args + [kwargs]
       }
 
       ActiveSupport::Notifications.instrument("process.action_mailer", payload) do
@@ -665,7 +668,6 @@ module ActionMailer
         @_message = NullMail.new unless @_mail_was_called
       end
     end
-    ruby2_keywords(:process)
 
     class NullMail # :nodoc:
       def body; "" end

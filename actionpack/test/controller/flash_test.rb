@@ -251,6 +251,14 @@ class FlashTest < ActionController::TestCase
 
   def test_flash_types_are_ractor_safe
     assert_ractor_shareable TestController._flash_types
+
+    assert_nothing_raised do
+      on_ractor do
+        c = TestController.new
+        c.set_request! ActionDispatch::Request.new({})
+        c.send(:alert)
+      end
+    end
   end
 end
 

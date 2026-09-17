@@ -99,10 +99,12 @@ module ActiveRecord
           end
 
           def reset_primary_key # :nodoc:
-            if base_class?
-              self.primary_key = get_primary_key(base_class.name)
-            else
-              self.primary_key = base_class.primary_key
+            ActiveSupport::Ractors.on_main(self) do
+              if base_class?
+                self.primary_key = get_primary_key(base_class.name)
+              else
+                self.primary_key = base_class.primary_key
+              end
             end
           end
 

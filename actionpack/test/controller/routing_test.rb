@@ -59,11 +59,8 @@ end
 class MockController
   def self.build(helpers, additional_options = {})
     Class.new do
-      define_method :url_options do
-        options = super()
-        options[:protocol] ||= "http"
-        options[:host] ||= "test.host"
-        options.merge(additional_options)
+      define_method :default_url_options do
+        { protocol: "http", host: "test.host" }.merge(additional_options)
       end
 
       include helpers
@@ -311,9 +308,9 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     rs.draw do
       get "/posts/:id(/*filters)", constraints: { filters: /.+?/ },
         to: lambda { |e|
-        params = e["action_dispatch.request.path_parameters"]
-        [200, {}, ["foo"]]
-      }
+          params = e["action_dispatch.request.path_parameters"]
+          [200, {}, ["foo"]]
+        }
     end
     assert_equal "foo", get(URI("http://example.org/posts/1/foo.js"))
     assert_equal({ id: "1", filters: "foo", format: "js" }, params)
@@ -1015,10 +1012,6 @@ class RouteSetTest < ActiveSupport::TestCase
   def setup
     super
     @set = make_set
-  end
-
-  def request
-    @request ||= ActionController::TestRequest.new
   end
 
   def default_route_set

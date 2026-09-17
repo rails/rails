@@ -7,13 +7,20 @@ module ActiveJob
   module Logging
     extend ActiveSupport::Concern
 
-    included do
+    @logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT))
+    singleton_class.attr_accessor :logger # :nodoc:
+
+    module ClassMethods
       ##
       # Accepts a logger conforming to the interface of Log4r or the default
       # Ruby +Logger+ class. You can retrieve this logger by calling +logger+ on
       # either an Active Job job class or an Active Job job instance.
-      cattr_accessor :logger, default: ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT))
+      delegate :logger, :logger=, to: Logging
+    end
 
+    delegate :logger, :logger=, to: Logging
+
+    included do
       ##
       # Configures whether a job's arguments should be logged. This can be
       # useful when a job's arguments may be sensitive and so should not be

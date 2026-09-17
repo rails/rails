@@ -314,7 +314,7 @@ module ActiveRecord
     def test_structure_dump_with_ignore_tables
       filename = "awesome-file.sql"
       ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
-        ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
+        ActiveRecord.stub(:schema_ignored_tables, [/^prefix_/, "ignored_foo"]) do
           assert_called_with(
             Kernel,
             :system,
@@ -342,6 +342,24 @@ module ActiveRecord
       end
     end
 
+    def test_structure_dump_command_failure_does_not_leak_the_password
+      filename = "awesome-file.sql"
+      assert_called_with(
+        Kernel,
+        :system,
+        ["mysqldump", "--user=pat", "--password=wossname", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
+        returns: false
+      ) do
+        e = assert_raise(RuntimeError) {
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+            @configuration.merge("username" => "pat", "password" => "wossname"),
+            filename)
+        }
+        assert_no_match(/wossname/, e.message)
+        assert_match("--password=[FILTERED]", e.message)
+      end
+    end
+
     def test_structure_dump_with_port_number
       filename = "awesome-file.sql"
       assert_called_with(
@@ -364,10 +382,24 @@ module ActiveRecord
         ["mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
         returns: true
       ) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(
-            @configuration.merge("sslca" => "ca.crt"),
-            filename)
-        end
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+          @configuration.merge("sslca" => "ca.crt"),
+          filename)
+      end
+    end
+
+    def test_structure_dump_ignores_ssl_options_mysql2_does_not_accept
+      filename = "awesome-file.sql"
+      assert_called_with(
+        Kernel,
+        :system,
+        ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
+        returns: true
+      ) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+          @configuration.merge("ssl_ca" => "ca.crt"),
+          filename)
+      end
     end
 
     private

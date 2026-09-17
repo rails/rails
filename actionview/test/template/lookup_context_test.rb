@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "abstract_controller/rendering"
+require "active_support/testing/ractors_assertions"
 
 class LookupContextTest < ActiveSupport::TestCase
   def setup
@@ -31,7 +32,7 @@ class LookupContextTest < ActiveSupport::TestCase
   end
 
   test "normalizes details on initialization" do
-    assert_equal Mime::SET.to_a, @lookup_context.formats
+    assert_equal Mime.symbols, @lookup_context.formats
     assert_equal :en, @lookup_context.locale
   end
 
@@ -52,12 +53,12 @@ class LookupContextTest < ActiveSupport::TestCase
 
   test "handles */* formats" do
     @lookup_context.formats = ["*/*"]
-    assert_equal Mime::SET.to_a, @lookup_context.formats
+    assert_equal Mime.symbols, @lookup_context.formats
   end
 
   test "handles explicitly defined */* formats fallback to :js" do
     @lookup_context.formats = [:js, Mime::ALL]
-    assert_equal [:js, *Mime::SET.symbols].uniq, @lookup_context.formats
+    assert_equal [:js, *Mime.symbols].uniq, @lookup_context.formats
   end
 
   test "adds :html fallback to :js formats" do
@@ -196,6 +197,66 @@ class LookupContextTest < ActiveSupport::TestCase
     assert_equal [], @lookup_context.prefixes
     @lookup_context.prefixes = ["foo"]
     assert_equal ["foo"], @lookup_context.prefixes
+  end
+end
+
+if RUBY_VERSION >= "4.0"
+  class LookupContextRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "view_context_class's compiled method container is readable from a non-main Ractor" do
+      klass = ActionView::LookupContext.view_context_class
+
+      singleton_container, instance_container = on_ractor(klass) do |k|
+        [k.compiled_method_container, k.allocate.compiled_method_container]
+      end
+
+      assert_same klass, singleton_container
+      assert_same klass, instance_container
+    end
+
+    test "view_context_class is Ractor-shareable" do
+      ActionView::LookupContext.view_context_class # needs to be eager-loaded to be ractor-shareable
+      assert_same ActionView::LookupContext.view_context_class,
+        on_ractor { ActionView::LookupContext.view_context_class }
+    end
+
+    if RUBY_VERSION >= "4.0"
+      test "builds lookup contexts and interns their details keys inside a non-main Ractor" do
+        Mime.eager_load!
+
+        same_key, worker_key_id, defaulted_variants = on_ractor do
+          details = { locale: [:en], formats: [:html], variants: [], handlers: [:erb] }
+          a = ActionView::LookupContext.new([], details)
+          b = ActionView::LookupContext.new([], details.dup)
+          interned_same = a.details_key.equal?(b.details_key)
+          key_id = a.details_key.object_id
+          # check default_ methods can be called (defaulted_variants in this case)
+          a.variants = nil
+          [interned_same, key_id, a.variants]
+        end
+
+        assert same_key
+        assert_equal [], defaulted_variants
+
+        details = { locale: [:en], formats: [:html], variants: [], handlers: [:erb] }
+        main_key_id = ActionView::LookupContext.new([], details).details_key.object_id
+        assert_not_equal main_key_id, worker_key_id
+      end
+    end
+
+    test "interns details keys and builds digest caches inside a non-main Ractor" do
+      interned, digest_cache = on_ractor do
+        details = { locale: [:en], formats: nil, variants: [], handlers: [:erb] }
+        key = ActionView::LookupContext::DetailsKey.details_cache_key(details)
+        cache = ActionView::LookupContext::DetailsKey.digest_cache(details)
+        [key.class.name, cache.class.name]
+      end
+
+      assert_equal "ActionView::TemplateDetails::Requested", interned
+      assert_equal "Concurrent::Map", digest_cache
+    end
   end
 end
 

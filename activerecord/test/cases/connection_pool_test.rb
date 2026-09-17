@@ -2,12 +2,14 @@
 
 require "cases/helper"
 require "active_support/error_reporter/test_helper"
+require "active_support/execution_context/test_helper"
 require "concurrent/atomic/count_down_latch"
 
 module ActiveRecord
   module ConnectionAdapters
     module ConnectionPoolTests
       include ActiveRecord::TestCase::WaitForTestHelper
+      include ActiveSupport::ExecutionContext::TestHelper
 
       def self.included(test)
         super
@@ -102,6 +104,36 @@ module ActiveRecord
 
         main_thread.close
         assert_equal 0, active_connections(pool).size
+      end
+
+      def test_checkin_finalizes_unfinished_intent_logs_before_callbacks
+        pool.with_connection { }
+        intent = nil
+        finalized_before_checkin_callbacks = nil
+        adapter_class = ActiveRecord::ConnectionAdapters::AbstractAdapter
+        checkin_callback = -> { finalized_before_checkin_callbacks = intent&.finalized? }
+        adapter_class.set_callback(:checkin, :before, checkin_callback)
+
+        events = capture_notifications("sql.active_record") do
+          pool.with_connection do |connection|
+            intent = QueryIntent.new(
+              adapter: connection,
+              raw_sql: "SELECT 1",
+              name: "SQL",
+              materialize_transactions: false
+            )
+            connection.start_intent_log(intent)
+
+            assert_not_predicate intent, :finalized?
+          end
+        end
+
+        event = events.find { |notification| notification.payload[:sql] == "SELECT 1" }
+        assert_predicate intent, :finalized?
+        assert finalized_before_checkin_callbacks
+        assert_not_nil event
+      ensure
+        adapter_class&.skip_callback(:checkin, :before, checkin_callback) if checkin_callback
       end
 
       def test_new_connection_no_query
@@ -1706,6 +1738,40 @@ module ActiveRecord
         assert_equal 1, maintenance_thread.value
 
         pool.checkin(conn2)
+      end
+
+      def test_checkout_queued_behind_maintenance_respects_checkout_timeout
+        Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception
+        pool = new_pool_with_options(max_connections: 3, checkout_timeout: 0.1, reaping_frequency: nil, async: false)
+
+        conn1 = pool.checkout
+        conn2 = pool.checkout
+        pool.checkin(conn1)
+
+        maintenance_started = Concurrent::Event.new
+        maintenance_continuing = Concurrent::Event.new
+
+        maintenance_thread = new_thread do
+          pool.send(:sequential_maintenance, proc { true }) do |_|
+            maintenance_started.set
+            maintenance_continuing.wait
+          end
+        end
+
+        maintenance_started.wait
+
+        checkout_thread = new_thread { pool.checkout }
+
+        assert_raises(ActiveRecord::ConnectionTimeoutError) do
+          # Bounded well below the buggy hardcoded 100s wait this guards against,
+          # so an unfixed regression fails fast instead of hanging the suite.
+          checkout_thread.join(1) or flunk "checkout blocked well beyond the pool's configured checkout_timeout of 0.1s"
+        end
+      ensure
+        maintenance_continuing.set
+        maintenance_thread&.join(2)
+        pool.checkin(conn2)
+        Thread.report_on_exception = original_report_on_exception
       end
 
       def test_disconnect_and_clear_reloadable_connections_attempt_to_wait_for_threads_to_return_their_conns

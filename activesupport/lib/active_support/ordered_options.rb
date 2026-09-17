@@ -1,34 +1,42 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/blank"
 
 module ActiveSupport
-  # = Ordered Options
+  # Ordered Options
+  # ===============
   #
-  # +OrderedOptions+ inherits from +Hash+ and provides dynamic accessor methods.
+  # `OrderedOptions` inherits from `Hash` and provides dynamic accessor methods.
   #
-  # With a +Hash+, key-value pairs are typically managed like this:
+  # With a `Hash`, key-value pairs are typically managed like this:
   #
-  #   h = {}
-  #   h[:boy] = 'John'
-  #   h[:girl] = 'Mary'
-  #   h[:boy]  # => 'John'
-  #   h[:girl] # => 'Mary'
-  #   h[:dog]  # => nil
+  # ```
+  # h = {}
+  # h[:boy] = 'John'
+  # h[:girl] = 'Mary'
+  # h[:boy]  # => 'John'
+  # h[:girl] # => 'Mary'
+  # h[:dog]  # => nil
+  # ```
   #
-  # Using +OrderedOptions+, the above code can be written as:
+  # Using `OrderedOptions`, the above code can be written as:
   #
-  #   h = ActiveSupport::OrderedOptions.new
-  #   h.boy = 'John'
-  #   h.girl = 'Mary'
-  #   h.boy  # => 'John'
-  #   h.girl # => 'Mary'
-  #   h.dog  # => nil
+  # ```
+  # h = ActiveSupport::OrderedOptions.new
+  # h.boy = 'John'
+  # h.girl = 'Mary'
+  # h.boy  # => 'John'
+  # h.girl # => 'Mary'
+  # h.dog  # => nil
+  # ```
   #
   # To raise an exception when the value is blank, append a
   # bang to the key name, like:
   #
-  #   h.dog! # => raises KeyError: :dog is blank
+  # ```
+  # h.dog! # => raises KeyError: :dog is blank
+  # ```
   #
   class OrderedOptions < Hash
     alias_method :_get, :[] # preserve the original #[] method
@@ -70,22 +78,27 @@ module ActiveSupport
     end
   end
 
-  # = Inheritable Options
+  # Inheritable Options
+  # ===================
   #
-  # +InheritableOptions+ provides a constructor to build an OrderedOptions
+  # `InheritableOptions` provides a constructor to build an OrderedOptions
   # hash inherited from another hash.
   #
   # Use this if you already have some hash and you want to create a new one based on it.
   #
-  #   h = ActiveSupport::InheritableOptions.new({ girl: 'Mary', boy: 'John' })
-  #   h.girl # => 'Mary'
-  #   h.boy  # => 'John'
+  # ```
+  # h = ActiveSupport::InheritableOptions.new({ girl: 'Mary', boy: 'John' })
+  # h.girl # => 'Mary'
+  # h.boy  # => 'John'
+  # ```
   #
   # If the existing hash has string keys, call Hash#symbolize_keys on it.
   #
-  #   h = ActiveSupport::InheritableOptions.new({ 'girl' => 'Mary', 'boy' => 'John' }.symbolize_keys)
-  #   h.girl # => 'Mary'
-  #   h.boy  # => 'John'
+  # ```
+  # h = ActiveSupport::InheritableOptions.new({ 'girl' => 'Mary', 'boy' => 'John' }.symbolize_keys)
+  # h.girl # => 'Mary'
+  # h.boy  # => 'John'
+  # ```
   class InheritableOptions < OrderedOptions
     def initialize(parent = nil)
       @parent = parent
@@ -98,6 +111,16 @@ module ActiveSupport
         super()
         @parent = {}
       end
+    end
+
+    def freeze
+      return self if frozen?
+
+      @own_keys = own_keys.dup.freeze
+      self.default_proc = nil
+      @parent.freeze
+      replace(to_h)
+      super
     end
 
     def to_h
@@ -120,11 +143,15 @@ module ActiveSupport
       pp.pp_hash(to_h)
     end
 
-    alias_method :own_key?, :key?
-    private :own_key?
-
     def key?(key)
       super || @parent.key?(key)
+    end
+
+    alias_method :_own_keys, :keys
+    private :_own_keys
+
+    def keys
+      @parent.keys | super
     end
 
     def overridden?(key)
@@ -143,5 +170,14 @@ module ActiveSupport
       to_h.each(&block)
       self
     end
+
+    private
+      def own_key?(key)
+        own_keys.include?(key.to_sym)
+      end
+
+      def own_keys
+        @own_keys || _own_keys
+      end
   end
 end

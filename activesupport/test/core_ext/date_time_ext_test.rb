@@ -400,6 +400,15 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_this_quarter
+    Date.stub(:current, Date.new(2000, 2, 15)) do
+      assert_equal false, Time.utc(1999, 12, 31, 23, 59, 59).this_quarter?
+      assert_equal true,  Time.utc(2000, 1, 1, 0, 0, 0).this_quarter?
+      assert_equal true,  Time.utc(2000, 3, 31, 23, 59, 59).this_quarter?
+      assert_equal false, Time.utc(2000, 4, 1, 0, 0, 0).this_quarter?
+    end
+  end
+
   def test_this_year
     Date.stub(:current, Date.new(2000, 6, 30)) do
       assert_equal false, Time.utc(1999, 12, 31, 23, 59, 59).this_year?

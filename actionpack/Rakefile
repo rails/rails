@@ -35,9 +35,3 @@ task :lines do
   files = FileList["lib/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
 end
-
-rule ".rb" => ".y" do |t|
-  sh "racc -l -o #{t.name} #{t.source}"
-end
-
-task compile: "lib/action_dispatch/journey/parser.rb"

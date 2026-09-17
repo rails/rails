@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/testing/ractors_assertions"
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
@@ -40,6 +41,7 @@ class ::MyOldKeyProvider; end
 module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
     include Rack::Test::Methods
     include EnvHelpers
 
@@ -338,6 +340,13 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.public_path
     end
 
+    test "Rails.app executor and reloader are named" do
+      app "development"
+
+      assert Rails.app.executor.name.starts_with?("ActiveSupport::Executor(#<AppTemplate::Application:")
+      assert Rails.app.reloader.name.starts_with?("ActiveSupport::Reloader(#<AppTemplate::Application:")
+    end
+
     test "config.enable_reloading is !config.cache_classes" do
       app "development"
 
@@ -621,6 +630,31 @@ module ApplicationTests
       app "development"
 
       assert_equal [:password, :foo, "bar"], Rails.application.env_config["action_dispatch.parameter_filter"]
+    end
+
+    test "config.action_dispatch.default_headers can be set in an initializer and is applied to responses" do
+      app_file "config/initializers/default_headers.rb", <<-RUBY
+        Rails.application.config.action_dispatch.default_headers = { "X-Custom-Header" => "custom" }
+      RUBY
+
+      app_file "app/controllers/pages_controller.rb", <<-RUBY
+        class PagesController < ApplicationController
+          def index
+            render plain: "OK"
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          get "/pages", to: "pages#index"
+        end
+      RUBY
+
+      app "development"
+
+      get "/pages"
+      assert_equal "custom", last_response.headers["X-Custom-Header"]
     end
 
     test "filter_parameters is precompiled when config.precompile_filter_parameters is true" do
@@ -2043,6 +2077,37 @@ module ApplicationTests
       assert_includes(Rails.logger.broadcasts, logger)
     end
 
+    if RUBY_VERSION >= "4.0"
+      test "config.logger can be a tagged shareable logger" do
+        add_to_config <<~RUBY
+          config.logger = ActiveSupport::TaggedLogging.ractor_logger(Rails.root.join("log/ractor.log"))
+        RUBY
+
+        app "development"
+
+        ractor_logger = Rails.logger.broadcasts.first
+        assert_instance_of ActiveSupport::Ractors::Logger, ractor_logger
+        assert_kind_of ::Logger, ractor_logger
+        assert_equal Rails.logger, Rails.application.config.action_controller.logger
+
+        Rails.logger.tagged("request-id") { Rails.logger.info("hello") }
+        Rails.logger.flush
+
+        assert_includes File.read(app_path("log/ractor.log")), "[request-id] hello"
+      end
+
+      test "config.action_dispatch.default_headers can still be mutated after ActionDispatch::Response is loaded" do
+        app "development"
+
+        assert_predicate(ActionDispatch::Response.default_headers, :frozen?)
+        assert_not Rails.application.config.action_dispatch.default_headers.frozen?
+
+        assert_nothing_raised do
+          Rails.application.config.action_dispatch.default_headers["X-Custom-Header"] = "custom"
+        end
+      end
+    end
+
     test "respond_to? accepts include_private" do
       make_basic_app
 
@@ -2061,6 +2126,32 @@ module ApplicationTests
       app "development"
 
       assert ActiveRecord.dump_schema_after_migration
+    end
+
+    test "config.active_record.dump_schema_migrations is false by default" do
+      app "development"
+
+      assert_not ActiveRecord.dump_schema_migrations
+    end
+
+    test "config.active_record.dump_schema_migrations can be configured" do
+      add_to_config "config.active_record.dump_schema_migrations = true"
+      app "development"
+
+      assert ActiveRecord.dump_schema_migrations
+    end
+
+    test "config.active_record.dump_schema_migrations_sort_by is :reverse by default" do
+      app "development"
+
+      assert_equal :reverse, ActiveRecord.dump_schema_migrations_sort_by
+    end
+
+    test "config.active_record.dump_schema_migrations_sort_by can be configured" do
+      add_to_config "config.active_record.dump_schema_migrations_sort_by = :itself"
+      app "development"
+
+      assert_equal :itself, ActiveRecord.dump_schema_migrations_sort_by
     end
 
     test "config.active_record.verbose_query_logs is false by default in development" do
@@ -2528,6 +2619,26 @@ module ApplicationTests
       assert_equal "db/two", ar_config["development"]["two"]["migrations_path"]
     end
 
+    test "loads 3-tier database.yml when a connection is absent from the shared subsections" do
+      app_file "config/database.yml", <<-YAML
+        shared:
+          one:
+            migrations_path: "db/one"
+
+        development:
+          one:
+            adapter: sqlite3
+          two:
+            adapter: sqlite3
+      YAML
+
+      app "development"
+
+      ar_config = Rails.configuration.database_configuration
+      assert_equal "db/one",  ar_config["development"]["one"]["migrations_path"]
+      assert_equal "sqlite3", ar_config["development"]["two"]["adapter"]
+    end
+
     test "config.action_mailer.show_previews defaults to true in development" do
       app "development"
 
@@ -2734,7 +2845,7 @@ module ApplicationTests
           key: foo:
       RUBY
 
-      error = assert_raises RuntimeError do
+      error = assert_raises ActiveSupport::ConfigurationFile::FormatError do
         app "development"
       end
       assert_match "YAML syntax error occurred while parsing", error.message
@@ -3482,20 +3593,33 @@ module ApplicationTests
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag is true by default" do
-      app "development"
-      assert_equal true, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+    if RUBY_VERSION >= "4.0"
+      test "ActionView::Template::Handlers::ERB.escape_ignore_list is frozen after boot" do
+        app "development"
+
+        escape_ignore_list = on_ractor do
+          ActionView::Template::Handlers::ERB.escape_ignore_list
+        end
+
+        assert_equal(["text/plain"], escape_ignore_list)
+        assert_predicate(escape_ignore_list, :frozen?)
+      end
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag is false by default for upgraded apps" do
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is true by default" do
+      app "development"
+      assert_equal true, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
+    end
+
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is false by default for upgraded apps" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.1"'
       app "development"
 
-      assert_equal false, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+      assert_equal false, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
     end
 
-    test "ActionView::Helpers::UrlHelper.button_to_generates_button_tag can be configured via config.action_view.button_to_generates_button_tag" do
+    test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag can be configured via config.action_view.button_to_generates_button_tag" do
       remove_from_config '.*config\.load_defaults.*\n'
 
       app_file "config/initializers/new_framework_defaults_7_0.rb", <<-RUBY
@@ -3504,7 +3628,7 @@ module ApplicationTests
 
       app "development"
 
-      assert_equal true, ActionView::Helpers::UrlHelper.button_to_generates_button_tag
+      assert_equal true, ActionView::Helpers::NavigationHelper.button_to_generates_button_tag
     end
 
     test "ActionView::Helpers::AssetTagHelper.image_loading is nil by default" do
@@ -4300,6 +4424,21 @@ module ApplicationTests
       assert_not_includes(output, "rails_direct_uploads")
     end
 
+    test "ActiveStorage.draw_direct_upload_route can be configured via config.active_storage.draw_direct_upload_route" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_storage.draw_direct_upload_route = false
+        end
+      RUBY
+
+      output = rails("routes")
+      assert_not_includes(output, "rails_direct_uploads")
+      assert_includes(output, "rails_service_blob")
+      assert_includes(output, "rails_blob_representation")
+      assert_includes(output, "rails_disk_service")
+      assert_includes(output, "update_rails_disk_service")
+    end
+
     test "ActiveStorage.video_preview_arguments uses the old arguments without Rails 7 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 
@@ -4315,6 +4454,34 @@ module ApplicationTests
       assert_equal \
         "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2",
         ActiveStorage.video_preview_arguments
+    end
+
+    test "ActiveStorage.video_preview_input_arguments is empty by default" do
+      app "development"
+
+      assert_equal "", ActiveStorage.video_preview_input_arguments
+    end
+
+    test "ActiveStorage.video_preview_input_arguments can be configured" do
+      add_to_config 'config.active_storage.video_preview_input_arguments = "-codec_whitelist h264"'
+
+      app "development"
+
+      assert_equal "-codec_whitelist h264", ActiveStorage.video_preview_input_arguments
+    end
+
+    test "ActiveStorage.ffprobe_arguments is empty by default" do
+      app "development"
+
+      assert_equal "", ActiveStorage.ffprobe_arguments
+    end
+
+    test "ActiveStorage.ffprobe_arguments can be configured" do
+      add_to_config 'config.active_storage.ffprobe_arguments = "-codec_whitelist h264"'
+
+      app "development"
+
+      assert_equal "-codec_whitelist h264", ActiveStorage.ffprobe_arguments
     end
 
     test "ActiveStorage.variant_processor uses mini_magick without Rails 7 defaults" do
@@ -4797,6 +4964,33 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+    end
+
+    test "raise_on_invalid_time_zone_parse is false with 8.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app "development"
+
+      assert_equal false, ActiveSupport.raise_on_invalid_time_zone_parse
+    end
+
+    test "raise_on_invalid_time_zone_parse is true with 8.2 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.2"'
+      app "development"
+
+      assert_equal true, ActiveSupport.raise_on_invalid_time_zone_parse
+    end
+
+    test "raise_on_invalid_time_zone_parse can be set via new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app_file "config/initializers/new_framework_defaults_8_2.rb", <<-RUBY
+        ActiveSupport.raise_on_invalid_time_zone_parse = true
+      RUBY
+      app "development"
+
+      assert_equal true, ActiveSupport.raise_on_invalid_time_zone_parse
     end
 
     test "adds a time zone aware type if using PostgreSQL" do
@@ -5307,6 +5501,29 @@ module ApplicationTests
 
       get "/posts"
       assert_equal "[:active_record_connected_to_stack, :custom_key]", last_response.body
+    end
+
+    if RUBY_VERSION >= "4.0"
+      test "ActionDispatch configuration is frozen after boot" do
+        app "development"
+
+        [
+          ActionDispatch::ExceptionWrapper.rescue_responses,
+          ActionDispatch::ExceptionWrapper.rescue_templates,
+          ActionDispatch::ExceptionWrapper.wrapper_exceptions,
+          ActionDispatch::ExceptionWrapper.silent_exceptions,
+        ].each do |config|
+          assert_ractor_shareable(config)
+        end
+      end
+
+      test "ActiveRecord configuration is frozen after boot" do
+        app "development"
+
+        assert_ractor_shareable(ActiveRecord.query_transformers)
+        assert_ractor_shareable(ActiveRecord::Base.time_zone_aware_types)
+        assert_ractor_shareable(ActiveRecord::Base.skip_time_zone_conversion_for_attributes)
+      end
     end
 
     private

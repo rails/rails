@@ -104,6 +104,10 @@ module ActiveRecord
         raise NotImplementedError
       end
 
+      def dump_schema_migrations?
+        raise NotImplementedError
+      end
+
       def seeds?
         raise NotImplementedError
       end

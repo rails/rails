@@ -530,6 +530,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file ".gitattributes", /\.enc diff=/
   end
 
+  def test_generator_marks_error_pages_as_generated
+    run_generator
+    assert_file ".gitattributes" do |content|
+      %w[400 404 406-unsupported-browser 422 500].each do |page|
+        assert_match(/^public\/#{Regexp.escape(page)}\.html linguist-generated$/, content)
+      end
+    end
+  end
+
   def test_generator_does_not_configure_decrypted_diffs_when_skip_decrypted_diffs_is_given
     run_generator [destination_root, "--skip-decrypted-diffs"]
     assert_file ".gitattributes" do |content|
@@ -1468,6 +1477,41 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/docker-entrypoint"
   end
 
+  def test_docker_entrypoint_prepares_database_for_rails_server_with_thruster_prefix_or_extra_flags
+    run_generator
+
+    entrypoint = File.expand_path("bin/docker-entrypoint", destination_root)
+    fake_rails = File.expand_path("bin/rails", destination_root)
+    File.write(fake_rails, "#!/bin/bash\necho \"CALLED: ./bin/rails $@\"\n")
+    FileUtils.chmod("+x", fake_rails)
+
+    # bin/rails server can be invoked directly, prefixed by Thruster
+    # (the default in generated Dockerfiles), and/or with extra flags
+    # like -b for network binding. db:prepare must run in every case.
+    matching_commands = [
+      %w(./bin/rails server),
+      %w(./bin/rails server -b 0.0.0.0),
+      %w(./bin/thrust ./bin/rails server),
+      %w(./bin/thrust ./bin/rails server -b 0.0.0.0),
+    ]
+
+    matching_commands.each do |command|
+      output = IO.popen([entrypoint, *command], chdir: destination_root, err: [:child, :out], &:read)
+      assert_match(/CALLED: \.\/bin\/rails db:prepare/, output, "expected db:prepare to run for: #{command.join(" ")}")
+    end
+
+    output = IO.popen([entrypoint, "bash", "-c", "echo hi"], chdir: destination_root, err: [:child, :out], &:read)
+    assert_no_match(/db:prepare/, output)
+  end
+
+  def test_docker_entrypoint_omits_db_prepare_check_when_skipping_active_record
+    run_generator [destination_root, "--skip-active-record"]
+
+    assert_file "bin/docker-entrypoint" do |content|
+      assert_no_match(/db:prepare/, content)
+    end
+  end
+
   def test_env
     run_generator
 
@@ -1685,7 +1729,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
 
       expected_mysql_config = {
-        "image" => "mysql/mysql-server:8.0",
+        "image" => "mysql:9.7",
         "restart" => "unless-stopped",
         "environment" => {
           "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
@@ -1714,7 +1758,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
       expected_mysql_config = {
-        "image" => "mysql/mysql-server:8.0",
+        "image" => "mysql:9.7",
         "restart" => "unless-stopped",
         "environment" => {
           "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",

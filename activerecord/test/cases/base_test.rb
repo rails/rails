@@ -890,6 +890,10 @@ class BasicsTest < ActiveRecord::TestCase
     assert_ractor_shareable ReadonlyAuthorPost._attr_readonly
   end
 
+  def test_table_name_is_ractor_safe
+    assert_ractor_shareable Topic.table_name
+  end
+
   def test_unicode_column_name
     Weird.reset_column_information
     weird = Weird.create(なまえ: "たこ焼き仮面")
@@ -1566,7 +1570,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_predicate post, :new_record?, "should be a new record"
   end
 
-  def test_marshalling_with_associations_6_1
+  def test_marshalling_with_associations
     post = Post.new
     post.comments.build
 
@@ -1574,21 +1578,6 @@ class BasicsTest < ActiveRecord::TestCase
     post       = Marshal.load(marshalled)
 
     assert_equal 1, post.comments.length
-  end
-
-  def test_marshalling_with_associations_7_1
-    previous_format_version = ActiveRecord::Marshalling.format_version
-    ActiveRecord::Marshalling.format_version = 7.1
-
-    post = Post.new
-    post.comments.build
-
-    marshalled = Marshal.dump(post)
-    post       = Marshal.load(marshalled)
-
-    assert_equal 1, post.comments.length
-  ensure
-    ActiveRecord::Marshalling.format_version = previous_format_version
   end
 
   if Process.respond_to?(:fork) && !in_memory_db?

@@ -57,13 +57,17 @@ module ActionView
     config.after_initialize do |app|
       button_to_generates_button_tag = app.config.action_view.delete(:button_to_generates_button_tag)
       unless button_to_generates_button_tag.nil?
-        ActionView::Helpers::UrlHelper.button_to_generates_button_tag = button_to_generates_button_tag
+        ActionView::Helpers::NavigationHelper.button_to_generates_button_tag = button_to_generates_button_tag
       end
     end
 
     config.after_initialize do |app|
       frozen_string_literal = app.config.action_view.delete(:frozen_string_literal)
       ActionView::Template.frozen_string_literal = frozen_string_literal
+    end
+
+    config.after_initialize do
+      ActiveSupport::Ractors.make_shareable(ActionView::Template::Handlers::ERB.escape_ignore_list)
     end
 
     config.after_initialize do |app|
@@ -94,6 +98,13 @@ module ActionView
 
     initializer "action_view.logger" do
       ActiveSupport.on_load(:action_view) { self.logger ||= Rails.logger }
+    end
+
+    initializer "action_view.root" do
+      ActiveSupport.on_load(:action_view) do
+        ActionView::StructuredEventSubscriber.rails_root = "#{Rails.root}/".freeze
+        ActionView::LogSubscriber.rails_root = "#{Rails.root}/".freeze
+      end
     end
 
     initializer "action_view.caching" do |app|
@@ -139,6 +150,7 @@ module ActionView
     rake_tasks do |app|
       unless app.config.api_only
         load "action_view/tasks/cache_digests.rake"
+        load "action_view/tasks/herb.rake"
       end
     end
   end

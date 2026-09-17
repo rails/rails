@@ -47,6 +47,20 @@ require "models/interest"
 require "models/human"
 require "models/dats"
 
+class RedundantJoinAuthor < ActiveRecord::Base
+  self.table_name = "authors"
+
+  has_many :scoped_comments, -> { joins(:post).where.not(posts: { id: nil }) }, class_name: "RedundantJoinComment", foreign_key: :author_id
+  has_many :commented_post_authors, through: :scoped_comments, source: :post_author
+end
+
+class RedundantJoinComment < ActiveRecord::Base
+  self.table_name = "comments"
+
+  belongs_to :post
+  has_one :post_author, through: :post, source: :author
+end
+
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
@@ -76,6 +90,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_through_association_with_left_joins
     assert_equal [comments(:eager_other_comment1)], authors(:mary).comments.merge(Post.left_joins(:comments))
+  end
+
+  def test_has_many_through_with_scope_joining_source_reflection_does_not_add_a_redundant_join
+    commenter = RedundantJoinAuthor.create!(name: "commenter")
+    post_author = Author.create!(name: "post author")
+    post = Post.create!(author: post_author, title: "title", body: "body")
+    RedundantJoinComment.create!(author_id: commenter.id, post: post, body: "comment")
+
+    sql = commenter.commented_post_authors.to_sql
+
+    assert_equal 1, sql.scan(/JOIN #{Regexp.escape(quote_table_name("posts"))}/).size
+    assert_equal [post_author], commenter.commented_post_authors
   end
 
   def test_through_association_with_through_scope_and_nested_where
@@ -950,7 +976,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author.author_favorites.create(favorite_author_id: 1)
     author.author_favorites.create(favorite_author_id: 2)
     author.author_favorites.create(favorite_author_id: 3)
-    assert_equal post.author.author_favorites, post.author_favorites
+    assert_equal_unordered post.author.author_favorites, post.author_favorites
   end
 
   def test_merge_join_association_with_has_many_through_association_proxy
@@ -1725,6 +1751,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     chapter = order.chapters.build
 
     assert_equal(chapter.book, book)
+  end
+
+  def test_delete_all_nullify_on_through_with_composite_source_foreign_key
+    author = Cpk::Author.create!(name: "author")
+    order = Cpk::Order.create!(id: [9999, 30001], status: "open")
+    book = Cpk::Book.create!(id: [author.id, 30001], title: "Book", order: order)
+
+    assert_equal 1, author.orders.count
+
+    author.orders.delete_all(:nullify)
+
+    book.reload
+    assert_nil book.shop_id
+    assert_nil book.order_id
   end
 
   def test_ids_reader_with_composite_primary_key_on_source

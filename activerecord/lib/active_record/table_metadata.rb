@@ -11,10 +11,6 @@ module ActiveRecord
       klass&.primary_key
     end
 
-    def type(column_name)
-      arel_table.type_for_attribute(column_name)
-    end
-
     def has_column?(column_name)
       klass&.columns_hash&.key?(column_name)
     end

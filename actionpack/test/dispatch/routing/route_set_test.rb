@@ -2,10 +2,13 @@
 
 require "abstract_unit"
 require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 
 module ActionDispatch
   module Routing
     class RouteSetTest < ActiveSupport::TestCase
+      include ActiveSupport::Testing::RactorsAssertions
+
       class SimpleApp
         def initialize(response)
           @response = response
@@ -28,6 +31,25 @@ module ActionDispatch
         end
 
         assert_not_empty @set
+      end
+
+      class FooController < ActionController::Base
+      end
+
+      test "recognize_path does not recognize routes removed by a redraw" do
+        controller = "action_dispatch/routing/route_set_test/foo"
+
+        draw do
+          get "foo", to: "action_dispatch/routing/route_set_test/foo#index"
+        end
+
+        assert_equal({ controller: controller, action: "index" }, @set.recognize_path("/foo"))
+
+        draw { }
+
+        assert_raises ActionController::RoutingError do
+          @set.recognize_path("/foo")
+        end
       end
 
       test "URL helpers are added when route is added" do
@@ -223,6 +245,29 @@ module ActionDispatch
               end
             end
           end
+        end
+
+        test "generated url_helpers are ractor shareable" do
+          assert_nothing_raised do
+            ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+              draw { resources :posts }
+            end
+          end
+
+          assert_ractor_shareable(@set.named_routes.get(:post))
+          assert_ractor_shareable(@set.named_routes.get(:posts))
+        end
+
+        test "url helpers can be called inside a ractor" do
+          results = ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+            draw { resources :posts }
+
+            on_ractor(@set.url_helpers) do |helpers|
+              [helpers.posts_path, helpers.post_path(7)]
+            end
+          end
+
+          assert_equal(["/posts", "/posts/7"], results)
         end
       end
 

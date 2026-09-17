@@ -41,59 +41,6 @@ module ActiveRecord
   class Result
     include Enumerable
 
-    class IndexedRow
-      def initialize(column_indexes, row)
-        @column_indexes = column_indexes
-        @row = row
-      end
-
-      def size
-        @column_indexes.size
-      end
-      alias_method :length, :size
-
-      def each_key(&block)
-        @column_indexes.each_key(&block)
-      end
-
-      def keys
-        @column_indexes.keys
-      end
-
-      def ==(other)
-        if other.is_a?(Hash)
-          to_hash == other
-        else
-          super
-        end
-      end
-
-      def key?(column)
-        @column_indexes.key?(column)
-      end
-
-      def fetch(column)
-        if index = @column_indexes[column]
-          @row[index]
-        elsif block_given?
-          yield
-        else
-          raise KeyError, "key not found: #{column.inspect}"
-        end
-      end
-
-      def [](column)
-        if index = @column_indexes[column]
-          @row[index]
-        end
-      end
-
-      def to_h
-        @column_indexes.transform_values { |index| @row[index] }
-      end
-      alias_method :to_hash, :to_h
-    end
-
     attr_reader :columns, :rows, :affected_rows
 
     def self.empty(async: false, affected_rows: nil) # :nodoc:
@@ -215,7 +162,20 @@ module ActiveRecord
 
     def initialize_copy(other)
       @rows = rows.dup
-      @hash_rows    = nil
+      @hash_rows = nil
+      @indexed_rows = nil
+    end
+
+    def shuffle_rows(arel) # :nodoc:
+      return self if rows.size < 2
+      return self unless ConnectionAdapters::QueryIntent.shuffle_rows?(arel)
+
+      dup.shuffle!
+    end
+
+    def shuffle! # :nodoc:
+      @rows = @rows.shuffle
+      self
     end
 
     def freeze # :nodoc:
@@ -226,22 +186,13 @@ module ActiveRecord
     end
 
     def column_indexes # :nodoc:
-      @column_indexes ||= begin
-        index = 0
-        hash = {}
-        length = columns.length
-        while index < length
-          hash[columns[index]] = index
-          index += 1
-        end
-        hash.freeze
-      end
+      @column_indexes ||= ActiveModel::IndexedRow.build_indexes(columns)
     end
 
     def indexed_rows # :nodoc:
       @indexed_rows ||= begin
         columns = column_indexes
-        @rows.map { |row| IndexedRow.new(columns, row) }.freeze
+        @rows.map { |row| ActiveModel::IndexedRow.new(columns, row) }.freeze
       end
     end
 

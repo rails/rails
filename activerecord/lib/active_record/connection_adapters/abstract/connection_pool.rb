@@ -992,8 +992,8 @@ module ActiveRecord
 
         # Directly check a specific connection out of the pool. Skips callbacks.
         #
-        # The connection must later either #return_from_maintenance or
-        # #remove_from_maintenance, or the pool will hang.
+        # The connection must later be returned with #return_from_maintenance, or
+        # the pool will hang.
         def checkout_for_maintenance(conn)
           synchronize do
             @maintaining += 1
@@ -1019,15 +1019,6 @@ module ActiveRecord
           end
         end
 
-        # Remove a connection from the pool after it has been checked out for
-        # maintenance. It will be automatically replaced with a new connection if
-        # necessary.
-        def remove_from_maintenance(conn)
-          synchronize do
-            @maintaining -= 1
-            remove conn
-          end
-        end
 
         #--
         # this is unfortunately not concurrent
@@ -1204,10 +1195,11 @@ module ActiveRecord
           synchronize do
             return unless @maintaining > @available.num_waiting
 
-            # We are guaranteed the "maintaining" thread will return its promised
-            # connection within one maintenance-unit of time. Thus we can safely
-            # do a blocking wait with (functionally) no timeout.
-            @available.poll(100)
+            # Maintenance work (e.g. a keepalive ping) can stall for reasons outside
+            # our control, such as a slow or unresponsive database server, so this
+            # wait must stay bounded by the caller's own checkout_timeout rather than
+            # assume maintenance always finishes quickly.
+            @available.poll(checkout_timeout)
           end
         end
 

@@ -14,6 +14,7 @@ class Author < ActiveRecord::Base
   has_many :posts_with_categories, -> { includes(:categories) }, class_name: "Post"
   has_many :posts_with_comments_and_categories, -> { includes(:comments, :categories).order("posts.id") }, class_name: "Post"
   has_many :posts_with_special_categorizations, class_name: "PostWithSpecialCategorization"
+  has_many :posts_with_aliased_author_id, class_name: "PostWithAliasedAuthorId", foreign_key: :writer_id, inverse_of: :author
   has_one  :post_about_thinking, -> { where("posts.title like '%thinking%'") }, class_name: "Post"
   has_one  :post_about_thinking_with_last_comment, -> { where("posts.title like '%thinking%'").includes(:last_comment) }, class_name: "Post"
 
@@ -237,8 +238,6 @@ class Author < ActiveRecord::Base
   has_many :other_top_posts, -> { order(id: :asc) }, class_name: "Post"
 
   has_many :topics, primary_key: "name", foreign_key: "author_name"
-  has_many :topics_without_type, -> { select(:id, :title, :author_name) },
-    class_name: "Topic", primary_key: "name", foreign_key: "author_name"
 
   has_many :lazy_readers_skimmers_or_not, through: :posts
   has_many :lazy_readers_skimmers_or_not_2, through: :posts_with_no_comments, source: :lazy_readers_skimmers_or_not

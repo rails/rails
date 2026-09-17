@@ -64,6 +64,16 @@ module ActiveRecord
         assert_equal 600, config.keepalive
       end
 
+      def test_keepalive_false_disables_it
+        config = HashConfig.new("default_env", "primary", keepalive: false, adapter: "abstract")
+        assert_nil config.keepalive
+      end
+
+      def test_keepalive_zero_disables_it
+        config = HashConfig.new("default_env", "primary", keepalive: 0, adapter: "abstract")
+        assert_nil config.keepalive
+      end
+
       def test_max_connections_unlimited_when_nil
         config = HashConfig.new("default_env", "primary", max_connections: nil, adapter: "abstract")
         assert_nil config.max_connections
@@ -233,6 +243,24 @@ module ActiveRecord
 
         config = HashConfig.new("default_env", "primary", database_tasks: "str", adapter: "abstract")
         assert_equal true, config.database_tasks?
+      end
+
+      def test_dump_schema_migrations_can_be_configured_per_database
+        ActiveRecord.stub(:dump_schema_migrations, true) do
+          config = HashConfig.new("default_env", "primary", adapter: "abstract")
+          assert_predicate config, :dump_schema_migrations?
+
+          config = HashConfig.new("default_env", "primary", dump_schema_migrations: false, adapter: "abstract")
+          assert_not_predicate config, :dump_schema_migrations?
+        end
+
+        ActiveRecord.stub(:dump_schema_migrations, false) do
+          config = HashConfig.new("default_env", "primary", adapter: "abstract")
+          assert_not_predicate config, :dump_schema_migrations?
+
+          config = HashConfig.new("default_env", "primary", dump_schema_migrations: true, adapter: "abstract")
+          assert_predicate config, :dump_schema_migrations?
+        end
       end
 
       def test_schema_cache_path_default_for_primary

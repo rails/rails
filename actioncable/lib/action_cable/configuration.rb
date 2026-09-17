@@ -1,8 +1,10 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 # :markup: markdown
 
 require "rack"
+require "active_support/core_ext/string/inflections"
 
 module ActionCable
   # # Action Cable Configuration

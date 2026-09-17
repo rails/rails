@@ -38,7 +38,22 @@ require "models/car"
 require "models/sharded/blog"
 require "models/sharded/blog_post"
 require "models/sharded/comment"
+require "models/image"
+require "models/shipment"
+require "models/adjustment"
 require "models/dats"
+require "models/human"
+
+class BelongsToContainedKeyChapter < Cpk::Chapter
+  self.primary_key = [:author_id, :book_id, :id]
+
+  belongs_to :contained_book,
+    class_name: "Cpk::Book",
+    foreign_key: [:author_id, :book_id],
+    primary_key: [:author_id, :id],
+    optional: true,
+    inverse_of: false
+end
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -104,6 +119,88 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to_with_primary_key
     client = Client.create(name: "Primary key client", firm_name: companies(:first_firm).name)
     assert_equal companies(:first_firm).name, client.firm_with_primary_key.name
+  end
+
+  def test_belongs_to_with_alias_attribute_foreign_key
+    post = PostWithAliasedAuthorId.find(posts(:welcome).id)
+    assert_equal authors(:david), post.author
+  end
+
+  def test_belongs_to_with_alias_attribute_foreign_key_change_tracking
+    post = PostWithAliasedAuthorId.find(posts(:welcome).id)
+    post.writer_id = authors(:mary).id
+
+    assert_predicate post, :author_changed?
+
+    post.save!
+
+    assert_not_predicate post, :author_changed?
+    assert_predicate post, :author_previously_changed?
+  end
+
+  def test_belongs_to_counter_with_alias_attribute_foreign_key
+    debate = Topic.create!(title: "debate")
+    debate2 = Topic.create!(title: "debate2")
+    reply = ReplyWithAliasedParentId.create!(title: "blah!", content: "world around!", topic: debate)
+
+    assert_equal 1, debate.reload.replies_count
+    assert_equal 0, debate2.reload.replies_count
+
+    reply.update!(topic: debate2)
+
+    assert_equal 0, debate.reload.replies_count
+    assert_equal 1, debate2.reload.replies_count
+
+    reply.destroy!
+
+    assert_equal 0, debate.reload.replies_count
+    assert_equal 0, debate2.reload.replies_count
+  end
+
+  def test_belongs_to_touch_with_alias_attribute_foreign_key
+    debate = Topic.create!(title: "debate")
+    debate2 = Topic.create!(title: "debate2")
+    reply = ReplyWithAliasedTouchParentId.create!(title: "blah!", content: "world around!", topic: debate)
+
+    time = 1.day.ago
+    debate.touch(time: time)
+    debate2.touch(time: time)
+
+    reply.update!(topic: debate2)
+
+    assert_operator debate.reload.updated_at, :>, time
+    assert_operator debate2.reload.updated_at, :>, time
+  end
+
+  def test_belongs_to_required_validation_with_alias_attribute_foreign_key
+    original_value = ActiveRecord.belongs_to_required_validates_foreign_key
+    ActiveRecord.belongs_to_required_validates_foreign_key = false
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      self.inheritance_column = nil
+
+      def self.name; "TempPost"; end
+
+      alias_attribute :writer_id, :author_id
+
+      belongs_to :author, foreign_key: :writer_id, required: true
+    end
+
+    post = model.create!(title: "Title", body: "Body", author: authors(:david))
+    post.reload
+
+    post.writer_id = 987_654_321
+    assert_not_predicate post, :valid?
+    assert_includes post.errors.full_messages, "Author must exist"
+
+    post.reload
+
+    post.author_id = 987_654_321
+    assert_not_predicate post, :valid?
+    assert_includes post.errors.full_messages, "Author must exist"
+  ensure
+    ActiveRecord.belongs_to_required_validates_foreign_key = original_value
   end
 
   def test_belongs_to_with_primary_key_joins_on_correct_column
@@ -420,6 +517,67 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal [1, 2], chapter.id
     assert_nil chapter.book_id
     assert_equal chapter.author_id, book.author_id
+  end
+
+  def test_clearing_belongs_to_nullifies_composite_foreign_key_that_is_a_subset_of_primary_key
+    chapter = BelongsToContainedKeyChapter.new(author_id: 1, book_id: 2)
+    chapter.write_attribute(:id, 3)
+
+    chapter.contained_book = nil
+
+    assert_nil chapter.author_id
+    assert_nil chapter.book_id
+    assert_equal 3, chapter.read_attribute(:id)
+  end
+
+  def test_clearing_belongs_to_nullifies_foreign_key_contained_in_composite_pk
+    order_tag = Cpk::OrderTag.new(order_id: 1, tag_id: 2)
+
+    assert_equal 2, order_tag.tag_id
+
+    order_tag.tag = nil
+
+    assert_nil order_tag.tag_id
+  end
+
+  def test_clearing_polymorphic_belongs_to_nullifies_both_columns_contained_in_composite_pk
+    face_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "faces"
+      self.primary_key = [:polymorphic_human_type, :polymorphic_human_id, :id]
+
+      belongs_to :polymorphic_human, polymorphic: true, optional: true
+    end
+
+    human = Human.new(id: 1, name: "Sonny")
+    face = face_class.new(polymorphic_human: human)
+
+    assert_equal "Human", face.polymorphic_human_type
+    assert_equal 1, face.polymorphic_human_id
+
+    face.polymorphic_human = nil
+
+    assert_nil face.polymorphic_human_type
+    assert_nil face.polymorphic_human_id
+  end
+
+  def test_clearing_polymorphic_belongs_to_nullifies_id_when_only_id_is_in_composite_pk
+    face_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "faces"
+      self.primary_key = [:polymorphic_human_id, :id]
+
+      belongs_to :polymorphic_human, polymorphic: true, optional: true
+    end
+
+    human = Human.new(id: 1, name: "Sonny")
+    face = face_class.new(polymorphic_human: human)
+
+    assert_equal "Human", face.polymorphic_human_type
+    assert_equal 1, face.polymorphic_human_id
+
+    face.polymorphic_human = nil
+
+    assert_nil face.polymorphic_human_type
+    assert_nil face.polymorphic_human_id
   end
 
   def test_should_reload_association_on_model_with_query_constraints_when_foreign_key_changes
@@ -1786,6 +1944,24 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_predicate comment, :author_previously_changed?
   end
 
+  test "tracking change for composite foreign key from one persisted record to another" do
+    old_order = Cpk::Order.create!(id: [1, 2])
+    new_order = Cpk::Order.create!(id: [1, 3])
+    book = Cpk::Book.create!(id: [3, 4], order: old_order)
+    book.reload
+
+    assert_not book.order_changed?
+    assert_not book.order_previously_changed?
+
+    book.order = new_order
+    assert book.order_changed?
+    assert_not book.order_previously_changed?
+
+    book.save!
+    assert_not book.order_changed?
+    assert book.order_previously_changed?
+  end
+
   class ShipRequired < ActiveRecord::Base
     self.table_name = "ships"
     belongs_to :developer, required: true
@@ -2134,5 +2310,23 @@ class BelongsToPolymorphicInversePrimaryKeyTest < ActiveRecord::TestCase
 
     assert_equal author, author_comment.reload.person
     assert_equal person, person_comment.reload.person
+  end
+end
+
+class BelongsToPolymorphicShardedPrimaryKeyTest < ActiveRecord::TestCase
+  def test_explicit_foreign_key_to_sharded_target_resolves_single_primary_key
+    reflection = Image.reflect_on_association(:imageable)
+
+    assert_predicate Sharded::BlogPost, :has_query_constraints?
+    assert_equal "id", reflection.association_primary_key(Sharded::BlogPost)
+  end
+
+  def test_inverse_with_composite_query_constraints_resolves_single_primary_key
+    reflection = Adjustment.reflect_on_association(:adjustable)
+    inverse = Shipment.reflect_on_association(:adjustments)
+
+    assert_equal [:region_id, :adjustable_id], inverse.options[:query_constraints]
+    assert_equal [:region_id, :id], inverse.options[:primary_key]
+    assert_equal "id", reflection.association_primary_key(Shipment)
   end
 end

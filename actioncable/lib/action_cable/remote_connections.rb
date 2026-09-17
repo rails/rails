@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 # :markup: markdown
@@ -11,14 +12,16 @@ module ActionCable
   # RemoteConnections. You can find the connections you're looking for by
   # searching for the identifier declared on the connection. For example:
   #
-  #     module ApplicationCable
-  #       class Connection < ActionCable::Connection::Base
-  #         identified_by :current_user
-  #         ....
-  #       end
-  #     end
+  # ```
+  # module ApplicationCable
+  #   class Connection < ActionCable::Connection::Base
+  #     identified_by :current_user
+  #     ....
+  #   end
+  # end
   #
-  #     ActionCable.server.remote_connections.where(current_user: User.find(1)).disconnect
+  # ActionCable.server.remote_connections.where(current_user: User.find(1)).disconnect
+  # ```
   #
   # This will disconnect all the connections established for `User.find(1)`,
   # across all servers running on all machines, because it uses the internal
@@ -27,7 +30,9 @@ module ActionCable
   # By default, server sends a "disconnect" message with "reconnect" flag set to
   # true. You can override it by specifying the `reconnect` option:
   #
-  #     ActionCable.server.remote_connections.where(current_user: User.find(1)).disconnect(reconnect: false)
+  # ```
+  # ActionCable.server.remote_connections.where(current_user: User.find(1)).disconnect(reconnect: false)
+  # ```
   class RemoteConnections
     attr_reader :server
 

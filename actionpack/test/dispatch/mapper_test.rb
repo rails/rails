@@ -102,6 +102,22 @@ module ActionDispatch
         assert_equal("PUT", fakeset.routes.first.verb)
       end
 
+      def test_query_helper
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.query "/search", to: "posts#search", as: :search
+        assert_equal("QUERY", fakeset.routes.first.verb)
+        assert_equal({ controller: "posts", action: "search" },
+                     fakeset.defaults.first)
+      end
+
+      def test_query_helper_formatted
+        fakeset = FakeSet.new
+        mapper = Mapper.new fakeset
+        mapper.query "/search", to: "posts#search", as: :search, format: true
+        assert_equal "/search.:format", fakeset.asts.first.to_s
+      end
+
       def test_to_scope
         fakeset = FakeSet.new
         mapper = Mapper.new fakeset

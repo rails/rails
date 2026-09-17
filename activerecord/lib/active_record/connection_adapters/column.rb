@@ -22,7 +22,7 @@ module ActiveRecord
         @cast_type = cast_type
         @sql_type_metadata = sql_type_metadata
         @null = null
-        @default = default.nil? || cast_type.mutable? ? default : cast_type.deserialize(default)
+        @default = default
         @default_function = default_function
         @collation = collation
         @comment = comment
@@ -64,6 +64,18 @@ module ActiveRecord
         coder["default_function"] = @default_function
         coder["collation"] = @collation
         coder["comment"] = @comment
+      end
+
+      def as_schema_json
+        data = {}
+        encode_with(data)
+        data
+      end
+
+      def init_from_schema_json(coder, references)
+        coder["cast_type"] = references[coder["cast_type"]] if coder["cast_type"]
+        coder["sql_type_metadata"] = references[coder["sql_type_metadata"]] if coder["sql_type_metadata"]
+        init_with(coder)
       end
 
       # whether the column is auto-populated by the database using a sequence

@@ -28,6 +28,11 @@ class AssertionsTest < ActiveSupport::TestCase
     assert_equal "custom", e.message
   end
 
+  def test_assert_not_pattern
+    assert_pattern { { a: true } => { a: true } }
+    assert_not_pattern { { a: true } => { a: false } }
+  end
+
   def test_assert_raises_with_match_pass
     assert_raises(ArgumentError, match: /incorrect/i) do
       raise ArgumentError, "Incorrect argument"

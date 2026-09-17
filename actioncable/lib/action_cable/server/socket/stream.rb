@@ -108,7 +108,7 @@ module ActionCable
         private
           def clean_rack_hijack
             return unless @rack_hijack_io
-            @event_loop.detach(@rack_hijack_io, self)
+            @event_loop.detach(@rack_hijack_io)
             @rack_hijack_io = nil
           end
       end

@@ -30,7 +30,7 @@ module ActionDispatch
           attr_reader :parameter_parsers
         end
 
-        self.parameter_parsers = DEFAULT_PARSERS
+        @parameter_parsers = DEFAULT_PARSERS
       end
 
       module ClassMethods
@@ -44,7 +44,7 @@ module ActionDispatch
         #     new_parsers = original_parsers.merge(xml: xml_parser)
         #     ActionDispatch::Request.parameter_parsers = new_parsers
         def parameter_parsers=(parsers)
-          @parameter_parsers = parsers.transform_keys { |key| key.respond_to?(:symbol) ? key.symbol : key }
+          @parameter_parsers = parsers.transform_keys { |key| key.respond_to?(:symbol) ? key.symbol : key }.freeze
         end
       end
 
@@ -67,10 +67,10 @@ module ActionDispatch
       def path_parameters=(parameters) # :nodoc:
         @env.delete("action_dispatch.request.parameters")
 
-        parameters = Request::Utils.set_binary_encoding(self, parameters, parameters[:controller], parameters[:action])
+        parameters = Utils.set_binary_encoding(self, parameters, parameters[:controller], parameters[:action])
         # If any of the path parameters has an invalid encoding then raise since it's
         # likely to trigger errors further on.
-        Request::Utils.check_param_encoding(parameters)
+        Utils.check_param_encoding(parameters)
 
         @env[PARAMETERS_KEY] = parameters
       rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e

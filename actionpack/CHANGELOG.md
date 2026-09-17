@@ -1,3 +1,167 @@
+*   Include default headers in `ActionController::Live` responses.
+
+    Previously, responses from `ActionController::Live` controllers, including
+    the Active Storage proxy controllers, were served over HTTP/1.1 without
+    `config.action_dispatch.default_headers` such as `X-Content-Type-Options`
+    and `X-Frame-Options`.
+
+    Fixes #53402.
+
+    *Tony Novak*
+
+*   Check `PATCH` and `QUERY` in `assert_recognizes` and `assert_routing` with `method: :all`.
+
+    Both assertions only recognized the path for `GET`, `POST`, `PUT` and
+    `DELETE`, so a route that did not accept `PATCH` or `QUERY` still passed an
+    assertion meant to cover every verb.
+
+    An assertion that passes today on a route drawn without those verbs now
+    fails, which is what it was meant to do.
+
+    *Carlos Daniel Pohlod*
+
+*   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
+    the current controller and action when it starts with a period,
+    mirroring the existing behavior for the key argument.
+
+    Calling `translate("bar", scope: ".foo")` from `PostsController#index` is
+    now equivalent to calling `translate("bar", scope: "posts.index.foo")`.
+
+    *Ben Sheldon*
+
+*   Add support for the HTTP QUERY method defined in RFC 10008.
+
+    QUERY is a safe and idempotent HTTP method that conveys the query in the
+    request content, making it suitable for queries too large or structured
+    for a URL query string:
+
+        # config/routes.rb
+        query "search", to: "search#index"
+        match "filter", to: "search#filter", via: :query
+
+        # request handling
+        request.query?                # => true
+        request.request_method_symbol # => :query
+
+        # integration tests
+        query "/search", params: { filters: { status: "active" } }, as: :json
+
+    Like GET and HEAD, QUERY requests are exempt from forgery protection:
+    HTML forms cannot emit QUERY requests, and cross-origin QUERY requests
+    always require a CORS preflight. The exemption applies only to requests
+    that actually arrive with the QUERY method: a `_method=query` override
+    tunneled through a form POST is verified like any other POST.
+
+    Routes drawn with `via: :all` (and custom constraints that don't check
+    the request method) now receive QUERY requests, where previously such
+    requests were refused with a 405 before routing ran.
+
+    Note that the application server must also accept the method. For
+    example, Puma only accepts the eight standard HTTP methods by default;
+    QUERY can be enabled with its `supported_http_methods` option.
+
+    *Magno Gouveia*, *Jeremy Daer*
+
+*   Split keyword arguments off `#args` on `Rails.application.middleware` entries.
+
+    Middleware entries now expose keyword arguments through a new `#kwargs`
+    accessor. `#args` previously bundled kwargs as a trailing hash inside the
+    positional array (via `Hash.ruby2_keywords_hash`); it now returns
+    positional arguments only. Code that inspects `middleware.args` directly
+    needs to also read `middleware.kwargs`.
+
+    *Ryuta Kamizono*
+
+*   Deprecate registering and unregistering MIME types after application initialization.
+
+    `Mime::Type.register`, `Mime::Type.register_alias`, and `Mime::Type.unregister` will raise
+    a `FrozenError` when called after application initialization in the next version of Rails.
+    Instead, register or unregister MIME types during initialization (e.g. in
+    `config/initializers/mime_types.rb` or a Railtie `initializer` block).
+
+    *Étienne Barrié*
+
+*   Deprecate `Mime::Type.register_callback`.
+
+    It was never intended as a public API and has no replacement.
+
+    *Étienne Barrié*
+
+*   Allow HTTP token authentication to require specific authentication schemes.
+
+    Pass `scheme:` to `authenticate_or_request_with_http_token` (and the other
+    token authentication methods) with a scheme name, or an array of names, to
+    require one of those schemes and use them in the `WWW-Authenticate`
+    challenge:
+
+    ```ruby
+    authenticate_or_request_with_http_token(scheme: ["Bearer", "DPoP"]) do |token, options, scheme|
+      # ...
+    end
+    ```
+
+    Any scheme name can be required. Without `scheme:`, `Token`, `Bearer`, and
+    `DPoP` are accepted. The request's scheme is yielded to the authentication
+    block as a downcased symbol in an optional third argument.
+
+    *Chad Cole*
+
+*   Fix route recognition still matching routes that were removed by redrawing
+    a route set as empty.
+
+    `Journey::Routes#clear` did not invalidate the memoized recognition data
+    (`ast` / `simulator`); only `add_route` did. After `RouteSet#draw` cleared
+    the set, a draw block that added no routes left the stale recognition data
+    in place, so previously drawn routes were still recognized.
+
+    *Kenta Ishizaki*
+
+*   Deprecate `ActionDispatch::Cookies::HTTP_HEADER`.
+
+    Use `Rack::SET_COOKIE` instead.
+
+    *Nikita Vasilevsky*
+
+*   Fix `ActionController::Live` streams hanging on client disconnect.
+
+    `ActionController::Live::Buffer#abort` cleared the streaming queue but never
+    enqueued the terminator that `each_chunk` uses to exit, so a reader thread
+    blocked in `SizedQueue#pop` was never woken and the request thread hung
+    indefinitely. `#abort` now enqueues the terminator, mirroring `#close`.
+
+    *Winfield Peterson*
+
+*   Deprecated the ActionController::Renderers::RENDERERS constant.
+
+    This constant was for internal usage but had a documentation and wasn't set
+    as private or :nodoc:.
+    Applications that needs to add or remove renderers should be using the public API instead:
+
+    ```ruby
+    ActionController.add_renderer(:rtf) do
+    end
+
+    ActionController.remove_renderer(:rtf)
+    ```
+
+    Gems or applications that used the constant to see the list of renderers, can now use a frozen
+    reader:
+
+    ```ruby
+    ActionController::Renderers.all.include?(:csv)
+    ```
+
+    *Edouard Chin*
+
+*   Deprecate `Mime::SET`, `Mime::LOOKUP`, `Mime::EXTENSION_LOOKUP`.
+
+    Use `Mime.symbols`, `Mime::Type.lookup` and `Mime::Type.lookup_by_extension` respectively instead.
+
+    `Mime.extensions` is also added to enumerate every registered extension
+    (including synonyms), replacing `Mime::EXTENSION_LOOKUP.map(&:first)`.
+
+    *Étienne Barrié*
+
 *   Add `config.action_dispatch.strict_accept_header` to stop forcing an
     HTML response when the `Accept` header contains the `*/*` wildcard.
 
@@ -73,14 +237,14 @@
       user: { email: "  ALICE@EXAMPLE.COM  ", profile: { bio: "  Hello world  " } }
     )
     params.deep_transform_values { |v| v.is_a?(String) ? v.strip.downcase : v }
-    # => #<ActionController::Parameters {"user"=>#<ActionController::Parameters {"email"=>"alice@example.com", "profile"=>#<ActionController::Parameters {"bio"=>"hello world"} permitted: false>} permitted: false>} permitted: false>
+    # => #<ActionController::Parameters {"user"=>{"email"=>"alice@example.com", "profile"=>{"bio"=>"hello world"}}} permitted: false>
     ```
 
     *Edil Talantbek uulu*
 
 *   `http_cache_forever` now accept an optional `last_modified:` keyword parameter.
 
-    It still defaults to January 1st 2011, but you now can subtitute it for a relevant
+    It still defaults to January 1st 2011, but you now can substitute it for a relevant
     time if there is one.
 
     *Jean Boussier*
@@ -313,7 +477,7 @@
 
     By default, all keys are shared.
 
-    *Eileen M. Uchitelle*
+    *Eileen M. Alayce*
 
 *   Add controller action source location to routes inspector.
 

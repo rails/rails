@@ -168,6 +168,8 @@ module ActiveRecord
     end
 
     class EnumType < Type::Value # :nodoc:
+      include Type::QueryPredicates::Decorator
+
       delegate :type, to: :subtype
 
       def initialize(name, mapping, subtype, raise_on_invalid_values: true)
@@ -225,7 +227,7 @@ module ActiveRecord
 
         # statuses = { }
         enum_values = ActiveSupport::HashWithIndifferentAccess.new
-        name = name.to_s
+        name = name.to_s.freeze
 
         # def self.statuses() statuses end
         detect_enum_conflict!(name, name.pluralize, true)
