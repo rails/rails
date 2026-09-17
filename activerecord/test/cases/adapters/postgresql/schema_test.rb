@@ -1115,6 +1115,24 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
     assert_match("options: \"#{options}\"", output)
   end
 
+  def test_inherited_table_options_from_a_schema_off_the_search_path_is_dumped
+    @connection.create_schema "transportation"
+    @connection.create_table "transportation.transportation_modes" do |t|
+      t.string :kind
+    end
+
+    options = "INHERITS (transportation.transportation_modes)"
+
+    @connection.create_table "trains", options: options
+
+    output = dump_table_schema "trains"
+
+    assert_match("options: \"#{options}\"", output)
+  ensure
+    @connection.drop_table "trains", if_exists: true
+    @connection.drop_schema "transportation", if_exists: true
+  end
+
   def test_no_partition_options_are_dumped
     @connection.create_table "trains" do |t|
       t.string :name
