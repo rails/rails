@@ -1,3 +1,23 @@
+*   Treat SQL with a statement stacked after a read as a write query.
+
+    `write_query?` matched only the leading keyword, so a string whose first
+    statement was a read was classified as a read however many statements
+    followed it. Under `while_preventing_writes` the stacked statement was not
+    refused, and on PostgreSQL, whose simple query protocol runs every
+    `;`-separated statement, it executed.
+
+    ```ruby
+    ActiveRecord::Base.connection.write_query?("SELECT 1; DROP TABLE users")
+    # => false, now true
+    ```
+
+    A read query may still end in a semicolon, optionally followed by whitespace
+    or comments. SQL containing a semicolon anywhere else is now treated as a
+    write, which includes a semicolon inside a string literal, so a raw read
+    query written that way is no longer allowed on a replica.
+
+    *Ahmed Abd El-Latif*
+
 *   Read PostgreSQL indexes and constraints from the table an unqualified name resolves to.
 
     `indexes`, `foreign_keys`, `check_constraints`, `unique_constraints` and
@@ -49,6 +69,7 @@
           error_verbosity: <%= PG::PQERRORS_TERSE %>
 
     *Florent Beaurain*
+||||||| parent of 3892bd09a6 (Treat a statement stacked after a read as a write query)
 
 *   Avoid unnecessary association preloader queries for nil foreign keys when
     the foreign key and association primary key have different types.

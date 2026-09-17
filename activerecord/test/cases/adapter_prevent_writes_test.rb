@@ -154,5 +154,35 @@ module ActiveRecord
         end
       end
     end
+
+    def test_errors_when_a_write_is_stacked_after_a_read_while_preventing_writes
+      ActiveRecord::Base.while_preventing_writes do
+        [
+          "SELECT 1; INSERT INTO subscribers(nick) VALUES ('138853948594')",
+          "SELECT 1; INSERT INTO subscribers(nick) VALUES ('138853948594'); --",
+          "/* c */ SELECT 1; INSERT INTO subscribers(nick) VALUES ('138853948594')",
+          "-- c\nSELECT 1; INSERT INTO subscribers(nick) VALUES ('138853948594')",
+          "WITH t AS (SELECT 1) SELECT * FROM t; INSERT INTO subscribers(nick) VALUES ('1')",
+        ].each do |sql|
+          assert_raises(ActiveRecord::ReadOnlyError, "expected #{sql.inspect} to be refused") do
+            @connection.select_all(sql)
+          end
+        end
+      end
+    end
+
+    def test_doesnt_error_when_a_read_query_ends_with_a_semicolon_while_preventing_writes
+      @connection.insert("INSERT INTO subscribers(nick) VALUES ('138853948594')")
+
+      ActiveRecord::Base.while_preventing_writes do
+        [
+          "SELECT subscribers.* FROM subscribers WHERE nick = '138853948594';",
+          "SELECT subscribers.* FROM subscribers WHERE nick = '138853948594'; ",
+          "SELECT subscribers.* FROM subscribers WHERE nick = '138853948594'; -- trailing",
+        ].each do |sql|
+          assert_equal 1, @connection.select_all(sql).length, "expected #{sql.inspect} to be allowed"
+        end
+      end
+    end
   end
 end
