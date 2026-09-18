@@ -69,7 +69,7 @@ module ActionCable
         end
 
         def listener
-          @listener || @mutex.synchronize { @listener ||= Listener.new(self, executor) }
+          @listener || @mutex.synchronize { @listener ||= Listener.new(self, server) }
         end
 
         def verify!(pg_conn)
@@ -79,14 +79,13 @@ module ActionCable
         end
 
         class Listener < SubscriberMap::Async
-          def initialize(adapter, executor)
-            super(executor)
+          def initialize(adapter, server)
+            super(server)
 
             @adapter = adapter
             @queue = Queue.new
 
-            @thread = Thread.new do
-              Thread.current.abort_on_exception = true
+            @thread = server.schedule do
               listen
             end
           end
@@ -101,7 +100,7 @@ module ActionCable
                     case action
                     when :listen
                       pg_conn.exec("LISTEN #{pg_conn.escape_identifier channel}")
-                      @executor.post(&callback) if callback
+                      @server.post(&callback) if callback
                     when :unlisten
                       pg_conn.exec("UNLISTEN #{pg_conn.escape_identifier channel}")
                     when :shutdown
