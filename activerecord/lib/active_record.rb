@@ -422,8 +422,8 @@ module ActiveRecord
   #
   #   has_many :top_posts, -> { order(:score).limit(3) }, class_name: "Post"
   #
-  # This takes running the scope once per record, which +eager_load+ does with a
-  # +LATERAL+ subquery.
+  # This takes running the scope once per record, which +preload+ and
+  # +eager_load+ do with a +LATERAL+ subquery.
   singleton_class.attr_accessor :respect_association_scope_limits
   self.respect_association_scope_limits = false
 
