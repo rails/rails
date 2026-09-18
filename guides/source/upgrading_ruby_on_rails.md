@@ -1440,7 +1440,7 @@ user.highlights.second.filename # => "town.jpg"
 
 Existing applications can opt in to this new behavior by setting [`config.active_storage.replace_on_assign_to_many`][] to `true`. The old behavior will be deprecated in Rails 7.0 and removed in Rails 7.1.
 
-[`config.active_storage.replace_on_assign_to_many`]: configuring.html#config-active-storage-replace-on-assign-to-many
+[`config.active_storage.replace_on_assign_to_many`]: https://guides.rubyonrails.org/v6.0/configuring.html#configuring-active-storage
 
 ### Custom exception handling applications
 
