@@ -9,6 +9,15 @@ module Arel # :nodoc: all
         super(operand)
         @operator = operator
       end
+
+      def hash
+        super ^ @operator.hash
+      end
+
+      def eql?(other)
+        super && self.operator == other.operator
+      end
+      alias :== :eql?
     end
 
     class BitwiseNot < UnaryOperation
