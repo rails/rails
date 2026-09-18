@@ -1,3 +1,14 @@
+*   Enqueue jobs instead of running them on a background thread in the test
+    environment.
+
+    Generated `config/environments/test.rb` now sets
+    `config.active_job.queue_adapter = :test`. The previous default, `:async`,
+    runs jobs on a thread that cannot use the database connection transactional
+    tests share, so a test that waited for a job would hang. Use
+    `perform_enqueued_jobs` to run them.
+
+    *Greg Pavlik*
+
 *   Stop probing for a local MySQL socket when generating `config/database.yml`.
 
     *Ryuta Kamizono*

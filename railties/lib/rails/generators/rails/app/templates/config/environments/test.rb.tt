@@ -47,6 +47,14 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: "example.com" }
 
   <%- end -%>
+  <%- unless options[:skip_active_job] -%>
+  # Enqueue jobs instead of running them on a background thread. The default
+  # :async adapter would run them on a thread that cannot use the database
+  # connection transactional tests share, so a test that waits for a job would
+  # hang. Use perform_enqueued_jobs to run them.
+  config.active_job.queue_adapter = :test
+
+  <%- end -%>
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 

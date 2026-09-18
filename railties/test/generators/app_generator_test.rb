@@ -566,10 +566,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "jbuilder"
   end
 
+  def test_test_environment_does_not_run_jobs_on_a_background_thread
+    run_generator
+    assert_file "config/environments/test.rb" do |content|
+      assert_match(/config\.active_job\.queue_adapter = :test/, content)
+    end
+  end
+
   def test_generator_if_skip_active_job_is_given
     run_generator [destination_root, "--skip-active-job"]
     assert_no_file "app/jobs/application_job.rb"
     assert_file "config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_job/, content)
+    end
+    assert_file "config/environments/test.rb" do |content|
       assert_no_match(/config\.active_job/, content)
     end
     assert_file "config/application.rb" do |content|
