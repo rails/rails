@@ -1163,6 +1163,42 @@ module ActiveRecord
         assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
       end
 
+      # Regression test for https://github.com/rails/rails/issues/46797
+      #
+      # When transactional tests pin a connection, every thread shares it. The
+      # lock installed by #pin_connection! is held for the whole duration of a
+      # transaction block, not per statement, so a second thread cannot even
+      # lease the connection until the first thread's transaction closes.
+      #
+      # An Active Job async worker doing any Active Record work is such a second
+      # thread, which is why a test that enqueues a job inside a transaction and
+      # then waits for it deadlocks instead of failing.
+      def test_pinned_connection_can_be_leased_while_another_thread_holds_a_transaction
+        @pool.pin_connection!(true)
+        pinned = true
+
+        may_lease = Concurrent::CountDownLatch.new
+        leased = Concurrent::CountDownLatch.new
+
+        # A real thread on purpose: the contending party is an Active Job async
+        # worker, which is an OS thread whatever the pool's isolation level is.
+        worker = Thread.new do
+          may_lease.wait
+          @pool.lease_connection
+          leased.count_down
+        end
+
+        @pool.lease_connection.transaction do
+          may_lease.count_down
+          assert leased.wait(2), "another thread could not lease the pinned connection while this thread held an open transaction"
+        end
+
+        assert worker.join(2), "worker thread got stuck"
+      ensure
+        worker&.kill
+        @pool.unpin_connection! if pinned
+      end
+
       def test_pin_connection_opens_a_transaction
         assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
         @pool.pin_connection!(true)
