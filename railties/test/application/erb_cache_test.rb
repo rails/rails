@@ -21,6 +21,7 @@ class ERBCacheTest < ActiveSupport::TestCase
     assert_operator templates, :>=, 2
     assert_operator entries, :>=, 1
     assert_operator entries, :<=, templates
-    assert_path_exists app_path("tmp/cache/action_view/erb/manifest.json")
+    cache_path = app_path("tmp/cache/action_view/erb")
+    assert_equal ["data.dump"], Dir.children(cache_path)
   end
 end

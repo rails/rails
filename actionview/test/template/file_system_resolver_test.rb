@@ -42,6 +42,12 @@ class FileSystemResolverTest < ActiveSupport::TestCase
     assert_equal "Hello!", templates[0].source
   end
 
+  def test_eager_load_templates_loads_the_erb_compilation_cache
+    assert_called(ActionView::ERBCompilationCache, :load!, returns: {}) do
+      resolver.eager_load_templates
+    end
+  end
+
   def test_eager_load_templates_compiles_templates_when_given_a_view
     with_file "test/hello_world.html.erb", "Hello!"
     view = ActionView::Base.with_empty_template_cache.empty

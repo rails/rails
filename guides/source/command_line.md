@@ -1427,7 +1427,9 @@ $ RAILS_ENV=production bin/rails rails:cache_erb
 
 Include the generated directory in the deployed application. The cache is
 portable when the application is built and run at different absolute paths.
-At runtime, changed or previously undiscovered templates compile normally.
+Rails loads the cache into memory during boot so pre-fork application servers
+can share it with workers through copy-on-write. At runtime, changed or
+previously undiscovered templates compile normally.
 
 Custom Rake Tasks
 -----------------

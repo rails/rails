@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_view/erb_compilation_cache"
 
 module ActionView
@@ -19,7 +21,7 @@ module ActionView
       templates = 0
       skipped_resolvers = 0
 
-      writer = ERBCompilationCache.build do
+      entries = ERBCompilationCache.build do
         resolvers.uniq.each do |resolver|
           unless resolver.respond_to?(:all_unbound_templates)
             skipped_resolvers += 1
@@ -42,7 +44,7 @@ module ActionView
         end
       end
 
-      Result.new(templates, writer.entries.size, skipped_resolvers)
+      Result.new(templates, entries.size, skipped_resolvers)
     end
   end
 end
