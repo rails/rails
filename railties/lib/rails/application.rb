@@ -679,6 +679,7 @@ module Rails
       if defined?(AbstractController::Base)
         [AbstractController::Base, *AbstractController::Base.descendants].each do |controller|
           Ractor.make_shareable(controller.config)
+          Ractor.make_shareable(controller._wrapper_options) if controller.include?(ActionController::ParamsWrapper)
         end
       end
 
