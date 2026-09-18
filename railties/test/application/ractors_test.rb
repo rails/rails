@@ -54,6 +54,20 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_ractor_shareable Rails::HealthController.config
       end
 
+      test "ractorize! makes the params wrapper options shareable" do
+        app_file "app/controllers/posts_controller.rb", <<~RUBY
+          class PostsController < ApplicationController
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ActionController::Base._wrapper_options
+        assert_equal "post", on_ractor { PostsController._wrapper_options.name }
+      end
+
       test "ractorize! makes Rails.logger shareable" do
         app "production"
 
