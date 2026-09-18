@@ -578,9 +578,7 @@ module ActiveRecord
       def timestamps(**options)
         options[:null] = false if options[:null].nil?
 
-        if !options.key?(:precision) && @conn.supports_datetime_with_precision?
-          options[:precision] = 6
-        end
+        options[:precision] = 6 unless options.key?(:precision)
 
         column(:created_at, :datetime, **options)
         column(:updated_at, :datetime, **options)
@@ -606,10 +604,8 @@ module ActiveRecord
         end
         type = aliased_types(type.to_s, type)
 
-        if @conn.supports_datetime_with_precision?
-          if type == :datetime && !options.key?(:precision)
-            options[:precision] = 6
-          end
+        if type == :datetime && !options.key?(:precision)
+          options[:precision] = 6
         end
 
         options[:primary_key] ||= type == :primary_key

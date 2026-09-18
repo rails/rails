@@ -557,10 +557,10 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support datetime with precision?
       def supports_datetime_with_precision?
-        false
+        true
       end
+      deprecate :supports_datetime_with_precision?, deprecator: ActiveRecord.deprecator
 
       # Does this adapter support JSON data type?
       def supports_json?
