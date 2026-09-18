@@ -1,3 +1,18 @@
+*   Raise instead of hanging when a thread waits on the connection that
+    transactional tests share.
+
+    Transactional tests pin one connection and share it between threads, and the
+    lock that guards it is held for the whole duration of a transaction block.
+    A second thread asking for that connection while a transaction is open could
+    wait forever, because a transaction cannot be handed over part-way through.
+
+    This is what a background thread running Active Record code during a test
+    does, most often the Active Job `:async` adapter, and it made test suites
+    hang with no indication of why. The wait is now bounded by the pool's
+    `checkout_timeout` and raises an error naming the cause and the fix.
+
+    *Greg Pavlik*
+
 *   Deprecate `ActiveRecord::Callbacks::CALLBACKS`.
 
     The constant has been outdated for a long time. It is missing several

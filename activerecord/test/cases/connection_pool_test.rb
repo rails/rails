@@ -1165,35 +1165,46 @@ module ActiveRecord
 
       # Regression test for https://github.com/rails/rails/issues/46797
       #
-      # When transactional tests pin a connection, every thread shares it. The
-      # lock installed by #pin_connection! is held for the whole duration of a
-      # transaction block, not per statement, so a second thread cannot even
-      # lease the connection until the first thread's transaction closes.
+      # Transactional tests pin one connection and share it between threads. The
+      # lock #pin_connection! installs is held for the whole duration of a
+      # transaction block, not per statement, so while one thread is inside a
+      # transaction no other thread can use that connection at all - not even
+      # lease it. That wait can never succeed, because a transaction cannot be
+      # handed over part-way through.
       #
-      # An Active Job async worker doing any Active Record work is such a second
-      # thread, which is why a test that enqueues a job inside a transaction and
-      # then waits for it deadlocks instead of failing.
-      def test_pinned_connection_can_be_leased_while_another_thread_holds_a_transaction
+      # An Active Job async worker running Active Record code during a test is
+      # exactly such a thread, so it must fail with an explanation rather than
+      # hang forever.
+      def test_pinned_connection_busy_with_a_transaction_raises_rather_than_deadlocking
+        unless ActiveSupport::IsolatedExecutionState.isolation_level == :thread
+          skip "the wait is only bounded for thread isolation; ::Monitor has no timed acquire"
+        end
+
+        @pool.checkout_timeout = 0.2
         @pool.pin_connection!(true)
         pinned = true
 
         may_lease = Concurrent::CountDownLatch.new
-        leased = Concurrent::CountDownLatch.new
+        error = nil
 
         # A real thread on purpose: the contending party is an Active Job async
         # worker, which is an OS thread whatever the pool's isolation level is.
         worker = Thread.new do
           may_lease.wait
-          @pool.lease_connection
-          leased.count_down
+          begin
+            @pool.lease_connection
+          rescue => e
+            error = e
+          end
         end
 
         @pool.lease_connection.transaction do
           may_lease.count_down
-          assert leased.wait(2), "another thread could not lease the pinned connection while this thread held an open transaction"
+          assert worker.join(5), "worker thread hung instead of timing out"
         end
 
-        assert worker.join(2), "worker thread got stuck"
+        assert_instance_of ActiveSupport::Concurrency::ThreadMonitor::TimeoutError, error
+        assert_match "queue_adapter = :test", error.message
       ensure
         worker&.kill
         @pool.unpin_connection! if pinned

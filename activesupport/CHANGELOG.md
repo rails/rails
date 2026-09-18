@@ -1,3 +1,12 @@
+*   Allow `ActiveSupport::Concurrency::ThreadMonitor` to time out.
+
+    `ThreadMonitor.new` now accepts `timeout:` and `timeout_message:`. When a
+    timeout is set, waiting to enter the monitor for longer than that raises
+    `ActiveSupport::Concurrency::ThreadMonitor::TimeoutError` instead of waiting
+    forever. The uncontended path is unchanged.
+
+    *Greg Pavlik*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#read_multi`
     when a local cache is active.
 

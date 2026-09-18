@@ -210,11 +210,29 @@ module ActiveRecord
         "#<#{self.class.name}:#{'%#016x' % (object_id << 1)} env_name=#{pool.db_config.env_name.inspect}#{name_field} role=#{role.inspect}#{shard_field}>"
       end
 
+      # Raised when a thread waits too long for a connection that transactional
+      # tests share between threads. See #lock_thread=.
+      PINNED_CONNECTION_BUSY_MESSAGE = <<~MSG.squish # :nodoc:
+        Timed out waiting for the database connection that transactional tests share
+        between threads, because another thread is inside a transaction on it. A
+        transaction cannot be handed to a second thread part-way through, so the wait
+        would never end. This usually means a background thread ran Active Record code
+        during a test, most often the Active Job :async adapter, which is the default.
+        Set `config.active_job.queue_adapter = :test` in config/environments/test.rb.
+      MSG
+
       def lock_thread=(lock_thread) # :nodoc:
         @lock =
         case lock_thread
         when Thread
-          ActiveSupport::Concurrency::ThreadMonitor.new
+          # Only reached for a pinned (transactional test) connection, which is
+          # the only sharing Active Record does. Bound the wait: whoever holds
+          # this monitor holds it for a whole transaction, so a second thread
+          # waiting on it is deadlocked, not slow.
+          ActiveSupport::Concurrency::ThreadMonitor.new(
+            timeout: pool.respond_to?(:checkout_timeout) ? pool.checkout_timeout : nil,
+            timeout_message: PINNED_CONNECTION_BUSY_MESSAGE
+          )
         when Fiber
           ::Monitor.new
         else
