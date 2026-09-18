@@ -88,7 +88,7 @@ module ActiveRecord
       def associated(*associations)
         associations.each do |association|
           reflection = scope_association_reflection(association)
-          unless @scope.joins_values.include?(reflection.name) || @scope.left_outer_joins_values.include?(reflection.name)
+          unless scope_joins_association?(reflection)
             @scope.joins!(association)
           end
 
@@ -121,9 +121,30 @@ module ActiveRecord
       #    # LEFT OUTER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
       #    # WHERE "authors"."id" IS NULL AND "comments"."id" IS NULL
+      #
+      # An association that is reached through another table, such as a
+      # <tt>has_many :through</tt>, is matched with an anti join instead, since
+      # the outer join would apply per row of the table it is reached through:
+      #
+      #    Author.where.missing(:comments)
+      #    # SELECT "authors".* FROM "authors"
+      #    # WHERE NOT (EXISTS (
+      #    #   SELECT 1 FROM "posts" INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+      #    #   WHERE "posts"."author_id" = "authors"."id"
+      #    # ))
       def missing(*associations)
         associations.each do |association|
           reflection = scope_association_reflection(association)
+
+          if reflection.collection? && !scope_joins_association?(reflection)
+            condition = anti_join(reflection)
+
+            if condition
+              @scope.where!(condition)
+              next
+            end
+          end
+
           @scope.left_outer_joins!(association)
           association_conditions = ActiveRecord::Key.for(reflection.association_primary_key).index_with(nil)
           if reflection.options[:class_name]
@@ -137,6 +158,28 @@ module ActiveRecord
       end
 
       private
+        def scope_joins_association?(reflection)
+          @scope.joins_values.include?(reflection.name) ||
+            @scope.left_outer_joins_values.include?(reflection.name)
+        end
+
+        # Matches the association with a correlated `NOT EXISTS` subquery:
+        #
+        #   NOT (EXISTS (SELECT 1 FROM "posts" INNER JOIN "comments" ON ... WHERE ...))
+        def anti_join(reflection)
+          join_sources = @scope.model.unscoped.joins(reflection.name).arel.join_sources
+          return if join_sources.one?
+
+          join = join_sources.shift
+
+          subquery = Arel::SelectManager.new(join.left)
+          subquery.project(Arel.sql("1"))
+          subquery.join_sources.concat(join_sources)
+          subquery.where(join.right.expr)
+
+          Arel::Nodes::Not.new(subquery.exists)
+        end
+
         def scope_association_reflection(association)
           model = @scope.model
           reflection = model._reflect_on_association(association)
