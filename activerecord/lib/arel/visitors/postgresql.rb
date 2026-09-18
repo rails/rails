@@ -107,11 +107,6 @@ module Arel # :nodoc: all
           grouping_array_or_grouping_element o, collector
         end
 
-        def visit_Arel_Nodes_Lateral(o, collector)
-          collector << "LATERAL "
-          grouping_parentheses o.expr, collector
-        end
-
         def visit_Arel_Nodes_InnerJoin(o, collector)
           return super if o.right
           collector << "CROSS JOIN "

@@ -171,6 +171,10 @@ module ActiveRecord
         end
       end
 
+      def supports_lateral_joins?
+        !mariadb? && database_version >= "8.0.14"
+      end
+
       def supports_advisory_locks?
         true
       end

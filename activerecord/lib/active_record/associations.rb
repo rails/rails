@@ -800,10 +800,14 @@ module ActiveRecord
       # returning all the associated objects:
       #
       #   class Picture < ActiveRecord::Base
-      #     has_many :most_recent_comments, -> { order('id DESC').limit(10) }, class_name: 'Comment'
+      #     has_many :most_recent_comments, -> { order(id: :desc).limit(10) }, class_name: 'Comment'
       #   end
       #
       #   Picture.includes(:most_recent_comments).first.most_recent_comments # => returns all associated comments.
+      #
+      # Set <tt>config.active_record.respect_association_scope_limits</tt> to apply such a
+      # <tt>:limit</tt> (or <tt>:offset</tt>) to each record's own associated objects
+      # instead, which takes a database that supports a +LATERAL+ subquery.
       #
       # Eager loading is supported with polymorphic associations.
       #

@@ -21,7 +21,7 @@ module ActiveRecord
             }
           end
           aliases[initial_table] = 1
-          new(connection.table_alias_length, aliases)
+          new(connection.table_alias_length, aliases, connection.supports_lateral_joins?)
         end
       end
 
@@ -50,9 +50,14 @@ module ActiveRecord
       end
 
       # table_joins is an array of arel joins which might conflict with the aliases we assign here
-      def initialize(table_alias_length, aliases)
+      def initialize(table_alias_length, aliases, supports_lateral_joins = false)
         @aliases = aliases
         @table_alias_length = table_alias_length
+        @supports_lateral_joins = supports_lateral_joins
+      end
+
+      def supports_lateral_joins?
+        @supports_lateral_joins
       end
 
       def aliased_table_for(arel_table, table_name = nil)

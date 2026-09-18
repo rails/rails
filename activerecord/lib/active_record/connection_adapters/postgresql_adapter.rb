@@ -532,6 +532,10 @@ module ActiveRecord
         true
       end
 
+      def supports_lateral_joins?
+        true
+      end
+
       def supports_lazy_transactions?
         true
       end

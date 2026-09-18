@@ -596,6 +596,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support +LATERAL+ subqueries in +JOIN+ clauses?
+      def supports_lateral_joins?
+        false
+      end
+
       def supports_lazy_transactions?
         false
       end

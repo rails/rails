@@ -100,6 +100,7 @@ class Post < ActiveRecord::Base
   end
 
   has_many :comments_with_extending, -> { extending(NamedExtension) }, class_name: "Comment", foreign_key: "post_id"
+  has_many :comments_sorted_by_id_limited, -> { order("comments.id").limit(1) }, class_name: "Comment", foreign_key: "post_id"
 
   has_many :comments_with_extend_2, extend: [NamedExtension, NamedExtension2], class_name: "Comment", foreign_key: "post_id"
 

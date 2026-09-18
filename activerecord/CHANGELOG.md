@@ -1,3 +1,16 @@
+*   Add `config.active_record.respect_association_scope_limits` to apply an
+    association scope's `limit`/`offset` to each record's own associated
+    records.
+
+    `eager_load` dropped the `limit`, the `offset` and the scope's `order`
+    from its `LEFT OUTER JOIN`, returning every associated record. With the
+    option enabled it runs the scope once per owner with a `LATERAL`
+    subquery, on adapters that support one (PostgreSQL, MySQL 8.0.14+).
+
+    Disabled by default.
+
+    *Ryuta Kamizono*
+
 *   Deprecate `ActiveRecord::Callbacks::CALLBACKS`.
 
     The constant has been outdated for a long time. It is missing several

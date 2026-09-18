@@ -415,6 +415,18 @@ module ActiveRecord
   singleton_class.attr_accessor :shuffle_unordered_selects
   self.shuffle_unordered_selects = false
 
+  ##
+  # :singleton-method: respect_association_scope_limits
+  # Applies a <tt>limit</tt> or <tt>offset</tt> in an association's scope to each
+  # record's own associated records, rather than ignoring it.
+  #
+  #   has_many :top_posts, -> { order(:score).limit(3) }, class_name: "Post"
+  #
+  # This takes running the scope once per record, which +eager_load+ does with a
+  # +LATERAL+ subquery.
+  singleton_class.attr_accessor :respect_association_scope_limits
+  self.respect_association_scope_limits = false
+
   singleton_class.attr_accessor :application_record_class
   self.application_record_class = nil
 
