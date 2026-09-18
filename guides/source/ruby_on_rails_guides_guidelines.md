@@ -3,7 +3,8 @@
 Ruby on Rails Guides Guidelines
 ===============================
 
-This guide documents guidelines for writing Ruby on Rails Guides. This guide follows itself in a graceful loop, serving itself as an example.
+This guide documents guidelines for writing Ruby on Rails Guides. This guide
+follows itself in a graceful loop, serving itself as an example.
 
 After reading this guide, you will know:
 
@@ -12,20 +13,29 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-Markdown
---------
+Guidelines
+----------
 
-Guides are written in [GitHub Flavored Markdown](https://help.github.com/articles/github-flavored-markdown). There is comprehensive [documentation for Markdown](https://daringfireball.net/projects/markdown/syntax), as well as a [cheatsheet](https://daringfireball.net/projects/markdown/basics).
+### Markdown
 
-Prologue
---------
+Guides are written in [GitHub Flavored
+Markdown](https://help.github.com/articles/github-flavored-markdown). There is
+comprehensive [documentation for
+Markdown](https://daringfireball.net/projects/markdown/syntax), as well as a
+[cheatsheet](https://daringfireball.net/projects/markdown/basics).
 
-Each guide should start with motivational text at the top (that's the little introduction in the blue area). The prologue should tell the reader what the guide is about, and what they will learn. As an example, see the [Routing Guide](routing.html).
+### Prologue
 
-Headings
---------
+Each guide should start with motivational text at the top (that's the little
+introduction in the blue area). The prologue should tell the reader what the
+guide is about, and what they will learn. As an example, see the [Routing
+Guide](routing.html).
 
-The title of every guide uses an `h1` heading; guide sections use `h2` headings; subsections use `h3` headings; etc. Note that the generated HTML output will use heading tags starting with `<h2>`.
+### Headings
+
+The title of every guide uses an `h1` heading; guide sections use `h2`
+headings; subsections use `h3` headings; etc. Note that the generated HTML
+output will use heading tags starting with `<h2>`.
 
 ```markdown
 Guide Title
@@ -37,7 +47,8 @@ Section
 ### Sub Section
 ```
 
-When writing headings, capitalize all words except for articles, prepositions, conjunctions, and forms of the verb "to be":
+When writing headings, capitalize all words except for articles, prepositions,
+conjunctions, and forms of the verb "to be":
 
 ```markdown
 #### Assertions and Testing Jobs inside Components
@@ -51,8 +62,7 @@ Use the same inline formatting as regular text:
 ##### The `:content_type` Option
 ```
 
-Code Examples
--------------
+### Code Examples
 
 Wrap code examples with code fence syntax using backticks:
 
@@ -71,7 +81,7 @@ alert("Hello World!")
 ```
 ````
 
-### Filenames for Examples
+#### Filenames for Examples
 
 If an example references a specific file add the filename in the comments:
 
@@ -97,7 +107,7 @@ For ERB templates use ERB comments:
 ```
 ````
 
-### Examples with Command Prompts
+#### Examples with Command Prompts
 
 For bash examples use `$` as the prompt character:
 
@@ -119,7 +129,7 @@ store(dev)> Product.first
 ```
 ````
 
-### Shortening Examples
+#### Shortening Examples
 
 If an example has a lot of lines that are irrelevant in the context, use an
 ellipsis. Comment out the ellipsis if the example is executable code:
@@ -169,8 +179,7 @@ class Product < ApplicationRecord
 end
 ```
 
-Notes, Tips and Warnings
-------------------------
+### Notes, Tips and Warnings
 
 Sometimes a paragraph deserves a little more attention. For example, to clarify
 a common misunderstanding or warn about something that could break an
@@ -186,7 +195,7 @@ This will wrap the paragraph in a special container resulting in the following:
 
 NOTE: Use `NOTE`, `TIP` or `WARNING` to highlight a paragraph.
 
-### NOTE
+#### NOTE
 
 Use `NOTE` to highlight something in relation to the subject and the context.
 Reading it will help your understanding of that subject or context, or
@@ -196,7 +205,7 @@ For example, a section describing locale files could have the following `NOTE`:
 
 NOTE: You need to restart the server when you add new locale files.
 
-### TIP
+#### TIP
 
 A `TIP` is just an additional bit of information regarding the subject, but not
 necessarily relevant to the understanding. It can point you to another guide or
@@ -209,7 +218,7 @@ Or show a helpful command to see more options to dig deeper:
 
 TIP: For further help with generators, run `bin/rails generate --help`.
 
-### WARNING
+#### WARNING
 
 Use `WARNING` for things to avoid that could break the application:
 
@@ -220,8 +229,7 @@ Or warn about things that could compromise your application's security.
 
 WARNING: Keep your master key safe. Do not commit your master key.
 
-Links
------
+### Links
 
 Use descriptive links and avoid "here" and "more" links:
 
@@ -246,9 +254,10 @@ We will cover this in the [multiple callback conditions
 section](#multiple-callback-conditions) shown below.
 ```
 
-### Linking to the API
+#### Linking to the API
 
-Links to the API (`api.rubyonrails.org`) are processed by the guides generator in the following manner:
+Links to the API (`api.rubyonrails.org`) are processed by the guides generator
+in the following manner:
 
 Links that include a release tag are left untouched. For example
 
@@ -258,9 +267,11 @@ https://api.rubyonrails.org/v5.0.1/classes/ActiveRecord/Attributes/ClassMethods.
 
 is not modified.
 
-Please use these in release notes, since they should point to the corresponding version no matter the target being generated.
+Please use these in release notes, since they should point to the corresponding
+version no matter the target being generated.
 
-If the link does not include a release tag and edge guides are being generated, the domain is replaced by `edgeapi.rubyonrails.org`. For example,
+If the link does not include a release tag and edge guides are being generated,
+the domain is replaced by `edgeapi.rubyonrails.org`. For example,
 
 ```
 https://api.rubyonrails.org/classes/ActionDispatch/Response.html
@@ -272,7 +283,9 @@ becomes
 https://edgeapi.rubyonrails.org/classes/ActionDispatch/Response.html
 ```
 
-If the link does not include a release tag and release guides are being generated, the Rails version is injected. For example, if we are generating the guides for v5.1.0 the link
+If the link does not include a release tag and release guides are being
+generated, the Rails version is injected. For example, if we are generating the
+guides for v5.1.0 the link
 
 ```
 https://api.rubyonrails.org/classes/ActionDispatch/Response.html
@@ -286,15 +299,16 @@ https://api.rubyonrails.org/v5.1.0/classes/ActionDispatch/Response.html
 
 Please don't link to `edgeapi.rubyonrails.org` manually.
 
-Column Wrapping
----------------
+### Column Wrapping
 
-Do not reformat old guides just to wrap columns. But new sections and guides should wrap at 80 columns.
+Do not reformat old guides just to wrap columns. But new sections and guides
+should wrap at 80 columns.
 
-API Documentation Guidelines
-----------------------------
+### API Documentation Guidelines
 
-The guides and the API should be coherent and consistent where appropriate. In particular, these sections of the [API Documentation Guidelines](api_documentation_guidelines.html) also apply to the guides:
+The guides and the API should be coherent and consistent where appropriate. In
+particular, these sections of the [API Documentation
+Guidelines](api_documentation_guidelines.html) also apply to the guides:
 
 * [Wording](api_documentation_guidelines.html#wording)
 * [English](api_documentation_guidelines.html#american-english)
@@ -306,13 +320,16 @@ HTML Guides
 -----------
 
 Before generating the guides, make sure that you have the latest version of
-Bundler installed on your system. To install the latest version of Bundler, run `gem install bundler`.
+Bundler installed on your system. To install the latest version of Bundler, run
+`gem install bundler`.
 
-If you already have Bundler installed, you can update with `gem update bundler`.
+If you already have Bundler installed, you can update with `gem update
+bundler`.
 
 ### Generation
 
-To generate all the guides, just `cd` into the `guides` directory, run `bundle install`, and execute:
+To generate all the guides, just `cd` into the `guides` directory, run `bundle
+install`, and execute:
 
 ```bash
 $ bundle exec rake guides:generate
@@ -333,17 +350,21 @@ $ touch my_guide.md
 $ bundle exec rake guides:generate ONLY=my_guide
 ```
 
-By default, guides that have not been modified are not processed, so `ONLY` is rarely needed in practice.
+By default, guides that have not been modified are not processed, so `ONLY` is
+rarely needed in practice.
 
 To force processing all the guides, pass `ALL=1`.
 
-If you want to generate guides in a language other than English, you can keep them in a separate directory under `source` (e.g. `source/es`) and use the `GUIDES_LANGUAGE` environment variable:
+If you want to generate guides in a language other than English, you can keep
+them in a separate directory under `source` (e.g. `source/es`) and use the
+`GUIDES_LANGUAGE` environment variable:
 
 ```bash
 $ bundle exec rake guides:generate GUIDES_LANGUAGE=es
 ```
 
-If you want to see all the environment variables you can use to configure the generation script just run:
+If you want to see all the environment variables you can use to configure the
+generation script just run:
 
 ```bash
 $ bundle exec rake
@@ -357,7 +378,8 @@ Please validate the generated HTML with:
 $ bundle exec rake guides:validate
 ```
 
-Particularly, titles get an ID generated from their content and this often leads to duplicates.
+Particularly, titles get an ID generated from their content and this often
+leads to duplicates.
 
 EPUB Guides
 -----------
