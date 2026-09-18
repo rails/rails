@@ -1,4 +1,3 @@
-# :markup: markdown
 # frozen_string_literal: true
 
 # :markup: markdown
