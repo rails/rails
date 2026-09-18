@@ -106,9 +106,11 @@ module ActiveStorage::Blob::Representable
   end
 
   # Returns true if the variant processor can transform the blob (its content
-  # type is in +ActiveStorage.variable_content_types+).
+  # type is in +ActiveStorage.variable_content_types+), or if a transformer
+  # registered in +ActiveStorage.transformers+ accepts it.
   def variable?
-    ActiveStorage.variable_content_types.include?(content_type)
+    ActiveStorage.variable_content_types.include?(content_type) ||
+      ActiveStorage.transformers.any? { |transformer| transformer.accept?(self) }
   end
 
 
@@ -172,8 +174,13 @@ module ActiveStorage::Blob::Representable
     def default_variant_format
       if web_image?
         format || :png
-      else
+      elsif ActiveStorage.variable_content_types.include?(content_type)
+        # An image the variant processor can transform, but which browsers may not display.
         :png
+      else
+        # Variable only because a transformer accepted it. The blob is not an image, so default
+        # to its own format instead of converting it to one.
+        format || :png
       end
     end
 
