@@ -1,3 +1,8 @@
+*   Add `rails:cache_erb` to cache the Ruby source generated from all
+    filesystem-backed Action View ERB templates at build time.
+
+    *Joel Hawksley*
+
 *   Add a `herb:check` rake task to verify that the application's HTML+ERB
     templates compile through Herb.
 

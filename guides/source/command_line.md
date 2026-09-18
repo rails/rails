@@ -1414,6 +1414,21 @@ Guide](security.html#custom-credentials).
 TIP: Check out the detailed description for this command in the output of
 `bin/rails credentials --help`.
 
+### `bin/rails rails:cache_erb`
+
+The `rails:cache_erb` task compiles the application's filesystem-backed Action
+View ERB templates and stores the generated Ruby source in
+`tmp/cache/action_view/erb`. Run it in the same environment used by the
+deployed application:
+
+```bash
+$ RAILS_ENV=production bin/rails rails:cache_erb
+```
+
+Include the generated directory in the deployed application. The cache is
+portable when the application is built and run at different absolute paths.
+At runtime, changed or previously undiscovered templates compile normally.
+
 Custom Rake Tasks
 -----------------
 
