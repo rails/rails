@@ -346,7 +346,7 @@ $ bundle exec rake guides:generate GUIDES_LANGUAGE=es
 If you want to see all the environment variables you can use to configure the generation script just run:
 
 ```bash
-$ rake
+$ bundle exec rake
 ```
 
 ### Validation
