@@ -1,16 +1,18 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "digest"
+require "base64"
 require "fileutils"
 require "json"
 require "pathname"
-require "securerandom"
 require "active_support/core_ext/file/atomic"
 require "active_support/isolated_execution_state"
 
 module ActionView
   module ERBCompilationCache # :nodoc:
-    FORMAT_VERSION = 1
+    FORMAT_VERSION = 2
     EXECUTION_KEY = :action_view_erb_compilation_cache_writer
 
     CorruptCacheError = Class.new(StandardError)
@@ -18,7 +20,7 @@ module ActionView
 
     class << self
       def fetch(implementation, source, options, enabled: true)
-        return yield unless enabled
+        return yield unless enabled && Ractor.current == Ractor.main
 
         unless key = cache_key(implementation, source, options)
           if current_writer
@@ -30,8 +32,8 @@ module ActionView
 
         if writer = current_writer
           yield.tap { |compiled_source| writer.write(key, compiled_source) }
-        elsif entry = manifest&.fetch(key, nil)
-          read(entry)
+        elsif compiled_source = entries&.fetch(key, nil)
+          compiled_source
         else
           yield
         end
@@ -52,19 +54,32 @@ module ActionView
           writer
         ensure
           ActiveSupport::IsolatedExecutionState[EXECUTION_KEY] = previous_writer
-          writer.close
         end
       end
 
       def clear
-        @manifest_path = @manifest = nil
+        @data_path = @entries = nil
+      end
+
+      def cache_path
+        if defined?(Rails) && Rails.respond_to?(:root) && Rails.root
+          Pathname.new(Rails.root.to_s).join("tmp/cache/action_view/erb")
+        end
+      end
+
+      def load!
+        root = cache_path
+        return unless root
+
+        path = root.join("data.json").to_s
+        return @entries if @data_path == path
+
+        loaded_entries = load_entries(path)
+        @data_path = path
+        @entries = loaded_entries
       end
 
       private
-        def cache_path
-          Rails.root&.join("tmp/cache/action_view/erb") if defined?(Rails) && Rails.respond_to?(:root)
-        end
-
         def current_writer
           ActiveSupport::IsolatedExecutionState[EXECUTION_KEY]
         end
@@ -83,50 +98,41 @@ module ActionView
           nil
         end
 
-        def manifest
-          root = cache_path
-          return unless root
-
-          path = root.join("manifest.json").to_s
-          return @manifest if @manifest_path == path
-
-          loaded_manifest = load_manifest(path)
-          @manifest_path = path
-          @manifest = loaded_manifest
+        def entries
+          @entries || load!
         end
 
-        def load_manifest(path)
-          return unless File.file?(path)
+        def load_entries(path)
+          return {}.freeze unless File.file?(path)
 
           document = JSON.parse(File.binread(path))
-          return unless document["version"] == FORMAT_VERSION
+          return {}.freeze unless document["version"] == FORMAT_VERSION
 
           entries = document["entries"]
-          raise CorruptCacheError, "ERB compilation cache manifest has no entries" unless entries.is_a?(Hash)
+          raise CorruptCacheError, "ERB compilation cache has no entries" unless entries.is_a?(Hash)
 
-          entries
+          entries.transform_values! { |entry| decode(entry) }
+          Ractor.make_shareable(entries)
         rescue JSON::ParserError => error
-          raise CorruptCacheError, "Invalid ERB compilation cache manifest: #{error.message}"
+          raise CorruptCacheError, "Invalid ERB compilation cache: #{error.message}"
         end
 
-        def read(entry)
-          unless entry.is_a?(Hash) && entry["path"].is_a?(String) &&
+        def decode(entry)
+          unless entry.is_a?(Hash) && entry["source"].is_a?(String) &&
               entry["encoding"].is_a?(String) && entry["digest"].is_a?(String)
             raise CorruptCacheError, "Invalid ERB compilation cache entry"
           end
 
-          path = cache_path.join(entry["path"])
-          source = File.binread(path)
+          source = Base64.strict_decode64(entry["source"])
           digest = Digest::SHA256.hexdigest(source)
           unless digest == entry["digest"]
-            raise CorruptCacheError, "ERB compilation cache digest mismatch for #{path}"
+            raise CorruptCacheError, "ERB compilation cache digest mismatch"
           end
 
           source.force_encoding(entry["encoding"])
-        rescue Errno::ENOENT
-          raise CorruptCacheError, "Missing ERB compilation cache entry #{path}"
+          source.freeze
         rescue ArgumentError => error
-          raise CorruptCacheError, "Invalid ERB compilation cache encoding: #{error.message}"
+          raise CorruptCacheError, "Invalid ERB compilation cache entry: #{error.message}"
         end
     end
 
@@ -135,19 +141,15 @@ module ActionView
 
       def initialize(path)
         @path = path
-        @staging_path = Pathname.new("#{path}.#{Process.pid}.#{SecureRandom.hex(6)}.tmp")
         @entries = {}
-        FileUtils.mkdir_p(@staging_path.join("objects"))
       end
 
       def write(key, source)
         bytes = source.b
-        digest = Digest::SHA256.hexdigest(bytes)
-        relative_path = "objects/#{key}"
         entry = {
-          "path" => relative_path,
+          "source" => Base64.strict_encode64(bytes),
           "encoding" => source.encoding.name,
-          "digest" => digest,
+          "digest" => Digest::SHA256.hexdigest(bytes),
         }
 
         if existing = entries[key]
@@ -155,7 +157,6 @@ module ActionView
             raise CorruptCacheError, "ERB compiler returned different output for the same cache key"
           end
         else
-          File.binwrite(@staging_path.join(relative_path), bytes)
           entries[key] = entry
         end
 
@@ -163,28 +164,12 @@ module ActionView
       end
 
       def publish
-        sorted_entries = entries.sort.to_h
-        generation = Digest::SHA256.hexdigest(JSON.generate(sorted_entries))
-        generation_path = @path.join("generations", generation)
-        published_entries = sorted_entries.transform_values do |entry|
-          entry.merge("path" => "generations/#{generation}/#{entry["path"]}")
-        end
-        manifest = JSON.generate("version" => FORMAT_VERSION, "entries" => published_entries)
+        data = JSON.generate("version" => FORMAT_VERSION, "entries" => entries.sort.to_h)
 
-        FileUtils.mkdir_p(generation_path.dirname)
-        begin
-          File.rename(@staging_path, generation_path)
-        rescue Errno::EEXIST, Errno::ENOTEMPTY
-          raise unless generation_path.directory?
+        FileUtils.mkdir_p(@path)
+        File.atomic_write(@path.join("data.json")) do |file|
+          file.write(data)
         end
-
-        File.atomic_write(@path.join("manifest.json")) do |file|
-          file.write(manifest)
-        end
-      end
-
-      def close
-        FileUtils.rm_rf(@staging_path)
       end
     end
   end

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
 require "action_view/erb_compilation_cache"
 
 module ActionView

@@ -1,6 +1,10 @@
 *   Add `rails:cache_erb` to cache the Ruby source generated from all
     filesystem-backed Action View ERB templates at build time.
 
+    The cache is stored in `tmp/cache/action_view/erb/data.json` and loaded
+    into memory during boot so pre-fork servers can share it with workers
+    through copy-on-write.
+
     *Joel Hawksley*
 
 *   Add a `herb:check` rake task to verify that the application's HTML+ERB

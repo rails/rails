@@ -6,10 +6,6 @@ require "active_support/core_ext/object/with"
 require "tmpdir"
 
 class ERBCompilationCacheTest < ActiveSupport::TestCase
-  class << Rails
-    attr_accessor :root unless method_defined?(:root)
-  end
-
   class CacheableImplementation
     class << self
       attr_accessor :calls
@@ -43,7 +39,7 @@ class ERBCompilationCacheTest < ActiveSupport::TestCase
         build_identifier_root = "#{build_root}-engine"
         runtime_identifier_root = "#{runtime_root}-engine"
 
-        Rails.with(root: Pathname.new(build_root)) do
+        with_cache_path(build_root) do
           ActionView::ERBCompilationCache.build do
             compile(template(build_identifier_root, "<p><%= message %></p>"))
           end
@@ -54,7 +50,8 @@ class ERBCompilationCacheTest < ActiveSupport::TestCase
         FileUtils.cp_r(File.join(build_root, "tmp/cache/action_view/erb"), runtime_cache)
         ActionView::ERBCompilationCache.clear
 
-        Rails.with(root: Pathname.new(runtime_root)) do
+        with_cache_path(runtime_root) do
+          ActionView::ERBCompilationCache.load!
           compile(template(runtime_identifier_root, "<p><%= message %></p>"))
         end
 
@@ -65,7 +62,7 @@ class ERBCompilationCacheTest < ActiveSupport::TestCase
 
   test "does not cache when rendered view annotations are enabled" do
     Dir.mktmpdir do |root|
-      Rails.with(root: Pathname.new(root)) do
+      with_cache_path(root) do
         source = "<p><%= message %></p>"
         template = template(root, source)
 
@@ -83,7 +80,7 @@ class ERBCompilationCacheTest < ActiveSupport::TestCase
 
   test "does not use an entry when the template changes" do
     Dir.mktmpdir do |root|
-      Rails.with(root: Pathname.new(root)) do
+      with_cache_path(root) do
         ActionView::ERBCompilationCache.build do
           compile(template(root, "before"))
         end
@@ -97,11 +94,11 @@ class ERBCompilationCacheTest < ActiveSupport::TestCase
 
   test "does not replace an existing cache when compilation fails" do
     Dir.mktmpdir do |root|
-      Rails.with(root: Pathname.new(root)) do
+      with_cache_path(root) do
         ActionView::ERBCompilationCache.build do
           compile(template(root, "working"))
         end
-        manifest = File.binread(File.join(root, "tmp/cache/action_view/erb/manifest.json"))
+        data = File.binread(File.join(root, "tmp/cache/action_view/erb/data.json"))
 
         assert_raises(RuntimeError) do
           ActionView::ERBCompilationCache.build do
@@ -110,22 +107,35 @@ class ERBCompilationCacheTest < ActiveSupport::TestCase
           end
         end
 
-        assert_equal manifest, File.binread(File.join(root, "tmp/cache/action_view/erb/manifest.json"))
+        assert_equal data, File.binread(File.join(root, "tmp/cache/action_view/erb/data.json"))
       end
     end
   end
 
-  test "compiles normally without a Rails root" do
-    Rails.with(root: nil) do
-      compile(template("somewhere", "uncached"))
+  test "keeps the loaded cache in memory" do
+    Dir.mktmpdir do |root|
+      with_cache_path(root) do
+        template = template(root, "cached")
+        ActionView::ERBCompilationCache.build { compile(template) }
+        ActionView::ERBCompilationCache.load!
+        FileUtils.rm(File.join(root, "tmp/cache/action_view/erb/data.json"))
+
+        compile(template)
+      end
+
+      assert_equal 1, CacheableImplementation.calls
     end
+  end
+
+  test "compiles normally without a Rails root" do
+    compile(template("somewhere", "uncached"))
 
     assert_equal 1, CacheableImplementation.calls
   end
 
   test "skips resolvers that cannot enumerate templates" do
     Dir.mktmpdir do |root|
-      result = Rails.with(root: Pathname.new(root)) do
+      result = with_cache_path(root) do
         ActionView::ERBPrecompiler.call([Object.new])
       end
 
@@ -149,5 +159,10 @@ class ERBCompilationCacheTest < ActiveSupport::TestCase
 
     def compile(template)
       @handler.call(template, template.encode!, implementation: CacheableImplementation)
+    end
+
+    def with_cache_path(root, &block)
+      path = Pathname.new(root).join("tmp/cache/action_view/erb")
+      ActionView::ERBCompilationCache.stub(:cache_path, path, &block)
     end
 end

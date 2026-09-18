@@ -70,6 +70,13 @@ module ActionView
       ActiveSupport::Ractors.make_shareable(ActionView::Template::Handlers::ERB.escape_ignore_list)
     end
 
+    config.after_initialize do
+      unless ActionView::Base.annotate_rendered_view_with_filenames
+        require "action_view/erb_compilation_cache"
+        ActionView::ERBCompilationCache.load!
+      end
+    end
+
     config.after_initialize do |app|
       ActionView::Helpers::AssetTagHelper.image_loading = app.config.action_view.delete(:image_loading)
       ActionView::Helpers::AssetTagHelper.image_decoding = app.config.action_view.delete(:image_decoding)

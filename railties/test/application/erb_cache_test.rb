@@ -10,6 +10,14 @@ class ERBCacheTest < ActiveSupport::TestCase
     build_app
   end
 
+  test "loads the ERB cache during boot" do
+    require "action_view/erb_compilation_cache"
+
+    assert_called(ActionView::ERBCompilationCache, :load!, returns: {}) do
+      app
+    end
+  end
+
   test "rails:cache_erb caches all Action View ERB formats" do
     app_file "app/views/pages/show.html.erb", "<p><%= message %></p>"
     app_file "app/views/pages/show.text.erb", "<%= message %>"
@@ -21,6 +29,7 @@ class ERBCacheTest < ActiveSupport::TestCase
     assert_operator templates, :>=, 2
     assert_operator entries, :>=, 1
     assert_operator entries, :<=, templates
-    assert_path_exists app_path("tmp/cache/action_view/erb/manifest.json")
+    cache_path = app_path("tmp/cache/action_view/erb")
+    assert_equal ["data.json"], Dir.children(cache_path)
   end
 end
