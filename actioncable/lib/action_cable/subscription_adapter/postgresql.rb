@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 # :markup: markdown
@@ -59,7 +60,7 @@ module ActionCable
 
       private
         def channel_identifier(channel)
-          # PostgreSQL identifiers are limited to NAMEDATALEN-1 (63) *bytes*, not
+          # PostgreSQL identifiers are limited to NAMEDATALEN-1 (63) **bytes**, not
           # characters, and are silently truncated past that. Truncation makes the
           # name we LISTEN/subscribe under differ from the one wait_for_notify hands
           # back, so notifications would miss their subscribers. Hash on byte length

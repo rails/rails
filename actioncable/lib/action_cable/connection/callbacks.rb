@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 # :markup: markdown
@@ -16,20 +17,22 @@ module ActionCable
     #
     # #### Example
     #
-    #     module ApplicationCable
-    #       class Connection < ActionCable::Connection::Base
-    #         identified_by :user
+    # ```
+    # module ApplicationCable
+    #   class Connection < ActionCable::Connection::Base
+    #     identified_by :user
     #
-    #         around_command :set_current_account
+    #     around_command :set_current_account
     #
-    #         private
+    #     private
     #
-    #         def set_current_account
-    #           # Now all channels could use Current.account
-    #           Current.set(account: user.account) { yield }
-    #         end
-    #       end
+    #     def set_current_account
+    #       # Now all channels could use Current.account
+    #       Current.set(account: user.account) { yield }
     #     end
+    #   end
+    # end
+    # ```
     #
     module Callbacks
       extend  ActiveSupport::Concern

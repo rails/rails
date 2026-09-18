@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 # :markup: markdown
@@ -18,26 +19,28 @@ module ActionCable
     #
     # Here's a basic example:
     #
-    #     module ApplicationCable
-    #       class Connection < ActionCable::Connection::Base
-    #         identified_by :current_user
+    # ```
+    # module ApplicationCable
+    #   class Connection < ActionCable::Connection::Base
+    #     identified_by :current_user
     #
-    #         def connect
-    #           self.current_user = find_verified_user
-    #           logger.add_tags current_user.name
-    #         end
-    #
-    #         def disconnect
-    #           # Any cleanup work needed when the cable connection is cut.
-    #         end
-    #
-    #         private
-    #           def find_verified_user
-    #             User.find_by_identity(cookies.encrypted[:identity_id]) ||
-    #               reject_unauthorized_connection
-    #           end
-    #       end
+    #     def connect
+    #       self.current_user = find_verified_user
+    #       logger.add_tags current_user.name
     #     end
+    #
+    #     def disconnect
+    #       # Any cleanup work needed when the cable connection is cut.
+    #     end
+    #
+    #     private
+    #       def find_verified_user
+    #         User.find_by_identity(cookies.encrypted[:identity_id]) ||
+    #           reject_unauthorized_connection
+    #       end
+    #   end
+    # end
+    # ```
     #
     # First, we declare that this connection can be identified by its current_user.
     # This allows us to later be able to find all connections established for that
