@@ -65,17 +65,21 @@ class ConversionTest < ActiveModel::TestCase
     assert_equal "attack_helicopters/ah-64", Helicopter::Apache.new.to_partial_path
   end
 
-  test "to_partial_path initializes its cache on the main Ractor" do
-    force_skip "This test triggers: https://github.com/fxn/zeitwerk/pull/344"
-    model_class = Class.new do
-      include ActiveModel::Conversion
+  # Prior to 4.1 exiting single ractor mode break breaks require decorators:
+  # - https://bugs.ruby-lang.org/issues/22263
+  # - https://github.com/fxn/zeitwerk/pull/344
+  if RUBY_VERSION >= "4.1"
+    test "to_partial_path initializes its cache on the main Ractor" do
+      model_class = Class.new do
+        include ActiveModel::Conversion
 
-      def self.name
-        "RactorModel"
+        def self.name
+          "RactorModel"
+        end
       end
-    end
 
-    assert_equal "ractor_models/ractor_model", on_ractor(model_class) { |klass| klass.new.to_partial_path }
+      assert_equal "ractor_models/ractor_model", on_ractor(model_class) { |klass| klass.new.to_partial_path }
+    end
   end
 
   test "to_partial_path on a model implementing .model_name returns a frozen string" do
