@@ -35,7 +35,7 @@ is identified by a `store_id` and a product's `sku` (stock keeping unit)
 together but neither column alone identifies a row on its own. Active Record
 supports this by allowing you to declare `[:store_id, :sku]` as the primary key
 as detailed in a
-[section](#declaring-composite-primary-keys-and-creating-migrations) below.
+[section](#declaring-composite-primary-keys) below.
 
 NOTE: Composite primary keys do increase complexity and can be slower than a
 single primary key column. Ensure your use case requires a composite primary key
@@ -87,8 +87,8 @@ composite primary key but want Rails to treat a combination of columns as the
 effective identity when querying.
 
 
-Declaring Composite Primary Keys and Creating Migrations
---------------------------------------------------------
+Declaring Composite Primary Keys
+--------------------------------
 
 To create a table with a composite primary key, you can pass an array to the
 `primary_key:` option in the database migration:
@@ -124,12 +124,16 @@ add_foreign_key "products", "stores", column: "store_id", primary_key: "id"
 
 When using a composite primary key, uniqueness is enforced by the combination of
 columns rather than a single auto-incrementing `id`. In the above example,
-`store_id` is a foreign key to a `stores` table, and `sku` would be a string the
-application provides (like "ABC-123"). Neither needs to be auto-generated, their
-combination is what's unique.
+`store_id` is a foreign key to a `stores` table, and `sku` is a string (like
+"ABC-123"). Neither needs to be auto-generated, their combination is what's
+unique.
 
 NOTE: If your composite primary key contains no conventional `id` column, you
 are responsible for ensuring uniqueness, through application logic, UUIDs, etc.
+
+Rails detects the primary key automatically from the database at runtime. So as
+long as your migration has been run, your model will have the composite primary
+key.
 
 Rails also supports declaring composite primary keys at the model level via
 [`self.primary_key`](https://api.rubyonrails.org/classes/ActiveRecord/AttributeMethods/PrimaryKey/ClassMethods.html)
@@ -141,15 +145,10 @@ class Order < ApplicationRecord
 end
 ```
 
-This tells Active Record that records are uniquely identified by the combination
-of both columns, not a single `id`.
-
-In most cases, you don't need to declare this at all. Rails detects the primary
-key automatically from the database at runtime. So as long as your migration has
-been run, your model will have the composite primary key. You only need
-`self.primary_key` if you're connecting to a legacy or external database where
-Rails fails to detect the composite primary key correctly, or if you need to
-override what the database reports for some other reason.
+In most cases, you don't need to declare it manually, but `self.primary_key` can
+be useful if you're connecting to a legacy or external database where Rails
+fails to detect the composite primary key correctly, or if you need to override
+what the database reports for some other reason.
 
 Querying Models
 ---------------
