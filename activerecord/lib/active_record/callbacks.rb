@@ -277,12 +277,19 @@ module ActiveRecord
   module Callbacks
     extend ActiveSupport::Concern
 
-    CALLBACKS = [
+    include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+
+    DEPRECATED_CALLBACKS_LIST = [ # :nodoc:
       :after_initialize, :after_find, :after_touch, :before_validation, :after_validation,
       :before_save, :around_save, :after_save, :before_create, :around_create,
       :after_create, :before_update, :around_update, :after_update,
       :before_destroy, :around_destroy, :after_destroy, :after_commit, :after_rollback
     ].freeze
+
+    deprecate_constant :CALLBACKS, "ActiveRecord::Callbacks::DEPRECATED_CALLBACKS_LIST",
+      deprecator: ActiveRecord.deprecator,
+      message: "ActiveRecord::Callbacks::CALLBACKS is deprecated and will be removed in Rails 9.0 " \
+        "without replacement."
 
     module ClassMethods
       include ActiveModel::Callbacks

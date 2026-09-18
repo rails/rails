@@ -1,3 +1,19 @@
+*   Deprecate `ActiveRecord::Callbacks::CALLBACKS`.
+
+    The constant has been outdated for a long time. It is missing several
+    transaction related callbacks that have been added over the years:
+
+    * `before_commit`
+    * `after_save_commit`
+    * `after_create_commit`
+    * `after_update_commit`
+    * `after_destroy_commit`
+
+    Anything driven off the constant silently skips those callbacks, so it is
+    deprecated with no replacement.
+
+    *Ryuta Kamizono*
+
 *   Deprecate `supports_datetime_with_precision?`.
 
     The check existed for MySQL 5.5 and older, which had no sub-second
