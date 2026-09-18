@@ -6,7 +6,8 @@ require "models/post"
 require "models/comment"
 
 # Applying a `limit` or `offset` in an association's scope to each owner's own
-# records takes a `LATERAL` subquery, and so is opt-in.
+# records takes a `LATERAL` subquery, and so is opt-in. Both loading strategies
+# are covered here: `includes` picks between them, so they must agree.
 class AssociationScopeLimitTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments
 
@@ -112,5 +113,160 @@ class AssociationScopeLimitTest < ActiveRecord::TestCase
     def test_joins_association_with_limit_matches_one_row_per_owner
       assert_equal Author.count, Author.joins(:posts_sorted_by_id_limited).count
     end
+
+    def test_preload_association_with_limit_returns_per_owner_rows
+      authors = Author.preload(:posts_sorted_by_id_limited).to_a
+      assert_predicate authors, :any?
+
+      authors.each do |author|
+        expected = author.posts.order(:id).limit(1).to_a
+        assert_equal expected, author.posts_sorted_by_id_limited,
+          "expected #{author.name} to see its own limited post via preload"
+      end
+    end
+
+    def test_preload_association_with_limit_greater_than_one_returns_per_owner_rows
+      authors = Author.all.to_a
+      preload_posts(authors, Post.order(:id).limit(2))
+
+      authors.each do |author|
+        expected = author.posts.order(:id).limit(2).to_a
+        assert_equal expected, author.association(:posts).target
+      end
+    end
+
+    def test_preload_association_with_offset_and_no_limit_returns_per_owner_rows
+      authors = Author.all.to_a
+      preload_posts(authors, Post.order(:id).offset(1))
+
+      authors.each do |author|
+        expected = author.posts.order(:id).offset(1).to_a
+        assert_equal expected, author.association(:posts).target
+      end
+    end
+
+    def test_preload_association_with_limit_honors_the_scope_order
+      authors = Author.all.to_a
+      preload_posts(authors, Post.order(id: :desc).limit(2))
+
+      authors.each do |author|
+        expected = author.posts.order(id: :desc).limit(2).to_a
+        assert_equal expected, author.association(:posts).target
+      end
+    end
+
+    def test_preload_association_with_limit_honors_a_custom_select
+      authors = Author.all.to_a
+      preload_posts(authors, Post.select(:id, :author_id, :title).order(:id).limit(2))
+
+      authors.each do |author|
+        expected = author.posts.order(:id).limit(2).map(&:id)
+        target = author.association(:posts).target
+        assert_equal expected, target.map(&:id)
+        target.each do |post|
+          assert_equal ["id", "author_id", "title"], post.attributes.keys
+        end
+      end
+    end
+
+    def test_preload_association_with_limit_orders_by_a_column_the_select_keeps
+      authors = Author.all.to_a
+      preload_posts(authors, Post.select(:id, :author_id, :title).order(:title).limit(2))
+
+      authors.each do |author|
+        expected = author.posts.order(:title).limit(2).map(&:id)
+        assert_equal expected, author.association(:posts).target.map(&:id)
+      end
+    end
+
+    def test_preload_association_with_limit_does_not_leak_internal_columns
+      authors = Author.all.to_a
+      preload_posts(authors, Post.order(:id).limit(2))
+
+      posts = authors.flat_map { |author| author.association(:posts).target }
+      assert_predicate posts, :any?
+      posts.each do |post|
+        assert_equal Post.column_names, post.attributes.keys
+      end
+    end
+
+    # The correlation on the key column must not take the scope's own
+    # condition on that column with it.
+    def test_preload_association_with_limit_keeps_scope_conditions_on_the_key_column
+      authors = Author.all.to_a
+      david = authors.find { |author| author.id == authors(:david).id }
+      preload_posts(authors, Post.where.not(author_id: david.id).order(:id).limit(2))
+
+      assert_empty david.association(:posts).target
+      authors.each do |author|
+        expected = author.posts.where.not(author_id: david.id).order(:id).limit(2).to_a
+        assert_equal expected, author.association(:posts).target
+      end
+    end
+
+    # The outer query can only order by what the subquery projects. An order it
+    # cannot repeat there still picks the right rows, so it must not be copied
+    # out and must not raise.
+    def test_preload_association_with_limit_when_the_order_is_not_projected
+      [
+        Post.select(:id, :author_id).order(:title).limit(2),
+        Post.joins(:comments).order("comments.id").limit(2),
+        Post.order("title DESC").limit(2),
+      ].each do |scope|
+        authors = Author.all.to_a
+
+        assert_nothing_raised { preload_posts(authors, scope) }
+
+        authors.each do |author|
+          target = author.association(:posts).target
+          assert target.all? { |post| post.author_id == author.id },
+            "#{scope.to_sql} gave #{author.name} a post belonging to someone else"
+          assert_operator target.size, :<=, 2,
+            "#{scope.to_sql} gave #{author.name} more rows than the limit"
+        end
+      end
+    end
+
+    if ActiveRecord::Base.lease_connection.prepared_statements
+      # Batches of the same size can then share a prepared statement.
+      def test_preload_association_with_limit_passes_owner_keys_as_binds
+        authors = Author.all.to_a
+        sql = capture_sql { preload_posts(authors, Post.order(:title).limit(2)) }.last
+
+        # Postgres renders binds as $1, $2, ...; normalize them so that their
+        # digits are not mistaken for inlined owner keys.
+        sql = sql.gsub(/\$\d+/, "?")
+        authors.each do |author|
+          assert_no_match(/\b#{author.id}\b/, sql,
+            "expected owner key #{author.id} to be sent as a bind parameter")
+        end
+      end
+    end
+
+    def test_eager_load_association_with_limit_agrees_with_preload
+      preloaded = Author.preload(:posts_sorted_by_id_limited).to_a
+      eager_loaded = Author.eager_load(:posts_sorted_by_id_limited).to_a
+
+      assert_equal preloaded.map { |author| author.posts_sorted_by_id_limited.map(&:id) },
+        eager_loaded.map { |author| author.posts_sorted_by_id_limited.map(&:id) }
+    end
+
+    # A `references` flips `includes` from one strategy to the other, which
+    # must not change what comes back.
+    def test_includes_association_with_limit_agrees_with_references
+      preloaded = Author.includes(:posts_sorted_by_id_limited).to_a
+      eager_loaded = Author.includes(:posts_sorted_by_id_limited)
+        .references(:posts_sorted_by_id_limited).to_a
+
+      assert_equal preloaded.map { |author| author.posts_sorted_by_id_limited.map(&:id) },
+        eager_loaded.map { |author| author.posts_sorted_by_id_limited.map(&:id) }
+    end
+
+    private
+      def preload_posts(records, scope)
+        ActiveRecord::Associations::Preloader.new(
+          records: records, associations: :posts, scope: scope
+        ).call
+      end
   end
 end

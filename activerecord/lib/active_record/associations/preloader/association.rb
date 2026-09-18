@@ -41,20 +41,94 @@ module ActiveRecord
           def load_records_for_keys(keys, &block)
             return [] if keys.empty?
 
-            if association_key_name.is_a?(Array)
-              query_constraints = Hash.new { |hsh, key| hsh[key] = Set.new }
+            filtered = apply_key_filter(keys)
 
-              keys.each_with_object(query_constraints) do |values_set, constraints|
-                association_key_name.zip(values_set).each do |key_name, value|
-                  constraints[key_name] << value
+            if ActiveRecord.respect_association_scope_limits &&
+                (filtered.limit_value || filtered.offset_value)
+              filtered = partition_by_owner(filtered, keys)
+            end
+
+            filtered.load(&block)
+          end
+
+          private
+            def apply_key_filter(keys)
+              scope.where(key_filter(keys))
+            end
+
+            def key_filter(keys)
+              if association_key_name.is_a?(Array)
+                query_constraints = Hash.new { |hsh, key| hsh[key] = Set.new }
+
+                keys.each_with_object(query_constraints) do |values_set, constraints|
+                  association_key_name.zip(values_set).each do |key_name, value|
+                    constraints[key_name] << value
+                  end
+                end
+              else
+                { association_key_name => keys }
+              end
+            end
+
+            def partition_by_owner(relation, keys)
+              relation.model.with_connection do |connection|
+                if connection.supports_lateral_joins?
+                  partition_by_lateral(relation, keys)
+                else
+                  relation
                 end
               end
+            end
 
-              scope.where(query_constraints)
-            else
-              scope.where(association_key_name => keys)
-            end.load(&block)
-          end
+            def partition_by_lateral(relation, keys)
+              model = relation.model
+              table = model.arel_table
+              key_names = Array(association_key_name)
+              owners = Arel::Table.new(name: "__preload_owners")
+
+              # A row per owner key to run the scope against, read off the key
+              # column rather than built from the keys as a `VALUES` table.
+              owner_keys = model.unscoped.distinct.select(*key_names).where(key_filter(keys))
+
+              # Correlate on `scope`, not on the filtered relation: `unscope`ing
+              # its `IN` filter would take the scope's own conditions on the key
+              # column with it.
+              inner = scope.where(
+                key_names.map { |name| table[name].eq(owners[name]) }.inject(:and)
+              )
+
+              lateral = model.unscoped.from(owner_keys, owners.name)
+                             .joins(Arel::Nodes::StringJoin.new(
+                               Arel.sql("CROSS JOIN LATERAL (?) AS #{model.quoted_table_name}", inner.arel.ast)
+                             ))
+                             .select(table[Arel.star])
+
+              orders = outer_orders(relation)
+              orders.empty? ? lateral : lateral.order(*orders)
+            end
+
+            # The join is unordered, so the scope's order is repeated outside --
+            # but only what the subquery projects can be named there. An order
+            # left behind still picks the rows; only their order falls to the
+            # database.
+            def outer_orders(relation)
+              orders = relation.arel.orders
+              return [] unless orders.all? { |order| projected?(order, relation) }
+
+              orders
+            end
+
+            def projected?(order, relation)
+              order = order.expr if order.is_a?(Arel::Nodes::Ordering)
+              return false unless order.is_a?(Arel::Attributes::Attribute)
+              return false unless order.relation.name == relation.model.arel_table.name
+
+              # Without a `select` every column comes back; with one, only a
+              # column named plainly in it.
+              relation.select_values.empty? || relation.select_values.any? do |value|
+                (value.is_a?(Symbol) || value.is_a?(String)) && value.to_s == order.name.to_s
+              end
+            end
         end
 
         class LoaderRecords

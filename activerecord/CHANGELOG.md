@@ -2,10 +2,16 @@
     association scope's `limit`/`offset` to each record's own associated
     records.
 
-    `eager_load` dropped the `limit`, the `offset` and the scope's `order`
-    from its `LEFT OUTER JOIN`, returning every associated record. With the
-    option enabled it runs the scope once per owner with a `LATERAL`
-    subquery, on adapters that support one (PostgreSQL, MySQL 8.0.14+).
+    `preload` applied the `LIMIT` to one batched `IN` query covering every
+    owner, so at most that many rows came back in total and most owners ended
+    up with an incomplete or empty target, while `eager_load` dropped the
+    `limit`, the `offset` and the scope's `order` from its `LEFT OUTER JOIN`
+    and returned every associated record. The two disagreed about the same
+    association, and `includes` picked between them on its own.
+
+    With the option enabled both run the scope once per owner with a
+    `LATERAL` subquery, on adapters that support one (PostgreSQL,
+    MySQL 8.0.14+).
 
     Disabled by default.
 

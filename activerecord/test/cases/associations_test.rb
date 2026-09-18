@@ -2,6 +2,7 @@
 
 require "pp"
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "models/computer"
 require "models/developer"
 require "models/project"
@@ -828,6 +829,23 @@ class PreloaderTest < ActiveRecord::TestCase
            :sharded_blog_posts, :sharded_comments, :sharded_blog_posts_tags, :sharded_tags,
            :members, :member_details, :organizations, :cpk_authors, :cpk_orders, :cpk_books, :cpk_order_agreements,
            :dogs, :other_dogs
+
+  if ActiveRecord::Base.lease_connection.supports_lateral_joins?
+    def test_preload_with_limit_on_a_model_with_a_composite_primary_key
+      authors = Cpk::Author.all.to_a
+      ActiveRecord.with(respect_association_scope_limits: true) do
+        ActiveRecord::Associations::Preloader.new(
+          records: authors, associations: :books, scope: Cpk::Book.order(:title).limit(1)
+        ).call
+      end
+
+      assert_predicate Cpk::Book, :composite_primary_key?
+      authors.each do |author|
+        expected = author.books.order(:title).limit(1).to_a
+        assert_equal expected, author.association(:books).target
+      end
+    end
+  end
 
   def test_preload_with_scope
     post = posts(:welcome)
