@@ -64,14 +64,21 @@ module ActiveRecord
       #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
       #    # WHERE "authors"."id" IS NOT NULL
       #
+      # Collection associations are matched with a semi join instead, so that the
+      # result set isn't multiplied by the number of associated records:
+      #
+      #    Post.where.associated(:comments)
+      #    # SELECT "posts".* FROM "posts"
+      #    # WHERE EXISTS (SELECT 1 FROM "comments" WHERE "comments"."post_id" = "posts"."id")
+      #
       # Additionally, multiple relations can be combined. This will return posts
       # associated to both an author and any comments:
       #
       #    Post.where.associated(:author, :comments)
       #    # SELECT "posts".* FROM "posts"
       #    # INNER JOIN "authors" ON "authors"."id" = "posts"."author_id"
-      #    # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
-      #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
+      #    # WHERE "authors"."id" IS NOT NULL
+      #    # AND EXISTS (SELECT 1 FROM "comments" WHERE "comments"."post_id" = "posts"."id")
       #
       # You can define join type in the scope and +associated+ will not use `JOIN` by default.
       #
@@ -88,7 +95,13 @@ module ActiveRecord
       def associated(*associations)
         associations.each do |association|
           reflection = scope_association_reflection(association)
-          unless @scope.joins_values.include?(reflection.name) || @scope.left_outer_joins_values.include?(reflection.name)
+
+          unless scope_joins_association?(reflection)
+            if reflection.collection?
+              @scope.where!(semi_join(reflection))
+              next
+            end
+
             @scope.joins!(association)
           end
 
@@ -137,6 +150,26 @@ module ActiveRecord
       end
 
       private
+        def scope_joins_association?(reflection)
+          @scope.joins_values.include?(reflection.name) ||
+            @scope.left_outer_joins_values.include?(reflection.name)
+        end
+
+        # Matches the association with a correlated `EXISTS` subquery:
+        #
+        #   EXISTS (SELECT 1 FROM "comments" WHERE "comments"."post_id" = "posts"."id")
+        def semi_join(reflection)
+          join_sources = @scope.model.unscoped.joins(reflection.name).arel.join_sources
+          join = join_sources.shift
+
+          subquery = Arel::SelectManager.new(join.left)
+          subquery.project(Arel.sql("1"))
+          subquery.join_sources.concat(join_sources)
+          subquery.where(join.right.expr)
+
+          subquery.exists
+        end
+
         def scope_association_reflection(association)
           model = @scope.model
           reflection = model._reflect_on_association(association)

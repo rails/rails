@@ -1,3 +1,16 @@
+*   Fix `where.associated` to not return duplicated records.
+
+    A collection association was matched with a join, which multiplies the
+    result set by the number of associated records:
+
+    ```ruby
+    Post.where.associated(:comments).pluck(:id)
+    # Before: [1, 1, 1, 2]
+    # After:  [1, 2]
+    ```
+
+    *Ryuta Kamizono*
+
 *   Deprecate `ActiveRecord::Callbacks::CALLBACKS`.
 
     The constant has been outdated for a long time. It is missing several

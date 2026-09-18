@@ -37,6 +37,22 @@ module ActiveRecord
       end
     end
 
+    def test_associated_with_collection_association_does_not_return_duplicates
+      records = Post.where.associated(:comments).to_a
+
+      assert_not_empty records
+      assert_equal records.uniq, records
+      assert_equal Post.joins(:comments).ids.uniq.sort, records.map(&:id).sort
+    end
+
+    def test_associated_with_through_association_does_not_return_duplicates
+      records = Author.where.associated(:comments).to_a
+
+      assert_not_empty records
+      assert_equal records.uniq, records
+      assert_equal Author.joins(:comments).ids.uniq.sort, records.map(&:id).sort
+    end
+
     def test_associated_with_invalid_association_name
       e = assert_raises(ArgumentError) do
         Post.where.associated(:cars).to_a
