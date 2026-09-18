@@ -1,3 +1,21 @@
+*   Fix `where.missing` to match associations reached through another table
+    with an anti join.
+
+    A collection association reached through another table, such as a
+    `has_many :through`, was matched per row of the table it is reached through
+    rather than per record, so records that do have associated records were
+    returned as missing them:
+
+    ```ruby
+    # An author whose posts have comments, but who also has a post without any.
+    author.comments.any?                             # => true
+    Author.where.missing(:comments).include?(author)
+    # Before: true
+    # After:  false
+    ```
+
+    *Ryuta Kamizono*
+
 *   Deprecate `ActiveRecord::Callbacks::CALLBACKS`.
 
     The constant has been outdated for a long time. It is missing several

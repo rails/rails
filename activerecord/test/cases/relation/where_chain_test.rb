@@ -9,10 +9,13 @@ require "models/comment"
 require "models/categorization"
 require "models/book"
 require "models/cpk"
+require "models/tag"
+require "models/tagging"
+require "models/category"
 
 module ActiveRecord
   class WhereChainTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :authors, :humans, :essays, :author_addresses, :books
+    fixtures :posts, :comments, :authors, :humans, :essays, :author_addresses, :books, :tags, :taggings, :categories
 
     def test_associated_with_association
       Post.where.associated(:author).tap do |relation|
@@ -119,6 +122,46 @@ module ActiveRecord
       Cpk::Book.create!(id: [author.id, 2])
 
       assert_predicate Cpk::Author.where.associated(:books), :any?
+    end
+
+    def test_missing_with_through_association_does_not_match_owners_with_associated_records
+      author = authors(:david)
+
+      # A left outer join of the association matches the rows of the posts that
+      # have no comments, even though the author does have comments through the
+      # other ones.
+      assert_predicate author.comments, :any?
+      assert_predicate author.posts.where.missing(:comments), :any?
+
+      relation = Author.where.missing(:comments)
+
+      assert_not_includes relation, author
+      assert_equal (Author.ids - Author.joins(:comments).ids).sort, relation.ids.sort
+    end
+
+    def test_missing_with_through_association_does_not_match_owners_of_a_dangling_join_record
+      post = posts(:welcome)
+      post.taggings.create!(tag: nil)
+
+      # A left outer join of the association matches the row of the tagging that
+      # has no tag, even though the post does have a tag through the other one.
+      assert_predicate post.tags, :any?
+
+      relation = Post.where.missing(:tags)
+
+      assert_not_includes relation, post
+      assert_equal (Post.ids - Post.joins(:tags).ids).sort, relation.ids.sort
+    end
+
+    def test_missing_with_scoped_association_that_joins_another_table
+      author = Author.create!(name: "no general categorization", author_address: AuthorAddress.create!)
+      author.categorizations.create!(post: posts(:welcome), category: categories(:technology))
+
+      # The association's scope joins categories with an inner join, which drops
+      # the author's rows from the outer join altogether.
+      assert_predicate author.general_categorizations, :empty?
+
+      assert_includes Author.where.missing(:general_categorizations), author
     end
 
     def test_missing_with_association
