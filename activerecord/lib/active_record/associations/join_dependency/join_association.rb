@@ -54,19 +54,31 @@ module ActiveRecord
             end
 
             arel = scope.arel(alias_tracker.aliases)
-            nodes = arel.constraints.first
 
-            if nodes.is_a?(Arel::Nodes::And)
-              others = nodes.children.extract! do |node|
-                !Arel.fetch_attribute(node) { |attr| attr.relation.name == table.name }
+            if lateral_join?(scope, alias_tracker)
+              # A plain join takes only the `ON` clause from the scope, which
+              # cannot express a `LIMIT`/`OFFSET` per owner. Run the whole
+              # scope once per row of the foreign table instead, correlated on
+              # the join keys, so its `ORDER BY` and its own joins come along.
+              joins << join_type.new(
+                Arel::Nodes::TableAlias.new(Arel::Nodes::Lateral.new(arel.ast), table.name),
+                Arel::Nodes::On.new(Arel::Nodes::True.new)
+              )
+            else
+              nodes = arel.constraints.first
+
+              if nodes.is_a?(Arel::Nodes::And)
+                others = nodes.children.extract! do |node|
+                  !Arel.fetch_attribute(node) { |attr| attr.relation.name == table.name }
+                end
               end
-            end
 
-            joins << join_type.new(table, Arel::Nodes::On.new(nodes))
+              joins << join_type.new(table, Arel::Nodes::On.new(nodes))
 
-            if others && !others.empty?
-              joins.concat arel.join_sources
-              append_constraints(joins.last, others)
+              if others && !others.empty?
+                joins.concat arel.join_sources
+                append_constraints(joins.last, others)
+              end
             end
 
             # The current table in this iteration becomes the foreign table in the next
@@ -89,6 +101,14 @@ module ActiveRecord
         end
 
         private
+          # Without the option, or without `LATERAL` to apply them with, the
+          # scope's `LIMIT`/`OFFSET` is dropped and every row comes back.
+          def lateral_join?(scope, alias_tracker)
+            ActiveRecord.respect_association_scope_limits &&
+              (scope.limit_value || scope.offset_value) &&
+              alias_tracker.supports_lateral_joins?
+          end
+
           def append_constraints(join, constraints)
             if join.is_a?(Arel::Nodes::StringJoin)
               join_string = Arel::Nodes::And.new(constraints.unshift join.left)

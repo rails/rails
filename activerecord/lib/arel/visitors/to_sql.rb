@@ -576,6 +576,11 @@ module Arel # :nodoc: all
           end
         end
 
+        def visit_Arel_Nodes_Lateral(o, collector)
+          collector << "LATERAL "
+          grouping_parentheses o.expr, collector
+        end
+
         def visit_Arel_Nodes_On(o, collector)
           collector << "ON "
           visit o.expr, collector

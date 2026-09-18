@@ -13,6 +13,20 @@ module Arel
         @attr = @table[:id]
       end
 
+      test "the to_sql visitor encloses LATERAL queries in parens" do
+        subquery = @table.project(:id).where(@table[:name].eq("foo"))
+        assert_like %{
+          LATERAL (SELECT id FROM "users" WHERE "users"."name" = 'foo')
+        }, compile(subquery.lateral)
+      end
+
+      test "the to_sql visitor produces LATERAL queries with alias" do
+        subquery = @table.project(:id).where(@table[:name].eq("foo"))
+        assert_like %{
+          LATERAL (SELECT id FROM "users" WHERE "users"."name" = 'foo') bar
+        }, compile(subquery.lateral("bar"))
+      end
+
       test "the to_sql visitor works with BindParams" do
         node = Nodes::BindParam.new(1)
         sql = compile node
