@@ -161,15 +161,25 @@ module ActiveSupport
         result.delete_suffix!(" id")
       end
 
-      result.gsub!(/([[[:alpha:]]\d]+)/i) do |match|
-        match.downcase!
-        inflections.acronyms[match] || match
+      if inflections.acronyms.empty?
+        result.downcase!
+      else
+        result.gsub!(/([[[:alpha:]]\d]+)/i) do |match|
+          match.downcase!
+          inflections.acronyms[match] || match
+        end
       end
 
       if capitalize
-        result.sub!(/\A[[:alpha:]]/) do |match|
-          match.upcase!
-          match
+        # Without acronyms the rest is already lowercase, and ASCII has no
+        # titlecase quirks, so capitalize! is equivalent to the regexp there.
+        if inflections.acronyms.empty? && result.ascii_only?
+          result.capitalize!
+        else
+          result.sub!(/\A[[:alpha:]]/) do |match|
+            match.upcase!
+            match
+          end
         end
       end
 
