@@ -396,6 +396,7 @@ module Rails
 
           if respond_to?(:active_job)
             active_job.enqueue_after_transaction_commit = true
+            active_job.immutable_arguments = true
           end
 
           ActiveSupport.raise_on_invalid_time_zone_parse = true

@@ -1387,10 +1387,19 @@ class RemoteServiceJob < ApplicationJob
 end
 ```
 
+When [`config.active_job.immutable_arguments`][] is enabled (the default for new
+applications), `perform` receives copies of the job arguments. Mutations of those
+copies do not carry over to later retries. Jobs that need to persist state across
+retries can still mutate [`job.arguments`][].
+
 [`discard_on`]:
     https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#method-i-discard_on
 [`retry_on`]:
     https://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html#method-i-retry_on
+[`config.active_job.immutable_arguments`]:
+    configuring.html#config-active-job-immutable-arguments
+[`job.arguments`]:
+    https://api.rubyonrails.org/classes/ActiveJob/Core.html#method-i-arguments
 
 ### Missing Records
 

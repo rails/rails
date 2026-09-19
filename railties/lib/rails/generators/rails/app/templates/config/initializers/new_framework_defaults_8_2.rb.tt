@@ -21,6 +21,19 @@
 # Rails.application.config.active_job.enqueue_after_transaction_commit = true
 
 ###
+# Deep-dup Active Job arguments before perform so mutations inside the job
+# do not leak into later retries.
+#
+# When enabled, `perform` receives copies of the job arguments. Changing those
+# copies no longer changes the arguments used if the job is retried. Jobs that
+# need to persist state across retries can still mutate `job.arguments`.
+#
+# When disabled (pre-8.2 default), mutating `perform` arguments is visible to
+# subsequent retries.
+#++
+# Rails.application.config.active_job.immutable_arguments = true
+
+###
 # Use Sec-Fetch-Site header for CSRF protection instead of tokens.
 #
 # Modern browsers send the Sec-Fetch-Site header to indicate the relationship
