@@ -147,7 +147,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_column_names_are_escaped
     conn      = ActiveRecord::Base.lease_connection
-    classname = conn.class.name[/[^:]*$/]
+    classname = main_ractor_connection(conn).class.name[/[^:]*$/]
     badchar   = {
       "SQLite3Adapter"    => '"',
       "Mysql2Adapter"     => "`",
@@ -1771,7 +1771,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_equal handler, orig_handler
     assert_equal klass.connection_handler, orig_handler
-    assert_equal klass.default_connection_handler, orig_handler
+    assert_equal klass.default_connection_handler, orig_handler unless ractor_proxy?
   end
 
   test "changing a connection handler in a main thread does not poison the other threads" do

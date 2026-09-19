@@ -4,6 +4,8 @@ require "cases/helper"
 require "support/connection_helper"
 
 class HotCompatibilityTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   self.use_transactional_tests = false
   include ConnectionHelper
 
