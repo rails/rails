@@ -630,9 +630,9 @@ module ActiveRecord
           when /^null$/i
             nil
           when /^false$/i
-            false
+            "0"
           when /^true$/i
-            true
+            "1"
           # Quoted types
           when /^'([^|]*)'$/m
             $1.gsub("''", "'")
