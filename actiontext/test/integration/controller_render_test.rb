@@ -61,6 +61,21 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
     assert_select "#content-html .trix-content .attachment--jpg"
   end
 
+  test "renders content attachments when controller is namespaced" do
+    message = Message.create!(content: content_attachment_html)
+
+    get admin_message_path(message)
+    assert_select "#content-html .attachment--content strong", text: "Hello"
+  end
+
+  test "renders content attachments as HTML when the request format is not HTML" do
+    message = Message.create!(content: content_attachment_html)
+
+    get message_path(message, format: :json)
+    content = ActionText.html_document_fragment_class.parse(response.parsed_body["content"])
+    assert_select content, ".attachment--content strong", text: "Hello"
+  end
+
   test "resolves ActionText::Attachable based on their to_attachable_partial_path" do
     alice = people(:alice)
 
@@ -77,4 +92,9 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
 
     assert_select ".missing-attachable", text: "Missing person"
   end
+
+  private
+    def content_attachment_html
+      '<action-text-attachment content-type="text/html" content="&lt;strong&gt;Hello&lt;/strong&gt;"></action-text-attachment>'
+    end
 end
