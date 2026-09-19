@@ -8,9 +8,19 @@ The Rails Guides Visual Refresh occurred in Q1 2024, and was intended to bring t
 
 The editing files for the Guides rebuild reside in `stylesrc` and use SCSS to improve developer experience. The code base relies on `include_media` (https://eduardoboucas.github.io/include-media/) to enable inline media-queries adjustments. We've also relied on the standard `normalize.css` (https://necolas.github.io/normalize.css/) to help bring all browsers together.
 
+See the guidelines for the [Rails Guides](http://guides.rubyonrails.org/ruby_on_rails_guides_guidelines.html)
+when working on these documents.
+
 ## Building the Guides in Development
 
-To generate new guides into static files, type `rake guides:generate` from inside the `guides` folder. If you make changes to the HTML or ERB, you'll need to remove the "output" directory before running this command. The master SCSS files (style.scss, highlight.scss) will compile as part of this process.
+To generate new guides into static files, type `rake guides:generate` from inside the `guides` folder. The master SCSS files (style.scss, highlight.scss) will compile as part of this process.
+
+```shell
+$ BUNDLE_ONLY=default:doc bundle exec rake guides:generate
+```
+
+See the guidelines for the [Rails Guides](http://guides.rubyonrails.org/ruby_on_rails_guides_guidelines.html#html-guides)
+for all available Rake tasks.
 
 ## FAQ
 

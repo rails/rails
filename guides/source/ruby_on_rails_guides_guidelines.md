@@ -312,16 +312,22 @@ If you already have Bundler installed, you can update with `gem update bundler`.
 
 ### Generation
 
-To generate all the guides, just `cd` into the `guides` directory, run `bundle install`, and execute:
+To generate all the guides, `cd` into the `guides` directory and run:
 
 ```bash
-$ bundle exec rake guides:generate
+$ BUNDLE_ONLY=default:doc bundle install
+$ BUNDLE_ONLY=default:doc bundle exec rake guides:generate
 ```
+
+The `BUNDLE_ONLY=default:doc` ensures only the gems requires for the docs are
+installed. This prevents issues with installing gems such as database drivers
+which compile native extensions and require additional locally installed
+dependencies.
 
 or
 
 ```bash
-$ bundle exec rake guides:generate:html
+$ BUNDLE_ONLY=default:doc bundle exec rake guides:generate:html
 ```
 
 Resulting HTML files can be found in the `./output` directory.
@@ -330,7 +336,7 @@ To process `my_guide.md` and nothing else use the `ONLY` environment variable:
 
 ```bash
 $ touch my_guide.md
-$ bundle exec rake guides:generate ONLY=my_guide
+$ BUNDLE_ONLY=default:doc bundle exec rake guides:generate ONLY=my_guide
 ```
 
 By default, guides that have not been modified are not processed, so `ONLY` is rarely needed in practice.
@@ -340,13 +346,13 @@ To force processing all the guides, pass `ALL=1`.
 If you want to generate guides in a language other than English, you can keep them in a separate directory under `source` (e.g. `source/es`) and use the `GUIDES_LANGUAGE` environment variable:
 
 ```bash
-$ bundle exec rake guides:generate GUIDES_LANGUAGE=es
+$ BUNDLE_ONLY=default:doc bundle exec rake guides:generate GUIDES_LANGUAGE=es
 ```
 
 If you want to see all the environment variables you can use to configure the generation script just run:
 
 ```bash
-$ bundle exec rake
+$ BUNDLE_ONLY=default:doc bundle exec rake
 ```
 
 ### Validation
@@ -354,7 +360,7 @@ $ bundle exec rake
 Please validate the generated HTML with:
 
 ```bash
-$ bundle exec rake guides:validate
+$ BUNDLE_ONLY=default:doc bundle exec rake guides:validate
 ```
 
 Particularly, titles get an ID generated from their content and this often leads to duplicates.
@@ -368,5 +374,5 @@ To generate the guides as an EPUB, readable on a Kindle and other e-readers,
 use the following rake task:
 
 ```bash
-$ bundle exec rake guides:generate:epub
+$ BUNDLE_ONLY=default:doc bundle exec rake guides:generate:epub
 ```
