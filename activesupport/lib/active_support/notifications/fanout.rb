@@ -55,31 +55,81 @@ module ActiveSupport
     #
     # This class is thread safe. All methods are reentrant.
     class Fanout
+      # An immutable set of subscriptions, replaced rather than mutated, so that
+      # it can be shared with other Ractors as a whole.
+      class Registry # :nodoc:
+        NO_SUBSCRIBERS = [].freeze
+
+        attr_reader :string_subscribers, :other_subscribers
+
+        def initialize(string_subscribers = {}.freeze, other_subscribers = NO_SUBSCRIBERS)
+          @string_subscribers = string_subscribers
+          @other_subscribers = other_subscribers
+          freeze
+        end
+
+        def [](pattern)
+          @string_subscribers[pattern] || NO_SUBSCRIBERS
+        end
+
+        def size
+          @string_subscribers.size + @other_subscribers.size
+        end
+
+        def add(pattern, subscriber, prepend:)
+          listeners = self[pattern]
+          with_pattern(pattern, prepend ? [subscriber, *listeners] : [*listeners, subscriber])
+        end
+
+        def delete(pattern, subscriber)
+          with_pattern(pattern, self[pattern] - [subscriber])
+        end
+
+        def delete_pattern(pattern)
+          with_pattern(pattern, NO_SUBSCRIBERS)
+        end
+
+        def add_other(subscriber)
+          Registry.new(@string_subscribers, [*@other_subscribers, subscriber].freeze)
+        end
+
+        def delete_other(subscriber)
+          Registry.new(@string_subscribers, (@other_subscribers - [subscriber]).freeze)
+        end
+
+        private
+          def with_pattern(pattern, listeners)
+            string_subscribers =
+              if listeners.empty?
+                @string_subscribers.except(pattern)
+              else
+                @string_subscribers.merge(pattern => listeners.freeze)
+              end
+
+            Registry.new(string_subscribers.freeze, @other_subscribers)
+          end
+      end
+
       def initialize
         @mutex = Mutex.new
-        @string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
-        @other_subscribers = []
+        @registry = Registry.new
         @all_listeners_for = Concurrent::Map.new
         @groups_for = Concurrent::Map.new
       end
 
-      def to_ractor_snapshot # :nodoc:
-        {
-          string_subscribers: Hash[@string_subscribers.keys.zip(@string_subscribers.values)],
-          other_subscribers: @other_subscribers,
-        }
+      def subscription_registry # :nodoc:
+        @registry
       end
 
-      def load_ractor_snapshot(snapshot) # :nodoc:
-        string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
-        snapshot[:string_subscribers].each { |name, list| string_subscribers[name] = list.dup }
-        @string_subscribers = string_subscribers
-        @other_subscribers = snapshot[:other_subscribers].dup
+      def subscription_registry=(registry) # :nodoc:
+        @mutex.synchronize do
+          @registry = registry
+          clear_cache
+        end
       end
 
       def inspect # :nodoc:
-        total_patterns = @string_subscribers.size + @other_subscribers.size
-        "#<#{self.class} (#{total_patterns} patterns)>"
+        "#<#{self.class} (#{@registry.size} patterns)>"
       end
 
       def subscribe(pattern = nil, callable = nil, monotonic: false, prepend: false, &block)
@@ -89,17 +139,13 @@ module ActiveSupport
         @mutex.synchronize do
           case pattern
           when String
-            if prepend
-              @string_subscribers[pattern].unshift(subscriber)
-            else
-              @string_subscribers[pattern] << subscriber
-            end
+            @registry = @registry.add(pattern, subscriber, prepend: prepend)
             clear_cache(pattern)
           when NilClass, Regexp
             if prepend
               raise ArgumentError, "Cannot prepend Regex subscribers"
             end
-            @other_subscribers << subscriber
+            @registry = @registry.add_other(subscriber)
             clear_cache
           else
             raise ArgumentError,  "pattern must be specified as a String, Regexp or empty"
@@ -112,16 +158,16 @@ module ActiveSupport
         @mutex.synchronize do
           case subscriber_or_name
           when String
-            @string_subscribers[subscriber_or_name].clear
+            @registry = @registry.delete_pattern(subscriber_or_name)
+            @registry.other_subscribers.each { |sub| sub.unsubscribe!(subscriber_or_name) }
             clear_cache(subscriber_or_name)
-            @other_subscribers.each { |sub| sub.unsubscribe!(subscriber_or_name) }
           else
             pattern = subscriber_or_name.try(:pattern)
             if String === pattern
-              @string_subscribers[pattern].delete(subscriber_or_name)
+              @registry = @registry.delete(pattern, subscriber_or_name)
               clear_cache(pattern)
             else
-              @other_subscribers.delete(subscriber_or_name)
+              @registry = @registry.delete_other(subscriber_or_name)
               clear_cache
             end
           end
@@ -346,9 +392,9 @@ module ActiveSupport
       def all_listeners_for(name)
         # this is correctly done double-checked locking (Concurrent::Map's lookups have volatile semantics)
         @all_listeners_for[name] || @mutex.synchronize do
-          # use synchronisation when accessing @subscribers
+          # use synchronisation when accessing @registry
           @all_listeners_for[name] ||=
-            @string_subscribers[name] + @other_subscribers.select { |s| s.subscribed_to?(name) }
+            @registry[name] + @registry.other_subscribers.select { |s| s.subscribed_to?(name) }
         end
       end
 
