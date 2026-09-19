@@ -24,8 +24,8 @@ module AbstractController
     #
     # Supported options depend on the underlying `render_to_body` implementation.
     def render(*args, &block)
-      options = _normalize_render(*args, &block)
-      rendered_body = render_to_body(options)
+      options = _normalize_render(*args)
+      rendered_body = render_to_body(options, &block)
       if options[:html]
         _set_html_content_type
       else
@@ -42,7 +42,7 @@ module AbstractController
     # extends it to be anything that responds to the method each), this method needs
     # to be overridden in order to still return a string.
     def render_to_string(*args, &block)
-      options = _normalize_render(*args, &block)
+      options = _normalize_render(*args)
       render_to_body(options, &block)
     end
 
@@ -111,8 +111,8 @@ module AbstractController
     end
 
     # Normalize args and options.
-    def _normalize_render(*args, &block) # :nodoc:
-      options = _normalize_args(*args, &block)
+    def _normalize_render(*args) # :nodoc:
+      options = _normalize_args(*args)
       _process_variant(options)
       _normalize_options(options)
       options
