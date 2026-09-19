@@ -83,33 +83,68 @@ module ActionController # :nodoc:
       # For directly testing the behavior of `rate_limit`, you may need to
       # switch the cache store to ActiveSupport::Cache::MemoryStore for the
       # duration of your test.
+      #
+      # Use `rate_limit` when the limit applies uniformly to one or more actions and
+      # can be evaluated before the action runs. If you need to rate limit based on
+      # something that's only known once the action is executing, such as only
+      # counting failed login attempts rather than every attempt, call #rate_limiting
+      # directly from within the action instead.
       def rate_limit(to:, within:, by: -> { request.remote_ip }, with: -> { raise TooManyRequests }, store: cache_store, name: nil, scope: nil, **options)
         before_action -> { rate_limiting(to: to, within: within, by: by, with: with, store: store, name: name, scope: scope || controller_path) }, **options
       end
     end
 
-    private
-      def rate_limiting(to:, within:, by:, with:, store:, name:, scope:)
-        by = by.is_a?(Symbol) ? send(by) : instance_exec(&by)
-        by = by.cache_key if by.respond_to?(:cache_key)
-        to = to.is_a?(Symbol) ? send(to) : (to.respond_to?(:call) ? instance_exec(&to) : to)
-        within = within.is_a?(Symbol) ? send(within) : (within.respond_to?(:call) ? instance_exec(&within) : within)
+    # Checks whether the rate limit given by `to:` and `within:` has been exceeded
+    # and, if so, invokes the `with:` callback (or raises `ActionController::TooManyRequests`
+    # by default). See ClassMethods#rate_limit for the full list of options and their meaning,
+    # as `#rate_limiting` accepts the same arguments and defaults.
+    #
+    # This method is what `rate_limit` calls internally via a `before_action`, but you
+    # can also call it directly from within a controller action when the decision of
+    # whether to count a request against the limit can only be made once the action is
+    # running. A canonical example is rate limiting failed login attempts, rather than
+    # every login attempt regardless of outcome:
+    #
+    #     class SessionsController < ApplicationController
+    #       def create
+    #         user = User.find_by(email: params[:email])
+    #
+    #         if user&.authenticate(params[:password])
+    #           start_new_session_for user
+    #           redirect_to root_path
+    #         else
+    #           rate_limiting to: 10, within: 3.minutes, by: -> { params[:email] },
+    #             with: -> { redirect_to new_session_path, alert: "Try again later." }
+      return if performed?
+      redirect_to new_session_path, alert: "Try again."
+    #         end
+    #       end
+    #     end
+    #
+    # Prefer `rate_limit` for the common case of limiting one or more actions wholesale.
+    # Reach for `rate_limiting` only when that decision depends on logic that runs
+    # inside the action itself.
+    def rate_limiting(to:, within:, by: -> { request.remote_ip }, with: -> { raise TooManyRequests }, store: self.class.cache_store, name: nil, scope: controller_path)
+      by = by.is_a?(Symbol) ? send(by) : instance_exec(&by)
+      by = by.cache_key if by.respond_to?(:cache_key)
+      to = to.is_a?(Symbol) ? send(to) : (to.respond_to?(:call) ? instance_exec(&to) : to)
+      within = within.is_a?(Symbol) ? send(within) : (within.respond_to?(:call) ? instance_exec(&within) : within)
 
-        cache_key = ["rate-limit", scope, name, by].compact.join(":")
-        count = store.increment(cache_key, 1, expires_in: within)
-        if count && count > to
-          ActiveSupport::Notifications.instrument("rate_limit.action_controller",
-              request: request,
-              count: count,
-              to: to,
-              within: within,
-              by: by,
-              name: name,
-              scope: scope,
-              cache_key: cache_key) do
-            with.is_a?(Symbol) ? send(with) : instance_exec(&with)
-          end
+      cache_key = ["rate-limit", scope, name, by].compact.join(":")
+      count = store.increment(cache_key, 1, expires_in: within)
+      if count && count > to
+        ActiveSupport::Notifications.instrument("rate_limit.action_controller",
+            request: request,
+            count: count,
+            to: to,
+            within: within,
+            by: by,
+            name: name,
+            scope: scope,
+            cache_key: cache_key) do
+          with.is_a?(Symbol) ? send(with) : instance_exec(&with)
         end
       end
+    end
   end
 end
