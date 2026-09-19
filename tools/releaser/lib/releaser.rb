@@ -190,7 +190,17 @@ class Releaser < Rake::TaskLib
   end
 
   def npm_tag
-    pre_release? ? "pre" : "latest"
+    # Use the version in the file RAILS_VERSION to determine the npm tag.
+    # If it contains rc, beta, or alpha, then use "latest" as the tag.
+    # Otherwise, use the major and minor version as the tag, e.g. "8-0-latest".
+    rails_version = File.read(File.expand_path("../../../RAILS_VERSION", __dir__)).strip
+    if rails_version.match?(/rc|beta|alpha/)
+      version_tag = "latest"
+    else
+      major_minor = rails_version.split(".").first(2).join("-")
+      version_tag = "#{major_minor}-latest"
+    end
+    pre_release? ? "pre" : version_tag
   end
 
   # This "npm-ifies" the current version number
