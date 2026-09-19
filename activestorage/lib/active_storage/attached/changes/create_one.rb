@@ -32,8 +32,10 @@ module ActiveStorage
     end
 
     def save
-      record.public_send("#{name}_attachment=", attachment)
-      record.public_send("#{name}_blob=", blob)
+      skip_strict_loading_associations do
+        record.public_send("#{name}_attachment=", attachment)
+        record.public_send("#{name}_blob=", blob)
+      end
     end
 
     private
@@ -42,8 +44,16 @@ module ActiveStorage
       end
 
       def find_attachment
-        if record.public_send("#{name}_blob") == blob
-          record.public_send("#{name}_attachment")
+        skip_strict_loading_associations do
+          record.public_send("#{name}_attachment") if record.public_send("#{name}_blob") == blob
+        end
+      end
+
+      # Active Storage's own bookkeeping reads/writes of these associations aren't the
+      # lazy loading that strict_loading is meant to catch in application code.
+      def skip_strict_loading_associations(&block)
+        record.association(:"#{name}_blob").skip_strict_loading do
+          record.association(:"#{name}_attachment").skip_strict_loading(&block)
         end
       end
 
