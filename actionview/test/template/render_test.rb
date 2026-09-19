@@ -457,6 +457,15 @@ module RenderTestCases
     assert_equal "<h1>Goodbye, Block!</h1>", @view.render(renderable: TestRenderable.new) { @view.tag.h1 "Goodbye, Block!" }
   end
 
+  def test_render_renderable_render_in_does_not_emit_active_support_notifications
+    assert_no_notifications "render_template.action_view" do
+      assert_equal "Hello, World!", @view.render(TestRenderable.new)
+    end
+    assert_no_notifications "render_template.action_view" do
+      assert_equal "Hello, World!", @view.render(renderable: TestRenderable.new)
+    end
+  end
+
   def test_render_renderable_render_in_excludes_renderable_key
     renderable = Object.new
     def renderable.render_in(view_context, **options)
