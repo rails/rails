@@ -344,16 +344,61 @@ module ActionCable::StreamTests
     end
   end
 
+  class OverridenStreamHandlersChannel < ActionCable::Channel::Base
+    class << self
+      def handler_calls = @@handler_calls ||= []
+    end
+
+    private
+      def stream_handler(broadcasting, user_handler, coder: nil)
+        self.class.handler_calls << [:stream_handler, broadcasting, user_handler.present?, coder]
+        super
+      end
+
+      def default_stream_handler(broadcasting, coder: nil)
+        self.class.handler_calls << [:default_stream_handler, broadcasting, nil, coder]
+        super
+      end
+  end
+
+  class UserHandlerChannel < OverridenStreamHandlersChannel
+    def subscribed
+      stream_from "test_handler" do |message|
+        transmit({ "msg" => message })
+      end
+    end
+  end
+
+  class TestCoder
+    def self.encode(val) = ActiveSupport::JSON.encode(val)
+    def self.decode(val) = ActiveSupport::JSON.decode(val).merge("test" => true)
+  end
+
+  class CoderChannel < OverridenStreamHandlersChannel
+    def subscribed
+      stream_from "test_coder", coder: TestCoder
+    end
+  end
+
+  class UserHandlerWithCoderChannel < OverridenStreamHandlersChannel
+    def subscribed
+      stream_from "test_handler_with_coder", coder: TestCoder do |message|
+        transmit(message.invert)
+      end
+    end
+  end
+
   class StreamFromTest < ActionCable::TestCase
     setup do
       @server = TestServer.new(subscription_adapter: ActionCable::SubscriptionAdapter::Async)
       @server.config.allowed_request_origins = %w( http://rubyonrails.com )
       @server.config.connection_class = -> { Connection }
+      OverridenStreamHandlersChannel.handler_calls.clear
     end
 
     attr_reader :socket, :server, :connection
 
-    test "custom encoder" do
+    test "custom encoder broadcasts" do
       run_in_eventmachine do
         open_connection
         subscribe_to identifiers: { id: 1 }
@@ -391,6 +436,84 @@ module ActionCable::StreamTests
       end
     end
 
+    test "user handler without a coder receives the raw broadcast payload" do
+      run_in_eventmachine do
+        open_connection
+        receive(command: "subscribe", channel: UserHandlerChannel.name, identifiers: {})
+        wait_for_async
+
+        server.broadcast "test_handler", { foo: "bar" }
+        wait_for_async
+
+        assert_equal(
+          { "msg" => %({"foo":"bar"}) },
+          socket.last_transmission.fetch("message")
+        )
+
+        assert_equal 1, UserHandlerChannel.handler_calls.size
+        assert_equal [:stream_handler, "test_handler", true, nil], UserHandlerChannel.handler_calls.last
+      end
+    end
+
+    test "handler with a coder transmits the decoded payload" do
+      run_in_eventmachine do
+        open_connection
+        receive(command: "subscribe", channel: CoderChannel.name, identifiers: {})
+        wait_for_async
+
+        server.broadcast "test_coder", { foo: "bar" }
+        wait_for_async
+
+        assert_equal(
+          { "foo" => "bar", "test" => true },
+          socket.last_transmission.fetch("message")
+        )
+
+        assert_equal 2, CoderChannel.handler_calls.size
+        assert_equal [:stream_handler, "test_coder", false, TestCoder], CoderChannel.handler_calls.first
+        assert_equal [:default_stream_handler, "test_coder", nil, TestCoder], CoderChannel.handler_calls.last
+      end
+    end
+
+    test "user handler with a coder receives the decoded payload" do
+      run_in_eventmachine do
+        open_connection
+        receive(command: "subscribe", channel: UserHandlerWithCoderChannel.name, identifiers: {})
+        wait_for_async
+
+        server.broadcast "test_handler_with_coder", { foo: "bar" }
+        wait_for_async
+
+        assert_equal(
+          { "bar" => "foo", "true" => "test" },
+          socket.last_transmission.fetch("message")
+        )
+
+        assert_equal 1, UserHandlerWithCoderChannel.handler_calls.size
+        assert_equal [:stream_handler, "test_handler_with_coder", true, TestCoder], UserHandlerWithCoderChannel.handler_calls.last
+      end
+    end
+
+    test "fastlane broadcasts deliver the pre-encoded message without going through transmit" do
+      server.config.fastlane_broadcasts_enabled = true
+
+      run_in_eventmachine do
+        open_connection
+        receive(command: "subscribe", channel: MultiChatChannel.name, identifiers: {})
+        wait_for_async
+
+        assert_not_called socket, :transmit do
+          server.broadcast "main_room", { foo: "bar" }
+          wait_for_async
+        end
+
+        assert_equal(
+          { "identifier" => { channel: MultiChatChannel.name }.to_json, "message" => { "foo" => "bar" } },
+          socket.last_transmission
+        )
+      end
+    end
+
     test "subscription confirmation should only be sent out once with multiple stream_from" do
       run_in_eventmachine do
         open_connection
@@ -414,7 +537,7 @@ module ActionCable::StreamTests
         @connection = Connection.new(@server, @socket)
       end
 
-      def receive(command:, identifiers:, channel: "ActionCable::StreamTests::ChatChannel")
+      def receive(command:, identifiers:, channel: "ActionCable::StreamTests::ChatChannel", connection: @connection)
         identifier = JSON.generate(identifiers.merge(channel: channel))
         connection.handle_incoming({ "command" => command, "identifier" => identifier })
       end

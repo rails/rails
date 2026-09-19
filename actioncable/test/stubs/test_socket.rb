@@ -26,6 +26,10 @@ class TestSocket
     @transmissions << encode(cable_message)
   end
 
+  def raw_transmit(message)
+    @transmissions << message
+  end
+
   def last_transmission
     decode @transmissions.last if @transmissions.any?
   end
