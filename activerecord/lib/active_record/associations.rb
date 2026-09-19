@@ -331,7 +331,8 @@ module ActiveRecord
       #   cancelled.
       # * If you wish to assign an object to a #has_one association without saving it,
       #   use the <tt>#build_association</tt> method (documented below). The object being
-      #   replaced will still be saved to update its foreign key.
+      #   replaced will still be removed or saved to update its foreign key according to
+      #   the association's <tt>:dependent</tt> option.
       # * Assigning an object to a #belongs_to association does not save the object, since
       #   the foreign key field belongs on the parent. It does not save the parent either.
       #
@@ -1449,7 +1450,8 @@ module ActiveRecord
         # [<tt>build_association(attributes = {})</tt>]
         #   Returns a new object of the associated type that has been instantiated
         #   with +attributes+ and linked to this object through a foreign key, but has not
-        #   yet been saved.
+        #   yet been saved. Note that if an associated object already exists, it is
+        #   immediately removed or destroyed according to the <tt>:dependent</tt> option.
         # [<tt>create_association(attributes = {})</tt>]
         #   Returns a new object of the associated type that has been instantiated
         #   with +attributes+, linked to this object through a foreign key, and that
