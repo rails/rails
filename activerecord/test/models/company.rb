@@ -137,6 +137,28 @@ class Agency < Firm
   accepts_nested_attributes_for :projects
 end
 
+class StaleDependentFirm < Company
+  has_many :dependent_clients, -> { order(:id) }, foreign_key: "firm_id", class_name: "Client", dependent: :destroy,
+    before_remove: :log_dependent_client_before_remove, after_remove: :log_dependent_client_after_remove
+
+  def dependent_client_removals
+    @dependent_client_removals ||= []
+  end
+
+  private
+    def log_dependent_client_before_remove(client)
+      dependent_client_removals << [:before, client.id]
+    end
+
+    def log_dependent_client_after_remove(client)
+      dependent_client_removals << [:after, client.id]
+    end
+end
+
+class ScopedDependentFirm < Company
+  has_many :dependent_clients, -> { where(name: "BigShot Inc.") }, foreign_key: "firm_id", class_name: "Client", dependent: :destroy
+end
+
 class Client < Company
   belongs_to :firm, foreign_key: "client_of", inverse_of: :client
   belongs_to :firm_with_basic_id, class_name: "Firm", foreign_key: "firm_id"
@@ -188,7 +210,12 @@ class Client < Company
     @destroyed_client_ids ||= Hash.new { |h, k| h[k] = [] }
   end
 
+  def self.destroyed_ids
+    @destroyed_ids ||= []
+  end
+
   before_destroy do |client|
+    Client.destroyed_ids << client.id
     if client.firm
       Client.destroyed_client_ids[client.firm.id] << client.id
     end
