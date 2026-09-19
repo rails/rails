@@ -38,6 +38,10 @@ module ActiveModel
 
     included do
       attribute_method_suffix "=", parameters: "value"
+      # Reserve a slot for generated attribute methods in the ancestor chain at
+      # include time. Otherwise, modules included after ActiveModel::Attributes
+      # but before the first `attribute` call would shadow the generated methods.
+      send(:generated_attribute_methods)
     end
 
     module ClassMethods

@@ -183,5 +183,32 @@ module ActiveModel
 
       assert_equal with_alias.type_for_attribute(:integer_field), with_alias.type_for_attribute(:x)
     end
+
+    test "modules included after ActiveModel::Attributes can override attribute methods regardless of `attribute` call order" do
+      overrides = Module.new do
+        extend ActiveSupport::Concern
+        def overridden_field; "overridden"; end
+      end
+
+      override_before_attribute = Class.new do
+        include ActiveModel::Model
+        include ActiveModel::Attributes
+        include overrides
+
+        attribute :overridden_field, :string
+      end
+
+      override_after_attribute = Class.new do
+        include ActiveModel::Model
+        include ActiveModel::Attributes
+
+        attribute :overridden_field, :string
+
+        include overrides
+      end
+
+      assert_equal "overridden", override_before_attribute.new.overridden_field
+      assert_equal "overridden", override_after_attribute.new.overridden_field
+    end
   end
 end
