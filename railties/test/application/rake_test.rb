@@ -316,7 +316,8 @@ module ApplicationTests
       app_file "config/initializers/dummy.rb", "puts 'Hello, World!'"
       app_file "template.rb", ""
 
-      output = rails("app:template", "LOCATION=template.rb")
+      # Skip bundle install since the test app's Gemfile references unreleased Rails.
+      output = rails("app:template", "LOCATION=template.rb", "RAILS_SKIP_BUNDLE=1")
       assert_match(/Hello, World!/, output)
     end
   end
