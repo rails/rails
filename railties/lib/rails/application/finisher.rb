@@ -4,11 +4,18 @@ require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
 require "active_support/descendants_tracker"
 require "active_support/dependencies"
+require "active_support/disabled_file_update_checker"
 
 module Rails
   class Application
     module Finisher
       include Initializable
+
+      initializer :disable_file_watcher do |app|
+        if app.config.disable_file_watcher
+          app.config.file_watcher = ActiveSupport::DisabledFileUpdateChecker
+        end
+      end
 
       initializer :add_generator_templates do
         ensure_generator_templates_added
