@@ -44,9 +44,10 @@ module ActiveSupport
 
       def +(other)
         if Duration === other
-          seconds   = value + other._parts.fetch(:seconds, 0)
-          new_parts = other._parts.merge(seconds: seconds)
-          new_value = value + other.value
+          other_parts = other._parts_for_merge
+          seconds     = value + other_parts.fetch(:seconds, 0)
+          new_parts   = other_parts.merge(seconds: seconds)
+          new_value   = value + other.value
 
           Duration.new(new_value, new_parts, other.variable?)
         else
@@ -56,10 +57,11 @@ module ActiveSupport
 
       def -(other)
         if Duration === other
-          seconds   = value - other._parts.fetch(:seconds, 0)
-          new_parts = other._parts.transform_values(&:-@)
-          new_parts = new_parts.merge(seconds: seconds)
-          new_value = value - other.value
+          other_parts = other._parts_for_merge
+          seconds     = value - other_parts.fetch(:seconds, 0)
+          new_parts   = other_parts.transform_values(&:-@)
+          new_parts   = new_parts.merge(seconds: seconds)
+          new_value   = value - other.value
 
           Duration.new(new_value, new_parts, other.variable?)
         else
@@ -274,14 +276,15 @@ module ActiveSupport
     # Adds another Duration or a Numeric to this Duration. Numeric values
     # are treated as seconds.
     def +(other)
+      parts = _parts_for_merge
       if Duration === other
-        parts = @parts.merge(other._parts) do |_key, value, other_value|
-          value + other_value
+        parts = parts.merge(other._parts_for_merge) do |_key, part_value, other_value|
+          part_value + other_value
         end
         Duration.new(value + other.value, parts, @variable || other.variable?)
       else
-        seconds = @parts.fetch(:seconds, 0) + other
-        Duration.new(value + other, @parts.merge(seconds: seconds), @variable)
+        seconds = parts.fetch(:seconds, 0) + other
+        Duration.new(value + other, parts.merge(seconds: seconds), @variable)
       end
     end
 
@@ -506,6 +509,10 @@ module ActiveSupport
 
     def _parts # :nodoc:
       @parts
+    end
+
+    def _parts_for_merge # :nodoc:
+      @parts.empty? ? { seconds: value } : @parts
     end
 
     private
