@@ -601,7 +601,6 @@ module ActiveRecord
           @schema_hooks_loaded = false
           @arel_table = Arel::Table.new(klass: self)
           @predicate_builder = PredicateBuilder.new(TableMetadata.new(self, @arel_table)) unless self == Base
-          @attribute_names = nil
 
           reload_schema_contexts_from_cache
 
