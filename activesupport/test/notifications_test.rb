@@ -321,6 +321,68 @@ module Notifications
   end
 
   class UnsubscribeTest < TestCase
+    def test_subscribed_cleanup_does_not_deadlock_with_concurrent_instrumentation
+      cache_clear_started = Queue.new
+      continue_cache_clear = Queue.new
+      mutex_acquisition_started = Queue.new
+      subscribed_block_started = Queue.new
+      finish_subscribed_block = Queue.new
+      instrumenter = ActiveSupport::Notifications.instrumenter
+
+      signaling_mutex = Class.new do
+        def initialize(mutex_acquisition_started)
+          @mutex = Mutex.new
+          @mutex_acquisition_started = mutex_acquisition_started
+        end
+
+        def synchronize(&block)
+          @mutex_acquisition_started << true if Thread.current[:report_mutex_acquisition]
+          @mutex.synchronize(&block)
+        end
+      end.new(mutex_acquisition_started)
+
+      cache_clear_barrier = Module.new do
+        define_method(:clear_cache) do |key = nil|
+          if Thread.current[:pause_cache_clear]
+            cache_clear_started << true
+            continue_cache_clear.pop
+          end
+          super(key)
+        end
+      end
+
+      @notifier.instance_variable_set(:@mutex, signaling_mutex)
+      @notifier.singleton_class.prepend(cache_clear_barrier)
+
+      unsubscribe_thread = Thread.new do
+        ActiveSupport::Notifications.subscribed(->(*) { }, "concurrent") do
+          subscribed_block_started << true
+          finish_subscribed_block.pop
+        ensure
+          Thread.current[:pause_cache_clear] = true
+        end
+      end
+      subscribed_block_started.pop
+      finish_subscribed_block << true
+      cache_clear_started.pop
+
+      instrument_thread = Thread.new do
+        Thread.current[:report_mutex_acquisition] = true
+        instrumenter.instrument("uncached") { }
+      end
+      mutex_acquisition_started.pop
+
+      continue_cache_clear << true
+
+      assert unsubscribe_thread.join(1), "unsubscribe thread did not finish"
+      assert instrument_thread.join(1), "instrument thread did not finish"
+    ensure
+      finish_subscribed_block&.push(true)
+      continue_cache_clear&.push(true)
+      [unsubscribe_thread, instrument_thread].compact.each(&:kill)
+      [unsubscribe_thread, instrument_thread].compact.each(&:join)
+    end
+
     def test_unsubscribing_removes_a_subscription
       @notifier.publish :foo
       @notifier.wait
