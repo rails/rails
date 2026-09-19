@@ -123,15 +123,21 @@ var INTERNAL = {
     unauthorized: "unauthorized",
     invalid_request: "invalid_request",
     server_restart: "server_restart",
-    remote: "remote"
+    remote: "remote",
+    no_pong: "no_pong"
   },
   default_mount_path: "/cable",
-  protocols: [ "actioncable-v1-json", "actioncable-unsupported" ]
+  protocols: [ "actioncable-v1-json", "actioncable-unsupported" ],
+  extensions: {
+    pong: "actioncable-ext-pong"
+  }
 };
 
 const {message_types: message_types, protocols: protocols} = INTERNAL;
 
 const supportedProtocols = protocols.slice(0, protocols.length - 1);
+
+const extensionProtocols = Object.values(INTERNAL.extensions);
 
 const indexOf = [].indexOf;
 
@@ -142,6 +148,7 @@ class Connection {
     this.subscriptions = this.consumer.subscriptions;
     this.monitor = new ConnectionMonitor(this);
     this.disconnected = true;
+    this.sendPongs = false;
   }
   send(data) {
     if (this.isOpen()) {
@@ -156,12 +163,13 @@ class Connection {
       logger.log(`Attempted to open WebSocket, but existing socket is ${this.getState()}`);
       return false;
     } else {
-      const socketProtocols = [ ...protocols, ...this.consumer.subprotocols || [] ];
+      const socketProtocols = [ ...protocols, ...extensionProtocols, ...this.consumer.subprotocols || [] ];
       logger.log(`Opening WebSocket, current state is ${this.getState()}, subprotocols: ${socketProtocols}`);
       if (this.webSocket) {
         this.uninstallEventHandlers();
       }
       this.webSocket = new adapters.WebSocket(this.consumer.url, socketProtocols);
+      this.sendPongs = false;
       this.installEventHandlers();
       this.monitor.start();
       return true;
@@ -242,13 +250,14 @@ Connection.prototype.events = {
     if (!this.isProtocolSupported()) {
       return;
     }
-    const {identifier: identifier, message: message, reason: reason, reconnect: reconnect, type: type} = JSON.parse(event.data);
+    const {identifier: identifier, message: message, reason: reason, reconnect: reconnect, type: type, extensions: extensions} = JSON.parse(event.data);
     this.monitor.recordMessage();
     switch (type) {
      case message_types.welcome:
       if (this.triedToReconnect()) {
         this.reconnectAttempted = true;
       }
+      this.sendPongs = (extensions || []).includes("pong");
       this.monitor.recordConnect();
       return this.subscriptions.reload();
 
@@ -259,6 +268,12 @@ Connection.prototype.events = {
       });
 
      case message_types.ping:
+      if (this.sendPongs) {
+        this.send({
+          command: "pong",
+          message: message
+        });
+      }
       return null;
 
      case message_types.confirmation:
