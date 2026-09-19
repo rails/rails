@@ -82,6 +82,16 @@ Upgrading from Rails 8.1 to Rails 8.2
 
 For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
 
+### HTML+ERB templates compile through Herb
+
+With the 8.2 framework defaults, ERB templates with the HTML format compile through [Herb](https://github.com/marcoroth/herb), an ERB implementation that parses HTML+ERB. Templates that compile render the same output as before. Templates with structural problems, such as an unclosed tag, now fail to compile and report the problem with its template location. All other template formats keep compiling through [Erubi](https://github.com/jeremyevans/erubi).
+
+To upgrade without migrating your templates right away, keep compiling HTML templates through Erubi:
+
+```ruby
+Rails.application.config.action_view.html_erb_implementation = :erubi
+```
+
 ### The old Active Record 6.1 marshalling format was removed.
 
 If your application still sets `active_record.marshalling_format_version = 6.1`, which may
