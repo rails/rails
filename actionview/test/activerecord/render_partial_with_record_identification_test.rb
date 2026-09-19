@@ -211,3 +211,86 @@ class RenderPartialWithRecordIdentificationAndNestedDeeperControllersWithoutPref
     ActionView::Base.prefix_partial_path_with_controller_namespace = old_config
   end
 end
+
+module Courses
+  module Quiz
+    class Question
+      extend ActiveModel::Naming
+      include ActiveModel::Conversion
+    end
+
+    # Controller and model namespaces fully overlap (`courses/quiz`) -> the
+    # duplicated namespace is removed once.
+    class QuestionsController < ActionController::Base
+      ROUTES = test_routes do
+        get :render_with_record, to: "courses/quiz/questions#render_with_record"
+      end
+
+      def render_with_record
+        render partial: Courses::Quiz::Question.new
+      end
+    end
+  end
+end
+
+module Learning
+  module Quiz
+    module Extra
+      # The controller's trailing `quiz/extra` does not match the model's
+      # leading `courses/quiz`, so nothing is de-duplicated.
+      class QuestionsController < ActionController::Base
+        ROUTES = test_routes do
+          get :render_with_record, to: "learning/quiz/extra/questions#render_with_record"
+        end
+
+        def render_with_record
+          render partial: ::Courses::Quiz::Question.new
+        end
+      end
+    end
+  end
+
+  module Courses
+    module Quiz
+      # The controller's trailing `courses/quiz` matches the model's leading
+      # `courses/quiz`, so the repeated namespace is removed once even though the
+      # controller carries an extra leading `learning` segment.
+      class QuestionsController < ActionController::Base
+        ROUTES = test_routes do
+          get :render_with_record, to: "learning/courses/quiz/questions#render_with_record"
+        end
+
+        def render_with_record
+          render partial: ::Courses::Quiz::Question.new
+        end
+      end
+    end
+  end
+end
+
+class RenderPartialWithOverlappingControllerAndModelNamespaceTest < ActiveRecordTestCase
+  tests Courses::Quiz::QuestionsController
+
+  def test_dedups_fully_overlapping_controller_and_model_namespace
+    get :render_with_record
+    assert_equal "Duplication", @response.body
+  end
+end
+
+class RenderPartialWithNonOverlappingControllerAndModelNamespaceTest < ActiveRecordTestCase
+  tests Learning::Quiz::Extra::QuestionsController
+
+  def test_keeps_namespaces_when_controller_suffix_does_not_match_model_prefix
+    get :render_with_record
+    assert_equal "Collision", @response.body
+  end
+end
+
+class RenderPartialWithRepeatedControllerAndModelNamespaceTest < ActiveRecordTestCase
+  tests Learning::Courses::Quiz::QuestionsController
+
+  def test_dedups_repeated_namespace_with_leading_controller_segment
+    get :render_with_record
+    assert_equal "Repetition", @response.body
+  end
+end
