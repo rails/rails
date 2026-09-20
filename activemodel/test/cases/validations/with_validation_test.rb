@@ -83,6 +83,7 @@ class ValidatesWithTest < ActiveModel::TestCase
     validator.expect(:new, validator, [{ foo: :bar, if: :condition_is_true, class: Topic }])
     validator.expect(:validate, nil, [topic])
     validator.expect(:is_a?, false, [String]) # Call run by ActiveSupport::Callbacks::Callback.build
+    validator.expect(:is_a?, false, [Proc])   # Call run by ActiveSupport::Callbacks::Callback#try_shareable_proc
 
     Topic.validates_with(validator, if: :condition_is_true, foo: :bar)
     assert_predicate topic, :valid?

@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/number_helper/number_converter"
@@ -22,6 +23,7 @@ module ActiveSupport
             end
           else
             left_parts = []
+            sign = left.slice!(0) if left.start_with?("-", "+")
             offset = left.size % 3
             if offset > 0
               left_parts << left[0, offset]
@@ -31,7 +33,7 @@ module ActiveSupport
               left_parts << left[offset + (i * 3), 3]
             end
 
-            left = left_parts.join(options[:delimiter])
+            left = "#{sign}#{left_parts.join(options[:delimiter])}"
           end
 
           [left, right].compact

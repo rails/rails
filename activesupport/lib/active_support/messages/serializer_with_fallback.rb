@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/kernel/reporting"
@@ -88,7 +89,7 @@ module ActiveSupport
           end
 
           def _load(dumped)
-            ActiveSupport::JSON.decode(dumped)
+            ActiveSupport::JSON.decode(dumped, allow_comments: true)
           end
 
           JSON_START_WITH = /\A(?:[{\["]|-?\d|true|false|null)/

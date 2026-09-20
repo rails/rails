@@ -16,7 +16,10 @@ module ActionCable
       def connections = connections_map.values
 
       def each_connection(...)
-        connections_map.each_value(...)
+        # Iterate a snapshot: the heartbeat, #restart and statistics all walk the
+        # live connections while worker threads concurrently add/remove entries,
+        # and mutating a Hash mid-iteration raises a RuntimeError.
+        connections.each(...)
       end
 
       def add_connection(connection)

@@ -27,7 +27,7 @@ module AbstractController
 
       def action_methods
         @action_methods ||= if _routes
-          super - _routes.named_routes.helper_names
+          (super - _routes.named_routes.helper_names).freeze
         else
           super
         end

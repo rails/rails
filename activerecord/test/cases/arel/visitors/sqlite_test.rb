@@ -22,35 +22,35 @@ module Arel
       end
 
       test "Nodes::IsNotDistinctFrom should construct a valid generic SQL statement" do
-        test = Table.new(:users)[:name].is_not_distinct_from "Aaron Patterson"
+        test = Table.new(name: :users)[:name].is_not_distinct_from "Aaron Patterson"
         assert_like %{
           "users"."name" IS 'Aaron Patterson'
         }, compile(test)
       end
 
       test "Nodes::IsNotDistinctFrom should handle column names on both sides" do
-        test = Table.new(:users)[:first_name].is_not_distinct_from Table.new(:users)[:last_name]
+        test = Table.new(name: :users)[:first_name].is_not_distinct_from Table.new(name: :users)[:last_name]
         assert_like %{
           "users"."first_name" IS "users"."last_name"
         }, compile(test)
       end
 
       test "Nodes::IsNotDistinctFrom should handle nil" do
-        @table = Table.new(:users)
+        @table = Table.new(name: :users)
         val = Nodes.build_quoted(nil, @table[:active])
         sql = compile Nodes::IsNotDistinctFrom.new(@table[:name], val)
         assert_like %{ "users"."name" IS NULL }, sql
       end
 
       test "Nodes::IsDistinctFrom should handle column names on both sides" do
-        test = Table.new(:users)[:first_name].is_distinct_from Table.new(:users)[:last_name]
+        test = Table.new(name: :users)[:first_name].is_distinct_from Table.new(name: :users)[:last_name]
         assert_like %{
           "users"."first_name" IS NOT "users"."last_name"
         }, compile(test)
       end
 
       test "Nodes::IsDistinctFrom should handle nil" do
-        @table = Table.new(:users)
+        @table = Table.new(name: :users)
         val = Nodes.build_quoted(nil, @table[:active])
         sql = compile Nodes::IsDistinctFrom.new(@table[:name], val)
         assert_like %{ "users"."name" IS NOT NULL }, sql

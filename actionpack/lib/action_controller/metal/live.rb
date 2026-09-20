@@ -86,6 +86,7 @@ module ActionController
   #     end
   #
   # Common keys you might want to exclude:
+  #
   # - `:active_record_connected_to_stack` - Database connection routing and roles
   # - `:active_record_prohibit_shard_swapping` - Shard swapping restrictions
   #
@@ -105,7 +106,7 @@ module ActionController
         if (request.get_header("SERVER_PROTOCOL") || request.get_header("HTTP_VERSION")) == "HTTP/1.0"
           super
         else
-          Live::Response.new.tap do |res|
+          Live::Response.create.tap do |res|
             res.request = request
           end
         end
@@ -262,6 +263,12 @@ module ActionController
         synchronize do
           @aborted = true
           @buf.clear
+          # Wake a reader parked in each_chunk's `@buf.pop`. Without a terminator
+          # the reader can never observe @aborted and would block forever, wedging
+          # the request thread. A duplicate terminator (when #close ran too) is
+          # harmless: each_chunk stops at the first one.
+          @buf.push nil
+          @cv.broadcast
         end
       end
 

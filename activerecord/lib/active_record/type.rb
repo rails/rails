@@ -3,6 +3,7 @@
 require "active_model/type"
 
 require "active_record/type/internal/timezone"
+require "active_record/type/query_predicates"
 
 require "active_record/type/date"
 require "active_record/type/date_time"

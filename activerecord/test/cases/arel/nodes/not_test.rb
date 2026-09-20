@@ -6,7 +6,7 @@ module Arel
   module Nodes
     class NotTest < Arel::Test
       test "#not makes a NOT node" do
-        attr = Table.new(:users)[:id]
+        attr = Table.new(name: :users)[:id]
         expr  = attr.eq(10)
         node  = expr.not
 

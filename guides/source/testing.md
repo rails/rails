@@ -78,7 +78,7 @@ The `application_system_test_case.rb` file holds the default configuration for y
 system tests.
 
 A `jobs` directory will also be created for your job tests when you first
-[generate a job](active_job_basics.html#create-the-job).
+[generate a job](active_job_basics.html#defining-a-job).
 
 ### The Test Environment
 
@@ -950,7 +950,7 @@ The `get` method kicks off the web request and populates the results into the
   (e.g. query string parameters or article variables).
 * `headers`: for setting the headers that will be passed with the request.
 * `env`: for customizing the request environment as needed.
-* `xhr`: whether the request is AJAX request or not. Can be set to true for
+* `xhr`: whether the request is an AJAX request or not. Can be set to true for
   marking the request as AJAX.
 * `as`: for encoding the request with different content type.
 
@@ -1008,7 +1008,7 @@ post articles_url, params: { article: { body: "Rails is awesome!", title: "Hello
 ### HTTP Request Types for Functional Tests
 
 If you're familiar with the HTTP protocol, you'll know that `get` is a type of
-request. There are 6 request types supported in Rails functional tests:
+request. There are 7 request types supported in Rails functional tests:
 
 * `get`
 * `post`
@@ -1016,6 +1016,19 @@ request. There are 6 request types supported in Rails functional tests:
 * `put`
 * `head`
 * `delete`
+* `query`
+
+The `query` helper issues an HTTP QUERY request
+([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) and sends `params` as
+the request body, matching how QUERY carries its query in the request content:
+
+```ruby
+test "can search articles" do
+  query articles_search_url, params: { q: "Rails" }
+
+  assert_response :success
+end
+```
 
 All of the request types have equivalent methods that you can use. In a typical
 CRUD application you'll be using `post`, `get`, `put`, and `delete` most
@@ -1032,7 +1045,7 @@ fetched from the server using asynchronous HTTP requests and the relevant parts
 of the page are updated without requiring a full page load.
 
 To test AJAX requests, you can specify the `xhr: true` option to `get`, `post`,
-`patch`, `put`, and `delete` methods. For example:
+`patch`, `put`, `delete`, and `query` methods. For example:
 
 ```ruby
 test "AJAX request" do
@@ -2544,7 +2557,7 @@ end
 
 If your tests verify the deletion of a model with attachments and you're
 using Active Job, you will need to set your test environment to use the inline
-queue adapter so the purge job is executed immediately rather at an unknown time
+queue adapter so the purge job is executed immediately rather than at an unknown time
 in the future.
 
 ```ruby

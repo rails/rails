@@ -1,3 +1,48 @@
+*   Implement `ActiveModel::Type::Binary::Data#as_json`
+
+    Delegates JSON conversion to the underlying binary data value (instead of
+    falling back to `Object#as_json` and exposing ivar name).
+
+    *Tiago Cardoso*
+
+*   Fix `normalizes` to run before the underlying type validates an assigned
+    value.
+
+    When `normalizes` was combined with another type that rejects invalid
+    input (such as an Active Record `enum`), the underlying type's
+    `assert_valid_value` ran against the raw, un-normalized value and raised
+    before normalization had a chance to run. The normalization is now applied
+    first, so a value like `"  Pending  "` is normalized to `"pending"` and
+    accepted by the enum.
+
+    *Gabriel Quaresma*
+
+*   Fix `LengthValidator` raising `NoMethodError` when a `:minimum` (or `:is`)
+    constraint is given as a proc and the validated value is `nil`.
+
+    The proc was resolved only when the value was present, so for a `nil` value
+    it leaked unresolved into the error message and was invoked with the message
+    options hash instead of the record. It is now resolved before the error is
+    built, producing the expected `"is too short"` message.
+
+    ```ruby
+    validates_length_of :title, minimum: ->(record) { record.min_length }
+    # title = nil now yields "is too short (minimum is N characters)"
+    # instead of raising NoMethodError
+    ```
+
+    *Ben Younes*
+
+*   Fix `normalizes` re-applying normalizations on every validation of an
+    unpersisted record, and speed up validation of normalized attributes.
+
+    The in-place mutation check re-ran the normalizer on every `valid?` of an
+    unpersisted record: wasteful for idempotent normalizers and compounded the
+    result for non-idempotent ones. Normalizations are now re-applied only on a
+    genuine in-place mutation.
+
+    *Yaroslav Markin*
+
 *   Limit the size of strings `ActiveModel::Type::Integer` will coerce with `to_i`.
 
     Calling `to_i` on very long strings can take a long time and could be used as

@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout (GitHub)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
@@ -27,7 +27,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.4
+          ruby-version: ruby
           bundler-cache: true
 
       - name: Generate rails app sqlite3

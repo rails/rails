@@ -80,7 +80,7 @@ module ActiveModel
       #   <tt>on: [:create, :custom_validation_context]</tt>)
       # * <tt>:except_on</tt> - Specifies the contexts where this validation is not active.
       #   Runs in all validation contexts by default +nil+. You can pass a symbol
-      #   or an array of symbols. (e.g. <tt>except: :create</tt> or
+      #   or an array of symbols. (e.g. <tt>except_on: :create</tt> or
       #   <tt>except_on: :custom_validation_context</tt> or
       #   <tt>except_on: [:create, :custom_validation_context]</tt>)
       # * <tt>:if</tt> - Specifies a method, proc or string to call to determine

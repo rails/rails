@@ -7,7 +7,7 @@ module Arel
     class PostgresTest < Arel::Test
       setup do
         @visitor = PostgreSQL.new Table.engine.lease_connection
-        @table = Table.new(:users)
+        @table = Table.new(name: :users)
         @attr = @table[:id]
       end
 
@@ -217,7 +217,7 @@ module Arel
       end
 
       test "update statements with joins render RETURNING" do
-        posts = Table.new(:posts)
+        posts = Table.new(name: :posts)
         join_source = Arel::Nodes::JoinSource.new(
           @table,
           [@table.create_join(posts)]
@@ -306,35 +306,35 @@ module Arel
       end
 
       test "Nodes::IsNotDistinctFrom should construct a valid generic SQL statement" do
-        node = Table.new(:users)[:name].is_not_distinct_from "Aaron Patterson"
+        node = Table.new(name: :users)[:name].is_not_distinct_from "Aaron Patterson"
         assert_like %{
           "users"."name" IS NOT DISTINCT FROM 'Aaron Patterson'
         }, compile(node)
       end
 
       test "Nodes::IsNotDistinctFrom should handle column names on both sides" do
-        node = Table.new(:users)[:first_name].is_not_distinct_from Table.new(:users)[:last_name]
+        node = Table.new(name: :users)[:first_name].is_not_distinct_from Table.new(name: :users)[:last_name]
         assert_like %{
           "users"."first_name" IS NOT DISTINCT FROM "users"."last_name"
         }, compile(node)
       end
 
       test "Nodes::IsNotDistinctFrom should handle nil" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         value = Nodes.build_quoted(nil, table[:active])
         sql = compile Nodes::IsNotDistinctFrom.new(table[:name], value)
         assert_like %{ "users"."name" IS NOT DISTINCT FROM NULL }, sql
       end
 
       test "Nodes::IsDistinctFrom should handle column names on both sides" do
-        node = Table.new(:users)[:first_name].is_distinct_from Table.new(:users)[:last_name]
+        node = Table.new(name: :users)[:first_name].is_distinct_from Table.new(name: :users)[:last_name]
         assert_like %{
           "users"."first_name" IS DISTINCT FROM "users"."last_name"
         }, compile(node)
       end
 
       test "Nodes::IsDistinctFrom should handle nil" do
-        table = Table.new(:users)
+        table = Table.new(name: :users)
         value = Nodes.build_quoted(nil, table[:active])
         sql = compile Nodes::IsDistinctFrom.new(table[:name], value)
         assert_like %{ "users"."name" IS DISTINCT FROM NULL }, sql
@@ -342,13 +342,13 @@ module Arel
 
       test "Nodes::InfixOperation should handle Contains" do
         inner = Nodes.build_quoted('{"foo":"bar"}')
-        outer = Table.new(:products)[:metadata]
+        outer = Table.new(name: :products)[:metadata]
         sql = compile Nodes::Contains.new(outer, inner)
         assert_like %{ "products"."metadata" @> '{"foo":"bar"}' }, sql
       end
 
       test "Nodes::InfixOperation should handle Overlaps" do
-        column = Table.new(:products)[:tags]
+        column = Table.new(name: :products)[:tags]
         search = Nodes.build_quoted("{foo,bar,baz}")
         sql = compile Nodes::Overlaps.new(column, search)
         assert_like %{ "products"."tags" && '{foo,bar,baz}' }, sql

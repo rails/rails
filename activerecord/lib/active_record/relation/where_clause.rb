@@ -116,12 +116,6 @@ module ActiveRecord
       protected
         attr_reader :predicates
 
-        def referenced_columns
-          hash = {}
-          each_attributes { |attr, node| hash[attr] = node }
-          hash
-        end
-
       private
         def each_attributes
           predicates.each do |node|
@@ -200,7 +194,7 @@ module ActiveRecord
           end
         end
 
-        EMPTY = new([]).freeze
+        EMPTY = new([].freeze).freeze
         ARRAY_WITH_EMPTY_STRING = [""].freeze
 
         def non_empty_predicates

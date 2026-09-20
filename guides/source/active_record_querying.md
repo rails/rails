@@ -1750,7 +1750,7 @@ ActiveModel::MissingAttributeError: missing attribute '<attribute>' for Book
 ```
 
 In the above example, `<attribute>` would be the requested attribute. The `id`
-method will not raise the `ActiveRecord::MissingAttributeError`, so exercise
+method will not raise the `ActiveModel::MissingAttributeError`, so exercise
 caution when working with associations, which need the `id` method to function
 properly.
 
@@ -2642,7 +2642,7 @@ returned by `ActiveRecord::Relation` using the most performant queries possible.
 
 ### N + 1 Queries Problem
 
-Retrieving a list of records N (where N is a number greater that 1) in a single
+Retrieving a list of records N (where N is a number greater than 1) in a single
 query can sometimes trigger N extra queries; one for each record.
 
 Consider the following code, which finds 10 books and prints their authors'
@@ -3355,7 +3355,7 @@ SELECT COUNT(DISTINCT customers.id) FROM customers
   WHERE (customers.first_name = "Ryan" AND orders.status = 0)
 ```
 
-assuming that Order has `enum status: [ :shipped, :being_packed, :cancelled ]`.
+assuming that Order has `enum :status, [ :shipped, :being_packed, :cancelled ]`.
 
 ### `count`
 

@@ -22,7 +22,7 @@ module ActionDispatch
     # ## URL generation from parameters
     #
     # As you may know, some functions, such as `ActionController::Base#url_for` and
-    # ActionView::Helpers::UrlHelper#link_to, can generate URLs given a set of
+    # ActionView::Helpers::NavigationHelper#link_to, can generate URLs given a set of
     # parameters. For example, you've probably had the chance to write code like
     # this in one of your views:
     #
@@ -102,7 +102,7 @@ module ActionDispatch
             mattr_writer :default_url_options
           end
 
-          self.default_url_options = {}
+          self.default_url_options = {}.freeze
         end
 
         include(*_url_for_modules) if respond_to?(:_url_for_modules)

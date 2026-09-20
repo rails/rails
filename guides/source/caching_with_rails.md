@@ -361,7 +361,7 @@ In that case, declare the dependency explicitly with a special comment:
 ```
 
 In some cases, such as a [single table
-inheritance](association_basics.html#single-table-inheritance) setup, a helper
+inheritance](association_basics.html#single-table-inheritance-sti) setup, a helper
 may render different partials from the same directory. Instead of listing each
 template individually, you can use a wildcard to match the whole directory:
 
@@ -556,6 +556,13 @@ When both `last_modified` and `etag` are set, the behavior depends on
 `config.action_dispatch.strict_freshness`. If it is `true`, only the `etag` is
 considered, as specified by RFC 7232 section 6. If it is `false`, both headers
 are checked and the response is considered fresh only if they both match.
+
+Conditional requests apply to the HTTP QUERY method
+([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) exactly as they do to
+GET: `fresh_when` and `stale?` in a QUERY action answer a matching
+`If-None-Match` with `304 Not Modified`. Note that the middleware-level
+`Rack::ConditionalGet` only handles GET and HEAD, so QUERY freshness is served
+at the controller level by these helpers.
 
 #### Strong vs. Weak ETags
 

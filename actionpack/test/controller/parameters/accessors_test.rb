@@ -288,6 +288,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_predicate @params.reject { |k| k == "person" }, :permitted?
   end
 
+  test "reject without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.reject
+    assert_kind_of ActionController::Parameters, @params.reject.each { |k, v| false }
+  end
+
   test "select retains permitted status" do
     @params.permit!
     assert_predicate @params.select { |k| k == "person" }, :permitted?
@@ -295,6 +300,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "select retains unpermitted status" do
     assert_not_predicate @params.select { |k| k == "person" }, :permitted?
+  end
+
+  test "select without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.select
+    assert_kind_of ActionController::Parameters, @params.select.each { |k, v| true }
   end
 
   test "slice retains permitted status" do

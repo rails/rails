@@ -62,7 +62,7 @@ module ActiveJob
           step :step do
           end
         when :resume_step
-          self.continuation = ActiveJob::Continuation.new(self, "completed" => [], "current" => ["step", { "job" => self, "resumed" => true }])
+          self.continuation = ActiveJob::Continuation.new(self, "completed" => [], "current" => ["step", nil])
           step :step do
           end
         end
@@ -129,7 +129,8 @@ module ActiveJob
     def test_perform_start_job
       event = assert_event_reported("active_job.started", payload: {
         job_class: TestJob.name,
-        queue: "default"
+        queue: "default",
+        adapter: ActiveJob.adapter_name(ActiveJob::Base.queue_adapter)
       }) do
         TestJob.perform_now
       end

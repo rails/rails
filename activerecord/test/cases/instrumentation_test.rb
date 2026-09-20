@@ -117,6 +117,19 @@ module ActiveRecord
       assert_equal 10, notification.payload[:row_count]
     end
 
+    def test_payload_exception_on_failed_query
+      error = nil
+      notifications = capture_notifications("sql.active_record") do
+        error = assert_raises(ActiveRecord::StatementInvalid) do
+          ActiveRecord::Base.lease_connection.select_all("SELECT * FROM non_existent_table_for_notification")
+        end
+      end
+
+      notification = notifications.find { _1.payload[:sql].match?("non_existent_table_for_notification") }
+      assert_equal [error.class.name, error.message], notification.payload[:exception]
+      assert_same error, notification.payload[:exception_object]
+    end
+
     def test_payload_row_count_on_cache
       Book.create!(name: "row count book")
 

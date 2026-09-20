@@ -2,6 +2,7 @@
 
 # :markup: markdown
 
+require "concurrent"
 require "monitor"
 
 module ActionCable
@@ -54,7 +55,7 @@ module ActionCable
       def initialize(config: self.class.config)
         @config = config
         @mutex = Monitor.new
-        @remote_connections = @event_loop = @worker_pool = @executor = @pubsub = nil
+        @remote_connections = @event_loop = @worker_pool = @executor = @pubsub = @heartbeat_timer = nil
       end
 
       # Called by Rack to set up the server.
@@ -76,6 +77,14 @@ module ActionCable
         end
 
         @mutex.synchronize do
+          # Drop the closed connections. remove_connection normally runs on the
+          # worker pool, which we halt below, so the entries would otherwise leak.
+          connections_map.clear
+
+          # Shutdown the heartbeat timer
+          @heartbeat_timer.shutdown if @heartbeat_timer
+          @heartbeat_timer = nil
+
           # Shutdown the worker pool
           @worker_pool.halt if @worker_pool
           @worker_pool = nil

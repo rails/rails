@@ -702,6 +702,21 @@ class EtagRenderTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_query_conditional_request
+    query :fresh
+    assert_response :success
+    assert_not_nil etag = @response.etag
+
+    @request.if_none_match = etag
+    query :fresh
+    assert_response :not_modified
+    assert_predicate @response.body, :blank?
+
+    @request.if_none_match = %("nomatch")
+    query :fresh
+    assert_response :success
+  end
+
   def test_array
     @request.if_none_match = weak_etag([%w(1 2 3), "ab", :cde, [:f]])
     get :array

@@ -325,7 +325,7 @@ module ActiveRecord
         filter_list << options
 
         if name.in?([:commit, :rollback]) && options[:on]
-          fire_on = Array(options[:on])
+          fire_on = Array(options[:on]).freeze
           assert_valid_transaction_action(fire_on)
           options[:if] = [
             -> { transaction_include_any_action?(fire_on) },
@@ -346,7 +346,7 @@ module ActiveRecord
           args << options
 
           if options[:on]
-            fire_on = Array(options[:on])
+            fire_on = Array(options[:on]).freeze
             assert_valid_transaction_action(fire_on)
             options[:if] = [
               -> { transaction_include_any_action?(fire_on) },
@@ -516,15 +516,11 @@ module ActiveRecord
             end
             @mutations_from_database = nil
             @mutations_before_last_save = nil
-            if self.class.composite_primary_key?
-              if restore_state[:id] != @primary_key.map { |col| @attributes.fetch_value(col) }
-                @primary_key.zip(restore_state[:id]).each do |col, val|
-                  @attributes.write_from_user(col, val)
-                end
-              end
-            else
-              if @attributes.fetch_value(@primary_key) != restore_state[:id]
-                @attributes.write_from_user(@primary_key, restore_state[:id])
+            columns = self.class.primary_key_definition.columns
+            restored_id = Array(restore_state[:id])
+            if columns.map { |col| @attributes.fetch_value(col) } != restored_id
+              columns.zip(restored_id).each do |col, val|
+                @attributes.write_from_user(col, val)
               end
             end
             freeze if restore_state[:frozen?]

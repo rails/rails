@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -21,16 +22,18 @@ module ActiveSupport
           # both the old and new names work, but using the old one prints a
           # deprecation message.
           #
-          # In order to rename <tt>A::B</tt> to <tt>C::D</tt>, you need to delete the
-          # definition of <tt>A::B</tt> and declare the deprecation in +A+:
+          # In order to rename `A::B` to `C::D`, you need to delete the
+          # definition of `A::B` and declare the deprecation in `A`:
           #
-          #   require "active_support/deprecation"
+          # ```
+          # require "active_support/deprecation"
           #
-          #   module A
-          #     include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+          # module A
+          #   include ActiveSupport::Deprecation::DeprecatedConstantAccessor
           #
-          #     deprecate_constant "B", "C::D", deprecator: ActiveSupport::Deprecation.new
-          #   end
+          #   deprecate_constant "B", "C::D", deprecator: ActiveSupport::Deprecation.new
+          # end
+          # ```
           #
           # The first argument is a constant name (no colons). It is the name of
           # the constant you want to deprecate in the enclosing class or module.
@@ -41,19 +44,21 @@ module ActiveSupport
           #
           # In both cases, strings and symbols are supported.
           #
-          # The +deprecator+ keyword argument is the object that will print the
+          # The `deprecator` keyword argument is the object that will print the
           # deprecation message, an instance of ActiveSupport::Deprecation.
           #
-          # With that in place, references to <tt>A::B</tt> still work, they
-          # evaluate to <tt>C::D</tt> now, and trigger a deprecation warning:
+          # With that in place, references to `A::B` still work, they
+          # evaluate to `C::D` now, and trigger a deprecation warning:
           #
-          #   DEPRECATION WARNING: A::B is deprecated! Use C::D instead.
-          #   (called from ...)
+          # ```
+          # DEPRECATION WARNING: A::B is deprecated! Use C::D instead.
+          # (called from ...)
+          # ```
           #
-          # The message can be customized with the optional +message+ keyword
+          # The message can be customized with the optional `message` keyword
           # argument.
           #
-          # For this to work, a +const_missing+ hook is installed. When client
+          # For this to work, a `const_missing` hook is installed. When client
           # code references the deprecated constant, the callback prints the
           # message and constantizes the replacement.
           #

@@ -192,6 +192,27 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
     end
   end
 
+  def test_multiple_indexes_in_bulk_change_emit_algorithm_and_lock_once
+    expected = "ALTER TABLE `people` ADD INDEX `index_people_on_last_name` (`last_name`), " \
+               "ADD INDEX `index_people_on_first_name` (`first_name`), ALGORITHM = INPLACE, LOCK = NONE"
+    assert_queries_match(expected) do
+      ActiveRecord::Base.lease_connection.change_table(:people, bulk: true) do |t|
+        t.index :last_name, algorithm: :inplace, lock: :none
+        t.index :first_name, algorithm: :inplace, lock: :none
+      end
+    end
+  end
+
+  def test_algorithm_and_lock_apply_to_bulk_add_column
+    expected = "ALTER TABLE `people` ADD `last_name` varchar(255), ADD `first_name` varchar(255), ALGORITHM = INPLACE, LOCK = NONE"
+    assert_queries_match(expected) do
+      ActiveRecord::Base.lease_connection.change_table(:people, bulk: true) do |t|
+        t.column :last_name, :string, algorithm: :inplace, lock: :none
+        t.column :first_name, :string
+      end
+    end
+  end
+
   def test_drop_table
     assert_equal "DROP TABLE `people`", drop_table(:people)
   end

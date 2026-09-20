@@ -56,6 +56,10 @@ class ToQueryTest < ActiveSupport::TestCase
     assert_query_equal "a%5B%5D=1&a%5B%5D=2", a: [1, {}, 2]
   end
 
+  def test_array_with_empty_array
+    assert_query_equal "a%5B%5D=1&a%5B%5D=2", a: [1, [], 2]
+  end
+
   def test_nested_empty_hash
     assert_equal "",
       {}.to_query

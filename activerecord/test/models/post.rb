@@ -367,6 +367,7 @@ end
 
 class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
+  include ActiveRecord::Sanitization
 
   class << self
     def scope_registry
@@ -387,18 +388,6 @@ class FakeKlass
 
     def attribute_aliases
       {}
-    end
-
-    def sanitize_sql(sql)
-      sql
-    end
-
-    def sanitize_sql_for_order(sql)
-      sql
-    end
-
-    def disallow_raw_sql!(*args)
-      # noop
     end
 
     def columns_hash
@@ -442,4 +431,11 @@ class PostRecord < ActiveRecord::Base
       ActiveModel::Name.new(self, nil, "Post")
     end
   end
+end
+
+class PostWithAliasedAuthorId < ActiveRecord::Base
+  self.table_name = "posts"
+  self.inheritance_column = nil
+  alias_attribute :writer_id, :author_id
+  belongs_to :author, foreign_key: :writer_id, inverse_of: :posts_with_aliased_author_id
 end

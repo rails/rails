@@ -111,7 +111,7 @@ module ActiveSupport
         when Proc
           (@blocks ||= []) << item
         when Regexp
-          if item.to_s.include?("\\.")
+          if item.source.include?("\\.")
             (@deep_regexps ||= []) << item
           elsif (literal = extract_exact_string_key(item))
             (@exact_string_keys ||= {})[literal] = true

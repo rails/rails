@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/array/conversions"
@@ -5,12 +6,15 @@ require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/acts_like"
 
 module ActiveSupport
-  # = Active Support \Duration
+  # Active Support \Duration
+  # ========================
   #
   # Provides accurate date and time measurements using Date#advance and
   # Time#advance, respectively. It mainly supports the methods on Numeric.
   #
-  #   1.month.ago       # equivalent to Time.now.advance(months: -1)
+  # ```
+  # 1.month.ago       # equivalent to Time.now.advance(months: -1)
+  # ```
   class Duration
     class Scalar < Numeric # :nodoc:
       attr_reader :value
@@ -138,9 +142,9 @@ module ActiveSupport
     class << self
       # Creates a new Duration from string formatted according to ISO 8601 Duration.
       #
-      # See {ISO 8601}[https://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
+      # See [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Durations) for more information.
       # This method allows negative parts to be present in pattern.
-      # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
+      # If invalid string is provided, it will raise `ActiveSupport::Duration::ISO8601Parser::ParsingError`.
       def parse(iso8601duration)
         parts = ISO8601Parser.new(iso8601duration).parse!
         new(calculate_total_seconds(parts), parts)
@@ -183,8 +187,10 @@ module ActiveSupport
       # Creates a new Duration from a seconds value that is converted
       # to the individual parts:
       #
-      #   ActiveSupport::Duration.build(31556952).parts # => {:years=>1}
-      #   ActiveSupport::Duration.build(2716146).parts  # => {:months=>1, :days=>1}
+      # ```
+      # ActiveSupport::Duration.build(31556952).parts # => {:years=>1}
+      # ActiveSupport::Duration.build(2716146).parts  # => {:months=>1, :days=>1}
+      # ```
       #
       def build(value)
         unless value.is_a?(::Numeric)
@@ -236,8 +242,10 @@ module ActiveSupport
 
     # Returns a copy of the parts hash that defines the duration.
     #
-    #   5.minutes.parts # => {:minutes=>5}
-    #   3.years.parts # => {:years=>3}
+    # ```
+    # 5.minutes.parts # => {:minutes=>5}
+    # 3.years.parts # => {:years=>3}
+    # ```
     def parts
       @parts.dup
     end
@@ -336,8 +344,8 @@ module ActiveSupport
       Duration == klass || value.instance_of?(klass)
     end
 
-    # Returns +true+ if +other+ is also a Duration instance with the
-    # same +value+, or if <tt>other == value</tt>.
+    # Returns `true` if `other` is also a Duration instance with the
+    # same `value`, or if `other == value`.
     def ==(other)
       if Duration === other
         other.value == value
@@ -349,26 +357,32 @@ module ActiveSupport
     # Returns the amount of seconds a duration covers as a string.
     # For more information check to_i method.
     #
-    #   1.day.to_s # => "86400"
+    # ```
+    # 1.day.to_s # => "86400"
+    # ```
     def to_s
       @value.to_s
     end
 
     # Returns the number of seconds that this Duration represents.
     #
-    #   1.minute.to_i   # => 60
-    #   1.hour.to_i     # => 3600
-    #   1.day.to_i      # => 86400
+    # ```
+    # 1.minute.to_i   # => 60
+    # 1.hour.to_i     # => 3600
+    # 1.day.to_i      # => 86400
+    # ```
     #
     # Note that this conversion makes some assumptions about the
     # duration of some periods, e.g. months are always 1/12 of year
     # and years are 365.2425 days:
     #
-    #   # equivalent to (1.year / 12).to_i
-    #   1.month.to_i    # => 2629746
+    # ```
+    # # equivalent to (1.year / 12).to_i
+    # 1.month.to_i    # => 2629746
     #
-    #   # equivalent to 365.2425.days.to_i
-    #   1.year.to_i     # => 31556952
+    # # equivalent to 365.2425.days.to_i
+    # 1.year.to_i     # => 31556952
+    # ```
     #
     # In such cases, Ruby's core
     # Date[https://docs.ruby-lang.org/en/master/Date.html] and
@@ -381,47 +395,59 @@ module ActiveSupport
 
     # Returns the amount of minutes a duration covers as a float
     #
-    #   1.day.in_minutes # => 1440.0
+    # ```
+    # 1.day.in_minutes # => 1440.0
+    # ```
     def in_minutes
       value / SECONDS_PER_MINUTE.to_f
     end
 
     # Returns the amount of hours a duration covers as a float
     #
-    #   1.day.in_hours # => 24.0
+    # ```
+    # 1.day.in_hours # => 24.0
+    # ```
     def in_hours
       value / SECONDS_PER_HOUR.to_f
     end
 
     # Returns the amount of days a duration covers as a float
     #
-    #   12.hours.in_days # => 0.5
+    # ```
+    # 12.hours.in_days # => 0.5
+    # ```
     def in_days
       value / SECONDS_PER_DAY.to_f
     end
 
     # Returns the amount of weeks a duration covers as a float
     #
-    #   2.months.in_weeks # => 8.696
+    # ```
+    # 2.months.in_weeks # => 8.696
+    # ```
     def in_weeks
       value / SECONDS_PER_WEEK.to_f
     end
 
     # Returns the amount of months a duration covers as a float
     #
-    #   9.weeks.in_months # => 2.07
+    # ```
+    # 9.weeks.in_months # => 2.07
+    # ```
     def in_months
       value / SECONDS_PER_MONTH.to_f
     end
 
     # Returns the amount of years a duration covers as a float
     #
-    #   30.days.in_years # => 0.082
+    # ```
+    # 30.days.in_years # => 0.082
+    # ```
     def in_years
       value / SECONDS_PER_YEAR.to_f
     end
 
-    # Returns +true+ if +other+ is also a Duration instance, which has the
+    # Returns `true` if `other` is also a Duration instance, which has the
     # same parts as this one.
     def eql?(other)
       Duration === other && other.value.eql?(value)
@@ -469,7 +495,7 @@ module ActiveSupport
     end
 
     # Build ISO 8601 Duration string for this duration.
-    # The +precision+ parameter can be used to limit seconds' precision of duration.
+    # The `precision` parameter can be used to limit seconds' precision of duration.
     def iso8601(precision: nil)
       ISO8601Serializer.new(self, precision: precision).serialize
     end

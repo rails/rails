@@ -37,6 +37,13 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_equal "redis://localhost:6379", @cache.redis.config.server_url
     end
 
+    test "default Redis options constant is deprecated" do
+      options = assert_deprecated(/RedisCacheStore::DEFAULT_REDIS_OPTIONS is deprecated/, ActiveSupport.deprecator) do
+        ActiveSupport::Cache::RedisCacheStore::DEFAULT_REDIS_OPTIONS.to_h
+      end
+      assert_equal({ connect_timeout: 1, read_timeout: 1, write_timeout: 1 }, options)
+    end
+
     test "no URLs uses Redis client with default settings" do
       @cache = ActiveSupport::Cache::RedisCacheStore.new(url: [])
       assert_equal 1, @cache.redis.connect_timeout
@@ -68,6 +75,34 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_equal REDIS_URLS.map { |u| u.delete_suffix("/0") }, @cache.redis.nodes.map { |n| n.config.server_url }
     end
 
+    test "clear without a namespace issues FLUSHDB on each HashRing node" do
+      @cache = build url: REDIS_URLS
+      flushed = []
+
+      @cache.redis.nodes.each do |node|
+        node.define_singleton_method(:call) do |command, *|
+          flushed << command
+          "OK"
+        end
+      end
+
+      @cache.clear
+
+      assert_equal ["flushdb"] * REDIS_URLS.size, flushed
+    end
+
+    test "stats collects INFO from each HashRing node" do
+      @cache = build url: REDIS_URLS
+
+      @cache.redis.nodes.each_with_index do |node, index|
+        node.define_singleton_method(:call) do |command, *|
+          "info-#{index}" if command == "info"
+        end
+      end
+
+      assert_equal ["info-0", "info-1"], @cache.stats
+    end
+
     test "one :client Config" do
       @cache = ActiveSupport::Cache::RedisCacheStore.new(client: RedisClient.config(url: REDIS_URL))
       assert_equal 1, @cache.redis.connect_timeout
@@ -84,6 +119,13 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_equal 1, @cache.redis.write_timeout
       assert_equal REDIS_URL.delete_suffix("/0"), @cache.redis.config.server_url
       assert_kind_of ::RedisClient::Pooled, @cache.redis
+    end
+
+    test "array of :client Configs is not mutated" do
+      clients = REDIS_URLS.map { |url| RedisClient.config(url: url) }.freeze
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(client: clients)
+      assert_kind_of ::RedisClient::HashRing, @cache.redis
+      assert clients.all?(::RedisClient::Config)
     end
 
     test "deprecated :redis argument" do
@@ -125,6 +167,30 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
   end
 
+  class CommandsTest < ActiveSupport::TestCase
+    setup do
+      skip "Redis server is not up" unless REDIS_UP
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(client: RedisClient.config(url: REDIS_URL), pool: false)
+    end
+
+    teardown do
+      @cache&.redis&.close
+    end
+
+    test "clear without a namespace flushes the database" do
+      @cache.write("foo", "bar")
+      assert_equal "bar", @cache.read("foo")
+
+      @cache.clear
+
+      assert_nil @cache.read("foo")
+    end
+
+    test "stats returns server info" do
+      assert_match(/redis_version/, @cache.stats)
+    end
+  end
+
   class StoreTest < ActiveSupport::TestCase
     module NotificationMiddleware
       def call(command, _redis_config)
@@ -151,7 +217,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     end
 
     def lookup_store(options = {})
-      ActiveSupport::Cache.lookup_store(:redis_cache_store, { url: REDIS_URL, timeout: 0.1, namespace: @namespace, pool: false }.merge(options))
+      ActiveSupport::Cache.lookup_store(:redis_cache_store, { url: REDIS_URL, timeout: 0.1, namespace: @namespace, pool: false, error_handler: ->(method:, returning:, exception:) { raise exception } }.merge(options))
     end
 
     teardown do
@@ -325,10 +391,6 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     def capture_redis_commands(&block)
       capture_notifications("redis_query.active_support_test", &block).flat_map { |e| e.payload.fetch(:commands) }
-    end
-
-    def lookup_store(options = {})
-      super(options.merge(error_handler: ->(method:, returning:, exception:) { raise exception }))
     end
   end
 
@@ -582,7 +644,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @cache.with_local_cache do
         @cache.write("foo", "bar")
         # Overwrite in remote behind local cache's back
-        @cache.send(:bypass_local_cache) { @cache.write("foo", "baz") }
+        @cache.send(:use_temporary_local_cache, nil) { @cache.write("foo", "baz") }
         # Without delete, local cache returns stale value
         assert_equal "bar", @cache.read("foo")
         # With delete, it should bypass local cache and hit remote

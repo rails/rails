@@ -457,12 +457,6 @@ module ActiveSupport
           end
         end
 
-        def serialize_entries(entries, **options)
-          entries.transform_values do |entry|
-            serialize_entry(entry, **options)
-          end
-        end
-
         def change_counter(key, amount, options)
           redis.then do |c|
             c = c.node_for(key) if c.is_a?(Redis::Distributed)

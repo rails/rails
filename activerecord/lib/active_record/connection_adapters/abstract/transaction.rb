@@ -74,6 +74,9 @@ module ActiveRecord
       def nullify!
         @state = nil
       end
+
+      deprecate :fully_committed?, :fully_rolledback?, :nullify!,
+        fully_completed?: :completed?, deprecator: ActiveRecord.deprecator
     end
 
     class TransactionInstrumenter

@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/concern"
@@ -8,6 +9,11 @@ module ActiveSupport
     extend ActiveSupport::Concern
 
     def initialize(...)
+      super
+      @local_level_key = :"logger_thread_safe_level_#{object_id}"
+    end
+
+    def initialize_copy(other)
       super
       @local_level_key = :"logger_thread_safe_level_#{object_id}"
     end

@@ -102,7 +102,7 @@ module ActionDispatch
       # Returns a new Http::Headers instance containing the contents of
       # `headers_or_env` and the original instance.
       def merge(headers_or_env)
-        headers = @req.dup.headers
+        headers = Headers.new(@req.dup)
         headers.merge!(headers_or_env)
         headers
       end

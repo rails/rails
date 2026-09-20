@@ -1,58 +1,61 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "cgi/escape"
 require "cgi/util" if RUBY_VERSION < "3.5"
 
 class Object
-  # Alias of <tt>to_s</tt>.
+  # Alias of `to_s`.
   def to_param
     to_s
   end
 
   # Converts an object into a string suitable for use as a URL query string,
-  # using the given <tt>key</tt> as the param name.
+  # using the given `key` as the param name.
   def to_query(key)
     "#{CGI.escape(key.to_param)}=#{CGI.escape(to_param.to_s)}"
   end
 end
 
 class NilClass
-  # Returns a CGI-escaped +key+.
+  # Returns a CGI-escaped `key`.
   def to_query(key)
     CGI.escape(key.to_param)
   end
 
-  # Returns +self+.
+  # Returns `self`.
   def to_param
     self
   end
 end
 
 class TrueClass
-  # Returns +self+.
+  # Returns `self`.
   def to_param
     self
   end
 end
 
 class FalseClass
-  # Returns +self+.
+  # Returns `self`.
   def to_param
     self
   end
 end
 
 class Array
-  # Calls <tt>to_param</tt> on all its elements and joins the result with
-  # slashes. This is used by <tt>url_for</tt> in Action Pack.
+  # Calls `to_param` on all its elements and joins the result with
+  # slashes. This is used by `url_for` in Action Pack.
   def to_param
     collect(&:to_param).join "/"
   end
 
   # Converts an array into a string suitable for use as a URL query string,
-  # using the given +key+ as the param name.
+  # using the given `key` as the param name.
   #
-  #   ['Rails', 'coding'].to_query('hobbies') # => "hobbies%5B%5D=Rails&hobbies%5B%5D=coding"
+  # ```ruby
+  # ['Rails', 'coding'].to_query('hobbies') # => "hobbies%5B%5D=Rails&hobbies%5B%5D=coding"
+  # ```
   def to_query(key)
     prefix = "#{key}[]"
 
@@ -60,8 +63,8 @@ class Array
       nil.to_query(prefix)
     else
       filter_map { |value|
-        q = value.to_query(prefix)
-        q unless q.empty?
+        next if (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
+        value.to_query(prefix)
       }.join "&"
     end
   end
@@ -71,21 +74,24 @@ class Hash
   # Returns a string representation of the receiver suitable for use as a URL
   # query string:
   #
-  #   {name: 'David', nationality: 'Danish'}.to_query
-  #   # => "name=David&nationality=Danish"
+  # ```ruby
+  # {name: 'David', nationality: 'Danish'}.to_query
+  # # => "name=David&nationality=Danish"
+  # ```
   #
   # An optional namespace can be passed to enclose key names:
   #
-  #   {name: 'David', nationality: 'Danish'}.to_query('user')
-  #   # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
+  # ```ruby
+  # {name: 'David', nationality: 'Danish'}.to_query('user')
+  # # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
+  # ```
   #
   # The string pairs "key=value" that conform the query string
   # are sorted lexicographically in ascending order.
   def to_query(namespace = nil)
     query = filter_map do |key, value|
-      unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
-        value.to_query(namespace ? "#{namespace}[#{key}]" : key)
-      end
+      next if (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
+      value.to_query(namespace ? "#{namespace}[#{key}]" : key)
     end
 
     query.sort! unless namespace.to_s.include?("[]")

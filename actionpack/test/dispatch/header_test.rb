@@ -131,6 +131,20 @@ class HeaderTest < ActiveSupport::TestCase
                   "HTTP_REFERER" => "/some/page" }, @headers.env)
   end
 
+  test "merge does not mutate the original request when headers are memoized" do
+    request = ActionDispatch::Request.new(
+      "CONTENT_TYPE" => "text/plain",
+      "HTTP_REFERER" => "/some/page"
+    )
+    request.headers # memoize the Http::Headers instance on the request
+
+    combined = request.headers.merge("HTTP_HOST" => "http://example.com")
+
+    assert_equal "http://example.com", combined["HTTP_HOST"]
+    assert_not request.headers.key?("HTTP_HOST")
+    assert_nil request.get_header("HTTP_HOST")
+  end
+
   test "env variables with . are not modified" do
     headers = make_headers({})
     headers.merge! "rack.input" => "",

@@ -213,6 +213,18 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_string_parameterized_nil_separator
+    StringToParameterizeWithNoSeparator.each do |normal, slugged|
+      assert_equal(slugged, normal.parameterize(separator: nil))
+    end
+  end
+
+  def test_string_parameterized_nil_separator_preserve_case
+    StringToParameterizePreserveCaseWithNoSeparator.each do |normal, slugged|
+      assert_equal(slugged, normal.parameterize(separator: nil, preserve_case: true))
+    end
+  end
+
   def test_string_parameterized_underscore
     StringToParameterizeWithUnderscore.each do |normal, slugged|
       assert_equal(slugged, normal.parameterize(separator: "_"))
@@ -307,6 +319,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello[...]", "Hello Big World!".truncate(13, omission: "[...]", separator: " ")
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, omission: "[...]", separator: " ")
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: " ")
+  end
+
+  def test_truncate_with_separator_and_omission_longer_than_truncate_to
+    assert_equal "[...]", "Hello Big World!".truncate(2, omission: "[...]", separator: " ")
+    assert_equal "[...]", "Hello Big World!".truncate(2, omission: "[...]", separator: /\s/)
   end
 
   def test_truncate_with_omission_and_regexp_separator

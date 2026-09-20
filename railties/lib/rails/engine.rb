@@ -307,7 +307,7 @@ module Rails
   #     helper MyEngine::SharedEngineHelper
   #   end
   #
-  # If you want to include all of the engine's helpers, you can use the #helper method on an engine's
+  # If you want to include all of the engine's helpers, you can use the #helpers method on an engine's
   # instance:
   #
   #   class ApplicationController < ActionController::Base
@@ -445,6 +445,14 @@ module Rails
       @helpers             = nil
       @routes              = nil
       @app_build_lock      = Mutex.new
+      super
+    end
+
+    def freeze
+      return self if frozen?
+
+      app
+      @app_build_lock = nil
       super
     end
 
@@ -666,8 +674,9 @@ module Rails
     end
 
     initializer :wrap_reloader_around_load_seed do |app|
+      reloader = app.reloader
       self.class.set_callback(:load_seed, :around) do |engine, seeds_block|
-        app.reloader.wrap(&seeds_block)
+        reloader.wrap(&seeds_block)
       end
     end
 

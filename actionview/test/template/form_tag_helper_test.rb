@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 
 class FormTagHelperTest < ActionView::TestCase
   include RenderERBUtils
@@ -410,6 +411,13 @@ class FormTagHelperTest < ActionView::TestCase
 
   def test_file_field_tag_with_options
     assert_dom_equal "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" class=\"pix\"/>", file_field_tag("picsplz", class: "pix")
+  end
+
+  def test_file_field_tag_with_accept_array
+    assert_dom_equal(
+      "<input name=\"picsplz\" type=\"file\" id=\"picsplz\" accept=\"image/png,image/gif\"/>",
+      file_field_tag("picsplz", accept: ["image/png", "image/gif"])
+    )
   end
 
   def test_file_field_tag_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
@@ -991,9 +999,29 @@ class FormTagHelperTest < ActionView::TestCase
     assert_dom_equal(expected, number_field_tag("quantity", nil, in: 1...10))
   end
 
+  def test_number_field_tag_with_endless_range
+    expected = %{<input name="quantity" id="quantity" type="number" min="18" />}
+    assert_dom_equal(expected, number_field_tag("quantity", nil, in: 18..))
+  end
+
+  def test_number_field_tag_with_beginless_range
+    expected = %{<input name="quantity" max="10" id="quantity" type="number" />}
+    assert_dom_equal(expected, number_field_tag("quantity", nil, in: ..10))
+  end
+
   def test_range_input_tag
     expected = %{<input name="volume" step="0.1" max="11" id="volume" type="range" min="0" />}
     assert_dom_equal(expected, range_field_tag("volume", nil, in: 0..11, step: 0.1))
+  end
+
+  def test_range_input_tag_with_endless_range
+    expected = %{<input name="volume" id="volume" type="range" min="0" />}
+    assert_dom_equal(expected, range_field_tag("volume", nil, in: 0..))
+  end
+
+  def test_range_input_tag_with_beginless_range
+    expected = %{<input name="volume" max="11" id="volume" type="range" />}
+    assert_dom_equal(expected, range_field_tag("volume", nil, in: ..11))
   end
 
   def test_empty_datalist
@@ -1152,6 +1180,28 @@ class FormTagHelperTest < ActionView::TestCase
 
   def protect_against_forgery?
     false
+  end
+
+  class FormHelperRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "prepend_content_exfiltration_prevention is readable from a non-main Ractor" do
+      assert_equal ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention,
+        on_ractor { ActionView::Helpers::ContentExfiltrationPreventionHelper.prepend_content_exfiltration_prevention }
+    end
+
+    test "the settings are readable from a non-main Ractor" do
+      expected = [
+        ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms,
+        ActionView::Helpers::FormTagHelper.default_enforce_utf8,
+      ]
+
+      assert_equal expected, on_ractor {
+        helper = ActionView::Helpers::FormTagHelper
+        [helper.embed_authenticity_token_in_remote_forms, helper.default_enforce_utf8]
+      }
+    end
   end
 
   private

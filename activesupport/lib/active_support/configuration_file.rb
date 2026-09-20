@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -27,7 +28,7 @@ module ActiveSupport
         YAML.unsafe_load(source, **options) || {}
       end
     rescue Psych::SyntaxError => error
-      raise "YAML syntax error occurred while parsing #{@content_path}. " \
+      raise FormatError, "YAML syntax error occurred while parsing #{@content_path}. " \
             "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
             "Error: #{error.message}"
     end

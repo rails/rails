@@ -202,6 +202,18 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2012, 10, 29, 13, 15, 10), DateTime.civil(2012, 9, 28, 1, 15, 10).advance(days: 1.5, months: 1)
   end
 
+  def test_advance_does_not_mutate_options
+    options = { weeks: 1, days: 2 }
+    DateTime.civil(2024, 1, 1).advance(options)
+    assert_equal({ weeks: 1, days: 2 }, options)
+  end
+
+  def test_advance_with_frozen_options
+    assert_nothing_raised do
+      DateTime.civil(2024, 1, 1).advance({ weeks: 1, days: 2 }.freeze)
+    end
+  end
+
   def test_advanced_processes_first_the_date_deltas_and_then_the_time_deltas
     # If the time deltas were processed first, the following datetimes would be advanced to 2010/04/01 instead.
     assert_equal DateTime.civil(2010, 3, 29), DateTime.civil(2010, 2, 28, 23, 59, 59).advance(months: 1, seconds: 1)
@@ -385,6 +397,15 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
       assert_equal true,  Time.utc(2000, 1, 1, 0, 0, 0).this_month?
       assert_equal true,  Time.utc(2000, 1, 31, 23, 59, 59).this_month?
       assert_equal false, Time.utc(2000, 2, 1, 0, 0, 0).this_month?
+    end
+  end
+
+  def test_this_quarter
+    Date.stub(:current, Date.new(2000, 2, 15)) do
+      assert_equal false, Time.utc(1999, 12, 31, 23, 59, 59).this_quarter?
+      assert_equal true,  Time.utc(2000, 1, 1, 0, 0, 0).this_quarter?
+      assert_equal true,  Time.utc(2000, 3, 31, 23, 59, 59).this_quarter?
+      assert_equal false, Time.utc(2000, 4, 1, 0, 0, 0).this_quarter?
     end
   end
 

@@ -25,7 +25,7 @@ module ActiveRecord
   #
   #   Company.new.changed? # => false
   #   Firm.new.changed?    # => true
-  #   Firm.new.changes     # => {"type"=>["","Firm"]}
+  #   Firm.new.changes     # => {"type"=>[nil, "Firm"]}
   #
   # If you don't have a type column defined in your table, single-table inheritance won't
   # be triggered. In that case, it'll work just like normal subclasses with no special magic
@@ -92,7 +92,9 @@ module ActiveRecord
 
       def finder_needs_type_condition? # :nodoc:
         # This is like this because benchmarking justifies the strange :false stuff
-        :true == (@finder_needs_type_condition ||= descends_from_active_record? ? :false : :true)
+        :true == (@finder_needs_type_condition || ActiveSupport::Ractors.on_main(self) do
+          @finder_needs_type_condition ||= descends_from_active_record? ? :false : :true
+        end)
       end
 
       # Returns the first class in the inheritance hierarchy that descends from either an

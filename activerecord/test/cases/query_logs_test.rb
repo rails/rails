@@ -204,7 +204,10 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.tags_formatter = :legacy
     ActiveRecord::QueryLogs.tags = [ :application ]
 
-    with_query_log_tags_format("sqlcommenter") do |connection|
+    with_db_config(<<~YAML) do |connection|
+      query_log_tags:
+        format: sqlcommenter
+    YAML
       assert_equal "select 1 /*application='active_record'*/",
         ActiveRecord::QueryLogs.call("select 1", connection)
     end
@@ -214,9 +217,18 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.tags_formatter = :sqlcommenter
     ActiveRecord::QueryLogs.tags = [ :application ]
 
-    with_query_log_tags_format(nil) do |connection|
+    with_db_config do |connection|
       assert_equal "select 1 /*application='active_record'*/",
         ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
+  def test_per_pool_can_be_disabled
+    ActiveRecord::QueryLogs.tags_formatter = :legacy
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config("query_log_tags: false") do |connection|
+      assert_equal "select 1", ActiveRecord::QueryLogs.call("select 1", connection)
     end
   end
 
@@ -225,14 +237,53 @@ class QueryLogsTest < ActiveRecord::TestCase
     ActiveRecord::QueryLogs.tags_formatter = :legacy
     ActiveRecord::QueryLogs.tags = [ :application ]
 
-    with_query_log_tags_format(nil) do |legacy_connection|
-      with_query_log_tags_format("sqlcommenter") do |sqlcommenter_connection|
+    with_db_config do |legacy_connection|
+      with_db_config(<<~YAML) do |sqlcommenter_connection|
+        query_log_tags:
+          format: sqlcommenter
+      YAML
         # Different formats must not serve each other's cached comment.
         assert_equal "select 1 /*application:active_record*/",
           ActiveRecord::QueryLogs.call("select 1", legacy_connection)
         assert_equal "select 1 /*application='active_record'*/",
           ActiveRecord::QueryLogs.call("select 1", sqlcommenter_connection)
       end
+    end
+  end
+
+  def test_per_pool_prepend_comment_overrides_global
+    ActiveRecord::QueryLogs.prepend_comment = false
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config(<<~YAML) do |connection|
+      query_log_tags:
+        prepend_comment: true
+    YAML
+      assert_equal "/*application:active_record*/ select 1",
+        ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
+  def test_per_pool_prepend_comment_falls_back_to_global_when_not_set
+    ActiveRecord::QueryLogs.prepend_comment = true
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config do |connection|
+      assert_equal "/*application:active_record*/ select 1",
+        ActiveRecord::QueryLogs.call("select 1", connection)
+    end
+  end
+
+  def test_per_pool_prepend_comment_can_disable_global
+    ActiveRecord::QueryLogs.prepend_comment = true
+    ActiveRecord::QueryLogs.tags = [ :application ]
+
+    with_db_config(<<~YAML) do |connection|
+      query_log_tags:
+        prepend_comment: false
+    YAML
+      assert_equal "select 1 /*application:active_record*/",
+        ActiveRecord::QueryLogs.call("select 1", connection)
     end
   end
 
@@ -326,10 +377,10 @@ class QueryLogsTest < ActiveRecord::TestCase
   end
 
   private
-    def with_query_log_tags_format(format, &block)
+    def with_db_config(yaml = "", &block)
       base_config = ActiveRecord::Base.connection_pool.db_config
-      configuration_hash = base_config.configuration_hash
-      configuration_hash = configuration_hash.merge(query_log_tags_format: format) if format
+      overrides = YAML.load(yaml) || {}
+      configuration_hash = base_config.configuration_hash.merge(overrides)
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new(base_config.env_name, base_config.name, configuration_hash)
 
       pool = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :writing, :default).pool

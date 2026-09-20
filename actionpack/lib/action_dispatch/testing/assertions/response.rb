@@ -86,11 +86,6 @@ module ActionDispatch
       end
 
       private
-        # Proxy to to_param if the object will respond to it.
-        def parameterize(value)
-          value.respond_to?(:to_param) ? value.to_param : value
-        end
-
         def normalize_argument_to_redirection(fragment)
           if Regexp === fragment
             fragment

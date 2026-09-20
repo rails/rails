@@ -58,6 +58,19 @@ class MemoryStoreTest < StoreTest
     end
   end
 
+  def test_cleanup_with_non_dup_coder_serializer
+    @cache = lookup_store(serializer: :marshal_7_1)
+    @cache.write("expired", "x" * 100, expires_in: 0.01)
+    @cache.write("fresh", "y" * 100)
+
+    Time.stub(:now, Time.now + 1.minute) do
+      @cache.cleanup
+
+      assert_nil @cache.read("expired")
+      assert_equal "y" * 100, @cache.read("fresh")
+    end
+  end
+
   def test_nil_coder_bypasses_mutation_safeguard
     @cache = lookup_store(coder: nil)
     value = {}

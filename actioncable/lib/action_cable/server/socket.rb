@@ -5,7 +5,7 @@ require "action_dispatch"
 
 module ActionCable
   module Server
-    # This class encapsulates all the low-level logic of working with the underlying WebSocket conenctions
+    # This class encapsulates all the low-level logic of working with the underlying WebSocket connections
     # and delegate all the business-logic to the user-level connection object (e.g., ApplicationCable::Connection).
     # This connection object is also responsible for handling encoding and decoding of messages, so the user-level
     # connection object shouldn't know about such details.
