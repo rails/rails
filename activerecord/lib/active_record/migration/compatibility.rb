@@ -266,10 +266,6 @@ module ActiveRecord
         end
 
         def add_reference(table_name, ref_name, **options)
-          if connection.adapter_name == "SQLite"
-            options[:type] = :integer
-          end
-
           options[:_uses_legacy_reference_index_name] = true
           super
         end
