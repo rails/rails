@@ -1,3 +1,28 @@
+*   Honor an explicit `type:` on `add_reference` and `add_belongs_to` on SQLite
+    in migrations declaring version 6.0 or earlier.
+
+    ```ruby
+    class AddUserToPosts < ActiveRecord::Migration[6.0]
+      def change
+        add_reference :posts, :user, type: :bigint
+      end
+    end
+    ```
+
+    Before:
+
+    ```sql
+    ALTER TABLE "posts" ADD "user_id" integer
+    ```
+
+    After:
+
+    ```sql
+    ALTER TABLE "posts" ADD "user_id" bigint
+    ```
+
+    *Yasuo Honda*
+
 *   Do not dump PostgreSQL tables, enum types and schemas that belong to an
     extension.
 
