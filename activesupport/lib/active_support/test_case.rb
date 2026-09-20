@@ -339,6 +339,17 @@ module ActiveSupport
     alias :assert_not_operator :refute_operator
 
     ##
+    # :method: assert_not_pattern
+    #
+    # :call-seq:
+    #   assert_not_pattern() { || ... }
+    #
+    # Alias for: refute_pattern[https://docs.seattlerb.org/minitest/Minitest/Assertions.html#method-i-refute_pattern]
+
+    #
+    alias :assert_not_pattern :refute_pattern
+
+    ##
     # :method: assert_not_predicate
     #
     # :call-seq:

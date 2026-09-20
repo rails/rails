@@ -339,7 +339,7 @@ end
 ```
 
 If you do so, you will have to manually define the class name that is hosting
-[the fixtures](testing.html#the-low-down-on-fixtures) (`my_books.yml`) using the
+[the fixtures](testing.html#fixtures) (`my_books.yml`) using the
 `set_fixture_class` method in your test definition:
 
 ```ruby

@@ -1560,6 +1560,11 @@ This will generate SQL like:
 SELECT * FROM books WHERE books.created_at >= "2008-12-21 00:00:00"
 ```
 
+NOTE: While beginless ranges support both `<=` and `<` by using `..end` and
+`...end`, endless ranges will always result in `>=` for both `start..` and
+`start...` ranges. As Ruby doesn't yet support excluding the start of a range,
+Rails doesn't support this either.
+
 #### Subset Conditions
 
 If you want to find records using the `IN` expression you can pass an array to
@@ -1745,7 +1750,7 @@ ActiveModel::MissingAttributeError: missing attribute '<attribute>' for Book
 ```
 
 In the above example, `<attribute>` would be the requested attribute. The `id`
-method will not raise the `ActiveRecord::MissingAttributeError`, so exercise
+method will not raise the `ActiveModel::MissingAttributeError`, so exercise
 caution when working with associations, which need the `id` method to function
 properly.
 
@@ -2513,8 +2518,8 @@ SELECT authors.* FROM authors
   INNER JOIN suppliers ON suppliers.id = books.supplier_id
 ```
 
-The SQL query will return all authors that have books with reviews _and_ have
-been ordered by a customer, _and_ the suppliers for those books.
+The SQL query will return all authors that have a book which has
+both a review from a customer that has placed an order _and_ a supplier.
 
 #### Specifying Conditions on the Joined Tables
 
@@ -2637,7 +2642,7 @@ returned by `ActiveRecord::Relation` using the most performant queries possible.
 
 ### N + 1 Queries Problem
 
-Retrieving a list of records N (where N is a number greater that 1) in a single
+Retrieving a list of records N (where N is a number greater than 1) in a single
 query can sometimes trigger N extra queries; one for each record.
 
 Consider the following code, which finds 10 books and prints their authors'
@@ -3350,7 +3355,7 @@ SELECT COUNT(DISTINCT customers.id) FROM customers
   WHERE (customers.first_name = "Ryan" AND orders.status = 0)
 ```
 
-assuming that Order has `enum status: [ :shipped, :being_packed, :cancelled ]`.
+assuming that Order has `enum :status, [ :shipped, :being_packed, :cancelled ]`.
 
 ### `count`
 

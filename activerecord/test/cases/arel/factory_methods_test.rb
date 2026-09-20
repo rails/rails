@@ -67,7 +67,7 @@ module Arel
       end
 
       def test_coalesce
-        relation = Table.new(:users)
+        relation = Table.new(name: :users)
         field_node = relation[:active]
         coalesce = @factory.coalesce field_node, 0
         assert_instance_of Nodes::NamedFunction, coalesce
@@ -76,7 +76,7 @@ module Arel
       end
 
       def test_cast
-        relation = Table.new(:users)
+        relation = Table.new(name: :users)
         field_node = relation[:active]
         cast = @factory.cast field_node, "boolean"
         assert_instance_of Nodes::NamedFunction, cast

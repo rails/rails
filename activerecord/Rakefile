@@ -76,9 +76,8 @@ adapters.each do |adapter|
     Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
       adapter_short = adapter[/^[a-z0-9]+/]
       t.libs << "test"
-      files = (FileList["test/cases/**/*_test.rb"].reject {
-        |x| x.include?("/adapters/") || x.include?("/encryption/performance")
-      } + FileList["test/cases/adapters/#{adapter_short}/**/*_test.rb"])
+      files = (FileList["test/cases/**/*_test.rb"].reject { |x| x.include?("/adapters/") } +
+        FileList["test/cases/adapters/#{adapter_short}/**/*_test.rb"])
       files = files + FileList["test/cases/adapters/abstract_mysql_adapter/**/*_test.rb"] if ["mysql2", "trilogy"].include?(adapter)
 
       t.test_files = files
@@ -96,23 +95,6 @@ adapters.each do |adapter|
         Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
           t.libs << "test"
           t.test_files = FileList["test/activejob/*_test.rb"]
-          t.warning = true
-          if ENV["CI"]
-            t.verbose = true
-            t.options = "--profile --defer-output"
-          end
-          t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
-        end
-      end
-    end
-
-    namespace :encryption do
-      namespace :performance do
-        Rake::TestTask.new(adapter => "#{adapter}:env") do |t|
-          t.description = "Encryption performance tests for #{adapter}"
-          t.libs << "test"
-          t.test_files = FileList["test/cases/encryption/performance/*_test.rb"]
-
           t.warning = true
           if ENV["CI"]
             t.verbose = true

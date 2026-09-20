@@ -35,8 +35,8 @@ module ActiveJob
         perform_or_enqueue(perform_enqueued_at_jobs && !filtered?(job), job, job_data)
       end
 
-      def stopping?
-        @stopping.is_a?(Proc) ? @stopping.call : @stopping
+      def stopping?(job = nil)
+        @stopping.is_a?(Proc) ? @stopping.call(job) : @stopping
       end
 
       private

@@ -702,6 +702,21 @@ class EtagRenderTest < ActionController::TestCase
     assert_response :success
   end
 
+  def test_query_conditional_request
+    query :fresh
+    assert_response :success
+    assert_not_nil etag = @response.etag
+
+    @request.if_none_match = etag
+    query :fresh
+    assert_response :not_modified
+    assert_predicate @response.body, :blank?
+
+    @request.if_none_match = %("nomatch")
+    query :fresh
+    assert_response :success
+  end
+
   def test_array
     @request.if_none_match = weak_etag([%w(1 2 3), "ab", :cde, [:f]])
     get :array
@@ -1025,7 +1040,8 @@ end
 class HttpCacheForeverTest < ActionController::TestCase
   class HttpCacheForeverController < ActionController::Base
     def cache_me_forever
-      http_cache_forever(public: params[:public]) do
+      last_modified = params[:last_modified] && Time.iso8601(params[:last_modified])
+      http_cache_forever(public: params[:public], last_modified: last_modified) do
         render plain: "hello"
       end
     end
@@ -1056,6 +1072,13 @@ class HttpCacheForeverTest < ActionController::TestCase
     @request.if_modified_since = @response.headers["Last-Modified"]
     get :cache_me_forever
     assert_response :not_modified
+  end
+
+  def test_cache_response_code_with_last_modified
+    now = Time.now
+    get :cache_me_forever, params: { last_modified: now.iso8601 }
+    assert_response :ok
+    assert_equal now.utc.httpdate, @response.headers["Last-Modified"]
   end
 
   def test_cache_response_code_with_etag

@@ -1,37 +1,41 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/time/calculations"
 
 module ActiveSupport
-  # = \File Update Checker
+  # \File Update Checker
+  # ====================
   #
   # FileUpdateChecker specifies the API used by \Rails to watch files
   # and control reloading. The API depends on four methods:
   #
-  # * +initialize+ which expects two parameters and one block as
+  # * `initialize` which expects two parameters and one block as
   #   described below.
   #
-  # * +updated?+ which returns a boolean if there were updates in
+  # * `updated?` which returns a boolean if there were updates in
   #   the filesystem or not.
   #
-  # * +execute+ which executes the given block on initialization
+  # * `execute` which executes the given block on initialization
   #   and updates the latest watched files and timestamp.
   #
-  # * +execute_if_updated+ which just executes the block if it was updated.
+  # * `execute_if_updated` which just executes the block if it was updated.
   #
-  # After initialization, a call to +execute_if_updated+ must execute
+  # After initialization, a call to `execute_if_updated` must execute
   # the block only if there was really a change in the filesystem.
   #
   # This class is used by \Rails to reload the I18n framework whenever
   # they are changed upon a new request.
   #
-  #   i18n_reloader = ActiveSupport::FileUpdateChecker.new(paths) do
-  #     I18n.reload!
-  #   end
+  # ```
+  # i18n_reloader = ActiveSupport::FileUpdateChecker.new(paths) do
+  #   I18n.reload!
+  # end
   #
-  #   ActiveSupport::Reloader.to_prepare do
-  #     i18n_reloader.execute_if_updated
-  #   end
+  # ActiveSupport::Reloader.to_prepare do
+  #   i18n_reloader.execute_if_updated
+  # end
+  # ```
   class FileUpdateChecker
     # It accepts two parameters on initialization. The first is an array
     # of files and the second is an optional hash of directories. The hash must
@@ -61,8 +65,8 @@ module ActiveSupport
     end
 
     # Check if any of the entries were updated. If so, the watched and/or
-    # updated_at values are cached until the block is executed via +execute+
-    # or +execute_if_updated+.
+    # updated_at values are cached until the block is executed via `execute`
+    # or `execute_if_updated`.
     def updated?
       current_watched = watched
       if @last_watched.size != current_watched.size
@@ -115,7 +119,7 @@ module ActiveSupport
         @updated_at || max_mtime(paths) || Time.at(0)
       end
 
-      # This method returns the maximum mtime of the files in +paths+, or +nil+
+      # This method returns the maximum mtime of the files in `paths`, or `nil`
       # if the array is empty.
       #
       # Files with a mtime in the future are ignored. Such abnormal situation

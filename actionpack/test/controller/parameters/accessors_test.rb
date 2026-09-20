@@ -288,6 +288,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_predicate @params.reject { |k| k == "person" }, :permitted?
   end
 
+  test "reject without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.reject
+    assert_kind_of ActionController::Parameters, @params.reject.each { |k, v| false }
+  end
+
   test "select retains permitted status" do
     @params.permit!
     assert_predicate @params.select { |k| k == "person" }, :permitted?
@@ -295,6 +300,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "select retains unpermitted status" do
     assert_not_predicate @params.select { |k| k == "person" }, :permitted?
+  end
+
+  test "select without a block returns an enumerator" do
+    assert_kind_of Enumerator, @params.select
+    assert_kind_of ActionController::Parameters, @params.select.each { |k, v| true }
   end
 
   test "slice retains permitted status" do
@@ -332,6 +342,34 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "deep_transform_keys retains unpermitted status" do
     assert_not_predicate @params.deep_transform_keys { |k| k }, :permitted?
+  end
+
+  test "deep_transform_values retains permitted status" do
+    @params.permit!
+    assert_predicate @params.deep_transform_values { |v| v }, :permitted?
+  end
+
+  test "deep_transform_values retains unpermitted status" do
+    assert_not_predicate @params.deep_transform_values { |v| v }, :permitted?
+  end
+
+  test "deep_transform_values yields only leaf values" do
+    yielded = []
+    @params.deep_transform_values { |v| yielded << v; v }
+
+    assert_includes yielded, "32"
+    assert_includes yielded, "David"
+    assert_includes yielded, "Heinemeier Hansson"
+    assert_includes yielded, "Chicago"
+    assert_includes yielded, "Illinois"
+    assert_not(yielded.any? { |v| v.is_a?(Hash) || v.is_a?(ActionController::Parameters) || v.is_a?(Array) })
+  end
+
+  test "deep_transform_values returns a new ActionController::Parameters" do
+    result = @params.deep_transform_values { |v| v }
+
+    assert_kind_of ActionController::Parameters, result
+    assert_not_same @params, result
   end
 
   test "transform_values retains permitted status" do

@@ -42,6 +42,7 @@ module ActiveSupport
   autoload :ConfigurationFile
   autoload :ContinuousIntegration
   autoload :CurrentAttributes
+  autoload :DateFormats
   autoload :Dependencies
   autoload :DescendantsTracker
   autoload :Editor
@@ -56,8 +57,10 @@ module ActiveSupport
   autoload :StructuredEventSubscriber
   autoload :IsolatedExecutionState
   autoload :Notifications
+  autoload :ProxyLogger
   autoload :Reloader
   autoload :SecureCompareRotator
+  autoload :TimeFormats
 
   eager_autoload do
     autoload :BacktraceCleaner
@@ -89,6 +92,7 @@ module ActiveSupport
     autoload :TaggedLogging
     autoload :XmlMini
     autoload :ArrayInquirer
+    autoload :Ractors
   end
 
   autoload :Rescuable
@@ -158,6 +162,12 @@ module ActiveSupport
   #   zone.utc_to_local(Time.utc(2000, 1)) # => 1999-12-31 19:00:00 -0500
   singleton_class.attr_accessor :utc_to_local_returns_utc_offset_times
   @utc_to_local_returns_utc_offset_times = false
+
+  # Specifies whether ActiveSupport::TimeZone#parse raises +ArgumentError+ for
+  # any invalid string, instead of returning +nil+ for strings that contain no
+  # recognizable date information.
+  singleton_class.attr_accessor :raise_on_invalid_time_zone_parse
+  @raise_on_invalid_time_zone_parse = false
 end
 
 autoload :I18n, "active_support/i18n"

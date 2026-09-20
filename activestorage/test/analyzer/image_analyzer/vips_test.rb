@@ -6,6 +6,16 @@ require "database/setup"
 require "active_storage/analyzer/image_analyzer"
 
 class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
+  test "analyzing raises when libvips cannot block its unfuzzed loaders" do
+    analyze_with_vips do
+      blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+
+      stub_const(ActiveStorage, :VIPS_UNSECURABLE, true) do
+        assert_raises(RuntimeError, match: /Active Storage cannot disable them/) { extract_metadata_from(blob) }
+      end
+    end
+  end
+
   test "analyzing a JPEG image" do
     analyze_with_vips do
       blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
@@ -46,13 +56,26 @@ class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
     end
   end
 
-  test "analyzing an SVG image without an XML declaration" do
+  test "analyzing an SVG image without an XML declaration is skipped because the SVG loader is disabled by default" do
     analyze_with_vips do
       blob = create_file_blob(filename: "icon.svg", content_type: "image/svg+xml")
       metadata = extract_metadata_from(blob)
 
-      assert_equal 792, metadata[:width]
-      assert_equal 584, metadata[:height]
+      assert_nil metadata[:width]
+      assert_nil metadata[:height]
+    end
+  end
+
+  test "analyzing an SVG image without an XML declaration when the SVG loader is enabled" do
+    analyze_with_vips do
+      blob = create_file_blob(filename: "icon.svg", content_type: "image/svg+xml")
+
+      with_vips_loaders_enabled(*VIPS_SVG_LOADERS) do
+        metadata = extract_metadata_from(blob)
+
+        assert_equal 792, metadata[:width]
+        assert_equal 584, metadata[:height]
+      end
     end
   end
 

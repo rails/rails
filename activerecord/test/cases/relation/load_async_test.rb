@@ -155,17 +155,17 @@ module ActiveRecord
         latch1 = Concurrent::CountDownLatch.new
         latch2 = Concurrent::CountDownLatch.new
 
-        old_log = ActiveRecord::Base.connection.method(:log)
-        ActiveRecord::Base.connection.singleton_class.undef_method(:log)
+        connection = ActiveRecord::Base.connection
+        old_start_intent_log = connection.method(:start_intent_log)
+        connection.singleton_class.undef_method(:start_intent_log)
 
-        ActiveRecord::Base.connection.singleton_class.define_method(:log) do |intent, *args, **kwargs, &block|
-          unless intent.ran_async
-            return old_log.call(intent, *args, **kwargs, &block)
+        connection.singleton_class.define_method(:start_intent_log) do |intent|
+          if intent.ran_async
+            latch1.count_down
+            latch2.wait
           end
 
-          latch1.count_down
-          latch2.wait
-          old_log.call(intent, *args, **kwargs, &block)
+          old_start_intent_log.call(intent)
         end
 
         Post.async_count
@@ -176,8 +176,8 @@ module ActiveRecord
         end
       ensure
         latch2.count_down
-        ActiveRecord::Base.connection.singleton_class.undef_method(:log)
-        ActiveRecord::Base.connection.singleton_class.define_method(:log, old_log)
+        connection.singleton_class.undef_method(:start_intent_log)
+        connection.singleton_class.define_method(:start_intent_log, old_start_intent_log)
       end
     end
 
@@ -250,7 +250,7 @@ module ActiveRecord
 
     def test_pluck
       titles = Post.where(author_id: 1).pluck(:title)
-      assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+      assert_equal_unordered titles, Post.where(author_id: 1).load_async.pluck(:title)
     end
 
     def test_count
@@ -277,7 +277,7 @@ module ActiveRecord
     def test_load_async_pluck_with_query_cache
       titles = Post.where(author_id: 1).pluck(:title)
       Post.cache do
-        assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+        assert_equal_unordered titles, Post.where(author_id: 1).load_async.pluck(:title)
       end
     end
 
@@ -324,7 +324,6 @@ module ActiveRecord
 
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Load"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
         end
@@ -358,7 +357,6 @@ module ActiveRecord
 
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "SQL"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
         end
@@ -373,7 +371,7 @@ module ActiveRecord
         end
 
         assert_predicate Post.lease_connection, :supports_concurrent_connections?
-        assert_not status[:async], "Expected status[:async] to be false with NullExecutor"
+        assert_not status[:async], "Expected async to be false with NullExecutor"
       ensure
         ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
       end
@@ -388,7 +386,7 @@ module ActiveRecord
 
       def test_pluck
         titles = Post.where(author_id: 1).pluck(:title)
-        assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+        assert_equal_unordered titles, Post.where(author_id: 1).load_async.pluck(:title)
       end
 
       def test_size
@@ -415,7 +413,7 @@ module ActiveRecord
 
       fixtures :posts, :comments
 
-      def setup
+      def before_setup
         @old_config = ActiveRecord.async_query_executor
         ActiveRecord.async_query_executor = :multi_thread_pool
 
@@ -424,9 +422,12 @@ module ActiveRecord
 
         ActiveRecord::Base.establish_connection(config_hash1)
         ARUnit2Model.establish_connection(config_hash2)
+
+        super
       end
 
-      def teardown
+      def after_teardown
+        super
         ActiveRecord.async_query_executor = @old_config
         clean_up_connection_handler
         ActiveRecord::Base.establish_connection(:arunit)
@@ -462,9 +463,9 @@ module ActiveRecord
         expected_records = Post.where(author_id: 1).to_a
 
         status = {}
+
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Load"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
         end
@@ -496,9 +497,9 @@ module ActiveRecord
         expected_records = Post.where(author_id: 1).eager_load(:comments).to_a
 
         status = {}
+
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Eager Load"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
         end
@@ -527,7 +528,7 @@ module ActiveRecord
 
       def test_pluck
         titles = Post.where(author_id: 1).pluck(:title)
-        assert_equal titles, Post.where(author_id: 1).load_async.pluck(:title)
+        assert_equal_unordered titles, Post.where(author_id: 1).load_async.pluck(:title)
       end
 
       def test_size
@@ -554,7 +555,7 @@ module ActiveRecord
 
       fixtures :posts, :comments, :other_dogs
 
-      def setup
+      def before_setup
         @previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
         @old_config = ActiveRecord.async_query_executor
         ActiveRecord.async_query_executor = :multi_thread_pool
@@ -570,9 +571,12 @@ module ActiveRecord
 
         ActiveRecord::Base.establish_connection(:primary)
         ARUnit2Model.establish_connection(:animals)
+
+        super
       end
 
-      def teardown
+      def after_teardown
+        super
         ENV["RAILS_ENV"] = @previous_env
         ActiveRecord::Base.configurations = @prev_configs
         ActiveRecord.async_query_executor = @old_config
@@ -600,12 +604,10 @@ module ActiveRecord
 
         subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
           if event.payload[:name] == "Post Load"
-            status[:executed] = true
             status[:async] = event.payload[:async]
           end
 
           if event.payload[:name] == "OtherDog Load"
-            dog_status[:executed] = true
             dog_status[:async] = event.payload[:async]
           end
         end

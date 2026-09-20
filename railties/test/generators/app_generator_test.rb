@@ -419,12 +419,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     FileUtils.cd(destination_root) do
       config = "config/application.rb"
       content = File.read(config)
-      File.write(config, content.gsub(/config\.load_defaults #{Rails::VERSION::STRING.to_f}/, "config.load_defaults 5.1"))
+      File.write(config, content.gsub(/config\.load_defaults #{Rails::VERSION::STRING.to_f}/, "config.load_defaults 8.0"))
     end
 
     run_app_update
 
-    assert_file "config/application.rb", /\s+config\.load_defaults 5\.1/
+    assert_file "config/application.rb", /\s+config\.load_defaults 8\.0/
   end
 
   def test_app_update_generates_new_framework_defaults_when_load_defaults_is_previous_version
@@ -528,6 +528,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_configures_decrypted_diffs_by_default
     run_generator
     assert_file ".gitattributes", /\.enc diff=/
+  end
+
+  def test_generator_marks_error_pages_as_generated
+    run_generator
+    assert_file ".gitattributes" do |content|
+      %w[400 404 406-unsupported-browser 422 500].each do |page|
+        assert_match(/^public\/#{Regexp.escape(page)}\.html linguist-generated$/, content)
+      end
+    end
   end
 
   def test_generator_does_not_configure_decrypted_diffs_when_skip_decrypted_diffs_is_given
@@ -1468,6 +1477,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_file "bin/docker-entrypoint"
   end
 
+  def test_docker_entrypoint_checks_first_two_arguments_so_extra_server_flags_still_trigger_db_prepare
+    run_generator
+
+    assert_file "bin/docker-entrypoint" do |content|
+      assert_match(/if \[ "\$\{1\}" == "\.\/bin\/rails" \] && \[ "\$\{2\}" == "server" \]; then/, content)
+      assert_no_match(/\$\{@: -2:1\}|\$\{@: -1:1\}/, content)
+    end
+  end
+
+  def test_docker_entrypoint_omits_db_prepare_check_when_skipping_active_record
+    run_generator [destination_root, "--skip-active-record"]
+
+    assert_file "bin/docker-entrypoint" do |content|
+      assert_no_match(/db:prepare/, content)
+    end
+  end
+
   def test_env
     run_generator
 
@@ -1576,7 +1602,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
           "context" => "..",
           "dockerfile" => ".devcontainer/Dockerfile"
         },
-        "volumes" => ["../../tmp:/workspaces/tmp:cached"],
+        "volumes" => ["../../tmp:/workspaces/tmp:cached", "bundle-cache:/home/vscode/.local/share"],
         "command" => "sleep infinity",
         "depends_on" => ["selenium"]
       }
@@ -1629,7 +1655,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_compose_file do |compose_config|
       assert_not_includes compose_config["services"]["rails-app"]["depends_on"], "redis"
       assert_nil compose_config["services"]["redis"]
-      assert_nil compose_config["volumes"]
+      assert_includes compose_config["volumes"].keys, "bundle-cache"
     end
 
     assert_devcontainer_json_file do |content|
@@ -1685,7 +1711,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
 
       expected_mysql_config = {
-        "image" => "mysql/mysql-server:8.0",
+        "image" => "mysql:9.7",
         "restart" => "unless-stopped",
         "environment" => {
           "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
@@ -1714,7 +1740,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_compose_file do |compose_config|
       assert_includes compose_config["services"]["rails-app"]["depends_on"], "mysql"
       expected_mysql_config = {
-        "image" => "mysql/mysql-server:8.0",
+        "image" => "mysql:9.7",
         "restart" => "unless-stopped",
         "environment" => {
           "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
@@ -1874,6 +1900,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     def assert_gem_for_active_storage
       assert_gem "image_processing"
+      assert_gem "ruby-vips", /.*require: false/
     end
 
     def assert_frameworks_are_not_required_when_active_storage_is_skipped
@@ -1890,6 +1917,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     def assert_gems_when_active_storage_is_skipped
       assert_no_gem "image_processing"
+      assert_no_gem "ruby-vips"
     end
 
     def assert_gitattributes_does_not_have_schema_file

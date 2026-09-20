@@ -5,6 +5,7 @@ require "models/topic"
 require "models/task"
 require "models/category"
 require "models/post"
+require "models/default"
 
 class QueryCacheTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -1021,6 +1022,18 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
         task = Task.find(1)
         task.starting = Time.now.utc
         task.save!
+      end
+    end
+  end
+
+  if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.lease_connection.supports_virtual_columns?
+    def test_update_with_returning_clears_cache
+      Default.cache do
+        record = Default.create!(random_number: 1)
+        assert_called(Default.connection_pool.query_cache, :clear, times: 1) do
+          record.update!(random_number: 2)
+        end
+        assert_equal 2, Default.find(record.id).random_number
       end
     end
   end

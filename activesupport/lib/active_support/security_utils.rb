@@ -2,12 +2,11 @@
 
 module ActiveSupport
   module SecurityUtils
-    # Constant time string comparison, for fixed length strings.
-    #
-    # The values compared should be of fixed length, such as strings
-    # that have already been processed by HMAC. Raises in case of length mismatch.
-
     if defined?(OpenSSL.fixed_length_secure_compare)
+      # Constant time string comparison, for fixed length strings.
+      #
+      # The values compared should be of fixed length, such as strings
+      # that have already been processed by HMAC. Raises in case of length mismatch.
       def fixed_length_secure_compare(a, b)
         OpenSSL.fixed_length_secure_compare(a, b)
       end

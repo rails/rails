@@ -482,6 +482,34 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_primary_keys_exclude_included_columns
+    skip("PostgreSQL does not support included columns") unless @connection.supports_index_include?
+
+    table_name = "#{SCHEMA_NAME}.table_with_covering_primary_key"
+    @connection.create_table table_name, id: false do |t|
+      t.integer :tenant_id, null: false
+      t.integer :id, null: false
+      t.text :name
+      t.index [:tenant_id, :id], unique: true, include: :name, name: "covering_primary_key"
+    end
+    @connection.execute "ALTER TABLE #{table_name} ADD PRIMARY KEY USING INDEX covering_primary_key"
+
+    assert_equal ["tenant_id", "id"], @connection.primary_keys(table_name)
+  end
+
+  def test_table_options_for_a_name_in_two_schemas_reads_the_first_on_the_search_path
+    @connection.execute "COMMENT ON TABLE #{SCHEMA_NAME}.#{TABLE_NAME} IS 'in schema one'"
+    @connection.execute "COMMENT ON TABLE #{SCHEMA2_NAME}.#{TABLE_NAME} IS 'in schema two'"
+
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
+      assert_equal({ comment: "in schema one" }, @connection.table_options(TABLE_NAME))
+    end
+
+    with_schema_search_path("#{SCHEMA2_NAME}, #{SCHEMA_NAME}") do
+      assert_equal({ comment: "in schema two" }, @connection.table_options(TABLE_NAME))
+    end
+  end
+
   def test_pk_and_sequence_for_with_schema_specified
     pg_name = ActiveRecord::ConnectionAdapters::PostgreSQL::Name
     [
@@ -553,6 +581,19 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     assert_equal 124, @connection.select_value("SELECT nextval('#{sequence_name}')")
     @connection.reset_pk_sequence!("#{SCHEMA_NAME}.#{UNMATCHED_PK_TABLE_NAME}")
     assert_equal 1, @connection.select_value("SELECT nextval('#{sequence_name}')")
+  end
+
+  def test_reset_column_sequences_with_quoted_schema
+    @connection.execute('CREATE SCHEMA "Test_CamelSchema"')
+    @connection.execute('CREATE TABLE "Test_CamelSchema".widgets (id serial primary key)')
+    @connection.execute('INSERT INTO "Test_CamelSchema".widgets (id) VALUES (100)')
+
+    @connection.reset_column_sequences!([['"Test_CamelSchema".widgets']])
+
+    next_id = @connection.select_value(%Q{SELECT nextval(pg_get_serial_sequence('"Test_CamelSchema".widgets', 'id'))})
+    assert_operator next_id.to_i, :>, 100
+  ensure
+    @connection.execute('DROP SCHEMA IF EXISTS "Test_CamelSchema" CASCADE')
   end
 
   def test_set_pk_sequence
@@ -681,6 +722,7 @@ end
 
 class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
+  include PGSchemaHelper
 
   setup do
     @connection = ActiveRecord::Base.lease_connection
@@ -720,6 +762,22 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
 
     assert_match(/opclass: :gin_trgm_ops/, output)
     assert_match(/opclass: \{ position: :text_pattern_ops \}/, output)
+  end
+
+  def test_opclass_class_parsing_from_another_schema
+    @connection.create_schema("test_schema")
+    @connection.enable_extension("test_schema.pg_trgm")
+    @connection.execute "CREATE INDEX trains_position ON trains USING gin(position test_schema.gin_trgm_ops)"
+
+    with_dump_schemas(:schema_search_path) do
+      with_schema_search_path("public,test_schema") do
+        output = dump_table_schema "trains"
+
+        assert_match(/opclass: :gin_trgm_ops/, output)
+      end
+    end
+  ensure
+    @connection.drop_schema("test_schema")
   end
 end
 
@@ -964,6 +1022,18 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
     assert_match("options: \"#{options}\"", output)
   end
 
+  def test_table_options_are_only_read_for_base_tables
+    @connection.create_table "trains" do |t|
+      t.string :name
+    end
+    @connection.execute "CREATE VIEW train_names AS SELECT name FROM trains"
+    @connection.execute "COMMENT ON VIEW train_names IS 'not a table'"
+
+    assert_empty @connection.table_options("train_names")
+  ensure
+    @connection.execute "DROP VIEW IF EXISTS train_names"
+  end
+
   def test_inherited_table_options_is_dumped
     @connection.create_table "transportation_modes" do |t|
       t.string :name
@@ -988,7 +1058,7 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
       t.string :kind
     end
 
-    options = "INHERITS (transportation_modes, vehicles)"
+    options = "INHERITS (vehicles, transportation_modes)"
 
     @connection.create_table "trains", options: options
 

@@ -317,7 +317,8 @@ class EnumTest < ActiveRecord::TestCase
     e = assert_raises(ArgumentError) do
       @book.status = :unknown
     end
-    assert_equal "'unknown' is not a valid status", e.message
+    assert_match(/\A'unknown' is not a valid status\./, e.message)
+    assert_match(/"proposed"/, e.message)
   end
 
   test "validation with 'validate: true' option" do
@@ -1109,7 +1110,7 @@ class EnumTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = logger
 
     Class.new(ActiveRecord::Base) do
-      def self.name
+      def self.name # rubocop:disable Lint/DuplicateMethods
         "Book"
       end
       enum :status, [:not_sent]
@@ -1127,7 +1128,7 @@ class EnumTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = logger
 
     Class.new(ActiveRecord::Base) do
-      def self.name
+      def self.name # rubocop:disable Lint/DuplicateMethods
         "Book"
       end
       silence_warnings do
@@ -1142,9 +1143,9 @@ class EnumTest < ActiveRecord::TestCase
 
   test "raises for attributes with undeclared type" do
     klass = Class.new(Book) do
-    def self.name; "Book"; end
-    enum :typeless_genre, [:adventure, :comic]
-  end
+      def self.name; "Book"; end
+      enum :typeless_genre, [:adventure, :comic]
+    end
 
     error = assert_raises(RuntimeError) do
       klass.type_for_attribute(:typeless_genre)

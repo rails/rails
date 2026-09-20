@@ -7,7 +7,7 @@ require "action_dispatch/http/mime_type"
 module AbstractController
   module Collector
     def self.generate_method_for_mime(mime)
-      sym = mime.is_a?(Symbol) ? mime : mime.to_sym
+      sym = mime.to_sym
       class_eval <<-RUBY, __FILE__, __LINE__ + 1
         def #{sym}(...)
           custom(Mime[:#{sym}], ...)
@@ -15,12 +15,16 @@ module AbstractController
       RUBY
     end
 
-    Mime::SET.each do |mime|
+    Mime.symbols.each do |mime|
       generate_method_for_mime(mime)
     end
 
-    Mime::Type.register_callback do |mime|
-      generate_method_for_mime(mime) unless instance_methods.include?(mime.to_sym)
+    Mime::Type.on_change do |mime, registered|
+      if registered
+        generate_method_for_mime(mime) unless instance_methods.include?(mime.to_sym)
+      elsif instance_methods.include?(mime.to_sym)
+        remove_method(mime.to_sym)
+      end
     end
 
   private
@@ -33,7 +37,7 @@ module AbstractController
           "format.html { |html| html.tablet { ... } }"
       end
 
-      if Mime::SET.include?(mime_constant)
+      if Mime.symbols.include?(mime_constant.to_sym)
         AbstractController::Collector.generate_method_for_mime(mime_constant)
         public_send(symbol, ...)
       else

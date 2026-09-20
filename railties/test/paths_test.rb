@@ -315,4 +315,14 @@ class PathsIntegrationTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "expanded_files filters out directories" do
+    Dir.mktmpdir do |dir|
+      root = Rails::Paths::Root.new(dir)
+      root.add "without/config/locales", glob: "**/*.{rb,yml}"
+      without = root["without/config/locales"]
+      assert_equal [File.join(dir, "without", "config", "locales")], without.expanded
+      assert_equal [], without.expanded_files
+    end
+  end
 end

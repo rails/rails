@@ -33,7 +33,7 @@ module Arel
 
   class CrudTest < Arel::Test
     test "insert should call insert on the connection" do
-      table = Table.new :users
+      table = Table.new name: :users
       fc = FakeCrudder.new
       fc.from table
       im = fc.compile_insert [[table[:id], "foo"]]
@@ -41,7 +41,7 @@ module Arel
     end
 
     test "update should call update on the connection" do
-      table = Table.new :users
+      table = Table.new name: :users
       fc = FakeCrudder.new
       fc.from table
       stmt = fc.compile_update [[table[:id], "foo"]], Arel::Attributes::Attribute.new(table, "id")
@@ -49,7 +49,7 @@ module Arel
     end
 
     test "delete should call delete on the connection" do
-      table = Table.new :users
+      table = Table.new name: :users
       fc = FakeCrudder.new
       fc.from table
       stmt = fc.compile_delete

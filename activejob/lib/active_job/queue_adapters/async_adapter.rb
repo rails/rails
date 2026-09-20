@@ -37,11 +37,11 @@ module ActiveJob
       end
 
       def enqueue(job) # :nodoc:
-        @scheduler.enqueue JobWrapper.new(job), queue_name: job.queue_name
+        @scheduler.enqueue JobWrapper.new(job)
       end
 
       def enqueue_at(job, timestamp) # :nodoc:
-        @scheduler.enqueue_at JobWrapper.new(job), timestamp, queue_name: job.queue_name
+        @scheduler.enqueue_at JobWrapper.new(job), timestamp
       end
 
       # Gracefully stop processing jobs. Finishes in-progress work and handles
@@ -93,16 +93,16 @@ module ActiveJob
           )
         end
 
-        def enqueue(job, queue_name:)
+        def enqueue(job)
           executor.post(job, &:perform)
         end
 
-        def enqueue_at(job, timestamp, queue_name:)
+        def enqueue_at(job, timestamp)
           delay = timestamp - Time.current.to_f
           if !immediate && delay > 0
             Concurrent::ScheduledTask.execute(delay, args: [job], executor: executor, &:perform)
           else
-            enqueue(job, queue_name: queue_name)
+            enqueue(job)
           end
         end
 

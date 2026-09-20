@@ -507,6 +507,23 @@ class FixturesTest < ActiveRecord::TestCase
     assert_kind_of Topic, topics["first"].find
   end
 
+  def test_fixture_find_uses_only_all_query_default_scopes
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.inheritance_column = :_type_disabled
+
+      default_scope -> { where(approved: true) }
+      default_scope -> { where(id: 1) }, all_queries: true
+    end
+
+    ActiveRecord::FixtureSet.reset_cache
+    topics = ActiveRecord::FixtureSet.create_fixtures(fixture_paths, "topics", "topics" => topic_class).first
+
+    assert_kind_of topic_class, topics["first"].find
+  ensure
+    ActiveRecord::FixtureSet.reset_cache
+  end
+
   def test_complete_instantiation
     assert_equal "The First Topic", @first.title
   end
@@ -908,20 +925,25 @@ class FixturesWithForeignKeyViolationsTest < ActiveRecord::TestCase
     FIXTURE
     File.write(FIXTURES_ROOT + @path, fk_pointing_to_non_existent_object)
 
-    with_verify_foreign_keys_for_fixtures do
-      if current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
-        error = assert_raise RuntimeError do
-          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
-        end
-        assert_includes error.message, "Foreign key violations found in your fixture data. Ensure you aren't referring to labels that don't exist on associations."
-        assert_includes error.message, "fk_pointing_to_non_existent_objects"
-      else
-        assert_nothing_raised do
-          ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+    ActiveRecord::FixtureSet.without_parsing_cache do
+      with_verify_foreign_keys_for_fixtures do
+        if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.lease_connection.supports_enforced_foreign_keys?
+          assert_raise ActiveRecord::InvalidForeignKey do
+            ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+          end
+        elsif current_adapter?(:SQLite3Adapter, :PostgreSQLAdapter)
+          error = assert_raise RuntimeError do
+            ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+          end
+          assert_includes error.message, "Foreign key violations found in your fixture data. Ensure you aren't referring to labels that don't exist on associations."
+          assert_includes error.message, "fk_pointing_to_non_existent_objects"
+        else
+          assert_nothing_raised do
+            ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT, ["fk_pointing_to_non_existent_object"])
+          end
         end
       end
     end
-
   ensure
     File.delete(FIXTURES_ROOT + @path)
     ActiveRecord::FixtureSet.reset_cache
@@ -1385,8 +1407,8 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   end
 
   def test_preserves_existing_fixture_data
-    assert_equal(2.weeks.ago.to_date, pirates(:redbeard).created_on.to_date)
-    assert_equal(2.weeks.ago.to_date, pirates(:redbeard).updated_on.to_date)
+    assert_equal(Date.new(2004, 1, 1), pirates(:redbeard).created_on.to_date)
+    assert_equal(Date.new(2004, 1, 1), pirates(:redbeard).updated_on.to_date)
   end
 
   def test_generates_unique_ids
@@ -1458,6 +1480,10 @@ class FoxyFixturesTest < ActiveRecord::TestCase
 
   def test_supports_label_string_interpolation
     assert_equal("X marks the spot!", pirates(:mark).catchphrase)
+  end
+
+  def test_label_interpolation_inserts_the_label_verbatim
+    assert_equal("back\\&ref", parrots("back\\&ref").name)
   end
 
   def test_supports_label_interpolation_for_integer_label

@@ -206,7 +206,12 @@ module ActiveRecord
 
       def verify_attributes(attributes)
         if keys_including_timestamps != attributes.keys.sort!
-          raise ArgumentError, "All objects being inserted must have the same keys"
+          missing = keys_including_timestamps - attributes.keys
+          extra = attributes.keys - keys_including_timestamps
+          details = []
+          details << "missing: #{missing.inspect}" if missing.any?
+          details << "extra: #{extra.inspect}" if extra.any?
+          raise ArgumentError, "All objects being inserted must have the same keys (#{details.join(", ")})"
         end
       end
 

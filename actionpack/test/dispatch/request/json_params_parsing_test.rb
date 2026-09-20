@@ -100,6 +100,20 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "parses JSON params for QUERY requests" do
+    with_routing do |set|
+      set.draw do
+        ActionDispatch.deprecator.silence do
+          query ":action", to: ::JsonParamsParsingTest::TestController
+        end
+      end
+
+      query "/parse", params: '{"person": {"name": "David"}}', headers: { "CONTENT_TYPE" => "application/json" }
+      assert_response :ok
+      assert_equal({ "person" => { "name" => "David" } }, TestController.last_request_parameters)
+    end
+  end
+
   private
     def assert_parses(expected, actual, headers = {})
       with_test_routing do

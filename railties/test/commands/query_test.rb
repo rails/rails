@@ -90,6 +90,16 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     assert_not_equal page1["rows"], page2["rows"]
   end
 
+  test "respects a limit set on the relation" do
+    rails "runner", '3.times { |i| Post.create!(title: "Post #{i}") }'
+
+    data = query_json("Post.limit(1)")
+
+    assert_equal 1, data.dig("meta", "row_count")
+    assert_not data.dig("meta", "has_more")
+    assert_match(/\bLIMIT 1\b/, data.dig("meta", "sql"))
+  end
+
   test "does not double-eval on connection failure" do
     app_file "app/models/counter.rb", <<-RUBY
       class Counter
@@ -112,6 +122,35 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     output = query_error("--sql", "INSERT INTO posts (title) VALUES ('test')")
 
     assert_match(/readonly|Write query/i, output)
+  end
+
+  test "prevents writes via AR expression" do
+    rails "runner", 'Post.create!(title: "Test")'
+
+    output = query_error("Post.delete_all")
+    assert_match(/readonly|Write query/i, output)
+
+    count = rails("runner", "puts Post.count").strip
+    assert_equal "1", count
+  end
+
+  test "prevents writes via AR expression on a single record" do
+    rails "runner", 'Post.create!(title: "Test")'
+
+    output = query_error("Post.first.update!(title: \"changed\")")
+    assert_match(/readonly|Write query/i, output)
+
+    title = rails("runner", "puts Post.first.title").strip
+    assert_equal "Test", title
+  end
+
+  test "prevents writes via AR expression on explain" do
+    rails "runner", 'Post.create!(title: "Test")'
+
+    query_error("explain", "Post.delete_all")
+
+    count = rails("runner", "puts Post.count").strip
+    assert_equal "1", count
   end
 
   test "json format handles nil values" do
@@ -173,6 +212,29 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
     assert_includes data["rows"].flatten, "Test"
   end
 
+  test "executes AR expression returning a single record" do
+    rails "runner", 'Post.create!(title: "Test")'
+    data = query_json("Post.first")
+
+    assert_includes data["columns"], "id"
+    assert_includes data["columns"], "title"
+    assert_equal 1, data["rows"].length
+    assert_equal "Test", data["rows"][0][data["columns"].index("title")]
+  end
+
+  test "executes AR expression returning an array of records" do
+    rails "runner", '2.times { |i| Post.create!(title: "Post #{i}") }'
+    data = query_json("Post.first(2)")
+
+    assert_includes data["columns"], "id"
+    assert_includes data["columns"], "title"
+    assert_equal 2, data["rows"].length
+
+    title_index = data["columns"].index("title")
+    titles = data["rows"].map { |r| r[title_index] }
+    assert_equal [ "Post 0", "Post 1" ], titles
+  end
+
   test "explain with sql flag" do
     data = query_json("explain", "--sql", "SELECT * FROM posts")
 
@@ -188,6 +250,14 @@ class Rails::Command::QueryTest < ActiveSupport::TestCase
 
     data = query_json("--sql", "SELECT * FROM posts ORDER BY id", "--per", "99999")
     assert_equal 3, data.dig("meta", "row_count")
+  end
+
+  test "detects an explicit LIMIT that follows a leading SQL comment" do
+    rails "runner", '3.times { |i| Post.create!(title: "Post #{i}") }'
+
+    data = query_json("--sql", "-- a leading comment\nSELECT * FROM posts ORDER BY id LIMIT 2")
+
+    assert_equal 2, data["rows"].length
   end
 
   test "explain shows query plan" do

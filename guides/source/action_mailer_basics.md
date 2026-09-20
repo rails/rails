@@ -216,7 +216,7 @@ successfully saved.
 NOTE: We use [`deliver_later`][] to enqueue the email to be sent later. This
 way, the controller action will continue without waiting for the email sending
 code to run. The `deliver_later` method is backed by [Active
-Job](active_job_basics.html#action-mailer).
+Job](active_job_basics.html#example-sending-email).
 
 ```ruby
 class UsersController < ApplicationController
@@ -748,7 +748,7 @@ If the name is blank (`nil` or empty string), it returns the email address.
 
 If you don't pass a subject to the mail method, Action Mailer will try to find
 it in your translations. See the [Internationalization
-Guide](i18n.html#translations-for-action-mailer-e-mail-subjects) for more.
+Guide](i18n.html#action-mailer-e-mail-subjects) for more.
 
 ### Sending Emails without Template Rendering
 
@@ -793,7 +793,7 @@ end
 Action Mailer Callbacks
 -----------------------
 
-Action Mailer allows for you to specify `*_action` callbacks to configure the message, and `*_deliver` callbacks to control the delivery.
+Action Mailer allows you to specify `*_action` callbacks to configure the message, and `*_deliver` callbacks to control the delivery.
 
 Here is a list with all the available Action Mailer callbacks, listed **in the order in which they will get called** when sending an email:
 
@@ -919,8 +919,8 @@ class UserMailer < ApplicationMailer
 end
 ```
 
-Mailer callbacks abort further processing if `body` is set to a non-nil value.
-`before_deliver` can abort with `throw :abort`.
+`before_action` callbacks abort further processing if `response_body` is set to a
+non-nil value. `before_deliver` can abort with `throw :abort`.
 
 [`after_action`]:
     https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-after_action

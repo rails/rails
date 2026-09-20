@@ -120,6 +120,14 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_bang_accepts_unique_by
+    skip unless supports_insert_conflict_target?
+
+    assert_difference "Book.count", +1 do
+      Book.insert!({ name: "UniqueBy", author_id: 1, isbn: "unique-by-insert-bang" }, unique_by: :isbn)
+    end
+  end
+
   def test_insert_all_bang_with_unique_by_raises_on_duplicate
     skip unless supports_insert_conflict_target?
 
@@ -543,6 +551,27 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_all_raises_with_key_diff_when_attributes_mismatch
+    error = assert_raises ArgumentError do
+      Book.insert_all [
+        { name: "Rework", author_id: 1 },
+        { name: "Remote", author_id: 1, isbn: "1974522598" }
+      ]
+    end
+    assert_match(/All objects being inserted must have the same keys/, error.message)
+    assert_match(/extra: \["isbn"\]/, error.message)
+  end
+
+  def test_insert_all_raises_with_missing_key_when_attributes_mismatch
+    error = assert_raises ArgumentError do
+      Book.insert_all [
+        { name: "Rework", author_id: 1, isbn: "1974522598" },
+        { name: "Remote", author_id: 1 }
+      ]
+    end
+    assert_match(/missing: \["isbn"\]/, error.message)
+  end
+
   def test_upsert_all_only_updates_the_column_provided_via_update_only
     skip unless supports_insert_on_duplicate_update?
 
@@ -799,10 +828,10 @@ class InsertAllTest < ActiveRecord::TestCase
                             { city_id: "2", logdate: 2.days.ago, peaktemp: 2, unitsales: 2 },
                             { city_id: "2", logdate: 3.days.ago, peaktemp: 0, unitsales: 0 }],
                             unique_by: %i[logdate city_id])
-    assert_equal [[1.day.ago.to_date, 1, 1]],
-                 Measurement.where(city_id: 1).pluck(:logdate, :peaktemp, :unitsales)
-    assert_equal [[2.days.ago.to_date, 2, 2], [3.days.ago.to_date, 0, 0]],
-                 Measurement.where(city_id: 2).pluck(:logdate, :peaktemp, :unitsales)
+    assert_equal_unordered [[1.day.ago.to_date, 1, 1]],
+                           Measurement.where(city_id: 1).pluck(:logdate, :peaktemp, :unitsales)
+    assert_equal_unordered [[2.days.ago.to_date, 2, 2], [3.days.ago.to_date, 0, 0]],
+                           Measurement.where(city_id: 2).pluck(:logdate, :peaktemp, :unitsales)
   end
 
   def test_insert_all_with_enum_values

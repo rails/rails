@@ -677,7 +677,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_preload_polymorph_many_types
-    taggings = Tagging.all.merge!(includes: :taggable, where: ["taggable_type != ?", "FakeModel"]).to_a
+    taggings = Tagging.all.merge!(includes: :taggable, where: ["taggable_type != ?", "FakeModel"], order: "taggings.id").to_a
     assert_no_queries do
       taggings.first.taggable.id
       taggings[1].taggable.id

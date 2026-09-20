@@ -41,7 +41,7 @@ module Arel
     class DispatchContaminationTest < Arel::Test
       setup do
         @connection = Table.engine.lease_connection
-        @table = Table.new(:users)
+        @table = Table.new(name: :users)
       end
 
       test "dispatches properly after failing upwards" do

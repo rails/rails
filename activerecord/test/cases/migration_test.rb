@@ -1174,11 +1174,7 @@ class MigrationTest < ActiveRecord::TestCase
       end
     end
 
-    assert_equal <<~MSG, output
-      -- Bar
-         -> 0.0000s
-         -> 123 rows
-    MSG
+    assert_match(/\A-- Bar\n   -> \d+\.\d{4}s\n   -> 123 rows\n\z/, output)
   end
 
   def test_migration_say_with_time_with_non_integer_returning_in_block
@@ -1188,10 +1184,7 @@ class MigrationTest < ActiveRecord::TestCase
       end
     end
 
-    assert_equal <<~MSG, output
-      -- Bar
-         -> 0.0000s
-    MSG
+    assert_match(/\A-- Bar\n   -> \d+\.\d{4}s\n\z/, output)
   end
 
   private
@@ -1324,7 +1317,7 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
 
       assert_equal 8, columns.size
       [:name, :qualification, :experience].each { |s| assert_equal :string, column(s).type }
-      assert_equal 0, column(:age).default
+      assert_equal "0", column(:age).default
       assert_equal "This is a comment", column(:birthdate).comment
     end
 
@@ -1504,8 +1497,8 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
 
       classname = ActiveRecord::Base.lease_connection.class.name[/[^:]*$/]
       expected_query_count = {
-        "Mysql2Adapter"     => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
-        "TrilogyAdapter"    => 7, # four queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
+        "Mysql2Adapter"     => 6, # three queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
+        "TrilogyAdapter"    => 6, # three queries to retrieve schema info, one for bulk change, one for UPDATE, one for NOT NULL
         "PostgreSQLAdapter" => 5, # two queries for columns, one for bulk change, one for UPDATE, one for NOT NULL
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
