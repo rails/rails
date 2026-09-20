@@ -1039,8 +1039,13 @@ For example:
 ```ruby
 class MyJob < ApplicationJob
   discard_on StandardError
+
+  def perform(arg)
+    raise StandardError, "oops"
+  end
 end
-MyJob.perform_later("oops") # error -> discarded
+
+MyJob.perform_later
 ```
 
 The event payload includes the following keys:
@@ -1055,6 +1060,22 @@ Jobs using [Continuation][] also emit the following events.
 
 #### `interrupt.active_job`
 
+The event is emitted when a continuable job is interrupted at a checkpoint.
+
+For example:
+
+```ruby
+class MyJob < ApplicationJob
+  include ActiveJob::Continuable
+
+  def perform
+    step :process do |step|
+      # ...
+      step.checkpoint! # If the queue adapter is stopping, the job is interrupted.
+    end
+  end
+end
+```
 
 | Key                | Value                                    |
 | ------------------ | ---------------------------------------- |
@@ -1067,6 +1088,30 @@ Jobs using [Continuation][] also emit the following events.
 
 #### `resume.active_job`
 
+The event is emitted when a previously interrupted continuable job resumes.
+
+For example:
+
+```ruby
+class MyJob < ApplicationJob
+  include ActiveJob::Continuable
+
+  def perform
+    step :first do
+      # ...
+    end
+
+    step :second do
+      # ...
+    end
+  end
+end
+```
+If the job is interrupted after first, it is automatically retried and the
+event is emitted when the job resumes.
+
+The event payload includes the following keys:
+
 | Key                | Value                                    |
 | ------------------ | ---------------------------------------- |
 | `:adapter`         | QueueAdapter object processing the job   |
@@ -1077,6 +1122,24 @@ Jobs using [Continuation][] also emit the following events.
 
 #### `step.active_job`
 
+The event is emitted when a continuation step finishes executing.
+
+For example:
+
+```ruby
+class MyJob < ApplicationJob
+  include ActiveJob::Continuable
+
+  def perform
+    step :process do
+      # ...
+    end # triggers step.active_job
+  end
+end
+```
+
+The event payload includes the following keys:
+
 | Key            | Value                                  |
 | -------------- | -------------------------------------- |
 | `:adapter`     | QueueAdapter object processing the job |
@@ -1086,6 +1149,32 @@ Jobs using [Continuation][] also emit the following events.
 
 #### `step_skipped.active_job`
 
+The event is emitted when a previously completed continuation step is skipped
+when a job resumes.
+
+For example:
+
+```ruby
+class MyJob < ApplicationJob
+  include ActiveJob::Continuable
+
+  def perform
+    step :first do
+      # ...
+    end
+
+    step :second do
+      # ...
+    end
+  end
+end
+```
+
+If the job is interrupted after first, the first step is skipped when the
+job resumes.
+
+The event payload includes the following keys:
+
 | Key        | Value                                  |
 | ---------- | -------------------------------------- |
 | `:adapter` | QueueAdapter object processing the job |
@@ -1093,6 +1182,25 @@ Jobs using [Continuation][] also emit the following events.
 | `:step`    | Name of the skipped step               |
 
 #### `step_started.active_job`
+
+The event is emitted when a continuation step starts executing.
+
+For example:
+
+```ruby
+class MyJob < ApplicationJob
+  include ActiveJob::Continuable
+
+  def perform
+    step :process do
+      # triggers step_started.active_job before this block is executed
+      # ...
+    end
+  end
+end
+```
+
+The event payload includes the following keys:
 
 | Key        | Value                                  |
 | ---------- | -------------------------------------- |
