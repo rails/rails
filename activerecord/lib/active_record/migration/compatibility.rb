@@ -13,6 +13,10 @@ module ActiveRecord
         const_get(name)
       end
 
+      def self.version_classes
+        @version_classes ||= constants.grep(/\AV\d+_\d+\z/).map { |name| const_get(name) }
+      end
+
       # This file exists to ensure that old migrations run the same way they did before a Rails upgrade.
       # e.g. if you write a migration on Rails 6.1, then upgrade to Rails 7, the migration should do the same thing to your
       # database as it did when you were running Rails 6.1
@@ -50,12 +54,6 @@ module ActiveRecord
         end
 
         include RemoveForeignKeyColumnMatch
-
-        private
-          def compatible_table_definition(t)
-            t.singleton_class.prepend(TableDefinition)
-            super
-          end
       end
 
       class V7_2 < V8_0
@@ -178,12 +176,6 @@ module ActiveRecord
           end
           super
         end
-
-        private
-          def compatible_table_definition(t)
-            t.singleton_class.prepend(TableDefinition)
-            super
-          end
       end
 
       class V6_1 < V7_0
@@ -239,12 +231,6 @@ module ActiveRecord
             def raise_on_if_exist_options(options)
             end
         end
-
-        private
-          def compatible_table_definition(t)
-            t.singleton_class.prepend(TableDefinition)
-            super
-          end
       end
 
       class V6_0 < V6_1
@@ -270,12 +256,6 @@ module ActiveRecord
           super
         end
         alias :add_belongs_to :add_reference
-
-        private
-          def compatible_table_definition(t)
-            t.singleton_class.prepend(TableDefinition)
-            super
-          end
       end
 
       class V5_2 < V6_0
@@ -318,11 +298,6 @@ module ActiveRecord
         end
 
         private
-          def compatible_table_definition(t)
-            t.singleton_class.prepend(TableDefinition)
-            super
-          end
-
           def command_recorder
             recorder = super
             recorder.singleton_class.prepend(CommandRecorder)
@@ -411,12 +386,6 @@ module ActiveRecord
           super(table_name, ref_name, type: :integer, **options)
         end
         alias :add_belongs_to :add_reference
-
-        private
-          def compatible_table_definition(t)
-            t.singleton_class.prepend(TableDefinition)
-            super
-          end
       end
 
       class V4_2 < V5_0
@@ -465,11 +434,6 @@ module ActiveRecord
         end
 
         private
-          def compatible_table_definition(t)
-            t.singleton_class.prepend(TableDefinition)
-            super
-          end
-
           def index_name_for_remove(table_name, column_name, options)
             index_name = connection.index_name(table_name, column_name || options)
 
