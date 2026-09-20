@@ -195,7 +195,7 @@ class FileSystemResolverRactorTest < ActiveSupport::TestCase
       end
 
       assert_equal "Hi", rendered
-      assert_operator worker_view_class, :<, main_view_class
+      assert_operator worker_view_class, :<, main_view_class if RUBY_VERSION >= "4.0"
     end
   end
 end
