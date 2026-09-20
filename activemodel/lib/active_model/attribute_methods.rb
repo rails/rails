@@ -521,10 +521,18 @@ module ActiveModel
       __send__(match.proxy_target, match.attr_name, ...)
     end
 
+    ##
+    # :method: respond_to_without_attributes?
+    # :call-seq:
+    #   respond_to_without_attributes?(method, include_private_methods = false)
+    #
+    # Checks whether the object responds to +method+ without searching the
+    # attributes.
+    define_method(:respond_to_without_attributes?, Kernel.instance_method(:respond_to?))
+
     # A +Person+ instance with a +name+ attribute can ask
     # <tt>person.respond_to?(:name)</tt>, <tt>person.respond_to?(:name=)</tt>,
     # and <tt>person.respond_to?(:name?)</tt> which will all return +true+.
-    alias :respond_to_without_attributes? :respond_to?
     def respond_to?(method, include_private_methods = false)
       if super
         true
