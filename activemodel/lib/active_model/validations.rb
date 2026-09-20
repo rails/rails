@@ -436,7 +436,9 @@ module ActiveModel
     #       @data[key]
     #     end
     #   end
-    alias :read_attribute_for_validation :send
+    def read_attribute_for_validation(key)
+      send(key)
+    end
 
     # Returns the context when running validations.
     def validation_context
