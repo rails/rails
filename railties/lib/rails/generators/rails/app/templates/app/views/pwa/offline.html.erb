@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>You're offline</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #f3f4f6;
+      color: #1f2937;
+      text-align: center;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    p { color: #6b7280; }
+    button {
+      margin-top: 1rem;
+      padding: 0.5rem 1.5rem;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background: #111827; color: #e5e7eb; }
+      p { color: #9ca3af; }
+      button { background: #3b82f6; }
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <h1>You're offline</h1>
+    <p>Unable to connect to the server. Check your internet connection and try again.</p>
+    <form action="." method="get" aria-label="Retry loading this page">
+      <button type="submit">Retry</button>
+    </form>
+  </div>
+</body>
+</html>

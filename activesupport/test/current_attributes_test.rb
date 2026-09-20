@@ -260,6 +260,22 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     end
   end
 
+  test "CurrentAttributes restricted attribute name :attributes" do
+    assert_raises ArgumentError, match: /Restricted attribute names: attributes/ do
+      class InvalidAttributesAttributeName < ActiveSupport::CurrentAttributes
+        attribute :attributes, :foo
+      end
+    end
+  end
+
+  test "CurrentAttributes restricts attribute names shadowing internal methods" do
+    assert_raises ArgumentError, match: /Restricted attribute names: attribute, defaults/ do
+      class InvalidInternalAttributeNames < ActiveSupport::CurrentAttributes
+        attribute :attribute, :foo, :defaults
+      end
+    end
+  end
+
   test "method_added hook doesn't reach the instance. Fix for #54646" do
     current = Class.new(ActiveSupport::CurrentAttributes) do
       def self.name

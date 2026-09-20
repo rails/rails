@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "zlib"
@@ -152,7 +153,7 @@ module ActiveSupport
           marshal_7_0: Marshal70WithFallback,
           marshal_7_1: Marshal71WithFallback,
           message_pack: MessagePackWithFallback,
-        }
+        }.freeze
     end
   end
 end

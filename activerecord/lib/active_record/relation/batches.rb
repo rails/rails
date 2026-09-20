@@ -257,7 +257,6 @@ module ActiveRecord
     # NOTE: By its nature, batch processing is subject to race conditions if
     # other processes are modifying the database.
     def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, cursor: primary_key, order: DEFAULT_ORDER, use_ranges: nil, &block)
-      cursor = Array(cursor).map(&:to_s)
       ensure_valid_options_for_batching!(cursor, start, finish, order)
 
       if arel.orders.present?
@@ -268,6 +267,7 @@ module ActiveRecord
         return BatchEnumerator.new(of: of, start: start, finish: finish, relation: self, cursor: cursor, order: order, use_ranges: use_ranges)
       end
 
+      cursor = Array(cursor).map(&:to_s)
       batch_limit = of
 
       if limit_value
@@ -303,6 +303,8 @@ module ActiveRecord
 
     private
       def ensure_valid_options_for_batching!(cursor, start, finish, order)
+        cursor = Array(cursor).map(&:to_s)
+
         if start && Array(start).size != cursor.size
           raise ArgumentError, ":start must contain one value per cursor column"
         end

@@ -31,13 +31,15 @@ module ActionText
       name = options.delete(:name)
       form = options.delete(:form)
       value = options.delete(:value)
+      value = view_context.capture(&@block) if @block && value.nil?
 
+      options[:class] ||= "#{editor_name}-content"
       options[:input] ||= options[:id] ?
         "#{options[:id]}_#{editor_name}_input_#{name.to_s.gsub(/\[.*\]/, "")}" :
         "#{editor_name}_input_#{self.class.id += 1}"
       input_tag = view_context.hidden_field_tag(name, value, id: options[:input], form: form)
 
-      input_tag + super
+      input_tag + view_context.content_tag(element_name, nil, options)
     end
   end
 end

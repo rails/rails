@@ -71,7 +71,7 @@ module ActiveModel
     #   person.errors.add(:name, :too_short, count: 2)
     #   person.errors.each do |error|
     #     # Will yield <#ActiveModel::Error attribute=name, type=too_short,
-    #                                       options={:count=>3}>
+    #                                       options={:count=>2}>
     #   end
 
     ##
@@ -150,6 +150,7 @@ module ActiveModel
     # * +:attribute+ - Override the attribute the error belongs to.
     # * +:type+ - Override type of the error.
     def import(error, override_options = {})
+      override_options = override_options.dup
       [:attribute, :type].each do |key|
         if override_options.key?(key)
           override_options[key] = override_options[key].to_sym
@@ -312,7 +313,7 @@ module ActiveModel
     #
     #   person.errors.add(:name, :too_long, count: 25)
     #   person.errors.messages
-    #   # => ["is too long (maximum is 25 characters)"]
+    #   # => {:name=>["is too long (maximum is 25 characters)"]}
     #
     # If +type+ is a proc, it will be called, allowing for things like
     # <tt>Time.now</tt> to be used within an error.

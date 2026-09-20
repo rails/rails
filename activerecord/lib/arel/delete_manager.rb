@@ -35,5 +35,10 @@ module Arel # :nodoc: all
       @ast.comment = value
       self
     end
+
+    def returning(returning)
+      @ast.returning << returning
+      self
+    end
   end
 end

@@ -168,8 +168,7 @@ module ActiveRecord
         def aliases
           @aliases ||= Aliases.new join_root.each_with_index.map { |join_part, i|
             column_names = if join_part == join_root && !join_root_alias
-              primary_key = join_root.primary_key
-              primary_key ? [primary_key] : []
+              Array(join_root.primary_key)
             else
               join_part.column_names
             end

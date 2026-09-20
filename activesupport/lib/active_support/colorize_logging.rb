@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -10,7 +11,7 @@ module ActiveSupport
       bold:      1,
       italic:    3,
       underline: 4,
-    }
+    }.freeze
 
     # ANSI sequence colors
     BLACK   = "\e[30m"

@@ -156,7 +156,7 @@ module ActiveRecord
         @model.find_by_sql(sql, bind_values, preparable: true, allow_retry: @query_builder.retryable, &block)
       end
     rescue ::RangeError
-      async ? Promise.wrap([]) : []
+      async ? Promise::Complete.new([]) : []
     end
 
     def self.unsupported_value?(value)

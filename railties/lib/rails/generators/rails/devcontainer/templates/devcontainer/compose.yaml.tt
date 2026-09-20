@@ -8,6 +8,7 @@ services:
 
     volumes:
     - ../../<%= app_folder %>:/workspaces/<%= app_folder %>:cached
+    - bundle-cache:/home/vscode/.local/share
 
     # Overrides default command so things don't shut down after the process ends.
     command: sleep infinity
@@ -39,8 +40,10 @@ services:
 
 <%- end -%>
   <%= devcontainer_db_service_yaml(indentation: 4) %>
-<%- if !volumes.empty? -%>
+
 volumes:
+  bundle-cache:
+<%- if !volumes.empty? -%>
 <%- volumes.each do |volume| -%>
   <%= volume %>:
 <%- end -%>

@@ -754,7 +754,7 @@ setting
 
 ```ruby
 config.public_file_server.headers = {
-  "Cache-Control" => "public, max-age=31536000"
+  "cache-control" => "public, max-age=31536000"
 }
 ```
 

@@ -14,7 +14,7 @@ local:
 #   region: us-east-1
 #   bucket: your_own_bucket-<%%= Rails.env %>
 
-# Remember not to checkin your GCS keyfile to a repository
+# Remember not to check in your GCS keyfile to a repository
 # google:
 #   service: GCS
 #   project: your_project

@@ -19,7 +19,17 @@ module ActiveRecord
         #
         # You can define a scope that applies to all finders using
         # {default_scope}[rdoc-ref:Scoping::Default::ClassMethods#default_scope].
-        def all(all_queries: nil)
+        def all(all_queries: (all_queries_not_set = true))
+          if all_queries_not_set
+            all_queries = nil
+          else
+            ActiveRecord.deprecator.warn(
+              "The `all_queries` keyword argument to `ActiveRecord::Base.all` is deprecated and will be removed in Rails 9.0."
+            )
+          end
+
+          return all_queries_scope if all_queries
+
           scope = current_scope
 
           if scope
@@ -44,6 +54,20 @@ module ActiveRecord
         # Returns a scope for the model with default scopes.
         def default_scoped(scope = relation, all_queries: nil)
           build_default_scope(scope, all_queries: all_queries) || scope
+        end
+
+        def all_queries_scope # :nodoc:
+          scope = if default_scopes?(all_queries: true)
+            default_scoped(all_queries: true)
+          else
+            relation
+          end
+
+          if current_scope = global_current_scope
+            scope = scope.merge!(current_scope)
+          end
+
+          scope
         end
 
         def default_extensions # :nodoc:
@@ -168,22 +192,26 @@ module ActiveRecord
               "an instance method with the same name."
           end
 
-          extension = Module.new(&block) if block
+          extension = Module.new(&block).freeze if block
+          scope_method =
+            if body.respond_to?(:to_proc)
+              scope_body = ActiveSupport::Ractors.try_shareable_proc(&body)
+              proc do |*args, **kwargs|
+                scope = all._exec_scope(*args, **kwargs, &scope_body)
+                scope = scope.extending(extension) if extension
+                scope
+              end
+            else
+              callable = body
+              proc do |*args, **kwargs|
+                scope = callable.call(*args, **kwargs) || all
+                scope = scope.extending(extension) if extension
+                scope
+              end
+            end
+          scope_method = ActiveSupport::Ractors.try_shareable_proc(&scope_method)
 
-          if body.respond_to?(:to_proc)
-            singleton_class.define_method(name) do |*args|
-              scope = all._exec_scope(*args, &body)
-              scope = scope.extending(extension) if extension
-              scope
-            end
-          else
-            singleton_class.define_method(name) do |*args|
-              scope = body.call(*args) || all
-              scope = scope.extending(extension) if extension
-              scope
-            end
-          end
-          singleton_class.send(:ruby2_keywords, name)
+          singleton_class.define_method(name, &scope_method)
 
           generate_relation_method(name)
         end

@@ -1051,6 +1051,57 @@ The event payload includes the following keys:
 | `:job`      | Job object                        | `#<MyJob ...>`         |
 | `:error`    | The error that caused the discard | `#<StandardError ...>` |
 
+Jobs using [Continuation][] also emit the following events.
+
+#### `interrupt.active_job`
+
+
+| Key                | Value                                    |
+| ------------------ | ---------------------------------------- |
+| `:adapter`         | QueueAdapter object processing the job   |
+| `:job`             | Job object                               |
+| `:reason`          | Reason the job was interrupted           |
+| `:description`     | Description of the continuation state    |
+| `:completed_steps` | Array of completed step names            |
+| `:current_step`    | Current continuation step object, if any |
+
+#### `resume.active_job`
+
+| Key                | Value                                    |
+| ------------------ | ---------------------------------------- |
+| `:adapter`         | QueueAdapter object processing the job   |
+| `:job`             | Job object                               |
+| `:description`     | Description of the continuation state    |
+| `:completed_steps` | Array of completed step names            |
+| `:current_step`    | Current continuation step object, if any |
+
+#### `step.active_job`
+
+| Key            | Value                                  |
+| -------------- | -------------------------------------- |
+| `:adapter`     | QueueAdapter object processing the job |
+| `:job`         | Job object                             |
+| `:step`        | Continuation step object               |
+| `:interrupted` | Whether the step was interrupted       |
+
+#### `step_skipped.active_job`
+
+| Key        | Value                                  |
+| ---------- | -------------------------------------- |
+| `:adapter` | QueueAdapter object processing the job |
+| `:job`     | Job object                             |
+| `:step`    | Name of the skipped step               |
+
+#### `step_started.active_job`
+
+| Key        | Value                                  |
+| ---------- | -------------------------------------- |
+| `:adapter` | QueueAdapter object processing the job |
+| `:job`     | Job object                             |
+| `:step`    | Continuation step object               |
+
+[`Continuation`]: https://api.rubyonrails.org/classes/ActiveJob/Continuation.html
+
 ### Active Record
 
 #### `sql.active_record`
@@ -1424,25 +1475,30 @@ The event payload includes the following keys:
 
 #### `service_update_metadata.active_storage`
 
-The event is emitted when object metadata is updated in the storage service
-(Google Cloud Storage only).
+The event is emitted when metadata is updated in the storage service. Only
+Google Cloud Storage persists these metadata updates to the stored object; for
+other services, updating the metadata is a no-op, though the event is still
+emitted.
 
 For example:
 
 ```ruby
 ActiveStorage::Blob.service.update_metadata(
-  blob.key, content_type: "image/png", disposition: "inline"
+  blob.key,
+  custom_metadata: { "author" => "John Doe" }
 )
 ```
 
 The event payload includes the following keys:
 
-| Payload Key     | Description                | Example Value    |
-| --------------- | -------------------------- | ---------------- |
-| `:key`          | Key of the blob            | `"secure_token"` |
-| `:service`      | Name of the service        | `"GCS"`          |
-| `:content_type` | HTTP `Content-Type`        | `"image/png"`    |
-| `:disposition`  | HTTP `Content-Disposition` | `"inline"`       |
+| Payload Key        | Description                 | Example Value            |
+| ------------------ | --------------------------- | ------------------------ |
+| `:key`             | Key of the blob             | `"secure_token"`         |
+| `:service`         | Name of the service         | `"GCS"`                  |
+| `:content_type`    | HTTP `Content-Type`         | `"image/png"`            |
+| `:disposition`     | HTTP `Content-Disposition`  | `"inline"`               |
+| `:filename`        | Name of the file            | `"example.png"`          |
+| `:custom_metadata` | Custom metadata of the file | `{"author": "John Doe"}` |
 
 ### Active Support: Caching
 

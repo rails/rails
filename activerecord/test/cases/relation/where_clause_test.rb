@@ -60,7 +60,7 @@ class ActiveRecord::Relation
     end
 
     test "merge allows for columns with the same name from different tables" do
-      table2 = Arel::Table.new("table2")
+      table2 = Arel::Table.new(name: "table2")
       a = WhereClause.new(
         [table["id"].eq(bind_param(1)), table2["id"].eq(bind_param(2))],
       )
@@ -287,7 +287,7 @@ class ActiveRecord::Relation
 
     private
       def table
-        Arel::Table.new("table")
+        Arel::Table.new(name: "table")
       end
 
       def bind_param(value)

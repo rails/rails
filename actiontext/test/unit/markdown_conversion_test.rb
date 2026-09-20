@@ -3,6 +3,31 @@
 require "test_helper"
 
 class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
+  RAW_MARKDOWN_TAG = ActionText::MarkdownConversion::RAW_MARKDOWN_TAG_NAME
+  test "escape_markdown_text escapes metacharacters" do
+    assert_equal '\\*\\*bold\\*\\* and \\[link\\](url)', ActionText::MarkdownConversion.escape_markdown_text("**bold** and [link](url)")
+  end
+
+  test "markdown_link escapes title text and encodes URL" do
+    assert_equal '[\\*\\*bold\\*\\*](https://example.com/a%20b)', ActionText::MarkdownConversion.markdown_link("**bold**", "https://example.com/a b")
+  end
+
+  test "markdown_link with disallowed URI scheme returns escaped title" do
+    assert_equal "\\[click here\\]", ActionText::MarkdownConversion.markdown_link("click here", "javascript:alert(1)")
+  end
+
+  test "markdown_link with image: true returns image syntax" do
+    assert_equal "![photo](https://example.com/photo.png)", ActionText::MarkdownConversion.markdown_link("photo", "https://example.com/photo.png", image: true)
+  end
+
+  test "markdown_link with image: true and disallowed URI scheme returns escaped title" do
+    assert_equal "\\[Image\\]", ActionText::MarkdownConversion.markdown_link("Image", "data:text/html,PAYLOAD", image: true)
+  end
+
+  test "markdown_link with allowed data:image URI produces image link" do
+    assert_equal "![photo](data:image/png;base64,abc)", ActionText::MarkdownConversion.markdown_link("photo", "data:image/png;base64,abc", image: true)
+  end
+
   # --- Text tests ---
 
   test "plain text passes through unchanged" do
@@ -323,7 +348,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
 
   test "nested <blockquote> tags produce nested quotes" do
     assert_converted_to(
-      "> this is a quote\n> > of a quote",
+      "> this is a quote\n> \n> > of a quote",
       "<blockquote>this is a quote<blockquote>of a quote</blockquote></blockquote>"
     )
   end
@@ -372,6 +397,146 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<code> containing a blank line keeps its content in one code span" do
+    assert_converted_to(
+      "`a [click](javascript:alert(1))`",
+      "<code>a<br><br>[click](javascript:alert(1))</code>"
+    )
+  end
+
+  test "<code> containing a line break keeps its content in one code span" do
+    assert_converted_to(
+      "`a [click](javascript:alert(1))`",
+      "<code>a<br>[click](javascript:alert(1))</code>"
+    )
+  end
+
+  test "<pre> inside a heading is flattened into an inline code span" do
+    assert_converted_to(
+      "# `[click](javascript:alert(1))`",
+      "<h1><pre>[click](javascript:alert(1))</pre></h1>"
+    )
+  end
+
+  test "<pre> inside <summary> is flattened into an inline code span" do
+    assert_converted_to(
+      "**`[click](javascript:alert(1))`**",
+      "<details><summary><pre>[click](javascript:alert(1))</pre></summary></details>"
+    )
+  end
+
+  test "<pre> inside a table cell is flattened into an inline code span" do
+    assert_converted_to(
+      "| `[click](javascript:alert(1))` | x |",
+      "<table><tr><td><pre>[click](javascript:alert(1))</pre></td><td>x</td></tr></table>"
+    )
+  end
+
+  test "<pre> inside a table header cell is flattened into an inline code span" do
+    assert_converted_to(
+      "| `[click](javascript:alert(1))` |\n| --- |",
+      "<table><tr><th><pre>[click](javascript:alert(1))</pre></th></tr></table>"
+    )
+  end
+
+  test "<pre> inside a <template> in a table row is flattened into an inline code span" do
+    assert_converted_to(
+      "| `[click](javascript:alert(1))` |",
+      "<table><tr><template><pre>[click](javascript:alert(1))</pre></template></tr></table>"
+    )
+  end
+
+  test "<pre> in a table row from an HTML4-parsed fragment is flattened into an inline code span" do
+    fragment = Nokogiri::HTML4.fragment("<table><tr><div><pre>[click](javascript:alert(1))</pre></div></tr></table>")
+    assert_equal "| `[click](javascript:alert(1))` |", ActionText::MarkdownConversion.node_to_markdown(fragment)
+  end
+
+  test "<pre> in an <ol> item is indented to the width of the marker so the fence holds" do
+    assert_converted_to(
+      "1. ```\n   [click](javascript:alert(1))\n   ```",
+      "<ol><li><pre>[click](javascript:alert(1))</pre></li></ol>"
+    )
+  end
+
+  test "<pre> in the tenth <ol> item is indented to the width of the wider marker" do
+    assert_converted_to(
+      "#{(1..9).map { |i| "#{i}. x" }.join("\n")}\n10. ```\n    [click](javascript:alert(1))\n    ```",
+      "<ol>#{"<li>x</li>" * 9}<li><pre>[click](javascript:alert(1))</pre></li></ol>"
+    )
+  end
+
+  test "a nested <ol> is indented to the width of the marker it sits under" do
+    assert_converted_to(
+      "1. one\n   1. nested",
+      "<ol><li>one<ol><li>nested</li></ol></li></ol>"
+    )
+  end
+
+  test "<code> content starting with whitespace gets a wider code span delimiter" do
+    assert_converted_to(
+      "`` [click](javascript:alert(1))``",
+      "<code> [click](javascript:alert(1))</code>"
+    )
+    assert_converted_to(
+      "``\t[click](javascript:alert(1))``",
+      "<code>\t[click](javascript:alert(1))</code>"
+    )
+  end
+
+  test "<pre> that follows a sibling starts its own block" do
+    assert_converted_to(
+      "before\n\n```\n[click](javascript:alert(1))\n```",
+      "<div>before</div><figure><pre>[click](javascript:alert(1))</pre></figure>"
+    )
+    assert_converted_to(
+      "lead\n\n```\n[click](javascript:alert(1))\n```",
+      "<div>lead<pre>[click](javascript:alert(1))</pre></div>"
+    )
+  end
+
+  test "<pre> in a container that has more content after it still starts its own block" do
+    assert_converted_to(
+      "before\n\n```\n[click](javascript:alert(1))\n```\n\nafter",
+      "<div>before</div><figure><pre>[click](javascript:alert(1))</pre>after</figure>"
+    )
+  end
+
+  test "<div> holding a <pre> reports itself as a block" do
+    assert_converted_to(
+      "before\n\n```\n[click](javascript:alert(1))\n```\n\nafter",
+      "<div>before</div><div><pre>[click](javascript:alert(1))</pre>after</div>"
+    )
+  end
+
+  test "<pre> with CR line endings from an HTML4-parsed fragment keeps every line in the fence" do
+    fragment = Nokogiri::HTML4.fragment("<ol><li><pre>one\rtwo</pre></li></ol>")
+    assert_equal "1. ```\n   one\n   two\n   ```", ActionText::MarkdownConversion.node_to_markdown(fragment)
+
+    fragment = Nokogiri::HTML4.fragment("<blockquote><pre>one\r\ntwo</pre></blockquote>")
+    assert_equal "> ```\n> one\n> two\n> ```", ActionText::MarkdownConversion.node_to_markdown(fragment)
+  end
+
+  test "<pre> inside <strong> is flattened into an inline code span" do
+    assert_converted_to(
+      "**`[click](javascript:alert(1))`**",
+      "<strong><pre>[click](javascript:alert(1))</pre></strong>"
+    )
+  end
+
+  test "<pre> inside <em> is flattened into an inline code span" do
+    assert_converted_to(
+      "*`[click](javascript:alert(1))`*",
+      "<em><pre>[click](javascript:alert(1))</pre></em>"
+    )
+  end
+
+  test "<pre> inside <del> is flattened into an inline code span" do
+    assert_converted_to(
+      "~~`[click](javascript:alert(1))`~~",
+      "<del><pre>[click](javascript:alert(1))</pre></del>"
+    )
+  end
+
   test "<ul> tags are converted to unordered lists" do
     assert_converted_to(
       "before\n\n- one\n- two\n- three\n\nafter",
@@ -397,6 +562,13 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_converted_to(
       "- one\n  - nested\n- two",
       "<ul><li>one<ul><li>nested</li></ul></li><li>two</li></ul>"
+    )
+  end
+
+  test "an <ol> item holding only a nested <ol> keeps its marker" do
+    assert_converted_to(
+      "1.   1. c",
+      "<ol><li><ol><li><ol><li>c</li></ol></li></ol></li></ol>"
     )
   end
 
@@ -569,6 +741,128 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_converted_to("click here", '<a href="&#10;javascript:alert(1)">click here</a>')
   end
 
+  test "<a> tags preserve boundary whitespace in link text" do
+    assert_converted_to(
+      "before[ link ](/x)after",
+      'before<a href="/x"> link </a>after'
+    )
+  end
+
+  test "<a> tags containing <pre> are flattened into an inline code span" do
+    assert_converted_to(
+      "[`puts 1`](https://example.com)",
+      '<a href="https://example.com"><pre>puts 1</pre></a>'
+    )
+  end
+
+  test "<a> tags containing multiline <pre> are flattened into an inline code span" do
+    assert_converted_to(
+      "[`line one line two`](https://example.com)",
+      "<a href=\"https://example.com\"><pre>line one\nline two</pre></a>"
+    )
+  end
+
+  test "<a> tags containing <pre> with backticks are flattened into an inline code span" do
+    assert_converted_to(
+      "[````a ``` b````](https://example.com)",
+      '<a href="https://example.com"><pre>a ``` b</pre></a>'
+    )
+  end
+
+  test "<a> tags containing <p> are flattened into link text" do
+    assert_converted_to(
+      "[text ](https://example.com)",
+      '<a href="https://example.com"><p>text</p></a>'
+    )
+  end
+
+  test "<a> tags containing multiple <p> are flattened into link text" do
+    assert_converted_to(
+      "[one two ](https://example.com)",
+      '<a href="https://example.com"><p>one</p><p>two</p></a>'
+    )
+  end
+
+  test "<a> tags containing <h1> are flattened into link text" do
+    assert_converted_to(
+      "[# heading ](https://example.com)",
+      '<a href="https://example.com"><h1>heading</h1></a>'
+    )
+  end
+
+  test "<a> tags containing <blockquote> are flattened into link text" do
+    assert_converted_to(
+      "[> quoted ](https://example.com)",
+      '<a href="https://example.com"><blockquote>quoted</blockquote></a>'
+    )
+  end
+
+  test "<a> tags containing <ul> are flattened into link text" do
+    assert_converted_to(
+      "[- item ](https://example.com)",
+      '<a href="https://example.com"><ul><li>item</li></ul></a>'
+    )
+  end
+
+  test "<a> tags containing <ul> with multiple items are flattened into link text" do
+    assert_converted_to(
+      "[- one - two ](https://example.com)",
+      '<a href="https://example.com"><ul><li>one</li><li>two</li></ul></a>'
+    )
+  end
+
+  test "<a> tags containing <ol> are flattened into link text" do
+    assert_converted_to(
+      "[1. item ](https://example.com)",
+      '<a href="https://example.com"><ol><li>item</li></ol></a>'
+    )
+  end
+
+  test "<a> tags containing <pre> with CRLF line endings are flattened into an inline code span" do
+    assert_converted_to(
+      "[`line one line two`](https://example.com)",
+      "<a href=\"https://example.com\"><pre>line one\r\nline two</pre></a>"
+    )
+  end
+
+  test "<a> tags containing <pre> with CR line endings are flattened into an inline code span" do
+    assert_converted_to(
+      "[`line one line two`](https://example.com)",
+      "<a href=\"https://example.com\"><pre>line one\rline two</pre></a>"
+    )
+  end
+
+  test "<a> tags containing <pre> with CR line endings from an HTML4-parsed fragment are flattened" do
+    fragment = Nokogiri::HTML4.fragment("<a href=\"https://example.com\"><pre>line one\rline two</pre></a>")
+    assert_equal "[`line one line two`](https://example.com)", ActionText::MarkdownConversion.node_to_markdown(fragment)
+  end
+
+  test "<a> tags containing <pre> with CRLF line endings from an HTML4-parsed fragment are flattened" do
+    fragment = Nokogiri::HTML4.fragment("<a href=\"https://example.com\"><pre>line one\r\nline two</pre></a>")
+    assert_equal "[`line one line two`](https://example.com)", ActionText::MarkdownConversion.node_to_markdown(fragment)
+  end
+
+  test "<a> tags containing <br> are flattened into link text" do
+    assert_converted_to(
+      "[one two](https://example.com)",
+      '<a href="https://example.com">one<br>two</a>'
+    )
+  end
+
+  test "<a> tags with javascript: href containing <p> pass through content without flattening" do
+    assert_converted_to(
+      "one\n\ntwo",
+      '<a href="javascript:alert(1)"><p>one</p><p>two</p></a>'
+    )
+  end
+
+  test "<a> tags without href containing <p> pass through content without flattening" do
+    assert_converted_to(
+      "one\n\ntwo",
+      "<a><p>one</p><p>two</p></a>"
+    )
+  end
+
   test "<table> with <thead> is converted to markdown table" do
     assert_converted_to(
       "| Name | Age |\n| --- | --- |\n| Alice | 30 |",
@@ -723,6 +1017,20 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "RemoteImage attachment with allowed data:image URI renders as image link" do
+    assert_converted_to(
+      "![Image](data:image/png;base64,abc)",
+      '<action-text-attachment content-type="image/png" url="data:image/png;base64,abc"></action-text-attachment>'
+    )
+  end
+
+  test "RemoteImage attachment with disallowed URI scheme omits the link" do
+    assert_converted_to(
+      "\\[Image\\]",
+      '<action-text-attachment content-type="image/jpeg" url="data:text/html,DANGEROUS_PAYLOAD"></action-text-attachment>'
+    )
+  end
+
   test "RemoteImage attachment without caption falls back to Image alt text" do
     assert_converted_to(
       "![Image](https://example.com/photo.jpg)",
@@ -746,7 +1054,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
 
-    assert_converted_to("[Captioned]", html)
+    assert_converted_to("\\[Captioned\\]", html)
   end
 
   test "Blob image with attachment_links: true uses caption" do
@@ -763,7 +1071,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
 
-    assert_converted_to("[racecar.jpg]", html)
+    assert_converted_to("\\[racecar.jpg\\]", html)
   end
 
   test "Blob image with attachment_links: true uses filename" do
@@ -780,7 +1088,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "report.txt", content_type: "text/plain")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
 
-    assert_converted_to("[Captioned]", html)
+    assert_converted_to("\\[Captioned\\]", html)
   end
 
   test "Blob with attachment_links: true uses caption" do
@@ -797,7 +1105,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "report.txt", content_type: "text/plain")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>)
 
-    assert_converted_to("[report.txt]", html)
+    assert_converted_to("\\[report.txt\\]", html)
   end
 
   test "Blob with attachment_links: true uses filename" do
@@ -814,7 +1122,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo *large*"></action-text-attachment>)
 
-    assert_converted_to("[photo \\*large\\*]", html)
+    assert_converted_to("\\[photo \\*large\\*\\]", html)
   end
 
   test "Blob image with attachment_links: true escapes metacharacters in caption" do
@@ -832,8 +1140,8 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo <large>"></action-text-attachment>)
     html2 = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="photo &lt;large&gt;"></action-text-attachment>)
 
-    assert_converted_to("[photo \\<large\\>]", html)
-    assert_converted_to("[photo \\<large\\>]", html2)
+    assert_converted_to("\\[photo \\<large\\>\\]", html)
+    assert_converted_to("\\[photo \\<large\\>\\]", html2)
   end
 
   test "Blob image with attachment_links: true escapes angle brackets in caption" do
@@ -876,7 +1184,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
       assert_raises(ArgumentError) do
         ActionText::Content.new(html).to_markdown(attachment_links: true)
       end
-      assert_converted_to("[Captioned]", html)
+      assert_converted_to("\\[Captioned\\]", html)
     end
   ensure
     ActionMailer::Base.default_url_options = original_default_url_options
@@ -890,7 +1198,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
       ActionText::Content.new(html).to_markdown(attachment_links: true)
     end
     assert_match(/rendering context/, error.message)
-    assert_converted_to("[Captioned]", html)
+    assert_converted_to("\\[Captioned\\]", html)
   end
 
   test "Blob image with renderer uses bracketed title by default" do
@@ -898,7 +1206,7 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     html = %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
 
     with_controller_renderer do
-      assert_converted_to("[Captioned]", html)
+      assert_converted_to("\\[Captioned\\]", html)
     end
   end
 
@@ -919,6 +1227,86 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     blob.destroy!
 
     assert_converted_to("☒", html)
+  end
+
+  # --- User-supplied <action-text-markdown> tests ---
+
+  test "user-supplied action-text-markdown does not bypass URI scheme validation" do
+    assert_converted_to "\\[click\\](javascript:alert(1))",
+      "<action-text-markdown>[click](javascript:alert(1))</action-text-markdown>"
+  end
+
+  test "user-supplied action-text-markdown has its text escaped" do
+    assert_converted_to "\\*\\*bold\\*\\*", "<action-text-markdown>**bold**</action-text-markdown>"
+  end
+
+  test "user-supplied action-text-markdown keeps its element children" do
+    assert_converted_to "**bold**", "<action-text-markdown><strong>bold</strong></action-text-markdown>"
+  end
+
+  test "nested user-supplied action-text-markdown is neutralized at every level" do
+    assert_converted_to "\\[click\\](javascript:alert(1))",
+      "<action-text-markdown><action-text-markdown>[click](javascript:alert(1))</action-text-markdown></action-text-markdown>"
+  end
+
+  test "user-supplied action-text-markdown does not disturb attachment markdown in the same content" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = "<action-text-markdown>[click](javascript:alert(1))</action-text-markdown>" +
+      %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" caption="Captioned"></action-text-attachment>)
+
+    with_controller_renderer do |controller|
+      url = controller.url_for(blob)
+      assert_converted_to "\\[click\\](javascript:alert(1))![Captioned](#{url})", html, attachment_links: true
+    end
+  end
+
+  test "canonicalizing unwraps every raw Markdown tag it finds" do
+    content = ActionText::Content.new("<action-text-markdown>[click](javascript:alert(1))</action-text-markdown>")
+
+    assert_equal "[click](javascript:alert(1))", content.to_html
+    assert_empty content.fragment.find_all(RAW_MARKDOWN_TAG),
+      "canonicalizing must leave no raw Markdown tag behind, whatever the source of the content"
+  end
+
+  test "render_attachments does not canonicalize away the raw Markdown tags it adds" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    content = ActionText::Content.new(%Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>))
+
+    rendered = content.render_attachments(with_full_attributes: false) do |attachment|
+      ActionText::MarkdownConversion.render_attachment(attachment)
+    end
+
+    assert_equal 1, rendered.fragment.find_all(RAW_MARKDOWN_TAG).size,
+      "#to_markdown adds raw Markdown tags after canonicalizing, so render_attachments must " \
+      "build its result with canonicalize: false or the tags it just added are unwrapped again"
+  end
+
+  test "to_markdown is repeatable for content holding user-supplied action-text-markdown" do
+    content = ActionText::Content.new("<action-text-markdown>[click](javascript:alert(1))</action-text-markdown>")
+
+    assert_equal content.to_markdown, content.to_markdown
+  end
+
+  test "attachable without a Markdown representation escapes its caption" do
+    page = Page.create!
+    html = %Q(<action-text-attachment sgid="#{page.attachable_sgid}" caption="[click](javascript:alert(1))"></action-text-attachment>)
+
+    assert_converted_to "\\[click\\](javascript:alert(1))", html
+  end
+
+  test "attachable without a Markdown representation escapes metacharacters in its caption" do
+    page = Page.create!
+    html = %Q(<action-text-attachment sgid="#{page.attachable_sgid}" caption="**bold**"></action-text-attachment>)
+
+    assert_converted_to "\\*\\*bold\\*\\*", html
+  end
+
+  test "Attachment#to_markdown escapes the caption of an attachable without a Markdown representation" do
+    page = Page.create!
+    html = %Q(<action-text-attachment sgid="#{page.attachable_sgid}" caption="[click](javascript:alert(1))"></action-text-attachment>)
+    attachment = ActionText::Content.new(html).attachments.first
+
+    assert_equal "\\[click\\](javascript:alert(1))", attachment.to_markdown
   end
 
   # --- Fragment and Rich Text tests ---

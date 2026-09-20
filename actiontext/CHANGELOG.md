@@ -1,3 +1,52 @@
+*   Add alternative text to Action Text attachments.
+
+    Attachments could only be described by their caption, which is always shown
+    alongside the attachment. An image could not be described for people using a
+    screen reader without that description also appearing on the page, and the
+    default blob partial rendered images with no `alt` attribute at all.
+
+    Attachments now accept an `alt` attribute, exposed as `ActionText::Attachment#alt`
+    and rendered as the image's alternative text. It is independent of the caption,
+    so an attachment may have either, both, or neither.
+
+        ActionText::Attachment.from_attachable(blob, alt: "A racecar on a track")
+
+    Images with no alternative text are unchanged and still render without an
+    `alt` attribute, since Action Text does not infer descriptions.
+
+    *Olly Headey*
+
+*   Dispatch all Active Storage `direct-upload:`-prefixed events
+
+    Add support for `direct-upload:before-blob-request` and `direct-upload:before-storage-request`.
+
+    Add `id` and `file` properties for parity with Active Storage.
+
+    *Sean Doyle*
+
+*   Support block children in editor elements alongside value.
+
+    Blocks were introduced in #55827, but only as an alternative to the value
+    argument: the block was captured and used as the initial editor content,
+    making it either value OR block — not both.
+
+    The block semantics are now changed so that blocks render as DOM children of
+    the editor element instead. Value and block are now independent: value flows
+    into the editor's content binding (the hidden input for Trix, the value
+    attribute for custom editors), while the block renders as inner DOM children
+    — useful for embedding custom elements such as prompt menus or toolbar
+    extensions.
+
+    This enables other editors like Lexxy to use the block form for configuration
+    — injecting child elements into the editor tag — while the rich text value is
+    preserved separately.
+
+    Trix preserves the original block-as-initial-value contract by capturing the
+    block in `TrixEditor::Tag#render_in` when no value is present, keeping its
+    hidden input populated as before.
+
+    *Jorge Manrubia*
+
 *   Render `MissingAttachable` as "☒" in plain text.
 
     Previously, `Content#to_plain_text` would replace a `MissingAttachable` with a blank string.
@@ -15,6 +64,10 @@
 
         message = Message.create!(content: "<h1>Hello</h1><p>This is <strong>bold</strong></p>")
         message.content.to_markdown # => "# Hello\n\nThis is **bold**"
+
+    The `<action-text-markdown>` element is reserved for Action Text's own use and is
+    removed from rich text content, so Markdown typed inside one is escaped like any
+    other text.
 
     *Mike Dalessio*
 

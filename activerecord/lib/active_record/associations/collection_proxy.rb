@@ -128,7 +128,7 @@ module ActiveRecord
       #   person.pets.find(4) # => ActiveRecord::RecordNotFound: Couldn't find Pet with 'id'=4
       #
       #   person.pets.find(2) { |pet| pet.name.downcase! }
-      #   # => #<Pet id: 2, name: "fancy-fancy", person_id: 1>
+      #   # => #<Pet id: 2, name: "spook", person_id: 1>
       #
       #   person.pets.find(2, 3)
       #   # => [
@@ -394,7 +394,8 @@ module ActiveRecord
 
       # Deletes all the records from the collection according to the strategy
       # specified by the +:dependent+ option. If no +:dependent+ option is given,
-      # then it will follow the default strategy.
+      # then it will follow the default strategy. Returns the number of deleted
+      # records.
       #
       # For <tt>has_many :through</tt> associations, the default deletion strategy is
       # +:delete_all+.
@@ -415,11 +416,6 @@ module ActiveRecord
       #   #    ]
       #
       #   person.pets.delete_all
-      #   # => [
-      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
-      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
-      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
-      #   #    ]
       #
       #   person.pets.size # => 0
       #   person.pets      # => []
@@ -726,7 +722,11 @@ module ActiveRecord
       end
 
       def pluck(*column_names)
-        null_scope? ? scope.pluck(*column_names) : super
+        if proxy_association.violates_strict_loading?
+          Base.strict_loading_violation!(owner: proxy_association.owner.class, reflection: proxy_association.reflection)
+        end
+
+        null_scope? ? records.pluck(*column_names) : super
       end
 
       ##

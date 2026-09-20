@@ -70,6 +70,143 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
     assert_equal tmp_config.dig(:tmp, :root), @service.root
   end
 
+  test "path_for raises InvalidKeyError for basic traversal" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      @service.path_for("../../etc/cron.d/evil")
+    end
+  end
+
+  test "path_for raises InvalidKeyError for deep traversal" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      @service.path_for("../../../../../etc/shadow")
+    end
+  end
+
+  test "path_for raises InvalidKeyError for sibling directory bypass" do
+    original_root = @service.root
+    @service.root = File.join(Dir.tmpdir, "active_store")
+    assert_raises ActiveStorage::InvalidKeyError do
+      @service.path_for("../../../../tmp/store_backup/secret")
+    end
+  ensure
+    @service.root = original_root
+  end
+
+  test "path_for raises InvalidKeyError for null byte injection" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      @service.path_for("validkey\x00.jpg")
+    end
+  end
+
+  test "path_for raises InvalidKeyError for null byte with traversal" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      @service.path_for("../../etc/passwd\x00.jpg")
+    end
+  end
+
+  test "path_for raises InvalidKeyError for empty key" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      @service.path_for("")
+    end
+
+    assert_raises ActiveStorage::InvalidKeyError do
+      @service.path_for(nil)
+    end
+  end
+
+  test "path_for raises InvalidKeyError for single dot segment" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      @service.path_for("avatars/./123")
+    end
+  end
+
+  test "path_for raises InvalidKeyError for double dot mid-path" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      @service.path_for("avatars/../users/123")
+    end
+  end
+
+  test "path_for raises InvalidKeyError for key whose folder_for output escapes root" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      @service.path_for("....payload")
+    end
+  end
+
+  test "path_for raises InvalidKeyError for short key whose folder_for output escapes root" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      @service.path_for("..something")
+    end
+  end
+
+  test "path_for raises InvalidKeyError for non-ASCII-compatible encoded key" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      @service.path_for("abc".encode("UTF-16LE"))
+    end
+  end
+
+  test "path_for returns path within root for alternate secure random key" do
+    key = SecureRandom.base58(24)
+    path = @service.path_for(key)
+    assert path.start_with?(File.expand_path(@service.root) + "/")
+  end
+
+  test "path_for returns path within root for a slash-containing key" do
+    path = @service.path_for("avatars/123/photo")
+    assert path.start_with?(File.expand_path(@service.root) + "/")
+  end
+
+  test "delete_prefixed raises InvalidKeyError for traversal prefix" do
+    assert_raises ActiveStorage::InvalidKeyError do
+      @service.delete_prefixed("../../etc/cron.d/")
+    end
+  end
+
+  test "path_for escapes all glob metacharacters" do
+    assert_equal "\\[", @service.send(:escape_glob_metacharacters, "[")
+    assert_equal "\\]", @service.send(:escape_glob_metacharacters, "]")
+    assert_equal "\\*", @service.send(:escape_glob_metacharacters, "*")
+    assert_equal "\\?", @service.send(:escape_glob_metacharacters, "?")
+    assert_equal "\\{", @service.send(:escape_glob_metacharacters, "{")
+    assert_equal "\\}", @service.send(:escape_glob_metacharacters, "}")
+    assert_equal "\\\\", @service.send(:escape_glob_metacharacters, "\\")
+    assert_equal "hello", @service.send(:escape_glob_metacharacters, "hello")
+    assert_equal "/path/to/\\[brackets\\]/file", @service.send(:escape_glob_metacharacters, "/path/to/[brackets]/file")
+  end
+
+  test "delete_prefixed with glob metacharacters only deletes matching files" do
+    base_key = SecureRandom.base58(24)
+    bracket_key = "#{base_key}[1]/file"
+    plain_key = "#{base_key}1/file"
+
+    @service.upload(bracket_key, StringIO.new("bracket"))
+    @service.upload(plain_key, StringIO.new("plain"))
+
+    @service.delete_prefixed("#{base_key}[1]/")
+
+    assert @service.exist?(plain_key), "file should not be deleted"
+    assert_not @service.exist?(bracket_key), "file should be deleted"
+  ensure
+    @service.delete(bracket_key) rescue nil
+    @service.delete(plain_key) rescue nil
+  end
+
+  test "delete_prefixed with trailing slash only deletes files inside the directory" do
+    base_key = SecureRandom.base58(24)
+    inside_key = "#{base_key}/file"
+    sibling_key = "#{base_key}_sibling"
+
+    @service.upload(inside_key, StringIO.new("inside"))
+    @service.upload(sibling_key, StringIO.new("sibling"))
+
+    @service.delete_prefixed("#{base_key}/")
+
+    assert @service.exist?(sibling_key), "sibling file should not be deleted"
+    assert_not @service.exist?(inside_key), "file inside directory should be deleted"
+  ensure
+    @service.delete(inside_key) rescue nil
+    @service.delete(sibling_key) rescue nil
+  end
+
   test "can change root" do
     tmp_path_2 = File.join(Dir.tmpdir, "active_storage_2")
     @service.root = tmp_path_2

@@ -41,7 +41,7 @@ class JobSerializationTest < ActiveSupport::TestCase
     end
   end
 
-  test "keeps scheduled_at around after deserialization if data doesnt include it" do
+  test "keeps scheduled_at around after deserialization if data doesn't include it" do
     freeze_time
 
     current_time = Time.now

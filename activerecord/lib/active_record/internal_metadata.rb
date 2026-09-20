@@ -17,7 +17,7 @@ module ActiveRecord
 
     def initialize(pool)
       @pool = pool
-      @arel_table = Arel::Table.new(table_name)
+      @arel_table = Arel::Table.new(name: table_name)
     end
 
     def primary_key
@@ -136,7 +136,7 @@ module ActiveRecord
           [arel_table[:updated_at], current_time(connection)]
         ]
 
-        connection.insert(im, "#{self.class} Create", primary_key, key)
+        connection.insert(im, "#{self.class} Create")
       end
 
       def update_entry(connection, key, new_value)

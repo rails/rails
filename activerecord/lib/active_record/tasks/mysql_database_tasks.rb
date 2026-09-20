@@ -31,7 +31,7 @@ module ActiveRecord
         args.concat(["--routines"])
         args.concat(["--skip-comments"])
 
-        ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
+        ignore_tables = ActiveRecord.schema_ignored_tables
         if ignore_tables.any?
           ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
           args += ignore_tables.map { |table| "--ignore-table=#{db_config.database}.#{table}" }

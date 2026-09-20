@@ -82,6 +82,13 @@ Upgrading from Rails 8.1 to Rails 8.2
 
 For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
 
+### The old Active Record 6.1 marshalling format was removed.
+
+If your application still sets `active_record.marshalling_format_version = 6.1`, which may
+be done by not calling `config.load_defaults` or calling it with a version older or equal to `6.1`,
+you MUST opt-in to the newer `7.1` marshal format before upgrading, and ensure all caches were
+either flushed or upgraded.
+
 ### The negative scopes for enums now include records with `nil` values.
 
 Active Record negative scopes for enums now include records with `nil` values.
@@ -457,7 +464,7 @@ versions, there are two scenarios to consider:
     config.active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA1
     ```
 
-    If all of your data was encrypted non-deterministicly (the default unless `encrypts` is passed `deterministic: true`, you can instead configure SHA-256 for Active Record Encryption as in scenario 2 below and also allow columns previously encrypted with SHA-1 to be decrypted by setting:
+    If all of your data was encrypted non-deterministically (the default unless `encrypts` is passed `deterministic: true`, you can instead configure SHA-256 for Active Record Encryption as in scenario 2 below and also allow columns previously encrypted with SHA-1 to be decrypted by setting:
 
     ```ruby
     config.active_record.encryption.support_sha1_for_non_deterministic_encryption = true
@@ -491,7 +498,7 @@ config.active_record.encryption.support_sha1_for_non_deterministic_encryption = 
 
 The `config.action_dispatch.show_exceptions` configuration controls how Action Pack handles exceptions raised while responding to requests.
 
-Prior to Rails 7.1, setting `config.action_dispatch.show_exceptions = true` configured Action Pack to rescue exceptions and render appropriate HTML error pages, like rendering `public/404.html` with a `404 Not found` status code instead of raising an `ActiveRecord::RecordNotFound` exception. Setting `config.action_dispatch.show_exceptions = false` configured Action Pack to not rescue the exception. Prior to Rails 7.1, new applications were generated with a line in `config/environments/test.rb` that set `config.action_dispatch.show_exceptions = false`.
+Prior to Rails 7.1, setting `config.action_dispatch.show_exceptions = true` configured Action Pack to rescue exceptions and render appropriate HTML error pages, like rendering `public/404.html` with a `404 Not Found` status code instead of raising an `ActiveRecord::RecordNotFound` exception. Setting `config.action_dispatch.show_exceptions = false` configured Action Pack to not rescue the exception. Prior to Rails 7.1, new applications were generated with a line in `config/environments/test.rb` that set `config.action_dispatch.show_exceptions = false`.
 
 Rails 7.1 changes the acceptable values from `true` and `false` to `:all`, `:rescuable`, and `:none`.
 
@@ -644,7 +651,7 @@ In order to be able to read messages using the old digest class it is necessary
 to register a rotator. Failing to do so may result in users having their sessions
 invalidated during the upgrade.
 
-The following is an example for rotator for the encrypted and the signed cookies.
+The following is an example of a rotator for encrypted and signed cookies.
 
 ```ruby
 # config/initializers/cookie_rotator.rb

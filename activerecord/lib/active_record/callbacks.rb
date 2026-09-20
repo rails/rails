@@ -173,8 +173,7 @@ module ActiveRecord
   #
   # If a <tt>before_*</tt> callback throws +:abort+, all the later callbacks and
   # the associated action are cancelled.
-  # \Callbacks are generally run in the order they are defined, with the exception of callbacks defined as
-  # methods on the model, which are called last.
+  # \Callbacks are run in the order they are defined.
   #
   # == Ordering callbacks
   #
@@ -283,7 +282,7 @@ module ActiveRecord
       :before_save, :around_save, :after_save, :before_create, :around_create,
       :after_create, :before_update, :around_update, :after_update,
       :before_destroy, :around_destroy, :after_destroy, :after_commit, :after_rollback
-    ]
+    ].freeze
 
     module ClassMethods
       include ActiveModel::Callbacks

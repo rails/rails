@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "date"
+
 module ActiveJob
   module Serializers
     class DateTimeSerializer < TimeObjectSerializer # :nodoc:

@@ -8,12 +8,16 @@ module ActiveRecord
     class PostgresqlDbConsoleTest < ActiveRecord::PostgreSQLTestCase
       include ActiveSupport::Testing::MethodCallAssertions
 
-      ENV_VARS = %w(PGUSER PGHOST PGPORT PGPASSWORD PGSSLMODE PGSSLCERT PGSSLKEY PGSSLROOTCERT PGOPTIONS)
+      ENV_VARS = %w(PGUSER PGHOST PGPORT PGPASSWORD PGSSLMODE PGSSLCERT PGSSLKEY PGSSLROOTCERT PGOPTIONS).freeze
 
-      def run(*)
-        preserve_pg_env do
-          super
-        end
+      def setup
+        super
+        @_pg_env_backup = ENV_VARS.index_with { |var| ENV[var] }
+      end
+
+      def teardown
+        ENV_VARS.each { |var| ENV[var] = @_pg_env_backup[var] }
+        super
       end
 
       def test_postgresql
@@ -78,6 +82,36 @@ module ActiveRecord
         assert_equal "-c search_path=my_schema,\\ default,\\ \\\\my_schema -c statement_timeout=5000", ENV["PGOPTIONS"]
       end
 
+      def test_postgresql_include_schema_search_path
+        config = make_db_config(adapter: "postgresql", database: "db", schema_search_path: "my_schema, default, \\my_schema")
+
+        assert_find_cmd_and_exec_called_with(["psql", "db"]) do
+          PostgreSQLAdapter.dbconsole(config)
+        end
+
+        assert_equal "-c search_path=my_schema,\\ default,\\ \\\\my_schema", ENV["PGOPTIONS"]
+      end
+
+      def test_postgresql_include_variables_and_schema_search_path
+        config = make_db_config(adapter: "postgresql", database: "db", schema_search_path: "my_schema, default, \\my_schema", variables: { statement_timeout: 5000, lock_timeout: ":default" })
+
+        assert_find_cmd_and_exec_called_with(["psql", "db"]) do
+          PostgreSQLAdapter.dbconsole(config)
+        end
+
+        assert_equal "-c statement_timeout=5000 -c search_path=my_schema,\\ default,\\ \\\\my_schema", ENV["PGOPTIONS"]
+      end
+
+      def test_postgresql_include_variables_search_path_override
+        config = make_db_config(adapter: "postgresql", database: "db", schema_search_path: "dummy", variables: { search_path: "my_schema, default, \\my_schema", statement_timeout: 5000, lock_timeout: ":default" })
+
+        assert_find_cmd_and_exec_called_with(["psql", "db"]) do
+          PostgreSQLAdapter.dbconsole(config)
+        end
+
+        assert_equal "-c search_path=my_schema,\\ default,\\ \\\\my_schema -c statement_timeout=5000", ENV["PGOPTIONS"]
+      end
+
       def test_postgresql_can_use_alternative_cli
         ActiveRecord.database_cli[:postgresql] = "pgcli"
         config = make_db_config(adapter: "postgresql", database: "db")
@@ -90,13 +124,6 @@ module ActiveRecord
       end
 
       private
-        def preserve_pg_env
-          old_values = ENV_VARS.map { |var| ENV[var] }
-          yield
-        ensure
-          ENV_VARS.zip(old_values).each { |var, value| ENV[var] = value }
-        end
-
         def make_db_config(config)
           ActiveRecord::DatabaseConfigurations::HashConfig.new("test", "primary", config)
         end

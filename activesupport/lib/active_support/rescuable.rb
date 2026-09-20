@@ -12,7 +12,7 @@ module ActiveSupport
     extend Concern
 
     included do
-      class_attribute :rescue_handlers, default: []
+      class_attribute :rescue_handlers, default: [].freeze
     end
 
     module ClassMethods
@@ -69,7 +69,7 @@ module ActiveSupport
           end
 
           # Put the new handler at the end because the list is read in reverse.
-          self.rescue_handlers += [[key, with]]
+          self.rescue_handlers = [*rescue_handlers, [key, with].freeze].freeze
         end
       end
 

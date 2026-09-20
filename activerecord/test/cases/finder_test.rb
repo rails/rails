@@ -154,6 +154,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "id", exception.primary_key
   end
 
+  def test_find_with_no_id_passed_on_composite_primary_key_model
+    assert_raises(ActiveRecord::RecordNotFound) { Cpk::Book.find }
+    assert_raises(ActiveRecord::RecordNotFound) { Cpk::Book.find(nil) }
+  end
+
   def test_find_with_ids_with_id_out_of_range
     exception = assert_raises(ActiveRecord::RecordNotFound) do
       Topic.find("9999999999999999999999999999999")
@@ -656,6 +661,41 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "Jamis", last_devs[1].name
   end
 
+  def test_find_with_order_and_offset_past_the_ids_returns_empty
+    ids = Developer.order(:id).limit(3).ids
+    assert_equal 3, ids.size
+
+    # unordered, offset greater than the number of ids
+    assert_equal [], Developer.offset(9999).find(ids)
+
+    # ordered, offset greater than the number of ids
+    assert_equal [], Developer.order(:id).offset(9999).find(ids)
+
+    # ordered, offset equal to the number of ids
+    assert_equal [], Developer.order(:id).offset(3).find(ids)
+  end
+
+  def test_find_with_order_limit_and_offset_matches_unordered_path
+    ids = Developer.order(:id).ids
+    assert_equal 11, ids.size
+
+    # For every limit/offset combination, the ordered path must return
+    # the same records as the unordered path: the ids sliced by offset then limit.
+    # Covers offsets within range, limits that run past the end, the boundary
+    # offset == ids.size, and offsets past the end.
+    [[3, 2], [4, 7], [3, 9], [5, 9], [2, 11], [3, 15], [11, 0]].each do |limit, offset|
+      expected = ids.slice(offset, limit) || []
+
+      ordered = Developer.order(:id).limit(limit).offset(offset).find(ids)
+      assert_equal expected, ordered.map(&:id),
+        "ordered find with limit #{limit}, offset #{offset}"
+
+      unordered = Developer.limit(limit).offset(offset).find(ids)
+      assert_equal expected.sort, unordered.map(&:id).sort,
+        "unordered find with limit #{limit}, offset #{offset}"
+    end
+  end
+
   def test_find_with_large_number
     assert_queries_count(0) do
       assert_raises(ActiveRecord::RecordNotFound) { Topic.find("9999999999999999999999999999999") }
@@ -729,6 +769,32 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal(1, topics.size)
     assert_equal(topics(:second).title, topics.first.title)
+  end
+
+  if ActiveRecord::Base.lease_connection.prepared_statements
+    def test_find_by_sql_with_positional_placeholder_binds_the_value
+      payload = capture_query_payload("Topic Load") do
+        Topic.find_by_sql ["SELECT * FROM topics WHERE author_name = ?", "Mary"]
+      end
+      assert_equal ["Mary"], payload[:binds]
+      assert_no_match(/'Mary'/, payload[:sql])
+    end
+
+    def test_find_by_sql_with_named_placeholder_binds_the_value
+      payload = capture_query_payload("Topic Load") do
+        Topic.find_by_sql ["SELECT * FROM topics WHERE author_name = :name", { name: "Mary" }]
+      end
+      assert_equal ["Mary"], payload[:binds]
+      assert_no_match(/'Mary'/, payload[:sql])
+    end
+
+    def test_count_by_sql_with_positional_placeholder_binds_the_value
+      payload = capture_query_payload("Topic Count") do
+        Topic.count_by_sql ["SELECT COUNT(*) FROM topics WHERE author_name = ?", "Mary"]
+      end
+      assert_equal ["Mary"], payload[:binds]
+      assert_no_match(/'Mary'/, payload[:sql])
+    end
   end
 
   def test_find_by_sql_with_sti_on_joined_table
@@ -1111,7 +1177,7 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
-  def first_with_at_least_query_constraints
+  def test_first_with_at_least_query_constraints
     ordered_edge = Class.new(Edge) do
       query_constraints "source_id"
     end
@@ -2038,6 +2104,13 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [book], Cpk::Book.find([book.id])
   end
 
+  test "find with an empty array on a composite primary key" do
+    empty_array = []
+    result = Cpk::Book.find(empty_array)
+    assert_equal [], result
+    assert_not_same empty_array, result
+  end
+
   test "find with a multiple sets of composite primary key" do
     books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
     ids = books.map(&:id)
@@ -2056,6 +2129,13 @@ class FinderTest < ActiveRecord::TestCase
     books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
 
     assert_equal books.map(&:id), Cpk::Book.order(author_id: :asc).find(books.map(&:id)).map(&:id)
+  end
+
+  test "find with multiple sets of composite primary key given as strings" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+    string_ids = books.map { |book| book.id.map(&:to_s) }
+
+    assert_equal books.map(&:id), Cpk::Book.find(string_ids).map(&:id)
   end
 
   test "#find_by with composite primary key" do
@@ -2081,5 +2161,16 @@ class FinderTest < ActiveRecord::TestCase
           "MercedesCar"
         end
       end)
+    end
+
+    def capture_query_payload(name)
+      payload = nil
+      subscription = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, event_payload|
+        payload = event_payload if event_payload[:name] == name
+      end
+      yield
+      payload
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription) if subscription
     end
 end

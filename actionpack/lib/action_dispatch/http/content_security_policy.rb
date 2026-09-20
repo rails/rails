@@ -344,7 +344,7 @@ module ActionDispatch # :nodoc:
       end
 
       def validate(directive, sources)
-        sources.flatten.each do |source|
+        sources.each do |source|
           if source.include?(";") || source != source.gsub(/[[:space:]]/, "")
             raise InvalidDirectiveError, <<~MSG.squish
               Invalid Content Security Policy #{directive}: "#{source}".
@@ -356,9 +356,11 @@ module ActionDispatch # :nodoc:
       end
 
       def build_directive(directive, sources, context)
-        resolved_sources = sources.map { |source| resolve_source(source, context) }
+        resolved_sources = sources.flat_map { |source| resolve_source(source, context) }
 
         validate(directive, resolved_sources)
+
+        resolved_sources
       end
 
       def resolve_source(source, context)

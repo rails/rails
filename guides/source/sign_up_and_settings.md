@@ -390,6 +390,15 @@ browser to bypass this validation. To prevent this and ensure the validation
 always runs, we use `.with_defaults(password_challenge: "")` to set a default
 value even if the `password_challenge` parameter is missing.
 
+Now let's add the route to redirect the user once the password is updated.
+
+```ruby#3
+namespace :settings do
+  resource :password, only: [ :show, :update ]
+  resource :profile, only: [ :show ]
+end
+```
+
 You can now visit http://localhost:3000/settings/password to update your
 password.
 
@@ -425,7 +434,7 @@ first and last name.
 
 ### Profile Routes & Controller
 
-In `config/routes.rb`, add a profile resource under the settings namespace. We
+In `config/routes.rb`, add an `update` action on the profile resource under the settings namespace. We
 can also add a root to the namespace to handle any visits to `/settings` and
 redirect them to profile settings.
 
@@ -531,8 +540,8 @@ While we're here, let's add a new layout for Settings so we can organize them in
 a sidebar. To do this, we're going to use a
 [Nested Layout](layouts_and_rendering.html#using-nested-layouts).
 
-A nested layout allows you add HTML (like a sidebar) while still rendering the
-application layout. This means we don't have to duplicate our head tags or
+A nested layout allows you to add HTML (like a sidebar) while still rendering
+the application layout. This means we don't have to duplicate our head tags or
 navigation in our Settings layout.
 
 Let's create `app/views/layouts/settings.html.erb` and add the following:
@@ -707,7 +716,7 @@ following:
 <%= button_to "Delete my account", settings_user_path, method: :delete, data: { turbo_confirm: "Are you sure? This cannot be undone." } %>
 ```
 
-And finally, we'll add a link to Account in the setting layout's sidebar.
+And finally, we'll add a link to Account in the settings layout's sidebar.
 
 ```erb#7
 <%= content_for :content do %>
@@ -1521,7 +1530,7 @@ Update `app/views/store/products/show.html.erb` with the following:
 
 This updates the `show` action so that:
 
-- Links now use to the `store` namespace.
+- Links now use the `store` namespace.
 - A "View in Storefront" link is added to make it easier for admins to see how a
   product looks to the public.
 - The inventory partial is removed since that's only useful on the public
@@ -1658,7 +1667,7 @@ test "successful sign up" do
 end
 ```
 
-For this test, we need submit params with a POST request to test the `create`
+For this test, we need to submit params with a POST request to test the `create`
 action.
 
 Let's also test with invalid data to ensure the controller returns an error.
@@ -1756,7 +1765,7 @@ two:
   last_name: Two
 ```
 
-This tests submits successful params, confirms the email is saved to the
+This test submits successful params, confirms the email is saved to the
 database, the user was redirected and the confirmation email was queued for
 delivery.
 
@@ -1810,8 +1819,8 @@ end
 The first test simulates a user confirming their email change with an invalid
 token. We assert the error message was set and the email address did not change.
 
-The second test uses valid token and asserts the success notice was set and the
-email address was updated in the database.
+The second test uses a valid token and asserts the success notice was set and
+the email address was updated in the database.
 
 We need to fix one more test related to email confirmations and that is the
 automatically generated tests for `UserMailer`. Let's update that to match our
@@ -1879,7 +1888,7 @@ class SettingsTest < ActionDispatch::IntegrationTest
     sign_in_as users(:one)
     get settings_profile_path
     assert_dom "h4", "Account Settings"
-    assert_not_dom "a", "Store Settings"
+    assert_not_dom "h4", "Store Settings"
   end
 
   test "admin settings nav" do
@@ -1918,7 +1927,7 @@ test "regular user cannot access /store/users" do
 end
 ```
 
-These tests use a regular user to access the admin only areas and ensures they
+These tests use a regular user to access the admin only areas and ensure they
 are redirected away with a flash message.
 
 Let's complete these tests by ensuring that admin users _can_ access these

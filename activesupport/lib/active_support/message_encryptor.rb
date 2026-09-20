@@ -91,9 +91,11 @@ module ActiveSupport
   class MessageEncryptor < Messages::Codec
     prepend Messages::Rotator
 
-    cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
+    @use_authenticated_message_encryption = false
 
     class << self
+      attr_accessor :use_authenticated_message_encryption
+
       def default_cipher # :nodoc:
         if use_authenticated_message_encryption
           "aes-256-gcm"

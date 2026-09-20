@@ -181,7 +181,7 @@ class Book < ApplicationRecord
 end
 ```
 
-![belongs_to Association Diagram](images/association_basics/belongs_to.png)
+![belongs_to Association Diagram](images/association_basics/belongs_to.svg)
 
 NOTE: A `belongs_to` association _must_ use the singular term. If you use the
 plural form, like `belongs_to :authors` in the `Book` model, and try to create a
@@ -430,7 +430,7 @@ The main difference from `belongs_to` is that the link column (in this case
 `supplier_id`) is located in the other table, not the table where the `has_one`
 is declared.
 
-![has_one Association Diagram](images/association_basics/has_one.png)
+![has_one Association Diagram](images/association_basics/has_one.svg)
 
 The corresponding migration might look like this:
 
@@ -608,8 +608,8 @@ When you assign an object to a `has_one` association, that object is
 automatically saved to update its foreign key. Additionally, any object being
 replaced is also automatically saved, as its foreign key will change too.
 
-If either of these saves fails due to validation errors, the assignment
-statement returns `false`, and the assignment itself is canceled.
+If either of these saves fails due to validation errors,
+`ActiveRecord::RecordNotSaved` is raised and the assignment is canceled.
 
 If the parent object (the one declaring the `has_one` association) is unsaved
 (that is, `new_record?` returns `true`) then the child objects are not saved
@@ -648,7 +648,7 @@ associated model (`Book`).
 NOTE: Unlike a `has_one` and `belongs_to` association, the name of the other
 model is pluralized when declaring a `has_many` association.
 
-![has_many Association Diagram](images/association_basics/has_many.png)
+![has_many Association Diagram](images/association_basics/has_many.svg)
 
 The corresponding migration might look like this:
 
@@ -937,8 +937,8 @@ When you assign an object to a `has_many` association, that object is
 automatically saved (in order to update its foreign key). If you assign multiple
 objects in one statement, then they are all saved.
 
-If any of these saves fails due to validation errors, then the assignment
-statement returns `false` and the assignment itself is cancelled.
+If any of these saves fails due to validation errors, then
+`ActiveRecord::RecordNotSaved` is raised and the assignment is cancelled.
 
 If the parent object (the one declaring the `has_many` association) is unsaved
 (that is, `new_record?` returns `true`) then the child objects are not saved
@@ -983,7 +983,7 @@ We call `Physician.appointments` and `Appointment.patient` the _through_ and
 _source_ associations of `Physician.patients`, respectively.
 
 ![has_many :through Association
-Diagram](images/association_basics/has_many_through.png)
+Diagram](images/association_basics/has_many_through.svg)
 
 The corresponding migration might look like this:
 
@@ -1133,7 +1133,7 @@ We call `Supplier.account` and `Account.account_history` the _through_ and
 _source_ associations of `Supplier.account_history`, respectively.
 
 ![has_one :through Association
-Diagram](images/association_basics/has_one_through.png)
+Diagram](images/association_basics/has_one_through.svg)
 
 The corresponding migration to set up these associations might look like this:
 
@@ -1187,7 +1187,7 @@ end
 ```
 
 ![has_and_belongs_to_many Association
-Diagram](images/association_basics/habtm.png)
+Diagram](images/association_basics/habtm.svg)
 
 Even though a `has_and_belongs_to_many` does not require an intervening model,
 it does require a separate table to establish the many-to-many relationship
@@ -1427,8 +1427,8 @@ When you assign an object to a `has_and_belongs_to_many` association, that
 object is automatically saved (in order to update the join table). If you assign
 multiple objects in one statement, then they are all saved.
 
-If any of these saves fails due to validation errors, then the assignment
-statement returns `false` and the assignment itself is cancelled.
+If any of these saves fails due to validation errors, then
+`ActiveRecord::RecordInvalid` is raised and the assignment is cancelled.
 
 If the parent object (the one declaring the `has_and_belongs_to_many`
 association) is unsaved (that is, `new_record?` returns `true`) then the child
@@ -1593,7 +1593,7 @@ class Product < ApplicationRecord
 end
 ```
 
-![Polymorphic Association Diagram](images/association_basics/polymorphic.png)
+![Polymorphic Association Diagram](images/association_basics/polymorphic.svg)
 
 In the context above, `imageable` is a name chosen for the association. It's a
 symbolic name that represents the polymorphic association between the `Picture`

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "person"
+
 class Car < ActiveRecord::Base
   belongs_to :person, counter_cache: true
   has_many :bulbs

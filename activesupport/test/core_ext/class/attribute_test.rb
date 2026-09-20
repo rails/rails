@@ -83,6 +83,16 @@ class ClassAttributeTest < ActiveSupport::TestCase
     assert_not_respond_to object, :setting?
   end
 
+  test "disabling instance reader is not bypassed by assigning on the singleton class" do
+    klass = Class.new { class_attribute :setting, instance_reader: false }
+    object = klass.new
+
+    object.singleton_class.setting = "foo"
+
+    assert_raise(NoMethodError) { object.setting }
+    assert_not_respond_to object, :setting
+  end
+
   test "disabling both instance writer and reader" do
     object = Class.new { class_attribute :setting, instance_accessor: false }.new
     assert_raise(NoMethodError) { object.setting }
@@ -221,8 +231,8 @@ class ClassAttributeTest < ActiveSupport::TestCase
   test "can check if value is set on a sub class" do
     # Note: this isn't a public API test and it's OK to break it.
     # However if it's broken make sure to update ActiveSupport::Callbacks::ClassMethods#set_callbacks
-    assert_equal false, @sub.singleton_class.private_method_defined?(:__class_attr_setting, false)
+    assert_equal false, @sub.singleton_class.private_method_defined?(:__class_attr_setting_owner, false)
     @sub.setting = true
-    assert_equal true, @sub.singleton_class.private_method_defined?(:__class_attr_setting, false)
+    assert_equal true, @sub.singleton_class.private_method_defined?(:__class_attr_setting_owner, false)
   end
 end

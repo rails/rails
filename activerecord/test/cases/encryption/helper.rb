@@ -38,14 +38,6 @@ module ActiveRecord::Encryption
       assert_equal expected_value, model.read_attribute_before_type_cast(attribute_name)
     end
 
-    def assert_encrypted_record(model)
-      encrypted_attributes = model.class.encrypted_attributes.find_all { |attribute_name| model.send(attribute_name).present? }
-      assert_not encrypted_attributes.empty?, "The model has no encrypted attributes with content to check (they are all blank)"
-
-      encrypted_attributes.each do |attribute_name|
-        assert_encrypted_attribute model, attribute_name, model.send(attribute_name)
-      end
-    end
 
     def assert_encryptor_works_with(key_provider)
       encryptor = ActiveRecord::Encryption::Encryptor.new
@@ -67,10 +59,6 @@ module ActiveRecord::Encryption
         ActiveRecord::Encryption.with_encryption_context key_provider: key_provider, &block
       end
 
-      def with_envelope_encryption(&block)
-        @envelope_encryption_key_provider ||= ActiveRecord::Encryption::EnvelopeEncryptionKeyProvider.new
-        with_key_provider @envelope_encryption_key_provider, &block
-      end
 
       def create_unencrypted_book_ignoring_case(name:)
         book = ActiveRecord::Encryption.without_encryption do
@@ -130,7 +118,7 @@ class ActiveRecord::EncryptionTestCase < ActiveRecord::TestCase
       key_derivation_salt support_unencrypted_data encrypt_fixtures
       forced_encoding_for_deterministic_encryption ],
     context: %i[ key_provider ]
-  }
+  }.freeze
 
   setup do
     ENCRYPTION_PROPERTIES_TO_RESET.each do |key, properties|

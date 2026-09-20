@@ -64,6 +64,14 @@ module ActiveJob
       #    end
       #  end
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT, report: false)
+        case wait
+        when :polynomially_longer, Integer, Float, ActiveSupport::Duration, Proc
+          # Supported wait type, continue.
+        else
+          raise ArgumentError, "Unsupported argument type for :wait, expected an Integer, Float, " \
+            "ActiveSupport::Duration, Proc, or :polynomially_longer, but got #{wait.inspect}"
+        end
+
         rescue_from(*exceptions) do |error|
           executions = executions_for(exceptions)
           if attempts == :unlimited || executions < attempts
@@ -97,14 +105,14 @@ module ActiveJob
       # ==== Example
       #
       #  class SearchIndexingJob < ActiveJob::Base
-      #    discard_on ActiveJob::DeserializationError
+      #    discard_on ActiveJob::DeserializationError::RecordNotFound
       #    discard_on CustomAppException, report: true
       #    discard_on(AnotherCustomAppException) do |job, error|
       #      CustomErrorHandlingCode.handle(job, error)
       #    end
       #
       #    def perform(record)
-      #      # Will raise ActiveJob::DeserializationError if the record can't be deserialized
+      #      # Will raise ActiveJob::DeserializationError::RecordNotFound if the record can't be found
       #      # Might raise CustomAppException for something domain specific
       #    end
       #  end
@@ -167,7 +175,7 @@ module ActiveJob
     end
 
     private
-      JITTER_DEFAULT = Object.new
+      JITTER_DEFAULT = Object.new.freeze
       private_constant :JITTER_DEFAULT
 
       def determine_delay(seconds_or_duration_or_algorithm:, executions:, error: nil, jitter: JITTER_DEFAULT)
@@ -179,13 +187,13 @@ module ActiveJob
           delay = executions**4
           delay_jitter = determine_jitter_for_delay(delay, jitter)
           delay + delay_jitter + 2
-        when ActiveSupport::Duration, Integer
-          delay = seconds_or_duration_or_algorithm.to_i
+        when ActiveSupport::Duration, Integer, Float
+          delay = seconds_or_duration_or_algorithm.to_f
           delay_jitter = determine_jitter_for_delay(delay, jitter)
           delay + delay_jitter
         when Proc
           algorithm = seconds_or_duration_or_algorithm
-          algorithm.arity == 1 ? algorithm.call(executions) : algorithm.call(executions, error)
+          algorithm.arity == 2 || algorithm.arity < -1 ? algorithm.call(executions, error) : algorithm.call(executions)
         else
           raise "Couldn't determine a delay based on #{seconds_or_duration_or_algorithm.inspect}"
         end

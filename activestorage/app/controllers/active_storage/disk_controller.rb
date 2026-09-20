@@ -7,7 +7,9 @@
 class ActiveStorage::DiskController < ActiveStorage::BaseController
   include ActiveStorage::FileServer
 
-  skip_forgery_protection
+  if respond_to?(:skip_forgery_protection)
+    skip_forgery_protection
+  end
 
   def show
     if key = decode_verified_key
@@ -16,6 +18,8 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
       head :not_found
     end
   rescue Errno::ENOENT
+    head :not_found
+  rescue ActiveStorage::InvalidKeyError
     head :not_found
   end
 
@@ -31,6 +35,8 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
       head :not_found
     end
   rescue ActiveStorage::IntegrityError
+    head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
+  rescue ActiveStorage::InvalidKeyError
     head ActionDispatch::Constants::UNPROCESSABLE_CONTENT
   end
 

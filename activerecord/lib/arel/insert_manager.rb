@@ -39,6 +39,11 @@ module Arel # :nodoc: all
       self
     end
 
+    def returning(returning)
+      @ast.returning << returning
+      self
+    end
+
     def create_values(values)
       Nodes::ValuesList.new([values])
     end

@@ -128,13 +128,13 @@ module MessageMetadataTests
       ActiveSupport::JSON,
       ActiveSupport::MessagePack,
       CustomSerializer,
-    ]
+    ].freeze
 
     DATA = [
       "a string",
       { "a_number" => 123, "a_time" => Time.local(2004), "an_object" => { "key" => "value" } },
       ["a string", 123, Time.local(2004), { "key" => "value" }],
-    ]
+    ].freeze
 
     def using_message_serializer_for_metadata(value = true)
       original = ActiveSupport::Messages::Metadata.use_message_serializer_for_metadata

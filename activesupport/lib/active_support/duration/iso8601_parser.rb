@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "strscan"
@@ -6,7 +7,7 @@ module ActiveSupport
   class Duration
     # Parses a string formatted according to ISO 8601 Duration into the hash.
     #
-    # See {ISO 8601}[https://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
+    # See [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601#Durations) for more information.
     #
     # This parser allows negative parts to be present in pattern.
     class ISO8601Parser # :nodoc:
@@ -22,11 +23,11 @@ module ActiveSupport
       DATE_COMPONENT = /(-?\d+(?:[.,]\d+)?)(Y|M|D|W)/
       TIME_COMPONENT = /(-?\d+(?:[.,]\d+)?)(H|M|S)/
 
-      DATE_TO_PART = { "Y" => :years, "M" => :months, "W" => :weeks, "D" => :days }
-      TIME_TO_PART = { "H" => :hours, "M" => :minutes, "S" => :seconds }
+      DATE_TO_PART = { "Y" => :years, "M" => :months, "W" => :weeks, "D" => :days }.freeze
+      TIME_TO_PART = { "H" => :hours, "M" => :minutes, "S" => :seconds }.freeze
 
-      DATE_COMPONENTS = [:years, :months, :days]
-      TIME_COMPONENTS = [:hours, :minutes, :seconds]
+      DATE_COMPONENTS = [:years, :months, :days].freeze
+      TIME_COMPONENTS = [:hours, :minutes, :seconds].freeze
 
       attr_reader :parts, :scanner
       attr_accessor :mode, :sign
