@@ -217,7 +217,7 @@ if RUBY_VERSION >= "4.0"
       end
 
       assert_operator worker_class, :<, main_class
-      assert_same main_class, singleton_container
+      assert_same worker_class, singleton_container
       assert_same worker_class, instance_container
       assert_not_same worker_class, reset_class
       assert_operator reset_class, :<, main_class
@@ -231,15 +231,20 @@ if RUBY_VERSION >= "4.0"
       end
       main_class = controller.view_context_class
 
-      worker_base_class, worker_class, compiled_method_container = on_ractor(controller) do |klass|
+      worker_base_class, worker_class, compiled_method_container, reset_base_class, reset_class = on_ractor(controller) do |klass|
         base_class = ActionView::LookupContext.view_context_class
         view_class = klass.view_context_class
-        [base_class, view_class, view_class.allocate.compiled_method_container]
+        ActionView::LookupContext.reset_view_context_class
+        # Use a name that is not an outer local: Ractor.shareable_proc rejects blocks that write outer variables.
+        reset_base = ActionView::LookupContext.view_context_class
+        [base_class, view_class, view_class.allocate.compiled_method_container, reset_base, klass.view_context_class]
       end
 
       assert_not_same main_class, worker_class
       assert_same worker_base_class, worker_class.superclass
-      assert_same worker_class, compiled_method_container
+      assert_same worker_base_class, compiled_method_container
+      assert_not_same worker_class, reset_class
+      assert_same reset_base_class, reset_class.superclass
     end
 
     if RUBY_VERSION >= "4.0"

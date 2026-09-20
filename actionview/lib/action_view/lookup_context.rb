@@ -112,9 +112,9 @@ module ActionView
         end
       else
         cache = ActiveSupport::Ractors.store_if_absent(:action_view_context_class) { Concurrent::Map.new }
-        cache.compute_if_absent(:class) do
-          Class.new(@view_context_class) { def compiled_method_container = self.class }
-        end
+        # Subclass the main Ractor's class so templates precompiled at boot stay callable,
+        # while templates first compiled in this Ractor go into a class it owns.
+        cache.compute_if_absent(:class) { @view_context_class.with_empty_template_cache }
       end
     end
     @view_context_mutex = Mutex.new
