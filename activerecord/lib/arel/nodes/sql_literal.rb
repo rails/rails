@@ -8,10 +8,11 @@ module Arel # :nodoc: all
       include Arel::AliasPredication
       include Arel::OrderPredications
 
-      attr_reader :retryable
+      attr_reader :retryable, :preparable
 
-      def initialize(string, retryable: false)
+      def initialize(string, retryable: false, preparable: false)
         @retryable = retryable
+        @preparable = preparable
         super(string)
       end
 

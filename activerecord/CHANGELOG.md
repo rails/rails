@@ -1,3 +1,9 @@
+*   Make `Arel::Nodes::SqlLiteral` capable of opting-in to prepared statements and
+    make `Arel::AliasPredication` leverage this so ActiveRecord queries built with
+    column aliases are preparable.
+
+    *Quentin de Metz*
+
 *   Avoid deadlocks when concurrent `find_or_create_by` calls read back the same
     record within MySQL transactions.
 

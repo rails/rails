@@ -15,6 +15,16 @@ module Arel
         assert_kind_of Arel::Nodes::SqlLiteral, sql
       end
 
+      test "preparable defaults to false" do
+        node = SqlLiteral.new("foo")
+        assert_equal false, node.preparable
+      end
+
+      test "preparable can be set to true" do
+        node = SqlLiteral.new("foo", preparable: true)
+        assert_predicate node, :preparable
+      end
+
       test "count makes a count node" do
         node = SqlLiteral.new("*").count
         assert_like %{ COUNT(*) }, compile(node)

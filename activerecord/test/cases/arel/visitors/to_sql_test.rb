@@ -92,6 +92,24 @@ module Arel
         assert_predicate collector, :retryable
       end
 
+      test "the to_sql visitor should mark collector as non-preparable when visiting SQL literal" do
+        node = Nodes::SqlLiteral.new("COUNT(*)")
+        collector = Collectors::SQLString.new
+        collector.preparable = true
+        @visitor.accept(node, collector)
+
+        assert_equal false, collector.preparable
+      end
+
+      test "the to_sql visitor should not change preparable if SQL literal is marked as preparable" do
+        node = Nodes::SqlLiteral.new("id", preparable: true)
+        collector = Collectors::SQLString.new
+        collector.preparable = true
+        @visitor.accept(node, collector)
+
+        assert_predicate collector, :preparable
+      end
+
       test "the to_sql visitor should mark collector as non-retryable if SQL literal is not retryable" do
         node = Nodes::As.new(
           Nodes::SqlLiteral.new("`product.id`"),

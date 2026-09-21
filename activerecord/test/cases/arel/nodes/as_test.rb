@@ -24,6 +24,12 @@ module Arel
         assert_kind_of Arel::Nodes::SqlLiteral, as.right
       end
 
+      test "#as marks the aliased SqlLiteral as preparable" do
+        attr = Table.new(name: :users)[:id]
+        as = attr.as("foo")
+        assert_predicate as.right, :preparable
+      end
+
       test "equality is equal with equal ivars" do
         array = [As.new("foo", "bar"), As.new("foo", "bar")]
         assert_equal 1, array.uniq.size

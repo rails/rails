@@ -194,6 +194,13 @@ if ActiveRecord::Base.lease_connection.prepared_statements
         assert_predicate @connection, :prepared_statements?
       end
 
+      def test_aliased_select_is_preparable
+        arel = Author.arel_table.project(Author.arel_table[:name].as("author_name"))
+        _sql, _binds, preparable, _allow_retry = @connection.send(:to_sql_and_binds, arel)
+
+        assert preparable, "aliased SELECT should be preparable"
+      end
+
       def test_binds_with_filtered_attributes
         ActiveRecord::Base.filter_attributes = [:auth]
 
