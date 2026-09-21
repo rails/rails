@@ -17,6 +17,10 @@ module ActiveRecord
         @version_classes ||= constants.grep(/\AV\d+_\d+\z/).map { |name| const_get(name) }
       end
 
+      def self.version_for(migration_class)
+        migration_class.ancestors.find { |ancestor| version_classes.include?(ancestor) }
+      end
+
       # This file exists to ensure that old migrations run the same way they did before a Rails upgrade.
       # e.g. if you write a migration on Rails 6.1, then upgrade to Rails 7, the migration should do the same thing to your
       # database as it did when you were running Rails 6.1
@@ -153,52 +157,20 @@ module ActiveRecord
 
         def change_column(table_name, column_name, type, **options)
           options[:_skip_validate_options] = true
-          if connection.adapter_name == "Mysql2" || connection.adapter_name == "Trilogy"
-            options[:collation] ||= :no_collation
-          end
           super
         end
 
         def change_column_null(table_name, column_name, null, default = nil)
           super(table_name, column_name, !!null, default)
         end
-
-        def disable_extension(name, **options)
-          if connection.adapter_name == "PostgreSQL"
-            options[:force] = :cascade
-          end
-          super
-        end
-
-        def add_foreign_key(from_table, to_table, **options)
-          if connection.adapter_name == "PostgreSQL" && options[:deferrable] == true
-            options[:deferrable] = :immediate
-          end
-          super
-        end
       end
 
       class V6_1 < V7_0
-        class PostgreSQLCompat
-          def self.compatible_timestamp_type(type, connection)
-            if connection.adapter_name == "PostgreSQL"
-              # For Rails <= 6.1, :datetime was aliased to :timestamp
-              # See: https://github.com/rails/rails/blob/v6.1.3.2/activerecord/lib/active_record/connection_adapters/postgresql_adapter.rb#L108
-              # From Rails 7 onwards, you can define what :datetime resolves to (the default is still :timestamp)
-              # See `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type`
-              type.to_sym == :datetime ? :timestamp : type
-            else
-              type
-            end
-          end
-        end
-
         def add_column(table_name, column_name, type, **options)
           if type == :datetime
             options[:precision] ||= nil
           end
 
-          type = PostgreSQLCompat.compatible_timestamp_type(type, connection)
           super
         end
 
@@ -207,16 +179,10 @@ module ActiveRecord
             options[:precision] ||= nil
           end
 
-          type = PostgreSQLCompat.compatible_timestamp_type(type, connection)
           super
         end
 
         module TableDefinition
-          def new_column_definition(name, type, **options)
-            type = PostgreSQLCompat.compatible_timestamp_type(type, @conn)
-            super
-          end
-
           def change(name, type, index: nil, **options)
             options[:precision] ||= nil
             super
@@ -306,25 +272,6 @@ module ActiveRecord
       end
 
       class V5_1 < V5_2
-        def change_column(table_name, column_name, type, **options)
-          if connection.adapter_name == "PostgreSQL"
-            super(table_name, column_name, type, **options.except(:default, :null, :comment))
-            table_name = proper_table_name(table_name, table_name_options) unless connection.respond_to?(:revert)
-            connection.change_column_default(table_name, column_name, options[:default]) if options.key?(:default)
-            connection.change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
-            connection.change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
-          else
-            super
-          end
-        end
-
-        def create_table(table_name, **options)
-          if connection.adapter_name == "Mysql2" || connection.adapter_name == "Trilogy"
-            super(table_name, options: "ENGINE=InnoDB", **options)
-          else
-            super
-          end
-        end
       end
 
       class V5_0 < V5_1
@@ -345,16 +292,10 @@ module ActiveRecord
         end
 
         def create_table(table_name, **options)
-          if connection.adapter_name == "PostgreSQL"
-            if options[:id] == :uuid && !options.key?(:default)
-              options[:default] = "uuid_generate_v4()"
-            end
-          end
-
-          unless ["Mysql2", "Trilogy"].include?(connection.adapter_name) && options[:id] == :bigint
-            if [:integer, :bigint].include?(options[:id]) && !options.key?(:default)
-              options[:default] = nil
-            end
+          if [:integer, :bigint].include?(options[:id]) && !options.key?(:default)
+            options[:default] = nil
+            # Marks the injected nil apart from a user-written `default: nil`.
+            options[:_compat_injected_default] = true
           end
 
           # Since 5.1 PostgreSQL adapter uses bigserial type for primary
