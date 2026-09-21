@@ -755,6 +755,7 @@ Here's an example scenario:
       })
     </script>
     ```
+
 5. The cookies will be sent along with the request. Since Bob is signed
   in, the the project will be deleted.
 
