@@ -36,7 +36,21 @@ module ActiveSupport
     module Formatter # :nodoc:
       # This method is invoked when a log event occurs.
       def call(severity, timestamp, progname, msg)
-        super(severity, timestamp, progname, tag_stack.format_message(msg))
+        super(severity, timestamp, progname, format_message(msg))
+      end
+
+      def initialize_clone(other)
+        super
+        @thread_key = nil
+      end
+
+      def initialize_dup(other)
+        super
+        @thread_key = nil
+      end
+
+      def format_message(msg)
+        tag_stack.format_message(msg)
       end
 
       def tagged(*tags)
@@ -69,7 +83,7 @@ module ActiveSupport
       end
 
       def tags_text
-        tag_stack.format_message("")
+        format_message("")
       end
 
       def freeze
@@ -117,10 +131,29 @@ module ActiveSupport
     end
 
     module LocalTagStorage # :nodoc:
-      attr_accessor :tag_stack
+      attr_reader :local_tags
 
       def self.extended(base)
-        base.tag_stack = TagStack.new
+        base.local_tags = []
+      end
+
+      def local_tags=(tags)
+        tags = tags.flatten
+        tags.reject!(&:blank?)
+        @local_tags = tags.freeze
+        @local_tags_string = @local_tags.empty? ? nil : "[#{@local_tags.join("] [")}] ".freeze
+      end
+
+      def current_tags
+        @local_tags + super
+      end
+
+      def format_message(message)
+        if @local_tags_string
+          "#{@local_tags_string}#{super}"
+        else
+          super
+        end
       end
     end
 
@@ -158,13 +191,23 @@ module ActiveSupport
 
     delegate :push_tags, :pop_tags, :clear_tags!, to: :formatter
 
+    def initialize_clone(other)
+      super
+      self.formatter = formatter.clone if formatter
+    end
+
+    def initialize_dup(other)
+      super
+      self.formatter = formatter.dup if formatter
+    end
+
     def tagged(*tags)
       if block_given?
         formatter.tagged(*tags) { yield self }
       else
         logger = ActiveSupport::TaggedLogging.new(self)
         logger.formatter.extend LocalTagStorage
-        logger.push_tags(*formatter.current_tags, *tags)
+        logger.formatter.local_tags = formatter.current_tags + tags
         logger
       end
     end
