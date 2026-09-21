@@ -56,6 +56,15 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
     assert_equal NormalizedAircraft.where(name: nil).to_sql, NormalizedAircraft.where(name: "").to_sql
   end
 
+  test "uses the normalized value when querying nil with apply_to_nil" do
+    model = Class.new(Aircraft) do
+      normalizes :name, with: ->(value) { value.to_s }, apply_to_nil: true
+    end
+
+    assert_equal "", model.new(name: nil).name
+    assert_equal model.where(name: "").to_sql, model.where(name: nil).to_sql
+  end
+
   test "normalizes json attribute changed in place after loading from database" do
     admin_user = NormalizedAdminUser.find(NormalizedAdminUser.create!(json_options: { "FOO" => "bar" }).id)
     admin_user.json_options["BAZ"] = "qux" # change the attribute in place
