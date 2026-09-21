@@ -340,6 +340,67 @@ module ActiveSupport
       assert_equal [[::Logger::INFO, "#{{ foo: "bar" }} Hello", nil]], logger.broadcasts.sole.adds
     end
 
+    test "#tagged without a block returns a usable logger when broadcasting to multiple tagging loggers" do
+      io1, io2 = StringIO.new, StringIO.new
+      logger = BroadcastLogger.new(
+        ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(io1)),
+        ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(io2))
+      )
+
+      tagged_logger = logger.tagged("BCX")
+
+      assert_kind_of BroadcastLogger, tagged_logger
+      tagged_logger.info("Hello")
+
+      assert_includes io1.string, "[BCX] Hello"
+      assert_includes io2.string, "[BCX] Hello"
+    end
+
+    test "#tagged with a block yields once and applies the tags to every tagging logger" do
+      io1, io2 = StringIO.new, StringIO.new
+      logger = BroadcastLogger.new(
+        ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(io1)),
+        ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(io2))
+      )
+
+      yielded = 0
+      logger.tagged("BCX") do |log|
+        yielded += 1
+        log.info("Hello")
+      end
+
+      assert_equal 1, yielded
+      assert_includes io1.string, "[BCX] Hello"
+      assert_includes io2.string, "[BCX] Hello"
+    end
+
+    test "#tagged pops the tags from every logger when the block raises" do
+      io1, io2 = StringIO.new, StringIO.new
+      logger = BroadcastLogger.new(
+        ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(io1)),
+        ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(io2))
+      )
+
+      assert_raises(RuntimeError) do
+        logger.tagged("BCX") { raise "boom" }
+      end
+
+      logger.info("After")
+      assert_not_includes io1.string, "[BCX] After"
+      assert_not_includes io2.string, "[BCX] After"
+    end
+
+    test "#tagged keeps broadcasting to loggers that do not support tagging" do
+      io = StringIO.new
+      plain = FakeLogger.new
+      logger = BroadcastLogger.new(ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(io)), plain)
+
+      logger.tagged("BCX").info("Hello")
+
+      assert_includes io.string, "[BCX] Hello"
+      assert_equal [::Logger::INFO, "Hello", nil], plain.adds.first
+    end
+
     class CustomLogger
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
