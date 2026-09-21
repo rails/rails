@@ -1,3 +1,33 @@
+*   Fix `change_column` in migrations declaring version 5.1 or earlier to honor
+    `table_name_prefix` and `table_name_suffix` for `:default`, `:null`, and
+    `:comment` on PostgreSQL.
+
+    With `config.active_record.table_name_prefix = "p_"`:
+
+    ```ruby
+    class AddDefaultToPostsTitle < ActiveRecord::Migration[5.1]
+      def change
+        change_column :posts, :title, :string, default: "untitled"
+      end
+    end
+    ```
+
+    Before:
+
+    ```sql
+    ALTER TABLE "p_posts" ALTER COLUMN "title" TYPE character varying
+    ALTER TABLE "posts" ALTER COLUMN "title" SET DEFAULT 'untitled'
+    ```
+
+    After:
+
+    ```sql
+    ALTER TABLE "p_posts" ALTER COLUMN "title" TYPE character varying
+    ALTER TABLE "p_posts" ALTER COLUMN "title" SET DEFAULT 'untitled'
+    ```
+
+    *Yasuo Honda*
+
 *   Honor an explicit `type:` on `add_reference` and `add_belongs_to` on SQLite
     in migrations declaring version 6.0 or earlier.
 
