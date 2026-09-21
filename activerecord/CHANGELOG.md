@@ -1,3 +1,14 @@
+*   Move adapter-specific migration version compatibility into the connection adapters.
+
+    The adjustments that `ActiveRecord::Migration::Compatibility` applied through
+    `adapter_name` checks, such as the `timestamp` type for `:datetime` in
+    `Migration[6.1]` on PostgreSQL, are now defined by each adapter. Migrations on
+    the bundled adapters produce the same schema and the same verbose output as
+    before. Adapters that patched those classes to adjust the behavior for their
+    database should define it through `compatibility_behavior_for` instead.
+
+    *Yasuo Honda*
+
 *   Fix `change_column` in migrations declaring version 5.1 or earlier to honor
     `table_name_prefix` and `table_name_suffix` for `:default`, `:null`, and
     `:comment` on PostgreSQL.
