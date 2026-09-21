@@ -1224,7 +1224,7 @@ sending traces to monitoring tools.
 
 If your application generates URLs containing sensitive information when
 redirecting the user, you can omit the sensitive information from the
-logs using `filter_direct`:
+logs using `filter_redirect`:
 
 ```ruby
 # config/initializers/filter_parameter_logging.rb
