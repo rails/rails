@@ -1749,11 +1749,11 @@ each request. However, the trade-off here is that it is incompatible
 with [conditional GET caching](caching_with_rails.html#conditional-get-support)
 because new nonces will result in new ETag values for every request.
 
-It is also incompatible with the [Turbo](https://turbo.hotwired.dev)
-JavaScript library that ships with Rails. The CSP is activated by the
-browser when an HTML document is loaded for the first time, and lives as
-long as the document. Turbo intercepts link clicks and form submissions and
-then uses JavaScript to perform those requests and update the page. This means
+It is also incompatible with the [Turbo][] JavaScript library that ships
+with Rails. The CSP is activated by the browser when an HTML document is
+loaded for the first time, and lives as long as the document. Turbo
+intercepts link clicks and form submissions and then uses JavaScript
+to perform those requests and update the page. This means
 that the document isn't reloaded during page navigation. The
 nonce defined in the CSP during the initial page load is locked in
 for the lifetime of the document.
@@ -1828,6 +1828,25 @@ to dynamically add scripts to a page.
   <%= csp_meta_tag %>
 </head>
 ```
+
+WARNING: When using [Turbo][], it will read the nonce from the above
+meta tag and apply it to every script element in the content it
+loads. If an inline script without a valid nonce has been
+injected into a page's content through an XSS vulnerability, it will be
+blocked on a full page load, but will execute after a Turbo
+navigation to the same page. <br><br>
+Depending on your security requirements, uou may wish to disable this
+functionality by excluding the `csp_meta_tag` from your document's head.
+
+WARNING: Do not add `'strict-dynamic'` to your CSP when using
+[Turbo][]. Turbo uses the `createElement` to insert received script
+tags into the document. `'strict-dynamic'` allows scripts inserted in
+this way regardless of their nonce. If an attacker managed to inject
+a script into your page, which is then loaded by Turbo, the
+`'strict-dynamic'` directive in your CSP would allow it to run even
+without a nonce.
+
+[Turbo]: https://turbo.hotwired.dev
 
 ### `Feature-Policy` Header
 
