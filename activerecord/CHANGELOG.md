@@ -1,3 +1,23 @@
+*   Move adapter-specific migration version compatibility into the connection adapters.
+
+    The adjustments that `ActiveRecord::Migration::Compatibility` applied through
+    `adapter_name` checks, such as the `timestamp` type for `:datetime` in
+    `Migration[6.1]` on PostgreSQL, are now defined by each adapter. Migrations on
+    the bundled adapters produce the same schema and the same verbose output as
+    before. Adapters that patched those classes to adjust the behavior for their
+    database should define it through `compatibility_behavior_for` instead.
+
+    Adapters that subclass a bundled adapter now inherit its adjustments, which
+    the previous `adapter_name` checks never applied to them. On a PostgreSQL
+    subclass, for example, `disable_extension` in a migration declaring 7.0 or
+    earlier now adds `CASCADE`, and `:datetime` in one declaring 6.1 or earlier
+    becomes `timestamp` when `datetime_type` is `:timestamptz`. An adapter that
+    does not want an inherited adjustment can override
+    `compatibility_behavior_for` to return a subclass of the bundled behavior
+    that overrides that operation.
+
+    *Yasuo Honda*
+
 *   Stop `connected_to` from changing the role and shard of a thread that shares
     the execution state.
 
