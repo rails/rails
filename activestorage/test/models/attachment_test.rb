@@ -268,6 +268,23 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     end
   end
 
+  test "enqueues create variants job for the variants a conditional process makes later" do
+    blob = create_file_blob
+    @user.update!(name: "transform via proc")
+
+    assert_create_variants_job blob:, variants: [{ resize_to_limit: [2, 2] }] do
+      @user.avatar_with_conditional_process.attach blob
+    end
+  end
+
+  test "avoids enqueuing create variants job when a conditional process is lazy for the record" do
+    blob = create_file_blob
+
+    assert_no_enqueued_jobs only: ActiveStorage::CreateVariantsJob do
+      @user.avatar_with_conditional_process.attach blob
+    end
+  end
+
   test "avoids enqueuing create variants job when lazy" do
     blob = create_file_blob
 
