@@ -1,3 +1,29 @@
+*   Make `ActionController::RateLimiting#rate_limiting` public so it can be called
+    directly from within a controller action.
+
+    `rate_limit` still applies via a `before_action`, but some rate limits can only
+    be evaluated once the action is running, such as counting failed login attempts
+    rather than every attempt:
+
+        class SessionsController < ApplicationController
+          def create
+            user = User.find_by(email: params[:email])
+
+            if user&.authenticate(params[:password])
+              start_new_session_for user
+              redirect_to root_path
+            else
+              rate_limiting to: 10, within: 3.minutes, by: -> { params[:email] },
+                with: -> { redirect_to new_session_path, alert: "Try again later." }
+
+              return if performed?
+              redirect_to new_session_path, alert: "Try again."
+            end
+          end
+        end
+
+    *Timo Schilling*
+
 *   Include default headers in `ActionController::Live` responses.
 
     Previously, responses from `ActionController::Live` controllers, including
