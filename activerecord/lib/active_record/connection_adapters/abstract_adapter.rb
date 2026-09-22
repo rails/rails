@@ -769,6 +769,12 @@ module ActiveRecord
             translated_exception = translate_exception_class(original_exception, nil, nil)
 
             if retryable_connection_error?(translated_exception) && budget.consume
+              ActiveSupport::Notifications.instrument(
+                "connection_retry.active_record",
+                connection: self,
+                error: translated_exception,
+                attempt: budget.attempts_used
+              )
               backoff(budget.attempts_used)
               retry
             end
@@ -1070,6 +1076,13 @@ module ActiveRecord
         else
           budget.reconnect_consumed!
         end
+
+        ActiveSupport::Notifications.instrument(
+          "query_retry.active_record",
+          connection: self,
+          error: exception,
+          attempt: budget.attempts_used
+        )
 
         true
       end

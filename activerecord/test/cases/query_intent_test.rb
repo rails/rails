@@ -203,6 +203,24 @@ module ActiveRecord
       assert_predicate intent, :finalized?
     end
 
+    test "query retries emit a notification" do
+      error = ActiveRecord::LockWaitTimeout.new("lock wait timeout")
+      budget = ActiveRecord::ConnectionAdapters::RetryBudget.new(
+        retries: 1, deadline: nil, reconnectable: false
+      )
+
+      events = capture_notifications("query_retry.active_record") do
+        @connection.stub(:backoff, ->(_) { }) do
+          @connection.attempt_retry(error, budget)
+        end
+      end
+
+      assert_equal 1, events.size
+      assert_same @connection, events.first.payload[:connection]
+      assert_same error, events.first.payload[:error]
+      assert_equal 1, events.first.payload[:attempt]
+    end
+
     test "exhausted retries make the final failure available" do
       connection = @connection
       intent = build_intent(connection, allow_retry: true)
