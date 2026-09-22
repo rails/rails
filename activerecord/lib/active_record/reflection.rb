@@ -427,15 +427,17 @@ module ActiveRecord
 
       def _klass(class_name) # :nodoc:
         @klass ||= begin
+          klass = nil
+
           if active_record.name.demodulize == class_name
             begin
-              return compute_class("::#{class_name}")
+              klass = compute_class("::#{class_name}")
             rescue
               # Ignored
             end
           end
 
-          compute_class(class_name)
+          klass || compute_class(class_name)
         end
       end
 
