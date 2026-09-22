@@ -11,6 +11,10 @@ module ActionView
       class ERB
         class Herb < ::Herb::Engine
           # :nodoc: all
+          def self.erb_compilation_cache_key
+            [name, ActionView::VERSION::STRING, Gem.loaded_specs.fetch("herb").version.to_s]
+          end
+
           def initialize(input, properties = {})
             @newline_pending = 0
 

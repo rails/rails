@@ -3,6 +3,7 @@
 require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
+require "action_view/erb_compilation_cache"
 require "action_view/template"
 require "concurrent/map"
 
@@ -111,6 +112,8 @@ module ActionView
     end
 
     def eager_load_templates(view = nil)
+      ERBCompilationCache.load! unless ActionView::Base.annotate_rendered_view_with_filenames
+
       template_glob("**/*").each do |file|
         unbound = build_unbound_template(file)
         (@unbound_templates[unbound.virtual_path] ||= []) << unbound

@@ -1,3 +1,13 @@
+*   Add `rails:cache_erb` to cache the Ruby source generated from all
+    filesystem-backed Action View ERB templates at build time.
+
+    The cache is stored in `tmp/cache/action_view/erb/data.dump` and loaded
+    into memory when filesystem-backed templates are eager loaded. Caching is
+    disabled when `config.action_view.annotate_rendered_view_with_filenames`
+    is enabled.
+
+    *Joel Hawksley*
+
 *   Add a `herb:check` rake task to verify that the application's HTML+ERB
     templates compile through Herb.
 

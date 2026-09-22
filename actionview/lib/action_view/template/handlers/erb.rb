@@ -2,6 +2,7 @@
 
 require "strscan"
 require "active_support/core_ext/erb/util"
+require "action_view/erb_compilation_cache"
 
 module ActionView
   class Template
@@ -24,7 +25,6 @@ module ActionView
         class_attribute :strip_trailing_newlines, default: false
 
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*").freeze
-
         LocationParsingError = Class.new(StandardError) # :nodoc:
 
         def self.call(template, source)
@@ -91,7 +91,17 @@ module ActionView
             options[:postamble] = "@output_buffer.safe_append='<!-- END #{template.short_identifier} -->';@output_buffer"
           end
 
-          (implementation || self.class.erb_implementation).new(erb, options.merge(overrides)).src
+          implementation ||= self.class.erb_implementation
+          options.merge!(overrides)
+
+          ERBCompilationCache.fetch(
+            implementation,
+            erb,
+            [options, Template.frozen_string_literal],
+            enabled: overrides.empty? && !ActionView::Base.annotate_rendered_view_with_filenames
+          ) do
+            implementation.new(erb, options).src
+          end
         end
 
       private

@@ -150,6 +150,7 @@ module ActionView
     rake_tasks do |app|
       unless app.config.api_only
         load "action_view/tasks/cache_digests.rake"
+        load "action_view/tasks/cache_erb.rake"
         load "action_view/tasks/herb.rake"
       end
     end
