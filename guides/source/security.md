@@ -2117,7 +2117,7 @@ $ brakeman --ensure-latest 3
 ```
 
 The `--ensure-latest 3` option is recommended as it ensures that you use the
-most recent version of brakeman that has been release for at least 3 days.
+most recent version of brakeman that has been released for at least 3 days.
 
 It will flag [unmaintained dependencies](https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/) so you can prepare a migration plan to replace them. Brakeman
 only detects vulnerabilities, it will not fix them automatically.
