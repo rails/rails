@@ -36,6 +36,32 @@ module ActiveRecord
       ActiveRecord.action_on_strict_loading_violation = old_action
     end
 
+    def test_query_retry
+      subscriber = ActiveRecord::StructuredEventSubscriber.new
+      error = ActiveRecord::LockWaitTimeout.new("lock wait timeout")
+
+      assert_event_reported("active_record.query_retry", payload: {
+        attempt: 1,
+        exception_class: "ActiveRecord::LockWaitTimeout",
+        exception_message: "lock wait timeout",
+      }) do
+        subscriber.query_retry(Event.new(0, error: error, attempt: 1))
+      end
+    end
+
+    def test_connection_retry
+      subscriber = ActiveRecord::StructuredEventSubscriber.new
+      error = ActiveRecord::ConnectionNotEstablished.new("connection refused")
+
+      assert_event_reported("active_record.connection_retry", payload: {
+        attempt: 2,
+        exception_class: "ActiveRecord::ConnectionNotEstablished",
+        exception_message: "connection refused",
+      }) do
+        subscriber.connection_retry(Event.new(0, error: error, attempt: 2))
+      end
+    end
+
     def test_schema_statements_are_ignored
       subscriber = ActiveRecord::StructuredEventSubscriber.new
 

@@ -1,3 +1,11 @@
+*   Add `query_retry.active_record` and `connection_retry.active_record` notifications.
+
+    `query_retry.active_record` is emitted before Active Record retries a query
+    after a retryable error. `connection_retry.active_record` is emitted when a
+    reconnect attempt fails and Active Record retries connecting to the database.
+
+    *Thomas Marshall*
+
 *   Fix `where` with a `Range` of value objects on a single-mapping `composed_of`
     attribute.
 
