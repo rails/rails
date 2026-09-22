@@ -1,3 +1,11 @@
+*   Allow model schema contexts to use an explicit connection pool.
+
+    Applications can use this with `build_schema_context` to control where a
+    model loads its schema. `attribute_names` now lives in the schema context
+    with the rest of the schema-derived model state.
+
+    *Joshua Young*
+
 *   Avoid deadlocks when concurrent `find_or_create_by` calls read back the same
     record within MySQL transactions.
 
