@@ -220,25 +220,29 @@ class NamingUsingRelativeModelNameTest < ActiveModel::TestCase
     assert_equal :"blog/post", @model_name.i18n_key
   end
 
-  def test_accessible_from_a_ractor
-    force_skip "This test triggers: https://github.com/fxn/zeitwerk/pull/344"
-    fake_model = Class.new do
-      extend ActiveModel::Translation
+  # Prior to 4.1 exiting single ractor mode break breaks require decorators:
+  # - https://bugs.ruby-lang.org/issues/22263
+  # - https://github.com/fxn/zeitwerk/pull/344
+  if RUBY_VERSION >= "4.1"
+    def test_accessible_from_a_ractor
+      fake_model = Class.new do
+        extend ActiveModel::Translation
 
-      def self.name
-        "FakePost"
+        def self.name
+          "FakePost"
+        end
       end
-    end
 
-    fake_model.model_name
+      fake_model.model_name
 
-    assert_nothing_raised do
-      on_ractor do
-        model_name = fake_model.model_name
+      assert_nothing_raised do
+        on_ractor do
+          model_name = fake_model.model_name
 
-        # TODO: Unstub I18n once it is ractor safe.
-        I18n.stub(:translate, ->(*) { }) do
-          model_name.human
+          # TODO: Unstub I18n once it is ractor safe.
+          I18n.stub(:translate, ->(*) { }) do
+            model_name.human
+          end
         end
       end
     end

@@ -1,3 +1,14 @@
+*   Fix `Server-Timing` durations for nested same-name notifications.
+
+    Nested events such as `render_partial.action_view` report inclusive
+    durations, so summing them double-counted child work and could exceed
+    wall-clock / total request time. Server Timing now aggregates exclusive
+    time per event name.
+
+    Fixes #48375.
+
+    *Edil Talantbek uulu*
+
 *   Include default headers in `ActionController::Live` responses.
 
     Previously, responses from `ActionController::Live` controllers, including

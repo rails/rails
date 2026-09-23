@@ -100,6 +100,12 @@ module ActiveModel
         false
       end
 
+      def init_from_schema_json(coder, references)
+        super
+        @max = max_value
+        @min = min_value
+      end
+
       private
         def out_of_range?(value)
           if @max.nil?

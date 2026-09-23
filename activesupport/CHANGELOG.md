@@ -1,3 +1,13 @@
+*   Fix `ActiveSupport::BroadcastLogger#tagged` when broadcasting to more than
+    one tagging logger..
+
+    ```ruby
+    broadcast = ActiveSupport::BroadcastLogger.new(logger1, logger2)
+    broadcast.tagged("BCX").info("Hello") # => both loggers log "[BCX] Hello"
+    ```
+
+    *Ben Younes*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#read_multi`
     when a local cache is active.
 
