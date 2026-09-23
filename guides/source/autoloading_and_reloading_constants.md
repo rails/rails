@@ -87,7 +87,7 @@ subdirectories of the `app` directory. Zeitwerk also manages the `lib` directory
 when `config.autoload_lib` is configured (as explained
 [later](#autoloading-lib)). Zeitwerk loaders do _not_ manage the Ruby standard
 library, gem dependencies, or the Rails components themselves. That code has to
-be loaded as usual, with `require`.
+be loaded as usual, with a `require`.
 
 ### How Autoloading Works
 
@@ -473,7 +473,7 @@ While booting, applications can autoload from the autoload once paths, which are
 
 This is because initializers only run once, when the application boots. They do not run again on reloads. If an initializer used a reloadable class or module, edits to those would not be reflected in that initial code. Therefore, referring to reloadable constants during initialization raises an error (See [Autoloading Without Reloading](#autoloading-without-reloading-autoload-once-paths) section for more).
 
-There are three situations where this comes up, and each has a different answer:
+Let's see some situations in which this comes up and different solutions for it:
 when you need reloadable code to run at boot, when you need code at boot that
 something outside the reload cycle will keep a reference to, and when an engine
 needs to be configured with one of your application classes.
@@ -584,7 +584,7 @@ MyEngine.configure do |config|
 end
 ```
 
-The above code generates a `NameError` assuming `User` is is autoload paths and hence reloadable.
+The above code generates a `NameError` assuming `User` is in autoload paths and hence reloadable.
 
 In order to play well with reloadable application code, the engine can instead refer to the _name_ of that reloadable class:
 
@@ -600,7 +600,7 @@ Then, use `config.user_model.constantize` to get the current class object.
 Loading Constants to Allow Single Table Inheritance
 ---------------------------------------------------
 
-[Single Table Inheritance](association_basics.html#single-table-inheritance-sti)(STI) doesn't play well with lazy loading. Active Record has to be aware of STI model hierarchies to work correctly, but when lazy loading, classes are loaded on demand, meaning Active Record cannot infer the inheritance tree as it needs all relevant classes to be loaded.
+[Single Table Inheritance](association_basics.html#single-table-inheritance-sti) (STI) doesn't play well with lazy loading. Active Record has to be aware of STI model hierarchies to work correctly, but when lazy loading, classes are loaded on demand, meaning Active Record cannot infer the inheritance tree as it needs all relevant classes to be loaded.
 
 To address this fundamental mismatch we need to preload STI models. There are a few options to accomplish this, with different trade-offs. Let's see them.
 
@@ -757,22 +757,23 @@ since `app/services` is the autoload path. But what if you prefer that entire
 subtree to be under a `Services` namespace so the above file defines
 `Servicess::Users::Signup`?
 
-One workaround to accomplished this can be to create a subdirectory:
+One workaround to accomplish this can be to create a subdirectory:
 `app/services/services`. Since `app/services` is the autoload path, the nested
 `services` directory is the first level Zeitwerk sees, and it becomes the
 `Services` module, turning `app/services/services/users/signup.rb` into
 `Servicess::Users::Signup` as desired.
 
-The placeholder `services` directory workaround works, but better yet Zietwerk
-has a feature that allows `app/services/users/signup.rb` to define
+The placeholder `services` directory approach works, but perhaps you prefer
+`app/services` to represent the `Services` namespace. Another option is a
+Zietwerk feature that allows `app/services/users/signup.rb` to define
 `Services::Users::Signup` directly.
 
 Zeitwerk supports [custom root
 namespaces](https://github.com/fxn/zeitwerk#custom-root-namespaces) to address
-this use case. You can add a configuration for the `main` autoloader to as shown
+this use case. You can add a configuration for the `main` autoloader as shown
 below. Instead of representing `Object`, the autoload path is configured to
-represent a module of your choosing, so the file layout stays the same while
-everything under that module is namespaced:
+represent a class or module of your choosing, so the file layout stays the same
+while everything under that autoload path is namespaced:
 
 ```ruby
 # config/initializers/autoloading.rb
@@ -811,12 +812,12 @@ Autoloading In Engines
 
 TIP: If your engine supports Rails 6 as well as current Rails, you can detect
 the parent application's autoloading mode with
-`Rails.autoloaders.zeitwerk_enabled?`. It returns `true` in Rails 7 and later,
-since `zeitwerk` is the only mode there.
+`Rails.autoloaders.zeitwerk_enabled?`. The predicate still exists in Rails 7 and
+later, where it simply returns `true`.
 
 When Rails boots, engine directories are added to the autoload paths, and from the point of view of the autoloader, there's no difference. Autoloaders' main inputs are the autoload paths, and whether they belong to the application source tree or to some engine source tree is irrelevant.
 
-For example, this application uses the [Devise] (https://github.com/heartcombo/devise) gem:
+For example, this application uses the [Devise](https://github.com/heartcombo/devise) gem:
 
 ```bash
 $ bin/rails runner 'pp ActiveSupport::Dependencies.autoload_paths'
@@ -841,7 +842,7 @@ If the engine controls the autoloading mode of its parent application, the engin
 Testing and Troubleshooting
 ---------------------------
 
-### Verifying Zeitwerk (`zeitwerk:check`)
+### Using `zeitwerk:check`
 
 The task `zeitwerk:check` checks if the project tree follows the expected naming conventions and it is handy for manual checks. For example, if you're migrating from `classic` to `zeitwerk` mode, or if you're fixing something:
 
@@ -861,14 +862,15 @@ That covers Zeitwerk naming compliance and other possible error conditions. Plea
 
 ### Inspecting Autoloading Logs
 
-The best way to follow what the loaders are doing is to inspect their activity:
+The best way to follow what the loaders are doing is to inspect their activity
+after loading the framework defaults:
 
 ```ruby
 # config/application.rb
 Rails.autoloaders.log!
 ```
 
-After loading the framework defaults. That will print traces to standard output. You can also log to a file instead:
+That will print traces to standard output. You can also log to a file instead:
 
 ```ruby
 Rails.autoloaders.logger = Logger.new("#{Rails.root}/log/autoloading.log")
@@ -912,7 +914,7 @@ end
 ```
 
 NOTE: `Rails.autoloaders` also responds to `each`, which is useful when a
-customization should apply to both loaders, as in the inflector example above. `Rails.autoloaders`
+customization should apply to both loaders, as in the inflector example above.
 
 For anything not documented in this guide, consult the [Zeitwerk
 documentation](https://github.com/fxn/zeitwerk) and call the method on the
