@@ -1,16 +1,21 @@
 *   Do not schema-qualify PostgreSQL extensions whose control file fixes their
-    schema when dumping `db/schema.rb`.
+    schema, nor tables and enum types in the current schema, when dumping
+    `db/schema.rb`.
 
     Before:
 
     ```ruby
     enable_extension "pg_catalog.plpgsql"
+
+    create_table "public.posts", force: :cascade do |t|
     ```
 
     After:
 
     ```ruby
     enable_extension "plpgsql"
+
+    create_table "posts", force: :cascade do |t|
     ```
 
     *Yasuo Honda*

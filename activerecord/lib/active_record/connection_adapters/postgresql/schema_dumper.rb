@@ -20,6 +20,8 @@ module ActiveRecord
               else
                 connection.schema_names
               end
+
+            @current_schema = connection.current_schema
           end
 
           def extensions(stream)
@@ -152,7 +154,7 @@ module ActiveRecord
           end
 
           def relation_name(name)
-            if @dump_schemas.size == 1
+            if @dump_schemas.size == 1 || schema_name == @current_schema
               name
             elsif name.include?(".")
               name  # Already schema-qualified, don't add another prefix
