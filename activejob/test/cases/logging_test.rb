@@ -3,6 +3,7 @@
 require "helper"
 require "active_support/log_subscriber/test_helper"
 require "active_support/core_ext/numeric/time"
+require "active_support/broadcast_logger"
 require "support/test_logger"
 require "jobs/hello_job"
 require "jobs/logging_job"
@@ -33,6 +34,15 @@ class LoggingTest < ActiveSupport::TestCase
   def test_uses_active_job_as_tag
     HelloJob.perform_later "Cristian"
     assert_match(/\[ActiveJob\]/, @logger.messages)
+  end
+
+  def test_broadcast_logger_wrapping_a_non_tagged_logger_does_not_raise
+    inner_logger = TestLogger.new
+    set_logger ActiveSupport::BroadcastLogger.new(inner_logger)
+
+    HelloJob.perform_now("Cristian")
+    assert_equal ["Cristian says hello"], JobBuffer.values
+    assert_match(/Performing HelloJob/, inner_logger.messages)
   end
 
   def test_uses_job_name_as_tag

@@ -278,6 +278,18 @@ module ActiveRecord
       end
     end
 
+    # Runs a real dump, since structure_load relies on it disabling foreign key checks.
+    def test_structure_dump_output_disables_foreign_key_checks
+      filename = "awesome-file.sql"
+      config = ARTest.config["connections"]["trilogy"]["arunit"]
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(config, filename)
+
+      assert_match(/FOREIGN_KEY_CHECKS\s*=\s*0/, File.read(filename))
+    ensure
+      FileUtils.rm_f(filename)
+    end
+
     def test_structure_dump_with_extra_flags
       filename = "awesome-file.sql"
       expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}]
@@ -413,6 +425,8 @@ module ActiveRecord
   end
 
   class MySQLStructureLoadTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
     def setup
       @configuration = {
         "adapter"  => "trilogy",
@@ -422,7 +436,7 @@ module ActiveRecord
 
     def test_structure_load
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
+      expected_command = ["mysql", "--noop", "--database", "test-db", { in: filename }]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags(["--noop"]) do
@@ -431,9 +445,34 @@ module ActiveRecord
       end
     end
 
+    def test_structure_load_reads_the_file_from_standard_input
+      filename = "awesome-file.sql"
+      config = ARTest.config["connections"]["trilogy"]["arunit"]
+      File.write(filename, "CREATE TABLE structure_load_test (id int);\n")
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_load(config, filename)
+
+      assert ActiveRecord::Base.lease_connection.table_exists?("structure_load_test")
+    ensure
+      ActiveRecord::Base.lease_connection.drop_table("structure_load_test", if_exists: true)
+      FileUtils.rm_f(filename)
+    end
+
+    def test_structure_load_command_failure_names_the_file
+      filename = "awesome-file.sql"
+      expected_command = ["mysql", "--database", "test-db", { in: filename }]
+
+      assert_called_with(Kernel, :system, expected_command, returns: false) do
+        e = assert_raise(RuntimeError) {
+          ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+        }
+        assert_match("failed to execute:\nmysql --database test-db < awesome-file.sql", e.message)
+      end
+    end
+
     def test_structure_load_with_hash_extra_flags_for_a_different_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
+      expected_command = ["mysql", "--database", "test-db", { in: filename }]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags({ postgresql: ["--noop"] }) do
@@ -444,7 +483,7 @@ module ActiveRecord
 
     def test_structure_load_with_hash_extra_flags_for_the_correct_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
+      expected_command = ["mysql", "--noop", "--database", "test-db", { in: filename }]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags({ trilogy: ["--noop"] }) do
