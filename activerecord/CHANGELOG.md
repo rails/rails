@@ -1,3 +1,20 @@
+*   Do not schema-qualify PostgreSQL extensions whose control file fixes their
+    schema when dumping `db/schema.rb`.
+
+    Before:
+
+    ```ruby
+    enable_extension "pg_catalog.plpgsql"
+    ```
+
+    After:
+
+    ```ruby
+    enable_extension "plpgsql"
+    ```
+
+    *Yasuo Honda*
+
 *   Make `db:schema:load` work with MySQL client 9.4 and later.
 
     From 9.4.0 on, the client by default passes the `SOURCE` command to the
