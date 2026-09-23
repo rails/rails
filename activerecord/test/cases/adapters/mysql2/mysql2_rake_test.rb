@@ -278,6 +278,18 @@ module ActiveRecord
       end
     end
 
+    # Runs a real dump, since structure_load relies on it disabling foreign key checks.
+    def test_structure_dump_output_disables_foreign_key_checks
+      filename = "awesome-file.sql"
+      config = ARTest.config["connections"]["mysql2"]["arunit"]
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(config, filename)
+
+      assert_match(/FOREIGN_KEY_CHECKS\s*=\s*0/, File.read(filename))
+    ensure
+      FileUtils.rm_f(filename)
+    end
+
     def test_structure_dump_with_extra_flags
       filename = "awesome-file.sql"
       expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}]
@@ -422,7 +434,7 @@ module ActiveRecord
 
     def test_structure_load
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
+      expected_command = ["mysql", "--noop", "--execute", "SOURCE #{filename}", "--database", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags(["--noop"]) do
@@ -433,7 +445,7 @@ module ActiveRecord
 
     def test_structure_load_with_hash_extra_flags_for_a_different_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
+      expected_command = ["mysql", "--execute", "SOURCE #{filename}", "--database", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags({ postgresql: ["--noop"] }) do
@@ -444,7 +456,7 @@ module ActiveRecord
 
     def test_structure_load_with_hash_extra_flags_for_the_correct_driver
       filename = "awesome-file.sql"
-      expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", {}]
+      expected_command = ["mysql", "--noop", "--execute", "SOURCE #{filename}", "--database", "test-db", {}]
 
       assert_called_with(Kernel, :system, expected_command, returns: true) do
         with_structure_load_flags({ mysql2: ["--noop"] }) do

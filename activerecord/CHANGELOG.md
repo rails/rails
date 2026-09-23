@@ -1,3 +1,16 @@
+*   Drop the explicit `SET FOREIGN_KEY_CHECKS` statements from MySQL `db:schema:load`.
+
+    Dumps written by `mysqldump` since MySQL 4.1.1 and by `mariadb-dump` since
+    its first release set `FOREIGN_KEY_CHECKS = 0` themselves, so foreign key
+    checks stay disabled during the load without them.
+
+    If you pass `--compact` in `structure_dump_flags`, the dump leaves it out, so
+    add it back on load:
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = ["--init-command=SET FOREIGN_KEY_CHECKS = 0"]
+
+    *Yasuo Honda*
+
 *   Avoid deadlocks when concurrent `find_or_create_by` calls read back the same
     record within MySQL transactions.
 
