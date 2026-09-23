@@ -1,3 +1,8 @@
+*   Fix collection select helpers raising `TypeError` when a callable
+    `value_method` is combined with a `selected` or `disabled` Proc.
+
+    *Andrii Furmanets*
+
 *   Add a `herb:check` rake task to verify that the application's HTML+ERB
     templates compile through Herb.
 
