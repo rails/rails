@@ -1,3 +1,19 @@
+*   Add a configuration `csp_meta_tag_nonce_attribute` to allow renaming the csp_meta_tag helper nonce attribute name.
+    This allows to rename the `content` attribute to `nonce` to avoid certain kinds of value exfiltration attacks.
+
+    ```ruby
+    app.config.action_view.csp_meta_tag_nonce_attribute = :nonce
+    <%= csp_meta_tag %>
+    # renders
+    <meta name="csp-nonce" nonce="..." />
+
+    app.config.action_view.csp_meta_tag_nonce_attribute = :content (current default)
+    # renders
+    <meta name="csp-nonce" content="..." />
+    ```
+
+    *Niklas Häusele*
+
 *   Add a `herb:check` rake task to verify that the application's HTML+ERB
     templates compile through Herb.
 
