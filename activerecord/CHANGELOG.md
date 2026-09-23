@@ -1,3 +1,11 @@
+*   Make `db:schema:load` work with MySQL client 9.4 and later.
+
+    From 9.4.0 on, the client by default passes the `SOURCE` command to the
+    server as SQL instead of handling it itself, and the server rejects it with a
+    syntax error. The SQL structure file is now read from standard input instead.
+
+    *Yasuo Honda*
+
 *   Drop the explicit `SET FOREIGN_KEY_CHECKS` statements from MySQL `db:schema:load`.
 
     Dumps written by `mysqldump` since MySQL 4.1.1 and by `mariadb-dump` since
