@@ -1,3 +1,22 @@
+*   Do not schema-qualify PostgreSQL tables and enum types in the current
+    schema when dumping more than one schema to `db/schema.rb`.
+
+    With `schema_search_path: public, postgis`:
+
+    Before:
+
+    ```ruby
+    create_table "public.posts", force: :cascade do |t|
+    ```
+
+    After:
+
+    ```ruby
+    create_table "posts", force: :cascade do |t|
+    ```
+
+    *Yasuo Honda*
+
 *   Make `db:schema:load` work with MySQL client 9.4 and later.
 
     From 9.4.0 on, the client by default passes the `SOURCE` command to the
