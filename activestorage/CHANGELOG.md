@@ -1,3 +1,13 @@
+*   Forward other options from `has_one_attached` and `has_many_attached` to the attachment association.
+
+    ```ruby
+    class User < ApplicationRecord
+      has_one_attached :avatar, deprecated: true
+    end
+    ```
+
+    *Jean-Samuel Aubry-Guzzi*
+
 *   Introduce `config.active_storage.s3_public_uploads_via_acl` to stop setting the `public-read` ACL on S3 uploads for services configured with `public: true`.
 
     Bucket owner enforced is now both the default and the recommended S3 object ownership setting,
