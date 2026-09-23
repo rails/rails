@@ -840,7 +840,7 @@ module ActionView
         def extract_values_from_collection(collection, value_method, selected)
           if selected.is_a?(Proc)
             collection.filter_map do |element|
-              element.public_send(value_method) if selected.call(element)
+              value_for_collection(element, value_method) if selected.call(element)
             end
           else
             selected

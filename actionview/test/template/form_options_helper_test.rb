@@ -159,6 +159,20 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_collection_options_with_proc_for_value_method_and_selected
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" selected=\"selected\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, lambda { |p| p.author_name }, "title", lambda { |p| p.author_name == "Babe" })
+    )
+  end
+
+  def test_collection_options_with_proc_for_value_method_and_disabled
+    assert_dom_equal(
+      "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, lambda { |p| p.author_name }, "title", disabled: lambda { |p| %w(Babe Cabe).include?(p.author_name) })
+    )
+  end
+
   def test_collection_options_with_proc_for_text_method
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
@@ -1178,6 +1192,16 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option></select>",
       collection_select("post", "author_name", dummy_posts, lambda { |p| p.author_name }, "title")
+    )
+  end
+
+  def test_collection_select_with_proc_for_value_method_and_disabled
+    @post = Post.new
+    @post.author_name = "BABE"
+
+    assert_dom_equal(
+      "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;ABE&gt;\">&lt;Abe&gt;</option>\n<option value=\"BABE\" selected=\"selected\">Babe</option>\n<option value=\"CABE\" disabled=\"disabled\">Cabe</option></select>",
+      collection_select("post", "author_name", dummy_posts, lambda { |p| p.author_name.upcase }, "author_name", disabled: lambda { |p| p.author_name == "Cabe" })
     )
   end
 
