@@ -612,6 +612,20 @@ module Notifications
       assert_equal({ called: true }, value)
     end
 
+    test "capturing notifications with a callable that can't be shared" do
+      assert_notification("captured.event") do
+        ActiveSupport::Notifications.instrument("captured.event")
+      end
+    end
+
+    test "capturing notifications within another capture" do
+      assert_notification("captured.event") do
+        assert_notification("captured.event") do
+          ActiveSupport::Notifications.instrument("captured.event")
+        end
+      end
+    end
+
     if RUBY_VERSION >= "4.0"
       test "creating a subscription that's not ractor shareable raises an error" do
         outer = []
@@ -620,7 +634,81 @@ module Notifications
           ActiveSupport::Notifications.subscribe("active_record.sql") { outer }
         end
       end
+
+      test "subscriptions added after a Ractor materialized its notifier are visible to it" do
+        with_ractor do |ractor|
+          assert_equal({}, ractor.call { INSTRUMENT_LATE.call })
+
+          ActiveSupport::Notifications.subscribe("added.later") { |event| event.payload[:called] = true }
+
+          assert_equal({ called: true }, ractor.call { INSTRUMENT_LATE.call })
+        end
+      end
+
+      test "unsubscribing is visible to a Ractor that materialized its notifier" do
+        subscriber = ActiveSupport::Notifications.subscribe("added.later") { |event| event.payload[:called] = true }
+
+        with_ractor do |ractor|
+          assert_equal({ called: true }, ractor.call { INSTRUMENT_LATE.call })
+
+          ActiveSupport::Notifications.unsubscribe(subscriber)
+
+          assert_equal({}, ractor.call { INSTRUMENT_LATE.call })
+        end
+      end
+
+      test "unsubscribing an event name is visible to a Ractor" do
+        ActiveSupport::Notifications.subscribe(/render/) { |event| event.payload[:called] = true }
+        ActiveSupport::Notifications.unsubscribe("render_template.action_view")
+
+        unsubscribed, subscribed = on_ractor do
+          [{}, {}].each_with_index.map do |payload, index|
+            name = index.zero? ? "render_template.action_view" : "render_partial.action_view"
+            ActiveSupport::Notifications.instrument(name, payload)
+            payload
+          end
+        end
+
+        assert_equal({}, unsubscribed)
+        assert_equal({ called: true }, subscribed)
+      end
     end
+
+    private
+      # Instruments "added.later" and returns its payload. A constant so that
+      # the blocks sent to a Ractor don't capture anything.
+      INSTRUMENT_LATE = ActiveSupport::Ractors.shareable_proc do
+        payload = {}
+        ActiveSupport::Notifications.instrument("added.later", payload)
+        payload
+      end
+
+      # Yields a Ractor that runs the shareable blocks it is given, one at a
+      # time, so that subscription changes made in between can be observed.
+      def with_ractor
+        port = Ractor::Port.new
+        ractor = Ractor.new(port) do |port|
+          while (block = Ractor.receive)
+            port << begin
+              [:ok, block.call]
+            rescue Exception => error
+              [:error, "#{error.class}: #{error.message}"]
+            end
+          end
+        end
+
+        yield ->(&block) {
+          ractor.send(Ractor.shareable_proc(&block))
+          status, value = port.receive
+          raise value if status == :error
+          value
+        }
+      ensure
+        if ractor
+          ractor.send(nil)
+          ractor.join
+        end
+      end
   end
 
   class CustomNotifierTest < ActiveSupport::TestCase
@@ -645,7 +733,7 @@ module Notifications
       ActiveSupport::Notifications.notifier = @old_notifier
     end
 
-    test "assigning a notifier that does not implement the snapshot protocol does not raise" do
+    test "assigning a notifier that does not implement the subscription registry protocol does not raise" do
       notifier = MinimalNotifier.new
       assert_nothing_raised do
         ActiveSupport::Notifications.notifier = notifier
@@ -653,7 +741,7 @@ module Notifications
       assert_same notifier, ActiveSupport::Notifications.notifier
     end
 
-    test "instrumenting through a notifier without the snapshot protocol works" do
+    test "instrumenting through a notifier without the subscription registry protocol works" do
       notifier = MinimalNotifier.new
       ActiveSupport::Notifications.notifier = notifier
 
@@ -662,7 +750,7 @@ module Notifications
       assert_equal ["custom.event"], notifier.published
     end
 
-    test "subscribe on a notifier without the snapshot protocol does not raise" do
+    test "subscribe on a notifier without the subscription registry protocol does not raise" do
       ActiveSupport::Notifications.notifier = MinimalNotifier.new
       assert_nothing_raised do
         ActiveSupport::Notifications.subscribe("custom.event") { }
