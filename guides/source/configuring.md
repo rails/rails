@@ -66,6 +66,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.action_dispatch.strict_accept_header`](#config-action-dispatch-strict-accept-header): `true`
+- [`config.action_view.erb_implementation`](#config-action-view-erb-implementation): `:herb`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
@@ -2697,7 +2698,14 @@ Controls if certain ERB syntax should trim. It defaults to `'-'`, which turns on
 
 #### `config.action_view.erb_implementation`
 
-Controls the default ERB implementation to use. It defaults to `Erubi`.
+Controls the ERB implementation used to compile templates. `:erubi` compiles every template through [Erubi](https://github.com/jeremyevans/erubi). `:herb` compiles templates with the HTML format through [Herb](https://github.com/marcoroth/herb) and every other format through Erubi. Herb reports structural problems, such as an unclosed tag, at compile time with their template location. Setting a class compiles every template through that class.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is                           |
+| --------------------- | ---------------------------------------------- |
+| (original)            | `ActionView::Template::Handlers::ERB::Erubi`   |
+| 8.2                   | `ActionView::Template::Handlers::ERB::Herb`    |
 
 #### `config.action_view.escape_ignore_list`
 
