@@ -82,6 +82,19 @@ Upgrading from Rails 8.1 to Rails 8.2
 
 For more information on changes made to Rails 8.2 please see the [release notes](8_2_release_notes.html).
 
+### Active Job arguments are copied before `perform` in new applications.
+
+New applications (`config.load_defaults 8.2`) set
+`config.active_job.immutable_arguments = true`. Active Job then deep-dups
+arguments before calling `perform`, so mutations of those parameters no longer
+leak into retries.
+
+Existing applications keep the previous behavior. To opt in, uncomment the
+setting in `config/initializers/new_framework_defaults_8_2.rb` or set
+`config.active_job.immutable_arguments = true`. Jobs that intentionally persist
+state across retries should mutate `job.arguments` rather than the `perform`
+parameters.
+
 ### The old Active Record 6.1 marshalling format was removed.
 
 If your application still sets `active_record.marshalling_format_version = 6.1`, which may
