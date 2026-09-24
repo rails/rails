@@ -50,8 +50,10 @@ module Rails
         #
         #   class AppGeneratorTest < Rails::Generators::TestCase
         #     tests AppGenerator
-        #     destination File.expand_path("../tmp", __dir__)
-        #     setup :prepare_destination
+        #     setup do
+        #       self.class.destination Dir.mktmpdir("generators", Rails.root.join("tmp").to_s)
+        #     end
+        #     teardown { FileUtils.remove_entry(destination_root) }
         #
         #     test "database.yml is not created when skipping Active Record" do
         #       run_generator %w(myapp --skip-active-record)
