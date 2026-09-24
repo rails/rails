@@ -1,3 +1,11 @@
+*   Fix non-ASCII strict locals defaults rendering as mojibake.
+
+    When a template declared a non-ASCII default in its `locals:` magic comment
+    and its body was ASCII-only, the handler returned ASCII-8BIT code and the
+    compiled method definition was retagged with it, corrupting the default.
+
+    *Carlos Daniel Pohlod*
+
 *   Fix `Encoding::CompatibilityError` when digesting templates with non-ASCII
     content via `DependencyTracker::RubyTracker`.
 
