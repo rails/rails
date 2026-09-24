@@ -1020,6 +1020,23 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_not_includes ca_zones.map(&:name), "America/Vancouver"
     assert_not_includes ca_zones.map(&:name), "America/Edmonton"
   end
+
+  def test_manitoba_mapping
+    manitoba = ActiveSupport::TimeZone["Manitoba"]
+    central_us = ActiveSupport::TimeZone["Central Time (US & Canada)"]
+
+    assert_equal "America/Winnipeg", manitoba.standard_name
+    assert_equal "America/Chicago", central_us.standard_name
+
+    assert_equal "America/Winnipeg", manitoba.tzinfo.name
+  end
+
+  def test_country_zones_include_manitoba
+    ca_zones = ActiveSupport::TimeZone.country_zones(:ca)
+
+    assert_includes ca_zones, ActiveSupport::TimeZone["Manitoba"]
+    assert_not_includes ca_zones.map(&:name), "America/Winnipeg"
+  end
 end
 
 class TimeZoneRactorTest < ActiveSupport::TestCase
