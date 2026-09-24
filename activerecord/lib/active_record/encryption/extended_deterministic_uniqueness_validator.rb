@@ -5,6 +5,7 @@ module ActiveRecord
     module ExtendedDeterministicUniquenessValidator
       def self.install_support
         ActiveRecord::Validations::UniquenessValidator.prepend(EncryptedUniquenessValidator)
+        ExtendedDeterministicQueries.install_additional_value_support
       end
 
       module EncryptedUniquenessValidator
@@ -15,7 +16,8 @@ module ActiveRecord
           if klass.deterministic_encrypted_attributes&.include?(attribute)
             encrypted_type = klass.type_for_attribute(attribute)
             encrypted_type.previous_types.each do |type|
-              encrypted_value = type.serialize(value)
+              # Wrapped so that a +normalizes+ declaration doesn't normalize the ciphertext.
+              encrypted_value = ExtendedDeterministicQueries::AdditionalValue.new(value, type)
               ActiveRecord::Encryption.without_encryption do
                 super(record, attribute, encrypted_value)
               end

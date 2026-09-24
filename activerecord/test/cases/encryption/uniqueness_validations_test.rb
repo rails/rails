@@ -62,4 +62,20 @@ class ActiveRecord::Encryption::UniquenessValidationsTest < ActiveRecord::Encryp
 
     assert_equal 1, record.errors.count
   end
+
+  test "uniqueness validations work with previous encryption schemes when the attribute is also normalized" do
+    EncryptedBookWithRetiredKey.create! name: "dune"
+
+    assert_raises ActiveRecord::RecordInvalid do
+      EncryptedBookWithRotatedKeyAndNormalizedName.create! name: " Dune "
+    end
+  end
+
+  test "uniqueness validations work with unencrypted data when the attribute is also normalized" do
+    UnencryptedBook.create! name: "dune"
+
+    assert_raises ActiveRecord::RecordInvalid do
+      EncryptedBookWithNormalizedDeterministicName.create! name: " Dune "
+    end
+  end
 end

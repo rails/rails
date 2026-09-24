@@ -1,3 +1,13 @@
+*   Fix extended deterministic queries and uniqueness validations on encrypted attributes that also declare `normalizes`.
+
+    With `config.active_record.encryption.extend_queries = true`, lookups for values stored
+    unencrypted or with a previous encryption scheme silently found nothing, and uniqueness
+    validations normalized the previous scheme's ciphertext instead of the value.
+
+    Fixes #58865.
+
+    *Rita*
+
 *   Make `db:schema:load` work with MySQL client 9.4 and later.
 
     From 9.4.0 on, the client by default passes the `SOURCE` command to the

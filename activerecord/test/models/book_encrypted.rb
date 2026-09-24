@@ -110,3 +110,25 @@ class EncryptedBookWithCustomCompressor < ActiveRecord::Base
 
   encrypts :name, compressor: CustomCompressor
 end
+
+class EncryptedBookWithNormalizedDeterministicName < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  validates :name, uniqueness: true
+  encrypts :name, deterministic: true, support_unencrypted_data: true
+  normalizes :name, with: ->(value) { value.strip.downcase }
+end
+
+class EncryptedBookWithRetiredKey < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  encrypts :name, deterministic: true, key: "retired deterministic key"
+end
+
+class EncryptedBookWithRotatedKeyAndNormalizedName < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  validates :name, uniqueness: true
+  encrypts :name, deterministic: { fixed: false }, previous: { deterministic: true, key: "retired deterministic key" }
+  normalizes :name, with: ->(value) { value.strip.downcase }
+end
