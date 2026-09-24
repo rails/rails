@@ -1,3 +1,5 @@
+## Rails 8.1.4 (September 24, 2026) ##
+
 *   Fix `ActionMailer.deliver_all_later` not being available until
     `ActionMailer::MessageDelivery` was autoloaded.
 

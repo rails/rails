@@ -1,3 +1,5 @@
+## Rails 8.1.4 (September 24, 2026) ##
+
 *   Fix non-ASCII strict locals defaults rendering as mojibake.
 
     When a template declared a non-ASCII default in its `locals:` magic comment

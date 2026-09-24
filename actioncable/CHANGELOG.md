@@ -1,3 +1,5 @@
+## Rails 8.1.4 (September 24, 2026) ##
+
 *   Allow `redis-rb` 6 in the Action Cable Redis subscription adapter.
 
     *Shuta Mugikura*

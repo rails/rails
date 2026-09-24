@@ -1,3 +1,5 @@
+## Rails 8.1.4 (September 24, 2026) ##
+
 *   Fix the debug error page to not attempt to read source fragments from
     directory paths.
 

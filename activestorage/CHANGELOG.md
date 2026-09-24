@@ -1,3 +1,5 @@
+## Rails 8.1.4 (September 24, 2026) ##
+
 *   Warn instead of aborting boot when `image_processing` 2.x is installed without `ruby-vips`
     or `mini_magick`.
 

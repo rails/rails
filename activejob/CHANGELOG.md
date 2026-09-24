@@ -1,3 +1,5 @@
+## Rails 8.1.4 (September 24, 2026) ##
+
 *   Fix `retry_job` to preserve `wait_until`, `queue`, and `priority` options when
     `enqueue_after_transaction_commit` defers the enqueue.
 

@@ -1,3 +1,5 @@
+## Rails 8.1.4 (September 24, 2026) ##
+
 *   Avoid deadlocks when concurrent `find_or_create_by` calls read back the same
     record within MySQL transactions.
 

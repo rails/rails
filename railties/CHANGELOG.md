@@ -1,3 +1,5 @@
+## Rails 8.1.4 (September 24, 2026) ##
+
 *   Include the offending value in the `secret_key_base=` error message.
 
     *Jean Boussier*
