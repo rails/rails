@@ -16,17 +16,14 @@ module Rails
     #
     #   class AppGeneratorTest < Rails::Generators::TestCase
     #     tests AppGenerator
-    #     destination File.expand_path("../tmp", __dir__)
+    #     setup do
+    #       self.class.destination Dir.mktmpdir("generators", Rails.root.join("tmp").to_s)
+    #     end
+    #     teardown { FileUtils.remove_entry(destination_root) }
     #   end
     #
-    # If you want to ensure your destination root is clean before running each test,
-    # you can set a setup callback:
-    #
-    #   class AppGeneratorTest < Rails::Generators::TestCase
-    #     tests AppGenerator
-    #     destination File.expand_path("../tmp", __dir__)
-    #     setup :prepare_destination
-    #   end
+    # The setup callback creates a fresh destination root for each test, and teardown
+    # removes it after the test.
     class TestCase < ActiveSupport::TestCase
       include Rails::Generators::Testing::Behavior
       include Rails::Generators::Testing::SetupAndTeardown
