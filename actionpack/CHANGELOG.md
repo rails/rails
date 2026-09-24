@@ -1,3 +1,5 @@
+## Rails 7.2.4 (September 24, 2026) ##
+
 *   Fix `ActionController::UnknownHttpMethod` to return `405 Method Not Allowed`
     instead of `500 Internal Server Error`.
 

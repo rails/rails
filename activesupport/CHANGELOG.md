@@ -1,3 +1,5 @@
+## Rails 7.2.4 (September 24, 2026) ##
+
 *   Improve `number_to_delimited` performance when `delimiter_pattern` is not specified.
 
     *Shinichi Maeshima*

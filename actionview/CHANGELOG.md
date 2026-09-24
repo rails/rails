@@ -1,3 +1,5 @@
+## Rails 7.2.4 (September 24, 2026) ##
+
 *   Fix strict locals parsing to handle multiline definitions.
 
     *Said Kaldybaev*

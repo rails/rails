@@ -1,3 +1,5 @@
+## Rails 7.2.4 (September 24, 2026) ##
+
 *   Fix performance regression in `method_missing` for virtual SELECT alias
     attributes.
 

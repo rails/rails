@@ -1,3 +1,8 @@
+## Rails 7.2.4 (September 24, 2026) ##
+
+*   No changes.
+
+
 ## Rails 7.2.3.2 (July 29, 2026) ##
 
 *   Disable libvips's unfuzzed image loaders and savers.
