@@ -28,6 +28,11 @@ module ActiveRecord
         ActiveRecord::Relation.prepend(RelationQueries)
         ActiveRecord::Base.include(CoreQueries)
         ActiveRecord::Encryption::EncryptedAttributeType.prepend(ExtendedEncryptableType)
+        # +normalizes+ registers a type that decorates the encrypted one, and the attribute's
+        # registered type is then that decorator. Without this, an +AdditionalValue+ is cast to a
+        # string by the decorator before the passthrough above can see it, and that string gets
+        # encrypted a second time.
+        ActiveModel::Attributes::Normalization::NormalizedValueType.prepend(ExtendedNormalizedValueType)
       end
 
       # @TODO We will extend this to support previous "encryption context" versions in future iterations
@@ -83,8 +88,13 @@ module ActiveRecord
             end
 
             def additional_values_for(value, type)
+              # Cast through the attribute's own type first, so that the additional values get the
+              # same treatment as the current one. Without this they would skip, for example, the
+              # normalization declared with +normalizes+.
+              casted_value = type.cast(value)
+
               type.previous_types.collect do |additional_type|
-                AdditionalValue.new(value, additional_type)
+                AdditionalValue.new(casted_value, additional_type)
               end
             end
         end
@@ -143,6 +153,24 @@ module ActiveRecord
 
       module ExtendedEncryptableType
         def serialize(data)
+          if data.is_a?(AdditionalValue)
+            data.value
+          else
+            super
+          end
+        end
+      end
+
+      module ExtendedNormalizedValueType
+        def serialize(data)
+          if data.is_a?(AdditionalValue)
+            data.value
+          else
+            super
+          end
+        end
+
+        def serialize_cast_value(data)
           if data.is_a?(AdditionalValue)
             data.value
           else

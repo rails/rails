@@ -62,4 +62,33 @@ class ActiveRecord::Encryption::UniquenessValidationsTest < ActiveRecord::Encryp
 
     assert_equal 1, record.errors.count
   end
+
+  test "uniqueness validations work with normalized attributes and a previous key" do
+    retired_key_provider = ActiveRecord::Encryption::DeterministicKeyProvider.new("retired key")
+
+    RetiredKeyBook = Class.new(UnencryptedBook) do
+      self.table_name = "encrypted_books"
+
+      encrypts :name, deterministic: true, key_provider: retired_key_provider
+      normalizes :name, with: ->(value) { value.to_s.downcase }
+    end
+
+    # +fixed: false+ so that new records are written with the current key. Otherwise the current
+    # scheme would produce the retired key's ciphertext as well, and the previous scheme this test
+    # is about would never be reached.
+    RotatingKeyBook = Class.new(UnencryptedBook) do
+      self.table_name = "encrypted_books"
+
+      validates :name, uniqueness: true
+      encrypts :name, deterministic: { fixed: false },
+        previous: [ { deterministic: true, key_provider: retired_key_provider } ]
+      normalizes :name, with: ->(value) { value.to_s.downcase }
+    end
+
+    RetiredKeyBook.create! name: "dune"
+
+    assert_raises ActiveRecord::RecordInvalid do
+      RotatingKeyBook.create! name: "DUNE"
+    end
+  end
 end

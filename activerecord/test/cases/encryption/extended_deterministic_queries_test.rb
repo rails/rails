@@ -26,6 +26,21 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
     assert EncryptedBookWithDowncaseName.find_by(name: "DUNE")
   end
 
+  test "Works well with normalized attributes" do
+    EncryptedBookWithNormalizedName.create! name: "Dune"
+    assert EncryptedBookWithNormalizedName.find_by(name: "DUNE")
+  end
+
+  test "Finds unencrypted records with normalized attributes" do
+    UnencryptedBook.create! name: "dune"
+    assert EncryptedBookWithNormalizedName.find_by(name: "dune")
+  end
+
+  test "Applies the attribute normalization to the additional query values" do
+    UnencryptedBook.create! name: "dune"
+    assert EncryptedBookWithNormalizedName.find_by(name: "DUNE")
+  end
+
   test "Works well with string attribute names" do
     UnencryptedBook.create! "name" => "Dune"
     assert EncryptedBook.find_by("name" => "Dune")
