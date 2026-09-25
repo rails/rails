@@ -205,21 +205,46 @@ if RUBY_VERSION >= "4.0"
     include ActiveSupport::Testing::Isolation
     include ActiveSupport::Testing::RactorsAssertions
 
-    test "view_context_class's compiled method container is readable from a non-main Ractor" do
-      klass = ActionView::LookupContext.view_context_class
+    test "view_context_class has a Ractor-local compiled method container" do
+      main_class = ActionView::LookupContext.view_context_class
 
-      singleton_container, instance_container = on_ractor(klass) do |k|
-        [k.compiled_method_container, k.allocate.compiled_method_container]
+      worker_class, singleton_container, instance_container, reset_class, reset_instance_container = on_ractor do
+        klass = ActionView::LookupContext.view_context_class
+        ActionView::LookupContext.reset_view_context_class
+        reset_klass = ActionView::LookupContext.view_context_class
+        [klass, klass.compiled_method_container, klass.allocate.compiled_method_container,
+          reset_klass, reset_klass.allocate.compiled_method_container]
       end
 
-      assert_same klass, singleton_container
-      assert_same klass, instance_container
+      assert_operator worker_class, :<, main_class
+      assert_same worker_class, singleton_container
+      assert_same worker_class, instance_container
+      assert_not_same worker_class, reset_class
+      assert_operator reset_class, :<, main_class
+      assert_same reset_class, reset_instance_container
     end
 
-    test "view_context_class is Ractor-shareable" do
-      ActionView::LookupContext.view_context_class # needs to be eager-loaded to be ractor-shareable
-      assert_same ActionView::LookupContext.view_context_class,
-        on_ractor { ActionView::LookupContext.view_context_class }
+    test "controller view_context_class is Ractor-local" do
+      controller = Class.new(AbstractController::Base) do
+        include AbstractController::Rendering
+        include ActionView::Rendering
+      end
+      main_class = controller.view_context_class
+
+      worker_base_class, worker_class, compiled_method_container, reset_base_class, reset_class = on_ractor(controller) do |klass|
+        base_class = ActionView::LookupContext.view_context_class
+        view_class = klass.view_context_class
+        ActionView::LookupContext.reset_view_context_class
+        # Use a name that is not an outer local: Ractor.shareable_proc rejects blocks that write outer variables.
+        reset_base = ActionView::LookupContext.view_context_class
+        [base_class, view_class, view_class.allocate.compiled_method_container, reset_base, klass.view_context_class]
+      end
+
+      assert_not_same main_class, worker_class
+      assert_same worker_base_class, worker_class.superclass
+      assert_same worker_base_class, compiled_method_container
+      assert_not_same worker_class, reset_class
+      assert_same reset_base_class, reset_class.superclass
     end
 
     if RUBY_VERSION >= "4.0"

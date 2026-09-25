@@ -461,7 +461,7 @@ module ActionView
       # just once and removes the source after it is compiled.
       def compile!(view)
         if @compiled
-          if @compiled_method_container && view.compiled_method_container != @compiled_method_container
+          if @compiled_method_container && !(view.compiled_method_container <= @compiled_method_container)
             raise ArgumentError, "Template #{short_identifier.inspect} was compiled to render with " \
               "#{@compiled_method_container.inspect} but is being rendered with a view whose compiled " \
               "method container is #{view.compiled_method_container.inspect}. A template compiles into " \

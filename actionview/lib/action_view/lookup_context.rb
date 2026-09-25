@@ -96,14 +96,25 @@ module ActionView
     end
 
     def self.reset_view_context_class
-      @view_context_mutex.synchronize { @view_context_class = nil }
+      if ActiveSupport::Ractors.main?
+        @view_context_mutex.synchronize { @view_context_class = nil }
+      else
+        ActiveSupport::Ractors[:action_view_context_class]&.clear
+      end
     end
 
     def self.view_context_class
-      return @view_context_class if @view_context_class
       base = ActionView::Base # prevent recursive locking
-      @view_context_mutex.synchronize do
-        @view_context_class = base.with_empty_template_cache
+      if ActiveSupport::Ractors.main?
+        return @view_context_class if @view_context_class
+        @view_context_mutex.synchronize do
+          @view_context_class = base.with_empty_template_cache
+        end
+      else
+        cache = ActiveSupport::Ractors.store_if_absent(:action_view_context_class) { Concurrent::Map.new }
+        # Subclass the main Ractor's class so templates precompiled at boot stay callable,
+        # while templates first compiled in this Ractor go into a class it owns.
+        cache.compute_if_absent(:class) { @view_context_class.with_empty_template_cache }
       end
     end
     @view_context_mutex = Mutex.new
