@@ -126,6 +126,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def setup
     Client.destroyed_client_ids.clear
+    Client.destroyed_ids.clear
   end
 
   def test_sti_subselect_count
@@ -1958,6 +1959,94 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 3, firm.clients.size
     firm.destroy
     assert_empty Client.all.merge!(where: "firm_id=#{firm.id}").to_a
+  end
+
+  def test_dependence_destroys_records_created_after_an_empty_association_was_loaded
+    firm = StaleDependentFirm.create!(name: "Stale target")
+    assert_empty firm.dependent_clients.load
+
+    clients = 2.times.map { |index| Client.create!(name: "Client #{index}", firm: companies(:first_firm), firm_id: firm.id) }
+    assert_equal clients, Client.where(firm_id: firm.id).order(:id).to_a
+    assert_empty firm.dependent_clients
+
+    firm.destroy!
+
+    assert_empty Client.where(firm_id: firm.id)
+    assert_equal clients.map(&:id), Client.destroyed_ids
+  end
+
+  def test_dependence_merges_records_created_after_a_non_empty_association_was_loaded
+    firm = StaleDependentFirm.create!(name: "Partially stale target")
+    loaded_client = Client.create!(name: "Loaded", firm: companies(:first_firm), firm_id: firm.id)
+    assert_equal [loaded_client], firm.dependent_clients.load
+    added_client = Client.create!(name: "Added later", firm: companies(:first_firm), firm_id: firm.id)
+    assert_equal [loaded_client], firm.dependent_clients
+
+    firm.destroy!
+
+    clients = [loaded_client, added_client]
+    assert_empty Client.where(firm_id: firm.id)
+    assert_equal clients.map(&:id), Client.destroyed_ids
+    expected_removals = clients.map { |client| [:before, client.id] } + clients.map { |client| [:after, client.id] }
+    assert_equal expected_removals, firm.dependent_client_removals
+  end
+
+  def test_dependence_destroys_each_record_once_when_association_is_loaded
+    firm = StaleDependentFirm.create!(name: "Loaded target")
+    clients = 2.times.map { |index| Client.create!(name: "Client #{index}", firm: companies(:first_firm), firm_id: firm.id) }
+    assert_equal clients, firm.dependent_clients.load
+
+    firm.destroy!
+
+    assert_empty Client.where(firm_id: firm.id)
+    assert_equal clients.map(&:id), Client.destroyed_ids
+  end
+
+  def test_dependence_destroys_each_record_once_when_association_is_unloaded
+    firm = StaleDependentFirm.create!(name: "Unloaded target")
+    clients = 2.times.map { |index| Client.create!(name: "Client #{index}", firm: companies(:first_firm), firm_id: firm.id) }
+    assert_not_predicate firm.dependent_clients, :loaded?
+
+    firm.destroy!
+
+    assert_empty Client.where(firm_id: firm.id)
+    assert_equal clients.map(&:id), Client.destroyed_ids
+  end
+
+  def test_dependence_destroys_each_record_once_when_created_through_association
+    firm = StaleDependentFirm.create!(name: "Association-created target")
+    clients = 2.times.map { |index| firm.dependent_clients.create!(name: "Client #{index}", firm: companies(:first_firm)) }
+
+    firm.destroy!
+
+    assert_empty Client.where(firm_id: firm.id)
+    assert_equal clients.map(&:id), Client.destroyed_ids
+  end
+
+  def test_dependence_preserves_unsaved_target_members_while_loading_persisted_records
+    firm = StaleDependentFirm.create!(name: "Mixed target")
+    unsaved_client = firm.dependent_clients.build(name: "Unsaved", firm: companies(:first_firm))
+    persisted_client = Client.create!(name: "Persisted", firm: companies(:first_firm), firm_id: firm.id)
+
+    firm.destroy!
+
+    assert_not_predicate unsaved_client, :destroyed?
+    assert_not_predicate unsaved_client, :persisted?
+    assert_not Client.exists?(persisted_client.id)
+    assert_equal [persisted_client.id], Client.destroyed_ids
+  end
+
+  def test_dependence_destroys_only_records_in_the_association_scope
+    firm = ScopedDependentFirm.create!(name: "Scoped target")
+    assert_empty firm.dependent_clients.load
+    included = Client.create!(name: "BigShot Inc.", firm: companies(:first_firm), firm_id: firm.id)
+    excluded = Client.create!(name: "SmallTime Inc.", firm: companies(:first_firm), firm_id: firm.id)
+
+    firm.destroy!
+
+    assert_not Client.exists?(included.id)
+    assert Client.exists?(excluded.id)
+    assert_equal [included.id], Client.destroyed_ids
   end
 
   def test_dependence_for_associations_with_hash_condition
