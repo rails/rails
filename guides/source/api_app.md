@@ -271,7 +271,8 @@ config.debug_exception_response_format = :api
 
 By default, `config.debug_exception_response_format` is set to `:api`, when `config.api_only` is set to true.
 
-Finally, inside `app/controllers/application_controller.rb`, instead of:
+If the application was not created with `rails new --api`, inside
+`app/controllers/application_controller.rb`, instead of:
 
 ```ruby
 class ApplicationController < ActionController::Base
