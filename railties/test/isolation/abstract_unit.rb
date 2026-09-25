@@ -18,6 +18,8 @@ require "active_support/testing/autorun"
 require "active_support/testing/stream"
 require "active_support/testing/method_call_assertions"
 require "active_support/test_case"
+require "active_record"
+require "active_record/tasks/database_tasks"
 require "minitest/retry"
 
 if ENV["BUILDKITE"]
@@ -46,7 +48,11 @@ module TestHelpers
     end
 
     def tmp_path(*args)
-      @tmp_path ||= File.realpath(Dir.mktmpdir(nil, File.join(RAILS_FRAMEWORK_ROOT, "tmp")))
+      @tmp_path = nil if @tmp_path && !File.directory?(@tmp_path)
+      @tmp_path ||= begin
+        FileUtils.mkdir_p(File.join(RAILS_FRAMEWORK_ROOT, "tmp"))
+        File.realpath(Dir.mktmpdir(nil, File.join(RAILS_FRAMEWORK_ROOT, "tmp")))
+      end
       File.join(@tmp_path, *args)
     end
 
@@ -103,6 +109,8 @@ module TestHelpers
   end
 
   module Generation
+    include ActiveSupport::Testing::Stream
+
     # Build an application by invoking the generator and going through the whole stack.
     def build_app(options = {})
       @prev_rails_env = ENV["RAILS_ENV"]
@@ -149,7 +157,64 @@ module TestHelpers
 
     def teardown_app
       ENV["RAILS_ENV"] = @prev_rails_env if @prev_rails_env
-      FileUtils.rm_rf(tmp_path)
+      FileUtils.rm_rf(@tmp_path) if @tmp_path
+      @tmp_path = nil
+    end
+
+    def with_test_database_cleanup(adapter)
+      pre_existing_databases = list_test_databases(adapter) rescue nil
+      yield
+    ensure
+      if pre_existing_databases
+        drop_test_databases(adapter, list_test_databases(adapter) - pre_existing_databases)
+      end
+    end
+
+    def list_test_databases(adapter)
+      saved_db_config = ActiveRecord::Base.connection_pool.db_config rescue nil
+      ActiveRecord::Base.establish_connection(database_maintenance_config_for(adapter))
+      ActiveRecord::Base.lease_connection.select_values(database_list_sql_for(adapter))
+    ensure
+      ActiveRecord::Base.remove_connection
+      ActiveRecord::Base.establish_connection(saved_db_config) if saved_db_config
+    end
+
+    def drop_test_databases(adapter, databases)
+      saved_db_config = ActiveRecord::Base.connection_pool.db_config rescue nil
+      config = database_maintenance_config_for(adapter)
+      quietly do
+        databases.each do |db|
+          ActiveRecord::Tasks::DatabaseTasks.drop(config.merge(database: db))
+        end
+      end
+    ensure
+      if saved_db_config
+        ActiveRecord::Base.remove_connection rescue nil
+        ActiveRecord::Base.establish_connection(saved_db_config) rescue nil
+      end
+    end
+
+    def database_maintenance_config_for(adapter)
+      case adapter
+      when :postgresql
+        { adapter: "postgresql", database: "postgres" }
+      when :mysql
+        cfg = { adapter: "mysql2", database: "mysql", username: "root" }
+        cfg[:host] = ENV["MYSQL_HOST"] if ENV["MYSQL_HOST"]
+        cfg[:socket] = ENV["MYSQL_SOCK"] if ENV["MYSQL_SOCK"]
+        cfg
+      end
+    end
+
+    def database_list_sql_for(adapter)
+      conn = ActiveRecord::Base.lease_connection
+      pattern = conn.quote("railties_#{Process.pid}_%")
+      case adapter
+      when :postgresql
+        "SELECT datname FROM pg_database WHERE datname LIKE #{pattern}"
+      when :mysql
+        "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE #{pattern}"
+      end
     end
 
     def default_database_configs
@@ -519,7 +584,11 @@ module TestHelpers
           YAML
         end
       end
-      database_name
+      if block_given?
+        with_test_database_cleanup(:postgresql) { yield database_name }
+      else
+        database_name
+      end
     end
 
     def use_mysql2(multi_db: false)
@@ -569,7 +638,11 @@ module TestHelpers
           YAML
         end
       end
-      database_name
+      if block_given?
+        with_test_database_cleanup(:mysql) { yield database_name }
+      else
+        database_name
+      end
     end
   end
 
