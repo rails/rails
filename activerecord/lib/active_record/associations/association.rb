@@ -250,6 +250,14 @@ module ActiveRecord
         false
       end
 
+      def skip_strict_loading(&block)
+        skip_strict_loading_was = @skip_strict_loading
+        @skip_strict_loading = true
+        yield
+      ensure
+        @skip_strict_loading = skip_strict_loading_was
+      end
+
       private
         # Reader and writer methods call this so that consistent errors are presented
         # when the association target class does not exist.
@@ -283,14 +291,6 @@ module ActiveRecord
               set_strict_loading(record)
             end
           end
-        end
-
-        def skip_strict_loading(&block)
-          skip_strict_loading_was = @skip_strict_loading
-          @skip_strict_loading = true
-          yield
-        ensure
-          @skip_strict_loading = skip_strict_loading_was
         end
 
         # The scope for this association.
