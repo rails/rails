@@ -1,3 +1,11 @@
+*   Fix `ActiveModel::Type::BigInteger` truncating strings longer than 16 bytes when casting.
+
+    `BigInteger` (and Active Record decimal columns without a scale) now limits
+    the cast string to twice its `precision`, or to 2000 bytes when it has none.
+
+    *Suliman Abdulrazzaq*
+
+
 ## Rails 8.1.4 (September 24, 2026) ##
 
 *   Fix `ActiveModel::Errors#import` mutating the override options hash passed to it.
