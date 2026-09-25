@@ -1,3 +1,10 @@
+*   Fix `ActiveModel::Type::BigInteger` truncating strings longer than 16 bytes when casting.
+
+    `BigInteger` (and Active Record decimal columns without a scale) now limits
+    the cast string to twice its `precision`, or to 2000 bytes when it has none.
+
+    *Suliman Abdulrazzaq*
+
 *   Limit the size of strings `ActiveModel::Type::Integer` will coerce with `to_i`.
 
     Calling `to_i` on very long strings can take a long time and could be used as
