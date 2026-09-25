@@ -11,19 +11,18 @@ module ActiveRecord
 
         last_reflection, last_ordered, last_join_ids = last_scope_chain(reverse_chain, owner)
 
-        add_constraints(last_reflection, last_reflection.join_primary_key, last_join_ids, owner, last_ordered)
+        add_constraints(last_reflection, last_reflection.query_key_mapping.associated_record_columns, last_join_ids, owner, last_ordered)
       end
 
       private
         def last_scope_chain(reverse_chain, owner)
           first_item = reverse_chain.shift
-          first_scope = [first_item, false, [owner.read_attribute(first_item.join_foreign_key)]]
+          first_scope = [first_item, false, [first_item.query_key_mapping.values_for(owner)]]
 
           reverse_chain.inject(first_scope) do |(reflection, ordered, join_ids), next_reflection|
-            key = reflection.join_primary_key
+            key = reflection.query_key_mapping.associated_record_columns
             records = add_constraints(reflection, key, join_ids, owner, ordered)
-            foreign_key = next_reflection.join_foreign_key
-            record_ids = records.pluck(foreign_key)
+            record_ids = pluck_query_key_values(records, next_reflection)
             records_ordered = records && records.order_values.any?
 
             [next_reflection, records_ordered, record_ids]
@@ -52,6 +51,18 @@ module ActiveRecord
             split_scope
           else
             scope
+          end
+        end
+
+        # Plucks the columns on the active-record side of the next hop. Single-
+        # column hops retain a tuple shape for DisableJoinsAssociationRelation.
+        def pluck_query_key_values(records, reflection)
+          columns = reflection.query_key_mapping.active_record_columns
+
+          if columns.size == 1
+            records.pluck(columns.first).map { |id| [id] }
+          else
+            records.pluck(*columns)
           end
         end
     end
