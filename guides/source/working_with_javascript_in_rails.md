@@ -24,8 +24,9 @@ document.
 
 JavaScript files can be delivered individually using an import map, or bundled together
 and shipped as a single file. This guide will cover the pros and cons of each approach,
-as well as Rails' default JavaScript stack composed of [Turbo](#turbo)
-and [Stimulus](#stimulus) (which are part of the [Hotwire](https://hotwired.dev) suite).
+as well as Rails' default JavaScript stack composed of
+[Turbo](using_hotwire_with_rails.html#turbo) and [Stimulus](using_hotwire_with_rails.html#stimulus)
+(which are part of the [Hotwire](https://hotwired.dev) suite).
 
 NOTE: Rails can also be [used in API-mode](api_app.html) where it speaks JSON or XML,
 but in such a setup, the front-end JavaScript application is usually transmitted independently
