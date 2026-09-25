@@ -84,25 +84,25 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        sha1_secret   = Rails.application.key_generator.generate_key("sha1")
-        sha256_secret = Rails.application.key_generator.generate_key("sha256")
-
-        ::TestVerifiers = Class.new do
-          class_attribute :sha1, default: ActiveSupport::MessageVerifier.new(sha1_secret, digest: "SHA1", serializer: Marshal)
-          class_attribute :sha256, default: ActiveSupport::MessageVerifier.new(sha256_secret, digest: "SHA256", serializer: Marshal)
-        end
-
         config.action_dispatch.signed_cookie_digest = "SHA512"
         config.action_dispatch.signed_cookie_salt = "sha512 salt"
         config.action_dispatch.cookies_serializer = :marshal
-
-        config.action_dispatch.cookies_rotations.tap do |cookies|
-          cookies.rotate :signed, sha1_secret,   digest: "SHA1"
-          cookies.rotate :signed, sha256_secret, digest: "SHA256"
-        end
       RUBY
 
       require "#{app_path}/config/environment"
+
+      sha1_secret   = app.key_generator.generate_key("sha1")
+      sha256_secret = app.key_generator.generate_key("sha256")
+
+      ::TestVerifiers = Class.new do
+        class_attribute :sha1, default: ActiveSupport::MessageVerifier.new(sha1_secret, digest: "SHA1", serializer: Marshal)
+        class_attribute :sha256, default: ActiveSupport::MessageVerifier.new(sha256_secret, digest: "SHA256", serializer: Marshal)
+      end
+
+      app.config.action_dispatch.cookies_rotations.tap do |cookies|
+        cookies.rotate :signed, sha1_secret,   digest: "SHA1"
+        cookies.rotate :signed, sha256_secret, digest: "SHA256"
+      end
 
       verifier_sha512 = ActiveSupport::MessageVerifier.new(app.key_generator.generate_key("sha512 salt"), digest: :SHA512, serializer: Marshal)
 
@@ -154,25 +154,25 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        sha1_secret   = Rails.application.key_generator.generate_key("sha1")
-        sha256_secret = Rails.application.key_generator.generate_key("sha256")
-
-        ::TestVerifiers = Class.new do
-          class_attribute :sha1, default: ActiveSupport::MessageVerifier.new(sha1_secret, digest: "SHA1", serializer: JSON)
-          class_attribute :sha256, default: ActiveSupport::MessageVerifier.new(sha256_secret, digest: "SHA256", serializer: JSON)
-        end
-
         config.action_dispatch.signed_cookie_digest = "SHA512"
         config.action_dispatch.signed_cookie_salt = "sha512 salt"
         config.action_dispatch.cookies_serializer = :json
-
-        config.action_dispatch.cookies_rotations.tap do |cookies|
-          cookies.rotate :signed, sha1_secret,   digest: "SHA1"
-          cookies.rotate :signed, sha256_secret, digest: "SHA256"
-        end
       RUBY
 
       require "#{app_path}/config/environment"
+
+      sha1_secret   = app.key_generator.generate_key("sha1")
+      sha256_secret = app.key_generator.generate_key("sha256")
+
+      ::TestVerifiers = Class.new do
+        class_attribute :sha1, default: ActiveSupport::MessageVerifier.new(sha1_secret, digest: "SHA1", serializer: JSON)
+        class_attribute :sha256, default: ActiveSupport::MessageVerifier.new(sha256_secret, digest: "SHA256", serializer: JSON)
+      end
+
+      app.config.action_dispatch.cookies_rotations.tap do |cookies|
+        cookies.rotate :signed, sha1_secret,   digest: "SHA1"
+        cookies.rotate :signed, sha256_secret, digest: "SHA256"
+      end
 
       verifier_sha512 = ActiveSupport::MessageVerifier.new(app.key_generator.generate_key("sha512 salt"), digest: :SHA512, serializer: JSON)
 
@@ -224,26 +224,26 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        first_secret  = Rails.application.key_generator.generate_key("first", 32)
-        second_secret = Rails.application.key_generator.generate_key("second", 32)
-
-        ::TestEncryptors = Class.new do
-          class_attribute :first_gcm,  default: ActiveSupport::MessageEncryptor.new(first_secret, cipher: "aes-256-gcm", serializer: Marshal)
-          class_attribute :second_gcm, default: ActiveSupport::MessageEncryptor.new(second_secret, cipher: "aes-256-gcm", serializer: Marshal)
-        end
-
         config.action_dispatch.use_authenticated_cookie_encryption = true
         config.action_dispatch.encrypted_cookie_cipher = "aes-256-gcm"
         config.action_dispatch.authenticated_encrypted_cookie_salt = "salt"
         config.action_dispatch.cookies_serializer = :marshal
-
-        config.action_dispatch.cookies_rotations.tap do |cookies|
-          cookies.rotate :encrypted, first_secret
-          cookies.rotate :encrypted, second_secret
-        end
       RUBY
 
       require "#{app_path}/config/environment"
+
+      first_secret  = app.key_generator.generate_key("first", 32)
+      second_secret = app.key_generator.generate_key("second", 32)
+
+      ::TestEncryptors = Class.new do
+        class_attribute :first_gcm,  default: ActiveSupport::MessageEncryptor.new(first_secret, cipher: "aes-256-gcm", serializer: Marshal)
+        class_attribute :second_gcm, default: ActiveSupport::MessageEncryptor.new(second_secret, cipher: "aes-256-gcm", serializer: Marshal)
+      end
+
+      app.config.action_dispatch.cookies_rotations.tap do |cookies|
+        cookies.rotate :encrypted, first_secret
+        cookies.rotate :encrypted, second_secret
+      end
 
       encryptor = ActiveSupport::MessageEncryptor.new(app.key_generator.generate_key("salt", 32), cipher: "aes-256-gcm", serializer: Marshal)
 
@@ -295,26 +295,26 @@ module ApplicationTests
       RUBY
 
       add_to_config <<-RUBY
-        first_secret  = Rails.application.key_generator.generate_key("first", 32)
-        second_secret = Rails.application.key_generator.generate_key("second", 32)
-
-        ::TestEncryptors = Class.new do
-          class_attribute :first_gcm,  default: ActiveSupport::MessageEncryptor.new(first_secret, cipher: "aes-256-gcm", serializer: ActiveSupport::JSON)
-          class_attribute :second_gcm, default: ActiveSupport::MessageEncryptor.new(second_secret, cipher: "aes-256-gcm", serializer: ActiveSupport::JSON)
-        end
-
         config.action_dispatch.use_authenticated_cookie_encryption = true
         config.action_dispatch.encrypted_cookie_cipher = "aes-256-gcm"
         config.action_dispatch.authenticated_encrypted_cookie_salt = "salt"
         config.action_dispatch.cookies_serializer = :json
-
-        config.action_dispatch.cookies_rotations.tap do |cookies|
-          cookies.rotate :encrypted, first_secret
-          cookies.rotate :encrypted, second_secret
-        end
       RUBY
 
       require "#{app_path}/config/environment"
+
+      first_secret  = app.key_generator.generate_key("first", 32)
+      second_secret = app.key_generator.generate_key("second", 32)
+
+      ::TestEncryptors = Class.new do
+        class_attribute :first_gcm,  default: ActiveSupport::MessageEncryptor.new(first_secret, cipher: "aes-256-gcm", serializer: ActiveSupport::JSON)
+        class_attribute :second_gcm, default: ActiveSupport::MessageEncryptor.new(second_secret, cipher: "aes-256-gcm", serializer: ActiveSupport::JSON)
+      end
+
+      app.config.action_dispatch.cookies_rotations.tap do |cookies|
+        cookies.rotate :encrypted, first_secret
+        cookies.rotate :encrypted, second_secret
+      end
 
       encryptor = ActiveSupport::MessageEncryptor.new(app.key_generator.generate_key("salt", 32), cipher: "aes-256-gcm")
 
