@@ -1,3 +1,9 @@
+*   Make `Arel::Nodes::SqlLiteral` capable of opting-in to prepared statements and
+    make `Arel::AliasPredication` leverage this so ActiveRecord queries built with
+    column aliases are preparable.
+
+    *Quentin de Metz*
+
 *   Make `db:schema:load` work with MySQL client 9.4 and later.
 
     From 9.4.0 on, the client by default passes the `SOURCE` command to the

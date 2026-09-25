@@ -793,7 +793,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_SqlLiteral(o, collector)
-          collector.preparable = false
+          collector.preparable &&= o.preparable
           collector.retryable &&= o.retryable
           collector << o.to_s
         end

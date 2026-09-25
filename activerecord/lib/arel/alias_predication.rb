@@ -5,7 +5,7 @@ module Arel # :nodoc: all
     def as(other)
       other = other.name if other.is_a?(Symbol)
 
-      Nodes::As.new self, Nodes::SqlLiteral.new(other, retryable: true)
+      Nodes::As.new self, Nodes::SqlLiteral.new(other, retryable: true, preparable: true)
     end
   end
 end
