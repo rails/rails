@@ -299,10 +299,11 @@ module ActiveRecord
 
       # Returns the record for an association collection that should be validated
       # or saved. If +autosave+ is +false+ only new records will be returned,
-      # unless the parent is/was a new record itself.
+      # unless the parent is/was a new record itself. Records a new parent only
+      # reached through in-memory through records are left to their own parents.
       def associated_records_to_validate_or_save(association, new_record, autosave)
         if new_record || custom_validation_context?
-          association && association.target
+          association && association.target.reject { |record| association.inferred_from_through_records?(record) }
         elsif autosave
           association.target.find_all(&:changed_for_autosave?)
         else
@@ -335,6 +336,7 @@ module ActiveRecord
         association = association_instance_get(reflection.name)
         record      = association && association.reader
         return unless record && (record.changed_for_autosave? || custom_validation_context?)
+        return if association.inferred_from_through_records?(record)
 
         inverse_association = reflection.inverse_of && record.association(reflection.inverse_of.name)
         return if inverse_association && (record.validating_belongs_to_for?(inverse_association) ||
@@ -481,6 +483,7 @@ module ActiveRecord
 
         record = association.load_target
         return unless record && !record.destroyed?
+        return if association.inferred_from_through_records?(record)
 
         autosave = reflection.options[:autosave]
 

@@ -250,6 +250,13 @@ module ActiveRecord
         false
       end
 
+      # Whether +record+ is in the target only because a new owner reached it
+      # through in-memory through records. Those records belong to their own
+      # parents, which validate and save them.
+      def inferred_from_through_records?(record) # :nodoc:
+        false
+      end
+
       private
         # Reader and writer methods call this so that consistent errors are presented
         # when the association target class does not exist.

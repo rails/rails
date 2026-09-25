@@ -1,3 +1,24 @@
+*   Read `has_one :through` and `has_many :through` associations of a new record
+    from the through records it already has in memory.
+
+    ```ruby
+    comment = Comment.new(post: Post.new(author: author))
+    comment.author # => author (was nil)
+
+    doctor = Doctor.new
+    doctor.appointments.build(patient: patient)
+    doctor.patients # => [patient] (was [])
+    ```
+
+    Records loaded this way belong to their own parents: saving the new record
+    doesn't validate them or create a second join record for them. Associations
+    with a scope that filters records (a `where`, `joins`, `limit`...) still return
+    nothing until the record is saved.
+
+    Fixes #33155.
+
+    *Sergio Romano*
+
 *   Make `db:schema:load` work with MySQL client 9.4 and later.
 
     From 9.4.0 on, the client by default passes the `SOURCE` command to the

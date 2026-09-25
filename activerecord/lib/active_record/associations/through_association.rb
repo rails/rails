@@ -127,6 +127,70 @@ module ActiveRecord
 
           super
         end
+
+        # A new owner has nothing to query, but the records it goes through may
+        # already be in memory. Returns the records they reach, or +nil+ when only
+        # the database can tell. Writers (+concat+, +replace+) load the target
+        # without walking: they work with the records assigned to the association.
+        def target_from_through_records
+          return if @skip_strict_loading || !owner.new_record? || foreign_key_present? || !klass
+
+          records_through(owner, reflection)
+        end
+
+        # The records +record+ reaches through the through +reflection+, or +nil+
+        # if the reflection's own scope filters records, which can't be done in memory.
+        def records_through(record, reflection)
+          if reflection.scope
+            return unless reflection.collection?
+
+            relation = reflection.scope_for(reflection.klass.unscoped, record)
+            return unless filterless?(relation)
+          end
+
+          source_reflection, klass = reflection.source_reflection, reflection.klass
+          records = records_reached(record, reflection.through_reflection).flat_map do |through_record|
+            removed?(through_record) ? [] : records_reached(through_record, source_reflection)
+          end
+          # source_type and STI class names narrow the query with a type condition
+          records.select! { |reached| reached.is_a?(klass) && !removed?(reached) }
+          records.uniq! if relation&.distinct_value
+          records
+        end
+
+        # Uses what is in memory and loads only what isn't. A persisted record's
+        # through association is walked when it's fully loaded, and queried otherwise.
+        def records_reached(record, reflection)
+          association = record.association(reflection.name)
+
+          if reflection.through_reflection? && record.persisted? && !association.loaded? && through_records_loaded?(record, reflection)
+            records = records_through(record, reflection)
+            return records if records
+          end
+
+          Array.wrap(association.violates_strict_loading? ? association.target : association.load_target)
+        end
+
+        def through_records_loaded?(record, reflection)
+          return true if record.association(reflection.name).loaded?
+          return false unless reflection.through_reflection?
+
+          through_records_loaded?(record, reflection.through_reflection) &&
+            Array.wrap(record.association(reflection.through_reflection.name).target).all? do |through_record|
+              through_records_loaded?(through_record, reflection.source_reflection)
+            end
+        end
+
+        # Scopes such as +distinct+ or +order+ don't change which records belong.
+        def filterless?(relation)
+          relation.where_clause.empty? && relation.having_clause.empty? && relation.from_clause.empty? &&
+            relation.joins_values.empty? && relation.left_outer_joins_values.empty? &&
+            relation.group_values.empty? && relation.limit_value.nil? && relation.offset_value.nil?
+        end
+
+        def removed?(record)
+          record.destroyed? || record.marked_for_destruction?
+        end
     end
   end
 end

@@ -11,6 +11,61 @@ module ActiveRecord
         @through_records = {}.compare_by_identity
       end
 
+      def reset
+        super
+        @inferred_records = Set.new.compare_by_identity
+      end
+
+      # While the owner is new, the target is the records reached through the
+      # in-memory through records followed by the records assigned to the association.
+      def load_target
+        if records = target_from_through_records
+          assigned = target.reject { |record| @inferred_records.include?(record) }
+          inferred = records.reject { |record| assigned.include?(record) }
+
+          @inferred_records = Set.new.compare_by_identity.merge(inferred)
+          @target = inferred + assigned
+          loaded!
+          target
+        else
+          super
+        end
+      end
+
+      def size
+        reads_through_records? ? load_target.size : super
+      end
+
+      def empty?
+        reads_through_records? ? load_target.empty? : super
+      end
+
+      def include?(record)
+        if reads_through_records? && record.persisted?
+          record.is_a?(reflection.klass) && load_target.include?(record)
+        else
+          super
+        end
+      end
+
+      def ids_reader
+        reads_through_records? ? load_target.pluck(*reflection.association_primary_key) : super
+      end
+
+      # Assigning a record that was reached through the through records makes it
+      # an assigned one, as if it hadn't been reached.
+      def add_to_target(record, skip_callbacks: false, replace: false, &block)
+        if @inferred_records.delete?(record)
+          @target = target.reject { |target_record| target_record.equal?(record) }
+        end
+
+        super
+      end
+
+      def inferred_from_through_records?(record) # :nodoc:
+        @inferred_records.include?(record)
+      end
+
       def concat(*records)
         unless owner.new_record?
           records.flatten.each do |record|
@@ -34,6 +89,16 @@ module ActiveRecord
       end
 
       private
+        def reads_through_records?
+          owner.new_record? && !foreign_key_present? && klass
+        end
+
+        # On a new owner, replace what was assigned: through records built by hand stay.
+        def replace_records(new_target, original_target)
+          @target = target.reject { |record| @inferred_records.include?(record) } if owner.new_record?
+          super
+        end
+
         def concat_records(records)
           ensure_not_nested
 
