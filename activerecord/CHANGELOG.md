@@ -1,3 +1,16 @@
+*   Stop `connected_to` from changing the role and shard of a thread that shares
+    the execution state.
+
+    `ActionController::Live` copies the request's execution state into the
+    streaming thread, but both threads kept using the same `connected_to` stack.
+    When the request thread left a `connected_to` block, for example the one
+    opened by the shard selector middleware, the streaming thread lost its shard
+    and role too. The stack is now replaced instead of modified in place.
+
+    Fixes #58870.
+
+    *Suliman Abdulrazzaq*
+
 *   Do not schema-qualify PostgreSQL extensions whose control file fixes their
     schema, nor tables and enum types in the current schema, when dumping
     `db/schema.rb`.
