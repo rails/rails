@@ -72,6 +72,10 @@ module ActiveRecord
           end
         end
 
+        def ractor_connection_proxy_class # :nodoc:
+          RactorConnectionHandler::PostgreSQLProxyAdapter
+        end
+
         def dbconsole(config, options = {})
           pg_config = config.configuration_hash.deep_dup
 
@@ -209,6 +213,16 @@ module ActiveRecord
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
+
+      def ractor_connection_capabilities # :nodoc:
+        super.merge(
+          supports_close_prepared?: supports_close_prepared?,
+          supports_force_drop_database?: supports_force_drop_database?,
+          supports_identity_columns?: supports_identity_columns?,
+          supports_insert_on_conflict?: supports_insert_on_conflict?,
+          supports_native_partitioning?: supports_native_partitioning?,
+        )
+      end
 
       def supports_bulk_alter?
         true
@@ -586,14 +600,19 @@ module ActiveRecord
         query = <<~SQL
           SELECT
             pg_extension.extname,
-            n.nspname AS schema
+            n.nspname AS schema,
+            v.schema AS control_schema
           FROM pg_extension
           JOIN pg_namespace n ON pg_extension.extnamespace = n.oid
+          LEFT JOIN pg_available_extensions a ON a.name = pg_extension.extname
+          LEFT JOIN pg_available_extension_versions v
+            ON v.name = a.name AND v.version = a.default_version
         SQL
+        current = current_schema
 
         query_all(query).cast_values.map do |row|
-          name, schema = row[0], row[1]
-          schema = nil if schema == current_schema
+          name, schema, control_schema = row
+          schema = nil if control_schema || schema == current
           [schema, name].compact.join(".")
         end
       end

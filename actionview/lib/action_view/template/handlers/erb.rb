@@ -91,10 +91,20 @@ module ActionView
             options[:postamble] = "@output_buffer.safe_append='<!-- END #{template.short_identifier} -->';@output_buffer"
           end
 
-          (implementation || self.class.erb_implementation).new(erb, options.merge(overrides)).src
+          (implementation || implementation_for(template)).new(erb, options.merge(overrides)).src
         end
 
       private
+        def implementation_for(template)
+          implementation = self.class.erb_implementation
+
+          if implementation == Herb && template.format != :html
+            Erubi
+          else
+            implementation
+          end
+        end
+
         def valid_encoding(string, encoding)
           # If a magic encoding comment was found, tag the
           # String with this encoding. This is for a case

@@ -1,3 +1,12 @@
+*   Add `Manitoba` to `ActiveSupport::TimeZone::MAPPING`.
+
+    Manitoba no longer shares winter clocks with US Central time. The existing
+    `Central Time (US & Canada)` entry remains mapped to `America/Chicago` for
+    compatibility. Prefer `Manitoba` (or the IANA identifier `America/Winnipeg`)
+    for users in that region.
+
+    *Dan Williams*
+
 *   Fix `ActiveSupport::BroadcastLogger#tagged` when broadcasting to more than
     one tagging logger..
 
