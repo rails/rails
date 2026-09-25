@@ -1,3 +1,19 @@
+*   Stop treating Arel nodes that generate different SQL as equal.
+
+    `Arel::Nodes::Matches`, `Regexp`, `InfixOperation` and `UnaryOperation`
+    inherited `eql?` and `hash` from `Binary`/`Unary`, which only compare the
+    operands. Their escape character, case sensitivity and operator were
+    ignored, so `Relation#or` and `#merge` deduplicated predicates that render
+    differently and silently dropped one of them:
+
+    ```ruby
+    title = Post.arel_table[:title]
+    Post.where(title.matches("100%", "!")).or(Post.where(title.matches("100%")))
+    # before: ... WHERE "posts"."title" LIKE '100%' ESCAPE '!'
+    # after:  ... WHERE ("posts"."title" LIKE '100%' ESCAPE '!' OR "posts"."title" LIKE '100%')
+    ```
+
+    *Akash Saini*
 *   Do not schema-qualify PostgreSQL extensions whose control file fixes their
     schema, nor tables and enum types in the current schema, when dumping
     `db/schema.rb`.
