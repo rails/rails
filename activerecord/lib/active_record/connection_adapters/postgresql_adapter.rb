@@ -600,14 +600,19 @@ module ActiveRecord
         query = <<~SQL
           SELECT
             pg_extension.extname,
-            n.nspname AS schema
+            n.nspname AS schema,
+            v.schema AS control_schema
           FROM pg_extension
           JOIN pg_namespace n ON pg_extension.extnamespace = n.oid
+          LEFT JOIN pg_available_extensions a ON a.name = pg_extension.extname
+          LEFT JOIN pg_available_extension_versions v
+            ON v.name = a.name AND v.version = a.default_version
         SQL
+        current = current_schema
 
         query_all(query).cast_values.map do |row|
-          name, schema = row[0], row[1]
-          schema = nil if schema == current_schema
+          name, schema, control_schema = row
+          schema = nil if control_schema || schema == current
           [schema, name].compact.join(".")
         end
       end
