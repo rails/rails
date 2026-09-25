@@ -109,6 +109,15 @@
 #++
 # Rails.application.config.action_dispatch.strict_accept_header = true
 
+###
+# Encode broadcasted messages once per channel identifier instead of once per subscriber.
+#
+# When enabled, messages sent via `ActionCable.server.broadcast` are only decoded-encoded from/to JSON once
+# per channel identifier and not for every connected client thus reducing the broadcasting latency.
+# NOTE: Such messages do not emit the `transmit.action_cable` notification.
+#
+# Rails.application.config.action_cable.fastlane_broadcasts_enabled = true
+
 # Raise `ArgumentError` on `ActiveSupport::TimeZone#parse` for any invalid
 # string.
 #
