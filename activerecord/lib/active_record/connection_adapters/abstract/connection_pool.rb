@@ -423,7 +423,7 @@ module ActiveRecord
       def release_connection(existing_lease = nil)
         return if self.discarded?
 
-        if conn = connection_lease.release
+        if conn = (existing_lease || connection_lease).release
           checkin conn
           return true
         end
