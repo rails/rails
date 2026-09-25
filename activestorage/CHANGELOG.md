@@ -1,3 +1,11 @@
+*   Ensure tracked variants are uploaded before their variant records become visible.
+
+    Failed uploads no longer leave a variant record that suppresses regeneration. Uploaded blobs
+    are cleaned up after transaction rollbacks, record creation failures, and lost concurrency races.
+    Cleanup jobs wait for enclosing transactions to commit.
+
+    *ablzh*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.
