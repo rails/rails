@@ -26,7 +26,7 @@ module ActiveStorage
       @public = public
 
       @upload_options = upload
-      @upload_options[:acl] = "public-read" if public?
+      @upload_options[:acl] = "public-read" if public? && ActiveStorage.s3_public_uploads_via_acl
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, custom_metadata: {}, **)

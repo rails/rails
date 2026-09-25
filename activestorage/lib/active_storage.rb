@@ -372,6 +372,8 @@ module ActiveStorage
 
   mattr_accessor :track_variants, default: false
 
+  mattr_accessor :s3_public_uploads_via_acl, default: true
+
   singleton_class.attr_accessor :checksum_implementation
   @checksum_implementation = OpenSSL::Digest::MD5
   begin
