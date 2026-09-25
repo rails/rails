@@ -5,6 +5,8 @@ require "cases/helper"
 module ActiveRecord
   class Migration
     class SchemaDefinitionsTest < ActiveRecord::TestCase
+      skip_under_ractor_proxy :test_build_create_index_definition
+
       attr_reader :connection
 
       def setup
