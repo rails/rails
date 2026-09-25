@@ -14,6 +14,12 @@ class ShortWaitTenAttemptsError < StandardError; end
 class PolynomialWaitTenAttemptsError < StandardError; end
 class CustomWaitTenAttemptsError < StandardError; end
 class OptionalArgWaitError < StandardError; end
+class MethodWaitError < StandardError; end
+class MethodWaitWithErrorError < StandardError
+  def retry_after
+    10
+  end
+end
 class RetryWaitIncludedInError < StandardError
   def retry_after
     10
@@ -40,6 +46,8 @@ class RetryJob < ActiveJob::Base
   retry_on CustomWaitTenAttemptsError, wait: ->(executions) { executions * 2 }, attempts: 10
   retry_on OptionalArgWaitError, wait: ->(executions = 0) { executions * 2 }, attempts: 10
   retry_on RetryWaitIncludedInError, wait: ->(executions, error) { error.retry_after + executions }
+  retry_on MethodWaitError, wait: :custom_wait, attempts: 10
+  retry_on MethodWaitWithErrorError, wait: :custom_wait_with_error
   retry_on(CustomCatchError) { |job, error| JobBuffer.add("Dealt with a job that failed to retry in a custom way after #{job.arguments.second} attempts. Message: #{error.message}") }
   retry_on(ActiveJob::DeserializationError) { |job, error| JobBuffer.add("Raised #{error.class} for the #{job.executions} time") }
   retry_on UnlimitedRetryError, attempts: :unlimited
@@ -65,4 +73,13 @@ class RetryJob < ActiveJob::Base
       JobBuffer.add("Successfully completed job")
     end
   end
+
+  private
+    def custom_wait(executions)
+      executions * 3
+    end
+
+    def custom_wait_with_error(executions, error)
+      error.retry_after + executions
+    end
 end
