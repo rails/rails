@@ -1,3 +1,10 @@
+*   Treat `:except_on` as a callback option in `ActiveModel::Error`.
+
+    Errors from validations using `:except_on` now match `errors.added?` queries
+    without that option, and no longer include it in `errors.details`.
+
+    *Andrii Furmanets*
+
 *   Implement `ActiveModel::Type::Binary::Data#as_json`
 
     Delegates JSON conversion to the underlying binary data value (instead of
