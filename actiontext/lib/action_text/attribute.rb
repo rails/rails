@@ -51,7 +51,7 @@ module ActionText
       # `action_text_rich_texts.record_type` polymorphic type column of the
       # corresponding rows.
       def has_rich_text(name, encrypted: false, strict_loading: strict_loading_by_default, store_if_blank: true)
-        class_eval <<-CODE, __FILE__, __LINE__ + 1
+        generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
             rich_text_#{name} || build_rich_text_#{name}
           end
@@ -62,13 +62,13 @@ module ActionText
         CODE
 
         if store_if_blank
-          class_eval <<-CODE, __FILE__, __LINE__ + 1
+          generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
             def #{name}=(body)
               self.#{name}.body = body
             end
           CODE
         else
-          class_eval <<-CODE, __FILE__, __LINE__ + 1
+          generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
             def #{name}=(body)
               if body.present?
                 self.#{name}.body = body
