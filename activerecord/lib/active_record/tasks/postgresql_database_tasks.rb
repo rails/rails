@@ -5,6 +5,7 @@ require "tempfile"
 module ActiveRecord
   module Tasks # :nodoc:
     class PostgreSQLDatabaseTasks # :nodoc:
+      PG_DATABASE = ENV["PG_DATABASE"] || "postgres"
       DEFAULT_ENCODING = ENV["CHARSET"] || "utf8"
       ON_ERROR_STOP_1 = "ON_ERROR_STOP=1"
       SQL_COMMENT_BEGIN = "--"
@@ -100,7 +101,7 @@ module ActiveRecord
         end
 
         def public_schema_config
-          configuration_hash.merge(database: "postgres", schema_search_path: "public")
+          configuration_hash.merge(database: PG_DATABASE, schema_search_path: "public")
         end
 
         def psql_env
