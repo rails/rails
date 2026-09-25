@@ -55,13 +55,13 @@ module ActiveRecord
         add_column "test_models", "salary", :integer, default: 70000
 
         default_before = connection.columns("test_models").find { |c| c.name == "salary" }.default
-        assert_equal 70000, default_before
+        assert_equal "70000", default_before
 
         rename_column "test_models", "salary", "annual_salary"
 
         assert_includes TestModel.column_names, "annual_salary"
         default_after = connection.columns("test_models").find { |c| c.name == "annual_salary" }.default
-        assert_equal 70000, default_after
+        assert_equal "70000", default_after
       end
 
       if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
@@ -195,7 +195,7 @@ module ActiveRecord
 
         old_columns = connection.columns(TestModel.table_name)
         assert old_columns.find { |c|
-          default = c.fetch_cast_type(connection).deserialize(c.default)
+          default = c.cast_type.deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == true
         }
 
@@ -203,11 +203,11 @@ module ActiveRecord
         new_columns = connection.columns(TestModel.table_name)
 
         assert_not new_columns.find { |c|
-          default = c.fetch_cast_type(connection).deserialize(c.default)
+          default = c.cast_type.deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == true
         }
         assert new_columns.find { |c|
-          default = c.fetch_cast_type(connection).deserialize(c.default)
+          default = c.cast_type.deserialize(c.default)
           c.name == "approved" && c.type == :boolean && default == false
         }
         change_column :test_models, :approved, :boolean, default: true
@@ -247,7 +247,7 @@ module ActiveRecord
         change_column "test_models", "user_id", :bigint
 
         new_column = connection.columns("test_models").find { |c| c.name == "user_id" }
-        assert_equal 0, new_column.default
+        assert_equal "0", new_column.default
         assert_equal false, new_column.null
       end
 

@@ -11,13 +11,16 @@ module ActiveStorage
   # Wraps the Amazon Simple Storage Service (S3) as an Active Storage service.
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::S3Service < Service
-    attr_reader :client, :bucket
+    attr_reader :client, :bucket, :default_digest_type, :default_digest_class
     attr_reader :multipart_upload_threshold, :upload_options
 
-    def initialize(bucket:, upload: {}, public: false, **options)
+    def initialize(bucket:, upload: {}, public: false, default_digest_type: :md5, **options)
       @client = Aws::S3::Resource.new(**options)
       @transfer_manager = Aws::S3::TransferManager.new(client: @client.client) if defined?(Aws::S3::TransferManager)
       @bucket = @client.bucket(bucket)
+
+      @default_digest_type = default_digest_type.downcase.to_sym
+      @default_digest_class = digest_to_class(@default_digest_type)
 
       @multipart_upload_threshold = upload.delete(:multipart_threshold) || 100.megabytes
       @public = public
@@ -83,7 +86,7 @@ module ActiveStorage
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
       instrument :url, key: key do |payload|
         generated_url = object_for(key).presigned_url :put, expires_in: expires_in.to_i,
-          content_type: content_type, content_length: content_length, content_md5: checksum,
+          content_type: content_type, content_length: content_length, **s3_sdk_upload_params(checksum),
           metadata: custom_metadata, whitelist_headers: ["content-length"], **upload_options
 
         payload[:url] = generated_url
@@ -95,7 +98,7 @@ module ActiveStorage
     def headers_for_direct_upload(key, content_type:, checksum:, filename: nil, disposition: nil, custom_metadata: {}, **)
       content_disposition = content_disposition_with(type: disposition, filename: filename) if filename
 
-      { "Content-Type" => content_type, "Content-MD5" => checksum, "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata) }
+      { "Content-Type" => content_type, **s3_http_headers_for_direct_upload(checksum), "Content-Disposition" => content_disposition, **custom_metadata_headers(custom_metadata) }
     end
 
     def compose(source_keys, destination_key, filename: nil, content_type: nil, disposition: nil, custom_metadata: {})
@@ -117,7 +120,50 @@ module ActiveStorage
       end
     end
 
+    def compute_checksum(file, **options)
+      default_digest_type == :md5 ? super : "#{default_digest_type}:#{super}"
+    end
+
+    def checksum_implementation(check_digest_type: nil, **)
+      return default_digest_class unless check_digest_type && check_digest_type != default_digest_type
+      digest_to_class(check_digest_type)
+    end
+
     private
+      def digest_to_class(check_digest_type)
+        case check_digest_type
+        when :md5
+          OpenSSL::Digest::MD5
+        when :sha256
+          OpenSSL::Digest::SHA256
+        else
+          raise ActiveStorage::IntegrityError, "Digest type #{check_digest_type} is not supported"
+        end
+      end
+
+      def s3_sdk_upload_params(checksum)
+        return {} unless checksum
+        return { content_md5: checksum } if default_digest_type == :md5
+
+        {
+          checksum_algorithm: default_digest_type,
+          "checksum_#{default_digest_type}": checksum
+        }
+      end
+
+      def s3_http_headers_for_direct_upload(digest_and_checksum)
+        return {} unless digest_and_checksum
+
+        # If in format "algorithm:checksum", extract each part
+        if digest_and_checksum.include?(":")
+          algorithm, checksum = digest_and_checksum.split(":")
+          { "x-amz-checksum-#{algorithm}" => checksum }
+        else
+          # No prefix means MD5
+          { "Content-MD5" => digest_and_checksum }
+        end
+      end
+
       def upload_stream(key:, **options, &block)
         if @transfer_manager
           @transfer_manager.upload_stream(key: key, bucket: bucket.name, **options, &block)
@@ -140,7 +186,7 @@ module ActiveStorage
       MINIMUM_UPLOAD_PART_SIZE   = 5.megabytes
 
       def upload_with_single_part(key, io, checksum: nil, content_type: nil, content_disposition: nil, custom_metadata: {})
-        object_for(key).put(body: io, content_md5: checksum, content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata, **upload_options)
+        object_for(key).put(body: io, **s3_sdk_upload_params(checksum), content_type: content_type, content_disposition: content_disposition, metadata: custom_metadata, **upload_options)
       rescue Aws::S3::Errors::BadDigest
         raise ActiveStorage::IntegrityError
       end

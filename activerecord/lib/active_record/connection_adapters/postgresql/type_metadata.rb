@@ -26,10 +26,22 @@ module ActiveRecord
         alias eql? ==
 
         def hash
-          TypeMetadata.hash ^
-            __getobj__.hash ^
-            oid.hash ^
-            fmod.hash
+          [
+            TypeMetadata,
+            __getobj__,
+            @oid,
+            @fmod,
+          ].hash
+        end
+
+        def as_schema_json
+          { "type_metadata" => __getobj__, "oid" => oid, "fmod" => fmod }
+        end
+
+        def init_from_schema_json(coder, references)
+          __setobj__(references[coder["type_metadata"]])
+          @oid = coder["oid"]
+          @fmod = coder["fmod"]
         end
 
         private

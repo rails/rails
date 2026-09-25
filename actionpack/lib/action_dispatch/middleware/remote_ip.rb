@@ -163,10 +163,11 @@ module ActionDispatch
         #     - REMOTE_ADDR will be the IP that made the request to Rack
         ips = forwarded_ips + client_ips
         ips.compact!
+        ips << remote_addr
 
         # If every single IP option is in the trusted list, return the IP that's
         # furthest away
-        filter_proxies(ips + [remote_addr]).first || ips.last || remote_addr
+        first_non_proxy(ips) || ips[-2] || ips.last
       end
 
       # Memoizes the value returned by #calculate_ip and returns it for
@@ -194,9 +195,18 @@ module ActionDispatch
         ips
       end
 
-      def filter_proxies(ips) # :doc:
-        ips.reject do |ip|
-          @proxies.any? { |proxy| proxy === ip }
+      def first_non_proxy(ips) # :doc:
+        ips.find do |raw_ip|
+          return unless raw_ip
+
+          ip = IPAddr.new(raw_ip)
+          @proxies.none? do |proxy|
+            if proxy.is_a?(IPAddr)
+              proxy.include?(ip)
+            else
+              proxy === raw_ip
+            end
+          end
         end
       end
     end

@@ -12,6 +12,24 @@ module ActiveJob
       super("Error while trying to deserialize arguments: #{$!.message}")
       set_backtrace $!.backtrace
     end
+
+    # Raised when arguments couldn't be deserialized because a record they
+    # reference through a Global ID no longer exists, most likely because it
+    # was deleted after the job was enqueued.
+    #
+    # Jobs whose arguments may legitimately reference deleted records can
+    # discard this error:
+    #
+    #   class SearchIndexingJob < ApplicationJob
+    #     discard_on ActiveJob::DeserializationError::RecordNotFound
+    #   end
+    #
+    # Unlike its parent class, it isn't raised for other errors that may occur
+    # while deserializing arguments, such as transient database connectivity
+    # failures, where the referenced record may still exist and a retry could
+    # succeed.
+    class RecordNotFound < DeserializationError
+    end
   end
 
   # Raised when an unsupported argument type is set as a job argument. We
@@ -81,6 +99,8 @@ module ActiveJob
     # GlobalID.
     def deserialize(arguments)
       arguments.map { |argument| deserialize_argument(argument) }
+    rescue GlobalID::Locator::RecordNotFound
+      raise DeserializationError::RecordNotFound
     rescue
       raise DeserializationError
     end
@@ -130,7 +150,7 @@ module ActiveJob
       end
 
       def deserialize_global_id(hash)
-        GlobalID::Locator.locate hash[GLOBALID_KEY]
+        GlobalID::Locator.fetch hash[GLOBALID_KEY]
       end
 
       def custom_serialized?(hash)

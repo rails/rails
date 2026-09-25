@@ -74,7 +74,6 @@ module AdapterHelper
     supports_insert_on_duplicate_update?
     supports_insert_conflict_target?
     supports_optimizer_hints?
-    supports_datetime_with_precision?
     supports_nulls_not_distinct?
     supports_identity_columns?
     supports_virtual_columns?
@@ -140,7 +139,7 @@ module AdapterHelper
         connection.instance_variable_get(:@raw_connection).async_exec("begin")
       end
       connection.instance_variable_get(:@raw_connection).async_exec("set idle_in_transaction_session_timeout = '10ms'")
-      sleep 0.05
+      sleep 0.2
     elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
       connection.query_command("set @@wait_timeout=1", materialize_transactions: false)
       sleep 1.2

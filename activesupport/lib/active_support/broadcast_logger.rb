@@ -1,11 +1,13 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
-  # = Active Support Broadcast Logger
+  # Active Support Broadcast Logger
+  # ===============================
   #
   # The Broadcast logger is a logger used to write messages to multiple IO. It is commonly used
   # in development to display messages on STDOUT and also write them to a file (development.log).
-  # With the Broadcast logger, you can broadcast your logs to a unlimited number of sinks.
+  # With the Broadcast logger, you can broadcast your logs to an unlimited number of sinks.
   #
   # The BroadcastLogger acts as a standard logger and all methods you are used to are available.
   # However, all the methods on this logger will propagate and be delegated to the other loggers
@@ -13,64 +15,76 @@ module ActiveSupport
   #
   # Broadcasting your logs.
   #
-  #   stdout_logger = Logger.new(STDOUT)
-  #   file_logger   = Logger.new("development.log")
-  #   broadcast = BroadcastLogger.new(stdout_logger, file_logger)
+  # ```
+  # stdout_logger = Logger.new(STDOUT)
+  # file_logger   = Logger.new("development.log")
+  # broadcast = BroadcastLogger.new(stdout_logger, file_logger)
   #
-  #   broadcast.info("Hello world!") # Writes the log to STDOUT and the development.log file.
+  # broadcast.info("Hello world!") # Writes the log to STDOUT and the development.log file.
+  # ```
   #
   # Add a logger to the broadcast.
   #
-  #   stdout_logger = Logger.new(STDOUT)
-  #   broadcast = BroadcastLogger.new(stdout_logger)
-  #   file_logger   = Logger.new("development.log")
-  #   broadcast.broadcast_to(file_logger)
+  # ```
+  # stdout_logger = Logger.new(STDOUT)
+  # broadcast = BroadcastLogger.new(stdout_logger)
+  # file_logger   = Logger.new("development.log")
+  # broadcast.broadcast_to(file_logger)
   #
-  #   broadcast.info("Hello world!") # Writes the log to STDOUT and the development.log file.
+  # broadcast.info("Hello world!") # Writes the log to STDOUT and the development.log file.
+  # ```
   #
   # Modifying the log level for all broadcasted loggers.
   #
-  #   stdout_logger = Logger.new(STDOUT)
-  #   file_logger   = Logger.new("development.log")
-  #   broadcast = BroadcastLogger.new(stdout_logger, file_logger)
+  # ```
+  # stdout_logger = Logger.new(STDOUT)
+  # file_logger   = Logger.new("development.log")
+  # broadcast = BroadcastLogger.new(stdout_logger, file_logger)
   #
-  #   broadcast.level = Logger::FATAL # Modify the log level for the whole broadcast.
+  # broadcast.level = Logger::FATAL # Modify the log level for the whole broadcast.
+  # ```
   #
   # Stop broadcasting log to a sink.
   #
-  #   stdout_logger = Logger.new(STDOUT)
-  #   file_logger   = Logger.new("development.log")
-  #   broadcast = BroadcastLogger.new(stdout_logger, file_logger)
-  #   broadcast.info("Hello world!") # Writes the log to STDOUT and the development.log file.
+  # ```
+  # stdout_logger = Logger.new(STDOUT)
+  # file_logger   = Logger.new("development.log")
+  # broadcast = BroadcastLogger.new(stdout_logger, file_logger)
+  # broadcast.info("Hello world!") # Writes the log to STDOUT and the development.log file.
   #
-  #   broadcast.stop_broadcasting_to(file_logger)
-  #   broadcast.info("Hello world!") # Writes the log *only* to STDOUT.
+  # broadcast.stop_broadcasting_to(file_logger)
+  # broadcast.info("Hello world!") # Writes the log *only* to STDOUT.
+  # ```
   #
   # At least one sink has to be part of the broadcast. Otherwise, your logs will not
   # be written anywhere. For instance:
   #
-  #   broadcast = BroadcastLogger.new
-  #   broadcast.info("Hello world") # The log message will appear nowhere.
+  # ```
+  # broadcast = BroadcastLogger.new
+  # broadcast.info("Hello world") # The log message will appear nowhere.
+  # ```
   #
   # If you are adding a custom logger with custom methods to the broadcast,
   # the `BroadcastLogger` will proxy them and return the raw value, or an array
   # of raw values, depending on how many loggers in the broadcasts responded to
   # the method:
   #
-  #   class MyLogger < ::Logger
-  #     def loggable?
-  #       true
-  #     end
+  # ```
+  # class MyLogger < ::Logger
+  #   def loggable?
+  #     true
   #   end
+  # end
   #
-  #   logger = BroadcastLogger.new
-  #   logger.loggable? # => A NoMethodError exception is raised because no loggers in the broadcasts could respond.
+  # logger = BroadcastLogger.new
+  # logger.loggable? # => A NoMethodError exception is raised because no loggers in the broadcasts could respond.
   #
-  #   logger.broadcast_to(MyLogger.new(STDOUT))
-  #   logger.loggable? # => true
-  #   logger.broadcast_to(MyLogger.new(STDOUT))
-  #   puts logger.broadcasts # => [MyLogger, MyLogger]
-  #   logger.loggable? # [true, true]
+  # logger.broadcast_to(MyLogger.new(STDOUT))
+  # logger.loggable? # => true
+  # logger.broadcast_to(MyLogger.new(STDOUT))
+  # puts logger.broadcasts # => [MyLogger, MyLogger]
+  # logger.loggable? # [true, true]
+  # ```
   class BroadcastLogger
     include ActiveSupport::LoggerSilence
 
@@ -87,8 +101,10 @@ module ActiveSupport
 
     # Add logger(s) to the broadcast.
     #
-    #   broadcast_logger = ActiveSupport::BroadcastLogger.new
-    #   broadcast_logger.broadcast_to(Logger.new(STDOUT), Logger.new(STDERR))
+    # ```
+    # broadcast_logger = ActiveSupport::BroadcastLogger.new
+    # broadcast_logger.broadcast_to(Logger.new(STDOUT), Logger.new(STDERR))
+    # ```
     def broadcast_to(*loggers)
       @broadcasts.concat(loggers)
     end
@@ -96,10 +112,12 @@ module ActiveSupport
     # Remove a logger from the broadcast. When a logger is removed, messages sent to
     # the broadcast will no longer be written to its sink.
     #
-    #   sink = Logger.new(STDOUT)
-    #   broadcast_logger = ActiveSupport::BroadcastLogger.new
+    # ```
+    # sink = Logger.new(STDOUT)
+    # broadcast_logger = ActiveSupport::BroadcastLogger.new
     #
-    #   broadcast_logger.stop_broadcasting_to(sink)
+    # broadcast_logger.stop_broadcasting_to(sink)
+    # ```
     def stop_broadcasting_to(logger)
       @broadcasts.delete(logger)
     end
@@ -120,15 +138,35 @@ module ActiveSupport
 
     LOGGER_METHODS = %w[
       << log add debug info warn error fatal unknown
-      level= sev_threshold= close
-      formatter formatter=
-    ] # :nodoc:
+      close formatter
+    ].freeze # :nodoc:
     LOGGER_METHODS.each do |method|
       class_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{method}(...)
-          dispatch(:#{method}, ...)
+          return if @broadcasts.empty?
+
+          # One logger can't execute a block twice, so it needs to be memoized
+          # before being handed to more than one logger.
+          return dispatch_block(:#{method}, ...) if block_given? && @broadcasts.size > 1
+
+          # Call all loggers, but only return the first logger's value
+          result = @broadcasts[0].#{method}(...)
+          1.upto(@broadcasts.size - 1) { |i| @broadcasts[i].#{method}(...) }
+          result
         end
       RUBY
+    end
+
+    def level=(level)
+      @broadcasts.each { |logger| logger.level = level }
+    end
+
+    def sev_threshold=(level)
+      @broadcasts.each { |logger| logger.sev_threshold = level }
+    end
+
+    def formatter=(formatter)
+      @broadcasts.each { |logger| logger.formatter = formatter }
     end
 
     # Returns the lowest level of all the loggers in the broadcast.
@@ -136,59 +174,85 @@ module ActiveSupport
       @broadcasts.map(&:level).min
     end
 
-    # True if the log level allows entries with severity +Logger::DEBUG+ to be written
+    # True if the log level allows entries with severity `Logger::DEBUG` to be written
     # to at least one broadcast. False otherwise.
     def debug?
       @broadcasts.any? { |logger| logger.debug? }
     end
 
-    # Sets the log level to +Logger::DEBUG+ for the whole broadcast.
+    # Sets the log level to `Logger::DEBUG` for the whole broadcast.
     def debug!
-      dispatch(:debug!)
+      @broadcasts.each(&:debug!)
     end
 
-    # True if the log level allows entries with severity +Logger::INFO+ to be written
+    # True if the log level allows entries with severity `Logger::INFO` to be written
     # to at least one broadcast. False otherwise.
     def info?
       @broadcasts.any? { |logger| logger.info? }
     end
 
-    # Sets the log level to +Logger::INFO+ for the whole broadcast.
+    # Sets the log level to `Logger::INFO` for the whole broadcast.
     def info!
-      dispatch(:info!)
+      @broadcasts.each(&:info!)
     end
 
-    # True if the log level allows entries with severity +Logger::WARN+ to be written
+    # True if the log level allows entries with severity `Logger::WARN` to be written
     # to at least one broadcast. False otherwise.
     def warn?
       @broadcasts.any? { |logger| logger.warn? }
     end
 
-    # Sets the log level to +Logger::WARN+ for the whole broadcast.
+    # Sets the log level to `Logger::WARN` for the whole broadcast.
     def warn!
-      dispatch(:warn!)
+      @broadcasts.each(&:warn!)
     end
 
-    # True if the log level allows entries with severity +Logger::ERROR+ to be written
+    # True if the log level allows entries with severity `Logger::ERROR` to be written
     # to at least one broadcast. False otherwise.
     def error?
       @broadcasts.any? { |logger| logger.error? }
     end
 
-    # Sets the log level to +Logger::ERROR+ for the whole broadcast.
+    # Sets the log level to `Logger::ERROR` for the whole broadcast.
     def error!
-      dispatch(:error!)
+      @broadcasts.each(&:error!)
     end
 
-    # True if the log level allows entries with severity +Logger::FATAL+ to be written
+    # True if the log level allows entries with severity `Logger::FATAL` to be written
     # to at least one broadcast. False otherwise.
     def fatal?
       @broadcasts.any? { |logger| logger.fatal? }
     end
 
-    # Sets the log level to +Logger::FATAL+ for the whole broadcast.
+    # Sets the log level to `Logger::FATAL` for the whole broadcast.
     def fatal!
-      dispatch(:fatal!)
+      @broadcasts.each(&:fatal!)
+    end
+
+    # Add the tags to every broadcast that supports tagged logging.
+    #
+    # Without a block, it returns a new BroadcastLogger whose tagging-capable
+    # broadcasts are tagged, so the result can be logged to directly. Broadcasts
+    # that don't support tagging are kept as-is so they keep receiving messages.
+    #
+    # ```
+    # broadcast.tagged("BCX").info("Hello") # All broadcasts log "[BCX] Hello"
+    # ```
+    #
+    # With a block, the tags are applied to every tagging-capable broadcast for
+    # the duration of the block, which is yielded once with the broadcast logger.
+    # ```
+    # broadcast.tagged("BCX") { |logger| logger.info("Hello") }
+    # ```
+    def tagged(*tags, &block)
+      if block
+        tagging_loggers = @broadcasts.select { |logger| logger.respond_to?(:tagged) }
+
+        _tagged(tagging_loggers, 0, tags, &block)
+      else
+        loggers = @broadcasts.map { |logger| logger.respond_to?(:tagged) ? logger.tagged(*tags) : logger }
+        self.class.new(*loggers)
+      end
     end
 
     def initialize_copy(other)
@@ -199,24 +263,37 @@ module ActiveSupport
     end
 
     private
-      def dispatch(method, *args, **kwargs, &block)
-        if block_given?
-          # Maintain semantics that the first logger yields the block
-          # as normal, but subsequent loggers won't re-execute the block.
-          # Instead, the initial result is immediately returned.
-          called, result = false, nil
-          block = proc { |*args, **kwargs|
-            if called then result
+      # Complex dispatch for multiple loggers with a block given.
+      # The first logger to yield executes the block as normal. Subsequent
+      # loggers reuse the initial result
+      def dispatch_block(method, *args, **kwargs)
+        result = nil
+        called, memo = false, nil
+
+        @broadcasts.each_with_index do |logger, i|
+          value = logger.send(method, *args, **kwargs) do |*args, **kwargs|
+            if called
+              memo
             else
               called = true
-              result = yield(*args, **kwargs)
+              memo = yield(*args, **kwargs)
             end
-          }
+          end
+
+          result = value if i.zero?
         end
 
-        @broadcasts.map { |logger|
-          logger.send(method, *args, **kwargs, &block)
-        }.first
+        result
+      end
+
+      def _tagged(loggers, index, tags, &block)
+        if index >= loggers.size
+          yield self
+        else
+          loggers[index].tagged(*tags) do
+            _tagged(loggers, index + 1, tags, &block)
+          end
+        end
       end
 
       def method_missing(name, ...)

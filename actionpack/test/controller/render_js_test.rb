@@ -5,7 +5,7 @@ require "controller/fake_models"
 
 class RenderJSTest < ActionController::TestCase
   class TestController < ActionController::Base
-    protect_from_forgery
+    protect_from_forgery with: :null_session
 
     def self.controller_path
       "test"

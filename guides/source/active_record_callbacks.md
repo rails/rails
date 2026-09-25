@@ -650,7 +650,7 @@ class is initialized.
 
 NOTE: The `find_by_*` and `find_by_*!` methods are dynamic finders generated
 automatically for every attribute. Learn more about them in the [Dynamic finders
-section](active_record_querying.html#dynamic-finders).
+section](active_record_querying.html#dynamic-finder-methods).
 
 Conditional Callbacks
 ---------------------
@@ -934,7 +934,7 @@ This exception indicates that the record was not saved due to the callback's
 interruption.
 
 ```ruby
-User.create! # => raises an ActiveRecord::RecordNotSaved
+Product.create! # => raises an ActiveRecord::RecordNotSaved
 ```
 
 
@@ -1211,7 +1211,7 @@ the transaction.
 
 ### Aliases for `after_commit`
 
-Using the `after_commit` callback only on create, update, or delete is common.
+Using the `after_commit` callback only on create, update, or destroy is common.
 Sometimes you may also want to use a single callback for both `create` and
 `update`. Here are some common aliases for these operations:
 

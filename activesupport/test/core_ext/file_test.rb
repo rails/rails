@@ -16,6 +16,21 @@ class AtomicWriteTest < ActiveSupport::TestCase
     File.unlink(file_name) rescue nil
   end
 
+  def test_atomic_write_flushes_contents_before_rename
+    contents = "Atomic Text"
+    original_rename = File.method(:rename)
+    File.stub(:rename, ->(source, destination) do
+      assert_equal contents, File.read(source)
+      original_rename.call(source, destination)
+    end) do
+      File.atomic_write(file_name, Dir.pwd) { |file| file.write(contents) }
+    end
+
+    assert_equal contents, File.read(file_name)
+  ensure
+    File.unlink(file_name) rescue nil
+  end
+
   def test_atomic_write_doesnt_write_when_block_raises
     File.atomic_write(file_name) do |file|
       file.write("testing")
@@ -92,6 +107,20 @@ class AtomicWriteTest < ActiveSupport::TestCase
     assert_raises Errno::ENOENT do
       File.atomic_write("/dir/does/not/exist/file.txt") { }
     end
+  end
+
+  def test_atomic_write_uses_unique_temp_file_names
+    temp_file_paths = []
+    2.times do
+      File.atomic_write(file_name, Dir.pwd) do |file|
+        temp_file_paths << file.path
+      end
+    end
+
+    assert_match(/\.atomic-#{Process.pid}\.file\.tmp\.[0-9a-f]{32}\z/, temp_file_paths[0])
+    assert_not_equal temp_file_paths[0], temp_file_paths[1]
+  ensure
+    File.unlink(file_name) rescue nil
   end
 
   private

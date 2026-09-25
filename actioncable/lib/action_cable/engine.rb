@@ -12,6 +12,11 @@ module ActionCable
     config.action_cable.mount_path = ActionCable::INTERNAL[:default_mount_path]
     config.action_cable.precompile_assets = true
 
+    guard_load_hooks(
+      :action_cable_channel, :action_cable_connection,
+      :action_cable_test_case, :action_cable_connection_test_case,
+    )
+
     initializer "action_cable.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_cable] = ActionCable.deprecator
     end
@@ -72,8 +77,9 @@ module ActionCable
 
     initializer "action_cable.set_work_hooks" do |app|
       ActiveSupport.on_load(:action_cable) do
+        executor = app.executor
         ActionCable::Server::Worker.set_callback :work, :around, prepend: true do |_, inner|
-          app.executor.wrap(source: "application.action_cable") do
+          executor.wrap(source: "application.action_cable") do
             # If we took a while to get the lock, we may have been halted in the meantime.
             # As we haven't started doing any real work yet, we should pretend that we never
             # made it off the queue.
@@ -83,15 +89,18 @@ module ActionCable
           end
         end
 
-        wrap = lambda do |_, inner|
-          app.executor.wrap(source: "application.action_cable", &inner)
-        end
-        ActionCable::Channel::Base.set_callback :subscribe, :around, prepend: true, &wrap
-        ActionCable::Channel::Base.set_callback :unsubscribe, :around, prepend: true, &wrap
-
         app.reloader.before_class_unload do
           ActionCable.server.restart
         end
+      end
+
+      ActiveSupport.on_load(:action_cable_channel) do
+        executor = app.executor
+        wrap = lambda do |_, inner|
+          executor.wrap(source: "application.action_cable", &inner)
+        end
+        ActionCable::Channel::Base.set_callback :subscribe, :around, prepend: true, &wrap
+        ActionCable::Channel::Base.set_callback :unsubscribe, :around, prepend: true, &wrap
       end
     end
   end

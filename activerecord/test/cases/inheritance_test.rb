@@ -3,6 +3,7 @@
 require "active_support/inflector"
 require "zeitwerk"
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 require "models/author"
 require "models/company"
 require "models/membership"
@@ -195,7 +196,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_a_bad_type_column
-    Company.lease_connection.insert "INSERT INTO companies (id, #{QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
+    Company.lease_connection.insert "INSERT INTO companies (id, #{ARTest::QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
 
     assert_raise(ActiveRecord::SubclassNotFound) { Company.find(100) }
   end
@@ -500,6 +501,34 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_inheritance_with_default_scope
     assert_equal 1, SelectedMembership.count(:all)
   end
+
+  if RUBY_VERSION >= "4.0" && !in_memory_db?
+    class InheritanceRactorTest < ActiveRecord::TestCase
+      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::RactorsAssertions
+
+      def test_finder_needs_type_condition_can_be_computed_from_a_ractor_for_an_sti_subclass
+        model, sti_model = ractor_sti_models
+
+        assert_equal true, on_ractor { sti_model.finder_needs_type_condition? }
+        assert_equal false, on_ractor { model.finder_needs_type_condition? }
+      end
+
+      private
+        def ractor_sti_models
+          model = Class.new(ActiveRecord::Base) do
+            def self.name = "RactorCompany"
+            self.table_name = "companies"
+          end
+          sti_model = Class.new(model) do
+            def self.name = "RactorFirm"
+          end
+          model.load_schema
+
+          [model, sti_model]
+        end
+    end
+  end
 end
 
 class InheritanceComputeTypeTest < ActiveRecord::TestCase
@@ -564,6 +593,18 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
   ensure
     ActiveRecord::Base.lease_connection.change_column_default :companies, :type, original_type
     Company.reset_column_information
+  end
+
+  def test_inheritance_new_with_subclass_after_adding_type_column_and_resetting_schema_cache
+    ActiveRecord::Base.lease_connection.rename_column :companies, :type, :old_type
+    Company.reset_column_information
+    _firm = Firm.new # populate the cache
+
+    ActiveRecord::Base.lease_connection.rename_column :companies, :old_type, :type
+    Company.reset_column_information
+
+    firm = Firm.new
+    assert_equal "Firm", firm.type
   end
 end
 

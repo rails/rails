@@ -20,7 +20,7 @@ module ActiveRecord
       include Serialization
     end
 
-    RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name superclass)
+    RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name superclass).freeze
 
     class GeneratedAttributeMethods < Module # :nodoc:
       LOCK = Monitor.new
@@ -81,7 +81,6 @@ module ActiveRecord
         attribute_method_patterns.each do |pattern|
           alias_attribute_method_definition(code_generator, pattern, new_name, old_name)
         end
-        attribute_method_patterns_cache.clear
       end
 
       def alias_attribute_method_definition(code_generator, pattern, new_name, old_name) # :nodoc:
@@ -294,9 +293,8 @@ module ActiveRecord
       # If the result is true then check for the select case.
       # For queries selecting a subset of columns, return false for unselected columns.
       if @attributes
-        if name = self.class.symbol_column_to_string(name.to_sym)
-          return _has_attribute?(name)
-        end
+        name = name.name if name.is_a?(Symbol)
+        return _has_attribute?(name) if self.class.columns_hash.key?(name)
       end
 
       true
@@ -462,40 +460,6 @@ module ActiveRecord
     end
 
     private
-      def respond_to_missing?(name, include_private = false)
-        if self.class.define_attribute_methods
-          # Some methods weren't defined yet.
-          return true if self.class.method_defined?(name)
-          return true if include_private && self.class.private_method_defined?(name)
-        end
-
-        super
-      end
-
-      def method_missing(name, ...)
-        # We can't know whether some method was defined or not because
-        # multiple thread might be concurrently be in this code path.
-        # So the first one would define the methods and the others would
-        # appear to already have them.
-        self.class.define_attribute_methods
-
-        # So in all cases we must behave as if the method was just defined.
-        method = begin
-          self.class.public_instance_method(name)
-        rescue NameError
-          nil
-        end
-
-        # The method might be explicitly defined in the model, but call a generated
-        # method with super. So we must resume the call chain at the right step.
-        method = method.super_method while method && !method.owner.is_a?(GeneratedAttributeMethods)
-        if method
-          method.bind_call(self, ...)
-        else
-          super
-        end
-      end
-
       def attribute_method?(attr_name)
         @attributes&.key?(attr_name)
       end

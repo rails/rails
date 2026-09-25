@@ -5,5 +5,12 @@
 db/schema.rb linguist-generated
 <% end -%>
 
+# Mark the static error pages as having been generated.
+public/400.html linguist-generated
+public/404.html linguist-generated
+public/406-unsupported-browser.html linguist-generated
+public/422.html linguist-generated
+public/500.html linguist-generated
+
 # Mark any vendored files as having been vendored.
 vendor/* linguist-vendored

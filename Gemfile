@@ -3,10 +3,8 @@
 source "https://rubygems.org"
 gemspec
 
-gem "minitest"
-
-# We need a newish Rake since Active Job sets its test tasks' descriptions.
-gem "rake", ">= 13"
+gem "minitest", "~> 6.0"
+gem "minitest-mock"
 
 gem "releaser", path: "tools/releaser"
 
@@ -47,7 +45,7 @@ gem "uri", ">= 0.13.1", require: false
 gem "prism"
 
 group :rubocop do
-  gem "rubocop", "1.79.2", require: false
+  gem "rubocop", "1.90.0", require: false
   gem "rubocop-minitest", require: false
   gem "rubocop-packaging", require: false
   gem "rubocop-performance", require: false
@@ -71,7 +69,8 @@ group :doc do
 end
 
 # Active Support
-gem "dalli", ">= 3.0.1"
+gem "dalli"
+gem "redis-client", ">= 0.28.0"
 gem "listen", "~> 3.3", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
@@ -98,7 +97,6 @@ gem "useragent", require: false
 group :job do
   gem "resque", require: false
   gem "resque-scheduler", require: false
-  gem "sidekiq", require: false
   gem "queue_classic", ">= 4.0.0", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "backburner", require: false
@@ -120,7 +118,9 @@ group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.11", require: false
 
-  gem "image_processing", "~> 1.2"
+  gem "image_processing", "~> 2.0"
+  gem "ruby-vips", "~> 2.3"
+  gem "mini_magick", "~> 5.0"
 end
 
 # Action Mailbox
@@ -132,8 +132,6 @@ local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  gem "minitest-bisect", require: false
-  gem "minitest-ci", require: false
   gem "minitest-retry"
 
   platforms :mri do

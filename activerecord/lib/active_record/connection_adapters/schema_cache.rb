@@ -230,13 +230,11 @@ module ActiveRecord
 
         read(filename) do |file|
           if filename.include?(".dump")
-            Marshal.load(file)
+            Marshal.load(file, freeze: true)
+          elsif filename.include?(".json")
+            JSONSchemaCacheSerializer.load(file)
           else
-            if YAML.respond_to?(:unsafe_load)
-              YAML.unsafe_load(file)
-            else
-              YAML.load(file)
-            end
+            YAML.unsafe_load(file)
           end
         end
       end
@@ -271,10 +269,10 @@ module ActiveRecord
       end
 
       def encode_with(coder) # :nodoc:
-        coder["columns"]          = @columns.sort.to_h.transform_values { _1.sort_by(&:name) }
+        coder["columns"]          = @columns.sort.to_h
         coder["primary_keys"]     = @primary_keys.sort.to_h
         coder["data_sources"]     = @data_sources.sort.to_h
-        coder["indexes"]          = @indexes.sort.to_h.transform_values { _1.sort_by(&:name) }
+        coder["indexes"]          = @indexes.sort.to_h
         coder["version"]          = @version
       end
 
@@ -289,6 +287,22 @@ module ActiveRecord
         unless coder["deduplicated"]
           derive_columns_hash_and_deduplicate_values
         end
+      end
+
+      def as_schema_json
+        data = {}
+        encode_with(data)
+        data["data_sources"] = data["data_sources"].select { |_, exists| exists }.keys
+        data
+      end
+
+      def init_from_schema_json(coder, references)
+        @columns          = coder["columns"].transform_values { |columns| columns.map { |i| references[i] } }
+        @columns_hash     = @columns.transform_values { |columns| columns.index_by(&:name) }
+        @primary_keys     = coder["primary_keys"]
+        @data_sources     = coder["data_sources"].index_with { true }
+        @indexes          = (coder["indexes"] || {}).transform_values { |indexes| indexes.map { |i| references[i] } }
+        @version          = coder["version"]
       end
 
       def cached?(table_name)
@@ -394,8 +408,25 @@ module ActiveRecord
       end
 
       def add_all(pool) # :nodoc:
-        pool.with_connection do
-          tables_to_cache(pool).each do |table|
+        pool.with_connection do |connection|
+          tables = tables_to_cache(pool)
+
+          tables.each { |table| @data_sources[deep_deduplicate(table)] = true }
+
+          connection.primary_keys(tables).each do |table, primary_keys|
+            primary_key = primary_keys.size > 1 ? primary_keys : primary_keys.first
+            @primary_keys[deep_deduplicate(table)] = deep_deduplicate(primary_key)
+          end
+
+          connection.columns(tables).each do |table, columns|
+            @columns[deep_deduplicate(table)] = deep_deduplicate(columns)
+          end
+
+          connection.indexes(tables).each do |table, indexes|
+            @indexes[deep_deduplicate(table)] = deep_deduplicate(indexes)
+          end
+
+          tables.each do |table|
             add(pool, table)
           end
 
@@ -407,6 +438,8 @@ module ActiveRecord
         open(filename) { |f|
           if filename.include?(".dump")
             f.write(Marshal.dump(self))
+          elsif filename.include?(".json")
+            f.write(JSONSchemaCacheSerializer.dump(self))
           else
             f.write(YAML.dump(self))
           end
@@ -420,8 +453,7 @@ module ActiveRecord
       def marshal_load(array) # :nodoc:
         @version, @columns, _columns_hash, @primary_keys, @data_sources, @indexes, _database_version = array
         @indexes ||= {}
-
-        derive_columns_hash_and_deduplicate_values
+        @columns_hash = @columns.transform_values { |columns| columns.index_by(&:name) }
       end
 
       private
@@ -434,7 +466,7 @@ module ActiveRecord
         end
 
         def ignored_table?(table_name)
-          ActiveRecord.schema_cache_ignored_table?(table_name)
+          ActiveRecord.schema_ignored_table?(table_name)
         end
 
         def derive_columns_hash_and_deduplicate_values

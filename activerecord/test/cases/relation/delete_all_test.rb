@@ -80,6 +80,22 @@ class DeleteAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_delete_all_with_group_by_and_having_without_joins
+    posts = [
+      Post.create!(title: "low", body: "x", legacy_comments_count: 0),
+      Post.create!(title: "mid", body: "x", legacy_comments_count: 3),
+      Post.create!(title: "high", body: "x", legacy_comments_count: 9),
+    ]
+    relation = Post.where(id: posts).group("posts.id").having("MAX(legacy_comments_count) >= 3")
+
+    # Only the rows that survive the HAVING filter must be deleted, not every row.
+    assert_equal 2, relation.delete_all
+
+    assert Post.exists?(posts[0].id)
+    assert_not Post.exists?(posts[1].id)
+    assert_not Post.exists?(posts[2].id)
+  end
+
   def test_delete_all_with_unpermitted_relation_raises_error
     assert_raises(ActiveRecord::ActiveRecordError) { Author.distinct.delete_all }
     assert_raises(ActiveRecord::ActiveRecordError) { Author.with(limited: Author.limit(2)).delete_all }

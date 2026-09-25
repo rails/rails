@@ -42,19 +42,19 @@ class DefaultNumbersTest < ActiveRecord::TestCase
   def test_default_positive_integer
     record = DefaultNumber.new
     assert_equal 7, record.positive_integer
-    assert_equal 7, record.positive_integer_before_type_cast
+    assert_equal "7", record.positive_integer_before_type_cast
   end
 
   def test_default_negative_integer
     record = DefaultNumber.new
     assert_equal (-5), record.negative_integer
-    assert_equal (-5), record.negative_integer_before_type_cast
+    assert_equal "-5", record.negative_integer_before_type_cast
   end
 
   def test_default_decimal_number
     record = DefaultNumber.new
     assert_equal BigDecimal("2.78"), record.decimal_number
-    assert_equal BigDecimal("2.78"), record.decimal_number_before_type_cast
+    assert_equal "2.78", record.decimal_number_before_type_cast
   end
 end
 
@@ -152,12 +152,12 @@ class PostgresqlDefaultExpressionTest < ActiveRecord::TestCase
       if ActiveRecord::Base.lease_connection.database_version >= 100000
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
         assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
-        assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+        assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
         assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       else
         assert_match %r/t\.date\s+"modified_date",\s+default: -> { "\('now'::text\)::date" }/, output
         assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "now\(\)" }/, output
-        assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "now\(\)" }/, output
+        assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+default: -> { "now\(\)" }/, output
         assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { "now\(\)" }/, output
       end
       assert_match %r/t\.date\s+"modified_date_function",\s+default: -> { "now\(\)" }/, output
@@ -234,8 +234,10 @@ class DefaultsTestWithoutTransactionalFixtures < ActiveRecord::TestCase
     def using_strict(strict)
       db_config = ActiveRecord::Base.connection_pool.db_config
       conn_hash = db_config.configuration_hash
-      ActiveRecord::Base.establish_connection conn_hash.merge(strict: strict)
-      yield
+      ActiveRecord.deprecator.silence do
+        ActiveRecord::Base.establish_connection conn_hash.merge(strict: strict)
+        yield
+      end
     ensure
       ActiveRecord::Base.establish_connection db_config
     end
@@ -314,7 +316,7 @@ class Sqlite3DefaultExpressionTest < ActiveRecord::TestCase
       assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       assert_match %r/t\.datetime\s+"modified_time_without_precision",\s+precision: nil,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
       assert_match %r/t\.datetime\s+"modified_time_with_precision_0",\s+precision: 0,\s+default: -> { "CURRENT_TIMESTAMP" }/, output
-      assert_match %r/t\.integer\s+"random_number",\s+default: -> { "ABS\(RANDOM\(\)\)" }/, output
+      assert_match %r/t\.integer\s+"random_number",\s+default: -> { "ABS\(RANDOM\(\) % 100\)" }/, output
     end
   end
 end

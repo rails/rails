@@ -44,13 +44,23 @@ module Arel # :nodoc: all
 
     attr_reader :ast
 
+    def initialize(table = nil)
+      @table = table
+    end
+
     def to_dot
       collector = Arel::Collectors::PlainString.new
       collector = Visitors::Dot.new.accept @ast, collector
       collector.value
     end
 
-    def to_sql(engine = Table.engine)
+    def to_sql(engine = nil)
+      unless engine
+        table = @table.is_a?(Nodes::JoinSource) ? @table.left : @table
+
+        engine = table&.klass || Table.engine
+      end
+
       collector = Arel::Collectors::SQLString.new
       engine.with_connection do |connection|
         connection.visitor.accept(@ast, collector).value

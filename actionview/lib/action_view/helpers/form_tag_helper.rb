@@ -4,7 +4,6 @@ require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/url_helper"
 require "action_view/helpers/text_helper"
 require "active_support/core_ext/string/output_safety"
-require "active_support/core_ext/module/attribute_accessors"
 
 module ActionView
   module Helpers # :nodoc:
@@ -22,10 +21,11 @@ module ActionView
       include TextHelper
       include ContentExfiltrationPreventionHelper
 
-      mattr_accessor :embed_authenticity_token_in_remote_forms
-      self.embed_authenticity_token_in_remote_forms = nil
+      singleton_class.attr_accessor :embed_authenticity_token_in_remote_forms, :default_enforce_utf8
+      delegate :embed_authenticity_token_in_remote_forms, :default_enforce_utf8, to: FormTagHelper
 
-      mattr_accessor :default_enforce_utf8, default: true
+      self.embed_authenticity_token_in_remote_forms = nil
+      self.default_enforce_utf8 = true
 
       # Starts a form tag that points the action to a URL configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
@@ -345,9 +345,15 @@ module ActionView
       #   file_field_tag 'user_pic', accept: 'image/png,image/gif,image/jpeg'
       #   # => <input accept="image/png,image/gif,image/jpeg" id="user_pic" name="user_pic" type="file" />
       #
+      #   file_field_tag 'user_pic', accept: ['image/png', 'image/gif']
+      #   # => <input accept="image/png,image/gif" id="user_pic" name="user_pic" type="file" />
+      #
       #   file_field_tag 'file', accept: 'text/html', class: 'upload', value: 'index.html'
       #   # => <input accept="text/html" class="upload" id="file" name="file" type="file" value="index.html" />
       def file_field_tag(name, options = {})
+        if options[:accept].is_a?(Array)
+          options = options.merge(accept: options[:accept].join(","))
+        end
         text_field_tag(name, nil, convert_direct_upload_option_to_url(options.merge(type: :file)))
       end
 
@@ -951,7 +957,7 @@ module ActionView
         options = options.stringify_keys
         options["type"] ||= "number"
         if range = options.delete("in") || options.delete("within")
-          options.update("min" => range.min, "max" => range.max)
+          options.update("min" => range.begin, "max" => (range.max if range.end))
         end
         text_field_tag(name, value, options)
       end
@@ -974,6 +980,24 @@ module ActionView
       #   # => <input id="quantity" name="quantity" min="1" max="10" step="2" type="range"
       def range_field_tag(name, value = nil, options = {})
         number_field_tag(name, value, options.merge(type: :range))
+      end
+
+      # Creates a datalist form element.
+      #
+      # The option_tags parameter has the same format as the container parameter from #options_for_select.
+      #
+      # ==== Examples
+      #
+      #   datalist_tag('countries_datalist', ['Argentina', ['Brazil', { class: 'brazilian_option' }],
+      #                ['Chile', 'CL', { disabled: true }]], { class: 'sa-countries-sample' })
+      #   # => <datalist id="countries_datalist" class="sa-countries-sample">
+      #          <option value="Argentina">Argentina</option>
+      #          <option value="Brazil" class="brazilian_option">Brazil</option>
+      #          <option value="CL" disabled="disabled">Chile</option>
+      #        </datalist>
+      def datalist_tag(id, option_tags = nil, html_options = {})
+        option_tags ||= ""
+        content_tag("datalist", options_for_select(option_tags), { "id" => id }.update(html_options.stringify_keys))
       end
 
       # Creates the hidden UTF-8 enforcer tag. Override this method in a helper
@@ -1088,6 +1112,9 @@ module ActionView
           elsif respond_to?(:main_app) && main_app.respond_to?(:rails_direct_uploads_url)
             options["data-direct-upload-url"] = main_app.rails_direct_uploads_url
           end
+
+          # Set checksum algorithm if explicitly provided
+          options["data-checksum-algorithm"] = options.delete(:data_checksum_algorithm)
 
           options
         end

@@ -48,7 +48,7 @@ module ActiveRecord
           end
         end
 
-        ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
+        ignore_tables = ActiveRecord.schema_ignored_tables
         if ignore_tables.any?
           ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
           args += ignore_tables.flat_map { |table| ["-T", table] }
@@ -91,7 +91,7 @@ module ActiveRecord
         end
 
         def run_cmd(cmd, *args, **opts)
-          fail run_cmd_error(cmd, args) unless Kernel.system(psql_env, cmd, *args, **opts)
+          fail run_cmd_error(cmd, args, opts) unless Kernel.system(psql_env, cmd, *args, **opts)
         end
 
         def remove_sql_header_comments(filename)

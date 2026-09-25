@@ -85,6 +85,50 @@ class ErrorTest < ActiveModel::TestCase
     assert subject.match?(:mineral, :not_enough, count: 2)
   end
 
+  # strict_match?
+
+  test "strict_match? returns true when attribute, type, and options all match" do
+    error = ActiveModel::Error.new(Person.new, :name, :too_short, count: 5)
+    assert error.strict_match?(:name, :too_short, count: 5)
+  end
+
+  test "strict_match? returns false when attribute does not match" do
+    error = ActiveModel::Error.new(Person.new, :name, :too_short, count: 5)
+    assert_not error.strict_match?(:age, :too_short, count: 5)
+  end
+
+  test "strict_match? returns false when type does not match" do
+    error = ActiveModel::Error.new(Person.new, :name, :too_short, count: 5)
+    assert_not error.strict_match?(:name, :too_long, count: 5)
+  end
+
+  test "strict_match? returns false when option values differ" do
+    error = ActiveModel::Error.new(Person.new, :name, :too_short, count: 5)
+    assert_not error.strict_match?(:name, :too_short, count: 10)
+  end
+
+  test "strict_match? returns false when options are missing from check" do
+    error = ActiveModel::Error.new(Person.new, :name, :too_short, count: 5)
+    assert_not error.strict_match?(:name, :too_short)
+  end
+
+  test "strict_match? ignores callback and message options" do
+    error = ActiveModel::Error.new(
+      Person.new,
+      :name,
+      :too_short,
+      count: 5,
+      if: :foo,
+      unless: :bar,
+      on: :create,
+      allow_nil: true,
+      allow_blank: true,
+      strict: true,
+      message: "custom"
+    )
+    assert error.strict_match?(:name, :too_short, count: 5)
+  end
+
   # message
 
   test "message with type as a symbol" do
@@ -217,12 +261,41 @@ class ErrorTest < ActiveModel::TestCase
     assert_not_equal error, person
   end
 
+  test "hash is consistent with equality" do
+    person = Person.new
+    e1 = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+    e2 = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+
+    assert_equal e1, e2
+    assert_equal e1.hash, e2.hash
+  end
+
   test "full_message returns the given message when the attribute contains base" do
     error = ActiveModel::Error.new(Person.new, :"foo.base", "press the button")
     assert_equal "foo.base press the button", error.full_message
   end
 
+  # initialize_dup
+
+  test "duped error has independent options" do
+    person = Person.new
+    error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+    duped = error.dup
+
+    assert_equal error.attribute, duped.attribute
+    assert_equal error.type, duped.type
+    assert_equal error.options, duped.options
+    assert_not_same error.options, duped.options
+  end
+
   # details
+
+  test "detail is an alias for details" do
+    person = Person.new
+    error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+
+    assert_equal error.details, error.detail
+  end
 
   test "details which ignores callback and message options" do
     person = Person.new
@@ -251,5 +324,12 @@ class ErrorTest < ActiveModel::TestCase
     error = ActiveModel::Error.new(person, :name, foo: :bar)
 
     assert_equal({ error: :invalid, foo: :bar }, error.details)
+  end
+
+  test "inspect" do
+    person = Person.new
+    error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+
+    assert_match(/\A#<ActiveModel::Error:0x[0-9a-f]+ @attribute=:name, @type=:too_short, @options=#{Regexp.escape({ count: 5 }.inspect)}>\z/, error.inspect)
   end
 end

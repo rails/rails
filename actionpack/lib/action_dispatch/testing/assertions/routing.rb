@@ -150,6 +150,12 @@ module ActionDispatch
       #     # Asserts that POSTing to /items will call the create action on ItemsController
       #     assert_recognizes({controller: 'items', action: 'create'}, {path: 'items', method: :post})
       #
+      # Pass `:all` as the method to assert that the path is recognized for each of
+      # `GET`, `POST`, `PUT`, `PATCH`, `DELETE` and `QUERY`, as a route declared
+      # with `via: :all` is:
+      #
+      #     assert_recognizes({controller: 'items', action: 'show'}, {path: 'items', method: :all})
+      #
       # You can also pass in `extras` with a hash containing URL parameters that would
       # normally be in the query string. This can be used to assert that values in the
       # query string will end up in the params hash correctly. To test query strings
@@ -175,7 +181,7 @@ module ActionDispatch
       #     assert_recognizes({controller: 'items', action: 'show', id: '1'}, 'view/item1')
       def assert_recognizes(expected_options, path, extras = {}, msg = nil)
         if path.is_a?(Hash) && path[:method].to_s == "all"
-          [:get, :post, :put, :delete].each do |method|
+          [:get, :post, :put, :patch, :delete, :query].each do |method|
             assert_recognizes(expected_options, path.merge(method: method), extras, msg)
           end
         else
@@ -267,15 +273,6 @@ module ActionDispatch
 
         generate_options = options.dup.delete_if { |k, _| defaults.key?(k) }
         assert_generates(path.is_a?(Hash) ? path[:path] : path, generate_options, defaults, extras, message)
-      end
-
-      # ROUTES TODO: These assertions should really work in an integration context
-      def method_missing(selector, ...)
-        if @controller && @routes&.named_routes&.route_defined?(selector)
-          @controller.public_send(selector, ...)
-        else
-          super
-        end
       end
 
       private

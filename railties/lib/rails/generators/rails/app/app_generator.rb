@@ -128,6 +128,7 @@ module Rails
         template "application.rb"
         template "environment.rb"
         template "bundler-audit.yml" unless skip_bundler_audit?
+        template "bootsnap.rb" if depend_on_bootsnap?
         template "cable.yml" unless options[:update] || skip_action_cable?
         template "ci.rb"
         template "puma.rb"
@@ -186,6 +187,11 @@ module Rails
           remove_file "config/initializers/content_security_policy.rb"
         end
       end
+
+      current_version = "#{Rails::VERSION::MAJOR}.#{Rails::VERSION::MINOR}"
+      if remove_new_framework_defaults?(config_target_version, current_version)
+        remove_file "config/initializers/new_framework_defaults_#{Rails::VERSION::MAJOR}_#{Rails::VERSION::MINOR}.rb"
+      end
     end
 
     def master_key
@@ -194,6 +200,12 @@ module Rails
       require "rails/generators/rails/master_key/master_key_generator"
       master_key_generator = Rails::Generators::MasterKeyGenerator.new([], quiet: options[:quiet], force: options[:force])
       master_key_generator.add_master_key_file_silently
+    end
+
+    def env
+      return if options[:pretend] || options[:dummy_app]
+
+      template "env", ".env"
     end
 
     def credentials
@@ -340,7 +352,7 @@ module Rails
           implications + more_implications
         end
 
-      META_OPTIONS = [:minimal] # :nodoc:
+      META_OPTIONS = [:minimal].freeze # :nodoc:
 
       def self.apply_rails_template(template, destination) # :nodoc:
         generator = new([destination], { template: template }, { destination_root: destination })
@@ -427,7 +439,8 @@ module Rails
         build(:master_key)
       end
 
-      def create_credentials
+      def create_creds
+        build(:env)
         build(:credentials)
         build(:credentials_diff_enroll)
       end
@@ -601,6 +614,10 @@ module Rails
     # :startdoc:
 
     private
+      def remove_new_framework_defaults?(target_version, current_version)
+        Gem::Version.new(target_version.to_s) >= Gem::Version.new(current_version.to_s)
+      end
+
       # Define file as an alias to create_file for backwards compatibility.
       def file(*args, &block)
         create_file(*args, &block)

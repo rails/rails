@@ -23,8 +23,10 @@ module ActionCable
       # Asserts that the connection is rejected (via
       # `reject_unauthorized_connection`).
       #
-      #     # Asserts that connection without user_id fails
-      #     assert_reject_connection { connect params: { user_id: '' } }
+      # ```
+      # # Asserts that connection without user_id fails
+      # assert_reject_connection { connect params: { user_id: '' } }
+      # ```
       def assert_reject_connection(&block)
         assert_raises(Authorization::UnauthorizedError, "Expected to reject connection but no rejection was made", &block)
       end
@@ -50,19 +52,123 @@ module ActionCable
       end
     end
 
-    class TestRequest < ActionDispatch::TestRequest
-      attr_accessor :session, :cookie_jar
-    end
+    class TestSocket
+      # Make session and cookies available to the connection
+      class Request < ActionDispatch::TestRequest
+        attr_accessor :session, :cookie_jar
+      end
 
-    module TestConnection
-      attr_reader :logger, :request
+      attr_reader :logger, :request, :transmissions, :closed, :env
+
+      class << self
+        def build_request(path, params: nil, headers: {}, session: {}, env: {}, cookies: nil)
+          wrapped_headers = ActionDispatch::Http::Headers.from_hash(headers)
+
+          uri = URI.parse(path)
+
+          query_string = params.nil? ? uri.query : params.to_query
+
+          request_env = {
+            "QUERY_STRING" => query_string,
+            "PATH_INFO" => uri.path
+          }.merge(env)
+
+          if wrapped_headers.present?
+            ActionDispatch::Http::Headers.from_hash(request_env).merge!(wrapped_headers)
+          end
+
+          Request.create(request_env).tap do |request|
+            request.session = session.with_indifferent_access
+            request.cookie_jar = cookies
+          end
+        end
+      end
 
       def initialize(request)
         inner_logger = ActiveSupport::Logger.new(StringIO.new)
         tagged_logging = ActiveSupport::TaggedLogging.new(inner_logger)
-        @logger = ActionCable::Connection::TaggedLoggerProxy.new(tagged_logging, tags: [])
+        @logger = ActionCable::Server::TaggedLoggerProxy.new(tagged_logging, tags: [])
         @request = request
         @env = request.env
+        @connection = nil
+        @closed = false
+        @transmissions = []
+      end
+
+      def transmit(data)
+        @transmissions << data.with_indifferent_access
+      end
+
+      def close
+        @closed = true
+      end
+
+      def perform_work(receiver, ...)
+        receiver.public_send(...)
+      end
+    end
+
+    class TestTimer
+      attr_reader :interval
+
+      def initialize(interval, &block)
+        @interval = interval
+        @block = block
+        @elapsed = 0
+        @shutdown = false
+      end
+
+      def shutdown
+        @shutdown = true
+      end
+
+      def advance(seconds)
+        return if @shutdown
+        @elapsed += seconds
+        while @elapsed >= @interval
+          @elapsed -= @interval
+          @block&.call
+        end
+      end
+    end
+
+    # TestServer provides test pub/sub and executor implementations
+    class TestServer
+      attr_reader :streams, :config, :timers
+
+      def initialize(server)
+        @streams = Hash.new { |h, k| h[k] = [] }
+        @config = server.config
+        @timers = []
+      end
+
+      alias_method :pubsub, :itself
+      alias_method :executor, :itself
+
+      # Executor interface
+      # ------------------
+
+      # Inline async calls
+      def post(&work) = work.call
+
+      def timer(every, &block)
+        TestTimer.new(every, &block).tap { |t| @timers << t }
+      end
+
+      def advance_time(seconds)
+        @timers.each { |timer| timer.advance(seconds) }
+      end
+
+      # Pub/sub interface
+      # -----------------
+      def subscribe(stream, callback, success_callback = nil)
+        @streams[stream] << callback
+        success_callback&.call
+      end
+
+      def unsubscribe(stream, callback)
+        @streams[stream].delete(callback)
+        @streams.delete(stream) if @streams[stream].empty?
       end
     end
 
@@ -78,62 +184,70 @@ module ActionCable
     # Unit tests are written by first simulating a connection attempt by calling
     # `connect` and then asserting state, e.g. identifiers, have been assigned.
     #
-    #     class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
-    #       def test_connects_with_proper_cookie
-    #         # Simulate the connection request with a cookie.
-    #         cookies["user_id"] = users(:john).id
+    # ```
+    # class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
+    #   def test_connects_with_proper_cookie
+    #     # Simulate the connection request with a cookie.
+    #     cookies["user_id"] = users(:john).id
     #
-    #         connect
+    #     connect
     #
-    #         # Assert the connection identifier matches the fixture.
-    #         assert_equal users(:john).id, connection.user.id
-    #       end
+    #     # Assert the connection identifier matches the fixture.
+    #     assert_equal users(:john).id, connection.user.id
+    #   end
     #
-    #       def test_rejects_connection_without_proper_cookie
-    #         assert_reject_connection { connect }
-    #       end
-    #     end
+    #   def test_rejects_connection_without_proper_cookie
+    #     assert_reject_connection { connect }
+    #   end
+    # end
+    # ```
     #
     # `connect` accepts additional information about the HTTP request with the
     # `params`, `headers`, `session`, and Rack `env` options.
     #
-    #     def test_connect_with_headers_and_query_string
-    #       connect params: { user_id: 1 }, headers: { "X-API-TOKEN" => "secret-my" }
+    # ```
+    # def test_connect_with_headers_and_query_string
+    #   connect params: { user_id: 1 }, headers: { "X-API-TOKEN" => "secret-my" }
     #
-    #       assert_equal "1", connection.user.id
-    #       assert_equal "secret-my", connection.token
-    #     end
+    #   assert_equal "1", connection.user.id
+    #   assert_equal "secret-my", connection.token
+    # end
     #
-    #     def test_connect_with_params
-    #       connect params: { user_id: 1 }
+    # def test_connect_with_params
+    #   connect params: { user_id: 1 }
     #
-    #       assert_equal "1", connection.user.id
-    #     end
+    #   assert_equal "1", connection.user.id
+    # end
+    # ```
     #
     # You can also set up the correct cookies before the connection request:
     #
-    #     def test_connect_with_cookies
-    #       # Plain cookies:
-    #       cookies["user_id"] = 1
+    # ```
+    # def test_connect_with_cookies
+    #   # Plain cookies:
+    #   cookies["user_id"] = 1
     #
-    #       # Or signed/encrypted:
-    #       # cookies.signed["user_id"] = 1
-    #       # cookies.encrypted["user_id"] = 1
+    #   # Or signed/encrypted:
+    #   # cookies.signed["user_id"] = 1
+    #   # cookies.encrypted["user_id"] = 1
     #
-    #       connect
+    #   connect
     #
-    #       assert_equal "1", connection.user_id
-    #     end
+    #   assert_equal "1", connection.user_id
+    # end
+    # ```
     #
     # ## Connection is automatically inferred
     #
     # ActionCable::Connection::TestCase will automatically infer the connection
-    # under test from the test class name. If the channel cannot be inferred from
+    # under test from the test class name. If the connection cannot be inferred from
     # the test class name, you can explicitly set it with `tests`.
     #
-    #     class ConnectionTest < ActionCable::Connection::TestCase
-    #       tests ApplicationCable::Connection
-    #     end
+    # ```
+    # class ConnectionTest < ActionCable::Connection::TestCase
+    #   tests ApplicationCable::Connection
+    # end
+    # ```
     #
     class TestCase < ActiveSupport::TestCase
       module Behavior
@@ -146,8 +260,6 @@ module ActionCable
 
         included do
           class_attribute :_connection_class
-
-          attr_reader :connection
 
           ActiveSupport.run_load_hooks(:action_cable_connection_test_case, self)
         end
@@ -181,20 +293,22 @@ module ActionCable
           end
         end
 
+        attr_reader :connection, :socket, :testserver
+
         # Performs connection attempt to exert #connect on the connection under test.
         #
         # Accepts request path as the first argument and the following request options:
         #
-        # *   params – URL parameters (Hash)
-        # *   headers – request headers (Hash)
-        # *   session – session data (Hash)
-        # *   env – additional Rack env configuration (Hash)
-        def connect(path = ActionCable.server.config.mount_path, **request_params)
+        # * params – URL parameters (Hash)
+        # * headers – request headers (Hash)
+        # * session – session data (Hash)
+        # * env – additional Rack env configuration (Hash)
+        def connect(path = ActionCable.server.config.mount_path, server: ActionCable.server, **request_params)
           path ||= DEFAULT_PATH
 
-          connection = self.class.connection_class.allocate
-          connection.singleton_class.include(TestConnection)
-          connection.send(:initialize, build_test_request(path, **request_params))
+          @socket = TestSocket.new(TestSocket.build_request(path, **request_params, cookies: cookies))
+          @testserver = Connection::TestServer.new(server)
+          connection = self.class.connection_class.new(@testserver, socket)
           connection.connect if connection.respond_to?(:connect)
 
           # Only set instance variable if connected successfully
@@ -213,28 +327,9 @@ module ActionCable
           @cookie_jar ||= TestCookieJar.new
         end
 
-        private
-          def build_test_request(path, params: nil, headers: {}, session: {}, env: {})
-            wrapped_headers = ActionDispatch::Http::Headers.from_hash(headers)
-
-            uri = URI.parse(path)
-
-            query_string = params.nil? ? uri.query : params.to_query
-
-            request_env = {
-              "QUERY_STRING" => query_string,
-              "PATH_INFO" => uri.path
-            }.merge(env)
-
-            if wrapped_headers.present?
-              ActionDispatch::Http::Headers.from_hash(request_env).merge!(wrapped_headers)
-            end
-
-            TestRequest.create(request_env).tap do |request|
-              request.session = session.with_indifferent_access
-              request.cookie_jar = cookies
-            end
-          end
+        def transmissions
+          socket&.transmissions || []
+        end
       end
 
       include Behavior

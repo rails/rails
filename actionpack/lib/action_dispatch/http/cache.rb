@@ -13,7 +13,11 @@ module ActionDispatch
 
         def if_modified_since
           if since = get_header(HTTP_IF_MODIFIED_SINCE)
-            Time.rfc2822(since) rescue nil
+            # `If-Modified-Since` carries an HTTP-date, which per RFC 9110 may be in
+            # any of the three legal formats (IMF-fixdate, RFC 850, or asctime).
+            # `Time.httpdate` accepts all three; it also matches how the response side
+            # parses `Last-Modified`/`Date`. `Time.rfc2822` only accepted IMF-fixdate.
+            Time.httpdate(since) rescue nil
           end
         end
 

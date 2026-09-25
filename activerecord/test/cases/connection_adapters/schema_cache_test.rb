@@ -35,6 +35,10 @@ module ActiveRecord
         end
       end
 
+      def add_all_to_new_cache
+        SchemaCache.new.tap { |cache| cache.add_all(@pool) }
+      end
+
       def deduplicable_classes
         klasses = [
           ActiveRecord::ConnectionAdapters::SqlTypeMetadata,
@@ -118,28 +122,6 @@ module ActiveRecord
         end
       end
 
-      def test_yaml_load_8_0_dump_without_cast_type_still_get_the_right_one
-        cache = load_bound_reflection(schema_dump_8_0_path)
-
-        if current_adapter?(:PostgreSQLAdapter)
-          assert_queries_count(include_schema: true) do
-            columns = cache.columns_hash("courses")
-            assert_equal 3, columns.size
-            cast_type = columns["name"].fetch_cast_type(@connection)
-            assert_not_nil cast_type, "expected cast_type to be present"
-            assert_equal :string, cast_type.type
-          end
-        else
-          assert_no_queries do
-            columns = cache.columns_hash("courses")
-            assert_equal 3, columns.size
-            cast_type = columns["name"].fetch_cast_type(@connection)
-            assert_not_nil cast_type, "expected cast_type to be present"
-            assert_equal :string, cast_type.type
-          end
-        end
-      end
-
       def test_primary_key_for_existent_table
         assert_equal "id", @cache.primary_keys("courses")
       end
@@ -176,6 +158,21 @@ module ActiveRecord
         assert_equal [], @cache.indexes("omgponies")
       end
 
+      def test_add_all_caches_a_table_without_a_primary_key
+        assert_nil add_all_to_new_cache.primary_keys(@pool, "courses_professors")
+      end
+
+      def test_add_all_caches_a_composite_primary_key
+        @connection.create_table(:schema_cache_composite_pks, primary_key: [:one, :two], force: true) do |t|
+          t.integer :one
+          t.integer :two
+        end
+
+        assert_equal ["one", "two"], add_all_to_new_cache.primary_keys(@pool, "schema_cache_composite_pks")
+      ensure
+        @connection.drop_table(:schema_cache_composite_pks, if_exists: true)
+      end
+
       def test_clearing
         @cache.columns("courses")
         @cache.columns_hash("courses")
@@ -188,41 +185,77 @@ module ActiveRecord
         assert_equal 0, @cache.size
       end
 
+      def test_insert_uses_schema_cache_for_primary_key
+        # First call might need to populate the schema cache
+        @connection.insert("INSERT INTO courses (name) VALUES ('Prepopulate')")
+
+        # With cache available, insert should not make additional schema queries
+        assert_queries_count(1, include_schema: true) do
+          @connection.insert("INSERT INTO courses (name) VALUES ('INSERT only')")
+        end
+      end
+
+      def test_marshal_dump_and_load_with_schema_ignored_tables
+        assert_not ActiveRecord.schema_ignored_table?("professors")
+
+        ActiveRecord.with(schema_ignored_tables: ["professors"]) do
+          assert ActiveRecord.schema_ignored_table?("professors")
+          assert_professors_ignored
+        end
+      end
+
+      def test_marshal_dump_and_load_with_schema_ignored_tables_regexp
+        ActiveRecord.with(schema_ignored_tables: [/^profess/]) do
+          assert ActiveRecord.schema_ignored_table?("professors")
+          assert_professors_ignored
+        end
+      end
+
       def test_marshal_dump_and_load_with_ignored_tables
-        assert_not ActiveRecord.schema_cache_ignored_table?("professors")
-
-        ActiveRecord.with(schema_cache_ignored_tables: ["professors"]) do
-          assert ActiveRecord.schema_cache_ignored_table?("professors")
-          # Create an empty cache.
-          cache = new_bound_reflection
-
-          Tempfile.create(["schema_cache-", ".dump"]) do |tempfile|
-            # Dump it. It should get populated before dumping.
-            cache.dump_to(tempfile.path)
-
-            # Load a new cache.
-            cache = load_bound_reflection(tempfile.path)
-
-            # Assert a table in the cache
-            assert cache.data_source_exists?("courses"), "expected posts to be in the cached data_sources"
-            assert_equal 3, cache.columns("courses").size
-            assert_equal 3, cache.columns_hash("courses").size
-            assert cache.data_source_exists?("courses")
-            assert_equal "id", cache.primary_keys("courses")
-            assert_equal 1, cache.indexes("courses").size
-
-            # Assert ignored table. Behavior should match non-existent table.
-            assert_nil cache.data_source_exists?("professors"), "expected comments to not be in the cached data_sources"
-            assert_raises ActiveRecord::StatementInvalid do
-              cache.columns("professors")
-            end
-            assert_raises ActiveRecord::StatementInvalid do
-              cache.columns_hash("professors").size
-            end
-            assert_nil cache.primary_keys("professors")
-            assert_equal [], cache.indexes("professors")
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord.with(schema_cache_ignored_tables: ["professors"]) do
+            assert_professors_ignored
           end
         end
+      end
+
+      def test_schema_ignored_table_with_a_non_array_collection
+        assert_deprecated(ActiveRecord.deprecator) do
+          ActiveRecord.with(schema_cache_ignored_tables: Set["professors"]) do
+            assert ActiveRecord.schema_ignored_table?("professors")
+          end
+        end
+      end
+
+      def test_schema_cache_ignored_table_predicate_is_deprecated
+        assert_deprecated(/schema_cache_ignored_table\?/, ActiveRecord.deprecator) do
+          assert_not ActiveRecord.schema_cache_ignored_table?("professors")
+        end
+      end
+
+      def test_schema_cache_ignored_table_predicate_delegates_to_schema_ignored_table
+        ActiveRecord.with(schema_ignored_tables: ["professors"]) do
+          assert_deprecated(/schema_cache_ignored_table\?/, ActiveRecord.deprecator) do
+            assert ActiveRecord.schema_cache_ignored_table?("professors")
+          end
+        end
+      end
+
+      def test_schema_cache_ignored_tables_delegates_to_schema_ignored_tables
+        original = ActiveRecord.schema_ignored_tables
+
+        assert_deprecated(/schema_cache_ignored_tables/, ActiveRecord.deprecator) do
+          ActiveRecord.schema_cache_ignored_tables = ["professors"]
+        end
+
+        assert_equal ["professors"], ActiveRecord.schema_ignored_tables
+        assert ActiveRecord.schema_ignored_table?("professors")
+
+        assert_deprecated(/schema_cache_ignored_tables/, ActiveRecord.deprecator) do
+          assert_equal ["professors"], ActiveRecord.schema_cache_ignored_tables
+        end
+      ensure
+        ActiveRecord.schema_ignored_tables = original
       end
 
       def test_gzip_dumps_identical
@@ -331,15 +364,11 @@ module ActiveRecord
         values = [["z", nil], ["y", nil], ["x", nil]]
         expected = values.sort.to_h
 
-        named = Struct.new(:name)
-        named_values = [["z", [named.new("c"), named.new("b")]], ["y", [named.new("c"), named.new("b")]], ["x", [named.new("c"), named.new("b")]]]
-        named_expected = named_values.sort.to_h.transform_values { _1.sort_by(&:name) }
-
         coder = {
-          "columns" => named_values,
+          "columns" => values,
           "primary_keys" => values,
           "data_sources" => values,
-          "indexes" => named_values,
+          "indexes" => values,
           "deduplicated" => true
         }
 
@@ -347,10 +376,10 @@ module ActiveRecord
         schema_cache.init_with(coder)
         schema_cache.encode_with(coder)
 
-        assert_equal named_expected, coder["columns"]
+        assert_equal expected, coder["columns"]
         assert_equal expected, coder["primary_keys"]
         assert_equal expected, coder["data_sources"]
-        assert_equal named_expected, coder["indexes"]
+        assert_equal expected, coder["indexes"]
         assert coder.key?("version")
       end
 
@@ -359,8 +388,30 @@ module ActiveRecord
           "#{ASSETS_ROOT}/schema_dump_5_1.yml"
         end
 
-        def schema_dump_8_0_path
-          "#{ASSETS_ROOT}/schema_dump_8_0.yml"
+        def assert_professors_ignored
+          cache = new_bound_reflection
+
+          Tempfile.create(["schema_cache-", ".dump"]) do |tempfile|
+            cache.dump_to(tempfile.path)
+
+            cache = load_bound_reflection(tempfile.path)
+
+            assert cache.data_source_exists?("courses"), "expected courses to be in the cached data_sources"
+            assert_equal 3, cache.columns("courses").size
+            assert_equal 3, cache.columns_hash("courses").size
+            assert_equal "id", cache.primary_keys("courses")
+            assert_equal 1, cache.indexes("courses").size
+
+            assert_nil cache.data_source_exists?("professors"), "expected professors to not be in the cached data_sources"
+            assert_raises ActiveRecord::StatementInvalid do
+              cache.columns("professors")
+            end
+            assert_raises ActiveRecord::StatementInvalid do
+              cache.columns_hash("professors")
+            end
+            assert_nil cache.primary_keys("professors")
+            assert_equal [], cache.indexes("professors")
+          end
         end
     end
 
@@ -393,7 +444,7 @@ module ActiveRecord
 
           assert_no_queries(include_schema: true) do
             assert_equal 3, cache.columns("courses").size
-            assert_equal 3, cache.columns("courses").map { |column| column.fetch_cast_type(@pool.lease_connection) }.compact.size
+            assert_equal 3, cache.columns("courses").map { |column| column.cast_type }.compact.size
             assert_equal 3, cache.columns_hash("courses").size
             assert cache.data_source_exists?("courses")
             assert_equal "id", cache.primary_keys("courses")
@@ -417,7 +468,7 @@ module ActiveRecord
 
           assert_no_queries(include_schema: true) do
             assert_equal 3, cache.columns(@pool, "courses").size
-            assert_equal 3, cache.columns(@pool, "courses").map { |column| column.fetch_cast_type(@pool.lease_connection) }.compact.size
+            assert_equal 3, cache.columns(@pool, "courses").map { |column| column.cast_type }.compact.size
             assert_equal 3, cache.columns_hash(@pool, "courses").size
             assert cache.data_source_exists?(@pool, "courses")
             assert_equal "id", cache.primary_keys(@pool, "courses")
@@ -429,7 +480,7 @@ module ActiveRecord
 
           assert_no_queries(include_schema: true) do
             assert_equal 3, cache.columns("courses").size
-            assert_equal 3, cache.columns("courses").map { |column| column.fetch_cast_type(@pool.lease_connection) }.compact.size
+            assert_equal 3, cache.columns("courses").map { |column| column.cast_type }.compact.size
             assert_equal 3, cache.columns_hash("courses").size
             assert cache.data_source_exists?("courses")
             assert_equal "id", cache.primary_keys("courses")
@@ -498,7 +549,20 @@ module ActiveRecord
         end
 
         def load(data)
-          YAML.respond_to?(:unsafe_load) ? YAML.unsafe_load(data) : YAML.load(data)
+          YAML.unsafe_load(data)
+        end
+    end
+
+    class JsonFormatTest < ActiveRecord::TestCase
+      include DumpAndLoadTests
+
+      private
+        def format_extension
+          ".json"
+        end
+
+        def load(data)
+          JSONSchemaCacheSerializer.load(data)
         end
     end
   end

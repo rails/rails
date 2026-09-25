@@ -67,6 +67,22 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_not_equal "ig", post.title
   end
 
+  def test_update_all_with_group_by_and_having_without_joins
+    posts = [
+      Post.create!(title: "low", body: "x", legacy_comments_count: 0),
+      Post.create!(title: "mid", body: "x", legacy_comments_count: 3),
+      Post.create!(title: "high", body: "x", legacy_comments_count: 9),
+    ]
+    relation = Post.where(id: posts).group("posts.id").having("MAX(legacy_comments_count) >= 3")
+
+    # Only the rows that survive the HAVING filter must be updated, not every row.
+    assert_equal 2, relation.update_all(title: "updated")
+
+    assert_equal "low", posts[0].reload.title
+    assert_equal "updated", posts[1].reload.title
+    assert_equal "updated", posts[2].reload.title
+  end
+
   def test_update_all_with_joins_and_limit
     pets = Pet.joins(:toys).where(toys: { name: "Bone" }).limit(2)
 
@@ -260,7 +276,8 @@ class UpdateAllTest < ActiveRecord::TestCase
     david_previously_updated_at = david.updated_at
     jamis = developers(:jamis)
     jamis_previously_updated_at = jamis.updated_at
-    Developer.where(name: "David").touch_all
+
+    assert_equal 1, Developer.where(name: "David").touch_all
 
     assert_not_equal david_previously_updated_at, david.reload.updated_at
     assert_equal jamis_previously_updated_at, jamis.reload.updated_at
@@ -322,7 +339,7 @@ class UpdateAllTest < ActiveRecord::TestCase
   def test_update_with_ids_on_relation
     topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
     topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
-    topics = TopicWithCallbacks.none
+    topics = TopicWithCallbacks.where(id: [topic1.id, topic2.id])
     topics.update(
       [topic1.id, topic2.id],
       [{ title: "adequaterecord" }, { title: "adequaterecord" }]
@@ -335,6 +352,77 @@ class UpdateAllTest < ActiveRecord::TestCase
     # Testing that the before_update callbacks have run
     assert_equal "David", topic1.reload.author_name
     assert_equal "David", topic2.reload.author_name
+  end
+
+  def test_update_with_ids_outside_of_the_relation_does_not_update_anything
+    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
+    topics = TopicWithCallbacks.where(id: topic1.id)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      topics.update(
+        [topic1.id, topic2.id],
+        [{ title: "adequaterecord" }, { title: "adequaterecord" }]
+      )
+    end
+
+    # The ids are resolved before anything is written, so nothing is updated
+    assert_equal "arel", topic1.reload.title
+    assert_equal "activerecord", topic2.reload.title
+  end
+
+  def test_update_with_a_single_id_outside_of_the_relation_does_not_update_anything
+    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      TopicWithCallbacks.where(id: topic1.id).update(topic2.id, title: "adequaterecord")
+    end
+
+    assert_equal "activerecord", topic2.reload.title
+  end
+
+  def test_update_bang_with_ids_outside_of_the_relation_does_not_update_anything
+    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
+    topics = TopicWithCallbacks.where(id: topic1.id)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      topics.update!(
+        [topic1.id, topic2.id],
+        [{ title: "adequaterecord" }, { title: "adequaterecord" }]
+      )
+    end
+
+    assert_equal "arel", topic1.reload.title
+    assert_equal "activerecord", topic2.reload.title
+  end
+
+  def test_update_bang_with_a_single_id_outside_of_the_relation_does_not_update_anything
+    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      TopicWithCallbacks.where(id: topic1.id).update!(topic2.id, title: "adequaterecord")
+    end
+
+    assert_equal "activerecord", topic2.reload.title
+  end
+
+  def test_update_on_an_association_does_not_reach_outside_of_the_association
+    post = posts(:welcome)
+    comment_of_another_post = comments(:does_it_hurt)
+    assert_not_equal post.id, comment_of_another_post.post_id
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      post.comments.update(comment_of_another_post.id, body: "hijacked")
+    end
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      post.comments.update!([comment_of_another_post.id], [{ body: "hijacked" }])
+    end
+
+    assert_not_equal "hijacked", comment_of_another_post.reload.body
   end
 
   def test_update_on_relation_passing_active_record_object_is_not_permitted

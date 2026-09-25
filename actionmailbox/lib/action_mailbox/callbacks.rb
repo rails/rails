@@ -1,16 +1,18 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/callbacks"
 
 module ActionMailbox
-  # = Action Mailbox \Callbacks
+  # Action Mailbox \Callbacks
+  # =========================
   #
   # Defines the callbacks related to processing.
   module Callbacks
     extend  ActiveSupport::Concern
     include ActiveSupport::Callbacks
 
-    TERMINATOR = ->(mailbox, chain) do
+    TERMINATOR = ActiveSupport::Ractors.shareable_lambda do |mailbox, chain|
       chain.call
       mailbox.finished_processing?
     end

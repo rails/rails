@@ -4,6 +4,7 @@
 
 require "abstract_controller/error"
 require "active_support/descendants_tracker"
+require "active_support/inspect_backport"
 require "active_support/core_ext/module/anonymous"
 require "active_support/core_ext/module/attr_internal"
 
@@ -96,7 +97,7 @@ module AbstractController
           # public instance methods of Base and its ancestors.
           methods = public_instance_methods(true) - internal_methods
           methods.map!(&:name)
-          methods.to_set
+          methods.to_set.freeze
         end
       end
 
@@ -116,7 +117,7 @@ module AbstractController
       #     MyApp::MyPostsController.controller_path # => "my_app/my_posts"
       #
       def controller_path
-        @controller_path ||= name.delete_suffix("Controller").underscore unless anonymous?
+        @controller_path ||= name.delete_suffix("Controller").underscore.freeze unless anonymous?
       end
 
       def configure # :nodoc:
@@ -196,11 +197,13 @@ module AbstractController
       @_config ||= self.class.config.inheritable_copy
     end
 
-    def inspect # :nodoc:
-      "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-    end
+    ActiveSupport::InspectBackport.apply(self)
 
     private
+      def instance_variables_to_inspect
+        [].freeze
+      end
+
       # Returns true if the name can be considered an action because it has a method
       # defined in the controller.
       #

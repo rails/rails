@@ -62,7 +62,7 @@ module Rails
 
     def relative_path_for(file)
       if app_root
-        file.sub(/^#{app_root}\/?/, "")
+        File.expand_path(file).sub(/^#{app_root}\/?/, "")
       else
         file
       end
@@ -114,7 +114,7 @@ module Rails
         "E" => codes[:red],
         "F" => codes[:red],
         "S" => codes[:yellow]
-      }
+      }.freeze
 
       def color_output(string, by:)
         if colored_output?

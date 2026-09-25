@@ -131,7 +131,7 @@ A short rundown of some of the major features:
   SQLite3[https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html].
 
 
-* Logging support for Log4r[https://github.com/colbygk/log4r] and Logger[https://docs.ruby-lang.org/en/master/Logger.html].
+* Logging support for Log4r[https://github.com/colbygk/log4r] and Logger[https://ruby.github.io/logger/].
 
     ActiveRecord::Base.logger = ActiveSupport::Logger.new(STDOUT)
     ActiveRecord::Base.logger = Log4r::Logger.new('Application Log')

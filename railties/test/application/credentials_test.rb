@@ -2,9 +2,10 @@
 
 require "isolation/abstract_unit"
 require "env_helpers"
+require "credentials_helpers"
 
 class Rails::CredentialsTest < ActiveSupport::TestCase
-  include ActiveSupport::Testing::Isolation, EnvHelpers
+  include ActiveSupport::Testing::Isolation, EnvHelpers, CredentialsHelpers
 
   setup :build_app
   teardown :teardown_app
@@ -36,21 +37,4 @@ class Rails::CredentialsTest < ActiveSupport::TestCase
       assert_equal "revealed", Rails.application.credentials.mystery
     end
   end
-
-  private
-    def write_credentials_override(name, with_key: true)
-      Dir.chdir(app_path) do
-        Dir.mkdir  "config/credentials"
-        File.write "config/credentials/#{name}.key", credentials_key if with_key
-
-        # secret_key_base: secret
-        # mystery: revealed
-        File.write "config/credentials/#{name}.yml.enc",
-          "vgvKu4MBepIgZ5VHQMMPwnQNsLlWD9LKmJHu3UA/8yj6x+3fNhz3DwL9brX7UA==--qLdxHP6e34xeTAiI--nrcAsleXuo9NqiEuhntAhw=="
-      end
-    end
-
-    def credentials_key
-      "2117e775dc2024d4f49ddf3aeb585919"
-    end
 end

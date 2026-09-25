@@ -18,7 +18,7 @@ module RailsGuides
   class Generator
     GUIDES_RE = /\.(?:erb|md)\z/
 
-    def initialize(edge:, version:, all:, only:, epub:, language:, direction: nil, lint:)
+    def initialize(edge:, version:, all:, only:, epub:, language:, direction: nil, lint:, guides_dir: nil)
       @edge         = edge
       @version      = version
       @all          = all
@@ -34,7 +34,7 @@ module RailsGuides
         register_special_mime_types
       end
 
-      initialize_dirs
+      initialize_dirs(guides_dir:)
       create_output_dir_if_needed if !dry_run?
       initialize_markdown_renderer
     end
@@ -82,8 +82,8 @@ module RailsGuides
         epub_filename << ".epub"
       end
 
-      def initialize_dirs
-        @guides_dir = File.expand_path("..", __dir__)
+      def initialize_dirs(guides_dir:)
+        @guides_dir = guides_dir || File.expand_path("..", __dir__)
 
         @source_dir  = "#{@guides_dir}/source"
         @source_dir += "/#{@language}" if @language
@@ -129,6 +129,7 @@ module RailsGuides
       end
 
       def cleanup_assets
+        FileUtils.rm_f(Dir.glob("#{@output_dir}/*.html"))
         FileUtils.rm_rf(Dir.glob("#{@output_dir}/{stylesheets,javascripts}"))
       end
 

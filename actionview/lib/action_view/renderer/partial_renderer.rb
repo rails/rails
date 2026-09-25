@@ -275,9 +275,12 @@ module ActionView
         end
       end
 
+      EMPTY_PREFIXES = [].freeze
+      private_constant :EMPTY_PREFIXES
+
       def find_template(path, locals)
-        prefixes = path.include?(?/) ? [] : @lookup_context.prefixes
-        @lookup_context.find_template(path, prefixes, true, locals, @details)
+        prefixes = path.include?(?/) ? EMPTY_PREFIXES : @lookup_context.prefixes
+        @lookup_context.find!(path, prefixes, true, locals, @details)
       end
   end
 end

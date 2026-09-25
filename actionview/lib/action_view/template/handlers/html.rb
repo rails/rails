@@ -2,7 +2,7 @@
 
 module ActionView
   module Template::Handlers
-    class Html < Raw
+    class Html < Raw # :nodoc:
       def call(template, source)
         "ActionView::OutputBuffer.new #{super}"
       end

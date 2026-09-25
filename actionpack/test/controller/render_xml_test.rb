@@ -12,7 +12,7 @@ class RenderXmlTest < ActionController::TestCase
   end
 
   class TestController < ActionController::Base
-    protect_from_forgery
+    protect_from_forgery with: :null_session
 
     def self.controller_path
       "test"

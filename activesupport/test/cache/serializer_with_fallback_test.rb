@@ -5,7 +5,7 @@ require "active_support/core_ext/object/with"
 
 class CacheSerializerWithFallbackTest < ActiveSupport::TestCase
   FORMATS = ActiveSupport::Cache::SerializerWithFallback::SERIALIZERS.keys
-  LEGACY_FORMATS = [:passthrough, :marshal_7_0]
+  LEGACY_FORMATS = [:passthrough, :marshal_7_0].freeze
 
   setup do
     @entry = ActiveSupport::Cache::Entry.new(
@@ -47,6 +47,12 @@ class CacheSerializerWithFallbackTest < ActiveSupport::TestCase
       assert_operator compressed.bytesize, :<, uncompressed.bytesize
       assert_entry @entry, serializer(format).load(compressed)
       assert_entry @entry, serializer(format).load(uncompressed)
+
+      unless format == :passthrough
+        assert_raises ActiveSupport::Cache::DeserializationError do
+          serializer(format).load(compressed.byteslice(0..-4))
+        end
+      end
     end
   end
 

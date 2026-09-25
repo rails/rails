@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "shellwords"
+
 module ActiveStorage
   # = Active Storage Audio \Analyzer
   #
@@ -60,6 +62,7 @@ module ActiveStorage
             "-show_streams",
             "-show_format",
             "-v", "error",
+            *Shellwords.split(ActiveStorage.ffprobe_arguments),
             file.path
           ]) do |output|
             JSON.parse(output.read)

@@ -2,8 +2,10 @@
 
 require_relative "../abstract_unit"
 require "active_support/log_subscriber/test_helper"
+require "active_support/testing/ractors_assertions"
 
 class ActiveSupport::EventReporter::LogSubscriberTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
   class MyLogSubscriber < ActiveSupport::EventReporter::LogSubscriber
     self.namespace = "test"
 
@@ -73,6 +75,18 @@ class ActiveSupport::EventReporter::LogSubscriberTest < ActiveSupport::TestCase
     assert_instance_of(ActiveSupport::LogSubscriber::TestHelper::MockLogger, subclass.logger)
   end
 
+  test "nil logger" do
+    MyLogSubscriber.logger = nil
+
+    subclass = Class.new(MyLogSubscriber) do
+      def self.default_logger
+        nil
+      end
+    end
+
+    assert_nothing_raised { subclass.new.emit(name: "test.debug_only") }
+  end
+
   test ".subscription_filter" do
     event_reporter_raise_on_error do
       ActiveSupport.event_reporter.notify("other_namespace_that_shouldnt_work.info_only")
@@ -81,6 +95,10 @@ class ActiveSupport::EventReporter::LogSubscriberTest < ActiveSupport::TestCase
       ActiveSupport.event_reporter.notify("no_namespace_info_only")
       assert_equal [], @logger.logged(:info)
     end
+  end
+
+  test "MyLogSubscriber.event_log_level is ractor safe" do
+    assert_ractor_shareable MyLogSubscriber.log_levels
   end
 
   private

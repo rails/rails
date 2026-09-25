@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -31,7 +32,7 @@ module ActiveSupport
             set_process_title("(stopping)")
 
             run_cleanup
-            @queue.stop_worker(@id, Process.pid)
+            @queue.stop_worker(@id)
           end
         end
 
@@ -49,7 +50,11 @@ module ActiveSupport
           set_process_title("#{klass}##{method}")
 
           result = klass.with_info_handler reporter do
-            Minitest.run_one_method(klass, method)
+            if Minitest.respond_to?(:run_one_method) then
+              Minitest.run_one_method(klass, method)
+            else
+              klass.new(method).run
+            end
           end
 
           safe_record(reporter, result)

@@ -75,6 +75,12 @@ class EncryptedBookWithBinary < ActiveRecord::Base
   encrypts :logo
 end
 
+class EncryptedBookWithJson < ActiveRecord::Base
+  self.table_name = "encrypted_books"
+
+  encrypts :metadata
+end
+
 class EncryptedBookWithSerializedFirstBinary < ActiveRecord::Base
   self.table_name = "encrypted_books"
 

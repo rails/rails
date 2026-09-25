@@ -414,17 +414,35 @@ class ErrorReporterTest < ActiveSupport::TestCase
   test "error context middleware receives same parameters as #report" do
     reported_error = ArgumentError.new("Oops")
     @reporter.add_middleware(-> (error, context:, handled:, severity:, source:) {
-        assert_equal reported_error, error
-        assert_equal Hash.new, context
-        assert_equal true, handled
-        assert_equal :warning, severity
-        assert_equal ActiveSupport::ErrorReporter::DEFAULT_SOURCE, source
+      assert_equal reported_error, error
+      assert_equal Hash.new, context
+      assert_equal true, handled
+      assert_equal :warning, severity
+      assert_equal ActiveSupport::ErrorReporter::DEFAULT_SOURCE, source
 
-        context.merge({ foo: :bar })
-      })
+      context.merge({ foo: :bar })
+    })
 
     @reporter.report(reported_error)
 
     assert_equal [[reported_error, true, :warning, "application", { foo: :bar }]], @subscriber.events
+  end
+
+  class ContextMutatingSubscriber
+    def report(_error, handled:, severity:, context:, source:)
+      context.delete(:foo)
+    end
+  end
+
+  test "each subscriber gets its own context instance" do
+    reporter = ActiveSupport::ErrorReporter.new
+    reporter.subscribe(ContextMutatingSubscriber.new)
+    subscriber = ActiveSupport::ErrorReporter::TestHelper::ErrorSubscriber.new
+    reporter.subscribe(subscriber)
+    error = StandardError.new
+
+    reporter.report(error, context: { foo: { bar: "baz" } })
+
+    assert_equal [[error, true, :warning, "application", { foo: { bar: "baz" } }]], subscriber.events
   end
 end

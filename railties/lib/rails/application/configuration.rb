@@ -2,6 +2,7 @@
 
 require "ipaddr"
 require "active_support/core_ext/array/wrap"
+require "active_support/inspect_backport"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
 require "active_support/configuration_file"
@@ -24,7 +25,7 @@ module Rails
                     :content_security_policy_nonce_auto,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
-                    :dom_testing_default_html_version, :yjit
+                    :dom_testing_default_html_version, :yjit, :action_on_early_load_hook
 
       attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
@@ -85,6 +86,7 @@ module Rails
         @server_timing                           = false
         @dom_testing_default_html_version        = :html4
         @yjit                                    = false
+        @action_on_early_load_hook               = :log
       end
 
       # Loads default configuration values for a target version. This includes
@@ -287,7 +289,6 @@ module Rails
             active_record.default_column_serializer = nil
             active_record.encryption.hash_digest_class = OpenSSL::Digest::SHA256
             active_record.encryption.support_sha1_for_non_deterministic_encryption = false
-            active_record.marshalling_format_version = 7.1
             active_record.run_after_transaction_callbacks_in_order_defined = true
             active_record.generate_secure_token_on = :initialize
           end
@@ -363,9 +364,6 @@ module Rails
 
           if respond_to?(:action_view)
             action_view.render_tracker = :ruby
-          end
-
-          if respond_to?(:action_view)
             action_view.remove_hidden_field_autocomplete = true
           end
         when "8.2"
@@ -373,6 +371,22 @@ module Rails
 
           if respond_to?(:action_controller)
             action_controller.forgery_protection_verification_strategy = :header_only
+            action_controller.default_protect_from_forgery_with = :exception
+            action_controller.rescue_from_event_backtrace = :array
+          end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.strict_accept_header = true
+            action_dispatch.default_headers = {
+              "X-Frame-Options" => "SAMEORIGIN",
+              "X-Content-Type-Options" => "nosniff",
+              "X-Permitted-Cross-Domain-Policies" => "none",
+              "Referrer-Policy" => "strict-origin-when-cross-origin"
+            }
+          end
+
+          if respond_to?(:action_view)
+            action_view.erb_implementation = :herb
           end
 
           if respond_to?(:active_record)
@@ -383,6 +397,12 @@ module Rails
           if respond_to?(:active_storage)
             active_storage.analyze = :immediately
           end
+
+          if respond_to?(:active_job)
+            active_job.enqueue_after_transaction_commit = true
+          end
+
+          ActiveSupport.raise_on_invalid_time_zone_parse = true
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -479,7 +499,7 @@ module Rails
               if config.is_a?(Hash) && config.values.all?(Hash)
                 if shared.is_a?(Hash) && shared.values.all?(Hash)
                   config.map do |name, sub_config|
-                    sub_config.reverse_merge!(shared[name])
+                    sub_config.reverse_merge!(shared[name]) if shared[name]
                   end
                 else
                   config.map do |name, sub_config|
@@ -556,10 +576,14 @@ module Rails
         elsif new_secret_key_base.is_a?(String) && new_secret_key_base.present?
           @secret_key_base = new_secret_key_base
         elsif new_secret_key_base
-          raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String`"
+          raise ArgumentError, "`secret_key_base` for #{Rails.env} environment must be a type of String, got: #{new_secret_key_base.inspect}`"
         else
           raise ArgumentError, "Missing `secret_key_base` for '#{Rails.env}' environment, set this string with `bin/rails credentials:edit`"
         end
+      end
+
+      def revision=(val)
+        Rails.application.revision = val
       end
 
       # Specifies what class to use to store the session. Possible values
@@ -631,9 +655,7 @@ module Rails
         f
       end
 
-      def inspect # :nodoc:
-        "#<#{self.class.name}:#{'%#016x' % (object_id << 1)}>"
-      end
+      ActiveSupport::InspectBackport.apply(self)
 
       class Custom # :nodoc:
         def initialize
@@ -658,6 +680,10 @@ module Rails
       end
 
       private
+        def instance_variables_to_inspect
+          [].freeze
+        end
+
         def credentials_defaults
           content_path = root.join("config/credentials/#{Rails.env}.yml.enc")
           content_path = root.join("config/credentials.yml.enc") if !content_path.exist?
@@ -671,13 +697,18 @@ module Rails
         def generate_local_secret
           key_file = root.join("tmp/local_secret.txt")
 
-          unless File.exist?(key_file)
-            random_key = SecureRandom.hex(64)
-            FileUtils.mkdir_p(key_file.dirname)
-            File.binwrite(key_file, random_key)
+          random_key = begin
+            File.binread(key_file)
+          rescue SystemCallError
+            nil
           end
 
-          File.binread(key_file)
+          return random_key if random_key.present?
+
+          random_key = SecureRandom.hex(64)
+          FileUtils.mkdir_p(key_file.dirname)
+          File.binwrite(key_file, random_key)
+          random_key
         end
     end
   end

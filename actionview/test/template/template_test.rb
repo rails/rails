@@ -87,6 +87,18 @@ class TestERBTemplate < ActiveSupport::TestCase
     assert_equal "Hello", render
   end
 
+  def test_render_with_a_different_compiled_method_container_raises
+    @template = new_template
+    assert_equal "Hello", render
+
+    other_context = Context.with_empty_template_cache.empty
+    error = assert_raises(ActionView::Template::Error) do
+      @template.render(other_context, {})
+    end
+    assert_kind_of ArgumentError, error.cause
+    assert_match "compiled to render with", error.message
+  end
+
   def test_basic_template_does_html_escape
     @template = new_template("<%= apostrophe %>")
     assert_equal "l&#39;apostrophe", render
@@ -338,6 +350,26 @@ class TestERBTemplate < ActiveSupport::TestCase
     end
   end
 
+  def test_strict_locals_with_non_ascii_default_values
+    # \xC3\xA9 = U+00E9 (e with acute), \xC3\xBC = U+00FC (u with diaeresis)
+    source = "<%# locals: (label: \"caf\xC3\xA9\") -%>\n<p><%= label %> \xC3\xBC</p>"
+    assert_equal Encoding::ASCII_8BIT, source.encoding
+
+    @template = new_template(source)
+    assert_equal Encoding::UTF_8, render.encoding
+    assert_equal "<p>caf\u{E9} \u{FC}</p>", render
+  end
+
+  def test_strict_locals_with_non_ascii_default_values_and_ascii_only_body
+    # \xC3\xA9 = U+00E9 (e with acute)
+    source = "<%# locals: (label: \"caf\xC3\xA9\") -%>\n<p><%= label %></p>"
+    assert_equal Encoding::ASCII_8BIT, source.encoding
+
+    @template = new_template(source)
+    assert_equal Encoding::UTF_8, render.encoding
+    assert_equal "<p>caf\u{E9}</p>", render
+  end
+
   def test_error_when_template_isnt_valid_utf8
     e = assert_raises ActionView::Template::Error do
       @template = new_template("hello \xFCmlat", virtual_path: nil)
@@ -473,5 +505,55 @@ class TestERBTemplate < ActiveSupport::TestCase
     expected = spot_highlight(source, highlight, snippet: compiled)
 
     assert_equal expected, new_template(source).translate_location(nil, spot)
+  end
+
+  def test_html_templates_use_erb_implementation_by_default
+    @template = new_template("<p><%= hello %>", format: :html)
+
+    assert_equal "<p>Hello", render
+  end
+
+  def test_herb_compiles_html_templates
+    previous = ActionView::Template::Handlers::ERB.erb_implementation
+    ActionView::Base.erb_implementation = :herb
+    @template = new_template("<div><%= hello %>", format: :html)
+
+    exception = assert_raises(ActionView::SyntaxErrorInTemplate) { render }
+
+    assert_includes exception.cause.message, "Opening tag `<div>` at (1:1) doesn't have a matching closing tag"
+  ensure
+    ActionView::Base.erb_implementation = previous
+  end
+
+  def test_herb_compiles_other_formats_through_erubi
+    previous = ActionView::Template::Handlers::ERB.erb_implementation
+    ActionView::Base.erb_implementation = :herb
+    @template = new_template("<div><%= hello %>", format: :text)
+
+    assert_equal "<div>Hello", render
+  ensure
+    ActionView::Base.erb_implementation = previous
+  end
+
+  def test_erb_implementation_accepts_symbols
+    previous = ActionView::Template::Handlers::ERB.erb_implementation
+
+    ActionView::Base.erb_implementation = :herb
+
+    assert_equal ActionView::Template::Handlers::ERB::Herb, ActionView::Template::Handlers::ERB.erb_implementation
+
+    ActionView::Base.erb_implementation = :erubi
+
+    assert_equal ActionView::Template::Handlers::ERB::Erubi, ActionView::Template::Handlers::ERB.erb_implementation
+  ensure
+    ActionView::Base.erb_implementation = previous
+  end
+
+  def test_erb_implementation_rejects_unknown_symbols
+    error = assert_raises(ArgumentError) do
+      ActionView::Base.erb_implementation = :haml
+    end
+
+    assert_includes error.message, ":haml"
   end
 end

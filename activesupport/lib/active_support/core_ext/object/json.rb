@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 # Hack to load JSON gem first so we can override its to_json.
@@ -260,7 +261,7 @@ class Process::Status # :nodoc:
   end
 end
 
-class Exception
+class Exception # :nodoc:
   def as_json(options = nil)
     to_s
   end

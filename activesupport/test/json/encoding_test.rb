@@ -115,6 +115,51 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal %w( "$" "A" "A0" "A0B" "_" "a" "0" "1" ).sort, object_keys(ActiveSupport::JSON.encode(values))
   end
 
+  def test_hash_with_object_keys_that_have_complex_as_json
+    skip "JSONGemCoderEncoder not available" unless defined?(ActiveSupport::JSON::Encoding::JSONGemCoderEncoder)
+
+    # Define CustomKey inline (typically this will be a full Class)
+    custom_key_class = Struct.new(:id) do
+      def to_s
+        "custom_#{id}"
+      end
+
+      def as_json(options = nil)
+        { id: id, metadata: { created_at: Time.now.iso8601 } }
+      end
+    end
+
+    key = custom_key_class.new(123)
+    hash = { key => "some_value" }
+
+    assert_equal "custom_123", key.to_s
+    assert_instance_of Hash, key.as_json
+
+    # When serializing to JSON, the key should be converted via to_s
+    json = hash.to_json
+    parsed = JSON.parse(json)
+
+    assert_equal "some_value", parsed["custom_123"]
+  end
+
+  def test_hash_with_keys_whose_as_json_returns_a_string
+    # Keys that are not String/Symbol must be serialized via #to_s, even when
+    # their #as_json returns a String (e.g. Time, DateTime). Otherwise the key
+    # format silently diverges from the historical encoder.
+    with_standard_json_time_format(true) do
+      time = Time.utc(2009, 1, 1, 12, 30, 0)
+      assert_equal %({"#{time}":1}), ActiveSupport::JSON.encode(time => 1)
+
+      datetime = DateTime.new(2009, 1, 1, 12, 30, 0)
+      assert_equal %({"#{datetime}":1}), ActiveSupport::JSON.encode(datetime => 1)
+
+      Time.use_zone("Tokyo") do
+        twz = Time.utc(2009, 1, 1, 12, 30, 0).in_time_zone
+        assert_equal %({"#{twz}":1}), ActiveSupport::JSON.encode(twz => 1)
+      end
+    end
+  end
+
   def test_hash_should_allow_key_filtering_with_only
     assert_equal %({"a":1}), ActiveSupport::JSON.encode({ "a" => 1, :b => 2, :c => 3 }, { only: "a" })
   end
@@ -556,6 +601,21 @@ EXPECTED
     ensure
       ActiveSupport::JSON::Encoding.time_precision = old_value
     end
+end
+
+if RUBY_VERSION >= "4.0"
+  class JSONRactorShareabilityTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+
+    def test_encoders_are_ractor_shareable
+      assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }, escape: false) }.value
+      assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }) }.value
+      ActiveSupport::JSON::Encoding.with(escape_js_separators_in_json: false) do
+        assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }) }.value
+      end
+      assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }, escape_html_entities: false) }.value
+    end
+  end
 end
 
 if defined?(::JSON::Coder)

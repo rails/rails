@@ -7,7 +7,7 @@ module ActiveRecord
     class Column
       include Deduplicable
 
-      attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment
+      attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment, :cast_type
 
       delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
 
@@ -22,15 +22,10 @@ module ActiveRecord
         @cast_type = cast_type
         @sql_type_metadata = sql_type_metadata
         @null = null
-        @default = default.nil? || cast_type.mutable? ? default : cast_type.deserialize(default)
+        @default = default
         @default_function = default_function
         @collation = collation
         @comment = comment
-      end
-
-      def fetch_cast_type(connection) # :nodoc:
-        # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
-        @cast_type || connection.lookup_cast_type(sql_type)
       end
 
       def has_default?
@@ -71,13 +66,34 @@ module ActiveRecord
         coder["comment"] = @comment
       end
 
+      def as_schema_json
+        data = {}
+        encode_with(data)
+        data
+      end
+
+      def init_from_schema_json(coder, references)
+        coder["cast_type"] = references[coder["cast_type"]] if coder["cast_type"]
+        coder["sql_type_metadata"] = references[coder["sql_type_metadata"]] if coder["sql_type_metadata"]
+        init_with(coder)
+      end
+
       # whether the column is auto-populated by the database using a sequence
       def auto_incremented_by_db?
         false
       end
 
-      def auto_populated?
+      def auto_populated_on_insert?
         auto_incremented_by_db? || default_function
+      end
+
+      def auto_populated?
+        auto_populated_on_insert?
+      end
+      deprecate auto_populated?: :auto_populated_on_insert?, deprecator: ActiveRecord.deprecator
+
+      def auto_populated_on_update?
+        virtual?
       end
 
       def ==(other)
@@ -94,24 +110,23 @@ module ActiveRecord
       alias :eql? :==
 
       def hash
-        Column.hash ^
-          name.hash ^
-          name.encoding.hash ^
-          cast_type.hash ^
-          default.hash ^
-          sql_type_metadata.hash ^
-          null.hash ^
-          default_function.hash ^
-          collation.hash ^
-          comment.hash
+        [
+          Column,
+          @name,
+          @name.encoding,
+          @cast_type,
+          @default,
+          @sql_type_metadata,
+          @null,
+          @default_function,
+          @collation,
+          @comment,
+        ].hash
       end
 
       def virtual?
         false
       end
-
-      protected
-        attr_reader :cast_type
 
       private
         def deduplicated

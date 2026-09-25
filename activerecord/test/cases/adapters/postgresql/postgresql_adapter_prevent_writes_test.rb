@@ -68,6 +68,16 @@ module ActiveRecord
         ActiveRecord::Base.while_preventing_writes do
           assert_equal [], @connection.execute("SET standard_conforming_strings = on").entries
         end
+      ensure
+        @connection.close
+      end
+
+      def test_doesnt_error_when_a_reset_query_is_called_while_preventing_writes
+        ActiveRecord::Base.while_preventing_writes do
+          assert_equal [], @connection.execute("RESET standard_conforming_strings").entries
+        end
+      ensure
+        @connection.close
       end
 
       def test_doesnt_error_when_a_read_query_with_leading_chars_is_called_while_preventing_writes

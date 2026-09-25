@@ -4,9 +4,11 @@ module Arel # :nodoc: all
   class SelectManager < Arel::TreeManager
     include Arel::Crud
 
-    STRING_OR_SYMBOL_CLASS = [Symbol, String]
+    STRING_OR_SYMBOL_CLASS = [Symbol, String].freeze
 
     def initialize(table = nil)
+      super
+
       @ast = Nodes::SelectStatement.new(table)
       @ctx = @ast.cores.last
     end

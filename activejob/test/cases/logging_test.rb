@@ -3,17 +3,20 @@
 require "helper"
 require "active_support/log_subscriber/test_helper"
 require "active_support/core_ext/numeric/time"
+require "active_support/broadcast_logger"
 require "support/test_logger"
 require "jobs/hello_job"
 require "jobs/logging_job"
 require "jobs/overridden_logging_job"
 require "jobs/nested_job"
+require "jobs/configuration_job"
 require "jobs/rescue_job"
 require "jobs/retry_job"
 require "jobs/disable_log_job"
 require "jobs/abort_before_enqueue_job"
 require "jobs/enqueue_error_job"
 require "models/person"
+require "active_support/testing/ractors_assertions"
 
 class LoggingTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -31,6 +34,15 @@ class LoggingTest < ActiveSupport::TestCase
   def test_uses_active_job_as_tag
     HelloJob.perform_later "Cristian"
     assert_match(/\[ActiveJob\]/, @logger.messages)
+  end
+
+  def test_broadcast_logger_wrapping_a_non_tagged_logger_does_not_raise
+    inner_logger = TestLogger.new
+    set_logger ActiveSupport::BroadcastLogger.new(inner_logger)
+
+    HelloJob.perform_now("Cristian")
+    assert_equal ["Cristian says hello"], JobBuffer.values
+    assert_match(/Performing HelloJob/, inner_logger.messages)
   end
 
   def test_uses_job_name_as_tag
@@ -84,6 +96,13 @@ class LoggingTest < ActiveSupport::TestCase
     end
 
     assert_match(/Enqueued HelloJob \(Job ID: .*?\) to .*?:.*Cristian/, @logger.messages)
+  end
+
+  def test_enqueue_job_with_no_arguments_omits_the_arguments_suffix
+    ConfigurationJob.perform_later
+
+    assert_match(/Enqueued ConfigurationJob/, @logger.messages)
+    assert_no_match(/with arguments:/, @logger.messages)
   end
 
   def test_enqueue_job_log_error_when_callback_chain_is_halted
@@ -491,5 +510,16 @@ class LoggingTest < ActiveSupport::TestCase
     @logger.level = ERROR
     perform_enqueued_jobs { RetryJob.perform_later "DiscardableError", 2 }
     assert_match(/Discarded RetryJob \(Job ID: .*?\) due to a DiscardableError.*\./, @logger.messages)
+  end
+end
+
+class LoggingRactorTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::RactorsAssertions
+
+  def test_logger_is_readable_from_a_non_main_ractor
+    ActiveJob::Base.logger = Ractor.make_shareable(ActiveSupport::Logger.new(nil))
+
+    assert on_ractor { ActiveJob::Base.logger.equal?(HelloJob.new.logger) }
   end
 end

@@ -28,9 +28,6 @@ module GeneratorsTestHelper
 
       setup { Rails.application.config.root = Pathname("../fixtures").expand_path(__dir__) }
 
-      setup { @original_rakeopt, ENV["RAKEOPT"] = ENV["RAKEOPT"], "--silent" }
-      teardown { ENV["RAKEOPT"] = @original_rakeopt }
-
       begin
         base.tests Rails::Generators.const_get(base.name.delete_suffix("Test"))
       rescue
@@ -134,7 +131,7 @@ module GeneratorsTestHelper
 
   def assert_devcontainer_json_file
     assert_file ".devcontainer/devcontainer.json" do |content|
-      yield JSON.load(content)
+      yield JSON.load(content, allow_comments: true)
     rescue JSON::ParserError
       puts "Failed to parse JSON: #{content}"
       raise

@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "rails"
@@ -21,6 +22,8 @@ module ActionMailbox
       incineration: :action_mailbox_incineration, routing: :action_mailbox_routing
 
     config.action_mailbox.storage_service = nil
+
+    guard_load_hooks(:action_mailbox_inbound_email, :action_mailbox_record, :action_mailbox, :action_mailbox_test_case)
 
     initializer "action_mailbox.deprecator", before: :load_environment_config do |app|
       app.deprecators[:action_mailbox] = ActionMailbox.deprecator

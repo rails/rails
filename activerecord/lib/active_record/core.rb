@@ -11,6 +11,8 @@ module ActiveRecord
     include ActiveModel::Access
 
     included do
+      @arel_table = Arel::Table.new(klass: self)
+
       ##
       # :singleton-method:
       #
@@ -263,7 +265,11 @@ module ActiveRecord
 
     module ClassMethods
       def initialize_find_by_cache # :nodoc:
-        @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
+        ActiveSupport::Ractors[find_by_statement_cache_key] = { true => Concurrent::Map.new, false => Concurrent::Map.new }
+      end
+
+      def find_by_statement_cache_key # :nodoc:
+        @find_by_statement_cache_key ||= "active_record_find_by_statement_cache_#{object_id}".to_sym
       end
 
       def find(*ids) # :nodoc:
@@ -347,7 +353,11 @@ module ActiveRecord
       # Returns columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes
         if @filter_attributes.nil?
-          superclass.filter_attributes
+          if superclass <= Base
+            superclass.filter_attributes
+          else
+            nil
+          end
         else
           @filter_attributes
         end
@@ -356,9 +366,15 @@ module ActiveRecord
       # Specifies columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes=(filter_attributes)
         @inspection_filter = nil
-        @filter_attributes = filter_attributes
+        previous = if @filter_attributes
+          self.filter_attributes
+        else
+          Base.filter_attributes
+        end
+        changes = @filter_attributes = filter_attributes
 
-        FilterAttributeHandler.sensitive_attribute_was_declared(self, filter_attributes)
+        changes -= previous if previous
+        FilterAttributeHandler.sensitive_attribute_was_declared(self, changes)
       end
 
       def inspection_filter # :nodoc:
@@ -379,7 +395,7 @@ module ActiveRecord
         elsif abstract_class?
           "#{super}(abstract)"
         elsif !schema_loaded? && !connected?
-          "#{super} (call '#{super}.load_schema' to load schema informations)"
+          "#{super} (call '#{super}.load_schema' to load schema information)"
         elsif table_exists?
           attr_list = attribute_types.map { |name, type| "#{name}: #{type.type}" } * ", "
           "#{super}(#{attr_list})"
@@ -390,11 +406,13 @@ module ActiveRecord
 
       # Returns an instance of +Arel::Table+ loaded with the current table name.
       def arel_table # :nodoc:
-        @arel_table ||= Arel::Table.new(table_name, klass: self)
+        @arel_table
       end
 
       def predicate_builder # :nodoc:
-        @predicate_builder ||= PredicateBuilder.new(TableMetadata.new(self, arel_table))
+        @predicate_builder || ActiveSupport::Ractors.on_main(self) do
+          @predicate_builder ||= PredicateBuilder.new(TableMetadata.new(self, arel_table))
+        end
       end
 
       def type_caster # :nodoc:
@@ -402,8 +420,7 @@ module ActiveRecord
       end
 
       def cached_find_by_statement(connection, key, &block) # :nodoc:
-        cache = @find_by_statement_cache[connection.prepared_statements]
-        cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
+        schema_context.cached_find_by_statement(connection, key, &block)
       end
 
       private
@@ -421,8 +438,8 @@ module ActiveRecord
           end
 
           subclass.class_eval do
-            @arel_table = nil
-            @predicate_builder = nil
+            @arel_table = Arel::Table.new(klass: self)
+            @predicate_builder = PredicateBuilder.new(TableMetadata.new(self, @arel_table))
             @inspection_filter = nil
             @filter_attributes ||= nil
             @generated_association_methods ||= nil
@@ -498,7 +515,7 @@ module ActiveRecord
     #   post.title # => 'hello world'
     def init_with(coder, &block)
       coder = LegacyYamlAdapter.convert(coder)
-      attributes = self.class.yaml_encoder.decode(coder)
+      attributes = ActiveModel::AttributeSet::YAMLEncoder.decode(coder, self.class.attribute_types)
       init_with_attributes(attributes, coder["new_record"], &block)
     end
 
@@ -564,11 +581,7 @@ module ActiveRecord
     def init_attributes(_) # :nodoc:
       attrs = @attributes.deep_dup
 
-      if self.class.composite_primary_key?
-        @primary_key.each { |key| attrs.reset(key) }
-      else
-        attrs.reset(@primary_key)
-      end
+      self.class.primary_key_definition.each { |key| attrs.reset(key) }
 
       attrs
     end
@@ -586,7 +599,7 @@ module ActiveRecord
     #   Post.new.encode_with(coder)
     #   coder # => {"attributes" => {"id" => nil, ... }}
     def encode_with(coder)
-      self.class.yaml_encoder.encode(@attributes, coder)
+      ActiveModel::AttributeSet::YAMLEncoder.encode(@attributes, coder, self.class.attribute_types)
       coder["new_record"] = new_record?
       coder["active_record_yaml_version"] = 2
     end
@@ -643,7 +656,7 @@ module ActiveRecord
       id = self.id
 
       if self.class.composite_primary_key? ? primary_key_values_present? : id
-        self.class.hash ^ id.hash
+        [self.class, id].hash
       else
         super
       end

@@ -232,6 +232,18 @@ module ActiveRecord
         _create_record(attributes, true, &block)
       end
 
+      def violates_strict_loading?
+        return unless find_target?
+
+        return if @skip_strict_loading
+
+        return unless owner.validation_context.nil?
+
+        return reflection.strict_loading? if reflection.options.key?(:strict_loading)
+
+        owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
+      end
+
       # Whether the association represents a single record
       # or a collection of records.
       def collection?
@@ -279,16 +291,6 @@ module ActiveRecord
           yield
         ensure
           @skip_strict_loading = skip_strict_loading_was
-        end
-
-        def violates_strict_loading?
-          return if @skip_strict_loading
-
-          return unless owner.validation_context.nil?
-
-          return reflection.strict_loading? if reflection.options.key?(:strict_loading)
-
-          owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
         end
 
         # The scope for this association.
@@ -368,8 +370,7 @@ module ActiveRecord
 
         # Returns true if record contains the foreign_key
         def foreign_key_for?(record)
-          foreign_key = Array(reflection.foreign_key)
-          foreign_key.all? { |key| record._has_attribute?(key) }
+          ActiveRecord::Key.for(reflection.foreign_key).all? { |key| record.has_attribute?(key) }
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,
@@ -409,12 +410,28 @@ module ActiveRecord
         end
 
         def matches_foreign_key?(record)
-          if foreign_key_for?(record)
-            record.read_attribute(reflection.foreign_key) == owner.id ||
-              (foreign_key_for?(owner) && owner.read_attribute(reflection.foreign_key) == record.id)
-          else
-            owner.read_attribute(reflection.foreign_key) == record.id
-          end
+          (foreign_key_for?(record) && record_foreign_key_matches_owner?(record)) ||
+            (foreign_key_for?(owner) && owner_foreign_key_matches_record?(record))
+        end
+
+        def record_foreign_key_matches_owner?(record)
+          foreign_key_values(record) == active_record_primary_key_values(owner)
+        end
+
+        def owner_foreign_key_matches_record?(record)
+          foreign_key_values(owner) == association_primary_key_values(record)
+        end
+
+        def foreign_key_values(record)
+          ActiveRecord::Key.for(reflection.foreign_key).map { |key| record.read_attribute(key) }
+        end
+
+        def active_record_primary_key_values(record)
+          ActiveRecord::Key.for(reflection.active_record_primary_key).map { |key| record.read_attribute(key) }
+        end
+
+        def association_primary_key_values(record)
+          ActiveRecord::Key.for(reflection.association_primary_key(record.class)).map { |key| record.read_attribute(key) }
         end
     end
   end

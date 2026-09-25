@@ -2,11 +2,13 @@
 
 require "isolation/abstract_unit"
 require "rack/test"
+require "env_helpers"
 
 module ApplicationTests
   class ViewReloadingTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
+    include EnvHelpers
 
     def setup
       build_app
@@ -36,21 +38,22 @@ module ApplicationTests
         Before!
       RUBY
 
-      ENV["RAILS_ENV"] = "development"
-      require "#{app_path}/config/environment"
+      with_rails_env("development") do
+        require "#{app_path}/config/environment"
 
-      get "/pages/foo"
-      get "/pages/foo"
-      assert_equal 200, last_response.status, last_response.body
-      assert_equal "Before!", last_response.body.strip
+        get "/pages/foo"
+        get "/pages/foo"
+        assert_equal 200, last_response.status, last_response.body
+        assert_equal "Before!", last_response.body.strip
 
-      app_file "app/views/pages/show.html.erb", <<-RUBY
-        After!
-      RUBY
+        app_file "app/views/pages/show.html.erb", <<-RUBY
+          After!
+        RUBY
 
-      get "/pages/foo"
-      assert_equal 200, last_response.status
-      assert_equal "After!", last_response.body.strip
+        get "/pages/foo"
+        assert_equal 200, last_response.status
+        assert_equal "After!", last_response.body.strip
+      end
     end
   end
 end

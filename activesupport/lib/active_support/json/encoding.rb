@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/json"
@@ -18,32 +19,42 @@ module ActiveSupport
       # Dumps objects in JSON (JavaScript Object Notation).
       # See http://www.json.org for more info.
       #
-      #   ActiveSupport::JSON.encode({ team: 'rails', players: '36' })
-      #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
+      # ```
+      # ActiveSupport::JSON.encode({ team: 'rails', players: '36' })
+      # # => "{\"team\":\"rails\",\"players\":\"36\"}"
+      # ```
       #
       # By default, it generates JSON that is safe to include in JavaScript, as
       # it escapes U+2028 (Line Separator) and U+2029 (Paragraph Separator):
       #
-      #   ActiveSupport::JSON.encode({ key: "\u2028" })
-      #   # => "{\"key\":\"\\u2028\"}"
+      # ```
+      # ActiveSupport::JSON.encode({ key: "\u2028" })
+      # # => "{\"key\":\"\\u2028\"}"
+      # ```
       #
       # By default, it also generates JSON that is safe to include in HTML, as
-      # it escapes <tt><</tt>, <tt>></tt>, and <tt>&</tt>:
+      # it escapes `<`, `>`, and `&`:
       #
-      #   ActiveSupport::JSON.encode({ key: "<>&" })
-      #   # => "{\"key\":\"\\u003c\\u003e\\u0026\"}"
+      # ```
+      # ActiveSupport::JSON.encode({ key: "<>&" })
+      # # => "{\"key\":\"\\u003c\\u003e\\u0026\"}"
+      # ```
       #
-      # This behavior can be changed with the +escape_html_entities+ option, or the
+      # This behavior can be changed with the `escape_html_entities` option, or the
       # global escape_html_entities_in_json configuration option.
       #
-      #   ActiveSupport::JSON.encode({ key: "<>&" }, escape_html_entities: false)
-      #   # => "{\"key\":\"<>&\"}"
+      # ```
+      # ActiveSupport::JSON.encode({ key: "<>&" }, escape_html_entities: false)
+      # # => "{\"key\":\"<>&\"}"
+      # ```
       #
-      # For performance reasons, you can set the +escape+ option to false,
+      # For performance reasons, you can set the `escape` option to false,
       # which will skip all escaping:
       #
-      #   ActiveSupport::JSON.encode({ key: "\u2028<>&" }, escape: false)
-      #   # => "{\"key\":\"\u2028<>&\"}"
+      # ```
+      # ActiveSupport::JSON.encode({ key: "\u2028<>&" }, escape: false)
+      # # => "{\"key\":\"\u2028<>&\"}"
+      # ```
       def encode(value, options = nil)
         if options.nil? || options.empty?
           Encoding.encode_without_options(value)
@@ -61,22 +72,22 @@ module ActiveSupport
       U2029 = -"\u2029".b
 
       ESCAPED_CHARS = {
-        U2028 => '\u2028'.b,
-        U2029 => '\u2029'.b,
-        ">".b => '\u003e'.b,
-        "<".b => '\u003c'.b,
-        "&".b => '\u0026'.b,
-      }
+        U2028 => -'\u2028'.b,
+        U2029 => -'\u2029'.b,
+        ">".b => -'\u003e'.b,
+        "<".b => -'\u003c'.b,
+        "&".b => -'\u0026'.b,
+      }.freeze
 
-      HTML_ENTITIES_REGEX = Regexp.union(*(ESCAPED_CHARS.keys - [U2028, U2029]))
-      FULL_ESCAPE_REGEX = Regexp.union(*ESCAPED_CHARS.keys)
-      JS_SEPARATORS_REGEX = Regexp.union(U2028, U2029)
+      HTML_ENTITIES_REGEX = Regexp.union(*(ESCAPED_CHARS.keys - [U2028, U2029])).freeze
+      FULL_ESCAPE_REGEX = Regexp.union(*ESCAPED_CHARS.keys).freeze
+      JS_SEPARATORS_REGEX = Regexp.union(U2028, U2029).freeze
 
       class JSONGemEncoder # :nodoc:
         attr_reader :options
 
         def initialize(options = nil)
-          @options = options || {}
+          @options = options.dup.freeze || {}.freeze
         end
 
         # Encode the given object into a JSON string
@@ -104,7 +115,7 @@ module ActiveSupport
         private
           # Convert an object into a "JSON-ready" representation composed of
           # primitives like Hash, Array, String, Symbol, Numeric,
-          # and +true+/+false+/+nil+.
+          # and `true`/`false`/`nil`.
           # Recursively calls #as_json to the object to recursively build a
           # fully JSON-ready object.
           #
@@ -112,8 +123,8 @@ module ActiveSupport
           # worry about what base types of objects they are allowed to return
           # or having to remember to call #as_json recursively.
           #
-          # Note: the +options+ hash passed to +object.to_json+ is only passed
-          # to +object.as_json+, not any of this method's recursive +#as_json+
+          # Note: the `options` hash passed to `object.to_json` is only passed
+          # to `object.as_json`, not any of this method's recursive `#as_json`
           # calls.
           def jsonify(value)
             case value
@@ -149,10 +160,22 @@ module ActiveSupport
       if defined?(::JSON::Coder) && Gem::Version.new(::JSON::VERSION) >= Gem::Version.new("2.15.2")
         class JSONGemCoderEncoder # :nodoc:
           JSON_NATIVE_TYPES = [Hash, Array, Float, String, Symbol, Integer, NilClass, TrueClass, FalseClass, ::JSON::Fragment].freeze
-          CODER = ::JSON::Coder.new do |value, is_key|
+          CODER = ::JSON::Coder.new(&ActiveSupport::Ractors.shareable_proc { |value, is_key|
+            # Serialize non-String/Symbol keys via #to_s based on the key's own type,
+            # mirroring the legacy `jsonify` encoder. (#as_json is intentionally not
+            # consulted here: Time#as_json returns an ISO8601 String, yet the key must
+            # still be emitted via #to_s for backward compatibility.)
+            if is_key
+              # Keep compatibility by calling to_s on non-String keys
+              if Symbol === value
+                next value # Symbol#to_s needlessly allocate a string.
+              else
+                next value.to_s
+              end
+            end
+
             json_value = value.as_json
-            # Keep compatibility by calling to_s on non-String keys
-            next json_value.to_s if is_key
+
             # Handle objects returning self from as_json
             if json_value.equal?(value)
               next ::JSON::Fragment.new(::JSON.generate(json_value))
@@ -165,8 +188,7 @@ module ActiveSupport
               count -= 1
             end
             json_value
-          end
-
+          }).freeze
 
           def initialize(options = nil)
             if options
@@ -223,13 +245,13 @@ module ActiveSupport
         attr_accessor :time_precision
 
         # Sets the encoder used by \Rails to encode Ruby objects into JSON strings
-        # in +Object#to_json+ and +ActiveSupport::JSON.encode+.
+        # in `Object#to_json` and `ActiveSupport::JSON.encode`.
         attr_reader :json_encoder
 
         def json_encoder=(encoder)
           @json_encoder = encoder
-          @encoder_without_options = encoder.new
-          @encoder_without_escape = encoder.new(escape: false)
+          @encoder_without_options = encoder.new.freeze
+          @encoder_without_escape = encoder.new(escape: false).freeze
         end
 
         def encode_without_options(value) # :nodoc:

@@ -51,6 +51,12 @@ module ActionText
       @plain_text ||= PlainTextConversion.node_to_plain_text(source)
     end
 
+    # NOTE: this does not canonicalize, so it is not safe for untrusted content. See the
+    # note on ActionText::MarkdownConversion.node_to_markdown.
+    def to_markdown
+      @markdown ||= MarkdownConversion.node_to_markdown(source)
+    end
+
     def to_html
       @html ||= HtmlConversion.node_to_html(source)
     end

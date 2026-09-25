@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -22,20 +23,12 @@ module ActiveSupport
       source = @content.include?("<%") ? render(context) : @content
 
       if source == @content
-        if YAML.respond_to?(:unsafe_load)
-          YAML.unsafe_load_file(@content_path, **options) || {}
-        else
-          YAML.load_file(@content_path, **options) || {}
-        end
+        YAML.unsafe_load_file(@content_path, **options) || {}
       else
-        if YAML.respond_to?(:unsafe_load)
-          YAML.unsafe_load(source, **options) || {}
-        else
-          YAML.load(source, **options) || {}
-        end
+        YAML.unsafe_load(source, **options) || {}
       end
     rescue Psych::SyntaxError => error
-      raise "YAML syntax error occurred while parsing #{@content_path}. " \
+      raise FormatError, "YAML syntax error occurred while parsing #{@content_path}. " \
             "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
             "Error: #{error.message}"
     end

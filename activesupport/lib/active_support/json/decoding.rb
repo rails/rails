@@ -1,12 +1,11 @@
+# :markup: markdown
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/attribute_accessors"
-require "active_support/core_ext/module/delegation"
 require "json"
 
 module ActiveSupport
   # Look for and parse JSON strings that look like ISO 8601 times.
-  mattr_accessor :parse_json_times
+  singleton_class.attr_accessor :parse_json_times
 
   module JSON
     # matches YAML-formatted dates
@@ -17,12 +16,14 @@ module ActiveSupport
       # Parses a JSON string (JavaScript Object Notation) into a Ruby object.
       # See http://www.json.org for more info.
       #
-      #   ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
-      #   # => {"team" => "rails", "players" => "36"}
-      #   ActiveSupport::JSON.decode("2.39")
-      #   # => 2.39
+      # ```
+      # ActiveSupport::JSON.decode("{\"team\":\"rails\",\"players\":\"36\"}")
+      # # => {"team" => "rails", "players" => "36"}
+      # ActiveSupport::JSON.decode("2.39")
+      # # => 2.39
+      # ```
       def decode(json, options = {})
-        data = ::JSON.parse(json, options)
+        data = ::JSON.parse(json, **options)
 
         if ActiveSupport.parse_json_times
           convert_dates_from(data)
@@ -37,11 +38,13 @@ module ActiveSupport
       # depend on the ActiveSupport's JSON implementation, in case it changes
       # in the future.
       #
-      #   begin
-      #     obj = ActiveSupport::JSON.decode(some_string)
-      #   rescue ActiveSupport::JSON.parse_error
-      #     Rails.logger.warn("Attempted to decode invalid JSON: #{some_string}")
-      #   end
+      # ```
+      # begin
+      #   obj = ActiveSupport::JSON.decode(some_string)
+      # rescue ActiveSupport::JSON.parse_error
+      #   Rails.logger.warn("Attempted to decode invalid JSON: #{some_string}")
+      # end
+      # ```
       def parse_error
         ::JSON::ParserError
       end

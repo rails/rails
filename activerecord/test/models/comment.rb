@@ -52,7 +52,7 @@ class Comment < ActiveRecord::Base
   end
 
   def self.search_by_type(q)
-    where("#{QUOTED_TYPE} = ?", q)
+    where("#{ARTest::QUOTED_TYPE} = ?", q)
   end
 
   def self.all_as_method
@@ -98,4 +98,14 @@ class CommentWithAfterCreateUpdate < Comment
   after_create do
     update(body: "bar")
   end
+end
+
+class CommentOnPostWithWhereDefaultScope < Comment
+  default_scope { where(deleted_at: nil) }
+
+  belongs_to :post, class_name: "PostWithWhereDefaultScope", foreign_key: :post_id
+end
+
+class PolymorphicComment < Comment
+  belongs_to :person, polymorphic: true, inverse_of: :polymorphic_comments, autosave: true
 end

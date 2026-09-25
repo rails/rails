@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/ractors"
+
 require "arel/errors"
 
 require "arel/crud"
@@ -25,8 +27,10 @@ require "arel/update_manager"
 require "arel/delete_manager"
 require "arel/nodes"
 
+require "active_record/version"
+
 module Arel
-  VERSION = "10.0.0"
+  VERSION = "10.#{ActiveRecord::VERSION::STRING}".freeze
 
   # Wrap a known-safe SQL string for passing to query methods, e.g.
   #

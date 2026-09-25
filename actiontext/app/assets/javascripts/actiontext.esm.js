@@ -887,6 +887,7 @@ class AttachmentUpload {
     this.element = element;
     this.directUpload = new DirectUpload(file, this.directUploadUrl, this);
     this.file = file;
+    this.dispatch("initialize");
   }
   start() {
     return new Promise(((resolve, reject) => {
@@ -894,7 +895,15 @@ class AttachmentUpload {
       this.dispatch("start");
     }));
   }
+  directUploadWillCreateBlobWithXHR(xhr) {
+    this.dispatch("before-blob-request", {
+      xhr: xhr
+    });
+  }
   directUploadWillStoreFileWithXHR(xhr) {
+    this.dispatch("before-storage-request", {
+      xhr: xhr
+    });
     xhr.upload.addEventListener("progress", (event => {
       const progress = event.loaded / event.total * 90;
       if (progress) {
@@ -956,6 +965,8 @@ class AttachmentUpload {
   }
   dispatch(name, detail = {}) {
     detail.attachment = this.attachment;
+    detail.file = this.directUpload.file;
+    detail.id = this.directUpload.id;
     return dispatchEvent(this.element, `direct-upload:${name}`, {
       detail: detail
     });
@@ -975,6 +986,22 @@ class AttachmentUpload {
     return this.element.dataset.blobUrlTemplate;
   }
 }
+
+addEventListener("trix-initialize", (event => {
+  if (!event.target.dataset.directUploadUrl) {
+    event.target.toolbarElement.querySelectorAll("[data-trix-action=attachFiles]").forEach((button => {
+      const group = button.closest("[data-trix-button-group]");
+      button.remove();
+      if (group && group.childElementCount === 0) group.remove();
+    }));
+  }
+}));
+
+addEventListener("trix-file-accept", (event => {
+  if (!event.target.dataset.directUploadUrl) {
+    event.preventDefault();
+  }
+}));
 
 addEventListener("trix-attachment-add", (event => {
   const {attachment: attachment, target: target} = event;

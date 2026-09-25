@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "concurrent/executor/fixed_thread_pool"
@@ -39,7 +40,11 @@ module ActiveSupport
               klass, method, reporter = job
 
               reporter.synchronize { reporter.prerecord klass, method }
-              result = Minitest.run_one_method klass, method
+              result = if Minitest.respond_to? :run_one_method then
+                Minitest.run_one_method klass, method
+              else
+                klass.new(method).run
+              end
               reporter.synchronize { reporter.record result }
             end
           end

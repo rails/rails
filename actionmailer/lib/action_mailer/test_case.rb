@@ -110,7 +110,7 @@ module ActionMailer
       #   end
       def assert_part(content_type, mail = last_delivered_mail!)
         mime_type = Mime[content_type]
-        part = [*mail.parts, mail].find { |part| mime_type.match?(part.mime_type) }
+        part = [*mail.all_parts, mail].find { |part| mime_type.match?(part.mime_type) }
         decoder = _decoders[mime_type]
 
         assert_not_nil part, "expected part matching #{mime_type} in #{mail.inspect}"
@@ -128,7 +128,7 @@ module ActionMailer
       #   assert_no_part :text
       def assert_no_part(content_type, mail = last_delivered_mail!)
         mime_type = Mime[content_type]
-        part = [*mail.parts, mail].find { |part| mime_type.match?(part.mime_type) }
+        part = [*mail.all_parts, mail].find { |part| mime_type.match?(part.mime_type) }
 
         assert_nil part, "expected no part matching #{mime_type} in #{mail.inspect}"
       end

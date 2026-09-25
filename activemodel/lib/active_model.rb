@@ -57,12 +57,6 @@ module ActiveModel
   autoload :Validations
   autoload :Validator
 
-  module Attributes
-    extend ActiveSupport::Autoload
-
-    autoload :Normalization
-  end
-
   eager_autoload do
     autoload :Errors
     autoload :Error
@@ -70,6 +64,7 @@ module ActiveModel
     autoload :StrictValidationFailed, "active_model/errors"
     autoload :UnknownAttributeError, "active_model/errors"
     autoload :ValidationError, "active_model/validations"
+    autoload :IndexedRow
   end
 
   module Serializers

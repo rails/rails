@@ -5,7 +5,7 @@ require "active_support/core_ext/enumerable"
 
 module Rails
   class CodeStatistics
-    DIRECTORIES = [
+    DIRECTORIES = [ # rubocop:disable Style/MutableConstant
       %w(Controllers        app/controllers),
       %w(Helpers            app/helpers),
       %w(Jobs               app/jobs),
@@ -30,7 +30,7 @@ module Rails
       %w(System\ tests      test/system),
     ]
 
-    TEST_TYPES = ["Controller tests",
+    TEST_TYPES = ["Controller tests", # rubocop:disable Style/MutableConstant
                   "Helper tests",
                   "Model tests",
                   "Mailer tests",
@@ -40,9 +40,9 @@ module Rails
                   "Integration tests",
                   "System tests"]
 
-    HEADERS = { lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods" }
+    HEADERS = { lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods" }.freeze
 
-    EXTENSIONS = %w[rb js ts css scss coffee rake erb]
+    EXTENSIONS = %w[rb js ts css scss coffee rake erb] # rubocop:disable Style/MutableConstant
 
     PATTERN = /^(?!\.).*?\.(#{EXTENSIONS.join("|")})$/
 

@@ -317,7 +317,8 @@ class EnumTest < ActiveRecord::TestCase
     e = assert_raises(ArgumentError) do
       @book.status = :unknown
     end
-    assert_equal "'unknown' is not a valid status", e.message
+    assert_match(/\A'unknown' is not a valid status\./, e.message)
+    assert_match(/"proposed"/, e.message)
   end
 
   test "validation with 'validate: true' option" do
@@ -507,7 +508,7 @@ class EnumTest < ActiveRecord::TestCase
       end
     end
 
-    assert_match(/must be only booleans, integers, symbols or strings/, e.message)
+    assert_match(/must be only booleans, integers, floats, symbols or strings/, e.message)
 
     e = assert_raises(ArgumentError) do
       Class.new(ActiveRecord::Base) do
@@ -517,6 +518,19 @@ class EnumTest < ActiveRecord::TestCase
     end
 
     assert_match(/must be either a non-empty hash or an array\.$/, e.message)
+  end
+
+  test "enum with float values" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum :rating, { low: 0.0, medium: 0.5, high: 1.0 }, prefix: true
+    end
+
+    instance = klass.new
+    instance.rating_medium!
+    assert_predicate instance, :rating_medium?
+    assert_equal 0.5, instance.rating_for_database
+    assert_equal "medium", instance.rating
   end
 
   test "reserved enum names" do
@@ -1096,7 +1110,7 @@ class EnumTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = logger
 
     Class.new(ActiveRecord::Base) do
-      def self.name
+      def self.name # rubocop:disable Lint/DuplicateMethods
         "Book"
       end
       enum :status, [:not_sent]
@@ -1114,7 +1128,7 @@ class EnumTest < ActiveRecord::TestCase
     ActiveRecord::Base.logger = logger
 
     Class.new(ActiveRecord::Base) do
-      def self.name
+      def self.name # rubocop:disable Lint/DuplicateMethods
         "Book"
       end
       silence_warnings do
@@ -1129,9 +1143,9 @@ class EnumTest < ActiveRecord::TestCase
 
   test "raises for attributes with undeclared type" do
     klass = Class.new(Book) do
-    def self.name; "Book"; end
-    enum :typeless_genre, [:adventure, :comic]
-  end
+      def self.name; "Book"; end
+      enum :typeless_genre, [:adventure, :comic]
+    end
 
     error = assert_raises(RuntimeError) do
       klass.type_for_attribute(:typeless_genre)
@@ -1139,7 +1153,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_match "Undeclared attribute type for enum 'typeless_genre' in Book", error.message
   end
 
-  test "supports attributes declared with a explicit type" do
+  test "supports attributes declared with an explicit type" do
     klass = Class.new(Book) do
       attribute :my_genre, :integer
       enum :my_genre, [:adventure, :comic]

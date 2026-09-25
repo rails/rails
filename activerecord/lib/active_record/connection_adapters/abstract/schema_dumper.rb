@@ -85,8 +85,7 @@ module ActiveRecord
 
         def schema_default(column)
           return unless column.has_default?
-          # TODO: Remove fetch_cast_type and the need for connection after we release 8.1.
-          type = column.fetch_cast_type(@connection)
+          type = column.cast_type
           default = type.deserialize(column.default)
           if default.nil?
             schema_expression(column)

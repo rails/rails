@@ -50,7 +50,7 @@ module ActionMailbox
 
     def create
       ActionMailbox::InboundEmail.create_and_extract_message_id! mail
-    rescue ActionController::ParameterMissing => error
+    rescue ActionController::ParameterMissing, MalformedEmailError, MalformedOriginalRecipientError => error
       logger.error <<~MESSAGE
         #{error.message}
 
@@ -61,9 +61,29 @@ module ActionMailbox
     end
 
     private
+      class MalformedEmailError < StandardError
+        def initialize(message = "Malformed Postmark raw email")
+          super
+        end
+      end
+
+      class MalformedOriginalRecipientError < StandardError
+        def initialize(message = "Malformed Postmark original recipient")
+          super
+        end
+      end
+
       def mail
         params.require("RawEmail").tap do |raw_email|
-          raw_email.prepend("X-Original-To: ", params.require("OriginalRecipient"), "\n") if params.key?("OriginalRecipient")
+          raise MalformedEmailError unless raw_email.is_a?(String)
+
+          raw_email.prepend("X-Original-To: ", original_recipient, "\n") if params.key?("OriginalRecipient")
+        end
+      end
+
+      def original_recipient
+        params.require("OriginalRecipient").tap do |original_recipient|
+          raise MalformedOriginalRecipientError unless original_recipient.is_a?(String)
         end
       end
   end

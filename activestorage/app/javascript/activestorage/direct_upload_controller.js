@@ -5,7 +5,8 @@ export class DirectUploadController {
   constructor(input, file) {
     this.input = input
     this.file = file
-    this.directUpload = new DirectUpload(this.file, this.url, this)
+    const checksum_algorithm = this.input.getAttribute("data-checksum-algorithm") || "md5"
+    this.directUpload = new DirectUpload(this.file, this.url, this, {}, checksum_algorithm)
     this.dispatch("initialize")
   }
 

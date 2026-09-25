@@ -272,7 +272,7 @@ module ActionView
         @request = @controller.request
         @view_flow = ActionView::OutputFlow.new
         @output_buffer = ActionView::OutputBuffer.new
-        @rendered = self.class.content_class.new(+"")
+        _reset_rendered
 
         test_case_instance = self
         controller_class.define_method(:_test_case) { test_case_instance }
@@ -284,8 +284,18 @@ module ActionView
 
       def render(options = {}, local_assigns = {}, &block)
         view.assign(view_assigns)
-        @rendered << output = view.render(options, local_assigns, &block)
-        output
+
+        if @_rendering
+          view.render(options, local_assigns, &block)
+        else
+          _reset_rendered
+          @_rendering = true
+          output = view.render(options, local_assigns, &block)
+          @rendered << output
+          output
+        end
+      ensure
+        @_rendering = false unless @_rendering.nil?
       end
 
       def rendered_views
@@ -383,6 +393,7 @@ module ActionView
         :@method_name,
         :@output_buffer,
         :@_partials,
+        :@_rendering,
         :@passed,
         :@rendered,
         :@request,
@@ -396,7 +407,8 @@ module ActionView
         :@view_flow,
         :@_subscribers,
         :@html_document,
-      ]
+        :@__leak_checker_before_env,
+      ].freeze
 
       def _user_defined_ivars
         instance_variables - INTERNAL_IVARS
@@ -410,6 +422,10 @@ module ActionView
         Hash[_user_defined_ivars.map do |ivar|
           [ivar[1..-1].to_sym, instance_variable_get(ivar)]
         end]
+      end
+
+      def _reset_rendered
+        @rendered = self.class.content_class.new(+"")
       end
 
       def method_missing(selector, ...)

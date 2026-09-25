@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/concern"
@@ -5,21 +6,22 @@ require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/string/inflections"
 
 module ActiveSupport
-  # = Active Support \Rescuable
+  # Active Support \Rescuable
+  # =========================
   #
   # Rescuable module adds support for easier exception handling.
   module Rescuable
     extend Concern
 
     included do
-      class_attribute :rescue_handlers, default: []
+      class_attribute :rescue_handlers, default: [].freeze
     end
 
     module ClassMethods
-      # Registers exception classes with a handler to be called by <tt>rescue_with_handler</tt>.
+      # Registers exception classes with a handler to be called by `rescue_with_handler`.
       #
-      # <tt>rescue_from</tt> receives a series of exception classes or class
-      # names, and an exception handler specified by a trailing <tt>:with</tt>
+      # `rescue_from` receives a series of exception classes or class
+      # names, and an exception handler specified by a trailing `:with`
       # option containing the name of a method or a Proc object. Alternatively, a block
       # can be given as the handler.
       #
@@ -28,26 +30,28 @@ module ActiveSupport
       #
       # Handlers are inherited. They are searched from right to left, from
       # bottom to top, and up the hierarchy. The handler of the first class for
-      # which <tt>exception.is_a?(klass)</tt> holds true is the one invoked, if
+      # which `exception.is_a?(klass)` holds true is the one invoked, if
       # any.
       #
-      #   class ApplicationController < ActionController::Base
-      #     rescue_from User::NotAuthorized, with: :deny_access
-      #     rescue_from ActiveRecord::RecordInvalid, with: :show_record_errors
+      # ```
+      # class ApplicationController < ActionController::Base
+      #   rescue_from User::NotAuthorized, with: :deny_access
+      #   rescue_from ActiveRecord::RecordInvalid, with: :show_record_errors
       #
-      #     rescue_from "MyApp::BaseError" do |exception|
-      #       redirect_to root_url, alert: exception.message
+      #   rescue_from "MyApp::BaseError" do |exception|
+      #     redirect_to root_url, alert: exception.message
+      #   end
+      #
+      #   private
+      #     def deny_access
+      #       head :forbidden
       #     end
       #
-      #     private
-      #       def deny_access
-      #         head :forbidden
-      #       end
-      #
-      #       def show_record_errors(exception)
-      #         redirect_back_or_to root_url, alert: exception.record.errors.full_messages.to_sentence
-      #       end
-      #   end
+      #     def show_record_errors(exception)
+      #       redirect_back_or_to root_url, alert: exception.record.errors.full_messages.to_sentence
+      #     end
+      # end
+      # ```
       #
       # Exceptions raised inside exception handlers are not propagated up.
       def rescue_from(*klasses, with: nil, &block)
@@ -69,24 +73,26 @@ module ActiveSupport
           end
 
           # Put the new handler at the end because the list is read in reverse.
-          self.rescue_handlers += [[key, with]]
+          self.rescue_handlers = [*rescue_handlers, [key, with].freeze].freeze
         end
       end
 
       # Matches an exception to a handler based on the exception class.
       #
       # If no handler matches the exception, check for a handler matching the
-      # (optional) +exception.cause+. If no handler matches the exception or its
-      # cause, this returns +nil+, so you can deal with unhandled exceptions.
+      # (optional) `exception.cause`. If no handler matches the exception or its
+      # cause, this returns `nil`, so you can deal with unhandled exceptions.
       # Be sure to re-raise unhandled exceptions if this is what you expect.
       #
-      #     begin
-      #       # ...
-      #     rescue => exception
-      #       rescue_with_handler(exception) || raise
-      #     end
+      # ```
+      # begin
+      #   # ...
+      # rescue => exception
+      #   rescue_with_handler(exception) || raise
+      # end
+      # ```
       #
-      # Returns the exception if it was handled and +nil+ if it was not.
+      # Returns the exception if it was handled and `nil` if it was not.
       def rescue_with_handler(exception, object: self, visited_exceptions: [])
         visited_exceptions << exception
 
@@ -142,13 +148,15 @@ module ActiveSupport
             begin
               # Try a lexical lookup first since we support
               #
-              #     class Super
-              #       rescue_from 'Error', with: …
-              #     end
+              # ```
+              # class Super
+              #   rescue_from 'Error', with: …
+              # end
               #
-              #     class Sub
-              #       class Error < StandardError; end
-              #     end
+              # class Sub
+              #   class Error < StandardError; end
+              # end
+              # ```
               #
               # so an Error raised in Sub will hit the 'Error' handler.
               const_get class_or_name
@@ -162,7 +170,7 @@ module ActiveSupport
     end
 
     # Delegates to the class method, but uses the instance as the subject for
-    # rescue_from handlers (method calls, +instance_exec+ blocks).
+    # rescue_from handlers (method calls, `instance_exec` blocks).
     def rescue_with_handler(exception)
       self.class.rescue_with_handler exception, object: self
     end

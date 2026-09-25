@@ -3,6 +3,8 @@
 require "fileutils"
 require "abstract_unit"
 require "lib/controller/fake_models"
+require "active_support/testing/ractors_assertions"
+require "active_support/core_ext/object/with"
 
 CACHE_DIR = "test_cache"
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
@@ -343,6 +345,8 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
 end
 
 class ViewCacheDependencyTest < ActionController::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   class NoDependenciesController < ActionController::Base
   end
 
@@ -357,6 +361,16 @@ class ViewCacheDependencyTest < ActionController::TestCase
 
   def test_view_cache_dependencies_are_listed_in_declaration_order
     assert_equal %w(trombone flute), HasDependenciesController.new.view_cache_dependencies
+  end
+
+  def test_view_cache_dependencies_are_ractor_safe
+    ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+      controller = Class.new(ActionController::Base) do
+        view_cache_dependency { "foo" }
+      end
+
+      assert_ractor_shareable controller._view_cache_dependencies
+    end
   end
 end
 
@@ -414,7 +428,7 @@ class CollectionCacheTest < ActionController::TestCase
 
     get :index_ordered
     assert_equal 3, @controller.partial_rendered_times
-    assert_select ":root", html: "<body><p>david, 1\n  david, 2\n  david, 3\n\n</p></body>"
+    assert_select ":root", /david, 1\s+david, 2\s+david, 3/
   end
 
   def test_explicit_render_call_with_options
