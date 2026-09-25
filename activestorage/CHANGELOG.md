@@ -1,3 +1,15 @@
+*   Don't raise when previewing a video blob that has no video stream.
+
+    An audio-only file with a `video/*` content type (e.g. an `.mp4` containing
+    only an audio track) raised `ActiveStorage::PreviewError` because FFmpeg
+    can't extract a frame from a container without a video stream. The
+    `VideoPreviewer` now detects this with `ffprobe`, as `VideoAnalyzer` does,
+    and produces no preview instead of raising.
+
+    Fixes #54301.
+
+    *Augusto Xavier*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.
@@ -48,8 +60,8 @@
     config.active_storage.ffprobe_arguments = "-codec_whitelist h264,aac"
     ```
 
-    `ffprobe_arguments` applies to both `ActiveStorage::Analyzer::VideoAnalyzer` and
-    `ActiveStorage::Analyzer::AudioAnalyzer`.
+    `ffprobe_arguments` applies to `ActiveStorage::Analyzer::VideoAnalyzer`,
+    `ActiveStorage::Analyzer::AudioAnalyzer`, and `ActiveStorage::Previewer::VideoPreviewer`.
 
     *Mike Dalessio*
 
