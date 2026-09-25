@@ -1,3 +1,29 @@
+*   Allow variants of blobs the image processor cannot transform.
+
+    Transformers registered in `config.active_storage.transformers` are asked whether they accept
+    a blob, the way previewers already are. A blob accepted by one is variable, so `variant` and
+    `representation` work for media types that are not images. Such a variant defaults to the
+    blob's own format rather than to PNG.
+
+        class AudioTransformer < ActiveStorage::Transformers::Transformer
+          def self.accept?(blob)
+            blob.content_type.start_with?("audio/")
+          end
+
+          private
+            def process(file, format:)
+              # ...
+            end
+        end
+
+        config.active_storage.transformers = [ AudioTransformer ]
+
+    Images are unaffected: they remain governed by `ActiveStorage.variable_content_types` and the
+    transformer configured by `config.active_storage.variant_processor`, which also stays in use
+    for any blob the registered transformers do not accept.
+
+    *Julian Rubisch*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.
