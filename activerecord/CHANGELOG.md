@@ -1,3 +1,8 @@
+*   Fix grouped relation cache versions to count every group and use the newest
+    grouped timestamp.
+
+    *Ousama Benyounes*
+
 *   Make `db:schema:load` work with MySQL client 9.4 and later.
 
     From 9.4.0 on, the client by default passes the `SOURCE` command to the
