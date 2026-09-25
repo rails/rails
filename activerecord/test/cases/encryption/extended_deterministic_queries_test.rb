@@ -95,4 +95,18 @@ class ActiveRecord::Encryption::ExtendedDeterministicQueriesTest < ActiveRecord:
       assert EncryptedBookWithUnencryptedDataOptedIn.where("id > 0").find_by(name: "Dune") # relation
     end
   end
+
+  test "Finds unencrypted data when the attribute is also normalized" do
+    UnencryptedBook.create! name: "dune"
+    assert EncryptedBookWithNormalizedDeterministicName.find_by(name: " Dune ") # core
+    assert EncryptedBookWithNormalizedDeterministicName.where("id > 0").find_by(name: " Dune ") # relation
+    assert EncryptedBookWithNormalizedDeterministicName.exists?(name: " Dune ")
+  end
+
+  test "Finds data encrypted with a previous scheme when the attribute is also normalized" do
+    EncryptedBookWithRetiredKey.create! name: "dune"
+    assert EncryptedBookWithRotatedKeyAndNormalizedName.find_by(name: " Dune ") # core
+    assert EncryptedBookWithRotatedKeyAndNormalizedName.where("id > 0").find_by(name: " Dune ") # relation
+    assert EncryptedBookWithRotatedKeyAndNormalizedName.exists?(name: " Dune ")
+  end
 end

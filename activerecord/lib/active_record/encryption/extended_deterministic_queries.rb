@@ -27,7 +27,12 @@ module ActiveRecord
         # as it's invoked (so that the proper prepared statement is cached).
         ActiveRecord::Relation.prepend(RelationQueries)
         ActiveRecord::Base.include(CoreQueries)
+        install_additional_value_support
+      end
+
+      def self.install_additional_value_support # :nodoc:
         ActiveRecord::Encryption::EncryptedAttributeType.prepend(ExtendedEncryptableType)
+        ActiveModel::Attributes::Normalization::NormalizedValueType.prepend(ExtendedNormalizedType)
       end
 
       # @TODO We will extend this to support previous "encryption context" versions in future iterations
@@ -83,6 +88,8 @@ module ActiveRecord
             end
 
             def additional_values_for(value, type)
+              # Cast first so that the value is normalized, like the one queried with the current scheme.
+              value = type.cast(value)
               type.previous_types.collect do |additional_type|
                 AdditionalValue.new(value, additional_type)
               end
@@ -145,6 +152,20 @@ module ActiveRecord
         def serialize(data)
           if data.is_a?(AdditionalValue)
             data.value
+          else
+            super
+          end
+        end
+      end
+
+      # Attributes declared with +normalizes+ wrap the encrypted type. Without this, the AdditionalValue
+      # would be cast to a string and normalized before reaching the encrypted type, which would then
+      # encrypt the result. Overriding +serialize+ instead would disable the +serialize_cast_value+
+      # optimization, making records normalize their values twice when saved.
+      module ExtendedNormalizedType
+        def cast(value)
+          if value.is_a?(AdditionalValue)
+            value
           else
             super
           end
