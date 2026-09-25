@@ -29,9 +29,10 @@ mobile apps and other integrations.
 
 [Basecamp](https://github.com/basecamp/bc3-api) is a good example of the former
 approach where HTML is used for web browsers, but a JSON API is also provided
-for external software integrations. [X](https://x.com) uses the latter approach
-in its web application which is built using a frontend that consumes JSON
-resources from an internal API.
+for external software integrations. Certain parts of
+[Shopify](https://shopify.dev/docs/api/storefront/latest)
+uses the latter approach in where a frontend framework consumes JSON resources
+from an API.
 
 This guide covers Rails' support for building an API application without any
 HTML rendering or browser-related features.
