@@ -1,3 +1,18 @@
+*   Fix variants being re-processed on every request when a `format` is given as a Symbol.
+
+    A variation's digest is derived from `Marshal.dump`, which encodes `format: :webp` (as kept
+    in memory for named variants) differently from the `"webp"` the JSON message serializer
+    returns when decoding a signed variation key. The variant was stored under one digest and
+    looked up under another, so it was re-processed on every request. The `format` is now
+    normalized to a UTF-8 String and both forms resolve to the same variant.
+
+    Applications still using the Marshal message serializer (`load_defaults` below 7.1) will
+    reprocess variants with an explicit `format:` once.
+
+    Fixes #57302.
+
+    *Hans Canonico*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.
