@@ -1,3 +1,11 @@
+*   Add group and step filtering to `ActiveSupport::ContinuousIntegration`.
+
+    Use `bin/ci --group NAME` (`-g`) to run a named group or
+    `bin/ci --step NAME` (`-s`) to run a named step. Names match exactly and
+    case-insensitively. Use `bin/ci --help` (`-h`) to see all options.
+
+    *Thibaud Guillaume-Gentil*
+
 *   Add `Manitoba` to `ActiveSupport::TimeZone::MAPPING`.
 
     Manitoba no longer shares winter clocks with US Central time. The existing
