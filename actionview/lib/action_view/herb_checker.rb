@@ -3,6 +3,7 @@
 # :markup: markdown
 
 require "action_view/template/handlers/erb/herb"
+require "herb/engine/validators/security_validator"
 
 module ActionView
   class HerbChecker # :nodoc:
@@ -20,9 +21,10 @@ module ActionView
 
         unbound_templates.filter_map { |unbound|
           template = unbound.bind_locals([])
+          visitors = [::Herb::Engine::Validators::SecurityValidator.new]
 
           begin
-            handler.call(template, template.source, implementation: Template::Handlers::ERB::Herb, validate_ruby: true)
+            handler.call(template, template.source, implementation: Template::Handlers::ERB::Herb, validate_ruby: true, visitors: visitors)
             nil
           rescue ::Herb::Engine::CompilationError, ::Herb::Engine::SecurityError => error
             Failure.new(template, error)
