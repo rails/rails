@@ -12,6 +12,7 @@ module ActionCable
     # established against your application. Instead, use RemoteConnections for that.
     module Connections # :nodoc:
       BEAT_INTERVAL = 3
+      PONG_TIMEOUT = BEAT_INTERVAL * 2
 
       def connections = connections_map.values
 

@@ -70,10 +70,12 @@ module ActionCable
       unauthorized: "unauthorized",
       invalid_request: "invalid_request",
       server_restart: "server_restart",
-      remote: "remote"
+      remote: "remote",
+      no_pong: "no_pong"
     },
     default_mount_path: "/cable",
-    protocols: ["actioncable-v1-json", "actioncable-unsupported"].freeze
+    protocols: ["actioncable-v1-json", "actioncable-unsupported"].freeze,
+    extensions: { pong: "actioncable-ext-pong" }.freeze
   }.freeze
 
   # Singleton instance of the server
