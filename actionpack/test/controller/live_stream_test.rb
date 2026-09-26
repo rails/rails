@@ -220,6 +220,7 @@ module ActionController
 
       def thread_locals
         tc.assert_equal "aaron", Thread.current[:setting]
+        tc.assert_equal "aaron", Thread.current.thread_variable_get(:setting)
 
         response.headers["Content-Type"] = "text/event-stream"
         %w{ hello world }.each do |word|
@@ -230,6 +231,7 @@ module ActionController
 
       def no_thread_locals
         tc.assert_nil Thread.current[:setting]
+        tc.assert_nil Thread.current.thread_variable_get(:setting)
 
         response.headers["Content-Type"] = "text/event-stream"
         %w{ hello world }.each do |word|
@@ -534,6 +536,8 @@ module ActionController
       @controller.tc = self
       Thread.current[:originating_thread] = Thread.current.object_id
       Thread.current[:setting]            = "aaron"
+      Thread.current.thread_variable_set(:originating_thread, Thread.current.object_id)
+      Thread.current.thread_variable_set(:setting, "aaron")
 
       get :thread_locals
     end
@@ -552,10 +556,13 @@ module ActionController
 
       Thread.current[:originating_thread] = Thread.current.object_id
       Thread.current[:setting]            = "aaron"
+      Thread.current.thread_variable_set(:originating_thread, Thread.current.object_id)
+      Thread.current.thread_variable_set(:setting, "aaron")
 
       get :thread_locals
 
       Thread.current[:setting] = nil
+      Thread.current.thread_variable_set(:setting, nil)
 
       get :no_thread_locals
     end
@@ -732,10 +739,12 @@ module ActionController
 
     def test_thread_locals_do_not_get_reset_in_test_environment
       Thread.current[:setting] = "aaron"
+      Thread.current.thread_variable_set(:setting, "aaron")
 
       get :greet
 
       assert_equal "aaron", Thread.current[:setting]
+      assert_equal "aaron", Thread.current.thread_variable_get(:setting)
     end
 
     def test_isolated_state_does_not_get_reset_in_test_environment
