@@ -598,7 +598,7 @@ module ActiveRecord
         #
         # This stores a path in a tree-like label hierarchy.
         #
-        # 🔗 See also: {PostgreSQL ltree documentation}[https://www.postgresql.org/docs/current/ltree.html]
+        # See also: {PostgreSQL ltree documentation}[https://www.postgresql.org/docs/current/ltree.html]
 
         ##
         # :method: macaddr
