@@ -761,7 +761,7 @@ module ActiveRecord
         #     self.datetime_type = :timestamptz
         #   end
         #
-        # 🔗 See also: {PostgreSQL Date/Time Types}[https://www.postgresql.org/docs/current/datatype-datetime.html]
+        # See also: {PostgreSQL Date/Time Types}[https://www.postgresql.org/docs/current/datatype-datetime.html]
 
         ##
         # :method: tsrange
