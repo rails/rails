@@ -1453,12 +1453,12 @@ Define the security policy in the appropriate initializer:
 ```ruby
 # config/initializers/content_security_policy.rb
 Rails.application.config.content_security_policy do |policy|
-  policy.default_src :self, :https
-  policy.font_src    :self, :https, :data
-  policy.img_src     :self, :https, :data
+  policy.default_src :self
+  policy.font_src    :self, :data
+  policy.img_src     :self, :data
   policy.object_src  :none
-  policy.script_src  :self, :https
-  policy.style_src   :self, :https
+  policy.script_src  :self
+  policy.style_src   :self
   # Specify URI for violation reports
   policy.report_uri "/csp-violation-report-endpoint"
 end
@@ -1535,7 +1535,7 @@ of existing code.
 ```ruby
 # config/initializers/content_security_policy.rb
 Rails.application.config.content_security_policy do |policy|
-  policy.script_src :self, :https
+  policy.script_src :self
 end
 
 Rails.application.config.content_security_policy_nonce_generator = -> request { SecureRandom.base64(16) }
