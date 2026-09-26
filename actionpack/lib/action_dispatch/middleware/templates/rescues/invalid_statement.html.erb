@@ -9,6 +9,7 @@
 </header>
 
 <main role="main" id="container">
+  <%= render "rescues/ai_prompt" %>
   <h2>
     <%= h @exception.message %>
     <% if defined?(ActionText) && @exception.message.match?(%r{#{ActionText::RichText.table_name}}) %>
