@@ -1,3 +1,43 @@
+*   Do not dump PostgreSQL tables, enum types and schemas that belong to an
+    extension.
+
+    Tables, enum types and schemas created by `CREATE EXTENSION`, such as
+    `spatial_ref_sys` of PostGIS, `part_config` of pg_partman or the `citus`
+    schema of Citus, are recorded in `pg_depend` as members of the extension
+    (`deptype = 'e'`): `CREATE EXTENSION` creates them, `DROP EXTENSION` drops
+    them, and PostgreSQL refuses to drop or recreate them on their own.
+    Listing them in `db/schema.rb` therefore made the file impossible to load,
+    while `enable_extension` alone already brings them back, as
+    `CREATE EXTENSION` does in `structure.sql`. Objects an application attaches
+    to an extension itself with `ALTER EXTENSION ... ADD` are left out too, as
+    `pg_dump` leaves them out.
+
+    Before:
+
+    ```ruby
+    enable_extension "postgis"
+
+    create_table "posts", force: :cascade do |t|
+      ...
+    end
+
+    create_table "spatial_ref_sys", primary_key: "srid", id: :integer, default: nil, force: :cascade do |t|
+      ...
+    end
+    ```
+
+    After:
+
+    ```ruby
+    enable_extension "postgis"
+
+    create_table "posts", force: :cascade do |t|
+      ...
+    end
+    ```
+
+    *Yasuo Honda*
+
 *   Do not schema-qualify PostgreSQL extensions whose control file fixes their
     schema, nor tables and enum types in the current schema, when dumping
     `db/schema.rb`.

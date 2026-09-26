@@ -148,6 +148,36 @@ module ActiveRecord
           query_value("SELECT datctype FROM pg_database WHERE datname = current_database()")
         end
 
+        # Returns the names of the tables, enum types and schemas that are
+        # member objects of extensions, as +[kind, name]+ pairs with kind
+        # "table", "enum" or "schema". Table and enum names are
+        # schema-qualified.
+        def extension_member_objects # :nodoc:
+          query_all(<<~SQL).cast_values
+            SELECT 'schema', n.nspname::text
+              FROM pg_depend d
+              JOIN pg_namespace n ON d.classid = 'pg_namespace'::regclass AND d.objid = n.oid
+             WHERE d.refclassid = 'pg_extension'::regclass
+               AND d.deptype = 'e'
+            UNION ALL
+            SELECT 'table', n.nspname || '.' || c.relname
+              FROM pg_depend d
+              JOIN pg_class c ON d.classid = 'pg_class'::regclass AND d.objid = c.oid
+              JOIN pg_namespace n ON c.relnamespace = n.oid
+             WHERE d.refclassid = 'pg_extension'::regclass
+               AND d.deptype = 'e'
+               AND c.relkind IN ('r', 'p')
+            UNION ALL
+            SELECT 'enum', n.nspname || '.' || t.typname
+              FROM pg_depend d
+              JOIN pg_type t ON d.classid = 'pg_type'::regclass AND d.objid = t.oid
+              JOIN pg_namespace n ON t.typnamespace = n.oid
+             WHERE d.refclassid = 'pg_extension'::regclass
+               AND d.deptype = 'e'
+               AND t.typtype = 'e'
+          SQL
+        end
+
         # Returns an array of schema names.
         def schema_names
           query_values(<<~SQL)
