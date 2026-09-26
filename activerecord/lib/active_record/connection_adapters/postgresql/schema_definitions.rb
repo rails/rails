@@ -620,7 +620,7 @@ module ActiveRecord
         #   device.address
         #   # => "32:01:16:6d:05:ef"
         #
-        # 🔗 See also: {Ruby IPAddr documentation}[https://docs.ruby-lang.org/en/master/IPAddr.html]
+        # See also: {Ruby IPAddr documentation}[https://docs.ruby-lang.org/en/master/IPAddr.html]
 
         ##
         # :method: money
