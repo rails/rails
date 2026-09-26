@@ -122,7 +122,7 @@ module ActionDispatch
         end
 
         def cookie_jar(request)
-          request.cookie_jar.signed_or_encrypted
+          request.cookie_jar.encrypted
         end
     end
   end
