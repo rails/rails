@@ -191,7 +191,7 @@ module ActiveRecord
         #   device.network
         #   # => #<IPAddr: IPv4:192.168.0.0/255.255.255.0>
         #
-        # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/datatype-net-types.html]
+        # See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/datatype-net-types.html]
 
         ##
         # :method: circle
