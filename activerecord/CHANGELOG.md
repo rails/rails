@@ -1,3 +1,13 @@
+*   Treat `false` as disabled for `idle_timeout`, `reaping_frequency` and `max_age`
+    in `database.yml`.
+
+    These options raised `NoMethodError` on boot when set to `false`, which YAML
+    also produces for `off` and `no`. `false` now disables them, like the
+    documented `0`. `idle_timeout` additionally accepts `true` for its default,
+    since unlike the other two it has one.
+
+    *Carlos Daniel Pohlod*
+
 *   Do not schema-qualify PostgreSQL extensions whose control file fixes their
     schema, nor tables and enum types in the current schema, when dumping
     `db/schema.rb`.
