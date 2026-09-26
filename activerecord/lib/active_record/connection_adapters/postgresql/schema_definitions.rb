@@ -538,7 +538,7 @@ module ActiveRecord
         #
         # **Tip:** Use +store_accessor+ to define typed accessors on +jsonb+ columns.
         #
-        # 🔗 See also: {PostgreSQL JSON/JSONB type definition}[https://www.postgresql.org/docs/current/static/datatype-json.html] and {PostgreSQL JSON functions and operators}[https://www.postgresql.org/docs/current/static/functions-json.html]
+        # See also: {PostgreSQL JSON/JSONB type definition}[https://www.postgresql.org/docs/current/static/datatype-json.html] and {PostgreSQL JSON functions and operators}[https://www.postgresql.org/docs/current/static/functions-json.html]
 
         ##
         # :method: line
