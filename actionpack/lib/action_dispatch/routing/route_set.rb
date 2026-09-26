@@ -910,7 +910,10 @@ module ActionDispatch
 
       def recognize_path(path, environment = {})
         method = (environment[:method] || "GET").to_s.upcase
-        path = Journey::Router::Utils.normalize_path(path) unless path&.include?("://")
+
+        raise TypeError, "path must be a String or Symbol" if path && !(path.is_a?(String) || path.is_a?(Symbol))
+
+        path = Journey::Router::Utils.normalize_path(path) unless path&.to_s&.include?("://")
         extras = environment[:extras] || {}
 
         begin
