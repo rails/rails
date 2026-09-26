@@ -757,7 +757,6 @@ module ActionView
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
-      # * <tt>:include_seconds</tt> - Include seconds and ms in the output timestamp format (true by default).
       #
       # ==== Examples
       #
@@ -769,9 +768,6 @@ module ActionView
       #
       #   time_field_tag 'time', nil, class: 'special_input'
       #   # => <input class="special_input" id="time" name="time" type="time" />
-      #
-      #   time_field_tag 'time', '01:01', include_seconds: true
-      #   # => <input id="time" name="time" type="time" value="01:01:00.000" />
       #
       #   time_field_tag 'time', '01:01', min: '00:00', max: '23:59', step: 1
       #   # => <input id="time" max="23:59" min="00:00" name="time" step="1" type="time" value="01:01" />
@@ -788,7 +784,6 @@ module ActionView
       # * <tt>:min</tt> - The minimum acceptable value.
       # * <tt>:max</tt> - The maximum acceptable value.
       # * <tt>:step</tt> - The acceptable value granularity.
-      # * <tt>:include_seconds</tt> - Include seconds in the output timestamp format (true by default).
       #
       # ==== Examples
       #
@@ -973,11 +968,11 @@ module ActionView
       #   range_field_tag 'quantity', '1'
       #   # => <input id="quantity" name="quantity" type="range" value="1" />
       #
-      #   range_field_tag 'quantity', in: 1...10
+      #   range_field_tag 'quantity', nil, in: 1...10
       #   # => <input id="quantity" name="quantity" min="1" max="9" type="range" />
       #
-      #   range_field_tag 'quantity', min: 1, max: 10, step: 2
-      #   # => <input id="quantity" name="quantity" min="1" max="10" step="2" type="range"
+      #   range_field_tag 'quantity', nil, min: 1, max: 10, step: 2
+      #   # => <input id="quantity" name="quantity" min="1" max="10" step="2" type="range" />
       def range_field_tag(name, value = nil, options = {})
         number_field_tag(name, value, options.merge(type: :range))
       end
