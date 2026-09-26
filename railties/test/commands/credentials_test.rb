@@ -368,7 +368,7 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
   end
 
   private
-    DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: \h{128}\n/m
+    DEFAULT_CREDENTIALS_PATTERN = /access_key_id: 123\n.*secret_key_base: [a-zA-Z0-9]{128}\n/m
 
     def run_edit_command(visual: "cat", editor: "cat", environment: nil, **options)
       switch_env("VISUAL", visual) do
