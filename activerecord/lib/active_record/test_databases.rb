@@ -24,10 +24,11 @@ module ActiveRecord
       old, ENV["VERBOSE"] = ENV["VERBOSE"], "false"
 
       ActiveRecord::Base.configurations.configs_for(env_name: env_name, include_hidden: true).each do |db_config|
-        db_config._database = "#{db_config.database}_#{i}"
-
         if db_config.database_tasks?
+          db_config._database = "#{db_config.database}_#{i}"
           ActiveRecord::Tasks::DatabaseTasks.reconstruct_from_schema(db_config, nil)
+        elsif db_config.replica?
+          db_config._database = "#{db_config.database}_#{i}"
         end
       end
     ensure
