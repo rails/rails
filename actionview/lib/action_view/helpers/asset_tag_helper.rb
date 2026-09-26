@@ -347,7 +347,7 @@ module ActionView
       #   # => <link rel="preload" href="/assets/custom_theme.css" as="style" type="text/css" />
       #
       #   preload_link_tag("/videos/video.webm")
-      #   # => <link rel="preload" href="/videos/video.mp4" as="video" type="video/webm" />
+      #   # => <link rel="preload" href="/videos/video.webm" as="video" type="video/webm" />
       #
       #   preload_link_tag(post_path(format: :json), as: "fetch")
       #   # => <link rel="preload" href="/posts.json" as="fetch" type="application/json" />
@@ -497,11 +497,11 @@ module ActionView
       #   picture_tag("gold.png", :image => { :size => "45x70" })
       #   # => <picture><img height="70" src="/images/gold.png" width="45" /></picture>
       #   picture_tag("picture.webp", "picture.png")
-      #   # => <picture><source srcset="/images/picture.webp" /><source srcset="/images/picture.png" /><img src="/images/picture.png" /></picture>
+      #   # => <picture><source srcset="/images/picture.webp" type="image/webp" /><source srcset="/images/picture.png" type="image/png" /><img src="/images/picture.png" /></picture>
       #   picture_tag("picture.webp", "picture.png", :image => { alt: "Image" })
-      #   # => <picture><source srcset="/images/picture.webp" /><source srcset="/images/picture.png" /><img alt="Image" src="/images/picture.png" /></picture>
+      #   # => <picture><source srcset="/images/picture.webp" type="image/webp" /><source srcset="/images/picture.png" type="image/png" /><img alt="Image" src="/images/picture.png" /></picture>
       #   picture_tag(["picture.webp", "picture.png"], :image => { alt: "Image" })
-      #   # => <picture><source srcset="/images/picture.webp" /><source srcset="/images/picture.png" /><img alt="Image" src="/images/picture.png" /></picture>
+      #   # => <picture><source srcset="/images/picture.webp" type="image/webp" /><source srcset="/images/picture.png" type="image/png" /><img alt="Image" src="/images/picture.png" /></picture>
       #   picture_tag(:class => "my-class") { tag(:source, :srcset => image_path("picture.webp")) + image_tag("picture.png", :alt => "Image") }
       #   # => <picture class="my-class"><source srcset="/images/picture.webp" /><img alt="Image" src="/images/picture.png" /></picture>
       #   picture_tag { tag(:source, :srcset => image_path("picture-small.webp"), :media => "(min-width: 600px)") + tag(:source, :srcset => image_path("picture-big.webp")) + image_tag("picture.png", :alt => "Image") }
@@ -563,7 +563,7 @@ module ActionView
       #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png")
       #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="/assets/screenshot.png"></video>
       #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png", poster_skip_pipeline: true)
-      #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="screenshot.png"></video>
+      #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="/images/screenshot.png"></video>
       #   video_tag("/trailers/hd.avi", size: "16x16")
       #   # => <video src="/trailers/hd.avi" width="16" height="16"></video>
       #   video_tag("/trailers/hd.avi", size: "16")
