@@ -110,7 +110,7 @@ module ActiveRecord
 
       def max_age
         case v = configuration_hash[:max_age]
-        when nil, false, true
+        when nil, false
           Float::INFINITY
         else
           v = v.to_i
@@ -140,8 +140,6 @@ module ActiveRecord
         case frequency = configuration_hash.fetch(:reaping_frequency, default_reaping_frequency)
         when nil, false
           nil
-        when true
-          default_reaping_frequency.to_f # default
         else
           frequency.to_f
         end

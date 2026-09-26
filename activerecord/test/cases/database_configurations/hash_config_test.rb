@@ -54,11 +54,6 @@ module ActiveRecord
         assert_equal Float::INFINITY, config.max_age
       end
 
-      def test_max_age_true_uses_default
-        config = HashConfig.new("default_env", "primary", max_age: true, adapter: "abstract")
-        assert_equal Float::INFINITY, config.max_age
-      end
-
       def test_keepalive_default_when_nil
         config = HashConfig.new("default_env", "primary", keepalive: nil, adapter: "abstract")
         assert_equal 600, config.keepalive
@@ -205,11 +200,6 @@ module ActiveRecord
       def test_reaping_frequency_false_disables_it
         config = HashConfig.new("default_env", "primary", reaping_frequency: false, adapter: "abstract")
         assert_nil config.reaping_frequency
-      end
-
-      def test_reaping_frequency_true_uses_default
-        config = HashConfig.new("default_env", "primary", reaping_frequency: true, adapter: "abstract")
-        assert_equal 20.0, config.reaping_frequency
       end
 
       def test_idle_timeout_default_when_nil

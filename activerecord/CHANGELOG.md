@@ -1,8 +1,10 @@
-*   Accept booleans for `idle_timeout`, `reaping_frequency` and `max_age` in `database.yml`.
+*   Treat `false` as disabled for `idle_timeout`, `reaping_frequency` and `max_age`
+    in `database.yml`.
 
-    These options raised `NoMethodError` on boot when set to a boolean, which YAML
-    also produces for `off`/`no` and `on`/`yes`. `false` now disables them, like the
-    documented `0`, and `true` uses the default, matching `keepalive`.
+    These options raised `NoMethodError` on boot when set to `false`, which YAML
+    also produces for `off` and `no`. `false` now disables them, like the
+    documented `0`. `idle_timeout` additionally accepts `true` for its default,
+    since unlike the other two it has one.
 
     *Carlos Daniel Pohlod*
 
