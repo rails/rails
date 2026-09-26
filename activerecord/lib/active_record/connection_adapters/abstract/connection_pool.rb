@@ -109,8 +109,10 @@ module ActiveRecord
     #   300 seconds). Set this to zero to keep connections forever.
     # * +keepalive+: number of seconds between keepalive checks if the
     #   connection has been idle (default 600 seconds).
-    # * +max_age+: number of seconds the pool will allow the connection to
-    #   exist before retiring it at next checkin. (default Float::INFINITY).
+    # * +max_age+: number of seconds before a connection should be recycled (default Float::INFINITY).
+    #   Setting this option does not guarantee that no connection outlives +max_age+:
+    #   The longest any connection can live is roughly +max_age + reaper_frequency + longest_transaction+.
+    #   Connections are checked on release, and periodically by the reaper.
     # * +max_connections+: maximum number of connections the pool may manage (default 5).
     #   Set to +nil+ or -1 for unlimited connections.
     # * +min_connections+: minimum number of connections the pool will open and maintain (default 0).
@@ -658,6 +660,8 @@ module ActiveRecord
         return if @pinned_connection.equal?(conn)
 
         conn.lock.synchronize do
+          conn.disconnect! if conn.retirement_due?(@max_age)
+
           synchronize do
             connection_lease.clear(conn)
             conn.expire
@@ -794,9 +798,9 @@ module ActiveRecord
       end
 
       def retire_old_connections(max_age = @max_age)
-        max_age ||= Float::INFINITY
+        return unless max_age
 
-        sequential_maintenance -> c { c.connection_age&.>= c.pool_jitter(max_age) } do |conn|
+        sequential_maintenance -> c { c.retirement_due?(max_age) } do |conn|
           # Disconnect, then return the adapter to the pool. Preconnect will
           # handle the rest.
           conn.disconnect!
