@@ -28,8 +28,9 @@ import Subscriptions from "./subscriptions"
 // automatically resubscribe.
 
 export default class Consumer {
-  constructor(url) {
+  constructor(url, headers = {}) {
     this._url = url
+    this.headers = headers
     this.subscriptions = new Subscriptions(this)
     this.connection = new Connection(this)
     this.subprotocols = []
