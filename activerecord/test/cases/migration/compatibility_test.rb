@@ -33,8 +33,279 @@ module ActiveRecord
       teardown do
         connection.drop_table :testings rescue nil
         connection.drop_table :compat_tabledef rescue nil
+        connection.drop_table :behavior_tabledef rescue nil
         ActiveRecord::Migration.verbose = @verbose_was
         @schema_migration.delete_all_versions rescue nil
+      end
+
+      def test_behavior_table_definition_module_is_prepended_generically
+        behavior_class = Class.new(ActiveRecord::Migration::CompatibilityBehavior) do
+          const_set(:TableDefinition, Module.new do
+            def column(name, type, **options)
+              super
+              super(:"#{name}_shadow", type, **options) unless name.to_s.end_with?("_shadow")
+            end
+          end)
+        end
+        namespace = Module.new do
+          const_set(:V7_0, behavior_class)
+          extend ActiveRecord::Migration::CompatibilityBehavior::Resolver
+        end
+
+        connection.stub(:compatibility_behavior_for, ->(klass) { namespace.for(klass) }) do
+          migration = Class.new(ActiveRecord::Migration[7.0]) {
+            def migrate(x)
+              create_table(:behavior_tabledef, force: true) { |t| t.string :name }
+            end
+          }.new
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+
+        cols = connection.columns(:behavior_tabledef).map(&:name)
+        assert_includes cols, "name"
+        assert_includes cols, "name_shadow"
+      end
+
+      def test_behavior_table_definition_runs_after_framework_compatibility
+        captured = nil
+        table_definition = Module.new do
+          define_method(:column) do |name, type, **options|
+            captured = options.dup
+            super(name, type, **options)
+          end
+        end
+        behavior_class = Class.new(ActiveRecord::Migration::CompatibilityBehavior)
+        behavior_class.const_set(:TableDefinition, table_definition)
+        namespace = Module.new do
+          const_set(:V7_0, behavior_class)
+          extend ActiveRecord::Migration::CompatibilityBehavior::Resolver
+        end
+
+        connection.stub(:compatibility_behavior_for, ->(klass) { namespace.for(klass) }) do
+          migration = Class.new(ActiveRecord::Migration[7.0]) {
+            def migrate(x)
+              create_table(:behavior_tabledef, force: true) { |t| t.string :name }
+            end
+          }.new
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+
+        assert captured[:_skip_validate_options]
+      end
+
+      def test_third_party_resolver_derives_version_mapping
+        namespace = Module.new do
+          const_set(:V7_0, Class.new(ActiveRecord::Migration::CompatibilityBehavior))
+          const_set(:V6_1, Class.new(const_get(:V7_0)))
+          extend ActiveRecord::Migration::CompatibilityBehavior::Resolver
+        end
+
+        assert_same namespace::V7_0, namespace.for(ActiveRecord::Migration[7.0])
+        assert_same namespace::V6_1, namespace.for(ActiveRecord::Migration[6.1])
+        assert_same namespace::V6_1, namespace.for(ActiveRecord::Migration[5.2])
+        assert_same ActiveRecord::Migration::CompatibilityBehavior, namespace.for(ActiveRecord::Migration[7.1])
+      end
+
+      def test_behavior_base_strips_the_injected_default_marker
+        captured = nil
+        migration = Object.new
+        migration.define_singleton_method(:execute_operation) do |method, *args, **options|
+          captured = [method, args, options]
+        end
+
+        behavior = ActiveRecord::Migration::CompatibilityBehavior.new(migration)
+        behavior.create_table(:testings, id: :bigint, default: nil, _compat_injected_default: true)
+
+        assert_equal [:create_table, [:testings], { id: :bigint, default: nil }], captured
+      end
+
+      def test_behavior_table_definition_coerces_datetime_on_postgresql
+        skip unless current_adapter?(:PostgreSQLAdapter)
+
+        # With datetime_type switched, an uncoerced :datetime would become
+        # timestamptz — so this fails if the behavior's V6_1::TableDefinition
+        # module stops being prepended or stops coercing.
+        with_postgresql_datetime_type(:timestamptz) do
+          migration = Class.new(ActiveRecord::Migration[6.1]) {
+            def migrate(x)
+              create_table(:behavior_tabledef, force: true) { |t| t.datetime :published_at }
+            end
+          }.new
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+
+          column = connection.columns(:behavior_tabledef).find { |c| c.name == "published_at" }
+          assert_match(/without time zone/, column.sql_type)
+        end
+      end
+
+      def test_third_party_behavior_subclasses_and_inherits
+        skip unless current_adapter?(:PostgreSQLAdapter)
+
+        third_party_v7_0 = Class.new(ActiveRecord::ConnectionAdapters::PostgreSQL::CompatibilityBehavior::V7_0) do
+          def disable_extension(name, **options)
+            options[:custom_marker] = true
+            super
+          end
+        end
+        captured = nil
+        fake_migration = Class.new {
+          define_method(:execute_operation) { |method, *args, **options| captured = [method, args, options] }
+        }.new
+        behavior = third_party_v7_0.new(fake_migration)
+
+        behavior.disable_extension("some_ext")
+        assert_equal :disable_extension, captured[0]
+        assert captured[2][:custom_marker]
+        assert_equal :cascade, captured[2][:force]
+
+        behavior.add_foreign_key("a", "b", deferrable: true)
+        assert_equal :add_foreign_key, captured[0]
+        assert_equal :immediate, captured[2][:deferrable]
+      end
+
+      def test_adapter_subclass_inherits_bundled_behaviors
+        skip unless current_adapter?(:PostgreSQLAdapter)
+
+        adapter_class = Class.new(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter) do
+          const_set(:ADAPTER_NAME, "PostgreSQLFork")
+        end
+        subclass_connection = adapter_class.new(ActiveRecord::Base.connection_db_config.configuration_hash)
+        begin
+          with_postgresql_datetime_type(:timestamptz) do
+            migration = Class.new(ActiveRecord::Migration[6.1]) {
+              def up
+                create_table(:behavior_tabledef, force: true) { |t| t.datetime :published_at }
+              end
+            }.new
+            migration.exec_migration(subclass_connection, :up)
+          end
+
+          column = connection.columns(:behavior_tabledef).find { |c| c.name == "published_at" }
+          assert_match(/without time zone/, column.sql_type)
+        ensure
+          subclass_connection.disconnect!
+        end
+      end
+
+      def test_verbose_output_shows_executed_arguments
+        behavior_class = Class.new(ActiveRecord::Migration::CompatibilityBehavior) do
+          def add_column(table_name, column_name, type, **options)
+            options[:null] = false
+            super
+          end
+        end
+        namespace = Module.new do
+          const_set(:V7_0, behavior_class)
+          extend ActiveRecord::Migration::CompatibilityBehavior::Resolver
+        end
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def migrate(x)
+            add_column :testings, :extra, :string
+          end
+        }.new
+
+        output = capture(:stdout) do
+          ActiveRecord::Migration.verbose = true
+          connection.stub(:compatibility_behavior_for, ->(klass) { namespace.for(klass) }) do
+            ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+          end
+        ensure
+          ActiveRecord::Migration.verbose = false
+        end
+
+        assert_match(/add_column\(:testings, :extra, :string, \{:?null(: |=>)false\}\)/, output)
+        assert connection.column_exists?(:testings, :extra, null: false)
+      end
+
+      def test_behavior_table_definition_modules_resolve_oldest_version_first
+        order = []
+        v7_0 = Class.new(ActiveRecord::Migration::CompatibilityBehavior)
+        v7_0.const_set(:TableDefinition, Module.new do
+          define_method(:column) do |name, type, **options|
+            order << :v7_0
+            super(name, type, **options)
+          end
+        end)
+        v6_1 = Class.new(v7_0)
+        v6_1.const_set(:TableDefinition, Module.new do
+          define_method(:column) do |name, type, **options|
+            order << [:v6_1, options.key?(:_skip_validate_options)]
+            super(name, type, **options)
+          end
+        end)
+        namespace = Module.new do
+          const_set(:V7_0, v7_0)
+          const_set(:V6_1, v6_1)
+          extend ActiveRecord::Migration::CompatibilityBehavior::Resolver
+        end
+
+        connection.stub(:compatibility_behavior_for, ->(klass) { namespace.for(klass) }) do
+          migration = Class.new(ActiveRecord::Migration[6.1]) {
+            def migrate(x)
+              create_table(:behavior_tabledef, force: true) { |t| t.string :name }
+            end
+          }.new
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+
+        # The framework's V7_0 module has already run (its marker is present)
+        # when the oldest behavior module runs; the newer behavior module
+        # runs last, as `super` from V6_1 reaches V7_0.
+        assert_equal [[:v6_1, true], :v7_0], order
+      end
+
+      def test_migration_without_behavior_hook_uses_base_behavior
+        migration = ActiveRecord::Migration[7.0].new
+        migration.instance_variable_set(:@connection, Object.new)
+
+        assert_instance_of ActiveRecord::Migration::CompatibilityBehavior, migration.compatibility_behavior
+      end
+
+      def test_compatibility_behavior_is_resolved_per_exec_migration
+        namespace = Module.new do
+          const_set(:V7_0, Class.new(ActiveRecord::Migration::CompatibilityBehavior))
+          extend ActiveRecord::Migration::CompatibilityBehavior::Resolver
+        end
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          attr_reader :seen
+          def up
+            @seen = compatibility_behavior.class
+          end
+        }.new
+
+        connection.stub(:compatibility_behavior_for, ->(klass) { namespace.for(klass) }) do
+          migration.exec_migration(connection, :up)
+        end
+        assert_same namespace::V7_0, migration.seen
+
+        migration.exec_migration(connection, :up)
+        assert_same connection.compatibility_behavior_for(ActiveRecord::Migration[7.0]), migration.seen
+      end
+
+      def test_behavior_override_of_aliased_operation_applies_through_the_alias
+        behavior_class = Class.new(ActiveRecord::Migration::CompatibilityBehavior) do
+          def add_reference(table_name, ref_name, **options)
+            options[:null] = false
+            super
+          end
+          alias :add_belongs_to :add_reference
+        end
+        namespace = Module.new do
+          const_set(:V8_0, behavior_class)
+          extend ActiveRecord::Migration::CompatibilityBehavior::Resolver
+        end
+
+        connection.stub(:compatibility_behavior_for, ->(klass) { namespace.for(klass) }) do
+          migration = Class.new(ActiveRecord::Migration[8.0]) {
+            def migrate(x)
+              add_belongs_to :testings, :thing
+            end
+          }.new
+          ActiveRecord::Migrator.new(:up, [migration], @schema_migration, @internal_metadata).migrate
+        end
+
+        assert connection.column_exists?(:testings, :thing_id, null: false)
       end
 
       def test_verbose_output_shows_table_names_as_written_with_prefix
@@ -1555,6 +1826,20 @@ module LegacyPrimaryKeyTestCases
 
         schema = dump_table_schema "legacy_primary_keys"
         assert_match %r{create_table "legacy_primary_keys", (?!id: :bigint, default: nil)}, schema
+      end
+
+      def test_legacy_bigint_primary_key_with_explicit_nil_default_should_not_be_auto_incremented
+        @migration = Class.new(migration_class) {
+          def change
+            create_table :legacy_primary_keys, id: :bigint, default: nil
+          end
+        }.new
+
+        @migration.migrate(:up)
+
+        legacy_pk = LegacyPrimaryKey.columns_hash["id"]
+        assert_predicate legacy_pk, :bigint?
+        assert_not legacy_pk.auto_increment?
       end
     else
       def test_legacy_bigint_primary_key_should_not_be_auto_incremented
