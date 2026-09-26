@@ -407,7 +407,7 @@ module ActiveRecord
         #
         #   Profile.where("settings -> 'color' = ?", "yellow")
         #
-        # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/hstore.html] and {Hstore functions and operators}[https://www.postgresql.org/docs/current/static/hstore.html#id-1.11.7.26.5]
+        # See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/hstore.html] and {Hstore functions and operators}[https://www.postgresql.org/docs/current/static/hstore.html#id-1.11.7.26.5]
         #
         # ### When to use +hstore+ vs +jsonb+?
         #
