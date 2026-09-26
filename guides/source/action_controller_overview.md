@@ -174,7 +174,7 @@ When a user navigates to `/products`, Rails will create an instance of
 `ProductsController` and call its `index` method. If the `index` method is
 empty, Rails will automatically render `app/views/products/index.html.erb`.
 
-You can explicity define the template to render using the `render` method:
+You can explicitly define the template to render using the `render` method:
 
 ```ruby
 class ProductsController < ApplicationController
@@ -207,7 +207,7 @@ end
 
 See the
 [Layouts and Rendering guide](layouts_and_rendering.html#rendering-responses)
-for futher details on rendering responses.
+for further details on rendering responses.
 
 In the `index` method, the controller would typically create an array of the
 `Product` model instances, and make it available as an instance variable called
