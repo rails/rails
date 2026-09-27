@@ -68,8 +68,8 @@ page loads.
 **Turbo Frames** allow you to decompose pages into independent contexts where navigation and
 updates can occur without affecting the rest of the page.
 
-**Turbo Streams** are used to make fine-grained, targeted updates to specific DOM elements using a
-range of CRUD actions.
+**Turbo Streams** are used to make fine-grained, targeted updates to specific DOM elements using a range of actions such as: `prepend`, `replace`, `append`,
+and more!
 
 See the [Turbo handbook](https://turbo.hotwired.dev/handbook/introduction) for more information on how
 Turbo works and its features.
@@ -81,21 +81,25 @@ Turbo works and its features.
 
 ### Turbo Drive
 
-[Turbo Drive](https://turbo.hotwired.dev/handbook/drive) largely works automatically
-when imported into your HTML document. It offers a few configuration options, and the
-ability to define `data-` attributes and `<meta>` tags in your HTML to customize behavior.
+[Turbo Drive](https://turbo.hotwired.dev/handbook/drive) largely works
+automatically when imported into your HTML document. It offers a
+few configuration options, and the ability to define `data-` attributes
+and `<meta>` tags in your HTML to customize behavior.
 See the [handbook](https://turbo.hotwired.dev/handbook/drive) and
 [reference](https://turbo.hotwired.dev/reference/drive) for further details.
 
-The [`turbo-rails` gem](https://github.com/hotwired/turbo-rails/tree/main/lib) provides
-helper methods which define `<meta>` tags to customize Turbo Drive on specific pages.
+The [`turbo-rails` gem](https://github.com/hotwired/turbo-rails/tree/main/lib)
+provides helper methods which define `<meta>` tags to customize Turbo Drive on specific pages.
 
-All these helpers use `provide :head` to render the `<meta>` tag so they can be used
-in your views — just ensure `<% yield :head %>` is declared in your layout's `<head>`
-so the tags are injected correctly.
+All these helpers use [`provide :head`][provide_api] to render
+the `<meta>` tag so they can be used in your views — just ensure
+`<% yield :head %>` is declared in your layout's `<head>` so the tags
+are injected correctly.
 
-[Control a page's caching behavior](https://turbo.hotwired.dev/handbook/building#opting-out-of-caching)
-by setting a `turbo-cache-control` meta tag.
+[provide_api]: https://api.rubyonrails.org/classes/ActionView/Helpers/CaptureHelper.html#method-i-provide
+
+Control a [page's caching behavior](https://turbo.hotwired.dev/handbook/building#opting-out-of-caching)
+by setting a `turbo-cache-control` meta tag:
 
 ```erb
 <%# Renders <meta name="turbo-cache-control" content="no-cache"> %>
@@ -106,7 +110,7 @@ by setting a `turbo-cache-control` meta tag.
 ```
 
 Force a [full page reload for specific pages](https://turbo.hotwired.dev/reference/attributes#meta-tags)
-with:
+with a `turbo-visit-control` meta tag:
 
 ```erb
 <%# Renders <meta name="turbo-visit-control" content="reload"> %>
@@ -117,6 +121,10 @@ Configure [morphing page refreshes](https://turbo.hotwired.dev/handbook/page_ref
 with:
 
 ```erb
+<%# Renders: %>
+<%# <meta name="turbo-refresh-method" content="morph"> %>
+<%# <meta name="turbo-refresh-scroll" content="preserve"> %>
+
 <%= turbo_refreshes_with(method: :morph, scroll: :preserve) %>
 ```
 
@@ -139,10 +147,11 @@ Use the `turbo_frame_tag` helper to declare a Turbo Frame:
 <% end %>
 ```
 
-All Turbo Frame elements require a unique ID. The
-[`dom_id`](https://api.rubyonrails.org/classes/ActionView/RecordIdentifier.html#method-i-dom_id)
-method calculates an ID based on an Active Record object and is commonly used to identify
-Turbo Frames.
+All Turbo Frame elements require a unique ID. An ID based on one or more Active
+Record objects can be generated using the [`dom_id`][] or [`dom_target`][] methods.
+
+[`dom_id`]: https://api.rubyonrails.org/classes/ActionView/RecordIdentifier.html#method-i-dom_id
+[`dom_target`]: https://api.rubyonrails.org/classes/ActionView/RecordIdentifier.html#method-i-dom_target
 
 ### Turbo Streams
 
@@ -327,16 +336,16 @@ Further information can be found in the
 Turbo Streams over Action Cable
 -------------------------------
 
-To broadcast Turbo Streams using [Action Cable](action_cable_overview.html), you'll
-need the `@hotwired/turbo-rails` JavaScript package:
+To broadcast Turbo Streams using [Action Cable](action_cable_overview.html),
+you'll need the `@hotwired/turbo-rails` JavaScript package:
 
 ```bash
 $ bin/rails turbo:install
 ```
 
-Ensure that [Action Cable](action_cable_overview.html) is set up in your application. It
-is recommended to create an `ApplicationCable::Connection` class to authenticate
-Turbo Stream connections:
+Ensure that [Action Cable](action_cable_overview.html) is set up in your
+application. It is recommended to create an `ApplicationCable::Connection`
+class to authenticate Turbo Stream connections:
 
 ```ruby
 # app/channels/application_cable/connection.rb
@@ -379,12 +388,13 @@ Turbo::StreamsChannel.broadcast_action_to(
 )
 ```
 
-### The `<turbo-cable-stream-source>` element
+### Subscribing to Streams
 
 `turbo_stream_from` renders a `<turbo-cable-stream-source>` element which uses the
 Action Cable JavaScript library to create connections and subscribe to streams.
 
 ```erb
+<%# Subscribes to a stream named `"posts"` %>
 <%= turbo_stream_from "posts" %>
 ```
 
@@ -403,13 +413,15 @@ to ensure it can't be tampered with.
 
 #### Stream Names
 
-Any type of object can be used to generate the stream name as long as it responds
-to `to_gid_param` or `to_param`. Hence, it's usually an Active Record object, string,
-or symbol. These are called _broadcastables_ or _streamables_.
+The stream name must be a string, but other types of objects are often utilized
+used to generate the final string used. Objects used to generate the
+stream name must respond to `to_gid_param` or `to_param`. Hence, they're
+usually Active Record objects, strings, or symbols. These are
+called _broadcastables_ or _streamables_.
 
-Multiple arguments can be passed to `turbo_stream_from` to namespace the stream name. In
-this case, `to_gid_param` or `to_param` will be called on each object and then joined
-with a `:`.
+Multiple arguments may be passed to `turbo_stream_from` to namespace the stream
+name. In this case, `to_gid_param` or `to_param` will be called on each
+object and then joined with a `:`.
 
 ```erb
 <%= turbo_stream_from @post, :chat %>
@@ -417,20 +429,25 @@ with a `:`.
 
 will subscribe to a stream named:
 
-```
-Z2lkOi8vcmFpbHMtZ3VpZGVzLWRlbW8vUG9zdC8x:chat
+```ruby
+"Z2lkOi8vcmFpbHMtZ3VpZGVzLWRlbW8vUG9zdC8x:chat"
 ```
 
 where `Z2lkOi8vcmFpbHMtZ3VpZGVzLWRlbW8vUG9zdC8x` is the Base64 encoded
 [Global ID](https://github.com/rails/globalid) of the `@post` object.
 
+NOTE: The above stream name is presented in plain-text for demonstration —
+however, when it is rendered to HTML using `turbo_stream_from`, it will
+be signed as shown in the previous section.
+
 #### Custom Channels
 
 `<turbo-cable-stream-source>` uses the
 [`Turbo::StreamsChannel`](https://rubydoc.info/github/hotwired/turbo-rails/Turbo/StreamsChannel)
-to manage subscriptions by default. This is a generic class provided by the `turbo-rails`
-gem and doesn't run any authorization checks on the resource before accepting subscription
-to a stream. It verifies the signed stream name and then wires up the stream.
+to manage subscriptions by default. This is a generic class provided by
+the `turbo-rails` gem and doesn't run any authorization checks on the
+resource before accepting subscription to a stream. It verifies the signed
+stream name and then wires up the stream.
 
 ```ruby
 class Turbo::StreamsChannel < ActionCable::Channel::Base
@@ -448,10 +465,10 @@ end
 ```
 
 Since there is no authorization check, a user could theoretically subscribe to
-another user's stream if they were able to acquire their signed stream name. Prevent
-this issue by creating your own channel and authorizing the user's permissions before
-allowing subscription. `turbo-rails` provides primitives we can include to verify stream
-names in our own channels:
+another user's stream if they were able to acquire their signed stream name.
+Prevent this issue by creating your own channel and authorizing the user's
+permissions before allowing subscription. `turbo-rails` provides primitives
+we can include to verify stream names in our own channels:
 
 ```ruby
 # app/channels/posts_channel.rb
@@ -482,20 +499,22 @@ end
 Specify this channel in your view:
 
 ```erb
+<%# Renders:  %>
+<%# <turbo-cable-stream-source channel="PostsChannel" signed-stream-name="..."></turbo-cable-stream-source> %>
 <%= turbo_stream_from @post, channel: "PostsChannel" %>
 ```
 
-Subscriptions will now be managed by the `PostsChannel` which checks the user's permissions
-before accepting the stream.
+Subscriptions will now be managed by the `PostsChannel` which checks the
+user's permissions before accepting the stream.
 
-### Broadcast Helpers
+### Broadcasting to Streams
 
-`turbo-rails` provides a plethora of helper methods to broadcast stream actions. Under
-the hood, they all call `ActionCable.server.broadcast(...)`.
+`turbo-rails` provides a plethora of helper methods to broadcast stream actions.
+Under the hood, they all call `ActionCable.server.broadcast(...)`.
 
 A generic broadcast operation:
 
-```ruby
+```ruby#1,3
 Turbo::StreamsChannel.broadcast_action_to(
   "posts",
   action: :append,
@@ -507,7 +526,7 @@ Turbo::StreamsChannel.broadcast_action_to(
 
 can be rewritten as:
 
-```ruby
+```ruby#1
 Turbo::StreamsChannel.broadcast_append_to(
   "posts",
   target: "posts",
@@ -533,11 +552,12 @@ Turbo::StreamsChannel.broadcast_refresh_to("posts")
 
 NOTE: Even when using custom channels to handle subscriptions to Turbo Streams,
 you can use the `Turbo::StreamsChannel` broadcast helpers to deliver the Stream
-actions. It will compute the correct stream name based on the supplied broadcastables.
+actions. It will compute the correct stream name based on the supplied
+broadcastables.
 
-All the above examples render templates and broadcast them synchronously. They can
-be offloaded to a background job to improve performance by using the `later` version
-of the methods such as `broadcast_append_later_to`.
+All the above examples render templates and broadcast them synchronously.
+They can be offloaded to a background job to improve performance by using the `
+later` version of the methods such as `broadcast_append_later_to`.
 
 ```ruby
 # enqueues a `Turbo::Streams::ActionBroadcastJob`
@@ -559,9 +579,11 @@ Check out the
 [source code](https://github.com/hotwired/turbo-rails/blob/main/app/channels/turbo/streams/broadcasts.rb)
 for all available helpers.
 
-Additionally, there's also a
+#### Broadcastable Model Helpers
+
+The `turbo-rails` gem contains a
 [`Broadcastable`](https://github.com/hotwired/turbo-rails/blob/main/app/models/concerns/turbo/broadcastable.rb)
-concern which is included in Active Record. It applies Rails conventions
+concern which is included in `ActiveRecord::Base`. It applies Rails conventions
 to succinctly broadcast model-specific Turbo Streams. Some example use cases are:
 
 ```ruby
@@ -573,18 +595,23 @@ to succinctly broadcast model-specific Turbo Streams. Some example use cases are
 # <%= turbo_stream_from @post %>
 
 # Broadcasts an `append` action containing the partial
-# `posts/post` targeted at the DOM ID `posts`.
+# `posts/post` targeted at the DOM element with the ID `"posts"`.
+# Conventionally, the target is pluralized model name, and the
+# partial is obtained by calling `@post.to_partial_path`.
 @post.broadcast_append
 @post.broadcast_append_later
 
 # The update action targets the specific model's HTML element.
-# In this case, it will target `post_1`. The content
-# will be the partial `posts/post`.
+# In this case, it will target `"post_1"`, where `1` is the ID of
+# the `@post` record. The content will be the partial `posts/post`.
+# The target is generated using `ActionView::RecordIdentifier.dom_id(@post)`,
+# and the partial is obtained by calling `@post.to_partial_path`.
 @post.broadcast_update
 @post.broadcast_update_later
 
 # The remove action targets the specific model's HTML element.
-# In this case, it will target `post_1`.
+# In this case, it will target `post_1`, where `1` is the ID of
+# the `@post` record.
 @post.broadcast_remove
 @post.broadcast_remove_later
 
@@ -593,11 +620,12 @@ to succinctly broadcast model-specific Turbo Streams. Some example use cases are
 @post.broadcast_append_later(target: "posts", partial: "posts/post", locals: { post: @post })
 
 # Broadcast to a specific stream
-@post.broadcast_append_to("posts")
-@post.broadcast_append_later_to("posts")
+@post.broadcast_append_to("posts_list")
+@post.broadcast_append_later_to("posts_list")
 ```
 
-Turbo Stream helpers provided by `Broadcastable` are most useful in lifecycle callbacks:
+Turbo Stream helpers provided by `Broadcastable` are most useful in lifecycle
+callbacks:
 
 ```ruby
 class Post < ApplicationRecord
@@ -606,7 +634,8 @@ end
 ```
 
 The `broadcasts_to` method configures a model to emit Turbo Streams on creation,
-update, and deletion to the supplied stream name (provided via a block or method signature).
+update, and deletion to the supplied stream name (provided via a block or method
+signature).
 
 ```ruby
 class Post < ApplicationRecord
@@ -628,13 +657,36 @@ The above snippets are equivalent to:
 
 ```ruby
 class Post < ApplicationRecord
-  after_create_commit  -> { broadcast_append_later_to("posts", target: "posts", partial: "posts/post") }
-  after_update_commit  -> { broadcast_replace_later_to("posts", target: dom_id(self), partial: "posts/post") }
-  after_destroy_commit -> { broadcast_remove_to("posts", target: dom_id(self)) }
+  after_create_commit  -> {
+    broadcast_append_later_to("posts", target: "posts", partial: "posts/post")
+  }
+  after_update_commit  -> {
+    broadcast_replace_later_to("posts", target: ActionView::RecordIdentifier.dom_id(self), partial: "posts/post")
+  }
+  after_destroy_commit -> {
+    broadcast_remove_to("posts", target: ActionView::RecordIdentifier.dom_id(self))
+  }
 end
 ```
 
-You can use `broadcasts` to emit Turbo Streams to an inferred stream name (the pluralized model name for `create`, and the model instance's stream for `update` and `remove`),
+You can customize the partial or template rendered in the broadcast using:
+
+```ruby
+class Post < ApplicationRecord
+  # Renders `posts/_list_item.html.erb`
+  broadcasts_to -> { "posts" }, partial: "posts/list_item"
+
+  # Renders `posts/update.html.erb`
+  broadcasts_to -> { "posts" }, template: "posts/update"
+
+  # Renders `posts/update.turbo_stream.erb`
+  broadcasts_to -> { "posts" }, template: "posts/update", formats: :turbo_stream
+end
+```
+
+The `broadcasts` directive emits Turbo Streams to an inferred stream
+name (the pluralized model name for `create`, and the model
+instance's stream for `update` and `remove`),
 
 ```ruby
 class Post < ApplicationRecord
@@ -646,30 +698,35 @@ This can be expanded as:
 
 ```ruby
 class Post < ApplicationRecord
-  after_create_commit  -> { broadcast_append_later_to("posts", target: "posts", partial: "posts/post") }
-  after_update_commit  -> { broadcast_replace_later_to(self, target: dom_id(self), partial: "posts/post") }
-  after_destroy_commit -> { broadcast_remove_to(self, target: dom_id(self)) }
+  after_create_commit  -> {
+    broadcast_append_later_to("posts", target: "posts", partial: "posts/post")
+  }
+  after_update_commit  -> {
+    broadcast_replace_later_to(self, target: ActionView::RecordIdentifier.dom_id(self), partial: "posts/post")
+  }
+  after_destroy_commit -> {
+    broadcast_remove_to(self, target: ActionView::RecordIdentifier.dom_id(self))
+  }
 end
 ```
 
-Customize the partial rendered by `broadcasts` and `broadcasts_to` using:
+Customize the rendered partial or template using:
 
 ```ruby
 class Post < ApplicationRecord
-  # Renders `posts/_actions.html.erb`
-  broadcasts_to -> { "posts" }, partial: "posts/actions"
-end
-```
+  # Renders `posts/_list_item.html.erb`
+  broadcasts partial: "posts/list_item"
 
-```ruby
-class Post < ApplicationRecord
   # Renders `posts/update.html.erb`
   broadcasts template: "posts/update"
+
+  # Renders `posts/update.turbo_stream.erb`
+  broadcasts template: "posts/update", formats: :turbo_stream
 end
 ```
 
-When using morphing page refreshes, the `broadcasts_refreshes` declaration will trigger
-Turbo Streams with the action `refresh` whenever a model changes:
+When using morphing page refreshes, the `broadcasts_refreshes` declaration
+will trigger Turbo Streams with the action `refresh` whenever a model changes:
 
 ```ruby
 class Post < ApplicationRecord
@@ -705,8 +762,8 @@ for all available helpers.
 Stimulus
 --------
 
-[Stimulus][] is a lightweight library to manipulate HTML with reusable pieces of JavaScript
-logic encapsulated in a JavaScript _controller_.
+[Stimulus][] is a lightweight library to manipulate HTML with reusable pieces
+of JavaScript logic encapsulated in a JavaScript object, called a _controller_.
 
 Stimulus has an HTML-centric way of writing JavaScript. The markup is connected to the
 controller using a range of `data-` attributes.
@@ -728,9 +785,10 @@ export default class extends Controller {
 }
 ```
 
-The above controller uses _targets_, which are named references to elements in its HTML scope,
-to grab an input's value and display a greeting. The `greet()` action reads the `name` _target_
-and writes it into the `output` _target_.
+The above controller uses _targets_, which are named references to elements
+in its HTML scope, to grab an input's value and display a greeting. The
+`greet()` action reads the `name` _target_ and writes it into the
+`output` _target_.
 
 It can be attached to the DOM via the `data-controller` attribute:
 
@@ -747,8 +805,9 @@ It can be attached to the DOM via the `data-controller` attribute:
 </div>
 ```
 
-Refer to the Stimulus [handbook](https://stimulus.hotwired.dev/handbook/introduction) and
-[reference](https://stimulus.hotwired.dev/reference/controllers) for complete usage information.
+Refer to the Stimulus [handbook](https://stimulus.hotwired.dev/handbook/introduction)
+and [reference](https://stimulus.hotwired.dev/reference/controllers) for
+complete usage information.
 
 ### Creating Controllers
 
@@ -758,6 +817,8 @@ The [`stimulus-rails`][] gem provides a generator to create Stimulus controllers
 $ bin/rails generate stimulus hello
 # Generates app/javascript/controllers/hello_controller.js
 ```
+
+This generates the skeleton of a controller:
 
 ```js
 // app/javascript/controllers/hello_controller.js
@@ -773,8 +834,8 @@ export default class extends Controller {
 
 [`stimulus-rails`]: https://github.com/hotwired/stimulus-rails
 
-When using an import map to deliver your JavaScript, Rails will automatically eager
-load all your Stimulus controllers:
+When using an import map to deliver your JavaScript, Rails will
+automatically eager load all your Stimulus controllers:
 
 ```js
 // app/javascript/controllers/index.js
@@ -807,11 +868,11 @@ This might be useful after renaming a controller.
 
 ### Using Controllers
 
-In Rails, use Stimulus controllers for client-side use cases where Turbo doesn't apply.
-It's best used to modify HTML you already have.
+In Rails, use Stimulus controllers for client-side use cases where Turbo
+doesn't apply. It's best used to modify HTML you already have.
 
-In this section we'll discuss an example use case: implementing a button using which a
-user can dynamically add text fields to a Rails form.
+In this section we'll discuss an example use case: implementing a button which
+allows a user to dynamically add text fields to a Rails form.
 
 Consider the below form to create a post:
 
@@ -831,9 +892,10 @@ Consider the below form to create a post:
 <% end %>
 ```
 
-We'd like to allow the user to create one or more _tags_ to associate with the post. This
-requires an **Add Tag** button which dynamically adds a text field to the form where the
-user can define the tag. This is a perfect use case for Stimulus.
+We'd like to allow the user to create one or more _tags_ to associate with
+the post. This requires an **Add Tag** button which dynamically adds a
+text field to the form where the user can define the tag. This is a perfect
+use case for Stimulus.
 
 First, ensure the model and controller can accept
 [nested attributes](https://api.rubyonrails.org/classes/ActiveRecord/NestedAttributes/ClassMethods.html#method-i-accepts_nested_attributes_for)
@@ -867,8 +929,8 @@ class Tag < ApplicationRecord
 end
 ```
 
-Then, we need to add a `<template>` element to the form which the Stimulus controller
-will use to add the text field:
+Then, we need to add a `<template>` element to the form which the
+Stimulus controller will use to add the text field:
 
 ```erb
 <%= form_with(model: @post) do |form| %>
@@ -970,11 +1032,12 @@ The final step is to wire up the Stimulus controller in the DOM:
 <% end %>
 ```
 
-The user can now dynamically add tags to their post which will be processed on the server.
+The user can now dynamically add tags to their post which will be processed on
+the server.
 
 This is just one example where Stimulus fits the bill. Use it wherever you need
 to manipulate HTML in your web page. Some more example use cases are:
 
 * Keyboard hotkeys which trigger actions in your app.
 * Resize an HTML textarea automatically as a user types.
-* A _drag n drop_ interface to upload files.
+* A _drag and drop_ interface to upload files.
