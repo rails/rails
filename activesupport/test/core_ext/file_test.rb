@@ -16,6 +16,21 @@ class AtomicWriteTest < ActiveSupport::TestCase
     File.unlink(file_name) rescue nil
   end
 
+  def test_atomic_write_flushes_contents_before_rename
+    contents = "Atomic Text"
+    original_rename = File.method(:rename)
+    File.stub(:rename, ->(source, destination) do
+      assert_equal contents, File.read(source)
+      original_rename.call(source, destination)
+    end) do
+      File.atomic_write(file_name, Dir.pwd) { |file| file.write(contents) }
+    end
+
+    assert_equal contents, File.read(file_name)
+  ensure
+    File.unlink(file_name) rescue nil
+  end
+
   def test_atomic_write_doesnt_write_when_block_raises
     File.atomic_write(file_name) do |file|
       file.write("testing")

@@ -61,7 +61,51 @@ module ActiveRecord
           (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct)
       end
 
+      def as_schema_json
+        {
+          "table" => @table,
+          "name" => @name,
+          "unique" => @unique || nil,
+          "columns" => @columns,
+          "lengths" => @lengths.presence,
+          "orders" => @orders.presence,
+          "opclasses" => @opclasses.presence,
+          "where" => @where,
+          "type" => @type,
+          "using" => @using,
+          "include" => @include,
+          "nulls_not_distinct" => @nulls_not_distinct,
+          "comment" => @comment,
+          "invalid" => !@valid || nil
+        }
+      end
+
+      def init_from_schema_json(coder, references)
+        @table = coder["table"]
+        @name = coder["name"]
+        @unique = coder["unique"] || false
+        @columns = coder["columns"]
+        @lengths = coder["lengths"] || {}
+        @orders = symbolize_concise_options(coder["orders"])
+        @opclasses = symbolize_concise_options(coder["opclasses"])
+        @where = coder["where"]
+        @type = coder["type"]&.to_sym
+        @using = coder["using"]&.to_sym
+        @include = coder["include"]
+        @nulls_not_distinct = coder["nulls_not_distinct"]
+        @comment = coder["comment"]
+        @valid = !coder["invalid"]
+      end
+
       private
+        def symbolize_concise_options(options)
+          case options
+          when String then options.to_sym
+          when Hash then options.transform_values(&:to_sym)
+          else {}
+          end
+        end
+
         def concise_options(options)
           if columns.size == options.size && options.values.uniq.size == 1
             options.values.first
@@ -534,9 +578,7 @@ module ActiveRecord
       def timestamps(**options)
         options[:null] = false if options[:null].nil?
 
-        if !options.key?(:precision) && @conn.supports_datetime_with_precision?
-          options[:precision] = 6
-        end
+        options[:precision] = 6 unless options.key?(:precision)
 
         column(:created_at, :datetime, **options)
         column(:updated_at, :datetime, **options)
@@ -562,10 +604,8 @@ module ActiveRecord
         end
         type = aliased_types(type.to_s, type)
 
-        if @conn.supports_datetime_with_precision?
-          if type == :datetime && !options.key?(:precision)
-            options[:precision] = 6
-          end
+        if type == :datetime && !options.key?(:precision)
+          options[:precision] = 6
         end
 
         options[:primary_key] ||= type == :primary_key

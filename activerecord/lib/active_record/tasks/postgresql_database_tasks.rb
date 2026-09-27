@@ -91,7 +91,7 @@ module ActiveRecord
         end
 
         def run_cmd(cmd, *args, **opts)
-          fail run_cmd_error(cmd, args) unless Kernel.system(psql_env, cmd, *args, **opts)
+          fail run_cmd_error(cmd, args, opts) unless Kernel.system(psql_env, cmd, *args, **opts)
         end
 
         def remove_sql_header_comments(filename)

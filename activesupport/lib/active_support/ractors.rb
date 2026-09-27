@@ -1,9 +1,10 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/dependencies/autoload"
 
 module ActiveSupport
-  # Shims for +Ractor+ shareability methods so framework code can call them
+  # Shims for `Ractor` shareability methods so framework code can call them
   # unconditionally regardless of the Ruby version.
   module Ractors # :nodoc:
     extend ActiveSupport::Autoload
@@ -40,7 +41,7 @@ module ActiveSupport
         end
       end
 
-      # Attempt to make a lambda shareable, bound to +receiver+ as its +self+.
+      # Attempt to make a lambda shareable, bound to `receiver` as its `self`.
       # If successful, a shareable lambda is returned. If a Ractor::IsolationError
       # is raised, the outcome will depend on the user's application configuration:
       #
@@ -109,37 +110,37 @@ module ActiveSupport
           Ractor.main?
         end
 
-        # Makes +obj+ Ractor-shareable by delegating to +Ractor.make_shareable+.
+        # Makes `obj` Ractor-shareable by delegating to `Ractor.make_shareable`.
         #
-        # The +copy:+ option is forwarded unchanged. On Ruby versions without
-        # +Ractor.make_shareable+, this shim returns +obj+ unchanged.
+        # The `copy:` option is forwarded unchanged. On Ruby versions without
+        # `Ractor.make_shareable`, this shim returns `obj` unchanged.
         def make_shareable(...)
           Ractor.make_shareable(...)
         end
 
-        # Returns whether +obj+ is Ractor-shareable by delegating to
-        # +Ractor.shareable?+.
+        # Returns whether `obj` is Ractor-shareable by delegating to
+        # `Ractor.shareable?`.
         #
-        # On Ruby versions without +Ractor.shareable?+, this shim returns +obj+
+        # On Ruby versions without `Ractor.shareable?`, this shim returns `obj`
         # unchanged.
         def shareable?(obj)
           Ractor.shareable?(obj)
         end
 
-        # Returns a Ractor-shareable proc by delegating to +Ractor.shareable_proc+.
+        # Returns a Ractor-shareable proc by delegating to `Ractor.shareable_proc`.
         #
-        # The optional +self:+ value is forwarded as the proc's receiver. On Ruby
-        # versions without +Ractor.shareable_proc+, this shim returns the block
+        # The optional `self:` value is forwarded as the proc's receiver. On Ruby
+        # versions without `Ractor.shareable_proc`, this shim returns the block
         # unchanged.
         def shareable_proc(...)
           Ractor.shareable_proc(...)
         end
 
         # Returns a Ractor-shareable lambda by delegating to
-        # +Ractor.shareable_lambda+.
+        # `Ractor.shareable_lambda`.
         #
-        # The optional +self:+ value is forwarded as the lambda's receiver. On Ruby
-        # versions without +Ractor.shareable_lambda+, this shim returns the block
+        # The optional `self:` value is forwarded as the lambda's receiver. On Ruby
+        # versions without `Ractor.shareable_lambda`, this shim returns the block
         # unchanged.
         def shareable_lambda(...)
           Ractor.shareable_lambda(...)
@@ -179,8 +180,8 @@ module ActiveSupport
     end
 
     if defined?(Ractor)
-      # Returns the value stored under +key+ in the current Ractor's local
-      # storage. Returns +nil+ when nothing has been stored under +key+ yet.
+      # Returns the value stored under `key` in the current Ractor's local
+      # storage. Returns `nil` when nothing has been stored under `key` yet.
       #
       # Each Ractor has an isolated local storage, so values set in one Ractor
       # are not visible to any other.
@@ -188,7 +189,7 @@ module ActiveSupport
         Ractor.current[key]
       end
 
-      # Stores +value+ under +key+ in the current Ractor's local storage.
+      # Stores `value` under `key` in the current Ractor's local storage.
       # The value is only visible to the current Ractor, and other
       # Ractors have their own independent storage.
       def self.[]=(key, value)
@@ -196,9 +197,9 @@ module ActiveSupport
       end
 
       if Ractor.respond_to?(:store_if_absent)
-        # Returns the value stored under +key+ in the current Ractor's local
-        # storage, running +block+ to compute and store it on first access, by
-        # delegating to +Ractor.store_if_absent+. Concurrent threads in the
+        # Returns the value stored under `key` in the current Ractor's local
+        # storage, running `block` to compute and store it on first access, by
+        # delegating to `Ractor.store_if_absent`. Concurrent threads in the
         # same Ractor initialize the value only once.
         def self.store_if_absent(key, &block)
           Ractor.store_if_absent(key, &block)
@@ -206,7 +207,7 @@ module ActiveSupport
       else
         @local_storage_lock = Mutex.new
 
-        # Same contract as +Ractor.store_if_absent+ (Ruby 3.4) on top of the
+        # Same contract as `Ractor.store_if_absent` (Ruby 3.4) on top of the
         # Ractor-local storage that predates it: the value is initialized at
         # most once even when the Ractor's threads race, with an unsynchronized
         # fast path for the common hit.

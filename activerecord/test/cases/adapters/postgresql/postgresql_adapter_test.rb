@@ -1357,6 +1357,12 @@ module ActiveRecord
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
       end
 
+      def test_extensions_omits_schema_fixed_by_the_control_file
+        # plpgsql is installed in every database and its control file fixes the schema to pg_catalog
+        assert_includes @connection.extensions, "plpgsql"
+        assert_not_includes @connection.extensions, "pg_catalog.plpgsql"
+      end
+
       def test_extensions_includes_non_current_schema_name
         @connection.execute("DROP EXTENSION IF EXISTS hstore")
         @connection.execute("CREATE EXTENSION hstore")

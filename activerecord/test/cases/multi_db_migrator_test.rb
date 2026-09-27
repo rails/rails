@@ -4,6 +4,9 @@ require "cases/helper"
 require "cases/migration/helper"
 
 class MultiDbMigratorTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy :test_finds_pending_migrations, :test_internal_metadata_stores_environment,
+    :test_migrator_db_has_no_schema_migrations_table, :test_migrator_forward
+
   # Use this class to sense if migrations have gone
   # up or down.
   class Sensor < ActiveRecord::Migration::Current
@@ -24,8 +27,11 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
     @pool_a = ActiveRecord::Base.connection_pool
     @pool_b = ARUnit2Model.connection_pool
 
-    @pool_a.schema_migration.create_table
-    @pool_b.schema_migration.create_table
+    # Schema statements never run through a Ractor proxy.
+    without_ractor_proxy do
+      ActiveRecord::Base.connection_pool.schema_migration.create_table
+      ARUnit2Model.connection_pool.schema_migration.create_table
+    end
 
     @pool_a.schema_migration.delete_all_versions rescue nil
     @pool_b.schema_migration.delete_all_versions rescue nil
@@ -71,8 +77,9 @@ class MultiDbMigratorTest < ActiveRecord::TestCase
   def test_schema_migration_is_different_for_different_connections
     assert_not_equal @schema_migration_a, @schema_migration_b
     assert_not_equal @schema_migration_a.instance_variable_get(:@pool), @schema_migration_b.instance_variable_get(:@pool)
-    assert_equal "ActiveRecord::Base", @pool_a.pool_config.connection_descriptor.name
-    assert_equal "ARUnit2Model", @pool_b.pool_config.connection_descriptor.name
+    pool_a, pool_b = without_ractor_proxy { [ActiveRecord::Base.connection_pool, ARUnit2Model.connection_pool] }
+    assert_equal "ActiveRecord::Base", pool_a.pool_config.connection_descriptor.name
+    assert_equal "ARUnit2Model", pool_b.pool_config.connection_descriptor.name
   end
 
   def test_finds_migrations

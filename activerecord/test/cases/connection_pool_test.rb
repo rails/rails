@@ -1142,9 +1142,12 @@ module ActiveRecord
 
         assert_not_predicate @pool, :connected?
         @pool.pin_connection!(true)
-        assert_predicate @pool, :connected?
+        # Pinning only fixes the connection identity; nothing connects until
+        # the pinned connection is actually checked out and verified.
+        assert_not_predicate @pool, :connected?
 
         pin_connection = @pool.checkout
+        assert_predicate @pool, :connected?
 
         @pool.disconnect
         assert_not_predicate @pool, :connected?
@@ -1163,37 +1166,23 @@ module ActiveRecord
         assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
       end
 
-      def test_pin_connection_opens_a_transaction
-        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
+      def test_pin_connection_does_not_open_a_transaction
         @pool.pin_connection!(true)
-        assert_instance_of RealTransaction, @pool.lease_connection.current_transaction
+        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
         @pool.unpin_connection!
-        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
-      end
-
-      def test_unpin_connection_returns_whether_transaction_has_been_rolledback
-        @pool.pin_connection!(true)
-        assert_equal true, @pool.unpin_connection!
-
-        @pool.pin_connection!(true)
-        @pool.lease_connection.commit_transaction
-        assert_equal false, @pool.unpin_connection!
-
-        @pool.pin_connection!(true)
-        @pool.lease_connection.rollback_transaction
-        assert_equal false, @pool.unpin_connection!
       end
 
       def test_pin_connection_nesting
-        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
         @pool.pin_connection!(true)
-        assert_instance_of RealTransaction, @pool.lease_connection.current_transaction
+        pinned_connection = @pool.checkout
         @pool.pin_connection!(true)
-        assert_instance_of SavepointTransaction, @pool.lease_connection.current_transaction
+        assert_same pinned_connection, @pool.checkout
+
         @pool.unpin_connection!
-        assert_instance_of RealTransaction, @pool.lease_connection.current_transaction
+        # The outer pin still holds the connection.
+        assert_same pinned_connection, @pool.checkout
+
         @pool.unpin_connection!
-        assert_instance_of NullTransaction, @pool.lease_connection.current_transaction
 
         assert_raises(RuntimeError, match: /There isn't a pinned connection/) do
           @pool.unpin_connection!
@@ -1738,6 +1727,40 @@ module ActiveRecord
         assert_equal 1, maintenance_thread.value
 
         pool.checkin(conn2)
+      end
+
+      def test_checkout_queued_behind_maintenance_respects_checkout_timeout
+        Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception
+        pool = new_pool_with_options(max_connections: 3, checkout_timeout: 0.1, reaping_frequency: nil, async: false)
+
+        conn1 = pool.checkout
+        conn2 = pool.checkout
+        pool.checkin(conn1)
+
+        maintenance_started = Concurrent::Event.new
+        maintenance_continuing = Concurrent::Event.new
+
+        maintenance_thread = new_thread do
+          pool.send(:sequential_maintenance, proc { true }) do |_|
+            maintenance_started.set
+            maintenance_continuing.wait
+          end
+        end
+
+        maintenance_started.wait
+
+        checkout_thread = new_thread { pool.checkout }
+
+        assert_raises(ActiveRecord::ConnectionTimeoutError) do
+          # Bounded well below the buggy hardcoded 100s wait this guards against,
+          # so an unfixed regression fails fast instead of hanging the suite.
+          checkout_thread.join(1) or flunk "checkout blocked well beyond the pool's configured checkout_timeout of 0.1s"
+        end
+      ensure
+        maintenance_continuing.set
+        maintenance_thread&.join(2)
+        pool.checkin(conn2)
+        Thread.report_on_exception = original_report_on_exception
       end
 
       def test_disconnect_and_clear_reloadable_connections_attempt_to_wait_for_threads_to_return_their_conns

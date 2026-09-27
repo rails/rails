@@ -204,11 +204,6 @@ module ActionView # :nodoc:
       # newline when using <tt><%= -%></tt> or <tt><%= =%></tt>. Setting this to anything else will turn off trimming support.
 
       ##
-      # :singleton-method: erb_implementation=
-      #
-      # Default ERB implementation to use. Defaults to Erubi.
-
-      ##
       # :singleton-method: escape_ignore_list=
       #
       # Do not escape templates of these mime types. Defaults to ["text/plain"]
@@ -217,7 +212,26 @@ module ActionView # :nodoc:
       # :singleton-method: strip_trailing_newlines=
       #
       # Strip trailing newlines from rendered output. Defaults to <tt>false</tt>.
-      delegate :erb_trim_mode=, :erb_implementation=, :escape_ignore_list=, :strip_trailing_newlines=, to: "ActionView::Template::Handlers::ERB"
+      delegate :erb_trim_mode=, :escape_ignore_list=, :strip_trailing_newlines=, to: "ActionView::Template::Handlers::ERB"
+
+      # The ERB implementation used to compile templates. Accepts <tt>:erubi</tt>,
+      # <tt>:herb</tt>, or a class. With <tt>:herb</tt>, templates with the HTML
+      # format compile through Herb and every other format compiles through Erubi.
+      # Defaults to Erubi.
+      def erb_implementation=(implementation)
+        ActionView::Template::Handlers::ERB.erb_implementation =
+          case implementation
+          when :erubi
+            ActionView::Template::Handlers::ERB::Erubi
+          when :herb
+            ActionView::Template::Handlers::ERB::Herb
+          when Symbol
+            raise ArgumentError, "erb_implementation must be :erubi, :herb, or a class, " \
+              "got #{implementation.inspect}"
+          else
+            implementation
+          end
+      end
 
       def cache_template_loading
         ActionView::Resolver.caching?

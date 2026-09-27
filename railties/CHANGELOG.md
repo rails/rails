@@ -1,3 +1,7 @@
+*   Stop probing for a local MySQL socket when generating `config/database.yml`.
+
+    *Ryuta Kamizono*
+
 *   Mark the generated `public/*.html` error pages as `linguist-generated` in
     the default `.gitattributes`.
 

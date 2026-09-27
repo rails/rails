@@ -1,3 +1,30 @@
+*   Add `Manitoba` to `ActiveSupport::TimeZone::MAPPING`.
+
+    Manitoba no longer shares winter clocks with US Central time. The existing
+    `Central Time (US & Canada)` entry remains mapped to `America/Chicago` for
+    compatibility. Prefer `Manitoba` (or the IANA identifier `America/Winnipeg`)
+    for users in that region.
+
+    *Dan Williams*
+
+*   Fix `ActiveSupport::BroadcastLogger#tagged` when broadcasting to more than
+    one tagging logger..
+
+    ```ruby
+    broadcast = ActiveSupport::BroadcastLogger.new(logger1, logger2)
+    broadcast.tagged("BCX").info("Hello") # => both loggers log "[BCX] Hello"
+    ```
+
+    *Ben Younes*
+
+*   Preserve the requested key order in `ActiveSupport::Cache::Store#read_multi`
+    when a local cache is active.
+
+    `fetch_multi` was fixed for this, but `read_multi` still returned the local
+    cache hits first instead of following the order of the requested keys.
+
+    *Carlos Daniel Pohlod*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
     when a local cache is active.
 

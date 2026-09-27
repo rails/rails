@@ -6,6 +6,8 @@ require "support/schema_dumping_helper"
 module ActiveRecord
   class Migration
     class CompatibilityTest < ActiveRecord::TestCase
+      skip_under_ractor_proxy
+
       attr_reader :connection
       self.use_transactional_tests = false
 
@@ -924,6 +926,8 @@ module DefaultPrecisionSixTestCases
 end
 
 class BaseCompatibilityTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   attr_reader :connection
 
   def setup
@@ -1014,6 +1018,10 @@ end
 
 module LegacyPolymorphicReferenceIndexTestCases
   attr_reader :connection
+
+  def self.included(base)
+    base.skip_under_ractor_proxy
+  end
 
   def setup
     @connection = ActiveRecord::Base.lease_connection
@@ -1148,6 +1156,8 @@ module LegacyPrimaryKeyTestCases
   end
 
   included do
+    skip_under_ractor_proxy
+
     def setup
       @migration = nil
       @verbose_was = ActiveRecord::Migration.verbose

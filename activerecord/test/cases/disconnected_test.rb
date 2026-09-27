@@ -17,13 +17,13 @@ class TestDisconnectedAdapter < ActiveRecord::TestCase
   unless in_memory_db?
     test "reconnects to execute statements when disconnected" do
       @connection.execute "SELECT count(*) from products"
-      first_connection = @connection.instance_variable_get(:@raw_connection).__id__
+      first_connection = main_ractor_connection(@connection).instance_variable_get(:@raw_connection).__id__
 
       @connection.disconnect!
-      assert_nil @connection.instance_variable_get(:@raw_connection)
+      assert_nil main_ractor_connection(@connection).instance_variable_get(:@raw_connection)
 
       @connection.execute "SELECT count(*) from products"
-      second_connection = @connection.instance_variable_get(:@raw_connection).__id__
+      second_connection = main_ractor_connection(@connection).instance_variable_get(:@raw_connection).__id__
 
       assert_not_equal second_connection, first_connection
     end

@@ -113,7 +113,7 @@ module TestHelpers
       @prev_rails_application ||= Rails.application
       Rails.app_class = Rails.application = nil
 
-      @prev_rails_env ||= ENV["RAILS_ENV"]
+      @prev_rails_env = ENV["RAILS_ENV"] unless defined?(@prev_rails_env)
       ENV["RAILS_ENV"] = "development"
 
       FileUtils.rm_rf(app_path)
