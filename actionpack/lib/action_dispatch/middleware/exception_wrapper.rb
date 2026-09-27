@@ -262,6 +262,13 @@ module ActionDispatch
       end
 
       def build_backtrace
+        locations = @exception.backtrace_locations || []
+
+        # Collecting the built templates copies the template cache of every
+        # resolver, so skip it when no backtrace entry was raised from a template
+        # file, like for a routing error.
+        return locations.dup unless locations.any? { |loc| template_path?(loc.path) }
+
         built_methods = {}
 
         ActionView::PathRegistry.all_resolvers.each do |resolver|
@@ -270,7 +277,7 @@ module ActionDispatch
           end
         end
 
-        (@exception.backtrace_locations || []).map do |loc|
+        locations.map do |loc|
           if built_methods.key?(loc.base_label)
             thread_backtrace_location = if loc.respond_to?(:__getobj__)
               loc.__getobj__
@@ -282,6 +289,15 @@ module ActionDispatch
             loc
           end
         end
+      end
+
+      # A compiled template method keeps the template file as its path, so its
+      # extension is the one of a registered template handler.
+      def template_path?(path)
+        return false unless path
+
+        extension = File.extname(path).delete_prefix(".")
+        !extension.empty? && ActionView::Template::Handlers.extensions.include?(extension.to_sym)
       end
 
       def causes_for(exception)

@@ -1,3 +1,15 @@
+*   Skip the template lookup in `ActionDispatch::ExceptionWrapper` when no
+    backtrace entry comes from a template.
+
+    Building the backtrace copied the template cache of every view resolver to
+    map template frames back to their source, even for exceptions that cannot
+    have any, such as a routing error. With thousands of cached templates this
+    allocated several megabytes on each 404.
+
+    Fixes #58887.
+
+    *Nicolas Rodriguez*
+
 *   Fix `Server-Timing` durations for nested same-name notifications.
 
     Nested events such as `render_partial.action_view` report inclusive

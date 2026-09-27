@@ -223,6 +223,16 @@ module ActionDispatch
       end
     end
 
+    test "#source_extracts does not look up templates when no backtrace entry is in a template" do
+      exception = begin index; rescue TestError => ex; ex; end
+
+      assert_not_called(ActionView::PathRegistry, :all_resolvers) do
+        wrapper = ExceptionWrapper.new(nil, exception)
+
+        assert_equal exception.backtrace_locations.map(&:to_s), wrapper.source_extracts.map { |extract| extract[:trace].to_s }
+      end
+    end
+
     test "#application_trace returns traces only from the application" do
       exception = begin index; rescue TestError => ex; ex; end
       wrapper = ExceptionWrapper.new(@cleaner, TopErrorProxy.new(exception, 1))
