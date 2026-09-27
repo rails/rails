@@ -1,3 +1,10 @@
+*   Treat `:except_on` as a callback option in `ActiveModel::Error`.
+
+    Errors from validations using `:except_on` now match `errors.added?` queries
+    without that option, and no longer include it in `errors.details`.
+
+    *Andrii Furmanets*
+
 *   Fix `ActiveModel::Type::BigInteger` truncating strings longer than 16 bytes when casting.
 
     `BigInteger` (and Active Record decimal columns without a scale) now limits

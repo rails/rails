@@ -6,7 +6,7 @@ module ActiveModel
   #
   # Represents one single error
   class Error
-    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
+    CALLBACKS_OPTIONS = [:if, :unless, :on, :except_on, :allow_nil, :allow_blank, :strict]
     MESSAGE_OPTIONS = [:message]
 
     class_attribute :i18n_customize_full_message, default: false

@@ -234,6 +234,7 @@ class ErrorTest < ActiveModel::TestCase
       if: :foo,
       unless: :bar,
       on: :baz,
+      except_on: :qux,
       allow_nil: false,
       allow_blank: false,
       strict: true,
