@@ -1,3 +1,15 @@
+*   Skip the template lookup in `ActionDispatch::ExceptionWrapper` when no
+    backtrace entry comes from a template.
+
+    Building the backtrace copied the template cache of every view resolver to
+    map template frames back to their source, even for exceptions that cannot
+    have any, such as a routing error. With thousands of cached templates this
+    allocated several megabytes on each 404.
+
+    Fixes #58887.
+
+    *Nicolas Rodriguez*
+
 *   Compute `action_methods` without converting every public instance method to a String.
 
     Speeds up eager loading for applications whose controllers include the url helpers.

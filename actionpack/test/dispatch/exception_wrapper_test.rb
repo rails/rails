@@ -188,27 +188,27 @@ module ActionDispatch
       Object.const_set(:ErrorHighlight, error_highlight) if error_highlight
     end
 
-    class_eval "def _app_views_tests_show_html_erb;
+    class_eval "def _app_views_tests_show_html_erb__1234567_89;
       raise TestError; end", "app/views/tests/show.html.erb", 2
 
     test "#source_extracts wraps template lines in a SourceMapLocation" do
-      exception = begin _app_views_tests_show_html_erb; rescue TestError => ex; ex; end
+      exception = begin _app_views_tests_show_html_erb__1234567_89; rescue TestError => ex; ex; end
 
-      template = TestTemplate.new("_app_views_tests_show_html_erb")
+      template = TestTemplate.new("_app_views_tests_show_html_erb__1234567_89")
       resolver = Data.define(:built_templates).new(built_templates: [template])
 
       assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
         wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
 
         assert_equal [{
-          code: { 1 => "translated @ _app_views_tests_show_html_erb:3" },
+          code: { 1 => "translated @ _app_views_tests_show_html_erb__1234567_89:3" },
           line_number: 1,
           trace: wrapper.source_extracts.first[:trace]
         }], wrapper.source_extracts
       end
     end
 
-    class_eval "def _app_views_tests_nested_html_erb;
+    class_eval "def _app_views_tests_nested_html_erb__2345678_90;
       [1].each do
         [2].each do
           raise TestError
@@ -217,9 +217,9 @@ module ActionDispatch
     end", "app/views/tests/nested.html.erb", 2
 
     test "#source_extracts works with nested template code" do
-      exception = begin _app_views_tests_nested_html_erb; rescue TestError => ex; ex; end
+      exception = begin _app_views_tests_nested_html_erb__2345678_90; rescue TestError => ex; ex; end
 
-      template = TestTemplate.new("_app_views_tests_nested_html_erb")
+      template = TestTemplate.new("_app_views_tests_nested_html_erb__2345678_90")
       resolver = Data.define(:built_templates).new(built_templates: [template])
 
       assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
@@ -227,22 +227,55 @@ module ActionDispatch
 
         extracts = wrapper.source_extracts
         assert_equal({
-          code: { 1 => "translated @ _app_views_tests_nested_html_erb:5" },
+          code: { 1 => "translated @ _app_views_tests_nested_html_erb__2345678_90:5" },
           line_number: 1,
           trace: extracts[0][:trace]
         }, extracts[0])
         # extracts[1] is Array#each (unreliable backtrace across rubies)
         assert_equal({
-          code: { 1 => "translated @ _app_views_tests_nested_html_erb:4" },
+          code: { 1 => "translated @ _app_views_tests_nested_html_erb__2345678_90:4" },
           line_number: 1,
           trace: extracts[2][:trace]
         }, extracts[2])
         # extracts[3] is Array#each (unreliable backtrace across rubies)
         assert_equal({
-          code: { 1 => "translated @ _app_views_tests_nested_html_erb:3" },
+          code: { 1 => "translated @ _app_views_tests_nested_html_erb__2345678_90:3" },
           line_number: 1,
           trace: extracts[4][:trace]
         }, extracts[4])
+      end
+    end
+
+    class_eval "def _virtual_template__3456789_12;
+      raise TestError; end", "virtual/template", 2
+
+    # A custom resolver builds the identifier of its templates, which need not
+    # be a file name: it can carry no extension at all. The frame is still a
+    # compiled template method, and still has a source extract to map.
+    test "#source_extracts wraps template lines of a resolver whose identifier has no extension" do
+      exception = begin _virtual_template__3456789_12; rescue TestError => ex; ex; end
+
+      template = TestTemplate.new("_virtual_template__3456789_12")
+      resolver = Data.define(:built_templates).new(built_templates: [template])
+
+      assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
+        wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
+
+        assert_equal [{
+          code: { 1 => "translated @ _virtual_template__3456789_12:3" },
+          line_number: 1,
+          trace: wrapper.source_extracts.first[:trace]
+        }], wrapper.source_extracts
+      end
+    end
+
+    test "#source_extracts does not look up templates when no backtrace entry is in a template" do
+      exception = begin index; rescue TestError => ex; ex; end
+
+      assert_not_called(ActionView::PathRegistry, :all_resolvers) do
+        wrapper = ExceptionWrapper.new(nil, exception)
+
+        assert_equal exception.backtrace_locations.map(&:to_s), wrapper.source_extracts.map { |extract| extract[:trace].to_s }
       end
     end
 
