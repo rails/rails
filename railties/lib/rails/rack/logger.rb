@@ -1,12 +1,15 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/time/conversions"
 require "active_support/log_subscriber"
 require "rack/body_proxy"
 
 module Rails
   module Rack
-    # Sets log tags, logs the request, calls the app, and flushes the logs.
+    # Sets log tags, instruments the request, calls the app, and flushes the logs.
+    #
+    # The "Started GET ..." line is logged by a subscriber to the start of the
+    # +request.action_dispatch+ event, which is reported as the
+    # +action_dispatch.request_started+ structured event.
     #
     # Log tags (+taggers+) can be an Array containing: methods that the +request+
     # object responds to, objects that respond to +to_s+ or Proc objects that accept
@@ -37,7 +40,6 @@ module Rails
           handle = instrumenter.build_handle("request.action_dispatch", { request: request })
           handle.start
 
-          logger.info { started_request_message(request) }
           status, headers, body = response = @app.call(env)
           body = ::Rack::BodyProxy.new(body) { finish_request_instrumentation(handle, logger_tag_pop_count) }
 
@@ -50,15 +52,6 @@ module Rails
         rescue Exception
           finish_request_instrumentation(handle, logger_tag_pop_count)
           raise
-        end
-
-        # Started GET "/session/new" for 127.0.0.1 at 2012-09-26 14:51:42 -0700
-        def started_request_message(request) # :doc:
-          sprintf('Started %s "%s" for %s at %s',
-            request.raw_request_method,
-            request.filtered_path,
-            request.remote_ip,
-            Time.now)
         end
 
         def compute_tags(request) # :doc:
