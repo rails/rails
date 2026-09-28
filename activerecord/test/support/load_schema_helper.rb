@@ -9,6 +9,7 @@ module LoadSchemaHelper
 
       begin
         adapter_name = ActiveRecord::Base.lease_connection.adapter_name.downcase
+        adapter_name = "mysql" if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
         adapter_specific_schema_file = SCHEMA_ROOT + "/#{adapter_name}_specific_schema.rb"
 
         load SCHEMA_ROOT + "/schema.rb"
