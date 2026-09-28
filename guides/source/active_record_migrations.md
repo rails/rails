@@ -1978,7 +1978,7 @@ You can configure a `migration_strategy` on each adapter class:
 # config/initializers/migration_strategies.rb
 if Rails.env.production?
   ActiveSupport.on_load(:active_record_trilogyadapter) do
-    ActiveRecord::ConnectionAdapters::Trilogy.migration_strategy =
+    ActiveRecord::ConnectionAdapters::TrilogyAdapter.migration_strategy =
       MySQLMigrationStrategy
   end
 
