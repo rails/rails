@@ -194,7 +194,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller(/:action)'
+          get 'foo', to: 'foo#index'
         end
       RUBY
 
@@ -261,7 +261,8 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller(/:action)'
+          get 'foo', to: 'foo#index'
+          get 'bar', to: 'bar#index'
         end
       RUBY
 
@@ -312,7 +313,7 @@ module ApplicationTests
     test "routes appending blocks" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller/:action'
+          get 'lose' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['LOSE']] }
         end
       RUBY
 
@@ -340,7 +341,7 @@ module ApplicationTests
     test "routes appending blocks after reload" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller/:action'
+          get 'lose' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['LOSE']] }
         end
       RUBY
 
@@ -370,7 +371,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/routes/external.rb", <<-RUBY
-        get ':controller/:action'
+        get 'success/index', to: 'success#index'
       RUBY
 
       controller :success, <<-RUBY

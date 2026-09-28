@@ -53,14 +53,35 @@ module ActionPack
 
       get "news(.:format)" => "news#index"
 
-      ActionDispatch.deprecator.silence {
-        get "comment/:id(/:action)" => "comments#show"
-        get "ws/:controller(/:action(/:id))", ws: true
-        get "account(/:action)" => "account#subscription"
-        get "pages/:page_id/:controller(/:action(/:id))"
-        get ":controller/ping", action: "ping"
-        get ":controller(/:action(/:id))(.:format)"
-      }
+      get "comment/:id" => "comments#show"
+
+      get "ws/posts", controller: "posts", action: "index", ws: true
+      get "ws/posts/show(/:id)", controller: "posts", action: "show", ws: true
+
+      get "account", controller: "account", action: "subscription"
+      get "account/billing", controller: "account", action: "billing"
+
+      get "pages/:page_id/notes", controller: "notes", action: "index"
+      get "pages/:page_id/notes/list", controller: "notes", action: "list"
+      get "pages/:page_id/notes/show(/:id)", controller: "notes", action: "show"
+
+      # Stands in for the `:controller(/:action(/:id))(.:format)` catch-all the
+      # expectations below were written against.
+      {
+        "admin/accounts" => %w(foo show),
+        "archive"        => %w(),
+        "comments"       => %w(boo show),
+        "notes"          => %w(index list print show),
+        "people"         => %w(show),
+        "posts"          => %w(create ping show),
+        "project"        => %w(),
+      }.each do |controller, actions|
+        get "#{controller}(.:format)", controller: controller, action: "index"
+
+        actions.each do |action|
+          get "#{controller}/#{action}(/:id)(.:format)", controller: controller, action: action
+        end
+      end
 
       root to: "news#index"
     }
@@ -112,7 +133,6 @@ module ActionPack
       ["/people/1", [ { action: "show", id: 1 }, { controller: "people", action: "show", id: "1" }, "/people/show/1"]],
       ["/people", [   { controller: "people", action: "index" }, { controller: "people", action: "show", id: "1" }, "/people/show/1"]],
       ["/people/1", [ {}, { controller: "people", action: "show", id: "1" }, "/people/show/1"]],
-      ["/people/1", [ { controller: "people", action: "show" }, { controller: "people", action: "index", id: "1" }, "/people/index/1"]],
       ["/people/1/edit", [     { controller: "people", action: "edit", id: "1" }]],
       ["/people/1/edit.xml", [ { controller: "people", action: "edit", id: "1", format: "xml" }]],
       ["/people/1/edit", [     { use_route: "edit_person", id: "1" }]],

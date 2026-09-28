@@ -358,7 +358,7 @@ module TestHelpers
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller(/:action)'
+          get 'foo', to: 'foo#index'
         end
       RUBY
     end

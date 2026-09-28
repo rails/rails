@@ -15,6 +15,10 @@ module ContentNegotiation
   end
 
   class TestContentNegotiation < Rack::TestCase
+    draw do
+      get "/content_negotiation/basic/hello", to: "content_negotiation/basic#hello"
+    end
+
     test "A */* Accept header will return HTML" do
       get "/content_negotiation/basic/hello", headers: { "HTTP_ACCEPT" => "*/*" }
       assert_body "Hello world */*!"
