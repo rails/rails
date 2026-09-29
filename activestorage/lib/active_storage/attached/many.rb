@@ -50,7 +50,7 @@ module ActiveStorage
     #   document.images.attach([ first_blob, second_blob ])
     def attach(*attachables)
       record.public_send("#{name}=", blobs + attachables.flatten)
-      if record.persisted? && !record.changed?
+      if record.persisted? && !record_changed?
         return if !record.save
       end
       record.public_send("#{name}")
@@ -63,7 +63,7 @@ module ActiveStorage
     #   document.images.attach!(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpeg")
     #   document.images.attach!([ first_blob, second_blob ])
     def attach!(*attachables)
-      attach(*attachables) || raise(ActiveRecord::RecordNotSaved.new("Failed to save the record", record))
+      attach(*attachables) || raise(record_not_saved_error.new("Failed to save the record", record))
     end
 
     # Returns true if any attachments have been made.

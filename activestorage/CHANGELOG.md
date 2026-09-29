@@ -1,3 +1,18 @@
+*   Add support for using Active Storage with non-Active Record owner and storage
+    classes.
+
+    Active Storage can now resolve custom blob, attachment, and variant record
+    classes, boot without Active Record when those classes are configured, and
+    attach files to ActiveModel-style owner records. The `activestorage` gem now
+    depends on `activemodel` instead of `activerecord`. Active Record still loads
+    automatically when available; standalone applications using the default
+    backend must include it explicitly in their Gemfile.
+
+    See the Custom Active Storage Backends guide for the required backend
+    contracts.
+
+    *Thomas Witt*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.

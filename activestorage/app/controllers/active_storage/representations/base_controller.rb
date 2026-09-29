@@ -7,7 +7,7 @@ class ActiveStorage::Representations::BaseController < ActiveStorage::BaseContro
 
   private
     def blob_scope
-      ActiveStorage::Blob.scope_for_strict_loading
+      ActiveStorage.blob_class.scope_for_strict_loading
     end
 
     def set_representation

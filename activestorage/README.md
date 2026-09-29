@@ -1,6 +1,6 @@
 # Active Storage
 
-Active Storage makes it simple to upload and reference files in cloud services like [Amazon S3](https://aws.amazon.com/s3/), or [Google Cloud Storage](https://cloud.google.com/storage/docs/), and attach those files to Active Records. Supports having one main service and mirrors in other services for redundancy. It also provides a disk service for testing or local deployments, but the focus is on cloud storage.
+Active Storage makes it simple to upload and reference files in cloud services like [Amazon S3](https://aws.amazon.com/s3/), or [Google Cloud Storage](https://cloud.google.com/storage/docs/), and attach those files to application records. Supports having one main service and mirrors in other services for redundancy. It also provides a disk service for testing or local deployments, but the focus is on cloud storage.
 
 Files can be uploaded from the server to the cloud or directly from the client to the cloud.
 
@@ -8,15 +8,19 @@ Image files can furthermore be transformed using on-demand variants for quality,
 
 You can read more about Active Storage in the [Active Storage Overview](https://guides.rubyonrails.org/active_storage_overview.html) guide.
 
+By default, Active Storage uses Active Record to persist attachment metadata and associate files with application models. Applications using other persistence libraries can configure a backend that implements the [Custom Active Storage Backends](https://edgeguides.rubyonrails.org/active_storage_custom_backend.html) contract.
+
 ## Compared to other storage solutions
 
-A key difference to how Active Storage works compared to other attachment solutions in \Rails is through the use of built-in [Blob](https://github.com/rails/rails/blob/main/activestorage/app/models/active_storage/blob.rb) and [Attachment](https://github.com/rails/rails/blob/main/activestorage/app/models/active_storage/attachment.rb) models (backed by Active Record). This means existing application models do not need to be modified with additional columns to associate with files. Active Storage uses polymorphic associations via the `Attachment` join model, which then connects to the actual `Blob`.
+A key difference to how Active Storage works compared to other attachment solutions in \Rails is through the use of separate blob and attachment records. With the default backend, these are the built-in [Blob](https://github.com/rails/rails/blob/main/activestorage/app/models/active_storage/blob.rb) and [Attachment](https://github.com/rails/rails/blob/main/activestorage/app/models/active_storage/attachment.rb) models (backed by Active Record). This means existing application models do not need to be modified with additional columns to associate with files. Active Storage uses polymorphic associations via the `Attachment` join model, which then connects to the actual `Blob`.
 
 `Blob` models store attachment metadata (filename, content-type, etc.), and their identifier key in the storage service. Blob models do not store the actual binary data. They are intended to be immutable in spirit. One file, one blob. You can associate the same blob with multiple application models as well. And if you want to do transformations of a given `Blob`, the idea is that you'll simply create a new one, rather than attempt to mutate the existing one (though of course you can delete the previous version later if you don't need it).
 
 ## Installation
 
-Run `bin/rails active_storage:install` to copy over active_storage migrations.
+For the default Active Record backend, run `bin/rails active_storage:install` to copy over active_storage migrations. Applications that depend on `activestorage` without the `rails` gem must also include `activerecord` in their Gemfile.
+
+Custom backends provide their own metadata storage setup and do not use these migrations.
 
 NOTE: If the task cannot be found, verify that `require "active_storage/engine"` is present in `config/application.rb`.
 

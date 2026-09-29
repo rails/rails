@@ -2,8 +2,12 @@
 
 require "rails"
 require "action_controller/railtie"
+begin
+  require "active_record/railtie"
+rescue LoadError => error
+  raise unless error.path == "active_record/railtie"
+end
 require "active_job/railtie"
-require "active_record/railtie"
 
 require "active_storage"
 
@@ -29,6 +33,16 @@ module ActiveStorage
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
     config.active_storage.queues = ActiveSupport::InheritableOptions.new
     config.active_storage.precompile_assets = true
+    config.active_storage.blob_class = "ActiveStorage::Blob"
+    config.active_storage.attachment_class = "ActiveStorage::Attachment"
+    config.active_storage.variant_record_class = "ActiveStorage::VariantRecord"
+
+    config.action_dispatch.rescue_responses.merge!(
+      "ActiveStorage::RecordNotFound" => :not_found,
+      "ActiveStorage::RecordInvalid" => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
+      "ActiveStorage::RecordNotSaved" => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
+      "ActiveStorage::RecordNotDestroyed" => ActionDispatch::Constants::UNPROCESSABLE_CONTENT,
+    )
 
     config.active_storage.variable_content_types = %w(
       image/png
@@ -188,8 +202,109 @@ module ActiveStorage
       require "active_storage/attached"
 
       ActiveSupport.on_load(:active_record) do
-        include ActiveStorage::Attached::Model
+        require "active_storage/active_record_models"
       end
+    end
+
+    initializer "active_storage.class_indirection", after: :load_config_initializers do |app|
+      ActiveStorage.blob_class = app.config.active_storage.blob_class
+      ActiveStorage.attachment_class = app.config.active_storage.attachment_class
+      ActiveStorage.variant_record_class = app.config.active_storage.variant_record_class
+      ActiveStorage.class_configuration_loaded = true
+    end
+
+    # Rails engines automatically register app/models for eager loading, and the
+    # default Active Storage backend ships its blob/attachment/variant_record
+    # models there. A boot without Active Record -- or one that swaps in a custom
+    # storage backend -- must remove those Active Record model files from Zeitwerk
+    # before the main autoloader is set up, otherwise eager loading pulls them in.
+    # Declared after "active_storage.class_indirection" so a backend gem's class
+    # config (set from its Railtie before that initializer, as the guide
+    # recommends) is visible here, and before :setup_main_autoloader so the
+    # ignores take effect.
+    initializer "active_storage.zeitwerk_ignore_when_no_active_record", after: "active_storage.class_indirection", before: :setup_main_autoloader do
+      custom_storage_configured =
+        ActiveStorage.blob_class_name != "ActiveStorage::Blob" ||
+        ActiveStorage.attachment_class_name != "ActiveStorage::Attachment" ||
+        ActiveStorage.variant_record_class_name != "ActiveStorage::VariantRecord"
+
+      if !defined?(::ActiveRecord::Base) || custom_storage_configured
+        ar_paths = [
+          "app/models/active_storage/record.rb",
+          "app/models/active_storage/blob.rb",
+          "app/models/active_storage/attachment.rb",
+          "app/models/active_storage/variant_record.rb",
+          "app/models/active_storage/blob",
+        ]
+
+        ar_paths.each do |relative_path|
+          path = File.expand_path("../../#{relative_path}", __dir__)
+          Rails.autoloaders.main.ignore(path) if File.exist?(path)
+        end
+      end
+    end
+
+    initializer "active_storage.class_indirection_reloader" do |app|
+      app.reloader.to_prepare do
+        ActiveStorage.clear_class_indirection_cache
+        if ActiveStorage::Services.configured? && ActiveStorage.blob_class_name != "ActiveStorage::Blob"
+          ActiveStorage::Services.configure_blob(ActiveStorage.blob_class)
+        end
+      end
+    end
+
+    initializer "active_storage.validate_class_configuration", after: "active_storage.class_indirection" do |app|
+      validate_classes = lambda do |*|
+        required = {
+          "blob_class" => ActiveStorage.blob_class_name,
+          "attachment_class" => ActiveStorage.attachment_class_name,
+          "variant_record_class" => ActiveStorage.variant_record_class_name,
+        }
+
+        defaults = {
+          "blob_class" => "ActiveStorage::Blob",
+          "attachment_class" => "ActiveStorage::Attachment",
+          "variant_record_class" => "ActiveStorage::VariantRecord",
+        }
+
+        any_default = required.any? { |slot, value| value == defaults[slot] }
+        any_custom = required.any? { |slot, value| value != defaults[slot] }
+
+        if any_default && any_custom
+          raise ActiveStorage::ConfigurationError, "Partial custom storage configuration: ALL of blob_class/attachment_class/variant_record_class must be customized together, or all left default."
+        end
+
+        if any_default && !defined?(::ActiveRecord::Base)
+          missing = required.select { |_, value| value.to_s.start_with?("ActiveStorage::") }.keys
+          raise ActiveStorage::ConfigurationError, <<~MSG
+            ActiveStorage is configured to use the default class names (#{missing.join(", ")})
+            but ActiveRecord is not loaded. Either:
+              1. Add `gem "activerecord"` to your Gemfile, or
+              2. Configure custom backend classes for all three slots:
+                   config.active_storage.blob_class           = "MyBlob"
+                   config.active_storage.attachment_class     = "MyAttachment"
+                   config.active_storage.variant_record_class = "MyVariantRecord"
+          MSG
+        end
+
+        required.each do |slot, name|
+          next if name == defaults[slot]
+
+          ActiveStorage.public_send(slot)
+        end
+
+        mismatched_owners = ActiveStorage::Attached::Builder.declared_classes.select do |owner|
+          !!ActiveStorage::Attached::Builder.active_record_owner?(owner) == any_custom
+        end
+        unless mismatched_owners.empty?
+          raise ActiveStorage::HybridConfigurationError,
+            "Active Storage classes do not match attachment owners (#{mismatched_owners.map(&:name).join(', ')}). " \
+            "Active Record owners require the default storage classes; other owners require custom storage classes."
+        end
+      end
+
+      config.after_initialize(&validate_classes)
+      app.reloader.to_prepare(&validate_classes)
     end
 
     initializer "active_storage.verifier" do
@@ -200,33 +315,13 @@ module ActiveStorage
 
     initializer "active_storage.services" do |app|
       ActiveSupport.on_load(:active_storage_blob) do
-        configs = app.config.active_storage.service_configurations ||=
-          begin
-            config_file = Rails.root.join("config/storage/#{Rails.env}.yml")
-            config_file = Rails.root.join("config/storage.yml") unless config_file.exist?
-            raise("Couldn't find Active Storage configuration in #{config_file}") unless config_file.exist?
-
-            ActiveSupport::ConfigurationFile.parse(config_file)
-          end
-
-        ActiveStorage::Blob.services = ActiveStorage::Service::Registry.new(configs)
-
-        if config_choice = app.config.active_storage.service
-          ActiveStorage::Blob.service = ActiveStorage::Blob.services.fetch(config_choice)
-        end
+        ActiveStorage::Services.setup_from_app_config(app, blob_class: self)
       end
     end
 
     initializer "active_storage.queues" do
       config.after_initialize do |app|
         ActiveStorage.queues = app.config.active_storage.queues || {}
-      end
-    end
-
-    initializer "active_storage.reflection" do
-      ActiveSupport.on_load(:active_record) do
-        include Reflection::ActiveRecordExtensions
-        ActiveRecord::Reflection.singleton_class.prepend(Reflection::ReflectionExtension)
       end
     end
 
@@ -260,7 +355,9 @@ module ActiveStorage
       end
 
       ActiveSupport.on_load(:active_support_test_case) do
-        ActiveStorage::FixtureSet.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
+        if defined?(::ActiveRecord::Base)
+          ActiveStorage::FixtureSet.file_fixture_path = ActiveSupport::TestCase.file_fixture_path
+        end
       end
     end
   end
