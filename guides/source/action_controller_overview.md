@@ -460,6 +460,159 @@ cancels any `after_action` callbacks.
 [`around_action`]:
   https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-around_action
 
+### Callback Ordering
+
+Callbacks run in the order they are registered, and the ones inherited from a
+parent controller come first. `before_action` and `around_action` callbacks run
+from the first registered to the last, while `after_action` callbacks run in
+reverse order. Think of the chain as a set of layers wrapped around the action:
+the callbacks registered first are the outermost ones, and the ones registered
+last are the closest to the action.
+
+[`prepend_before_action`][] moves a callback to the front of the chain, so it
+runs before every other `before_action` registered so far, including the
+inherited ones. This is what a concern should use when its callback has to run
+before the ones of the controller including it.
+
+```ruby
+module Authentication
+  extend ActiveSupport::Concern
+
+  included do
+    prepend_before_action :authenticate # runs before the inherited callbacks
+  end
+end
+```
+
+[`prepend_before_action`]:
+  https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-prepend_before_action
+
+### `innermost` and `outermost` Callbacks
+
+`prepend_before_action` puts a callback in front of the callbacks registered so
+far, but it cannot keep it there: the next `prepend_before_action` wins. The
+same goes for the other end of the chain, where a plain `before_action` is
+always overtaken by the ones a subclass registers later.
+
+The `:innermost` and `:outermost` options pin a callback to one end of the
+chain, where nothing registered later on can displace it.
+
+#### `innermost: true`
+
+A callback registered with `innermost: true` is kept closest to the action, so
+every regular `before_action`, including the ones registered later on by
+subclasses, runs before it. That is what a base controller needs when its
+callback depends on a record its subclasses load:
+
+```ruby
+class ApplicationController < ActionController::Base
+  before_action :authorize_record, innermost: true, only: [:show, :edit]
+
+  private
+    def authorize_record
+      head :forbidden unless Current.user.can?(action_name, @record)
+    end
+end
+
+class ArticlesController < ApplicationController
+  before_action :set_record # runs before :authorize_record
+end
+```
+
+Without it, every subclass has to remember to re-register the inherited callback
+after its own, which is easy to get wrong and impossible to enforce.
+
+Being closest to the action means being wrapped by everything else, so an
+`around_action` registered this way is wrapped by every regular `around_action`,
+and an `after_action` registered this way runs before every regular
+`after_action`, since `after_action` callbacks run in reverse order.
+
+#### `outermost: true`
+
+`outermost: true` does the opposite: the callback is kept furthest from the
+action, so every regular `before_action`, including the ones prepended later on
+by subclasses or by a concern included later, runs after it. Use it for the
+callback that establishes the context every other callback relies on:
+
+```ruby
+class ApplicationController < ActionController::Base
+  before_action :set_current_tenant, outermost: true
+
+  private
+    def set_current_tenant
+      Current.tenant = Tenant.find_by!(host: request.host)
+    end
+end
+
+class ArticlesController < ApplicationController
+  # Its prepended :authenticate runs after :set_current_tenant.
+  include Authentication
+end
+```
+
+An `around_action` registered this way wraps every regular `around_action`,
+which makes it observe everything the callbacks registered after it do,
+including what they raise, render, or redirect.
+
+#### Ordering within Each End
+
+Both options only say which end of the chain a callback belongs to, they do not
+make it unique. Several callbacks can share an end, where they keep the order
+they were registered in, and `prepend: true` still moves a callback in front of
+the ones it shares that end with.
+
+```ruby
+class ApplicationController < ActionController::Base
+  before_action :set_current_tenant, outermost: true
+  before_action :set_locale, outermost: true # needs the tenant, runs second
+end
+```
+
+A subclass registering its own pinned callback lands after the one of its
+parent, just like any callback registered later. At the outermost end that means
+the parent's callback stays the outer one; at the innermost end it means the
+subclass's callback becomes the inner one.
+
+```ruby
+class ArticlesController < ApplicationController
+  before_action :set_current_account, outermost: true # after :set_locale
+  before_action :track_view, innermost: true          # after :authorize_record
+end
+```
+
+Setting both options on the same callback raises an `ArgumentError`.
+
+#### Shorthands
+
+Every combination has a matching callback, should you prefer it to the option:
+
+| Option | Shorthand |
+| --- | --- |
+| `before_action :foo, innermost: true` | [`innermost_before_action`][] `:foo` |
+| `around_action :foo, innermost: true` | [`innermost_around_action`][] `:foo` |
+| `after_action :foo, innermost: true` | [`innermost_after_action`][] `:foo` |
+| `before_action :foo, outermost: true` | [`outermost_before_action`][] `:foo` |
+| `around_action :foo, outermost: true` | [`outermost_around_action`][] `:foo` |
+| `after_action :foo, outermost: true` | [`outermost_after_action`][] `:foo` |
+
+The options work everywhere Active Support callbacks do, so Active Record
+models, mailers, and jobs take them too. See the [Active Record Callbacks
+guide](active_record_callbacks.html#callback-ordering-in-inheritance-hierarchies)
+for the model side.
+
+[`innermost_before_action`]:
+  https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-innermost_before_action
+[`innermost_after_action`]:
+  https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-innermost_after_action
+[`innermost_around_action`]:
+  https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-innermost_around_action
+[`outermost_before_action`]:
+  https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-outermost_before_action
+[`outermost_after_action`]:
+  https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-outermost_after_action
+[`outermost_around_action`]:
+  https://api.rubyonrails.org/classes/AbstractController/Callbacks/ClassMethods.html#method-i-outermost_around_action
+
 ### Advanced Techniques to Register Callbacks
 
 In addition to registering a method name using `before_action`, `after_action`,

@@ -143,4 +143,76 @@ class CallbacksTest < ActiveModel::TestCase
   test "after_create callbacks with both callbacks declared in different lines" do
     assert_equal ["callback1", "callback2"], Violin2.new.create.history
   end
+
+  class Cello
+    attr_reader :history
+    def initialize
+      @history = []
+    end
+    extend ActiveModel::Callbacks
+    define_model_callbacks :create
+    before_create :tune, innermost: true
+    before_create :rosin_the_bow, outermost: true
+    def tune; history << "tune"; end
+    def rosin_the_bow; history << "rosin_the_bow"; end
+    def unpack; history << "unpack"; end
+    def plug_in; history << "plug_in"; end
+    def create
+      run_callbacks(:create) { }
+      self
+    end
+  end
+
+  class ElectricCello < Cello
+    before_create :unpack
+    before_create :plug_in, prepend: true
+  end
+
+  test "model callbacks accept the :innermost and :outermost options" do
+    assert_equal ["rosin_the_bow", "tune"], Cello.new.create.history
+  end
+
+  test "innermost and outermost model callbacks stay in place in subclasses" do
+    assert_equal ["rosin_the_bow", "plug_in", "unpack", "tune"], ElectricCello.new.create.history
+  end
+
+  class Bassoon
+    attr_reader :history
+    def initialize
+      @history = []
+    end
+    extend ActiveModel::Callbacks
+    define_model_callbacks :create
+    after_create :swab, innermost: true
+    after_create :pack_up, innermost: true
+    after_create :log, outermost: true
+    def swab; history << "swab"; end
+    def pack_up; history << "pack_up"; end
+    def log; history << "log"; end
+    def create
+      run_callbacks(:create) { }
+      self
+    end
+  end
+
+  class Clarinet < Cello
+    before_create :unpack, innermost: false
+  end
+
+  test "the :innermost and :outermost options are ignored when false" do
+    assert_equal ["rosin_the_bow", "unpack", "tune"], Clarinet.new.create.history
+  end
+
+  test "innermost and outermost after callbacks run in the order they were declared" do
+    assert_equal ["swab", "pack_up", "log"], Bassoon.new.create.history
+  end
+
+  class ContraBassoon < Bassoon
+    after_create :polish, innermost: true, prepend: true
+    def polish; history << "polish"; end
+  end
+
+  test "after callbacks are always prepended, so :prepend has no effect on them" do
+    assert_equal ["swab", "pack_up", "polish", "log"], ContraBassoon.new.create.history
+  end
 end
