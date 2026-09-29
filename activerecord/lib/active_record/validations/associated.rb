@@ -51,6 +51,11 @@ module ActiveRecord
       #   or an array of symbols. (e.g. `on: :create` or
       #   `on: :custom_validation_context` or
       #   `on: [:create, :custom_validation_context]`)
+      # * `:except_on` - Specifies the contexts where this validation is not active.
+      #   Runs in all validation contexts by default `nil`. You can pass a symbol
+      #   or an array of symbols. (e.g. `except_on: :create` or
+      #   `except_on: :custom_validation_context` or
+      #   `except_on: [:create, :custom_validation_context]`)
       # * `:if` - Specifies a method, proc, or string to call to determine
       #   if the validation should occur (e.g. `if: :allow_validation`,
       #   or `if: Proc.new { |user| user.signup_step > 2 }`). The method,
