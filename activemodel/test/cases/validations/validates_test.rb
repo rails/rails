@@ -211,6 +211,14 @@ class ValidatesTest < ActiveModel::TestCase
     assert_predicate person, :valid?
   end
 
+  def test_validates_combines_except_on_from_both_levels
+    Person.validates :title, presence: { except_on: :create }, except_on: :update
+    person = Person.new
+    assert person.valid?(:create)
+    assert person.valid?(:update)
+    assert_not person.valid?(:other)
+  end
+
   def test_validates_per_validator_message_overrides_top_level
     Topic.validates :title, presence: { message: "inner msg" }, message: "outer msg"
     topic = Topic.new
