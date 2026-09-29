@@ -16,6 +16,14 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_equal "\\[click here\\]", ActionText::MarkdownConversion.markdown_link("click here", "javascript:alert(1)")
   end
 
+  test "markdown_link encodes backslashes in URL" do
+    assert_equal "[click](javascript%5C:alert%281%29)", ActionText::MarkdownConversion.markdown_link("click", "javascript\\:alert(1)")
+  end
+
+  test "markdown_link encodes ampersands in URL as entities" do
+    assert_equal "[click](javascript&amp;bsol;:alert%281%29)", ActionText::MarkdownConversion.markdown_link("click", "javascript&bsol;:alert(1)")
+  end
+
   test "markdown_link with image: true returns image syntax" do
     assert_equal "![photo](https://example.com/photo.png)", ActionText::MarkdownConversion.markdown_link("photo", "https://example.com/photo.png", image: true)
   end
@@ -662,6 +670,27 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_converted_to(
       "[link](https://example.com/a%09b)",
       "<a href=\"https://example.com/a\tb\">link</a>"
+    )
+  end
+
+  test "<a> tags with backslashes in href are encoded" do
+    assert_converted_to(
+      "[click](javascript%5C:alert%281%29)",
+      '<a href="javascript\\:alert(1)">click</a>'
+    )
+  end
+
+  test "<a> tags with ampersands in href are encoded as entities" do
+    assert_converted_to(
+      "[link](https://example.com/?a=1&amp;b=2)",
+      '<a href="https://example.com/?a=1&amp;b=2">link</a>'
+    )
+  end
+
+  test "<a> tags with character references in href are encoded as entities" do
+    assert_converted_to(
+      "[click](javascript&amp;bsol;:alert%281%29)",
+      '<a href="javascript&amp;bsol;:alert(1)">click</a>'
     )
   end
 
