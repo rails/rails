@@ -52,9 +52,7 @@ module ActiveRecord
     end
 
     def initialize(columns, rows, column_types = nil, affected_rows: nil)
-      # We freeze the strings to prevent them getting duped when
-      # used as keys in ActiveRecord::Base's @attributes hash
-      @columns      = columns.each(&:-@).freeze
+      @columns      = columns.freeze
       @rows         = rows
       @hash_rows    = nil
       @column_types = column_types.freeze
