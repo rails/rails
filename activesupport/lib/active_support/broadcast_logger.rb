@@ -255,6 +255,23 @@ module ActiveSupport
       end
     end
 
+    # Push the tags onto every broadcast that supports tagged logging. Returns
+    # the tags pushed onto the first of them, or an empty array if none does.
+    def push_tags(*tags)
+      dispatch_tag_stack(:push_tags, *tags)
+    end
+
+    # Pop the given number of tags from every broadcast that supports tagged
+    # logging. Returns the tags popped from the first of them.
+    def pop_tags(count = 1)
+      dispatch_tag_stack(:pop_tags, count)
+    end
+
+    # Clear the tags of every broadcast that supports tagged logging.
+    def clear_tags!
+      dispatch_tag_stack(:clear_tags!)
+    end
+
     def initialize_copy(other)
       @broadcasts = []
       @progname = other.progname.dup
@@ -294,6 +311,13 @@ module ActiveSupport
             _tagged(loggers, index + 1, tags, &block)
           end
         end
+      end
+
+      # Callers size their pops by what the push returned, so a single logger's
+      # result has to come back, not one per logger.
+      def dispatch_tag_stack(method, *args)
+        loggers = @broadcasts.select { |logger| logger.respond_to?(method) }
+        loggers.map { |logger| logger.public_send(method, *args) }.first || []
       end
 
       def method_missing(name, ...)
