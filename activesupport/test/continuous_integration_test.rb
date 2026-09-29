@@ -287,6 +287,148 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
     assert_equal temp_files_before, temp_files_after
   end
 
+  %w[-g --group].each do |flag|
+    test "#{flag} selects a group by exact case-insensitive name" do
+      output = run_ci([flag, "style"]) do
+        step "Setup", "true"
+        group "Style", parallel: 2 do
+          step "Style check", "true"
+          group "Nested" do
+            step "Nested style check", "true"
+          end
+        end
+        group "Styles" do
+          step "Plural style check", "true"
+        end
+      end
+
+      assert_match(/Style check passed/, output)
+      assert_match(/Nested style check passed/, output)
+      assert_no_match(/Setup passed/, output)
+      assert_no_match(/Plural style check passed/, output)
+    end
+  end
+
+  %w[-s --step].each do |flag|
+    test "#{flag} selects a step by exact case-insensitive name" do
+      output = run_ci([flag, "security: gem audit"]) do
+        group "Checks", parallel: 2 do
+          step "Security: Gem audit", "true"
+          step "Security: Gem audit update", "true"
+          step "Style: Ruby", "true"
+        end
+      end
+
+      assert_match(/Security: Gem audit passed/, output)
+      assert_no_match(/Security: Gem audit update passed/, output)
+      assert_no_match(/Style: Ruby passed/, output)
+    end
+  end
+
+  test "repeated group and step selectors are ORed within type and ANDed across types" do
+    output = run_ci([
+      "--group", "style", "-g", "security",
+      "--step", "style check", "-s", "security check"
+    ]) do
+      group "Style", parallel: 2 do
+        step "Style check", "true"
+        step "Extra style check", "true"
+      end
+      group "Security", parallel: 2 do
+        step "Security check", "true"
+      end
+      group "Tests" do
+        step "Style check", "true"
+      end
+    end
+
+    assert_equal 1, output.scan(/Style check passed/).size
+    assert_match(/Security check passed/, output)
+    assert_no_match(/Extra style check passed/, output)
+  end
+
+  test "group selector finds nested groups within unmatched sequential and parallel groups" do
+    output = run_ci(["--group", "tests"]) do
+      group "Sequential checks" do
+        step "Sequential direct check", "true"
+        group "Tests" do
+          step "Sequential nested test", "true"
+        end
+      end
+
+      group "Parallel checks", parallel: 2 do
+        step "Parallel direct check", "true"
+        group "Tests" do
+          step "Parallel nested test", "true"
+        end
+      end
+    end
+
+    assert_match(/Sequential nested test passed/, output)
+    assert_match(/Parallel nested test passed/, output)
+    assert_no_match(/Sequential direct check passed/, output)
+    assert_no_match(/Parallel direct check passed/, output)
+  end
+
+  test "filtered run exits with an error when no step matches" do
+    output = with_argv(["--step", "security"]) do
+      capture_io do
+        assert_raises SystemExit do
+          @CI.run("CI", nil) do
+            step "Security: Gem audit", "true"
+          end
+        end
+      end
+    end.to_s
+
+    assert_match(/No CI steps matched/, output)
+    assert_match(/security/, output)
+    assert_no_match(/Security: Gem audit passed/, output)
+    assert_no_match(/CI passed/, output)
+  end
+
+  %w[-h --help].each do |flag|
+    test "#{flag} prints help without running CI" do
+      executed = false
+      output = with_argv([flag]) do
+        capture_io do
+          @CI.run("CI", nil) do
+            executed = true
+          end
+        end
+      end.to_s
+
+      assert_not executed
+      assert_match(/Usage: bin\/ci \[options\]/, output)
+      assert_match(/--group NAME/, output)
+      assert_match(/--step NAME/, output)
+      assert_no_match(/CI passed/, output)
+    end
+  end
+
+  test "invalid option exits with usage" do
+    output = with_argv(["--unknown"]) do
+      capture_io do
+        assert_raises SystemExit do
+          @CI.run("CI", nil) { flunk "CI should not run" }
+        end
+      end
+    end.to_s
+
+    assert_match(/invalid option: --unknown/, output)
+    assert_match(/Usage: bin\/ci \[options\]/, output)
+  end
+
+  test "fail fast ignores unselected failing steps" do
+    output = run_ci(["--fail-fast", "--step", "Selected"]) do
+      step "Not selected", "false"
+      step "Selected", "true"
+    end
+
+    assert_match(/Selected passed/, output)
+    assert_no_match(/Not selected failed/, output)
+  end
+
   %w[-f --fail-fast].each do |flag|
     test "run aborts immediately on failure with #{flag} flag" do
       output = with_argv([flag]) do
@@ -327,6 +469,12 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
   end
 
   private
+    def run_ci(argv, &block)
+      with_argv(argv) do
+        capture_io { @CI.run("CI", nil, &block) }
+      end.to_s
+    end
+
     def with_argv(argv)
       original_argv = ARGV.dup
       ARGV.replace(argv)

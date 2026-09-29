@@ -9,26 +9,32 @@ module ActiveSupport
       class TaskCollector
         attr_reader :tasks
 
-        def initialize(&block)
+        def initialize(ci, group_selected:, &block)
+          @ci = ci
+          @group_selected = group_selected
           @tasks = []
           instance_eval(&block)
         end
 
         def step(title, *command)
-          @tasks << [:step, title, command]
+          if @ci.selected_step?(title, group_selected: @group_selected)
+            @tasks << [:step, title, command]
+          end
         end
 
         def group(name, **options, &block)
           raise ArgumentError, "Sub-groups cannot be parallelized. Remove the `parallel:` option from the #{name.inspect} group." if options.key?(:parallel)
-          @tasks << [:group, name, block]
+
+          group_selected = @ci.selected_group?(name, parent_selected: @group_selected)
+          @tasks << [:group, name, [group_selected, block]]
         end
       end
 
-      def initialize(ci, name, parallel:, &block)
+      def initialize(ci, name, parallel:, group_selected:, &block)
         @ci = ci
         @name = name
         @parallel = parallel
-        @tasks = TaskCollector.new(&block).tasks
+        @tasks = TaskCollector.new(ci, group_selected: group_selected, &block).tasks
         @start_time = Time.now.to_f
         @mutex = Mutex.new
         @running = {}
@@ -97,9 +103,10 @@ module ActiveSupport
           success
         end
 
-        def execute_group(block)
+        def execute_group(payload)
+          group_selected, block = payload
           all_success = true
-          TaskCollector.new(&block).tasks.each do |type, title, payload|
+          TaskCollector.new(@ci, group_selected: group_selected, &block).tasks.each do |type, title, payload|
             unless execute_task(type, title, payload)
               all_success = false
               break if @ci.fail_fast?
