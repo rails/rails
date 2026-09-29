@@ -96,7 +96,7 @@ module ActiveModel
     alias_method :to_hash, :to_h
 
     def new_empty_mutable_row
-      Mutable.new(@indexes)
+      Mutable.new(@indexes, size: @row.size)
     end
 
     class Remapper
@@ -121,13 +121,13 @@ module ActiveModel
       UNSET = Module.new.freeze
       private_constant :UNSET
 
-      def initialize(indexes, row = nil)
+      def initialize(indexes, row = nil, size: indexes.size)
         @indexes = indexes
-        @row = row || Array.new(indexes.size, UNSET)
+        @row = row || Array.new(size, UNSET)
       end
 
       def size
-        @indexes.size - @row.count(UNSET)
+        @row.size - @row.count(UNSET)
       end
       alias_method :length, :size
 
