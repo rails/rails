@@ -23,7 +23,7 @@ module ActiveModel
       # * <tt>:message</tt> - A custom error message (default is: "must be blank").
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
+      # +:if+, +:unless+, +:on+, +:except_on+, +:allow_nil+, +:allow_blank+, and +:strict+.
       # See ActiveModel::Validations::ClassMethods#validates for more information.
       def validates_absence_of(*attr_names)
         validates_with AbsenceValidator, _merge_attributes(attr_names)

@@ -102,7 +102,7 @@ module ActiveModel
       #   beginning or end of the string. These anchors are <tt>^</tt> and <tt>$</tt>.
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
+      # +:if+, +:unless+, +:on+, +:except_on+, +:allow_nil+, +:allow_blank+, and +:strict+.
       # See ActiveModel::Validations::ClassMethods#validates for more information.
       def validates_format_of(*attr_names)
         validates_with FormatValidator, _merge_attributes(attr_names)
