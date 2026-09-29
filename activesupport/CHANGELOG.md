@@ -1,3 +1,13 @@
+*   Fix `ActiveSupport::BroadcastLogger#push_tags`, `#pop_tags` and `#clear_tags!`
+    when broadcasting to more than one tagging logger.
+
+    They returned one result per logger, so `Rails::Rack::Logger` counted the
+    loggers instead of the tags it pushed and popped the wrong number of tags at
+    the end of each request. With more `log_tags` than tagging loggers, request
+    tags piled up on the thread from one request to the next.
+
+    *Islam Gagiev*
+
 *   Add `Manitoba` to `ActiveSupport::TimeZone::MAPPING`.
 
     Manitoba no longer shares winter clocks with US Central time. The existing

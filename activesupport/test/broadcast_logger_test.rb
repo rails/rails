@@ -401,6 +401,47 @@ module ActiveSupport
       assert_equal [::Logger::INFO, "Hello", nil], plain.adds.first
     end
 
+    test "#push_tags and #pop_tags apply to every tagging logger and return a single logger's tags" do
+      io1, io2 = StringIO.new, StringIO.new
+      logger = BroadcastLogger.new(
+        ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(io1)),
+        ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(io2))
+      )
+
+      assert_equal ["A", "B", "C"], logger.push_tags("A", "B", "C")
+      logger.info("Pushed")
+      assert_equal ["C"], logger.pop_tags
+      logger.info("Popped")
+
+      assert_includes io1.string, "[A] [B] [C] Pushed"
+      assert_includes io2.string, "[A] [B] [C] Pushed"
+      assert_includes io1.string, "[A] [B] Popped"
+      assert_includes io2.string, "[A] [B] Popped"
+    end
+
+    test "#clear_tags! clears the tags of every tagging logger" do
+      io1, io2 = StringIO.new, StringIO.new
+      logger = BroadcastLogger.new(
+        ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(io1)),
+        ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(io2))
+      )
+
+      logger.push_tags("A", "B")
+      assert_equal [], logger.clear_tags!
+      logger.info("Cleared")
+
+      assert_equal "Cleared\n", io1.string
+      assert_equal "Cleared\n", io2.string
+    end
+
+    test "tag stack methods push nothing when no logger supports tagging" do
+      logger = BroadcastLogger.new(FakeLogger.new)
+
+      assert_equal [], logger.push_tags("A")
+      assert_equal [], logger.pop_tags
+      assert_equal [], logger.clear_tags!
+    end
+
     class CustomLogger
       attr_reader :adds, :closed, :chevrons
       attr_accessor :level, :progname, :formatter, :local_level
