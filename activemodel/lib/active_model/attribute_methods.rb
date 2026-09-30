@@ -236,10 +236,7 @@ module ActiveModel
 
         mangled_name = build_mangled_name(target_name)
 
-        call_args = []
-        call_args << parameters if parameters
-
-        define_call(code_generator, target_name, mangled_name, parameters, call_args, namespace: :alias_attribute, as: method_name)
+        define_call(code_generator, target_name, mangled_name, parameters, [], namespace: :alias_attribute, as: method_name)
       end
 
       # Is +new_name+ an alias?
@@ -415,9 +412,6 @@ module ActiveModel
         def define_proxy_call(code_generator, name, proxy_target, parameters, *call_args, namespace:, as: name)
           mangled_name = build_mangled_name(name)
 
-          call_args.map!(&:inspect)
-          call_args << parameters if parameters
-
           # We have to use a different namespace for every target method, because
           # if someone defines an attribute that look like an attribute method we could clash, e.g.
           #   attribute :title_was
@@ -439,6 +433,9 @@ module ActiveModel
 
         def define_call(code_generator, target_name, mangled_name, parameters, call_args, namespace:, as:)
           code_generator.define_cached_method(mangled_name, as: as, namespace: namespace) do |batch|
+            call_args.map!(&:inspect)
+            call_args << parameters if parameters
+
             body = if CALL_COMPILABLE_REGEXP.match?(target_name)
               "self.#{target_name}(#{call_args.join(", ")})"
             else
