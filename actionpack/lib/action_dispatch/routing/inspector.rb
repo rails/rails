@@ -425,10 +425,16 @@ module ActionDispatch
           end
 
           def stable_constraint_name(value)
-            inspected = value.inspect
-            return inspected unless inspected.match?(/#<.+:0x[0-9a-f]+/i)
-
-            value.class.name || value.class.superclass&.name || "anonymous"
+            owner = value.method(:inspect).owner
+            if owner == Kernel
+              value.class.name || "anonymous #{value.class.superclass.name || "Object"}"
+            elsif owner == Proc
+              "anonymous Proc"
+            elsif owner == Module
+              value.name || "anonymous #{value.is_a?(Class) ? "Class" : "Module"}"
+            else
+              value.inspect
+            end
           end
 
           def normalize_source_location(value)

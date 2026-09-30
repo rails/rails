@@ -536,6 +536,31 @@ module ActionDispatch
         ActionDispatch::Routing::Mapper.route_source_locations = false
       end
 
+      def test_json_formatter_names_default_constraint_inspectors
+        constraints = [Object.new, Class.new(Object).new, Class.new(StatefulRackApp).new,
+          proc { }, -> { }, Class.new, Module.new, StatefulRackApp, Enumerable]
+        formatter = ConsoleFormatter::JSON.new
+        formatter.section([{ constraints: { values: constraints } }])
+
+        assert_equal ["Object", "anonymous Object", "anonymous StatefulRackApp",
+          "anonymous Proc", "anonymous Proc", "anonymous Class", "anonymous Module",
+          "StatefulRackApp", "Enumerable"], ::JSON.parse(formatter.result).first.dig("constraints", "values")
+      end
+
+      def test_json_formatter_preserves_custom_constraint_inspectors
+        constraints = [Object.new, proc { }, Class.new, Module.new]
+        constraints.each do |constraint|
+          def constraint.inspect
+            "custom #<Constraint:0x1234>"
+          end
+        end
+        formatter = ConsoleFormatter::JSON.new
+        formatter.section([{ constraints: { values: constraints } }])
+
+        assert_equal ["custom #<Constraint:0x1234>"] * 4,
+          ::JSON.parse(formatter.result).first.dig("constraints", "values")
+      end
+
       def test_json_formatter_flattens_engine_routes_with_engine_provenance
         engine = Class.new(Rails::Engine) do
           def self.inspect

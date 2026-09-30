@@ -1513,7 +1513,7 @@ A source location is represented as an object:
 }
 ```
 
-Constraints are converted recursively to deterministic JSON values. Symbols become strings, regular expressions use their inspected form, hash keys become strings, and custom constraint objects use a stable class or type name. In TSV, the `constraints` cell contains compact JSON, while `source_location` uses `path/to/file.rb:line` format. Tabs, quotes, and newlines in cells are quoted.
+Constraints are converted recursively to JSON values. Symbols become strings, regular expressions use their inspected form, and hash keys become strings. Objects using default inspection use their class name, or an anonymous label such as `anonymous Object` or `anonymous MyConstraint` based on their superclass. Procs, anonymous classes, and anonymous modules using default inspection appear as `anonymous Proc`, `anonymous Class`, and `anonymous Module`. Custom `inspect` output is preserved and may contain runtime-specific values. In TSV, the `constraints` cell contains compact JSON, while `source_location` uses `path/to/file.rb:line` format. Tabs, quotes, and newlines in cells are quoted.
 
 For example, JSON output can be passed directly to `jq`:
 

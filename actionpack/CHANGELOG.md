@@ -2,6 +2,8 @@
 
     Route metadata can now be selected independently from request-path recognition. JSON and TSV formatters expose separate route fields, including controller, action, endpoint, constraints, source location, and engine provenance. Filtered output omits application and engine sections without matching routes, and Rack application endpoints with default inspection use their class name instead of runtime state.
 
+    Structured constraints use class names or descriptive anonymous labels for default inspectors, while preserving custom `inspect` output.
+
     *Ben Moskovitz*
 
 *   Fix `ActionController::Live` streams hanging on client disconnect.
