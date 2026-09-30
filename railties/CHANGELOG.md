@@ -1,3 +1,8 @@
+*   Add `Gemfile.lock` checksums by default to new apps generated with Bundler
+    2.6.9 and above, to mitigate supply chain attacks.
+
+    *Eliot Sykes*
+
 *   Stop probing for a local MySQL socket when generating `config/database.yml`.
 
     *Ryuta Kamizono*
