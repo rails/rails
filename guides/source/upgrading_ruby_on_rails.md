@@ -138,6 +138,14 @@ A `Regexp` for `:controller` or `:action` is rejected for the same reason:
 `get "photos", controller: /photos/, action: "index"` now raises rather than drawing
 a route that can never match.
 
+### Routes to missing controllers are logged on boot when eager loading
+
+When `config.eager_load` is enabled (the default in production), Rails now
+resolves the controller of every route once the routes are loaded, and logs a
+warning naming each route whose controller does not exist. Such routes used to
+go unnoticed until a request matched them. Check the boot log for
+`references a missing controller` and fix or remove the routes it lists.
+
 ### The old Active Record 6.1 marshalling format was removed.
 
 If your application still sets `active_record.marshalling_format_version = 6.1`, which may

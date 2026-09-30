@@ -4,6 +4,7 @@ require "abstract_unit"
 require "controller/fake_controllers"
 require "active_support/core_ext/object/with_options"
 require "active_support/core_ext/object/json"
+require "active_support/core_ext/object/with"
 
 class MilestonesController < ActionController::Base
   def index() head :ok end
@@ -863,6 +864,44 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     hash = rs.recognize_path "/more/symbol"
     assert_not_nil hash
     assert_equal %w(c symbol), [hash[:controller], hash[:action]]
+  end
+
+  def test_missing_controller_messages_is_empty_when_every_controller_exists
+    rs = ::ActionDispatch::Routing::RouteSet.new
+    rs.draw do
+      get "/milestones" => "milestones#index"
+      get "/constrained" => "milestones#index", constraints: ->(req) { true }
+      get "/static" => MilestonesController, action: "index"
+      get "/rack" => ->(env) { [200, {}, []] }
+      get "/redirect" => redirect("/milestones")
+    end
+
+    assert_empty rs.missing_controller_messages
+  end
+
+  def test_missing_controller_messages_reports_each_route_with_a_missing_controller
+    rs = ::ActionDispatch::Routing::RouteSet.new
+    rs.draw do
+      get "/milestones" => "milestones#index"
+      get "/photos/:id" => "photos#show"
+      get "/albums" => "albums#index", constraints: ->(req) { true }
+    end
+
+    messages = rs.missing_controller_messages
+    assert_equal 2, messages.size
+    assert_match %r{\AGET /photos/:id\(\.:format\) references a missing controller: .*PhotosController}, messages[0]
+    assert_match %r{\AGET /albums\(\.:format\) references a missing controller: .*AlbumsController}, messages[1]
+  end
+
+  def test_missing_controller_messages_include_the_route_source_location
+    rs = ::ActionDispatch::Routing::RouteSet.new
+    ActionDispatch::Routing::Mapper.with(route_source_locations: true) do
+      rs.draw do
+        get "/photos" => "photos#index"
+      end
+    end
+
+    assert_match %r{\(defined at .*routing_test\.rb:\d+\)\z}, rs.missing_controller_messages.first
   end
 end
 

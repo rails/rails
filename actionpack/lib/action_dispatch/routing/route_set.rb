@@ -405,6 +405,28 @@ module ActionDispatch
         nil
       end
 
+      # Resolves the controller of every route that dispatches to one and returns
+      # a message for each route whose controller is missing, so that a broken
+      # route can be reported when the routes are loaded rather than on the first
+      # request that matches it.
+      def missing_controller_messages # :nodoc:
+        request = request_class.empty
+
+        routes.filter_map do |route|
+          next unless route.dispatcher?
+          next if StaticDispatcher === route.app
+
+          begin
+            request.controller_class_for(route.defaults[:controller])
+            nil
+          rescue MissingController => error
+            message = +"#{route.verb} #{route.path.spec} references a missing controller: #{error.message}"
+            message << " (defined at #{route.source_location})" if route.source_location
+            message
+          end
+        end
+      end
+
       def relative_url_root
         @config.relative_url_root
       end
