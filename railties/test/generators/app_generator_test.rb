@@ -949,6 +949,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_not_empty @bundle_commands.grep(/^install/)
   end
 
+  def test_generation_creates_bundle_lockfile_with_checksums
+    run_generator [destination_root, "--no-skip-bundle"]
+
+    assert_file "Gemfile.lock" do |content|
+      assert_match(/^CHECKSUMS$/, content)
+    end
+  end
+
   def test_generation_runs_bundle_lock_for_linux
     generator([destination_root])
     run_generator_instance
