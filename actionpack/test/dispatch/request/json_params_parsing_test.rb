@@ -102,11 +102,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
 
   test "parses JSON params for QUERY requests" do
     with_routing do |set|
-      set.draw do
-        ActionDispatch.deprecator.silence do
-          query ":action", to: ::JsonParamsParsingTest::TestController
-        end
-      end
+      draw_root_action_routes(set, ::JsonParamsParsingTest::TestController)
 
       query "/parse", params: '{"person": {"name": "David"}}', headers: { "CONTENT_TYPE" => "application/json" }
       assert_response :ok
@@ -125,11 +121,7 @@ class JsonParamsParsingTest < ActionDispatch::IntegrationTest
 
     def with_test_routing
       with_routing do |set|
-        set.draw do
-          ActionDispatch.deprecator.silence do
-            post ":action", to: ::JsonParamsParsingTest::TestController
-          end
-        end
+        draw_root_action_routes(set, ::JsonParamsParsingTest::TestController)
         yield
       end
     end
@@ -218,11 +210,7 @@ class RootLessJSONParamsParsingTest < ActionDispatch::IntegrationTest
 
     def with_test_routing(controller)
       with_routing do |set|
-        set.draw do
-          ActionDispatch.deprecator.silence do
-            post ":action", to: controller
-          end
-        end
+        draw_root_action_routes(set, controller)
         yield
       end
     end

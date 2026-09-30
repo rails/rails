@@ -3,6 +3,12 @@
 require "abstract_unit"
 require "test_renderable"
 
+# The renderer generates URLs through the route set +ActionController::Base+
+# was set up with.
+append_routes(SharedTestRoutes) do
+  get "/posts", to: "posts#index"
+end
+
 class RendererTest < ActiveSupport::TestCase
   test "action controller base has a renderer" do
     assert ActionController::Base.renderer

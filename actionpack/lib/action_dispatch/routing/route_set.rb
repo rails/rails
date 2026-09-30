@@ -37,10 +37,6 @@ module ActionDispatch
       alias inspect to_s
 
       class Dispatcher < Routing::Endpoint
-        def initialize(raise_on_name_error)
-          @raise_on_name_error = raise_on_name_error
-        end
-
         def dispatcher?; true; end
 
         def serve(req)
@@ -48,12 +44,6 @@ module ActionDispatch
           controller = controller req
           res        = controller.make_response! req
           dispatch(controller, params[:action], req, res)
-        rescue ActionController::RoutingError
-          if @raise_on_name_error
-            raise
-          else
-            [404, { Constants::X_CASCADE => "pass" }, []]
-          end
         end
 
         private
@@ -68,7 +58,6 @@ module ActionDispatch
 
       class StaticDispatcher < Dispatcher
         def initialize(controller_class)
-          super(false)
           @controller_class = controller_class
         end
 
@@ -416,6 +405,28 @@ module ActionDispatch
         nil
       end
 
+      # Resolves the controller of every route that dispatches to one and returns
+      # a message for each route whose controller is missing, so that a broken
+      # route can be reported when the routes are loaded rather than on the first
+      # request that matches it.
+      def missing_controller_messages # :nodoc:
+        request = request_class.empty
+
+        routes.filter_map do |route|
+          next unless route.dispatcher?
+          next if StaticDispatcher === route.app
+
+          begin
+            request.controller_class_for(route.defaults[:controller])
+            nil
+          rescue MissingController => error
+            message = +"#{route.verb} #{route.path.spec} references a missing controller: #{error.message}"
+            message << " (defined at #{route.source_location})" if route.source_location
+            message
+          end
+        end
+      end
+
       def relative_url_root
         @config.relative_url_root
       end
@@ -664,20 +675,6 @@ module ActionDispatch
 
         route = @set.add_route(name, mapping)
         named_routes[name] = route if name
-
-        if route.segment_keys.include?(:controller)
-          ActionDispatch.deprecator.warn(<<-MSG.squish)
-            Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 9.0.
-          MSG
-        end
-
-        if route.segment_keys.include?(:action)
-          ActionDispatch.deprecator.warn(<<-MSG.squish)
-            Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 9.0.
-          MSG
-        end
 
         route
       end

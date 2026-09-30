@@ -8,9 +8,11 @@ module AbstractController
       class W
         include ActionDispatch::Routing::RouteSet.new.tap { |r|
           r.draw {
-            ActionDispatch.deprecator.silence {
-              get ":controller(/:action(/:id(.:format)))"
-            }
+            get "/c(/:id(.:format))",       controller: "c",    action: "index"
+            get "/c/a(/:id(.:format))",     controller: "c",    action: "a"
+            get "/foo(/:id(.:format))",     controller: "foo",  action: "index"
+            get "/foo/bar(/:id(.:format))", controller: "foo",  action: "bar"
+            get "/cont/act(/:id(.:format))", controller: "cont", action: "act"
           }
         }.url_helpers
       end
@@ -300,7 +302,7 @@ module AbstractController
         w = Class.new {
           config = ActionDispatch::Routing::RouteSet::Config.new "/subdir"
           r = ActionDispatch::Routing::RouteSet.new(config)
-          r.draw { ActionDispatch.deprecator.silence { get ":controller(/:action(/:id(.:format)))" } }
+          r.draw { get "/c/a(/:id(.:format))", controller: "c", action: "a" }
           include r.url_helpers
         }
         add_host!(w)
@@ -407,10 +409,7 @@ module AbstractController
         with_routing do |set|
           set.draw do
             get "home/sweet/home/:user", to: "home#index", as: :home
-
-            ActionDispatch.deprecator.silence do
-              get ":controller/:action/:id"
-            end
+            get "brave/new/:id", to: "brave#new"
           end
 
           # We need to create a new class in order to install the new named route.
@@ -502,7 +501,13 @@ module AbstractController
       end
 
       def test_path_generation_for_symbol_parameter_keys
-        assert_generates("/image", controller: :image)
+        with_routing do |set|
+          set.draw do
+            get "/image", to: "image#index"
+          end
+
+          assert_generates("/image", controller: :image)
+        end
       end
 
       def test_named_routes_with_nil_keys

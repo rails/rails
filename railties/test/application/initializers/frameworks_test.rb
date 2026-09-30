@@ -117,7 +117,8 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "/:controller(/:action)"
+          get "/foo/included_helpers", to: "foo#included_helpers"
+          get "/foo/not_included_helper", to: "foo#not_included_helper"
         end
       RUBY
 
@@ -149,7 +150,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "/:controller(/:action)"
+          get "/omg/show", to: "omg#show"
         end
       RUBY
 

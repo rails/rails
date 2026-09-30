@@ -33,7 +33,10 @@ module Rails
           clear!
           load_paths
           finalize!
-          route_sets.each(&:eager_load!) if eager_load
+          if eager_load
+            route_sets.each(&:eager_load!)
+            warn_about_missing_controllers
+          end
         ensure
           @load_state = previous_state
           revert
@@ -110,6 +113,14 @@ module Rails
 
       def finalize!
         route_sets.each(&:finalize!)
+      end
+
+      def warn_about_missing_controllers
+        return unless Rails.logger
+
+        route_sets.each do |routes|
+          routes.missing_controller_messages.each { |message| Rails.logger.warn(message) }
+        end
       end
 
       def revert
