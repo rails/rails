@@ -27,11 +27,11 @@ Nothing connects the file `user.rb` to the constant `User`.
 
 That means an ordinary Ruby program has to load files explicitly before using
 the constants they define. When Ruby executes a `require` call, the classes
-and modules defined in that file come into existence. 
+and modules defined in that file come into existence.
 
-For example, the `PostsController` class below refers to 
-`ApplicationController` and `Post`. If this was an ordinary Ruby program,
-you would need to call `require` at the top of the file to ensure they're available for use:
+For example, the `PostsController` class below refers to `ApplicationController`
+and `Post`. If this was an ordinary Ruby program, you would need to call
+`require` at the top of the file to ensure they're available for use:
 
 ```ruby
 # -----------------------
@@ -152,7 +152,7 @@ module MyApplication
 end
 ```
 
-Also, engines can do this in the body of the engine class and in their own `config/environments/*.rb`. See [engines section](#autoloading-and-engines) below for more details on autoloading with engines.
+Also, engines can do this in the body of the engine class and in their own `config/environments/*.rb`. See [engines section](#autoloading-in-engines) below for more details on autoloading with engines.
 
 WARNING. Please do not mutate `ActiveSupport::Dependencies.autoload_paths`; the public interface to change autoload paths is `config.autoload_paths`.
 
