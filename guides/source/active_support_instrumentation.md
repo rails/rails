@@ -625,7 +625,7 @@ If the query is not executed in the context of a transaction, `:transaction` is 
 
 #### `query_retry.active_record`
 
-This event is emitted when Active Record retries a query after a retryable error.
+This event is emitted before Active Record retries a query after a retryable error.
 
 | Key           | Value                               |
 | ------------- | ----------------------------------- |
@@ -635,7 +635,7 @@ This event is emitted when Active Record retries a query after a retryable error
 
 #### `connection_retry.active_record`
 
-This event is emitted when Active Record retries connecting to the database.
+This event is emitted when a reconnect attempt fails and Active Record retries connecting to the database.
 
 | Key           | Value                               |
 | ------------- | ----------------------------------- |

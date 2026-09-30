@@ -1071,18 +1071,18 @@ module ActiveRecord
       def attempt_retry(exception, budget) # :nodoc:
         return false unless retryable_failure?(exception, budget) && budget.consume
 
-        if retryable_query_error?(exception)
-          backoff(budget.attempts_used)
-        else
-          budget.reconnect_consumed!
-        end
-
         ActiveSupport::Notifications.instrument(
           "query_retry.active_record",
           connection: self,
           error: exception,
           attempt: budget.attempts_used
         )
+
+        if retryable_query_error?(exception)
+          backoff(budget.attempts_used)
+        else
+          budget.reconnect_consumed!
+        end
 
         true
       end
