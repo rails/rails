@@ -30,6 +30,38 @@ class Rails::Command::HelpIntegrationTest < ActiveSupport::TestCase
     assert_no_match "MY_TASK already defined? => true", output
   end
 
+  test "loads every matching command file even if names collide across load paths" do
+    app_file "vendor/plugin_a/lib/commands/custom_command.rb", <<~RUBY
+      puts "PLUGIN_A_COMMAND_LOADED"
+      class Rails::Command::CustomCommand < Rails::Command::Base
+        desc "custom", "Plugin A's custom command"
+        def perform
+          puts "Performed plugin A's custom command"
+        end
+      end
+    RUBY
+
+    app_file "vendor/plugin_b/lib/commands/custom_command.rb", <<~RUBY
+      puts "PLUGIN_B_COMMAND_LOADED"
+      class Rails::Command::CustomCommand < Rails::Command::Base
+        desc "custom", "Plugin B's custom command"
+        def perform
+          puts "Performed plugin B's custom command"
+        end
+      end
+    RUBY
+
+    app_file "config/boot.rb", <<~RUBY, "a"
+      $LOAD_PATH.unshift(File.expand_path("../vendor/plugin_a/lib", __dir__))
+      $LOAD_PATH.unshift(File.expand_path("../vendor/plugin_b/lib", __dir__))
+    RUBY
+
+    command_output = rails "custom", allow_failure: true
+
+    assert_match "PLUGIN_A_COMMAND_LOADED", command_output
+    assert_match "PLUGIN_B_COMMAND_LOADED", command_output
+  end
+
   test "prints help via `X:help` command when running `X` and `X:X` command is not defined" do
     help = rails "dev:help"
     output = rails "dev", allow_failure: true
