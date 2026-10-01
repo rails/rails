@@ -1,23 +1,26 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 class Module
   # Allows you to make aliases for attributes, which includes
   # getter, setter, and a predicate.
   #
-  #   class Content < ActiveRecord::Base
-  #     # has a title attribute
-  #   end
+  # ```
+  # class Content < ActiveRecord::Base
+  #   # has a title attribute
+  # end
   #
-  #   class Email < Content
-  #     alias_attribute :subject, :title
-  #   end
+  # class Email < Content
+  #   alias_attribute :subject, :title
+  # end
   #
-  #   e = Email.find(1)
-  #   e.title    # => "Superstars"
-  #   e.subject  # => "Superstars"
-  #   e.subject? # => true
-  #   e.subject = "Megastars"
-  #   e.title    # => "Megastars"
+  # e = Email.find(1)
+  # e.title    # => "Superstars"
+  # e.subject  # => "Superstars"
+  # e.subject? # => true
+  # e.subject = "Megastars"
+  # e.title    # => "Megastars"
+  # ```
   def alias_attribute(new_name, old_name)
     # The following reader methods use an explicit `self` receiver in order to
     # support aliases that start with an uppercase letter. Otherwise, they would

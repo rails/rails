@@ -173,16 +173,16 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_subquery
     relation = Topic.where(approved: true)
-    assert_equal relation.to_a, Topic.select("*").from(relation).to_a
-    assert_equal relation.to_a, Topic.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Topic.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Topic.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Topic.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Topic.select("a.*").from(relation, :a).to_a
   end
 
   def test_finding_with_subquery_with_binds
     relation = Post.first.comments
-    assert_equal relation.to_a, Comment.select("*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Comment.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("a.*").from(relation, :a).to_a
   end
 
   def test_finding_with_subquery_without_select_does_not_change_the_select
@@ -255,9 +255,9 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_subquery_with_eager_loading_in_from
     relation = Comment.includes(:post).where("posts.type": "Post").order(:id)
-    assert_equal relation.to_a, Comment.select("*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Comment.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("a.*").from(relation, :a).to_a
   end
 
   unless current_adapter?(:SQLite3Adapter)
@@ -267,8 +267,8 @@ class RelationTest < ActiveRecord::TestCase
       union = Arel::Nodes::Union.new(arel1, arel2)
       expected = [comments(:greetings), comments(:more_greetings)]
 
-      assert_equal expected, Comment.select("subquery.*").from(union).to_a
-      assert_equal expected, Comment.select("a.*").from(union, :a).to_a
+      assert_equal_unordered expected, Comment.select("subquery.*").from(union).to_a
+      assert_equal_unordered expected, Comment.select("a.*").from(union, :a).to_a
     end
   end
 
@@ -2220,13 +2220,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "relations show the records in #inspect" do
-    relation = Post.limit(2)
-    assert_equal "#<ActiveRecord::Relation [#{Post.limit(2).map(&:inspect).join(', ')}]>", relation.inspect
+    relation = Post.order(:id).limit(2)
+    assert_equal "#<ActiveRecord::Relation [#{Post.order(:id).limit(2).map(&:inspect).join(', ')}]>", relation.inspect
   end
 
   test "relations limit the records in #inspect at 10" do
-    relation = Post.limit(11)
-    assert_equal "#<ActiveRecord::Relation [#{Post.limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
+    relation = Post.order(:id).limit(11)
+    assert_equal "#<ActiveRecord::Relation [#{Post.order(:id).limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
   end
 
   test "relations don't load all records in #inspect" do
@@ -2593,7 +2593,87 @@ class CreateOrFindByWithinTransactions < ActiveRecord::TestCase
       duel { Subscriber.find_or_create_by!(nick: "bob") }
     end
 
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      def test_three_concurrent_find_or_create_by_within_repeatable_read_transactions
+        three_concurrent_creates(:find_or_create_by, :repeatable_read)
+      end
+
+      def test_three_concurrent_find_or_create_by_bang_within_repeatable_read_transactions
+        three_concurrent_creates(:find_or_create_by!, :repeatable_read)
+      end
+
+      def test_three_concurrent_find_or_create_by_within_savepoints_in_repeatable_read_transactions
+        three_concurrent_creates(:find_or_create_by, :repeatable_read, requires_new: true) do
+          Subscriber.create!(nick: "after_#{Thread.current.object_id}")
+        end
+
+        assert_equal 2, Subscriber.where("nick LIKE 'after_%'").count
+      end
+
+      def test_three_concurrent_find_or_create_by_within_read_committed_transactions
+        three_concurrent_creates(:find_or_create_by, :read_committed)
+      end
+
+      def test_three_concurrent_find_or_create_by_bang_within_read_committed_transactions
+        three_concurrent_creates(:find_or_create_by!, :read_committed)
+      end
+    end
+
     private
+      def three_concurrent_creates(method, isolation, requires_new: false)
+        threads = []
+        assert_nil Subscriber.find_by(nick: "bob")
+
+        ready = Concurrent::CountDownLatch.new(2)
+        winner_committed = Concurrent::Event.new
+        duplicate_inserts = Concurrent::CyclicBarrier.new(2)
+
+        subscriber = ->(*args) do
+          payload = args.last
+          if threads.include?(Thread.current) && payload[:exception_object].is_a?(ActiveRecord::RecordNotUnique)
+            # Both duplicate INSERTs must hold their shared record locks before
+            # either transaction attempts the readback.
+            raise "Timed out waiting for duplicate INSERTs" unless duplicate_inserts.wait(10)
+          end
+        end
+
+        ActiveSupport::Notifications.subscribed(subscriber, "sql.active_record") do
+          2.times do
+            threads << Thread.new do
+              Thread.current.report_on_exception = false
+              Subscriber.transaction(isolation: isolation) do
+                # Read in the outer transaction so requires_new uses a savepoint
+                # instead of restarting the parent transaction.
+                Subscriber.find_by(nick: "bob") if requires_new
+                record = Subscriber.transaction(requires_new: requires_new) do
+                  Subscriber.public_send(method, nick: "bob") do
+                    # The initial SELECT has missed the row, establishing a stale
+                    # snapshot under REPEATABLE READ before the winner commits.
+                    ready.count_down
+                    raise "Timed out waiting for the winner to commit" unless winner_committed.wait(10)
+                  end
+                end
+                yield if block_given?
+                record
+              end
+            end
+          end
+
+          assert ready.wait(10), "Timed out waiting for the initial SELECTs"
+          winner = Subscriber.transaction { Subscriber.create!(nick: "bob") }
+          winner_committed.set
+
+          threads.each do |thread|
+            assert thread.join(15), "Timed out waiting for find_or_create_by"
+            assert_equal winner, thread.value
+          end
+          assert_equal 1, Subscriber.where(nick: "bob").count
+        end
+      ensure
+        threads.each { |thread| thread.kill if thread.alive? }
+        threads.each { |thread| thread.join unless thread.status.nil? }
+      end
+
       def duel
         assert_nil Subscriber.find_by(nick: "bob")
 

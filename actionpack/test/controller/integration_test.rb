@@ -84,6 +84,13 @@ class SessionTest < ActiveSupport::TestCase
     end
   end
 
+  def test_query
+    path = "/index"; params = "blah"; headers = { location: "blah" }
+    assert_called_with @session, :process, [:query, path], params: params, headers: headers do
+      @session.query(path, params: params, headers: headers)
+    end
+  end
+
   def test_xml_http_request_get
     path = "/index"; params = "blah"; headers = { location: "blah" }
     assert_called_with @session, :process, [:get, path], params: params, headers: headers, xhr: true do
@@ -116,6 +123,13 @@ class SessionTest < ActiveSupport::TestCase
     path = "/index"; params = "blah"; headers = { location: "blah" }
     assert_called_with @session, :process, [:delete, path], params: params, headers: headers, xhr: true do
       @session.delete(path, params: params, headers: headers, xhr: true)
+    end
+  end
+
+  def test_xml_http_request_query
+    path = "/index"; params = "blah"; headers = { location: "blah" }
+    assert_called_with @session, :process, [:query, path], params: params, headers: headers, xhr: true do
+      @session.query(path, params: params, headers: headers, xhr: true)
     end
   end
 
@@ -193,7 +207,7 @@ class IntegrationTestUsesCorrectClass < ActionDispatch::IntegrationTest
     reset!
     headers = { "Origin" => "*" }
 
-    %w( get post head patch put delete options ).each do |verb|
+    %w( get post head patch put delete options query ).each do |verb|
       assert_nothing_raised { __send__(verb, "/", headers: headers) }
     end
   end
@@ -249,15 +263,23 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
 
     def redirect
-      redirect_to action_url("get")
+      redirect_to get_action_url
     end
 
     def redirect_307
-      redirect_to action_url("post"), status: 307
+      redirect_to post_action_url, status: 307
     end
 
     def redirect_308
-      redirect_to action_url("post"), status: 308
+      redirect_to post_action_url, status: 308
+    end
+
+    def redirect_303
+      redirect_to get_action_url, status: 303
+    end
+
+    def query_params
+      render plain: "#{request.media_type}|#{request.request_parameters["foo"]}|#{request.query_parameters["foo"].inspect}"
     end
 
     def remove_header
@@ -519,8 +541,53 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_query
+    with_test_route_set do
+      query "/method"
+      assert_equal 200, status
+      assert_equal "method: query", body
+    end
+  end
+
+  def test_query_sends_params_as_request_body
+    with_test_route_set do
+      query "/query_params", params: { foo: "bar" }
+      assert_response :success
+      assert_equal "application/x-www-form-urlencoded|bar|nil", response.body
+    end
+  end
+
+  def test_query_as_json
+    with_test_route_set do
+      query "/query_params", params: { foo: "bar" }, as: :json
+      assert_response :success
+      assert_equal "application/json|bar|nil", response.body
+    end
+  end
+
+  def test_307_redirect_preserves_query_verb
+    with_test_route_set do
+      query "/redirect_307"
+      assert_equal 307, status
+      follow_redirect!
+      assert_equal "QUERY", request.method
+    end
+  end
+
+  def test_303_redirect_switches_query_to_get
+    with_test_route_set do
+      query "/redirect_303"
+      assert_equal 303, status
+      follow_redirect!
+      assert_equal "GET", request.method
+    end
+  end
+
   def test_generate_url_with_controller
-    assert_equal "http://www.example.com/foo", url_for(controller: "foo")
+    with_routing do |set|
+      set.draw { get "/foo", to: "foo#index" }
+      assert_equal "http://www.example.com/foo", url_for(controller: "foo")
+    end
   end
 
   def test_port_via_host!
@@ -587,6 +654,18 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     assert_includes @response.headers, "c"
   end
 
+  def test_default_headers_for_live_request
+    with_test_route_set do |controller|
+      with_live_controller(controller) do
+        with_default_headers "a" => "1", "b" => "2" do
+          get "/get", env: { "SERVER_PROTOCOL" => "HTTP/1.1" }
+        end
+      end
+    end
+
+    assert_includes @response.headers, "a"
+  end
+
   def test_accept_not_overridden_when_xhr_true
     with_test_route_set do
       get "/get", headers: { "Accept" => "application/json" }, xhr: true
@@ -643,6 +722,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
     def with_test_route_set
       with_routing do |set|
+        # Read the actions off the original controller: the clone gets the url
+        # helpers mixed into it, and those are public instance methods too.
+        actions = ::IntegrationProcessTest::IntegrationController.action_methods.to_a
+
         controller = ::IntegrationProcessTest::IntegrationController.clone
         controller.class_eval do
           include set.url_helpers
@@ -651,17 +734,32 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
         set.draw do
           get "moved" => redirect("/method")
 
-          ActionDispatch.deprecator.silence do
-            match ":action", to: controller, via: [:get, :post], as: :action
-            get "get/:action", to: controller, as: :get_action
+          actions.each do |action|
+            match "/#{action}", to: controller, action: action,
+              via: [:get, :post, :query], as: "#{action}_action"
+            get "get/#{action}", to: controller, action: action, as: "get_#{action}_action"
           end
         end
 
         singleton_class.include(set.url_helpers)
 
-        yield
+        yield controller
       end
     end
+
+    def with_live_controller(controller)
+      controller.class_eval do
+        include ActionController::Live
+      end
+
+      yield
+    end
+end
+
+# `url_for(controller: "foo")` in MetalIntegrationTest generates through the
+# shared route set.
+append_routes(SharedTestRoutes) do
+  get "/foo", to: "foo#index"
 end
 
 class MetalIntegrationTest < ActionDispatch::IntegrationTest
@@ -967,7 +1065,7 @@ class UrlOptionsIntegrationTest < ActionDispatch::IntegrationTest
   def test_can_override_default_url_options
     original_host = default_url_options.dup
 
-    default_url_options[:host] = "foobar.com"
+    self.default_url_options = { host: "foobar.com" }
     assert_equal "http://foobar.com/foo", foos_url
 
     get "/bar"
@@ -1066,9 +1164,7 @@ class IntegrationRequestsWithoutSetup < ActionDispatch::IntegrationTest
   def test_request
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          get ":action" => FooController
-        end
+        get "/ok", to: FooController, action: "ok"
       end
 
       get "/ok"
@@ -1117,11 +1213,13 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     end
   end
 
+  FOO_ACTIONS = FooController.action_methods.to_a
+
   def test_standard_json_encoding_works
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          post ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          post "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1158,8 +1256,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_doesnt_mangle_request_path
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          post ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          post "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1219,8 +1317,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_parsed_body_without_as_option
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          get ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          get "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1233,8 +1331,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_get_parameters_with_as_option
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          get ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          get "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1247,8 +1345,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_get_with_json_and_params_sends_as_query_string
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          get ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          get "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1263,8 +1361,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_get_request_with_json_excludes_null_query_string
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          get ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          get "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1277,8 +1375,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_get_with_explicit_query_kwarg
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          get ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          get "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1293,8 +1391,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_post_with_explicit_query_kwarg_appends_to_url
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          post ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          post "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1308,8 +1406,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_post_with_explicit_body_kwarg
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          post ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          post "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1323,8 +1421,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
   def test_post_with_query_and_body_kwargs
     with_routing do |routes|
       routes.draw do
-        ActionDispatch.deprecator.silence do
-          post ":action" => FooController
+        FOO_ACTIONS.each do |action|
+          post "/#{action}", to: FooController, action: action
         end
       end
 
@@ -1339,8 +1437,8 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     def post_to_foos(as:)
       with_routing do |routes|
         routes.draw do
-          ActionDispatch.deprecator.silence do
-            post ":action" => FooController
+          FOO_ACTIONS.each do |action|
+            post "/#{action}", to: FooController, action: action
           end
         end
 
@@ -1439,6 +1537,9 @@ class PageDumpIntegrationTest < ActionDispatch::IntegrationTest
     get "/" => "page_dump_integration_test/foo#index"
     get "/redirect" => "page_dump_integration_test/foo#redirect"
   end
+
+  # +redirect+ computes its target through the controller's own route set.
+  draw_controller_routes(SharedTestRoutes, FooController)
 
   test "save_and_open_page saves a copy of the page and call to Launchy" do
     launchy_called = false

@@ -9,6 +9,8 @@ require "models/traffic_light_encrypted"
 class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::EncryptionTestCase
   fixtures :encrypted_books, :posts
 
+  skip_under_ractor_proxy :test_loading_records_with_encrypted_attributes_defined_on_columns_with_default_values
+
   test "encrypts the attribute seamlessly when creating and updating records" do
     post = EncryptedPost.create!(title: "The Starfleet is here!", body: "take cover!")
     assert_encrypted_attribute(post, :title, "The Starfleet is here!")

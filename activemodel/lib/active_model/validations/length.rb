@@ -51,8 +51,9 @@ module ActiveModel
         CHECKS.each do |key, validity_check|
           next unless check_value = options[key]
 
+          check_value = resolve_value(record, check_value)
+
           if !value.nil? || skip_nil_check?(key)
-            check_value = resolve_value(record, check_value)
             next if value_length.public_send(validity_check, check_value)
           end
 

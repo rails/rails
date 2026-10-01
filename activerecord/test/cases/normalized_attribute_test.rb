@@ -23,6 +23,11 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
     validate { self.validated_name = name.dup }
   end
 
+  class NormalizedEnumAircraft < Aircraft
+    enum :name, { pending: "pending", confirmed: "confirmed" }
+    normalizes :name, with: -> value { value.strip.downcase }
+  end
+
   setup do
     @time = Time.utc(1999, 12, 31, 12, 34, 56)
     @aircraft = NormalizedAircraft.create!(name: "fly HIGH", manufactured_at: @time)
@@ -58,6 +63,19 @@ class NormalizedAttributeTest < ActiveRecord::TestCase
     admin_user.validate
 
     assert_equal({ "foo" => "bar", "baz" => "qux" }, admin_user.json_options)
+  end
+
+  test "normalizes value before enum casting" do
+    aircraft = NormalizedEnumAircraft.new(name: "  Pending  ")
+    assert_equal "pending", aircraft.name
+    assert_predicate aircraft, :pending?
+    assert aircraft.valid?
+  end
+
+  test "still raises for an invalid enum value after normalization" do
+    assert_raises(ArgumentError) do
+      NormalizedEnumAircraft.new(name: "  bogus  ")
+    end
   end
 
   test "minimizes number of times normalization is applied" do

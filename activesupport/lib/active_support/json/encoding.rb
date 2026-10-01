@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/json"
@@ -18,32 +19,42 @@ module ActiveSupport
       # Dumps objects in JSON (JavaScript Object Notation).
       # See http://www.json.org for more info.
       #
-      #   ActiveSupport::JSON.encode({ team: 'rails', players: '36' })
-      #   # => "{\"team\":\"rails\",\"players\":\"36\"}"
+      # ```
+      # ActiveSupport::JSON.encode({ team: 'rails', players: '36' })
+      # # => "{\"team\":\"rails\",\"players\":\"36\"}"
+      # ```
       #
       # By default, it generates JSON that is safe to include in JavaScript, as
       # it escapes U+2028 (Line Separator) and U+2029 (Paragraph Separator):
       #
-      #   ActiveSupport::JSON.encode({ key: "\u2028" })
-      #   # => "{\"key\":\"\\u2028\"}"
+      # ```
+      # ActiveSupport::JSON.encode({ key: "\u2028" })
+      # # => "{\"key\":\"\\u2028\"}"
+      # ```
       #
       # By default, it also generates JSON that is safe to include in HTML, as
-      # it escapes <tt><</tt>, <tt>></tt>, and <tt>&</tt>:
+      # it escapes `<`, `>`, and `&`:
       #
-      #   ActiveSupport::JSON.encode({ key: "<>&" })
-      #   # => "{\"key\":\"\\u003c\\u003e\\u0026\"}"
+      # ```
+      # ActiveSupport::JSON.encode({ key: "<>&" })
+      # # => "{\"key\":\"\\u003c\\u003e\\u0026\"}"
+      # ```
       #
-      # This behavior can be changed with the +escape_html_entities+ option, or the
+      # This behavior can be changed with the `escape_html_entities` option, or the
       # global escape_html_entities_in_json configuration option.
       #
-      #   ActiveSupport::JSON.encode({ key: "<>&" }, escape_html_entities: false)
-      #   # => "{\"key\":\"<>&\"}"
+      # ```
+      # ActiveSupport::JSON.encode({ key: "<>&" }, escape_html_entities: false)
+      # # => "{\"key\":\"<>&\"}"
+      # ```
       #
-      # For performance reasons, you can set the +escape+ option to false,
+      # For performance reasons, you can set the `escape` option to false,
       # which will skip all escaping:
       #
-      #   ActiveSupport::JSON.encode({ key: "\u2028<>&" }, escape: false)
-      #   # => "{\"key\":\"\u2028<>&\"}"
+      # ```
+      # ActiveSupport::JSON.encode({ key: "\u2028<>&" }, escape: false)
+      # # => "{\"key\":\"\u2028<>&\"}"
+      # ```
       def encode(value, options = nil)
         if options.nil? || options.empty?
           Encoding.encode_without_options(value)
@@ -72,6 +83,18 @@ module ActiveSupport
       FULL_ESCAPE_REGEX = Regexp.union(*ESCAPED_CHARS.keys).freeze
       JS_SEPARATORS_REGEX = Regexp.union(U2028, U2029).freeze
 
+      UTF8_ESCAPED_CHARS = {
+        "\u2028" => '\u2028',
+        "\u2029" => '\u2029',
+        ">" => '\u003e',
+        "<" => '\u003c',
+        "&" => '\u0026',
+      }.freeze
+      UTF8_HTML_ENTITIES = UTF8_ESCAPED_CHARS.except("\u2028", "\u2029").freeze
+      UTF8_JS_SEPARATORS = UTF8_ESCAPED_CHARS.slice("\u2028", "\u2029").freeze
+
+      TR_ESCAPE_SUPPORTED = Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("4.1.0")
+
       class JSONGemEncoder # :nodoc:
         attr_reader :options
 
@@ -88,23 +111,42 @@ module ActiveSupport
 
           return json unless @options.fetch(:escape, true)
 
-          json.force_encoding(::Encoding::BINARY)
-          if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
-            if Encoding.escape_js_separators_in_json
-              json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
-            else
-              json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
-            end
-          elsif Encoding.escape_js_separators_in_json
-            json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
-          end
-          json.force_encoding(::Encoding::UTF_8)
+          escape!(json)
         end
 
         private
+          if TR_ESCAPE_SUPPORTED
+            def escape!(json)
+              if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
+                if Encoding.escape_js_separators_in_json
+                  json.tr!(UTF8_ESCAPED_CHARS)
+                else
+                  json.tr!(UTF8_HTML_ENTITIES)
+                end
+              elsif Encoding.escape_js_separators_in_json
+                json.tr!(UTF8_JS_SEPARATORS)
+              end
+              json
+            end
+          else
+            def escape!(json)
+              json.force_encoding(::Encoding::BINARY)
+              if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
+                if Encoding.escape_js_separators_in_json
+                  json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
+                else
+                  json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
+                end
+              elsif Encoding.escape_js_separators_in_json
+                json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
+              end
+              json.force_encoding(::Encoding::UTF_8)
+            end
+          end
+
           # Convert an object into a "JSON-ready" representation composed of
           # primitives like Hash, Array, String, Symbol, Numeric,
-          # and +true+/+false+/+nil+.
+          # and `true`/`false`/`nil`.
           # Recursively calls #as_json to the object to recursively build a
           # fully JSON-ready object.
           #
@@ -112,8 +154,8 @@ module ActiveSupport
           # worry about what base types of objects they are allowed to return
           # or having to remember to call #as_json recursively.
           #
-          # Note: the +options+ hash passed to +object.to_json+ is only passed
-          # to +object.as_json+, not any of this method's recursive +#as_json+
+          # Note: the `options` hash passed to `object.to_json` is only passed
+          # to `object.as_json`, not any of this method's recursive `#as_json`
           # calls.
           def jsonify(value)
             case value
@@ -198,18 +240,38 @@ module ActiveSupport
 
             return json unless @escape
 
-            json.force_encoding(::Encoding::BINARY)
-            if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
-              if Encoding.escape_js_separators_in_json
-                json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
-              else
-                json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
-              end
-            elsif Encoding.escape_js_separators_in_json
-              json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
-            end
-            json.force_encoding(::Encoding::UTF_8)
+            escape!(json)
           end
+
+          private
+            if TR_ESCAPE_SUPPORTED
+              def escape!(json)
+                if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
+                  if Encoding.escape_js_separators_in_json
+                    json.tr!(UTF8_ESCAPED_CHARS)
+                  else
+                    json.tr!(UTF8_HTML_ENTITIES)
+                  end
+                elsif Encoding.escape_js_separators_in_json
+                  json.tr!(UTF8_JS_SEPARATORS)
+                end
+                json
+              end
+            else
+              def escape!(json)
+                json.force_encoding(::Encoding::BINARY)
+                if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
+                  if Encoding.escape_js_separators_in_json
+                    json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
+                  else
+                    json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
+                  end
+                elsif Encoding.escape_js_separators_in_json
+                  json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
+                end
+                json.force_encoding(::Encoding::UTF_8)
+              end
+            end
         end
       end
 
@@ -234,7 +296,7 @@ module ActiveSupport
         attr_accessor :time_precision
 
         # Sets the encoder used by \Rails to encode Ruby objects into JSON strings
-        # in +Object#to_json+ and +ActiveSupport::JSON.encode+.
+        # in `Object#to_json` and `ActiveSupport::JSON.encode`.
         attr_reader :json_encoder
 
         def json_encoder=(encoder)

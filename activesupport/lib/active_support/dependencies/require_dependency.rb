@@ -1,7 +1,8 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport::Dependencies::RequireDependency
-  # <b>Warning:</b> This method is deprecated.
+  # **Warning:** This method is deprecated.
   def require_dependency(filename)
     ActiveSupport.deprecator.warn <<~MSG
       require_dependency is deprecated without replacement and will be removed

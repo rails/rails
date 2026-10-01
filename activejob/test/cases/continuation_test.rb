@@ -6,6 +6,7 @@ require "active_support/testing/stream"
 require "active_support/core_ext/object/with"
 require "support/test_logger"
 require "support/do_not_perform_enqueued_jobs"
+require "models/person"
 
 return unless adapter_is?(:test)
 
@@ -759,5 +760,58 @@ class ActiveJob::TestContinuation < ActiveSupport::TestCase
     end
 
     assert_equal [ "step_one", "step_two", "step_three", "step_four" ], IsolatedStepsJob.items
+  end
+
+  class SerializableCursorJob < ContinuableJob
+    cattr_accessor :cursor_value
+    cattr_accessor :serialized_job
+    cattr_accessor :resumed_cursor
+
+    def perform
+      step :scan do |step|
+        if step.resumed?
+          self.class.resumed_cursor = step.cursor
+        else
+          step.set! self.class.cursor_value
+          self.class.serialized_job = serialize
+        end
+      end
+    end
+  end
+
+  test "round-trips a non-primitive step cursor through Active Job argument serialization" do
+    SerializableCursorJob.cursor_value = Date.new(2026, 7, 6)
+    SerializableCursorJob.resumed_cursor = nil
+    SerializableCursorJob.perform_now
+
+    round_tripped = JSON.parse(JSON.generate(SerializableCursorJob.serialized_job))
+    ActiveJob::Base.execute(round_tripped)
+
+    assert_instance_of Date, SerializableCursorJob.resumed_cursor
+    assert_equal Date.new(2026, 7, 6), SerializableCursorJob.resumed_cursor
+  end
+
+  class DiscardableCursorJob < ContinuableJob
+    cattr_accessor :discarded_error
+
+    discard_on ActiveJob::DeserializationError do |job, error|
+      job.class.discarded_error = error
+    end
+
+    def perform
+      step :scan do |step|
+      end
+    end
+  end
+
+  test "cursor deserialization errors can be handled by the job's error handlers" do
+    DiscardableCursorJob.discarded_error = nil
+    job_data = DiscardableCursorJob.new.serialize.merge(
+      "continuation" => { "completed" => [], "current" => [ "scan", { "_aj_globalid" => Person.new(404).to_gid.to_s } ] }
+    )
+
+    ActiveJob::Base.execute(JSON.parse(JSON.generate(job_data)))
+
+    assert_kind_of ActiveJob::DeserializationError, DiscardableCursorJob.discarded_error
   end
 end

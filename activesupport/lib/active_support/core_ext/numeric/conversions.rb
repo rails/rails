@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/big_decimal/conversions"
@@ -11,13 +12,13 @@ module ActiveSupport
     # Options are provided for phone numbers, currency, percentage,
     # precision, positional notation, file size, and pretty printing.
     #
-    # This method is aliased to <tt>to_formatted_s</tt>.
+    # This method is aliased to `to_formatted_s`.
     #
-    # ==== Options
+    # #### Options
     #
     # For details on which formats use which options, see ActiveSupport::NumberHelper
     #
-    # ==== Examples
+    # #### Examples
     #
     #  Phone Numbers:
     #  5551234.to_fs(:phone)                                     # => "555-1234"

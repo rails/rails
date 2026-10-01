@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 class String
@@ -7,17 +8,22 @@ class String
   #
   # Note that it handles both ASCII and Unicode whitespace.
   #
-  #   %{ Multi-line
-  #      string }.squish                   # => "Multi-line string"
-  #   " foo   bar    \n   \t   boo".squish # => "foo bar boo"
+  # ```
+  # %{ Multi-line
+  #    string }.squish                   # => "Multi-line string"
+  # " foo   bar    \n   \t   boo".squish # => "foo bar boo"
+  # ```
   def squish
     dup.squish!
   end
 
   # Performs a destructive squish. See String#squish.
-  #   str = " foo   bar    \n   \t   boo"
-  #   str.squish!                         # => "foo bar boo"
-  #   str                                 # => "foo bar boo"
+  #
+  # ```
+  # str = " foo   bar    \n   \t   boo"
+  # str.squish!                         # => "foo bar boo"
+  # str                                 # => "foo bar boo"
+  # ```
   def squish!
     # Search for two or more `[[:space:]]` OR a single
     # [[:space:]] that isn't `" "`.
@@ -27,18 +33,24 @@ class String
   end
 
   # Returns a new string with all occurrences of the patterns removed.
-  #   str = "foo bar test"
-  #   str.remove(" test")                 # => "foo bar"
-  #   str.remove(" test", /bar/)          # => "foo "
-  #   str                                 # => "foo bar test"
+  #
+  # ```
+  # str = "foo bar test"
+  # str.remove(" test")                 # => "foo bar"
+  # str.remove(" test", /bar/)          # => "foo "
+  # str                                 # => "foo bar test"
+  # ```
   def remove(*patterns)
     dup.remove!(*patterns)
   end
 
   # Alters the string by removing all occurrences of the patterns.
-  #   str = "foo bar test"
-  #   str.remove!(" test", /bar/)         # => "foo "
-  #   str                                 # => "foo "
+  #
+  # ```
+  # str = "foo bar test"
+  # str.remove!(" test", /bar/)         # => "foo "
+  # str                                 # => "foo "
+  # ```
   def remove!(*patterns)
     patterns.each do |pattern|
       gsub! pattern, ""
@@ -47,28 +59,34 @@ class String
     self
   end
 
-  # Truncates a given +text+ to length <tt>truncate_to</tt> if +text+ is longer than <tt>truncate_to</tt>:
+  # Truncates a given `text` to length `truncate_to` if `text` is longer than `truncate_to`:
   #
-  #   'Once upon a time in a world far far away'.truncate(27)
-  #   # => "Once upon a time in a wo..."
+  # ```
+  # 'Once upon a time in a world far far away'.truncate(27)
+  # # => "Once upon a time in a wo..."
+  # ```
   #
-  # Pass a string or regexp <tt>:separator</tt> to truncate +text+ at a natural break:
+  # Pass a string or regexp `:separator` to truncate `text` at a natural break:
   #
-  #   'Once upon a time in a world far far away'.truncate(27, separator: ' ')
-  #   # => "Once upon a time in a..."
+  # ```
+  # 'Once upon a time in a world far far away'.truncate(27, separator: ' ')
+  # # => "Once upon a time in a..."
   #
-  #   'Once upon a time in a world far far away'.truncate(27, separator: /\s/)
-  #   # => "Once upon a time in a..."
+  # 'Once upon a time in a world far far away'.truncate(27, separator: /\s/)
+  # # => "Once upon a time in a..."
+  # ```
   #
-  # The last characters will be replaced with the <tt>:omission</tt> string (defaults to "...").
-  # The total length will not exceed <tt>truncate_to</tt> unless both +text+ and <tt>:omission</tt>
-  # are longer than <tt>truncate_to</tt>:
+  # The last characters will be replaced with the `:omission` string (defaults to "...").
+  # The total length will not exceed `truncate_to` unless both `text` and `:omission`
+  # are longer than `truncate_to`:
   #
-  #   'And they found that many people were sleeping better.'.truncate(25, omission: '... (continued)')
-  #   # => "And they f... (continued)"
+  # ```
+  # 'And they found that many people were sleeping better.'.truncate(25, omission: '... (continued)')
+  # # => "And they f... (continued)"
   #
-  #   'And they found that many people were sleeping better.'.truncate(4, omission: '... (continued)')
-  #   # => "... (continued)"
+  # 'And they found that many people were sleeping better.'.truncate(4, omission: '... (continued)')
+  # # => "... (continued)"
+  # ```
   def truncate(truncate_to, options = {})
     return dup unless length > truncate_to
 
@@ -86,22 +104,24 @@ class String
     +"#{self[0, stop]}#{omission}"
   end
 
-  # Truncates +text+ to at most <tt>truncate_to</tt> bytes in length without
+  # Truncates `text` to at most `truncate_to` bytes in length without
   # breaking string encoding by splitting multibyte characters or breaking
   # grapheme clusters ("perceptual characters") by truncating at combining
   # characters.
   #
-  #   >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".size
-  #   # => 20
-  #   >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".bytesize
-  #   # => 80
-  #   >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".truncate_bytes(20)
-  #   # => "🔪🔪🔪🔪…"
+  # ```
+  # >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".size
+  # # => 20
+  # >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".bytesize
+  # # => 80
+  # >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".truncate_bytes(20)
+  # # => "🔪🔪🔪🔪…"
+  # ```
   #
-  # The truncated text ends with the <tt>:omission</tt> string, defaulting
-  # to "…", for a total length not exceeding <tt>truncate_to</tt>.
+  # The truncated text ends with the `:omission` string, defaulting
+  # to "…", for a total length not exceeding `truncate_to`.
   #
-  # Raises +ArgumentError+ when the bytesize of <tt>:omission</tt> exceeds <tt>truncate_to</tt>.
+  # Raises `ArgumentError` when the bytesize of `:omission` exceeds `truncate_to`.
   def truncate_bytes(truncate_to, omission: "…")
     omission ||= ""
 
@@ -129,20 +149,26 @@ class String
     end
   end
 
-  # Truncates a given +text+ after a given number of words (<tt>words_count</tt>):
+  # Truncates a given `text` after a given number of words (`words_count`):
   #
-  #   'Once upon a time in a world far far away'.truncate_words(4)
-  #   # => "Once upon a time..."
+  # ```
+  # 'Once upon a time in a world far far away'.truncate_words(4)
+  # # => "Once upon a time..."
+  # ```
   #
-  # Pass a string or regexp <tt>:separator</tt> to specify a different separator of words:
+  # Pass a string or regexp `:separator` to specify a different separator of words:
   #
-  #   'Once<br>upon<br>a<br>time<br>in<br>a<br>world'.truncate_words(5, separator: '<br>')
-  #   # => "Once<br>upon<br>a<br>time<br>in..."
+  # ```
+  # 'Once<br>upon<br>a<br>time<br>in<br>a<br>world'.truncate_words(5, separator: '<br>')
+  # # => "Once<br>upon<br>a<br>time<br>in..."
+  # ```
   #
-  # The last characters will be replaced with the <tt>:omission</tt> string (defaults to "..."):
+  # The last characters will be replaced with the `:omission` string (defaults to "..."):
   #
-  #   'And they found that many people were sleeping better.'.truncate_words(5, omission: '... (continued)')
-  #   # => "And they found that many... (continued)"
+  # ```
+  # 'And they found that many people were sleeping better.'.truncate_words(5, omission: '... (continued)')
+  # # => "And they found that many... (continued)"
+  # ```
   def truncate_words(words_count, options = {})
     sep = options[:separator] || /\s+/
     sep = Regexp.escape(sep.to_s) unless Regexp === sep

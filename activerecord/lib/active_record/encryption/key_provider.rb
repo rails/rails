@@ -25,6 +25,13 @@ module ActiveRecord
         @encryption_key
       end
 
+      def freeze
+        encryption_key
+        keys_grouped_by_id
+
+        super
+      end
+
       # Returns the list of decryption keys
       #
       # When the message holds a reference to its encryption key, it will return an array

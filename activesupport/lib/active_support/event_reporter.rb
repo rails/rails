@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/parameter_filter"
@@ -68,212 +69,235 @@ module ActiveSupport
     end
   end
 
-  # = Active Support \Event Reporter
+  # Active Support \Event Reporter
+  # ==============================
   #
-  # +ActiveSupport::EventReporter+ provides an interface for reporting structured events to subscribers.
+  # `ActiveSupport::EventReporter` provides an interface for reporting structured events to subscribers.
   #
-  # To report an event, you can use the +notify+ method:
+  # To report an event, you can use the `notify` method:
   #
-  #   Rails.event.notify("user_created", { id: 123 })
-  #   # Emits event:
-  #   #  {
-  #   #    name: "user_created",
-  #   #    payload: { id: 123 },
-  #   #    timestamp: 1738964843208679035,
-  #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
-  #   #  }
+  # ```
+  # Rails.event.notify("user_created", { id: 123 })
+  # # Emits event:
+  # #  {
+  # #    name: "user_created",
+  # #    payload: { id: 123 },
+  # #    timestamp: 1738964843208679035,
+  # #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
+  # #  }
+  # ```
   #
-  # The +notify+ API can receive either an event name and a payload hash, or an event object. Names are coerced to strings.
+  # The `notify` API can receive either an event name and a payload hash, or an event object. Names are coerced to strings.
   #
-  # === Event Objects
+  # ### Event Objects
   #
-  # If an event object is passed to the +notify+ API, it will be passed through to subscribers as-is, and the name of the
+  # If an event object is passed to the `notify` API, it will be passed through to subscribers as-is, and the name of the
   # object's class will be used as the event name.
   #
-  #   class UserCreatedEvent
-  #     def initialize(id:, name:)
-  #       @id = id
-  #       @name = name
-  #     end
-  #
-  #     def serialize
-  #       {
-  #         id: @id,
-  #         name: @name
-  #       }
-  #     end
+  # ```
+  # class UserCreatedEvent
+  #   def initialize(id:, name:)
+  #     @id = id
+  #     @name = name
   #   end
   #
-  #   Rails.event.notify(UserCreatedEvent.new(id: 123, name: "John Doe"))
-  #   # Emits event:
-  #   #  {
-  #   #    name: "UserCreatedEvent",
-  #   #    payload: #<UserCreatedEvent:0x111>,
-  #   #    timestamp: 1738964843208679035,
-  #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
-  #   #  }
+  #   def serialize
+  #     {
+  #       id: @id,
+  #       name: @name
+  #     }
+  #   end
+  # end
+  #
+  # Rails.event.notify(UserCreatedEvent.new(id: 123, name: "John Doe"))
+  # # Emits event:
+  # #  {
+  # #    name: "UserCreatedEvent",
+  # #    payload: #<UserCreatedEvent:0x111>,
+  # #    timestamp: 1738964843208679035,
+  # #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
+  # #  }
+  # ```
   #
   # An event is any Ruby object representing a schematized event. While payload hashes allow arbitrary,
   # implicitly-structured data, event objects are intended to enforce a particular schema.
   #
   # Subscribers are responsible for serializing event objects.
   #
-  # === Subscribers
+  # ### Subscribers
   #
-  # Subscribers must implement the +emit+ method, which will be called with the event hash.
+  # Subscribers must implement the `emit` method, which will be called with the event hash.
   #
   # The event hash has the following keys:
   #
-  #   name: String (The name of the event)
-  #   payload: Hash, Object (The payload of the event, or the event object itself)
-  #   tags: Hash (The tags of the event)
-  #   context: Hash (The context of the event)
-  #   timestamp: Integer (The timestamp of the event, in nanoseconds)
-  #   source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
+  # ```
+  # name: String (The name of the event)
+  # payload: Hash, Object (The payload of the event, or the event object itself)
+  # tags: Hash (The tags of the event)
+  # context: Hash (The context of the event)
+  # timestamp: Integer (The timestamp of the event, in nanoseconds)
+  # source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
+  # ```
   #
   # Subscribers are responsible for encoding events to their desired format before emitting them to their
   # target destination, such as a streaming platform, a log device, or an alerting service.
   #
-  #   class JSONEventSubscriber
-  #     def emit(event)
-  #       json_data = JSON.generate(event)
-  #       LogExporter.export(json_data)
-  #     end
+  # ```
+  # class JSONEventSubscriber
+  #   def emit(event)
+  #     json_data = JSON.generate(event)
+  #     LogExporter.export(json_data)
   #   end
+  # end
   #
-  #   class LogSubscriber
-  #     def emit(event)
-  #       payload = event[:payload].map { |key, value| "#{key}=#{value}" }.join(" ")
-  #       source_location = event[:source_location]
-  #       log = "[#{event[:name]}] #{payload} at #{source_location[:filepath]}:#{source_location[:lineno]}"
-  #       Rails.logger.info(log)
-  #     end
+  # class LogSubscriber
+  #   def emit(event)
+  #     payload = event[:payload].map { |key, value| "#{key}=#{value}" }.join(" ")
+  #     source_location = event[:source_location]
+  #     log = "[#{event[:name]}] #{payload} at #{source_location[:filepath]}:#{source_location[:lineno]}"
+  #     Rails.logger.info(log)
   #   end
+  # end
+  # ```
   #
   # Note that event objects are passed through to subscribers as-is, and may need to be serialized before being encoded:
   #
-  #   class UserCreatedEvent
-  #     def initialize(id:, name:)
-  #       @id = id
-  #       @name = name
-  #     end
-  #
-  #     def serialize
-  #       {
-  #         id: @id,
-  #         name: @name
-  #       }
-  #     end
+  # ```
+  # class UserCreatedEvent
+  #   def initialize(id:, name:)
+  #     @id = id
+  #     @name = name
   #   end
   #
-  #   class LogSubscriber
-  #     def emit(event)
-  #       payload = event[:payload]
-  #       json_data = JSON.generate(payload.serialize)
-  #       LogExporter.export(json_data)
-  #     end
+  #   def serialize
+  #     {
+  #       id: @id,
+  #       name: @name
+  #     }
   #   end
+  # end
   #
-  # ==== Filtered Subscriptions
+  # class LogSubscriber
+  #   def emit(event)
+  #     payload = event[:payload]
+  #     json_data = JSON.generate(payload.serialize)
+  #     LogExporter.export(json_data)
+  #   end
+  # end
+  # ```
+  #
+  # #### Filtered Subscriptions
   #
   # Subscribers can be configured with an optional filter proc to only receive a subset of events, based on their name:
   #
-  #   # Only receive events with names starting with "user."
-  #   Rails.event.subscribe(user_subscriber) { |event| event[:name].start_with?("user.") }
+  # ```
+  # # Only receive events with names starting with "user."
+  # Rails.event.subscribe(user_subscriber) { |event| event[:name].start_with?("user.") }
+  # ```
   #
-  # Note that only the +:name+ key is available to filters, not the entire payload.
+  # Note that only the `:name` key is available to filters, not the entire payload.
   #
-  # === Debug Events
+  # ### Debug Events
   #
-  # You can use the +debug+ method to report an event that will only be reported if the
+  # You can use the `debug` method to report an event that will only be reported if the
   # event reporter is in debug mode:
   #
-  #   Rails.event.debug("my_debug_event", { foo: "bar" })
+  # ```
+  # Rails.event.debug("my_debug_event", { foo: "bar" })
+  # ```
   #
-  # === Tags
+  # ### Tags
   #
   # To add additional context to an event, separate from the event payload, you can add
-  # tags via the +tagged+ method:
+  # tags via the `tagged` method:
   #
-  #   Rails.event.tagged("graphql") do
-  #     Rails.event.notify("user_created", { id: 123 })
-  #   end
+  # ```
+  # Rails.event.tagged("graphql") do
+  #   Rails.event.notify("user_created", { id: 123 })
+  # end
   #
-  #   # Emits event:
-  #   #  {
-  #   #    name: "user_created",
-  #   #    payload: { id: 123 },
-  #   #    tags: { graphql: true },
-  #   #    context: {},
-  #   #    timestamp: 1738964843208679035,
-  #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
-  #   #  }
+  # # Emits event:
+  # #  {
+  # #    name: "user_created",
+  # #    payload: { id: 123 },
+  # #    tags: { graphql: true },
+  # #    context: {},
+  # #    timestamp: 1738964843208679035,
+  # #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
+  # #  }
+  # ```
   #
-  # === Context Store
+  # ### Context Store
   #
   # You may want to attach metadata to every event emitted by the reporter. While tags
   # provide domain-specific context for a series of events, context is scoped to the job / request
   # and should be used for metadata associated with the execution context.
-  # Context can be set via the +set_context+ method:
+  # Context can be set via the `set_context` method:
   #
-  #   Rails.event.set_context(request_id: "abcd123", user_agent: "TestAgent")
-  #   Rails.event.notify("user_created", { id: 123 })
+  # ```
+  # Rails.event.set_context(request_id: "abcd123", user_agent: "TestAgent")
+  # Rails.event.notify("user_created", { id: 123 })
   #
-  #   # Emits event:
-  #   #  {
-  #   #    name: "user_created",
-  #   #    payload: { id: 123 },
-  #   #    tags: {},
-  #   #    context: { request_id: "abcd123", user_agent: "TestAgent" },
-  #   #    timestamp: 1738964843208679035,
-  #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
-  #   #  }
+  # # Emits event:
+  # #  {
+  # #    name: "user_created",
+  # #    payload: { id: 123 },
+  # #    tags: {},
+  # #    context: { request_id: "abcd123", user_agent: "TestAgent" },
+  # #    timestamp: 1738964843208679035,
+  # #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
+  # #  }
+  # ```
   #
   # Context is reset automatically before and after each request.
   #
-  # A custom context store can be configured via +config.active_support.event_reporter_context_store+.
+  # A custom context store can be configured via `config.active_support.event_reporter_context_store`.
   #
-  #     # config/application.rb
-  #     config.active_support.event_reporter_context_store = CustomContextStore
+  # ```
+  # # config/application.rb
+  # config.active_support.event_reporter_context_store = CustomContextStore
   #
-  #     class CustomContextStore
-  #       class << self
-  #         def context
-  #           # Return the context.
-  #         end
-  #
-  #         def set_context(context_hash)
-  #           # Append context_hash to the existing context store.
-  #         end
-  #
-  #         def clear
-  #           # Delete the stored context.
-  #         end
-  #       end
+  # class CustomContextStore
+  #   class << self
+  #     def context
+  #       # Return the context.
   #     end
+  #
+  #     def set_context(context_hash)
+  #       # Append context_hash to the existing context store.
+  #     end
+  #
+  #     def clear
+  #       # Delete the stored context.
+  #     end
+  #   end
+  # end
+  # ```
   #
   # The Event Reporter standardizes on symbol keys for all payload data, tags, and context store entries.
   # String keys are automatically converted to symbols for consistency.
   #
-  #   Rails.event.notify("user.created", { "id" => 123 })
-  #   # Emits event:
-  #   #  {
-  #   #    name: "user.created",
-  #   #    payload: { id: 123 },
-  #   #  }
+  # ```
+  # Rails.event.notify("user.created", { "id" => 123 })
+  # # Emits event:
+  # #  {
+  # #    name: "user.created",
+  # #    payload: { id: 123 },
+  # #  }
+  # ```
   #
-  # === Security
+  # ### Security
   #
-  # When reporting events, Hash-based payloads are automatically filtered to remove sensitive data based on {Rails.application.filter_parameters}[https://guides.rubyonrails.org/configuring.html#config-filter-parameters].
+  # When reporting events, Hash-based payloads are automatically filtered to remove sensitive data based on [Rails.application.filter_parameters](https://guides.rubyonrails.org/configuring.html#config-filter-parameters).
   #
-  # If an {event object}[rdoc-ref:EventReporter@Event+Objects] is given instead, subscribers will need to filter sensitive data themselves, e.g. with ActiveSupport::ParameterFilter.
+  # If an [event object](rdoc-ref:EventReporter@Event+Objects) is given instead, subscribers will need to filter sensitive data themselves, e.g. with ActiveSupport::ParameterFilter.
   class EventReporter
     extend ActiveSupport::Autoload
 
     autoload :LogSubscriber
 
     # Sets whether to raise an error if a subscriber raises an error during
-    # event emission, or when unexpected arguments are passed to +notify+.
+    # event emission, or when unexpected arguments are passed to `notify`.
     attr_writer :raise_on_error
 
     attr_writer :debug_mode # :nodoc:
@@ -298,22 +322,28 @@ module ActiveSupport
 
     # Registers a new event subscriber. The subscriber must respond to
     #
-    #   emit(event: Hash)
+    # ```
+    # emit(event: Hash)
+    # ```
     #
     # The event hash will have the following keys:
     #
-    #   name: String (The name of the event)
-    #   payload: Hash, Object (The payload of the event, or the event object itself)
-    #   tags: Hash (The tags of the event)
-    #   context: Hash (The context of the event)
-    #   timestamp: Integer (The timestamp of the event, in nanoseconds)
-    #   source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
+    # ```
+    # name: String (The name of the event)
+    # payload: Hash, Object (The payload of the event, or the event object itself)
+    # tags: Hash (The tags of the event)
+    # context: Hash (The context of the event)
+    # timestamp: Integer (The timestamp of the event, in nanoseconds)
+    # source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
+    # ```
     #
     # An optional filter proc can be provided to only receive a subset of events:
     #
-    #   Rails.event.subscribe(subscriber) { |event| event[:name].start_with?("user.") }
+    # ```
+    # Rails.event.subscribe(subscriber) { |event| event[:name].start_with?("user.") }
+    # ```
     #
-    # Only the +:name+ key is available to filters, not the entire payload.
+    # Only the `:name` key is available to filters, not the entire payload.
     #
     def subscribe(subscriber, &filter)
       unless subscriber.respond_to?(:emit)
@@ -324,49 +354,55 @@ module ActiveSupport
 
     # Unregister an event subscriber. Accepts either a subscriber or a class.
     #
-    #   subscriber = MyEventSubscriber.new
-    #   Rails.event.subscribe(subscriber)
+    # ```
+    # subscriber = MyEventSubscriber.new
+    # Rails.event.subscribe(subscriber)
     #
-    #   Rails.event.unsubscribe(subscriber)
-    #   # or
-    #   Rails.event.unsubscribe(MyEventSubscriber)
+    # Rails.event.unsubscribe(subscriber)
+    # # or
+    # Rails.event.unsubscribe(MyEventSubscriber)
+    # ```
     def unsubscribe(subscriber)
       @subscribers.delete_if { |s| subscriber === s[:subscriber] }
     end
 
     # Reports an event to all registered subscribers. An event name and payload can be provided:
     #
-    #     Rails.event.notify("user.created", { id: 123 })
-    #     # Emits event:
-    #     #  {
-    #     #    name: "user.created",
-    #     #    payload: { id: 123 },
-    #     #    tags: {},
-    #     #    context: {},
-    #     #    timestamp: 1738964843208679035,
-    #     #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
-    #     #  }
+    # ```
+    # Rails.event.notify("user.created", { id: 123 })
+    # # Emits event:
+    # #  {
+    # #    name: "user.created",
+    # #    payload: { id: 123 },
+    # #    tags: {},
+    # #    context: {},
+    # #    timestamp: 1738964843208679035,
+    # #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
+    # #  }
+    # ```
     #
     # Alternatively, an event object can be provided:
     #
-    #   Rails.event.notify(UserCreatedEvent.new(id: 123))
-    #   # Emits event:
-    #   #  {
-    #   #    name: "UserCreatedEvent",
-    #   #    payload: #<UserCreatedEvent:0x111>,
-    #   #    tags: {},
-    #   #    context: {},
-    #   #    timestamp: 1738964843208679035,
-    #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
-    #   #  }
+    # ```
+    # Rails.event.notify(UserCreatedEvent.new(id: 123))
+    # # Emits event:
+    # #  {
+    # #    name: "UserCreatedEvent",
+    # #    payload: #<UserCreatedEvent:0x111>,
+    # #    tags: {},
+    # #    context: {},
+    # #    timestamp: 1738964843208679035,
+    # #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
+    # #  }
+    # ```
     #
-    # ==== Arguments
+    # #### Arguments
     #
-    # * +:payload+ - The event payload when using string/symbol event names.
+    # * `:payload` - The event payload when using string/symbol event names.
     #
-    # * +:caller_depth+ - The stack depth to use for source location (default: 1).
+    # * `:caller_depth` - The stack depth to use for source location (default: 1).
     #
-    # * +:kwargs+ - Additional payload data when using string/symbol event names.
+    # * `:kwargs` - Additional payload data when using string/symbol event names.
     def notify(name_or_object, payload = nil, caller_depth: 1, filter_payload: true, **kwargs)
       name = resolve_name(name_or_object)
       event = { name: name }
@@ -417,11 +453,13 @@ module ActiveSupport
     end
 
     # Temporarily enables debug mode for the duration of the block.
-    # Calls to +debug+ will only be reported if debug mode is enabled.
+    # Calls to `debug` will only be reported if debug mode is enabled.
     #
-    #   Rails.event.with_debug do
-    #     Rails.event.debug("sql.query", { sql: "SELECT * FROM users" })
-    #   end
+    # ```
+    # Rails.event.with_debug do
+    #   Rails.event.debug("sql.query", { sql: "SELECT * FROM users" })
+    # end
+    # ```
     def with_debug
       prior = Fiber[:event_reporter_debug_mode]
       Fiber[:event_reporter_debug_mode] = true
@@ -431,22 +469,24 @@ module ActiveSupport
     end
 
     # Check if debug mode is currently enabled. Debug mode is enabled on the reporter
-    # via +with_debug+, and in local environments.
+    # via `with_debug`, and in local environments.
     def debug_mode?
       @debug_mode || Fiber[:event_reporter_debug_mode]
     end
 
     # Report an event only when in debug mode. For example:
     #
-    #   Rails.event.debug("sql.query", { sql: "SELECT * FROM users" })
+    # ```
+    # Rails.event.debug("sql.query", { sql: "SELECT * FROM users" })
+    # ```
     #
-    # ==== Arguments
+    # #### Arguments
     #
-    # * +:payload+ - The event payload when using string/symbol event names.
+    # * `:payload` - The event payload when using string/symbol event names.
     #
-    # * +:caller_depth+ - The stack depth to use for source location (default: 1).
+    # * `:caller_depth` - The stack depth to use for source location (default: 1).
     #
-    # * +:kwargs+ - Additional payload data when using string/symbol event names.
+    # * `:kwargs` - Additional payload data when using string/symbol event names.
     def debug(name_or_object, payload = nil, caller_depth: 1, filter_payload: true, **kwargs)
       if debug_mode?
         if block_given?
@@ -460,55 +500,61 @@ module ActiveSupport
     # Add tags to events to supply additional context. Tags operate in a stack-oriented manner,
     # so all events emitted within the block inherit the same set of tags. For example:
     #
-    #   Rails.event.tagged("graphql") do
-    #     Rails.event.notify("user.created", { id: 123 })
-    #   end
+    # ```
+    # Rails.event.tagged("graphql") do
+    #   Rails.event.notify("user.created", { id: 123 })
+    # end
     #
-    #   # Emits event:
-    #   # {
-    #   #    name: "user.created",
-    #   #    payload: { id: 123 },
-    #   #    tags: { graphql: true },
-    #   #    context: {},
-    #   #    timestamp: 1738964843208679035,
-    #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
-    #   #  }
+    # # Emits event:
+    # # {
+    # #    name: "user.created",
+    # #    payload: { id: 123 },
+    # #    tags: { graphql: true },
+    # #    context: {},
+    # #    timestamp: 1738964843208679035,
+    # #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
+    # #  }
+    # ```
     #
     # Tags can be provided as arguments or as keyword arguments, and can be nested:
     #
-    #   Rails.event.tagged("graphql") do
-    #   # Other code here...
-    #     Rails.event.tagged(section: "admin") do
-    #       Rails.event.notify("user.created", { id: 123 })
-    #     end
-    #   end
-    #
-    #   # Emits event:
-    #   #  {
-    #   #    name: "user.created",
-    #   #    payload: { id: 123 },
-    #   #    tags: { section: "admin", graphql: true },
-    #   #    context: {},
-    #   #    timestamp: 1738964843208679035,
-    #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
-    #   #  }
-    #
-    # The +tagged+ API can also receive a tag object:
-    #
-    #   graphql_tag = GraphqlTag.new(operation_name: "user_created", operation_type: "mutation")
-    #   Rails.event.tagged(graphql_tag) do
+    # ```
+    # Rails.event.tagged("graphql") do
+    # # Other code here...
+    #   Rails.event.tagged(section: "admin") do
     #     Rails.event.notify("user.created", { id: 123 })
     #   end
+    # end
     #
-    #   # Emits event:
-    #   #  {
-    #   #    name: "user.created",
-    #   #    payload: { id: 123 },
-    #   #    tags: { "GraphqlTag": #<GraphqlTag:0x111> },
-    #   #    context: {},
-    #   #    timestamp: 1738964843208679035,
-    #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
-    #   #  }
+    # # Emits event:
+    # #  {
+    # #    name: "user.created",
+    # #    payload: { id: 123 },
+    # #    tags: { section: "admin", graphql: true },
+    # #    context: {},
+    # #    timestamp: 1738964843208679035,
+    # #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
+    # #  }
+    # ```
+    #
+    # The `tagged` API can also receive a tag object:
+    #
+    # ```
+    # graphql_tag = GraphqlTag.new(operation_name: "user_created", operation_type: "mutation")
+    # Rails.event.tagged(graphql_tag) do
+    #   Rails.event.notify("user.created", { id: 123 })
+    # end
+    #
+    # # Emits event:
+    # #  {
+    # #    name: "user.created",
+    # #    payload: { id: 123 },
+    # #    tags: { "GraphqlTag": #<GraphqlTag:0x111> },
+    # #    context: {},
+    # #    timestamp: 1738964843208679035,
+    # #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
+    # #  }
+    # ```
     def tagged(*args, **kwargs, &block)
       TagStack.with_tags(*args, **kwargs, &block)
     end
@@ -517,21 +563,23 @@ module ActiveSupport
     # Context data should be scoped to the job or request, and is reset automatically
     # before and after each request and job.
     #
-    #   Rails.event.set_context(user_agent: "TestAgent")
-    #   Rails.event.set_context(job_id: "abc123")
-    #   Rails.event.tagged("graphql") do
-    #     Rails.event.notify("user_created", { id: 123 })
-    #   end
+    # ```
+    # Rails.event.set_context(user_agent: "TestAgent")
+    # Rails.event.set_context(job_id: "abc123")
+    # Rails.event.tagged("graphql") do
+    #   Rails.event.notify("user_created", { id: 123 })
+    # end
     #
-    #   # Emits event:
-    #   #  {
-    #   #    name: "user_created",
-    #   #    payload: { id: 123 },
-    #   #    tags: { graphql: true },
-    #   #    context: { user_agent: "TestAgent", job_id: "abc123" },
-    #   #    timestamp: 1738964843208679035
-    #   #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
-    #   #  }
+    # # Emits event:
+    # #  {
+    # #    name: "user_created",
+    # #    payload: { id: 123 },
+    # #    tags: { graphql: true },
+    # #    context: { user_agent: "TestAgent", job_id: "abc123" },
+    # #    timestamp: 1738964843208679035
+    # #    source_location: { filepath: "path/to/file.rb", lineno: 123, label: "UserService#create" }
+    # #  }
+    # ```
     def set_context(context)
       context_store.set_context(context)
     end

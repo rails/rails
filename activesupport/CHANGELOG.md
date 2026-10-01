@@ -1,3 +1,95 @@
+*   Speed up JSON escaping with `String#tr!` on Ruby 4.1+.
+
+    `ActiveSupport::JSON.encode` escaped `<`, `>`, `&`, U+2028 and U+2029 by
+    forcing the generated JSON to BINARY and running `gsub!` over it. Ruby 4.1
+    accepts a Hash of pairs in `String#tr!`, which does the same substitution in
+    a single pass, with no Regexp and no encoding round-trip.
+
+    Escaping is 2x to 10x faster on documents that are large or contain many
+    escapable characters, and allocates fewer intermediate strings. Documents
+    smaller than roughly 128 bytes with nothing to escape are marginally
+    slower, since `tr!` builds a translation table where a pre-compiled Regexp
+    just fails to match. Raises `ArgumentError` when the passed
+    JSON isn't valid UTF-8.
+
+    *Jean Boussier*, *Federico Carrocera*
+
+*   Add `Manitoba` to `ActiveSupport::TimeZone::MAPPING`.
+
+    Manitoba no longer shares winter clocks with US Central time. The existing
+    `Central Time (US & Canada)` entry remains mapped to `America/Chicago` for
+    compatibility. Prefer `Manitoba` (or the IANA identifier `America/Winnipeg`)
+    for users in that region.
+
+    *Dan Williams*
+
+*   Fix `ActiveSupport::BroadcastLogger#tagged` when broadcasting to more than
+    one tagging logger..
+
+    ```ruby
+    broadcast = ActiveSupport::BroadcastLogger.new(logger1, logger2)
+    broadcast.tagged("BCX").info("Hello") # => both loggers log "[BCX] Hello"
+    ```
+
+    *Ben Younes*
+
+*   Preserve the requested key order in `ActiveSupport::Cache::Store#read_multi`
+    when a local cache is active.
+
+    `fetch_multi` was fixed for this, but `read_multi` still returned the local
+    cache hits first instead of following the order of the requested keys.
+
+    *Carlos Daniel Pohlod*
+
+*   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
+    when a local cache is active.
+
+    Previously, if some keys were served from the local cache and others from the
+    underlying store, `fetch_multi` returned the local cache hits first instead of
+    following the order of the requested keys.
+
+    *Mueez Afzal*
+
+*   Return a UTC time from `Time.rfc3339` for strings with the "Z" UTC designator.
+
+    ```ruby
+    Time.rfc3339("2026-08-07T10:00:00Z")
+    # Before: 2026-08-07 10:00:00 +0000 (utc? => false)
+    # After:  2026-08-07 10:00:00 UTC   (utc? => true)
+    ```
+
+    This matches Ruby's `Time.rfc3339`, which is expected to be included in
+    Ruby 4.1.
+    The resulting time value is unchanged, but serialized forms such as
+    `as_json` now end in "Z" instead of "+00:00". Call `getlocal("+00:00")`
+    to keep the previous representation:
+
+    ```ruby
+    Time.rfc3339("2026-08-07T10:00:00Z").getlocal("+00:00")
+    # => 2026-08-07 10:00:00 +0000 (utc? => false)
+    ```
+
+    *Yasuo Honda*
+
+*   Add `Pacific Time (Canada)` and `Alberta` to `ActiveSupport::TimeZone::MAPPING`.
+
+    British Columbia and Alberta no longer share winter clocks with US Pacific
+    and Mountain time. The existing `Pacific Time (US & Canada)` and
+    `Mountain Time (US & Canada)` entries remain mapped to `America/Los_Angeles`
+    and `America/Denver` for compatibility. Prefer `Pacific Time (Canada)` /
+    `Alberta` (or the IANA identifiers `America/Vancouver` /
+    `America/Edmonton`) for users in those regions.
+
+    *Said Kaldybaev*
+
+*   Fix `Range#sum` with a falsey initial value.
+
+    Summing an integer range with a falsey starting value (such as nil or false)
+    treated that value as zero. It now keeps the starting value as given, matching
+    array and enumerable sum.
+
+    *Said Kaldybaev*
+
 *   Add `ActiveSupport.raise_on_invalid_time_zone_parse`.
 
     Raise `ArgumentError` on `ActiveSupport::TimeZone#parse` for any invalid
@@ -55,7 +147,16 @@
 
     Almost all of the standard Logger interface is supported.
 
-    *Jean Boussier*
+    In addition it can be set to ignore messages matching given patterns.
+
+    Useful to silence noisy logs from gems that your application may not care
+    about, without needing to change the log level and losing other useful logs.
+
+    ```ruby
+    SomeLibrary.logger = ActiveSupport::ProxyLogger.new(Rails.logger).ignore(/Noisy/)
+    ```
+
+    *Jean Boussier*, *Federico Carrocera*
 
 *   Include call options in `Cache#exist?` instrumentation payload,
     consistent with `read`, `write`, and `delete`.

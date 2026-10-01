@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Rendering framework putting the V in MVC (part of Rails)."
   s.description = "Simple, battle-tested conventions and helpers for building web pages."
 
-  s.required_ruby_version = ">= 3.3.1"
+  s.required_ruby_version = ">= 3.3.5"
 
   s.license = "MIT"
 
@@ -37,6 +37,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "builder",       "~> 3.1"
   s.add_dependency "erubi",         "~> 1.11"
+  s.add_dependency "herb",          ">= 0.10"
   s.add_dependency "rails-html-sanitizer", "~> 1.7"
   s.add_dependency "rails-dom-testing", "~> 2.2"
 

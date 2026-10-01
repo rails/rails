@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/testing/ractors_assertions"
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
@@ -40,6 +41,7 @@ class ::MyOldKeyProvider; end
 module ApplicationTests
   class ConfigurationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
     include Rack::Test::Methods
     include EnvHelpers
 
@@ -336,6 +338,13 @@ module ApplicationTests
       app "development"
 
       assert_instance_of Pathname, Rails.public_path
+    end
+
+    test "Rails.app executor and reloader are named" do
+      app "development"
+
+      assert Rails.app.executor.name.starts_with?("ActiveSupport::Executor(#<AppTemplate::Application:")
+      assert Rails.app.reloader.name.starts_with?("ActiveSupport::Reloader(#<AppTemplate::Application:")
     end
 
     test "config.enable_reloading is !config.cache_classes" do
@@ -2086,6 +2095,17 @@ module ApplicationTests
 
         assert_includes File.read(app_path("log/ractor.log")), "[request-id] hello"
       end
+
+      test "config.action_dispatch.default_headers can still be mutated after ActionDispatch::Response is loaded" do
+        app "development"
+
+        assert_predicate(ActionDispatch::Response.default_headers, :frozen?)
+        assert_not Rails.application.config.action_dispatch.default_headers.frozen?
+
+        assert_nothing_raised do
+          Rails.application.config.action_dispatch.default_headers["X-Custom-Header"] = "custom"
+        end
+      end
     end
 
     test "respond_to? accepts include_private" do
@@ -3452,6 +3472,7 @@ module ApplicationTests
 
     test "config.active_job.verbose_enqueue_logs defaults to true in development" do
       restore_default_config
+
       app "development"
 
       assert ActiveJob.verbose_enqueue_logs
@@ -3461,6 +3482,51 @@ module ApplicationTests
       app "production"
 
       assert_not ActiveJob.verbose_enqueue_logs
+    end
+
+    test "config.action_view.erb_implementation defaults to Herb for new apps" do
+      restore_default_config
+
+      app "production"
+
+      assert_equal ActionView::Template::Handlers::ERB::Herb, ActionView::Template::Handlers::ERB.erb_implementation
+    end
+
+    test "config.action_view.erb_implementation is Erubi before the 8.2 defaults" do
+      restore_default_config
+
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+
+      app "production"
+
+      assert_equal ActionView::Template::Handlers::ERB::Erubi, ActionView::Template::Handlers::ERB.erb_implementation
+    end
+
+    test "config.action_view.erb_implementation can be set back to :erubi" do
+      restore_default_config
+
+      app_file "config/initializers/erb_implementation.rb", <<-RUBY
+        Rails.application.config.action_view.erb_implementation = :erubi
+      RUBY
+
+      app "production"
+
+      assert_equal ActionView::Template::Handlers::ERB::Erubi, ActionView::Template::Handlers::ERB.erb_implementation
+    end
+
+    test "config.action_view.erb_implementation can be set to :herb before the 8.2 defaults" do
+      restore_default_config
+
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app_file "config/initializers/erb_implementation.rb", <<-RUBY
+        Rails.application.config.action_view.erb_implementation = :herb
+      RUBY
+
+      app "production"
+
+      assert_equal ActionView::Template::Handlers::ERB::Herb, ActionView::Template::Handlers::ERB.erb_implementation
     end
 
     test "config.active_job.enqueue_after_transaction_commit defaults to true for new apps" do
@@ -3571,6 +3637,19 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
+    end
+
+    if RUBY_VERSION >= "4.0"
+      test "ActionView::Template::Handlers::ERB.escape_ignore_list is frozen after boot" do
+        app "development"
+
+        escape_ignore_list = on_ractor do
+          ActionView::Template::Handlers::ERB.escape_ignore_list
+        end
+
+        assert_equal(["text/plain"], escape_ignore_list)
+        assert_predicate(escape_ignore_list, :frozen?)
+      end
     end
 
     test "ActionView::Helpers::NavigationHelper.button_to_generates_button_tag is true by default" do
@@ -4391,6 +4470,21 @@ module ApplicationTests
       assert_not_includes(output, "rails_direct_uploads")
     end
 
+    test "ActiveStorage.draw_direct_upload_route can be configured via config.active_storage.draw_direct_upload_route" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.active_storage.draw_direct_upload_route = false
+        end
+      RUBY
+
+      output = rails("routes")
+      assert_not_includes(output, "rails_direct_uploads")
+      assert_includes(output, "rails_service_blob")
+      assert_includes(output, "rails_blob_representation")
+      assert_includes(output, "rails_disk_service")
+      assert_includes(output, "update_rails_disk_service")
+    end
+
     test "ActiveStorage.video_preview_arguments uses the old arguments without Rails 7 defaults" do
       remove_from_config '.*config\.load_defaults.*\n'
 
@@ -4406,6 +4500,34 @@ module ApplicationTests
       assert_equal \
         "-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015),loop=loop=-1:size=2,trim=start_frame=1' -frames:v 1 -f image2",
         ActiveStorage.video_preview_arguments
+    end
+
+    test "ActiveStorage.video_preview_input_arguments is empty by default" do
+      app "development"
+
+      assert_equal "", ActiveStorage.video_preview_input_arguments
+    end
+
+    test "ActiveStorage.video_preview_input_arguments can be configured" do
+      add_to_config 'config.active_storage.video_preview_input_arguments = "-codec_whitelist h264"'
+
+      app "development"
+
+      assert_equal "-codec_whitelist h264", ActiveStorage.video_preview_input_arguments
+    end
+
+    test "ActiveStorage.ffprobe_arguments is empty by default" do
+      app "development"
+
+      assert_equal "", ActiveStorage.ffprobe_arguments
+    end
+
+    test "ActiveStorage.ffprobe_arguments can be configured" do
+      add_to_config 'config.active_storage.ffprobe_arguments = "-codec_whitelist h264"'
+
+      app "development"
+
+      assert_equal "-codec_whitelist h264", ActiveStorage.ffprobe_arguments
     end
 
     test "ActiveStorage.variant_processor uses mini_magick without Rails 7 defaults" do
@@ -5425,6 +5547,29 @@ module ApplicationTests
 
       get "/posts"
       assert_equal "[:active_record_connected_to_stack, :custom_key]", last_response.body
+    end
+
+    if RUBY_VERSION >= "4.0"
+      test "ActionDispatch configuration is frozen after boot" do
+        app "development"
+
+        [
+          ActionDispatch::ExceptionWrapper.rescue_responses,
+          ActionDispatch::ExceptionWrapper.rescue_templates,
+          ActionDispatch::ExceptionWrapper.wrapper_exceptions,
+          ActionDispatch::ExceptionWrapper.silent_exceptions,
+        ].each do |config|
+          assert_ractor_shareable(config)
+        end
+      end
+
+      test "ActiveRecord configuration is frozen after boot" do
+        app "development"
+
+        assert_ractor_shareable(ActiveRecord.query_transformers)
+        assert_ractor_shareable(ActiveRecord::Base.time_zone_aware_types)
+        assert_ractor_shareable(ActiveRecord::Base.skip_time_zone_conversion_for_attributes)
+      end
     end
 
     private

@@ -19,7 +19,7 @@ if defined?(ActiveRecord::Base)
     include ActiveRecord::TestFixtures
     include ActiveRecord::Assertions::QueryAssertions
 
-    self.fixture_paths << "#{Rails.root}/test/fixtures/"
+    self.fixture_paths = [*self.fixture_paths, "#{Rails.root}/test/fixtures/"].uniq
     self.file_fixture_path = "#{Rails.root}/test/fixtures/files"
   end
 

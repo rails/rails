@@ -1,3 +1,131 @@
+*   Remove support for dynamic `:controller` and `:action` route segments.
+
+    A route may no longer read the controller or the action out of the URL:
+
+    ```ruby
+    get ":controller(/:action(/:id))"
+    ```
+
+    Drawing such a route raises an `ArgumentError`. Deprecated since Rails 5.0,
+    so write out the routes the application serves instead:
+
+    ```ruby
+    get "photos", to: "photos#index"
+    get "photos/:id", to: "photos#show"
+    ```
+
+    Passing a controller class without an action relied on the same mechanism,
+    so `get "show", to: PhotosController` now needs `action: "show"`, and a
+    `Regexp` for `:controller` or `:action` raises rather than drawing a route
+    that can never match.
+
+    `Request#controller_class` now raises `ActionDispatch::MissingController`
+    when the request has no `:controller` path parameter (for example, before
+    routing, or for a request routed to a Rack endpoint), instead of returning
+    a placeholder controller that responded with a 404.
+
+    *Aaron Patterson*
+
+*   Fix `Server-Timing` durations for nested same-name notifications.
+
+    Nested events such as `render_partial.action_view` report inclusive
+    durations, so summing them double-counted child work and could exceed
+    wall-clock / total request time. Server Timing now aggregates exclusive
+    time per event name.
+
+    Fixes #48375.
+
+    *Edil Talantbek uulu*
+
+*   Include default headers in `ActionController::Live` responses.
+
+    Previously, responses from `ActionController::Live` controllers, including
+    the Active Storage proxy controllers, were served over HTTP/1.1 without
+    `config.action_dispatch.default_headers` such as `X-Content-Type-Options`
+    and `X-Frame-Options`.
+
+    Fixes #53402.
+
+    *Tony Novak*
+
+*   Check `PATCH` and `QUERY` in `assert_recognizes` and `assert_routing` with `method: :all`.
+
+    Both assertions only recognized the path for `GET`, `POST`, `PUT` and
+    `DELETE`, so a route that did not accept `PATCH` or `QUERY` still passed an
+    assertion meant to cover every verb.
+
+    An assertion that passes today on a route drawn without those verbs now
+    fails, which is what it was meant to do.
+
+    *Carlos Daniel Pohlod*
+
+*   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
+    the current controller and action when it starts with a period,
+    mirroring the existing behavior for the key argument.
+
+    Calling `translate("bar", scope: ".foo")` from `PostsController#index` is
+    now equivalent to calling `translate("bar", scope: "posts.index.foo")`.
+
+    *Ben Sheldon*
+
+*   Add support for the HTTP QUERY method defined in RFC 10008.
+
+    QUERY is a safe and idempotent HTTP method that conveys the query in the
+    request content, making it suitable for queries too large or structured
+    for a URL query string:
+
+        # config/routes.rb
+        query "search", to: "search#index"
+        match "filter", to: "search#filter", via: :query
+
+        # request handling
+        request.query?                # => true
+        request.request_method_symbol # => :query
+
+        # integration tests
+        query "/search", params: { filters: { status: "active" } }, as: :json
+
+    Like GET and HEAD, QUERY requests are exempt from forgery protection:
+    HTML forms cannot emit QUERY requests, and cross-origin QUERY requests
+    always require a CORS preflight. The exemption applies only to requests
+    that actually arrive with the QUERY method: a `_method=query` override
+    tunneled through a form POST is verified like any other POST.
+
+    Routes drawn with `via: :all` (and custom constraints that don't check
+    the request method) now receive QUERY requests, where previously such
+    requests were refused with a 405 before routing ran.
+
+    Note that the application server must also accept the method. For
+    example, Puma only accepts the eight standard HTTP methods by default;
+    QUERY can be enabled with its `supported_http_methods` option.
+
+    *Magno Gouveia*, *Jeremy Daer*
+
+*   Split keyword arguments off `#args` on `Rails.application.middleware` entries.
+
+    Middleware entries now expose keyword arguments through a new `#kwargs`
+    accessor. `#args` previously bundled kwargs as a trailing hash inside the
+    positional array (via `Hash.ruby2_keywords_hash`); it now returns
+    positional arguments only. Code that inspects `middleware.args` directly
+    needs to also read `middleware.kwargs`.
+
+    *Ryuta Kamizono*
+
+*   Deprecate registering and unregistering MIME types after application initialization.
+
+    `Mime::Type.register`, `Mime::Type.register_alias`, and `Mime::Type.unregister` will raise
+    a `FrozenError` when called after application initialization in the next version of Rails.
+    Instead, register or unregister MIME types during initialization (e.g. in
+    `config/initializers/mime_types.rb` or a Railtie `initializer` block).
+
+    *Étienne Barrié*
+
+*   Deprecate `Mime::Type.register_callback`.
+
+    It was never intended as a public API and has no replacement.
+
+    *Étienne Barrié*
+
 *   Allow HTTP token authentication to require specific authentication schemes.
 
     Pass `scheme:` to `authenticate_or_request_with_http_token` (and the other

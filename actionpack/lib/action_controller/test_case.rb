@@ -263,6 +263,7 @@ module ActionController
   # ## Basic example
   #
   # Functional tests are written as follows:
+  #
   # 1.  First, one uses the `get`, `post`, `patch`, `put`, `delete`, or `head`
   #     method to simulate an HTTP request.
   # 2.  Then, one asserts whether the current state is as expected. "State" can be
@@ -469,13 +470,23 @@ module ActionController
         process(action, method: "HEAD", **args)
       end
 
+      # Simulate a QUERY request with the given parameters and set/volley the
+      # response. Params are sent as the request body, per
+      # [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008), with a default
+      # `Content-Type` of `application/x-www-form-urlencoded` (RFC 10008
+      # requires QUERY requests to declare one) — pass `as: :json` to send a
+      # JSON body instead. See `get` for more details.
+      def query(action, **args)
+        process(action, method: "QUERY", **args)
+      end
+
       # Simulate an HTTP request to `action` by specifying request method, parameters
       # and set/volley the response.
       #
       # *   `action`: The controller action to call.
       # *   `method`: Request method used to send the HTTP request. Possible values
-      #     are `GET`, `POST`, `PATCH`, `PUT`, `DELETE`, `HEAD`. Defaults to `GET`.
-      #     Can be a symbol.
+      #     are `GET`, `POST`, `PATCH`, `PUT`, `DELETE`, `HEAD`, `QUERY`. Defaults
+      #     to `GET`. Can be a symbol.
       # *   `params`: The hash with HTTP parameters that you want to pass. This may be
       #     `nil`.
       # *   `body`: The request body with a string that is appropriately encoded
@@ -498,9 +509,9 @@ module ActionController
       #       session: { user_id: 1 },
       #       flash: { notice: 'This is flash message' }
       #
-      # To simulate `GET`, `POST`, `PATCH`, `PUT`, `DELETE`, and `HEAD` requests
-      # prefer using #get, #post, #patch, #put, #delete and #head methods respectively
-      # which will make tests more expressive.
+      # To simulate `GET`, `POST`, `PATCH`, `PUT`, `DELETE`, `HEAD`, and `QUERY`
+      # requests prefer using #get, #post, #patch, #put, #delete, #head and #query
+      # methods respectively which will make tests more expressive.
       #
       # It's not recommended to make more than one request in the same test. Instance
       # variables that are set in one request will not persist to the next request,

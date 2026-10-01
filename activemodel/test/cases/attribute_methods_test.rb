@@ -113,6 +113,13 @@ class AttributeMethodsTest < ActiveModel::TestCase
                      ModelWithAttributes2.public_send(:attribute_method_patterns)
   end
 
+  test "attribute method patterns are enumerable and respond to map" do
+    patterns = ModelWithAttributes2.attribute_method_patterns
+
+    assert_kind_of Enumerable, patterns
+    assert_equal ["foo", "foo_test", "foo_kw"], patterns.map { |pattern| pattern.method_name("foo") }
+  end
+
   test "#define_attribute_method generates attribute method" do
     ModelWithAttributes.define_attribute_method(:foo)
 

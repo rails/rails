@@ -12,7 +12,7 @@ module ActionDispatch
       alias :conditions :constraints
 
       module VerbMatchers
-        VERBS = %w{ DELETE GET HEAD OPTIONS LINK PATCH POST PUT TRACE UNLINK }.freeze
+        VERBS = %w{ DELETE GET HEAD OPTIONS LINK PATCH POST PUT QUERY TRACE UNLINK }.freeze
         VERBS.each do |v|
           class_eval <<-eoc, __FILE__, __LINE__ + 1
             # frozen_string_literal: true
@@ -101,8 +101,15 @@ module ActionDispatch
       def eager_load!
         path.eager_load!
         parts
+        required_parts
         required_defaults
         nil
+      end
+
+      def freeze
+        eager_load!
+
+        super
       end
 
       # Needed for `bin/rails routes`. Picks up succinctly defined requirements for a

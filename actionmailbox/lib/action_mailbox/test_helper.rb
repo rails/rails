@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "mail"
@@ -5,61 +6,67 @@ require "mail"
 module ActionMailbox
   module TestHelper
     # Create an InboundEmail record using an eml fixture in the format of message/rfc822
-    # referenced with +fixture_name+ located in +test/fixtures/files/fixture_name+.
+    # referenced with `fixture_name` located in `test/fixtures/files/fixture_name`.
     def create_inbound_email_from_fixture(fixture_name, status: :processing)
       create_inbound_email_from_source file_fixture(fixture_name).read, status: status
     end
 
     # Creates an InboundEmail by specifying through options or a block.
     #
-    # ==== Options
+    # #### Options
     #
-    # * <tt>:status</tt> - The +status+ to set for the created InboundEmail.
+    # * `:status` - The `status` to set for the created InboundEmail.
     #   For possible statuses, see its documentation.
     #
-    # ==== Creating a simple email
+    # #### Creating a simple email
     #
-    # When you only need to set basic fields like +from+, +to+, +subject+, and
-    # +body+, you can pass them directly as options.
+    # When you only need to set basic fields like `from`, `to`, `subject`, and
+    # `body`, you can pass them directly as options.
     #
-    #   create_inbound_email_from_mail(from: "david@loudthinking.com", subject: "Hello!")
+    # ```
+    # create_inbound_email_from_mail(from: "david@loudthinking.com", subject: "Hello!")
+    # ```
     #
-    # ==== Creating a multi-part email
+    # #### Creating a multi-part email
     #
     # When you need to create a more intricate email, like a multi-part email
     # that contains both a plaintext version and an HTML version, you can pass a
     # block.
     #
-    #   create_inbound_email_from_mail do
-    #     to "David Heinemeier Hansson <david@loudthinking.com>"
-    #     from "Bilbo Baggins <bilbo@bagend.com>"
-    #     subject "Come down to the Shire!"
+    # ```
+    # create_inbound_email_from_mail do
+    #   to "David Heinemeier Hansson <david@loudthinking.com>"
+    #   from "Bilbo Baggins <bilbo@bagend.com>"
+    #   subject "Come down to the Shire!"
     #
-    #     text_part do
-    #       body "Please join us for a party at Bag End"
-    #     end
-    #
-    #     html_part do
-    #       body "<h1>Please join us for a party at Bag End</h1>"
-    #     end
+    #   text_part do
+    #     body "Please join us for a party at Bag End"
     #   end
     #
-    # As with +Mail.new+, you can also use a block parameter to define the parts
+    #   html_part do
+    #     body "<h1>Please join us for a party at Bag End</h1>"
+    #   end
+    # end
+    # ```
+    #
+    # As with `Mail.new`, you can also use a block parameter to define the parts
     # of the message:
     #
-    #   create_inbound_email_from_mail do |mail|
-    #     mail.to "David Heinemeier Hansson <david@loudthinking.com>"
-    #     mail.from "Bilbo Baggins <bilbo@bagend.com>"
-    #     mail.subject "Come down to the Shire!"
+    # ```
+    # create_inbound_email_from_mail do |mail|
+    #   mail.to "David Heinemeier Hansson <david@loudthinking.com>"
+    #   mail.from "Bilbo Baggins <bilbo@bagend.com>"
+    #   mail.subject "Come down to the Shire!"
     #
-    #     mail.text_part do |part|
-    #       part.body "Please join us for a party at Bag End"
-    #     end
-    #
-    #     mail.html_part do |part|
-    #       part.body "<h1>Please join us for a party at Bag End</h1>"
-    #     end
+    #   mail.text_part do |part|
+    #     part.body "Please join us for a party at Bag End"
     #   end
+    #
+    #   mail.html_part do |part|
+    #     part.body "<h1>Please join us for a party at Bag End</h1>"
+    #   end
+    # end
+    # ```
     def create_inbound_email_from_mail(status: :processing, **mail_options, &block)
       mail = Mail.new(mail_options, &block)
       # Bcc header is not encoded by default
@@ -68,7 +75,7 @@ module ActionMailbox
       create_inbound_email_from_source mail.to_s, status: status
     end
 
-    # Create an InboundEmail using the raw rfc822 +source+ as text.
+    # Create an InboundEmail using the raw rfc822 `source` as text.
     def create_inbound_email_from_source(source, status: :processing)
       ActionMailbox::InboundEmail.create_and_extract_message_id! source, status: status
     end

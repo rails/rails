@@ -274,7 +274,7 @@ module ActiveRecord
     #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
     #     ActiveRecord::Base.connected_to?(role: :reading, shard: :shard_one) #=> true
     #     ActiveRecord::Base.connected_to?(role: :reading, shard: :default) #=> false
-    #     ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one) #=> true
+    #     ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one) #=> false
     #   end
     def connected_to?(role:, shard: ActiveRecord::Base.default_shard)
       current_role == role.to_sym && current_shard == shard.to_sym

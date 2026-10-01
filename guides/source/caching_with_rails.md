@@ -557,6 +557,13 @@ When both `last_modified` and `etag` are set, the behavior depends on
 considered, as specified by RFC 7232 section 6. If it is `false`, both headers
 are checked and the response is considered fresh only if they both match.
 
+Conditional requests apply to the HTTP QUERY method
+([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) exactly as they do to
+GET: `fresh_when` and `stale?` in a QUERY action answer a matching
+`If-None-Match` with `304 Not Modified`. Note that the middleware-level
+`Rack::ConditionalGet` only handles GET and HEAD, so QUERY freshness is served
+at the controller level by these helpers.
+
 #### Strong vs. Weak ETags
 
 An ETag is a token (often a hash) that uniquely represents a particular version

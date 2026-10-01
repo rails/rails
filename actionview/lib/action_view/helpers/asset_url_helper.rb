@@ -191,7 +191,9 @@ module ActionView
         return "" if source.blank?
         return source if URI_REGEXP.match?(source)
 
-        tail, source = source[/([?#].+)$/], source.sub(/([?#].+)$/, "")
+        if (tail = source[/[?#].+$/])
+          source = source[0, source.length - tail.length]
+        end
 
         if extname = compute_asset_extname(source, options)
           source = "#{source}#{extname}"

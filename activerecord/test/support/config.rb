@@ -33,7 +33,7 @@ module ARTest
             end
 
             connection[name]["database"] ||= dbname
-            connection[name]["adapter"]  ||= adapter == "sqlite3_mem" ? "sqlite3" : adapter
+            connection[name]["adapter"]  ||= adapter.start_with?("sqlite3") ? "sqlite3" : adapter
           end
         end
 

@@ -100,6 +100,12 @@ module ActiveModel
         false
       end
 
+      def init_from_schema_json(coder, references)
+        super
+        @max = max_value
+        @min = min_value
+      end
+
       private
         def out_of_range?(value)
           if @max.nil?
@@ -114,7 +120,8 @@ module ActiveModel
           when ::Integer
             value
           when ::String
-            str = value.bytesize > _limit * 4 ? value.byteslice(0, _limit * 4) : value
+            max_bytesize = max_cast_bytesize
+            str = value.bytesize > max_bytesize ? value.byteslice(0, max_bytesize) : value
             str.to_i rescue nil
           else
             value.to_i rescue nil
@@ -127,6 +134,12 @@ module ActiveModel
 
         def min_value
           -max_value
+        end
+
+        # Only the first bytes of a string are cast, to bound the work done by
+        # +to_i+ on very long input.
+        def max_cast_bytesize
+          _limit * 4
         end
 
         def _limit

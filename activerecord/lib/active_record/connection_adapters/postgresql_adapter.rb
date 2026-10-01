@@ -37,6 +37,10 @@ module ActiveRecord
     #   as a string of comma-separated schema names.
     # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO
     #   <encoding></tt> call on the connection.
+    # * <tt>:error_verbosity</tt> - An optional verbosity level (one of the <tt>PG::PQERRORS_*</tt>
+    #   constants) passed to libpq's <tt>PQsetErrorVerbosity</tt>, controlling whether the
+    #   <tt>DETAIL</tt>, <tt>HINT</tt>, and <tt>CONTEXT</tt> fields are included in raised error
+    #   messages.
     # * <tt>:min_messages</tt> - An optional client min messages that is used in a
     #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
     # * <tt>:variables</tt> - An optional hash of additional parameters that
@@ -66,6 +70,10 @@ module ActiveRecord
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
+        end
+
+        def ractor_connection_proxy_class # :nodoc:
+          RactorConnectionHandler::PostgreSQLProxyAdapter
         end
 
         def dbconsole(config, options = {})
@@ -206,6 +214,16 @@ module ActiveRecord
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
 
+      def ractor_connection_capabilities # :nodoc:
+        super.merge(
+          supports_close_prepared?: supports_close_prepared?,
+          supports_force_drop_database?: supports_force_drop_database?,
+          supports_identity_columns?: supports_identity_columns?,
+          supports_insert_on_conflict?: supports_insert_on_conflict?,
+          supports_native_partitioning?: supports_native_partitioning?,
+        )
+      end
+
       def supports_bulk_alter?
         true
       end
@@ -266,10 +284,6 @@ module ActiveRecord
       end
 
       def supports_views?
-        true
-      end
-
-      def supports_datetime_with_precision?
         true
       end
 
@@ -404,7 +418,7 @@ module ActiveRecord
         @use_insert_returning = if @config.key?(:insert_returning)
           ActiveRecord.deprecator.warn(<<~MSG.squish)
             The `insert_returning` option in database configurations is deprecated
-            and will be removed in Rails 8.3. The option only affects single-row
+            and will be removed in Rails 9.0. The option only affects single-row
             INSERT statements; other paths such as `insert_all`, `upsert_all`, and
             RETURNING for `update` already use RETURNING when the database supports
             it, so the option cannot fully disable RETURNING.
@@ -586,14 +600,19 @@ module ActiveRecord
         query = <<~SQL
           SELECT
             pg_extension.extname,
-            n.nspname AS schema
+            n.nspname AS schema,
+            v.schema AS control_schema
           FROM pg_extension
           JOIN pg_namespace n ON pg_extension.extnamespace = n.oid
+          LEFT JOIN pg_available_extensions a ON a.name = pg_extension.extname
+          LEFT JOIN pg_available_extension_versions v
+            ON v.name = a.name AND v.version = a.default_version
         SQL
+        current = current_schema
 
         query_all(query).cast_values.map do |row|
-          name, schema = row[0], row[1]
-          schema = nil if schema == current_schema
+          name, schema, control_schema = row
+          schema = nil if control_schema || schema == current
           [schema, name].compact.join(".")
         end
       end
@@ -1149,6 +1168,10 @@ module ActiveRecord
             @raw_connection.set_client_encoding(@config[:encoding])
           end
 
+          if @config[:error_verbosity]
+            @raw_connection.set_error_verbosity(@config[:error_verbosity])
+          end
+
           @notice_receiver_fatal_error = nil
           @raw_connection.set_notice_receiver do |result|
             next if capture_fatal_notice(result)
@@ -1212,7 +1235,7 @@ module ActiveRecord
             if @config[:schema_order]
               ActiveRecord.deprecator.warn(<<~MSG.squish)
                 The `schema_order` option in PostgreSQL database configurations is
-                deprecated and will be removed in Rails 8.3. Use `schema_search_path` instead.
+                deprecated and will be removed in Rails 9.0. Use `schema_search_path` instead.
               MSG
             end
             self.schema_search_path = @config[:schema_search_path] || @config[:schema_order]
@@ -1273,6 +1296,40 @@ module ActiveRecord
                  AND a.attnum > 0 AND NOT a.attisdropped
                ORDER BY a.attnum
           SQL
+        end
+
+        def fetch_column_definitions(tables)
+          fetch_by_schema(tables) do |schema, group|
+            rows = query_rows(<<~SQL)
+              SELECT a.attname, format_type(a.atttypid, a.atttypmod),
+                     pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
+                     c.collname, col_description(a.attrelid, a.attnum) AS comment,
+                     #{supports_identity_columns? ? 'attidentity' : quote('')} AS identity,
+                     #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated,
+                     r.relname
+              FROM (
+                SELECT DISTINCT ON (cls.relname) cls.oid, cls.relname
+                FROM pg_class cls
+                JOIN pg_namespace n ON n.oid = cls.relnamespace
+                WHERE n.nspname = #{schema}
+                  AND cls.relname IN (#{quoted_table_names(group)})
+                ORDER BY cls.relname, array_position(current_schemas(false), n.nspname)
+              ) r
+              JOIN pg_attribute a ON a.attrelid = r.oid
+              LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
+              LEFT JOIN pg_type t ON a.atttypid = t.oid
+              LEFT JOIN pg_collation c ON a.attcollation = c.oid AND a.attcollation <> t.typcollation
+              WHERE a.attnum > 0 AND NOT a.attisdropped
+              ORDER BY r.relname, a.attnum
+            SQL
+            by_name = rows.group_by(&:last)
+
+            group.index_with do |table|
+              fields = rows_for(by_name, table)
+
+              fields.empty? ? column_definitions(table) : fields
+            end
+          end
         end
 
         def arel_visitor

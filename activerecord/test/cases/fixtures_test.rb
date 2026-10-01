@@ -417,7 +417,8 @@ class FixturesTest < ActiveRecord::TestCase
     # Reset cache to make finds on the new table work
     ActiveRecord::FixtureSet.reset_cache
 
-    ActiveRecord::Base.lease_connection.create_table :prefix_other_topics_suffix do |t|
+    # Schema statements never run through a Ractor proxy.
+    main_ractor_connection(ActiveRecord::Base.lease_connection).create_table :prefix_other_topics_suffix do |t|
       t.column :title, :string
       t.column :author_name, :string
       t.column :author_email_address, :string
@@ -505,6 +506,23 @@ class FixturesTest < ActiveRecord::TestCase
   def test_instantiation
     topics = create_fixtures("topics").first
     assert_kind_of Topic, topics["first"].find
+  end
+
+  def test_fixture_find_uses_only_all_query_default_scopes
+    topic_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.inheritance_column = :_type_disabled
+
+      default_scope -> { where(approved: true) }
+      default_scope -> { where(id: 1) }, all_queries: true
+    end
+
+    ActiveRecord::FixtureSet.reset_cache
+    topics = ActiveRecord::FixtureSet.create_fixtures(fixture_paths, "topics", "topics" => topic_class).first
+
+    assert_kind_of topic_class, topics["first"].find
+  ensure
+    ActiveRecord::FixtureSet.reset_cache
   end
 
   def test_complete_instantiation
@@ -1094,9 +1112,10 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   def test_transaction_created_on_connection_notification
     connection = Class.new do
       attr_accessor :pool
+      attr_accessor :begin_transaction_called
 
-      def transaction_open?; end
-      def begin_transaction(*args); end
+      def transaction_open?; true; end
+      def begin_transaction(*args); @begin_transaction_called = true; end
       def rollback_transaction(*args); end
       def connect!; end
     end.new
@@ -1108,7 +1127,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
-      def unpin_connection!; @connection.rollback_transaction; true; end
+      def unpin_connection!; end
     end.new(connection)
 
     connection.pool.db_config = Class.new do
@@ -1119,6 +1138,8 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     assert_called_with(pool, :pin_connection!, [true]) do
       fire_connection_notification(connection.pool)
     end
+
+    assert(connection.begin_transaction_called, "Expected <mock connection>#begin_transaction to be called but was not")
   end
 
   def test_notification_established_transactions_are_rolled_back
@@ -1142,7 +1163,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
-      def unpin_connection!; @connection.rollback_transaction; true; end
+      def unpin_connection!; end
     end.new(connection)
 
     connection.pool.db_config = Class.new do
@@ -1160,7 +1181,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     connection = Class.new do
       attr_accessor :pool
 
-      def transaction_open?; end
+      def transaction_open?; true; end
       def begin_transaction(*args); end
       def rollback_transaction(*args); end
       def connect!; end
@@ -1173,7 +1194,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lease_connection; @connection; end
       def release_connection; end
       def pin_connection!(_); end
-      def unpin_connection!; @connection.rollback_transaction; true; end
+      def unpin_connection!; end
     end.new(connection)
 
     connection.pool.db_config = Class.new do

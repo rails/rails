@@ -3,6 +3,7 @@
 require "active_support/inflector"
 require "zeitwerk"
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 require "models/author"
 require "models/company"
 require "models/membership"
@@ -499,6 +500,34 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_inheritance_with_default_scope
     assert_equal 1, SelectedMembership.count(:all)
+  end
+
+  if RUBY_VERSION >= "4.0" && !in_memory_db?
+    class InheritanceRactorTest < ActiveRecord::TestCase
+      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::RactorsAssertions
+
+      def test_finder_needs_type_condition_can_be_computed_from_a_ractor_for_an_sti_subclass
+        model, sti_model = ractor_sti_models
+
+        assert_equal true, on_ractor { sti_model.finder_needs_type_condition? }
+        assert_equal false, on_ractor { model.finder_needs_type_condition? }
+      end
+
+      private
+        def ractor_sti_models
+          model = Class.new(ActiveRecord::Base) do
+            def self.name = "RactorCompany"
+            self.table_name = "companies"
+          end
+          sti_model = Class.new(model) do
+            def self.name = "RactorFirm"
+          end
+          model.load_schema
+
+          [model, sti_model]
+        end
+    end
   end
 end
 

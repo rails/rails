@@ -233,6 +233,10 @@ module ActiveRecord
         end
       end
 
+      ValidateConstraint = Data.define(:name) # :nodoc:
+      AddExclusionConstraint = Data.define(:exclusion_constraint) # :nodoc:
+      AddUniqueConstraint = Data.define(:unique_constraint) # :nodoc:
+
       # = Active Record PostgreSQL Adapter \Table Definition
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
@@ -375,27 +379,48 @@ module ActiveRecord
       end
 
       # = Active Record PostgreSQL Adapter Alter \Table
-      class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable
-        attr_reader :constraint_validations, :exclusion_constraint_adds, :unique_constraint_adds
+      class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable # :nodoc:
+        COMBINABLE_COMMANDS = (superclass::COMBINABLE_COMMANDS + %i[change_column change_column_null]).freeze
 
-        def initialize(td)
+        def add_column(column_name, type, **options)
           super
-          @constraint_validations = []
-          @exclusion_constraint_adds = []
-          @unique_constraint_adds = []
+          defer_comment(column_name, options[:comment]) if options.key?(:comment)
+        end
+
+        def change_column(column_name, type, **options)
+          cd = @td.new_column_definition(column_name, type, **options)
+          @operations << ChangeColumnDefinition.new(cd, column_name)
+          defer_comment(column_name, options[:comment]) if options.key?(:comment)
+        end
+
+        def change_column_null(column_name, null, default = nil)
+          if default.nil?
+            super(column_name, null)
+          else
+            conn = @td.conn
+            table_name = name
+            @deferred_operations << -> { conn.change_column_null(table_name, column_name, null, default) }
+          end
         end
 
         def validate_constraint(name)
-          @constraint_validations << name
+          @operations << ValidateConstraint.new(name)
         end
 
         def add_exclusion_constraint(expression, options)
-          @exclusion_constraint_adds << @td.new_exclusion_constraint_definition(expression, options)
+          @operations << AddExclusionConstraint.new(@td.new_exclusion_constraint_definition(expression, options))
         end
 
         def add_unique_constraint(column_name, options)
-          @unique_constraint_adds << @td.new_unique_constraint_definition(column_name, options)
+          @operations << AddUniqueConstraint.new(@td.new_unique_constraint_definition(column_name, options))
         end
+
+        private
+          def defer_comment(column_name, comment)
+            conn = @td.conn
+            table_name = name
+            @deferred_operations << -> { conn.change_column_comment(table_name, column_name, comment) }
+          end
       end
     end
   end

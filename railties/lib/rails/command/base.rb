@@ -178,6 +178,15 @@ module Rails
           @current_subcommand = original_subcommand
         end
       end
+
+      private
+        def conditional_executor(enabled, **args, &block)
+          if enabled
+            Rails.application.executor.wrap(**args, &block)
+          else
+            yield
+          end
+        end
     end
   end
 end

@@ -9,7 +9,7 @@ module ActiveRecord
       end
 
       private
-        def derive_key_from(password, using: key_generator)
+        def derive_key_from(password, using:)
           secret = using.derive_key_from(password)
           ActiveRecord::Encryption::Key.new(secret)
         end

@@ -114,7 +114,7 @@ module ActiveRecord
       end
 
       def build_relation(klass, attribute, value)
-        relation = klass.unscoped
+        relation = klass.all_queries_scope
         comparison = relation.bind_attribute(attribute, value) do |attr, bind|
           return relation.none! if bind.unboundable?
 

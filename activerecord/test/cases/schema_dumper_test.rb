@@ -7,11 +7,19 @@ class SchemaDumperTest < ActiveRecord::TestCase
   include SchemaDumpingHelper
   self.use_transactional_tests = false
 
+  skip_under_ractor_proxy :test_schema_dump_with_table_name_prefix_and_suffix,
+    :test_schema_dump_with_table_name_prefix_and_suffix_regexp_escape,
+    :test_schema_dump_with_table_name_prefix_and_schema_ignored_tables,
+    :test_schema_dump_with_a_single_regexp_in_schema_ignored_tables,
+    :test_schema_dump_with_table_name_prefix_and_ignoring_tables
+
   setup do
     @schema_migration = ActiveRecord::Base.connection_pool.schema_migration
-    @schema_migration.create_table
 
-    ARUnit2Model.connection_pool.schema_migration.create_table
+    without_ractor_proxy do
+      ActiveRecord::Base.connection_pool.schema_migration.create_table
+      ARUnit2Model.connection_pool.schema_migration.create_table
+    end
   end
 
   def standard_dump
@@ -632,7 +640,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     migration = CreateCatMigration.new
     migration.migrate(:up)
 
-    output = dump_table_schema("foo$cat_owners$bar", "foo$cat$bar")
+    output = dump_table_schema("foo$cat_owners$bar", "foo$cats$bar")
 
     assert_match %r{create_table "cat_owners"}, output
     assert_match %r{create_table "cats"}, output
@@ -655,38 +663,49 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::Base.establish_connection(:arunit)
   end
 
-  def test_schema_dump_with_table_name_prefix_and_ignoring_tables
-    original, $stdout = $stdout, StringIO.new
-    ActiveRecord::Base.establish_connection(:arunit2) unless in_memory_db?
+  def test_schema_dumper_ignore_tables_delegates_to_schema_ignored_tables
+    original = ActiveRecord.schema_ignored_tables
 
-    create_cat_migration = Class.new(ActiveRecord::Migration::Current) do
-      def change
-        create_table("cats") do |t|
-        end
-        create_table("omg_cats") do |t|
-        end
-      end
+    assert_deprecated(/ignore_tables/, ActiveRecord.deprecator) do
+      ActiveRecord::SchemaDumper.ignore_tables = ["accounts"]
     end
 
-    original_table_name_prefix = ActiveRecord::Base.table_name_prefix
-    original_schema_dumper_ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
-    ActiveRecord::Base.table_name_prefix = "omg_"
-    ActiveRecord::SchemaDumper.ignore_tables = ["cats"]
-    migration = create_cat_migration.new
-    migration.migrate(:up)
+    assert_equal ["accounts"], ActiveRecord.schema_ignored_tables
 
-    stream = StringIO.new
-    output = ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection_pool, stream).string
-
-    assert_match %r{create_table "omg_cats"}, output
-    assert_no_match %r{create_table "cats"}, output
+    assert_deprecated(/ignore_tables/, ActiveRecord.deprecator) do
+      assert_equal ["accounts"], ActiveRecord::SchemaDumper.ignore_tables
+    end
   ensure
-    migration.migrate(:down)
-    ActiveRecord::Base.table_name_prefix = original_table_name_prefix
-    ActiveRecord::SchemaDumper.ignore_tables = original_schema_dumper_ignore_tables
+    ActiveRecord.schema_ignored_tables = original
+  end
 
-    $stdout = original
-    ActiveRecord::Base.establish_connection(:arunit)
+  def test_schema_dump_with_table_name_prefix_and_schema_ignored_tables
+    original_schema_ignored_tables = ActiveRecord.schema_ignored_tables
+    ActiveRecord.schema_ignored_tables = ["omg_cats"]
+
+    assert_cats_table_ignored_when_dumping
+  ensure
+    ActiveRecord.schema_ignored_tables = original_schema_ignored_tables
+  end
+
+  def test_schema_dump_with_a_single_regexp_in_schema_ignored_tables
+    original_schema_ignored_tables = ActiveRecord.schema_ignored_tables
+    ActiveRecord.schema_ignored_tables = /\Aomg_cats\z/
+
+    assert_cats_table_ignored_when_dumping
+  ensure
+    ActiveRecord.schema_ignored_tables = original_schema_ignored_tables
+  end
+
+  def test_schema_dump_with_table_name_prefix_and_ignoring_tables
+    original = ActiveRecord.schema_ignored_tables
+    assert_deprecated(ActiveRecord.deprecator) do
+      ActiveRecord::SchemaDumper.ignore_tables = ["omg_cats"]
+    end
+
+    assert_cats_table_ignored_when_dumping
+  ensure
+    ActiveRecord.schema_ignored_tables = original
   end
 
   if current_adapter?(:PostgreSQLAdapter)
@@ -992,6 +1011,38 @@ class SchemaDumperTest < ActiveRecord::TestCase
       $stdout = original
     end
   end
+
+  private
+    def assert_cats_table_ignored_when_dumping
+      original, $stdout = $stdout, StringIO.new
+      ActiveRecord::Base.establish_connection(:arunit2) unless in_memory_db?
+
+      create_cat_migration = Class.new(ActiveRecord::Migration::Current) do
+        def change
+          create_table("cats") do |t|
+          end
+          create_table("omg_cats") do |t|
+          end
+        end
+      end
+
+      original_table_name_prefix = ActiveRecord::Base.table_name_prefix
+      ActiveRecord::Base.table_name_prefix = "omg_"
+      migration = create_cat_migration.new
+      migration.migrate(:up)
+
+      stream = StringIO.new
+      output = ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection_pool, stream).string
+
+      assert_match %r{create_table "omg_cats"}, output
+      assert_no_match %r{create_table "cats"}, output
+    ensure
+      migration&.migrate(:down)
+      ActiveRecord::Base.table_name_prefix = original_table_name_prefix
+
+      $stdout = original
+      ActiveRecord::Base.establish_connection(:arunit)
+    end
 end
 
 class SchemaDumperDefaultsTest < ActiveRecord::TestCase
@@ -999,7 +1050,9 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
 
   setup do
     @connection = ActiveRecord::Base.lease_connection
-    @connection.create_table :dump_defaults, force: true do |t|
+    # Schema statements never run through a Ractor proxy.
+    ddl_connection = main_ractor_connection(@connection)
+    ddl_connection.create_table :dump_defaults, force: true do |t|
       t.string   :string_with_default,   default: "Hello!"
       t.date     :date_with_default,     default: "2014-06-05"
       t.datetime :datetime_with_default, default: "2014-06-05 07:17:04"
@@ -1018,7 +1071,7 @@ class SchemaDumperDefaultsTest < ActiveRecord::TestCase
     end
 
     if current_adapter?(:PostgreSQLAdapter)
-      @connection.create_table :infinity_defaults, force: true do |t|
+      ddl_connection.create_table :infinity_defaults, force: true do |t|
         t.float    :float_with_inf_default,    default: Float::INFINITY
         t.float    :float_with_nan_default,    default: Float::NAN
         t.datetime :beginning_of_time,         default: "-infinity"

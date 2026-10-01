@@ -265,15 +265,15 @@ module ActiveRecord
 
           def derive_key(owner, key)
             if key.is_a?(Array)
-              key.map { |k| convert_key(owner._read_attribute(k)) }
+              key.map { |k| convert_key(owner.read_attribute(k)) }
             else
-              convert_key(owner._read_attribute(key))
+              convert_key(owner.read_attribute(key))
             end
           end
 
           def convert_key(key)
             if key_conversion_required?
-              key.to_s
+              key&.to_s
             else
               key
             end

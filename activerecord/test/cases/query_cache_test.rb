@@ -286,7 +286,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_paths, ["tasks"], {}, ActiveRecord::Base)
       end
 
-      ActiveRecord::Base.connection_pool.connections.each do |conn|
+      without_ractor_proxy { ActiveRecord::Base.connection_pool }.connections.each do |conn|
         assert_cache :off, conn
       end
 
@@ -300,6 +300,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert_cache :dirty
 
         thread_1_connection = ActiveRecord::Base.lease_connection
+        thread_1_physical = main_ractor_connection(thread_1_connection)
         ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
         assert_cache :off, thread_1_connection
 
@@ -310,7 +311,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         thread = Thread.new {
           thread_2_connection = ActiveRecord::Base.lease_connection
 
-          assert_equal thread_2_connection, thread_1_connection
+          assert_equal main_ractor_connection(thread_2_connection), thread_1_physical
           assert_cache :off
 
           middleware {
@@ -329,7 +330,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         started.wait
 
         thread_1_connection = ActiveRecord::Base.lease_connection
-        assert_not_equal thread_1_connection, thread_2_connection
+        assert_not_equal main_ractor_connection(thread_1_connection), main_ractor_connection(thread_2_connection)
         assert_cache :dirty, thread_2_connection
         checked.set
         thread.join
@@ -337,7 +338,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert_cache :off, thread_2_connection
       }.call({})
 
-      ActiveRecord::Base.connection_pool.connections.each do |conn|
+      without_ractor_proxy { ActiveRecord::Base.connection_pool }.connections.each do |conn|
         assert_cache :off, conn
       end
     end
@@ -757,6 +758,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   test "query cache is cleared for all thread when a connection is shared" do
     ActiveRecord::Base.connection_pool.pin_connection!(ActiveSupport::IsolatedExecutionState.context)
+    ActiveRecord::Base.lease_connection.begin_transaction(joinable: false, _lazy: false)
 
     begin
       assert_cache :off
@@ -785,6 +787,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
       assert_cache :clean
     ensure
+      ActiveRecord::Base.lease_connection.rollback_transaction
       ActiveRecord::Base.connection_pool.unpin_connection!
     end
   end
@@ -888,7 +891,7 @@ class QueryCacheMutableParamTest < ActiveRecord::TestCase
   end
 
   def setup
-    ActiveRecord::Base.lease_connection.create_table("json_objs", force: true) do |t|
+    main_ractor_connection(ActiveRecord::Base.lease_connection).create_table("json_objs", force: true) do |t|
       if current_adapter?(:PostgreSQLAdapter)
         t.jsonb "payload"
       else
@@ -929,7 +932,7 @@ class QuerySerializedParamTest < ActiveRecord::TestCase
   def setup
     @use_yaml_unsafe_load_was = ActiveRecord.use_yaml_unsafe_load
 
-    ActiveRecord::Base.lease_connection.create_table("yaml_objs", force: true) do |t|
+    main_ractor_connection(ActiveRecord::Base.lease_connection).create_table("yaml_objs", force: true) do |t|
       t.text "payload"
     end
 
@@ -971,6 +974,8 @@ end
 
 class QueryCacheExpiryTest < ActiveRecord::TestCase
   fixtures :tasks, :posts, :categories, :categories_posts
+
+  skip_under_ractor_proxy :test_insert_all, :test_insert_all_bang, :test_upsert_all
 
   def teardown
     Task.lease_connection.clear_query_cache

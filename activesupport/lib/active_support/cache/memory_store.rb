@@ -1,10 +1,12 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "monitor"
 
 module ActiveSupport
   module Cache
-    # = Memory \Cache \Store
+    # Memory \Cache \Store
+    # ====================
     #
     # A cache store implementation which stores everything into memory in the
     # same process. If you're running multiple Ruby on \Rails server processes
@@ -13,18 +15,18 @@ module ActiveSupport
     # to share cache data with each other and this may not be the most
     # appropriate cache in that scenario.
     #
-    # This cache has a bounded size specified by the +:size+ options to the
+    # This cache has a bounded size specified by the `:size` options to the
     # initializer (default is 32Mb). When the cache exceeds the allotted size,
     # a cleanup will occur which tries to prune the cache down to three quarters
     # of the maximum size by removing the least recently used entries.
     #
-    # Unlike other Cache store implementations, +MemoryStore+ does not compress
-    # values by default. +MemoryStore+ does not benefit from compression as much
+    # Unlike other Cache store implementations, `MemoryStore` does not compress
+    # values by default. `MemoryStore` does not benefit from compression as much
     # as other Store implementations, as it does not send data over a network.
     # However, when compression is enabled, it still pays the full cost of
     # compression in terms of cpu use.
     #
-    # +MemoryStore+ is thread-safe.
+    # `MemoryStore` is thread-safe.
     class MemoryStore < Store
       prepend Strategy::LocalCache
 
@@ -138,15 +140,19 @@ module ActiveSupport
 
       # Increment a cached integer value. Returns the updated value.
       #
-      # If the key is unset, it will be set to +amount+:
+      # If the key is unset, it will be set to `amount`:
       #
-      #   cache.increment("foo") # => 1
-      #   cache.increment("bar", 100) # => 100
+      # ```
+      # cache.increment("foo") # => 1
+      # cache.increment("bar", 100) # => 100
+      # ```
       #
       # To set a specific value, call #write:
       #
-      #   cache.write("baz", 5)
-      #   cache.increment("baz") # => 6
+      # ```
+      # cache.write("baz", 5)
+      # cache.increment("baz") # => 6
+      # ```
       #
       def increment(name, amount = 1, **options)
         instrument(:increment, normalize_key(name, options), amount: amount) do
@@ -156,14 +162,18 @@ module ActiveSupport
 
       # Decrement a cached integer value. Returns the updated value.
       #
-      # If the key is unset or has expired, it will be set to +-amount+.
+      # If the key is unset or has expired, it will be set to `-amount`.
       #
-      #   cache.decrement("foo") # => -1
+      # ```
+      # cache.decrement("foo") # => -1
+      # ```
       #
       # To set a specific value, call #write:
       #
-      #   cache.write("baz", 5)
-      #   cache.decrement("baz") # => 4
+      # ```
+      # cache.write("baz", 5)
+      # cache.decrement("baz") # => 4
+      # ```
       #
       def decrement(name, amount = 1, **options)
         instrument(:decrement, normalize_key(name, options), amount: amount) do
@@ -239,7 +249,7 @@ module ActiveSupport
         end
 
         # Modifies the amount of an integer value that is stored in the cache.
-        # If the key is not found it is created and set to +amount+.
+        # If the key is not found it is created and set to `amount`.
         def modify_value(name, amount, **options)
           options = merged_options(options)
           key     = normalize_key(name, options)

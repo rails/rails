@@ -19,7 +19,17 @@ module ActiveRecord
         #
         # You can define a scope that applies to all finders using
         # {default_scope}[rdoc-ref:Scoping::Default::ClassMethods#default_scope].
-        def all(all_queries: nil)
+        def all(all_queries: (all_queries_not_set = true))
+          if all_queries_not_set
+            all_queries = nil
+          else
+            ActiveRecord.deprecator.warn(
+              "The `all_queries` keyword argument to `ActiveRecord::Base.all` is deprecated and will be removed in Rails 9.0."
+            )
+          end
+
+          return all_queries_scope if all_queries
+
           scope = current_scope
 
           if scope
@@ -44,6 +54,20 @@ module ActiveRecord
         # Returns a scope for the model with default scopes.
         def default_scoped(scope = relation, all_queries: nil)
           build_default_scope(scope, all_queries: all_queries) || scope
+        end
+
+        def all_queries_scope # :nodoc:
+          scope = if default_scopes?(all_queries: true)
+            default_scoped(all_queries: true)
+          else
+            relation
+          end
+
+          if current_scope = global_current_scope
+            scope = scope.merge!(current_scope)
+          end
+
+          scope
         end
 
         def default_extensions # :nodoc:

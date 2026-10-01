@@ -2,6 +2,7 @@
 
 require_relative "abstract_unit"
 require "active_support/event_reporter/test_helper"
+require "active_support/testing/ractors_assertions"
 require "json"
 
 module ActiveSupport
@@ -693,6 +694,25 @@ module ActiveSupport
         timestamp: 1738964843208679035,
         source_location: { filepath: "/path/to/file.rb", lineno: 42, label: "test_method" }
       }
+    end
+  end
+
+  class EventReporterRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
+    if RUBY_VERSION >= "4.0"
+      test "a shareable event reporter notifies its subscribers from other Ractors" do
+        reporter = ActiveSupport::EventReporter.new
+        reporter.subscribe(Class.new { def emit(event); end }.new)
+        Ractor.make_shareable(reporter)
+
+        subscriber_count = on_ractor(reporter) do |reporter|
+          reporter.notify("ractor_event")
+          reporter.subscribers.size
+        end
+
+        assert_equal 1, subscriber_count
+      end
     end
   end
 end

@@ -110,6 +110,20 @@ module ActionDispatch
 
         assert_equal specific, found
       end
+
+      if RUBY_VERSION >= "4.0"
+        def test_route_instance_is_ractor_shareable
+          path  = path_from_string "/messages/:id(.:format)"
+          route = Route.new(name: "name", path: path, defaults: { controller: "messages", action: "show" })
+
+          assert_nothing_raised { Ractor.make_shareable(route) }
+          assert Ractor.shareable?(route)
+
+          assert_equal "/messages/1", route.format(id: 1)
+          assert_equal [:id], route.required_parts
+          assert_nothing_raised { route.eager_load! }
+        end
+      end
     end
   end
 end

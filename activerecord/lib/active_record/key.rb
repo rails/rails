@@ -5,7 +5,7 @@ module ActiveRecord
     include Enumerable
 
     def self.for(name)
-      case name
+      key = case name
       when Array
         Composite.new(name)
       when nil, false
@@ -13,6 +13,8 @@ module ActiveRecord
       else
         Single.new(name)
       end
+
+      key.freeze
     end
 
     attr_reader :name, :columns
@@ -102,7 +104,7 @@ module ActiveRecord
       end
 
       def value_of(record)
-        record._read_attribute(@name)
+        record.read_attribute(@name)
       end
 
       def expects_multiple_ids?(value)
@@ -142,7 +144,7 @@ module ActiveRecord
       end
 
       def value_of(record)
-        @columns.map { |column| record._read_attribute(column) }
+        @columns.map { |column| record.read_attribute(column) }
       end
 
       # A single composite id is itself an Array, so several ids are an Array of

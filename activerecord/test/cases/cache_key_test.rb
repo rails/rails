@@ -16,8 +16,9 @@ module ActiveRecord
 
     setup do
       @connection = ActiveRecord::Base.lease_connection
-      @connection.create_table(:cache_mes, force: true) { |t| t.timestamps }
-      @connection.create_table(:cache_me_with_versions, force: true) { |t| t.timestamps }
+      ddl_connection = main_ractor_connection(@connection)
+      ddl_connection.create_table(:cache_mes, force: true) { |t| t.timestamps }
+      ddl_connection.create_table(:cache_me_with_versions, force: true) { |t| t.timestamps }
     end
 
     teardown do

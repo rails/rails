@@ -2,6 +2,7 @@
 
 # :markup: markdown
 
+require "active_support/ractors"
 require "action_dispatch/middleware/stack"
 
 module ActionController
@@ -15,11 +16,46 @@ module ActionController
   #     end
   #
   class MiddlewareStack < ActionDispatch::MiddlewareStack # :nodoc:
+    class Proxy # :nodoc:
+      delegate_missing_to :middleware_stack
+
+      def initialize(controller)
+        @controller = controller
+      end
+
+      %w(unshift insert insert_before insert_after swap delete delete! move move_before move_after use).each do |method|
+        class_eval(<<~CODE, __FILE__, __LINE__ + 1)
+          def #{method}(...)
+            stack = middleware_stack.dup
+            result = stack.#{method}(...)
+            replace_middleware_stack(stack)
+            result
+          end
+        CODE
+      end
+
+      def middlewares=(middlewares)
+        stack = middleware_stack.dup
+        stack.middlewares = middlewares
+        replace_middleware_stack(stack)
+        middlewares
+      end
+
+      private
+        def middleware_stack
+          @controller.middleware_stack
+        end
+
+        def replace_middleware_stack(stack)
+          @controller.middleware_stack = ActiveSupport::Ractors.try_make_shareable(stack)
+        end
+    end
+
     class Middleware < ActionDispatch::MiddlewareStack::Middleware # :nodoc:
-      def initialize(klass, args, actions, strategy, block)
+      def initialize(klass, args, kwargs, actions, strategy, block)
         @actions = actions
         @strategy = strategy
-        super(klass, args, block)
+        super(klass, args, kwargs, block)
       end
 
       def valid?(action)
@@ -43,7 +79,6 @@ module ActionController
       def build_middleware(klass, args, kwargs, block)
         only   = Array(kwargs.delete(:only)).map(&:to_s)
         except = Array(kwargs.delete(:except)).map(&:to_s)
-        args << Hash.ruby2_keywords_hash(kwargs) unless kwargs.empty?
 
         strategy = NULL
         list     = nil
@@ -56,7 +91,7 @@ module ActionController
           list     = except
         end
 
-        Middleware.new(klass, args, list, strategy, block)
+        Middleware.new(klass, args, kwargs, list, strategy, block)
       end
   end
 
@@ -143,7 +178,7 @@ module ActionController
       private
         def inherited(subclass)
           super
-          subclass.middleware_stack = middleware_stack.dup
+          subclass.middleware_stack = ActiveSupport::Ractors.try_make_shareable(middleware_stack.dup)
           subclass.class_eval do
             @controller_name = nil
           end
@@ -289,7 +324,7 @@ module ActionController
       # Pushes the given Rack middleware and its arguments to the bottom of the
       # middleware stack.
       def use(...)
-        middleware_stack.use(...)
+        middleware.use(...)
       end
     end
 
@@ -306,7 +341,7 @@ module ActionController
     # (https://guides.rubyonrails.org/rails_on_rack.html#action-dispatcher-middleware-stack)
     # in the guides.
     def self.middleware
-      middleware_stack
+      ActionController::MiddlewareStack::Proxy.new(self)
     end
 
     # Returns a Rack endpoint for the given action name.

@@ -6,8 +6,14 @@ module ActiveRecord
   module AttributeMethods
     module TimeZoneConversion
       class TimeZoneConverter < ActiveSupport::Delegation::DelegateClass(Type::Value) # :nodoc:
+        include Type::QueryPredicates::Decorator
+
         def self.new(subtype)
           self === subtype ? subtype : super
+        end
+
+        def subtype
+          __getobj__
         end
 
         def deserialize(value)

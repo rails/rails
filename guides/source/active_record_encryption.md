@@ -393,7 +393,7 @@ options configured.
 
 ### Fixtures
 
-To allow your tests can use plain text values in the YAML fixture files for
+To allow your tests to use plain text values in the YAML fixture files for
 encrypted attributes, you can configure fixtures to be automatically encrypted
 by adding this configuration to your `config/environments/test.rb` file:
 

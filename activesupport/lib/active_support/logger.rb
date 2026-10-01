@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/logger_silence"
@@ -9,13 +10,15 @@ module ActiveSupport
 
     # Returns true if the logger destination matches one of the sources
     #
-    #   logger = Logger.new(STDOUT)
-    #   ActiveSupport::Logger.logger_outputs_to?(logger, STDOUT)
-    #   # => true
+    # ```
+    # logger = Logger.new(STDOUT)
+    # ActiveSupport::Logger.logger_outputs_to?(logger, STDOUT)
+    # # => true
     #
-    #   logger = Logger.new('/var/log/rails.log')
-    #   ActiveSupport::Logger.logger_outputs_to?(logger, '/var/log/rails.log')
-    #   # => true
+    # logger = Logger.new('/var/log/rails.log')
+    # ActiveSupport::Logger.logger_outputs_to?(logger, '/var/log/rails.log')
+    # # => true
+    # ```
     def self.logger_outputs_to?(logger, *sources)
       loggers = if logger.is_a?(BroadcastLogger)
         logger.broadcasts

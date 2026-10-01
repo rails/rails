@@ -20,6 +20,12 @@ module ActiveRecord
               else
                 connection.schema_names
               end
+
+            @current_schema = connection.current_schema
+            members = connection.extension_member_objects.group_by(&:first)
+            @extension_member_tables = members.fetch("table", []).map(&:last).to_set
+            @extension_member_enum_types = members.fetch("enum", []).map(&:last).to_set
+            @extension_member_schemas = members.fetch("schema", []).map(&:last)
           end
 
           def extensions(stream)
@@ -35,7 +41,7 @@ module ActiveRecord
 
           def types(stream)
             within_each_schema do
-              types = @connection.enum_types
+              types = @connection.enum_types.reject { |name, _| extension_member?(@extension_member_enum_types, name) }
               if types.any?
                 stream.puts "  # Custom types defined in this database."
                 stream.puts "  # Note that some types may not work with other database engines. Be careful if changing database."
@@ -48,7 +54,7 @@ module ActiveRecord
           end
 
           def schemas(stream)
-            schema_names = @dump_schemas - ["public"]
+            schema_names = @dump_schemas - ["public"] - @extension_member_schemas
 
             if schema_names.any?
               schema_names.sort.each do |name|
@@ -68,7 +74,7 @@ module ActiveRecord
           end
 
           def exclusion_constraints_in_create(table, stream)
-            if (exclusion_constraints = @connection.exclusion_constraints(table)).any?
+            if (exclusion_constraints = @exclusion_constraints[table]).any?
               exclusion_constraint_statements = exclusion_constraints.map do |exclusion_constraint|
                 parts = [ exclusion_constraint.expression.inspect ]
                 parts << "where: #{exclusion_constraint.where.inspect}" if exclusion_constraint.where
@@ -84,7 +90,7 @@ module ActiveRecord
           end
 
           def unique_constraints_in_create(table, stream)
-            if (unique_constraints = @connection.unique_constraints(table)).any?
+            if (unique_constraints = @unique_constraints[table]).any?
               unique_constraint_statements = unique_constraints.map do |unique_constraint|
                 parts = [ unique_constraint.column.inspect ]
                 parts << "nulls_not_distinct: #{unique_constraint.nulls_not_distinct.inspect}" if unique_constraint.nulls_not_distinct
@@ -139,6 +145,18 @@ module ActiveRecord
             column.default_function.inspect
           end
 
+          def ignored?(table_name)
+            super || extension_member?(@extension_member_tables, table_name)
+          end
+
+          def extension_member?(members, name)
+            return false if members.empty?
+
+            name = Utils.extract_schema_qualified_name(name.to_s)
+            schema = name.schema || schema_name
+            members.include?("#{schema}.#{name.identifier}")
+          end
+
           def within_each_schema
             @dump_schemas.each do |schema_name|
               old_search_path = @connection.schema_search_path
@@ -152,7 +170,7 @@ module ActiveRecord
           end
 
           def relation_name(name)
-            if @dump_schemas.size == 1
+            if @dump_schemas.size == 1 || schema_name == @current_schema
               name
             elsif name.include?(".")
               name  # Already schema-qualified, don't add another prefix

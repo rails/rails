@@ -22,13 +22,21 @@ module Rails
         @file_watcher = file_watcher
       end
 
+      # Returns +true+ if the routes are loaded.
+      def loaded
+        @load_state == :loaded
+      end
+
       def reload!
         @load_lock.synchronize do
           previous_state, @load_state = @load_state, :loading
           clear!
           load_paths
           finalize!
-          route_sets.each(&:eager_load!) if eager_load
+          if eager_load
+            route_sets.each(&:eager_load!)
+            warn_about_missing_controllers
+          end
         ensure
           @load_state = previous_state
           revert
@@ -36,7 +44,10 @@ module Rails
       end
 
       def execute
-        updater.execute
+        @load_lock.synchronize do
+          updater.execute
+          @load_state ||= :loaded
+        end
       end
 
       def execute_unless_loaded
@@ -104,8 +115,18 @@ module Rails
         route_sets.each(&:finalize!)
       end
 
+      def warn_about_missing_controllers
+        return unless Rails.logger
+
+        route_sets.each do |routes|
+          routes.missing_controller_messages.each { |message| Rails.logger.warn(message) }
+        end
+      end
+
       def revert
         route_sets.each do |routes|
+          next if routes.frozen?
+
           routes.disable_clear_and_finalize = false
         end
       end

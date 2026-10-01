@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 class Workshop
   extend ActiveModel::Naming
@@ -729,6 +730,14 @@ class NavigationHelperTest < ActiveSupport::TestCase
     assert current_page?("/events", method: :post)
   end
 
+  def test_current_page_with_query_verb
+    @request = request_for_url("/search", method: :query)
+
+    assert_not current_page?("/search")
+    assert current_page?("/search", method: :query)
+    assert current_page?("/search", method: [:get, :query])
+  end
+
   def test_current_page_with_array_of_methods_including_request_method
     @request = request_for_url("/events", method: :post)
 
@@ -807,6 +816,16 @@ class NavigationHelperTest < ActiveSupport::TestCase
 
   def request_forgery_protection_token
     "form_token"
+  end
+
+  class NavigationHelperRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "button_to_generates_button_tag is readable from a non-main Ractor" do
+      assert_equal ActionView::Helpers::NavigationHelper.button_to_generates_button_tag,
+        on_ractor { ActionView::Helpers::NavigationHelper.button_to_generates_button_tag }
+    end
   end
 
   private

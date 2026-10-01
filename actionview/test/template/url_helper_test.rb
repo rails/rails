@@ -21,6 +21,10 @@ class UrlHelperTest < ActiveSupport::TestCase
   include Rails::Dom::Testing::Assertions::DomAssertions
   include RenderERBUtils
 
+  def default_url_options
+    @default_url_options ||= {}
+  end
+
   def hash_for(options = {})
     { controller: "foo", action: "bar" }.merge!(options)
   end
@@ -67,7 +71,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_url_for_with_array_and_only_path_set_to_false
-    default_url_options[:host] = "http://example.com"
+    @default_url_options = { host: "http://example.com" }
     assert_equal "http://example.com/other", url_for([:other, { controller: "foo", only_path: false }])
   end
 
@@ -297,8 +301,14 @@ class UrlHelperControllerTest < ActionController::TestCase
         to: "url_helper_controller_test/url_helper#show_named_route",
         as: :show_named_route
 
-      ActionDispatch.deprecator.silence do
-        get "/:controller(/:action(/:id))"
+      %w(
+        show_url_for
+        nil_url_for
+        normalize_recall_params
+        recall_params_not_changed
+      ).each do |action|
+        get "url_helper_controller_test/url_helper/#{action}",
+          to: "url_helper_controller_test/url_helper##{action}"
       end
 
       get "url_helper_controller_test/url_helper/normalize_recall_params",

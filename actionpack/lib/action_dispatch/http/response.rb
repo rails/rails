@@ -2,7 +2,7 @@
 
 # :markup: markdown
 
-require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/class/attribute"
 require "action_dispatch/http/filter_redirect"
 require "action_dispatch/http/cache"
 require "monitor"
@@ -99,8 +99,8 @@ module ActionDispatch # :nodoc:
     SET_COOKIE   = "Set-Cookie"
     NO_CONTENT_CODES = [100, 101, 102, 103, 204, 205, 304].freeze
 
-    cattr_accessor :default_charset, default: "utf-8"
-    cattr_accessor :default_headers
+    class_attribute :default_charset, default: "utf-8", instance_accessor: false
+    class_attribute :default_headers, instance_accessor: false
 
     include Rack::Response::Helpers
     # Aliasing these off because AD::Http::Cache::Response defines them.

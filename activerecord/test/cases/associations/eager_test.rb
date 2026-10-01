@@ -1374,8 +1374,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts[0].categories[0].categorizations.length
 
     posts = Post.all.merge!(includes: { categories: :categorizations }, order: "posts.id").to_a
-    assert_no_queries { assert_equal 2, posts[0].categories[0].categorizations.length }
-    assert_no_queries { assert_equal 1, posts[0].categories[1].categorizations.length }
+    assert_no_queries { assert_equal 2, posts[0].categories.sort_by(&:id)[0].categorizations.length }
+    assert_no_queries { assert_equal 1, posts[0].categories.sort_by(&:id)[1].categorizations.length }
     assert_no_queries { assert_equal 2, posts[1].categories[0].categorizations.length }
   end
 
@@ -1418,9 +1418,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
     comments = Post.find(1).comments.to_a
 
     Comment.where("1=0").scoping do
-      assert_equal comments, Post.find(1).comments
-      assert_equal comments, Post.preload(:comments).find(1).comments
-      assert_equal comments, Post.eager_load(:comments).find(1).comments
+      assert_equal_unordered comments, Post.find(1).comments
+      assert_equal_unordered comments, Post.preload(:comments).find(1).comments
+      assert_equal_unordered comments, Post.eager_load(:comments).find(1).comments
     end
   end
 

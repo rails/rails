@@ -890,14 +890,16 @@ module ActionView
 
       private
         %w( sec min hour day month year ).each do |method|
-          define_method(method) do
+          name = method.to_sym
+          reader = ActiveSupport::Ractors.shareable_lambda do
             case @datetime
-            when Hash then @datetime[method.to_sym]
+            when Hash then @datetime[name]
             when Numeric then @datetime
             when nil then nil
-            else @datetime.send(method)
+            else @datetime.send(name)
             end
           end
+          define_method(method, reader)
         end
 
         def prompt_text(prompt, type)

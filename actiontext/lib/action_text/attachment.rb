@@ -22,7 +22,7 @@ module ActionText
 
     mattr_accessor :tag_name, default: "action-text-attachment"
 
-    ATTRIBUTES = %w( sgid content-type url href filename filesize width height previewable presentation caption content ).freeze
+    ATTRIBUTES = %w( sgid content-type url href filename filesize width height previewable presentation caption alt content ).freeze
 
     class << self
       def fragment_by_canonicalizing_attachments(content)
@@ -73,6 +73,19 @@ module ActionText
 
     def caption
       node_attributes["caption"].presence
+    end
+
+    # Returns the alternative text describing the attachment, used as the `alt`
+    # attribute when rendering an image.
+    #
+    # A caption is shown alongside the attachment, whereas alternative text
+    # describes it for people who cannot see it. They serve different purposes,
+    # so an attachment may have either, both, or neither.
+    #
+    #     attachment = ActionText::Attachment.from_attachable(attachable, alt: "A racecar on a track")
+    #     attachment.alt # => "A racecar on a track"
+    def alt
+      node_attributes["alt"].presence
     end
 
     def full_attributes
@@ -155,18 +168,34 @@ module ActionText
     #       include ActionText::Attachable
     #
     #       def attachable_markdown_representation(caption, attachment_links: false)
-    #         MarkdownConversion.markdown_link("@#{name}", Rails.application.routes.url_helpers.person_url(self))
+    #         ActionText::MarkdownConversion.markdown_link("@#{name}", Rails.application.routes.url_helpers.person_url(self))
     #       end
     #     end
     #
     #     attachable = Person.create! name: "Javan"
     #     attachment = ActionText::Attachment.from_attachable(attachable)
     #     attachment.to_markdown # => "[@Javan](http://example.com/people/1)"
+    #
+    # NOTE: When overriding `attachable_markdown_representation`, the `caption` parameter is derived
+    # from the document and should be considered untrusted, so an implementation must escape any
+    # caption-derived text with `ActionText::MarkdownConversion.escape_markdown_text`, or pass it
+    # through `ActionText::MarkdownConversion.markdown_link`, which escapes the link title and
+    # rejects disallowed URI schemes. Returning the caption unchanged lets a stored rich text body
+    # inject arbitrary Markdown.
+    #
+    #     class Person < ApplicationRecord
+    #       include ActionText::Attachable
+    #
+    #       def attachable_markdown_representation(caption, attachment_links: false)
+    #         ActionText::MarkdownConversion.escape_markdown_text(caption.to_s) # take care to escape the caption
+    #       end
+    #     end
+    #
     def to_markdown(attachment_links: false)
       if respond_to?(:attachable_markdown_representation)
         attachable_markdown_representation(caption, attachment_links: attachment_links)
       else
-        caption.to_s
+        MarkdownConversion.escape_markdown_text(caption.to_s)
       end
     end
 

@@ -92,6 +92,17 @@ if ActiveRecord::Base.lease_connection.supports_exclusion_constraints?
           assert_equal "daterange(start_date, end_date) WITH &&", constraint.expression
         end
 
+        def test_add_exclusion_constraint_with_multiline_expression
+          @connection.add_exclusion_constraint :invoices,
+            "daterange(start_date, CASE WHEN end_date IS NULL THEN 'infinity'::date ELSE end_date END, '[]') WITH &&",
+            using: :gist
+
+          constraint = @connection.exclusion_constraints("invoices").first
+
+          assert_includes constraint.expression, "CASE"
+          assert_includes constraint.expression, "WITH &&"
+        end
+
         def test_add_exclusion_constraint_deferrable_false
           @connection.add_exclusion_constraint :invoices, "daterange(start_date, end_date) WITH &&", using: :gist, deferrable: false
 

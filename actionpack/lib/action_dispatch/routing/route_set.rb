@@ -37,10 +37,6 @@ module ActionDispatch
       alias inspect to_s
 
       class Dispatcher < Routing::Endpoint
-        def initialize(raise_on_name_error)
-          @raise_on_name_error = raise_on_name_error
-        end
-
         def dispatcher?; true; end
 
         def serve(req)
@@ -48,12 +44,6 @@ module ActionDispatch
           controller = controller req
           res        = controller.make_response! req
           dispatch(controller, params[:action], req, res)
-        rescue ActionController::RoutingError
-          if @raise_on_name_error
-            raise
-          else
-            [404, { Constants::X_CASCADE => "pass" }, []]
-          end
         end
 
         private
@@ -68,7 +58,6 @@ module ActionDispatch
 
       class StaticDispatcher < Dispatcher
         def initialize(controller_class)
-          super(false)
           @controller_class = controller_class
         end
 
@@ -187,11 +176,13 @@ module ActionDispatch
 
         class UrlHelper
           def self.create(route, options, route_name)
-            if optimize_helper?(route)
+            helper = if optimize_helper?(route)
               OptimizedUrlHelper.new(route, options, route_name)
             else
               new(route, options, route_name)
             end
+
+            ActiveSupport::Ractors.try_make_shareable(helper)
           end
 
           def self.optimize_helper?(route)
@@ -279,7 +270,7 @@ module ActionDispatch
             controller_options = t.url_options
             options = controller_options.merge @options
             hash = handle_positional_args(controller_options,
-                                          inner_options || {},
+                                          inner_options.presence,
                                           args,
                                           options,
                                           @segment_keys)
@@ -302,8 +293,11 @@ module ActionDispatch
               else
                 path_params = path_params.dup
               end
-              inner_options.each_key do |key|
-                path_params.delete(key)
+
+              if inner_options
+                inner_options.each_key do |key|
+                  path_params.delete(key)
+                end
               end
 
               args.each_with_index do |arg, index|
@@ -312,7 +306,8 @@ module ActionDispatch
               end
             end
 
-            result.merge!(inner_options)
+            result.merge!(inner_options) if inner_options
+            result
           end
         end
 
@@ -331,7 +326,7 @@ module ActionDispatch
           #     foo_url(bar, baz, bang, sort_by: 'baz')
           #
           def define_url_helper(mod, name, helper, url_strategy)
-            mod.define_method(name) do |*args|
+            mod.define_method(name, ActiveSupport::Ractors.try_shareable_proc { |*args|
               last = args.last
               options = \
                 case last
@@ -341,7 +336,7 @@ module ActionDispatch
                   args.pop.to_h
                 end
               helper.call(self, name, args, options, url_strategy)
-            end
+            })
           end
       end
 
@@ -408,6 +403,28 @@ module ActionDispatch
         routes.each(&:eager_load!)
         formatter.eager_load!
         nil
+      end
+
+      # Resolves the controller of every route that dispatches to one and returns
+      # a message for each route whose controller is missing, so that a broken
+      # route can be reported when the routes are loaded rather than on the first
+      # request that matches it.
+      def missing_controller_messages # :nodoc:
+        request = request_class.empty
+
+        routes.filter_map do |route|
+          next unless route.dispatcher?
+          next if StaticDispatcher === route.app
+
+          begin
+            request.controller_class_for(route.defaults[:controller])
+            nil
+          rescue MissingController => error
+            message = +"#{route.verb} #{route.path.spec} references a missing controller: #{error.message}"
+            message << " (defined at #{route.source_location})" if route.source_location
+            message
+          end
+        end
       end
 
       def relative_url_root
@@ -482,7 +499,12 @@ module ActionDispatch
       def finalize!
         return if @finalized
         @append.each { |blk| eval_block(blk) }
+
+        url_helpers(true)
+        url_helpers(false)
         @finalized = true
+
+        ActiveSupport::Ractors.try_make_shareable(self)
       end
 
       def clear!
@@ -558,7 +580,7 @@ module ActionDispatch
             end
           end
 
-          @_proxy = proxy_class.new(routes)
+          @_proxy = proxy_class.new(routes).freeze
 
           class << self
             def url_for(options)
@@ -605,18 +627,18 @@ module ActionDispatch
             extend path_helpers
           end
 
+          helper_module = self
+
           # plus a singleton class method called _routes ...
           included do
-            redefine_singleton_method(:_routes) { routes }
+            redefine_singleton_method(:_routes, &ActiveSupport::Ractors.try_shareable_proc { helper_module._routes })
           end
 
           # And an instance method _routes. Note that UrlFor (included in this module) add
           # extra conveniences for working with @_routes.
-          define_method(:_routes) { @_routes || routes }
+          define_method(:_routes, ActiveSupport::Ractors.try_shareable_proc { @_routes || helper_module._routes })
 
-          define_method(:_generate_paths_by_default) do
-            supports_path
-          end
+          define_method(:_generate_paths_by_default, ActiveSupport::Ractors.try_shareable_proc { supports_path })
 
           private :_generate_paths_by_default
 
@@ -653,20 +675,6 @@ module ActionDispatch
 
         route = @set.add_route(name, mapping)
         named_routes[name] = route if name
-
-        if route.segment_keys.include?(:controller)
-          ActionDispatch.deprecator.warn(<<-MSG.squish)
-            Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 9.0.
-          MSG
-        end
-
-        if route.segment_keys.include?(:action)
-          ActionDispatch.deprecator.warn(<<-MSG.squish)
-            Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 9.0.
-          MSG
-        end
 
         route
       end
@@ -855,12 +863,7 @@ module ActionDispatch
       def url_for(options, route_name = nil, url_strategy = UNKNOWN, method_name = nil, reserved = RESERVED_OPTIONS)
         options = default_url_options.merge options
 
-        user = password = nil
-
-        if options[:user] && options[:password]
-          user     = options.delete :user
-          password = options.delete :password
-        end
+        has_auth = options[:user] && options[:password]
 
         recall = options.delete(:_recall) { {} }
 
@@ -871,9 +874,7 @@ module ActionDispatch
           script_name = original_script_name + script_name
         end
 
-        path_options = options.dup
-        reserved.each { |ro| path_options.delete ro }
-
+        path_options = has_auth ? options.except(:user, :password, *reserved) : options.except(*reserved)
         route_with_params = generate(route_name, path_options, recall)
         path = route_with_params.path(method_name)
 
@@ -894,8 +895,6 @@ module ActionDispatch
         options[:path]        = path
         options[:script_name] = script_name
         options[:params]      = params
-        options[:user]        = user
-        options[:password]    = password
 
         url_strategy.call options
       end

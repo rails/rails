@@ -443,7 +443,7 @@ module ActiveRecord
 
     def test_structure_dump_with_ignore_tables
       ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
-        ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
+        ActiveRecord.stub(:schema_ignored_tables, [/^prefix_/, "ignored_foo"]) do
           assert_called_with(
             Kernel,
             :system,

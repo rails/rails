@@ -28,7 +28,7 @@ module ActiveRecord
                   !value.instance_variable_defined?(:@ar_pg_bytea_decoded)
 
                 ActiveRecord.deprecator.warn(<<~MSG.squish)
-                  bytea column received a binary string for unescaping. In Rails 8.3, binary strings
+                  bytea column received a binary string for unescaping. In Rails 9.0, binary strings
                   will be treated as already unescaped.
                 MSG
               end

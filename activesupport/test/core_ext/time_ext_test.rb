@@ -1255,14 +1255,17 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_minus_with_datetime
     assert_equal 86_400.0, Time.utc(2000, 1, 2) - DateTime.civil(2000, 1, 1)
+    assert_instance_of Float, Time.utc(2000, 1, 2) - DateTime.civil(2000, 1, 1)
   end
 
   def test_minus_with_datetime_sub_second_precision
     dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(1, 1_000_000), "+0") # .000001s
     assert_equal Rational(999_999, 1_000_000), Time.utc(2000, 1, 1, 0, 0, 1) - dt
+    assert_instance_of Float, Time.utc(2000, 1, 1, 0, 0, 1) - dt
 
     dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(123_457, 1_000_000), "+0")
     assert_equal Rational(876_543, 1_000_000), Time.utc(2000, 1, 1, 0, 0, 1) - dt
+    assert_instance_of Float, Time.utc(2000, 1, 1, 0, 0, 1) - dt
   end
 
   def test_time_created_with_local_constructor_cannot_represent_times_during_hour_skipped_by_dst
@@ -1328,19 +1331,33 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       Time.rfc3339("1999-12-31")
     end
 
-    assert_equal "invalid date", exception.message
+    assert_match(/\Ainvalid (date|rfc3339 format)/, exception.message)
 
     exception = assert_raises(ArgumentError) do
       Time.rfc3339("1999-12-31T19:00:00")
     end
 
-    assert_equal "invalid date", exception.message
+    assert_match(/\Ainvalid (date|rfc3339 format)/, exception.message)
 
     exception = assert_raises(ArgumentError) do
       Time.rfc3339("foobar")
     end
 
-    assert_equal "invalid date", exception.message
+    assert_match(/\Ainvalid (date|rfc3339 format)/, exception.message)
+  end
+
+  def test_rfc3339_parse_with_utc_designator
+    time = Time.rfc3339("1999-12-31T19:00:00Z")
+
+    assert_predicate time, :utc?
+    assert_equal Time.utc(1999, 12, 31, 19, 0, 0), time
+  end
+
+  def test_rfc3339_parse_with_numeric_zero_offset
+    time = Time.rfc3339("1999-12-31T19:00:00+00:00")
+
+    assert_not_predicate time, :utc?
+    assert_equal 0, time.utc_offset
   end
 
   def test_prev_day

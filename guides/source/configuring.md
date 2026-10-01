@@ -66,6 +66,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.action_dispatch.strict_accept_header`](#config-action-dispatch-strict-accept-header): `true`
+- [`config.action_view.erb_implementation`](#config-action-view-erb-implementation): `:herb`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
@@ -1559,10 +1560,9 @@ The default value depends on the `config.load_defaults` target version:
 
 #### `config.active_record.query_log_tags_enabled`
 
-Specifies whether or not to enable adapter-level query comments. Defaults to
-`false`, but is set to `true` in the default generated `config/environments/development.rb` file.
+Specifies whether or not to enable adapter-level query comments. Defaults to `false`, but is set to `true` in the default generated `config/environments/development.rb` file. When this is set to `true`, database prepared statements will be automatically disabled. If prepared statements are desired in conjunction with `query_log_tags` you must explicitly opt-out of Active Record's disabling mechanism: `config.active_record.disable_prepared_statements = false`.
 
-NOTE: When this is set to `true` database prepared statements will be automatically disabled.
+Note: High cardinality comments can cause degraded db performance as the database may not be able to rely on a query plan cache. If forcing prepared statements with query log tags high cardinality values should be avoided. For example, `:request_id` or `admin_id`. Even basic `controller#action` tags can cause high cardinality on basic queries such as a current_user lookup since it will happen across many endpoints.
 
 #### `config.active_record.query_log_tags`
 
@@ -1603,9 +1603,21 @@ Defaults to `false`.
 
 #### `config.active_record.schema_cache_ignored_tables`
 
-Define the list of table that should be ignored when generating the schema
-cache. It accepts an `Array` of strings, representing the table names, or
-regular expressions.
+**Note:** This configuration is deprecated in favor of
+[`config.active_record.schema_ignored_tables`](#config-active-record-schema-ignored-tables),
+and will be removed in a future Rails version. It is now an alias for that
+option, so setting it also excludes the tables from the schema file.
+
+#### `config.active_record.schema_ignored_tables`
+
+Define the list of tables that should be ignored when generating the schema
+cache and the schema file. It accepts an `Array` of strings, representing the
+table names, or regular expressions.
+
+**Note:** This configuration replaces the deprecated
+[`config.active_record.schema_cache_ignored_tables`](#config-active-record-schema-cache-ignored-tables)
+and [`ActiveRecord::SchemaDumper.ignore_tables`](#activerecord-schemadumper-ignore-tables)
+options.
 
 #### `config.active_record.verbose_query_logs`
 
@@ -1858,6 +1870,11 @@ You should run `bin/rails db:migrate` to rebuild your schema.rb if you change th
 
 Accepts an array of tables that should _not_ be included in any generated schema file.
 
+**Note:** This configuration is deprecated in favor of
+[`config.active_record.schema_ignored_tables`](#config-active-record-schema-ignored-tables),
+and will be removed in a future Rails version. It is now an alias for that
+option, so setting it also excludes the tables from the schema cache.
+
 #### `ActiveRecord::SchemaDumper.fk_ignore_pattern`
 
 Allows setting a different regular expression that will be used to decide
@@ -1987,6 +2004,42 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 8.1                   | `true`               |
+
+#### `config.active_record.shuffle_unordered_selects`
+
+Shuffles the rows of every `SELECT` Active Record generates that has no `ORDER BY` clause.
+
+The order of such a query is not specified: the database is free to return the rows in any order, and that
+order can change when an index is added, when the data grows, or when the query planner changes its mind.
+Enabling this option makes the lack of order explicit, so code and tests that accidentally depend on the
+order a particular database happens to return today fail immediately instead of breaking later.
+
+```ruby
+# config/environments/test.rb
+config.active_record.shuffle_unordered_selects = true
+```
+
+The order is fully random and drawn again on every execution, so a query cannot accidentally settle into an
+order that an assertion keeps passing against.
+
+The option is best effort, and two things bound what it can surface.
+
+The first is that Active Record has to recognise the query, which it does from the Arel it built. A query that
+reaches it as already-compiled SQL is left alone: SQL you wrote yourself, and association loading, `find` and
+`find_by`, which are served from a precompiled statement by `ActiveRecord::StatementCache`. Relations, `pluck`,
+calculations and eager loading are covered, inside a query cache block or out.
+
+The second is that rows are shuffled after the database has returned them, so the option cannot change *which*
+rows come back. Queries ending in `LIMIT 1` are unaffected — `find`, `find_by`, `take`, `pick`, `exists?`,
+`has_one` and `belongs_to` — which makes this weaker than SQLite's `reverse_unordered_selects` pragma. A query
+with an `ORDER BY` is never shuffled even when that ordering is not a total order, so ties on a non-unique
+column stay hidden. And the SQL in your log is the SQL that was sent, so replaying it by hand will not
+reproduce the order your application saw.
+
+This is a development aid intended for the test or development environments, and it is never enabled by
+`config.load_defaults`.
+
+The default value is `false`.
 
 ### Configuring Action Controller
 
@@ -2642,6 +2695,25 @@ Accepts a logger conforming to the interface of Log4r or the default Ruby Logger
 #### `config.action_view.erb_trim_mode`
 
 Controls if certain ERB syntax should trim. It defaults to `'-'`, which turns on trimming of tail spaces and newline when using `<%= -%>` or `<%= =%>`. Setting this to anything else will turn off trimming support.
+
+#### `config.action_view.erb_implementation`
+
+Controls the ERB implementation used to compile templates. `:erubi` compiles every template through [Erubi](https://github.com/jeremyevans/erubi). `:herb` compiles templates with the HTML format through [Herb](https://github.com/marcoroth/herb) and every other format through Erubi. Herb reports structural problems, such as an unclosed tag, at compile time with their template location. Setting a class compiles every template through that class.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is                           |
+| --------------------- | ---------------------------------------------- |
+| (original)            | `ActionView::Template::Handlers::ERB::Erubi`   |
+| 8.2                   | `ActionView::Template::Handlers::ERB::Herb`    |
+
+#### `config.action_view.escape_ignore_list`
+
+Control whether template should be escaped based on the mime type. Defaults to `["text/plain"]`.
+
+#### `config.action_view.strip_trailing_newlines`
+
+Strip trailing newlines from rendered output. Defaults to `false`.
 
 #### `config.action_view.frozen_string_literal`
 
@@ -3505,7 +3577,19 @@ The default value is `/https?:\/\/localhost:\d+/` in the `development` environme
 
 #### `config.active_storage.variant_processor`
 
-Accepts a symbol `:mini_magick`, `:vips`, or `:disabled` specifying whether or not variant transformations and blob analysis will be performed with MiniMagick or ruby-vips.
+Accepts a symbol `:mini_magick`, `:vips`, or `:disabled` specifying whether or not variant
+processing and blob analysis will be performed with MiniMagick or ruby-vips.
+
+It also accepts a class. The class must implement the interface defined by
+`ActiveStorage::Transformers::Transformer`. Active Storage then uses it for variant processing:
+
+```ruby
+config.active_storage.variant_processor = CustomTransformer
+```
+
+Note that the built-in image analyzers accept a blob only when `variant_processor` is `:vips` or
+`:mini_magick`, so setting this configuration to a custom class requires adding a custom analyzer to
+[`config.active_storage.analyzers`](#config-active-storage-analyzers) as well.
 
 The default value depends on the `config.load_defaults` target version:
 
@@ -3747,6 +3831,17 @@ The default value depends on the `config.load_defaults` target version:
 
 Can be used to toggle Active Storage route generation. The default is `true`.
 
+#### `config.active_storage.draw_direct_upload_route`
+
+Can be used to toggle generation of the direct upload route, without
+affecting the other Active Storage routes. Has no effect if
+`config.active_storage.draw_routes` is `false`. The default is `true`.
+
+When set to `false`, Action Text's `rich_textarea` renders without a
+`data-direct-upload-url` unless one is passed explicitly, and a Trix editor
+without that attribute hides its attach button and ignores dropped or pasted
+files.
+
 #### `config.active_storage.resolve_model_to_route`
 
 Can be used to globally change how Active Storage files are delivered.
@@ -3768,6 +3863,29 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `"-y -vframes 1 -f image2"` |
 | 7.0                   | `"-vf 'select=eq(n\\,0)+eq(key\\,1)+gt(scene\\,0.015)"`<sup><mark><strong><em>1</em></strong></mark></sup> <br> `+ ",loop=loop=-1:size=2,trim=start_frame=1'"`<sup><mark><strong><em>2</em></strong></mark></sup><br> `+ " -frames:v 1 -f image2"` <br><br> <ol><li>Select the first video frame, plus keyframes, plus frames that meet the scene change threshold.</li> <li>Use the first video frame as a fallback when no other frames meet the criteria by looping the first (one or) two selected frames, then dropping the first looped frame.</li></ol> |
+
+#### `config.active_storage.video_preview_input_arguments`
+
+Arguments passed to ffmpeg before `-i` when generating video preview images.
+ffmpeg's flags are position dependent, so arguments that apply to the input,
+such as `-codec_whitelist` and `-protocol_whitelist`, belong here.
+
+The default value is `""`.
+
+See [Media Processing of File Uploads](security.html#media-processing-of-file-uploads)
+in the Security Guide.
+
+#### `config.active_storage.ffprobe_arguments`
+
+Arguments passed to ffprobe before the file path when analyzing videos and
+audio. Applies to both `ActiveStorage::Analyzer::VideoAnalyzer` and
+`ActiveStorage::Analyzer::AudioAnalyzer`. Arguments that make ffprobe reject a
+file will fail that file's analysis.
+
+The default value is `""`.
+
+See [Media Processing of File Uploads](security.html#media-processing-of-file-uploads)
+in the Security Guide.
 
 #### `config.active_storage.multiple_file_field_include_hidden`
 
@@ -3837,13 +3955,13 @@ Using the `config/database.yml` file you can specify all the information needed 
 development:
   adapter: postgresql
   database: blog_development
-  pool: 5
+  max_connections: 5
 ```
 
 This will connect to the database named `blog_development` using the `postgresql` adapter. This same information can be stored in a URL and provided via an environment variable like this:
 
 ```ruby
-ENV["DATABASE_URL"] # => "postgresql://localhost/blog_development?pool=5"
+ENV["DATABASE_URL"] # => "postgresql://localhost/blog_development?max_connections=5"
 ```
 
 The `config/database.yml` file contains sections for three different environments in which Rails can run by default:
@@ -3856,7 +3974,7 @@ If you wish, you can manually specify a URL inside of your `config/database.yml`
 
 ```yaml
 development:
-  url: postgresql://localhost/blog_development?pool=5
+  url: postgresql://localhost/blog_development?max_connections=5
 ```
 
 The `config/database.yml` file can contain ERB tags `<%= %>`. Anything in the tags will be evaluated as Ruby code. You can use this to pull out data from an environment variable or to perform calculations to generate the needed connection information.
@@ -3925,7 +4043,7 @@ If non-duplicate information is provided you will get all unique values, environ
 $ cat config/database.yml
 development:
   adapter: sqlite3
-  pool: 5
+  max_connections: 5
 
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
@@ -3934,12 +4052,12 @@ $ bin/rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
     @env_name="development", @spec_name="primary",
-    @config={"adapter"=>"postgresql", "database"=>"my_database", "host"=>"localhost", "pool"=>5}
+    @config={"adapter"=>"postgresql", "database"=>"my_database", "host"=>"localhost", "max_connections"=>5}
     @url="postgresql://localhost/my_database">
   ]
 ```
 
-Since pool is not in the `ENV['DATABASE_URL']` provided connection information its information is merged in. Since `adapter` is duplicate, the `ENV['DATABASE_URL']` connection information wins.
+Since max_connections is not in the `ENV['DATABASE_URL']` provided connection information its information is merged in. Since `adapter` is duplicate, the `ENV['DATABASE_URL']` connection information wins.
 
 The only way to explicitly not use the connection information in `ENV['DATABASE_URL']` is to specify an explicit URL connection using the `"url"` sub key:
 
@@ -3982,7 +4100,7 @@ Here's the section of the default configuration file (`config/database.yml`) wit
 development:
   adapter: sqlite3
   database: storage/development.sqlite3
-  pool: 5
+  max_connections: 5
   timeout: 5000
 ```
 
@@ -4010,10 +4128,10 @@ development:
   adapter: mysql2
   encoding: utf8mb4
   database: blog_development
-  pool: 5
+  max_connections: 5
   username: root
   password:
-  socket: /tmp/mysql.sock
+  host: 127.0.0.1
 ```
 
 If your development database has a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the `development` section as appropriate.
@@ -4037,7 +4155,7 @@ development:
   adapter: postgresql
   encoding: unicode
   database: blog_development
-  pool: 5
+  max_connections: 5
 ```
 
 By default Active Record uses a database feature called advisory locks. You might need to disable this feature if you're using an external connection pooler like PgBouncer:
@@ -4587,7 +4705,7 @@ Active Record database connections are managed by [`ActiveRecord::ConnectionAdap
 development:
   adapter: sqlite3
   database: storage/development.sqlite3
-  pool: 5
+  max_connections: 5
   timeout: 5000
 ```
 
@@ -4604,7 +4722,7 @@ ActiveRecord::ConnectionTimeoutError - could not obtain a database connection wi
 ```
 
 If you get the above error, you might want to increase the size of the
-connection pool by incrementing the `pool` option in `database.yml`
+connection pool by incrementing the `max_connections` option in `database.yml`
 
 NOTE. If you are running in a multi-threaded environment, there could be a chance that several threads may be accessing multiple connections simultaneously. So depending on your current request load, you could very well have multiple threads contending for a limited number of connections.
 

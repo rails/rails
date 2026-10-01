@@ -55,6 +55,16 @@ module ActionDispatch
         process(:options, path, **args)
       end
 
+      # Performs a QUERY request with the given parameters. Params are sent as
+      # the request body, per [RFC 10008](https://www.rfc-editor.org/rfc/rfc10008),
+      # with a default `Content-Type` of `application/x-www-form-urlencoded`
+      # (RFC 10008 requires QUERY requests to declare one) — pass `as: :json` or
+      # an explicit `CONTENT_TYPE` header to override. See
+      # ActionDispatch::Integration::Session#process for more details.
+      def query(path, **args)
+        process(:query, path, **args)
+      end
+
       # Follow a single redirect response. If the last response was not a redirect, an
       # exception will be raised. Otherwise, the redirect is performed on the location
       # header. If the redirection is a 307 or 308 redirect, the same HTTP verb will
@@ -388,7 +398,7 @@ module ActionDispatch
         @integration_session = nil
       end
 
-      %w(get post patch put head delete cookies assigns follow_redirect!).each do |method|
+      %w(get post patch put head delete query cookies assigns follow_redirect!).each do |method|
         # reset the html_document variable, except for cookies/assigns calls
         unless method == "cookies" || method == "assigns"
           reset_html_document = "@html_document = nil"

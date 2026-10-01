@@ -540,8 +540,8 @@ While we're here, let's add a new layout for Settings so we can organize them in
 a sidebar. To do this, we're going to use a
 [Nested Layout](layouts_and_rendering.html#using-nested-layouts).
 
-A nested layout allows you add HTML (like a sidebar) while still rendering the
-application layout. This means we don't have to duplicate our head tags or
+A nested layout allows you to add HTML (like a sidebar) while still rendering
+the application layout. This means we don't have to duplicate our head tags or
 navigation in our Settings layout.
 
 Let's create `app/views/layouts/settings.html.erb` and add the following:
@@ -1530,7 +1530,7 @@ Update `app/views/store/products/show.html.erb` with the following:
 
 This updates the `show` action so that:
 
-- Links now use to the `store` namespace.
+- Links now use the `store` namespace.
 - A "View in Storefront" link is added to make it easier for admins to see how a
   product looks to the public.
 - The inventory partial is removed since that's only useful on the public
@@ -1667,7 +1667,7 @@ test "successful sign up" do
 end
 ```
 
-For this test, we need submit params with a POST request to test the `create`
+For this test, we need to submit params with a POST request to test the `create`
 action.
 
 Let's also test with invalid data to ensure the controller returns an error.
@@ -1765,7 +1765,7 @@ two:
   last_name: Two
 ```
 
-This tests submits successful params, confirms the email is saved to the
+This test submits successful params, confirms the email is saved to the
 database, the user was redirected and the confirmation email was queued for
 delivery.
 
@@ -1819,8 +1819,8 @@ end
 The first test simulates a user confirming their email change with an invalid
 token. We assert the error message was set and the email address did not change.
 
-The second test uses valid token and asserts the success notice was set and the
-email address was updated in the database.
+The second test uses a valid token and asserts the success notice was set and
+the email address was updated in the database.
 
 We need to fix one more test related to email confirmations and that is the
 automatically generated tests for `UserMailer`. Let's update that to match our
@@ -1927,7 +1927,7 @@ test "regular user cannot access /store/users" do
 end
 ```
 
-These tests use a regular user to access the admin only areas and ensures they
+These tests use a regular user to access the admin only areas and ensure they
 are redirected away with a flash message.
 
 Let's complete these tests by ensuring that admin users _can_ access these

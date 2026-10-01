@@ -308,10 +308,11 @@ module ActionView
               end
             RUBY
           when Proc
-            define_method :_layout_from_proc, &_layout
+            layout_proc = ActiveSupport::Ractors.try_shareable_proc(_layout)
+            define_method :_layout_from_proc, layout_proc
             private :_layout_from_proc
             <<-RUBY
-              result = _layout_from_proc(#{_layout.arity == 0 ? '' : 'self'})
+              result = _layout_from_proc(#{layout_proc.arity == 0 ? '' : 'self'})
               return #{default_behavior} if result.nil?
               result
             RUBY
