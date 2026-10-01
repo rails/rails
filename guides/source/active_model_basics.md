@@ -198,9 +198,9 @@ irb> person.active
 
 #### Attributes Without a Writer
 
-Pass `writer: false` to define an attribute that cannot be reassigned once the
-object has been built. The attribute is defined as usual, but its writer is
-private, so it can be given a value at construction and is read-only afterwards.
+Pass `writer: false` to make the generated writer private. The attribute can
+still be given a value at construction or through `assign_attributes`, but
+cannot be assigned directly.
 
 ```ruby
 class Measurement
@@ -225,9 +225,9 @@ irb> measurement.celsius = 30
 (irb):in 'Kernel#binding': private method 'celsius=' called for an instance of Measurement (NoMethodError)
 ```
 
-This is useful for value objects and other small objects that you want to build
-once and read from afterwards, while still getting casting, defaults, and
-validations from Active Model.
+This is useful when you want to prevent direct assignment while retaining
+casting, defaults, and validations from Active Model. `assign_attributes` can
+still update the attribute after construction.
 
 Some additional methods described below are available when using
 `ActiveModel::Attributes`.

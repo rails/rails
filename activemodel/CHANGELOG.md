@@ -2,7 +2,8 @@
 
     `attribute :name, :string, writer: false` defines the attribute as usual,
     but makes its writer private. The attribute can still be given a value at
-    construction and through `assign_attributes`, and is read-only afterwards.
+    construction and through `assign_attributes`, but cannot be assigned
+    directly.
 
     ```ruby
     class Person

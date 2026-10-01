@@ -61,10 +61,9 @@ module ActiveModel
       #   person.name   # => "Volmer"
       #   person.active # => true
       #
-      # Pass <tt>writer: false</tt> to define an attribute that cannot be
-      # reassigned through the public API. The writer is still defined, but it
-      # is private, so the attribute can be given a value at construction and
-      # is read-only afterwards:
+      # Pass <tt>writer: false</tt> to make the generated writer private. The
+      # attribute can still be given a value at construction or through
+      # +assign_attributes+, but cannot be assigned directly:
       #
       #   class Person
       #     include ActiveModel::API
@@ -75,9 +74,9 @@ module ActiveModel
       #
       #   person = Person.new(name: "Volmer")
       #
-      #   person.name             # => "Volmer"
+      #   person.name               # => "Volmer"
       #   person.respond_to?(:name=) # => false
-      #   person.name = "Jane"    # => NoMethodError
+      #   person.name = "Jane"      # => NoMethodError
       def attribute(name, *args, writer: true, **options)
         super(name, *args, **options)
         define_attribute_method(name)
