@@ -36,8 +36,6 @@ module ActionDispatch
     config.action_dispatch.debug_exception_log_level = :fatal
     config.action_dispatch.strict_freshness = false
 
-    config.action_dispatch.ignore_leading_brackets = nil
-    config.action_dispatch.strict_query_string_separator = nil
     config.action_dispatch.verbose_redirect_logs = false
 
     config.action_dispatch.default_headers = {
@@ -69,13 +67,6 @@ module ActionDispatch
 
       unless app.config.action_dispatch.domain_extractor.nil?
         ActionDispatch::Http::URL.domain_extractor = app.config.action_dispatch.domain_extractor
-      end
-
-      unless app.config.action_dispatch.ignore_leading_brackets.nil?
-        ActionDispatch::ParamBuilder.ignore_leading_brackets = app.config.action_dispatch.ignore_leading_brackets
-      end
-      unless app.config.action_dispatch.strict_query_string_separator.nil?
-        ActionDispatch::QueryParser.strict_query_string_separator = app.config.action_dispatch.strict_query_string_separator
       end
 
       ActionDispatch.verbose_redirect_logs = app.config.action_dispatch.verbose_redirect_logs

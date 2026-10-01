@@ -1,3 +1,11 @@
+*   Removed the deprecated `ActionDispatch::QueryParser.strict_query_string_separator`
+    and `ActionDispatch::ParamBuilder.ignore_leading_brackets`.
+
+    As well as the `config.action_dispatch` options that set them. Both had no
+    effect since Rails 8.1.
+
+    *Carlos Daniel Pohlod*
+
 *   Remove support for dynamic `:controller` and `:action` route segments.
 
     A route may no longer read the controller or the action out of the URL:

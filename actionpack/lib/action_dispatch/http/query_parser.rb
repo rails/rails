@@ -8,20 +8,6 @@ module ActionDispatch
     DEFAULT_SEP = /& */n
     COMMON_SEP = { ";" => /; */n, ";," => /[;,] */n, "&" => /& */n, "&;" => /[&;] */n }.freeze
 
-    def self.strict_query_string_separator
-      ActionDispatch.deprecator.warn <<~MSG
-        The `strict_query_string_separator` configuration is deprecated have no effect and will be removed in Rails 8.2.
-      MSG
-      @strict_query_string_separator
-    end
-
-    def self.strict_query_string_separator=(value)
-      ActionDispatch.deprecator.warn <<~MSG
-        The `strict_query_string_separator` configuration is deprecated have no effect and will be removed in Rails 8.2.
-      MSG
-      @strict_query_string_separator = value
-    end
-
     #--
     # Note this departs from WHATWG's specified parsing algorithm by
     # giving a nil value for keys that do not use '='. Callers that need

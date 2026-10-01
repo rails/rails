@@ -21,22 +21,6 @@ module ActionDispatch
 
     class << self
       delegate :from_query_string, :from_pairs, :from_hash, to: :default
-
-      def ignore_leading_brackets
-        ActionDispatch.deprecator.warn <<~MSG
-          ActionDispatch::ParamBuilder.ignore_leading_brackets is deprecated and have no effect and will be removed in Rails 8.2.
-        MSG
-
-        @ignore_leading_brackets
-      end
-
-      def ignore_leading_brackets=(value)
-        ActionDispatch.deprecator.warn <<~MSG
-          ActionDispatch::ParamBuilder.ignore_leading_brackets is deprecated and have no effect and will be removed in Rails 8.2.
-        MSG
-
-        @ignore_leading_brackets = value
-      end
     end
 
     def from_query_string(qs, separator: nil, encoding_template: nil)
