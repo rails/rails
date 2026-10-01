@@ -81,15 +81,12 @@ module ActionView
           end
 
           def add_default_name_and_field_for_value(tag_value, options, field = "id")
-            if tag_value.nil?
-              add_default_name_and_field(options, field)
-            else
-              specified_field = options[field]
-              add_default_name_and_field(options, field)
+            specified_field = options[field]
+            add_default_name_and_field(options, field)
+            sanitized = sanitized_value(tag_value)
 
-              if specified_field.blank? && options[field].present?
-                options[field] += "_#{sanitized_value(tag_value)}"
-              end
+            if !sanitized.empty? && specified_field.blank? && options[field].present?
+              options[field] += "_#{sanitized}"
             end
           end
           alias_method :add_default_name_and_id_for_value, :add_default_name_and_field_for_value
