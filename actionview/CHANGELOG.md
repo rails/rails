@@ -1,3 +1,10 @@
+*   Fix `collection_radio_buttons` and `collection_check_boxes` generating
+    an input `id` that does not match the label `for` attribute when a
+    collection value is an empty string.
+
+    *Kenta Ishizaki*
+
+
 ## Rails 8.1.4 (September 24, 2026) ##
 
 *   Fix non-ASCII strict locals defaults rendering as mojibake.
