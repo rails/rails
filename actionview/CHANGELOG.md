@@ -1,3 +1,9 @@
+*   Fix `collection_radio_buttons` and `collection_check_boxes` generating
+    an input `id` that does not match the label `for` attribute when a
+    collection value is an empty string.
+
+    *Kenta Ishizaki*
+
 *   Fix non-ASCII strict locals defaults rendering as mojibake.
 
     When a template declared a non-ASCII default in its `locals:` magic comment
