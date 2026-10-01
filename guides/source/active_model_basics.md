@@ -196,6 +196,39 @@ irb> person.active
 => false
 ```
 
+#### Attributes Without a Writer
+
+Pass `writer: false` to define an attribute that cannot be reassigned once the
+object has been built. The attribute is defined as usual, but its writer is
+private, so it can be given a value at construction and is read-only afterwards.
+
+```ruby
+class Measurement
+  include ActiveModel::API
+  include ActiveModel::Attributes
+
+  attribute :taken_at, :datetime, writer: false
+  attribute :celsius, :decimal, writer: false
+end
+```
+
+```irb
+irb> measurement = Measurement.new(taken_at: "2020-01-01 09:00", celsius: "21.5")
+
+irb> measurement.celsius
+=> 0.215e2
+
+irb> measurement.respond_to?(:celsius=)
+=> false
+
+irb> measurement.celsius = 30
+(irb):in 'Kernel#binding': private method 'celsius=' called for an instance of Measurement (NoMethodError)
+```
+
+This is useful for value objects and other small objects that you want to build
+once and read from afterwards, while still getting casting, defaults, and
+validations from Active Model.
+
 Some additional methods described below are available when using
 `ActiveModel::Attributes`.
 
