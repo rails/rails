@@ -162,7 +162,7 @@ as described in the next section.
 
 ### Rendering Templates
 
-`render` accepts options to to render a different template within a controller
+`render` accepts options to render a different template within a controller
 action, or set the HTTP response code.
 
 ```ruby#6

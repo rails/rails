@@ -235,7 +235,7 @@ be set to `false` if application code is not thread safe. Defaults to `true`.
 
 #### `config.asset_host`
 
-Sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints built-in in browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.
+Sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints built into browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.
 
 #### `config.assume_ssl`
 
