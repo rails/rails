@@ -1,3 +1,25 @@
+*   Allow Active Model attributes to be declared without a public writer.
+
+    `attribute :name, :string, writer: false` defines the attribute as usual,
+    but makes its writer private. The attribute can still be given a value at
+    construction and through `assign_attributes`, and is read-only afterwards.
+
+    ```ruby
+    class Person
+      include ActiveModel::API
+      include ActiveModel::Attributes
+
+      attribute :name, :string, writer: false
+    end
+
+    person = Person.new(name: "Volmer")
+    person.name                # => "Volmer"
+    person.respond_to?(:name=) # => false
+    person.name = "Jane"       # => NoMethodError
+    ```
+
+    *Leonardo Bernardelli*
+
 *   Treat `:except_on` as a callback option in `ActiveModel::Error`.
 
     Errors from validations using `:except_on` now match `errors.added?` queries
