@@ -1,3 +1,13 @@
+*   Fix `encrypted_attribute?` and `ciphertext_for` for encrypted binary columns
+    on PostgreSQL.
+
+    PostgreSQL returns `bytea` values in their escaped form, so
+    `encrypted_attribute?` returned `false` for a persisted, encrypted binary
+    attribute and `ciphertext_for` returned a freshly encrypted value instead of
+    the stored ciphertext.
+
+    *Paul Mucur*
+
 *   Fix `one?` and `many?` on grouped relations.
 
     A grouped count returns a hash, so `one?` returned `false` for a single
