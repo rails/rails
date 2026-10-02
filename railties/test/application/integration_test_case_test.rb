@@ -72,5 +72,21 @@ module ApplicationTests
       output = rails("test")
       assert_match(/0 failures, 0 errors/, output)
     end
+
+    test "integration tests have the same fixture paths as other tests" do
+      app_file "test/integration/fixture_paths_test.rb", <<-RUBY
+        require "test_helper"
+
+        class FixturePathsIntegrationTest < ActionDispatch::IntegrationTest
+          def test_fixture_paths_are_not_duplicated
+            assert_equal ["\#{Rails.root}/test/fixtures/"], ActiveSupport::TestCase.fixture_paths
+            assert_equal ActiveSupport::TestCase.fixture_paths, self.class.fixture_paths
+          end
+        end
+      RUBY
+
+      output = rails("test")
+      assert_match(/0 failures, 0 errors/, output)
+    end
   end
 end
