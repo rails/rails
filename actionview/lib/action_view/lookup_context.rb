@@ -15,16 +15,14 @@ module ActionView
   class LookupContext # :nodoc:
     attr_accessor :prefixes
 
-    singleton_class.attr_accessor :default_procs
-    self.default_procs = {}.freeze
-
-    def self.registered_details
-      self.default_procs.keys
-    end
+    singleton_class.attr_reader :default_procs, :registered_details
+    @default_procs = {}.freeze
+    @registered_details = [].freeze
 
     def self.register_detail(name, &block)
       block = ActiveSupport::Ractors.shareable_proc(&block)
-      self.default_procs = self.default_procs.merge(name => block).freeze
+      @default_procs = @default_procs.merge(name => block).freeze
+      @registered_details = @default_procs.keys.freeze
 
       Accessors.define_method(:"default_#{name}", &block)
       Accessors.module_eval <<-METHOD, __FILE__, __LINE__ + 1
@@ -143,32 +141,43 @@ module ActionView
       attr_reader :view_paths, :html_fallback_for_js
 
       def find(name, prefixes = [], partial = false, keys = [], options = {})
-        name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(options)
+        if options.empty? # most common path
+          details, details_key = @details, self.details_key
+        else
+          details, details_key = detail_args_for(options)
+        end
         @view_paths.find(name, prefixes, partial, details, details_key, keys)
       end
 
       def find!(name, prefixes = [], partial = false, keys = [], options = {})
-        name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(options)
+        if options.empty?
+          details, details_key = @details, self.details_key
+        else
+          details, details_key = detail_args_for(options)
+        end
         @view_paths.find!(name, prefixes, partial, details, details_key, keys)
       end
 
       def find_all(name, prefixes = [], partial = false, keys = [], options = {})
-        name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(options)
+        if options.empty?
+          details, details_key = @details, self.details_key
+        else
+          details, details_key = detail_args_for(options)
+        end
         @view_paths.find_all(name, prefixes, partial, details, details_key, keys)
       end
 
       def exists?(name, prefixes = [], partial = false, keys = [], **options)
-        name, prefixes = normalize_name(name, prefixes)
-        details, details_key = detail_args_for(options)
+        if options.empty?
+          details, details_key = @details, self.details_key
+        else
+          details, details_key = detail_args_for(options)
+        end
         @view_paths.exists?(name, prefixes, partial, details, details_key, keys)
       end
       alias :template_exists? :exists?
 
       def any?(name, prefixes = [], partial = false)
-        name, prefixes = normalize_name(name, prefixes)
         details, details_key = detail_args_for_any
         @view_paths.exists?(name, prefixes, partial, details, details_key, [])
       end
@@ -199,7 +208,6 @@ module ActionView
 
       # Compute details hash and key according to user options (e.g. passed from #render).
       def detail_args_for(options) # :doc:
-        return @details, details_key if options.empty? # most common path.
         user_details = @details.merge(options)
 
         if @cache
@@ -229,25 +237,6 @@ module ActionView
             [details, nil]
           end
         end
-      end
-
-      # Fix when prefix is specified as part of the template name
-      def normalize_name(name, prefixes)
-        name = name.to_s
-        idx = name.rindex("/")
-        return name, prefixes.presence || [""] unless idx
-
-        path_prefix = name[0, idx]
-        path_prefix = path_prefix.from(1) if path_prefix.start_with?("/")
-        name = name.from(idx + 1)
-
-        if !prefixes || prefixes.empty?
-          prefixes = [path_prefix]
-        else
-          prefixes = prefixes.map { |p| "#{p}/#{path_prefix}" }
-        end
-
-        return name, prefixes
       end
     end
 

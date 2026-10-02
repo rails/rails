@@ -6,6 +6,16 @@ require "database/setup"
 require "active_storage/analyzer/image_analyzer"
 
 class ActiveStorage::Analyzer::ImageAnalyzer::VipsTest < ActiveSupport::TestCase
+  test "analyzing raises when libvips cannot block its unfuzzed loaders" do
+    analyze_with_vips do
+      blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+
+      stub_const(ActiveStorage, :VIPS_UNSECURABLE, true) do
+        assert_raises(RuntimeError, match: /Active Storage cannot disable them/) { extract_metadata_from(blob) }
+      end
+    end
+  end
+
   test "analyzing a JPEG image" do
     analyze_with_vips do
       blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")

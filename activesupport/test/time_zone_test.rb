@@ -783,6 +783,15 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "-05:30", ActiveSupport::TimeZone.seconds_to_utc_offset(-19_800)
   end
 
+  def test_seconds_to_utc_offset_ignores_seconds
+    assert_equal "+02:30", ActiveSupport::TimeZone.seconds_to_utc_offset(9_017)
+    assert_equal "-02:30", ActiveSupport::TimeZone.seconds_to_utc_offset(-9_017, true)
+  end
+
+  def test_seconds_to_utc_offset_with_more_than_59_hours
+    assert_equal "+100:00", ActiveSupport::TimeZone.seconds_to_utc_offset(360_000)
+  end
+
   def test_formatted_offset_positive
     zone = ActiveSupport::TimeZone["New Delhi"]
     assert_equal "+05:30", zone.formatted_offset
@@ -895,6 +904,14 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal ["2000-01-01 00:00:00 -0500", "Sat, 01 Jan 2000 00:00:00 -0500"], on_ractor(twz) { |t| [t.to_s, t.rfc2822] }
   end
 
+  def test_xmlschema_and_inspect_in_ractor
+    twz = ActiveSupport::TimeZone["Eastern Time (US & Canada)"].local(2000, 1, 1)
+    utc = ActiveSupport::TimeZone["UTC"].local(2000, 1, 1)
+
+    assert_equal ["2000-01-01T00:00:00.000-05:00", "2000-01-01T00:00:00Z", "2000-01-01 00:00:00.000000000 EST -05:00"],
+      on_ractor(twz, utc) { |t, u| [t.xmlschema(3), u.xmlschema, t.inspect] }
+  end
+
   def test_us_zones
     assert_includes ActiveSupport::TimeZone.us_zones, ActiveSupport::TimeZone["Hawaii"]
     assert_not_includes ActiveSupport::TimeZone.us_zones, ActiveSupport::TimeZone["Kuala Lumpur"]
@@ -1002,5 +1019,38 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_includes ca_zones, ActiveSupport::TimeZone["Alberta"]
     assert_not_includes ca_zones.map(&:name), "America/Vancouver"
     assert_not_includes ca_zones.map(&:name), "America/Edmonton"
+  end
+
+  def test_manitoba_mapping
+    manitoba = ActiveSupport::TimeZone["Manitoba"]
+    central_us = ActiveSupport::TimeZone["Central Time (US & Canada)"]
+
+    assert_equal "America/Winnipeg", manitoba.standard_name
+    assert_equal "America/Chicago", central_us.standard_name
+
+    assert_equal "America/Winnipeg", manitoba.tzinfo.name
+  end
+
+  def test_country_zones_include_manitoba
+    ca_zones = ActiveSupport::TimeZone.country_zones(:ca)
+
+    assert_includes ca_zones, ActiveSupport::TimeZone["Manitoba"]
+    assert_not_includes ca_zones.map(&:name), "America/Winnipeg"
+  end
+end
+
+class TimeZoneRactorTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::Isolation
+  include ActiveSupport::Testing::RactorsAssertions
+
+  def test_zones_are_usable_from_a_non_main_ractor_once_shared
+    ActiveSupport::TimeZone.make_shareable!
+
+    assert_equal "Europe/Paris", on_ractor { ActiveSupport::TimeZone["Paris"].tzinfo.name }
+    assert_equal "Europe/Paris", on_ractor { ActiveSupport::TimeZone["Europe/Paris"].tzinfo.name }
+    assert_equal 3600, on_ractor { ActiveSupport::TimeZone["Paris"].utc_offset }
+    assert_equal "2026-07-01 14:00:00 +0200", on_ractor { Time.utc(2026, 7, 1, 12).in_time_zone("Paris").to_s }
+    assert_equal "Asia/Tokyo", on_ractor { Time.use_zone("Tokyo") { Time.zone.tzinfo.name } }
+    assert_includes on_ractor { ActiveSupport::TimeZone.country_zones(:fr).map(&:name) }, "Paris"
   end
 end

@@ -231,6 +231,8 @@ module ActiveRecord
         read(filename) do |file|
           if filename.include?(".dump")
             Marshal.load(file, freeze: true)
+          elsif filename.include?(".json")
+            JSONSchemaCacheSerializer.load(file)
           else
             YAML.unsafe_load(file)
           end
@@ -285,6 +287,22 @@ module ActiveRecord
         unless coder["deduplicated"]
           derive_columns_hash_and_deduplicate_values
         end
+      end
+
+      def as_schema_json
+        data = {}
+        encode_with(data)
+        data["data_sources"] = data["data_sources"].select { |_, exists| exists }.keys
+        data
+      end
+
+      def init_from_schema_json(coder, references)
+        @columns          = coder["columns"].transform_values { |columns| columns.map { |i| references[i] } }
+        @columns_hash     = @columns.transform_values { |columns| columns.index_by(&:name) }
+        @primary_keys     = coder["primary_keys"]
+        @data_sources     = coder["data_sources"].index_with { true }
+        @indexes          = (coder["indexes"] || {}).transform_values { |indexes| indexes.map { |i| references[i] } }
+        @version          = coder["version"]
       end
 
       def cached?(table_name)
@@ -420,6 +438,8 @@ module ActiveRecord
         open(filename) { |f|
           if filename.include?(".dump")
             f.write(Marshal.dump(self))
+          elsif filename.include?(".json")
+            f.write(JSONSchemaCacheSerializer.dump(self))
           else
             f.write(YAML.dump(self))
           end

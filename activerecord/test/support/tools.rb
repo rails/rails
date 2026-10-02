@@ -13,27 +13,27 @@ require "active_support/test_case"
 require "rake/testtask"
 
 Rails::TestUnit::Runner.singleton_class.prepend Module.new {
-   private
-     def list_tests(patterns)
-       tests = super
-       if patterns.empty?
-         tests.concat FileList["test/cases/adapters/#{adapter_name}/**/*_test.rb"]
-         case adapter_name
-         when "mysql2", "trilogy"
-           tests.concat(FileList["test/cases/adapters/abstract_mysql_adapter/**/*_test.rb"])
-         end
-       end
-       tests
-     end
+  private
+    def list_tests(patterns)
+      tests = super
+      if patterns.empty?
+        tests.concat FileList["test/cases/adapters/#{adapter_name}/**/*_test.rb"]
+        case adapter_name
+        when "mysql2", "trilogy"
+          tests.concat(FileList["test/cases/adapters/abstract_mysql_adapter/**/*_test.rb"])
+        end
+      end
+      tests
+    end
 
-     def default_test_exclude_glob
-       ENV["DEFAULT_TEST_EXCLUDE"] || "test/cases/adapters/*/*_test.rb"
-     end
+    def default_test_exclude_glob
+      ENV["DEFAULT_TEST_EXCLUDE"] || "test/cases/adapters/*/*_test.rb"
+    end
 
-     def adapter_name
-       ENV["ARCONN"] || "sqlite3"
-     end
- }
+    def adapter_name
+      ENV["ARCONN"] || "sqlite3"
+    end
+}
 
 ActiveSupport::TestCase.extend Rails::LineFiltering
 Rails::TestUnitReporter.app_root ||= COMPONENT_ROOT

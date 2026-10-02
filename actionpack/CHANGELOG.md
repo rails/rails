@@ -8,6 +8,57 @@
     Fixes #56888.
 
     *Pim Vermeyden*
+    
+*   Remove support for dynamic `:controller` and `:action` route segments.
+
+    A route may no longer read the controller or the action out of the URL:
+
+    ```ruby
+    get ":controller(/:action(/:id))"
+    ```
+
+    Drawing such a route raises an `ArgumentError`. Deprecated since Rails 5.0,
+    so write out the routes the application serves instead:
+
+    ```ruby
+    get "photos", to: "photos#index"
+    get "photos/:id", to: "photos#show"
+    ```
+
+    Passing a controller class without an action relied on the same mechanism,
+    so `get "show", to: PhotosController` now needs `action: "show"`, and a
+    `Regexp` for `:controller` or `:action` raises rather than drawing a route
+    that can never match.
+
+    `Request#controller_class` now raises `ActionDispatch::MissingController`
+    when the request has no `:controller` path parameter (for example, before
+    routing, or for a request routed to a Rack endpoint), instead of returning
+    a placeholder controller that responded with a 404.
+
+    *Aaron Patterson*
+
+*   Fix `Server-Timing` durations for nested same-name notifications.
+
+    Nested events such as `render_partial.action_view` report inclusive
+    durations, so summing them double-counted child work and could exceed
+    wall-clock / total request time. Server Timing now aggregates exclusive
+    time per event name.
+
+    Fixes #48375.
+
+    *Edil Talantbek uulu*
+
+*   Include default headers in `ActionController::Live` responses.
+
+    Previously, responses from `ActionController::Live` controllers, including
+    the Active Storage proxy controllers, were served over HTTP/1.1 without
+    `config.action_dispatch.default_headers` such as `X-Content-Type-Options`
+    and `X-Frame-Options`.
+
+    Fixes #53402.
+
+    *Tony Novak*
+
 *   Check `PATCH` and `QUERY` in `assert_recognizes` and `assert_routing` with `method: :all`.
 
     Both assertions only recognized the path for `GET`, `POST`, `PUT` and

@@ -39,6 +39,10 @@ module ActiveRecord
       attr_reader :model_class, :columns_hash, :columns, :column_names,
                   :content_columns
 
+      attr_reader :timestamp_attributes_for_create_in_model,
+        :timestamp_attributes_for_update_in_model,
+        :all_timestamp_attributes_in_model
+
       def initialize(model_class)
         @model_class = model_class
         @schema_loaded = false
@@ -123,6 +127,10 @@ module ActiveRecord
           c.name == model_class.inheritance_column ||
           c.name.end_with?("_id", "_count")
         end.freeze
+
+        @timestamp_attributes_for_create_in_model = (model_class.timestamp_attributes_for_create & @column_names).freeze
+        @timestamp_attributes_for_update_in_model = (model_class.timestamp_attributes_for_update & @column_names).freeze
+        @all_timestamp_attributes_in_model = (@timestamp_attributes_for_create_in_model + @timestamp_attributes_for_update_in_model).freeze
 
         model_class.make_pending_attribute_modifications_shareable
         attributes

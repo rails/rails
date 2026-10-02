@@ -19,6 +19,7 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         add_to_env_config "production", "config.public_file_server.enabled = false" # Requires release of https://github.com/rack/rack/pull/2469
         add_to_env_config "production", "config.cache_store = :null_store"
         add_to_env_config "production", "config.action_cable.mount_path = nil"
+        add_to_env_config "production", "config.active_job.queue_adapter = :inline" # the async adapter holds a thread pool
       end
 
       def teardown
@@ -51,6 +52,20 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
 
         assert_ractor_shareable ActionController::Base.config
         assert_ractor_shareable Rails::HealthController.config
+      end
+
+      test "ractorize! makes the params wrapper options shareable" do
+        app_file "app/controllers/posts_controller.rb", <<~RUBY
+          class PostsController < ApplicationController
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ActionController::Base._wrapper_options
+        assert_equal "post", on_ractor { PostsController._wrapper_options.name }
       end
 
       test "ractorize! makes Rails.logger shareable" do
@@ -98,6 +113,23 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_equal main_size, on_ractor { GreetingsController._view_paths.size }
       end
 
+      test "jobs are performed from a non-main Ractor" do
+        app_file "app/jobs/hello_job.rb", <<~RUBY
+          class HelloJob < ApplicationJob
+            def perform(name)
+              "Hello, \#{name}"
+            end
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ActiveJob::Base.queue_adapter
+        assert_equal "Hello, worker", on_ractor { HelloJob.perform_now("worker") }
+      end
+
       test "error reporting works after the application is ractorized" do
         app "production"
 
@@ -106,6 +138,38 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_nothing_raised do
           Rails.error.report(StandardError.new("test"))
         end
+      end
+
+      test "ractorize! makes model reflections Ractor-shareable" do
+        app_file "app/models/post.rb", <<~RUBY
+          class Post < ActiveRecord::Base
+            has_one :comment
+          end
+        RUBY
+        app_file "app/models/comment.rb", <<~RUBY
+          class Comment < ActiveRecord::Base
+            belongs_to :post
+          end
+        RUBY
+        app_file "config/initializers/active_record.rb", <<~RUBY
+          ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+          ActiveRecord::Migration.verbose = false
+          ActiveRecord::Schema.define(version: 1) do
+            create_table :posts
+            create_table :comments do |t|
+              t.belongs_to :post
+            end
+          end
+          ActiveRecord::Base.schema_cache.add("posts")
+          ActiveRecord::Base.schema_cache.add("comments")
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert Ractor.shareable?(Post._reflections)
+        assert_equal "Comment", on_ractor { Post.reflect_on_association(:comment).klass.name }
       end
 
       private

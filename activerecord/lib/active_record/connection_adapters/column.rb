@@ -66,6 +66,18 @@ module ActiveRecord
         coder["comment"] = @comment
       end
 
+      def as_schema_json
+        data = {}
+        encode_with(data)
+        data
+      end
+
+      def init_from_schema_json(coder, references)
+        coder["cast_type"] = references[coder["cast_type"]] if coder["cast_type"]
+        coder["sql_type_metadata"] = references[coder["sql_type_metadata"]] if coder["sql_type_metadata"]
+        init_with(coder)
+      end
+
       # whether the column is auto-populated by the database using a sequence
       def auto_incremented_by_db?
         false

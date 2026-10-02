@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Rich text framework."
   s.description = "Edit and display rich text in Rails applications."
 
-  s.required_ruby_version = ">= 3.3.1"
+  s.required_ruby_version = ">= 3.3.5"
 
   s.license  = "MIT"
 

@@ -152,7 +152,7 @@ module ActionView
         template.format
       end
 
-      EMPTY_SPACER = Struct.new(:body).new
+      EMPTY_SPACER = new("", nil)
     end
 
     private

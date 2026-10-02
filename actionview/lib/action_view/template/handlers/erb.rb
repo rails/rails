@@ -63,7 +63,7 @@ module ActionView
           nil
         end
 
-        def call(template, source)
+        def call(template, source, implementation: nil, **overrides)
           # First, convert to BINARY, so in case the encoding is
           # wrong, we can still find an encoding tag
           # (<%# encoding %>) inside the String using a regular
@@ -91,10 +91,20 @@ module ActionView
             options[:postamble] = "@output_buffer.safe_append='<!-- END #{template.short_identifier} -->';@output_buffer"
           end
 
-          self.class.erb_implementation.new(erb, options).src
+          (implementation || implementation_for(template)).new(erb, options.merge(overrides)).src
         end
 
       private
+        def implementation_for(template)
+          implementation = self.class.erb_implementation
+
+          if implementation == Herb && template.format != :html
+            Erubi
+          else
+            implementation
+          end
+        end
+
         def valid_encoding(string, encoding)
           # If a magic encoding comment was found, tag the
           # String with this encoding. This is for a case

@@ -42,6 +42,9 @@ class FragmentCachingTestController < CachingController
   def some_action; end
 end
 
+# +combined_fragment_cache_key+ generates a URL for the action it is given.
+draw_controller_routes(SharedTestRoutes, FragmentCachingTestController)
+
 class FragmentCachingTest < ActionController::TestCase
   ModelWithKeyAndVersion = Struct.new(:cache_key, :cache_version)
 
@@ -428,7 +431,7 @@ class CollectionCacheTest < ActionController::TestCase
 
     get :index_ordered
     assert_equal 3, @controller.partial_rendered_times
-    assert_select ":root", html: "<body><p>david, 1\n  david, 2\n  david, 3\n\n</p></body>"
+    assert_select ":root", /david, 1\s+david, 2\s+david, 3/
   end
 
   def test_explicit_render_call_with_options

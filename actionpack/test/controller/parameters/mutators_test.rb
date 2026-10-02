@@ -233,19 +233,21 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
   end
 
   test "to_h receives a block and transforms keys" do
-  params = ActionController::Parameters.new(name: "Alex", age: "40", location: "Beijing")
-  params.permit!
-  params_hash = params.to_h { |key, value| [:"#{key}_modified", value] }
-  assert_equal %w(name_modified age_modified location_modified), params_hash.keys
-end
+    params = ActionController::Parameters.new(name: "Alex", age: "40", location: "Beijing")
+    params.permit!
+    params_hash = params.to_h { |key, value| [:"#{key}_modified", value] }
+    assert_equal %w(name_modified age_modified location_modified), params_hash.keys
+  end
+
   test "to_h receives a block and transforms values" do
-  params = ActionController::Parameters.new(name: "Alex", age: "40", location: "Beijing")
-  params.permit!
-  params_hash = params.to_h { |key, value| [key, value.is_a?(String) ? "#{value}_modified" : value] }
-  assert_equal %w(Alex_modified 40_modified Beijing_modified), params_hash.values
-end
+    params = ActionController::Parameters.new(name: "Alex", age: "40", location: "Beijing")
+    params.permit!
+    params_hash = params.to_h { |key, value| [key, value.is_a?(String) ? "#{value}_modified" : value] }
+    assert_equal %w(Alex_modified 40_modified Beijing_modified), params_hash.values
+  end
+
   test "to_h does not include unpermitted params" do
-  params = ActionController::Parameters.new(name: "Alex", age: "40", location: "Beijing")
-  assert_raises(ActionController::UnfilteredParameters) { params.to_h { |key, value| [key, value] } }
-end
+    params = ActionController::Parameters.new(name: "Alex", age: "40", location: "Beijing")
+    assert_raises(ActionController::UnfilteredParameters) { params.to_h { |key, value| [key, value] } }
+  end
 end

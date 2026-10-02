@@ -62,40 +62,28 @@ module ActiveRecord
       end
 
       def timestamp_attributes_for_create_in_model
-        @timestamp_attributes_for_create_in_model ||=
-          (timestamp_attributes_for_create & column_names).freeze
+        schema_context.timestamp_attributes_for_create_in_model
       end
 
       def timestamp_attributes_for_update_in_model
-        @timestamp_attributes_for_update_in_model ||=
-          (timestamp_attributes_for_update & column_names).freeze
+        schema_context.timestamp_attributes_for_update_in_model
       end
 
       def all_timestamp_attributes_in_model
-        @all_timestamp_attributes_in_model ||=
-          (timestamp_attributes_for_create_in_model + timestamp_attributes_for_update_in_model).freeze
+        schema_context.all_timestamp_attributes_in_model
       end
 
       def current_time_from_proper_timezone
         with_connection { |c| c.default_timezone == :utc ? Time.now.utc : Time.now }
       end
 
-      protected
-        def reload_schema_from_cache(recursive = true)
-          @timestamp_attributes_for_create_in_model = nil
-          @timestamp_attributes_for_update_in_model = nil
-          @all_timestamp_attributes_in_model = nil
-          super
-        end
+      def timestamp_attributes_for_create
+        ["created_at", "created_on"].map! { |name| attribute_aliases[name] || name }
+      end
 
-      private
-        def timestamp_attributes_for_create
-          ["created_at", "created_on"].map! { |name| attribute_aliases[name] || name }
-        end
-
-        def timestamp_attributes_for_update
-          ["updated_at", "updated_on"].map! { |name| attribute_aliases[name] || name }
-        end
+      def timestamp_attributes_for_update
+        ["updated_at", "updated_on"].map! { |name| attribute_aliases[name] || name }
+      end
     end
 
   private

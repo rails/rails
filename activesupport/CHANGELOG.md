@@ -1,3 +1,46 @@
+*   Speed up JSON escaping with `String#tr!` on Ruby 4.1+.
+
+    `ActiveSupport::JSON.encode` escaped `<`, `>`, `&`, U+2028 and U+2029 by
+    forcing the generated JSON to BINARY and running `gsub!` over it. Ruby 4.1
+    accepts a Hash of pairs in `String#tr!`, which does the same substitution in
+    a single pass, with no Regexp and no encoding round-trip.
+
+    Escaping is 2x to 10x faster on documents that are large or contain many
+    escapable characters, and allocates fewer intermediate strings. Documents
+    smaller than roughly 128 bytes with nothing to escape are marginally
+    slower, since `tr!` builds a translation table where a pre-compiled Regexp
+    just fails to match. Raises `ArgumentError` when the passed
+    JSON isn't valid UTF-8.
+
+    *Jean Boussier*, *Federico Carrocera*
+
+*   Add `Manitoba` to `ActiveSupport::TimeZone::MAPPING`.
+
+    Manitoba no longer shares winter clocks with US Central time. The existing
+    `Central Time (US & Canada)` entry remains mapped to `America/Chicago` for
+    compatibility. Prefer `Manitoba` (or the IANA identifier `America/Winnipeg`)
+    for users in that region.
+
+    *Dan Williams*
+
+*   Fix `ActiveSupport::BroadcastLogger#tagged` when broadcasting to more than
+    one tagging logger..
+
+    ```ruby
+    broadcast = ActiveSupport::BroadcastLogger.new(logger1, logger2)
+    broadcast.tagged("BCX").info("Hello") # => both loggers log "[BCX] Hello"
+    ```
+
+    *Ben Younes*
+
+*   Preserve the requested key order in `ActiveSupport::Cache::Store#read_multi`
+    when a local cache is active.
+
+    `fetch_multi` was fixed for this, but `read_multi` still returned the local
+    cache hits first instead of following the order of the requested keys.
+
+    *Carlos Daniel Pohlod*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
     when a local cache is active.
 

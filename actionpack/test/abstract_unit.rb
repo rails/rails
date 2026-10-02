@@ -69,9 +69,68 @@ FIXTURE_LOAD_PATH = File.join(__dir__, "fixtures")
 
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
-SharedTestRoutes.draw do
-  ActionDispatch.deprecator.silence do
-    get ":controller(/:action)"
+# Adds routes to +route_set+ instead of replacing what is already there, which
+# is what a plain +draw+ would do.
+def append_routes(route_set, &block)
+  was, route_set.disable_clear_and_finalize = route_set.disable_clear_and_finalize, true
+  begin
+    route_set.draw(&block)
+  ensure
+    route_set.disable_clear_and_finalize = was
+    # +draw+ only clears the generation cache on its way in, so appending to a
+    # set that has already generated a URL would otherwise leave the new routes
+    # invisible to +url_for+.
+    route_set.formatter.clear
+  end
+end
+
+# Draws a route for each of +actions+, and for every action +controller+
+# defines, skipping the ones +route_set+ already covers. +controller+ is a
+# controller class or a controller path. Dynamic :controller/:action segments
+# are not valid in a route, so functional tests can no longer lean on a single
+# catch-all to give `get :some_action`, and the URLs the action goes on to
+# generate, something to resolve against.
+def draw_controller_routes(route_set, controller, *actions)
+  if controller.is_a?(Module)
+    actions += controller.action_methods.to_a if controller.respond_to?(:action_methods)
+    controller_path = controller.anonymous? ? "anonymous" : controller.controller_path
+  else
+    controller_path = controller.to_s
+  end
+  return if controller_path.blank?
+
+  actions = actions.map(&:to_s).uniq
+  actions -= route_set.routes.filter_map { |route|
+    route.defaults[:action] if route.defaults[:controller] == controller_path
+  }
+  return if actions.empty?
+
+  append_routes(route_set) do
+    actions.each do |action|
+      match "/#{controller_path}/#{action}", to: "#{controller_path}##{action}", via: :all
+    end
+  end
+end
+
+# Draws a route at "/<action>" for every action of +controller_class+. Stands in
+# for the `get ":action", to: SomeController` integration tests used to draw
+# before dynamic :action segments were disallowed.
+def draw_root_action_routes(route_set, controller_class)
+  actions = controller_class.action_methods.to_a
+  controller_path = controller_class.controller_path
+  # Route by name where the name resolves back to this class, so that requests
+  # carry a :controller param; some of these test controllers have names that
+  # do not survive the underscore/camelize round trip.
+  by_name = (controller_path.camelize << "Controller").safe_constantize == controller_class
+
+  route_set.draw do
+    actions.each do |action|
+      if by_name
+        match "/#{action}", to: "#{controller_path}##{action}", via: :all
+      else
+        match "/#{action}", to: controller_class, action: action, via: :all
+      end
+    end
   end
 end
 
@@ -79,9 +138,19 @@ module ActionDispatch
   module SharedRoutes
     def before_setup
       @routes = Routing::RouteSet.new
-      ActionDispatch.deprecator.silence do
-        @routes.draw { get ":controller(/:action)" }
-      end
+      super
+    end
+
+    # Draws routes for +actions+ (and for every action +controller+ defines) in
+    # both the route set the test asserts against and the one the controller
+    # itself generates URLs from.
+    def draw_routes_for(controller, *actions)
+      draw_controller_routes(@routes, controller, *actions)
+      draw_controller_routes(SharedTestRoutes, controller, *actions)
+    end
+
+    def process(action, **)
+      draw_routes_for(@controller.class, action) if @controller
       super
     end
   end
@@ -133,12 +202,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   self.app = build_app
 
-  app.routes.draw do
-    ActionDispatch.deprecator.silence do
-      get ":controller(/:action)"
-    end
-  end
-
   class DeadEndRoutes < ActionDispatch::Routing::RouteSet
     # Stub Rails dispatcher so it does not get controller references and
     # simply return the controller#action as Rack::Body.
@@ -177,6 +240,53 @@ end
 
 # Temporary base class
 class Rack::TestCase < ActionDispatch::IntegrationTest
+  # Controllers already routed by +draw_routes_for_loaded_controllers+.
+  DRAWN_CONTROLLERS = Set.new
+
+  # Appends to the route set shared by every integration test, rather than
+  # replacing it the way a plain +draw+ would. Use it for actions that have no
+  # method of their own -- they are rendered implicitly from a template, or
+  # they are not actions at all and the test wants the controller to say so --
+  # since those cannot be discovered from +action_methods+.
+  def self.draw(&block)
+    append_routes(ActionDispatch::IntegrationTest.app.routes, &block)
+  end
+
+  def before_setup
+    draw_routes_for_loaded_controllers
+    super
+  end
+
+  # These tests address controllers by "/<controller>/<action>" and used to
+  # reach them through a `get ":controller(/:action)"` catch-all. Dynamic
+  # segments are no longer valid in a route, so draw that path concretely for
+  # every action of every controller loaded so far.
+  def draw_routes_for_loaded_controllers
+    controllers = ActionController::Metal.descendants.reject { |klass|
+      klass.anonymous? || DRAWN_CONTROLLERS.include?(klass)
+    }
+    return if controllers.empty?
+    DRAWN_CONTROLLERS.merge(controllers)
+
+    Rack::TestCase.draw do
+      controllers.each do |klass|
+        controller_path = klass.controller_path
+        next if controller_path.blank?
+        # Route by name where the name resolves back to this class, so that
+        # requests carry a :controller param.
+        by_name = (controller_path.camelize << "Controller").safe_constantize == klass
+
+        klass.action_methods.each do |action|
+          if by_name
+            match "/#{controller_path}/#{action}", to: "#{controller_path}##{action}", via: :all
+          else
+            match "/#{controller_path}/#{action}", to: klass, action: action, via: :all
+          end
+        end
+      end
+    end
+  end
+
   def self.testing(klass = nil)
     if klass
       @testing = "/#{klass.name.underscore}".delete_suffix("_controller")

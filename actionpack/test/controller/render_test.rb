@@ -914,10 +914,6 @@ class HeadRenderTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :customers
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
       end
 
       get :head_with_location_object

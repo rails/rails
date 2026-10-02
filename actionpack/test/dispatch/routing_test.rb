@@ -134,9 +134,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raise(ArgumentError) do
       draw do
         namespace :admin do
-          ActionDispatch.deprecator.silence do
-            get "/:controller(/:action(/:id(.:format)))"
-          end
+          get "/:controller(/:action(/:id(.:format)))"
         end
       end
     end
@@ -145,9 +143,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_namespace_without_controller_segment
     draw do
       namespace :admin do
-        ActionDispatch.deprecator.silence do
-          get "hello/:controllers/:action"
-        end
+        get "hello/:controllers/new", action: "new"
       end
     end
     get "/admin/hello/foo/new"
@@ -516,9 +512,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get "global/export",      action: :export, as: :export_request
         get "/export/:id/:file",  action: :export, as: :export_download, constraints: { file: /.*/ }
 
-        ActionDispatch.deprecator.silence do
-          get "global/:action"
-        end
+        get "global/dashboard"
       end
     end
 
@@ -541,9 +535,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_local
     draw do
-      ActionDispatch.deprecator.silence do
-        get "/local/:action", controller: "local"
-      end
+      get "/local/dashboard", controller: "local", action: "dashboard"
     end
 
     get "/local/dashboard"
@@ -1740,14 +1732,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_not_matching_shorthand_with_dynamic_parameters
-    draw do
-      ActionDispatch.deprecator.silence do
-        get ":controller/:action/admin"
+    # Were the shorthand to apply here it would resolve to `finances#admin`.
+    error = assert_raises(ArgumentError) do
+      draw do
+        get "finances/:id/admin"
       end
     end
 
-    get "/finances/overview/admin"
-    assert_equal "finances#overview", @response.body
+    assert_match(/Missing :controller key/, error.message)
   end
 
   def test_controller_option_with_nesting_and_leading_slash
@@ -1774,23 +1766,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     assert_equal "/replies", replies_path
-  end
-
-  def test_scoped_controller_with_namespace_and_action
-    draw do
-      namespace :account do
-        ActionDispatch.deprecator.silence do
-          get ":action/callback", action: /twitter|github/, controller: "callbacks", as: :callback
-        end
-      end
-    end
-
-    assert_equal "/account/twitter/callback", account_callback_path("twitter")
-    get "/account/twitter/callback"
-    assert_equal "account/callbacks#twitter", @response.body
-
-    get "/account/whatever/callback"
-    assert_equal "Not Found", @response.body
   end
 
   def test_convention_match_nested_and_with_leading_slash
@@ -2108,40 +2083,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get "/api/v3/admin/me"
     assert_equal "mes#show", @response.body
-  end
-
-  def test_url_generator_for_generic_route
-    draw do
-      ActionDispatch.deprecator.silence do
-        get "whatever/:controller(/:action(/:id))"
-      end
-    end
-
-    get "/whatever/foo/bar"
-    assert_equal "foo#bar", @response.body
-
-    assert_equal "http://www.example.com/whatever/foo/bar/1",
-      url_for(controller: "foo", action: "bar", id: 1)
-  end
-
-  def test_url_generator_for_namespaced_generic_route
-    draw do
-      ActionDispatch.deprecator.silence do
-        get "whatever/:controller(/:action(/:id))", id: /\d+/
-      end
-    end
-
-    get "/whatever/foo/bar/show"
-    assert_equal "foo/bar#show", @response.body
-
-    get "/whatever/foo/bar/show/1"
-    assert_equal "foo/bar#show", @response.body
-
-    assert_equal "http://www.example.com/whatever/foo/bar/show",
-      url_for(controller: "foo/bar", action: "show")
-
-    assert_equal "http://www.example.com/whatever/foo/bar/show/1",
-      url_for(controller: "foo/bar", action: "show", id: "1")
   end
 
   def test_resource_new_actions
@@ -4008,20 +3949,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/?id=1", root_path(params)
   end
 
-  def test_dynamic_controller_segments_are_deprecated
-    assert_deprecated(ActionDispatch.deprecator) do
+  def test_dynamic_controller_segments_are_not_supported
+    error = assert_raises(ArgumentError) do
       draw do
         get "/:controller", action: "index"
       end
     end
+
+    assert_match(/dynamic :controller segment/, error.message)
   end
 
-  def test_dynamic_action_segments_are_deprecated
-    assert_deprecated(ActionDispatch.deprecator) do
+  def test_dynamic_action_segments_are_not_supported
+    error = assert_raises(ArgumentError) do
       draw do
         get "/pages/:action", controller: "pages"
       end
     end
+
+    assert_match(/dynamic :action segment/, error.message)
   end
 
   def test_multiple_roots_raises_error
@@ -4639,9 +4584,7 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       ok = lambda { |env| [200, { "Content-Type" => "text/plain" }, []] }
       get "/foo" => ok, as: :foo
 
-      ActionDispatch.deprecator.silence do
-        get "/post(/:action(/:id))" => ok, as: :posts
-      end
+      get "/post(/:slug(/:id))" => ok, as: :posts
 
       get "/:foo/:foo_type/bars/:id" => ok, as: :bar
       get "/projects/:id.:format" => ok, as: :project
@@ -4820,9 +4763,8 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
         ok = lambda { |env| [200, { "Content-Type" => "text/plain" }, []] }
         get "/foobar/:id", to: ok
 
-        ActionDispatch.deprecator.silence do
-          get "/:controller(/:action(/:id))"
-        end
+        get "/:first", to: ok
+        get "/:first/:second", to: ok
       end
 
       get "/%E2%EF%BF%BD%A6"
@@ -5302,10 +5244,6 @@ class TestPathParameters < ActionDispatch::IntegrationTest
           root to: "home#index"
           get "/about", to: "pages#about"
         end
-      end
-
-      ActionDispatch.deprecator.silence do
-        get ":controller(/:action/(:id))"
       end
     end
   end

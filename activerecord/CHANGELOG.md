@@ -1,3 +1,161 @@
+*   Treat `false` as disabled for `idle_timeout`, `reaping_frequency` and `max_age`
+    in `database.yml`.
+
+    These options raised `NoMethodError` on boot when set to `false`, which YAML
+    also produces for `off` and `no`. `false` now disables them, like the
+    documented `0`. `idle_timeout` additionally accepts `true` for its default,
+    since unlike the other two it has one.
+
+    *Carlos Daniel Pohlod*
+
+*   Do not dump PostgreSQL tables, enum types and schemas that belong to an
+    extension.
+
+    Tables, enum types and schemas created by `CREATE EXTENSION`, such as
+    `spatial_ref_sys` of PostGIS, `part_config` of pg_partman or the `citus`
+    schema of Citus, are recorded in `pg_depend` as members of the extension
+    (`deptype = 'e'`): `CREATE EXTENSION` creates them, `DROP EXTENSION` drops
+    them, and PostgreSQL refuses to drop or recreate them on their own.
+    Listing them in `db/schema.rb` therefore made the file impossible to load,
+    while `enable_extension` alone already brings them back, as
+    `CREATE EXTENSION` does in `structure.sql`. Objects an application attaches
+    to an extension itself with `ALTER EXTENSION ... ADD` are left out too, as
+    `pg_dump` leaves them out.
+
+    Before:
+
+    ```ruby
+    enable_extension "postgis"
+
+    create_table "posts", force: :cascade do |t|
+      ...
+    end
+
+    create_table "spatial_ref_sys", primary_key: "srid", id: :integer, default: nil, force: :cascade do |t|
+      ...
+    end
+    ```
+
+    After:
+
+    ```ruby
+    enable_extension "postgis"
+
+    create_table "posts", force: :cascade do |t|
+      ...
+    end
+    ```
+
+    *Yasuo Honda*
+
+*   Do not schema-qualify PostgreSQL extensions whose control file fixes their
+    schema, nor tables and enum types in the current schema, when dumping
+    `db/schema.rb`.
+
+    Before:
+
+    ```ruby
+    enable_extension "pg_catalog.plpgsql"
+
+    create_table "public.posts", force: :cascade do |t|
+    ```
+
+    After:
+
+    ```ruby
+    enable_extension "plpgsql"
+
+    create_table "posts", force: :cascade do |t|
+    ```
+
+    *Yasuo Honda*
+
+*   Make `db:schema:load` work with MySQL client 9.4 and later.
+
+    From 9.4.0 on, the client by default passes the `SOURCE` command to the
+    server as SQL instead of handling it itself, and the server rejects it with a
+    syntax error. The SQL structure file is now read from standard input instead.
+
+    *Yasuo Honda*
+
+*   Drop the explicit `SET FOREIGN_KEY_CHECKS` statements from MySQL `db:schema:load`.
+
+    Dumps written by `mysqldump` since MySQL 4.1.1 and by `mariadb-dump` since
+    its first release set `FOREIGN_KEY_CHECKS = 0` themselves, so foreign key
+    checks stay disabled during the load without them.
+
+    If you pass `--compact` in `structure_dump_flags`, the dump leaves it out, so
+    add it back on load:
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_load_flags = ["--init-command=SET FOREIGN_KEY_CHECKS = 0"]
+
+    *Yasuo Honda*
+
+*   Avoid deadlocks when concurrent `find_or_create_by` calls read back the same
+    record within MySQL transactions.
+
+    Use a shared lock for the read after a duplicate insert, preserving visibility
+    under REPEATABLE READ without upgrading competing shared locks to exclusive locks.
+    This also applies to `create_or_find_by` and the bang variants of both methods.
+
+    Fixes #54281.
+
+    *Kirsten Westeinde*
+
+*   Deprecate `ActiveRecord::Callbacks::CALLBACKS`.
+
+    The constant has been outdated for a long time. It is missing several
+    transaction related callbacks that have been added over the years:
+
+    * `before_commit`
+    * `after_save_commit`
+    * `after_create_commit`
+    * `after_update_commit`
+    * `after_destroy_commit`
+
+    Anything driven off the constant silently skips those callbacks, so it is
+    deprecated with no replacement.
+
+    *Ryuta Kamizono*
+
+*   Deprecate `supports_datetime_with_precision?`.
+
+    The check existed for MySQL 5.5 and older, which had no sub-second
+    precision on `DATETIME`, `TIME` and `TIMESTAMP` columns. Every database
+    Active Record supports now has it, so the method always returns true and
+    no longer guards anything.
+
+    *Ryuta Kamizono*
+
+*   Read PostgreSQL indexes and constraints from the table an unqualified name resolves to.
+
+    `indexes`, `foreign_keys`, `check_constraints`, `unique_constraints` and
+    `exclusion_constraints` matched a name against every schema on the search
+    path, so a name carried by two schemas came back with both tables' indexes
+    and constraints. They now resolve the name the way `::regclass` does, as
+    `primary_keys` and `table_options` already did.
+
+    *Ryuta Kamizono*
+
+*   Replace the `mysql5` fallback in `ActiveRecord.database_cli` with `mariadb`.
+
+    *Ryuta Kamizono*
+
+*   Active Record schema caches can now be dumped in JSON format.
+
+    Enabled by configuring `schema_cache_path` with a path ending in `.json`,
+    it is noticeably faster than the existing YAML and Marshal based dumpers.
+
+    *Iliana Hadzhiatanasova*
+
+*   Fix PostgreSQL primary key introspection for covering indexes.
+
+    `pg_index.indkey` includes non-key columns added with `INCLUDE`. Primary
+    keys are now read from `pg_constraint.conkey`, so those columns remain
+    writable during bulk upserts.
+
+    *Aleksandar Maksimovic*
+
 *   Re-enable PostgreSQL triggers when the block given to `disable_referential_integrity` raises.
 
     On PostgreSQL versions without `NOT ENFORCED` constraints (before 18.4), the

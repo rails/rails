@@ -1,3 +1,21 @@
+*   Log a warning on boot for each route that references a missing controller
+    when eager loading is enabled.
+
+    With `config.eager_load` on, every route that dispatches to a controller
+    now resolves it once the routes are loaded, so a typo or a deleted
+    controller is reported at boot rather than discovered on the first
+    request to that route:
+
+    ```
+    GET /photos(.:format) references a missing controller: uninitialized constant PhotosController
+    ```
+
+    *Aaron Patterson*
+
+*   Stop probing for a local MySQL socket when generating `config/database.yml`.
+
+    *Ryuta Kamizono*
+
 *   Mark the generated `public/*.html` error pages as `linguist-generated` in
     the default `.gitattributes`.
 

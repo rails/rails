@@ -1,7 +1,9 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActionMailbox
-  # = Action Mailbox \Router
+  # Action Mailbox \Router
+  # ======================
   #
   # Encapsulates the routes that live on the ApplicationMailbox and performs the actual routing when
   # an inbound_email is received.

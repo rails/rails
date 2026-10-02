@@ -4,6 +4,8 @@ require "cases/helper"
 require "cases/migration/helper"
 
 class MigratorTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy :test_migrator_db_has_no_schema_migrations_table
+
   # Use this class to sense if migrations have gone
   # up or down.
   class Sensor < ActiveRecord::Migration::Current
@@ -23,7 +25,8 @@ class MigratorTest < ActiveRecord::TestCase
     super
     @pool = ActiveRecord::Base.connection_pool
     @schema_migration = @pool.schema_migration
-    @schema_migration.create_table
+    # Schema statements never run through a Ractor proxy.
+    without_ractor_proxy { ActiveRecord::Base.connection_pool.schema_migration.create_table }
     @schema_migration.delete_all_versions rescue nil
     @internal_metadata = @pool.internal_metadata
     @verbose_was = ActiveRecord::Migration.verbose

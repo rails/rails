@@ -2023,13 +2023,13 @@ module ActionView
 
       ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
         (field_helpers - [:label, :checkbox, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
-            code_generator.class_eval do |batch|
-              batch <<
-                "def #{selector}(method, options = {})" <<
-                "  @template.#{selector}(@object_name, method, objectify_options(options))" <<
-                "end"
-            end
+          code_generator.class_eval do |batch|
+            batch <<
+              "def #{selector}(method, options = {})" <<
+              "  @template.#{selector}(@object_name, method, objectify_options(options))" <<
+              "end"
           end
+        end
       end
       alias_method :text_area, :textarea
 

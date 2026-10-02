@@ -474,14 +474,22 @@ module ActiveRecord
       end
 
       def _returning_columns_for_insert(connection) # :nodoc:
-        @_returning_columns_for_insert || ActiveSupport::Ractors.on_main(self) do
-          @_returning_columns_for_insert ||= schema_context._returning_columns_for_insert(connection)
+        @_returning_columns_for_insert || begin
+          columns = schema_context._returning_columns_for_insert(connection)
+
+          ActiveSupport::Ractors.on_main(self) do
+            @_returning_columns_for_insert ||= columns
+          end
         end
       end
 
       def _returning_columns_for_update(connection) # :nodoc:
-        @_returning_columns_for_update || ActiveSupport::Ractors.on_main(self) do
-          @_returning_columns_for_update ||= schema_context._returning_columns_for_update(connection)
+        @_returning_columns_for_update || begin
+          columns = schema_context._returning_columns_for_update(connection)
+
+          ActiveSupport::Ractors.on_main(self) do
+            @_returning_columns_for_update ||= columns
+          end
         end
       end
 
@@ -576,6 +584,12 @@ module ActiveRecord
           reload_schema_from_cache # If the schema loading failed half way through, we must reset the state.
           raise
         end
+      end
+
+      def make_reflections_shareable! # :nodoc:
+        ActiveSupport::Ractors.try_make_shareable(aggregate_reflections)
+        ActiveSupport::Ractors.try_make_shareable(_reflections)
+        normalized_reflections
       end
 
       protected

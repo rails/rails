@@ -14,8 +14,17 @@ module ActiveRecord
         @adapter_class = nil
       end
 
+      def comparable_values
+        [self.class, env_name, name]
+      end
+
       def adapter_class
         @adapter_class ||= ActiveRecord::ConnectionAdapters.resolve(adapter)
+      end
+
+      def freeze
+        adapter_class
+        super
       end
 
       def inspect # :nodoc:

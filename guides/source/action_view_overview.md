@@ -748,7 +748,7 @@ render "messages/message", unknown_local: "will raise"
 ```
 
 WARNING: When using strict locals with collection rendering, you need to
-explicity allow the `<object>_counter` and `<object>_iteration` variables or
+explicitly allow the `<object>_counter` and `<object>_iteration` variables or
 they will not be set: `<%# locals: (product_counter: nil, product_iteration: nil)`.
 The `nil` default values are needed so the partial doesn't break
 when rendered outside of collections, where these two variables will

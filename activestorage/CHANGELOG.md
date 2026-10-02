@@ -1,3 +1,30 @@
+*   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
+
+    When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.
+
+    *Niklas Häusele*
+
+*   Boot when libvips is missing.
+
+    An application with the ruby-vips gem installed but no libvips could not start. Active Storage
+    now treats any `LoadError` from requiring ruby-vips as ruby-vips being unavailable, and stops
+    loading `image_processing/vips` once it is. The application boots and logs a warning that
+    generating variants needs libvips.
+
+    Fixes #58723.
+
+    *Mike Dalessio*, *Vandenbogaerde Nicolas*
+
+*   Boot with an unsupported libvips or ruby-vips unless the variant processor uses it.
+
+    An installed libvips or ruby-vips too old to block the unfuzzed loaders raised during application
+    boot for every variant processor. Active Storage now raises only when the `:vips` processor loads
+    or the Vips analyzer reads an image, so `:mini_magick` applications boot again.
+
+    Fixes #58394.
+
+    *Mike Dalessio*
+
 *   Marcel 2 for content type detection
 
     Broader and more precise MIME type detection, security hardening, and uses canonical types
