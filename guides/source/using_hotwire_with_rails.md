@@ -147,8 +147,11 @@ Use the `turbo_frame_tag` helper to declare a Turbo Frame:
 <% end %>
 ```
 
-All Turbo Frame elements require a unique ID. An ID based on one or more Active
-Record objects can be generated using the [`dom_id`][] or [`dom_target`][] methods.
+All Turbo Frame elements require a unique HTML `id` attribute, which is used
+to match the content being replaced when requesting new pages from the server.
+
+An `id` based on one or more Active Record objects can be generated using
+the [`dom_id`][] or [`dom_target`][] methods.
 
 [`dom_id`]: https://api.rubyonrails.org/classes/ActionView/RecordIdentifier.html#method-i-dom_id
 [`dom_target`]: https://api.rubyonrails.org/classes/ActionView/RecordIdentifier.html#method-i-dom_target
@@ -373,20 +376,25 @@ Turbo Streams can be received over an Action Cable connection by subscribing to
 broadcasts on a _stream_ within a view:
 
 ```erb
-<%= turbo_stream_from "posts" %>
+<%= turbo_stream_from "notifications" %>
 ```
 
 You can broadcast a Turbo Stream action to this stream using:
 
 ```ruby
 Turbo::StreamsChannel.broadcast_action_to(
-  "posts",
+  "notifications",
   action: :append,
-  target: "posts",
-  partial: "posts/post",
-  locals: { post: post }
+  target: "notifications_container",
+  partial: "notifications/alert",
+  locals: { notification: notification }
 )
 ```
+
+The above example broadcasts a Turbo Stream `append` action to the
+`notifications` stream. Clients subscribed to this stream will
+receive the action and execute it, inserting the supplied partial into
+the DOM element with the `id` `notifications_container`.
 
 ### Subscribing to Streams
 
@@ -394,8 +402,8 @@ Turbo::StreamsChannel.broadcast_action_to(
 Action Cable JavaScript library to create connections and subscribe to streams.
 
 ```erb
-<%# Subscribes to a stream named `"posts"` %>
-<%= turbo_stream_from "posts" %>
+<%# Subscribes to a stream named `"notifications"` %>
+<%= turbo_stream_from "notifications" %>
 ```
 
 will render
@@ -403,7 +411,7 @@ will render
 ```html
 <turbo-cable-stream-source
   channel="Turbo::StreamsChannel"
-  signed-stream-name="InBvc3RzIg==--92b3f3d40c990d43bb0d06d513f7a19dac2567cd077d4f4d30458c9528f1cc77">
+  signed-stream-name="Im5vdGlmaWNhdGlvbnMi--3d5e05f70fe3ccf6a6554557ab1213a94da33d4f4064eca0dd4668a0ca971cf8">
 </turbo-cable-stream-source>
 ```
 
@@ -954,7 +962,8 @@ Stimulus controller will use to add the text field:
 ```
 
 Specifying the `NEW_RECORD` placeholder as the `child_index` allows us to replace
-it in the Stimulus controller to prevent element ID and name clashes.
+it in the Stimulus controller to prevent clashes in elements' `id` and `name`
+attributes.
 
 Next, generate and implement a Stimulus controller to read this `<template>` and
 add it to the form:
