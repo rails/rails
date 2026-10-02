@@ -11,7 +11,7 @@ module Arel # :nodoc: all
       end
 
       def hash
-        super ^ @case_sensitive.hash
+        [super, @case_sensitive].hash
       end
 
       def eql?(other)

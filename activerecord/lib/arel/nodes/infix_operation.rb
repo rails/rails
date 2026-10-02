@@ -17,7 +17,7 @@ module Arel # :nodoc: all
       end
 
       def hash
-        super ^ @operator.hash
+        [super, @operator].hash
       end
 
       def eql?(other)
