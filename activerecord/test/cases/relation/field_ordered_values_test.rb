@@ -199,5 +199,23 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
 
       assert_equal(order, books.map(&:book_format))
     end
+
+    def test_in_order_of_with_column_from_cte_and_out_of_bound_integer
+      Book.destroy_all
+      Book.create!(id: 1, format: "paperback")
+
+      max_integer = Book.type_for_attribute(:id).send(:max_value)
+      order = [max_integer, 1]
+
+      cte = Book.select(:id, :format)
+
+      books = Book
+        .with(cte_books: cte)
+        .from("cte_books")
+        .select(:id, :format)
+        .in_order_of(:id, order)
+
+      assert_equal([1], books.map(&:id))
+    end
   end
 end
