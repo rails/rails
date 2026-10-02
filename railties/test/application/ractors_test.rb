@@ -130,6 +130,15 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_equal "Hello, worker", on_ractor { HelloJob.perform_now("worker") }
       end
 
+      test "the locale can be switched from a non-main Ractor" do
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable I18n.config.available_locales_set
+        assert_equal :en, on_ractor { I18n.with_locale(:en) { I18n.locale } }
+      end
+
       test "error reporting works after the application is ractorized" do
         app "production"
 

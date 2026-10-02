@@ -675,6 +675,7 @@ module Rails
 
       ActionView::PathRegistry.make_shareable! if defined?(ActionView::PathRegistry)
       ActiveSupport::TimeZone.make_shareable!
+      I18n::Railtie.make_shareable!
 
       if defined?(AbstractController::Base)
         [AbstractController::Base, *AbstractController::Base.descendants].each do |controller|
