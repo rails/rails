@@ -1,3 +1,12 @@
+*   Authentication generator: store a random session token in the cookie
+    again, as the original generator did, instead of the session ID.
+
+    A cookie that holds the ID can authenticate a different session that
+    later gets the same ID, for example after a database restore.
+    Existing applications are not changed.
+
+    *Andrey Samsonov*
+
 *   Log a warning on boot for each route that references a missing controller
     when eager loading is enabled.
 
