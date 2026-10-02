@@ -19,6 +19,7 @@ module RailsGuides
     end
 
     def render(body)
+      @guide_markdown_source = strip_github_markdown_notice(body) unless @epub
       @raw_body = body
       extract_raw_header_and_body
       generate_header
@@ -83,6 +84,13 @@ module RailsGuides
         if /^-{40,}$/.match?(@raw_body)
           @raw_header, _, @raw_body = @raw_body.partition(/^-{40,}$/).map(&:strip)
         end
+      end
+
+      def strip_github_markdown_notice(markdown)
+        markdown.sub(
+          %r{\A\*\*DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON\s+<?https?://(?:edge)?guides\.rubyonrails\.org>?/?\.?\*\*\s*\n+}m,
+          ""
+        )
       end
 
       def generate_body
@@ -150,11 +158,31 @@ module RailsGuides
             doc.at("ol")[:class] = "chapters"
           end.to_html
 
+          copy_markdown_action = if !@epub && @guide_markdown_source.present?
+            <<~HTML
+              <div class="guide-actions js-only">
+                <button type="button" class="copy-markdown-button" id="copy-markdown-button" aria-label="Copy this guide as Markdown">
+                  <picture class="copy-markdown-icon" aria-hidden="true">
+                    <img src="images/icon_copy.svg" alt="" />
+                  </picture>
+                  <picture class="copy-markdown-success-icon" aria-hidden="true">
+                    <img src="images/icon_check.svg" alt="" />
+                  </picture>
+                  Copy Markdown
+                </button>
+              </div>
+            HTML
+          else
+            ""
+          end
+
           @index = <<-INDEX.html_safe
           <nav id="column-side" aria-label="Chapter" class="guide-index" data-turbo="false">
             <a id="chapter-nav-skip-link" href="#article-body" class="skip-link">
               Skip to article body
             </a>
+
+            #{copy_markdown_action}
 
             <h2 class="chapter">
               <picture aria-hidden="true">
@@ -198,6 +226,7 @@ module RailsGuides
       end
 
       def render_page
+        @view.instance_variable_set(:@guide_markdown_source, @guide_markdown_source)
         @view.content_for(:header_section) { @header }
         @view.content_for(:description) { @description }
         @view.content_for(:page_title) { @title }
