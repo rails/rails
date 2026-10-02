@@ -153,6 +153,7 @@ module ActionDispatch
 
               header_value.delete(" ").downcase.split(",").each do |directive|
                 name, value = directive.split("=", 2)
+                value = value[1...-1] if value&.start_with?('"') && value.end_with?('"')
 
                 case name
                 when "max-age"

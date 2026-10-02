@@ -1713,9 +1713,21 @@ class RequestCacheControlDirectives < BaseRequestTest
     assert_equal 60, request.cache_control_directives.max_age
   end
 
+  test "max_age returns a quoted max-age directive value" do
+    request = stub_request("HTTP_CACHE_CONTROL" => 'max-age="60"')
+    assert_equal 60, request.cache_control_directives.max_age
+  end
+
   test "max_stale properly returns the max-stale directive value" do
     request = stub_request("HTTP_CACHE_CONTROL" => "max-stale=300")
     assert_equal 300, request.cache_control_directives.max_stale
+  end
+
+  test "max_stale returns a quoted max-stale directive value" do
+    request = stub_request("HTTP_CACHE_CONTROL" => 'max-stale="300"')
+    assert_equal 300, request.cache_control_directives.max_stale
+    assert_predicate request.cache_control_directives, :max_stale?
+    assert_not_predicate request.cache_control_directives, :max_stale_unlimited?
   end
 
   test "max_stale returns true when max-stale is present without a value" do
@@ -1752,8 +1764,18 @@ class RequestCacheControlDirectives < BaseRequestTest
     assert_equal 120, request.cache_control_directives.min_fresh
   end
 
+  test "min_fresh returns a quoted min-fresh directive value" do
+    request = stub_request("HTTP_CACHE_CONTROL" => 'min-fresh="120"')
+    assert_equal 120, request.cache_control_directives.min_fresh
+  end
+
   test "stale_if_error properly returns the stale-if-error directive value" do
     request = stub_request("HTTP_CACHE_CONTROL" => "stale-if-error=600")
+    assert_equal 600, request.cache_control_directives.stale_if_error
+  end
+
+  test "stale_if_error returns a quoted stale-if-error directive value" do
+    request = stub_request("HTTP_CACHE_CONTROL" => 'stale-if-error="600"')
     assert_equal 600, request.cache_control_directives.stale_if_error
   end
 
