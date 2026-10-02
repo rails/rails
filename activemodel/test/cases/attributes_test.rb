@@ -14,6 +14,8 @@ module ActiveModel
       attribute :string_with_default, :string, default: "default string"
       attribute :date_field, :date, default: -> { Date.new(2016, 1, 1) }
       attribute :boolean_field, :boolean
+      attribute :integer_collection, :collection, element_type: :integer
+      attribute :string_collection, :collection, element_type: :string
     end
 
     class ChildModelForAttributesTest < ModelForAttributesTest
@@ -56,7 +58,9 @@ module ActiveModel
         integer_field: "2.3",
         string_field: "Rails FTW",
         decimal_field: "12.3",
-        boolean_field: "0"
+        boolean_field: "0",
+        integer_collection: ["1", "2", "3"],
+        string_collection: [1, 2, 3]
       )
 
       assert_equal 2, data.integer_field
@@ -65,6 +69,9 @@ module ActiveModel
       assert_equal "default string", data.string_with_default
       assert_equal Date.new(2016, 1, 1), data.date_field
       assert_equal false, data.boolean_field
+      assert_equal [1, 2, 3], data.integer_collection
+      assert_equal ["1", "2", "3"], data.string_collection
+
 
       data.integer_field = 10
       data.string_with_default = nil
@@ -80,7 +87,9 @@ module ActiveModel
         integer_field: 1.1,
         string_field: 1.1,
         decimal_field: 1.1,
-        boolean_field: 1.1
+        boolean_field: 1.1,
+        string_collection: ["Rails"],
+        integer_collection: [1],
       )
 
       expected_attributes = {
@@ -89,7 +98,10 @@ module ActiveModel
         decimal_field: BigDecimal("1.1"),
         string_with_default: "default string",
         date_field: Date.new(2016, 1, 1),
-        boolean_field: true
+        boolean_field: true,
+        string_collection: ["Rails"],
+        integer_collection: [1]
+
       }.stringify_keys
 
       assert_equal expected_attributes, data.attributes
@@ -102,7 +114,9 @@ module ActiveModel
         "decimal_field",
         "string_with_default",
         "date_field",
-        "boolean_field"
+        "boolean_field",
+        "integer_collection",
+        "string_collection"
       ]
 
       assert_equal names, ModelForAttributesTest.attribute_names
