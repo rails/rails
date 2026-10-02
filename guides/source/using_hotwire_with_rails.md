@@ -432,17 +432,17 @@ name. In this case, `to_gid_param` or `to_param` will be called on each
 object and then joined with a `:`.
 
 ```erb
-<%= turbo_stream_from @post, :chat %>
+<%= turbo_stream_from @group, :chat %>
 ```
 
 will subscribe to a stream named:
 
 ```ruby
-"Z2lkOi8vcmFpbHMtZ3VpZGVzLWRlbW8vUG9zdC8x:chat"
+"Z2lkOi8vcmFpbHMtZ3VpZGVzLWRlbW8vR3JvdXAvMQ==:chat"
 ```
 
-where `Z2lkOi8vcmFpbHMtZ3VpZGVzLWRlbW8vUG9zdC8x` is the Base64 encoded
-[Global ID](https://github.com/rails/globalid) of the `@post` object.
+where `Z2lkOi8vcmFpbHMtZ3VpZGVzLWRlbW8vR3JvdXAvMQ==` is the Base64 encoded
+[Global ID](https://github.com/rails/globalid) of the `@room` object.
 
 NOTE: The above stream name is presented in plain-text for demonstration —
 however, when it is rendered to HTML using `turbo_stream_from`, it will
@@ -476,17 +476,20 @@ Since there is no authorization check, a user could theoretically subscribe to
 another user's stream if they were able to acquire their signed stream name.
 Prevent this issue by creating your own channel and authorizing the user's
 permissions before allowing subscription. `turbo-rails` provides primitives
-we can include to verify stream names in our own channels:
+we can include to verify stream names in our own channels.
+
+Consider the below example where we have a `GroupsChannel` used to broadcast
+chat messages to a group's members:
 
 ```ruby
-# app/channels/posts_channel.rb
+# app/channels/groups_channel.rb
 
-class PostsChannel < ApplicationCable::Channel
+class GroupsChannel < ApplicationCable::Channel
   extend Turbo::Streams::StreamName
   include Turbo::Streams::StreamName::ClassMethods
 
   def subscribed
-    if post&.authorize(current_user)
+    if group&.authorize(current_user)
       stream_from stream_name
     else
       reject
@@ -498,8 +501,8 @@ class PostsChannel < ApplicationCable::Channel
       @stream_name ||= verified_stream_name_from_params
     end
 
-    def post
-      @post ||= GlobalID::Locator.locate(stream_name)
+    def group
+      @group ||= GlobalID::Locator.locate(stream_name)
     end
 end
 ```
@@ -508,38 +511,42 @@ Specify this channel in your view:
 
 ```erb
 <%# Renders:  %>
-<%# <turbo-cable-stream-source channel="PostsChannel" signed-stream-name="..."></turbo-cable-stream-source> %>
-<%= turbo_stream_from @post, channel: "PostsChannel" %>
+<%# <turbo-cable-stream-source channel="GroupsChannel" signed-stream-name="..."></turbo-cable-stream-source> %>
+<%= turbo_stream_from @group, channel: "GroupsChannel" %>
 ```
 
-Subscriptions will now be managed by the `PostsChannel` which checks the
-user's permissions before accepting the stream.
+The `GroupsChannel` will now manage subscriptions, and will check the
+user's permissions before accepting the stream ensuring that messages
+are only delievered to authorized users.
 
 ### Broadcasting to Streams
 
 `turbo-rails` provides a plethora of helper methods to broadcast stream actions.
-Under the hood, they all call `ActionCable.server.broadcast(...)`.
+Under the hood, they all call `ActionCable.server.broadcast`.
+
+All the below examples are based on the concept of a _group chat_ introduced
+in the previous section.
 
 A generic broadcast operation:
 
 ```ruby#1,3
 Turbo::StreamsChannel.broadcast_action_to(
-  "posts",
+  "groups",
   action: :append,
-  target: "posts",
-  partial: "posts/post",
-  locals: { post: post }
+  target: "groups",
+  partial: "groups/group",
+  locals: { group: group }
 )
 ```
 
-can be rewritten as:
+can be rewritten as an action specific broadcast operation:
 
 ```ruby#1
 Turbo::StreamsChannel.broadcast_append_to(
-  "posts",
-  target: "posts",
-  partial: "posts/post",
-  locals: { post: post }
+  "groups",
+  target: "groups",
+  partial: "groups/group",
+  locals: { group: group }
 )
 ```
 
@@ -547,15 +554,15 @@ You can also broadcast a Turbo Stream template containing multiple actions:
 
 ```ruby
 Turbo::StreamsChannel.broadcast_render_to(
-  "posts",
-  template: "posts/create"
+  "groups",
+  template: "groups/create"
 )
 ```
 
 or broadcast a `refresh` action which is useful for morphing:
 
 ```ruby
-Turbo::StreamsChannel.broadcast_refresh_to("posts")
+Turbo::StreamsChannel.broadcast_refresh_to("groups")
 ```
 
 NOTE: Even when using custom channels to handle subscriptions to Turbo Streams,
@@ -570,16 +577,16 @@ later` version of the methods such as `broadcast_append_later_to`.
 ```ruby
 # enqueues a `Turbo::Streams::ActionBroadcastJob`
 Turbo::StreamsChannel.broadcast_append_later_to(
-  "posts",
-  target: "posts",
-  partial: "posts/post",
-  locals: { post: post }
+  "groups",
+  target: "groups",
+  partial: "group/group",
+  locals: { group: group }
 )
 
 # enqueues a `Turbo::Streams::BroadcastJob`
 Turbo::StreamsChannel.broadcast_render_later_to(
-  "posts",
-  template: "posts/create"
+  "groups",
+  template: "group/create"
 )
 ```
 
@@ -595,49 +602,49 @@ concern which is included in `ActiveRecord::Base`. It applies Rails conventions
 to succinctly broadcast model-specific Turbo Streams. Some example use cases are:
 
 ```ruby
-@post = Post.first
+@group = Group.first
 
 # These helpers implicitly broadcast Stream actions to
 # the model object's stream.
 #
-# <%= turbo_stream_from @post %>
+# <%= turbo_stream_from @group %>
 
 # Broadcasts an `append` action containing the partial
-# `posts/post` targeted at the DOM element with the ID `"posts"`.
+# `groups/group` targeted at the DOM element with the id `"groups"`.
 # Conventionally, the target is pluralized model name, and the
-# partial is obtained by calling `@post.to_partial_path`.
-@post.broadcast_append
-@post.broadcast_append_later
+# partial is obtained by calling `@group.to_partial_path`.
+@group.broadcast_append
+@group.broadcast_append_later
 
 # The update action targets the specific model's HTML element.
-# In this case, it will target `"post_1"`, where `1` is the ID of
-# the `@post` record. The content will be the partial `posts/post`.
-# The target is generated using `ActionView::RecordIdentifier.dom_id(@post)`,
-# and the partial is obtained by calling `@post.to_partial_path`.
-@post.broadcast_update
-@post.broadcast_update_later
+# In this case, it will target `"group_1"`, where `1` is the ID of
+# the `@group` record. The content will be the partial `groups/group`.
+# The target is generated using `ActionView::RecordIdentifier.dom_id(@group)`,
+# and the partial is obtained by calling `@group.to_partial_path`.
+@group.broadcast_update
+@group.broadcast_update_later
 
 # The remove action targets the specific model's HTML element.
-# In this case, it will target `post_1`, where `1` is the ID of
-# the `@post` record.
-@post.broadcast_remove
-@post.broadcast_remove_later
+# In this case, it will target `group_1`, where `1` is the ID of
+# the `@group` record.
+@group.broadcast_remove
+@group.broadcast_remove_later
 
 # The partial and target can be explicitly defined if required.
-@post.broadcast_append(target: "posts", partial: "posts/post", locals: { post: @post })
-@post.broadcast_append_later(target: "posts", partial: "posts/post", locals: { post: @post })
+@group.broadcast_append(target: "groups", partial: "groups/group", locals: { group: @group })
+@group.broadcast_append_later(target: "groups", partial: "groups/group", locals: { group: @group })
 
 # Broadcast to a specific stream
-@post.broadcast_append_to("posts_list")
-@post.broadcast_append_later_to("posts_list")
+@group.broadcast_append_to("groups_list")
+@group.broadcast_append_later_to("groups_list")
 ```
 
 Turbo Stream helpers provided by `Broadcastable` are most useful in lifecycle
 callbacks:
 
 ```ruby
-class Post < ApplicationRecord
-  after_create_commit -> { broadcast_append_later_to("posts") }
+class Group < ApplicationRecord
+  after_create_commit -> { broadcast_append_later_to("groups") }
 end
 ```
 
@@ -646,17 +653,17 @@ update, and deletion to the supplied stream name (provided via a block or method
 signature).
 
 ```ruby
-class Post < ApplicationRecord
-  broadcasts_to ->(post) { post.model_name.plural }
+class Group < ApplicationRecord
+  broadcasts_to ->(group) { group.model_name.plural }
 end
 ```
 
 ```ruby
-class Post < ApplicationRecord
+class Group < ApplicationRecord
   broadcasts_to :stream_name
 
   def stream_name
-    "posts"
+    "groups"
   end
 end
 ```
@@ -664,15 +671,15 @@ end
 The above snippets are equivalent to:
 
 ```ruby
-class Post < ApplicationRecord
+class Group < ApplicationRecord
   after_create_commit  -> {
-    broadcast_append_later_to("posts", target: "posts", partial: "posts/post")
+    broadcast_append_later_to("groups", target: "groups", partial: "groups/group")
   }
   after_update_commit  -> {
-    broadcast_replace_later_to("posts", target: ActionView::RecordIdentifier.dom_id(self), partial: "posts/post")
+    broadcast_replace_later_to("groups", target: ActionView::RecordIdentifier.dom_id(self), partial: "groups/group")
   }
   after_destroy_commit -> {
-    broadcast_remove_to("posts", target: ActionView::RecordIdentifier.dom_id(self))
+    broadcast_remove_to("groups", target: ActionView::RecordIdentifier.dom_id(self))
   }
 end
 ```
@@ -680,15 +687,15 @@ end
 You can customize the partial or template rendered in the broadcast using:
 
 ```ruby
-class Post < ApplicationRecord
-  # Renders `posts/_list_item.html.erb`
-  broadcasts_to -> { "posts" }, partial: "posts/list_item"
+class Group < ApplicationRecord
+  # Renders `groups/_list_item.html.erb`
+  broadcasts_to -> { "groups" }, partial: "groups/list_item"
 
-  # Renders `posts/update.html.erb`
-  broadcasts_to -> { "posts" }, template: "posts/update"
+  # Renders `groups/update.html.erb`
+  broadcasts_to -> { "groups" }, template: "groups/update"
 
-  # Renders `posts/update.turbo_stream.erb`
-  broadcasts_to -> { "posts" }, template: "posts/update", formats: :turbo_stream
+  # Renders `groups/update.turbo_stream.erb`
+  broadcasts_to -> { "groups" }, template: "groups/update", formats: :turbo_stream
 end
 ```
 
@@ -697,7 +704,7 @@ name (the pluralized model name for `create`, and the model
 instance's stream for `update` and `remove`),
 
 ```ruby
-class Post < ApplicationRecord
+class Group < ApplicationRecord
   broadcasts
 end
 ```
@@ -705,12 +712,12 @@ end
 This can be expanded as:
 
 ```ruby
-class Post < ApplicationRecord
+class Group < ApplicationRecord
   after_create_commit  -> {
-    broadcast_append_later_to("posts", target: "posts", partial: "posts/post")
+    broadcast_append_later_to("groups", target: "groups", partial: "groups/group")
   }
   after_update_commit  -> {
-    broadcast_replace_later_to(self, target: ActionView::RecordIdentifier.dom_id(self), partial: "posts/post")
+    broadcast_replace_later_to(self, target: ActionView::RecordIdentifier.dom_id(self), partial: "groups/group")
   }
   after_destroy_commit -> {
     broadcast_remove_to(self, target: ActionView::RecordIdentifier.dom_id(self))
@@ -721,15 +728,15 @@ end
 Customize the rendered partial or template using:
 
 ```ruby
-class Post < ApplicationRecord
-  # Renders `posts/_list_item.html.erb`
-  broadcasts partial: "posts/list_item"
+class Group < ApplicationRecord
+  # Renders `groups/_list_item.html.erb`
+  broadcasts partial: "groups/list_item"
 
-  # Renders `posts/update.html.erb`
-  broadcasts template: "posts/update"
+  # Renders `groups/update.html.erb`
+  broadcasts template: "groups/update"
 
-  # Renders `posts/update.turbo_stream.erb`
-  broadcasts template: "posts/update", formats: :turbo_stream
+  # Renders `groups/update.turbo_stream.erb`
+  broadcasts template: "groups/update", formats: :turbo_stream
 end
 ```
 
@@ -737,7 +744,7 @@ When using morphing page refreshes, the `broadcasts_refreshes` declaration
 will trigger Turbo Streams with the action `refresh` whenever a model changes:
 
 ```ruby
-class Post < ApplicationRecord
+class Group < ApplicationRecord
   broadcasts_refreshes
 end
 ```
@@ -745,8 +752,8 @@ end
 This is equivalent to:
 
 ```ruby
-class Post < ApplicationRecord
-  after_create_commit  -> { broadcast_refresh_later_to("posts") }
+class Group < ApplicationRecord
+  after_create_commit  -> { broadcast_refresh_later_to("groups") }
   after_update_commit  -> { broadcast_refresh_later_to(dom_id(self)) }
   after_destroy_commit -> { broadcast_refresh_to(dom_id(self)) }
 end
@@ -755,11 +762,11 @@ end
 You can specify a stream name using `broadcasts_refreshes_to`:
 
 ```ruby
-class Post < ApplicationRecord
+class Group < ApplicationRecord
   broadcasts_refreshes_to :stream_name
 
   def stream_name
-    "posts"
+    "groups"
   end
 end
 ```
