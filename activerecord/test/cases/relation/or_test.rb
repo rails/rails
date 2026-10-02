@@ -40,6 +40,13 @@ module ActiveRecord
       assert_equal Post.find([1, 2]).sort_by(&:id), Post.where(id: 1).or(Post.where(id: 2)).sort_by(&:id)
     end
 
+    def test_or_keeps_matches_differing_only_in_escape
+      title = Post.arel_table[:title]
+      relation = Post.where(title.matches("Welcome%", "!")).or(Post.where(title.matches("Welcome%")))
+
+      assert_match(/LIKE .+ ESCAPE .+ OR .+LIKE/, relation.to_sql)
+    end
+
     def test_or_with_null_both
       expected = Post.none.to_a
       assert_equal expected, Post.none.or(Post.none).to_a
