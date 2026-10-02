@@ -635,7 +635,15 @@ module ActiveRecord
 
           dirty_current_transaction if transaction.dirty?
 
-          transaction.commit
+          begin
+            transaction.commit
+          rescue ActiveRecord::TransactionRollbackError
+            # A failed COMMIT has already ended the transaction, so the caller
+            # should skip the ROLLBACK it would otherwise issue.
+            transaction.invalidate! unless transaction.state.completed?
+            raise
+          end
+
           transaction.commit_records
         end
       end
@@ -672,12 +680,6 @@ module ActiveRecord
                   commit_transaction
                 rescue ActiveRecord::ConnectionFailed
                   transaction.invalidate! unless transaction.state.completed?
-                  raise
-                rescue ActiveRecord::TransactionRollbackError
-                  unless transaction.state.completed?
-                    transaction.invalidate!
-                    rollback_transaction(transaction)
-                  end
                   raise
                 rescue Exception
                   rollback_transaction(transaction) unless transaction.state.completed?

@@ -12,6 +12,18 @@ module ActiveRecord
       self.table_name = "samples"
     end
 
+    class DeadlockingSample < ActiveRecord::Base
+      self.table_name = "samples"
+
+      # Raising 40P01 from the server aborts the transaction for real, which a
+      # deadlock between two sessions cannot do deterministically.
+      before_commit do
+        self.class.lease_connection.execute(
+          "DO $$ BEGIN RAISE EXCEPTION 'deadlock' USING ERRCODE = '40P01'; END $$"
+        )
+      end
+    end
+
     setup do
       @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
       Thread.report_on_exception, @original_report_on_exception = false, Thread.report_on_exception
@@ -26,6 +38,7 @@ module ActiveRecord
       end
 
       Sample.reset_column_information
+      DeadlockingSample.reset_column_information
     end
 
     teardown do
@@ -89,6 +102,15 @@ module ActiveRecord
         end
       end
       assert connections.all?(&:active?)
+    end
+
+    test "rolls back when a before_commit callback raises a rollback error" do
+      assert_raises(ActiveRecord::Deadlocked) do
+        DeadlockingSample.transaction { DeadlockingSample.create!(value: 1) }
+      end
+
+      # Raises PG::InFailedSqlTransaction if the transaction was left open.
+      assert_equal 0, Sample.count
     end
 
     test "raises LockWaitTimeout when lock wait timeout exceeded" do
