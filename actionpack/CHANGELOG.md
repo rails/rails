@@ -1,3 +1,14 @@
+*   Fix a deadlock between `ActionController::Live` and code reloading in
+    development.
+
+    A queued unload could block the Live child thread while waiting for the
+    parent request, which was itself waiting for the child to commit the
+    response.
+
+    Fixes #56888.
+
+    *Pim Vermeyden*
+    
 *   Remove support for dynamic `:controller` and `:action` route segments.
 
     A route may no longer read the controller or the action out of the URL:

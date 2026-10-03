@@ -455,6 +455,75 @@ module ActionController
       pass
     end
 
+    def test_live_action_continues_before_queued_unload
+      child_scheduled = Concurrent::CountDownLatch.new
+      release_child = Concurrent::CountDownLatch.new
+      child_done = Concurrent::CountDownLatch.new
+      events = Queue.new
+
+      controller_class = Class.new(TestController) do
+        define_method(:interlock_stream) do
+          events << :action
+          response.stream.write "hello"
+          response.stream.close
+        end
+      end
+      controller = controller_class.new
+      controller.define_singleton_method(:new_controller_thread) do |&work|
+        original_new_controller_thread do
+          # Tell the test the Live thread has started, then pause before it claims its
+          # continuation so the unload can be queued first.
+          child_scheduled.count_down
+          release_child.wait
+          work.call
+        ensure
+          child_done.count_down
+        end
+      end
+
+      interlock = ActiveSupport::Dependencies.interlock
+
+      request = ActionController::TestRequest.create(controller_class)
+      response = ActionDispatch::TestResponse.create
+      request_thread = Thread.new do
+        interlock.running { controller.dispatch(:interlock_stream, request, response) }
+      end
+
+      assert child_scheduled.wait(1), "Live child was not scheduled"
+
+      unload_thread = Thread.new do
+        interlock.running do
+          interlock.unloading { events << :unload }
+        end
+      end
+
+      Timeout.timeout(1) do
+        loop do
+          waiting = false
+          interlock.raw_state do |state|
+            waiting = state.values.any? { |owner| owner[:waiting] && owner[:purpose] == :unload }
+          end
+          break if waiting
+          Thread.pass
+        end
+      end
+
+      release_child.count_down
+
+      assert request_thread.join(1), "Live request deadlocked with unload"
+      assert unload_thread.join(1), "Unload did not complete"
+      assert child_done.wait(1), "Live child did not complete"
+      assert_equal [:action, :unload], 2.times.map { events.pop(true) }
+      assert_equal "hello", response.body
+    ensure
+      release_child&.count_down
+      request_thread&.kill
+      request_thread&.join(1)
+      unload_thread&.kill
+      unload_thread&.join(1)
+      child_done&.wait(1)
+    end
+
     def test_async_stream
       @controller.latch = Concurrent::CountDownLatch.new
       parts             = ["hello", "world"]

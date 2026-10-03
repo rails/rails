@@ -55,6 +55,7 @@ module ActiveSupport
         @cv = new_cond
 
         @sharing = Hash.new(0)
+        @sharing_continuations = {}
         @waiting = {}
         @sleeping = {}
         @exclusive_owner = nil
@@ -113,10 +114,16 @@ module ActiveSupport
         end
       end
 
-      def start_sharing
+      def start_sharing(continuation: nil)
         synchronize do
           owner = current_owner
-          if @sharing[owner] > 0 || @exclusive_owner == owner
+          if continuation
+            # This work was admitted by an existing Share owner, so it may
+            # proceed ahead of later Exclusive waiters. An active Exclusive
+            # owner must still finish first.
+            wait_for(:start_sharing) { @exclusive_owner && @exclusive_owner != owner }
+            raise "invalid sharing continuation" unless @sharing_continuations.delete(continuation)
+          elsif @sharing[owner] > 0 || @exclusive_owner == owner
             # We already hold a lock; nothing to wait for
           elsif @waiting[owner]
             # We're nested inside a `yield_shares` call: we'll resume as
@@ -160,13 +167,27 @@ module ActiveSupport
       end
 
       # Execute the supplied block while holding the Share lock.
-      def sharing
-        start_sharing
+      def sharing(continuation: nil)
+        start_sharing(continuation:)
         begin
           yield
         ensure
           stop_sharing
         end
+      end
+
+      # Schedule work, potentially on another thread or fiber, as a continuation of
+      # this owner's existing Share lock. It may begin ahead of a later Exclusive
+      # waiter, then holds an ordinary Share lock while it runs.
+      def continue_sharing(schedule, &block)
+        continuation = register_sharing_continuation
+
+        schedule.call do
+          sharing(continuation:, &block)
+        end
+      rescue Exception
+        cancel_sharing_continuation(continuation) if continuation
+        raise
       end
 
       # Temporarily give up all held Share locks while executing the
@@ -212,7 +233,25 @@ module ActiveSupport
         # Must be called within synchronize
         def busy_for_exclusive?(purpose)
           busy_for_sharing?(purpose) ||
-            @sharing.size > (@sharing[current_owner] > 0 ? 1 : 0)
+            @sharing.size > (@sharing[current_owner] > 0 ? 1 : 0) ||
+            @sharing_continuations.any?
+        end
+
+        def register_sharing_continuation
+          synchronize do
+            # Only register a continuation if we currently hold a Share lock.
+            return unless @sharing[current_owner] > 0
+
+            continuation = Object.new
+            @sharing_continuations[continuation] = true
+            continuation
+          end
+        end
+
+        def cancel_sharing_continuation(continuation)
+          synchronize do
+            @sharing_continuations.delete(continuation)
+          end
         end
 
         def busy_for_sharing?(purpose)
