@@ -748,6 +748,9 @@ module ActiveRecord
       # Returns +true+ if +self+ is a +has_one+ reflection.
       def has_one?; false; end
 
+      # Returns +true+ if +self+ is a +has_many+ relection.
+      def has_many?; false end
+
       def association_class; raise NotImplementedError; end
 
       def polymorphic?
@@ -929,6 +932,8 @@ module ActiveRecord
 
     class HasManyReflection < AssociationReflection # :nodoc:
       def macro; :has_many; end
+
+      def has_many?; true end
 
       def collection?; true; end
 
