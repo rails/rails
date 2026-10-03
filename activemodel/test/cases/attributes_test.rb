@@ -41,6 +41,19 @@ module ActiveModel
       end
     end
 
+    class ModelWithAttributesWithoutWriter
+      include ActiveModel::Model
+      include ActiveModel::Attributes
+
+      attribute :string_field, :string, writer: false
+      attribute :integer_field, :integer, writer: false
+      attribute :date_field, :date, writer: false, default: -> { Date.new(2016, 1, 1) }
+      attribute :writable_field, :string
+    end
+
+    class ChildModelWithAttributesWithoutWriter < ModelWithAttributesWithoutWriter
+    end
+
     test "models that proxy attributes do not conflict with models with generated methods" do
       ModelWithGeneratedAttributeMethods.new
 
@@ -182,6 +195,77 @@ module ActiveModel
       end
 
       assert_equal with_alias.type_for_attribute(:integer_field), with_alias.type_for_attribute(:x)
+    end
+
+    test "writer: false does not define a public writer" do
+      data = ModelWithAttributesWithoutWriter.new
+
+      assert_respond_to data, :string_field
+      assert_not_respond_to data, :string_field=
+    end
+
+    test "writer: false leaves other attributes untouched" do
+      data = ModelWithAttributesWithoutWriter.new
+
+      assert_respond_to data, :writable_field=
+
+      data.writable_field = "value"
+      assert_equal "value", data.writable_field
+    end
+
+    test "writer: false raises on public assignment" do
+      data = ModelWithAttributesWithoutWriter.new
+
+      assert_raise(NoMethodError) { data.string_field = "value" }
+    end
+
+    test "writer: false still assigns at construction" do
+      data = ModelWithAttributesWithoutWriter.new(
+        string_field: "string",
+        integer_field: "42",
+        writable_field: "writable"
+      )
+
+      assert_equal "string", data.string_field
+      assert_equal 42, data.integer_field
+      assert_equal "writable", data.writable_field
+    end
+
+    test "writer: false still applies defaults" do
+      data = ModelWithAttributesWithoutWriter.new
+
+      assert_equal Date.new(2016, 1, 1), data.date_field
+    end
+
+    test "writer: false still assigns through assign_attributes" do
+      data = ModelWithAttributesWithoutWriter.new
+
+      data.assign_attributes(string_field: "string")
+
+      assert_equal "string", data.string_field
+    end
+
+    test "writer: false does not swallow unknown attributes" do
+      assert_raise(ActiveModel::UnknownAttributeError) do
+        ModelWithAttributesWithoutWriter.new(not_an_attribute: "value")
+      end
+    end
+
+    test "writer: false is inherited" do
+      data = ChildModelWithAttributesWithoutWriter.new(string_field: "string")
+
+      assert_equal "string", data.string_field
+      assert_not_respond_to data, :string_field=
+    end
+
+    test "writer: false is not passed to the cast type" do
+      assert_nothing_raised do
+        Class.new do
+          include ActiveModel::Attributes
+
+          attribute :precise_field, :decimal, writer: false, precision: 5
+        end
+      end
     end
   end
 end

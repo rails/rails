@@ -196,6 +196,39 @@ irb> person.active
 => false
 ```
 
+#### Attributes Without a Writer
+
+Pass `writer: false` to make the generated writer private. The attribute can
+still be given a value at construction or through `assign_attributes`, but
+cannot be assigned directly.
+
+```ruby
+class Measurement
+  include ActiveModel::API
+  include ActiveModel::Attributes
+
+  attribute :taken_at, :datetime, writer: false
+  attribute :celsius, :decimal, writer: false
+end
+```
+
+```irb
+irb> measurement = Measurement.new(taken_at: "2020-01-01 09:00", celsius: "21.5")
+
+irb> measurement.celsius
+=> 0.215e2
+
+irb> measurement.respond_to?(:celsius=)
+=> false
+
+irb> measurement.celsius = 30
+(irb):in 'Kernel#binding': private method 'celsius=' called for an instance of Measurement (NoMethodError)
+```
+
+This is useful when you want to prevent direct assignment while retaining
+casting, defaults, and validations from Active Model. `assign_attributes` can
+still update the attribute after construction.
+
 Some additional methods described below are available when using
 `ActiveModel::Attributes`.
 
