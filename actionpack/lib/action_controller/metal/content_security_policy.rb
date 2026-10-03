@@ -28,7 +28,7 @@ module ActionController # :nodoc:
       #
       #     class PostsController < ApplicationController
       #       content_security_policy(only: :index) do |policy|
-      #         policy.default_src :self, :https
+      #         policy.default_src :self
       #       end
       #     end
       #
