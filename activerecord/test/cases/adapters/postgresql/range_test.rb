@@ -326,13 +326,68 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
     SQL
 
     expected = [
+      { "lower" => time, "upper" => nil },
       { "lower" => time, "upper" => "infinity" },
-      { "lower" => time, "upper" => "infinity" },
-      { "lower" => "-infinity", "upper" => time },
-      { "lower" => "-infinity", "upper" => time }
+      { "lower" => nil, "upper" => time },
+      { "lower" => nil, "upper" => time }
     ]
 
     assert_equal expected, result.to_a
+  end
+
+  def test_unbounded_tstzrange_sql_values_do_not_depend_on_the_class_of_the_bound
+    time = Time.utc(2010, 1, 1, 14, 30, 0)
+    bounds = [time, time.in_time_zone("UTC"), time.in_time_zone("Pacific Time (US & Canada)"), time.to_datetime]
+
+    bounds.each do |bound|
+      records = [bound...nil, bound..nil, nil...bound, nil..bound].map do |range|
+        PostgresqlRange.create!(tstz_range: range)
+      end
+
+      expected = [
+        { "lower" => time, "upper" => nil },
+        { "lower" => time, "upper" => "infinity" },
+        { "lower" => nil, "upper" => time },
+        { "lower" => nil, "upper" => time }
+      ]
+
+      assert_equal expected, unbounded_sql_values(:tstz_range, records), "with #{bound.class} #{bound.inspect}"
+    end
+  end
+
+  def test_unbounded_daterange_sql_values
+    date = Date.new(2012, 1, 2)
+
+    # Unbounded dateranges are read back with Float::INFINITY bounds.
+    ranges = [date...nil, date..nil, nil...date, date...Float::INFINITY, date..Float::INFINITY, -Float::INFINITY...date]
+    ids = ranges.map { |range| PostgresqlRange.create!(date_range: range).id }
+
+    stored = @connection.select_values(<<~SQL)
+      SELECT date_range::text FROM postgresql_ranges WHERE id IN (#{ids.join(", ")}) ORDER BY id
+    SQL
+
+    expected = ["[2012-01-02,)", "[2012-01-02,infinity]", "(,2012-01-02)", "[2012-01-02,)", "[2012-01-02,infinity]", "(,2012-01-02)"]
+    assert_equal expected, stored
+  end
+
+  def test_where_by_unbounded_range_read_from_the_database
+    time = Time.public_send(::ActiveRecord.default_timezone, 2010, 1, 1, 14, 30, 0)
+    date = Date.new(2012, 1, 2)
+
+    records = [
+      @third_range, # Inserted with SQL, so its upper bounds are empty.
+      PostgresqlRange.create!(date_range: date...nil, ts_range: time...nil, tstz_range: time...nil),
+      PostgresqlRange.create!(date_range: date..nil, ts_range: time..nil, tstz_range: time..nil),
+      PostgresqlRange.create!(date_range: nil...date, ts_range: nil...time, tstz_range: nil...time),
+      PostgresqlRange.create!(date_range: nil..date, ts_range: nil..time, tstz_range: nil..time)
+    ]
+
+    records.product([:date_range, :ts_range, :tstz_range]).each do |record, attribute|
+      value = PostgresqlRange.find(record.id).public_send(attribute)
+
+      assert PostgresqlRange.where(id: record.id, attribute => value).exists?,
+        "#{attribute} read back as #{value.inspect} does not match its own row"
+    end
   end
 
   def test_timezone_awareness_tsrange
@@ -775,6 +830,15 @@ class PostgresqlRangeTest < ActiveRecord::PostgreSQLTestCase
       range.public_send "#{attribute}=", value
       assert range.save
       assert range.reload
+    end
+
+    def unbounded_sql_values(attribute, records)
+      @connection.execute(<<~SQL).to_a
+        SELECT lower(#{attribute}) AS lower, upper(#{attribute}) AS upper
+        FROM postgresql_ranges
+        WHERE id IN (#{records.map(&:id).join(", ")})
+        ORDER BY id
+      SQL
     end
 
     def insert_range(values)
