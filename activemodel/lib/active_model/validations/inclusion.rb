@@ -37,7 +37,7 @@ module ActiveModel
       #   not included in the list").
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
+      # +:if+, +:unless+, +:on+, +:except_on+, +:allow_nil+, +:allow_blank+, and +:strict+.
       # See ActiveModel::Validations::ClassMethods#validates for more information.
       def validates_inclusion_of(*attr_names)
         validates_with InclusionValidator, _merge_attributes(attr_names)

@@ -198,7 +198,7 @@ module ActiveModel
       #   error message for this option is _"must be in %{count}"_.
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+ .
+      # +:if+, +:unless+, +:on+, +:except_on+, +:allow_nil+, +:allow_blank+, and +:strict+ .
       # See ActiveModel::Validations::ClassMethods#validates for more information.
       #
       # The following checks can also be supplied with a proc or a symbol which
