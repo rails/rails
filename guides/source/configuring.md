@@ -4176,6 +4176,16 @@ production:
 
 The more prepared statements in use: the more memory your database will require. If your PostgreSQL database is hitting memory limits, try lowering `statement_limit` or disabling prepared statements.
 
+To create or drop the database, such as with `bin/rails db:create`, `db:drop` and `db:purge`, Active Record connects to the `postgres` database by default. If your PostgreSQL server does not have a `postgres` database, as with some managed PostgreSQL services, set `maintenance_database` to a database that you can connect to:
+
+```yaml
+production:
+  adapter: postgresql
+  maintenance_database: defaultdb
+```
+
+It can also be given in `DATABASE_URL`, such as `postgres://.../blog_production?maintenance_database=defaultdb`.
+
 #### Configuring an SQLite3 Database for JRuby Platform
 
 If you choose to use SQLite3 and are using JRuby, your `config/database.yml` will look a little different. Here's the development section:
