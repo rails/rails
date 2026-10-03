@@ -709,8 +709,8 @@ module ActiveRecord
     #   # Account Load (1.2ms)  SELECT "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 1]]
     #   # => #<Account id: 1, email: 'account@example.com'>
     #
-    # Internal state managed by Active Record such as the associations cache and
-    # others is reset accordingly, but custom instance variables are left as-is.
+    # Internal state managed by Active Record, such as the associations cache is
+    # reset accordingly, but custom instance variables are left as-is.
     #
     # If the record no longer exists in the database ActiveRecord::RecordNotFound
     # is raised. Otherwise, in addition to the in-place modification the method
