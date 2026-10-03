@@ -549,7 +549,9 @@ module ActiveRecord
         end
       end
 
-      def migration_class # :nodoc:
+      # Defines what class will be used to connect to the database.
+      # By default, ActiveRecord::Base is choosen for rake tasks.
+      def migration_class
         ActiveRecord::Base
       end
 
