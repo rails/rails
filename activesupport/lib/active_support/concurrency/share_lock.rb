@@ -113,9 +113,8 @@ module ActiveSupport
         end
       end
 
-      def start_sharing
+      def start_sharing(owner: current_owner)
         synchronize do
-          owner = current_owner
           if @sharing[owner] > 0 || @exclusive_owner == owner
             # We already hold a lock; nothing to wait for
           elsif @waiting[owner]
@@ -131,9 +130,8 @@ module ActiveSupport
         end
       end
 
-      def stop_sharing
+      def stop_sharing(owner: current_owner)
         synchronize do
-          owner = current_owner
           if @sharing[owner] > 1
             @sharing[owner] -= 1
           else
@@ -161,11 +159,12 @@ module ActiveSupport
 
       # Execute the supplied block while holding the Share lock.
       def sharing
-        start_sharing
+        owner = current_owner
+        start_sharing(owner: owner)
         begin
           yield
         ensure
-          stop_sharing
+          stop_sharing(owner: owner)
         end
       end
 
