@@ -1,3 +1,13 @@
+*   Forward other options from `has_one_attached` and `has_many_attached` to the attachment association.
+
+    ```ruby
+    class User < ApplicationRecord
+      has_one_attached :avatar, deprecated: true
+    end
+    ```
+
+    *Jean-Samuel Aubry-Guzzi*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.
