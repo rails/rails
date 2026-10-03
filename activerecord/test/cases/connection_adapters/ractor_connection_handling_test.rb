@@ -525,6 +525,7 @@ module ActiveRecord
 
           setup do
             Ractor.make_shareable(ActiveRecord.query_transformers)
+            Ractor.make_shareable(ActiveRecord.schema_ignored_tables)
             install_shareable_notifications_snapshot
           end
 
@@ -659,6 +660,33 @@ module ActiveRecord
             assert_kind_of Integer, course_count
             assert courses_known_to_secondary
             assert_not courses_known_to_primary
+          end
+
+          def test_schema_cache_fills_locally_through_the_proxied_connection
+            table = widgets_table
+            column_names, primary_key, index_names, exists, missing, version, second_lookup_cached = on_ractor(table) do |widgets|
+              pool = ConnectionAdapters::RactorConnectionHandler.instance.retrieve_connection_pool("ActiveRecord::Base")
+              cache = pool.schema_cache
+              columns = cache.columns(widgets)
+
+              [
+                columns.map(&:name),
+                cache.primary_keys(widgets),
+                cache.indexes(widgets).map(&:name),
+                cache.data_source_exists?(widgets),
+                cache.data_source_exists?("#{widgets}_missing"),
+                cache.version,
+                cache.columns(widgets).equal?(columns),
+              ]
+            end
+
+            assert_equal %w[id name price], column_names
+            assert_equal "id", primary_key
+            assert_equal [], index_names
+            assert exists
+            assert_not missing
+            assert_kind_of Integer, version
+            assert second_lookup_cached
           end
 
           def test_establish_connection_accepts_a_hash_or_a_config_object
