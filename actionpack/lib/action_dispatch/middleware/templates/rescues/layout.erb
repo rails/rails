@@ -118,6 +118,34 @@
       max-width: 978px;
     }
 
+    .ai-prompt {
+      border: 1px solid #D0D0D0;
+      border-radius: 4px;
+      background: #FFF;
+      margin: 1em 0px;
+      padding: 0.75em;
+      max-width: 978px;
+    }
+
+    .ai-prompt__text {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      border: 1px solid #D0D0D0;
+      border-radius: 4px;
+      padding: 8px;
+      resize: vertical;
+      background: #FFF;
+    }
+
+    .ai-prompt__hint {
+      margin: 0.5em 0 0;
+      font-size: 12px;
+      color: #666;
+    }
+
     .summary {
       padding: 8px 15px;
       border-bottom: 1px solid #D0D0D0;
@@ -268,6 +296,21 @@
 
       .details, .summary {
         border-color: #666;
+      }
+
+      .ai-prompt {
+        border-color: #666;
+        background: #2B2B2B;
+      }
+
+      .ai-prompt__text {
+        border-color: #666;
+        background: #333;
+        color: #ECECEC;
+      }
+
+      .ai-prompt__hint {
+        color: #AAA;
       }
 
       .source {
