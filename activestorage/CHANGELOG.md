@@ -1,3 +1,12 @@
+*   Compute Active Storage checksums with `ActiveStorage.checksum_implementation`.
+
+    Uploads and integrity checks called `OpenSSL::Digest::MD5` directly. On hosts where FIPS
+    disables OpenSSL MD5, that raised `OpenSSL::Digest::DigestError` even though Active Storage
+    had already fallen back to Ruby's `Digest::MD5`. Checksums are still MD5, including S3
+    `Content-MD5`.
+
+    *Edwin Cruz*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.
