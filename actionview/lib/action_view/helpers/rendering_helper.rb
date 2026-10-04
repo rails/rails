@@ -142,16 +142,20 @@ module ActionView
       def render(options = {}, locals = {}, &block)
         case options
         when Hash
-          in_rendering_context(options) do |renderer|
-            if block_given? && !options.key?(:renderable)
-              view_renderer.render_partial(self, options.merge(partial: options[:layout]), &block)
-            else
-              view_renderer.render(self, options, &block)
+          if options.key?(:renderable)
+            Template::Renderable.new(options[:renderable], &block).render(self, options[:locals] || {})
+          else
+            in_rendering_context(options) do |renderer|
+              if block_given?
+                view_renderer.render_partial(self, options.merge(partial: options[:layout]), &block)
+              else
+                view_renderer.render(self, options, &block)
+              end
             end
           end
         else
           if options.respond_to?(:render_in)
-            view_renderer.render(self, renderable: options, locals: locals, &block)
+            Template::Renderable.new(options, &block).render(self, locals)
           else
             view_renderer.render_partial(self, partial: options, locals: locals, &block)
           end
