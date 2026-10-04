@@ -359,6 +359,26 @@ class Rails::Command::CredentialsTest < ActiveSupport::TestCase
     assert_match(/42/, run_fetch_command("foo.bar.baz"))
   end
 
+  test "fetch value from credentials containing YAML aliases" do
+    write_credentials(<<~YAML)
+      defaults: &defaults
+        api_key: 123
+      production:
+        <<: *defaults
+    YAML
+
+    assert_match(/123/, run_fetch_command("production.api_key"))
+  end
+
+  test "fetch reports invalid YAML in credentials" do
+    write_credentials("foo: [unterminated")
+
+    stderr_output = capture(:stderr) { run_fetch_command("foo", stderr: true, allow_failure: true) }
+
+    assert_match("Invalid YAML in credentials", stderr_output)
+    assert_match("config/credentials.yml.enc", stderr_output)
+  end
+
   test "fetch missing key" do
     write_credentials({ "foo" => { "bar" => { "baz" => 42 } } }.to_yaml)
 
