@@ -1,3 +1,17 @@
+*   Change the default `config.action_dispatch.signed_cookie_salt` to `"signed cookie salt"` with the 8.2 framework defaults.
+
+    The previous `"signed cookie"` salt is 13 bytes long. SP 800-132 requires salts to be at least
+    16 bytes, and both OpenSSL 4+ and OpenSSL FIPS providers enforce this minimum by default,
+    unless the [`OSSL_KDF_PARAM_PKCS5`](https://docs.openssl.org/4.1/man7/EVP_KDF-PBKDF2/#supported-parameters) opt-out is set.
+    Ruby's OpenSSL bindings don't provide that opt-out, so reading or writing a signed cookie raised
+    `OpenSSL::KDF::KDFError`, and a longer default salt, which works everywhere, is the simpler fix.
+    This is a cryptographic agility update, not a fix for a security vulnerability.
+
+    Cookies signed with `"signed cookie"` are still accepted when another salt is configured, and are
+    re-signed with that salt. The fallback is skipped when OpenSSL rejects the legacy salt.
+
+    *Dimitri John Ledkov*
+
 *   Remove support for dynamic `:controller` and `:action` route segments.
 
     A route may no longer read the controller or the action out of the URL:

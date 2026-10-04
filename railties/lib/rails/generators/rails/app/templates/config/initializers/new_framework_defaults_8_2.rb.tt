@@ -61,6 +61,21 @@
 # }
 
 ###
+# Use signed cookie and Active Storage salts that are at least 16 bytes long.
+#
+# SP 800-132 requires salts to be at least 16 bytes, and both OpenSSL 4+ and
+# OpenSSL FIPS providers enforce this minimum by default. The previous salts, "signed cookie" and
+# "ActiveStorage", are 13 bytes long. This is a cryptographic agility update,
+# not a fix for a security vulnerability.
+#
+# Cookies and Active Storage messages signed with the previous salts are still
+# accepted when OpenSSL allows the shorter salt, and signed cookies are
+# re-signed with the new salt.
+#++
+# Rails.application.config.action_dispatch.signed_cookie_salt = "signed cookie salt"
+# Rails.application.config.active_storage.verifier_salt = "ActiveStorage salt"
+
+###
 # Controls whether the PostgresqlAdapter should decode bytea and money columns automatically with manual queries.
 #
 # Example:

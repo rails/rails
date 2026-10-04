@@ -1,3 +1,17 @@
+*   Add `config.active_storage.verifier_salt` and change it to `"ActiveStorage salt"` with the 8.2 framework defaults.
+
+    The previous `"ActiveStorage"` salt is 13 bytes long. SP 800-132 requires salts to be at least
+    16 bytes, and both OpenSSL 4+ and OpenSSL FIPS providers enforce this minimum by default,
+    unless the [`OSSL_KDF_PARAM_PKCS5`](https://docs.openssl.org/4.1/man7/EVP_KDF-PBKDF2/#supported-parameters) opt-out is set.
+    Ruby's OpenSSL bindings don't provide that opt-out, so applications failed to boot with
+    `OpenSSL::KDF::KDFError`, and a longer default salt, which works everywhere, is the simpler fix.
+    This is a cryptographic agility update, not a fix for a security vulnerability.
+
+    Messages signed with `"ActiveStorage"` are still accepted when another salt is configured. The
+    fallback is skipped when OpenSSL rejects the legacy salt.
+
+    *Dimitri John Ledkov*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.

@@ -627,6 +627,8 @@ module ActionDispatch
     class SignedKeyRotatingCookieJar < AbstractCookieJar # :nodoc:
       include SerializedCookieJars
 
+      LEGACY_SIGNED_COOKIE_SALT = "signed cookie"
+
       def initialize(parent_jar)
         super
 
@@ -637,9 +639,24 @@ module ActionDispatch
           options = secrets.extract_options!
           @verifier.rotate(*secrets, serializer: SERIALIZER, **options)
         end
+
+        rotate_legacy_signed_cookie_salt
       end
 
       private
+        # Keeps cookies signed with the pre-8.2 default salt readable after
+        # `signed_cookie_salt` changes. SP 800-132 requires salts to be at least
+        # 16 bytes, and both OpenSSL 4+ and OpenSSL FIPS providers enforce this
+        # minimum by default, so the fallback is skipped when key derivation
+        # rejects the 13-byte salt.
+        def rotate_legacy_signed_cookie_salt
+          return if request.signed_cookie_salt == LEGACY_SIGNED_COOKIE_SALT
+
+          secret = request.key_generator.generate_key(LEGACY_SIGNED_COOKIE_SALT)
+          @verifier.rotate(secret, digest: signed_cookie_digest, serializer: SERIALIZER)
+        rescue OpenSSL::KDF::KDFError
+        end
+
         def parse(name, signed_message, purpose: nil)
           rotated = false
           data = @verifier.verified(signed_message, purpose: purpose, on_rotation: -> { rotated = true })
