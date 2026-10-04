@@ -39,6 +39,39 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_equal "&lt;script&gt;", @buffer
   end
 
+  test "Should escape a raw string which is prepended to them" do
+    @buffer << "world"
+    @buffer.prepend("<script>")
+    assert_equal "&lt;script&gt;world", @buffer
+    assert_predicate @buffer, :html_safe?
+  end
+
+  test "Should NOT escape a safe value which is prepended to them" do
+    @buffer << "world"
+    @buffer.prepend("<b>".html_safe)
+    assert_equal "<b>world", @buffer
+  end
+
+  test "Should escape a raw string which is inserted into them" do
+    @buffer << "ab"
+    @buffer.insert(1, "<x>")
+    assert_equal "a&lt;x&gt;b", @buffer
+    assert_predicate @buffer, :html_safe?
+  end
+
+  test "Should escape a raw string which is bytespliced into them" do
+    buffer = ActiveSupport::SafeBuffer.new("012345")
+    buffer.bytesplice(0, 3, "<")
+    assert_equal "&lt;345", buffer
+    assert_predicate buffer, :html_safe?
+  end
+
+  test "as_json returns an unsafe String" do
+    json = "<p>".html_safe.as_json
+    assert_instance_of String, json
+    assert_not_predicate json, :html_safe?
+  end
+
   test "Should be considered safe" do
     assert_predicate @buffer, :html_safe?
   end
