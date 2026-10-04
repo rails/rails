@@ -29,6 +29,17 @@ services:
   selenium:
     image: selenium/standalone-chromium
     restart: unless-stopped
+
+    # Adjust SE_NODE_MAX_SESSIONS to limit the number of simultaneous Capybara sessions
+    # in system tests created by Capybara.using_session.
+    #
+    # See https://github.com/teamcapybara/capybara?tab=readme-ov-file#using-sessions and
+    # https://github.com/SeleniumHQ/docker-selenium?tab=readme-ov-file#increasing-session-concurrency-per-container
+    environment:
+      - SE_NODE_MAX_SESSIONS=3
+      - SE_NODE_OVERRIDE_MAX_SESSIONS=true
+      - SE_START_VNC=false
+
 <%- end -%>
 
 <%- if options[:redis] -%>
