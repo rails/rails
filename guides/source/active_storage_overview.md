@@ -960,6 +960,26 @@ can use the `process: :later` option (with both `has_one_attached` and
 `has_many_attached`) to specify that Rails should generate them ahead of time
 (and not lazily).
 
+When only some of your records need their variants ahead of time, `process` also
+accepts a proc or the name of a method on the record. Either one is called with
+the record and must return `:lazily`, `:later`, or `:immediately`:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :profile_photo do |attachable|
+    attachable.variant :thumb, resize_to_limit: [100, 100],
+      process: ->(user) { user.public_profile? ? :later : :lazily }
+
+    attachable.variant :medium, resize_to_limit: [300, 300],
+      process: :profile_photo_process
+  end
+
+  def profile_photo_process
+    public_profile? ? :later : :lazily
+  end
+end
+```
+
 WARNING: It should be considered unsafe to provide arbitrary user supplied
 transformations or parameters to variant processors. This can potentially enable
 command injection vulnerabilities in your app.

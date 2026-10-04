@@ -170,6 +170,12 @@ class User < ActiveRecord::Base
     attachable.variant :lazy_thumb, resize_to_limit: [3, 3], process: :lazily
     attachable.variant :default_thumb, resize_to_limit: [4, 4]
   end
+  has_one_attached :avatar_with_conditional_process do |attachable|
+    attachable.variant :proc, resize_to_limit: [2, 2],
+      process: ->(user) { user.name == "transform via proc" ? :later : :lazily }
+    attachable.variant :method, resize_to_limit: [3, 3],
+      process: :variant_process_mode
+  end
   ActiveStorage.deprecator.silence do
     has_one_attached :avatar_with_preprocessed do |attachable|
       attachable.variant :bool, resize_to_limit: [1, 1], preprocessed: true
@@ -223,6 +229,10 @@ class User < ActiveRecord::Base
 
   def should_preprocessed?
     name == "transform via method"
+  end
+
+  def variant_process_mode
+    name == "transform via method" ? :later : :lazily
   end
 
   def increment_callback_counter
