@@ -78,7 +78,7 @@ module ActionView
       #
       #   mail_to "me@domain.com", cc: "ccaddress@domain.com",
       #            subject: "This is an example email"
-      #   # => <a href="mailto:me@domain.com?cc=ccaddress@domain.com&subject=This%20is%20an%20example%20email">me@domain.com</a>
+      #   # => <a href="mailto:me@domain.com?cc=ccaddress%40domain.com&amp;subject=This%20is%20an%20example%20email">me@domain.com</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
       #
@@ -134,7 +134,7 @@ module ActionView
       #   # => <a href="sms:5155555785;">Text me</a>
       #
       #   sms_to "5155555785", body: "I have a question about your product."
-      #   # => <a href="sms:5155555785;?body=I%20have%20a%20question%20about%20your%20product">5155555785</a>
+      #   # => <a href="sms:5155555785;?&amp;body=I%20have%20a%20question%20about%20your%20product">5155555785</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. \ERB example:
       #
