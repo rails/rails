@@ -39,6 +39,44 @@ class ActionText::ContentTest < ActiveSupport::TestCase
     assert_equal attachable, attachment.attachable
   end
 
+  test "extracts attachables in bulk with one query per model class" do
+    blobs = 4.times.map { create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg") }
+    html = blobs.map { |blob| %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>) }.join
+
+    content = ActionText::Content.new(html)
+    assert_queries_count(1) do
+      assert_equal blobs, content.attachables
+    end
+  end
+
+  test "resolves attachables once per content instance across renders" do
+    blobs = 4.times.map { create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg") }
+    html = blobs.map { |blob| %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>) }.join
+
+    content = ActionText::Content.new(html)
+    assert_queries_count(1) do
+      content.to_plain_text
+    end
+    assert_queries_count(0) do
+      content.to_plain_text
+      content.attachables
+    end
+  end
+
+  test "extracts attachables when some cannot be located" do
+    first = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    destroyed = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    last = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    html = [ first, destroyed, last ].map { |blob| %Q(<action-text-attachment sgid="#{blob.attachable_sgid}"></action-text-attachment>) }.join
+    destroyed.destroy!
+
+    attachables = content_from_html(html).attachables
+
+    assert_equal first, attachables.first
+    assert_kind_of ActionText::Attachables::MissingAttachable, attachables.second
+    assert_equal last, attachables.third
+  end
+
   test "extracts remote image attachables" do
     html = '<action-text-attachment content-type="image" url="http://example.com/cat.jpg" width="100" height="100" caption="Captioned"></action-text-attachment>'
 
