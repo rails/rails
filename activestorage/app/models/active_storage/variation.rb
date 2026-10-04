@@ -45,6 +45,10 @@ class ActiveStorage::Variation
 
   def initialize(transformations)
     @transformations = transformations.deep_symbolize_keys
+    # #digest is derived from Marshal.dump, which encodes :webp and "webp"
+    # differently. Normalize so a variation held in memory and the same one
+    # decoded from a signed key resolve to the same variant.
+    @transformations[:format] &&= @transformations[:format].to_s.encode(Encoding::UTF_8)
   end
 
   def default_to(defaults)
