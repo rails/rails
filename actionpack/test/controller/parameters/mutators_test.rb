@@ -164,6 +164,15 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
     assert_equal expected_hash, @params.to_hash
   end
 
+  test "deep_transform_values! returns an enumerator when no block is given" do
+    params = ActionController::Parameters.new(person: { name: " Francesco " })
+
+    assert_instance_of Enumerator, params.deep_transform_values!
+
+    params.deep_transform_values!.each(&:strip)
+    assert_equal({ "person" => { "name" => "Francesco" } }, params.to_unsafe_h)
+  end
+
   test "deep_transform_values transforms nested values" do
     original_hash = @params.to_unsafe_h
     @params.permit!
