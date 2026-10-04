@@ -107,6 +107,29 @@ module ActiveRecord
       assert_equal [first_topic, third_topic].sort, Topic.where(key => conditions).sort
     end
 
+    def test_where_with_empty_tuple_value_list
+      relation = Topic.where([:title, :author_name] => [])
+
+      assert_match(/WHERE 1=0\z/, relation.to_sql)
+      assert_no_queries { assert_empty relation.load }
+    end
+
+    def test_where_with_empty_tuple_value_list_and_regular_syntax_combined
+      topic = topics(:first)
+      relation = Topic.where(id: topic.id, [:title, :author_name] => [])
+
+      assert_equal topic.id, relation.where_values_hash["id"]
+      assert_match(/AND 1=0\z/, relation.to_sql)
+      assert_no_queries { assert_empty relation.load }
+    end
+
+    def test_where_with_empty_composite_association_value_list
+      relation = Cpk::Book.where(order: [])
+
+      assert_match(/WHERE 1=0\z/, relation.to_sql)
+      assert_no_queries { assert_empty relation.load }
+    end
+
     def test_where_with_tuple_syntax_on_composite_models
       book_one = Cpk::Book.create!(id: [1, 2])
       book_two = Cpk::Book.create!(id: [3, 4])

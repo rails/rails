@@ -1,3 +1,11 @@
+*   Fix `where` with an empty list of values for composite keys.
+
+    `where([:a, :b] => [])` and `where(composite_association: [])` generated
+    invalid SQL (`WHERE ()`). They now match no records and do not query the
+    database, like `where(id: [])`.
+
+    *Mathius Johnson*
+
 *   Treat `false` as disabled for `idle_timeout`, `reaping_frequency` and `max_age`
     in `database.yml`.
 
