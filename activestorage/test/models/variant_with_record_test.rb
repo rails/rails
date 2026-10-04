@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "database/setup"
+require "active_support/core_ext/object/with"
 
 class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -59,6 +60,212 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     variant = blob.variant(resize_to_limit: [100, 100]).processed
 
     assert_equal "local_public", variant.image.blob.service_name
+  end
+
+  test "variant record is not visible until its image has been uploaded" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    transformations = { resize_to_limit: [100, 100] }
+    variant = blob.variant(transformations)
+    upload = blob.service.method(:upload)
+    upload_observed = false
+
+    blob.service.stub(:upload, ->(*args, **options) do
+      upload_observed = true
+      assert_not blob.variant(transformations).processed?
+      upload.call(*args, **options)
+    end) do
+      variant.processed
+    end
+
+    assert upload_observed
+    assert variant.processed?
+    assert blob.service.exist?(variant.key)
+  end
+
+  test "failed variant upload can be retried" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(resize_to_limit: [100, 100])
+    upload_error = Class.new(StandardError)
+
+    ActiveStorage::PurgeJob.with(enqueue_after_transaction_commit: false) do
+      assert_enqueued_with(job: ActiveStorage::PurgeJob) do
+        ActiveStorage::Blob.transaction(requires_new: true) do
+          assert_no_difference -> { blob.variant_records.count } do
+            blob.service.stub(:upload, ->(*, **) { raise upload_error }) do
+              assert_raises(upload_error) { variant.processed }
+            end
+          end
+
+          assert_no_enqueued_jobs only: ActiveStorage::PurgeJob
+        end
+      end
+    end
+
+    assert_not variant.processed?
+
+    assert_difference -> { blob.variant_records.count }, +1 do
+      variant.processed
+    end
+
+    assert variant.processed?
+    assert blob.service.exist?(variant.key)
+  end
+
+  test "uploaded image is purged when variant record creation fails" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(resize_to_limit: [100, 100])
+    variant_records = blob.variant_records
+    record_error = Class.new(StandardError)
+
+    blob.stub(:variant_records, variant_records) do
+      variant_records.stub(:create_or_find_by!, ->(*) { raise record_error }) do
+        assert_raises(record_error) { variant.processed }
+      end
+    end
+
+    image_blob = ActiveStorage::Blob.order(:id).last
+    assert blob.service.exist?(image_blob.key)
+    assert_enqueued_with(job: ActiveStorage::PurgeJob, args: [image_blob])
+
+    perform_enqueued_jobs(only: ActiveStorage::PurgeJob)
+    assert_not blob.service.exist?(image_blob.key)
+    assert_not ActiveStorage::Blob.exists?(image_blob.id)
+  end
+
+  test "uploaded image is deleted when an enclosing transaction rolls back" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    transformations = { resize_to_limit: [100, 100] }
+    upload = blob.service.method(:upload)
+    uploaded_key = nil
+
+    ActiveStorage::Blob.transaction(requires_new: true) do
+      blob.service.stub(:upload, ->(key, *args, **options) do
+        uploaded_key = key
+        upload.call(key, *args, **options)
+      end) do
+        blob.variant(transformations).processed
+      end
+
+      assert blob.service.exist?(uploaded_key)
+      raise ActiveRecord::Rollback
+    end
+
+    assert_not blob.service.exist?(uploaded_key)
+    assert_not blob.variant(transformations).processed?
+  end
+
+  test "concurrent processing keeps one variant record and purges the unused image" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    transformations = { resize_to_limit: [100, 100] }
+    variant = blob.variant(transformations)
+    concurrent_variant = blob.variant(transformations)
+    upload = blob.service.method(:upload)
+    concurrent_variant_processed = false
+
+    ActiveStorage::PurgeJob.with(enqueue_after_transaction_commit: false) do
+      assert_enqueued_with(job: ActiveStorage::PurgeJob) do
+        ActiveStorage::Blob.transaction(requires_new: true) do
+          blob.service.stub(:upload, ->(*args, **options) do
+            unless concurrent_variant_processed
+              concurrent_variant_processed = true
+              concurrent_variant.processed
+            end
+            upload.call(*args, **options)
+          end) do
+            variant.processed
+          end
+
+          assert_no_enqueued_jobs only: ActiveStorage::PurgeJob
+        end
+      end
+    end
+
+    assert_difference -> { ActiveStorage::Blob.count }, -1 do
+      perform_enqueued_jobs(only: ActiveStorage::PurgeJob)
+    end
+
+    assert_equal 1, blob.variant_records.count
+    assert_equal concurrent_variant.key, variant.key
+    assert blob.service.exist?(variant.key)
+  end
+
+  uses_transaction :test_concurrent_processing_with_separate_database_connections
+  test "concurrent processing with separate database connections" do
+    Dir.mktmpdir("active_storage_variant_concurrency") do |directory|
+      handler = ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+
+      ActiveRecord::Base.with(connection_handler: handler) do
+        # Separate connections need a shared database instead of the usual :memory: database.
+        pool = ActiveRecord::Base.establish_connection(
+          adapter: "sqlite3", database: File.join(directory, "variants.sqlite3"), timeout: 5000
+        )
+        pool.migration_context.migrate
+
+        blob = create_file_blob(filename: "racecar.jpg")
+        transformations = { resize_to_limit: [100, 100] }
+        upload = blob.service.method(:upload)
+        uploads = Queue.new
+        ready = Concurrent::CountDownLatch.new(2)
+        upload_allowed = Concurrent::Event.new
+        threads = []
+
+        blob.service.stub(:upload, ->(key, *args, **options) do
+          uploads << [key, pool.active_connection]
+          ready.count_down
+          raise "Timed out waiting to upload variants" unless upload_allowed.wait(10)
+          upload.call(key, *args, **options)
+        end) do
+          2.times do
+            threads << Thread.new do
+              Thread.current.report_on_exception = false
+              ActiveRecord::Base.with(connection_handler: handler) do
+                pool.with_connection do
+                  ActiveStorage::Blob.find(blob.id).variant(transformations).processed
+                end
+              end
+            end
+          end
+
+          assert ready.wait(10), "Timed out waiting for both variant uploads"
+          pending_uploads = 2.times.map { uploads.pop }
+          assert_equal 2, pending_uploads.map(&:last).uniq.size
+          assert_empty blob.variant_records.reload
+          assert_not blob.variant(transformations).processed?
+
+          upload_allowed.set
+          threads.each do |thread|
+            assert thread.join(15), "Timed out waiting for variant processing"
+          end
+          variants = threads.map(&:value)
+
+          assert_equal 1, blob.variant_records.count
+          assert_equal variants.first.image.record_id, variants.last.image.record_id
+          assert_equal variants.first.key, variants.last.key
+
+          uploaded_keys = pending_uploads.map(&:first)
+          uploaded_keys.each { |key| assert blob.service.exist?(key) }
+          unused_key = (uploaded_keys - [variants.first.key]).sole
+          unused_blob = ActiveStorage::Blob.find_by!(key: unused_key)
+          assert_enqueued_jobs 1, only: ActiveStorage::PurgeJob
+          assert_enqueued_with(job: ActiveStorage::PurgeJob, args: [unused_blob])
+
+          assert_difference -> { ActiveStorage::Blob.count }, -1 do
+            perform_enqueued_jobs(only: ActiveStorage::PurgeJob)
+          end
+
+          assert_not ActiveStorage::Blob.exists?(unused_blob.id)
+          assert_not blob.service.exist?(unused_key)
+          assert blob.service.exist?(variants.first.key)
+          assert blob.service.exist?(blob.key)
+        ensure
+          upload_allowed.set
+          threads.each { |thread| thread.kill if thread.alive? }
+          threads.each { |thread| thread.join unless thread.status.nil? }
+        end
+      ensure
+        pool&.disconnect!
+      end
+    end
   end
 
   test "eager loading has_one_attached record" do

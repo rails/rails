@@ -71,12 +71,37 @@ class ActiveStorage::VariantWithRecord
     end
 
     def create_or_find_record(image:)
-      @record =
-        ActiveRecord::Base.connected_to(role: ActiveRecord.writing_role) do
-          blob.variant_records.create_or_find_by!(variation_digest: variation.digest) do |record|
-            record.image.attach(image)
-          end
+      ActiveRecord::Base.connected_to(role: ActiveRecord.writing_role) do
+        # Upload first so the variant record remains an availability marker.
+        image_blob = ActiveStorage::Blob.build_after_unfurling(**image)
+
+        begin
+          image_blob.local_io = image.fetch(:io)
+          image_blob.analyze_without_saving unless ActiveStorage.analyze == :lazily
+          image_blob.save!
+          image_blob.class.current_transaction.after_rollback { image_blob.delete }
+          image_blob.local_io.rewind
+          image_blob.upload_without_unfurling(image_blob.local_io)
+        rescue
+          image_blob.class.current_transaction.after_commit { image_blob.purge_later } if image_blob.persisted?
+          raise
+        ensure
+          image_blob.local_io = nil
         end
+
+        image_blob_attached = false
+        begin
+          @record =
+            blob.variant_records.create_or_find_by!(variation_digest: variation.digest) do |record|
+              record.image.attach(image_blob)
+            end.tap do |record|
+              image_blob_attached = record.image_blob == image_blob
+            end
+        ensure
+          image_blob.class.current_transaction.after_commit { image_blob.purge_later } unless image_blob_attached
+        end
+        @record
+      end
     end
 
     def record
