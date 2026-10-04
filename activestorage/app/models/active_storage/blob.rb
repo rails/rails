@@ -313,6 +313,11 @@ class ActiveStorage::Blob < ActiveStorage::Record
     service.compose(keys, key, **service_metadata)
   end
 
+  # Checks that the file associated with this blob exists on the service.
+  def exist?
+    service.exist?(key)
+  end
+
   def service_metadata # :nodoc:
     if forcibly_serve_as_binary?
       { content_type: ActiveStorage.binary_content_type, disposition: :attachment, filename: filename, custom_metadata: custom_metadata }

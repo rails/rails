@@ -1,3 +1,7 @@
+*   Add `ActiveStorage::Blob#exist?` to check whether the underlying file still exists on the service.
+
+    *Timo Schilling*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.

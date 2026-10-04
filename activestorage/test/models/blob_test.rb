@@ -431,6 +431,14 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "exist? delegates to service with correct key" do
+    blob = create_blob(data: "Hello world!")
+
+    assert_called_with(blob.service, :exist?, [blob.key]) do
+      blob.exist?
+    end
+  end
+
   private
     def expected_url_for(blob, disposition: :attachment, filename: nil, content_type: nil, service_name: :local)
       filename ||= blob.filename
