@@ -26,4 +26,30 @@ class ActiveStorage::StrictLoadingTest < ActiveSupport::TestCase
       admins.as_json(include: :images)
     end
   end
+
+  test "has_one_attached does not raise when attaching via the constructor on a new record" do
+    admin = Admin.new(name: "Jason", image: create_blob(filename: "funky.jpg"))
+    admin.save!
+    assert admin.image.attached?
+  end
+
+  test "has_one_attached does not raise when calling attach on a new record" do
+    admin = Admin.new(name: "Jason")
+    admin.image.attach(create_blob(filename: "funky.jpg"))
+    admin.save!
+    assert admin.image.attached?
+  end
+
+  test "has_many_attached does not raise when attaching via the constructor on a new record" do
+    admin = Admin.new(name: "Jason", images: [create_blob(filename: "funky.jpg")])
+    admin.save!
+    assert admin.images.attached?
+  end
+
+  test "has_many_attached does not raise when calling attach on a new record" do
+    admin = Admin.new(name: "Jason")
+    admin.images.attach(create_blob(filename: "funky.jpg"))
+    admin.save!
+    assert admin.images.attached?
+  end
 end
