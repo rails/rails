@@ -317,6 +317,16 @@ module ActiveRecord
   end
 
   class PostgreSQLStructureDumpTest < ActiveRecord::TestCase
+    FakeDumpedConnection = Struct.new(:data_sources, :schema_search_path) do
+      def disconnect!
+        @disconnected = true
+      end
+
+      def disconnected?
+        @disconnected
+      end
+    end
+
     def setup
       @configuration = {
         "adapter"  => "postgresql",
@@ -344,105 +354,119 @@ module ActiveRecord
     end
 
     def test_structure_dump_header_comments_removed
-      Kernel.stub(:system, true) do
-        raw_dump_sql = <<~SQL
-          -- header comment
+      stub_dumped_database_connection do
+        Kernel.stub(:system, true) do
+          raw_dump_sql = <<~SQL
+            -- header comment
 
-          -- more header comment
-          statement
-          -- lower comment
-        SQL
-        expected_dump_sql = <<~SQL
-          statement
-          -- lower comment
-        SQL
-        File.write(@filename, raw_dump_sql)
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
-        assert_equal expected_dump_sql, File.readlines(@filename).first(2).join
+            -- more header comment
+            statement
+            -- lower comment
+          SQL
+          expected_dump_sql = <<~SQL
+            statement
+            -- lower comment
+          SQL
+          File.write(@filename, raw_dump_sql)
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          assert_equal expected_dump_sql, File.readlines(@filename).first(2).join
+        end
       end
     end
 
     def test_structure_dump_header_comments_with_restrict_commands_removed
-      Kernel.stub(:system, true) do
-        raw_dump_sql = <<~SQL
-          \\restrict pbgv1pF8SxQK6cuT7hwDi21uDYr8wpxKJ3wlLa9Zk5EIO1xBiu84SJQU8fL22PT
+      stub_dumped_database_connection do
+        Kernel.stub(:system, true) do
+          raw_dump_sql = <<~SQL
+            \\restrict pbgv1pF8SxQK6cuT7hwDi21uDYr8wpxKJ3wlLa9Zk5EIO1xBiu84SJQU8fL22PT
 
-          -- header comment
+            -- header comment
 
-          -- more header comment
-          statement
-          -- lower comment
-          \\unrestrict pbgv1pF8SxQK6cuT7hwDi21uDYr8wpxKJ3wlLa9Zk5EIO1xBiu84SJQU8fL22PT
+            -- more header comment
+            statement
+            -- lower comment
+            \\unrestrict pbgv1pF8SxQK6cuT7hwDi21uDYr8wpxKJ3wlLa9Zk5EIO1xBiu84SJQU8fL22PT
 
-          other_statement
-        SQL
-        expected_dump_sql = <<~SQL
-          statement
-          -- lower comment
-          other_statement
-        SQL
-        File.write(@filename, raw_dump_sql)
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
-        assert_equal expected_dump_sql, File.readlines(@filename).first(3).join
+            other_statement
+          SQL
+          expected_dump_sql = <<~SQL
+            statement
+            -- lower comment
+            other_statement
+          SQL
+          File.write(@filename, raw_dump_sql)
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          assert_equal expected_dump_sql, File.readlines(@filename).first(3).join
+        end
       end
     end
 
     def test_structure_dump_with_env
-      expected_env = { "PGHOST" => "my.server.tld", "PGPORT" => "2345", "PGUSER" => "jane", "PGPASSWORD" => "s3cr3t" }
-      expected_command = [expected_env, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "my-app-db"]
+      stub_dumped_database_connection do
+        expected_env = { "PGHOST" => "my.server.tld", "PGPORT" => "2345", "PGUSER" => "jane", "PGPASSWORD" => "s3cr3t" }
+        expected_command = [expected_env, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "my-app-db"]
 
-      assert_called_with(Kernel, :system, expected_command, returns: true) do
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(
-          @configuration.merge(host: "my.server.tld", port: 2345, username: "jane", password: "s3cr3t"),
-          @filename
-        )
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+            @configuration.merge(host: "my.server.tld", port: 2345, username: "jane", password: "s3cr3t"),
+            @filename
+          )
+        end
       end
     end
 
     def test_structure_dump_with_ssl_env
-      expected_env = { "PGSSLMODE" => "verify-full", "PGSSLCERT" => "client.crt", "PGSSLKEY" => "client.key", "PGSSLROOTCERT" => "root.crt" }
-      expected_command = [expected_env, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "my-app-db"]
+      stub_dumped_database_connection do
+        expected_env = { "PGSSLMODE" => "verify-full", "PGSSLCERT" => "client.crt", "PGSSLKEY" => "client.key", "PGSSLROOTCERT" => "root.crt" }
+        expected_command = [expected_env, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "my-app-db"]
 
-      assert_called_with(Kernel, :system, expected_command, returns: true) do
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(
-          @configuration.merge(sslmode: "verify-full", sslcert: "client.crt", sslkey: "client.key", sslrootcert: "root.crt"),
-          @filename
-        )
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+            @configuration.merge(sslmode: "verify-full", sslcert: "client.crt", sslkey: "client.key", sslrootcert: "root.crt"),
+            @filename
+          )
+        end
       end
     end
 
     def test_structure_dump_with_extra_flags
-      expected_command = [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "--noop", "my-app-db"]
+      stub_dumped_database_connection do
+        expected_command = [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "--noop", "my-app-db"]
 
-      assert_called_with(Kernel, :system, expected_command, returns: true) do
-        with_structure_dump_flags(["--noop"]) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_dump_flags(["--noop"]) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
         end
       end
     end
 
     def test_structure_dump_with_hash_extra_flags_for_a_different_driver
-      expected_command = [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "my-app-db"]
+      stub_dumped_database_connection do
+        expected_command = [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "my-app-db"]
 
-      assert_called_with(Kernel, :system, expected_command, returns: true) do
-        with_structure_dump_flags({ mysql2: ["--noop"] }) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_dump_flags({ mysql2: ["--noop"] }) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
         end
       end
     end
 
     def test_structure_dump_with_hash_extra_flags_for_the_correct_driver
-      expected_command = [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "--noop", "my-app-db"]
+      stub_dumped_database_connection do
+        expected_command = [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "--noop", "my-app-db"]
 
-      assert_called_with(Kernel, :system, expected_command, returns: true) do
-        with_structure_dump_flags({ postgresql: ["--noop"] }) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_called_with(Kernel, :system, expected_command, returns: true) do
+          with_structure_dump_flags({ postgresql: ["--noop"] }) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
         end
       end
     end
 
     def test_structure_dump_with_ignore_tables
-      ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
+      stub_dumped_database_connection(data_sources: ["foo", "bar", "prefix_foo", "ignored_foo"]) do
         ActiveRecord.stub(:schema_ignored_tables, [/^prefix_/, "ignored_foo"]) do
           assert_called_with(
             Kernel,
@@ -457,62 +481,97 @@ module ActiveRecord
     end
 
     def test_structure_dump_with_schema_search_path
-      @configuration["schema_search_path"] = "foo,bar"
+      stub_dumped_database_connection do
+        @configuration["schema_search_path"] = "foo,bar"
 
-      assert_called_with(
-        Kernel,
-        :system,
-        [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
-        returns: true
-      ) do
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_called_with(
+          Kernel,
+          :system,
+          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
+          returns: true
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        end
       end
     end
 
     def test_structure_dump_with_schema_search_path_and_dump_schemas_all
-      @configuration["schema_search_path"] = "foo,bar"
+      stub_dumped_database_connection do
+        @configuration["schema_search_path"] = "foo,bar"
 
-      assert_called_with(
-        Kernel,
-        :system,
-        [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename,  "my-app-db"],
-        returns: true
-      ) do
-        with_dump_schemas(:all) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_called_with(
+          Kernel,
+          :system,
+          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename,  "my-app-db"],
+          returns: true
+        ) do
+          with_dump_schemas(:all) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
         end
       end
     end
 
     def test_structure_dump_with_dump_schemas_string
-      assert_called_with(
-        Kernel,
-        :system,
-        [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
-        returns: true
-      ) do
-        with_dump_schemas("foo,bar") do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+      stub_dumped_database_connection do
+        assert_called_with(
+          Kernel,
+          :system,
+          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
+          returns: true
+        ) do
+          with_dump_schemas("foo,bar") do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
         end
       end
     end
 
     def test_structure_dump_execution_fails
-      filename = "awesome-file.sql"
-      assert_called_with(
-        Kernel,
-        :system,
-        [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", filename, "my-app-db"],
-        returns: nil
-      ) do
-        e = assert_raise(RuntimeError) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+      stub_dumped_database_connection do
+        filename = "awesome-file.sql"
+        assert_called_with(
+          Kernel,
+          :system,
+          [{}, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", filename, "my-app-db"],
+          returns: nil
+        ) do
+          e = assert_raise(RuntimeError) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+          end
+          assert_match("failed to execute:", e.message)
         end
-        assert_match("failed to execute:", e.message)
       end
     end
 
+    def test_structure_dump_writes_the_search_path_of_the_database_being_dumped
+      dumped_config = nil
+      connection = FakeDumpedConnection.new([], "dumped_schema")
+
+      # The search path of whichever database ActiveRecord::Base happens to be
+      # connected to must not be the one written to the dump.
+      ActiveRecord::Base.lease_connection.stub(:schema_search_path, "ambient_schema") do
+        ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.stub(:new, ->(config) { dumped_config = config; connection }) do
+          Kernel.stub(:system, true) do
+            File.write(@filename, "statement\n")
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
+        end
+      end
+
+      assert_includes File.read(@filename), "SET search_path TO dumped_schema;"
+      assert_not_includes File.read(@filename), "ambient_schema"
+      assert_equal "my-app-db", dumped_config[:database]
+      assert_predicate connection, :disconnected?
+    end
+
     private
+      def stub_dumped_database_connection(data_sources: [], schema_search_path: "public", &block)
+        connection = FakeDumpedConnection.new(data_sources, schema_search_path)
+        ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.stub(:new, connection, &block)
+        assert_predicate connection, :disconnected?
+      end
+
       def with_dump_schemas(value, &block)
         old_dump_schemas = ActiveRecord.dump_schemas
         ActiveRecord.dump_schemas = value
