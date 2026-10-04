@@ -9,7 +9,7 @@ rescue LoadError
   raise
 end
 
-require "connection_pool"
+require "active_support/connection_pool"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/numeric/time"
@@ -113,6 +113,24 @@ module ActiveSupport
 
       attr_reader :redis
 
+      class ConnectionPoolAdapter # :nodoc:
+        attr_reader :error_classes
+
+        def initialize(pool, error_pool)
+          @pool = pool
+          @error_classes = %i[Error TimeoutError PoolShuttingDownError].filter_map do |name|
+            error_class = error_pool.class.const_get(name, false) if error_pool.class.const_defined?(name, false)
+            error_class if error_class.is_a?(Class) && error_class < Exception
+          end.freeze
+        end
+
+        def with(**options, &block)
+          @pool.with(**options, &block)
+        end
+        alias_method :then, :with
+      end
+      private_constant :ConnectionPoolAdapter
+
       # Creates a new Redis cache store.
       #
       # There are a few ways to provide the Redis client used by the cache:
@@ -163,16 +181,27 @@ module ActiveSupport
       def initialize(error_handler: DEFAULT_ERROR_HANDLER, **redis_options)
         universal_options = redis_options.extract!(*UNIVERSAL_OPTIONS)
         redis = redis_options[:redis]
+        candidate_pool = redis.wrapped_pool if redis.respond_to?(:wrapped_pool)
+        candidate_pool ||= redis
+        internal_pool = candidate_pool.is_a?(ConnectionPool)
+        pool_adapter = if !internal_pool && candidate_pool.respond_to?(:with) &&
+                          candidate_pool.respond_to?(:checkout) && candidate_pool.respond_to?(:checkin)
+          ConnectionPoolAdapter.new(redis, candidate_pool)
+        end
 
-        already_pool = redis.instance_of?(::ConnectionPool) ||
-                       (redis.respond_to?(:wrapped_pool) && redis.wrapped_pool.instance_of?(::ConnectionPool))
-
-        if !already_pool && pool_options = self.class.send(:retrieve_pool_options, redis_options)
-          @redis = ::ConnectionPool.new(**pool_options) { self.class.build_redis(**redis_options) }
+        if pool_adapter
+          @redis = pool_adapter
+        elsif !internal_pool && pool_options = self.class.send(:retrieve_pool_options, redis_options)
+          @redis = ConnectionPool.new(**pool_options) { self.class.build_redis(**redis_options) }
         else
           @redis = self.class.build_redis(**redis_options)
         end
 
+        @failsafe_errors = if pool_adapter
+          [*FAILSAFE_ERRORS, *pool_adapter.error_classes].freeze
+        else
+          FAILSAFE_ERRORS
+        end
         @error_handler = error_handler
 
         super(universal_options)
@@ -501,7 +530,7 @@ module ActiveSupport
 
         def failsafe(method, returning: nil)
           yield
-        rescue *FAILSAFE_ERRORS => error
+        rescue *@failsafe_errors => error
           @error_handler&.call(method: method, exception: error, returning: returning)
           returning
         end
