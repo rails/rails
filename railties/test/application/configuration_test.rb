@@ -4455,6 +4455,47 @@ module ApplicationTests
       assert_equal [ ActiveStorage::Analyzer::ImageAnalyzer::Vips ], ActiveStorage.analyzers
     end
 
+    test "ActiveStorage.verifier uses the 8.2 default salt and verifies messages signed with the legacy salt" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.2"'
+
+      app "development"
+
+      message = ActiveStorage.verifier.generate("key", purpose: :blob_key)
+      assert_equal "key", Rails.application.message_verifier("ActiveStorage salt").verified(message, purpose: :blob_key)
+
+      legacy_message = Rails.application.message_verifier("ActiveStorage").generate("key", purpose: :blob_key)
+      assert_equal "key", ActiveStorage.verifier.verified(legacy_message, purpose: :blob_key)
+    end
+
+    test "ActiveStorage.verifier uses the legacy salt with 8.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+
+      app "development"
+
+      message = ActiveStorage.verifier.generate("key", purpose: :blob_key)
+      assert_equal "key", Rails.application.message_verifier("ActiveStorage").verified(message, purpose: :blob_key)
+    end
+
+    test "ActiveStorage.verifier skips the legacy salt when key derivation rejects it" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.2"'
+      app_file "config/initializers/fips_key_generator.rb", <<-RUBY
+        ActiveSupport::KeyGenerator.prepend(Module.new do
+          def generate_key(salt, *)
+            raise OpenSSL::KDF::KDFError, "PKCS5_PBKDF2_HMAC: invalid salt length" if salt.bytesize < 16
+            super
+          end
+        end)
+      RUBY
+
+      app "development"
+
+      message = ActiveStorage.verifier.generate("key", purpose: :blob_key)
+      assert_equal "key", ActiveStorage.verifier.verified(message, purpose: :blob_key)
+    end
+
     test "ActiveStorage.draw_routes can be configured via config.active_storage.draw_routes" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do
@@ -5010,6 +5051,22 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActiveSupport::Cache::Store.raise_on_invalid_cache_expiration_time
+    end
+
+    test "config.action_dispatch.signed_cookie_salt is 'signed cookie' with 8.1 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.1"'
+      app "development"
+
+      assert_equal "signed cookie", app.env_config["action_dispatch.signed_cookie_salt"]
+    end
+
+    test "config.action_dispatch.signed_cookie_salt is 'signed cookie salt' with 8.2 defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.2"'
+      app "development"
+
+      assert_equal "signed cookie salt", app.env_config["action_dispatch.signed_cookie_salt"]
     end
 
     test "raise_on_invalid_time_zone_parse is false with 8.1 defaults" do

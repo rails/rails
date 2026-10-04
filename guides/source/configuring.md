@@ -65,12 +65,14 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.forgery_protection_verification_strategy`](#config-action-controller-forgery-protection-verification-strategy): `:header_only`
 - [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
+- [`config.action_dispatch.signed_cookie_salt`](#config-action-dispatch-signed-cookie-salt): `"signed cookie salt"`
 - [`config.action_dispatch.strict_accept_header`](#config-action-dispatch-strict-accept-header): `true`
 - [`config.action_view.erb_implementation`](#config-action-view-erb-implementation): `:herb`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
+- [`config.active_storage.verifier_salt`](#config-active-storage-verifier-salt): `"ActiveStorage salt"`
 
 #### Default Values for Target Version 8.1
 
@@ -2422,7 +2424,19 @@ to `'http authentication'`.
 #### `config.action_dispatch.signed_cookie_salt`
 
 Sets the signed cookies salt value.
-Defaults to `'signed cookie'`.
+
+When the salt differs from `"signed cookie"`, cookies signed with
+`"signed cookie"` are still accepted and are re-signed with the configured
+salt.
+
+The 8.2 default is longer because SP 800-132 requires salts to be at least 16
+bytes, and both OpenSSL 4+ and OpenSSL FIPS providers enforce this minimum by
+default. The fallback is skipped when OpenSSL rejects the 13-byte legacy salt.
+
+| Starting with version | The default value is   |
+| --------------------- | ---------------------- |
+| (original)            | `"signed cookie"`      |
+| 8.2                   | `"signed cookie salt"` |
 
 #### `config.action_dispatch.encrypted_cookie_salt`
 
@@ -3789,6 +3803,23 @@ The default is 5 minutes.
 [`ActiveStorage::Blob#service_url_for_direct_upload`]: https://api.rubyonrails.org/classes/ActiveStorage/Blob.html#method-i-service_url_for_direct_upload
 [`ActiveStorage::Preview#url`]: https://api.rubyonrails.org/classes/ActiveStorage/Preview.html#method-i-url
 [`ActiveStorage::Variant#url`]: https://api.rubyonrails.org/classes/ActiveStorage/Variant.html#method-i-url
+
+#### `config.active_storage.verifier_salt`
+
+Sets the salt used to derive the key of `ActiveStorage.verifier`, which signs
+blob keys, disk service tokens, and variation keys.
+
+When the salt differs from `"ActiveStorage"`, messages signed with
+`"ActiveStorage"` are still accepted.
+
+The 8.2 default is longer because SP 800-132 requires salts to be at least 16
+bytes, and both OpenSSL 4+ and OpenSSL FIPS providers enforce this minimum by
+default. The fallback is skipped when OpenSSL rejects the 13-byte legacy salt.
+
+| Starting with version | The default value is   |
+| --------------------- | ---------------------- |
+| (original)            | `"ActiveStorage"`      |
+| 8.2                   | `"ActiveStorage salt"` |
 
 #### `config.active_storage.urls_expire_in`
 

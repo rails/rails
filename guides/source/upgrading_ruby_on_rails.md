@@ -97,6 +97,21 @@ Rails.application.config.action_view.erb_implementation = :erubi
 
 Applications with a custom ERB implementation should set it through `config.action_view.erb_implementation`, since the framework default replaces an `ActionView::Base.erb_implementation` assignment made in an initializer.
 
+### Signed cookie and Active Storage salts are at least 16 bytes long
+
+With the 8.2 framework defaults, `config.action_dispatch.signed_cookie_salt` is `"signed cookie salt"` and `config.active_storage.verifier_salt` is `"ActiveStorage salt"`. The previous salts, `"signed cookie"` and `"ActiveStorage"`, are 13 bytes long.
+
+SP 800-132 requires salts to be at least 16 bytes, and both OpenSSL 4+ and OpenSSL FIPS providers enforce this minimum by default, unless the [`OSSL_KDF_PARAM_PKCS5`](https://docs.openssl.org/4.1/man7/EVP_KDF-PBKDF2/#supported-parameters) opt-out is set. Ruby's OpenSSL bindings don't provide that opt-out, so a longer default salt, which works everywhere, is the simpler fix. This is a cryptographic agility update, not a fix for a security vulnerability.
+
+Cookies and Active Storage messages signed with the previous salts are still accepted. Signed cookies are re-signed with the new salt when they are read. Servers that still use the previous salts can't read messages signed with the new salts, so during a rolling deploy or after a rollback those cookies and messages are rejected.
+
+To keep the previous salts:
+
+```ruby
+Rails.application.config.action_dispatch.signed_cookie_salt = "signed cookie"
+Rails.application.config.active_storage.verifier_salt = "ActiveStorage"
+```
+
 ### `:controller` and `:action` may no longer be used as dynamic route segments
 
 Routes such as the "default route" that older applications still carry in

@@ -655,6 +655,42 @@ class CookiesTest < ActionController::TestCase
     assert_equal 45, verifier.verify(@response.cookies["user_id"])
   end
 
+  def test_signed_cookie_with_custom_salt_reads_cookie_signed_with_legacy_salt
+    @request.env["action_dispatch.signed_cookie_salt"] = "signed cookie salt"
+
+    legacy_secret = key_generator.generate_key("signed cookie")
+    old_message = ActiveSupport::MessageVerifier.new(legacy_secret, digest: "SHA1", serializer: Marshal).generate(45)
+    @request.headers["Cookie"] = "user_id=#{old_message}"
+
+    get :get_signed_cookie
+    assert_equal 45, controller_cookies.signed[:user_id]
+
+    secret = key_generator.generate_key("signed cookie salt")
+    verifier = ActiveSupport::MessageVerifier.new(secret, digest: "SHA1", serializer: Marshal)
+    assert_equal 45, verifier.verify(@response.cookies["user_id"])
+  end
+
+  def test_signed_cookie_with_custom_salt_skips_legacy_salt_rejected_by_key_generator
+    @request.env["action_dispatch.signed_cookie_salt"] = "signed cookie salt"
+
+    legacy_secret = key_generator.generate_key("signed cookie")
+    old_message = ActiveSupport::MessageVerifier.new(legacy_secret, digest: "SHA1", serializer: Marshal).generate(45)
+
+    fips_key_generator = key_generator.dup
+    fips_key_generator.define_singleton_method(:generate_key) do |salt, *args|
+      raise OpenSSL::KDF::KDFError, "PKCS5_PBKDF2_HMAC: invalid salt length" if salt.bytesize < 16
+      super(salt, *args)
+    end
+    @request.env["action_dispatch.key_generator"] = fips_key_generator
+
+    @request.headers["Cookie"] = "user_id=#{old_message}"
+    get :get_signed_cookie
+    assert_nil controller_cookies.signed[:user_id]
+
+    get :set_signed_cookie
+    assert_equal 45, controller_cookies.signed[:user_id]
+  end
+
   def test_tampered_with_signed_cookie
     secret = key_generator.generate_key(signed_cookie_salt)
 

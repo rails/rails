@@ -194,7 +194,19 @@ module ActiveStorage
 
     initializer "active_storage.verifier" do
       config.after_initialize do |app|
-        ActiveStorage.verifier = app.message_verifier("ActiveStorage")
+        salt = app.config.active_storage.verifier_salt || "ActiveStorage"
+        ActiveStorage.verifier = app.message_verifier(salt)
+
+        # Keeps messages signed with the pre-8.2 default salt verifiable.
+        # SP 800-132 requires salts to be at least 16 bytes, and both OpenSSL 4+
+        # and OpenSSL FIPS providers enforce this minimum by default, so the
+        # fallback is skipped when key derivation rejects the 13-byte salt.
+        unless salt == "ActiveStorage"
+          begin
+            ActiveStorage.verifier.fall_back_to(app.message_verifier("ActiveStorage"))
+          rescue OpenSSL::KDF::KDFError
+          end
+        end
       end
     end
 

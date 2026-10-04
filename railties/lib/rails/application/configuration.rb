@@ -377,6 +377,7 @@ module Rails
 
           if respond_to?(:action_dispatch)
             action_dispatch.strict_accept_header = true
+            action_dispatch.signed_cookie_salt = "signed cookie salt"
             action_dispatch.default_headers = {
               "X-Frame-Options" => "SAMEORIGIN",
               "X-Content-Type-Options" => "nosniff",
@@ -396,6 +397,7 @@ module Rails
 
           if respond_to?(:active_storage)
             active_storage.analyze = :immediately
+            active_storage.verifier_salt = "ActiveStorage salt"
           end
 
           if respond_to?(:active_job)
