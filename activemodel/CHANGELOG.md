@@ -1,3 +1,10 @@
+*   Preserve fractional seconds when casting time strings with the fallback parser.
+
+    `ActiveModel::Type::Time` now correctly casts values such as `"1:34:56.789"`
+    without treating their fractional seconds as fractional microseconds.
+
+    *Andrii Furmanets*
+
 *   Treat `:except_on` as a callback option in `ActiveModel::Error`.
 
     Errors from validations using `:except_on` now match `errors.added?` queries
