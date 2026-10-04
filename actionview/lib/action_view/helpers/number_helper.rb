@@ -44,7 +44,7 @@ module ActionView
 
       # Delegates to ActiveSupport::NumberHelper#number_to_currency.
       #
-      #   number_to_currency("1234")               # => "$1234.00"
+      #   number_to_currency("1234")               # => "$1,234.00"
       #
       # Additionally, supports a +:raise+ option that will cause
       # InvalidNumberError to be raised if +number+ is not a valid number:
