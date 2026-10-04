@@ -1,3 +1,22 @@
+*   Allow `retry_on`'s `wait:` option to name an instance method on the job.
+
+    Any symbol other than `:polynomially_longer` is treated as a method name and
+    called on the job to compute the delay. Like a proc, the method receives the
+    number of executions so far (and optionally the error) as arguments.
+
+    ```ruby
+    class RemoteServiceJob < ApplicationJob
+      retry_on CustomAppException, wait: :custom_wait
+
+      private
+        def custom_wait(executions, error)
+          error.retry_after || executions * 2
+        end
+    end
+    ```
+
+    *Dennis Paagman*
+
 *   Fix continuation step cursors losing their type when a job is interrupted
     and resumed.
 
