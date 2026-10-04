@@ -141,14 +141,14 @@ Connection.prototype.events = {
         return this.close({allowReconnect: reconnect})
       case message_types.ping:
         return null
-      case message_types.confirmation:
-        this.subscriptions.confirmSubscription(identifier)
-        if (this.reconnectAttempted) {
-          this.reconnectAttempted = false
-          return this.subscriptions.notify(identifier, "connected", {reconnected: true})
-        } else {
-          return this.subscriptions.notify(identifier, "connected", {reconnected: false})
-        }
+      case message_types.confirmation: {
+        const confirmed = this.subscriptions.confirmSubscription(identifier)
+        if (confirmed.length === 0) { return }
+        const reconnected = this.reconnectAttempted
+        if (reconnected) { this.reconnectAttempted = false }
+        return confirmed.forEach((subscription) =>
+          this.subscriptions.notify(subscription, "connected", {reconnected}))
+      }
       case message_types.rejection:
         return this.subscriptions.reject(identifier)
       default:
