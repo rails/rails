@@ -170,6 +170,78 @@ class ExecutorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_reloader_does_not_report_rescue_responses
+    reloader = Class.new(ActiveSupport::Reloader) { self.check = -> { true } }
+
+    # Stack: Executor > ShowExceptions > Reloader > App (mimics real middleware order)
+    stack = Rack::Lint.new(
+      ActionDispatch::Executor.new(
+        ActionDispatch::ShowExceptions.new(
+          ActionDispatch::Reloader.new(
+            Rack::Lint.new(->(_env) { raise BusinessAsUsual }),
+            reloader,
+          ),
+          ->(env) { [418, { "content-type" => "text/plain" }, ["I'm a teapot"]] },
+        ),
+        executor,
+      )
+    )
+
+    env = Rack::MockRequest.env_for("", {})
+    env["action_dispatch.show_exceptions"] = :all
+    ActionDispatch::ExceptionWrapper.with(rescue_responses: { BusinessAsUsual.name => 418 }) do
+      assert_no_error_reported do
+        response = stack.call(env)
+        assert_equal 418, response[0]
+      end
+    end
+  end
+
+  def test_reloader_does_not_double_report_non_rescue_responses
+    reloader = Class.new(ActiveSupport::Reloader) { self.check = -> { true } }
+
+    # Stack: Executor > ShowExceptions > Reloader > App
+    stack = Rack::Lint.new(
+      ActionDispatch::Executor.new(
+        ActionDispatch::ShowExceptions.new(
+          ActionDispatch::Reloader.new(
+            Rack::Lint.new(->(_env) { raise RuntimeError, "boom" }),
+            reloader,
+          ),
+          ->(env) { [500, { "content-type" => "text/plain" }, ["Internal Server Error"]] },
+        ),
+        executor,
+      )
+    )
+
+    env = Rack::MockRequest.env_for("", {})
+    env["action_dispatch.show_exceptions"] = :all
+    reports = capture_error_reports(RuntimeError) do
+      stack.call(env)
+    end
+    assert_equal 1, reports.size
+  end
+
+  def test_reloader_reports_non_rescue_responses_without_show_exceptions
+    reloader = Class.new(ActiveSupport::Reloader) { self.check = -> { true } }
+
+    # Stack: Reloader > App (no ShowExceptions — custom stack backward compat)
+    stack = Rack::Lint.new(
+      ActionDispatch::Reloader.new(
+        Rack::Lint.new(->(_env) { raise RuntimeError, "boom" }),
+        reloader,
+      )
+    )
+
+    env = Rack::MockRequest.env_for("", {})
+    error_report = assert_error_reported(RuntimeError) do
+      assert_raises(RuntimeError) do
+        stack.call(env)
+      end
+    end
+    assert_equal "boom", error_report.error.message
+  end
+
   def test_complete_callbacks_are_called_on_rack_response_finished
     completed = false
     executor.to_complete { completed = true }
