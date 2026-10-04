@@ -82,6 +82,74 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     end
   end
 
+  test "on connection open confirms the negotiated extensions" do
+    connection = open_connection
+
+    connection.socket.stub(:extensions, ["pong"]) do
+      assert_called_with(connection.socket, :transmit, [{ type: "welcome", extensions: ["pong"] }]) do
+        connection.handle_open
+      end
+    end
+  end
+
+  test "beat sends pings" do
+    connection = open_connection
+    connection.handle_open
+
+    freeze_time do
+      connection.socket.stub(:unresponsive?, false) do
+        assert_not_called(connection.socket, :close!) do
+          assert_called_with(connection.socket, :transmit, [{ type: "ping", message: Time.now.to_i }]) do
+            connection.beat
+          end
+        end
+      end
+    end
+  end
+
+  test "beat closes an unresponsive connection" do
+    connection = open_connection
+    connection.handle_open
+
+    connection.socket.stub(:unresponsive?, true) do
+      assert_called(connection.socket, :close!) do
+        assert_called(connection.socket, :close) do
+          assert_called_with(connection.socket, :transmit, [{ type: "disconnect", reason: "no_pong", reconnect: true }]) do
+            connection.beat
+          end
+        end
+      end
+    end
+  end
+
+  test "on pong command" do
+    connection = open_connection
+    connection.handle_open
+
+    pongs = []
+    connection.stub(:handle_pong, ->(message) { pongs << message }) do
+      assert_not_called(connection.subscriptions, :execute_command) do
+        connection.handle_incoming("command" => "pong", "message" => 1234567890)
+      end
+    end
+
+    assert_equal [1234567890], pongs
+  end
+
+  test "works with a socket that does not support pongs" do
+    connection = Connection.new(ActionCable.server, TestSocket.new)
+
+    assert_called_with(connection.socket, :transmit, [{ type: "welcome" }]) do
+      connection.handle_open
+    end
+
+    freeze_time do
+      assert_called_with(connection.socket, :transmit, [{ type: "ping", message: Time.now.to_i }]) do
+        connection.beat
+      end
+    end
+  end
+
   test "#broadcast" do
     connection = Connection.new(ActionCable.server, ActionCable::Server::Socket.new(ActionCable.server, {}))
 
