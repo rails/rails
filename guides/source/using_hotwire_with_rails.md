@@ -9,9 +9,11 @@ guide covers Rails' integration with the Hotwire libraries *Turbo* and *Stimulus
 After reading this guide you will know:
 
 - The libraries that the Hotwire suite consists of.
-- What Turbo is, and how to use Turbo Drive, Frames, and Streams in Rails.
+- What Turbo is, and how to use Turbo Drive, Turbo Frames, and Turbo
+  Streams in Rails.
 - How Turbo Streams can be delivered over WebSockets with Action Cable.
-- How to emit Turbo Stream updates when Active Record models are created and updated.
+- How to emit Turbo Stream updates when Active Record models are created
+  and updated.
 - What Stimulus is and how to use it in Rails.
 
 --------------------------------------------------------------------------------
@@ -19,9 +21,9 @@ After reading this guide you will know:
 What is Hotwire?
 ----------------
 
-[Hotwire](https://hotwired.dev) is a suite of front-end libraries that enable us to
-build rich, high-fidelity, and modern web applications without the complexities
-of a single-page application.
+[Hotwire](https://hotwired.dev) is a suite of front-end libraries using which we
+can build rich, high-fidelity, and modern web applications without the
+complexities of a single-page application.
 
 Hotwire for the web consists of two libraries:
 
@@ -32,8 +34,8 @@ Hotwire for the web consists of two libraries:
 [Stimulus]: https://stimulus.hotwired.dev/
 
 Rails integrates with [Turbo][] and [Stimulus][] using the gems [`turbo-rails`][]
-and [`stimulus-rails`][]. They're installed by default in all new Rails apps. Install
-them in existing applications using:
+and [`stimulus-rails`][]. They're installed by default in all new Rails apps.
+Install them in existing applications using:
 
 ```bash
 $ bundle add turbo-rails
@@ -48,31 +50,34 @@ $ bin/rails stimulus:install
 [`turbo-rails`]: https://github.com/hotwired/turbo-rails
 [`stimulus-rails`]: https://github.com/hotwired/stimulus-rails
 
-NOTE: Hotwire also includes [Hotwire Native](https://native.hotwired.dev). This library is
-focused on native mobile applications and hence we won't cover it in this guide.
+NOTE: Hotwire also includes [Hotwire Native](https://native.hotwired.dev).
+This library is focused on native mobile applications and hence we won't cover
+it in this guide.
 
-This guide focuses on Rails' integration with Turbo and Stimulus, and not on the libraries
-themselves. If you're unfamiliar with them, read the [Hotwire docs](https://hotwired.dev)
-before continuing with this guide.
+This guide focuses on Rails' integration with Turbo and Stimulus, and not
+on the libraries themselves. If you're unfamiliar with them, read the
+[Hotwire docs](https://hotwired.dev) before continuing with this guide.
 
 Turbo
 -----
 
-Turbo is the nucleus of Hotwire. It consists of 3 parts: [Turbo Drive][], [Turbo Frames][],
-and [Turbo Streams][].
+Turbo is the nucleus of Hotwire. It consists of 3 parts: [Turbo Drive][],
+[Turbo Frames][], and [Turbo Streams][].
 
-**Turbo Drive** accelerates links and form submissions by making those requests using
-JavaScript and swapping out the document's `<body>` element, eliminating the need for full
-page loads.
+**Turbo Drive** accelerates links and form submissions by intercepting
+the relevant events and making those HTTP requests using JavaScript. It then
+swaps out the document's `<body>` element with the one from the response,
+eliminating the need for full page loads.
 
-**Turbo Frames** allow you to decompose pages into independent contexts where navigation and
-updates can occur without affecting the rest of the page.
+**Turbo Frames** allow you to decompose pages into independent contexts
+where navigation and updates can occur without affecting the rest of the page.
 
-**Turbo Streams** are used to make fine-grained, targeted updates to specific DOM elements using a range of actions such as: `prepend`, `replace`, `append`,
-and more!
+**Turbo Streams** are used to make fine-grained, targeted updates to specific
+DOM elements using a range of actions such as: `prepend`, `append`, `replace`,
+and more.
 
-See the [Turbo handbook](https://turbo.hotwired.dev/handbook/introduction) for more information on how
-Turbo works and its features.
+See the [Turbo handbook](https://turbo.hotwired.dev/handbook/introduction) for
+more  information on how Turbo works and its features.
 
 [Turbo Drive]: https://turbo.hotwired.dev/handbook/drive
 [Turbo Frames]: https://turbo.hotwired.dev/handbook/frames
@@ -89,7 +94,8 @@ See the [handbook](https://turbo.hotwired.dev/handbook/drive) and
 [reference](https://turbo.hotwired.dev/reference/drive) for further details.
 
 The [`turbo-rails` gem](https://github.com/hotwired/turbo-rails/tree/main/lib)
-provides helper methods which define `<meta>` tags to customize Turbo Drive on specific pages.
+provides helper methods which define `<meta>` tags to customize Turbo
+Drive on specific pages.
 
 All these helpers use [`provide :head`][provide_api] to render
 the `<meta>` tag so they can be used in your views — just ensure
@@ -133,11 +139,12 @@ for more details.
 
 ### Turbo Frames
 
-[Turbo Frames](https://turbo.hotwired.dev/handbook/frames) uses a `<turbo-frame>` element
-to isolate parts of a web page into its own navigation context, allowing it to be updated
-independently from the rest of the page.
+[Turbo Frames](https://turbo.hotwired.dev/handbook/frames) use a
+`<turbo-frame>` element to isolate parts of a web page into its own
+navigation context, allowing it to be updated independently from the
+rest of the page.
 
-Use the `turbo_frame_tag` helper to declare a Turbo Frame:
+Declare a Turbo Frame using `turbo_frame_tag`:
 
 ```erb
 <%= turbo_frame_tag dom_id(post) do %>
@@ -147,11 +154,12 @@ Use the `turbo_frame_tag` helper to declare a Turbo Frame:
 <% end %>
 ```
 
-All Turbo Frame elements require a unique HTML `id` attribute, which is used
-to match the content being replaced when requesting new pages from the server.
+All Turbo Frame elements require a unique HTML `id` attribute,
+which is used to match the content being replaced when requesting
+new pages from the server.
 
-An `id` based on one or more Active Record objects can be generated using
-the [`dom_id`][] or [`dom_target`][] methods.
+An `id` based on one or more Active Record objects can be generated
+using the [`dom_id`][] or [`dom_target`][] methods.
 
 [`dom_id`]: https://api.rubyonrails.org/classes/ActionView/RecordIdentifier.html#method-i-dom_id
 [`dom_target`]: https://api.rubyonrails.org/classes/ActionView/RecordIdentifier.html#method-i-dom_target
@@ -165,8 +173,8 @@ etc.) on specific DOM elements via a `<turbo-stream>` element. As soon as a
 and perform the action it defines.
 
 Turbo Streams can be delivered as an HTTP response with the MIME type
-`text/vnd.turbo-stream.html`, or using an alternative delivery mechanism
-such as WebSockets or
+`text/vnd.turbo-stream.html` (specified in the `content-type` HTTP header),
+or using an alternative delivery mechanism such as WebSockets or
 [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events).
 
 [`turbo-rails`][] provides helpers to create HTTP responses consisting of
@@ -208,7 +216,7 @@ end
 ```
 
 The above approach is useful when defining multiple Turbo Streams.
-Alternatively, you can also render a single Turbo Stream within your
+Alternatively, you can render a single Turbo Stream action within your
 controller:
 
 ```ruby
@@ -238,7 +246,8 @@ end
 
 Turbo allows the
 [creation of custom actions](https://turbo.hotwired.dev/handbook/streams#custom-actions)
-for Streams. Consider the below example to add a class to an element:
+for Streams. Consider the below example showing an action which adds a class to
+an element:
 
 ```js
 import { StreamActions } from "@hotwired/turbo"
@@ -342,8 +351,8 @@ page.
 WARNING: Do not add `'strict-dynamic'` to your CSP when using
 Turbo. Turbo uses the `createElement` method to insert received script tags
 into the document. `'strict-dynamic'` allows scripts inserted in
-this way regardless of their nonce. If an attacker managed to inject
-a script into a page that is navigated to using Turbo, the
+this way to execute regardless of their nonce. If an attacker managed
+to inject a script into a page that is navigated to using Turbo, the
 `'strict-dynamic'` directive in your CSP would allow it to run even
 without a nonce.
 
@@ -353,8 +362,10 @@ Further information can be found in the
 Turbo Streams over Action Cable
 -------------------------------
 
-To broadcast Turbo Streams using [Action Cable](action_cable_overview.html),
-you'll need the `@hotwired/turbo-rails` JavaScript package:
+Broadcasting Turbo Streams using [Action Cable](action_cable_overview.html)
+requires the `@hotwired/turbo-rails` JavaScript package. It's installed by
+default in all new Rails apps, and also when you run the
+`turbo:install` task provided by the [`turbo-rails`][] gem:
 
 ```bash
 $ bin/rails turbo:install
@@ -387,28 +398,28 @@ end
 ```
 
 Turbo Streams can be received over an Action Cable connection by subscribing to
-broadcasts on a _stream_ within a view:
+broadcasts on a _stream_. This can be done in any view template:
 
 ```erb
-<%= turbo_stream_from "notifications" %>
+<%= turbo_stream_from "feed" %>
 ```
 
-You can broadcast a Turbo Stream action to this stream using:
+Broadcast a Turbo Stream action to this stream using:
 
 ```ruby
 Turbo::StreamsChannel.broadcast_action_to(
-  "notifications",
+  "feed",
   action: :append,
-  target: "notifications_container",
-  partial: "notifications/alert",
-  locals: { notification: notification }
+  target: "feed_container",
+  partial: "feed/item",
+  locals: { feed_item: feed_item }
 )
 ```
 
 The above example broadcasts a Turbo Stream `append` action to the
-`notifications` stream. Clients subscribed to this stream will
+`feed` stream. Clients subscribed to this stream will
 receive the action and execute it, inserting the supplied partial into
-the DOM element with the `id` `notifications_container`.
+the DOM element with the `id` `feed_container`.
 
 ### Subscribing to Streams
 
@@ -416,8 +427,8 @@ the DOM element with the `id` `notifications_container`.
 Action Cable JavaScript library to create connections and subscribe to streams.
 
 ```erb
-<%# Subscribes to a stream named `"notifications"` %>
-<%= turbo_stream_from "notifications" %>
+<%# Subscribes to a stream named `feed` %>
+<%= turbo_stream_from "feed" %>
 ```
 
 will render
@@ -425,7 +436,7 @@ will render
 ```html
 <turbo-cable-stream-source
   channel="Turbo::StreamsChannel"
-  signed-stream-name="Im5vdGlmaWNhdGlvbnMi--3d5e05f70fe3ccf6a6554557ab1213a94da33d4f4064eca0dd4668a0ca971cf8">
+  signed-stream-name="ImZlZWQi--5ce5ecd99ed18f99c989afbb35bfae9f9caebdb8daa050c0ae57adf473be79cd">
 </turbo-cable-stream-source>
 ```
 
@@ -436,8 +447,8 @@ to ensure it can't be tampered with.
 #### Stream Names
 
 The stream name must be a string, but other types of objects are often utilized
-used to generate the final string used. Objects used to generate the
-stream name must respond to `to_gid_param` or `to_param`. Hence, they're
+to generate the final string used. Objects used in the generation of
+stream names must respond to `to_gid_param` or `to_param`. Hence, they're
 usually Active Record objects, strings, or symbols. These are
 called _broadcastables_ or _streamables_.
 
@@ -446,17 +457,17 @@ name. In this case, `to_gid_param` or `to_param` will be called on each
 object and then joined with a `:`.
 
 ```erb
-<%= turbo_stream_from @group, :chat %>
+<%= turbo_stream_from @product, :feed %>
 ```
 
 will subscribe to a stream named:
 
 ```ruby
-"Z2lkOi8vcmFpbHMtZ3VpZGVzLWRlbW8vR3JvdXAvMQ==:chat"
+"Z2lkOi8vcmFpbHMtZ3VpZGVzLWRlbW8vUHJvZHVjdC8x:feed"
 ```
 
-where `Z2lkOi8vcmFpbHMtZ3VpZGVzLWRlbW8vR3JvdXAvMQ==` is the Base64 encoded
-[Global ID](https://github.com/rails/globalid) of the `@room` object.
+where `Z2lkOi8vcmFpbHMtZ3VpZGVzLWRlbW8vUHJvZHVjdC8x` is the Base64 encoded
+[Global ID](https://github.com/rails/globalid) of the `@product` object.
 
 NOTE: The above stream name is presented in plain-text for demonstration —
 however, when it is rendered to HTML using `turbo_stream_from`, it will
@@ -490,20 +501,20 @@ Since there is no authorization check, a user could theoretically subscribe to
 another user's stream if they were able to acquire their signed stream name.
 Prevent this issue by creating your own channel and authorizing the user's
 permissions before allowing subscription. `turbo-rails` provides primitives
-we can include to verify stream names in our own channels.
+for verifying stream names in custom channels.
 
-Consider the below example where we have a `GroupsChannel` used to broadcast
-chat messages to a group's members:
+Consider the below example where we have a `ChatRoomChannel` used to broadcast
+messages to its members:
 
 ```ruby
-# app/channels/groups_channel.rb
+# app/channels/chat_room_channel.rb
 
-class GroupsChannel < ApplicationCable::Channel
+class ChatRoomChannel < ApplicationCable::Channel
   extend Turbo::Streams::StreamName
   include Turbo::Streams::StreamName::ClassMethods
 
   def subscribed
-    if group&.authorize(current_user)
+    if chat_room&.authorize(current_user)
       stream_from stream_name
     else
       reject
@@ -515,8 +526,8 @@ class GroupsChannel < ApplicationCable::Channel
       @stream_name ||= verified_stream_name_from_params
     end
 
-    def group
-      @group ||= GlobalID::Locator.locate(stream_name)
+    def chat_room
+      @chat_room ||= GlobalID::Locator.locate(stream_name)
     end
 end
 ```
@@ -525,31 +536,28 @@ Specify this channel in your view:
 
 ```erb
 <%# Renders:  %>
-<%# <turbo-cable-stream-source channel="GroupsChannel" signed-stream-name="..."></turbo-cable-stream-source> %>
-<%= turbo_stream_from @group, channel: "GroupsChannel" %>
+<%# <turbo-cable-stream-source channel="ChatRoomChannel" signed-stream-name="..."></turbo-cable-stream-source> %>
+<%= turbo_stream_from @chat_room, channel: "ChatRoomChannel" %>
 ```
 
-The `GroupsChannel` will now manage subscriptions, and will check the
-user's permissions before accepting the stream ensuring that messages
-are only delievered to authorized users.
+The `ChatRoomChannel` will now manage subscriptions, and will check the
+user's permissions before accepting the stream ensuring that broadcasts
+are only delivered to authorized users.
 
 ### Broadcasting to Streams
 
 `turbo-rails` provides a plethora of helper methods to broadcast stream actions.
 Under the hood, they all call `ActionCable.server.broadcast`.
 
-All the below examples are based on the concept of a _group chat_ introduced
-in the previous section.
-
 A generic broadcast operation:
 
 ```ruby#1,3
 Turbo::StreamsChannel.broadcast_action_to(
-  "groups",
+  @chat_room,
   action: :append,
-  target: "groups",
-  partial: "groups/group",
-  locals: { group: group }
+  target: "messages_container",
+  partial: "chat_rooms/message",
+  locals: { message: message }
 )
 ```
 
@@ -557,10 +565,10 @@ can be rewritten as an action specific broadcast operation:
 
 ```ruby#1
 Turbo::StreamsChannel.broadcast_append_to(
-  "groups",
-  target: "groups",
-  partial: "groups/group",
-  locals: { group: group }
+  @chat_room,
+  target: "messages_container",
+  partial: "chat_rooms/message",
+  locals: { message: message }
 )
 ```
 
@@ -568,15 +576,15 @@ You can also broadcast a Turbo Stream template containing multiple actions:
 
 ```ruby
 Turbo::StreamsChannel.broadcast_render_to(
-  "groups",
-  template: "groups/create"
+  @chat_room,
+  template: "chat_rooms/update"
 )
 ```
 
 or broadcast a `refresh` action which is useful for morphing:
 
 ```ruby
-Turbo::StreamsChannel.broadcast_refresh_to("groups")
+Turbo::StreamsChannel.broadcast_refresh_to(@chat_room)
 ```
 
 NOTE: Even when using custom channels to handle subscriptions to Turbo Streams,
@@ -585,22 +593,22 @@ actions. It will compute the correct stream name based on the supplied
 broadcastables.
 
 All the above examples render templates and broadcast them synchronously.
-They can be offloaded to a background job to improve performance by using the `
-later` version of the methods such as `broadcast_append_later_to`.
+They can be offloaded to a background job to improve performance by using the
+`later` version of the methods such as `broadcast_append_later_to`.
 
 ```ruby
 # enqueues a `Turbo::Streams::ActionBroadcastJob`
 Turbo::StreamsChannel.broadcast_append_later_to(
-  "groups",
-  target: "groups",
-  partial: "group/group",
-  locals: { group: group }
+  @chat_room,
+  target: "messages_container",
+  partial: "chat_rooms/message",
+  locals: { message: message }
 )
 
 # enqueues a `Turbo::Streams::BroadcastJob`
 Turbo::StreamsChannel.broadcast_render_later_to(
-  "groups",
-  template: "group/create"
+  @chat_room,
+  template: "chat_rooms/update"
 )
 ```
 
@@ -616,49 +624,49 @@ concern which is included in `ActiveRecord::Base`. It applies Rails conventions
 to succinctly broadcast model-specific Turbo Streams. Some example use cases are:
 
 ```ruby
-@group = Group.first
+@product = Product.first
 
 # These helpers implicitly broadcast Stream actions to
 # the model object's stream.
 #
-# <%= turbo_stream_from @group %>
+# <%= turbo_stream_from @product %>
 
 # Broadcasts an `append` action containing the partial
-# `groups/group` targeted at the DOM element with the id `"groups"`.
+# `products/product` targeted at the DOM element with the id `"products"`.
 # Conventionally, the target is pluralized model name, and the
-# partial is obtained by calling `@group.to_partial_path`.
-@group.broadcast_append
-@group.broadcast_append_later
+# partial is obtained by calling `@product.to_partial_path`.
+@product.broadcast_append
+@product.broadcast_append_later
 
 # The update action targets the specific model's HTML element.
-# In this case, it will target `"group_1"`, where `1` is the ID of
-# the `@group` record. The content will be the partial `groups/group`.
-# The target is generated using `ActionView::RecordIdentifier.dom_id(@group)`,
-# and the partial is obtained by calling `@group.to_partial_path`.
-@group.broadcast_update
-@group.broadcast_update_later
+# In this case, it will target `"product_1"`, where `1` is the ID of
+# the `@product` record. The content will be the partial `products/product`.
+# The target is generated using `ActionView::RecordIdentifier.dom_id(@product)`,
+# and the partial is obtained by calling `@product.to_partial_path`.
+@product.broadcast_update
+@product.broadcast_update_later
 
 # The remove action targets the specific model's HTML element.
-# In this case, it will target `group_1`, where `1` is the ID of
-# the `@group` record.
-@group.broadcast_remove
-@group.broadcast_remove_later
+# In this case, it will target `product_1`, where `1` is the ID of
+# the `@product` record.
+@product.broadcast_remove
+@product.broadcast_remove_later
 
 # The partial and target can be explicitly defined if required.
-@group.broadcast_append(target: "groups", partial: "groups/group", locals: { group: @group })
-@group.broadcast_append_later(target: "groups", partial: "groups/group", locals: { group: @group })
+@product.broadcast_append(target: "products", partial: "products/product", locals: { product: @product })
+@product.broadcast_append_later(target: "products", partial: "products/product", locals: { product: @product })
 
 # Broadcast to a specific stream
-@group.broadcast_append_to("groups_list")
-@group.broadcast_append_later_to("groups_list")
+@product.broadcast_append_to("product_feed")
+@product.broadcast_append_later_to("product_feed")
 ```
 
 Turbo Stream helpers provided by `Broadcastable` are most useful in lifecycle
 callbacks:
 
 ```ruby
-class Group < ApplicationRecord
-  after_create_commit -> { broadcast_append_later_to("groups") }
+class Product < ApplicationRecord
+  after_create_commit -> { broadcast_append_later_to("products") }
 end
 ```
 
@@ -667,17 +675,17 @@ update, and deletion to the supplied stream name (provided via a block or method
 signature).
 
 ```ruby
-class Group < ApplicationRecord
-  broadcasts_to ->(group) { group.model_name.plural }
+class Product < ApplicationRecord
+  broadcasts_to ->(product) { product.model_name.plural }
 end
 ```
 
 ```ruby
-class Group < ApplicationRecord
+class Product < ApplicationRecord
   broadcasts_to :stream_name
 
   def stream_name
-    "groups"
+    "products"
   end
 end
 ```
@@ -685,15 +693,15 @@ end
 The above snippets are equivalent to:
 
 ```ruby
-class Group < ApplicationRecord
+class Product < ApplicationRecord
   after_create_commit  -> {
-    broadcast_append_later_to("groups", target: "groups", partial: "groups/group")
+    broadcast_append_later_to("products", target: "products", partial: "products/product")
   }
   after_update_commit  -> {
-    broadcast_replace_later_to("groups", target: ActionView::RecordIdentifier.dom_id(self), partial: "groups/group")
+    broadcast_replace_later_to("products", target: ActionView::RecordIdentifier.dom_id(self), partial: "products/product")
   }
   after_destroy_commit -> {
-    broadcast_remove_to("groups", target: ActionView::RecordIdentifier.dom_id(self))
+    broadcast_remove_to("products", target: ActionView::RecordIdentifier.dom_id(self))
   }
 end
 ```
@@ -701,15 +709,15 @@ end
 You can customize the partial or template rendered in the broadcast using:
 
 ```ruby
-class Group < ApplicationRecord
-  # Renders `groups/_list_item.html.erb`
-  broadcasts_to -> { "groups" }, partial: "groups/list_item"
+class Product < ApplicationRecord
+  # Renders `products/_tile.html.erb`
+  broadcasts_to -> { "products" }, partial: "products/tile"
 
-  # Renders `groups/update.html.erb`
-  broadcasts_to -> { "groups" }, template: "groups/update"
+  # Renders `products/update.html.erb`
+  broadcasts_to -> { "products" }, template: "products/update"
 
-  # Renders `groups/update.turbo_stream.erb`
-  broadcasts_to -> { "groups" }, template: "groups/update", formats: :turbo_stream
+  # Renders `products/update.turbo_stream.erb`
+  broadcasts_to -> { "products" }, template: "products/update", formats: :turbo_stream
 end
 ```
 
@@ -718,7 +726,7 @@ name (the pluralized model name for `create`, and the model
 instance's stream for `update` and `remove`),
 
 ```ruby
-class Group < ApplicationRecord
+class Product < ApplicationRecord
   broadcasts
 end
 ```
@@ -726,12 +734,12 @@ end
 This can be expanded as:
 
 ```ruby
-class Group < ApplicationRecord
+class Product < ApplicationRecord
   after_create_commit  -> {
-    broadcast_append_later_to("groups", target: "groups", partial: "groups/group")
+    broadcast_append_later_to("products", target: "products", partial: "products/product")
   }
   after_update_commit  -> {
-    broadcast_replace_later_to(self, target: ActionView::RecordIdentifier.dom_id(self), partial: "groups/group")
+    broadcast_replace_later_to(self, target: ActionView::RecordIdentifier.dom_id(self), partial: "products/product")
   }
   after_destroy_commit -> {
     broadcast_remove_to(self, target: ActionView::RecordIdentifier.dom_id(self))
@@ -742,15 +750,15 @@ end
 Customize the rendered partial or template using:
 
 ```ruby
-class Group < ApplicationRecord
-  # Renders `groups/_list_item.html.erb`
-  broadcasts partial: "groups/list_item"
+class Product < ApplicationRecord
+  # Renders `products/_tile.html.erb`
+  broadcasts partial: "products/tile"
 
-  # Renders `groups/update.html.erb`
-  broadcasts template: "groups/update"
+  # Renders `products/update.html.erb`
+  broadcasts template: "products/update"
 
-  # Renders `groups/update.turbo_stream.erb`
-  broadcasts template: "groups/update", formats: :turbo_stream
+  # Renders `products/update.turbo_stream.erb`
+  broadcasts template: "products/update", formats: :turbo_stream
 end
 ```
 
@@ -758,7 +766,7 @@ When using morphing page refreshes, the `broadcasts_refreshes` declaration
 will trigger Turbo Streams with the action `refresh` whenever a model changes:
 
 ```ruby
-class Group < ApplicationRecord
+class Product < ApplicationRecord
   broadcasts_refreshes
 end
 ```
@@ -766,8 +774,8 @@ end
 This is equivalent to:
 
 ```ruby
-class Group < ApplicationRecord
-  after_create_commit  -> { broadcast_refresh_later_to("groups") }
+class Product < ApplicationRecord
+  after_create_commit  -> { broadcast_refresh_later_to("products") }
   after_update_commit  -> { broadcast_refresh_later_to(dom_id(self)) }
   after_destroy_commit -> { broadcast_refresh_to(dom_id(self)) }
 end
@@ -776,11 +784,11 @@ end
 You can specify a stream name using `broadcasts_refreshes_to`:
 
 ```ruby
-class Group < ApplicationRecord
+class Product < ApplicationRecord
   broadcasts_refreshes_to :stream_name
 
   def stream_name
-    "groups"
+    "products"
   end
 end
 ```
