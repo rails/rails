@@ -1,3 +1,20 @@
+*   Add `maintenance_database` option to the PostgreSQL adapter.
+
+    `bin/rails db:create`, `db:drop` and `db:purge` connect to the `postgres`
+    database by default. Some managed PostgreSQL services, such as
+    DigitalOcean, do not provide a `postgres` database, so these tasks fail
+    there. `maintenance_database` sets the database to connect to instead,
+    like the `--maintenance-db` option of `createdb`.
+
+    ```yaml
+    production:
+      adapter: postgresql
+      database: blog_production
+      maintenance_database: defaultdb
+    ```
+
+    *Yasuo Honda*
+
 *   Treat `false` as disabled for `idle_timeout`, `reaping_frequency` and `max_age`
     in `database.yml`.
 
