@@ -43,4 +43,38 @@ class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase
       ActiveStorage::Previewer::VideoPreviewer.new(blob).preview
     end
   end
+
+  test "previewing an audio-only video file does not raise and yields no preview" do
+    skip("ffprobe isn't available") if !ENV["BUILDKITE"] && !system("command", "-v", ActiveStorage.paths[:ffprobe] || "ffprobe")
+
+    blob = create_file_blob(filename: "video_without_video_stream.mp4", content_type: "video/mp4")
+
+    yielded = false
+    assert_nothing_raised do
+      ActiveStorage::Previewer::VideoPreviewer.new(blob).preview { yielded = true }
+    end
+    assert_not yielded
+  end
+
+  test "previewing respects configured ffprobe arguments" do
+    skip("ffprobe isn't available") if !ENV["BUILDKITE"] && !system("command", "-v", ActiveStorage.paths[:ffprobe] || "ffprobe")
+
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+
+    ActiveStorage.with(ffprobe_arguments: "-select_streams a") do
+      yielded = false
+      ActiveStorage::Previewer::VideoPreviewer.new(blob).preview { yielded = true }
+      assert_not yielded
+    end
+  end
+
+  test "previewing a video when ffprobe is unavailable" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+
+    ActiveStorage::Previewer::VideoPreviewer.stub(:ffprobe_path, File.join(__dir__, "nonexistent_ffprobe")) do
+      ActiveStorage::Previewer::VideoPreviewer.new(blob).preview do |attachable|
+        assert_equal "image/jpeg", attachable[:content_type]
+      end
+    end
+  end
 end
