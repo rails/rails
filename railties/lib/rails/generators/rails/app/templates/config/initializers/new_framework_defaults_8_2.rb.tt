@@ -53,7 +53,7 @@
 ###
 # Remove the default X-XSS-Protection headers since all browsers have removed support for it years ago.
 #++
-# config.action_dispatch.default_headers = {
+# Rails.application.config.action_dispatch.default_headers = {
 #   "X-Frame-Options" => "SAMEORIGIN",
 #   "X-Content-Type-Options" => "nosniff",
 #   "X-Permitted-Cross-Domain-Policies" => "none",
