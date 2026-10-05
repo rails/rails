@@ -1,3 +1,12 @@
+*   Fix `remove_index` and `index_exists?` in migrations declaring version 4.2
+    to honor `table_name_prefix` and `table_name_suffix`.
+
+    With a prefix set, `remove_index` raised `ArgumentError: Index name '...'
+    on table '...' does not exist`, and `index_exists?` returned `false` for an
+    index that exists.
+
+    *Carlos Daniel Pohlod*
+
 *   Fix `change_column` in migrations declaring version 5.1 or earlier to honor
     `table_name_prefix` and `table_name_suffix` for `:default`, `:null`, and
     `:comment` on PostgreSQL.

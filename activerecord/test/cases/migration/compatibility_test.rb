@@ -233,6 +233,49 @@ module ActiveRecord
         end
       end
 
+      def test_remove_index_honors_table_name_prefix_on_4_2
+        prefix_was = ActiveRecord::Base.table_name_prefix
+        ActiveRecord::Base.table_name_prefix = "p_"
+        begin
+          connection.create_table :p_testings, force: true do |t|
+            t.string :foo, index: true
+          end
+
+          migration = Class.new(ActiveRecord::Migration[4.2]) {
+            def up
+              remove_index :testings, :foo
+            end
+          }.new
+          migration.migrate(:up)
+
+          assert_empty connection.indexes(:p_testings)
+        ensure
+          ActiveRecord::Base.table_name_prefix = prefix_was
+          connection.drop_table :p_testings rescue nil
+        end
+      end
+
+      def test_index_exists_honors_table_name_prefix_on_4_2
+        prefix_was = ActiveRecord::Base.table_name_prefix
+        ActiveRecord::Base.table_name_prefix = "p_"
+        begin
+          connection.create_table :p_testings, force: true do |t|
+            t.string :foo, index: true
+          end
+
+          seen = nil
+          migration = Class.new(ActiveRecord::Migration[4.2]) {
+            define_method(:up) { seen = index_exists?(:testings, :foo) }
+          }.new
+          migration.migrate(:up)
+
+          assert seen, "index_exists? did not see the prefixed index"
+        ensure
+          ActiveRecord::Base.table_name_prefix = prefix_was
+          connection.drop_table :p_testings rescue nil
+        end
+      end
+
       def test_change_column_with_default_honors_table_name_prefix_on_5_1
         skip unless current_adapter?(:PostgreSQLAdapter)
 
