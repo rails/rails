@@ -18,6 +18,7 @@ your application. In Rails, database-backed model classes are derived from
 `ActiveRecord::Base`. [Active Record](activerecord/README.rdoc) allows you to present the data from
 database rows as objects and embellish these data objects with business logic
 methods.
+
 Although most Rails models are backed by a database, models can also be ordinary
 Ruby classes, or Ruby classes that implement a set of interfaces as provided by
 the [Active Model](activemodel/README.rdoc) module.
