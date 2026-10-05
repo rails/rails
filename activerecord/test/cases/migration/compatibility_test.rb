@@ -655,6 +655,31 @@ module ActiveRecord
         end
       end
 
+      def test_add_reference_on_6_0_keeps_explicit_type
+        create_migration = Class.new(ActiveRecord::Migration[6.0]) {
+          def version; 100 end
+          def migrate(x)
+            create_table :more_testings do |t|
+              t.string :test
+            end
+          end
+        }.new
+
+        migration = Class.new(ActiveRecord::Migration[6.0]) {
+          def version; 101 end
+          def migrate(x)
+            add_reference :more_testings, :testings, type: :bigint
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [create_migration, migration], @schema_migration, @internal_metadata).migrate
+
+        column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
+        assert_predicate(column, :bigint?)
+      ensure
+        connection.drop_table :more_testings rescue nil
+      end
+
       def test_add_reference_on_6_0
         create_migration = Class.new(ActiveRecord::Migration[6.0]) {
           def version; 100 end
