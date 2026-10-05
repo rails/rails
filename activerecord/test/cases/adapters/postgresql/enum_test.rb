@@ -46,6 +46,19 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     assert_not_predicate type, :binary?
   end
 
+  def test_type_for_column_resolves_enum_when_cast_type_is_missing
+    # The OID fallback must not mask other nil cast types: an enum should
+    # re-resolve to its enum type by name, not degrade to a string.
+    column = @connection.columns("postgresql_enums").find { |c| c.name == "current_mood" }
+    without_cast_type = ActiveRecord::ConnectionAdapters::PostgreSQL::Column.new(
+      "current_mood", nil, nil, column.sql_type_metadata, column.null
+    )
+    assert_nil without_cast_type.cast_type
+
+    type = PostgresqlEnum.send(:type_for_column, without_cast_type)
+    assert_instance_of ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Enum, type
+  end
+
   def test_enum_defaults
     @connection.add_column "postgresql_enums", "good_mood", :mood, default: "happy"
     PostgresqlEnum.reset_column_information
