@@ -1,3 +1,14 @@
+*   Fix `has_one_attached`/`has_many_attached` with `strict_loading: true` raising on attach.
+
+    Assigning an attachment through the constructor, or calling `attach` on a new record, raised
+    `ActiveRecord::StrictLoadingViolationError`. Active Storage's own bookkeeping reads and writes
+    of the underlying attachment/blob associations were tripping the strict-loading check meant for
+    application-level lazy loading.
+
+    Fixes #44946.
+
+    *Dan Sharp*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.
