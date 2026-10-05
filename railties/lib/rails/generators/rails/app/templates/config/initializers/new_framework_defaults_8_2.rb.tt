@@ -94,6 +94,26 @@
 #++
 # Rails.application.config.active_storage.analyze = :immediately
 
+###
+# Stop setting the `public-read` ACL on S3 uploads for services configured with `public: true`.
+#
+# Bucket owner enforced is now both the default and the recommended S3 object ownership setting,
+# and rejects any request that specifies an ACL. On such buckets, ActiveStorage's default behavior
+# of attaching a `public-read` ACL to every upload makes uploads fail outright. This implicit behavior
+# is dropped in favor of requiring the ACL to be set explicitly for buckets using AWS legacy configuration.
+#
+# For existing services already configured with `public: true` you must declare the `acl` option explicitly to keep
+# granting public read access:
+#
+#   amazon:
+#     service: S3
+#     # ...
+#     public: true
+#     upload:
+#       acl: "public-read"
+#++
+# Rails.application.config.active_storage.s3_public_uploads_via_acl = false
+
 # Controls whether the `rescue_from_handled.action_controller` notification payload includes the full backtrace.
 #
 # When set to `:array`, the full backtrace is included as an array of strings.
