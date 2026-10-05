@@ -1,3 +1,13 @@
+*   Honor `config.active_storage.streaming_max_ranges`.
+
+    The setting was documented but never read, so the number of ranges a byte
+    range request may contain stayed at 1. Applications that raised the limit
+    by assigning `ActiveStorage.streaming_max_ranges` directly should move the
+    value to `config.active_storage.streaming_max_ranges`, which now takes
+    precedence.
+
+    *Carlos Daniel Pohlod*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.
