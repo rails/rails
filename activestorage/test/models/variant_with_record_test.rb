@@ -54,6 +54,24 @@ class ActiveStorage::VariantWithRecordTest < ActiveSupport::TestCase
     assert_equal 67, image.height
   end
 
+  test "serving a variant processed with a Symbol format when looked up with a String format" do
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    # Variants defined in the model keep their format as a Symbol in memory.
+    assert_difference -> { blob.variant_records.count }, +1 do
+      blob.variant(resize_to_limit: [100, 100], format: :webp).processed
+    end
+
+    # When a variant is requested from a signed key, the message serializer can
+    # turn the format into a String (e.g. the JSON serializer). The String form
+    # must resolve to the same record instead of being re-processed.
+    variant = blob.variant(resize_to_limit: [100, 100], format: "webp")
+
+    assert_no_difference -> { blob.variant_records.count } do
+      variant.processed
+    end
+  end
+
   test "variant of a blob is on the same service" do
     blob = create_file_blob(filename: "racecar.jpg", service_name: "local_public")
     variant = blob.variant(resize_to_limit: [100, 100]).processed
