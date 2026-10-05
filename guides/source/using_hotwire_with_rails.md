@@ -158,16 +158,58 @@ the [`dom_id`][] or [`dom_target`][] methods.
 
 ### Turbo Streams
 
-[Turbo Streams](https://turbo.hotwired.dev/handbook/streams) are used to perform a series of
-actions (such as `create`, `append`, `remove`, `replace` etc.) on specific DOM elements via a
-`<turbo-stream>` element. As soon as a `<turbo-stream>` tag is added to the document, Turbo
-will execute it and perform the action it defines.
+[Turbo Streams](https://turbo.hotwired.dev/handbook/streams) are used to
+perform a series of actions (such as `append`, `update`, `remove`, `replace`
+etc.) on specific DOM elements via a `<turbo-stream>` element. As soon as a
+`<turbo-stream>` tag is added to the document, Turbo will execute it
+and perform the action it defines.
 
-[`turbo-rails`][] provides helpers to create HTTP responses consisting of Turbo Streams, as
-well as an integration with [Action Cable](action_cable_overview.html) to broadcast Turbo Streams
-from the server.
+Turbo Streams can be delivered as an HTTP response with the MIME type
+`text/vnd.turbo-stream.html`, or using an alternative delivery mechanism
+such as WebSockets or
+[server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events).
 
-Render a Turbo Stream in your controller using:
+[`turbo-rails`][] provides helpers to create HTTP responses consisting of
+Turbo Streams, as well as an integration with
+[Action Cable](action_cable_overview.html) to broadcast Turbo Streams
+from the server over WebSockets.
+
+Here's an example showing how to render an ERB template containing Turbo
+Streams:
+
+```erb
+<%# app/views/posts/create.turbo_stream.erb %>
+
+<%= turbo_stream.prepend("posts", partial: "posts/post", locals: { post: @post }) %>
+<%= turbo_stream.replace("posts_title") do %>
+  <%= Post.count %> posts
+<% end %>
+```
+
+```ruby
+# app/controllers/posts_controller.rb
+
+# ...
+
+def create
+  @post = Post.new(post_params)
+
+  respond_to do |format|
+    if @post.save
+      format.turbo_stream
+      format.html { redirect_to @post, status: :see_other }
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+end
+
+# ...
+```
+
+The above approach is useful when defining multiple Turbo Streams.
+Alternatively, you can also render a single Turbo Stream within your
+controller:
 
 ```ruby
 def create
@@ -184,38 +226,12 @@ def create
         # </turbo-stream>
         render turbo_stream: turbo_stream.prepend("posts", helpers.tag.h2(@post.title))
       end
-      format.html
+      format.html { redirect_to @post, status: :see_other }
     else
-      format.html { render :new, status: :unprocessable_entity }
+      render :new, status: :unprocessable_entity
     end
   end
 end
-```
-
-You can use an ERB template as well. This is useful when defining multiple Turbo Streams:
-
-```ruby
-def create
-  @post = Post.new(post_params)
-
-  respond_to do |format|
-    if @post.save
-      format.turbo_stream
-      format.html
-    else
-      format.html { render :new, status: :unprocessable_entity }
-    end
-  end
-end
-```
-
-```erb
-<%# create.turbo_stream.erb %>
-
-<%= turbo_stream.prepend("posts", partial: "posts/post", locals: { post: @post }) %>
-<%= turbo_stream.replace("posts_title") do %>
-  <%= Post.count %> posts
-<% end %>
 ```
 
 #### Custom Stream Actions
@@ -245,9 +261,9 @@ render it. It can be rendered using the generic tag helper:
 Alternatively, you can define your own custom helper:
 
 ```ruby
-# app/helpers/turbo_stream_actions_helper.rb
+# config/initializers/custom_turbo_streams.rb
 
-module TurboStreamActionsHelper
+ActiveSupport.on_load :turbo_streams_tag_builder do
   def add_class(target, class_name)
     turbo_stream_action_tag(
       :add_class,
@@ -256,8 +272,6 @@ module TurboStreamActionsHelper
     )
   end
 end
-
-Turbo::Streams::TagBuilder.prepend(TurboStreamActionsHelper)
 ```
 
 The custom action can now be rendered with a more readable syntax:
@@ -933,7 +947,7 @@ class PostsController < ApplicationController
 
   private
     def post_params
-      params.require(:post).permit(:title, :body, tags_attributes: [:content, :_destroy])
+      params.expect(post: [:title, :body, tags_attributes: [:content, :_destroy]])
     end
 end
 ```
@@ -952,12 +966,12 @@ Stimulus controller will use to add the text field:
   <%# ... %>
 
   <template>
-    <%= form.fields_for :tags, @post.tags.build, child_index: "NEW_RECORD" do |tag| %>
+    <%= form.fields_for :tags, @post.tags.build, child_index: "NEW_RECORD" do |tag_fields| %>
       <fieldset data-new-record="true">
-        <%= tag.text_field :content %>
-        <%= tag.hidden_field :_destroy %>
+        <%= tag_fields.text_field :content %>
+        <%= tag_fields.hidden_field :_destroy %>
 
-        <%= tag.button type: :button do %>
+        <%= tag_fields.button type: :button do %>
           Remove
         <% end %>
       </fieldset>
