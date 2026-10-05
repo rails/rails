@@ -45,6 +45,7 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
     assert_equal([
       :avatar,
       :avatar_with_conditional_preprocessed,
+      :avatar_with_conditional_process,
       :avatar_with_immediate_analysis,
       :avatar_with_immediate_variants,
       :avatar_with_later_analysis,
@@ -79,6 +80,7 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
       :has_one_attached,
       :has_one_attached,
       :has_one_attached,
+      :has_one_attached,
       :has_many_attached,
       :has_many_attached,
       :has_many_attached,
@@ -93,6 +95,7 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
       :has_many_attached
     ], reflections.collect(&:macro))
     assert_equal([
+      :purge_later,
       :purge_later,
       :purge_later,
       :purge_later,

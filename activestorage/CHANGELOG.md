@@ -1,3 +1,20 @@
+*   Decide the `:process` option of a variant per record.
+
+    Along with `:immediately`, `:later`, and `:lazily`, `:process` now accepts a proc or the name of
+    a method on the record. Either one is called with the record and returns one of the three modes,
+    so an attachment can be preprocessed for the records that need it and stay lazy for the others.
+
+    ```ruby
+    class User < ApplicationRecord
+      has_one_attached :avatar do |attachable|
+        attachable.variant :thumb, resize_to_limit: [100, 100],
+          process: ->(user) { user.public_profile? ? :later : :lazily }
+      end
+    end
+    ```
+
+    *Chedli Bourguiba*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.
