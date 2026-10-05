@@ -1,3 +1,16 @@
+*   Add `config.active_storage.default_variant_format` to configure the format
+    of variants generated from images that are not web images, such as TIFF,
+    BMP, or HEIC files. Variants of web images keep the format of the original.
+
+    The default is `:png`. Applications loading the 8.2 framework defaults use
+    `:webp`, which produces smaller variants that all major browsers support.
+
+    ```ruby
+    config.active_storage.default_variant_format = :webp
+    ```
+
+    *Carlos Daniel Pohlod* and *Daniel Lopez*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.

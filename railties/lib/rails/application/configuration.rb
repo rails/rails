@@ -396,6 +396,7 @@ module Rails
 
           if respond_to?(:active_storage)
             active_storage.analyze = :immediately
+            active_storage.default_variant_format = :webp
           end
 
           if respond_to?(:active_job)
