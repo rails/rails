@@ -170,8 +170,10 @@ module ActiveStorage
       end.base64digest
     end
 
+    # The class chosen at boot. OpenSSL MD5 raises when FIPS disables it, and
+    # +ActiveStorage.checksum_implementation+ falls back to +Digest::MD5+.
     def checksum_implementation(**)
-      OpenSSL::Digest::MD5
+      ActiveStorage.checksum_implementation
     end
 
     private

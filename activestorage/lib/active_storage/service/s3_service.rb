@@ -125,15 +125,18 @@ module ActiveStorage
     end
 
     def checksum_implementation(check_digest_type: nil, **)
-      return default_digest_class unless check_digest_type && check_digest_type != default_digest_type
-      digest_to_class(check_digest_type)
+      type = check_digest_type || default_digest_type
+      return ActiveStorage.checksum_implementation if type == :md5
+      return default_digest_class if type == default_digest_type
+
+      digest_to_class(type)
     end
 
     private
       def digest_to_class(check_digest_type)
         case check_digest_type
         when :md5
-          OpenSSL::Digest::MD5
+          ActiveStorage.checksum_implementation
         when :sha256
           OpenSSL::Digest::SHA256
         else
