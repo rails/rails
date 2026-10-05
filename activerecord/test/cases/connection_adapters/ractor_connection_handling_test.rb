@@ -718,9 +718,8 @@ module ActiveRecord
 
           private
             def install_shareable_notifications_snapshot
-              ActiveSupport::Notifications.notifier_subscriptions = Ractor.make_shareable(
-                { string_subscribers: {}, other_subscribers: [] }, copy: true
-              )
+              ActiveSupport::Notifications.notifier_subscriptions =
+                ActiveSupport::Notifications::Fanout::Registry.new
             end
 
             def driver_error_namespace
