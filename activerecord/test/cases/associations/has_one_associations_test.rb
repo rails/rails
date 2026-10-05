@@ -1012,6 +1012,18 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_replacing_an_undestroyable_child_raises_record_not_destroyed
+    author = DestroyableAuthor.create!(name: "Test")
+    original_child = UndestroyableBook.create!(author: author)
+
+    error = assert_raises(ActiveRecord::RecordNotDestroyed) do
+      author.book = UndestroyableBook.create!
+    end
+
+    assert_equal original_child, error.record
+    assert_equal [original_child], UndestroyableBook.where(author_id: author.id).to_a
+  end
+
   class SpecialCar < ActiveRecord::Base
     self.table_name = "cars"
     has_one :special_bulb, inverse_of: :car, dependent: :destroy, class_name: "SpecialBulb", foreign_key: "car_id"
