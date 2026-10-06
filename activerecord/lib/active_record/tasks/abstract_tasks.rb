@@ -52,6 +52,14 @@ module ActiveRecord
           configuration_hash.merge(database: nil)
         end
 
+        # Returns the first of +commands+ that is on the PATH, or the last one
+        # when none of them are, so a missing client is still reported by name.
+        def find_cmd(*commands)
+          commands.find do |command|
+            system("/bin/sh", "-c", "command -v #{command}", out: File::NULL, err: File::NULL)
+          end || commands.last
+        end
+
         def run_cmd(cmd, *args, **opts)
           fail run_cmd_error(cmd, args, opts) unless Kernel.system(cmd, *args, opts)
         end

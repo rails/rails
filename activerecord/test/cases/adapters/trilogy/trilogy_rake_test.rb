@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "active_record/tasks/database_tasks"
+require "support/client_binaries_helper"
 
 module ActiveRecord
   class TrilogyDBCreateTest < ActiveRecord::TestCase
@@ -259,11 +260,18 @@ module ActiveRecord
   end
 
   class MySQLStructureDumpTest < ActiveRecord::TestCase
+    include ClientBinariesHelper
+
     def setup
       @configuration = {
         "adapter"  => "trilogy",
         "database" => "test-db"
       }
+      stub_path
+    end
+
+    def teardown
+      restore_path
     end
 
     def test_structure_dump
@@ -280,6 +288,7 @@ module ActiveRecord
 
     # Runs a real dump, since structure_load relies on it disabling foreign key checks.
     def test_structure_dump_output_disables_foreign_key_checks
+      restore_path
       # mysqldump from MySQL 8.0+ queries information_schema.COLUMN_STATISTICS,
       # which MariaDB does not have.
       if ActiveRecord::Base.lease_connection.mariadb? && !`mysqldump --version`.include?("MariaDB")
@@ -294,6 +303,32 @@ module ActiveRecord
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(config, filename)
 
         assert_match(/FOREIGN_KEY_CHECKS\s*=\s*0/, File.read(filename))
+      end
+    end
+
+    def test_structure_dump_prefers_mariadb_dump
+      put_on_path("mariadb-dump", "mysqldump")
+      filename = "awesome-file.sql"
+      assert_called_with(
+        Kernel,
+        :system,
+        ["mariadb-dump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
+        returns: true
+      ) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+      end
+    end
+
+    def test_structure_dump_falls_back_to_mysqldump
+      put_on_path("mysqldump")
+      filename = "awesome-file.sql"
+      assert_called_with(
+        Kernel,
+        :system,
+        ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db", {}],
+        returns: true
+      ) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
       end
     end
 
@@ -432,6 +467,8 @@ module ActiveRecord
   end
 
   class MySQLStructureLoadTest < ActiveRecord::TestCase
+    include ClientBinariesHelper
+
     self.use_transactional_tests = false
 
     def setup
@@ -439,6 +476,11 @@ module ActiveRecord
         "adapter"  => "trilogy",
         "database" => "test-db"
       }
+      stub_path
+    end
+
+    def teardown
+      restore_path
     end
 
     def test_structure_load
@@ -452,7 +494,28 @@ module ActiveRecord
       end
     end
 
+    def test_structure_load_prefers_mariadb
+      put_on_path("mariadb", "mysql")
+      filename = "awesome-file.sql"
+      expected_command = ["mariadb", "--database", "test-db", { in: filename }]
+
+      assert_called_with(Kernel, :system, expected_command, returns: true) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+      end
+    end
+
+    def test_structure_load_falls_back_to_mysql
+      put_on_path("mysql")
+      filename = "awesome-file.sql"
+      expected_command = ["mysql", "--database", "test-db", { in: filename }]
+
+      assert_called_with(Kernel, :system, expected_command, returns: true) do
+        ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+      end
+    end
+
     def test_structure_load_reads_the_file_from_standard_input
+      restore_path
       filename = "awesome-file.sql"
       config = ARTest.config["connections"]["trilogy"]["arunit"]
       File.write(filename, "CREATE TABLE structure_load_test (id int);\n")

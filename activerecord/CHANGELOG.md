@@ -1,3 +1,11 @@
+*   Use `mariadb-dump` and `mariadb` for MySQL structure dumps and loads when
+    they are on the `PATH`, falling back to `mysqldump` and `mysql`.
+
+    MariaDB 11 deprecates the old names and prints a warning on every run, and
+    the official `mariadb` Docker image no longer ships them.
+
+    *Yashaswi Kumar*
+
 *   Fix `change_column` in migrations declaring version 5.1 or earlier to honor
     `table_name_prefix` and `table_name_suffix` for `:default`, `:null`, and
     `:comment` on PostgreSQL.
