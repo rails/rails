@@ -133,6 +133,22 @@ module ActiveSupport
       end
     end
 
+    test "#notify emits to the subscribers whose filter passes, in subscription order" do
+      reporter = EventReporter.new(raise_on_error: true)
+      emitted = []
+      subscriber = ->(id) { Class.new { define_method(:emit) { |event| emitted << [id, event[:name]] } }.new }
+
+      reporter.subscribe(subscriber.(:first)) { |event| event[:name].start_with?("user_") }
+      reporter.subscribe(subscriber.(:second))
+      reporter.subscribe(subscriber.(:never)) { nil }
+      reporter.subscribe(subscriber.(:third)) { |event| event[:name] == "user_event" }
+
+      reporter.notify(:user_event)
+      reporter.notify(:test_event)
+
+      assert_equal [[:first, "user_event"], [:second, "user_event"], [:third, "user_event"], [:second, "test_event"]], emitted
+    end
+
     test "#notify with name and hash payload" do
       assert_called_with(@subscriber, :emit, [
         event_matcher(name: "test_event", payload: { key: "value" })
@@ -155,6 +171,12 @@ module ActiveSupport
       ]) do
         @reporter.notify(:test_event, { "key" => "value" })
       end
+    end
+
+    test "#notify symbolizes keys in kwargs" do
+      @reporter.notify(:test_event, **{ "key" => "value", other: 1 })
+
+      assert_equal({ key: "value", other: 1 }, @subscriber.events.last[:payload])
     end
 
     test "#notify with hash payload and kwargs raises" do

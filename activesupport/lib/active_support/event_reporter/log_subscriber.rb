@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/class/attribute"
+require "active_support/core_ext/enumerable"
 
 module ActiveSupport
   class EventReporter
@@ -9,6 +10,7 @@ module ActiveSupport
       include ColorizeLogging
 
       LOG_LEVELS = [:debug, :info, :warn, :error].freeze
+      LOG_LEVEL_PREDICATES = LOG_LEVELS.index_with { |level| :"#{level}?" }.freeze # :nodoc:
 
       class << self
         def event_log_level(method_name, level)
@@ -54,10 +56,10 @@ module ActiveSupport
         end
 
         def log_level_satisfied?(event_method)
-          event_log_level = log_levels[event_method]
-          return false unless LOG_LEVELS.include?(event_log_level)
+          predicate = LOG_LEVEL_PREDICATES[log_levels[event_method]]
+          return false unless predicate
 
-          logger.public_send("#{event_log_level}?")
+          logger.public_send(predicate)
         end
     end
   end
