@@ -407,11 +407,16 @@ module ActionText
       # closing backtick string arrives -- Markdown turns the line endings inside a code span
       # into spaces anyway, so collapse them and the span always closes. And a lone backtick
       # followed by whitespace does not open a span in every renderer (kramdown refuses it), so
-      # widen the delimiter when the content leads with whitespace. In a table row, kramdown
-      # rebuilds a span that leads with whitespace with a single backtick, so strip it there.
+      # widen the delimiter when the content leads with whitespace.
+      #
+      # In a table row, kramdown rebuilds a span that leads with whitespace with a single
+      # backtick, so strip the whitespace. GFM ends a table cell at any unescaped pipe, even one
+      # inside a code span, so escape pipes there.
       def inline_code(content, node)
         content = flatten_to_inline(content)
-        content = content.strip if node.ancestors.any? { |ancestor| ancestor.name == "tr" }
+        if node.ancestors.any? { |ancestor| ancestor.name == "tr" }
+          content = content.strip.gsub("|", "\\|")
+        end
         max_run = content.scan(/`+/).map(&:length).max || 0
         fence = "`" * [content.match?(/\A\s/) ? 2 : 1, max_run + 1].max
         if content.start_with?("`") || content.end_with?("`")

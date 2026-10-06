@@ -507,6 +507,47 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<code> inside a table cell escapes pipes" do
+    assert_converted_to(
+      "| `x\\|[click](javascript:alert(1))` |",
+      "<table><tr><td><code>x|[click](javascript:alert(1))</code></td></tr></table>"
+    )
+  end
+
+  test "<code> inside a table header cell escapes pipes" do
+    assert_converted_to(
+      "| `x\\|[click](javascript:alert(1))` |\n| --- |",
+      "<table><tr><th><code>x|[click](javascript:alert(1))</code></th></tr></table>"
+    )
+  end
+
+  test "<pre> inside a table cell escapes pipes" do
+    assert_converted_to(
+      "| `x\\|[click](javascript:alert(1))` |",
+      "<table><tr><td><pre>x|[click](javascript:alert(1))</pre></td></tr></table>"
+    )
+  end
+
+  test "<code> inside a link in a table cell escapes pipes" do
+    assert_converted_to(
+      "| [`x\\|[click](javascript:alert(1))`](https://example.com) |",
+      "<table><tr><td><a href=\"https://example.com\"><code>x|[click](javascript:alert(1))</code></a></td></tr></table>"
+    )
+  end
+
+  test "<code> in a table row from an HTML4-parsed fragment escapes pipes" do
+    fragment = Nokogiri::HTML4.fragment("<table><tr><div><code>x|[click](javascript:alert(1))</code></div></tr></table>")
+    assert_equal "| `x\\|[click](javascript:alert(1))` |", ActionText::MarkdownConversion.node_to_markdown(fragment)
+  end
+
+  test "<code> inside a table cell escapes leading, trailing, and repeated pipes" do
+    assert_converted_to("| `\\|x\\|\\|y\\|` |", "<table><tr><td><code>|x||y|</code></td></tr></table>")
+  end
+
+  test "<code> containing a pipe outside a table does not escape it" do
+    assert_converted_to("`x|y`", "<code>x|y</code>")
+  end
+
   test "adjacent <code> elements are separated by a space" do
     assert_converted_to(
       "Run `` echo `whoami` `` `[see docs](https://evil-phish.example/login)` for details.",
