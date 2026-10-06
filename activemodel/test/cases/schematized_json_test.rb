@@ -16,9 +16,6 @@ class Account
   attribute :flags_with_defaults, default: { "staff" => false, "early_adopter" => true }
   has_json :flags_with_defaults, staff: true, early_adopter: false
 
-  attribute :broken
-  has_json :broken, creation: :datetime, nesting: {}
-
   attribute :mutable_defaults
   has_json :mutable_defaults, greeting: +"Hello!"
 end
@@ -103,13 +100,11 @@ class SchematizedJsonTest < ActiveModel::TestCase
     end
   end
 
-  test "only standard json types are acceptable schema types" do
-    assert_raises(ArgumentError) do
-      @account.broken.creation = DateTime.now
-    end
-
-    assert_raises(ArgumentError) do
-      @account.broken.nesting = { not: :valid }
+  test "invalid schema types are rejected when declared" do
+    [{ creation: :datetime }, { nesting: {} }, { time: Time.now }].each do |schema|
+      assert_raises(ArgumentError, "expected #{schema} to be rejected") do
+        Class.new(Account) { attribute :broken; has_json :broken, **schema }
+      end
     end
   end
 end
