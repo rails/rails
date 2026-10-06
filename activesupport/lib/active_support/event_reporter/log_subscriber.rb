@@ -48,6 +48,23 @@ module ActiveSupport
         self.class.logger
       end
 
+      # Returns the logger level predicates (e.g. +:info?+) that #emit would check
+      # for events named <tt>"#{namespace}.*"</tt> passing +filter+, or +nil+ if
+      # that cannot be determined without emitting the event.
+      def log_level_predicates_for(namespace, filter) # :nodoc:
+        return unless method(:emit).owner == LogSubscriber && method(:log_level_satisfied?).owner == LogSubscriber
+
+        predicates = log_levels.filter_map do |event_method, level|
+          next unless LOG_LEVELS.include?(level)
+          next if filter && !filter.call({ name: "#{namespace}.#{event_method}" })
+
+          :"#{level}?"
+        end
+        predicates.uniq.freeze
+      rescue StandardError
+        nil
+      end
+
       private
         def namespace
           self.class.namespace

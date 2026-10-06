@@ -32,5 +32,25 @@ module Rails
         assert_includes output, "This is a deprecation warning"
       end
     end
+
+    def test_built_in_subscribers_declare_the_namespace_they_are_attached_to
+      %w[
+        action_controller action_dispatch action_mailer action_view
+        active_job active_record active_storage
+      ].each { |framework| require "#{framework}/structured_event_subscriber" }
+
+      subscribers = ActiveSupport::Subscriber.subscribers.grep(ActiveSupport::StructuredEventSubscriber)
+      namespaces = subscribers.filter_map { |subscriber| subscriber.class.event_namespace }
+
+      assert_equal %w[action_controller action_dispatch action_mailer action_view active_job active_record active_storage rails], namespaces.sort
+      subscribers.each do |subscriber|
+        next unless namespace = subscriber.class.event_namespace
+
+        assert_not_empty subscriber.patterns
+        subscriber.patterns.each_key do |pattern|
+          assert pattern.end_with?(".#{namespace}"), "#{subscriber.class} is attached to #{pattern}, outside of #{namespace}"
+        end
+      end
+    end
   end
 end

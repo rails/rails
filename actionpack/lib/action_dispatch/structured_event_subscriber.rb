@@ -2,6 +2,8 @@
 
 module ActionDispatch
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
+    self.event_namespace = "action_dispatch"
+
     def redirect(event)
       payload = event.payload
       status = payload[:status]

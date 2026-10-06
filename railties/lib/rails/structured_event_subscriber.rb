@@ -4,6 +4,8 @@ require "active_support/structured_event_subscriber"
 
 module Rails
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
+    self.event_namespace = "rails"
+
     def deprecation(event)
       emit_event("rails.deprecation",
         message: event.payload[:message],

@@ -97,6 +97,35 @@ class ActiveSupport::EventReporter::LogSubscriberTest < ActiveSupport::TestCase
     end
   end
 
+  test "#log_level_predicates_for returns the predicates of events passing the filter" do
+    filter = MyLogSubscriber.subscription_filter
+
+    assert_equal [:debug?, :info?, :error?], @log_subscriber.log_level_predicates_for("test", filter)
+    assert_equal [], @log_subscriber.log_level_predicates_for("other", filter)
+    assert_equal [:debug?, :info?, :error?], @log_subscriber.log_level_predicates_for("other", nil)
+    assert_predicate @log_subscriber.log_level_predicates_for("test", filter), :frozen?
+  end
+
+  test "#log_level_predicates_for skips levels that are never logged" do
+    subclass = Class.new(MyLogSubscriber) do
+      event_log_level :info_only, :warn
+    end
+
+    assert_equal [:debug?, :error?], subclass.new.log_level_predicates_for("test", nil)
+  end
+
+  test "#log_level_predicates_for is nil when emitting is customized" do
+    emit_override = Class.new(MyLogSubscriber) { def emit(event) = super }
+    level_override = Class.new(MyLogSubscriber) { private def log_level_satisfied?(event_method) = true }
+
+    assert_nil emit_override.new.log_level_predicates_for("test", nil)
+    assert_nil level_override.new.log_level_predicates_for("test", nil)
+  end
+
+  test "#log_level_predicates_for is nil when the filter raises" do
+    assert_nil @log_subscriber.log_level_predicates_for("test", proc { raise "filter error" })
+  end
+
   test "MyLogSubscriber.event_log_level is ractor safe" do
     assert_ractor_shareable MyLogSubscriber.log_levels
   end

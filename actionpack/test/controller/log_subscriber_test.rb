@@ -397,6 +397,30 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_match(/Completed 406/, logs.last)
   end
 
+  def test_structured_events_are_skipped_when_logger_level_is_above_all_events
+    # Event reporter assertions used by other tests stay subscribed, and would
+    # rightly prevent skipping the events.
+    subscribers = ActiveSupport.event_reporter.subscribers
+    old_subscribers = subscribers.dup
+    subscribers.select! { |entry| ActiveSupport::EventReporter::LogSubscriber === entry[:subscriber] }
+    @logger.level = Logger::WARN
+    # Checks are skipped for a while after previous tests logged events.
+    ActiveSupport::StructuredEventSubscriber::CHECKS_SKIPPED_WHILE_NOT_IGNORED.times { get :show }
+
+    assert_not_called(ActiveSupport.event_reporter, :notify) do
+      get :show, params: { id: "10" }
+    end
+    assert_response :ok
+    assert_empty @logger.logged(:info)
+
+    @logger.level = Logger::INFO
+    get :show, params: { id: "10" }
+    assert_equal 3, logs.size
+    assert_match(/Completed 200 OK/, logs.last)
+  ensure
+    subscribers.replace(old_subscribers)
+  end
+
   def test_process_action_with_with_action_not_found_logs_404
     begin
       get :with_action_not_found
