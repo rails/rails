@@ -146,14 +146,16 @@ module ActiveRecord
 
           return if !force && owner_key_values == target_key_values
 
-          owner_pk = ActiveRecord::Key.for(owner.class.primary_key)
+          # The owner's identity is its query constraints when declared, so a
+          # shared tenant column survives even under a scalar primary key.
+          owner_key = ActiveRecord::Key.for(owner.class.composite_query_constraints_list)
 
-          # Preserve shared primary key columns only if another foreign key
+          # Preserve shared identity columns only if another foreign key
           # column can be cleared to disassociate the record.
-          preserve_owner_pk = record.nil? && foreign_key.any? { |key| !owner_pk.include?(key) }
+          preserve_owner_key = record.nil? && foreign_key.any? { |key| !owner_key.include?(key) }
 
           foreign_key.each_with_index do |key, index|
-            next if preserve_owner_pk && owner_pk.include?(key)
+            next if preserve_owner_key && owner_key.include?(key)
             owner.write_attribute(key, target_key_values[index])
           end
         end

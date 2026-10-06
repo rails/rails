@@ -1,3 +1,24 @@
+*   Preserve query constraint columns when clearing a composite `belongs_to`.
+
+    Assigning `nil` to an association whose foreign key shares a column with the
+    owner's `query_constraints` no longer clears that shared column, even when
+    the owner keeps a scalar primary key:
+
+    ```ruby
+    class Comment < ActiveRecord::Base
+      query_constraints :blog_id, :id
+      belongs_to :blog_post # foreign key [:blog_id, :blog_post_id]
+    end
+
+    comment.blog_post = nil
+    comment.blog_id      # => 1, previously nil
+    comment.blog_post_id # => nil
+    ```
+
+    Fixes #49671.
+
+    *Arkadiy Zabazhanov*
+
 *   Fix `change_column` in migrations declaring version 5.1 or earlier to honor
     `table_name_prefix` and `table_name_suffix` for `:default`, `:null`, and
     `:comment` on PostgreSQL.
