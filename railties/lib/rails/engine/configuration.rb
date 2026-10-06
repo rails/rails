@@ -6,8 +6,8 @@ module Rails
   class Engine
     class Configuration < ::Rails::Railtie::Configuration
       attr_reader :root
-      attr_accessor :middleware, :javascript_path, :route_set_class, :default_scope
-      attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths
+      attr_accessor :middleware, :javascript_path, :default_scope
+      attr_writer :eager_load_paths, :autoload_once_paths, :autoload_paths, :route_set_class
 
       # An array of custom autoload paths to be added to the ones defined
       # automatically by Rails. These won't be eager loaded, unless you push
@@ -44,7 +44,7 @@ module Rails
         @generators = app_generators.dup
         @middleware = Rails::Configuration::MiddlewareStackProxy.new
         @javascript_path = "javascript"
-        @route_set_class = ActionDispatch::Routing::RouteSet
+        @route_set_class = nil
         @default_scope = nil
 
         @autoload_paths = []
@@ -68,6 +68,13 @@ module Rails
         @generators ||= Rails::Configuration::Generators.new
         yield(@generators) if block_given?
         @generators
+      end
+
+      # Resolved on first use rather than when the configuration is created:
+      # the framework engines are defined before commands such as `rails test`
+      # have set RAILS_ENV, and this must not memoize Rails.env before then.
+      def route_set_class
+        @route_set_class ||= Rails.env.local? ? LazyRouteSet : ActionDispatch::Routing::RouteSet
       end
 
       def paths

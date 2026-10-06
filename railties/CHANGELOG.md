@@ -1,3 +1,16 @@
+*   Keep routes lazy when the route set is referenced before initializers run.
+
+    `config.route_set_class` now defaults to `Rails::Engine::LazyRouteSet` in
+    development and test from the moment it is first read, and the
+    `make_routes_lazy` initializer that used to switch it is gone. Previously
+    anything that called `routes` earlier than that initializer, such as
+    `config.exceptions_app = routes` in the application class body, silently
+    built a plain `ActionDispatch::Routing::RouteSet` and routes were drawn at
+    boot after all. An explicit `config.route_set_class` is now also respected
+    in development and test, where the initializer used to overwrite it.
+
+    *Chris Oliver*
+
 *   Log a warning on boot for each route that references a missing controller
     when eager loading is enabled.
 
