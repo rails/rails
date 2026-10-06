@@ -3,7 +3,6 @@
 
 require "active_support/core_ext/class/attribute"
 require "active_support/subscriber"
-require "concurrent/map"
 
 module ActiveSupport
   # Active Support Structured Event \Subscriber
@@ -71,7 +70,7 @@ module ActiveSupport
     def initialize
       super
       @silenced_events = {}
-      @log_level_predicates = Concurrent::Map.new
+      @log_level_predicates = {}
       @checks_to_skip = 0
     end
 
@@ -120,7 +119,9 @@ module ActiveSupport
 
       def ignored_by_all?(subscribers)
         namespace = self.class.event_namespace
-        return false unless namespace
+        # Subscribers copied into a non-main Ractor are frozen, so they can't
+        # keep the state below and always emit.
+        return false unless namespace && !frozen?
 
         # A check costs about as much as the log level checks done when the
         # event is emitted, so once some subscriber is found to act on events,
@@ -153,14 +154,18 @@ module ActiveSupport
         false
       end
 
+      # Cached by object ids rather than the objects themselves, so that the
+      # cache doesn't hold filter procs that would keep this subscriber from
+      # being copied into a Ractor.
       def log_level_predicates(subscriber, filter, namespace, subscribers_count)
-        log_levels = subscriber.log_levels
-        cached = @log_level_predicates[subscriber]
-        return cached[2] if cached && cached[0].equal?(filter) && cached[1].equal?(log_levels)
+        filter_id = filter.object_id
+        log_levels_id = subscriber.log_levels.object_id
+        cached = @log_level_predicates[subscriber.object_id]
+        return cached[2] if cached && cached[0] == filter_id && cached[1] == log_levels_id
 
         @log_level_predicates.clear if @log_level_predicates.size > subscribers_count * 2
         predicates = subscriber.log_level_predicates_for(namespace, filter)
-        @log_level_predicates[subscriber] = [filter, log_levels, predicates]
+        @log_level_predicates[subscriber.object_id] = [filter_id, log_levels_id, predicates]
         predicates
       end
   end
