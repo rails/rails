@@ -1,3 +1,9 @@
+*   Validate `update_only:` and the elements of an array passed to `returning:` in `insert_all`/`upsert_all`, the same way other dangerous query methods already do.
+
+    Before this, `update_only:` accepted any value with no check at all, and `returning:` only checked when the whole argument was a single raw string, so an array like `returning: [user_supplied_string]` skipped validation entirely and reached the database as a column reference. Both now raise `ArgumentError` for a plain string that is not wrapped in `Arel.sql(...)`, matching how `on_duplicate` has always been checked.
+
+    *Diego Rodrigues Pereira*
+
 *   Fix `change_column` in migrations declaring version 5.1 or earlier to honor
     `table_name_prefix` and `table_name_suffix` for `:default`, `:null`, and
     `:comment` on PostgreSQL.
