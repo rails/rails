@@ -14,7 +14,7 @@ module ActiveModel
       #
       # Only the three basic JSON types are supported: boolean, integer, and string. No nesting either.
       # These types can either be set by referring to them by their symbol or by setting a default value.
-      # Default values are set when a new model is instantiated and on +before_save+ (if defined).
+      # Default values are filled in when the attribute is loaded or assigned.
       #
       # Examples:
       #
@@ -31,18 +31,22 @@ module ActiveModel
       #   a.flags.staff # => nil
       #   a.flags.staff? # => false
       def has_json(attr, **schema)
+        attr_name = attr.to_s
+
+        decorate_attributes([ attr ]) do |_name, cast_type|
+          ActiveModel::SchematizedJson::SchemaDefaultsType.new(cast_type, schema)
+        end
+
         define_method(attr) do
-          # Ensure the attribute is set if nil, so we can pass the reference to the accessor for defaults.
-          _write_attribute(attr.to_s, {}) if attribute(attr.to_s).nil?
+          # Plain Active Model attributes without a default start as nil and skip casting, so load them as if
+          # nothing was stored to pick up the defaults without counting as a change.
+          @attributes.write_from_database(attr_name, nil) if attribute(attr_name).nil?
 
           # No memoization used in order to stay compatible with #reload (and because it's such a thin accessor).
-          ActiveModel::SchematizedJson::DataAccessor.new(schema, data: attribute(attr.to_s))
+          ActiveModel::SchematizedJson::DataAccessor.new(schema, data: attribute(attr_name))
         end
 
         define_method("#{attr}=") { |data| public_send(attr).assign_data_with_type_casting(data) }
-
-        # Ensure default values are set before saving by relying on DataAccessor instantiation to do it.
-        before_save -> { send(attr) } if respond_to?(:before_save)
       end
 
       # Like +has_json+ but each schema key also becomes its own set of accessor methods.
@@ -70,7 +74,6 @@ module ActiveModel
     class DataAccessor
       def initialize(schema, data:)
         @schema, @data = schema, data
-        update_data_with_schema_defaults
       end
 
       def assign_data_with_type_casting(new_data)
@@ -114,11 +117,38 @@ module ActiveModel
             raise ArgumentError, "Only boolean, integer, or strings are allowed as JSON schema types"
           end
         end
+    end
 
+    # :nodoc:
+    class SchemaDefaultsType < ActiveSupport::Delegation::DelegateClass(ActiveModel::Type::Value)
+      def initialize(cast_type, schema)
+        super(cast_type)
         # Types that are declared using real values, like true/false, 5, or "hello", will be used as defaults.
         # Types that are declared using symbols, like :boolean, :integer, :string, will be nulled out.
-        def update_data_with_schema_defaults
-          @data.reverse_merge!(@schema.to_h { |attr, type| [ attr.to_s, type.is_a?(Symbol) ? nil : type ] })
+        @defaults = schema.to_h { |key, type| [ key.to_s, type.is_a?(Symbol) ? nil : type ] }
+      end
+
+      def cast(value)
+        with_defaults(super)
+      end
+
+      def deserialize(value)
+        with_defaults(super)
+      end
+
+      # Defaults alone never count as a change, so compare against the stored value with defaults applied.
+      def changed_in_place?(raw_old_value, new_value)
+        deserialize(raw_old_value) != new_value
+      end
+
+      private
+        # Anything other than an object, like legacy data or a serialized string, is left alone.
+        def with_defaults(value)
+          case value
+          when nil  then @defaults.transform_values(&:dup)
+          when Hash then value.reverse_merge(@defaults.transform_values(&:dup))
+          else value
+          end
         end
     end
   end
