@@ -152,6 +152,7 @@ module ActionView
         load "action_view/tasks/cache_digests.rake"
         load "action_view/tasks/herb.rake"
       end
+      load "action_view/tasks/views.rake"
     end
   end
 end

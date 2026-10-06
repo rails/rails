@@ -161,6 +161,7 @@ module ActionView
     # in the guides.
 
     eager_autoload do
+      autoload :CompilationCache
       autoload :Error
       autoload :HTML
       autoload :Handlers
@@ -408,6 +409,17 @@ module ActionView
       strict_locals!
     end
 
+    def compiled_handler_source # :nodoc:
+      strict_locals!
+      source = encode!
+
+      if @source.is_a?(Sources::File)
+        CompilationCache.fetch(self, source)
+      else
+        @handler.call(self, source)
+      end
+    end
+
     def freeze # :nodoc:
       unless @compiled
         raise ArgumentError, "Cannot freeze #{short_identifier.inspect}: the template must be compiled first. " \
@@ -495,8 +507,7 @@ module ActionView
       # frozen string literal.
       def compiled_source
         set_strict_locals = strict_locals!
-        source = encode!
-        code = @handler.call(self, source)
+        code = compiled_handler_source
 
         method_arguments =
           if set_strict_locals

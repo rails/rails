@@ -1,3 +1,7 @@
+*   Add `bin/rails views:precompile` to precompile application views at build time using Bootsnap.
+
+    *Joel Hawksley*
+
 *   Allow setting `config.action_view.erb_implementation` to `:herb` to
     compile HTML+ERB templates through Herb.
 
