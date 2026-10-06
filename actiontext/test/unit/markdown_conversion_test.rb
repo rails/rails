@@ -491,6 +491,22 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<code> inside a table cell is stripped of surrounding whitespace" do
+    [ "  ", "\t", "\v", "\f" ].each do |whitespace|
+      assert_converted_to(
+        "| `[click](javascript:alert(1))` |",
+        "<table><tr><td><code>#{whitespace}[click](javascript:alert(1))#{whitespace}</code></td></tr></table>"
+      )
+    end
+  end
+
+  test "<pre> inside a table cell is stripped of surrounding whitespace" do
+    assert_converted_to(
+      "| `[click](javascript:alert(1))` |",
+      "<table><tr><td><pre>  [click](javascript:alert(1))  </pre></td></tr></table>"
+    )
+  end
+
   test "<pre> that follows a sibling starts its own block" do
     assert_converted_to(
       "before\n\n```\n[click](javascript:alert(1))\n```",
