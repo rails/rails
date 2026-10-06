@@ -48,7 +48,7 @@ class Search
   def run
     puts "Starting search (#{@id}) at #{Time.zone.now}"
     # ...
-    puts "Finshed search (#{@id}) at #{Time.zone.now}"
+    puts "Finished search (#{@id}) at #{Time.zone.now}"
   end
 end
 ```
@@ -86,7 +86,7 @@ class Search
   def run
     Rails.logger.debug { "Starting search (#{@id}) at #{Time.zone.now}" }
     # ...
-    Rails.logger.debug { "Finshed search (#{@id}) at #{Time.zone.now}" }
+    Rails.logger.debug { "Finished search (#{@id}) at #{Time.zone.now}" }
   end
 end
 ```
@@ -203,7 +203,7 @@ behavior in your application.
 
 Rails can write logs to multiple destinations. This is facilitated using
 [`ActiveSupport::BroadcastLogger`][] which wraps one or more loggers (known as
-`broadcasts`). When a message is logged, it is propogated to each logger.
+`broadcasts`). When a message is logged, it is propagated to each logger.
 `Rails.logger` will return an instance of [`ActiveSupport::BroadcastLogger`][].
 
 ```irb
@@ -410,7 +410,7 @@ config.active_job.verbose_enqueue_logs = true
 ```
 
 Consider a `Post` model which has a `notify` method that enqueues a
-`SendNotificationJob`. The highlighed line below will only be logged with
+`SendNotificationJob`. The highlighted line below will only be logged with
 `verbose_enqueue_logs` enabled:
 
 ```#4
@@ -849,7 +849,7 @@ or
 ```
 
 Navigate to `/posts` in your browser and you'll see a console at the bottom of
-the screen. This is an interative prompt where you can evaluate Ruby expressions
+the screen. This is an interactive prompt where you can evaluate Ruby expressions
 to inspect the current state of your application.
 
 NOTE: Only one console can be rendered per request. `web-console` will raise an

@@ -1,3 +1,19 @@
+*   Introduce `config.active_storage.s3_public_uploads_via_acl` to stop setting the `public-read` ACL on S3 uploads for services configured with `public: true`.
+
+    Bucket owner enforced is now both the default and the recommended S3 object ownership setting,
+    and rejects any request that specifies an ACL. Uploading through a `public: true` service to
+    such a bucket previously failed outright because Active Storage always attached a `public-read` ACL,
+    with no way to opt out.
+
+    Setting this to `false` skips the ACL; grant public read access through a bucket policy instead.
+    Buckets that still use ACLs can restore the previous behavior for a given service by setting the
+    `acl` option explicitly in its `upload` configuration.
+
+    The default remains `true`, matching existing behavior. New applications generated with
+    `config.load_defaults 8.2` get `false`.
+
+    *Florent Beaurain*
+
 *   Introduce `config.active_storage.draw_direct_upload_route` to disable the direct upload route without affecting the other Active Storage routes.
 
     When disabled, Action Text's `rich_textarea` omits `data-direct-upload-url` unless one is passed explicitly, and a Trix editor without that attribute hides its attach button and ignores dropped or pasted files.

@@ -60,8 +60,8 @@ module ActionText
 
     # Returns a Markdown link: `[title](url)`.
     #
-    # Escapes metacharacters in `title`, and percent-encodes characters in `url` that would break
-    # the link syntax.
+    # Escapes metacharacters in `title`, and encodes characters in `url` that would break the link
+    # syntax or that Markdown would decode, such as `\` and `&`.
     #
     #     MarkdownConversion.markdown_link("photo", "https://example.com/photo_(large).png")
     #     # => "[photo](https://example.com/photo_%28large%29.png)"
@@ -98,7 +98,7 @@ module ActionText
       ITALIC_TAGS = %w[i em].freeze
       LIST_BULLET = /\A(-|\d+\.) /
       LIST_INDENT = "  "
-      ENCODE_HREF_CHARS = /[() <>\n\r\t]/
+      ENCODE_HREF_CHARS = /[() <>\\\n\r\t]/
       MARKDOWN_METACHARACTERS = /
         [\\`*_{}\[\]|~<>]     # metacharacters that should be escaped generally
         | \A\#(?=[\s\#]|\z)   # leading hash before space or another hash: ATX heading
@@ -441,7 +441,7 @@ module ActionText
       end
 
       def encode_href(href)
-        URI::RFC2396_PARSER.escape(href, ENCODE_HREF_CHARS)
+        URI::RFC2396_PARSER.escape(href, ENCODE_HREF_CHARS).gsub("&", "&amp;")
       end
 
       # A fenced code block opens only at the start of a line. A link, a heading, a summary

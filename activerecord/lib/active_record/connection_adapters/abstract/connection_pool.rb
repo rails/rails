@@ -127,35 +127,6 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
-      # Prior to 3.3.5, WeakKeyMap had a use after free bug
-      # https://bugs.ruby-lang.org/issues/20688
-      if ObjectSpace.const_defined?(:WeakKeyMap) && Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.3.5")
-        WeakThreadKeyMap = ObjectSpace::WeakKeyMap
-      else
-        class WeakThreadKeyMap # :nodoc:
-          # FIXME: On 3.3 we could use ObjectSpace::WeakKeyMap
-          # but it currently causes GC crashes: https://github.com/byroot/rails/pull/3
-          def initialize
-            @map = Concurrent::Map.new
-          end
-
-          def clear
-            @map.clear
-          end
-
-          def [](key)
-            @map[key]
-          end
-
-          def []=(key, value)
-            @map.each_pair do |thread, _|
-              @map.delete(thread) unless thread&.alive?
-            end
-            @map[key] = value
-          end
-        end
-      end
-
       class Lease # :nodoc:
         attr_accessor :connection, :sticky
 
@@ -184,7 +155,7 @@ module ActiveRecord
 
       if RUBY_ENGINE == "ruby"
         # Thanks to the GVL, the LeaseRegistry doesn't need to be synchronized on MRI
-        class LeaseRegistry < WeakThreadKeyMap # :nodoc:
+        class LeaseRegistry < ObjectSpace::WeakKeyMap # :nodoc:
           def [](context)
             super || (self[context] = Lease.new)
           end
@@ -193,7 +164,7 @@ module ActiveRecord
         class LeaseRegistry # :nodoc:
           def initialize
             @mutex = Mutex.new
-            @map = WeakThreadKeyMap.new
+            @map = ObjectSpace::WeakKeyMap.new
           end
 
           def [](context)

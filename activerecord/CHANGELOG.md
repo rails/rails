@@ -11,6 +11,78 @@
 
     *Suliman Abdulrazzaq*
 
+*   Fix `change_column` in migrations declaring version 5.1 or earlier to honor
+    `table_name_prefix` and `table_name_suffix` for `:default`, `:null`, and
+    `:comment` on PostgreSQL.
+
+    With `config.active_record.table_name_prefix = "p_"`:
+
+    ```ruby
+    class AddDefaultToPostsTitle < ActiveRecord::Migration[5.1]
+      def change
+        change_column :posts, :title, :string, default: "untitled"
+      end
+    end
+    ```
+
+    Before:
+
+    ```sql
+    ALTER TABLE "p_posts" ALTER COLUMN "title" TYPE character varying
+    ALTER TABLE "posts" ALTER COLUMN "title" SET DEFAULT 'untitled'
+    ```
+
+    After:
+
+    ```sql
+    ALTER TABLE "p_posts" ALTER COLUMN "title" TYPE character varying
+    ALTER TABLE "p_posts" ALTER COLUMN "title" SET DEFAULT 'untitled'
+    ```
+
+    *Yasuo Honda*
+
+*   Honor an explicit `type:` on `add_reference` and `add_belongs_to` on SQLite
+    in migrations declaring version 6.0 or earlier.
+
+    ```ruby
+    class AddUserToPosts < ActiveRecord::Migration[6.0]
+      def change
+        add_reference :posts, :user, type: :bigint
+      end
+    end
+    ```
+
+    Before:
+
+    ```sql
+    ALTER TABLE "posts" ADD "user_id" integer
+    ```
+
+    After:
+
+    ```sql
+    ALTER TABLE "posts" ADD "user_id" bigint
+    ```
+
+    *Yasuo Honda*
+
+*   Add `maintenance_database` option to the PostgreSQL adapter.
+
+    `bin/rails db:create`, `db:drop` and `db:purge` connect to the `postgres`
+    database by default. Some managed PostgreSQL services, such as
+    DigitalOcean, do not provide a `postgres` database, so these tasks fail
+    there. `maintenance_database` sets the database to connect to instead,
+    like the `--maintenance-db` option of `createdb`.
+
+    ```yaml
+    production:
+      adapter: postgresql
+      database: blog_production
+      maintenance_database: defaultdb
+    ```
+
+    *Yasuo Honda*
+
 *   Treat `false` as disabled for `idle_timeout`, `reaping_frequency` and `max_age`
     in `database.yml`.
 

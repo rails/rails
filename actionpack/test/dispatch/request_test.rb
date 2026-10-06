@@ -529,6 +529,28 @@ class RequestPath < BaseRequestTest
   end
 end
 
+class RequestControllerClass < BaseRequestTest
+  class WidgetsController < ActionController::Base; end
+
+  test "controller_class returns the controller named in the path parameters" do
+    request = stub_request
+    request.path_parameters = { controller: "request_controller_class/widgets", action: "index" }
+    assert_equal WidgetsController, request.controller_class
+  end
+
+  test "controller_class raises MissingController when there is no controller in the path parameters" do
+    request = stub_request
+    error = assert_raises(ActionDispatch::MissingController) { request.controller_class }
+    assert_match(/No :controller in path parameters/, error.message)
+  end
+
+  test "controller_class raises MissingController when the controller does not exist" do
+    request = stub_request
+    request.path_parameters = { controller: "request_controller_class/nonexistent", action: "index" }
+    assert_raises(ActionDispatch::MissingController) { request.controller_class }
+  end
+end
+
 class RequestHost < BaseRequestTest
   test "host without specifying port" do
     request = stub_request "HTTP_HOST" => "rubyonrails.org"

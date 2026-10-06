@@ -127,6 +127,63 @@ class EmptyMutableIndexedRowTest < ActiveModel::TestCase
     assert_raises(KeyError) { @row.fetch("missing") }
     assert_equal(5, @row.fetch("missing") { 5 })
   end
+
+  test "built from a row with duplicated columns" do
+    columns = ["id", "name", "id"].freeze
+    reference = ActiveModel::IndexedRow.new(ActiveModel::IndexedRow.build_indexes(columns), [1, "George", 1].freeze)
+    row = reference.new_empty_mutable_row
+
+    assert_raises(KeyError) { row.fetch("id") }
+    assert_equal(4, row.fetch("id") { 4 })
+    assert_equal false, row.key?("id")
+    assert_equal [], row.keys
+    assert_equal 0, row.size
+
+    row["id"] = 42
+    assert_equal 42, row.fetch("id")
+    assert_equal 1, row.size
+    assert_equal ["id"], row.keys
+  end
+
+  test "built from an empty row" do
+    row = ActiveModel::IndexedRow[{}].new_empty_mutable_row
+
+    assert_equal 0, row.size
+    assert_equal 0, row.length
+    assert_equal [], row.keys
+    assert_equal [], row.values
+    assert_equal({}, row.to_h)
+    assert_raises(KeyError) { row.fetch("id") }
+  end
+
+  test "built from a row with only duplicated columns" do
+    columns = ["id", "id", "id"].freeze
+    reference = ActiveModel::IndexedRow.new(ActiveModel::IndexedRow.build_indexes(columns), [1, 2, 3].freeze)
+    row = reference.new_empty_mutable_row
+
+    assert_equal 3, reference.fetch("id")
+    assert_same reference.indexes, row.indexes
+    assert_equal 0, row.size
+    assert_raises(KeyError) { row.fetch("id") }
+
+    row["id"] = nil
+    assert_nil row.fetch("id") { flunk "nil is a set value" }
+    assert row.key?("id")
+    assert_equal 1, row.size
+    assert_equal 1, row.length
+    assert_equal ["id"], row.keys
+    assert_equal [nil], row.values
+
+    row["id"] = false
+    assert_equal false, row.fetch("id")
+    assert_equal 1, row.size
+    assert_equal({ "id" => false }, row.to_h)
+
+    empty_row = row.new_empty_mutable_row
+    assert_same row.indexes, empty_row.indexes
+    assert_equal 0, empty_row.size
+    assert_raises(KeyError) { empty_row.fetch("id") }
+  end
 end
 
 class RemapperTest < ActiveModel::TestCase

@@ -697,7 +697,7 @@ module ActiveRecord
       toggle(attribute).update_attribute(attribute, self[attribute])
     end
 
-    # Reloads the record from the database.
+    # Replaces the record attributes with the current values in the database.
     #
     # This method finds the record by its primary key (which could be assigned
     # manually) and modifies the receiver in-place:
@@ -709,8 +709,8 @@ module ActiveRecord
     #   # Account Load (1.2ms)  SELECT "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 1]]
     #   # => #<Account id: 1, email: 'account@example.com'>
     #
-    # Attributes are reloaded from the database, and caches busted, in
-    # particular the associations cache and the QueryCache.
+    # Internal state managed by Active Record, such as the associations cache is
+    # reset accordingly, but custom instance variables are left as-is.
     #
     # If the record no longer exists in the database ActiveRecord::RecordNotFound
     # is raised. Otherwise, in addition to the in-place modification the method

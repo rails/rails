@@ -1561,7 +1561,7 @@ module ActiveRecord
         end
 
         # this should wake up the waiting threads one by one in order
-        conns.each { |conn| @pool.checkin(conn); sleep 0.01 }
+        conns.each { |conn| @pool.checkin(conn); sleep 0.1 }
 
         dispose_held_connections.set
         threads.each(&:join)

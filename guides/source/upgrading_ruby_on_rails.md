@@ -20,6 +20,7 @@ The best way to be sure that your application still works after upgrading is to 
 
 Rails generally stays close to the latest released Ruby version when it's released:
 
+* Rails 8.2 requires Ruby 3.3.5 or newer.
 * Rails 8.0 and 8.1 require Ruby 3.2.0 or newer.
 * Rails 7.2 requires Ruby 3.1.0 or newer.
 * Rails 7.0 and 7.1 require Ruby 2.7.0 or newer.
@@ -95,6 +96,56 @@ Rails.application.config.action_view.erb_implementation = :erubi
 ```
 
 Applications with a custom ERB implementation should set it through `config.action_view.erb_implementation`, since the framework default replaces an `ActionView::Base.erb_implementation` assignment made in an initializer.
+
+### `:controller` and `:action` may no longer be used as dynamic route segments
+
+Routes such as the "default route" that older applications still carry in
+`config/routes.rb` picked the controller and the action out of the URL at request
+time:
+
+```ruby
+Rails.application.routes.draw do
+  get ":controller(/:action(/:id))"
+end
+```
+
+This has been deprecated since Rails 5.0 and now raises an `ArgumentError` when the
+route is drawn. Replace such a route with the routes your application actually
+serves:
+
+```ruby
+Rails.application.routes.draw do
+  get "photos", to: "photos#index"
+  get "photos/:id", to: "photos#show"
+end
+```
+
+`bin/rails routes` lists what an application currently exposes, and
+`bin/rails unused_routes` reports routes that no longer point at an action, which
+helps when converting a catch-all into explicit routes.
+
+Passing a controller class without an action relied on the same mechanism, so the
+action now has to be given explicitly:
+
+```ruby
+# Before
+get ":action", to: PhotosController
+
+# After
+get "show", to: PhotosController, action: "show"
+```
+
+A `Regexp` for `:controller` or `:action` is rejected for the same reason:
+`get "photos", controller: /photos/, action: "index"` now raises rather than drawing
+a route that can never match.
+
+### Routes to missing controllers are logged on boot when eager loading
+
+When `config.eager_load` is enabled (the default in production), Rails now
+resolves the controller of every route once the routes are loaded, and logs a
+warning naming each route whose controller does not exist. Such routes used to
+go unnoticed until a request matched them. Check the boot log for
+`references a missing controller` and fix or remove the routes it lists.
 
 ### The old Active Record 6.1 marshalling format was removed.
 
