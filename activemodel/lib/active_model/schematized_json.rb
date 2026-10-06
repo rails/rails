@@ -14,6 +14,7 @@ module ActiveModel
       #
       # Only the three basic JSON types are supported: boolean, integer, and string. No nesting either.
       # These types can either be set by referring to them by their symbol or by setting a default value.
+      # Anything else raises an ArgumentError when the schema is declared.
       # Default values are filled in when the attribute is loaded or assigned.
       #
       # Examples:
@@ -32,9 +33,12 @@ module ActiveModel
       #   a.flags.staff? # => false
       def has_json(attr, **schema)
         attr_name = attr.to_s
+        types = schema.to_h { |key, declaration| [ key.to_s, SchematizedJson.type_for(declaration) ] }
+        # Types declared by symbol have no default, so they're nulled out.
+        defaults = schema.to_h { |key, declaration| [ key.to_s, (declaration unless declaration.is_a?(Symbol)) ] }
 
         decorate_attributes([ attr ]) do |_name, cast_type|
-          ActiveModel::SchematizedJson::SchemaDefaultsType.new(cast_type, schema)
+          ActiveModel::SchematizedJson::SchemaDefaultsType.new(cast_type, defaults)
         end
 
         define_method(attr) do
@@ -43,7 +47,7 @@ module ActiveModel
           @attributes.write_from_database(attr_name, nil) if attribute(attr_name).nil?
 
           # No memoization used in order to stay compatible with #reload (and because it's such a thin accessor).
-          ActiveModel::SchematizedJson::DataAccessor.new(schema, data: attribute(attr_name))
+          ActiveModel::SchematizedJson::DataAccessor.new(types, data: attribute(attr_name))
         end
 
         define_method("#{attr}=") { |data| public_send(attr).assign_data_with_type_casting(data) }
@@ -70,10 +74,28 @@ module ActiveModel
       end
     end
 
+    # Types are declared by symbol, like :boolean, or by a default value of that type, like true.
+    def self.type_for(declaration) # :nodoc:
+      case declaration
+      when :boolean, :integer, :string
+        ActiveModel::Type.lookup declaration
+      when true, false
+        ActiveModel::Type.lookup :boolean
+      when Integer
+        ActiveModel::Type.lookup :integer
+      when String
+        ActiveModel::Type.lookup :string
+      when Hash
+        raise ArgumentError, "Nested objects are not supported in JSON schemas"
+      else
+        raise ArgumentError, "Only boolean, integer, or strings are allowed as JSON schema types"
+      end
+    end
+
     # :nodoc:
     class DataAccessor
-      def initialize(schema, data:)
-        @schema, @data = schema, data
+      def initialize(types, data:)
+        @types, @data = types, data
       end
 
       def assign_data_with_type_casting(new_data)
@@ -84,11 +106,11 @@ module ActiveModel
         def method_missing(method_name, *args, **kwargs)
           key = method_name.to_s.remove(/(\?|=)/)
 
-          if @schema.key? key.to_sym
+          if @types.key? key
             if method_name.ends_with?("?")
               @data[key].present?
             elsif method_name.ends_with?("=")
-              @data[key] = lookup_schema_type_for(key).cast(args.first)
+              @data[key] = @types[key].cast(args.first)
             else
               @data[key]
             end
@@ -98,34 +120,15 @@ module ActiveModel
         end
 
         def respond_to_missing?(method_name, include_private = false)
-          @schema.key?(method_name.to_s.remove(/[?=]/).to_sym) || super
-        end
-
-        def lookup_schema_type_for(key)
-          type_or_default_value = @schema[key.to_sym]
-
-          case type_or_default_value
-          when :boolean, :integer, :string
-            ActiveModel::Type.lookup type_or_default_value
-          when TrueClass, FalseClass
-            ActiveModel::Type.lookup :boolean
-          when Integer
-            ActiveModel::Type.lookup :integer
-          when String
-            ActiveModel::Type.lookup :string
-          else
-            raise ArgumentError, "Only boolean, integer, or strings are allowed as JSON schema types"
-          end
+          @types.key?(method_name.to_s.remove(/[?=]/)) || super
         end
     end
 
     # :nodoc:
     class SchemaDefaultsType < ActiveSupport::Delegation::DelegateClass(ActiveModel::Type::Value)
-      def initialize(cast_type, schema)
+      def initialize(cast_type, defaults)
         super(cast_type)
-        # Types that are declared using real values, like true/false, 5, or "hello", will be used as defaults.
-        # Types that are declared using symbols, like :boolean, :integer, :string, will be nulled out.
-        @defaults = schema.to_h { |key, type| [ key.to_s, type.is_a?(Symbol) ? nil : type ] }
+        @defaults = defaults
       end
 
       def cast(value)
