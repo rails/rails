@@ -1,3 +1,11 @@
+*   Use `mariadb-dump` and `mariadb` for MySQL structure dumps and loads when
+    they are on the `PATH`, falling back to `mysqldump` and `mysql`.
+
+    MariaDB 11 deprecates the old names and prints a warning on every run, and
+    the official `mariadb` Docker image no longer ships them.
+
+    *Yashaswi Kumar*
+
 *   Ignore `validate:` and `enforced:` when `remove_foreign_key` looks up the
     foreign key to remove.
 
