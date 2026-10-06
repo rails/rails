@@ -12,22 +12,6 @@ module ActiveRecord
 
         Lease = Struct.new(:connection, :sticky)
 
-        # Dispatches schema cache lookups to the schema cache of this pool's
-        # main-Ractor counterpart.
-        class SchemaCacheProxy
-          def initialize(pool)
-            @pool = pool
-          end
-
-          BoundSchemaReflection.public_instance_methods(false).each do |method_name|
-            class_eval(<<~RUBY, __FILE__, __LINE__ + 1)
-              def #{method_name}(*args, **kwargs)
-                @pool.dispatch_to_main_schema_cache(:#{method_name}, args, kwargs)
-              end
-            RUBY
-          end
-        end
-
         attr_reader :db_config, :role, :shard, :key
 
         def self.for_spec(spec)
@@ -67,29 +51,7 @@ module ActiveRecord
         end
 
         def schema_cache
-          state.schema_cache ||= SchemaCacheProxy.new(self)
-        end
-
-        def dispatch_to_main_schema_cache(method_name, args, kwargs) # :nodoc:
-          connection_name, role, shard = @connection_name, @role, @shard
-          connection_token = connection_lease.connection&.connection_token
-          main_args = ActiveSupport::Ractors.make_shareable(args)
-          main_kwargs = ActiveSupport::Ractors.make_shareable(kwargs)
-
-          main_operation(connection_pool: self) do
-            pool = main_pool(connection_name, role, shard)
-            schema_cache =
-              if connection_token
-                # Bind to the pinned connection so the worker observes its own uncommitted DDL.
-                connection = fetch_connection(connection_token)
-                # Proxied connections don't connect on demand, so connect explicitly.
-                connection.connect! unless connection.connected?
-                BoundSchemaReflection.for_lone_connection(pool.schema_reflection, connection)
-              else
-                pool.schema_cache
-              end
-            schema_cache.public_send(method_name, *main_args, **main_kwargs)
-          end
+          state.schema_cache ||= BoundSchemaReflection.new(schema_reflection, self)
         end
 
         def migration_context
@@ -97,7 +59,7 @@ module ActiveRecord
         end
 
         def migrations_paths
-          db_config.migrations_paths || Migrator.migrations_paths
+          main_pool_value(:migrations_paths)
         end
 
         def schema_migration

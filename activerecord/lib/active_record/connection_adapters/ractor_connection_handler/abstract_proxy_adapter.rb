@@ -169,6 +169,26 @@ module ActiveRecord
           end
         end
 
+        def columns(...)
+          remote_dispatch(:columns, ...)
+        end
+
+        def data_sources
+          remote_dispatch(:data_sources)
+        end
+
+        def data_source_exists?(...)
+          remote_dispatch(:data_source_exists?, ...)
+        end
+
+        def indexes(...)
+          remote_dispatch(:indexes, ...)
+        end
+
+        def primary_key(...)
+          remote_dispatch(:primary_key, ...)
+        end
+
         def schema_creation # :nodoc:
           SchemaCreationProxy.new(self)
         end
