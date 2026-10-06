@@ -507,6 +507,27 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "adjacent <code> elements are separated by a space" do
+    assert_converted_to(
+      "Run `` echo `whoami` `` `[see docs](https://evil-phish.example/login)` for details.",
+      "<p>Run <code>echo `whoami`</code><code>[see docs](https://evil-phish.example/login)</code> for details.</p>"
+    )
+  end
+
+  test "<code> elements adjacent across an inline wrapper are separated by a space" do
+    assert_converted_to(
+      "`` echo `whoami` `` `[see docs](https://evil-phish.example/login)`",
+      "<code>echo `whoami`</code><span><code>[see docs](https://evil-phish.example/login)</code></span>"
+    )
+  end
+
+  test "<code> elements adjacent across merged <b> runs are separated by a space" do
+    assert_converted_to(
+      "**`` echo `whoami` `` `[see docs](https://evil-phish.example/login)`**",
+      "<b><code>echo `whoami`</code></b><b><code>[see docs](https://evil-phish.example/login)</code></b>"
+    )
+  end
+
   test "<pre> that follows a sibling starts its own block" do
     assert_converted_to(
       "before\n\n```\n[click](javascript:alert(1))\n```",

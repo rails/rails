@@ -340,7 +340,7 @@ module ActionText
           # Merge adjacent bold/italic runs which Lexxy emits
           if value.is_a?(Array) && (value[0] == :bold || value[0] == :italic)
             if merged.last.is_a?(Array) && merged.last[0] == value[0]
-              merged.last[1] = merged.last[1] + value[1]
+              merged.last[1] = merged.last[1] + code_span_separator(merged.last[1], value[1]) + value[1]
             else
               merged << [ value[0], value[1] ]
             end
@@ -358,9 +358,16 @@ module ActionText
           if !result.empty? && part.end_with?("\n\n")
             result << "\n" until result.end_with?("\n\n")
           end
-          result << part
+          result << code_span_separator(result, part) << part
         end
         result
+      end
+
+      # When two code spans are adjacent, CommonMark reads their touching delimiters as one longer
+      # backtick string that closes neither span, and then parses the code text, which
+      # #markdown_for_node emits unescaped, as Markdown.
+      def code_span_separator(left, right)
+        left.end_with?("`") && right.start_with?("`") ? " " : ""
       end
 
       def child_values_for_elements(node, child_values)
