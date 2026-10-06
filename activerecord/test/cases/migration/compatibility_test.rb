@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "support/schema_dumping_helper"
+require "active_support/core_ext/object/with"
 
 module ActiveRecord
   class Migration
@@ -231,6 +232,70 @@ module ActiveRecord
           column = connection.columns(:compat_tabledef).find { |c| c.name == "published_at" }
           assert_match(/with time zone/, column.sql_type)
         end
+      end
+
+      def test_add_index_honors_table_name_prefix_on_7_0
+        ActiveRecord::Base.with(table_name_prefix: "p_") do
+          connection.create_table :p_testings, force: true do |t|
+            t.string :foo
+          end
+
+          migration = Class.new(ActiveRecord::Migration[7.0]) {
+            def change
+              add_index :testings, :foo
+            end
+          }.new
+
+          migration.migrate(:up)
+          assert_equal ["index_p_testings_on_foo"], connection.indexes(:p_testings).map(&:name)
+
+          migration.migrate(:down)
+          assert_empty connection.indexes(:p_testings)
+        end
+      ensure
+        connection.drop_table :p_testings, if_exists: true
+      end
+
+      def test_revert_add_index_with_table_name_prefix_on_7_0_removes_index_named_without_prefix
+        ActiveRecord::Base.with(table_name_prefix: "p_") do
+          connection.create_table :p_testings, force: true do |t|
+            t.string :foo
+          end
+          connection.add_index :p_testings, :foo, name: "index_testings_on_foo"
+
+          migration = Class.new(ActiveRecord::Migration[7.0]) {
+            def change
+              add_index :testings, :foo
+            end
+          }.new
+          migration.migrate(:down)
+
+          assert_empty connection.indexes(:p_testings)
+        end
+      ensure
+        connection.drop_table :p_testings, if_exists: true
+      end
+
+      def test_add_index_honors_table_name_suffix_on_7_0
+        ActiveRecord::Base.with(table_name_suffix: "_s") do
+          connection.create_table :testings_s, force: true do |t|
+            t.string :foo
+          end
+
+          migration = Class.new(ActiveRecord::Migration[7.0]) {
+            def change
+              add_index :testings, :foo
+            end
+          }.new
+
+          migration.migrate(:up)
+          assert_equal ["index_testings_s_on_foo"], connection.indexes(:testings_s).map(&:name)
+
+          migration.migrate(:down)
+          assert_empty connection.indexes(:testings_s)
+        end
+      ensure
+        connection.drop_table :testings_s, if_exists: true
       end
 
       def test_change_column_with_default_honors_table_name_prefix_on_5_1

@@ -1,3 +1,36 @@
+*   Fix `add_index` in migrations declaring version 7.0 or earlier to honor
+    `table_name_prefix` and `table_name_suffix` in the generated index name.
+
+    With `config.active_record.table_name_prefix = "p_"`:
+
+    ```ruby
+    class AddIndexToPostsTitle < ActiveRecord::Migration[7.0]
+      def change
+        add_index :posts, :title
+      end
+    end
+    ```
+
+    Before:
+
+    ```sql
+    CREATE INDEX "index_posts_on_title" ON "p_posts" ("title")
+    ```
+
+    After:
+
+    ```sql
+    CREATE INDEX "index_p_posts_on_title" ON "p_posts" ("title")
+    ```
+
+    This matches what Rails 7.0 did, and what `t.index` inside `create_table`
+    still does. Running such a migration again creates the index under the new
+    name. Rolling it back finds the index by its columns, so it removes an index
+    created under either name. An index on an expression is looked up by the new
+    name instead, so rolling back one created under the old name fails.
+
+    *Yasuo Honda*
+
 *   Fix `change_column` in migrations declaring version 5.1 or earlier to honor
     `table_name_prefix` and `table_name_suffix` for `:default`, `:null`, and
     `:comment` on PostgreSQL.
