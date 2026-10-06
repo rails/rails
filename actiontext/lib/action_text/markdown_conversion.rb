@@ -98,7 +98,7 @@ module ActionText
       ITALIC_TAGS = %w[i em].freeze
       LIST_BULLET = /\A(-|\d+\.) /
       LIST_INDENT = "  "
-      ENCODE_HREF_CHARS = /[() <>\\\n\r\t]/
+      ENCODE_HREF_CHARS = /[() <>\\|\n\r\t]/
       MARKDOWN_METACHARACTERS = /
         [\\`*_{}\[\]|~<>]     # metacharacters that should be escaped generally
         | \A\#(?=[\s\#]|\z)   # leading hash before space or another hash: ATX heading

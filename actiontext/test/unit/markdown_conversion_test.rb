@@ -751,6 +751,13 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<a> tags with pipes in href are encoded" do
+    assert_converted_to(
+      "| [click](https://example.com/a%7Cb) |",
+      '<table><tr><td><a href="https://example.com/a|b">click</a></td></tr></table>'
+    )
+  end
+
   test "<a> tags with backslashes in href are encoded" do
     assert_converted_to(
       "[click](javascript%5C:alert%281%29)",
