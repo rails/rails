@@ -387,6 +387,16 @@ class ExceptionsTest < ActiveSupport::TestCase
       assert_equal ["Raised DefaultsError for the 5th time"], JobBuffer.values
     end
 
+    test "retrying a job doesn't modify the job data it was deserialized from" do
+      job_data = RetryJob.new("DefaultsError", 2).serialize
+      job_data.each_value(&:freeze).freeze
+
+      ActiveJob::Base.execute(job_data)
+
+      assert_equal ["Raised DefaultsError for the 1st time", "Successfully completed job"], JobBuffer.values
+      assert_equal({}, job_data["exception_executions"])
+    end
+
     test "retrying a job when before_enqueue raised uses the same job object" do
       job = RetriesJob.new
       assert_nothing_raised do
