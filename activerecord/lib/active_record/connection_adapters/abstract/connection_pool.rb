@@ -127,35 +127,6 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
-      # Prior to 3.3.5, WeakKeyMap had a use after free bug
-      # https://bugs.ruby-lang.org/issues/20688
-      if ObjectSpace.const_defined?(:WeakKeyMap) && Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.3.5")
-        WeakThreadKeyMap = ObjectSpace::WeakKeyMap
-      else
-        class WeakThreadKeyMap # :nodoc:
-          # FIXME: On 3.3 we could use ObjectSpace::WeakKeyMap
-          # but it currently causes GC crashes: https://github.com/byroot/rails/pull/3
-          def initialize
-            @map = Concurrent::Map.new
-          end
-
-          def clear
-            @map.clear
-          end
-
-          def [](key)
-            @map[key]
-          end
-
-          def []=(key, value)
-            @map.each_pair do |thread, _|
-              @map.delete(thread) unless thread&.alive?
-            end
-            @map[key] = value
-          end
-        end
-      end
-
       class Lease # :nodoc:
         attr_accessor :connection, :sticky
 
@@ -184,7 +155,7 @@ module ActiveRecord
 
       if RUBY_ENGINE == "ruby"
         # Thanks to the GVL, the LeaseRegistry doesn't need to be synchronized on MRI
-        class LeaseRegistry < WeakThreadKeyMap # :nodoc:
+        class LeaseRegistry < ObjectSpace::WeakKeyMap # :nodoc:
           def [](context)
             super || (self[context] = Lease.new)
           end
@@ -193,7 +164,7 @@ module ActiveRecord
         class LeaseRegistry # :nodoc:
           def initialize
             @mutex = Mutex.new
-            @map = WeakThreadKeyMap.new
+            @map = ObjectSpace::WeakKeyMap.new
           end
 
           def [](context)
@@ -365,6 +336,9 @@ module ActiveRecord
         connection_lease.sticky.nil?
       end
 
+      # Pins the connection so that every checkout returns the same connection.
+      # Transaction management on the pinned connection is the caller's
+      # responsibility.
       def pin_connection!(lock_thread) # :nodoc:
         @pinned_connection ||= (connection_lease&.connection || checkout)
         @pinned_connections_depth += 1
@@ -377,25 +351,15 @@ module ActiveRecord
 
         @pinned_connection.lock_thread = ActiveSupport::IsolatedExecutionState.context if lock_thread
         @pinned_connection.pinned = true
-        @pinned_connection.begin_transaction joinable: false, _lazy: false
       end
 
       def unpin_connection! # :nodoc:
         raise "There isn't a pinned connection #{object_id}" unless @pinned_connection
 
-        clean = true
         @pinned_connection.lock.synchronize do
           @pinned_connections_depth -= 1
           connection = @pinned_connection
           @pinned_connection = nil if @pinned_connections_depth.zero?
-
-          if connection.transaction_open?
-            connection.rollback_transaction
-          else
-            # Something committed or rolled back the transaction
-            clean = false
-            connection.reset!
-          end
 
           if @pinned_connection.nil?
             connection.pinned = false
@@ -404,8 +368,6 @@ module ActiveRecord
             checkin(connection)
           end
         end
-
-        clean
       end
 
       def connection_descriptor # :nodoc:
@@ -1195,10 +1157,11 @@ module ActiveRecord
           synchronize do
             return unless @maintaining > @available.num_waiting
 
-            # We are guaranteed the "maintaining" thread will return its promised
-            # connection within one maintenance-unit of time. Thus we can safely
-            # do a blocking wait with (functionally) no timeout.
-            @available.poll(100)
+            # Maintenance work (e.g. a keepalive ping) can stall for reasons outside
+            # our control, such as a slow or unresponsive database server, so this
+            # wait must stay bounded by the caller's own checkout_timeout rather than
+            # assume maintenance always finishes quickly.
+            @available.poll(checkout_timeout)
           end
         end
 

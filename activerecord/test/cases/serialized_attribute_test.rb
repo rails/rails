@@ -156,7 +156,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_json_symbolize_names_returns_symbolized_names
-    Topic.serialize :content, coder: ActiveRecord::Coders::JSON.new(symbolize_names: true)
+    Topic.serialize :content, coder: ActiveRecord::Coders::JSON.new(decode_options: { symbolize_names: true })
     my_post = posts(:welcome)
 
     t = Topic.new(content: my_post)

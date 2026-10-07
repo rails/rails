@@ -1,9 +1,11 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/inflector/methods"
 
 module ActiveSupport
-  # = Active Support \Autoload
+  # Active Support \Autoload
+  # ========================
   #
   # Autoload and eager load conveniences for your library.
   #
@@ -13,19 +15,23 @@ module ActiveSupport
   # and also define a set of constants that needs to be
   # eager loaded:
   #
-  #   module MyLib
-  #     extend ActiveSupport::Autoload
+  # ```
+  # module MyLib
+  #   extend ActiveSupport::Autoload
   #
-  #     autoload :Model
+  #   autoload :Model
   #
-  #     eager_autoload do
-  #       autoload :Cache
-  #     end
+  #   eager_autoload do
+  #     autoload :Cache
   #   end
+  # end
+  # ```
   #
   # Then your library can be eager loaded by simply calling:
   #
-  #   MyLib.eager_load!
+  # ```
+  # MyLib.eager_load!
+  # ```
   module Autoload
     def autoload(const_name, path = @_at_path)
       unless path

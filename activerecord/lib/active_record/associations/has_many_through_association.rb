@@ -119,7 +119,7 @@ module ActiveRecord
         end
 
         def target_reflection_has_associated_record?
-          !(through_reflection.belongs_to? && Array(through_reflection.foreign_key).all? { |foreign_key_column| owner[foreign_key_column].blank? })
+          !(through_reflection.belongs_to? && Array(through_reflection.foreign_key).all? { |foreign_key_column| owner.read_attribute(foreign_key_column).blank? })
         end
 
         def update_through_counter?(method)
@@ -153,7 +153,7 @@ module ActiveRecord
               count = scope.delete_all
             end
           when :nullify
-            count = scope.update_all(source_reflection.foreign_key => nil)
+            count = scope.update_all(Array(source_reflection.foreign_key).index_with(nil))
           else
             count = scope.delete_all
           end

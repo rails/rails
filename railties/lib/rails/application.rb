@@ -123,8 +123,8 @@ module Rails
       @revision          = nil
       @revision_initialized = false
 
-      @executor          = Class.new(ActiveSupport::Executor)
-      @reloader          = Class.new(ActiveSupport::Reloader)
+      @executor          = Class.new(ActiveSupport::Executor).set_temporary_name("ActiveSupport::Executor(#{inspect})")
+      @reloader          = Class.new(ActiveSupport::Reloader).set_temporary_name("ActiveSupport::Reloader(#{inspect})")
       @reloader.executor = @executor
 
       @autoloaders = Rails::Autoloaders.new
@@ -673,10 +673,39 @@ module Rails
 
       @autoloaders, @reloaders, @routes_reloader = nil, nil, nil
 
+      ActionView::PathRegistry.make_shareable! if defined?(ActionView::PathRegistry)
+      ActiveSupport::TimeZone.make_shareable!
+
+      if defined?(AbstractController::Base)
+        [AbstractController::Base, *AbstractController::Base.descendants].each do |controller|
+          Ractor.make_shareable(controller.config)
+          Ractor.make_shareable(controller._wrapper_options) if controller.include?(ActionController::ParamsWrapper)
+        end
+      end
+
+      if defined?(ActiveRecord::Base)
+        ActiveRecord::Base.descendants.each(&:make_reflections_shareable!)
+      end
+
+      if defined?(ActiveJob::Base)
+        [ActiveJob::Base, *ActiveJob::Base.descendants].each do |job|
+          Ractor.make_shareable(job.queue_adapter)
+        end
+      end
+
       Ractor.make_shareable(self)
+      Ractor.make_shareable(Rails.env)
+      Ractor.make_shareable(Rails.logger)
       Ractor.make_shareable(Rails.event)
       Ractor.make_shareable(Rails.error)
       Ractor.make_shareable(Rails.backtrace_cleaner)
+      ActionView::DependencyTracker.share_registry if defined?(ActionView)
+
+      begin
+        require "rack/ractorize"
+      rescue LoadError
+        raise "rack/ractorize not available, but required for Ractor support."
+      end
     end
 
   protected

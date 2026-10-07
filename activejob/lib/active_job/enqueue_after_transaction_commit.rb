@@ -25,9 +25,20 @@ module ActiveJob
       def raw_enqueue
         if self.class.enqueue_after_transaction_commit
           self.successfully_enqueued = true
+          deferred_scheduled_at = scheduled_at
+          deferred_queue_name = queue_name
+          deferred_priority = priority
           ActiveRecord.after_all_transactions_commit do
+            previous_scheduled_at, previous_queue_name, previous_priority = scheduled_at, queue_name, priority
+            self.scheduled_at = deferred_scheduled_at
+            self.queue_name = deferred_queue_name
+            self.priority = deferred_priority
             self.successfully_enqueued = false
             super
+          ensure
+            self.scheduled_at = previous_scheduled_at
+            self.queue_name = previous_queue_name
+            self.priority = previous_priority
           end
           self
         else

@@ -438,7 +438,6 @@ module ActiveJob
 
       expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
-      potential_matches = []
 
       if block_given?
         original_enqueued_jobs = enqueued_jobs.dup
@@ -450,22 +449,7 @@ module ActiveJob
         jobs = enqueued_jobs
       end
 
-      matching_job = jobs.find do |enqueued_job|
-        deserialized_job = deserialize_args_for_assertion(enqueued_job)
-        potential_matches << deserialized_job
-
-        expected_args.all? do |key, value|
-          if value.respond_to?(:call)
-            value.call(deserialized_job[key])
-          else
-            value == deserialized_job[key]
-          end
-        end
-      end
-
-      matching_class = potential_matches.select do |enqueued_job|
-        enqueued_job["job_class"] == job.to_s
-      end
+      matching_job, potential_matches, matching_class = find_matching_job(jobs, expected_args, job)
 
       message = +"No enqueued job found with #{expected}"
       if potential_matches.empty?
@@ -542,7 +526,6 @@ module ActiveJob
 
       expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
-      potential_matches = []
 
       if block_given?
         original_performed_jobs_count = performed_jobs.count
@@ -554,22 +537,7 @@ module ActiveJob
         jobs = performed_jobs
       end
 
-      matching_job = jobs.find do |enqueued_job|
-        deserialized_job = deserialize_args_for_assertion(enqueued_job)
-        potential_matches << deserialized_job
-
-        expected_args.all? do |key, value|
-          if value.respond_to?(:call)
-            value.call(deserialized_job[key])
-          else
-            value == deserialized_job[key]
-          end
-        end
-      end
-
-      matching_class = potential_matches.select do |enqueued_job|
-        enqueued_job["job_class"] == job.to_s
-      end
+      matching_job, potential_matches, matching_class = find_matching_job(jobs, expected_args, job)
 
       message = +"No performed job found with #{expected}"
       if potential_matches.empty?
@@ -777,6 +745,29 @@ module ActiveJob
           new_job[:at] = Time.at(new_job[:at]) if new_job[:at]
           new_job[:args] = ActiveJob::Arguments.deserialize(new_job[:args]) if new_job[:args]
         end
+      end
+
+      def find_matching_job(jobs, expected_args, job)
+        potential_matches = []
+
+        matching_job = jobs.find do |enqueued_job|
+          deserialized_job = deserialize_args_for_assertion(enqueued_job)
+          potential_matches << deserialized_job
+
+          expected_args.all? do |key, value|
+            if value.respond_to?(:call)
+              value.call(deserialized_job[key])
+            else
+              value == deserialized_job[key]
+            end
+          end
+        end
+
+        matching_class = potential_matches.select do |enqueued_job|
+          enqueued_job["job_class"] == job.to_s
+        end
+
+        [matching_job, potential_matches, matching_class]
       end
 
       def instantiate_job(payload, skip_deserialize_arguments: false)

@@ -1684,6 +1684,19 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_nil post.reload[:wibble]
   end
 
+  def test_reload_preserves_custom_instance_variables
+    post = posts(:welcome)
+    custom_state = Object.new
+    post.instance_variable_set(:@custom_state, custom_state)
+
+    Post.where(id: post.id).update_all(title: "Reloaded title")
+    post.title = "Unsaved title"
+    post.reload
+
+    assert_equal "Reloaded title", post.title
+    assert_same custom_state, post.instance_variable_get(:@custom_state)
+  end
+
   def test_find_via_reload
     post = Post.new
 

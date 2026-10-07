@@ -105,7 +105,16 @@ end
 autoload :Mime, "action_dispatch/http/mime_type"
 
 ActiveSupport.on_load(:action_view) do
-  ActionView::Base.default_formats ||= Mime.symbols
   ActionView::Template.mime_types_implementation = Mime
   ActionView::LookupContext::DetailsKey.clear
+
+  unless ActionView::Base.default_formats
+    ActionView::Base.default_formats = previous_symbols = Mime.symbols
+    # TODO: remove in Rails 9, when late Mime::Type registration raises
+    Mime::Type.on_change do
+      if !previous_symbols.equal?(Mime.symbols) && ActionView::Base.default_formats.equal?(previous_symbols)
+        ActionView::Base.default_formats = previous_symbols = Mime.symbols
+      end
+    end
+  end
 end

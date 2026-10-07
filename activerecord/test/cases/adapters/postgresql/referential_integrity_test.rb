@@ -51,6 +51,7 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_table :partitioned_table_with_foreign_key, if_exists: true, force: :cascade
     @connection.drop_table :table_referenced_by_partioned_table, if_exists: true
     @connection.drop_schema :ri_offpath, if_exists: true
+    @connection.drop_table :ri_offpath_shadowed_children, if_exists: true
     reset_pool
     if ActiveRecord::Base.lease_connection.is_a?(MissingSuperuserPrivileges)
       raise "MissingSuperuserPrivileges patch was not removed"
@@ -126,6 +127,30 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
 
     assert_raises ArgumentError do
       @connection.disable_referential_integrity { }
+    end
+  end
+
+  def test_re_enables_triggers_when_the_block_raises
+    skip if @connection.supports_enforced_foreign_keys?
+
+    @connection.create_table :ri_test_parents, force: true
+    @connection.create_table :ri_test_children, force: true do |t|
+      t.bigint :parent_id, null: false
+    end
+    @connection.add_foreign_key :ri_test_children, :ri_test_parents, column: :parent_id, name: :ri_test_fk
+
+    begin
+      assert_raises(RuntimeError) do
+        @connection.disable_referential_integrity do
+          assert_not_empty disabled_triggers(:ri_test_children)
+          raise "boom"
+        end
+      end
+
+      assert_empty disabled_triggers(:ri_test_children)
+    ensure
+      # A failure here would leave every table without foreign keys for the rest of the suite.
+      @connection.execute(@connection.tables.map { |name| "ALTER TABLE #{@connection.quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
     end
   end
 
@@ -426,8 +451,53 @@ class PostgreSQLReferentialIntegrityTest < ActiveRecord::PostgreSQLTestCase
     end
   end
 
+  def test_check_all_foreign_keys_valid_with_fk_in_non_search_path_schema
+    @connection.execute("CREATE SCHEMA ri_offpath")
+    @connection.execute("CREATE TABLE ri_offpath.ri_offpath_parents (id bigint PRIMARY KEY)")
+    @connection.execute(<<~SQL)
+      CREATE TABLE ri_offpath.ri_offpath_children (
+        id bigint PRIMARY KEY,
+        parent_id bigint REFERENCES ri_offpath.ri_offpath_parents (id)
+      )
+    SQL
+
+    assert_nothing_raised do
+      @connection.check_all_foreign_keys_valid!
+    end
+  end
+
+  def test_check_all_foreign_keys_valid_detects_violation_in_non_search_path_schema_shadowed_by_same_named_table
+    @connection.create_table :ri_offpath_shadowed_children, force: true
+
+    @connection.execute("CREATE SCHEMA ri_offpath")
+    @connection.execute("CREATE TABLE ri_offpath.ri_offpath_parents (id bigint PRIMARY KEY)")
+    @connection.execute(<<~SQL)
+      CREATE TABLE ri_offpath.ri_offpath_shadowed_children (
+        id bigint PRIMARY KEY,
+        parent_id bigint,
+        CONSTRAINT fk_shadowed_children_parent FOREIGN KEY (parent_id)
+          REFERENCES ri_offpath.ri_offpath_parents (id)
+      )
+    SQL
+
+    @connection.execute("ALTER TABLE ri_offpath.ri_offpath_shadowed_children DISABLE TRIGGER ALL")
+    @connection.execute("INSERT INTO ri_offpath.ri_offpath_shadowed_children (id, parent_id) VALUES (1, 999)")
+    @connection.execute("ALTER TABLE ri_offpath.ri_offpath_shadowed_children ENABLE TRIGGER ALL")
+
+    assert_raises(ActiveRecord::InvalidForeignKey) do
+      @connection.check_all_foreign_keys_valid!
+    end
+  end
+
   private
     def assert_transaction_is_not_broken
       assert_equal 1, @connection.select_value("SELECT 1")
+    end
+
+    def disabled_triggers(table)
+      @connection.select_all(<<~SQL)
+        SELECT * FROM pg_trigger
+        WHERE tgrelid = #{@connection.quote(table)}::regclass AND tgenabled = 'D'
+      SQL
     end
 end

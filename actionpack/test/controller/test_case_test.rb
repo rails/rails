@@ -189,11 +189,16 @@ class TestCaseTest < ActionController::TestCase
     super
     @controller = TestController.new
     @request.delete_header "PATH_INFO"
-    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
-      r.draw do
-        ActionDispatch.deprecator.silence do
-          get ":controller(/:action(/:id))"
+    @routes = ActionDispatch::Routing::RouteSet.new.tap do |set|
+      actions = TestController.action_methods
+      set.draw do
+        actions.each do |action|
+          match "test_case_test/test/#{action}(/:id)",
+            to: "test_case_test/test##{action}", via: :all
         end
+
+        get "content", to: "content#index"
+        get "controller/action(/:id)", to: "controller#action"
       end
     end
   end
@@ -295,6 +300,25 @@ class TestCaseTest < ActionController::TestCase
   def test_head
     head :test_params
     assert_equal 200, @response.status
+  end
+
+  def test_query
+    query :test_params, params: { foo: "bar" }
+    assert_equal 200, @response.status
+    assert_equal "QUERY", @request.request_method
+    parsed_params = ::JSON.parse(@response.body)
+    assert_equal "bar", parsed_params["foo"]
+  end
+
+  def test_query_sends_params_as_request_body
+    query :test_request_parameters, params: { foo: "bar" }
+    assert_match "foo", @response.body
+    assert_match "bar", @response.body
+  end
+
+  def test_query_does_not_populate_query_string
+    query :test_query_parameters, params: { foo: "bar" }
+    assert_equal({}, ::JSON.parse(@response.body))
   end
 
   def test_process_without_flash
@@ -690,10 +714,6 @@ class TestCaseTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         get "file/*path", to: "test_case_test/test#test_params"
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
       end
 
       get :test_params, params: { path: ["hello", "world"] }
@@ -1109,13 +1129,7 @@ class ResponseDefaultHeadersTest < ActionController::TestCase
     super
     @controller = TestController.new
     @request.env["PATH_INFO"] = nil
-    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
-      r.draw do
-        ActionDispatch.deprecator.silence do
-          get ":controller(/:action(/:id))"
-        end
-      end
-    end
+    @routes = ActionDispatch::Routing::RouteSet.new
   end
 
   test "response contains default headers" do
@@ -1241,13 +1255,7 @@ class AnonymousControllerTest < ActionController::TestCase
       end
     end.new
 
-    @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
-      r.draw do
-        ActionDispatch.deprecator.silence do
-          get ":controller(/:action(/:id))"
-        end
-      end
-    end
+    @routes = ActionDispatch::Routing::RouteSet.new
   end
 
   def test_controller_name

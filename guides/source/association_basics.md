@@ -608,8 +608,8 @@ When you assign an object to a `has_one` association, that object is
 automatically saved to update its foreign key. Additionally, any object being
 replaced is also automatically saved, as its foreign key will change too.
 
-If either of these saves fails due to validation errors, the assignment
-statement returns `false`, and the assignment itself is canceled.
+If either of these saves fails due to validation errors,
+`ActiveRecord::RecordNotSaved` is raised and the assignment is canceled.
 
 If the parent object (the one declaring the `has_one` association) is unsaved
 (that is, `new_record?` returns `true`) then the child objects are not saved
@@ -937,8 +937,8 @@ When you assign an object to a `has_many` association, that object is
 automatically saved (in order to update its foreign key). If you assign multiple
 objects in one statement, then they are all saved.
 
-If any of these saves fails due to validation errors, then the assignment
-statement returns `false` and the assignment itself is cancelled.
+If any of these saves fails due to validation errors, then
+`ActiveRecord::RecordNotSaved` is raised and the assignment is cancelled.
 
 If the parent object (the one declaring the `has_many` association) is unsaved
 (that is, `new_record?` returns `true`) then the child objects are not saved
@@ -1427,8 +1427,8 @@ When you assign an object to a `has_and_belongs_to_many` association, that
 object is automatically saved (in order to update the join table). If you assign
 multiple objects in one statement, then they are all saved.
 
-If any of these saves fails due to validation errors, then the assignment
-statement returns `false` and the assignment itself is cancelled.
+If any of these saves fails due to validation errors, then
+`ActiveRecord::RecordInvalid` is raised and the assignment is cancelled.
 
 If the parent object (the one declaring the `has_and_belongs_to_many`
 association) is unsaved (that is, `new_record?` returns `true`) then the child
@@ -2733,13 +2733,12 @@ association, you can achieve similar functionality by using a join table with
 #### `:validate`
 
 If you set the `:validate` option to `true`, then new associated objects will be
-validated whenever you save this object. By default, this is `false`: new
+validated whenever you save this object. If you set it to `false`, new
 associated objects will not be validated when this object is saved.
 
-`has_and_belongs_to_many` does not support the `:validate` option. For this type
-of association, you can achieve similar functionality by using a join table with
-has_many `:through` association. You can read more about this in the
-[`has_many :through` section](#has-many-through).
+The default depends on the type of association. For `has_many` and
+`has_and_belongs_to_many`, it is `true`. For `belongs_to` and `has_one`, it is
+`false`, unless the `:autosave` option is set to `true`.
 
 
 #### `:inverse_of`

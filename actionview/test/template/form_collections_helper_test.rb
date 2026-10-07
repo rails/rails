@@ -259,6 +259,16 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_no_select "label[for=user_active_]"
   end
 
+  test "collection radio label for attribute matches input id when collection value is an empty string" do
+    with_collection_radio_buttons :user, :active, [["Yes", true], ["Undefined", ""]], :last, :first
+
+    assert_select "input[type=radio][value=true]#user_active_true"
+    assert_select "label[for=user_active_true]", "Yes"
+    assert_select "input[type=radio][value='']#user_active"
+    assert_select "label[for=user_active]", "Undefined"
+    assert_no_select "input#user_active_"
+  end
+
   # COLLECTION CHECK BOXES
   test "collection check boxes accepts a collection and generate a series of checkboxes for value method" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
@@ -566,5 +576,15 @@ class FormCollectionsHelperTest < ActionView::TestCase
     assert_select "input[type=checkbox]#user_active"
     assert_select "label[for=user_active]", "Undefined"
     assert_no_select "label[for=user_active_]"
+  end
+
+  test "collection check boxes label for attribute matches input id when collection value is an empty string" do
+    with_collection_checkboxes :user, :active, [["Yes", true], ["Undefined", ""]], :last, :first
+
+    assert_select "input[type=checkbox][value=true]#user_active_true"
+    assert_select "label[for=user_active_true]", "Yes"
+    assert_select "input[type=checkbox][value='']#user_active"
+    assert_select "label[for=user_active]", "Undefined"
+    assert_no_select "input#user_active_"
   end
 end

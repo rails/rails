@@ -6,6 +6,8 @@ require "support/schema_dumping_helper"
 module ActiveRecord
   class Migration
     class CompatibilityTest < ActiveRecord::TestCase
+      skip_under_ractor_proxy
+
       attr_reader :connection
       self.use_transactional_tests = false
 
@@ -30,8 +32,229 @@ module ActiveRecord
 
       teardown do
         connection.drop_table :testings rescue nil
+        connection.drop_table :compat_tabledef rescue nil
         ActiveRecord::Migration.verbose = @verbose_was
         @schema_migration.delete_all_versions rescue nil
+      end
+
+      def test_verbose_output_shows_table_names_as_written_with_prefix
+        prefix_was = ActiveRecord::Base.table_name_prefix
+        ActiveRecord::Base.table_name_prefix = "p_"
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def up
+            create_table(:things) { |t| t.string :name }
+            create_table(:widgets) { |t| t.bigint :thing_id }
+            add_foreign_key :widgets, :things
+            remove_foreign_key :widgets, :things
+            rename_table :things, :others
+          end
+        }.new
+
+        output = capture(:stdout) do
+          ActiveRecord::Migration.verbose = true
+          migration.migrate(:up)
+        ensure
+          ActiveRecord::Migration.verbose = false
+        end
+
+        assert_match(/create_table\(:things\)/, output)
+        assert_match(/remove_foreign_key\(:widgets, :things\)/, output)
+        assert_match(/rename_table\(:things, :others\)/, output)
+        assert connection.table_exists?(:p_others)
+        assert_not connection.table_exists?(:things)
+      ensure
+        ActiveRecord::Base.table_name_prefix = prefix_was
+        connection.drop_table :p_widgets rescue nil
+        connection.drop_table :p_others rescue nil
+        connection.drop_table :p_things rescue nil
+      end
+
+      def test_create_table_on_5_1_uses_innodb_on_mysql
+        skip unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+
+        # InnoDB is the server default, so the table itself cannot show the
+        # injection; the verbose output shows the options as executed.
+        migration = Class.new(ActiveRecord::Migration[5.1]) {
+          def up
+            create_table(:compat_engine) { |t| t.string :name }
+          end
+        }.new
+
+        begin
+          output = capture(:stdout) do
+            ActiveRecord::Migration.verbose = true
+            migration.migrate(:up)
+          ensure
+            ActiveRecord::Migration.verbose = false
+          end
+
+          assert_match(/create_table\(:compat_engine, \{:?options(: |=>)"ENGINE=InnoDB"\}\)/, output)
+          assert connection.table_exists?(:compat_engine)
+        ensure
+          connection.drop_table :compat_engine rescue nil
+        end
+      end
+
+      def test_create_table_on_5_1_keeps_explicit_options_on_mysql
+        skip unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+
+        migration = Class.new(ActiveRecord::Migration[5.1]) {
+          def up
+            create_table(:compat_engine, options: "ENGINE=InnoDB ROW_FORMAT=DYNAMIC") { |t| t.string :name }
+          end
+        }.new
+
+        begin
+          migration.migrate(:up)
+
+          assert_match(/ROW_FORMAT=DYNAMIC/, connection.table_options(:compat_engine)[:options])
+        ensure
+          connection.drop_table :compat_engine rescue nil
+        end
+      end
+
+      def test_change_column_on_7_0_keeps_explicit_collation_on_mysql
+        skip unless current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+
+        migration = Class.new(ActiveRecord::Migration[7.0]) {
+          def up
+            change_column :testings, :foo, :string, collation: "utf8mb4_bin"
+          end
+        }.new
+        migration.migrate(:up)
+
+        assert_equal "utf8mb4_bin", connection.columns(:testings).find { |c| c.name == "foo" }.collation
+      end
+
+      def test_create_table_with_uuid_primary_key_on_5_0_defaults_to_uuid_generate_v4_on_postgresql
+        skip unless current_adapter?(:PostgreSQLAdapter)
+
+        migration = Class.new(ActiveRecord::Migration[5.0]) {
+          def up
+            create_table(:compat_uuid, id: :uuid) { |t| t.string :name }
+            create_table(:compat_uuid_explicit, id: :uuid, default: -> { "gen_random_uuid()" }) { |t| t.string :name }
+          end
+        }.new
+
+        begin
+          migration.migrate(:up)
+
+          assert_equal "uuid_generate_v4()", connection.columns(:compat_uuid).find { |c| c.name == "id" }.default_function
+          assert_equal "gen_random_uuid()", connection.columns(:compat_uuid_explicit).find { |c| c.name == "id" }.default_function
+        ensure
+          connection.drop_table :compat_uuid rescue nil
+          connection.drop_table :compat_uuid_explicit rescue nil
+        end
+      end
+
+      def test_create_table_with_uuid_primary_key_on_5_1_keeps_current_default_on_postgresql
+        skip unless current_adapter?(:PostgreSQLAdapter)
+
+        migration = Class.new(ActiveRecord::Migration[5.1]) {
+          def up
+            create_table(:compat_uuid, id: :uuid) { |t| t.string :name }
+          end
+        }.new
+
+        begin
+          migration.migrate(:up)
+
+          assert_equal "gen_random_uuid()", connection.columns(:compat_uuid).find { |c| c.name == "id" }.default_function
+        ensure
+          connection.drop_table :compat_uuid rescue nil
+        end
+      end
+
+      def test_add_column_and_change_column_datetime_on_6_1_use_timestamp_without_time_zone_on_postgresql
+        skip unless current_adapter?(:PostgreSQLAdapter)
+
+        with_postgresql_datetime_type(:timestamptz) do
+          migration = Class.new(ActiveRecord::Migration[6.1]) {
+            def up
+              add_column :testings, :added_at, :datetime
+              add_column :testings, :changed_at, :timestamptz
+              change_column :testings, :changed_at, :datetime
+            end
+          }.new
+          migration.migrate(:up)
+
+          columns = connection.columns(:testings)
+          assert_match(/without time zone/, columns.find { |c| c.name == "added_at" }.sql_type)
+          assert_match(/without time zone/, columns.find { |c| c.name == "changed_at" }.sql_type)
+        end
+      end
+
+      def test_add_column_datetime_on_7_0_uses_datetime_type_on_postgresql
+        skip unless current_adapter?(:PostgreSQLAdapter)
+
+        with_postgresql_datetime_type(:timestamptz) do
+          migration = Class.new(ActiveRecord::Migration[7.0]) {
+            def up
+              add_column :testings, :added_at, :datetime
+            end
+          }.new
+          migration.migrate(:up)
+
+          assert_match(/with time zone/, connection.columns(:testings).find { |c| c.name == "added_at" }.sql_type)
+        end
+      end
+
+      def test_change_column_on_5_1_applies_comment_follow_up_on_postgresql
+        skip unless current_adapter?(:PostgreSQLAdapter)
+
+        migration = Class.new(ActiveRecord::Migration[5.1]) {
+          def up
+            change_column :testings, :foo, :string, limit: 10, comment: "legacy comment"
+          end
+        }.new
+        migration.migrate(:up)
+
+        column = connection.columns(:testings).find { |c| c.name == "foo" }
+        assert_equal 10, column.limit
+        assert_equal "legacy comment", column.comment
+      end
+
+      def test_schema_load_applies_declared_version_compatibility_on_postgresql
+        skip unless current_adapter?(:PostgreSQLAdapter)
+
+        with_postgresql_datetime_type(:timestamptz) do
+          ActiveRecord::Schema[6.1].define do
+            create_table(:compat_tabledef, force: true) { |t| t.datetime :published_at }
+          end
+          column = connection.columns(:compat_tabledef).find { |c| c.name == "published_at" }
+          assert_match(/without time zone/, column.sql_type)
+
+          ActiveRecord::Schema.define do
+            create_table(:compat_tabledef, force: true) { |t| t.datetime :published_at }
+          end
+          column = connection.columns(:compat_tabledef).find { |c| c.name == "published_at" }
+          assert_match(/with time zone/, column.sql_type)
+        end
+      end
+
+      def test_change_column_with_default_honors_table_name_prefix_on_5_1
+        skip unless current_adapter?(:PostgreSQLAdapter)
+
+        prefix_was = ActiveRecord::Base.table_name_prefix
+        ActiveRecord::Base.table_name_prefix = "p_"
+        begin
+          connection.create_table :p_testings, force: true do |t|
+            t.string :foo
+          end
+
+          migration = Class.new(ActiveRecord::Migration[5.1]) {
+            def up
+              change_column :testings, :foo, :string, default: "expected"
+            end
+          }.new
+          migration.migrate(:up)
+
+          assert_equal "expected", connection.columns(:p_testings).find { |c| c.name == "foo" }.default
+        ensure
+          ActiveRecord::Base.table_name_prefix = prefix_was
+          connection.drop_table :p_testings rescue nil
+        end
       end
 
       def test_migration_doesnt_remove_named_index
@@ -454,6 +677,31 @@ module ActiveRecord
           assert_equal "hi", column.default
           assert_equal "utf8mb4_esperanto_ci", column.collation
         end
+      end
+
+      def test_add_reference_on_6_0_keeps_explicit_type
+        create_migration = Class.new(ActiveRecord::Migration[6.0]) {
+          def version; 100 end
+          def migrate(x)
+            create_table :more_testings do |t|
+              t.string :test
+            end
+          end
+        }.new
+
+        migration = Class.new(ActiveRecord::Migration[6.0]) {
+          def version; 101 end
+          def migrate(x)
+            add_reference :more_testings, :testings, type: :bigint
+          end
+        }.new
+
+        ActiveRecord::Migrator.new(:up, [create_migration, migration], @schema_migration, @internal_metadata).migrate
+
+        column = connection.columns(:more_testings).find { |el| el.name == "testings_id" }
+        assert_predicate(column, :bigint?)
+      ensure
+        connection.drop_table :more_testings rescue nil
       end
 
       def test_add_reference_on_6_0
@@ -924,6 +1172,8 @@ module DefaultPrecisionSixTestCases
 end
 
 class BaseCompatibilityTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   attr_reader :connection
 
   def setup
@@ -1014,6 +1264,10 @@ end
 
 module LegacyPolymorphicReferenceIndexTestCases
   attr_reader :connection
+
+  def self.included(base)
+    base.skip_under_ractor_proxy
+  end
 
   def setup
     @connection = ActiveRecord::Base.lease_connection
@@ -1148,6 +1402,8 @@ module LegacyPrimaryKeyTestCases
   end
 
   included do
+    skip_under_ractor_proxy
+
     def setup
       @migration = nil
       @verbose_was = ActiveRecord::Migration.verbose

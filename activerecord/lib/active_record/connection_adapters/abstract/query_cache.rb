@@ -113,18 +113,12 @@ module ActiveRecord
       class QueryCacheRegistry # :nodoc:
         def initialize
           @mutex = Mutex.new
-          @map = ConnectionPool::WeakThreadKeyMap.new
+          @map = ObjectSpace::WeakKeyMap.new
         end
 
         def compute_if_absent(context)
           @map[context] || @mutex.synchronize do
             @map[context] ||= yield
-          end
-        end
-
-        def clear
-          @map.synchronize do
-            @map.clear
           end
         end
       end
@@ -272,7 +266,8 @@ module ActiveRecord
             result = lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry)
             FutureResult.wrap(result)
           else
-            cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry) }
+            result = cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry) }
+            result.shuffle_rows(arel)
           end
         else
           super

@@ -18,7 +18,6 @@ module ActiveRecord
       def reset
         super
         @target = nil
-        @future_target = nil
       end
 
       # Implements the writer method, e.g. foo.bar= for Foo.belongs_to :bar

@@ -23,6 +23,9 @@ module ActiveModel
     # All casting and serialization are performed in the same way as the
     # standard ActiveModel::Type::Integer type.
     class BigInteger < Integer
+      MAX_PRECISION = 1000 # :nodoc:
+      private_constant :MAX_PRECISION
+
       def serialize(value) # :nodoc:
         case value
         when ::Integer
@@ -51,6 +54,15 @@ module ActiveModel
       private
         def max_value
           ::Float::INFINITY
+        end
+
+        # Values are not limited to +limit+ bytes, so bound the cast by the
+        # precision (number of digits) instead. Without a precision, fall back
+        # to the largest precision databases accept for a numeric column
+        # (1000 digits on PostgreSQL). Twice the precision leaves room for a
+        # sign or a short slug suffix.
+        def max_cast_bytesize
+          (precision || MAX_PRECISION) * 2
         end
     end
   end

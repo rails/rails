@@ -179,6 +179,31 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_equal "2025-11-07T12:00:00-05:00", twz.xmlschema
   end
 
+  def test_xmlschema_with_utc_offset_not_in_whole_minutes
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(1880, 1, 1, 12), ActiveSupport::TimeZone["Europe/Moscow"])
+
+    assert_equal 9017, twz.utc_offset
+    assert_equal "1880-01-01T14:30:17+02:30", twz.xmlschema
+    assert_equal "1880-01-01T14:30:17.000+02:30", twz.xmlschema(3)
+  end
+
+  def test_xmlschema_and_to_s_with_zero_offset_non_utc_zone
+    twz = ActiveSupport::TimeWithZone.new(@utc, ActiveSupport::TimeZone["Africa/Abidjan"])
+
+    assert_not_predicate twz, :utc?
+    assert_equal "2000-01-01T00:00:00+00:00", twz.xmlschema
+    assert_equal "2000-01-01 00:00:00 +0000", twz.to_s
+  end
+
+  def test_to_s_with_datetime_local_time
+    tz = ActiveSupport::TimeZone["America/New_York"]
+    twz = ActiveSupport::TimeWithZone.new(nil, tz, DateTime.new(2025, 11, 7, 12))
+    utc_twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["UTC"], DateTime.new(2025, 11, 7, 12))
+
+    assert_equal "2025-11-07 12:00:00 -0500", twz.to_s
+    assert_equal "2025-11-07 12:00:00 UTC", utc_twz.to_s
+  end
+
   def test_iso8601_with_fractional_seconds
     @twz += Rational(1, 8)
     assert_equal "1999-12-31T19:00:00.125-05:00", @twz.iso8601(3)

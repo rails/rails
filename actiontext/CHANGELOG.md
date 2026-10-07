@@ -1,3 +1,21 @@
+*   Add alternative text to Action Text attachments.
+
+    Attachments could only be described by their caption, which is always shown
+    alongside the attachment. An image could not be described for people using a
+    screen reader without that description also appearing on the page, and the
+    default blob partial rendered images with no `alt` attribute at all.
+
+    Attachments now accept an `alt` attribute, exposed as `ActionText::Attachment#alt`
+    and rendered as the image's alternative text. It is independent of the caption,
+    so an attachment may have either, both, or neither.
+
+        ActionText::Attachment.from_attachable(blob, alt: "A racecar on a track")
+
+    Images with no alternative text are unchanged and still render without an
+    `alt` attribute, since Action Text does not infer descriptions.
+
+    *Olly Headey*
+
 *   Dispatch all Active Storage `direct-upload:`-prefixed events
 
     Add support for `direct-upload:before-blob-request` and `direct-upload:before-storage-request`.
@@ -46,6 +64,10 @@
 
         message = Message.create!(content: "<h1>Hello</h1><p>This is <strong>bold</strong></p>")
         message.content.to_markdown # => "# Hello\n\nThis is **bold**"
+
+    The `<action-text-markdown>` element is reserved for Action Text's own use and is
+    removed from rich text content, so Markdown typed inside one is escaped like any
+    other text.
 
     *Mike Dalessio*
 

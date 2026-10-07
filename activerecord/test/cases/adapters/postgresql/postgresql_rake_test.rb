@@ -35,6 +35,41 @@ module ActiveRecord
       assert_mock(mock)
     end
 
+    def test_establishes_connection_to_maintenance_database
+      db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("default_env", "primary", @configuration.merge("maintenance_database" => "defaultdb"))
+
+      mock = Minitest::Mock.new
+      mock.expect(:call, nil, [{ adapter: "postgresql", database: "defaultdb", schema_search_path: "public" }])
+      mock.expect(:call, nil, [db_config])
+
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
+        ActiveRecord::Base.stub(:establish_connection, mock) do
+          ActiveRecord::Tasks::DatabaseTasks.create(db_config)
+        end
+      end
+
+      assert_mock(mock)
+    end
+
+    def test_create_raises_connection_not_established_when_maintenance_database_does_not_exist
+      connection = Class.new do
+        def create_database(*)
+          raise PG::ConnectionBad, 'FATAL:  database "defaultdb" does not exist'
+        rescue PG::ConnectionBad
+          raise ActiveRecord::NoDatabaseError
+        end
+      end.new
+
+      ActiveRecord::Base.stub(:lease_connection, connection) do
+        ActiveRecord::Base.stub(:establish_connection, nil) do
+          error = assert_raises(ActiveRecord::ConnectionNotEstablished) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("maintenance_database" => "defaultdb")
+          end
+          assert_equal 'FATAL:  database "defaultdb" does not exist', error.message
+        end
+      end
+    end
+
     def test_creates_database_with_default_encoding
       with_stubbed_connection_establish_connection do
         assert_called_with(
@@ -161,6 +196,41 @@ module ActiveRecord
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+        end
+      end
+    end
+
+    def test_establishes_connection_to_maintenance_database
+      ActiveRecord::Base.stub(:lease_connection, @connection) do
+        assert_called_with(
+          ActiveRecord::Base,
+          :establish_connection,
+          [
+            adapter: "postgresql",
+            database: "defaultdb",
+            schema_search_path: "public"
+          ]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.drop @configuration.merge("maintenance_database" => "defaultdb")
+        end
+      end
+    end
+
+    def test_drop_raises_connection_not_established_when_maintenance_database_does_not_exist
+      connection = Class.new do
+        def drop_database(*)
+          raise PG::ConnectionBad, 'FATAL:  database "defaultdb" does not exist'
+        rescue PG::ConnectionBad
+          raise ActiveRecord::NoDatabaseError
+        end
+      end.new
+
+      ActiveRecord::Base.stub(:lease_connection, connection) do
+        ActiveRecord::Base.stub(:establish_connection, nil) do
+          error = assert_raises(ActiveRecord::ConnectionNotEstablished) do
+            ActiveRecord::Tasks::DatabaseTasks.drop @configuration.merge("maintenance_database" => "defaultdb")
+          end
+          assert_equal 'FATAL:  database "defaultdb" does not exist', error.message
         end
       end
     end
@@ -443,7 +513,7 @@ module ActiveRecord
 
     def test_structure_dump_with_ignore_tables
       ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
-        ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
+        ActiveRecord.stub(:schema_ignored_tables, [/^prefix_/, "ignored_foo"]) do
           assert_called_with(
             Kernel,
             :system,

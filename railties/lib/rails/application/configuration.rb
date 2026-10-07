@@ -385,6 +385,10 @@ module Rails
             }
           end
 
+          if respond_to?(:action_view)
+            action_view.erb_implementation = :herb
+          end
+
           if respond_to?(:active_record)
             active_record.postgresql_adapter_decode_bytea = true
             active_record.postgresql_adapter_decode_money = true
@@ -392,11 +396,14 @@ module Rails
 
           if respond_to?(:active_storage)
             active_storage.analyze = :immediately
+            active_storage.s3_public_uploads_via_acl = false
           end
 
           if respond_to?(:active_job)
             active_job.enqueue_after_transaction_commit = true
           end
+
+          ActiveSupport.raise_on_invalid_time_zone_parse = true
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

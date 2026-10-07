@@ -1,3 +1,80 @@
+*   Allow setting `config.action_view.erb_implementation` to `:herb` to
+    compile HTML+ERB templates through Herb.
+
+    With `config.load_defaults 8.2`, templates with the HTML format compile
+    through Herb, an ERB implementation that parses HTML+ERB and reports
+    structural problems, such as an unclosed tag, at compile time with their
+    template location. Valid templates render the same output as with Erubi.
+    All other template formats keep compiling through Erubi.
+
+    Set `config.action_view.erb_implementation` to `:erubi` to continue to
+    compile every template through Erubi.
+
+    *Marco Roth*
+
+*   Add a `herb:check` rake task to verify that the application's HTML+ERB
+    templates compile through Herb.
+
+    The task lists every template Herb rejects with its path and error, and
+    exits with a non-zero status when there are any.
+
+    *Marco Roth*
+
+*   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
+    the current template when it starts with a period, mirroring the existing
+    behavior for the key argument.
+
+    Calling `translate("bar", scope: ".foo")` from `posts/index.html.erb` is
+    now equivalent to calling `translate("posts.index.foo.bar")`.
+
+    *Ben Sheldon*
+
+*   Join an Array `:accept` option with commas in `file_field_tag`.
+
+    Previously, passing `accept: ["image/png", "image/gif"]` rendered
+    `accept="image/png image/gif"`, while the HTML `accept` attribute is a
+    comma-separated list. It now renders `accept="image/png,image/gif"`,
+    matching the object-based `file_field`.
+
+    *Kenta Ishizaki*
+
+*   `current_page?` matches HTTP QUERY requests
+    ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) with
+    `method: :query`. The default `method: :get` deliberately does not match
+    QUERY.
+
+    *Jeremy Daer*
+
+*   Configuring ERB options is now to be made on the ActionView::Base class.
+
+    The `ActionView::Template::Handlers::ERB` class is now private API. Applications
+    that used to configure ERB options such as `escape_ignore_list` now need
+    to do this on the `ActionView::Base` class or on the railtie `config.action_view`
+    configuration.
+
+    ```ruby
+    ActionView::Base.erb_trim_mode = nil
+    ActionView::Base.erb_implementation = ERB
+    ActionView::Base.escape_ignore_list = ["text/csv"]
+    ActionView::Base.strip_trailing_newlines = false
+    ```
+
+    *Edouard Chin*
+
+*   Fix `search_field` raising `NameError` when passed `autosave: true`.
+
+    *Hammad Khan*
+
+*   Deprecate registering dependency trackers after application initialization.
+
+    Calling `ActionView::DependencyTracker.register_tracker` after application initialization will
+    raise a FrozenError in the next version of Rails.
+
+    Instead, register trackers during application initialization, wrapped in a call to
+    `ActiveSupport.on_load(:action_view)` to wait until Action View is available.
+
+    *Étienne Barrié*
+
 *   Extract `current_page?`, `button_to`, and `link_to` methods to
     `ActionView::Helpers::NavigationHelper`
 

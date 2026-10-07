@@ -656,11 +656,11 @@ module ActionMailer
       @_message = Mail.new
     end
 
-    def process(method_name, *args) # :nodoc:
+    def process(method_name, *args, **kwargs) # :nodoc:
       payload = {
         mailer: self.class.name,
         action: method_name,
-        args: args
+        args: kwargs.empty? ? args : args + [kwargs]
       }
 
       ActiveSupport::Notifications.instrument("process.action_mailer", payload) do
@@ -668,7 +668,6 @@ module ActionMailer
         @_message = NullMail.new unless @_mail_was_called
       end
     end
-    ruby2_keywords(:process)
 
     class NullMail # :nodoc:
       def body; "" end

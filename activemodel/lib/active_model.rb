@@ -64,6 +64,7 @@ module ActiveModel
     autoload :StrictValidationFailed, "active_model/errors"
     autoload :UnknownAttributeError, "active_model/errors"
     autoload :ValidationError, "active_model/validations"
+    autoload :IndexedRow
   end
 
   module Serializers

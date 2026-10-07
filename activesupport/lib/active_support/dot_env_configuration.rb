@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/env_configuration"
@@ -6,10 +7,11 @@ module ActiveSupport
   # Provide an interface for accessing configuration options stored in a .env file.
   # Keys are accepted as symbols and turned into upcased strings. Nesting is provided by double underscores.
   #
-  # This interface mirrors what is used for +ActiveSupport::EnvConfiguration+ and +ActiveSupport::EncryptedConfiguration+
-  # and thus allows all three to serve as interchangeable backends for +Rails.app.creds+.
+  # This interface mirrors what is used for `ActiveSupport::EnvConfiguration` and `ActiveSupport::EncryptedConfiguration`
+  # and thus allows all three to serve as interchangeable backends for `Rails.app.creds`.
   #
   # The .env file format supports:
+  #
   # - Lines with KEY=value pairs
   # - Comments starting with #
   # - Empty lines (ignored)
@@ -19,18 +21,22 @@ module ActiveSupport
   #
   # The command execution allows for easy integration with third-party credential providers, like 1password:
   #
-  #   DB_HOST=$(op read op://Vault/item/value --account=MyAccount)
+  # ```
+  # DB_HOST=$(op read op://Vault/item/value --account=MyAccount)
+  # ```
   #
   # When used inside Rails, the default path for the .env file will be `Rails.root.join(".env")`.
-  # Otherwise it must be passed in as +path+.
+  # Otherwise it must be passed in as `path`.
   #
   # Examples:
   #
-  #   require(:db_host)                                   # => value of DB_HOST from .env
-  #   require(:database, :host)                           # => value of DATABASE__HOST from .env
-  #   option(:debug)                                      # => value of DEBUG from .env or nil if missing
-  #   option(:debug, default: "true")                     # => value of DEBUG from .env or "true" if not found
-  #   option(:database, :host, default: -> { "missing" }) # => value of DATABASE__HOST from .env or "missing" if not found
+  # ```
+  # require(:db_host)                                   # => value of DB_HOST from .env
+  # require(:database, :host)                           # => value of DATABASE__HOST from .env
+  # option(:debug)                                      # => value of DEBUG from .env or nil if missing
+  # option(:debug, default: "true")                     # => value of DEBUG from .env or "true" if not found
+  # option(:database, :host, default: -> { "missing" }) # => value of DATABASE__HOST from .env or "missing" if not found
+  # ```
   class DotEnvConfiguration < EnvConfiguration
     def initialize(path)
       @path = path

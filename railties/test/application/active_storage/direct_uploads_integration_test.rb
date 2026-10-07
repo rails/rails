@@ -10,7 +10,7 @@ module ApplicationTests
     include Rack::Test::Methods
     include Rails::Dom::Testing::Assertions
 
-    self.file_fixture_path = "#{RAILS_FRAMEWORK_ROOT}/activestorage/test/fixtures/files"
+    self.file_fixture_path = "test/fixtures/files"
 
     def setup
       build_app

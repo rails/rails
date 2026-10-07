@@ -1,0 +1,26 @@
+name: Markdown API
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  markdown_api:
+    name: Check Markdown APIs in new files
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ruby
+      - name: Check Markdown APIs in new files
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: ruby .github/workflows/scripts/check-markdown-api.rb $BASE_SHA $HEAD_SHA

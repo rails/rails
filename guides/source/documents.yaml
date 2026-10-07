@@ -193,8 +193,8 @@
       name: The Asset Pipeline
       url: asset_pipeline.html
       description: >
-        The asset pipeline guide explains how to use Propshaft, a framework that
-        handles essential asset management tasks.
+        The asset pipeline guide explains how to transform, cache, and
+        serve static assets such as JavaScript, CSS, and image files.
     -
       name: Working with JavaScript in Rails
       url: working_with_javascript_in_rails.html

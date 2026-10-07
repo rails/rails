@@ -134,9 +134,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raise(ArgumentError) do
       draw do
         namespace :admin do
-          ActionDispatch.deprecator.silence do
-            get "/:controller(/:action(/:id(.:format)))"
-          end
+          get "/:controller(/:action(/:id(.:format)))"
         end
       end
     end
@@ -145,9 +143,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_namespace_without_controller_segment
     draw do
       namespace :admin do
-        ActionDispatch.deprecator.silence do
-          get "hello/:controllers/:action"
-        end
+        get "hello/:controllers/new", action: "new"
       end
     end
     get "/admin/hello/foo/new"
@@ -354,6 +350,56 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "openid#login", @response.body
   end
 
+  def test_query
+    draw do
+      query "search", to: "search#index"
+    end
+
+    query "/search"
+    assert_equal "search#index", @response.body
+    assert_equal "/search", search_path
+  end
+
+  def test_query_route_on_collection
+    draw do
+      resources :products do
+        collection do
+          query :search
+        end
+      end
+    end
+
+    query "/products/search"
+    assert_equal "products#search", @response.body
+    assert_equal "/products/search", search_products_path
+  end
+
+  def test_query_via_all
+    draw do
+      match "search", via: :all, to: "search#index"
+    end
+
+    # Previously a QUERY request was refused with a 405 before routing ran,
+    # so via: :all routes never received it.
+    query "/search"
+    assert_equal "search#index", @response.body
+  end
+
+  def test_query_via_match
+    draw do
+      match "search", via: :query, to: "search#index"
+    end
+
+    query "/search"
+    assert_equal "search#index", @response.body
+
+    get "/search"
+    assert_equal 404, @response.status
+
+    post "/search"
+    assert_equal 404, @response.status
+  end
+
   def test_websocket
     draw do
       connect "chat/live", to: "chat#live"
@@ -466,9 +512,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get "global/export",      action: :export, as: :export_request
         get "/export/:id/:file",  action: :export, as: :export_download, constraints: { file: /.*/ }
 
-        ActionDispatch.deprecator.silence do
-          get "global/:action"
-        end
+        get "global/dashboard"
       end
     end
 
@@ -491,9 +535,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_local
     draw do
-      ActionDispatch.deprecator.silence do
-        get "/local/:action", controller: "local"
-      end
+      get "/local/dashboard", controller: "local", action: "dashboard"
     end
 
     get "/local/dashboard"
@@ -1690,14 +1732,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_not_matching_shorthand_with_dynamic_parameters
-    draw do
-      ActionDispatch.deprecator.silence do
-        get ":controller/:action/admin"
+    # Were the shorthand to apply here it would resolve to `finances#admin`.
+    error = assert_raises(ArgumentError) do
+      draw do
+        get "finances/:id/admin"
       end
     end
 
-    get "/finances/overview/admin"
-    assert_equal "finances#overview", @response.body
+    assert_match(/Missing :controller key/, error.message)
   end
 
   def test_controller_option_with_nesting_and_leading_slash
@@ -1724,23 +1766,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     assert_equal "/replies", replies_path
-  end
-
-  def test_scoped_controller_with_namespace_and_action
-    draw do
-      namespace :account do
-        ActionDispatch.deprecator.silence do
-          get ":action/callback", action: /twitter|github/, controller: "callbacks", as: :callback
-        end
-      end
-    end
-
-    assert_equal "/account/twitter/callback", account_callback_path("twitter")
-    get "/account/twitter/callback"
-    assert_equal "account/callbacks#twitter", @response.body
-
-    get "/account/whatever/callback"
-    assert_equal "Not Found", @response.body
   end
 
   def test_convention_match_nested_and_with_leading_slash
@@ -2058,40 +2083,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get "/api/v3/admin/me"
     assert_equal "mes#show", @response.body
-  end
-
-  def test_url_generator_for_generic_route
-    draw do
-      ActionDispatch.deprecator.silence do
-        get "whatever/:controller(/:action(/:id))"
-      end
-    end
-
-    get "/whatever/foo/bar"
-    assert_equal "foo#bar", @response.body
-
-    assert_equal "http://www.example.com/whatever/foo/bar/1",
-      url_for(controller: "foo", action: "bar", id: 1)
-  end
-
-  def test_url_generator_for_namespaced_generic_route
-    draw do
-      ActionDispatch.deprecator.silence do
-        get "whatever/:controller(/:action(/:id))", id: /\d+/
-      end
-    end
-
-    get "/whatever/foo/bar/show"
-    assert_equal "foo/bar#show", @response.body
-
-    get "/whatever/foo/bar/show/1"
-    assert_equal "foo/bar#show", @response.body
-
-    assert_equal "http://www.example.com/whatever/foo/bar/show",
-      url_for(controller: "foo/bar", action: "show")
-
-    assert_equal "http://www.example.com/whatever/foo/bar/show/1",
-      url_for(controller: "foo/bar", action: "show", id: "1")
   end
 
   def test_resource_new_actions
@@ -2711,6 +2702,71 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "photos#index", @response.body
     assert_equal "http://www.example.com/photos",
       url_for(controller: "photos", action: "index", username: nil)
+  end
+
+  def test_url_generator_treats_blank_strings_like_nil_for_optional_segments
+    draw do
+      get "(/locale/:locale)(/currency/:currency)/products(/:id)" => "products#show"
+    end
+
+    assert_equal "http://www.example.com/currency/USD/products/123",
+      url_for(controller: "products", action: "show", locale: "", currency: "USD", id: 123)
+    assert_equal "http://www.example.com/currency/USD/products/123",
+      url_for(controller: "products", action: "show", locale: nil, currency: "USD", id: 123)
+
+    assert_equal "http://www.example.com/locale/en/products/123",
+      url_for(controller: "products", action: "show", locale: "en", currency: "", id: 123)
+    assert_equal "http://www.example.com/locale/en/products/123",
+      url_for(controller: "products", action: "show", locale: "en", currency: nil, id: 123)
+
+    assert_equal "http://www.example.com/locale/en/currency/USD/products",
+      url_for(controller: "products", action: "show", locale: "en", currency: "USD", id: "")
+    assert_equal "http://www.example.com/locale/en/currency/USD/products",
+      url_for(controller: "products", action: "show", locale: "en", currency: "USD", id: nil)
+
+    assert_equal "http://www.example.com/locale/false/currency/USD/products/123",
+      url_for(controller: "products", action: "show", locale: false, currency: "USD", id: 123)
+
+    assert_equal "http://www.example.com/currency/USD/products/123?filter=",
+      url_for(controller: "products", action: "show", locale: "", currency: "USD", id: 123, filter: "")
+  end
+
+  def test_url_generator_preserves_empty_strings_for_required_segments
+    draw do
+      get "/products/:id" => "products#show"
+    end
+
+    assert_equal "http://www.example.com/products/",
+      url_for(controller: "products", action: "show", id: "")
+  end
+
+  def test_url_generator_omits_nested_optional_groups_for_empty_strings
+    draw do
+      get "(/locale/:locale(/currency/:currency))/products" => "products#index"
+    end
+
+    assert_equal "http://www.example.com/products",
+      url_for(controller: "products", action: "index", locale: "", currency: "USD")
+    assert_equal "http://www.example.com/locale/en/products",
+      url_for(controller: "products", action: "index", locale: "en", currency: "")
+  end
+
+  def test_url_generator_omits_whole_optional_group_when_one_part_is_empty
+    draw do
+      get "(/a/:a_id/:b_id)/products" => "products#index"
+    end
+
+    assert_equal "http://www.example.com/products",
+      url_for(controller: "products", action: "index", a_id: "", b_id: "2")
+  end
+
+  def test_url_generator_also_removes_whitespace_only_optional_segments
+    draw do
+      get "(/locale/:locale)/products" => "products#index"
+    end
+
+    assert_equal "http://www.example.com/products",
+      url_for(controller: "products", action: "index", locale: " ")
   end
 
   def test_url_recognition_for_optional_static_segments
@@ -3893,20 +3949,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/?id=1", root_path(params)
   end
 
-  def test_dynamic_controller_segments_are_deprecated
-    assert_deprecated(ActionDispatch.deprecator) do
+  def test_dynamic_controller_segments_are_not_supported
+    error = assert_raises(ArgumentError) do
       draw do
         get "/:controller", action: "index"
       end
     end
+
+    assert_match(/dynamic :controller segment/, error.message)
   end
 
-  def test_dynamic_action_segments_are_deprecated
-    assert_deprecated(ActionDispatch.deprecator) do
+  def test_dynamic_action_segments_are_not_supported
+    error = assert_raises(ArgumentError) do
       draw do
         get "/pages/:action", controller: "pages"
       end
     end
+
+    assert_match(/dynamic :action segment/, error.message)
   end
 
   def test_multiple_roots_raises_error
@@ -4283,6 +4343,7 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
   RFC5323 = %w(SEARCH).freeze
   RFC4791 = %w(MKCALENDAR).freeze
   RFC5789 = %w(PATCH).freeze
+  RFC10008 = %w(QUERY).freeze
 
   def simple_app(response)
     lambda { |env| [ 200, { "Content-Type" => "text/plain" }, [response] ] }
@@ -4296,13 +4357,13 @@ class TestHttpMethods < ActionDispatch::IntegrationTest
     @app = RoutedRackApp.new routes
 
     routes.draw do
-      (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789).each do |method|
+      (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789 + RFC10008).each do |method|
         match "/" => s.simple_app(method), :via => method.underscore.to_sym
       end
     end
   end
 
-  (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789).each do |method|
+  (RFC2616 + RFC2518 + RFC3253 + RFC3648 + RFC3744 + RFC5323 + RFC4791 + RFC5789 + RFC10008).each do |method|
     test "request method #{method.underscore} can be matched" do
       get "/", headers: { "REQUEST_METHOD" => method }
       assert_equal method, @response.body
@@ -4523,9 +4584,7 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       ok = lambda { |env| [200, { "Content-Type" => "text/plain" }, []] }
       get "/foo" => ok, as: :foo
 
-      ActionDispatch.deprecator.silence do
-        get "/post(/:action(/:id))" => ok, as: :posts
-      end
+      get "/post(/:slug(/:id))" => ok, as: :posts
 
       get "/:foo/:foo_type/bars/:id" => ok, as: :bar
       get "/projects/:id.:format" => ok, as: :project
@@ -4704,9 +4763,8 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
         ok = lambda { |env| [200, { "Content-Type" => "text/plain" }, []] }
         get "/foobar/:id", to: ok
 
-        ActionDispatch.deprecator.silence do
-          get "/:controller(/:action(/:id))"
-        end
+        get "/:first", to: ok
+        get "/:first/:second", to: ok
       end
 
       get "/%E2%EF%BF%BD%A6"
@@ -5186,10 +5244,6 @@ class TestPathParameters < ActionDispatch::IntegrationTest
           root to: "home#index"
           get "/about", to: "pages#about"
         end
-      end
-
-      ActionDispatch.deprecator.silence do
-        get ":controller(/:action/(:id))"
       end
     end
   end

@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "monitor"
@@ -12,7 +13,7 @@ module ActiveSupport
       include MonitorMixin
 
       # We track execution-context objects (Threads or Fibers, depending on
-      # +ActiveSupport::IsolatedExecutionState.isolation_level+), instead of
+      # `ActiveSupport::IsolatedExecutionState.isolation_level`), instead of
       # just using counters, because we need exclusive locks to be reentrant,
       # and we need to be able to upgrade share locks to exclusive.
 
@@ -37,7 +38,7 @@ module ActiveSupport
             }
           end
 
-          # NB: Yields while holding our *internal* synchronize lock,
+          # NB: Yields while holding our **internal** synchronize lock,
           # which is supposed to be used only for a few instructions at
           # a time. This allows the caller to inspect additional state
           # without things changing out from underneath, but would have
@@ -60,19 +61,19 @@ module ActiveSupport
         @exclusive_depth = 0
       end
 
-      # Returns false if +no_wait+ is set and the lock is not
+      # Returns false if `no_wait` is set and the lock is not
       # immediately available. Otherwise, returns true after the lock
       # has been acquired.
       #
-      # +purpose+ and +compatible+ work together; while this owner is
+      # `purpose` and `compatible` work together; while this owner is
       # waiting for the exclusive lock, it will yield its share (if any)
-      # to any other attempt whose +purpose+ appears in this attempt's
-      # +compatible+ list. This allows a "loose" upgrade, which, being
+      # to any other attempt whose `purpose` appears in this attempt's
+      # `compatible` list. This allows a "loose" upgrade, which, being
       # less strict, prevents some classes of deadlocks.
       #
       # For many resources, loose upgrades are sufficient: if an owner
       # is awaiting a lock, it is not running any other code. With
-      # +purpose+ matching, it is possible to yield only to other
+      # `purpose` matching, it is possible to yield only to other
       # owners whose activity will not interfere.
       def start_exclusive(purpose: nil, compatible: [], no_wait: false)
         synchronize do
@@ -118,7 +119,7 @@ module ActiveSupport
           if @sharing[owner] > 0 || @exclusive_owner == owner
             # We already hold a lock; nothing to wait for
           elsif @waiting[owner]
-            # We're nested inside a +yield_shares+ call: we'll resume as
+            # We're nested inside a `yield_shares` call: we'll resume as
             # soon as there isn't an exclusive lock in our way
             wait_for(:start_sharing) { @exclusive_owner }
           else
@@ -143,11 +144,11 @@ module ActiveSupport
       end
 
       # Execute the supplied block while holding the Exclusive lock. If
-      # +no_wait+ is set and the lock is not immediately available,
-      # returns +nil+ without yielding. Otherwise, returns the result of
+      # `no_wait` is set and the lock is not immediately available,
+      # returns `nil` without yielding. Otherwise, returns the result of
       # the block.
       #
-      # See +start_exclusive+ for other options.
+      # See `start_exclusive` for other options.
       def exclusive(purpose: nil, compatible: [], after_compatible: [], no_wait: false)
         if start_exclusive(purpose: purpose, compatible: compatible, no_wait: no_wait)
           begin
@@ -169,7 +170,7 @@ module ActiveSupport
       end
 
       # Temporarily give up all held Share locks while executing the
-      # supplied block, allowing any +compatible+ exclusive lock request
+      # supplied block, allowing any `compatible` exclusive lock request
       # to proceed.
       def yield_shares(purpose: nil, compatible: [], block_share: false)
         loose_shares = previous_wait = nil

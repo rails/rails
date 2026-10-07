@@ -31,7 +31,7 @@ module ActiveRecord
         args.concat(["--routines"])
         args.concat(["--skip-comments"])
 
-        ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
+        ignore_tables = ActiveRecord.schema_ignored_tables
         if ignore_tables.any?
           ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
           args += ignore_tables.map { |table| "--ignore-table=#{db_config.database}.#{table}" }
@@ -45,11 +45,10 @@ module ActiveRecord
 
       def structure_load(filename, extra_flags)
         args = prepare_command_options
-        args.concat(["--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}])
         args.concat(["--database", db_config.database.to_s])
         args.unshift(*extra_flags) if extra_flags
 
-        run_cmd("mysql", *args)
+        run_cmd("mysql", *args, in: filename)
       end
 
       private
@@ -61,22 +60,7 @@ module ActiveRecord
         end
 
         def prepare_command_options
-          args = {
-            host:      "--host",
-            port:      "--port",
-            socket:    "--socket",
-            username:  "--user",
-            password:  "--password",
-            encoding:  "--default-character-set",
-            sslca:     "--ssl-ca",
-            sslcert:   "--ssl-cert",
-            sslcapath: "--ssl-capath",
-            sslcipher: "--ssl-cipher",
-            sslkey:    "--ssl-key",
-            ssl_mode:  "--ssl-mode"
-          }.filter_map { |opt, arg| "#{arg}=#{configuration_hash[opt]}" if configuration_hash[opt] }
-
-          args
+          db_config.adapter_class.cli_args(configuration_hash)
         end
     end
   end

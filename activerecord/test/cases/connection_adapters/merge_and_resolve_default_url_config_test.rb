@@ -9,7 +9,7 @@ module ActiveRecord
         @previous_database_url = ENV.delete("DATABASE_URL")
         @previous_rack_env = ENV.delete("RACK_ENV")
         @previous_rails_env = ENV.delete("RAILS_ENV")
-        @adapters_was = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup
+        @adapters_was = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup.freeze
         @protocol_adapters = ActiveRecord.protocol_adapters.dup
       end
 

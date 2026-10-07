@@ -61,7 +61,51 @@ module ActiveRecord
           (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct)
       end
 
+      def as_schema_json
+        {
+          "table" => @table,
+          "name" => @name,
+          "unique" => @unique || nil,
+          "columns" => @columns,
+          "lengths" => @lengths.presence,
+          "orders" => @orders.presence,
+          "opclasses" => @opclasses.presence,
+          "where" => @where,
+          "type" => @type,
+          "using" => @using,
+          "include" => @include,
+          "nulls_not_distinct" => @nulls_not_distinct,
+          "comment" => @comment,
+          "invalid" => !@valid || nil
+        }
+      end
+
+      def init_from_schema_json(coder, references)
+        @table = coder["table"]
+        @name = coder["name"]
+        @unique = coder["unique"] || false
+        @columns = coder["columns"]
+        @lengths = coder["lengths"] || {}
+        @orders = symbolize_concise_options(coder["orders"])
+        @opclasses = symbolize_concise_options(coder["opclasses"])
+        @where = coder["where"]
+        @type = coder["type"]&.to_sym
+        @using = coder["using"]&.to_sym
+        @include = coder["include"]
+        @nulls_not_distinct = coder["nulls_not_distinct"]
+        @comment = coder["comment"]
+        @valid = !coder["invalid"]
+      end
+
       private
+        def symbolize_concise_options(options)
+          case options
+          when String then options.to_sym
+          when Hash then options.transform_values(&:to_sym)
+          else {}
+          end
+        end
+
         def concise_options(options)
           if columns.size == options.size && options.values.uniq.size == 1
             options.values.first
@@ -115,6 +159,15 @@ module ActiveRecord
     ChangeColumnDefinition = Struct.new(:column, :name) # :nodoc:
 
     ChangeColumnDefaultDefinition = Struct.new(:column, :default) # :nodoc:
+
+    AddForeignKey = Data.define(:foreign_key) # :nodoc:
+    DropForeignKey = Data.define(:name) # :nodoc:
+    AddCheckConstraint = Data.define(:check_constraint) # :nodoc:
+    DropCheckConstraint = Data.define(:name) # :nodoc:
+    DropConstraint = Data.define(:name) # :nodoc:
+    DropColumn = Data.define(:name) # :nodoc:
+    RenameColumn = Data.define(:from_name, :to_name) # :nodoc:
+    ChangeColumnNull = Data.define(:name, :null) # :nodoc:
 
     CreateIndexDefinition = Struct.new(:index, :algorithm, :if_not_exists, :lock) # :nodoc:
 
@@ -358,7 +411,7 @@ module ActiveRecord
     class TableDefinition
       include ColumnMethods
 
-      attr_reader :name, :temporary, :if_not_exists, :options, :as, :comment, :indexes, :foreign_keys, :check_constraints
+      attr_reader :name, :temporary, :if_not_exists, :options, :as, :comment, :indexes, :foreign_keys, :check_constraints, :conn
 
       def initialize(
         conn,
@@ -525,9 +578,7 @@ module ActiveRecord
       def timestamps(**options)
         options[:null] = false if options[:null].nil?
 
-        if !options.key?(:precision) && @conn.supports_datetime_with_precision?
-          options[:precision] = 6
-        end
+        options[:precision] = 6 unless options.key?(:precision)
 
         column(:created_at, :datetime, **options)
         column(:updated_at, :datetime, **options)
@@ -553,10 +604,8 @@ module ActiveRecord
         end
         type = aliased_types(type.to_s, type)
 
-        if @conn.supports_datetime_with_precision?
-          if type == :datetime && !options.key?(:precision)
-            options[:precision] = 6
-          end
+        if type == :datetime && !options.key?(:precision)
+          options[:precision] = 6
         end
 
         options[:primary_key] ||= type == :primary_key
@@ -621,47 +670,90 @@ module ActiveRecord
     end
 
     class AlterTable # :nodoc:
-      attr_reader :adds
-      attr_reader :foreign_key_adds, :foreign_key_drops
-      attr_reader :check_constraint_adds, :check_constraint_drops
-      attr_reader :constraint_drops
+      # Commands from CommandRecorder that can be dispatched directly to AlterTable
+      # methods (combinable into a single ALTER TABLE statement). Subclasses may extend.
+      COMBINABLE_COMMANDS = %i[
+        add_column
+        remove_column
+        remove_columns
+        change_column_default
+        add_timestamps
+        remove_timestamps
+      ].freeze
+
+      attr_reader :operations, :deferred_operations
 
       def initialize(td)
-        @td   = td
-        @adds = []
-        @foreign_key_adds = []
-        @foreign_key_drops = []
-        @check_constraint_adds = []
-        @check_constraint_drops = []
-        @constraint_drops = []
+        @td = td
+        @operations = []
+        @deferred_operations = []
       end
 
       def name; @td.name; end
 
+      def add_column(column_name, type, **options)
+        column_name = column_name.to_s
+        type = type.to_sym
+        @operations << AddColumnDefinition.new(@td.new_column_definition(column_name, type, **options))
+      end
+
+      def remove_column(column_name, _type = nil, **)
+        @operations << DropColumn.new(column_name)
+      end
+
+      def remove_columns(*column_names, **)
+        column_names.each { |column_name| remove_column(column_name) }
+      end
+
+      def change_column_default(column_name, default_or_changes)
+        conn = @td.conn
+        column = conn.send(:column_for, name, column_name)
+        return unless column
+        default = conn.send(:extract_new_default_value, default_or_changes)
+        @operations << ChangeColumnDefaultDefinition.new(column, default)
+      end
+
+      def rename_column(from_name, to_name)
+        @operations << RenameColumn.new(from_name, to_name)
+      end
+
+      def change_column_null(name, null)
+        @operations << ChangeColumnNull.new(name, null)
+      end
+
+      def add_timestamps(**options)
+        options[:null] = false if options[:null].nil?
+        add_column(:created_at, :datetime, **options)
+        add_column(:updated_at, :datetime, **options)
+      end
+
+      def remove_timestamps(**)
+        remove_column(:updated_at)
+        remove_column(:created_at)
+      end
+
       def add_foreign_key(to_table, options)
-        @foreign_key_adds << @td.new_foreign_key_definition(to_table, options)
+        @operations << AddForeignKey.new(@td.new_foreign_key_definition(to_table, options))
       end
 
       def drop_foreign_key(name)
-        @foreign_key_drops << name
+        @operations << DropForeignKey.new(name)
       end
 
       def add_check_constraint(expression, options)
-        @check_constraint_adds << @td.new_check_constraint_definition(expression, options)
+        @operations << AddCheckConstraint.new(@td.new_check_constraint_definition(expression, options))
       end
 
       def drop_check_constraint(constraint_name)
-        @check_constraint_drops << constraint_name
+        @operations << DropCheckConstraint.new(constraint_name)
       end
 
       def drop_constraint(constraint_name)
-        @constraint_drops << constraint_name
+        @operations << DropConstraint.new(constraint_name)
       end
 
-      def add_column(name, type, **options)
-        name = name.to_s
-        type = type.to_sym
-        @adds << AddColumnDefinition.new(@td.new_column_definition(name, type, **options))
+      def empty?
+        @operations.empty?
       end
     end
 

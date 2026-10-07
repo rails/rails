@@ -32,8 +32,19 @@ module ActiveRecord
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
 
-        name = @primary_key if name == "id" && @primary_key
-        @attributes.write_from_user(name, value)
+        return @attributes.write_from_user(name, value) unless name == "id" && @primary_key
+
+        if self.class.composite_primary_key?
+          @attributes.write_from_user("id", value)
+        else
+          if @primary_key != "id"
+            ActiveRecord.deprecator.warn(<<-MSG.squish)
+              Using write_attribute(:id, value) to write the primary key value is deprecated
+              and will be removed in Rails 9.0. Use #id= instead.
+            MSG
+          end
+          @attributes.write_from_user(@primary_key, value)
+        end
       end
 
       # This method exists to avoid the expensive primary_key check internally, without

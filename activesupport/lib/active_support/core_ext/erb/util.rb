@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "strscan"
@@ -19,10 +20,12 @@ module ActiveSupport
       alias :unwrapped_html_escape :html_escape # :nodoc:
 
       # A utility method for escaping HTML tag characters.
-      # This method is also aliased as <tt>h</tt>.
+      # This method is also aliased as `h`.
       #
-      #   puts html_escape('is a > 0 & a < 10?')
-      #   # => is a &gt; 0 &amp; a &lt; 10?
+      # ```
+      # puts html_escape('is a > 0 & a < 10?')
+      # # => is a &gt; 0 &amp; a &lt; 10?
+      # ```
       def html_escape(s) # rubocop:disable Lint/DuplicateMethods
         unwrapped_html_escape(s).html_safe
       end
@@ -56,11 +59,15 @@ class ERB
 
     # A utility method for escaping HTML without affecting existing escaped entities.
     #
-    #   html_escape_once('1 < 2 &amp; 3')
-    #   # => "1 &lt; 2 &amp; 3"
+    # ```
+    # html_escape_once('1 < 2 &amp; 3')
+    # # => "1 &lt; 2 &amp; 3"
+    # ```
     #
-    #   html_escape_once('&lt;&lt; Accept & Checkout')
-    #   # => "&lt;&lt; Accept &amp; Checkout"
+    # ```
+    # html_escape_once('&lt;&lt; Accept & Checkout')
+    # # => "&lt;&lt; Accept &amp; Checkout"
+    # ```
     def html_escape_once(s)
       s.to_s.gsub(HTML_ESCAPE_ONCE_REGEXP, HTML_ESCAPE).html_safe
     end
@@ -75,53 +82,59 @@ class ERB
     # context of a JSON string, so assuming the input is a valid and well-formed
     # JSON value, the output will have equivalent meaning when parsed:
     #
-    #   json = JSON.generate({ name: "</script><script>alert('PWNED!!!')</script>"})
-    #   # => "{\"name\":\"</script><script>alert('PWNED!!!')</script>\"}"
+    # ```
+    # json = JSON.generate({ name: "</script><script>alert('PWNED!!!')</script>"})
+    # # => "{\"name\":\"</script><script>alert('PWNED!!!')</script>\"}"
     #
-    #   json_escape(json)
-    #   # => "{\"name\":\"\\u003C/script\\u003E\\u003Cscript\\u003Ealert('PWNED!!!')\\u003C/script\\u003E\"}"
+    # json_escape(json)
+    # # => "{\"name\":\"\\u003C/script\\u003E\\u003Cscript\\u003Ealert('PWNED!!!')\\u003C/script\\u003E\"}"
     #
-    #   JSON.parse(json) == JSON.parse(json_escape(json))
-    #   # => true
+    # JSON.parse(json) == JSON.parse(json_escape(json))
+    # # => true
+    # ```
     #
     # The intended use case for this method is to escape JSON strings before including
     # them inside a script tag to avoid XSS vulnerability:
     #
-    #   <script>
-    #     var currentUser = <%= raw json_escape(current_user.to_json) %>;
-    #   </script>
+    # ```
+    # <script>
+    #   var currentUser = <%= raw json_escape(current_user.to_json) %>;
+    # </script>
+    # ```
     #
-    # It is necessary to +raw+ the result of +json_escape+, so that quotation marks
-    # don't get converted to <tt>&quot;</tt> entities. +json_escape+ doesn't
+    # It is necessary to `raw` the result of `json_escape`, so that quotation marks
+    # don't get converted to `&quot;` entities. `json_escape` doesn't
     # automatically flag the result as HTML safe, since the raw value is unsafe to
     # use inside HTML attributes.
     #
     # If your JSON is being used downstream for insertion into the DOM, be aware of
-    # whether or not it is being inserted via <tt>html()</tt>. Most jQuery plugins do this.
-    # If that is the case, be sure to +html_escape+ or +sanitize+ any user-generated
+    # whether or not it is being inserted via `html()`. Most jQuery plugins do this.
+    # If that is the case, be sure to `html_escape` or `sanitize` any user-generated
     # content returned by your JSON.
     #
     # If you need to output JSON elsewhere in your HTML, you can just do something
     # like this, as any unsafe characters (including quotation marks) will be
     # automatically escaped for you:
     #
-    #   <div data-user-info="<%= current_user.to_json %>">...</div>
+    # ```
+    # <div data-user-info="<%= current_user.to_json %>">...</div>
+    # ```
     #
     # WARNING: this helper only works with valid JSON. Using this on non-JSON values
     # will open up serious XSS vulnerabilities. For example, if you replace the
-    # +current_user.to_json+ in the example above with user input instead, the browser
-    # will happily <tt>eval()</tt> that string as JavaScript.
+    # `current_user.to_json` in the example above with user input instead, the browser
+    # will happily `eval()` that string as JavaScript.
     #
     # The escaping performed in this method is identical to those performed in the
-    # Active Support JSON encoder when +ActiveSupport.escape_html_entities_in_json+ is
+    # Active Support JSON encoder when `ActiveSupport.escape_html_entities_in_json` is
     # set to true. Because this transformation is idempotent, this helper can be
-    # applied even if +ActiveSupport.escape_html_entities_in_json+ is already true.
+    # applied even if `ActiveSupport.escape_html_entities_in_json` is already true.
     #
-    # Therefore, when you are unsure if +ActiveSupport.escape_html_entities_in_json+
+    # Therefore, when you are unsure if `ActiveSupport.escape_html_entities_in_json`
     # is enabled, or if you are unsure where your JSON string originated from, it
     # is recommended that you always apply this helper (other libraries, such as the
     # JSON gem, do not provide this kind of protection by default; also some gems
-    # might override +to_json+ to bypass Active Support's encoder).
+    # might override `to_json` to bypass Active Support's encoder).
     def json_escape(s)
       result = s.to_s.dup
       result.gsub!(">", '\u003e')
@@ -136,8 +149,10 @@ class ERB
 
     # A utility method for escaping XML names of tags and names of attributes.
     #
-    #   xml_name_escape('1 < 2 & 3')
-    #   # => "1___2___3"
+    # ```
+    # xml_name_escape('1 < 2 & 3')
+    # # => "1___2___3"
+    # ```
     #
     # It follows the requirements of the specification: https://www.w3.org/TR/REC-xml/#NT-Name
     def xml_name_escape(name)

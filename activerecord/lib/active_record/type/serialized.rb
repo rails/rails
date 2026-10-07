@@ -6,6 +6,7 @@ module ActiveRecord
       undef to_yaml if method_defined?(:to_yaml)
 
       include ActiveModel::Type::Helpers::Mutable
+      include QueryPredicates::Decorator
 
       attr_reader :subtype, :coder
 

@@ -33,6 +33,7 @@ module ActionText
       def fragment_by_canonicalizing_content(content)
         fragment = ActionText::Attachment.fragment_by_canonicalizing_attachments(content)
         fragment = ActionText::AttachmentGallery.fragment_by_canonicalizing_attachment_galleries(fragment)
+        fragment = ActionText::MarkdownConversion.fragment_by_unwrapping_raw_markdown_tags(fragment)
         fragment
       end
     end
@@ -140,17 +141,20 @@ module ActionText
     #     content = ActionText::Content.new("<p>Hello <strong>world</strong></p>")
     #     content.to_markdown # => "Hello **world**"
     #
-    # When +attachment_links+ is true, ActiveStorage blob attachments generate Markdown links with
+    # When `attachment_links` is true, ActiveStorage blob attachments generate Markdown links with
     # URLs. This requires a rendering context (e.g., controller or mailer action) and will raise if
     # URL generation fails.
     #
-    # NOTE: that the returned string is not HTML safe and should not be rendered in
+    # NOTE: The returned string is not HTML safe and should not be rendered in
     # browsers without additional sanitization.
+    #
+    # NOTE: Links with unsafe protocols like `javascript:` are stripped from the returned
+    # Markdown on a best-effort basis. Markdown renderers do not all parse Markdown the same way,
+    # so HTML rendered from the Markdown should not be displayed in browsers without additional
+    # sanitization.
     def to_markdown(attachment_links: false)
       render_attachments(with_full_attributes: false) { |attachment|
-        ActionText::HtmlConversion.create_element("action-text-markdown").tap do |node|
-          node.content = attachment.to_markdown(attachment_links: attachment_links)
-        end
+        ActionText::MarkdownConversion.render_attachment(attachment, attachment_links: attachment_links)
       }.fragment.to_markdown
     end
 

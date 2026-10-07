@@ -74,6 +74,9 @@ module ActiveRecord
       def nullify!
         @state = nil
       end
+
+      deprecate :fully_committed?, :fully_rolledback?, :nullify!,
+        fully_completed?: :completed?, deprecator: ActiveRecord.deprecator
     end
 
     class TransactionInstrumenter
@@ -105,6 +108,11 @@ module ActiveRecord
         @payload[:outcome] = outcome
         @handle.finish
       end
+    end
+
+    module NullTransactionInstrumenter # :nodoc:
+      def self.start; end
+      def self.finish(_outcome); end
     end
 
     class NullTransaction # :nodoc:
@@ -173,7 +181,12 @@ module ActiveRecord
         @lazy_enrollment_records = nil
         @dirty = false
         @user_transaction = joinable ? ActiveRecord::Transaction.new(self) : ActiveRecord::Transaction::NULL_TRANSACTION
-        @instrumenter = TransactionInstrumenter.new(connection: connection, transaction: @user_transaction)
+        @instrumenter =
+          if connection.proxied?
+            NullTransactionInstrumenter
+          else
+            TransactionInstrumenter.new(connection: connection, transaction: @user_transaction)
+          end
       end
 
       def dirty!
@@ -622,7 +635,15 @@ module ActiveRecord
 
           dirty_current_transaction if transaction.dirty?
 
-          transaction.commit
+          begin
+            transaction.commit
+          rescue ActiveRecord::TransactionRollbackError
+            # A failed COMMIT has already ended the transaction, so the caller
+            # should skip the ROLLBACK it would otherwise issue.
+            transaction.invalidate! unless transaction.state.completed?
+            raise
+          end
+
           transaction.commit_records
         end
       end
@@ -659,12 +680,6 @@ module ActiveRecord
                   commit_transaction
                 rescue ActiveRecord::ConnectionFailed
                   transaction.invalidate! unless transaction.state.completed?
-                  raise
-                rescue ActiveRecord::TransactionRollbackError
-                  unless transaction.state.completed?
-                    transaction.invalidate!
-                    rollback_transaction(transaction)
-                  end
                   raise
                 rescue Exception
                   rollback_transaction(transaction) unless transaction.state.completed?

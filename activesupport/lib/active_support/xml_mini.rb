@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "time"
@@ -10,16 +11,20 @@ require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/date_time/calculations"
 
 module ActiveSupport
-  # = \XmlMini
+  # \XmlMini
+  # ========
   #
   # To use the much faster libxml parser:
-  #   gem "libxml-ruby"
-  #   XmlMini.backend = 'LibXML'
+  #
+  # ```
+  # gem "libxml-ruby"
+  # XmlMini.backend = 'LibXML'
+  # ```
   module XmlMini
     extend self
 
     # This module decorates files deserialized using Hash.from_xml with
-    # the <tt>original_filename</tt> and <tt>content_type</tt> methods.
+    # the `original_filename` and `content_type` methods.
     module FileLike # :nodoc:
       attr_writer :original_filename, :content_type
 

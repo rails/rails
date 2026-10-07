@@ -394,7 +394,8 @@ module ActiveRecord
 
       # Deletes all the records from the collection according to the strategy
       # specified by the +:dependent+ option. If no +:dependent+ option is given,
-      # then it will follow the default strategy.
+      # then it will follow the default strategy. Returns the number of deleted
+      # records.
       #
       # For <tt>has_many :through</tt> associations, the default deletion strategy is
       # +:delete_all+.
@@ -415,11 +416,6 @@ module ActiveRecord
       #   #    ]
       #
       #   person.pets.delete_all
-      #   # => [
-      #   #       #<Pet id: 1, name: "Fancy-Fancy", person_id: 1>,
-      #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
-      #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
-      #   #    ]
       #
       #   person.pets.size # => 0
       #   person.pets      # => []
@@ -730,7 +726,7 @@ module ActiveRecord
           Base.strict_loading_violation!(owner: proxy_association.owner.class, reflection: proxy_association.reflection)
         end
 
-        null_scope? ? scope.pluck(*column_names) : super
+        null_scope? ? records.pluck(*column_names) : super
       end
 
       ##
