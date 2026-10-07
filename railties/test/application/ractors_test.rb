@@ -113,6 +113,23 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_equal main_size, on_ractor { GreetingsController._view_paths.size }
       end
 
+      test "ractorize! makes the queue name prefix and delimiter shareable" do
+        add_to_env_config "production", 'config.active_job.queue_name_prefix = "app_#{Rails.env}"'
+        app_file "app/jobs/hello_job.rb", <<~RUBY
+          class HelloJob < ApplicationJob
+            self.queue_name_delimiter = "."
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ActiveJob::Base.queue_name_prefix
+        assert_ractor_shareable HelloJob.queue_name_delimiter
+        assert_equal "app_production.default", on_ractor { HelloJob.new.queue_name }
+      end
+
       test "jobs are performed from a non-main Ractor" do
         app_file "app/jobs/hello_job.rb", <<~RUBY
           class HelloJob < ApplicationJob
