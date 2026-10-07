@@ -62,6 +62,13 @@ module ActiveJob
         add_new_serializers(new_serializers)
       end
 
+      def make_shareable! # :nodoc:
+        require "active_job/arguments"
+
+        ActiveSupport::Ractors.try_make_shareable(@serializers)
+        ActiveSupport::Ractors.try_make_shareable(@serializers_index)
+      end
+
       private
         def add_new_serializers(new_serializers)
           new_serializers.map! do |s|
