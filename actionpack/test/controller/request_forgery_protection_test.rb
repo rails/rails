@@ -1717,7 +1717,8 @@ class HeaderOnlyProtectionControllerTest < ActionController::TestCase
     end
   end
 
-  test "allows POST with missing Sec-Fetch-Site header on HTTP when force_ssl is disabled" do
+  test "allows POST with matching Origin and missing Sec-Fetch-Site header on HTTP when force_ssl is disabled" do
+    @request.set_header "HTTP_ORIGIN", @request.base_url
     with_secure_protocol(false) do
       post :index
       assert_response :success
@@ -1827,6 +1828,31 @@ class HeaderOnlyProtectionControllerTest < ActionController::TestCase
   test "renders an authenticity token passed to a form" do
     get :form_with_remote_with_external_token
     assert_select "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
+  end
+
+  test "blocks POST with mismatched Origin and missing Sec-Fetch-Site header on HTTP" do
+    @request.set_header "HTTP_ORIGIN", "http://evil.example"
+    with_secure_protocol(false) do
+      assert_raises(ActionController::InvalidCrossOriginRequest) do
+        post :index
+      end
+    end
+  end
+
+  test "allows POST with matching Origin and missing Sec-Fetch-Site header on HTTP" do
+    @request.set_header "HTTP_ORIGIN", @request.base_url
+    with_secure_protocol(false) do
+      post :index
+      assert_response :success
+    end
+  end
+
+  test "blocks POST with missing Origin and missing Sec-Fetch-Site header on HTTP" do
+    with_secure_protocol(false) do
+      assert_raises(ActionController::InvalidCrossOriginRequest) do
+        post :index
+      end
+    end
   end
 
   private

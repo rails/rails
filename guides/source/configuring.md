@@ -2149,6 +2149,9 @@ Configures how Rails verifies requests for CSRF protection. Available strategies
   that requests originate from the same site. Requests without a valid header are rejected.
   This is simpler and more secure but only works with browsers that support the
   [Fetch Metadata Request Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-Fetch-Site).
+  Because browsers do not send `Sec-Fetch-Site` to non-secure origins, plain HTTP
+  requests without that header are verified with the `Origin` header instead, and
+  are only accepted when `Origin` is present and matches the request origin.
 
 * `:header_or_legacy_token` - A hybrid approach that checks the `Sec-Fetch-Site` header first.
   If the header indicates same-origin or same-site, the request is allowed. When the

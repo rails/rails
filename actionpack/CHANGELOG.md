@@ -1,3 +1,17 @@
+*   Enforce the Origin check when Sec-Fetch-Site is missing on plain HTTP requests.
+
+    Browsers do not send `Sec-Fetch-Site` to non-secure origins, so the
+    `:header_only` strategy falls back to the `Origin` header on plain HTTP
+    requests. The fallback previously accepted those requests without any
+    origin verification, allowing cross-site POSTs whenever
+    `forgery_protection_origin_check` was disabled.
+
+    Plain HTTP requests without `Sec-Fetch-Site` are now only accepted when
+    `Origin` is present and matches the request origin. Browsers send `Origin`
+    on every POST, so local HTTP installs keep working.
+
+    *Stapat Rakoto*
+
 *   Accept a Symbol for the routing `format:` option.
 
     `format: :json` now sets the same format requirement and `"json"` default as
