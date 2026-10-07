@@ -55,7 +55,7 @@ module ActiveSupport
     require "active_support/deprecation/proxy_wrappers"
     require "active_support/deprecation/deprecators"
     require "active_support/core_ext/module/deprecation"
-    require "concurrent/atomic/thread_local_var"
+    require "active_support/isolated_execution_state"
 
     include Behavior
     include Reporting
@@ -84,8 +84,15 @@ module ActiveSupport
       # By default, warnings are not silenced and debugging is off.
       self.silenced = false
       self.debug = false
-      @silence_counter = Concurrent::ThreadLocalVar.new(0)
-      @explicitly_allowed_warnings = Concurrent::ThreadLocalVar.new(nil)
+      @silence_counter_key = :"active_support_deprecation_silence_counter_#{object_id}"
+      @explicitly_allowed_warnings_key = :"active_support_deprecation_explicitly_allowed_warnings_#{object_id}"
+    end
+
+    def freeze # :nodoc:
+      behavior
+      disallowed_behavior
+      disallowed_warnings
+      super
     end
   end
 end

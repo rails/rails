@@ -97,6 +97,27 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_predicate Rails.application, :initialized?
       end
 
+      test "deprecation warnings from jobs performed in a non-main Ractor reach the configured behavior" do
+        add_to_env_config "production", "config.active_support.report_deprecations = true"
+        add_to_env_config "production", "config.active_support.deprecation = :raise"
+        app_file "app/jobs/deprecated_job.rb", <<~RUBY
+          class DeprecatedJob < ApplicationJob
+            def perform
+              ActiveJob.deprecator.warn("DeprecatedJob is deprecated")
+            rescue ActiveSupport::DeprecationException => error
+              error.message
+            end
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_match "DeprecatedJob is deprecated", on_ractor { DeprecatedJob.perform_now }
+        assert_nil on_ractor { Rails.application.deprecators.silence { DeprecatedJob.perform_now } }
+      end
+
       test "controller view paths are readable from a non-main Ractor" do
         app_file "app/controllers/greetings_controller.rb", <<~RUBY
           class GreetingsController < ApplicationController
