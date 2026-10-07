@@ -1186,6 +1186,12 @@ end
 config.active_record.migration_strategy = CustomMigrationStrategy
 ```
 
+#### `config.active_record.migration_error`
+
+Specifies what happens when there are pending migrations. If set to `:page_load`, an `ActiveRecord::PendingMigrationError` is raised on page load.
+The generated `config/environments/development.rb` file contains this option with the value `:page_load`.
+By default, this option is not set.
+
 #### `config.active_record.schema_versions_formatter`
 
 Controls the formatter class used by schema dumper to format versions information. Custom class can be provided

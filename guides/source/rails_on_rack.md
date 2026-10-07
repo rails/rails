@@ -388,10 +388,9 @@ The unique request id can be used to trace a request end-to-end and would typica
 
 #### `ActiveRecord::Migration::CheckPending`
 
-[`ActiveRecord::Migration::CheckPending`][] checks pending migrations and raises `ActiveRecord::PendingMigrationError` if any migrations are pending if [`config.action_dispatch.x_sendfile_header`][] is set to `:page_load`.
+[`ActiveRecord::Migration::CheckPending`][] checks pending migrations and raises `ActiveRecord::PendingMigrationError` if any migrations are pending if [`config.active_record.migration_error`][] is set to `:page_load`.
 
-[`config.action_dispatch.x_sendfile_header`]: configuring.html#config-action-dispatch-x-sendfile-header
-
+[`config.active_record.migration_error`]: configuring.html#config-active-record-migration-error
 [`ActiveRecord::Migration::CheckPending`]: https://api.rubyonrails.org/classes/ActiveRecord/Migration/CheckPending.html
 
 #### `ActiveSupport::Cache::Strategy::LocalCache::Middleware`
