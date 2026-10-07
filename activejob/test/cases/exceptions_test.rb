@@ -6,8 +6,12 @@ require "jobs/retries_job"
 require "jobs/after_discard_retry_job"
 require "models/person"
 require "minitest/mock"
+require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 
 class ExceptionsTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   class << self
     def adapter_skips_scheduling?(queue_adapter)
       [
@@ -463,5 +467,80 @@ class ExceptionsTest < ActiveSupport::TestCase
         retry_on StandardError, wait: ->(executions) { executions * 2 }
       end
     end
+  end
+
+  ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+    class ShareableRetryJob < ActiveJob::Base
+      class Adapter < ActiveJob::QueueAdapters::AbstractAdapter
+        def enqueue_at(job, timestamp)
+          JobBuffer.add([:retry, job.queue_name, job.priority, timestamp])
+        end
+      end
+
+      self.queue_adapter = Adapter.new
+
+      retry_on DefaultsError, wait: 10.seconds, attempts: 2, queue: :retries, priority: 5, jitter: 0.5 do |job, error|
+        JobBuffer.add([:retry_stopped, job, error])
+      end
+      after_discard { |job, error| JobBuffer.add([:after_discard, job, error]) }
+
+      def perform
+        raise DefaultsError
+      end
+    end
+
+    class ShareableRetryWithWaitProcJob < ActiveJob::Base
+      self.queue_adapter = ShareableRetryJob::Adapter.new
+
+      retry_on DefaultsError, wait: ->(executions) { executions * 7 }
+
+      def perform
+        raise DefaultsError
+      end
+    end
+
+    class ShareableDiscardJob < ActiveJob::Base
+      discard_on(DiscardableError) { |job, error| JobBuffer.add([:discard, job, error]) }
+      after_discard { |job, error| JobBuffer.add([:after_discard, job, error]) }
+
+      def perform
+        raise DiscardableError
+      end
+    end
+  end
+
+  test "retry_on handlers can be made Ractor-shareable" do
+    assert_ractor_shareable ShareableRetryJob.rescue_handlers
+    assert_ractor_shareable ShareableRetryJob.after_discard_procs
+
+    travel_to Time.now
+    job = ShareableRetryJob.new
+
+    Kernel.stub(:rand, 1) { job.perform_now }
+    assert_equal [[:retry, "retries", 5, Time.now.to_f + 15]], JobBuffer.values
+
+    error = job.perform_now
+    assert_instance_of DefaultsError, error
+    assert_equal({ "[DefaultsError]" => 2 }, job.exception_executions)
+    assert_equal [[:retry_stopped, job, error], [:after_discard, job, error]], JobBuffer.values.drop(1)
+  end
+
+  test "retry_on handlers with a wait proc can be made Ractor-shareable" do
+    assert_ractor_shareable ShareableRetryWithWaitProcJob.rescue_handlers
+
+    travel_to Time.now
+    ShareableRetryWithWaitProcJob.new.perform_now
+    assert_equal [[:retry, "default", nil, Time.now.to_f + 7]], JobBuffer.values
+  end
+
+  test "discard_on handlers can be made Ractor-shareable" do
+    assert_ractor_shareable ShareableDiscardJob.rescue_handlers
+    assert_ractor_shareable ShareableDiscardJob.after_discard_procs
+
+    job = ShareableDiscardJob.new
+
+    error = job.perform_now
+    assert_instance_of DiscardableError, error
+    assert_equal [[:discard, job, error], [:after_discard, job, error]], JobBuffer.values
   end
 end

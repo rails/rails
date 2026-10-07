@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "active_support/core_ext/object/with"
 require "active_support/testing/ractors_assertions"
 
 class WraithAttack < StandardError
@@ -186,5 +187,45 @@ class RescuableTest < ActiveSupport::TestCase
     end
 
     assert_ractor_shareable klass.rescue_handlers
+  end
+
+  if RUBY_VERSION >= "4.0"
+    def test_rescue_handler_procs_are_ractor_shareable
+      klass = ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+        Class.new do
+          include ActiveSupport::Rescuable
+
+          attr_reader :result
+
+          rescue_from(WraithAttack) { @result = "sos" }
+          rescue_from MadRonon, with: ->(error) { @result = error.message }
+        end
+      end
+
+      assert_ractor_shareable klass.rescue_handlers
+
+      results = on_ractor do
+        [WraithAttack.new, MadRonon.new("dex")].map do |error|
+          object = klass.new
+          object.rescue_with_handler(error)
+          object.result
+        end
+      end
+      assert_equal ["sos", "dex"], results
+    end
+
+    def test_user_supplied_rescue_handler_procs_use_unshareable_proc_action
+      ActiveSupport::Ractors.with(unshareable_proc_action: :raise) do
+        object = Object.new
+
+        assert_raises(Ractor::IsolationError) do
+          Class.new do
+            include ActiveSupport::Rescuable
+
+            rescue_from(WraithAttack) { object }
+          end
+        end
+      end
+    end
   end
 end
