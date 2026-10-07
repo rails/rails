@@ -10,7 +10,6 @@ module ActiveRecord
       class AbstractProxyAdapter < AbstractAdapter # :nodoc:
         autoload :QueryRequest, "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter/query_request"
         autoload :QueryResponse, "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter/query_response"
-        autoload :Result, "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter/result"
         autoload :SchemaCreationProxy, "active_record/connection_adapters/ractor_connection_handler/abstract_proxy_adapter/schema_creation_proxy"
 
         include Proxy
@@ -201,6 +200,16 @@ module ActiveRecord
           raise ActiveRecordError, "insert_all/upsert_all can only be executed on the main Ractor"
         end
 
+        def execute(...)
+          cast_result(super)
+        end
+
+        def _exec_insert(intent, sequence_name = nil, returning: nil) # :nodoc:
+          apply_returning_to!(intent, returning)
+          intent.execute!
+          intent.raw_result
+        end
+
         def begin_db_transaction # :nodoc:
           with_raw_connection(allow_retry: true, materialize_transactions: false) do
             begin_main_transaction(nil, true)
@@ -289,23 +298,23 @@ module ActiveRecord
             end
             intent.notification_payload[:affected_rows] = response.affected_rows
             intent.notification_payload[:row_count] = response.row_count
-            response.to_result
+            response
           end
 
-          def cast_result(result)
-            result
+          def cast_result(response)
+            ActiveRecord::Result.new(response.columns, response.rows, response.column_types, affected_rows: response.affected_rows)
           end
 
-          def affected_rows(result)
-            result.affected_rows
+          def affected_rows(response)
+            response.affected_rows
           end
 
-          def collect_warnings(result)
-            result&.warnings
+          def collect_warnings(response)
+            response&.warnings
           end
 
-          def last_inserted_id(result)
-            result.last_inserted_id
+          def last_inserted_id(response)
+            response.last_inserted_id
           end
 
           # A lazily begun worker transaction must reach the main connection before
