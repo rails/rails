@@ -34,29 +34,31 @@ class File
     tmp_suffix = ".tmp.#{SecureRandom.hex}"
     tmp_name = ".#{basename(file_name).byteslice(0, 254 - tmp_suffix.bytesize)}#{tmp_suffix}"
     tmp_path = File.join(temp_dir, tmp_name)
-    open(tmp_path, RDWR | CREAT | EXCL | SHARE_DELETE | BINARY) do |temp_file|
-      temp_file.binmode
+    temp_file = open(tmp_path, RDWR | CREAT | EXCL | SHARE_DELETE | BINARY)
+    temp_file.binmode
 
-      if old_stat
-        # Set correct permissions on new file
-        begin
-          chown(old_stat.uid, old_stat.gid, temp_file.path)
-          # This operation will affect filesystem ACL's
-          chmod(old_stat.mode, temp_file.path)
-        rescue Errno::EPERM, Errno::EACCES
-          # Changing file ownership failed, moving on.
-        end
+    if old_stat
+      # Set correct permissions on new file
+      begin
+        chown(old_stat.uid, old_stat.gid, temp_file.path)
+        # This operation will affect filesystem ACL's
+        chmod(old_stat.mode, temp_file.path)
+      rescue Errno::EPERM, Errno::EACCES
+        # Changing file ownership failed, moving on.
       end
+    end
 
-      return_val = yield temp_file
-      temp_file.close
-    rescue => error
+    return_val = yield temp_file
+
+    temp_file.close
+    rename(temp_file.path, file_name)
+    temp_file = nil
+
+    return_val
+  ensure
+    if temp_file
       temp_file.close rescue nil
       unlink(temp_file.path) rescue nil
-      raise error
-    else
-      rename(temp_file.path, file_name)
-      return_val
     end
   end
 end
