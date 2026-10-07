@@ -89,6 +89,28 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         end
       end
 
+      test "jobs raise unhandled errors from a non-main Ractor" do
+        app_file "app/jobs/failing_job.rb", <<~RUBY
+          class FailingJob < ApplicationJob
+            def perform
+              raise ArgumentError, "unhandled"
+            end
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        raised = on_ractor do
+          FailingJob.perform_now
+        rescue => error
+          [error.class, error.message]
+        end
+
+        assert_equal [ArgumentError, "unhandled"], raised
+      end
+
       test "the application boots with unshareable_proc_action :raise" do
         add_to_env_config "production", "ActiveSupport::Ractors.unshareable_proc_action = :raise"
 
