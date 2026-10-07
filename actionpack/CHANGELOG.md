@@ -1,3 +1,12 @@
+*   Enforce the Origin check when Sec-Fetch-Site is missing on plain HTTP requests.
+
+    The `:header_only` fallback for plain HTTP requests skipped origin
+    verification when `forgery_protection_origin_check` was disabled,
+    accepting cross-site POSTs. The fallback now requires the `Origin` header
+    to be absent or match the application origin.
+
+    *Stapat Rakoto*
+
 *   Remove support for dynamic `:controller` and `:action` route segments.
 
     A route may no longer read the controller or the action out of the URL:
