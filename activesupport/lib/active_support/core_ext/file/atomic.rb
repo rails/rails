@@ -40,9 +40,9 @@ class File
     if old_stat
       # Set correct permissions on new file
       begin
-        chown(old_stat.uid, old_stat.gid, temp_file.path)
+        temp_file.chown(old_stat.uid, old_stat.gid)
         # This operation will affect filesystem ACL's
-        chmod(old_stat.mode, temp_file.path)
+        temp_file.chmod(old_stat.mode)
       rescue Errno::EPERM, Errno::EACCES
         # Changing file ownership failed, moving on.
       end
