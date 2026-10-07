@@ -38,8 +38,10 @@ module ActiveModel
       end
 
       def _default_attributes # :nodoc:
-        @default_attributes ||= AttributeSet.new({}).tap do |attribute_set|
-          apply_pending_attribute_modifications(attribute_set)
+        ActiveSupport::Ractors.on_main(self) do
+          @default_attributes ||= AttributeSet.new({}).tap do |attribute_set|
+            apply_pending_attribute_modifications(attribute_set)
+          end
         end
       end
 
@@ -76,6 +78,11 @@ module ActiveModel
         end
 
         @pending_attribute_modifications = ActiveSupport::Ractors.try_make_shareable(@pending_attribute_modifications)
+      end
+
+      def make_attributes_shareable! # :nodoc:
+        make_pending_attribute_modifications_shareable
+        ActiveSupport::Ractors.try_make_shareable(attribute_types)
       end
 
       private

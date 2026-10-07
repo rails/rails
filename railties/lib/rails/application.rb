@@ -690,6 +690,8 @@ module Rails
       if defined?(ActiveJob::Base)
         [ActiveJob::Base, *ActiveJob::Base.descendants].each do |job|
           Ractor.make_shareable(job.queue_adapter)
+          job.make_attributes_shareable! if job.include?(ActiveJob::Attributes)
+          Ractor.make_shareable(job.resume_options) if job.include?(ActiveJob::Continuable)
         end
       end
 

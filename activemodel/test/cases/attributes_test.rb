@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 
 module ActiveModel
   class AttributesTest < ActiveModel::TestCase
@@ -182,6 +183,32 @@ module ActiveModel
       end
 
       assert_equal with_alias.type_for_attribute(:integer_field), with_alias.type_for_attribute(:x)
+    end
+
+    class RactorTest < ActiveModel::TestCase
+      include ActiveSupport::Testing::Isolation
+      include ActiveSupport::Testing::RactorsAssertions
+
+      test "attributes can be used from a non-main Ractor" do
+        ActiveSupport::Ractors.unshareable_proc_action = :raise
+        GrandchildModelForAttributesTest.make_attributes_shareable!
+
+        attributes = on_ractor do
+          data = GrandchildModelForAttributesTest.new
+          data.integer_field = 1
+          [data.attributes, GrandchildModelForAttributesTest.new.attributes]
+        end
+
+        defaults = {
+          "integer_field" => nil,
+          "string_field" => "default string",
+          "decimal_field" => nil,
+          "string_with_default" => "default string",
+          "date_field" => Date.new(2016, 1, 1),
+          "boolean_field" => nil,
+        }
+        assert_equal [defaults.merge("integer_field" => "1"), defaults], attributes
+      end
     end
   end
 end
