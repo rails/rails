@@ -94,7 +94,18 @@ module ActiveModel
       defaults << :"errors.messages.#{type}"
 
       key = defaults.shift
-      defaults = options.delete(:message) if options[:message]
+      if options[:message]
+        defaults = options.delete(:message)
+
+        if I18n.exists?(key, options[:locale])
+          ActiveModel.deprecator.warn(<<~MSG)
+            The :message option given for #{base.class.name}##{attribute} is overridden
+            by the #{key} translation. In Rails 9.0, the :message option will take
+            precedence over translations. To keep the current error message, remove
+            the :message option.
+          MSG
+        end
+      end
       options[:default] = defaults
 
       I18n.translate(key, **options)

@@ -173,6 +173,26 @@ class I18nValidationTest < ActiveModel::TestCase
     assert_equal "Country cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].country', "cannot be blank")
   end
 
+  def test_message_option_overridden_by_attribute_translation_is_deprecated
+    I18n.backend.store_translations "en", activemodel: { errors: { models: { person_class.model_name.i18n_key => { attributes: { title: { blank: "custom title message" } } } } } }
+    person_class.validates_presence_of :title, message: "option message"
+
+    assert_deprecated(/attributes\.title\.blank translation\. In Rails 9\.0, the :message option will take/, ActiveModel.deprecator) do
+      @person.valid?
+      assert_equal ["custom title message"], @person.errors[:title]
+    end
+  end
+
+  def test_message_option_without_attribute_translation_is_not_deprecated
+    I18n.backend.store_translations "en", activemodel: { errors: { models: { person_class.model_name.i18n_key => { blank: "custom model message" } } } }
+    person_class.validates_presence_of :title, message: "option message"
+
+    assert_not_deprecated(ActiveModel.deprecator) do
+      @person.valid?
+      assert_equal ["option message"], @person.errors[:title]
+    end
+  end
+
   # ActiveModel::Validations
 
   # A set of common cases for ActiveModel::Validations message generation that

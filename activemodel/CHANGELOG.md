@@ -1,3 +1,14 @@
+*   Deprecate model attribute translations overriding the validation `:message` option.
+
+    When a model defined a translation at
+    `activemodel.errors.models.MODEL.attributes.ATTRIBUTE.TYPE` (or the
+    `activerecord` equivalent), it took precedence over a `:message` string
+    passed to the validation, while every other translation key was already
+    ignored in favor of `:message`. In Rails 9.0, the `:message` option will
+    always take precedence.
+
+    *Matheus Lima*
+
 *   Treat `:except_on` as a callback option in `ActiveModel::Error`.
 
     Errors from validations using `:except_on` now match `errors.added?` queries
