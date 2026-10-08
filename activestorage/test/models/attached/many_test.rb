@@ -802,6 +802,17 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal :disk_mirror_2, @user.signatures.first.service.name
   end
 
+  test "passing other options to the attachment association" do
+    extra_attached = Class.new(User) do
+      def self.name; superclass.name; end
+
+      has_many_attached :signatures, deprecated: true
+    end
+
+    assert_predicate(extra_attached.reflect_on_association(:signatures_attachments), :deprecated?)
+    assert_not_predicate(extra_attached.reflect_on_association(:signatures_blobs), :deprecated?)
+  end
+
   test "attaching blobs to a persisted, unchanged, and valid record, returns the attachments" do
     @user.highlights.attach create_blob(filename: "racecar.jpg")
     return_value = @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
