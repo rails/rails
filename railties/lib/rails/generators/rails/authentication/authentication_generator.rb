@@ -57,7 +57,7 @@ module Rails
         unless @user_model_exists
           generate "migration", "CreateUsers", "email_address:string!:uniq password_digest:string!", "--force"
         end
-        generate "migration", "CreateSessions", "user:references ip_address:string user_agent:string", "--force"
+        generate "migration", "CreateSessions", "user:references token:token! ip_address:string user_agent:string", "--force"
       end
 
       hook_for :test_framework
