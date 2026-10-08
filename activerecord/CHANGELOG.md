@@ -1,3 +1,26 @@
+*   Combine constraint operations into the single `ALTER TABLE` statement emitted by
+    `change_table` with `bulk: true`.
+
+    `add_foreign_key`, `remove_foreign_key`, `add_check_constraint` and
+    `remove_check_constraint` are now combinable on every adapter that supports
+    bulk alter (MySQL and PostgreSQL), as are `add_unique_constraint`,
+    `remove_unique_constraint`, `add_exclusion_constraint` and
+    `remove_exclusion_constraint` on PostgreSQL.
+
+    ```ruby
+    change_table :posts, bulk: true do |t|
+      t.bigint :reviewer_id
+      t.foreign_key :authors, column: :reviewer_id
+      t.check_constraint "views >= 0", name: "views_check"
+      t.remove_foreign_key :authors, column: :editor_id
+    end
+    ```
+
+    Before, each constraint flushed the pending `ALTER TABLE` and ran on its own.
+    Now all four operations are applied in one statement.
+
+    *Ryuta Kamizono*
+
 *   Stop `connected_to` from changing the role and shard of a thread that shares
     the execution state.
 

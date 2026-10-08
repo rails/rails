@@ -1623,10 +1623,85 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
       assert index(:username_index).unique
     end
 
+    def test_adding_foreign_keys
+      with_bulk_change_table do |t|
+        t.bigint :author_id
+      end
+
+      assert_queries_count(1) do
+        with_bulk_change_table do |t|
+          t.bigint :reviewer_id
+          t.foreign_key :people, column: :author_id
+          t.foreign_key :people, column: :reviewer_id
+        end
+      end
+
+      assert_equal ["author_id", "reviewer_id"], foreign_keys.map(&:column).sort
+    end
+
+    def test_removing_foreign_key
+      with_bulk_change_table do |t|
+        t.bigint :author_id
+        t.foreign_key :people, column: :author_id
+      end
+
+      assert_equal 1, foreign_keys.size
+
+      assert_queries_count(1) do
+        with_bulk_change_table do |t|
+          t.remove_foreign_key :people, column: :author_id
+          t.string :title
+        end
+      end
+
+      assert_empty foreign_keys
+      assert column(:title)
+    end
+
+    def test_removing_foreign_key_and_its_column
+      with_bulk_change_table do |t|
+        t.bigint :author_id
+        t.foreign_key :people, column: :author_id
+      end
+
+      # The foreign key must only be dropped once even though MySQL's
+      # `remove_column` drops it along with the column.
+      assert_queries_count(1) do
+        with_bulk_change_table do |t|
+          t.remove_foreign_key :people, column: :author_id
+          t.remove :author_id
+        end
+      end
+
+      assert_empty foreign_keys
+      assert_not column(:author_id)
+    end
+
+    if ActiveRecord::Base.lease_connection.supports_check_constraints?
+      def test_adding_and_removing_check_constraints
+        with_bulk_change_table do |t|
+          t.integer :quantity
+          t.check_constraint "quantity > 0", name: "quantity_check"
+        end
+
+        assert_equal ["quantity_check"], check_constraints.map(&:name)
+
+        assert_queries_count(1) do
+          with_bulk_change_table do |t|
+            t.integer :price
+            t.check_constraint "price > 0", name: "price_check"
+            t.remove_check_constraint name: "quantity_check"
+          end
+        end
+
+        assert_equal ["price_check"], check_constraints.map(&:name)
+      end
+    end
+
     private
       def with_bulk_change_table(&block)
         # Reset columns/indexes cache as we're changing the table
-        @columns = @indexes = nil
+        @columns = @indexes = @foreign_keys = @check_constraints = nil
 
         Person.lease_connection.change_table(:delete_me, bulk: true, &block)
       end
@@ -1645,6 +1720,14 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
 
       def indexes
         @indexes ||= Person.lease_connection.indexes("delete_me")
+      end
+
+      def foreign_keys
+        @foreign_keys ||= Person.lease_connection.foreign_keys("delete_me")
+      end
+
+      def check_constraints
+        @check_constraints ||= Person.lease_connection.check_constraints("delete_me")
       end
   end # AlterTableMigrationsTest
 
