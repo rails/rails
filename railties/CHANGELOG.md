@@ -1,3 +1,7 @@
+*   Fix `rails.deprecation` structured events not being emitted.
+
+    *Azmi Muwahid*
+
 *   Log a warning on boot for each route that references a missing controller
     when eager loading is enabled.
 
