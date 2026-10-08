@@ -1,3 +1,18 @@
+*   Log the `Started GET "/" for 127.0.0.1 at ...` line from a subscriber
+    instead of directly from `Rails::Rack::Logger`.
+
+    `Rails::Rack::Logger` still instruments `request.action_dispatch` at the
+    same point. The start of that event is now reported as the
+    `action_dispatch.request_started` structured event, and the line is
+    logged by the Action Dispatch log subscriber, so it is written at the same
+    moment as before and can be removed without patching the middleware:
+
+        Rails.event.unsubscribe(ActionDispatch::LogSubscriber)
+
+    The private `Rails::Rack::Logger#started_request_message` method is removed.
+
+    *Kirill Mokevnin*
+
 *   Log a warning on boot for each route that references a missing controller
     when eager loading is enabled.
 
