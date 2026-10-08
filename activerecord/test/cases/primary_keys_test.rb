@@ -279,6 +279,34 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal "foo", subclass._primary_key_definition&.name
   end
 
+  def test_primary_key_assignment_reloads_schema
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    context = klass.schema_context
+
+    klass.primary_key = ["title", "id"]
+
+    assert_not_same context, klass.schema_context
+    assert_equal ["title", "id"], klass.query_constraints_list
+    assert_equal ["title", "id"], klass.composite_query_constraints_list
+  end
+
+  def test_primary_key_assignment_reloads_descendant_schema
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.primary_key = "id"
+    end
+    child = Class.new(klass)
+    context = child.schema_context
+
+    klass.primary_key = ["title", "id"]
+
+    assert_not_same context, child.schema_context
+    assert_equal ["title", "id"], child.query_constraints_list
+    assert_equal ["title", "id"], child.composite_query_constraints_list
+  end
+
   def test_auto_detect_primary_key_from_schema
     MixedCaseMonkey.reset_primary_key
     assert_equal "monkeyID", MixedCaseMonkey.primary_key
