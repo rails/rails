@@ -714,7 +714,7 @@ render "messages/message"
 # => "Hello, world!"
 ```
 
-Rendering the partial with local variables not specified in the `local:` signature will also raise an exception:
+Rendering the partial with local variables not specified in the `locals:` signature will also raise an exception:
 
 ```ruby
 render "messages/message", unknown_local: "will raise"
@@ -762,7 +762,7 @@ CAUTION: Only keyword arguments are supported. Defining positional or block
 arguments will raise an Action View Error at render-time.
 
 The `local_assigns` method does not contain default values specified in the
-`local:` signature. To access a local variable with a default value that
+`locals:` signature. To access a local variable with a default value that
 is named the same as a reserved Ruby keyword, like `class` or `if`, the values
 can be accessed through `binding.local_variable_get`:
 
