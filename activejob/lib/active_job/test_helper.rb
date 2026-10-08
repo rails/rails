@@ -107,7 +107,7 @@ module ActiveJob
     #   end
     #
     # If a block is passed, asserts that the block will cause the specified number of
-    # jobs to be enqueued.
+    # jobs to be enqueued, and returns the result of the block.
     #
     #   def test_jobs_again
     #     assert_enqueued_jobs 1 do
@@ -118,6 +118,12 @@ module ActiveJob
     #       HelloJob.perform_later('aaron')
     #       HelloJob.perform_later('rafael')
     #     end
+    #
+    #     result = assert_enqueued_jobs 1 do
+    #       compute_to_i("123")
+    #     end
+    #
+    #     assert_equal 123, result
     #   end
     #
     # Asserts the number of times a specific job was enqueued by passing +:only+ option.
@@ -155,7 +161,7 @@ module ActiveJob
       if block_given?
         original_jobs = enqueued_jobs_with(only: only, except: except, queue: queue)
 
-        _assert_nothing_raised_or_warn("assert_enqueued_jobs", &block)
+        retval = _assert_nothing_raised_or_warn("assert_enqueued_jobs", &block)
 
         new_jobs = enqueued_jobs_with(only: only, except: except, queue: queue)
 
@@ -165,6 +171,7 @@ module ActiveJob
       end
 
       assert_equal number, actual_count, "#{number} jobs expected, but #{actual_count} were enqueued"
+      block_given? ? retval : true
     end
 
     # Asserts that no jobs have been enqueued.
@@ -175,7 +182,8 @@ module ActiveJob
     #     assert_enqueued_jobs 1
     #   end
     #
-    # If a block is passed, asserts that the block will not cause any job to be enqueued.
+    # If a block is passed, asserts that the block will not cause any job to be enqueued,
+    # and returns the result of the block.
     #
     #   def test_jobs_again
     #     assert_no_enqueued_jobs do
@@ -239,7 +247,7 @@ module ActiveJob
     #   end
     #
     # If a block is passed, asserts that the block will cause the specified number of
-    # jobs to be performed.
+    # jobs to be performed, and returns the result of the block.
     #
     #   def test_jobs_again
     #     assert_performed_jobs 1 do
@@ -250,6 +258,11 @@ module ActiveJob
     #       HelloJob.perform_later('carlos')
     #       HelloJob.perform_later('sean')
     #     end
+    #
+    #     result = assert_performed_jobs 1 do
+    #       compute_to_i("123")
+    #     end
+    #     assert_equal 123, result
     #   end
     #
     # This method also supports filtering. If the +:only+ option is specified,
@@ -305,13 +318,23 @@ module ActiveJob
     #         HelloJob.set(queue: :other_queue).perform_later("bogdan")
     #       end
     #     end
+    #
+    # When a block is passed, the value of the block is returned.
+    #
+    #     def test_jobs_return_value
+    #       user = assert_performed_jobs 1 do
+    #         User.create!(name: 'david') # enqueues a WelcomeJob
+    #       end
+    #
+    #       assert_equal 'david', user.name
+    #     end
     def assert_performed_jobs(number, only: nil, except: nil, queue: nil, &block)
       require_active_job_test_adapter!("assert_performed_jobs")
 
       if block_given?
         original_count = performed_jobs.size
 
-        perform_enqueued_jobs(only: only, except: except, queue: queue, &block)
+        retval = perform_enqueued_jobs(only: only, except: except, queue: queue, &block)
 
         new_count = performed_jobs.size
 
@@ -321,6 +344,7 @@ module ActiveJob
       end
 
       assert_equal number, performed_jobs_size, "#{number} jobs expected, but #{performed_jobs_size} were performed"
+      block_given? ? retval : true
     end
 
     # Asserts that no jobs have been performed.
@@ -334,7 +358,8 @@ module ActiveJob
     #     end
     #   end
     #
-    # If a block is passed, asserts that the block will not cause any job to be performed.
+    # If a block is passed, asserts that the block will not cause any job to be performed,
+    # and returns the result of the block.
     #
     #   def test_jobs_again
     #     assert_no_performed_jobs do
