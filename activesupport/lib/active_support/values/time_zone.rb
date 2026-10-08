@@ -287,6 +287,8 @@ module ActiveSupport
 
         @lazy_zones_map = ActiveSupport::Ractors.make_shareable(@lazy_zones_map.each_pair.to_h)
         @country_zones  = ActiveSupport::Ractors.make_shareable(@country_zones.each_pair.to_h)
+        ActiveSupport::Ractors.make_shareable(@zones)
+        ActiveSupport::Ractors.make_shareable(@zones_map)
         ActiveSupport::Ractors.make_shareable(MAPPING)
       end
 
