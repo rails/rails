@@ -14,6 +14,7 @@ DEFAULT_APP_FILES = %w(
   .gitignore
   .rubocop.yml
   .ruby-version
+  AGENTS.md
   Dockerfile
   Gemfile
   README.md
@@ -766,6 +767,37 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/bin\/rails test/, content)
       assert_match(/bin\/rails test:system/, content)
     end
+  end
+
+  def test_agents_md
+    run_generator
+
+    assert_file "AGENTS.md" do |content|
+      assert_match(/bin\/rails test/, content)
+      assert_match(/bin\/rubocop/, content)
+      assert_match(/bin\/brakeman/, content)
+      assert_match(/bin\/ci/, content)
+      assert_match(/bin\/importmap pin/, content)
+      assert_match(/db\/schema\.rb/, content)
+    end
+  end
+
+  def test_agents_md_reflects_skipped_options
+    run_generator [destination_root, "--skip-rubocop", "--skip-brakeman", "--skip-test", "--skip-active-record", "--skip-javascript"]
+
+    assert_file "AGENTS.md" do |content|
+      assert_no_match(/bin\/rubocop/, content)
+      assert_no_match(/bin\/brakeman/, content)
+      assert_no_match(/bin\/rails test/, content)
+      assert_no_match(/db\/schema\.rb/, content)
+      assert_no_match(/bin\/importmap pin|yarn add|bun add/, content)
+    end
+  end
+
+  def test_agents_md_is_skipped_if_required
+    run_generator [destination_root, "--skip-agents-md"]
+
+    assert_no_file "AGENTS.md"
   end
 
   def test_ci_files_are_skipped_if_required

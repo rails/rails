@@ -1,3 +1,12 @@
+*   Generate an `AGENTS.md` file in new applications.
+
+    The file gives AI coding agents the commands to set up, test, lint, and
+    run CI for the application, along with core Rails conventions. Its content
+    reflects the options the application was generated with. Pass
+    `--skip-agents-md` to opt out.
+
+    *Guillaume Briday*
+
 *   Log a warning on boot for each route that references a missing controller
     when eager loading is enabled.
 

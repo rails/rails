@@ -1,0 +1,62 @@
+# AGENTS.md
+
+This file provides guidance to AI coding agents working in this repository.
+
+This is a Ruby on Rails <%= Rails::VERSION::MAJOR %>.<%= Rails::VERSION::MINOR %> application<% if options[:api] %> configured as an API-only app<% end %>.
+Follow Rails conventions: prefer what the framework provides over adding new
+dependencies or custom abstractions.
+
+## Setup
+
+```bash
+bin/setup                # Install dependencies<% unless options.skip_active_record? %> and prepare the database<% end %>
+<% if options[:api] -%>
+bin/rails server         # Start the server
+<% else -%>
+bin/dev                  # Start the development server
+<% end -%>
+```
+
+## Commands
+
+```bash
+<% unless options[:skip_test] -%>
+bin/rails test           # Run the test suite
+bin/rails test test/models/user_test.rb:12   # Run a single test
+<% if depends_on_system_test? -%>
+bin/rails test:system    # Run system tests
+<% end -%>
+<% end -%>
+<% unless options.skip_rubocop? -%>
+bin/rubocop              # Lint Ruby code (add -a to autocorrect)
+<% end -%>
+<% unless options.skip_brakeman? -%>
+bin/brakeman             # Static security analysis
+<% end -%>
+<% unless options.skip_bundler_audit? -%>
+bin/bundler-audit        # Audit gems for known vulnerabilities
+<% end -%>
+bin/ci                   # Run every check from config/ci.rb, as CI does
+bin/rails generate --help   # List available generators
+```
+
+Run `bin/ci` before considering a change complete.
+
+## Conventions
+
+- Application code lives in `app/`, configuration in `config/`<% unless options[:skip_test] %>, and tests in `test/` (Minitest, not RSpec)<% end %>.
+<% unless options.skip_active_record? -%>
+- Change the database schema through migrations (`bin/rails generate migration`), never by editing `db/schema.rb` directly.
+<% end -%>
+- Use generators (`bin/rails generate`) for new models, controllers, and other components so files land in the expected places.
+<% unless options[:skip_test] -%>
+- Add or update tests alongside every behavior change.
+<% end -%>
+- Store secrets in encrypted credentials (`bin/rails credentials:edit`), never in source control.
+<% if using_importmap? -%>
+- JavaScript dependencies are managed with importmap (`bin/importmap pin <package>`), not npm.
+<% elsif using_bun? -%>
+- JavaScript dependencies are managed with Bun (`bun add <package>`).
+<% elsif using_node? -%>
+- JavaScript dependencies are managed with Yarn (`yarn add <package>`).
+<% end -%>

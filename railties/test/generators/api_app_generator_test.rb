@@ -171,6 +171,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         .dockerignore
         .env
         README.md
+        AGENTS.md
         Gemfile
         Rakefile
         Dockerfile

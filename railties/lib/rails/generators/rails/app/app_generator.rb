@@ -51,6 +51,10 @@ module Rails
       copy_file "README.md", "README.md"
     end
 
+    def agents_md
+      template "AGENTS.md"
+    end
+
     def ruby_version
       template "ruby-version", ".ruby-version"
     end
@@ -318,6 +322,7 @@ module Rails
       class_option :css, type: :string, aliases: "-c", enum: CSS_OPTIONS, desc: "Choose CSS processor. Check https://github.com/rails/cssbundling-rails for more options"
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: nil, desc: "Don't run bundle install"
       class_option :skip_decrypted_diffs, type: :boolean, default: nil, desc: "Don't configure git to show decrypted diffs of encrypted credentials"
+      class_option :skip_agents_md, type: :boolean, default: nil, desc: "Don't generate an AGENTS.md file for AI coding agents"
 
       OPTION_IMPLICATIONS = # :nodoc:
         AppBase::OPTION_IMPLICATIONS.merge(
@@ -377,6 +382,7 @@ module Rails
 
       def create_root_files
         build(:readme)
+        build(:agents_md) unless options[:skip_agents_md] || options[:dummy_app]
         build(:rakefile)
         build(:node_version) if using_node?
         build(:ruby_version)
