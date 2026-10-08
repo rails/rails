@@ -251,11 +251,20 @@ module ActiveRecord
             changed_attribute_names_to_save
           else
             attribute_names.reject do |attr_name|
-              if column_for_attribute(attr_name).auto_populated_on_insert?
-                !attribute_changed?(attr_name)
+              column = column_for_attribute(attr_name)
+
+              if column.auto_populated_on_insert?
+                !attribute_changed?(attr_name) && !(column.null && user_provided_nil?(attr_name))
               end
             end
           end
+        end
+
+        # A nil primary key part is left to the database to generate.
+        def user_provided_nil?(attr_name)
+          attribute_came_from_user?(attr_name) &&
+            attribute_for_database(attr_name).nil? &&
+            !self.class.primary_key_definition.include?(attr_name)
         end
     end
   end

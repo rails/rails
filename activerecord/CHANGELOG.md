@@ -1,3 +1,25 @@
+*   Fix explicit `nil` values being ignored for nullable columns with default functions when `partial_inserts = false`.
+
+    Previously, explicitly setting a nullable column to `nil` would be ignored and the
+    database default function would be used instead. Columns that do not allow `NULL`
+    keep using the default.
+
+    ```ruby
+    # Schema: nullable column with default function
+    t.timestamp :perform_at, default: -> { "CURRENT_TIMESTAMP" }
+
+    class Model < ApplicationRecord
+      self.partial_inserts = false
+    end
+
+    # Before
+    Model.create!(perform_at: nil).reload.perform_at # => CURRENT_TIMESTAMP
+    # After
+    Model.create!(perform_at: nil).reload.perform_at # => nil
+    ```
+
+    *Max Romaniv*
+
 *   Fix `change_column` in migrations declaring version 5.1 or earlier to honor
     `table_name_prefix` and `table_name_suffix` for `:default`, `:null`, and
     `:comment` on PostgreSQL.

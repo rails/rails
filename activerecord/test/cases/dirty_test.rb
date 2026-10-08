@@ -968,6 +968,74 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  test "partial insert off with explicit nil for nullable default function attribute" do
+    skip_unless_manufactured_at_nullable
+
+    with_partial_writes Aircraft, false do
+      aircraft = Aircraft.create!(name: "Boeing7", manufactured_at: nil)
+      aircraft.reload
+
+      assert_equal "Boeing7", aircraft.name
+      assert_nil aircraft.manufactured_at, "Explicitly set nil should be preserved in database"
+    end
+  end
+
+  test "partial insert off with explicit nil serialized as NULL for nullable default function attribute" do
+    skip_unless_manufactured_at_nullable
+
+    klass = Class.new(Aircraft) do
+      serialize :manufactured_at, coder: JSON, type: Hash
+    end
+
+    with_partial_writes klass, false do
+      aircraft = klass.create!(name: "Boeing9", manufactured_at: nil)
+
+      assert_nil klass.lease_connection.select_value("SELECT manufactured_at FROM aircraft WHERE id = #{aircraft.id}")
+    end
+  end
+
+  test "partial insert off with duplicated record keeps nil for nullable default function attribute" do
+    skip_unless_manufactured_at_nullable
+
+    with_partial_writes Aircraft, false do
+      aircraft = Aircraft.create!(name: "Boeing10", manufactured_at: nil)
+      duplicate = aircraft.dup
+      duplicate.save!
+      duplicate.reload
+
+      assert_nil duplicate.manufactured_at, "Duplicated nil should be preserved in database"
+    end
+  end
+
+  test "partial insert off with explicit nil for non nullable default function attribute" do
+    with_partial_writes Aircraft, false do
+      aircraft = Aircraft.create!(name: "Boeing8", inspected_at: nil)
+      aircraft.reload
+
+      assert_not_nil aircraft.inspected_at, "Explicit nil on a NOT NULL column should use database default"
+    end
+  end
+
+  if current_adapter?(:SQLite3Adapter)
+    test "partial insert off with explicit nil for nullable composite primary key attribute with default function" do
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "dirty_test_composite_keys"
+      end
+      klass.lease_connection.create_table klass.table_name, primary_key: [:shop_id, :token], force: true do |t|
+        t.integer :shop_id
+        t.string :token, default: -> { "('to' || 'ken')" }
+      end
+
+      with_partial_writes klass, false do
+        klass.create!(shop_id: 1, token: nil)
+
+        assert_equal "token", klass.lease_connection.select_value("SELECT token FROM #{klass.table_name} WHERE shop_id = 1")
+      end
+    ensure
+      klass.lease_connection.drop_table klass.table_name, if_exists: true
+    end
+  end
+
   if current_adapter?(:PostgreSQLAdapter) && supports_identity_columns?
     test "partial insert off with changed composite identity primary key attribute" do
       klass = Class.new(ActiveRecord::Base) do
@@ -1000,6 +1068,10 @@ class DirtyTest < ActiveRecord::TestCase
   end if current_adapter?(:PostgreSQLAdapter) && supports_virtual_columns?
 
   private
+    def skip_unless_manufactured_at_nullable
+      skip "manufactured_at does not allow NULL on this database" unless Aircraft.columns_hash["manufactured_at"].null
+    end
+
     def with_partial_writes(klass, on = true)
       old_inserts = klass.partial_inserts?
       old_updates = klass.partial_updates?
