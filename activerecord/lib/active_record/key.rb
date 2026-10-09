@@ -340,5 +340,71 @@ module ActiveRecord
         nil
       end
     end
+
+    # An ordered correspondence between two database keys.
+    class Mapping # :nodoc:
+      include Enumerable
+
+      attr_reader :reference_key, :target_key
+
+      def self.empty
+        EMPTY
+      end
+
+      def initialize(reference_key:, target_key:)
+        @reference_key = reference_key
+        @target_key = target_key
+        if @reference_key.length != @target_key.length
+          raise ArgumentError, "Key mappings must have the same number of columns"
+        end
+        @pairs = @reference_key.zip(@target_key).map!(&:freeze).freeze
+        @hash = [@reference_key, @target_key].hash
+        freeze
+      end
+
+      def each(&block)
+        @pairs.each(&block)
+      end
+
+      def empty?
+        @pairs.empty?
+      end
+
+      # Returns an equivalent mapping with single-column composite keys
+      # converted to scalar keys.
+      def normalize
+        return self unless @reference_key.length == 1 && (@reference_key.composite? || @target_key.composite?)
+
+        self.class.new(
+          reference_key: @reference_key.composite? ? Key.for(@reference_key.columns.first) : @reference_key,
+          target_key: @target_key.composite? ? Key.for(@target_key.columns.first) : @target_key
+        )
+      end
+
+      def +(other)
+        return other if empty?
+        return self if other.empty?
+
+        self.class.new(
+          reference_key: Key.for([*@reference_key, *other.reference_key]),
+          target_key: Key.for([*@target_key, *other.target_key])
+        )
+      end
+
+      def ==(other)
+        other.is_a?(Mapping) &&
+          reference_key == other.reference_key &&
+          target_key == other.target_key
+      end
+      alias_method :eql?, :==
+
+      attr_reader :hash
+
+      EMPTY = begin
+        key = Key.for(nil)
+        new(reference_key: key, target_key: key)
+      end
+      private_constant :EMPTY
+    end
   end
 end

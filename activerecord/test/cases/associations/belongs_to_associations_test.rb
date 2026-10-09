@@ -86,6 +86,16 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_empty Comment.where(author: [])
   end
 
+  def test_where_on_association_with_records_and_ids_builds_a_single_list
+    post = Post.new(id: 1)
+    special_post = SpecialPost.new(id: 2)
+
+    assert_equal Comment.where(post_id: [1, 7]).to_sql, Comment.where(post: [post, 7]).to_sql
+    assert_equal Comment.where(post_id: [1, nil, 7]).to_sql, Comment.where(post: [post, nil, 7]).to_sql
+    assert_equal Comment.where(post_id: [1, 2]).to_sql, Comment.where(post: [post, special_post]).to_sql
+    assert_equal Comment.where(post_id: [nil, 7]).to_sql, Comment.where(post: [nil, 7]).to_sql
+  end
+
   def test_where_on_association_with_a_composite_key_rejects_bare_ids
     assert_raises(ArgumentError) { Cpk::Chapter.where(book: 1) }
     assert_raises(ArgumentError) { Cpk::Chapter.where(book: [nil, [1, 2]]) }

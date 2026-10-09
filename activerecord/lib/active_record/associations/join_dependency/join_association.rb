@@ -77,6 +77,12 @@ module ActiveRecord
           joins
         end
 
+        # Columns on the associated table used to detect a match in an outer join.
+        def destination_key(parent_klass)
+          first, adjacent = reflection.chain
+          first.association_route_for_join(adjacent&.klass || parent_klass, destination_class: base_klass).destination_key
+        end
+
         def readonly?
           return @readonly if defined?(@readonly)
 

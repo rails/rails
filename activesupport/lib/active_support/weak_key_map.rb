@@ -22,6 +22,10 @@ module ActiveSupport
         @mutex.synchronize { @map[key] = value }
       end
 
+      def delete(key)
+        @mutex.synchronize { @map.delete(key) }
+      end
+
       def clear
         @mutex.synchronize { @map.clear }
         self

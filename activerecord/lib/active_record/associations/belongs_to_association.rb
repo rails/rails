@@ -17,6 +17,10 @@ module ActiveRecord
         end
       end
 
+      def association_route(record = nil)
+        reflection.association_route(origin_class: owner.class, destination_class: record ? record.class : klass)
+      end
+
       def handle_dependency
         return unless load_target
 

@@ -5,9 +5,8 @@ module ActiveRecord::Associations
   module ForeignAssociation # :nodoc:
     def foreign_key_present?
       if reflection.klass.primary_key
-        reflection.active_record_primary_key_definition.all? do |key|
-          owner.attribute_present?(key)
-        end
+        route = reflection.association_route(origin_class: owner.class, destination_class: klass)
+        route.reference_origin_key.all? { |key| owner.attribute_present?(key) }
       else
         false
       end

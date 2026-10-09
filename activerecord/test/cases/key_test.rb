@@ -79,6 +79,69 @@ class KeyTest < ActiveRecord::TestCase
     assert_equal [7, value], Key.for([:tenant_id, :payload]).map_value.with_index { |_column, index| [7, value][index] }
   end
 
+  def test_mapping_preserves_column_pairs
+    mapping = Key::Mapping.new(
+      reference_key: Key.for([:account_id, :post_id]),
+      target_key: Key.for([:account_id, :id])
+    )
+
+    assert_equal [
+      ["account_id", "account_id"],
+      ["post_id", "id"],
+    ], mapping.to_a
+    assert_equal ["account_id", "post_id"], mapping.reference_key.name
+    assert_equal ["account_id", "id"], mapping.target_key.name
+    assert_not_predicate mapping, :empty?
+
+    empty = Key::Mapping.empty
+    assert_predicate empty, :empty?
+    assert_not_predicate empty.reference_key, :present?
+    assert_not_predicate empty.target_key, :present?
+    assert_empty empty.to_a
+  end
+
+  def test_mapping_composes_corresponding_keys
+    constraints = Key::Mapping.new(
+      reference_key: Key.for(:account_id),
+      target_key: Key.for(:account_id)
+    )
+    reference = Key::Mapping.new(
+      reference_key: Key.for(:post_id),
+      target_key: Key.for(:id)
+    )
+
+    assert_equal [
+      ["account_id", "account_id"],
+      ["post_id", "id"],
+    ], (constraints + reference).to_a
+
+    [[:post_id, :id], [[:post_id], [:id]], [[:account_id, :post_id], [:account_id, :id]]].each do |reference_name, target_name|
+      mapping = Key::Mapping.new(reference_key: Key.for(reference_name), target_key: Key.for(target_name))
+
+      assert_equal mapping, Key::Mapping.empty + mapping
+      assert_equal mapping, mapping + Key::Mapping.empty
+    end
+  end
+
+  def test_mapping_normalize_scalarizes_single_column_keys_without_changing_the_original
+    [[:post_id, [:id]], [[:post_id], :id], [[:post_id], [:id]]].each do |reference, target|
+      reference_key = Key.for(reference)
+      target_key = Key.for(target)
+      mapping = Key::Mapping.new(reference_key: reference_key, target_key: target_key)
+      normalized = mapping.normalize
+
+      assert_equal "post_id", normalized.reference_key.name
+      assert_equal "id", normalized.target_key.name
+      assert_not_predicate normalized.reference_key, :composite?
+      assert_not_predicate normalized.target_key, :composite?
+      assert_equal reference_key, mapping.reference_key
+      assert_equal target_key, mapping.target_key
+    end
+
+    composite = Key::Mapping.new(reference_key: Key.for([:account_id, :post_id]), target_key: Key.for([:account_id, :id]))
+    assert_equal composite, composite.normalize
+  end
+
   def test_where_hash_for_simple_key
     assert_equal({ "id" => 5 }, Key.for("id").where_hash(5))
     assert_equal({ "id" => [1, 2, 3] }, Key.for("id").where_hash([1, 2, 3]))

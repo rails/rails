@@ -139,7 +139,7 @@ module ActiveRecord
 
             if associated_reflection.polymorphic?
               value = [value] unless value.is_a?(Array)
-              query_value = PolymorphicArrayValue.new(associated_reflection, value)
+              query_value = PolymorphicArrayValue.new(associated_reflection, value, table.model)
             elsif associated_reflection.through_reflection?
               associated_table = table.associated_table(key)
 
