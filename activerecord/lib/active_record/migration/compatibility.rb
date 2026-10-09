@@ -128,7 +128,10 @@ module ActiveRecord
         end
 
         def add_index(table_name, column_name, **options)
-          options[:name] = legacy_index_name(table_name, column_name) if options[:name].nil?
+          # Unnamed during revert so the inverted remove_index finds the index by columns, whatever its name.
+          if options[:name].nil? && !connection.respond_to?(:revert)
+            options[:name] = legacy_index_name(proper_table_name(table_name, table_name_options), column_name)
+          end
           super
         end
 
