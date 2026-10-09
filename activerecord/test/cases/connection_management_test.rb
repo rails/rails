@@ -119,6 +119,43 @@ module ActiveRecord
         end
       end
 
+      test "a transaction the unit of work leaves open is seen after it" do
+        in_new_thread_with_temporary_pool do
+          executor.wrap { ActiveRecord::Base.lease_connection.begin_transaction }
+          assert_equal 1, ActiveRecord.all_open_transactions.size
+        ensure
+          ActiveRecord::Base.lease_connection.rollback_transaction
+        end
+      end
+
+      test "a unit of work only consults the pools it has used" do
+        in_new_thread_with_temporary_pool do |pool_config|
+          other_pool = ConnectionPool.new(pool_config)
+          executor.wrap { other_pool.lease_connection }
+
+          executor.wrap do
+            ActiveRecord::Base.lease_connection
+            used_pools = ConnectionPool.enum_for(:each_used_pool).to_a
+            assert_includes used_pools, ActiveRecord::Base.connection_pool
+            assert_not_includes used_pools, other_pool
+          end
+        ensure
+          other_pool&.disconnect!
+        end
+      end
+
+      test "a pool used again in a later unit of work has its query cache enabled again" do
+        in_new_thread_with_temporary_pool do
+          2.times do
+            executor.wrap do
+              ActiveRecord::Base.connection_pool.with_connection do |connection|
+                assert_queries_count(1) { 2.times { connection.select_all("SELECT 1") } }
+              end
+            end
+          end
+        end
+      end
+
       test "a query cache enabled before the unit of work is left alone by it" do
         in_new_thread_with_temporary_pool do
           pool = ActiveRecord::Base.connection_pool

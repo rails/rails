@@ -68,11 +68,18 @@ module ActiveRecord
       end
 
       def active_connections?(role = nil)
-        each_connection_pool(role).any?(&:active_connection?)
+        role = nil if role == :all
+        ConnectionPool.each_used_pool do |pool|
+          return true if manages?(pool, role) && pool.active_connection?
+        end
+        false
       end
 
       def clear_active_connections!(role = nil)
-        each_connection_pool(role).each do |pool|
+        role = nil if role == :all
+        ConnectionPool.each_used_pool do |pool|
+          next unless manages?(pool, role)
+
           pool.release_connection
           pool.reset_query_cache!
         end
@@ -126,6 +133,11 @@ module ActiveRecord
       def main_ractor_handler
         Proxy.main_connection_handler
       end
+
+      private
+        def manages?(pool, role)
+          pool.is_a?(ProxyConnectionPool) && (role.nil? || pool.role == role)
+        end
     end
   end
 end

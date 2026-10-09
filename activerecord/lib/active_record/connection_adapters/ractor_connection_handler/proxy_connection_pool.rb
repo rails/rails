@@ -121,6 +121,8 @@ module ActiveRecord
         end
 
         def checkout(_checkout_timeout = nil)
+          ConnectionPool.used_pools!.add(self)
+
           if pinned = state.pinned_connection
             return pinned
           end
