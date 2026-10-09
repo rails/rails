@@ -1546,6 +1546,33 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal customers(:david), found_customer
   end
 
+  def test_hash_condition_find_with_aggregate_having_one_mapping_within_range
+    balance = customers(:david).balance
+    start_balance = Money.new(balance.amount - 1)
+    end_balance = Money.new(balance.amount + 1)
+
+    found_customer = Customer.where(balance: start_balance..end_balance).first
+    assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping_within_exclusive_range
+    found_customer = Customer.where(balance: Money.new(49)..Money.new(50)).first
+    assert_equal customers(:david), found_customer
+
+    found_customer = Customer.where(balance: Money.new(49)...Money.new(50)).first
+    assert_nil found_customer
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping_within_beginless_range
+    found_customers = Customer.where(balance: ..Money.new(1)).order(:id)
+    assert_equal [customers(:barney), customers(:mary)], found_customers
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping_within_endless_range
+    found_customers = Customer.where(balance: Money.new(50)..).order(:id)
+    assert_equal [customers(:david), customers(:zaphod)], found_customers
+  end
+
   def test_hash_condition_find_with_aggregate_having_three_mappings_array
     david_address = customers(:david).address
     zaphod_address = customers(:zaphod).address
