@@ -321,6 +321,7 @@ module ActiveRecord
                     value.public_send(attribute)
                   end
                 end
+                return super if value.any? { |component| StatementCache.unsupported_value?(component) }
                 composite_primary_key = true
               end
             else
