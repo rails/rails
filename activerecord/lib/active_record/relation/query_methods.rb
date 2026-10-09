@@ -1669,7 +1669,9 @@ module ActiveRecord
     end
     alias :without :excluding
 
-    def excluding!(records) # :nodoc:
+    def excluding!(*records) # :nodoc:
+      records.flatten!(1)
+      records.compact!
       ids = records.map { |record| record.is_a?(model) ? record.id : record }
       self.where_clause += build_where_clause(primary_key => ids).invert
       self

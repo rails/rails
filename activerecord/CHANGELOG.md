@@ -1,3 +1,12 @@
+*   Fix `ActiveRecord::Relation#excluding!` raising `NoMethodError` when passed
+    a single record or id.
+
+    `excluding!(post)` excludes that row in place. `excluding!` called `map` on
+    its argument, which raises `NoMethodError` for one record or id. It now
+    collects arguments the same way `excluding` does, then builds the ids.
+
+    *Said Kaldybaev*
+
 *   Fix `change_column` in migrations declaring version 5.1 or earlier to honor
     `table_name_prefix` and `table_name_suffix` for `:default`, `:null`, and
     `:comment` on PostgreSQL.

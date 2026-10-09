@@ -109,11 +109,57 @@ class ExcludingTest < ActiveRecord::TestCase
     assert_equal "You must only pass a single or collection of Post objects to #without.", error.message
   end
 
+  def test_excluding_bang_with_a_single_record
+    thinking = posts(:thinking)
+    relation = Post.all
+
+    assert_same relation, relation.excluding!(@post)
+    assert_not_includes relation, @post
+    assert_includes relation, thinking
+  end
+
+  def test_excluding_bang_with_an_array_of_records
+    thinking = posts(:thinking)
+    relation = Post.all
+    relation.excluding!([@post, thinking])
+
+    assert_not_includes relation, @post
+    assert_not_includes relation, thinking
+  end
+
+  def test_excluding_bang_with_several_records
+    thinking = posts(:thinking)
+    relation = Post.all
+    relation.excluding!(@post, thinking)
+
+    assert_not_includes relation, @post
+    assert_not_includes relation, thinking
+  end
+
+  def test_excluding_bang_with_a_single_id
+    thinking = posts(:thinking)
+    relation = Post.all
+    relation.excluding!(@post.id)
+
+    assert_not_includes relation, @post
+    assert_includes relation, thinking
+  end
+
   def test_result_set_does_not_include_excluded_records_for_a_composite_primary_key_model
     excluded = cpk_books(:cpk_great_author_first_book)
     other = cpk_books(:cpk_great_author_second_book)
     relation = Cpk::Book.where(author_id: excluded.author_id).excluding(excluded)
 
+    assert_not_includes relation, excluded
+    assert_includes relation, other
+  end
+
+  def test_excluding_bang_with_a_single_record_for_a_composite_primary_key_model
+    excluded = cpk_books(:cpk_great_author_first_book)
+    other = cpk_books(:cpk_great_author_second_book)
+    relation = Cpk::Book.where(author_id: excluded.author_id)
+
+    assert_same relation, relation.excluding!(excluded)
     assert_not_includes relation, excluded
     assert_includes relation, other
   end
