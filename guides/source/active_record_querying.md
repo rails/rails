@@ -3263,7 +3263,7 @@ For example:
 
 ```ruby
 class Order < ApplicationRecord
-  enum :status, [:shipped, :being_packaged, :complete, :cancelled]
+  enum :status, [:shipped, :being_packed, :complete, :cancelled]
 end
 ```
 
