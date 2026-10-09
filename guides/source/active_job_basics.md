@@ -546,7 +546,7 @@ Solid Queue, the default queue backend, supports bulk enqueuing using
 `enqueue_all`.
 
 [Other backends](#alternate-queuing-backends) like Sidekiq have a `push_bulk`
-method, which the Sidekiq adapter users. internally to push a large number of
+method, which the Sidekiq adapter uses internally to push a large number of
 jobs to Redis and prevent the round trip network latency. GoodJob also supports
 bulk enqueuing with the `GoodJob::Bulk.enqueue` method.
 
