@@ -165,6 +165,29 @@ module ActionDispatch
       assert_equal({ code: code, line_number: lineno + 2, trace: wrapper.source_extracts.first[:trace] }, wrapper.source_extracts.first)
     end
 
+    test "#source_extracts works without error_highlight" do
+      lineno = __LINE__
+      begin
+        1.time
+      rescue NameError => exc
+      end
+
+      error_highlight = Object.send(:remove_const, :ErrorHighlight) if defined?(ErrorHighlight)
+      wrapper = ExceptionWrapper.new(nil, exc)
+
+      # Without error_highlight there is no column to mark: the source is read from the
+      # file, relative to Rails.root, as for any other exception.
+      code = {}
+      File.foreach(__FILE__).to_a.drop(lineno - 1).take(6).each_with_index do |line, i|
+        code[lineno + i] = line
+      end
+      Rails.stub(:root, Pathname.new(File.expand_path("../..", __dir__))) do
+        assert_equal({ code: code, line_number: lineno + 2, trace: wrapper.source_extracts.first[:trace] }, wrapper.source_extracts.first)
+      end
+    ensure
+      Object.const_set(:ErrorHighlight, error_highlight) if error_highlight
+    end
+
     class_eval "def _app_views_tests_show_html_erb;
       raise TestError; end", "app/views/tests/show.html.erb", 2
 
