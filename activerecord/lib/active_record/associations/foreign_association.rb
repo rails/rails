@@ -13,10 +13,8 @@ module ActiveRecord::Associations
     end
 
     def nullified_owner_attributes
-      Hash.new.tap do |attrs|
-        reflection.foreign_key_definition.each { |foreign_key| attrs[foreign_key] = nil }
-        attrs[reflection.type] = nil if reflection.type.present?
-      end
+      route = reflection.association_route(origin_class: owner.class, destination_class: klass)
+      route.reference_destination_key.index_with(nil).merge!(route.destination_fixed_values.transform_values { nil })
     end
 
     private
@@ -24,19 +22,7 @@ module ActiveRecord::Associations
       def set_owner_attributes(record)
         return if options[:through]
 
-        primary_key_attribute_names = reflection.join_primary_key_definition
-        foreign_key_attribute_names = reflection.join_foreign_key_definition
-
-        primary_key_foreign_key_pairs = primary_key_attribute_names.zip(foreign_key_attribute_names)
-
-        primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
-          value = owner.read_attr(foreign_key)
-          record.write_attribute(primary_key, value)
-        end
-
-        if reflection.type
-          record.write_attribute(reflection.type, owner.class.polymorphic_name)
-        end
+        reflection.association_route(origin_class: owner.class, destination_class: record.class).write(owner, record)
       end
   end
 end

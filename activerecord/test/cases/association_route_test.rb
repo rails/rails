@@ -211,6 +211,13 @@ class AssociationRouteTest < ActiveRecord::TestCase
     assert forward.origin_reference_complete?(reference)
     assert reverse.origin_reference_complete?(target)
 
+    target.title = "Target constraint"
+    assert_not forward.reference_needs_update?(reference, target)
+    assert_not reverse.reference_needs_update?(target, reference)
+    forward.write(reference, target)
+    reverse.write(target, reference)
+    assert_nil reference.body
+
     reference.author_id = nil
     target.author_id = nil
     assert_not forward.origin_reference_complete?(reference)
@@ -398,6 +405,130 @@ class AssociationRouteTest < ActiveRecord::TestCase
       assert_equal [polymorphic_reference], polymorphic_class.where(subject: post).to_a
       assert_equal [polymorphic_reference], polymorphic_class.where(subject: Post.where(id: post.id)).to_a
       assert_empty polymorphic_class.where(subject: Post.none)
+    end
+  end
+
+  def test_query_constraints_identify_counter_cache_destinations
+    reference_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+      self.inheritance_column = nil
+
+      def self.name = "ConstrainedCounterReference"
+
+      belongs_to :routed_post,
+        class_name: "Post",
+        foreign_key: :author_id,
+        primary_key: :author_id,
+        counter_cache: :legacy_comments_count,
+        optional: true
+    end
+    reflection = reference_class.reflect_on_association(:routed_post)
+    route = build_belongs_to_route(
+      reference: { reference_key: :author_id, target_key: :author_id },
+      constraints: { reference_key: :deleted_at, target_key: :deleted_at }
+    )
+    old_post = Post.create!(author_id: 9_000_101, title: "Old constrained post", body: "Old")
+    decoy = Post.create!(author_id: old_post.author_id, title: "Decoy constrained post", body: "Decoy", deleted_at: Time.utc(2000))
+    new_post = Post.create!(author_id: 9_000_102, title: "New constrained post", body: "New", deleted_at: Time.utc(2001))
+    old_post.update_column(:legacy_comments_count, 1)
+    decoy.update_column(:legacy_comments_count, 1)
+    reference_class.create!(post_id: -1, body: "Constrained reference").update_columns(
+      author_id: old_post.author_id,
+      deleted_at: old_post.deleted_at
+    )
+    reference = reference_class.find_by!(author_id: old_post.author_id, deleted_at: nil)
+
+    reflection.stub(:association_route, route) do
+      reference.author_id = new_post.author_id
+      reference.deleted_at = new_post.deleted_at
+      reference.save!
+    end
+
+    assert_equal 0, old_post.reload.legacy_comments_count
+    assert_equal 1, decoy.reload.legacy_comments_count
+    assert_equal 1, new_post.reload.legacy_comments_count
+  end
+
+  def test_query_constraints_identify_touch_destinations
+    reference_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "sponsors"
+
+      def self.name = "ConstrainedTouchReference"
+
+      belongs_to :routed_ship,
+        class_name: "Ship",
+        foreign_key: :club_id,
+        primary_key: :pirate_id,
+        touch: true,
+        optional: true
+    end
+    reflection = reference_class.reflect_on_association(:routed_ship)
+    route = build_belongs_to_route(
+      reference: { reference_key: :club_id, target_key: :pirate_id },
+      constraints: { reference_key: :sponsorable_type, target_key: :name }
+    )
+    original_time = Time.utc(2000)
+    # An unconstrained lookup can return any matching row. Put decoys before
+    # and after the target to catch either ascending or descending id scans.
+    first_decoy = Ship.create!(name: "First decoy constrained ship", pirate_id: 9_000_111, updated_at: original_time)
+    old_ship = Ship.create!(name: "Old constrained ship", pirate_id: first_decoy.pirate_id, updated_at: original_time)
+    last_decoy = Ship.create!(name: "Last decoy constrained ship", pirate_id: first_decoy.pirate_id, updated_at: original_time)
+    new_ship = Ship.create!(name: "New constrained ship", pirate_id: 9_000_112, updated_at: original_time)
+    reference_class.create!(sponsorable_id: -1).update_columns(
+      club_id: old_ship.pirate_id,
+      sponsorable_type: old_ship.name
+    )
+    reference = reference_class.find_by!(sponsorable_type: old_ship.name)
+
+    reflection.stub(:association_route, route) do
+      reference.club_id = new_ship.pirate_id
+      reference.sponsorable_type = new_ship.name
+      reference.save!
+    end
+
+    assert_operator old_ship.reload.updated_at, :>, original_time
+    assert_equal original_time, first_decoy.reload.updated_at
+    assert_equal original_time, last_decoy.reload.updated_at
+  end
+
+  def test_async_destruction_identifies_an_assigned_target_by_its_persisted_match
+    reference_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+      self.inheritance_column = nil
+
+      def self.name = "ConstrainedAsyncReference"
+
+      belongs_to :routed_post,
+        class_name: "Post",
+        foreign_key: :author_id,
+        primary_key: :author_id,
+        optional: true
+    end
+    reflection = reference_class.reflect_on_association(:routed_post)
+    reflection.options[:dependent] = :destroy_async
+    route = build_belongs_to_route(
+      reference: { reference_key: :author_id, target_key: :author_id },
+      constraints: { reference_key: :body, target_key: :title }
+    )
+    original = Post.create!(author_id: 9_000_121, title: "Original", body: "Original")
+    replacement = Post.create!(author_id: original.author_id, title: "Replacement", body: "Replacement")
+    reference = reference_class.create!(post_id: -1, author_id: original.author_id, body: original.title)
+    association = reference.association(:routed_post)
+    enqueued = nil
+
+    reflection.stub(:association_route, route) do
+      persisted_title = replacement.title
+      persisted_author_id = replacement.author_id
+      reference.routed_post = replacement
+      replacement.title = "Unsaved title"
+      replacement.author_id = 9_000_132
+      association.stub(:enqueue_destroy_association, ->(**options) { enqueued = options }) do
+        association.handle_dependency
+      end
+
+      assert_equal Post.to_s, enqueued[:association_class]
+      assert_equal ["title", "author_id"], enqueued[:association_primary_key_column]
+      assert_equal [[persisted_title, persisted_author_id]], enqueued[:association_ids]
     end
   end
 

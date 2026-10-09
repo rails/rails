@@ -10,6 +10,15 @@ module ActiveRecord
     EMPTY_FIXED_VALUES = {}.freeze
     private_constant :EMPTY_FIXED_VALUES
 
+    def self.for(reference_class: nil, **options)
+      link = new(reference_class: reference_class, **options)
+      if link.send(:writes_mapped_id?, reference_class)
+        DeprecatedIdWriter.new(reference_class: reference_class, **options)
+      else
+        link
+      end
+    end
+
     attr_reader :reference, :reference_key, :constraints, :match
 
     # Attributes written alongside the foreign key, such as a polymorphic type.
@@ -31,13 +40,13 @@ module ActiveRecord
       @_match_target_key = resolve_aliases(@match&.target_key, target_class)
       @_fixed_values = resolve_fixed_values(@fixed_values, reference_class)
 
-      @hash = [reference, reference_key, constraints, @fixed_values,
+      @hash = [self.class, reference, reference_key, constraints, @fixed_values,
         @_reference_key, @_target_key, @_match_reference_key, @_match_target_key].hash
       freeze
     end
 
     def ==(other)
-      other.is_a?(AssociationLink) &&
+      other.instance_of?(self.class) &&
         reference == other.reference &&
         reference_key == other.reference_key &&
         constraints == other.constraints &&
@@ -51,7 +60,59 @@ module ActiveRecord
 
     attr_reader :hash
 
+    def reference_values(target_record)
+      each_reference_value(target_record).to_h
+    end
+
+    def reference_needs_update?(reference_record, target_record)
+      if _reference_key.all? { |column| reference_record._has_attribute?(column) }
+        target_columns = _target_key.columns if target_record
+        _reference_key.each_with_index do |column, index|
+          return true if reference_record._read_attr(column) != target_record&._read_attr(target_columns[index])
+        end
+      end
+
+      _fixed_values.any? do |column, value|
+        reference_record._has_attribute?(column) && reference_record._read_attr(column) != value
+      end
+    end
+
+    def write_reference(reference_record, target_record, force: true)
+      target_columns = _target_key.columns if target_record
+      _reference_key.each_with_index do |column, index|
+        value = target_record&._read_attr(target_columns[index])
+        next if !force && reference_record._read_attr(column) == value
+        reference_record._write_attribute(column, value)
+      end
+
+      _fixed_values.each do |column, value|
+        next if !force && reference_record._read_attr(column) == value
+        reference_record._write_attribute(column, value)
+      end unless _fixed_values.empty?
+    end
+
+    def clear_reference(reference_record, preserve: nil, fixed_values: true, force: true)
+      _reference_key.each do |column|
+        next if preserve&.include?(column)
+        reference_record._write_attribute(column, nil)
+      end
+      return unless fixed_values
+
+      _fixed_values.each_key do |column|
+        next if !force && reference_record._read_attr(column).nil?
+        reference_record._write_attribute(column, nil)
+      end
+    end
+
     private
+      def writes_mapped_id?(reference_class)
+        return false unless reference_class
+
+        primary_key = reference_class.primary_key
+        primary_key && primary_key != "id" && !reference_class.composite_primary_key? &&
+          (_reference_key.include?("id") || _fixed_values.key?("id"))
+      end
+
       def resolve_aliases(key, owner)
         owner ? key&.resolve_aliases(owner) : key
       end
@@ -60,6 +121,48 @@ module ActiveRecord
         return fixed_values if owner.nil? || fixed_values.none? { |column, _| owner.resolve_alias(column) != column }
         fixed_values.to_h { |column, value| [-owner.resolve_alias(column), value] }.freeze
       end
+
+      def each_reference_value(target_record, &)
+        return enum_for(__method__, target_record) unless block_given?
+
+        each_reference_key_value(target_record, &)
+        fixed_values.each(&)
+      end
+
+      def each_reference_key_value(target_record)
+        return enum_for(__method__, target_record) unless block_given?
+
+        target_columns = reference.target_key.columns if target_record
+
+        reference_key.each_with_index do |column, index|
+          yield column, target_record&.read_attr(target_columns[index])
+        end
+      end
+  end
+
+  # Writes through +write_attribute+ by declared name, including its deprecated
+  # mapping of "id" to a model's different primary key.
+  # Reads and comparisons treat "id" as the attribute itself.
+  class AssociationLink::DeprecatedIdWriter < AssociationLink # :nodoc:
+    def write_reference(reference_record, target_record, force: true)
+      each_reference_value(target_record) do |column, value|
+        next if !force && reference_record.read_attr(column) == value
+        reference_record.write_attribute(column, value)
+      end
+    end
+
+    def clear_reference(reference_record, preserve: nil, fixed_values: true, force: true)
+      reference_key.zip(_reference_key) do |column, physical_column|
+        next if preserve&.include?(physical_column)
+        reference_record.write_attribute(column, nil)
+      end
+      return unless fixed_values
+
+      self.fixed_values.each_key.zip(_fixed_values.each_key) do |column, physical_column|
+        next if !force && reference_record._read_attr(physical_column).nil?
+        reference_record.write_attribute(column, nil)
+      end
+    end
   end
 
   # An association's resolved connection from a concrete origin class to its
@@ -160,6 +263,10 @@ module ActiveRecord
       _reference_origin_key.all? { |column| !origin._read_attr(column).nil? }
     end
 
+    def reference_needs_update?(origin, destination)
+      @link.reference_needs_update?(origin, destination)
+    end
+
     def each_reference(&block)
       @reference_pairs.each(&block)
     end
@@ -174,6 +281,14 @@ module ActiveRecord
 
     def destination_fixed_values
       EMPTY_FIXED_VALUES
+    end
+
+    def write(origin, destination, force: true)
+      @link.write_reference(origin, destination, force: force)
+    end
+
+    def clear_reference(reference_record, **)
+      @link.clear_reference(reference_record, **)
     end
 
     private
@@ -218,12 +333,25 @@ module ActiveRecord
   end
 
   class AssociationRoute::Reverse < AssociationRoute # :nodoc:
+    def reference_needs_update?(origin, destination)
+      @link.reference_needs_update?(destination, origin)
+    end
+
     def origin_fixed_values
       EMPTY_FIXED_VALUES
     end
 
     def destination_fixed_values
       @link.fixed_values
+    end
+
+    def write(origin, destination, force: true)
+      @link.write_reference(destination, origin, force: force)
+    end
+
+    # The attributes #write would assign to a destination, for building one.
+    def destination_attributes(origin)
+      @link.reference_values(origin)
     end
 
     private

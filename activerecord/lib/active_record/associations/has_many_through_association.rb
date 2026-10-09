@@ -159,7 +159,7 @@ module ActiveRecord
               count = scope.delete_all
             end
           when :nullify
-            count = scope.update_all(Array(source_reflection.foreign_key).index_with(nil))
+            count = scope.update_all(reflection.source_association_route.reference_origin_key.index_with(nil))
           else
             count = scope.delete_all
           end
