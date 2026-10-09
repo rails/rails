@@ -1802,7 +1802,7 @@ class MultipleFixtureConnectionsTest < ActiveRecord::TestCase
       end
 
       def default_config
-        { "adapter" => "sqlite3", "database" => "test/fixtures/fixture_database.sqlite3" }
+        { "adapter" => "sqlite3", "database" => ARTest.test_configuration_hashes["arunit"]["database"] }
       end
 
       def readonly_config
