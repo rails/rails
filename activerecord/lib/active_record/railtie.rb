@@ -458,6 +458,12 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.ractorize" do
+      ActiveSupport.on_load(:before_ractorize) do
+        ActiveRecord::Base.descendants.each(&:make_reflections_shareable!)
+      end
+    end
+
     initializer "active_record.share_configs" do
       config.after_initialize do
         ActiveSupport::Ractors.make_shareable(ActiveRecord.query_transformers)
