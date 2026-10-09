@@ -1,3 +1,8 @@
+*   Fix duplicated record creation when using nested attributes and `create_with`
+    on an association.
+
+    *Jerome Dalbert*
+
 *   Fix `change_column` in migrations declaring version 5.1 or earlier to honor
     `table_name_prefix` and `table_name_suffix` for `:default`, `:null`, and
     `:comment` on PostgreSQL.
