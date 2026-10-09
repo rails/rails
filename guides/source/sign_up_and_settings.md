@@ -538,7 +538,7 @@ You'll now see a Settings link in the navbar when authenticated.
 
 While we're here, let's add a new layout for Settings so we can organize them in
 a sidebar. To do this, we're going to use a
-[Nested Layout](layouts_and_rendering.html#using-nested-layouts).
+[Nested Layout](action_view_overview.html#nested-layouts).
 
 A nested layout allows you to add HTML (like a sidebar) while still rendering
 the application layout. This means we don't have to duplicate our head tags or

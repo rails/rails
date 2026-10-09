@@ -252,7 +252,7 @@ NOTE: Rails doesn't automatically create `app/views/application/`. You'll
 need to create this folder yourself.
 
 NOTE: Refer to the
-[Layouts and Rendering guide](layouts_and_rendering.html#template_lookup_hierarchy)
+[Layouts and Rendering guide](layouts_and_rendering.html#template-lookup-hierarchy)
 for further information on the lookup hierarchy of partials and template.
 
 Partial file names start with leading underscore character by
@@ -825,7 +825,7 @@ In the above example layout, view content will be rendered in place of `<%=
 yield %>`, and surrounded by the same `<head>`, `<nav>`, and `<footer>` content.
 
 To learn more about controller-specific layouts, see the [Layouts and
-Rendering in Rails](layouts_and_rendering.html#setting_layouts_in_controllers)
+Rendering in Rails](layouts_and_rendering.html#specifying-layouts-for-controllers)
 guide.
 
 ### Structuring Layouts

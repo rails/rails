@@ -112,7 +112,7 @@ pin_all_from "app/javascript/controllers", under: "controllers"
 ```
 
 NOTE: All files declared in your `config/importmap.rb` must exist within your
-[asset pipeline's load paths](asset_pipeline.html#load_paths).
+[asset pipeline's load paths](asset_pipeline.html#load-paths).
 
 This will create an import map object similar to:
 
@@ -239,7 +239,7 @@ if your JavaScript application doesn't use ESM, or requires a bundler such as
 [Babel](https://babeljs.io) which isn't natively supported within Rails.
 
 You can reference any JavaScript files in the
-[asset pipeline's load path](asset_pipeline.html#load_paths) using `javascript_include_tag`:
+[asset pipeline's load path](asset_pipeline.html#load-paths) using `javascript_include_tag`:
 
 ```erb
 <%= javascript_include_tag "application" %>
