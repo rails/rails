@@ -660,7 +660,7 @@ being enqueued based on a condition:
 ```ruby
 class GuestsCleanupJob < ApplicationJob
   before_enqueue do |job|
-    throw :abort if ENV.fetch("DISABLE_GUESTS_CLEANUP_JOB", true)
+    throw :abort if ENV["DISABLE_GUESTS_CLEANUP_JOB"] == "true"
   end
 
   def perform(guest)
