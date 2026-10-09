@@ -40,9 +40,8 @@ Cookies
 HTTP is a stateless protocol, meaning each request knows nothing
 about the preceding request. [Cookies](https://en.wikipedia.org/wiki/HTTP_cookie)
 provide a mechanism to add state to the HTTP protocol enabling
-continuity between successive requests. Data such as the contents
-of a shopping basket, or a user's preferences are often stored
-in cookies.
+continuity between successive requests. Examples of data stored in cookies
+are the contents of a user's shopping basket, or a user's preferences.
 
 Rails can create cookies with plain-text, signed, or encrypted
 data. The `cookies` helper is available in Rails controllers
@@ -126,8 +125,8 @@ using [`ActiveSupport::KeyGenerator`][].
 
 ### Encrypted Cookies
 
-Encrypted cookies offer another level of security above signed cookies.
-The data is encrypted as well as signed so users cannot view or
+Encrypted cookies offer another level of security over and above signed
+cookies. The data is encrypted as well as signed so users cannot view or
 modify the data without breaking encryption. Use encrypted cookies
 to store sensitive user data such as a _remember token_ which
 persists their signed-in state.
@@ -161,7 +160,7 @@ Cookies are encrypted with
 [AES](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)
 in [Galois/Counter Mode](https://en.wikipedia.org/wiki/Galois/Counter_Mode)
 using a 256-bit key (`aes-256-gcm`). The encryption key is derived
-from the application [`secret_key_base`][].
+from the application's [`secret_key_base`][].
 
 The encryption algorithm can be set to any
 valid [`OpenSSL::Cipher`](https://www.rubydoc.info/stdlib/openssl/OpenSSL/Cipher)
@@ -193,19 +192,19 @@ generated using [`ActiveSupport::KeyGenerator`][].
 
 ### Rotating Encrypted and Signed Cookies
 
-Rotation is a technique to gracefully upgrade the configuration
+Rotation is used to gracefully upgrade the configuration
 for signed and encrypted cookies without invalidating all existing
 cookies.
 
 WARNING: If your application's `secret_key_base` has been compromised,
-strongly consider changing it as it means all strings secured
+strongly consider changing it, as it means all strings secured
 with `ActiveSupport::MessageVerifier` and `ActiveSupport::MessageEncryptor`,
 including cookies, may now be broken. <br><br> Run `bin/rails secret`
 to generate a new `secret_key_base`. <br><br> Changing the
 `secret_key_base` means signed and encrypted cookies can no longer
 be decoded. Active Storage files will also be affected as Rails
 uses signed IDs within file URLs so they can be safely exposed
-to the public. <br><br>DO NOT use rotation in this case, as rotation
+to the public. <br><br>**DO NOT** use rotation in this case, as rotation
 will gracefully upgrade compromised cookies instead of invalidating
 them.
 
@@ -257,7 +256,7 @@ upgraded, you can remove the rotation.
 Cookies offer a variety of
 [configuration options](https://developer.mozilla.org/en-US/docs/Web/Security/Practical_implementation_guides/Cookies) which
 are used to secure and expire them. These options
-can be set when creating cookies in a Rails controller:
+can be set when setting cookies in a Rails controller:
 
 ```ruby
 cookies["dark_mode"] = {
@@ -320,7 +319,7 @@ the user. However, this means that the session serves as a _key_ to
 the application, and a malicious user can hijack the session and
 masquerade as a valid user.
 
-In this section we'll look at approaches an attacker could use to
+In this section we'll look at some approaches an attacker could use to
 steal or otherwise take control of a user's session.
 
 #### Cookie Sniffing
@@ -460,7 +459,7 @@ The `User` model created by the authentication generator
 uses [bcrypt](https://github.com/bcrypt-ruby/bcrypt-ruby/) to
 calculate a [secure hash](https://en.wikipedia.org/wiki/Cryptographic_hash_function)
 of the password to store in the database. Storing the password in
-plain-text is insecure as an attacker who has gained access to the
+plain-text is insecure because an attacker who has gained access to the
 database or partial data within it could retrieve the password and
 masquerade as a legitimate user.
 
@@ -1113,7 +1112,7 @@ which it applies to all uploaded files to prevent such attacks.
 
 ### Executable Code in File Uploads
 
-Rails applications are usually served through a reverse proxy
+Rails applications are typically served through a reverse proxy
 powered by a web server such as Nginx or Caddy. The Rails
 `/public` folder is often exposed directly through this server
 to serve your application's assets efficiently reducing the load
@@ -1510,7 +1509,6 @@ headers for every request:
 Rails.app.config.action_dispatch.default_headers
 =>
 {"X-Frame-Options" => "SAMEORIGIN",
- "X-XSS-Protection" => "0",
  "X-Content-Type-Options" => "nosniff",
  "X-Permitted-Cross-Domain-Policies" => "none",
  "Referrer-Policy" => "strict-origin-when-cross-origin"}
@@ -1765,7 +1763,7 @@ An alternative option is to use the session ID as the nonce:
 Rails.app.config.content_security_policy_nonce_generator = -> request { request.session.id.to_s }
 ```
 
-This generation method is compatible with ETags, however its security
+This generation method is compatible with ETags and Turbo, however its security
 depends on the session ID being sufficiently random and not being exposed
 in insecure cookies.
 
@@ -1830,14 +1828,15 @@ to dynamically add scripts to a page.
 </head>
 ```
 
-WARNING: When using [Turbo][], it will read the nonce from the above
-meta tag and apply it to every script element in the content it
+WARNING: [Turbo][] reads the nonce from the above
+meta tag and applies it to every script element in the content it
 loads. If an inline script without a valid nonce has been
 injected into a page's content through an XSS vulnerability, it will be
 blocked on a full page load, but will execute after a Turbo
 navigation to the same page. <br><br>
 Depending on your security requirements, uou may wish to disable this
-functionality by excluding the `csp_meta_tag` from your document's head.
+functionality by excluding the `csp_meta_tag` directive from your document's
+head.
 
 WARNING: Do not add `'strict-dynamic'` to your CSP when using
 [Turbo][]. Turbo uses the `createElement` to insert received script
