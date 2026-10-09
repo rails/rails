@@ -162,7 +162,7 @@ module ActiveRecord
       def clear_active_connections!(role = nil)
         each_connection_pool(role).each do |pool|
           pool.release_connection
-          pool.disable_query_cache!
+          pool.reset_query_cache!
         end
       end
 

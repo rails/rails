@@ -119,6 +119,20 @@ module ActiveRecord
         end
       end
 
+      test "a query cache enabled before the unit of work is left alone by it" do
+        in_new_thread_with_temporary_pool do
+          pool = ActiveRecord::Base.connection_pool
+          pool.enable_query_cache!
+          pool.with_connection { |connection| connection.select_all("SELECT 1") }
+
+          executor.wrap do
+            assert_no_queries { pool.with_connection { |connection| connection.select_all("SELECT 1") } }
+          end
+
+          assert_no_queries { pool.with_connection { |connection| connection.select_all("SELECT 1") } }
+        end
+      end
+
       test "proxy is polite to its body and responds to it" do
         body = Class.new(String) { def to_path; "/path"; end }.new
         app = lambda { |_| [200, {}, body] }
@@ -135,6 +149,19 @@ module ActiveRecord
       end
 
       private
+        # Runs the block in a new execution context, against a temporary pool:
+        # with an in-memory database, any extra connection the thread left in the
+        # real pool would be to an empty database.
+        def in_new_thread_with_temporary_pool
+          with_temporary_connection_pool do |pool_config|
+            Thread.new do
+              yield pool_config
+            ensure
+              ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
+            end.join
+          end
+        end
+
         def executor
           @executor ||= Class.new(ActiveSupport::Executor).tap do |exe|
             ActiveRecord::QueryCache.install_executor_hooks(exe)

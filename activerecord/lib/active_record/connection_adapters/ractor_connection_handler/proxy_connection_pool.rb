@@ -188,6 +188,10 @@ module ActiveRecord
           main_pool_value(:connected?)
         end
 
+        def discarded?
+          false
+        end
+
         def disconnect!
           release_connection
         end
@@ -224,6 +228,11 @@ module ActiveRecord
           query_cache.dirties = true
         end
 
+        def reset_query_cache! # :nodoc:
+          prepare_query_cache(query_cache)
+          clear_query_cache
+        end
+
         def query_cache_enabled
           query_cache.enabled
         end
@@ -242,7 +251,13 @@ module ActiveRecord
         end
 
         def build_query_cache # :nodoc:
-          QueryCache::Store.new(state.query_cache_version, query_cache_max_size)
+          QueryCache::Store.new(state.query_cache_version, query_cache_max_size).tap { |cache| prepare_query_cache(cache) }
+        end
+
+        def prepare_query_cache(cache) # :nodoc:
+          cache.enabled = QueryCache.enabled_by_default && db_config&.query_cache != false
+          cache.dirties = true
+          cache.clear
         end
 
         def pool_transaction_isolation_level

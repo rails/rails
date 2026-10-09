@@ -9,6 +9,14 @@ module ActiveRecord
       DEFAULT_SIZE = 100 # :nodoc:
 
       class << self
+        def enabled_by_default # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_query_cache_enabled] || false
+        end
+
+        def enabled_by_default=(enabled) # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_query_cache_enabled] = enabled
+        end
+
         def included(base) # :nodoc:
           dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :update_with_result,
             :delete, :truncate, :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction,
@@ -156,6 +164,11 @@ module ActiveRecord
           query_cache.dirties = true
         end
 
+        def reset_query_cache! # :nodoc:
+          prepare_query_cache(query_cache)
+          clear_query_cache
+        end
+
         def query_cache_enabled
           query_cache.enabled
         end
@@ -179,7 +192,13 @@ module ActiveRecord
         end
 
         def build_query_cache # :nodoc:
-          Store.new(@query_cache_version, @query_cache_max_size)
+          Store.new(@query_cache_version, @query_cache_max_size).tap { |cache| prepare_query_cache(cache) }
+        end
+
+        def prepare_query_cache(cache) # :nodoc:
+          cache.enabled = QueryCache.enabled_by_default && db_config&.query_cache != false
+          cache.dirties = true
+          cache.clear
         end
       end
 

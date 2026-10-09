@@ -131,10 +131,22 @@ module ActiveRecord
       class UsedPoolSet # :nodoc:
         def initialize
           @query_caches = ObjectSpace::WeakKeyMap.new
+          # The above WeakKeyMap can't be iterated, so we need a separate (also
+          # weak) list of its keys.
+          @pools = ObjectSpace::WeakMap.new
         end
 
         def query_cache_for(pool)
+          add(pool)
           @query_caches[pool] ||= pool.build_query_cache
+        end
+
+        def add(pool)
+          @pools[pool.object_id] = pool unless @pools.key?(pool.object_id)
+        end
+
+        def each_pool(&block)
+          @pools.each_value(&block)
         end
       end
 
@@ -222,6 +234,12 @@ module ActiveRecord
 
         def used_pools! # :nodoc:
           ActiveSupport::IsolatedExecutionState[:active_record_used_pools] ||= UsedPoolSet.new
+        end
+
+        def each_used_pool # :nodoc:
+          used_pools&.each_pool do |pool|
+            yield pool unless pool.discarded?
+          end
         end
       end
 
