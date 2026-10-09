@@ -8,7 +8,7 @@ module ActiveSupport
     class LogSubscriber
       include ColorizeLogging
 
-      LOG_LEVELS = [:debug, :info, :error].freeze
+      LOG_LEVELS = [:debug, :info, :warn, :error].freeze
 
       class << self
         def event_log_level(method_name, level)
