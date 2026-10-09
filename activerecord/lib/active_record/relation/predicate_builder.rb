@@ -131,8 +131,16 @@ module ActiveRecord
             if mapping.length == 1 || values.empty?
               column_name, aggr_attr = mapping.first
               values = values.map do |object|
-                object.respond_to?(aggr_attr) ? object.public_send(aggr_attr) : object
+                if object.is_a?(Range)
+                  range_begin = aggregate_attribute_value(object.begin, aggr_attr)
+                  range_end = aggregate_attribute_value(object.end, aggr_attr)
+
+                  Range.new(range_begin, range_end, object.exclude_end?)
+                else
+                  aggregate_attribute_value(object, aggr_attr)
+                end
               end
+
               self[column_name, values]
             else
               queries = values.map do |object|
@@ -186,6 +194,10 @@ module ActiveRecord
 
       def handler_for(object)
         @handlers.detect { |klass, _| klass === object }.last
+      end
+
+      def aggregate_attribute_value(object, attribute)
+        object.respond_to?(attribute) ? object.public_send(attribute) : object
       end
   end
 end
