@@ -1,3 +1,14 @@
+*   Dump `create_schema` for the schema of an extension that `dump_schemas` leaves out.
+
+    A relocatable extension, such as `btree_gin` or `pg_trgm`, can live in a schema
+    that `dump_schemas` does not cover. The Ruby schema dump wrote
+    `enable_extension "extensions.btree_gin"` without the schema, and
+    `db:schema:load` failed with `PG::InvalidSchemaName`. The dump now adds
+    `create_schema "extensions", if_not_exists: true`, which also loads where
+    the schema exists already.
+
+    *Tusshar Laddha*
+
 *   Combine constraint operations into the single `ALTER TABLE` statement emitted by
     `change_table` with `bulk: true`.
 
