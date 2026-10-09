@@ -238,8 +238,11 @@ module ActiveRecord
         end
 
         def query_cache
-          caches = (ActiveSupport::IsolatedExecutionState[:active_record_ractor_query_caches] ||= {})
-          caches[key] ||= QueryCache::Store.new(state.query_cache_version, query_cache_max_size)
+          ConnectionPool.used_pools!.query_cache_for(self)
+        end
+
+        def build_query_cache # :nodoc:
+          QueryCache::Store.new(state.query_cache_version, query_cache_max_size)
         end
 
         def pool_transaction_isolation_level

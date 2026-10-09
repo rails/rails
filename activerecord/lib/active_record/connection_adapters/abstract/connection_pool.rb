@@ -127,6 +127,17 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
+      # The pools that an execution context has used.
+      class UsedPoolSet # :nodoc:
+        def initialize
+          @query_caches = ObjectSpace::WeakKeyMap.new
+        end
+
+        def query_cache_for(pool)
+          @query_caches[pool] ||= pool.build_query_cache
+        end
+      end
+
       class Lease # :nodoc:
         attr_accessor :connection, :sticky
 
@@ -203,6 +214,14 @@ module ActiveRecord
       class << self
         def install_executor_hooks(executor = ActiveSupport::Executor)
           executor.register_hook(ExecutorHooks)
+        end
+
+        def used_pools # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_used_pools]
+        end
+
+        def used_pools! # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_used_pools] ||= UsedPoolSet.new
         end
       end
 

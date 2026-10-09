@@ -104,30 +104,10 @@ module ActiveRecord
           end
       end
 
-      # Each connection pool has one of these registries. They map execution
-      # contexts to query cache stores.
-      #
-      # The keys of the internal map are threads or fibers (whatever
-      # ActiveSupport::IsolatedExecutionState.context returns), and their
-      # associated values are their respective query cache stores.
-      class QueryCacheRegistry # :nodoc:
-        def initialize
-          @mutex = Mutex.new
-          @map = ObjectSpace::WeakKeyMap.new
-        end
-
-        def compute_if_absent(context)
-          @map[context] || @mutex.synchronize do
-            @map[context] ||= yield
-          end
-        end
-      end
-
       module ConnectionPoolConfiguration # :nodoc:
         def initialize(...)
           super
           @query_cache_version = Concurrent::AtomicFixnum.new
-          @thread_query_caches = QueryCacheRegistry.new
           @query_cache_max_size = \
             case query_cache = db_config&.query_cache
             when 0, false
@@ -195,9 +175,11 @@ module ActiveRecord
         end
 
         def query_cache
-          @thread_query_caches.compute_if_absent(ActiveSupport::IsolatedExecutionState.context) do
-            Store.new(@query_cache_version, @query_cache_max_size)
-          end
+          ConnectionPool.used_pools!.query_cache_for(self)
+        end
+
+        def build_query_cache # :nodoc:
+          Store.new(@query_cache_version, @query_cache_max_size)
         end
       end
 
