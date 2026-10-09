@@ -162,7 +162,13 @@ module ActiveRecord
             if mapping.length == 1 || values.empty?
               column_name, aggr_attr = mapping.first
               values = values.map do |object|
-                object.respond_to?(aggr_attr) ? object.public_send(aggr_attr) : object
+                if object.is_a?(Range)
+                  range_begin = object.begin.respond_to?(aggr_attr) ? object.begin.public_send(aggr_attr) : object.begin
+                  range_end = object.end.respond_to?(aggr_attr) ? object.end.public_send(aggr_attr) : object.end
+                  Range.new(range_begin, range_end, object.exclude_end?)
+                else
+                  object.respond_to?(aggr_attr) ? object.public_send(aggr_attr) : object
+                end
               end
               self[column_name, values]
             else

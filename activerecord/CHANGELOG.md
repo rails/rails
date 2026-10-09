@@ -1,3 +1,19 @@
+*   Fix `where` with a range of value objects on a single-mapping `composed_of`
+    attribute.
+
+    ```ruby
+    Customer.where(balance: Money.new(150)..Money.new(250))
+    # before: SELECT ... WHERE "customers"."balance" BETWEEN NULL AND NULL
+    # after:  SELECT ... WHERE "customers"."balance" BETWEEN 150 AND 250
+    ```
+
+    The range endpoints are now projected through the aggregation mapping,
+    like single values and arrays already were.
+
+    Fixes #59012.
+
+    *Azmi Muwahid*
+
 *   Stop `connected_to` from changing the role and shard of a thread that shares
     the execution state.
 

@@ -1566,6 +1566,17 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal Customer.where(balance: [david_balance.amount, zaphod_balance.amount]).to_sql, found_customers.to_sql
   end
 
+  def test_hash_condition_find_with_aggregate_having_one_mapping_range
+    found_customers = Customer.where(balance: Money.new(40)..Money.new(60))
+    assert_equal [customers(:david)], found_customers
+    assert_equal Customer.where(balance: 40..60).to_sql, found_customers.to_sql
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping_exclusive_range_in_array
+    found_customers = Customer.where(balance: [Money.new(40)...Money.new(60), Money.new(62)])
+    assert_equal [customers(:david), customers(:zaphod)], found_customers.sort_by(&:id)
+  end
+
   def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_aggregate
     gps_location = customers(:david).gps_location
     assert_kind_of GpsLocation, gps_location
