@@ -662,7 +662,7 @@ module ActiveRecord
 
   def self.all_open_transactions # :nodoc:
     open_transactions = []
-    Base.connection_handler.each_connection_pool do |pool|
+    ConnectionAdapters::ConnectionPool.each_used_pool do |pool|
       if active_connection = pool.active_connection
         current_transaction = active_connection.current_transaction
 
