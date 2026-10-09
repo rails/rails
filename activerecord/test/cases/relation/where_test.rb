@@ -24,6 +24,16 @@ module ActiveRecord
     fixtures :authors, :author_addresses, :categories, :categorizations, :cars, :treasures, :price_estimates,
       :binaries, :edges, :essays, :posts, :comments, :topics
 
+    class AliasedSponsor < ActiveRecord::Base
+      self.table_name = "sponsors"
+      alias_attribute :kind, :sponsorable_type
+    end
+
+    class AliasedMember < ActiveRecord::Base
+      self.table_name = "members"
+      has_one :sponsor, as: :sponsorable, foreign_type: :kind, class_name: "ActiveRecord::WhereTest::AliasedSponsor"
+    end
+
     def test_type_casting_nested_joins
       comment = comments(:eager_other_comment1)
       assert_equal [comment], Comment.joins(post: :author).where(authors: { id: "2-foo" })
@@ -306,6 +316,14 @@ module ActiveRecord
       actual   = PriceEstimate.where(estimate_of: Treasure.where(id: [1, 2]))
 
       assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_inverse_polymorphic_relation_respects_an_aliased_type_condition
+      member = AliasedMember.create!(name: "Aliased type condition")
+      AliasedSponsor.create!(sponsorable_id: member.id, sponsorable_type: "Other")
+
+      assert_equal [member], AliasedMember.where(sponsor: AliasedSponsor.where(kind: "Other")).to_a
+      assert_equal [member], AliasedMember.where(sponsor: AliasedSponsor.where(sponsorable_type: "Other")).to_a
     end
 
     def test_polymorphic_sti_shallow_where

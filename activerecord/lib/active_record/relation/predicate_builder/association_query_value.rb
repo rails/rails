@@ -50,7 +50,10 @@ module ActiveRecord
         end
 
         def polymorphic_clause?
-          primary_type && !value.where_values_hash.has_key?(primary_type)
+          if primary_type
+            column = value.model.attribute_aliases[primary_type] || primary_type
+            !value.where_values_hash.has_key?(column)
+          end
         end
 
         def convert_to_id(value)
