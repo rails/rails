@@ -121,8 +121,7 @@ module ActionCable
               case type
               when "subscribe", "psubscribe"
                 if callbacks = @subscribe_callbacks[chan]
-                  next_callback = callbacks.shift
-                  @executor.post(&next_callback) if next_callback
+                  Array(callbacks.shift).each { |callback| @executor.post(&callback) }
                   @subscribe_callbacks.delete(chan) if callbacks.empty?
                 end
               when "message", "pmessage"
@@ -225,9 +224,22 @@ module ActionCable
             end
 
             def reset
-              @subscription_lock.synchronize do
-                @subscribed_client = nil
-                @when_connected.clear
+              # Lock order matches `add_subscriber` -> `add_channel`: `@sync`
+              # first, then `@subscription_lock`.
+              @sync.synchronize do
+                @subscription_lock.synchronize do
+                  @subscribed_client = nil
+                  @when_connected.clear
+                  # `resubscribe` only re-sends one SUBSCRIBE per channel still
+                  # in `@subscribers`, so drop confirmations for channels that
+                  # no longer have subscribers: they must not consume the
+                  # acknowledgement of a later subscribe. Merge each remaining
+                  # channel's pending confirmations into a single entry so one
+                  # resubscribe acknowledgement runs them all. `flatten` is
+                  # idempotent, so repeated reconnects keep the entry flat.
+                  @subscribe_callbacks.select! { |channel, _| @subscribers.key?(channel) }
+                  @subscribe_callbacks.transform_values! { |callbacks| [callbacks.flatten.compact] }
+                end
               end
             end
         end
