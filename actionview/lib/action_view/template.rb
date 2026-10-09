@@ -229,6 +229,8 @@ module ActionView
     end
 
     def spot(location) # :nodoc:
+      return unless defined?(ErrorHighlight)
+
       node_id = RubyVM::AbstractSyntaxTree.node_id_for_backtrace_location(location)
       found =
         if RubyVM::InstructionSequence.compile("").to_a[4][:parser] == :prism

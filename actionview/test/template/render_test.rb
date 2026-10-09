@@ -228,6 +228,37 @@ module RenderTestCases
     assert_equal 6, translated_spot[:first_column]
   end
 
+  def test_render_runtime_error_without_error_highlight
+    ex = assert_raises(ActionView::Template::Error) {
+      @view.render(template: "test/runtime_error")
+    }
+    erb_btl = ex.backtrace_locations.first
+
+    error_highlight = Object.send(:remove_const, :ErrorHighlight) if defined?(ErrorHighlight)
+    translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+
+    assert_nil translating_frame.spot(ex.cause)
+  ensure
+    Object.const_set(:ErrorHighlight, error_highlight) if error_highlight
+  end
+
+  def test_render_runtime_error_without_error_highlight_and_abstract_syntax_tree
+    ex = assert_raises(ActionView::Template::Error) {
+      @view.render(template: "test/runtime_error")
+    }
+    erb_btl = ex.backtrace_locations.first
+
+    # As on JRuby, which has neither.
+    error_highlight = Object.send(:remove_const, :ErrorHighlight) if defined?(ErrorHighlight)
+    abstract_syntax_tree = RubyVM.send(:remove_const, :AbstractSyntaxTree) if defined?(RubyVM::AbstractSyntaxTree)
+    translating_frame = ActionDispatch::ExceptionWrapper::SourceMapLocation.new(erb_btl, ex.template)
+
+    assert_nil translating_frame.spot(ex.cause)
+  ensure
+    Object.const_set(:ErrorHighlight, error_highlight) if error_highlight
+    RubyVM.const_set(:AbstractSyntaxTree, abstract_syntax_tree) if abstract_syntax_tree
+  end
+
   def test_render_location_conditional_append
     ex = assert_raises(ActionView::Template::Error) {
       @view.render(template: "test/unparseable_runtime_error")
