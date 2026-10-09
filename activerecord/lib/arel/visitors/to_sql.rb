@@ -639,6 +639,8 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_Or(o, collector)
+          return collector << "1=0" if o.children.empty?
+
           inject_join o.children, collector, " OR "
         end
 

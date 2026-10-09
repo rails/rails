@@ -86,6 +86,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_empty Comment.where(author: [])
   end
 
+  def test_where_on_association_with_empty_array_avoids_queries
+    assert_no_queries do
+      assert_empty Comment.where(post: []).to_a
+      assert_empty Cpk::Chapter.where(book: []).to_a
+      assert_empty Cpk::Chapter.where(book: Cpk::Book.none).to_a
+    end
+  end
+
   def test_where_on_polymorphic_association_with_cpk
     post = Cpk::Post.create!(title: "Welcome", author: "Mary")
     post.comments << Cpk::Comment.create!
