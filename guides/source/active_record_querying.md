@@ -49,8 +49,6 @@ There are also numerous related guides that you may find useful:
   connection between Active Record models
 * [Composite Primary Keys](active_record_composite_primary_keys.html) - Learn
   how to work with composite primary keys
-* [Active Record Transactions](active_record_basics.html#transactions) - Learn
-  about database transactions
 
 A Bookstore Model Example
 -------------------------
