@@ -679,6 +679,10 @@ module ActiveRecord
         change_column_default
         add_timestamps
         remove_timestamps
+        add_foreign_key
+        remove_foreign_key
+        add_check_constraint
+        remove_check_constraint
       ].freeze
 
       attr_reader :operations, :deferred_operations
@@ -732,16 +736,33 @@ module ActiveRecord
         remove_column(:created_at)
       end
 
-      def add_foreign_key(to_table, options)
+      def add_foreign_key(to_table, **options)
+        conn = @td.conn
+        return unless conn.use_foreign_keys?
+        options = conn.foreign_key_options(name, to_table, options)
         @operations << AddForeignKey.new(@td.new_foreign_key_definition(to_table, options))
+      end
+
+      def remove_foreign_key(to_table = nil, **options)
+        conn = @td.conn
+        return unless conn.use_foreign_keys?
+        to_table ||= options[:to_table]
+        drop_foreign_key(conn.send(:foreign_key_for!, name, to_table: to_table, **options).name)
       end
 
       def drop_foreign_key(name)
         @operations << DropForeignKey.new(name)
       end
 
-      def add_check_constraint(expression, options)
+      def add_check_constraint(expression, **options)
+        return unless @td.conn.supports_check_constraints?
         @operations << AddCheckConstraint.new(@td.new_check_constraint_definition(expression, options))
+      end
+
+      def remove_check_constraint(expression = nil, **options)
+        conn = @td.conn
+        return unless conn.supports_check_constraints?
+        drop_check_constraint(conn.send(:check_constraint_for!, name, expression: expression, **options).name)
       end
 
       def drop_check_constraint(constraint_name)

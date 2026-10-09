@@ -1,3 +1,53 @@
+*   Fix `where` with a `Range` of value objects on a single-mapping `composed_of`
+    attribute.
+
+    Range endpoints now go through the mapping, like single values and arrays do.
+    Before, they were used as-is, so both ends became `NULL`:
+
+    ```ruby
+    Customer.where(balance: Money.new(150)..Money.new(250))
+    # before: ... WHERE "customers"."balance" BETWEEN NULL AND NULL
+    # after:  ... WHERE "customers"."balance" BETWEEN 150 AND 250
+    ```
+
+    *Kushagra Singh*
+
+*   Combine constraint operations into the single `ALTER TABLE` statement emitted by
+    `change_table` with `bulk: true`.
+
+    `add_foreign_key`, `remove_foreign_key`, `add_check_constraint` and
+    `remove_check_constraint` are now combinable on every adapter that supports
+    bulk alter (MySQL and PostgreSQL), as are `add_unique_constraint`,
+    `remove_unique_constraint`, `add_exclusion_constraint` and
+    `remove_exclusion_constraint` on PostgreSQL.
+
+    ```ruby
+    change_table :posts, bulk: true do |t|
+      t.bigint :reviewer_id
+      t.foreign_key :authors, column: :reviewer_id
+      t.check_constraint "views >= 0", name: "views_check"
+      t.remove_foreign_key :authors, column: :editor_id
+    end
+    ```
+
+    Before, each constraint flushed the pending `ALTER TABLE` and ran on its own.
+    Now all four operations are applied in one statement.
+
+    *Ryuta Kamizono*
+
+*   Stop `connected_to` from changing the role and shard of a thread that shares
+    the execution state.
+
+    `ActionController::Live` copies the request's execution state into the
+    streaming thread, but both threads kept using the same `connected_to` stack.
+    When the request thread left a `connected_to` block, for example the one
+    opened by the shard selector middleware, the streaming thread lost its shard
+    and role too. The stack is now replaced instead of modified in place.
+
+    Fixes #58870.
+
+    *Suliman Abdulrazzaq*
+
 *   Validate `update_only:` and the elements of an array passed to `returning:` in `insert_all`/`upsert_all`, the same way other dangerous query methods already do.
 
     Before this, `update_only:` accepted any value with no check at all, and `returning:` only checked when the whole argument was a single raw string, so an array like `returning: [user_supplied_string]` skipped validation entirely and reached the database as a column reference. Both now raise `ArgumentError` for a plain string that is not wrapped in `Arel.sql(...)`, matching how `on_duplicate` has always been checked.

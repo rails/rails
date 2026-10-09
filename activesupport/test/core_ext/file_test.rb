@@ -123,6 +123,18 @@ class AtomicWriteTest < ActiveSupport::TestCase
     File.unlink(file_name) rescue nil
   end
 
+  def test_atomic_write_isdir_cleanup
+    Dir.mktmpdir do |temp_dir|
+      dir = File.join(temp_dir, "dir")
+      Dir.mkdir(dir)
+      assert_equal ["dir"], Dir.children(temp_dir)
+      assert_raises Errno::EISDIR do
+        File.atomic_write(dir) { |f| f.write("test") }
+      end
+      assert_equal ["dir"], Dir.children(temp_dir)
+    end
+  end
+
   private
     def file_name
       "atomic-#{Process.pid}.file"

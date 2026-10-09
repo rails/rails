@@ -24,27 +24,27 @@ module ActiveSupport
     WHITE   = "\e[37m"
 
     def info(progname = nil, &block)
-      logger.info(progname, &block) if logger
+      logger&.info(progname, &block)
     end
 
     def debug(progname = nil, &block)
-      logger.debug(progname, &block) if logger
+      logger&.debug(progname, &block)
     end
 
     def warn(progname = nil, &block)
-      logger.warn(progname, &block) if logger
+      logger&.warn(progname, &block)
     end
 
     def error(progname = nil, &block)
-      logger.error(progname, &block) if logger
+      logger&.error(progname, &block)
     end
 
     def fatal(progname = nil, &block)
-      logger.fatal(progname, &block) if logger
+      logger&.fatal(progname, &block)
     end
 
     def unknown(progname = nil, &block)
-      logger.unknown(progname, &block) if logger
+      logger&.unknown(progname, &block)
     end
 
     # Set color by using a symbol or one of the defined constants. Set modes

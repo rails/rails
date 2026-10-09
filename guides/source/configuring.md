@@ -1240,6 +1240,12 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy = CustomP
 
 By assigning to the adapter class, all migrations run through connections using that adapter will use the specified strategy.
 
+#### `config.active_record.migration_error`
+
+Specifies what happens when there are pending migrations. If set to `:page_load`, an `ActiveRecord::PendingMigrationError` is raised on page load.
+The generated `config/environments/development.rb` file contains this option with the value `:page_load`.
+By default, this option is not set.
+
 #### `config.active_record.schema_versions_formatter`
 
 Controls the formatter class used by schema dumper to format versions information. Custom class can be provided
@@ -1474,7 +1480,7 @@ Allows specifying the maximum number of records that will be destroyed in a back
 #### `config.active_record.queues.destroy`
 
 Allows specifying the Active Job queue to use for destroy jobs. When this option
-is `nil`, purge jobs are sent to the default Active Job queue (see
+is `nil`, destroy jobs are sent to the default Active Job queue (see
 [`config.active_job.default_queue_name`][]). It defaults to `nil`.
 
 #### `config.active_record.enumerate_columns_in_select_statements`

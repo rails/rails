@@ -2148,6 +2148,61 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
+  test "leaving #connected_to does not change the stack of a thread sharing the execution state" do
+    context = ActiveSupport::IsolatedExecutionState.context
+    state_shared = Concurrent::CountDownLatch.new
+    parent_left = Concurrent::CountDownLatch.new
+    thread = nil
+
+    SecondAbstractClass.connected_to(role: :reading) do
+      ActiveRecord::Base.connected_to_many(FirstAbstractClass, role: :reading) do
+        thread = Thread.new do
+          ActiveSupport::IsolatedExecutionState.share_with(context) do
+            state_shared.count_down
+            parent_left.wait
+
+            [FirstAbstractClass.connected_to?(role: :reading), SecondAbstractClass.connected_to?(role: :reading)]
+          end
+        end
+
+        state_shared.wait
+      end
+    end
+
+    assert_not SecondAbstractClass.connected_to?(role: :reading)
+    parent_left.count_down
+    assert_equal [true, true], thread.value
+  ensure
+    parent_left.count_down
+    thread&.join
+  end
+
+  test "#connected_to in a thread sharing the execution state does not change the parent's stack" do
+    context = ActiveSupport::IsolatedExecutionState.context
+    child_connected = Concurrent::CountDownLatch.new
+    child_release = Concurrent::CountDownLatch.new
+    thread = nil
+
+    SecondAbstractClass.connected_to(role: :writing) do
+      thread = Thread.new do
+        ActiveSupport::IsolatedExecutionState.share_with(context) do
+          SecondAbstractClass.connected_to(role: :reading) do
+            child_connected.count_down
+            child_release.wait
+          end
+        end
+      end
+
+      child_connected.wait
+
+      assert_equal :writing, SecondAbstractClass.current_role
+      assert_not SecondAbstractClass.current_preventing_writes
+    ensure
+      child_release.count_down
+      thread&.join
+    end
+  end
+
   private
     def with_timezone_config(cfg, &block)
       super(cfg) do

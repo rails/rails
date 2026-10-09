@@ -49,8 +49,6 @@ There are also numerous related guides that you may find useful:
   connection between Active Record models
 * [Composite Primary Keys](active_record_composite_primary_keys.html) - Learn
   how to work with composite primary keys
-* [Active Record Transactions](active_record_basics.html#transactions) - Learn
-  about database transactions
 
 A Bookstore Model Example
 -------------------------
@@ -2128,15 +2126,15 @@ SELECT *
   ORDER BY year_published ASC
 ```
 
-The `reorder` method also works with any previously defined order, not just
-association order:
+The `reorder` method also works with any order defined earlier in the query
+chain, not just one from a default scope:
 
 ```ruby
 Book.where("id > 100").order("id desc").reorder("title ASC")
 ```
 
-This will override the previous `order("id desc")` clause and only order by
-title.
+This will override both the default scope order and the previous
+`order("id desc")` clause, and only order by title.
 
 ### `reverse_order`
 
@@ -3052,8 +3050,7 @@ scope arguments are given as a `Hash`. It is not applied while updating a
 record.
 
 For example, if you have a `default_scope` that sets `out_of_print` to `false`,
-and you create a new book with the `out_of_print` attribute set to `true`, the
-`default_scope` will be applied:
+new books will have `out_of_print` set to `false` by default:
 
 ```ruby
 class Book < ApplicationRecord
@@ -3064,6 +3061,8 @@ end
 ```irb
 store(dev)> Book.new
 => #<Book id: nil, out_of_print: false>
+store(dev)> Book.new(out_of_print: true)
+=> #<Book id: nil, out_of_print: true>
 store(dev)> Book.unscoped.new
 => #<Book id: nil, out_of_print: nil>
 ```
@@ -3270,7 +3269,7 @@ For example:
 
 ```ruby
 class Order < ApplicationRecord
-  enum :status, [:shipped, :being_packaged, :complete, :cancelled]
+  enum :status, [:shipped, :being_packed, :complete, :cancelled]
 end
 ```
 

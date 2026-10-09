@@ -907,7 +907,7 @@ The [`route`][] method adds an entry to the `config/routes.rb` file. To make
 `PeopleController#index` the default page for the application, we can add:
 
 ```ruby
-route "root to: 'person#index'"
+route "root to: 'people#index'"
 ```
 
 There are also many helper methods that can manipulate the local file system,

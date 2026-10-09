@@ -411,18 +411,15 @@ module ActiveSupport
       name = resolve_name(name_or_object)
       event = { name: name }
 
-      subscribers = @subscribers.filter_map do |subscriber_entry|
-        subscriber = subscriber_entry[:subscriber]
+      subscribers = []
+      @subscribers.each do |subscriber_entry|
         filter = subscriber_entry[:filter]
-
-        if !filter || filter.call(event)
-          subscriber
-        end
+        subscribers << subscriber_entry[:subscriber] if !filter || filter.call(event)
       end
 
       return if subscribers.empty?
 
-      payload = resolve_payload(name_or_object, payload, filter_payload, **kwargs)
+      payload = resolve_payload(name_or_object, payload, filter_payload, kwargs)
 
       event = {
         name: name,
@@ -634,7 +631,7 @@ module ActiveSupport
         end
       end
 
-      def resolve_payload(name_or_object, payload, filter, **kwargs)
+      def resolve_payload(name_or_object, payload, filter, kwargs)
         case name_or_object
         when String, Symbol
           handle_unexpected_args(name_or_object, payload, kwargs) if payload && kwargs.any?
