@@ -453,16 +453,18 @@ module ActiveRecord
     end
 
     def test_structure_load_reads_the_file_from_standard_input
-      filename = "awesome-file.sql"
       config = ARTest.config["connections"]["mysql2"]["arunit"]
-      File.write(filename, "CREATE TABLE structure_load_test (id int);\n")
 
-      ActiveRecord::Tasks::DatabaseTasks.structure_load(config, filename)
+      Dir.mktmpdir do |dir|
+        filename = File.join(dir, "awesome-file.sql")
+        File.write(filename, "CREATE TABLE structure_load_test (id int);\n")
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_load(config, filename)
+      end
 
       assert ActiveRecord::Base.lease_connection.table_exists?("structure_load_test")
     ensure
       ActiveRecord::Base.lease_connection.drop_table("structure_load_test", if_exists: true)
-      FileUtils.rm_f(filename)
     end
 
     def test_structure_load_command_failure_names_the_file

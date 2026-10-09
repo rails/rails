@@ -149,7 +149,8 @@ module ActiveRecord
 
   class SqliteStructureDumpTest < ActiveRecord::TestCase
     def setup
-      @database      = "db_create.sqlite3"
+      @tmpdir        = Dir.mktmpdir
+      @database      = File.join(@tmpdir, "db_create.sqlite3")
       @configuration = {
         "adapter"  => "sqlite3",
         "database" => @database
@@ -159,23 +160,24 @@ module ActiveRecord
       `sqlite3 #{@database} 'CREATE TABLE foo(id INTEGER)'`
     end
 
+    def teardown
+      FileUtils.rm_rf(@tmpdir)
+    end
+
     def test_structure_dump
       dbfile   = @database
-      filename = "awesome-file.sql"
+      filename = File.join(@tmpdir, "awesome-file.sql")
 
       ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, "/rails/root"
       assert File.exist?(dbfile)
       assert File.exist?(filename)
       assert_match(/CREATE TABLE foo/, File.read(filename))
       assert_match(/CREATE TABLE bar/, File.read(filename))
-    ensure
-      FileUtils.rm_f(filename)
-      FileUtils.rm_f(dbfile)
     end
 
     def test_structure_dump_with_ignore_tables
       dbfile   = @database
-      filename = "awesome-file.sql"
+      filename = File.join(@tmpdir, "awesome-file.sql")
       ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
         ActiveRecord.stub(:schema_ignored_tables, [/^prefix_/, "ignored_foo"]) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
@@ -187,14 +189,10 @@ module ActiveRecord
       assert_match(/bar/, contents)
       assert_no_match(/prefix_foo/, contents)
       assert_no_match(/ignored_foo/, contents)
-    ensure
-      FileUtils.rm_f(filename)
-      FileUtils.rm_f(dbfile)
     end
 
     def test_structure_dump_with_schema_ignored_tables_as_a_set
-      dbfile   = @database
-      filename = "awesome-file.sql"
+      filename = File.join(@tmpdir, "awesome-file.sql")
 
       ActiveRecord::Base.lease_connection.stub(:data_sources, ["bar", "foo"]) do
         ActiveRecord.stub(:schema_ignored_tables, Set["foo"]) do
@@ -205,18 +203,15 @@ module ActiveRecord
       contents = File.read(filename)
       assert_match(/CREATE TABLE bar/, contents)
       assert_no_match(/foo/, contents)
-    ensure
-      FileUtils.rm_f(filename)
-      FileUtils.rm_f(dbfile)
     end
 
     def test_structure_dump_execution_fails
       dbfile   = @database
-      filename = "awesome-file.sql"
+      filename = File.join(@tmpdir, "awesome-file.sql")
       assert_called_with(
         Kernel,
         :system,
-        ["sqlite3", "--noop", "db_create.sqlite3", ".schema --nosys", { out: "awesome-file.sql" }],
+        ["sqlite3", "--noop", dbfile, ".schema --nosys", { out: filename }],
         returns: nil,
       ) do
         e = assert_raise(RuntimeError) do
@@ -224,11 +219,8 @@ module ActiveRecord
             quietly { ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root") }
           end
         end
-        assert_match("failed to execute:\nsqlite3 --noop db_create.sqlite3 .schema --nosys > awesome-file.sql", e.message)
+        assert_match("failed to execute:\nsqlite3 --noop #{dbfile} .schema --nosys > #{filename}", e.message)
       end
-    ensure
-      FileUtils.rm_f(filename)
-      FileUtils.rm_f(dbfile)
     end
 
     private
@@ -243,23 +235,25 @@ module ActiveRecord
 
   class SqliteStructureLoadTest < ActiveRecord::TestCase
     def setup
-      @database      = "db_create.sqlite3"
+      @tmpdir        = Dir.mktmpdir
+      @database      = File.join(@tmpdir, "db_create.sqlite3")
       @configuration = {
         "adapter"  => "sqlite3",
         "database" => @database
       }
     end
 
+    def teardown
+      FileUtils.rm_rf(@tmpdir)
+    end
+
     def test_structure_load
       dbfile   = @database
-      filename = "awesome-file.sql"
+      filename = File.join(@tmpdir, "awesome-file.sql")
 
       open(filename, "w") { |f| f.puts("select datetime('now', 'localtime');") }
       quietly { ActiveRecord::Tasks::DatabaseTasks.structure_load @configuration, filename, "/rails/root" }
       assert File.exist?(dbfile)
-    ensure
-      FileUtils.rm_f(filename)
-      FileUtils.rm_f(dbfile)
     end
   end
 end
