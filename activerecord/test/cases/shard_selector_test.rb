@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/person"
 require "action_dispatch"
+require "concurrent/atomic/count_down_latch"
 
 module ActiveRecord
   class ShardSelectorTest < ActiveRecord::TestCase
@@ -40,6 +41,37 @@ module ActiveRecord
       }, ->(*) { "shard_one" })
 
       assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "GET")
+    end
+
+    def test_thread_sharing_the_execution_state_keeps_the_shard_after_the_middleware_returns
+      state_shared = Concurrent::CountDownLatch.new
+      middleware_returned = Concurrent::CountDownLatch.new
+      thread = nil
+
+      middleware = ActiveRecord::Middleware::ShardSelector.new(lambda { |env|
+        # Like ActionController::Live, keep working on another thread after
+        # the response has been returned.
+        context = ActiveSupport::IsolatedExecutionState.context
+        thread = Thread.new do
+          ActiveSupport::IsolatedExecutionState.share_with(context) do
+            state_shared.count_down
+            middleware_returned.wait
+
+            ActiveRecord::Base.current_shard
+          end
+        end
+
+        state_shared.wait
+        [200, {}, ["body"]]
+      }, ->(*) { :shard_one })
+
+      assert_equal [200, {}, ["body"]], middleware.call("REQUEST_METHOD" => "GET")
+      middleware_returned.count_down
+
+      assert_equal :shard_one, thread.value
+    ensure
+      middleware_returned.count_down
+      thread&.join
     end
 
     def test_middleware_can_do_granular_database_connection_switching
