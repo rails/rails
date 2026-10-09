@@ -1,3 +1,25 @@
+*   Add `clobber:` option to `ActiveRecord::Base.establish_connection`.
+
+    Database configurations now compare by value, so `establish_connection`
+    reuses the existing pool for an equal configuration even when it was newly
+    built, such as a configuration hash. Previously, an existing pool was reused
+    only when `establish_connection` resolved to the exact configuration object
+    that pool was established with, so a newly built configuration always
+    established a new pool, as if `clobber: true`. The default is
+    `clobber: false`; pass `clobber: true` to explicitly establish a new pool,
+    for example to get a fresh SQLite in-memory database:
+
+    ```ruby
+    ActiveRecord::Base.establish_connection(
+      { adapter: "sqlite3", database: ":memory:" },
+      clobber: true
+    )
+    ```
+
+    Refs #59028.
+
+    *Grant Hutchins*
+
 *   Fix `where` with a `Range` of value objects on a single-mapping `composed_of`
     attribute.
 
