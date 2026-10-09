@@ -110,6 +110,7 @@ module AdapterHelper
   end
 
   def main_ractor_connection(connection)
+    connection.connect!
     handler = ActiveRecord::ConnectionAdapters::RactorConnectionHandler
     # Only check for a proxy when its class is genuinely loaded: nothing can
     # be a proxy otherwise, and the is_a? would needlessly autoload it.

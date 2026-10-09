@@ -149,7 +149,6 @@ module ActiveRecord
           supports_lazy_transactions?: supports_lazy_transactions?,
           supports_materialized_views?: supports_materialized_views?,
           supports_nulls_not_distinct?: supports_nulls_not_distinct?,
-          supports_optimizer_hints?: supports_optimizer_hints?,
           supports_partial_index?: supports_partial_index?,
           supports_partitioned_indexes?: supports_partitioned_indexes?,
           supports_restart_db_transaction?: supports_restart_db_transaction?,
@@ -1270,7 +1269,12 @@ module ActiveRecord
         # Ensure the connection is ready to execute a query.
         # Returns whether reconnect-and-restore is available for retry decisions.
         def ensure_connection_ready(allow_retry:, materialize_transactions:)
-          connect! if !connected? && reconnect_can_restore_state?
+          unless connected?
+            if @proxied
+              raise ConnectionNotEstablished.new("The Ractor-proxied connection has been disconnected", connection_pool: @pool)
+            end
+            connect! if reconnect_can_restore_state?
+          end
           self.materialize_transactions if materialize_transactions
 
           reconnectable = reconnect_can_restore_state?

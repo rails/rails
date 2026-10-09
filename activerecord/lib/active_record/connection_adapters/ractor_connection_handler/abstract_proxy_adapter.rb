@@ -27,8 +27,7 @@ module ActiveRecord
           @logger = nil
           @pool = pool
           @prepared_statements = profile[:prepared_statements]
-          @raw_connection = connection_token
-          @verified = true
+          @raw_connection = nil
           @capabilities = profile[:capabilities].dup
           @quoted_column_names = {}
           @quoted_table_names = {}
@@ -40,23 +39,18 @@ module ActiveRecord
 
         attr_reader :connection_token # :nodoc:
 
-        def connected?
-          !@connection_token.nil?
-        end
-
         def active?
-          connected? && !!remote_adapter_call(:active?)
+          !!(@connection_token && call_main_connection(:active?))
         end
 
         def verify!
-          remote_adapter_call(:verify!)
-          @needs_reconnect = false
-          @verified = true
+          super
+          @raw_connection = @connection_token
           self
         end
 
         def connect!
-          unless connected?
+          unless @connection_token
             raise ConnectionNotEstablished, "The Ractor-pinned connection has been released"
           end
           verify!
@@ -64,16 +58,18 @@ module ActiveRecord
 
         def reconnect!(restore_transactions: false)
           # Transaction state is worker-owned, so the physical connection must not restore by itself.
-          remote_adapter_call(:reconnect!, [], { restore_transactions: false })
-          reset_transaction(restore: restore_transactions) { }
+          call_main_connection(:reconnect!, [], { restore_transactions: false })
+          @raw_connection = @connection_token
           @needs_reconnect = false
           @verified = true
+          reset_transaction(restore: restore_transactions) { }
           self
         end
 
         def disconnect!
           # Disconnect the physical connection while maintaining the lease of that same instance.
-          remote_adapter_call(:disconnect!) if @connection_token
+          call_main_connection(:disconnect!) if @connection_token
+          @raw_connection = nil
           @needs_reconnect = false
           @verified = false
           reset_transaction
@@ -112,7 +108,7 @@ module ActiveRecord
 
         def clear_cache!(new_connection: false)
           super
-          remote_adapter_call(:clear_cache!, [], { new_connection: new_connection }) if @connection_token
+          call_main_connection(:clear_cache!, [], { new_connection: new_connection }) if @connection_token
         end
 
         def holds_main_connection? # :nodoc:
@@ -140,8 +136,10 @@ module ActiveRecord
 
           token = @connection_token
           binds_payload = dump_binds(binds)
-          main_operation(connection_pool: @pool) do
-            fetch_connection(token).type_casted_binds(Marshal.load(binds_payload))
+          with_raw_connection(materialize_transactions: false) do
+            main_operation(connection_pool: @pool) do
+              fetch_connection(token).type_casted_binds(Marshal.load(binds_payload))
+            end
           end
         end
 
@@ -153,10 +151,11 @@ module ActiveRecord
             raise ConnectionNotEstablished, "The Ractor-pinned connection has been released"
           end
 
-          materialize_transactions
-          disable_lazy_transactions!
-          @raw_connection_dirty = true
-          Proxy.fetch_connection(@connection_token).raw_connection
+          with_raw_connection do
+            disable_lazy_transactions!
+            @raw_connection_dirty = true
+            Proxy.fetch_connection(@connection_token).raw_connection
+          end
         end
 
         # Checkout/checkin callbacks are class-level state that is not Ractor-shareable;
@@ -238,6 +237,12 @@ module ActiveRecord
         end
 
         private
+          def translate_exception_class(native_error, sql, binds)
+            return native_error if native_error.cause.is_a?(Proxy::RemoteError)
+
+            super
+          end
+
           def arel_visitor
             @adapter_profile[:arel_visitor_class].new(self)
           end
@@ -330,14 +335,18 @@ module ActiveRecord
           def remote_adapter_call(method_name, args = [], kwargs = {})
             if args.empty? && kwargs.empty? && CAPABILITY_METHOD_PATTERN.match?(method_name)
               @capabilities.fetch(method_name) do
-                @capabilities[method_name] = call_main_connection(method_name, args, kwargs)
+                @capabilities[method_name] = with_raw_connection(materialize_transactions: false) do
+                  call_main_connection(method_name, args, kwargs)
+                end
               end
             else
-              call_main_connection(method_name, args, kwargs)
+              with_raw_connection(materialize_transactions: false) do
+                call_main_connection(method_name, args, kwargs)
+              end
             end
           end
 
-          def call_main_connection(method_name, args, kwargs)
+          def call_main_connection(method_name, args = [], kwargs = {})
             unless token = @connection_token
               raise ConnectionNotEstablished, "The Ractor-pinned connection has been released"
             end
