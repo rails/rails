@@ -3,6 +3,7 @@
 require "fileutils"
 require "pathname"
 require "active_support/configuration_file"
+require "active_support/core_ext/file/atomic"
 
 module ARTest
   class << self
@@ -17,7 +18,7 @@ module ARTest
 
       def read_config
         unless config_file.exist?
-          FileUtils.cp TEST_ROOT + "/config.example.yml", config_file
+          File.atomic_write(config_file) { |f| f.write File.read(TEST_ROOT + "/config.example.yml") }
         end
 
         expand_config ActiveSupport::ConfigurationFile.parse(config_file)
