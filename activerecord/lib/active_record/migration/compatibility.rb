@@ -423,13 +423,13 @@ module ActiveRecord
             if options[:name].present?
               options[:name].to_s
             else
-              connection.index_name(table_name, column: column_names)
+              connection.index_name(proper_table_name(table_name, table_name_options), column: column_names)
             end
           super
         end
 
         def remove_index(table_name, column_name = nil, **options)
-          options[:name] = index_name_for_remove(table_name, column_name, options)
+          options[:name] = index_name_for_remove(proper_table_name(table_name, table_name_options), column_name, options)
           super
         end
 
