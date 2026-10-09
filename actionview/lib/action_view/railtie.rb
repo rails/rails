@@ -147,6 +147,13 @@ module ActionView
       end
     end
 
+    initializer "action_view.ractorize" do
+      ActiveSupport.on_load(:before_ractorize) do
+        ActionView::PathRegistry.make_shareable!
+        ActionView::DependencyTracker.share_registry
+      end
+    end
+
     rake_tasks do |app|
       unless app.config.api_only
         load "action_view/tasks/cache_digests.rake"

@@ -37,6 +37,21 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_ractor_shareable Rails.backtrace_cleaner
       end
 
+      test "ractorize! runs before_ractorize load hooks with the application" do
+        app_file "config/initializers/before_ractorize.rb", <<~RUBY
+          $before_ractorize_calls = []
+          ActiveSupport.on_load(:before_ractorize) { $before_ractorize_calls << self }
+        RUBY
+
+        app "production"
+
+        assert_empty $before_ractorize_calls
+
+        ractorize!
+
+        assert_equal [Rails.application], $before_ractorize_calls
+      end
+
       test "ractorize! makes Rails.env shareable" do
         app "production"
 

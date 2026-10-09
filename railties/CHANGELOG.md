@@ -1,3 +1,18 @@
+*   Add a `before_ractorize` load hook that runs in `Rails::Application#ractorize!`
+    so frameworks, engines, and gems can prepare their own state to be shared
+    with Ractors.
+
+    Frameworks now use this hook instead of `ractorize!` reaching into them,
+    and gems can use it too:
+
+    ```ruby
+    ActiveSupport.on_load(:before_ractorize) do
+      MyGem.make_shareable!
+    end
+    ```
+
+    *Ben Sheldon*
+
 *   Fix `rails.deprecation` structured events not being emitted.
 
     *Azmi Muwahid*
