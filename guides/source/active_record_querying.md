@@ -3050,8 +3050,7 @@ scope arguments are given as a `Hash`. It is not applied while updating a
 record.
 
 For example, if you have a `default_scope` that sets `out_of_print` to `false`,
-and you create a new book with the `out_of_print` attribute set to `true`, the
-`default_scope` will be applied:
+new books will have `out_of_print` set to `false` by default:
 
 ```ruby
 class Book < ApplicationRecord
@@ -3062,6 +3061,8 @@ end
 ```irb
 store(dev)> Book.new
 => #<Book id: nil, out_of_print: false>
+store(dev)> Book.new(out_of_print: true)
+=> #<Book id: nil, out_of_print: true>
 store(dev)> Book.unscoped.new
 => #<Book id: nil, out_of_print: nil>
 ```
