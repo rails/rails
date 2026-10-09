@@ -5,6 +5,12 @@ module ActiveRecord
   module Associations
     class Preloader
       class ThroughAssociation < Association # :nodoc:
+        EMPTY_FIXED_VALUES = {}.freeze
+        private_constant :EMPTY_FIXED_VALUES
+
+        def self.association_route_for(*)
+        end
+
         def associate_records_from_unscoped(*)
         end
 
@@ -66,6 +72,10 @@ module ActiveRecord
         end
 
         private
+          def destination_fixed_values
+            EMPTY_FIXED_VALUES
+          end
+
           def data_available?
             owners.all? { |owner| loaded?(owner) } ||
               through_preloaders.all?(&:run?) && source_preloaders.all?(&:run?)

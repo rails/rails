@@ -82,7 +82,16 @@ module ActiveRecord
       raise NotImplementedError
     end
 
-    def value_of(record)
+    # Reads attributes with optional per-column normalizers. A nil list or entry
+    # leaves the corresponding values unchanged. Columns are declared names,
+    # resolved through the record's attribute aliases.
+    def value_of(record, normalizers = nil)
+      raise NotImplementedError
+    end
+
+    # Like #value_of, but columns must already be physical attribute names
+    # for the record's class; aliases are not resolved again.
+    def _value_of(record, normalizers = nil)
       raise NotImplementedError
     end
 
@@ -111,6 +120,8 @@ module ActiveRecord
       raise NotImplementedError
     end
 
+    # Returns this key with each column resolved through the aliases of
+    # +owner+, a model or record, or self when no column is aliased.
     def resolve_aliases(owner)
       raise NotImplementedError
     end
@@ -183,8 +194,16 @@ module ActiveRecord
         yield @name
       end
 
-      def value_of(record)
-        record.read_attr(@name)
+      def value_of(record, normalizers = nil)
+        value = record.read_attr(@name)
+        normalizer = normalizers&.first
+        normalizer ? normalizer.call(value) : value
+      end
+
+      def _value_of(record, normalizers = nil)
+        value = record._read_attr(@name)
+        normalizer = normalizers&.first
+        normalizer ? normalizer.call(value) : value
       end
 
       def expects_multiple_ids?(value)
@@ -218,7 +237,7 @@ module ActiveRecord
         if aliaz == @name
           self
         else
-          self.class.new(aliaz)
+          Key.for(aliaz)
         end
       end
     end
@@ -258,8 +277,28 @@ module ActiveRecord
         @columns.map(&)
       end
 
-      def value_of(record)
-        @columns.map { |column| record.read_attr(column) }
+      def value_of(record, normalizers = nil)
+        if normalizers
+          Array.new(@columns.length) do |index|
+            value = record.read_attr(@columns[index])
+            normalizer = normalizers[index]
+            normalizer ? normalizer.call(value) : value
+          end
+        else
+          @columns.map { |column| record.read_attr(column) }
+        end
+      end
+
+      def _value_of(record, normalizers = nil)
+        if normalizers
+          Array.new(@columns.length) do |index|
+            value = record._read_attr(@columns[index])
+            normalizer = normalizers[index]
+            normalizer ? normalizer.call(value) : value
+          end
+        else
+          @columns.map { |column| record._read_attr(column) }
+        end
       end
 
       # A single composite id is itself an Array, so several ids are an Array of
@@ -292,7 +331,7 @@ module ActiveRecord
 
       def resolve_aliases(owner)
         if @columns.any? { |name| owner.resolve_alias(name) != name }
-          self.class.new(@columns.map { |n| owner.resolve_alias(n) })
+          Key.for(@columns.map { |n| owner.resolve_alias(n) })
         else
           self
         end
@@ -337,6 +376,10 @@ module ActiveRecord
 
       def map_value
         return enum_for(:map_value) unless block_given?
+        nil
+      end
+
+      def _value_of(record, normalizers = nil)
         nil
       end
     end

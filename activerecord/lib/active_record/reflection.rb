@@ -924,7 +924,10 @@ module ActiveRecord
           constraints = association_route_constraints(reference_class, target_class)
 
           association_route_class.new(
-            link: AssociationLink.new(reference: reference, constraints: constraints, fixed_values: fixed_values)
+            link: AssociationLink.new(
+              reference: reference, constraints: constraints, fixed_values: fixed_values,
+              reference_class: reference_class, target_class: target_class
+            )
           )
         end
 
@@ -1160,7 +1163,7 @@ module ActiveRecord
         def resolve_association_route(origin_class, destination_class)
           if polymorphic?
             unless destination_class
-              return AssociationRoute.new(link: AssociationLink.new(reference_key: foreign_key_definition, fixed_values: { foreign_type => nil }))
+              return AssociationRoute.new(link: AssociationLink.new(reference_key: foreign_key_definition, fixed_values: { foreign_type => nil }, reference_class: origin_class))
             end
             fixed_values = { foreign_type => -destination_class.polymorphic_name }
           else

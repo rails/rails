@@ -882,6 +882,47 @@ class PreloaderTest < ActiveRecord::TestCase
     assert_nil post.author_with_address
   end
 
+  def test_preload_matches_a_false_key
+    book_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+
+      def self.name; "BooleanStatusBook"; end
+
+      has_many :comments_by_status, class_name: "Comment", foreign_key: :author_type, primary_key: :boolean_status
+      has_many :books_by_status, -> { where(name: "Same status") }, anonymous_class: self, foreign_key: :boolean_status, primary_key: :boolean_status
+    end
+    book = book_class.create!(boolean_status: false)
+    comment = Comment.create!(post_id: -1, body: "Boolean key", author_type: "false")
+    same_status = book_class.create!(name: "Same status", boolean_status: false)
+
+    ActiveRecord::Associations::Preloader.new(records: [book], associations: [:comments_by_status, :books_by_status]).call
+
+    assert_equal [comment], book.comments_by_status
+    assert_equal [same_status], book.books_by_status
+  end
+
+  def test_preload_matches_composite_keys_of_different_types
+    comment_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+      self.inheritance_column = nil
+
+      def self.name; "TextKeyComment"; end
+
+      belongs_to :post, foreign_key: [:author_id, :body], primary_key: [:author_id, :id]
+    end
+    post = Post.create!(author_id: 9_000_901, title: "Composite key", body: "Composite key")
+    comment = comment_class.create!(post_id: -1, author_id: post.author_id, body: post.id.to_s)
+
+    ActiveRecord::Associations::Preloader.new(records: [comment], associations: :post).call
+    assert_equal post, comment.post
+
+    comment = comment_class.find(comment.id)
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [comment], associations: :post, available_records: [post]).call
+    end
+    assert_equal post, comment.post
+  end
+
   def test_preload_does_not_concatenate_duplicate_records
     post = posts(:welcome)
     post.reload

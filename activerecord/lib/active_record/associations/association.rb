@@ -376,7 +376,13 @@ module ActiveRecord
 
         # Returns true if record contains the foreign_key
         def foreign_key_for?(record)
-          reflection.foreign_key_definition.all? { |key| record.has_attribute?(key) }
+          # Through reflections have no single route to take the key from.
+          if reflection.through_reflection?
+            reflection.foreign_key_definition.all? { |key| record.has_attribute?(key) }
+          else
+            route = reflection.association_route(origin_class: owner.class, destination_class: record.class)
+            route._reference_destination_key.all? { |key| record._has_attribute?(key) }
+          end
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,
@@ -416,28 +422,8 @@ module ActiveRecord
         end
 
         def matches_foreign_key?(record)
-          (foreign_key_for?(record) && record_foreign_key_matches_owner?(record)) ||
-            (foreign_key_for?(owner) && owner_foreign_key_matches_record?(record))
-        end
-
-        def record_foreign_key_matches_owner?(record)
-          foreign_key_values(record) == active_record_primary_key_values(owner)
-        end
-
-        def owner_foreign_key_matches_record?(record)
-          foreign_key_values(owner) == association_primary_key_values(record)
-        end
-
-        def foreign_key_values(record)
-          reflection.foreign_key_definition.map { |key| record.read_attr(key) }
-        end
-
-        def active_record_primary_key_values(record)
-          reflection.active_record_primary_key_definition.map { |key| record.read_attr(key) }
-        end
-
-        def association_primary_key_values(record)
-          reflection.association_primary_key_definition(record.class).map { |key| record.read_attr(key) }
+          route = reflection.association_route(origin_class: owner.class, destination_class: record.class)
+          route.key_values_match?(owner, record)
         end
     end
   end

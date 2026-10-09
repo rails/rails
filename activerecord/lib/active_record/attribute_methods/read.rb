@@ -9,6 +9,10 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       module ClassMethods # :nodoc:
+        def resolve_alias(attr_name) # :nodoc:
+          attribute_aliases[attr_name] || attr_name
+        end
+
         private
           def define_method_attribute(canonical_name, owner:, as: canonical_name)
             ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
@@ -46,6 +50,12 @@ module ActiveRecord
       # breaking compatibility with the read_attribute API
       def _read_attribute(attr_name, &block) # :nodoc:
         @attributes.fetch_value(attr_name, &block)
+      end
+
+      # Like #_read_attribute, but a missing attribute raises
+      # ActiveModel::MissingAttributeError.
+      def _read_attr(attr_name) # :nodoc:
+        @attributes.fetch_value!(attr_name)
       end
 
       alias :attribute :_read_attribute

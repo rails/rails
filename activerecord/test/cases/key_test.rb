@@ -195,6 +195,26 @@ class KeyTest < ActiveRecord::TestCase
     assert_equal 7, Topic.primary_key_definition.value_of(topic)
   end
 
+  def test_value_of_applies_normalizers_by_column_position
+    book = Cpk::Book.new(id: [1, 3])
+    key = Cpk::Book.primary_key_definition
+
+    assert_equal [1, "3"], key.value_of(book, [nil, :to_s.to_proc])
+    assert_equal [11, 3], key.value_of(book, [->(value) { value + 10 }, nil])
+    assert_equal [1, 3], key.value_of(book, nil)
+    assert_equal [1, 3], book.id
+
+    repeated_key = Key.for([:id, :id])
+    assert_equal ["7", 7], repeated_key.value_of(Topic.new(id: 7), [:to_s.to_proc, nil])
+
+    topic = Topic.new(id: 7)
+    assert_equal "7", Key.for(:id).value_of(topic, [:to_s.to_proc])
+    assert_equal 7, Key.for(:id).value_of(topic, [nil])
+    topic.stub(:read_attr, [10, 20]) do
+      assert_equal [10, 20, 30], Key.for(:payload).value_of(topic, [->(component) { component + [30] }])
+    end
+  end
+
   def test_model_exposes_definition
     assert_not_predicate Topic.primary_key_definition, :composite?
     assert_equal "id", Topic.primary_key_definition.name

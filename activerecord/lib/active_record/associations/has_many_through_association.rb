@@ -143,7 +143,11 @@ module ActiveRecord
           ensure_not_nested
 
           scope = through_association.scope
-          scope.where! construct_join_attributes(*records)
+          if records.empty?
+            scope.none!
+          else
+            scope.where! construct_join_attributes(*records, query: true)
+          end
           scope = scope.where(through_scope_attributes)
 
           case method
@@ -199,11 +203,22 @@ module ActiveRecord
         end
 
         def through_records_for(record)
-          attributes = construct_join_attributes(record)
+          ensure_mutable
           candidates = Array.wrap(through_association.target)
-          candidates.find_all do |c|
-            attributes.all? do |key, value|
-              c.public_send(key) == value
+          if record.new_record?
+            attributes = construct_join_attributes(record)
+            candidates.find_all do |candidate|
+              attributes.all? { |key, value| candidate.public_send(key) == value }
+            end
+          else
+            route = reflection.source_association_route
+            fixed_values = if options[:source_type]
+              { source_reflection.foreign_type => options[:source_type] }
+            else
+              route.origin_fixed_values
+            end
+            route.each_matching_origin(candidates, record).find_all do |candidate|
+              fixed_values.all? { |column, value| candidate.read_attr(column) == value }
             end
           end
         end
