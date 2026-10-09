@@ -52,6 +52,33 @@ class KeyTest < ActiveRecord::TestCase
     assert(pk.columns.all?(&:frozen?))
   end
 
+  def test_map_value_returns_a_scalar_without_wrapping_it
+    value = [10, 20]
+    columns = []
+    result = Key.for(:payload).map_value do |column|
+      columns << column
+      value
+    end
+
+    assert_equal ["payload"], columns
+    assert_same value, result
+    assert_same value, Key.for(:payload).map_value.with_index { |_column, index| [value][index] }
+    assert_nil Key.for(:payload).map_value { nil }
+    assert_equal false, Key.for(:payload).map_value { false }
+  end
+
+  def test_map_value_preserves_composite_shape_and_component_values
+    value = [10, 20]
+    attributes = { "tenant_id" => 7, "payload" => value }
+    result = Key.for([:tenant_id, :payload]).map_value { |column| attributes.fetch(column) }
+
+    assert_equal [7, value], result
+    assert_same value, result.last
+    assert_equal [nil, false], Key.for([:missing, :disabled]).map_value { |column| column == "disabled" ? false : nil }
+    assert_equal [value], Key.for([:payload]).map_value { value }
+    assert_equal [7, value], Key.for([:tenant_id, :payload]).map_value.with_index { |_column, index| [7, value][index] }
+  end
+
   def test_where_hash_for_simple_key
     assert_equal({ "id" => 5 }, Key.for("id").where_hash(5))
     assert_equal({ "id" => [1, 2, 3] }, Key.for("id").where_hash([1, 2, 3]))
