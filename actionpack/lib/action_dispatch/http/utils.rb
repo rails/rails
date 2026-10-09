@@ -46,8 +46,8 @@ module ActionDispatch
         end
       end
 
-      def self.set_binary_encoding(request, params, controller, action)
-        CustomParamEncoder.encode(request, params, controller, action)
+      def self.set_binary_encoding(params, controller_class, action)
+        CustomParamEncoder.encode(params, controller_class, action)
       end
 
       class ParamEncoder # :nodoc:
@@ -101,16 +101,13 @@ module ActionDispatch
           params
         end
 
-        def self.encode(request, params, controller, action)
-          encoding_template = action_encoding_template(request, controller, action)
+        def self.encode(params, controller_class, action)
+          encoding_template = action_encoding_template(controller_class, action)
           encode_for_template(params, encoding_template)
         end
 
-        def self.action_encoding_template(request, controller, action) # :nodoc:
-          controller && controller.valid_encoding? &&
-            request.controller_class_for(controller).action_encoding_template(action)
-        rescue MissingController
-          nil
+        def self.action_encoding_template(controller_class, action) # :nodoc:
+          controller_class&.action_encoding_template(action)
         end
       end
     end
