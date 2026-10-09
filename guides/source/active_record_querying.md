@@ -2126,15 +2126,15 @@ SELECT *
   ORDER BY year_published ASC
 ```
 
-The `reorder` method also works with any previously defined order, not just
-association order:
+The `reorder` method also works with any order defined earlier in the query
+chain, not just one from a default scope:
 
 ```ruby
 Book.where("id > 100").order("id desc").reorder("title ASC")
 ```
 
-This will override the previous `order("id desc")` clause and only order by
-title.
+This will override both the default scope order and the previous
+`order("id desc")` clause, and only order by title.
 
 ### `reverse_order`
 
