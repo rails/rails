@@ -85,10 +85,17 @@ module ActionDispatch
         raise MissingController, "No :controller in path parameters; the request has not been routed to a controller"
       end
 
+      # The same controller is looked up several times per request (path
+      # parameters, query parameters, request parameters and dispatch).
+      cached_name, cached_class = get_header("action_dispatch.request.controller_class")
+      return cached_class if cached_name == name
+
       controller_param = name.underscore
       const_name = controller_param.camelize << "Controller"
       begin
-        const_name.constantize
+        controller_class = const_name.constantize
+        set_header("action_dispatch.request.controller_class", [-name, controller_class])
+        controller_class
       rescue NameError => error
         if error.missing_name == const_name || const_name.start_with?("#{error.missing_name}::")
           raise MissingController.new(error.message, error.name)

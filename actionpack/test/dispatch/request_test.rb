@@ -531,11 +531,21 @@ end
 
 class RequestControllerClass < BaseRequestTest
   class WidgetsController < ActionController::Base; end
+  class GadgetsController < ActionController::Base; end
 
   test "controller_class returns the controller named in the path parameters" do
     request = stub_request
     request.path_parameters = { controller: "request_controller_class/widgets", action: "index" }
     assert_equal WidgetsController, request.controller_class
+  end
+
+  test "controller_class follows changes to the path parameters" do
+    request = stub_request
+    request.path_parameters = { controller: "request_controller_class/widgets", action: "index" }
+    assert_equal WidgetsController, request.controller_class
+
+    request.path_parameters = { controller: "request_controller_class/gadgets", action: "index" }
+    assert_equal GadgetsController, request.controller_class
   end
 
   test "controller_class raises MissingController when there is no controller in the path parameters" do
