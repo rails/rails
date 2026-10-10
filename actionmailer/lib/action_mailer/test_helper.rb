@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/array/extract_options"
 require "active_job"
 
@@ -11,27 +12,31 @@ module ActionMailer
 
     # Asserts that the number of emails sent matches the given number.
     #
-    #   def test_emails
-    #     assert_emails 0
-    #     ContactMailer.welcome.deliver_now
-    #     assert_emails 1
-    #     ContactMailer.welcome.deliver_now
-    #     assert_emails 2
-    #   end
+    # ```
+    # def test_emails
+    #   assert_emails 0
+    #   ContactMailer.welcome.deliver_now
+    #   assert_emails 1
+    #   ContactMailer.welcome.deliver_now
+    #   assert_emails 2
+    # end
+    # ```
     #
     # If a block is passed, that block should cause the specified number of
     # emails to be sent.
     #
-    #   def test_emails_again
-    #     assert_emails 1 do
-    #       ContactMailer.welcome.deliver_now
-    #     end
-    #
-    #     assert_emails 2 do
-    #       ContactMailer.welcome.deliver_now
-    #       ContactMailer.welcome.deliver_later
-    #     end
+    # ```
+    # def test_emails_again
+    #   assert_emails 1 do
+    #     ContactMailer.welcome.deliver_now
     #   end
+    #
+    #   assert_emails 2 do
+    #     ContactMailer.welcome.deliver_now
+    #     ContactMailer.welcome.deliver_later
+    #   end
+    # end
+    # ```
     def assert_emails(number, &block)
       if block_given?
         diff = capture_emails(&block).length
@@ -43,23 +48,29 @@ module ActionMailer
 
     # Asserts that no emails have been sent.
     #
-    #   def test_emails
-    #     assert_no_emails
-    #     ContactMailer.welcome.deliver_now
-    #     assert_emails 1
-    #   end
+    # ```
+    # def test_emails
+    #   assert_no_emails
+    #   ContactMailer.welcome.deliver_now
+    #   assert_emails 1
+    # end
+    # ```
     #
     # If a block is passed, that block should not cause any emails to be sent.
     #
-    #   def test_emails_again
-    #     assert_no_emails do
-    #       # No emails should be sent from this block
-    #     end
+    # ```
+    # def test_emails_again
+    #   assert_no_emails do
+    #     # No emails should be sent from this block
     #   end
+    # end
+    # ```
     #
     # Note: This assertion is simply a shortcut for:
     #
-    #   assert_emails 0, &block
+    # ```
+    # assert_emails 0, &block
+    # ```
     def assert_no_emails(&block)
       assert_emails 0, &block
     end
@@ -67,27 +78,31 @@ module ActionMailer
     # Asserts that the number of emails enqueued for later delivery matches
     # the given number.
     #
-    #   def test_emails
-    #     assert_enqueued_emails 0
-    #     ContactMailer.welcome.deliver_later
-    #     assert_enqueued_emails 1
-    #     ContactMailer.welcome.deliver_later
-    #     assert_enqueued_emails 2
-    #   end
+    # ```
+    # def test_emails
+    #   assert_enqueued_emails 0
+    #   ContactMailer.welcome.deliver_later
+    #   assert_enqueued_emails 1
+    #   ContactMailer.welcome.deliver_later
+    #   assert_enqueued_emails 2
+    # end
+    # ```
     #
     # If a block is passed, that block should cause the specified number of
     # emails to be enqueued.
     #
-    #   def test_emails_again
-    #     assert_enqueued_emails 1 do
-    #       ContactMailer.welcome.deliver_later
-    #     end
-    #
-    #     assert_enqueued_emails 2 do
-    #       ContactMailer.welcome.deliver_later
-    #       ContactMailer.welcome.deliver_later
-    #     end
+    # ```
+    # def test_emails_again
+    #   assert_enqueued_emails 1 do
+    #     ContactMailer.welcome.deliver_later
     #   end
+    #
+    #   assert_enqueued_emails 2 do
+    #     ContactMailer.welcome.deliver_later
+    #     ContactMailer.welcome.deliver_later
+    #   end
+    # end
+    # ```
     def assert_enqueued_emails(number, &block)
       assert_enqueued_jobs(number, only: ->(job) { delivery_job_filter(job) }, &block)
     end
@@ -95,56 +110,60 @@ module ActionMailer
     # Asserts that a specific email has been enqueued, optionally
     # matching arguments and/or params.
     #
-    #   def test_email
-    #     ContactMailer.welcome.deliver_later
-    #     assert_enqueued_email_with ContactMailer, :welcome
-    #   end
+    # ```
+    # def test_email
+    #   ContactMailer.welcome.deliver_later
+    #   assert_enqueued_email_with ContactMailer, :welcome
+    # end
     #
-    #   def test_email_with_parameters
-    #     ContactMailer.with(greeting: "Hello").welcome.deliver_later
-    #     assert_enqueued_email_with ContactMailer, :welcome, params: { greeting: "Hello" }
-    #   end
+    # def test_email_with_parameters
+    #   ContactMailer.with(greeting: "Hello").welcome.deliver_later
+    #   assert_enqueued_email_with ContactMailer, :welcome, params: { greeting: "Hello" }
+    # end
     #
-    #   def test_email_with_arguments
-    #     ContactMailer.welcome("Hello", "Goodbye").deliver_later
-    #     assert_enqueued_email_with ContactMailer, :welcome, args: ["Hello", "Goodbye"]
-    #   end
+    # def test_email_with_arguments
+    #   ContactMailer.welcome("Hello", "Goodbye").deliver_later
+    #   assert_enqueued_email_with ContactMailer, :welcome, args: ["Hello", "Goodbye"]
+    # end
     #
-    #   def test_email_with_named_arguments
-    #     ContactMailer.welcome(greeting: "Hello", farewell: "Goodbye").deliver_later
-    #     assert_enqueued_email_with ContactMailer, :welcome, args: [{ greeting: "Hello", farewell: "Goodbye" }]
-    #   end
+    # def test_email_with_named_arguments
+    #   ContactMailer.welcome(greeting: "Hello", farewell: "Goodbye").deliver_later
+    #   assert_enqueued_email_with ContactMailer, :welcome, args: [{ greeting: "Hello", farewell: "Goodbye" }]
+    # end
     #
-    #   def test_email_with_parameters_and_arguments
-    #     ContactMailer.with(greeting: "Hello").welcome("Cheers", "Goodbye").deliver_later
-    #     assert_enqueued_email_with ContactMailer, :welcome, params: { greeting: "Hello" }, args: ["Cheers", "Goodbye"]
-    #   end
+    # def test_email_with_parameters_and_arguments
+    #   ContactMailer.with(greeting: "Hello").welcome("Cheers", "Goodbye").deliver_later
+    #   assert_enqueued_email_with ContactMailer, :welcome, params: { greeting: "Hello" }, args: ["Cheers", "Goodbye"]
+    # end
     #
-    #   def test_email_with_parameters_and_named_arguments
-    #     ContactMailer.with(greeting: "Hello").welcome(farewell: "Goodbye").deliver_later
-    #     assert_enqueued_email_with ContactMailer, :welcome, params: { greeting: "Hello" }, args: [{farewell: "Goodbye"}]
-    #   end
+    # def test_email_with_parameters_and_named_arguments
+    #   ContactMailer.with(greeting: "Hello").welcome(farewell: "Goodbye").deliver_later
+    #   assert_enqueued_email_with ContactMailer, :welcome, params: { greeting: "Hello" }, args: [{farewell: "Goodbye"}]
+    # end
     #
-    #   def test_email_with_parameterized_mailer
-    #     ContactMailer.with(greeting: "Hello").welcome.deliver_later
-    #     assert_enqueued_email_with ContactMailer.with(greeting: "Hello"), :welcome
-    #   end
+    # def test_email_with_parameterized_mailer
+    #   ContactMailer.with(greeting: "Hello").welcome.deliver_later
+    #   assert_enqueued_email_with ContactMailer.with(greeting: "Hello"), :welcome
+    # end
     #
-    #   def test_email_with_matchers
-    #     ContactMailer.with(greeting: "Hello").welcome("Cheers", "Goodbye").deliver_later
-    #     assert_enqueued_email_with ContactMailer, :welcome,
-    #       params: ->(params) { /hello/i.match?(params[:greeting]) },
-    #       args: ->(args) { /cheers/i.match?(args[0]) }
-    #   end
+    # def test_email_with_matchers
+    #   ContactMailer.with(greeting: "Hello").welcome("Cheers", "Goodbye").deliver_later
+    #   assert_enqueued_email_with ContactMailer, :welcome,
+    #     params: ->(params) { /hello/i.match?(params[:greeting]) },
+    #     args: ->(args) { /cheers/i.match?(args[0]) }
+    # end
+    # ```
     #
     # If a block is passed, that block should cause the specified email
     # to be enqueued.
     #
-    #   def test_email_in_block
-    #     assert_enqueued_email_with ContactMailer, :welcome do
-    #       ContactMailer.welcome.deliver_later
-    #     end
+    # ```
+    # def test_email_in_block
+    #   assert_enqueued_email_with ContactMailer, :welcome do
+    #     ContactMailer.welcome.deliver_later
     #   end
+    # end
+    # ```
     def assert_enqueued_email_with(mailer, method, params: nil, args: nil, queue: nil, &block)
       if mailer.is_a? ActionMailer::Parameterized::Mailer
         params = mailer.instance_variable_get(:@params)
@@ -166,19 +185,23 @@ module ActionMailer
 
     # Asserts that no emails are enqueued for later delivery.
     #
-    #   def test_no_emails
-    #     assert_no_enqueued_emails
-    #     ContactMailer.welcome.deliver_later
-    #     assert_enqueued_emails 1
-    #   end
+    # ```
+    # def test_no_emails
+    #   assert_no_enqueued_emails
+    #   ContactMailer.welcome.deliver_later
+    #   assert_enqueued_emails 1
+    # end
+    # ```
     #
     # If a block is provided, it should not cause any emails to be enqueued.
     #
-    #   def test_no_emails
-    #     assert_no_enqueued_emails do
-    #       # No emails should be enqueued from this block
-    #     end
+    # ```
+    # def test_no_emails
+    #   assert_no_enqueued_emails do
+    #     # No emails should be enqueued from this block
     #   end
+    # end
+    # ```
     def assert_no_enqueued_emails(&block)
       assert_enqueued_emails 0, &block
     end
@@ -187,37 +210,41 @@ module ActionMailer
     # that were enqueued throughout the duration of the block. If a block is
     # not given, delivers all the enqueued emails up to this point in the test.
     #
-    #   def test_deliver_enqueued_emails
-    #     deliver_enqueued_emails do
-    #       ContactMailer.welcome.deliver_later
-    #     end
-    #
-    #     assert_emails 1
-    #   end
-    #
-    #   def test_deliver_enqueued_emails_without_block
+    # ```
+    # def test_deliver_enqueued_emails
+    #   deliver_enqueued_emails do
     #     ContactMailer.welcome.deliver_later
-    #
-    #     deliver_enqueued_emails
-    #
-    #     assert_emails 1
     #   end
     #
-    # If the +:queue+ option is specified,
+    #   assert_emails 1
+    # end
+    #
+    # def test_deliver_enqueued_emails_without_block
+    #   ContactMailer.welcome.deliver_later
+    #
+    #   deliver_enqueued_emails
+    #
+    #   assert_emails 1
+    # end
+    # ```
+    #
+    # If the `:queue` option is specified,
     # then only the email(s) enqueued to a specific queue will be performed.
     #
-    #   def test_deliver_enqueued_emails_with_queue
-    #     deliver_enqueued_emails queue: :external_mailers do
-    #       CustomerMailer.deliver_later_queue_name = :external_mailers
-    #       CustomerMailer.welcome.deliver_later # will be performed
-    #       EmployeeMailer.deliver_later_queue_name = :internal_mailers
-    #       EmployeeMailer.welcome.deliver_later # will not be performed
-    #     end
-    #
-    #     assert_emails 1
+    # ```
+    # def test_deliver_enqueued_emails_with_queue
+    #   deliver_enqueued_emails queue: :external_mailers do
+    #     CustomerMailer.deliver_later_queue_name = :external_mailers
+    #     CustomerMailer.welcome.deliver_later # will be performed
+    #     EmployeeMailer.deliver_later_queue_name = :internal_mailers
+    #     EmployeeMailer.welcome.deliver_later # will not be performed
     #   end
     #
-    # If the +:at+ option is specified, then only delivers emails enqueued to deliver
+    #   assert_emails 1
+    # end
+    # ```
+    #
+    # If the `:at` option is specified, then only delivers emails enqueued to deliver
     # immediately or before the given time.
     def deliver_enqueued_emails(queue: nil, at: nil, &block)
       perform_enqueued_jobs(only: ->(job) { delivery_job_filter(job) }, queue: queue, at: at, &block)
@@ -225,18 +252,20 @@ module ActionMailer
 
     # Returns any emails that are sent in the block.
     #
-    #   def test_emails
-    #     emails = capture_emails do
-    #       ContactMailer.welcome.deliver_now
-    #     end
-    #     assert_equal "Hi there", emails.first.subject
-    #
-    #     emails = capture_emails do
-    #       ContactMailer.welcome.deliver_now
-    #       ContactMailer.welcome.deliver_later
-    #     end
-    #     assert_equal "Hi there", emails.first.subject
+    # ```
+    # def test_emails
+    #   emails = capture_emails do
+    #     ContactMailer.welcome.deliver_now
     #   end
+    #   assert_equal "Hi there", emails.first.subject
+    #
+    #   emails = capture_emails do
+    #     ContactMailer.welcome.deliver_now
+    #     ContactMailer.welcome.deliver_later
+    #   end
+    #   assert_equal "Hi there", emails.first.subject
+    # end
+    # ```
     def capture_emails(&block)
       original_count = ActionMailer::Base.deliveries.size
       deliver_enqueued_emails(&block)

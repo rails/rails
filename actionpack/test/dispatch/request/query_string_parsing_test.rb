@@ -149,11 +149,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
 
   test "ambiguous query string returns a bad request" do
     with_routing do |set|
-      set.draw do
-        ActionDispatch.deprecator.silence do
-          get ":action", to: ::QueryStringParsingTest::TestController
-        end
-      end
+      draw_root_action_routes(set, ::QueryStringParsingTest::TestController)
 
       get "/parse", headers: { "QUERY_STRING" => "foo[]=bar&foo[4]=bar" }
       assert_response :bad_request
@@ -169,11 +165,7 @@ class QueryStringParsingTest < ActionDispatch::IntegrationTest
 
     def assert_parses(expected, actual)
       with_routing do |set|
-        set.draw do
-          ActionDispatch.deprecator.silence do
-            get ":action", to: ::QueryStringParsingTest::TestController
-          end
-        end
+        draw_root_action_routes(set, ::QueryStringParsingTest::TestController)
 
         get "/parse", params: actual
         assert_response :ok

@@ -494,7 +494,7 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
-        get "/:controller(/:action)"
+        get "/omg/show", to: "omg#show"
       end
     RUBY
 
@@ -549,7 +549,7 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
-        get "/:controller(/:action)"
+        get "/omg/show", to: "omg#show"
       end
     RUBY
 
@@ -582,7 +582,7 @@ class LoadingTest < ActiveSupport::TestCase
 
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
-        get "/:controller(/:action)"
+        get "/omg/show", to: "omg#show"
       end
     RUBY
 

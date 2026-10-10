@@ -1,3 +1,197 @@
+*   Fix `where` with a `Range` of value objects on a single-mapping `composed_of`
+    attribute.
+
+    Range endpoints now go through the mapping, like single values and arrays do.
+    Before, they were used as-is, so both ends became `NULL`:
+
+    ```ruby
+    Customer.where(balance: Money.new(150)..Money.new(250))
+    # before: ... WHERE "customers"."balance" BETWEEN NULL AND NULL
+    # after:  ... WHERE "customers"."balance" BETWEEN 150 AND 250
+    ```
+
+    *Kushagra Singh*
+
+*   Combine constraint operations into the single `ALTER TABLE` statement emitted by
+    `change_table` with `bulk: true`.
+
+    `add_foreign_key`, `remove_foreign_key`, `add_check_constraint` and
+    `remove_check_constraint` are now combinable on every adapter that supports
+    bulk alter (MySQL and PostgreSQL), as are `add_unique_constraint`,
+    `remove_unique_constraint`, `add_exclusion_constraint` and
+    `remove_exclusion_constraint` on PostgreSQL.
+
+    ```ruby
+    change_table :posts, bulk: true do |t|
+      t.bigint :reviewer_id
+      t.foreign_key :authors, column: :reviewer_id
+      t.check_constraint "views >= 0", name: "views_check"
+      t.remove_foreign_key :authors, column: :editor_id
+    end
+    ```
+
+    Before, each constraint flushed the pending `ALTER TABLE` and ran on its own.
+    Now all four operations are applied in one statement.
+
+    *Ryuta Kamizono*
+
+*   Stop `connected_to` from changing the role and shard of a thread that shares
+    the execution state.
+
+    `ActionController::Live` copies the request's execution state into the
+    streaming thread, but both threads kept using the same `connected_to` stack.
+    When the request thread left a `connected_to` block, for example the one
+    opened by the shard selector middleware, the streaming thread lost its shard
+    and role too. The stack is now replaced instead of modified in place.
+
+    Fixes #58870.
+
+    *Suliman Abdulrazzaq*
+
+*   Fix `change_column` in migrations declaring version 5.1 or earlier to honor
+    `table_name_prefix` and `table_name_suffix` for `:default`, `:null`, and
+    `:comment` on PostgreSQL.
+
+    With `config.active_record.table_name_prefix = "p_"`:
+
+    ```ruby
+    class AddDefaultToPostsTitle < ActiveRecord::Migration[5.1]
+      def change
+        change_column :posts, :title, :string, default: "untitled"
+      end
+    end
+    ```
+
+    Before:
+
+    ```sql
+    ALTER TABLE "p_posts" ALTER COLUMN "title" TYPE character varying
+    ALTER TABLE "posts" ALTER COLUMN "title" SET DEFAULT 'untitled'
+    ```
+
+    After:
+
+    ```sql
+    ALTER TABLE "p_posts" ALTER COLUMN "title" TYPE character varying
+    ALTER TABLE "p_posts" ALTER COLUMN "title" SET DEFAULT 'untitled'
+    ```
+
+    *Yasuo Honda*
+
+*   Honor an explicit `type:` on `add_reference` and `add_belongs_to` on SQLite
+    in migrations declaring version 6.0 or earlier.
+
+    ```ruby
+    class AddUserToPosts < ActiveRecord::Migration[6.0]
+      def change
+        add_reference :posts, :user, type: :bigint
+      end
+    end
+    ```
+
+    Before:
+
+    ```sql
+    ALTER TABLE "posts" ADD "user_id" integer
+    ```
+
+    After:
+
+    ```sql
+    ALTER TABLE "posts" ADD "user_id" bigint
+    ```
+
+    *Yasuo Honda*
+
+*   Add `maintenance_database` option to the PostgreSQL adapter.
+
+    `bin/rails db:create`, `db:drop` and `db:purge` connect to the `postgres`
+    database by default. Some managed PostgreSQL services, such as
+    DigitalOcean, do not provide a `postgres` database, so these tasks fail
+    there. `maintenance_database` sets the database to connect to instead,
+    like the `--maintenance-db` option of `createdb`.
+
+    ```yaml
+    production:
+      adapter: postgresql
+      database: blog_production
+      maintenance_database: defaultdb
+    ```
+
+    *Yasuo Honda*
+
+*   Treat `false` as disabled for `idle_timeout`, `reaping_frequency` and `max_age`
+    in `database.yml`.
+
+    These options raised `NoMethodError` on boot when set to `false`, which YAML
+    also produces for `off` and `no`. `false` now disables them, like the
+    documented `0`. `idle_timeout` additionally accepts `true` for its default,
+    since unlike the other two it has one.
+
+    *Carlos Daniel Pohlod*
+
+*   Do not dump PostgreSQL tables, enum types and schemas that belong to an
+    extension.
+
+    Tables, enum types and schemas created by `CREATE EXTENSION`, such as
+    `spatial_ref_sys` of PostGIS, `part_config` of pg_partman or the `citus`
+    schema of Citus, are recorded in `pg_depend` as members of the extension
+    (`deptype = 'e'`): `CREATE EXTENSION` creates them, `DROP EXTENSION` drops
+    them, and PostgreSQL refuses to drop or recreate them on their own.
+    Listing them in `db/schema.rb` therefore made the file impossible to load,
+    while `enable_extension` alone already brings them back, as
+    `CREATE EXTENSION` does in `structure.sql`. Objects an application attaches
+    to an extension itself with `ALTER EXTENSION ... ADD` are left out too, as
+    `pg_dump` leaves them out.
+
+    Before:
+
+    ```ruby
+    enable_extension "postgis"
+
+    create_table "posts", force: :cascade do |t|
+      ...
+    end
+
+    create_table "spatial_ref_sys", primary_key: "srid", id: :integer, default: nil, force: :cascade do |t|
+      ...
+    end
+    ```
+
+    After:
+
+    ```ruby
+    enable_extension "postgis"
+
+    create_table "posts", force: :cascade do |t|
+      ...
+    end
+    ```
+
+    *Yasuo Honda*
+
+*   Do not schema-qualify PostgreSQL extensions whose control file fixes their
+    schema, nor tables and enum types in the current schema, when dumping
+    `db/schema.rb`.
+
+    Before:
+
+    ```ruby
+    enable_extension "pg_catalog.plpgsql"
+
+    create_table "public.posts", force: :cascade do |t|
+    ```
+
+    After:
+
+    ```ruby
+    enable_extension "plpgsql"
+
+    create_table "posts", force: :cascade do |t|
+    ```
+
+    *Yasuo Honda*
+
 *   Make `db:schema:load` work with MySQL client 9.4 and later.
 
     From 9.4.0 on, the client by default passes the `SOURCE` command to the

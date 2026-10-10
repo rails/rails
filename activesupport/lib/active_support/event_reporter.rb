@@ -139,6 +139,8 @@ module ActiveSupport
   # source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
   # ```
   #
+  # The event hash and its payload hash are frozen. Subscribers that need to modify them should `dup` them first.
+  #
   # Subscribers are responsible for encoding events to their desired format before emitting them to their
   # target destination, such as a streaming platform, a log device, or an alerting service.
   #
@@ -337,6 +339,8 @@ module ActiveSupport
     # source_location: Hash (The source location of the event, containing the filepath, lineno, and label)
     # ```
     #
+    # The event hash and its payload hash are frozen. Subscribers that need to modify them should `dup` them first.
+    #
     # An optional filter proc can be provided to only receive a subset of events:
     #
     # ```
@@ -407,18 +411,15 @@ module ActiveSupport
       name = resolve_name(name_or_object)
       event = { name: name }
 
-      subscribers = @subscribers.filter_map do |subscriber_entry|
-        subscriber = subscriber_entry[:subscriber]
+      subscribers = []
+      @subscribers.each do |subscriber_entry|
         filter = subscriber_entry[:filter]
-
-        if !filter || filter.call(event)
-          subscriber
-        end
+        subscribers << subscriber_entry[:subscriber] if !filter || filter.call(event)
       end
 
       return if subscribers.empty?
 
-      payload = resolve_payload(name_or_object, payload, filter_payload, **kwargs)
+      payload = resolve_payload(name_or_object, payload, filter_payload, kwargs)
 
       event = {
         name: name,
@@ -435,9 +436,11 @@ module ActiveSupport
           filepath: caller_location.path,
           lineno: caller_location.lineno,
           label: caller_location.label,
-        }
+        }.freeze
         event[:source_location] = source_location
       end
+
+      event.freeze
 
       subscribers.each do |subscriber|
         subscriber.emit(event)
@@ -628,16 +631,16 @@ module ActiveSupport
         end
       end
 
-      def resolve_payload(name_or_object, payload, filter, **kwargs)
+      def resolve_payload(name_or_object, payload, filter, kwargs)
         case name_or_object
         when String, Symbol
           handle_unexpected_args(name_or_object, payload, kwargs) if payload && kwargs.any?
           if kwargs.any?
             resolved = kwargs.transform_keys(&:to_sym)
-            filter ? payload_filter.filter(resolved) : resolved
+            (filter ? payload_filter.filter(resolved) : resolved).freeze
           elsif payload
             resolved = payload.transform_keys(&:to_sym)
-            filter ? payload_filter.filter(resolved) : resolved
+            (filter ? payload_filter.filter(resolved) : resolved).freeze
           end
         else
           handle_unexpected_args(name_or_object, payload, kwargs) if payload || kwargs.any?

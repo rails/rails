@@ -147,7 +147,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_column_names_are_escaped
     conn      = ActiveRecord::Base.lease_connection
-    classname = conn.class.name[/[^:]*$/]
+    classname = main_ractor_connection(conn).class.name[/[^:]*$/]
     badchar   = {
       "SQLite3Adapter"    => '"',
       "Mysql2Adapter"     => "`",
@@ -1771,7 +1771,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_equal handler, orig_handler
     assert_equal klass.connection_handler, orig_handler
-    assert_equal klass.default_connection_handler, orig_handler
+    assert_equal klass.default_connection_handler, orig_handler unless ractor_proxy?
   end
 
   test "changing a connection handler in a main thread does not poison the other threads" do
@@ -2145,6 +2145,61 @@ class BasicsTest < ActiveRecord::TestCase
       assert FirstAbstractClass.connected_to?(role: :reading)
       assert SecondAbstractClass.connected_to?(role: :reading)
       assert_not ActiveRecord::Base.connected_to?(role: :reading)
+    end
+  end
+
+  test "leaving #connected_to does not change the stack of a thread sharing the execution state" do
+    context = ActiveSupport::IsolatedExecutionState.context
+    state_shared = Concurrent::CountDownLatch.new
+    parent_left = Concurrent::CountDownLatch.new
+    thread = nil
+
+    SecondAbstractClass.connected_to(role: :reading) do
+      ActiveRecord::Base.connected_to_many(FirstAbstractClass, role: :reading) do
+        thread = Thread.new do
+          ActiveSupport::IsolatedExecutionState.share_with(context) do
+            state_shared.count_down
+            parent_left.wait
+
+            [FirstAbstractClass.connected_to?(role: :reading), SecondAbstractClass.connected_to?(role: :reading)]
+          end
+        end
+
+        state_shared.wait
+      end
+    end
+
+    assert_not SecondAbstractClass.connected_to?(role: :reading)
+    parent_left.count_down
+    assert_equal [true, true], thread.value
+  ensure
+    parent_left.count_down
+    thread&.join
+  end
+
+  test "#connected_to in a thread sharing the execution state does not change the parent's stack" do
+    context = ActiveSupport::IsolatedExecutionState.context
+    child_connected = Concurrent::CountDownLatch.new
+    child_release = Concurrent::CountDownLatch.new
+    thread = nil
+
+    SecondAbstractClass.connected_to(role: :writing) do
+      thread = Thread.new do
+        ActiveSupport::IsolatedExecutionState.share_with(context) do
+          SecondAbstractClass.connected_to(role: :reading) do
+            child_connected.count_down
+            child_release.wait
+          end
+        end
+      end
+
+      child_connected.wait
+
+      assert_equal :writing, SecondAbstractClass.current_role
+      assert_not SecondAbstractClass.current_preventing_writes
+    ensure
+      child_release.count_down
+      thread&.join
     end
   end
 

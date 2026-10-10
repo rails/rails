@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/descendants_tracker"
 
 module ActionMailer
@@ -9,15 +10,19 @@ module ActionMailer
     included do
       # Add the location of mailer previews through app configuration:
       #
-      #     config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
+      # ```
+      # config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
+      # ```
       #
       mattr_accessor :preview_paths, instance_writer: false, default: []
 
       # Enable or disable mailer previews through app configuration:
       #
-      #     config.action_mailer.show_previews = true
+      # ```
+      # config.action_mailer.show_previews = true
+      # ```
       #
-      # Defaults to +true+ for development environment
+      # Defaults to `true` for development environment
       #
       mattr_accessor :show_previews, instance_writer: false
 
@@ -97,12 +102,12 @@ module ActionMailer
         public_instance_methods(false).map(&:to_s).sort
       end
 
-      # Returns +true+ if the email exists.
+      # Returns `true` if the email exists.
       def email_exists?(email)
         emails.include?(email)
       end
 
-      # Returns +true+ if the preview exists.
+      # Returns `true` if the preview exists.
       def exists?(preview)
         all.any? { |p| p.preview_name == preview }
       end

@@ -7,6 +7,8 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
   module ActiveRecord
     class Migration
       class CheckConstraintTest < ActiveRecord::TestCase
+        skip_under_ractor_proxy
+
         include SchemaDumpingHelper
 
         class Trade < ActiveRecord::Base
@@ -322,6 +324,8 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
   end
 
   class CheckConstraintViolationTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     self.use_transactional_tests = false
 
     class Trade < ActiveRecord::Base

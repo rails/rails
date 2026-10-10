@@ -280,14 +280,21 @@ module ActiveRecord
 
     # Runs a real dump, since structure_load relies on it disabling foreign key checks.
     def test_structure_dump_output_disables_foreign_key_checks
-      filename = "awesome-file.sql"
+      # mysqldump from MySQL 8.0+ queries information_schema.COLUMN_STATISTICS,
+      # which MariaDB does not have.
+      if ActiveRecord::Base.lease_connection.mariadb? && !`mysqldump --version`.include?("MariaDB")
+        skip "MySQL's mysqldump fails on MariaDB with Unknown table 'COLUMN_STATISTICS' in information_schema"
+      end
+
       config = ARTest.config["connections"]["mysql2"]["arunit"]
 
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump(config, filename)
+      Dir.mktmpdir do |dir|
+        filename = File.join(dir, "awesome-file.sql")
 
-      assert_match(/FOREIGN_KEY_CHECKS\s*=\s*0/, File.read(filename))
-    ensure
-      FileUtils.rm_f(filename)
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(config, filename)
+
+        assert_match(/FOREIGN_KEY_CHECKS\s*=\s*0/, File.read(filename))
+      end
     end
 
     def test_structure_dump_with_extra_flags

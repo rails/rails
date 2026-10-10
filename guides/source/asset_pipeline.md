@@ -722,7 +722,7 @@ that’s stored in a temporary file.
 $ RAILS_ENV=production SECRET_KEY_BASE_DUMMY=1 rails assets:precompile
 ```
 
-WARNING: When precompiled assets are present in the development enviroment, the
+WARNING: When precompiled assets are present in the development environment, the
 application will serve those directly. As such, any changes you make to your
 source assets won't be reflected until the precompiled assets are updated. Run
 `bin/rails assets:clobber` to delete your precompiled assets which will force

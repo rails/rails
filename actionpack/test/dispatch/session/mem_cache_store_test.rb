@@ -199,11 +199,7 @@ class MemCacheStoreTest < ActionDispatch::IntegrationTest
 
     def with_test_route_set
       with_routing do |set|
-        set.draw do
-          ActionDispatch.deprecator.silence do
-            get ":action", to: ::MemCacheStoreTest::TestController
-          end
-        end
+        draw_root_action_routes(set, ::MemCacheStoreTest::TestController)
 
         yield
       end

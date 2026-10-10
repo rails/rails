@@ -75,6 +75,10 @@ module ActiveRecord
       end
 
       class << self
+        def ractor_connection_proxy_class # :nodoc:
+          RactorConnectionHandler::MysqlProxyAdapter
+        end
+
         def cli_args(config) # :nodoc:
           cli_arg_map.filter_map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }
         end
@@ -653,7 +657,9 @@ module ActiveRecord
 
         # MySQL 8.0.19 replaces `VALUES(<expression>)` clauses with row and column alias names, see https://dev.mysql.com/worklog/task/?id=6312 .
         # then MySQL 8.0.20 deprecates the `VALUES(<expression>)` see https://dev.mysql.com/worklog/task/?id=13325 .
-        if supports_insert_raw_alias_syntax?
+        if supports_insert_raw_alias_syntax? && insert.update_duplicates? && insert.raw_update_sql?
+          sql = +"INSERT #{insert.into} #{insert.values_list} ON DUPLICATE KEY UPDATE #{insert.raw_update_sql}"
+        elsif supports_insert_raw_alias_syntax?
           quoted_table_name = insert.model.quoted_table_name
           values_alias = quote_table_name("#{insert.model.table_name.parameterize}_values")
           sql = +"INSERT #{insert.into} #{insert.values_list} AS #{values_alias}"
@@ -663,13 +669,9 @@ module ActiveRecord
               sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{quoted_table_name}.#{no_op_column}"
             end
           elsif insert.update_duplicates?
-            if insert.raw_update_sql?
-              sql = +"INSERT #{insert.into} #{insert.values_list} ON DUPLICATE KEY UPDATE #{insert.raw_update_sql}"
-            else
-              sql << " ON DUPLICATE KEY UPDATE "
-              sql << insert.touch_model_timestamps_unless { |column| "#{quoted_table_name}.#{column}<=>#{values_alias}.#{column}" }
-              sql << insert.updatable_columns.map { |column| "#{column}=#{values_alias}.#{column}" }.join(",")
-            end
+            sql << " ON DUPLICATE KEY UPDATE "
+            sql << insert.touch_model_timestamps_unless { |column| "#{quoted_table_name}.#{column}<=>#{values_alias}.#{column}" }
+            sql << insert.updatable_columns.map { |column| "#{column}=#{values_alias}.#{column}" }.join(",")
           end
         else
           sql = +"INSERT #{insert.into} #{insert.values_list}"

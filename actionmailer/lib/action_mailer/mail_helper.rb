@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionMailer
-  # = Action Mailer \MailHelper
+  # Action Mailer \MailHelper
+  # =========================
   #
   # Provides helper methods for ActionMailer::Base that can be used for easily
   # formatting messages, accessing mailer or message instances, and the
@@ -10,15 +12,17 @@ module ActionMailer
     # Take the text and format it, indented two spaces for each line, and
     # wrapped at 72 columns:
     #
-    #   text = <<-TEXT
-    #     This is
-    #     the      paragraph.
+    # ```
+    # text = <<-TEXT
+    #   This is
+    #   the      paragraph.
     #
-    #     * item1 * item2
-    #   TEXT
+    #   * item1 * item2
+    # TEXT
     #
-    #   block_format text
-    #   # => "  This is the paragraph.\n\n  * item1\n  * item2\n"
+    # block_format text
+    # # => "  This is the paragraph.\n\n  * item1\n  * item2\n"
+    # ```
     def block_format(text)
       formatted = text.split(/\n\r?\n/).collect { |paragraph|
         format_paragraph(paragraph)
@@ -54,14 +58,16 @@ module ActionMailer
       mailer.attachments
     end
 
-    # Returns +text+ wrapped at +len+ columns and indented +indent+ spaces.
-    # By default column length +len+ equals 72 characters and indent
-    # +indent+ equal two spaces.
+    # Returns `text` wrapped at `len` columns and indented `indent` spaces.
+    # By default column length `len` equals 72 characters and indent
+    # `indent` equal two spaces.
     #
-    #   my_text = 'Here is a sample text with more than 40 characters'
+    # ```
+    # my_text = 'Here is a sample text with more than 40 characters'
     #
-    #   format_paragraph(my_text, 25, 4)
-    #   # => "    Here is a sample text\n    with more than 40\n    characters"
+    # format_paragraph(my_text, 25, 4)
+    # # => "    Here is a sample text\n    with more than 40\n    characters"
+    # ```
     def format_paragraph(text, len = 72, indent = 2)
       sentences = [[]]
 

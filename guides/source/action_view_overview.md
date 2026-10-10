@@ -252,7 +252,7 @@ NOTE: Rails doesn't automatically create `app/views/application/`. You'll
 need to create this folder yourself.
 
 NOTE: Refer to the
-[Layouts and Rendering guide](layouts_and_rendering.html#template_lookup_hierarchy)
+[Layouts and Rendering guide](layouts_and_rendering.html#template-lookup-hierarchy)
 for further information on the lookup hierarchy of partials and template.
 
 Partial file names start with leading underscore character by
@@ -714,7 +714,7 @@ render "messages/message"
 # => "Hello, world!"
 ```
 
-Rendering the partial with local variables not specified in the `local:` signature will also raise an exception:
+Rendering the partial with local variables not specified in the `locals:` signature will also raise an exception:
 
 ```ruby
 render "messages/message", unknown_local: "will raise"
@@ -748,7 +748,7 @@ render "messages/message", unknown_local: "will raise"
 ```
 
 WARNING: When using strict locals with collection rendering, you need to
-explicity allow the `<object>_counter` and `<object>_iteration` variables or
+explicitly allow the `<object>_counter` and `<object>_iteration` variables or
 they will not be set: `<%# locals: (product_counter: nil, product_iteration: nil)`.
 The `nil` default values are needed so the partial doesn't break
 when rendered outside of collections, where these two variables will
@@ -762,7 +762,7 @@ CAUTION: Only keyword arguments are supported. Defining positional or block
 arguments will raise an Action View Error at render-time.
 
 The `local_assigns` method does not contain default values specified in the
-`local:` signature. To access a local variable with a default value that
+`locals:` signature. To access a local variable with a default value that
 is named the same as a reserved Ruby keyword, like `class` or `if`, the values
 can be accessed through `binding.local_variable_get`:
 
@@ -825,7 +825,7 @@ In the above example layout, view content will be rendered in place of `<%=
 yield %>`, and surrounded by the same `<head>`, `<nav>`, and `<footer>` content.
 
 To learn more about controller-specific layouts, see the [Layouts and
-Rendering in Rails](layouts_and_rendering.html#setting_layouts_in_controllers)
+Rendering in Rails](layouts_and_rendering.html#specifying-layouts-for-controllers)
 guide.
 
 ### Structuring Layouts

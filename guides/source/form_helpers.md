@@ -1224,7 +1224,7 @@ If the associated object is already saved, `fields_for` autogenerates a hidden i
 ### Permitting Parameters in the Controller
 
 As usual you need to [declare the permitted
-parameters](action_controller_overview.html#strong-parameters) in the controller
+parameters](action_controller_overview.html#securing-submitted-parameters) in the controller
 before you pass them to the model:
 
 ```ruby

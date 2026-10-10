@@ -4,6 +4,8 @@ require "cases/helper"
 require "support/schema_dumping_helper"
 
 class TimePrecisionTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   include SchemaDumpingHelper
   self.use_transactional_tests = false
 

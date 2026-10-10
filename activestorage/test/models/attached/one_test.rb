@@ -808,6 +808,17 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal :disk_mirror_2, @user.signature.service.name
   end
 
+  test "passing other options to the attachment association" do
+    extra_attached = Class.new(User) do
+      def self.name; superclass.name; end
+
+      has_one_attached :signature, deprecated: true
+    end
+
+    assert_predicate(extra_attached.reflect_on_association(:signature_attachment), :deprecated?)
+    assert_not_predicate(extra_attached.reflect_on_association(:signature_blob), :deprecated?)
+  end
+
   test "raises error when global service configuration is missing" do
     Rails.configuration.active_storage.stub(:service, nil) do
       error = assert_raises RuntimeError do

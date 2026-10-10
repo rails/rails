@@ -33,6 +33,8 @@ module ActiveRecord
     # * <tt>:username</tt> - Defaults to be the same as the operating system name of the user running the application.
     # * <tt>:password</tt> - Password to be used if the server demands password authentication.
     # * <tt>:database</tt> - Defaults to be the same as the username.
+    # * <tt>:maintenance_database</tt> - The database to connect to when creating or dropping
+    #   the database, such as <tt>bin/rails db:create</tt>. Defaults to <tt>postgres</tt>.
     # * <tt>:schema_search_path</tt> - An optional schema search path for the connection given
     #   as a string of comma-separated schema names.
     # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO
@@ -70,6 +72,10 @@ module ActiveRecord
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
+        end
+
+        def ractor_connection_proxy_class # :nodoc:
+          RactorConnectionHandler::PostgreSQLProxyAdapter
         end
 
         def dbconsole(config, options = {})
@@ -209,6 +215,16 @@ module ActiveRecord
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
+
+      def ractor_connection_capabilities # :nodoc:
+        super.merge(
+          supports_close_prepared?: supports_close_prepared?,
+          supports_force_drop_database?: supports_force_drop_database?,
+          supports_identity_columns?: supports_identity_columns?,
+          supports_insert_on_conflict?: supports_insert_on_conflict?,
+          supports_native_partitioning?: supports_native_partitioning?,
+        )
+      end
 
       def supports_bulk_alter?
         true
@@ -586,14 +602,19 @@ module ActiveRecord
         query = <<~SQL
           SELECT
             pg_extension.extname,
-            n.nspname AS schema
+            n.nspname AS schema,
+            v.schema AS control_schema
           FROM pg_extension
           JOIN pg_namespace n ON pg_extension.extnamespace = n.oid
+          LEFT JOIN pg_available_extensions a ON a.name = pg_extension.extname
+          LEFT JOIN pg_available_extension_versions v
+            ON v.name = a.name AND v.version = a.default_version
         SQL
+        current = current_schema
 
         query_all(query).cast_values.map do |row|
-          name, schema = row[0], row[1]
-          schema = nil if schema == current_schema
+          name, schema, control_schema = row
+          schema = nil if control_schema || schema == current
           [schema, name].compact.join(".")
         end
       end

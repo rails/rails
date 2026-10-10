@@ -1180,11 +1180,14 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
       assert_includes output, 'create_schema "test_schema"'
       assert_not_includes output, 'create_schema "public"'
       assert_includes output, 'create_enum "test_schema.test_enum_in_test_schema"'
-      assert_includes output, 'create_enum "public.test_enum_in_public"'
+      assert_includes output, 'create_enum "test_enum_in_public"'
+      assert_not_includes output, 'create_enum "public.test_enum_in_public"'
       assert_includes output, 'create_table "test_schema.test_table"'
-      assert_includes output, 'create_table "public.authors"'
+      assert_includes output, 'create_table "authors"'
+      assert_not_includes output, 'create_table "public.authors"'
       assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema.test_table"'
-      assert_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
+      assert_includes output, 'add_foreign_key "authors", "author_addresses"'
+      assert_not_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
     end
   end
 
@@ -1212,11 +1215,14 @@ class DumpSchemasTest < ActiveRecord::PostgreSQLTestCase
         assert_includes output, 'create_schema "test_schema2"'
         assert_not_includes output, 'create_schema "public"'
         assert_includes output, 'create_enum "test_schema.test_enum_in_test_schema"'
-        assert_not_includes output, 'create_enum "public.test_enum_in_public"'
+        assert_not_includes output, "test_enum_in_public"
         assert_includes output, 'create_table "test_schema.test_table"'
-        assert_not_includes output, 'create_table "public.authors"'
+        assert_includes output, 'create_table "referenced_table"'
+        assert_not_includes output, 'create_table "test_schema2.referenced_table"'
+        assert_not_includes output, 'create_table "authors"'
         assert_includes output, 'add_foreign_key "test_schema.test_table2", "test_schema.test_table"'
-        assert_not_includes output, 'add_foreign_key "public.authors", "public.author_addresses"'
+        assert_includes output, 'add_foreign_key "test_schema.cross_schema_fk_table", "test_schema2.referenced_table"'
+        assert_not_includes output, "author_addresses"
       end
     end
   end

@@ -60,8 +60,8 @@ module ActionText
 
     # Returns a Markdown link: `[title](url)`.
     #
-    # Escapes metacharacters in `title`, and percent-encodes characters in `url` that would break
-    # the link syntax.
+    # Escapes metacharacters in `title`, and encodes characters in `url` that would break the link
+    # syntax or that Markdown would decode, such as `\` and `&`.
     #
     #     MarkdownConversion.markdown_link("photo", "https://example.com/photo_(large).png")
     #     # => "[photo](https://example.com/photo_%28large%29.png)"
@@ -98,7 +98,7 @@ module ActionText
       ITALIC_TAGS = %w[i em].freeze
       LIST_BULLET = /\A(-|\d+\.) /
       LIST_INDENT = "  "
-      ENCODE_HREF_CHARS = /[() <>\n\r\t]/
+      ENCODE_HREF_CHARS = /[() <>\\|\n\r\t]/
       MARKDOWN_METACHARACTERS = /
         [\\`*_{}\[\]|~<>]     # metacharacters that should be escaped generally
         | \A\#(?=[\s\#]|\z)   # leading hash before space or another hash: ATX heading
@@ -174,7 +174,7 @@ module ActionText
         if node.parent&.name == "pre"
           inner
         else
-          inline_code(inner)
+          inline_code(inner, node)
         end
       end
 
@@ -182,7 +182,7 @@ module ActionText
         inner = normalize_line_endings(join_children(child_values)).delete_prefix("\n").delete_suffix("\n")
 
         if single_line_context?(node)
-          inline_code(inner)
+          inline_code(inner, node)
         else
           fence = code_fence(inner)
           "#{fence}\n#{inner}\n#{fence}\n\n"
@@ -340,7 +340,7 @@ module ActionText
           # Merge adjacent bold/italic runs which Lexxy emits
           if value.is_a?(Array) && (value[0] == :bold || value[0] == :italic)
             if merged.last.is_a?(Array) && merged.last[0] == value[0]
-              merged.last[1] = merged.last[1] + value[1]
+              merged.last[1] = merged.last[1] + code_span_separator(merged.last[1], value[1]) + value[1]
             else
               merged << [ value[0], value[1] ]
             end
@@ -358,9 +358,16 @@ module ActionText
           if !result.empty? && part.end_with?("\n\n")
             result << "\n" until result.end_with?("\n\n")
           end
-          result << part
+          result << code_span_separator(result, part) << part
         end
         result
+      end
+
+      # When two code spans are adjacent, CommonMark reads their touching delimiters as one longer
+      # backtick string that closes neither span, and then parses the code text, which
+      # #markdown_for_node emits unescaped, as Markdown.
+      def code_span_separator(left, right)
+        left.end_with?("`") && right.start_with?("`") ? " " : ""
       end
 
       def child_values_for_elements(node, child_values)
@@ -401,8 +408,15 @@ module ActionText
       # into spaces anyway, so collapse them and the span always closes. And a lone backtick
       # followed by whitespace does not open a span in every renderer (kramdown refuses it), so
       # widen the delimiter when the content leads with whitespace.
-      def inline_code(content)
+      #
+      # In a table row, kramdown rebuilds a span that leads with whitespace with a single
+      # backtick, so strip the whitespace. GFM ends a table cell at any unescaped pipe, even one
+      # inside a code span, so escape pipes there.
+      def inline_code(content, node)
         content = flatten_to_inline(content)
+        if node.ancestors.any? { |ancestor| ancestor.name == "tr" }
+          content = content.strip.gsub("|", "\\|")
+        end
         max_run = content.scan(/`+/).map(&:length).max || 0
         fence = "`" * [content.match?(/\A\s/) ? 2 : 1, max_run + 1].max
         if content.start_with?("`") || content.end_with?("`")
@@ -441,7 +455,7 @@ module ActionText
       end
 
       def encode_href(href)
-        URI::RFC2396_PARSER.escape(href, ENCODE_HREF_CHARS)
+        URI::RFC2396_PARSER.escape(href, ENCODE_HREF_CHARS).gsub("&", "&amp;")
       end
 
       # A fenced code block opens only at the start of a line. A link, a heading, a summary

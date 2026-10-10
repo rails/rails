@@ -148,6 +148,36 @@ module ActiveRecord
           query_value("SELECT datctype FROM pg_database WHERE datname = current_database()")
         end
 
+        # Returns the names of the tables, enum types and schemas that are
+        # member objects of extensions, as +[kind, name]+ pairs with kind
+        # "table", "enum" or "schema". Table and enum names are
+        # schema-qualified.
+        def extension_member_objects # :nodoc:
+          query_all(<<~SQL).cast_values
+            SELECT 'schema', n.nspname::text
+              FROM pg_depend d
+              JOIN pg_namespace n ON d.classid = 'pg_namespace'::regclass AND d.objid = n.oid
+             WHERE d.refclassid = 'pg_extension'::regclass
+               AND d.deptype = 'e'
+            UNION ALL
+            SELECT 'table', n.nspname || '.' || c.relname
+              FROM pg_depend d
+              JOIN pg_class c ON d.classid = 'pg_class'::regclass AND d.objid = c.oid
+              JOIN pg_namespace n ON c.relnamespace = n.oid
+             WHERE d.refclassid = 'pg_extension'::regclass
+               AND d.deptype = 'e'
+               AND c.relkind IN ('r', 'p')
+            UNION ALL
+            SELECT 'enum', n.nspname || '.' || t.typname
+              FROM pg_depend d
+              JOIN pg_type t ON d.classid = 'pg_type'::regclass AND d.objid = t.oid
+              JOIN pg_namespace n ON t.typnamespace = n.oid
+             WHERE d.refclassid = 'pg_extension'::regclass
+               AND d.deptype = 'e'
+               AND t.typtype = 'e'
+          SQL
+        end
+
         # Returns an array of schema names.
         def schema_names
           query_values(<<~SQL)
@@ -671,7 +701,7 @@ module ActiveRecord
         def add_exclusion_constraint(table_name, expression, **options)
           options = exclusion_constraint_options(table_name, expression, options)
           at = build_alter_table_definition(table_name)
-          at.add_exclusion_constraint(expression, options)
+          at.add_exclusion_constraint(expression, **options)
 
           execute_alter_table(at)
         end
@@ -692,9 +722,10 @@ module ActiveRecord
         # to provide this in a migration's +change+ method so it can be reverted.
         # In that case, +expression+ will be used by #add_exclusion_constraint.
         def remove_exclusion_constraint(table_name, expression = nil, **options)
-          excl_name_to_delete = exclusion_constraint_for!(table_name, expression: expression, **options).name
+          at = build_alter_table_definition(table_name)
+          at.remove_exclusion_constraint(expression, **options)
 
-          remove_constraint(table_name, excl_name_to_delete)
+          execute_alter_table(at)
         end
 
         # Checks to see if an exclusion constraint exists on a table for a given exclusion constraint definition.
@@ -733,7 +764,7 @@ module ActiveRecord
         def add_unique_constraint(table_name, column_name = nil, **options)
           options = unique_constraint_options(table_name, column_name, options)
           at = build_alter_table_definition(table_name)
-          at.add_unique_constraint(column_name, options)
+          at.add_unique_constraint(column_name, **options)
 
           execute_alter_table(at)
         end
@@ -758,9 +789,10 @@ module ActiveRecord
         # to provide this in a migration's +change+ method so it can be reverted.
         # In that case, +column_name+ will be used by #add_unique_constraint.
         def remove_unique_constraint(table_name, column_name = nil, **options)
-          unique_name_to_delete = unique_constraint_for!(table_name, column: column_name, **options).name
+          at = build_alter_table_definition(table_name)
+          at.remove_unique_constraint(column_name, **options)
 
-          remove_constraint(table_name, unique_name_to_delete)
+          execute_alter_table(at)
         end
 
         # Checks to see if a unique constraint exists on a table for a given unique constraint definition.

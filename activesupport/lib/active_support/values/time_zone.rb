@@ -12,7 +12,7 @@ module ActiveSupport
   # The TimeZone class serves as a wrapper around `TZInfo::Timezone` instances.
   # It allows us to do the following:
   #
-  # * Limit the set of zones provided by TZInfo to a meaningful subset of 154
+  # * Limit the set of zones provided by TZInfo to a meaningful subset of 155
   #   zones.
   # * Retrieve and display zones with a friendlier name
   #   (e.g., "Eastern \Time (US & Canada)" instead of "America/New_York").
@@ -50,6 +50,7 @@ module ActiveSupport
       "Chihuahua"                    => "America/Chihuahua",
       "Mazatlan"                     => "America/Mazatlan",
       "Central Time (US & Canada)"   => "America/Chicago",
+      "Manitoba"                     => "America/Winnipeg",
       "Saskatchewan"                 => "America/Regina",
       "Guadalajara"                  => "America/Mexico_City",
       "Mexico City"                  => "America/Mexico_City",
@@ -286,6 +287,8 @@ module ActiveSupport
 
         @lazy_zones_map = ActiveSupport::Ractors.make_shareable(@lazy_zones_map.each_pair.to_h)
         @country_zones  = ActiveSupport::Ractors.make_shareable(@country_zones.each_pair.to_h)
+        ActiveSupport::Ractors.make_shareable(@zones)
+        ActiveSupport::Ractors.make_shareable(@zones_map)
         ActiveSupport::Ractors.make_shareable(MAPPING)
       end
 

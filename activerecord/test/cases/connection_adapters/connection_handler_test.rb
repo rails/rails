@@ -337,9 +337,10 @@ module ActiveRecord
       end
 
       def test_clean_up_connection_handler_disconnects_pools
-        handler = ActiveRecord::Base.connection_handler
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-        pool_manager = handler.instance_variable_get(:@connection_name_to_pool_manager)["ActiveRecord::Base"]
+        pool_manager = without_ractor_proxy do
+          ActiveRecord::Base.connection_handler.send(:connection_name_to_pool_manager)["ActiveRecord::Base"]
+        end
 
         leaked_pools = []
         assert_nothing_raised do # "too many clients"
@@ -440,7 +441,10 @@ module ActiveRecord
             Process.waitpid outer_pid
             active, child_id, child_count = Marshal.load(rd.read)
 
-            assert_equal false, active
+            # A Ractor self-proxy run checks out and registers a fresh
+            # token-pinned connection, which connects eagerly; the child's
+            # intermediate disconnected state is not observable through it.
+            assert_equal false, active unless ractor_proxy?
             assert_not_equal object_id, child_id
             rd.close
 

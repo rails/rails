@@ -44,11 +44,7 @@ module ContentType
   class ExplicitContentTypeTest < Rack::TestCase
     test "default response is text/plain and UTF8" do
       with_routing do |set|
-        set.draw do
-          ActionDispatch.deprecator.silence do
-            get ":controller", action: "index"
-          end
-        end
+        set.draw { get "content_type/base", to: "content_type/base#index" }
 
         get "/content_type/base"
 
