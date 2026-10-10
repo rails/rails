@@ -138,6 +138,30 @@ class ResponseTest < ActiveSupport::TestCase
     assert_nil @response.content_type
   end
 
+  def test_content_type_assignment_strips_trailing_crlf
+    @response.content_type = "text/html\r\n"
+
+    assert_equal "text/html", @response.media_type
+    assert_no_match(/[\r\n]/, @response.headers["Content-Type"])
+  end
+
+  def test_content_type_assignment_rejects_header_injection
+    @response.content_type = "text/html\r\nX-Evil: 1"
+
+    assert_equal "text/html", @response.media_type
+    assert_equal "text/html; charset=utf-8", @response.headers["Content-Type"]
+    assert_no_match(/[\r\n]/, @response.headers["Content-Type"])
+    assert_nil @response.headers["X-Evil"]
+  end
+
+  def test_content_type_with_charset_strips_trailing_crlf
+    @response.content_type = "application/json; charset=utf-8\r\nX-Evil: 1"
+
+    assert_equal "application/json", @response.media_type
+    assert_equal "utf-8", @response.charset
+    assert_no_match(/[\r\n]/, @response.headers["Content-Type"])
+  end
+
   test "simple output" do
     @response.body = "Hello, World!"
 
