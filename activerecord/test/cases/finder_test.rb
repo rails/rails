@@ -1546,6 +1546,20 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal customers(:david), found_customer
   end
 
+  def test_hash_condition_find_with_aggregate_whose_class_is_a_range
+    assert_equal(
+      RangeAggregateCustomer.where(address_street: "a", address_city: "b").to_sql,
+      RangeAggregateCustomer.where(period: ("a".."b")).to_sql
+    )
+  end
+
+  def test_hash_condition_find_with_aggregate_having_several_mappings_within_range
+    range = Address.new("a", "b", "c")..Address.new("x", "y", "z")
+
+    error = assert_raises(ArgumentError) { Customer.where(address: range).to_sql }
+    assert_equal "A Range of address values is not supported, because address maps to 3 columns", error.message
+  end
+
   def test_hash_condition_find_with_aggregate_having_one_mapping_within_range
     balance = customers(:david).balance
     start_balance = Money.new(balance.amount - 1)
