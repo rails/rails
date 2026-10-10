@@ -175,6 +175,10 @@ module ActiveRecord
               self[column_name, values]
             else
               queries = values.map do |object|
+                if object.is_a?(Range) && !mapping.all? { |_, aggregate_attr| object.respond_to?(aggregate_attr) }
+                  raise ArgumentError, "A Range of #{key} values is not supported, because #{key} maps to #{mapping.length} columns"
+                end
+
                 mapping.map do |field_attr, aggregate_attr|
                   self[field_attr, object.try!(aggregate_attr)]
                 end
