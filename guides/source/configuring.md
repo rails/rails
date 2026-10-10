@@ -514,6 +514,13 @@ The default value depends on the `config.load_defaults` target version:
 
 [`ActiveSupport::ParameterFilter.precompile_filters`]: https://api.rubyonrails.org/classes/ActiveSupport/ParameterFilter.html#method-c-precompile_filters
 
+#### `config.public_file_server.compressible_content_types`
+
+Accepts an array of content types, or a regular expression, indicating which
+static files are served precompressed. Each match costs extra file lookups, so
+keep it to the types you precompress. Defaults to `text/*`,
+`application/javascript`, and `image/svg+xml`.
+
 #### `config.public_file_server.enabled`
 
 Configures whether Rails should serve static files from the public directory.
@@ -521,6 +528,11 @@ Defaults to `true`.
 
 If the server software (e.g. NGINX or Apache) should serve static files instead,
 set this value to `false`.
+
+#### `config.public_file_server.precompressed`
+
+Configures which precompressed encodings are served, in order of preference.
+Defaults to `[:br, :gzip]`.
 
 #### `config.railties_order`
 

@@ -32,8 +32,9 @@ module Rails
 
           if config.public_file_server.enabled
             headers = config.public_file_server.headers || {}
+            options = config.public_file_server.slice(:precompressed, :compressible_content_types).compact
 
-            middleware.use ::ActionDispatch::Static, paths["public"].first, index: config.public_file_server.index_name, headers: headers
+            middleware.use ::ActionDispatch::Static, paths["public"].first, index: config.public_file_server.index_name, headers: headers, **options
           end
 
           if rack_cache = load_rack_cache

@@ -18,9 +18,9 @@ module ActionDispatch
   #
   # Only files in the root directory are served; path traversal is denied.
   class Static
-    def initialize(app, path, index: "index", headers: {})
+    def initialize(app, path, index: "index", headers: {}, **options)
       @app = app
-      @file_handler = FileHandler.new(path, index: index, headers: headers)
+      @file_handler = FileHandler.new(path, index: index, headers: headers, **options)
     end
 
     def call(env)
@@ -57,7 +57,12 @@ module ActionDispatch
       @index = index
 
       @precompressed = Array(precompressed).map(&:to_s) | %w[ identity ]
-      @compressible_content_types = compressible_content_types
+      @compressible_content_types =
+        if compressible_content_types.is_a?(Regexp)
+          compressible_content_types
+        else
+          /\A(?:#{Regexp.union(compressible_content_types).source})\z/
+        end
 
       @file_server = ::Rack::Files.new(@root, headers)
     end

@@ -1,3 +1,9 @@
+*   `ActionDispatch::Static` passes `precompressed:` and
+    `compressible_content_types:` through to `ActionDispatch::FileHandler`.
+    `compressible_content_types:` also accepts an Array of content types.
+
+    *Keenan Brock*
+
 *   Remove support for dynamic `:controller` and `:action` route segments.
 
     A route may no longer read the controller or the action out of the URL:
