@@ -45,6 +45,51 @@ module ActionCable
         Broadcaster.new(self, String(broadcasting), coder: coder)
       end
 
+      # Sends the broadcasts made inside the block to the subscription adapter
+      # together, when the block ends, instead of one at a time. An adapter that can
+      # publish many messages at once saves a round trip per broadcast: the Redis
+      # adapter sends a batch in a single pipeline.
+      #
+      # ```ruby
+      # ActionCable.server.batch_broadcasts do
+      #   room.members.each do |member|
+      #     ActionCable.server.broadcast "unread_rooms_#{member.id}", { room_id: room.id }
+      #   end
+      # end
+      # ```
+      #
+      # The broadcasts are sent in the order they were made, also when the block
+      # raises. A batch started inside another one joins it, and everything is sent
+      # when the outermost block ends. A batch belongs to the thread that started it,
+      # or to the fiber when `config.active_support.isolation_level` is `:fiber`:
+      # broadcasts made elsewhere meanwhile are sent as usual. Returns the value of
+      # the block.
+      def batch_broadcasts
+        return yield if current_broadcast_batch
+
+        state = ActiveSupport::IsolatedExecutionState
+        outer, batch = state[:action_cable_broadcast_batches], []
+        # A new hash rather than a change to the one in the state, and the batch
+        # together with who started it: a thread that shares the state, as live
+        # streaming does, has a copy that points to the same objects.
+        state[:action_cable_broadcast_batches] = outer.to_h.merge(self => [state.context, batch])
+        begin
+          yield
+        ensure
+          state[:action_cable_broadcast_batches] = outer
+          pubsub.broadcast_batch(batch) unless batch.empty?
+        end
+      end
+
+      # The broadcasts collected by the current #batch_broadcasts block, or `nil`
+      # outside of one.
+      def current_broadcast_batch # :nodoc:
+        if batches = ActiveSupport::IsolatedExecutionState[:action_cable_broadcast_batches]
+          owner, batch = batches[self]
+          batch if owner.equal?(ActiveSupport::IsolatedExecutionState.context)
+        end
+      end
+
       private
         class Broadcaster
           attr_reader :server, :broadcasting, :coder
@@ -59,7 +104,12 @@ module ActionCable
             payload = { broadcasting: broadcasting, message: message, coder: coder }
             ActiveSupport::Notifications.instrument("broadcast.action_cable", payload) do
               encoded = coder ? coder.encode(message) : message
-              server.pubsub.broadcast broadcasting, encoded
+
+              if batch = server.current_broadcast_batch
+                batch << [broadcasting, encoded]
+              else
+                server.pubsub.broadcast broadcasting, encoded
+              end
             end
           end
         end
