@@ -185,7 +185,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 ### Notable changes
 
-*   Add `SecureRandom.base32` for generating case-insensitive keys that are
+*   Add `SecureRandom.base30` for generating case-insensitive keys that are
     unambiguous to humans.
 
 *   Parallel tests are now deterministically assigned to workers in round-robin
