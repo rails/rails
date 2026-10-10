@@ -22,9 +22,12 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 
     def test_assert_enqueued_jobs
       assert_nothing_raised do
-        assert_enqueued_jobs 1 do
+        r = assert_enqueued_jobs 1 do
           HelloJob.perform_later("david")
+          "block result"
         end
+
+        assert_equal "block result", r
       end
     end
 
@@ -57,7 +60,8 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     def test_assert_enqueued_jobs_with_no_block
       assert_nothing_raised do
         HelloJob.perform_later("rafael")
-        assert_enqueued_jobs 1
+        r = assert_enqueued_jobs 1
+        assert_equal true, r
       end
 
       assert_nothing_raised do
@@ -69,15 +73,18 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 
     def test_assert_no_enqueued_jobs_with_no_block
       assert_nothing_raised do
-        assert_no_enqueued_jobs
+        r = assert_no_enqueued_jobs
+        assert_equal true, r
       end
     end
 
     def test_assert_no_enqueued_jobs
       assert_nothing_raised do
-        assert_no_enqueued_jobs do
+        r = assert_no_enqueued_jobs do
           HelloJob.perform_now
+          "block result"
         end
+        assert_equal "block result", r
       end
     end
 
@@ -1076,9 +1083,11 @@ class PerformedJobsTest < ActiveJob::TestCase
 
     def test_assert_performed_jobs
       assert_nothing_raised do
-        assert_performed_jobs 1 do
+        r = assert_performed_jobs 1 do
           HelloJob.perform_later("david")
+          "block result"
         end
+        assert_equal "block result", r
       end
     end
 
@@ -1113,7 +1122,8 @@ class PerformedJobsTest < ActiveJob::TestCase
         perform_enqueued_jobs do
           HelloJob.perform_later("rafael")
         end
-        assert_performed_jobs 1
+        r = assert_performed_jobs 1
+        assert_equal true, r
       end
 
       assert_nothing_raised do
@@ -1127,15 +1137,18 @@ class PerformedJobsTest < ActiveJob::TestCase
 
     def test_assert_no_performed_jobs_with_no_block
       assert_nothing_raised do
-        assert_no_performed_jobs
+        r = assert_no_performed_jobs
+        assert_equal true, r
       end
     end
 
     def test_assert_no_performed_jobs
       assert_nothing_raised do
-        assert_no_performed_jobs do
-          # empty block won't perform jobs
+        r = assert_no_performed_jobs do
+          # no jobs performed
+          "block result"
         end
+        assert_equal "block result", r
       end
     end
 
