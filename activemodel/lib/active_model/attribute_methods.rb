@@ -403,7 +403,16 @@ module ActiveModel
         end
 
         def instance_method_already_implemented?(method_name)
-          @generated_attribute_methods&.method_defined?(method_name)
+          return false unless method_defined?(method_name)
+
+          owner = instance_method(method_name).owner
+
+          # Methods defined directly on this class still get a generated
+          # implementation so `super` can reach it. Methods from included
+          # modules (e.g. a concern included before `attribute`) are left
+          # alone — a new include of generated_attribute_methods would
+          # otherwise shadow them.
+          owner != self
         end
 
         # Define a method `name` in `mod` that dispatches to `send`
