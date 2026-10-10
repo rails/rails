@@ -15,8 +15,15 @@ class ClientTest < ActionCable::TestCase
   class Connection < ActionCable::Connection::Base
     identified_by :id
 
+    attr_reader :pongs
+
     def connect
       self.id = request.params["id"] || SecureRandom.hex(4)
+      @pongs = []
+    end
+
+    def handle_pong(message)
+      @pongs << message
     end
   end
 
@@ -122,7 +129,9 @@ class ClientTest < ActionCable::TestCase
   class SyncClient
     attr_reader :pings
 
-    def initialize(port, path = "/")
+    # Pass `extensions: ["pong"]` to request the pong extension; the client then responds
+    # to pings with pongs unless `pongs: false` is passed too.
+    def initialize(port, path = "/", extensions: [], pongs: true)
       messages = @messages = Queue.new
       closed = @closed = Concurrent::Event.new
       has_messages = @has_messages = Concurrent::Semaphore.new(0)
@@ -130,7 +139,10 @@ class ClientTest < ActionCable::TestCase
 
       open = Concurrent::Promise.new
 
-      @ws = WebSocket::Client::Simple.connect("ws://127.0.0.1:#{port}#{path}") do |ws|
+      subprotocols = [ActionCable::INTERNAL[:protocols].first] + extensions.map { |name| ActionCable::INTERNAL[:extensions].fetch(name.to_sym) }
+      headers = { "Sec-WebSocket-Protocol" => subprotocols.join(", ") }
+
+      @ws = WebSocket::Client::Simple.connect("ws://127.0.0.1:#{port}#{path}", headers: headers) do |ws|
         ws.on(:error) do |event|
           event = RuntimeError.new(event.message) unless event.is_a?(Exception)
 
@@ -153,6 +165,7 @@ class ClientTest < ActionCable::TestCase
             message = JSON.parse(event.data)
             if message["type"] == "ping"
               pings.increment
+              ws.send(JSON.generate(command: "pong", message: message["message"])) if pongs
             else
               messages << message
               has_messages.release
@@ -216,8 +229,8 @@ class ClientTest < ActionCable::TestCase
     end
   end
 
-  def websocket_client(*args)
-    SyncClient.new(*args)
+  def websocket_client(...)
+    SyncClient.new(...)
   end
 
   def concurrently(enum)
@@ -351,6 +364,75 @@ class ClientTest < ActionCable::TestCase
 
       c.wait_for_close
       assert_predicate(c, :closed?)
+    end
+  end
+
+  def test_client_negotiating_pongs_is_welcomed_with_the_extension
+    with_puma_server do |port|
+      c = websocket_client(port, extensions: ["pong"])
+      assert_equal({ "type" => "welcome", "extensions" => ["pong"] }, c.read_message)
+      c.close
+    end
+  end
+
+  def test_client_not_responding_to_pings_is_disconnected
+    with_puma_server do |port|
+      app = ActionCable.server
+
+      c = websocket_client(port, extensions: ["pong"], pongs: false)
+      assert_equal({ "type" => "welcome", "extensions" => ["pong"] }, c.read_message)
+      wait_for(message: "connection not registered") { app.connections.any? }
+
+      # Pretend the client has been silent for longer than the pong timeout
+      # rather than waiting for it in real time, then trigger a heartbeat.
+      app.connections.first.send(:socket).instance_variable_set(:@last_message_received_at, Time.now - 3600)
+      app.each_connection(&:beat)
+
+      assert_equal({ "type" => "disconnect", "reason" => "no_pong", "reconnect" => true }, c.read_message)
+
+      c.wait_for_close
+      assert_predicate c, :closed?
+
+      wait_for(message: "connection not removed") { app.connections.empty? }
+    end
+  end
+
+  def test_client_responding_to_pings_stays_connected
+    with_puma_server do |port|
+      app = ActionCable.server
+
+      c = websocket_client(port, extensions: ["pong"])
+      assert_equal({ "type" => "welcome", "extensions" => ["pong"] }, c.read_message)
+      wait_for(message: "connection not registered") { app.connections.any? }
+
+      connection = app.connections.first
+      wait_for(message: "no pong received") { connection.pongs.any? }
+      assert_kind_of Integer, connection.pongs.first
+
+      # The pong refreshed the socket, so a heartbeat right after the timeout keeps the connection
+      connection.send(:socket).instance_variable_set(:@last_message_received_at, Time.now - 3)
+      app.each_connection(&:beat)
+
+      assert_not_predicate c, :closed?
+      assert_equal [connection], app.connections
+      c.close
+    end
+  end
+
+  def test_client_not_negotiating_pongs_is_never_disconnected_for_silence
+    with_puma_server do |port|
+      app = ActionCable.server
+
+      c = websocket_client(port)
+      assert_equal({ "type" => "welcome" }, c.read_message)
+      wait_for(message: "connection not registered") { app.connections.any? }
+
+      app.connections.first.send(:socket).instance_variable_set(:@last_message_received_at, Time.now - 3600)
+      app.each_connection(&:beat)
+
+      assert_not_predicate c, :closed?
+      assert_equal 1, app.connections.size
+      c.close
     end
   end
 

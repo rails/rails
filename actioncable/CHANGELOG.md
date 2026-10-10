@@ -1,3 +1,14 @@
+*   Detect half-open Action Cable connections via a ping/pong heartbeat.
+
+    Clients supporting the new `pong` protocol extension (requested via the
+    `actioncable-ext-pong` subprotocol and confirmed in the welcome message)
+    respond to server heartbeat pings with `pong` commands. If no message
+    arrives from such a client within two heartbeats, the server closes the
+    connection with the `no_pong` reason instead of letting it linger until
+    the underlying TCP connection times out.
+
+    *Stanko Krtalić Rusendić*, *Vladimir Dementyev*
+
 *   Move `ActionCable::Server::Configuration` to `ActionCable::Configuration`.
 
     The old constant remains available as an alias.
