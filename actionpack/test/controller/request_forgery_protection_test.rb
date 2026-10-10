@@ -1700,6 +1700,23 @@ class HeaderOnlyProtectionControllerTest < ActionController::TestCase
     end
   end
 
+  test "blocks POST with mismatched Origin and missing Sec-Fetch-Site header on HTTP" do
+    @request.set_header "HTTP_ORIGIN", "http://evil.example"
+    with_secure_protocol(false) do
+      assert_raises(ActionController::InvalidCrossOriginRequest) do
+        post :index
+      end
+    end
+  end
+
+  test "allows POST with matching Origin and missing Sec-Fetch-Site header on HTTP" do
+    @request.set_header "HTTP_ORIGIN", @request.base_url
+    with_secure_protocol(false) do
+      post :index
+      assert_response :success
+    end
+  end
+
   private
     def forgery_protection_origin_check
       old_setting = ActionController::Base.forgery_protection_origin_check
