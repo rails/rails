@@ -37,6 +37,25 @@ module ActiveModel
         end
       end
 
+      def test_type_cast_time_preserves_fractional_seconds_with_single_digit_hour
+        type = Type::Time.new
+
+        assert_equal ::Time.utc(2000, 1, 1, 1, 34, 56, 789000), type.cast("1:34:56.789")
+      end
+
+      def test_type_cast_time_preserves_fractional_seconds_with_single_digit_hour_and_offset
+        type = Type::Time.new
+
+        assert_equal ::Time.utc(1999, 12, 31, 22, 34, 56, 789000), type.cast("1:34:56.789+03:00")
+      end
+
+      def test_type_cast_time_preserves_fractional_seconds_to_nanosecond_precision
+        type = Type::Time.new
+
+        expected = ::Time.utc(2000, 1, 1, 1, 34, 56, Rational(789123456, 1000))
+        assert_equal expected, type.cast("1:34:56.789123456")
+      end
+
       test "serialize_cast_value is equivalent to serialize after cast" do
         type = Type::Time.new(precision: 1)
         value = type.cast("1999-12-31T12:34:56.789-10:00")

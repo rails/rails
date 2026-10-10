@@ -79,6 +79,7 @@ module ActiveModel
             end
 
             return if time_hash.nil? || time_hash[:hour].nil?
+            time_hash[:sec_fraction] *= 1_000_000 if time_hash[:sec_fraction]
             new_time(*time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction, :offset))
           end
         end
