@@ -1,3 +1,11 @@
+*   Parse quoted numeric values in request `Cache-Control` directives.
+
+    `Request#cache_control_directives` now reads quoted `max-age`, `max-stale`,
+    `min-fresh`, and `stale-if-error` values as the specified number of seconds
+    instead of zero.
+
+    *Andrii Furmanets*
+
 *   Remove support for dynamic `:controller` and `:action` route segments.
 
     A route may no longer read the controller or the action out of the URL:
