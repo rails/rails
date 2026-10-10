@@ -35,11 +35,15 @@ module ActiveRecord
 
         def init_with(coder)
           @auto_increment = coder["auto_increment"]
+          @rowid = coder["rowid"]
+          @generated_type = coder["generated_type"]&.to_sym
           super
         end
 
         def encode_with(coder)
           coder["auto_increment"] = @auto_increment
+          coder["rowid"] = @rowid
+          coder["generated_type"] = @generated_type
           super
         end
 
