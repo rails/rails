@@ -1414,6 +1414,24 @@ Guide](security.html#custom-credentials).
 TIP: Check out the detailed description for this command in the output of
 `bin/rails credentials --help`.
 
+### `bin/rails views:precompile`
+
+The `views:precompile` task precompiles application views at build time, including
+engine and mailer views. It also supports API-only applications that render JSON
+or other template formats:
+
+```bash
+$ RAILS_ENV=production bin/rails views:precompile
+```
+
+Bootsnap must be configured with its compilation cache enabled. By default, the
+view cache is stored in `tmp/cache/bootsnap/compile-cache-iseq-views`. Each invocation
+rebuilds this cache without clearing other Bootsnap caches.
+
+Include the cache in that build's deployment, using the same absolute template
+paths, Ruby version, and template configuration at build time and runtime. Do not
+share it across builds. Views missing from the cache compile normally.
+
 Custom Rake Tasks
 -----------------
 
