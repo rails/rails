@@ -117,6 +117,18 @@ module CommonSubscriptionAdapterTest
     end
   end
 
+  def test_broadcast_batch
+    subscribe_as_queue("channel") do |queue|
+      subscribe_as_queue("other channel") do |queue_2|
+        @tx_adapter.broadcast_batch([["channel", "apples"], ["other channel", "oranges"], ["channel", "bananas"]])
+
+        received = 2.times.filter_map { queue.pop(timeout: WAIT_WHEN_EXPECTING_EVENT) }
+        assert_equal ["apples", "bananas"], received.sort
+        assert_equal "oranges", queue_2.pop(timeout: WAIT_WHEN_EXPECTING_EVENT)
+      end
+    end
+  end
+
   def test_long_identifiers
     channel_1 = "a" * 100 + "1"
     channel_2 = "a" * 100 + "2"

@@ -1,3 +1,18 @@
+*   Add `ActionCable.server.batch_broadcasts` to send the broadcasts made in a
+    block to the subscription adapter together, when the block ends.
+
+        ActionCable.server.batch_broadcasts do
+          room.members.each do |member|
+            ActionCable.server.broadcast("unread_rooms_#{member.id}", { room_id: room.id })
+          end
+        end
+
+    The Redis adapter publishes a batch in a single pipeline, one round trip
+    instead of one per broadcast. Other adapters send the batch one broadcast
+    at a time, and can implement `broadcast_batch` to do better.
+
+    *Marcello Costagliola*
+
 *   Move `ActionCable::Server::Configuration` to `ActionCable::Configuration`.
 
     The old constant remains available as an alias.
