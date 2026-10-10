@@ -28,6 +28,10 @@ class Address
   def ==(other)
     other.is_a?(self.class) && other.street == street && other.city == city && other.country == country
   end
+
+  def <=>(other)
+    [street, city, country] <=> [other.street, other.city, other.country] if other.is_a?(self.class)
+  end
 end
 
 class Money
@@ -88,4 +92,10 @@ class Fullname
   def to_s
     "#{first} #{last.upcase}"
   end
+end
+
+class RangeAggregateCustomer < ActiveRecord::Base
+  self.table_name = "customers"
+
+  composed_of :period, class_name: "Range", mapping: [ %w(address_street begin), %w(address_city end) ]
 end
