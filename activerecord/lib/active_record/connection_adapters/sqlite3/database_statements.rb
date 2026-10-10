@@ -39,6 +39,12 @@ module ActiveRecord
         end
 
         def exec_rollback_db_transaction # :nodoc:
+          # SQLite rolls back by itself when COMMIT fails with SQLITE_FULL, SQLITE_IOERR,
+          # SQLITE_NOMEM and similar errors. Issuing ROLLBACK then raises "cannot rollback -
+          # no transaction is active", which replaces the original error and skips
+          # rollback_records.
+          return if @raw_connection && !@raw_connection.transaction_active?
+
           query_command("ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
         end
 

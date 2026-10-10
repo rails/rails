@@ -1,3 +1,15 @@
+*   Raise the original error when SQLite rolls back a transaction on its own.
+
+    SQLite ends the transaction itself when a statement or `COMMIT` fails with
+    errors such as `SQLITE_FULL` or `SQLITE_IOERR`. Active Record then issued
+    `ROLLBACK`, which raised "cannot rollback - no transaction is active". That
+    error replaced the original one and skipped `rollback_records`, so records
+    saved in the transaction stayed `persisted?` and `after_rollback` callbacks
+    did not run. The SQLite3 adapter now skips `ROLLBACK` when no transaction is
+    open.
+
+    *Cole Robertson*
+
 *   Fix `where` with a `Range` of value objects on a single-mapping `composed_of`
     attribute.
 
