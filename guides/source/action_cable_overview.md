@@ -226,9 +226,57 @@ class ChatChannel < ApplicationCable::Channel
   # Called when the consumer has successfully
   # become a subscriber to this channel.
   def subscribed
+    # stream_from "some_channel"
+  end
+
+  # Called once a consumer has cut its cable connection.
+  def unsubscribed
+    # Any cleanup needed when channel is unsubscribed
   end
 end
 ```
+
+#### Actions
+
+Almost any public method declared on a channel is automatically exposed as a
+callable action to the client. These methods can take an optional `data`
+argument containing an optional Hash sent by the client.
+
+The `#subscribed` and `#unsubscribed` methods, and any public method
+defined on `ActionCable::Channel::Base`, can not be called by the client.
+
+Example:
+
+```ruby
+class AppearanceChannel < ApplicationCable::Channel
+  def subscribed
+    @connection_token = generate_connection_token
+  end
+
+  def unsubscribed
+    current_user.disappear @connection_token
+  end
+
+  def appear(data)
+    current_user.appear @connection_token, on: data['appearing_on']
+  end
+
+  def away
+    current_user.away @connection_token
+  end
+
+  private
+    def generate_connection_token
+      SecureRandom.hex(36)
+    end
+end
+```
+
+In this example `#appear` and `#away` are callable by the client, whereas
+`#subscribed` and `#unsubscribed` are not. `#generate_connection_token` is also
+not callable, since it's a private method. You'll see that `#appear` accepts a
+`data` parameter, which it then uses as part of its model call. `#away` does
+not, since it's simply a trigger action.
 
 #### Exception Handling
 
