@@ -508,6 +508,22 @@ module ActiveRecord
         assert_not_predicate conn, :connected?
       end
 
+      def test_max_age_at_checkin
+        pool = new_pool_with_options(max_age: 10, pool_jitter: 0, async: false)
+
+        conn = pool.checkout
+        conn.connect!
+
+        assert_predicate conn, :connected?
+
+        conn.instance_variable_set(:@connected_since, Process.clock_gettime(Process::CLOCK_MONOTONIC) - 11)
+
+        pool.checkin conn
+
+        assert_not_predicate conn, :connected?
+        assert_includes pool.connections, conn
+      end
+
       def test_max_age_with_jitter
         pool = new_pool_with_options(max_age: 20, pool_jitter: 0, async: false)
 
