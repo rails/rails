@@ -64,7 +64,7 @@ module ActiveJob
 
       private
         def assign_adapter(adapter_name, queue_adapter)
-          self._queue_adapter_name = adapter_name
+          self._queue_adapter_name = -adapter_name
           self._queue_adapter = queue_adapter
         end
 

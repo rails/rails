@@ -170,4 +170,12 @@ class QueueNamingRactorTest < ActiveSupport::TestCase
     assert_equal "default", on_ractor { HelloJob.new.queue_name }
     assert_equal "default", on_ractor { HelloJob.default_queue_name }
   end
+
+  test "prefixed queue name resolves from a non-main Ractor" do
+    ActiveJob::Base.queue_name_prefix = "aj"
+    ActiveJob::Base.queue_name_delimiter = "."
+
+    assert_equal "aj.default", on_ractor { HelloJob.new.queue_name }
+    assert_equal "aj.low", on_ractor { HelloJob.new.set(queue: :low).queue_name }
+  end
 end

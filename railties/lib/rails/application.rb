@@ -689,6 +689,8 @@ module Rails
 
       if defined?(ActiveJob::Base)
         [ActiveJob::Base, *ActiveJob::Base.descendants].each do |job|
+          Ractor.make_shareable(job.queue_name_prefix)
+          Ractor.make_shareable(job.queue_name_delimiter)
           Ractor.make_shareable(job.queue_adapter)
         end
       end
