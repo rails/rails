@@ -20,7 +20,7 @@ module ActiveRecord
     attr_reader :name, :columns
 
     def present?
-      !@columns.empty?
+      true
     end
 
     def each(&block)
@@ -77,7 +77,20 @@ module ActiveRecord
       raise NotImplementedError
     end
 
+    def inferred_key
+      raise NotImplementedError
+    end
+
     def where_clauses(values)
+      raise NotImplementedError
+    end
+
+    def include?(column)
+      raise NotImplementedError
+    end
+
+    # Returns true if every column of this key is also a column of +other+.
+    def subset?(other)
       raise NotImplementedError
     end
 
@@ -116,8 +129,20 @@ module ActiveRecord
         nil
       end
 
+      def inferred_key
+        nil
+      end
+
       def where_clauses(values)
         [where_hash(values)]
+      end
+
+      def include?(column)
+        @name == column
+      end
+
+      def subset?(other)
+        other.include?(@name)
       end
     end
 
@@ -125,6 +150,7 @@ module ActiveRecord
       def initialize(columns)
         @columns = columns.map { |column| -column.to_s }.freeze
         @name = @columns
+        @inferred_key = @columns.include?("id") ? Single.new("id").freeze : self
       end
 
       def composite?
@@ -157,18 +183,47 @@ module ActiveRecord
       # When a composite key has the conventional [tenant_key, "id"] shape,
       # associations join on "id" alone; otherwise the whole key is used.
       def inferred_id
-        @columns.include?("id") ? "id" : @name
+        @inferred_key.name
       end
+
+      # The Key form of +inferred_id+.
+      attr_reader :inferred_key
 
       def where_clauses(values)
         values.map { |set| where_hash(set) }
       end
+
+      def include?(column)
+        @columns.include?(column)
+      end
+
+      def subset?(other)
+        @columns.all? { |column| other.include?(column) }
+      end
     end
 
     class None < Single # :nodoc:
+      EMPTY = [].freeze
+
       def initialize
         @name = nil
-        @columns = [].freeze
+        @columns = EMPTY
+      end
+
+      def present?
+        false
+      end
+
+      def include?(column)
+        false
+      end
+
+      # The empty set is a subset of every key.
+      def subset?(other)
+        true
+      end
+
+      def each
       end
     end
   end

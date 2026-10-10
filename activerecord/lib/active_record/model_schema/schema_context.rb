@@ -38,7 +38,7 @@ module ActiveRecord
 
       attr_reader :model_class, :columns_hash, :columns, :column_names,
                   :content_columns, :query_constraints_list,
-                  :composite_query_constraints_list
+                  :composite_query_constraints_list, :composite_query_constraints_definition
 
       attr_reader :timestamp_attributes_for_create_in_model,
         :timestamp_attributes_for_update_in_model,
@@ -130,6 +130,7 @@ module ActiveRecord
         primary_key = self.primary_key
         @query_constraints_list = query_constraints || derive_query_constraints_list(primary_key)
         @composite_query_constraints_list = (@query_constraints_list || Array(primary_key)).freeze
+        @composite_query_constraints_definition = ActiveRecord::Key.for(@composite_query_constraints_list)
 
         @content_columns = @columns.reject do |c|
           Array(primary_key).include?(c.name) ||

@@ -4,7 +4,7 @@ module ActiveRecord::Associations
   module ForeignAssociation # :nodoc:
     def foreign_key_present?
       if reflection.klass.primary_key
-        ActiveRecord::Key.for(reflection.active_record_primary_key).all? do |key|
+        reflection.active_record_primary_key_definition.all? do |key|
           owner.attribute_present?(key)
         end
       else
@@ -14,7 +14,7 @@ module ActiveRecord::Associations
 
     def nullified_owner_attributes
       Hash.new.tap do |attrs|
-        ActiveRecord::Key.for(reflection.foreign_key).each { |foreign_key| attrs[foreign_key] = nil }
+        reflection.foreign_key_definition.each { |foreign_key| attrs[foreign_key] = nil }
         attrs[reflection.type] = nil if reflection.type.present?
       end
     end
@@ -24,8 +24,8 @@ module ActiveRecord::Associations
       def set_owner_attributes(record)
         return if options[:through]
 
-        primary_key_attribute_names = ActiveRecord::Key.for(reflection.join_primary_key)
-        foreign_key_attribute_names = ActiveRecord::Key.for(reflection.join_foreign_key)
+        primary_key_attribute_names = reflection.join_primary_key_definition
+        foreign_key_attribute_names = reflection.join_foreign_key_definition
 
         primary_key_foreign_key_pairs = primary_key_attribute_names.zip(foreign_key_attribute_names)
 

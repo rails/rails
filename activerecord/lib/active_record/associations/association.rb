@@ -370,7 +370,7 @@ module ActiveRecord
 
         # Returns true if record contains the foreign_key
         def foreign_key_for?(record)
-          ActiveRecord::Key.for(reflection.foreign_key).all? { |key| record.has_attribute?(key) }
+          reflection.foreign_key_definition.all? { |key| record.has_attribute?(key) }
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,
@@ -423,15 +423,15 @@ module ActiveRecord
         end
 
         def foreign_key_values(record)
-          ActiveRecord::Key.for(reflection.foreign_key).map { |key| record.read_attribute(key) }
+          reflection.foreign_key_definition.map { |key| record.read_attribute(key) }
         end
 
         def active_record_primary_key_values(record)
-          ActiveRecord::Key.for(reflection.active_record_primary_key).map { |key| record.read_attribute(key) }
+          reflection.active_record_primary_key_definition.map { |key| record.read_attribute(key) }
         end
 
         def association_primary_key_values(record)
-          ActiveRecord::Key.for(reflection.association_primary_key(record.class)).map { |key| record.read_attribute(key) }
+          reflection.association_primary_key_definition(record.class).map { |key| record.read_attribute(key) }
         end
     end
   end
