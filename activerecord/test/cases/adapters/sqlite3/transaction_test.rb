@@ -124,3 +124,71 @@ class SQLite3TransactionTest < ActiveRecord::SQLite3TestCase
       conn.disconnect! if conn
     end
 end
+
+class SQLite3AutoRollbackTest < ActiveRecord::SQLite3TestCase
+  self.use_transactional_tests = false
+
+  class MemoryRecord < ActiveRecord::Base
+    self.abstract_class = true
+  end
+
+  class FullItem < MemoryRecord
+    self.table_name = "full_items"
+    attr_accessor :rolled_back
+    after_rollback { self.rolled_back = true }
+  end
+
+  setup do
+    MemoryRecord.establish_connection(adapter: "sqlite3", database: ":memory:")
+    @conn = FullItem.lease_connection
+    @conn.create_table(:full_items) { |t| t.text :body }
+    @conn.execute("PRAGMA max_page_count = #{@conn.select_value("PRAGMA page_count") + 2}")
+  end
+
+  teardown do
+    MemoryRecord.remove_connection
+  end
+
+  test "a transaction SQLite rolled back on its own raises the original error and rolls back records" do
+    record = nil
+    error = nil
+    assert_no_queries_match(/ROLLBACK/) do
+      error = assert_raises(ActiveRecord::StatementInvalid) do
+        FullItem.transaction do
+          record = FullItem.create!(body: "x")
+          50.times { FullItem.create!(body: "y" * 20_000) }
+        end
+      end
+    end
+
+    assert_instance_of ::SQLite3::FullException, error.cause
+    assert_not_predicate @conn, :transaction_open?
+    assert_not_predicate record, :persisted?
+    assert record.rolled_back
+    assert_equal 0, FullItem.count
+  end
+
+  test "a nested transaction SQLite rolled back on its own raises the original error and rolls back records" do
+    outer = inner = nil
+    error = nil
+    assert_no_queries_match(/ROLLBACK/) do
+      error = assert_raises(ActiveRecord::StatementInvalid) do
+        FullItem.transaction do
+          outer = FullItem.create!(body: "x")
+          FullItem.transaction(requires_new: true) do
+            inner = FullItem.create!(body: "x")
+            50.times { FullItem.create!(body: "y" * 20_000) }
+          end
+        end
+      end
+    end
+
+    assert_instance_of ::SQLite3::FullException, error.cause
+    assert_not_predicate @conn, :transaction_open?
+    assert_not_predicate outer, :persisted?
+    assert_not_predicate inner, :persisted?
+    assert outer.rolled_back
+    assert inner.rolled_back
+    assert_equal 0, FullItem.count
+  end
+end

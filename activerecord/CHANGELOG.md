@@ -1,3 +1,12 @@
+*   Raise the original error when SQLite rolls back a transaction on its own.
+
+    When a statement or `COMMIT` fails with errors such as `SQLITE_FULL`, the
+    original error is raised instead of "cannot rollback - no transaction is
+    active", records saved in the transaction are no longer `persisted?`, and
+    `after_rollback` callbacks run.
+
+    *Cole Robertson*
+
 *   Deprecate `supports_native_partitioning?` on the PostgreSQL adapter.
 
     It always returns `true` since the minimum PostgreSQL version became 10.0,
