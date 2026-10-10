@@ -366,8 +366,6 @@ module ActiveRecord
             main_operation do
               connection = main_pool(connection_name, role, shard).checkout
               begin
-                # A proxied connection is never verified by the query pipeline, so it must be usable up front.
-                connection.connect!
                 profile = connection.ractor_connection_profile
                 token = register_connection(connection)
               rescue Exception

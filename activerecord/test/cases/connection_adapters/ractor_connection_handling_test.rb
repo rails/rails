@@ -181,6 +181,50 @@ module ActiveRecord
             assert_not pool.active_connection?
           end
 
+          def test_checkout_leases_without_connecting_until_first_query
+            main_pool.disconnect!
+
+            proxy_pool.with_connection do |conn|
+              pinned = RactorConnectionHandler::Proxy.fetch_connection(conn.connection_token)
+              assert_predicate pinned, :in_use?
+              assert_not_predicate pinned, :connected?
+
+              conn.transaction { }
+              assert_not_predicate pinned, :connected?
+
+              assert_equal 1, conn.select_value("SELECT 1")
+              assert_predicate pinned, :connected?
+            end
+
+            assert_empty RactorConnectionHandler::Proxy.connections
+            assert_equal 0, main_pool.stat[:busy]
+          end
+
+          def test_first_query_connects_without_consuming_a_retry
+            main_pool.disconnect!
+
+            proxy_pool.with_connection do |conn|
+              conn.stub(:connection_retries, 0) do
+                assert_equal [[42]], conn.select_all("SELECT 42", nil, [], allow_retry: true).rows
+              end
+            end
+          end
+
+          def test_query_cache_hit_does_not_connect
+            pool = proxy_pool
+            pool.enable_query_cache do
+              pool.with_connection { |conn| conn.select_all("SELECT 42") }
+              main_pool.disconnect!
+
+              pool.with_connection do |conn|
+                pinned = RactorConnectionHandler::Proxy.fetch_connection(conn.connection_token)
+                assert_not_predicate pinned, :connected?
+                assert_equal [[42]], conn.select_all("SELECT 42").rows
+                assert_not_predicate pinned, :connected?
+              end
+            end
+          end
+
           def test_query_cache_toggles_and_block_forms_restore_previous_state
             pool = proxy_pool
             assert_not pool.query_cache_enabled
@@ -303,9 +347,9 @@ module ActiveRecord
           def test_health_methods_reflect_underlying_connection
             conn = proxy_connection
 
-            assert conn.connected?
             assert conn.active?
             assert_same conn, conn.verify!
+            assert conn.connected?
 
             conn.release_connection
             assert_not conn.connected?
@@ -320,6 +364,15 @@ module ActiveRecord
 
             conn.release_connection
             assert_not_predicate pinned, :proxied?
+          end
+
+          def test_checkout_defers_reconnecting_a_stale_connection_until_first_query
+            main_pool.with_connection { |connection| close_connection(connection) }
+            conn = proxy_connection
+
+            assert_not_predicate main_side, :active?
+            assert_equal 42, conn.select_value("SELECT 42")
+            assert_predicate main_side, :active?
           end
 
           def test_stale_pinned_connection_does_not_reconnect_away_an_open_transaction
@@ -340,6 +393,19 @@ module ActiveRecord
             end
 
             assert_equal ["first", "second"], conn.select_values("SELECT name FROM #{widgets_table} ORDER BY id")
+          end
+
+          def test_first_operation_can_materialize_and_roll_back_a_transaction
+            main_pool.disconnect!
+            conn = proxy_connection
+
+            assert_not_predicate main_side, :connected?
+            conn.transaction do
+              conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('rolled_back', 1)"))
+              raise ActiveRecord::Rollback
+            end
+
+            assert_equal [], conn.select_values("SELECT name FROM #{widgets_table}")
           end
 
           def test_execute_returns_materialized_result
@@ -424,13 +490,65 @@ module ActiveRecord
 
           def test_connection_failure_is_not_retried_without_allow_retry
             conn = proxy_connection
-            close_connection(main_side)
+            conn.select_value("SELECT 1")
 
-            assert_raises(ActiveRecord::ConnectionNotEstablished, ActiveRecord::ConnectionFailed) do
-              conn.select_all("SELECT 42")
+            with_connection_closed_on_next_query(main_side) do
+              assert_raises(ActiveRecord::ConnectionNotEstablished, ActiveRecord::ConnectionFailed) do
+                conn.select_all("SELECT 42")
+              end
             end
 
             assert_equal 1, conn.select_value("SELECT 1")
+          end
+
+          def test_query_reconnects_after_a_main_side_disconnect_failure
+            conn = proxy_connection
+            assert_equal 1, conn.select_value("SELECT 1")
+            main_side.disconnect!
+
+            assert_raises(ActiveRecord::ConnectionNotEstablished) { conn.select_value("SELECT 41") }
+            assert_equal 42, conn.select_value("SELECT 42")
+            assert_predicate conn, :connected?
+          end
+
+          def test_schema_operation_reconnects_after_a_main_side_disconnect_failure
+            conn = proxy_connection
+            conn.select_value("SELECT 1")
+            main_side.disconnect!
+
+            assert_raises(ActiveRecord::ConnectionNotEstablished) { conn.data_sources }
+            assert_includes conn.data_sources, widgets_table
+            assert_predicate conn, :connected?
+          end
+
+          def test_main_side_disconnect_restores_a_clean_worker_transaction
+            conn = proxy_connection
+
+            conn.transaction do
+              conn.materialize_transactions
+              main_side.disconnect!
+
+              assert_equal [[42]], conn.select_all("SELECT 42", nil, [], allow_retry: true).rows
+              assert_predicate main_side, :transaction_open?
+              conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('restored', 1)"))
+              raise ActiveRecord::Rollback
+            end
+
+            assert_equal [], conn.select_values("SELECT name FROM #{widgets_table}")
+          end
+
+          def test_main_side_disconnect_does_not_reconnect_a_dirty_worker_transaction
+            conn = proxy_connection
+
+            assert_raises(ActiveRecord::ConnectionNotEstablished) do
+              conn.transaction do
+                conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('lost', 1)"))
+                main_side.disconnect!
+                conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('escaped', 2)"))
+              end
+            end
+
+            assert_equal [], main_pool.with_connection { |c| c.select_values("SELECT name FROM #{widgets_table}") }
           end
 
           def test_allow_retry_reconnects_a_dead_connection_and_restores_clean_transaction_state
@@ -439,9 +557,9 @@ module ActiveRecord
 
             conn.transaction do
               conn.materialize_transactions
-              close_connection(pinned)
-
-              assert_equal [[42]], conn.select_all("SELECT 42", nil, [], allow_retry: true).rows
+              with_connection_closed_on_next_query(pinned) do
+                assert_equal [[42]], conn.select_all("SELECT 42", nil, [], allow_retry: true).rows
+              end
 
               assert pinned.transaction_open?
               conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('retried', 1)"))
@@ -511,6 +629,20 @@ module ActiveRecord
 
             def close_connection(connection)
               connection.instance_variable_get(:@raw_connection).close
+            end
+
+            def with_connection_closed_on_next_query(connection, &block)
+              execute = connection.method(:execute_raw_intent)
+              interrupted = false
+              interrupt = ->(intent) do
+                unless interrupted
+                  interrupted = true
+                  close_connection(connection)
+                end
+                execute.call(intent)
+              end
+
+              connection.stub(:execute_raw_intent, interrupt, &block)
             end
 
             def bind_placeholder(position)
