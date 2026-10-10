@@ -4,6 +4,8 @@ require "active_support/structured_event_subscriber"
 
 module ActionMailer
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
+    self.event_namespace = "action_mailer"
+
     # An email was delivered.
     def deliver(event)
       exception = event.payload[:exception_object]

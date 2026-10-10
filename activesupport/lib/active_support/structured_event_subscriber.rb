@@ -36,7 +36,18 @@ module ActiveSupport
   class StructuredEventSubscriber < Subscriber
     class_attribute :debug_methods, instance_accessor: false, default: [] # :nodoc:
 
+    CHECKS_SKIPPED_WHILE_NOT_IGNORED = 63 # :nodoc:
+
     class << self
+      # The namespace shared by every event this subscriber emits, i.e. each
+      # emitted name starts with <tt>"#{event_namespace}."</tt>. When set,
+      # notifications are silenced while no +Rails.event+ subscriber would act on
+      # the resulting events, such as log subscribers whose logger level is above
+      # all of their events in that namespace.
+      #
+      # Not inherited, as subclasses may emit events in other namespaces.
+      attr_accessor :event_namespace # :nodoc:
+
       def attach_to(...) # :nodoc:
         result = super
         set_silenced_events
@@ -59,10 +70,17 @@ module ActiveSupport
     def initialize
       super
       @silenced_events = {}
+      @log_level_predicates = {}
+      @checks_to_skip = 0
     end
 
     def silenced?(event)
-      ActiveSupport.event_reporter.subscribers.none? || (@silenced_events.key?(event) && !ActiveSupport.event_reporter.debug_mode?)
+      event_reporter = ActiveSupport.event_reporter
+      subscribers = event_reporter.subscribers
+
+      subscribers.none? ||
+        (@silenced_events.key?(event) && !event_reporter.debug_mode?) ||
+        ignored_by_all?(subscribers)
     end
 
     attr_writer :silenced_events # :nodoc:
@@ -97,6 +115,58 @@ module ActiveSupport
     private
       def handle_event_error(name, error)
         ActiveSupport.error_reporter.report(error, source: name)
+      end
+
+      def ignored_by_all?(subscribers)
+        namespace = self.class.event_namespace
+        # Subscribers copied into a non-main Ractor are frozen, so they can't
+        # keep the state below and always emit.
+        return false unless namespace && !frozen?
+
+        # A check costs about as much as the log level checks done when the
+        # event is emitted, so once some subscriber is found to act on events,
+        # skip the next checks. Events that aren't silenced are still filtered
+        # when emitted, so this never changes what is logged.
+        if @checks_to_skip > 0
+          @checks_to_skip -= 1
+          return false
+        end
+
+        ignored = subscribers.all? { |entry| ignored_by?(entry, namespace, subscribers.size) }
+        @checks_to_skip = CHECKS_SKIPPED_WHILE_NOT_IGNORED unless ignored
+        ignored
+      end
+
+      # Whether the event reporter subscriber +entry+ is guaranteed to do nothing
+      # with any event emitted in +namespace+ under the current log level.
+      def ignored_by?(entry, namespace, subscribers_count)
+        subscriber = entry[:subscriber]
+        return false unless EventReporter::LogSubscriber === subscriber
+
+        predicates = log_level_predicates(subscriber, entry[:filter], namespace, subscribers_count)
+        return false unless predicates
+        # Don't touch the logger when no event in the namespace is logged at all.
+        return true if predicates.empty?
+
+        logger = subscriber.logger
+        !logger || predicates.none? { |predicate| logger.public_send(predicate) }
+      rescue StandardError, NotImplementedError
+        false
+      end
+
+      # Cached by object ids rather than the objects themselves, so that the
+      # cache doesn't hold filter procs that would keep this subscriber from
+      # being copied into a Ractor.
+      def log_level_predicates(subscriber, filter, namespace, subscribers_count)
+        filter_id = filter.object_id
+        log_levels_id = subscriber.log_levels.object_id
+        cached = @log_level_predicates[subscriber.object_id]
+        return cached[2] if cached && cached[0] == filter_id && cached[1] == log_levels_id
+
+        @log_level_predicates.clear if @log_level_predicates.size > subscribers_count * 2
+        predicates = subscriber.log_level_predicates_for(namespace, filter)
+        @log_level_predicates[subscriber.object_id] = [filter_id, log_levels_id, predicates]
+        predicates
       end
   end
 end
