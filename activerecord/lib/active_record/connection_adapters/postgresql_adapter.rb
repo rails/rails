@@ -63,9 +63,12 @@ module ActiveRecord
         rescue ::PG::Error => error
           if conn_params && conn_params[:dbname] == "postgres"
             raise ActiveRecord::ConnectionNotEstablished, error.message
-          elsif conn_params && conn_params[:dbname] && error.message.include?(conn_params[:dbname])
+          elsif conn_params && conn_params[:dbname] && error.message.include?(%(database "#{conn_params[:dbname]}"))
             raise ActiveRecord::NoDatabaseError.db_error(conn_params[:dbname])
-          elsif conn_params && conn_params[:user] && error.message.include?(conn_params[:user])
+          elsif conn_params && conn_params[:user] && (
+            error.message.include?(%(user "#{conn_params[:user]}")) ||
+            error.message.include?(%(role "#{conn_params[:user]}"))
+          )
             raise ActiveRecord::DatabaseConnectionError.username_error(conn_params[:user])
           elsif conn_params && conn_params[:host] && error.message.include?(conn_params[:host])
             raise ActiveRecord::DatabaseConnectionError.hostname_error(conn_params[:host])
