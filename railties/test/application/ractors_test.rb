@@ -140,6 +140,31 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         end
       end
 
+      test "job arguments are serialized and deserialized from a non-main Ractor" do
+        app_file "config/initializers/money_serializer.rb", <<~RUBY
+          Money = Struct.new(:cents)
+
+          class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
+            def serialize(money) = super("cents" => money.cents)
+            def deserialize(hash) = Money.new(hash["cents"])
+            def klass = Money
+          end
+
+          Rails.application.config.active_job.custom_serializers << MoneySerializer
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ActiveJob::Serializers.serializers
+        arguments = [Time.utc(2026, 10, 7), 5.minutes, :ractor, Money.new(100), { retries: 3 }]
+        round_tripped = on_ractor(arguments) do |arguments|
+          ActiveJob::Arguments.deserialize(ActiveJob::Arguments.serialize(arguments))
+        end
+        assert_equal arguments, round_tripped
+      end
+
       test "ractorize! makes model reflections Ractor-shareable" do
         app_file "app/models/post.rb", <<~RUBY
           class Post < ActiveRecord::Base

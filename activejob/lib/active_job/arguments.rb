@@ -122,7 +122,7 @@ module ActiveJob
         RUBY2_KEYWORDS_KEY, RUBY2_KEYWORDS_KEY.to_sym,
         Serializers::OBJECT_SERIALIZER_KEY, Serializers::OBJECT_SERIALIZER_KEY.to_sym,
         WITH_INDIFFERENT_ACCESS_KEY, WITH_INDIFFERENT_ACCESS_KEY.to_sym,
-      ].to_set
+      ].to_set.freeze
       private_constant :RESERVED_KEYS, :GLOBALID_KEY,
         :SYMBOL_KEYS_KEY, :RUBY2_KEYWORDS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 

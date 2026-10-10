@@ -691,6 +691,7 @@ module Rails
         [ActiveJob::Base, *ActiveJob::Base.descendants].each do |job|
           Ractor.make_shareable(job.queue_adapter)
         end
+        ActiveJob::Serializers.make_shareable!
       end
 
       Ractor.make_shareable(self)

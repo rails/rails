@@ -10,6 +10,9 @@ require "active_support/duration"
 require "jobs/kwargs_job"
 require "jobs/arguments_round_trip_job"
 require "support/stubs/strong_parameters"
+require "active_support/core_ext/string/output_safety"
+require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 
 class ArgumentSerializationTest < ActiveSupport::TestCase
   module ModuleArgument
@@ -284,6 +287,24 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     end
     assert_instance_of ActiveJob::DeserializationError, error
     assert_instance_of GlobalID::Locator::RecordUnavailable, error.cause
+  end
+
+  class RactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "arguments are serialized and deserialized from a non-main Ractor" do
+      ActiveSupport::Ractors.with(unshareable_proc_action: :raise) { ActiveJob::Serializers.make_shareable! }
+
+      arguments = [
+        :a, 1.day, BigDecimal(5), Date.new(2001, 2, 3), Time.utc(2002, 10, 31, 2, 2, 2), DateTime.new(2001, 2, 3, 4, 5, 6), 1..5,
+        ClassArgument, { a: 1, "b" => 2 }, { "c" => 3 }.with_indifferent_access, "d".html_safe,
+      ]
+      round_tripped = on_ractor(arguments) do |arguments|
+        ActiveJob::Arguments.deserialize(ActiveJob::Arguments.serialize(arguments))
+      end
+      assert_equal arguments, round_tripped
+    end
   end
 
   private
