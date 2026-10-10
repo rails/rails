@@ -168,6 +168,12 @@ module ActionController
         end
       end
 
+      def send_stream_with_crlf_disposition
+        send_stream(filename: "export.csv", disposition: "attachment\r\nX-Evil: 1") do |stream|
+          stream.write "a,b\n"
+        end
+      end
+
       def send_stream_with_inferred_content_type
         send_stream(filename: "sample.csv") do |stream|
           stream.writeln "fruit,quantity"
@@ -414,6 +420,15 @@ module ActionController
       assert_equal "application/json", @response.headers["Content-Type"]
       assert_match "inline", @response.headers["Content-Disposition"]
       assert_match "export", @response.headers["Content-Disposition"]
+    end
+
+    def test_send_stream_sanitizes_crlf_in_disposition
+      get :send_stream_with_crlf_disposition
+
+      header = @response.headers["Content-Disposition"]
+      assert_no_match(/[\r\n]/, header)
+      assert_match(/\Aattachment; /, header)
+      assert_match "export.csv", header
     end
 
     def test_send_stream_with_explicit_content_type
