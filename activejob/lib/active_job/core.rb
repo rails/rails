@@ -164,7 +164,7 @@ module ActiveJob
       self.priority             = job_data["priority"]
       self.serialized_arguments = job_data["arguments"]
       self.executions           = job_data["executions"]
-      self.exception_executions = job_data["exception_executions"]
+      self.exception_executions = job_data["exception_executions"].dup
       self.locale               = job_data["locale"] || I18n.locale.to_s
       self.timezone             = job_data["timezone"] || Time.zone&.name
       self.enqueued_at          = deserialize_time(job_data["enqueued_at"]) if job_data["enqueued_at"]
