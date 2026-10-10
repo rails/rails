@@ -16,6 +16,14 @@ class JsonAttributeTest < ActiveRecord::TestCase
     store_accessor :settings, :resolution
   end
 
+  class JsonDataTypeWithSchema < ActiveRecord::Base
+    self.table_name = "json_data_type"
+
+    attribute :settings, :json
+
+    has_json :settings, max_invites: 10, beta: :boolean
+  end
+
   def setup
     super
     @connection.drop_table("json_data_type", if_exists: true)
@@ -37,6 +45,55 @@ class JsonAttributeTest < ActiveRecord::TestCase
 
     model.update(payload: "no longer invalid")
     assert_equal("no longer invalid", model.payload)
+  end
+
+  def test_has_json_read_of_null_column_is_not_a_change
+    model = JsonDataTypeWithSchema.create!
+    @connection.execute("UPDATE #{JsonDataTypeWithSchema.table_name} SET settings = NULL WHERE id = #{model.id}")
+    model.reload
+
+    assert_equal 10, model.settings.max_invites
+    assert_not model.settings.beta?
+    assert_not_predicate model, :changed?
+  end
+
+  def test_has_json_read_of_empty_object_is_not_a_change
+    model = JsonDataTypeWithSchema.create!
+    @connection.execute("UPDATE #{JsonDataTypeWithSchema.table_name} SET settings = '{}' WHERE id = #{model.id}")
+    model.reload
+
+    assert_equal 10, model.settings.max_invites
+    assert_not_predicate model, :changed?
+  end
+
+  def test_has_json_read_on_new_record_is_not_a_change
+    model = JsonDataTypeWithSchema.new
+    model.settings.max_invites
+
+    assert_not_predicate model, :changed?
+  end
+
+  def test_has_json_writes_mark_record_as_changed
+    model = JsonDataTypeWithSchema.create!
+    model.settings.beta = "1"
+
+    assert_predicate model, :settings_changed?
+    assert_equal true, model.settings.beta
+  end
+
+  def test_has_json_persists_defaults_on_save
+    model = JsonDataTypeWithSchema.create!
+
+    assert_equal({ "max_invites" => 10, "beta" => nil }, model.reload[:settings])
+  end
+
+  def test_has_json_leaves_non_object_json_alone
+    model = JsonDataTypeWithSchema.create!
+    @connection.execute("UPDATE #{JsonDataTypeWithSchema.table_name} SET settings = '[1, 2]' WHERE id = #{model.id}")
+    model.reload
+
+    assert_equal [1, 2], model[:settings]
+    assert_not_predicate model, :changed?
   end
 
   private
