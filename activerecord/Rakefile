@@ -146,6 +146,10 @@ end
 task "test_sqlite3_ractor" => ["sqlite3:ractor:env", "test:sqlite3:ractor"]
 
 namespace :db do
+  slot_databases = lambda do |existing, database|
+    existing.grep(/\A#{Regexp.escape(database)}_\d+\z/)
+  end
+
   namespace :mysql do
     mysql_configs = ARTest.config["connections"]
       .values_at("mysql2", "trilogy")
@@ -170,7 +174,8 @@ namespace :db do
           mysql_connection_arguments[connection, exclude_user_password: true],
         ].join(" ")
         %x( #{mysql_command} -e "CREATE USER IF NOT EXISTS '#{connection["username"]}'@'%';" )
-        %x( #{mysql_command} -e "GRANT ALL PRIVILEGES ON #{connection["database"]}.* to '#{connection["username"]}'@'%'" )
+        grant = "GRANT ALL PRIVILEGES ON `#{connection["database"]}%`.* to '#{connection["username"]}'@'%'"
+        %x( #{mysql_command} -e #{Shellwords.escape(grant)} )
         %x( #{mysql_command} -e "GRANT ALL PRIVILEGES ON inexistent_activerecord_unittest.* to '#{connection["username"]}'@'%';" )
       end
     end
@@ -185,7 +190,10 @@ namespace :db do
     desc "Drop the MySQL test databases"
     task drop: ["db:mysql:build_user"] do
       mysql_configs.each do |connection|
-        %x( mysql #{mysql_connection_arguments[connection]} -e "drop database IF EXISTS #{connection["database"]}" )
+        existing = %x( mysql #{mysql_connection_arguments[connection]} -N -B -e "SHOW DATABASES" ).split("\n")
+        [connection["database"], *slot_databases[existing, connection["database"]]].each do |database|
+          %x( mysql #{mysql_connection_arguments[connection]} -e "drop database IF EXISTS #{database}" )
+        end
       end
     end
 
@@ -204,8 +212,12 @@ namespace :db do
     desc "Drop the PostgreSQL test databases"
     task :drop do
       config = ARTest.config["connections"]["postgresql"]
-      %x( dropdb --if-exists #{config["arunit"]["database"]} )
-      %x( dropdb --if-exists #{config["arunit2"]["database"]} )
+      existing = %x( psql -XAt -d postgres -c "SELECT datname FROM pg_database" ).split("\n")
+      config.values_at("arunit", "arunit2").each do |connection|
+        [connection["database"], *slot_databases[existing, connection["database"]]].each do |database|
+          %x( dropdb --if-exists #{database} )
+        end
+      end
     end
 
     desc "Rebuild the PostgreSQL test databases"

@@ -205,7 +205,8 @@ class ConnectionTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   def test_get_and_release_advisory_lock
-    lock_name = "test lock'n'name"
+    # MySQL named locks are server-wide.
+    lock_name = "test lock'n'name #{SecureRandom.hex(16)}"
 
     got_lock = @connection.get_advisory_lock(lock_name)
     assert got_lock, "get_advisory_lock should have returned true but it didn't"
