@@ -241,12 +241,15 @@ module ActionText
       end
 
       def visit_tr(node, child_values)
+        # An empty row (e.g. `<tr></tr>`) renders as a header-less, separator-less
+        # `|  |` line, so skip it the way empty `<li>` elements are skipped.
+        return "" if node.element_children.empty?
+
         # lexxy does not emit `thead`, so we need to infer header rows from `tr` contents
         if node.element_children.all? { |cell| cell.name == "th" }
           visit__table_header_row(node, child_values)
         else
-          cells = child_values_for_elements(node, child_values).map { |v| stringify(v).strip }
-          "| #{cells.join(" | ")} |\n"
+          "| #{table_row_cells(node, child_values).join(" | ")} |\n"
         end
       end
 
@@ -304,10 +307,16 @@ module ActionText
       alias_method :visit_style, :visit__unsupported
 
       def visit__table_header_row(node, child_values)
-        cells = child_values_for_elements(node, child_values).map { |v| stringify(v).strip }
+        cells = table_row_cells(node, child_values)
         row = "| #{cells.join(" | ")} |\n"
         separator = "| #{Array.new(cells.size, "---").join(" | ")} |\n"
         "#{row}#{separator}"
+      end
+
+      # A raw newline inside a Markdown table row ends the row, so flatten inline
+      # breaks (e.g. `<br>`) to spaces to keep every cell on a single line.
+      def table_row_cells(node, child_values)
+        child_values_for_elements(node, child_values).map { |v| flatten_to_inline(stringify(v)).strip }
       end
 
       def list_item_lines(list_node, child_values, prefix:)
