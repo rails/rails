@@ -9,7 +9,7 @@ module ActiveJob
 
     included do
       class_attribute :retry_jitter, instance_accessor: false, instance_predicate: false, default: 0.0
-      class_attribute :after_discard_procs, default: []
+      class_attribute :after_discard_procs, default: [].freeze
     end
 
     module ClassMethods
@@ -63,7 +63,7 @@ module ActiveJob
       #      # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
       #    end
       #  end
-      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT, report: false)
+      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT, report: false, &block)
         case wait
         when :polynomially_longer, Integer, Float, ActiveSupport::Duration, Proc
           # Supported wait type, continue.
@@ -72,24 +72,10 @@ module ActiveJob
             "ActiveSupport::Duration, Proc, or :polynomially_longer, but got #{wait.inspect}"
         end
 
-        rescue_from(*exceptions) do |error|
-          executions = executions_for(exceptions)
-          if attempts == :unlimited || executions < attempts
-            ActiveSupport.error_reporter.report(error, source: "application.active_job") if report
-            retry_job wait: determine_delay(seconds_or_duration_or_algorithm: wait, executions: executions, error: error, jitter: jitter), queue: queue, priority: priority, error: error
-          else
-            if block_given?
-              instrument :retry_stopped, error: error do
-                yield self, error
-              end
-              run_after_discard_procs(error)
-            else
-              instrument :retry_stopped, error: error
-              run_after_discard_procs(error)
-              raise error
-            end
-          end
-        end
+        wait = ActiveSupport::Ractors.try_shareable_proc(wait) if wait.is_a?(Proc)
+        block = ActiveSupport::Ractors.try_shareable_proc(block) if block
+        handler_arguments = ActiveSupport::Ractors.try_make_shareable([exceptions, wait, attempts, queue, priority, jitter, report])
+        rescue_from(*exceptions, &retry_on_handler(*handler_arguments, block))
       end
 
       # Discard the job with no attempts to retry, if the exception is raised. This is useful when the subject of the job,
@@ -116,14 +102,9 @@ module ActiveJob
       #      # Might raise CustomAppException for something domain specific
       #    end
       #  end
-      def discard_on(*exceptions, report: false)
-        rescue_from(*exceptions) do |error|
-          instrument :discard, error: error do
-            ActiveSupport.error_reporter.report(error, source: "application.active_job") if report
-            yield self, error if block_given?
-            run_after_discard_procs(error)
-          end
-        end
+      def discard_on(*exceptions, report: false, &block)
+        block = ActiveSupport::Ractors.try_shareable_proc(block) if block
+        rescue_from(*exceptions, &discard_on_handler(report, block))
       end
 
       # A block to run when a job is about to be discarded for any reason.
@@ -139,8 +120,40 @@ module ActiveJob
       #
       #  end
       def after_discard(&blk)
-        self.after_discard_procs += [blk]
+        self.after_discard_procs = [*after_discard_procs, ActiveSupport::Ractors.try_shareable_proc(blk)].freeze
       end
+
+      private
+        def retry_on_handler(exceptions, wait, attempts, queue, priority, jitter, report, block)
+          proc do |error|
+            executions = executions_for(exceptions)
+            if attempts == :unlimited || executions < attempts
+              ActiveSupport.error_reporter.report(error, source: "application.active_job") if report
+              retry_job wait: determine_delay(seconds_or_duration_or_algorithm: wait, executions: executions, error: error, jitter: jitter), queue: queue, priority: priority, error: error
+            else
+              if block
+                instrument :retry_stopped, error: error do
+                  block.call(self, error)
+                end
+                run_after_discard_procs(error)
+              else
+                instrument :retry_stopped, error: error
+                run_after_discard_procs(error)
+                raise error
+              end
+            end
+          end
+        end
+
+        def discard_on_handler(report, block)
+          proc do |error|
+            instrument :discard, error: error do
+              ActiveSupport.error_reporter.report(error, source: "application.active_job") if report
+              block&.call(self, error)
+              run_after_discard_procs(error)
+            end
+          end
+        end
     end
 
     # Reschedules the job to be re-executed. This is useful in combination with

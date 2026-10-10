@@ -63,6 +63,8 @@ module ActiveSupport
           end
         end
 
+        with = Ractors.try_shareable_proc(with) if with.is_a?(Proc)
+
         klasses.each do |klass|
           key = if klass.is_a?(Module) && klass.respond_to?(:===)
             klass.name

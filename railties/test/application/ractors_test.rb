@@ -89,6 +89,80 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         end
       end
 
+      test "jobs that raise are rescued, retried and discarded from a non-main Ractor" do
+        app_file "app/jobs/failing_job.rb", <<~RUBY
+          class FailingJob < ApplicationJob
+            class RescuedError < StandardError; end
+            class RetriedError < StandardError; end
+            class DiscardedError < StandardError; end
+
+            # Records the retries it enqueues in the Ractor that enqueues them.
+            class Adapter < ActiveJob::QueueAdapters::AbstractAdapter
+              def enqueue_at(job, timestamp)
+                Ractor.current[:retry] = job
+                Ractor.current[:results] << "retrying on \#{job.queue_name} in \#{(timestamp - Time.now.to_f).round}s"
+              end
+            end
+
+            self.queue_adapter = Adapter.new
+
+            rescue_from(RescuedError) { |error| Ractor.current[:results] << "rescued \#{error.message}" }
+            retry_on RetriedError, wait: 5.seconds, attempts: 2, queue: :retries, jitter: 0 do |job, error|
+              Ractor.current[:results] << "stopped retrying \#{error.message} after \#{job.executions} executions"
+            end
+            discard_on DiscardedError
+            after_discard { |job, error| Ractor.current[:results] << "discarded \#{error.message}" }
+
+            def perform(error)
+              raise error, error.name.demodulize
+            end
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        results = on_ractor do
+          Ractor.current[:results] = []
+          FailingJob.perform_now(FailingJob::RescuedError)
+          FailingJob.perform_now(FailingJob::RetriedError)
+          Ractor.current[:retry].perform_now
+          FailingJob.perform_now(FailingJob::DiscardedError)
+          Ractor.current[:results]
+        end
+
+        assert_equal [
+          "rescued RescuedError",
+          "retrying on retries in 5s",
+          "stopped retrying RetriedError after 2 executions",
+          "discarded RetriedError",
+          "discarded DiscardedError",
+        ], results
+      end
+
+      test "jobs raise unhandled errors from a non-main Ractor" do
+        app_file "app/jobs/failing_job.rb", <<~RUBY
+          class FailingJob < ApplicationJob
+            def perform
+              raise ArgumentError, "unhandled"
+            end
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        raised = on_ractor do
+          FailingJob.perform_now
+        rescue => error
+          [error.class, error.message]
+        end
+
+        assert_equal [ArgumentError, "unhandled"], raised
+      end
+
       test "the application boots with unshareable_proc_action :raise" do
         add_to_env_config "production", "ActiveSupport::Ractors.unshareable_proc_action = :raise"
 
