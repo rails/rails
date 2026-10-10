@@ -17,6 +17,9 @@ export default class Subscriptions {
     this.consumer = consumer
     this.guarantor = new SubscriptionGuarantor(this)
     this.subscriptions = []
+
+    this.pendingUnsubscribes = {}
+    this.postponedSubscribes = {}
   }
 
   create(channelName, mixin) {
@@ -39,7 +42,7 @@ export default class Subscriptions {
   remove(subscription) {
     this.forget(subscription)
     if (!this.findAll(subscription.identifier).length) {
-      this.sendCommand(subscription, "unsubscribe")
+      this.unsubscribe(subscription)
     }
     return subscription
   }
@@ -85,15 +88,51 @@ export default class Subscriptions {
   }
 
   subscribe(subscription) {
+    const {identifier} = subscription
+    if (this.pendingUnsubscribes[identifier]) {
+      // An unsubscribe for this identifier has been issued recently.
+      // Postpone sending the subscribe command to avoid race conditions at the server
+      // (the server MAY process commands concurrently, not in order).
+      if (this.postponedSubscribes[identifier]) return
+
+      this.postponedSubscribes[identifier] = setTimeout(() => {
+        delete this.postponedSubscribes[identifier]
+        this.findAll(identifier).forEach((s) => this.subscribe(s))
+      }, this.constructor.subscribeCooldownInterval)
+      return
+    }
     if (this.sendCommand(subscription, "subscribe")) {
       this.guarantor.guarantee(subscription)
     }
   }
 
+  unsubscribe(subscription) {
+    const {identifier} = subscription
+    this.sendCommand(subscription, "unsubscribe")
+    this.resetUnsubscribeCooldownLater(identifier)
+  }
+
   confirmSubscription(identifier) {
     logger.log(`Subscription confirmed ${identifier}`)
-    this.findAll(identifier).map((subscription) =>
-      this.guarantor.forget(subscription))
+    const subscriptions = this.findAll(identifier)
+    if (subscriptions.length === 0) {
+      // Unsubscribed before confirmation arrived -> ensure unsubscribed server-side
+      this.unsubscribe({ identifier })
+      return []
+    }
+    // Select only subscriptions waiting for confirmation (ignore double-confirmed subscriptions)
+    const confirmed = subscriptions.filter((subscription) => this.guarantor.isPending(subscription))
+    confirmed.forEach((subscription) => this.guarantor.forget(subscription))
+    return confirmed
+  }
+
+  resetUnsubscribeCooldownLater(identifier) {
+    if (this.pendingUnsubscribes[identifier]) {
+      clearTimeout(this.pendingUnsubscribes[identifier])
+    }
+    this.pendingUnsubscribes[identifier] = setTimeout(() => {
+      delete this.pendingUnsubscribes[identifier]
+    }, this.constructor.subscribeCooldownInterval)
   }
 
   sendCommand(subscription, command) {
@@ -101,3 +140,7 @@ export default class Subscriptions {
     return this.consumer.send({command, identifier})
   }
 }
+
+// How long (ms) to hold back a subscribe command after an unsubscribe has been issued
+// for the same identifier (to prevent subscribe-unsubscribe race conditions).
+Subscriptions.subscribeCooldownInterval = 250
