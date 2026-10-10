@@ -62,7 +62,7 @@ module ActiveSupport
         @utc = nil
         @period = get_period_and_ensure_valid_local_time(period)
       end
-      @is_utc = zone == "UTC" || zone == "UCT"
+      @is_utc = nil
     end
 
     # Returns a `Time` instance that represents the time in `time_zone`.
@@ -118,6 +118,14 @@ module ActiveSupport
     # Time.zone.now.utc?                          # => false
     # ```
     def utc?
+      if @is_utc.nil?
+        # The period lookup is comparatively expensive, so it's deferred until
+        # something actually needs it rather than being performed on every
+        # allocation, and skipped entirely for zones that are always UTC. No
+        # zone in tzdata has a UTC abbreviation without being one of those, so
+        # the fallback only matters for custom tzinfo objects.
+        @is_utc = time_zone.utc? || zone == "UTC" || zone == "UCT"
+      end
       @is_utc
     end
     alias_method :gmt?, :utc?
@@ -171,7 +179,7 @@ module ActiveSupport
     def xmlschema(fraction_digits = 0)
       precision = fraction_digits || 0
 
-      if @is_utc
+      if utc?
         utc.iso8601(precision)
       else
         transfer_time_values_to_utc_constructor(utc).getlocal(utc_offset).iso8601(precision)
@@ -233,7 +241,7 @@ module ActiveSupport
 
     # Returns a string of the object's date and time.
     def to_s
-      if @is_utc
+      if utc?
         transfer_time_values_to_utc_constructor(utc).to_s
       else
         transfer_time_values_to_utc_constructor(utc).getlocal(utc_offset).to_s
@@ -575,7 +583,7 @@ module ActiveSupport
 
     def freeze
       # preload instance variables before freezing
-      period; utc; time; to_datetime; to_time
+      period; utc; time; utc?; to_datetime; to_time
       super
     end
 
