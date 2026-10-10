@@ -118,5 +118,13 @@ module ActiveJob
         LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner
       end
     end
+
+    initializer "active_job.ractorize" do
+      ActiveSupport.on_load(:before_ractorize) do
+        [ActiveJob::Base, *ActiveJob::Base.descendants].each do |job|
+          Ractor.make_shareable(job.queue_adapter)
+        end
+      end
+    end
   end
 end
