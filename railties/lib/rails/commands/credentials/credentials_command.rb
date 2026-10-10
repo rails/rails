@@ -53,7 +53,7 @@ module Rails
           disenroll_project_from_credentials_diffing if options[:disenroll]
           enroll_project_in_credentials_diffing if options[:enroll]
         end
-      rescue ActiveSupport::MessageEncryptor::InvalidMessage
+      rescue ActiveSupport::EncryptedConfiguration::DecryptionError
         say credentials.content_path.read
       end
 
@@ -120,10 +120,8 @@ module Rails
             say "File encrypted and saved."
             warn_if_credentials_are_invalid
           end
-        rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+        rescue ActiveSupport::EncryptedFile::MissingKeyError, ActiveSupport::EncryptedConfiguration::DecryptionError => error
           say error.message
-        rescue ActiveSupport::MessageEncryptor::InvalidMessage
-          say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
         end
 
         def warn_if_credentials_are_invalid
