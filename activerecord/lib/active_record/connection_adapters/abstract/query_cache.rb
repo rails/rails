@@ -9,6 +9,14 @@ module ActiveRecord
       DEFAULT_SIZE = 100 # :nodoc:
 
       class << self
+        def enabled_by_default # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_query_cache_enabled] || false
+        end
+
+        def enabled_by_default=(enabled) # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_query_cache_enabled] = enabled
+        end
+
         def included(base) # :nodoc:
           dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :update_with_result,
             :delete, :truncate, :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction,
@@ -104,30 +112,10 @@ module ActiveRecord
           end
       end
 
-      # Each connection pool has one of these registries. They map execution
-      # contexts to query cache stores.
-      #
-      # The keys of the internal map are threads or fibers (whatever
-      # ActiveSupport::IsolatedExecutionState.context returns), and their
-      # associated values are their respective query cache stores.
-      class QueryCacheRegistry # :nodoc:
-        def initialize
-          @mutex = Mutex.new
-          @map = ObjectSpace::WeakKeyMap.new
-        end
-
-        def compute_if_absent(context)
-          @map[context] || @mutex.synchronize do
-            @map[context] ||= yield
-          end
-        end
-      end
-
       module ConnectionPoolConfiguration # :nodoc:
         def initialize(...)
           super
           @query_cache_version = Concurrent::AtomicFixnum.new
-          @thread_query_caches = QueryCacheRegistry.new
           @query_cache_max_size = \
             case query_cache = db_config&.query_cache
             when 0, false
@@ -176,6 +164,11 @@ module ActiveRecord
           query_cache.dirties = true
         end
 
+        def reset_query_cache! # :nodoc:
+          prepare_query_cache(query_cache)
+          clear_query_cache
+        end
+
         def query_cache_enabled
           query_cache.enabled
         end
@@ -195,9 +188,17 @@ module ActiveRecord
         end
 
         def query_cache
-          @thread_query_caches.compute_if_absent(ActiveSupport::IsolatedExecutionState.context) do
-            Store.new(@query_cache_version, @query_cache_max_size)
-          end
+          ConnectionPool.used_pools!.query_cache_for(self)
+        end
+
+        def build_query_cache # :nodoc:
+          Store.new(@query_cache_version, @query_cache_max_size).tap { |cache| prepare_query_cache(cache) }
+        end
+
+        def prepare_query_cache(cache) # :nodoc:
+          cache.enabled = QueryCache.enabled_by_default && db_config&.query_cache != false
+          cache.dirties = true
+          cache.clear
         end
       end
 

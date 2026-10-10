@@ -155,14 +155,21 @@ module ActiveRecord
       # Returns true if there are any active connections among the connection
       # pools that the ConnectionHandler is managing.
       def active_connections?(role = nil)
-        each_connection_pool(role).any?(&:active_connection?)
+        role = nil if role == :all
+        ConnectionPool.each_used_pool do |pool|
+          return true if manages?(pool, role) && pool.active_connection?
+        end
+        false
       end
 
       # Returns any connections in use by the current thread back to the pool.
       def clear_active_connections!(role = nil)
-        each_connection_pool(role).each do |pool|
+        role = nil if role == :all
+        ConnectionPool.each_used_pool do |pool|
+          next unless manages?(pool, role)
+
           pool.release_connection
-          pool.disable_query_cache!
+          pool.reset_query_cache!
         end
       end
 
@@ -240,6 +247,11 @@ module ActiveRecord
         # Returns the pool manager for a connection name / identifier.
         def get_pool_manager(connection_name)
           connection_name_to_pool_manager[connection_name]
+        end
+
+        def manages?(pool, role)
+          pool.is_a?(ConnectionPool) && (role.nil? || pool.role == role) &&
+            get_pool_manager(pool.pool_config.connection_descriptor.name)&.get_pool_config(pool.role, pool.shard).equal?(pool.pool_config)
         end
 
         # Get the existing pool manager or initialize and assign a new one.

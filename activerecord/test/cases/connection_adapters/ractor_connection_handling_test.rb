@@ -536,6 +536,35 @@ module ActiveRecord
             assert_equal 42, result
           end
 
+          def test_all_open_transactions_sees_a_worker_side_transaction
+            outside, inside = on_ractor do
+              [
+                ActiveRecord.all_open_transactions.size,
+                ActiveRecord::Base.transaction do
+                  ActiveRecord::Base.lease_connection.select_value("SELECT 1")
+                  ActiveRecord.all_open_transactions.size
+                end,
+              ]
+            end
+
+            assert_equal 0, outside
+            assert_equal 1, inside
+          end
+
+          def test_all_open_transactions_sees_a_transaction_on_a_pinned_connection
+            seen = on_ractor do
+              pool = ActiveRecord::Base.connection_pool
+              pool.pin_connection!(false)
+              begin
+                Thread.new { ActiveRecord::Base.transaction { ActiveRecord.all_open_transactions.size } }.value
+              ensure
+                pool.unpin_connection!
+              end
+            end
+
+            assert_equal 1, seen
+          end
+
           def test_transaction_commit_rollback_and_generated_id
             table = widgets_table
             kept_id, committed, rolled_back = on_ractor(table) do |widgets|

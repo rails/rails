@@ -127,6 +127,48 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
+      # The pools that an execution context has used.
+      class UsedPoolSet # :nodoc:
+        def initialize(query_caches = ObjectSpace::WeakKeyMap.new)
+          @query_caches = query_caches
+          # The above WeakKeyMap can't be iterated, so we need a separate (also
+          # weak) list of its keys.
+          @pools = ObjectSpace::WeakMap.new
+        end
+
+        def query_cache_for(pool)
+          add(pool)
+          @query_caches[pool] ||= pool.build_query_cache
+        end
+
+        def add(pool)
+          return if @pools.key?(pool.object_id)
+
+          @pools[pool.object_id] = pool
+          if (cache = @query_caches[pool])
+            pool.prepare_query_cache(cache)
+          end
+        end
+
+        def include?(pool)
+          @pools.key?(pool.object_id)
+        end
+
+        def each_pool(&block)
+          @pools.each_value(&block)
+        end
+
+        def initialize_copy(other)
+          super
+          @pools = ObjectSpace::WeakMap.new
+          other.each_pool { |pool| @pools[pool.object_id] = pool }
+        end
+
+        def without_pools
+          self.class.new(@query_caches)
+        end
+      end
+
       class Lease # :nodoc:
         attr_accessor :connection, :sticky
 
@@ -184,18 +226,29 @@ module ActiveRecord
       module ExecutorHooks # :nodoc:
         class << self
           def run
-            # noop
+            outer = ConnectionPool.used_pools
+            ConnectionPool.used_pools = outer&.dup
+            outer
           end
 
-          def complete(_)
-            ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
+          def complete(outer)
+            kept = nil
+
+            ConnectionPool.each_used_pool do |pool|
               if (connection = pool.active_connection?)
                 transaction = connection.current_transaction
                 if transaction.closed? || !transaction.joinable?
                   pool.release_connection
+                else
+                  (kept ||= []) << pool
                 end
               end
             end
+
+            inner = ConnectionPool.used_pools
+            ConnectionPool.used_pools = outer || inner&.without_pools
+
+            kept&.each { |pool| ConnectionPool.used_pools.add(pool) }
           end
         end
       end
@@ -203,6 +256,24 @@ module ActiveRecord
       class << self
         def install_executor_hooks(executor = ActiveSupport::Executor)
           executor.register_hook(ExecutorHooks)
+        end
+
+        def used_pools # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_used_pools]
+        end
+
+        def used_pools! # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_used_pools] ||= UsedPoolSet.new
+        end
+
+        def used_pools=(used_pools) # :nodoc:
+          ActiveSupport::IsolatedExecutionState[:active_record_used_pools] = used_pools
+        end
+
+        def each_used_pool # :nodoc:
+          used_pools&.each_pool do |pool|
+            yield pool unless pool.discarded?
+          end
         end
       end
 
@@ -598,6 +669,8 @@ module ActiveRecord
       # Raises:
       # - ActiveRecord::ConnectionTimeoutError no connection can be obtained from the pool.
       def checkout(checkout_timeout = @checkout_timeout)
+        ConnectionPool.used_pools!.add(self)
+
         return checkout_and_verify(acquire_connection(checkout_timeout)) unless @pinned_connection
 
         @pinned_connection.lock.synchronize do

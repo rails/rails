@@ -119,6 +119,57 @@ module ActiveRecord
         end
       end
 
+      test "a transaction the unit of work leaves open is seen after it" do
+        in_new_thread_with_temporary_pool do
+          executor.wrap { ActiveRecord::Base.lease_connection.begin_transaction }
+          assert_equal 1, ActiveRecord.all_open_transactions.size
+        ensure
+          ActiveRecord::Base.lease_connection.rollback_transaction
+        end
+      end
+
+      test "a unit of work only consults the pools it has used" do
+        in_new_thread_with_temporary_pool do |pool_config|
+          other_pool = ConnectionPool.new(pool_config)
+          executor.wrap { other_pool.lease_connection }
+
+          executor.wrap do
+            ActiveRecord::Base.lease_connection
+            used_pools = ConnectionPool.enum_for(:each_used_pool).to_a
+            assert_includes used_pools, ActiveRecord::Base.connection_pool
+            assert_not_includes used_pools, other_pool
+          end
+        ensure
+          other_pool&.disconnect!
+        end
+      end
+
+      test "a pool used again in a later unit of work has its query cache enabled again" do
+        in_new_thread_with_temporary_pool do
+          2.times do
+            executor.wrap do
+              ActiveRecord::Base.connection_pool.with_connection do |connection|
+                assert_queries_count(1) { 2.times { connection.select_all("SELECT 1") } }
+              end
+            end
+          end
+        end
+      end
+
+      test "a query cache enabled before the unit of work is left alone by it" do
+        in_new_thread_with_temporary_pool do
+          pool = ActiveRecord::Base.connection_pool
+          pool.enable_query_cache!
+          pool.with_connection { |connection| connection.select_all("SELECT 1") }
+
+          executor.wrap do
+            assert_no_queries { pool.with_connection { |connection| connection.select_all("SELECT 1") } }
+          end
+
+          assert_no_queries { pool.with_connection { |connection| connection.select_all("SELECT 1") } }
+        end
+      end
+
       test "proxy is polite to its body and responds to it" do
         body = Class.new(String) { def to_path; "/path"; end }.new
         app = lambda { |_| [200, {}, body] }
@@ -135,6 +186,19 @@ module ActiveRecord
       end
 
       private
+        # Runs the block in a new execution context, against a temporary pool:
+        # with an in-memory database, any extra connection the thread left in the
+        # real pool would be to an empty database.
+        def in_new_thread_with_temporary_pool
+          with_temporary_connection_pool do |pool_config|
+            Thread.new do
+              yield pool_config
+            ensure
+              ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
+            end.join
+          end
+        end
+
         def executor
           @executor ||= Class.new(ActiveSupport::Executor).tap do |exe|
             ActiveRecord::QueryCache.install_executor_hooks(exe)
