@@ -172,6 +172,64 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_equal "Comment", on_ractor { Post.reflect_on_association(:comment).klass.name }
       end
 
+      test "continuable jobs are performed from a non-main Ractor" do
+        app_file "app/jobs/import_job.rb", <<~RUBY
+          class ImportJob < ApplicationJob
+            include ActiveJob::Continuable
+
+            # Records the resumptions it schedules in the Ractor that schedules them.
+            class Adapter < ActiveJob::QueueAdapters::AbstractAdapter
+              def enqueue_at(job, timestamp)
+                Ractor.current[:resumption] = {
+                  "attributes" => job.attributes,
+                  "continuation" => job.continuation.to_h,
+                  "wait" => timestamp - Time.now.to_f,
+                }
+              end
+            end
+
+            self.queue_adapter = Adapter.new
+
+            attribute :imported, default: -> { [] }
+            attribute :count, :integer, default: 0
+
+            def perform(*items)
+              step :import do |step|
+                items.drop(step.cursor || 0).each do |item|
+                  imported << item
+                  step.advance!(from: step.cursor || 0)
+                end
+              end
+
+              step :count_imported
+
+              # Interrupts the job, which then resumes to run this step on its own.
+              step(:finish, isolated: true) { }
+            end
+
+            private
+              def count_imported
+                self.count = imported.size
+              end
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ImportJob.resume_options
+
+        resumption = on_ractor do
+          ImportJob.perform_now("a", "b")
+          Ractor.current[:resumption]
+        end
+
+        assert_equal({ "imported" => %w[a b], "count" => 2 }, resumption["attributes"])
+        assert_equal({ "completed" => %w[import count_imported] }, resumption["continuation"])
+        assert_in_delta 5, resumption["wait"], 1
+      end
+
       private
         def ractorize!
           @original_experimental_warning = Warning[:experimental]
