@@ -225,6 +225,15 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_operator Mime[:html], :==, :html
   end
 
+  test "type equality with strings, symbols, and types" do
+    assert_operator Mime[:html], :==, "text/html"
+    assert_operator Mime[:html], :==, Mime[:html]
+    assert_not_operator Mime[:html], :==, "application/json"
+    assert_not_operator Mime[:html], :==, :json
+    assert_not_operator Mime[:html], :==, Mime[:json]
+    assert_not_operator Mime[:html], :==, nil
+  end
+
   test "type convenience methods" do
     types = Mime.symbols.uniq - [:iphone]
 
