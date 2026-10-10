@@ -187,8 +187,9 @@ class String
       return false if getbyte(0) > 32
 
       i = 0
-      while i < bytesize
+      while true
         byte = getbyte(i)
+        break unless byte
         return false unless byte == 32 || (byte >= 9 && byte <= 13)
         i += 1
       end
