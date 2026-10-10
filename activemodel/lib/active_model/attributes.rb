@@ -42,7 +42,7 @@ module ActiveModel
 
     module ClassMethods
       ##
-      # :call-seq: attribute(name, cast_type = nil, default: nil, **options)
+      # :call-seq: attribute(name, cast_type = nil, default: nil, writer: true, **options)
       #
       # Defines a model attribute. In addition to the attribute name, a cast
       # type and default value may be specified, as well as any options
@@ -60,9 +60,27 @@ module ActiveModel
       #
       #   person.name   # => "Volmer"
       #   person.active # => true
-      def attribute(name, ...)
-        super
+      #
+      # Pass <tt>writer: false</tt> to make the generated writer private. The
+      # attribute can still be given a value at construction or through
+      # +assign_attributes+, but cannot be assigned directly:
+      #
+      #   class Person
+      #     include ActiveModel::API
+      #     include ActiveModel::Attributes
+      #
+      #     attribute :name, :string, writer: false
+      #   end
+      #
+      #   person = Person.new(name: "Volmer")
+      #
+      #   person.name               # => "Volmer"
+      #   person.respond_to?(:name=) # => false
+      #   person.name = "Jane"      # => NoMethodError
+      def attribute(name, *args, writer: true, **options)
+        super(name, *args, **options)
         define_attribute_method(name)
+        private(:"#{name}=") unless writer
       end
 
       # Returns an array of attribute names as strings.
@@ -149,6 +167,21 @@ module ActiveModel
     #   person.attribute_names # => ["name", "age"]
     def attribute_names
       @attributes.keys
+    end
+
+    # Attributes declared with <tt>writer: false</tt> have no public writer, so
+    # mass assignment cannot reach them through +public_send+. They are still
+    # assignable at construction, which is what makes an object that is built
+    # once and read from afterwards possible, so write them directly instead of
+    # treating them as unknown.
+    def attribute_writer_missing(name, value) # :nodoc:
+      if self.class.attribute_types.key?(name.to_s) && respond_to?(:"#{name}=", true)
+        _write_attribute(name.to_s, value)
+      elsif defined?(super)
+        super
+      else
+        raise UnknownAttributeError.new(self, name.to_s)
+      end
     end
 
     def freeze # :nodoc:
