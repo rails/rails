@@ -1,3 +1,12 @@
+*   Combine `except_on` given at both the `validates` level and inside a specific
+    validator, like `on` already does.
+
+    The inner option replaced the outer one, so `validates :password,
+    presence: { except_on: :create }, except_on: :update` still validated in the
+    `:update` context.
+
+    *Carlos Daniel Pohlod*
+
 *   Treat `:except_on` as a callback option in `ActiveModel::Error`.
 
     Errors from validations using `:except_on` now match `errors.added?` queries
