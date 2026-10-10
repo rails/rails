@@ -38,7 +38,7 @@ module ActiveSupport
         end
 
         def explicitly_allowed?(message)
-          allowances = @explicitly_allowed_warnings.value
+          allowances = IsolatedExecutionState[@explicitly_allowed_warnings_key]
           return false unless allowances
           return true if allowances == :all
           message && Array(allowances).any? do |rule|

@@ -5,6 +5,7 @@ require "logger"
 require "stringio"
 require "active_support/core_ext/enumerable"
 require "active_support/testing/stream"
+require "active_support/testing/ractors_assertions"
 
 class Deprecatee
   attr_accessor :fubar, :foo_bar
@@ -24,6 +25,7 @@ end
 
 class DeprecationTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Stream
+  include ActiveSupport::Testing::RactorsAssertions
 
   def setup
     @deprecator = ActiveSupport::Deprecation.new
@@ -812,6 +814,41 @@ class DeprecationTest < ActiveSupport::TestCase
     @deprecator.allow(["fubar"]) do
       assert_disallowed(@deprecator) { @deprecator.warn }
     end
+  end
+
+  test "a frozen deprecator warns with its default behavior" do
+    @deprecator.freeze
+
+    assert_match(/fubar/, capture(:stderr) { @deprecator.warn("fubar") })
+  end
+
+  test "a frozen deprecator raises disallowed warnings with its default disallowed behavior" do
+    @deprecator.disallowed_warnings = :all
+    @deprecator.freeze
+
+    assert_raises(ActiveSupport::DeprecationException) { @deprecator.warn("fubar") }
+  end
+
+  test "warn from a non-main Ractor" do
+    @deprecator.behavior = :raise
+    ActiveSupport::Ractors.make_shareable(@deprecator)
+
+    message = on_ractor(@deprecator) do |deprecator|
+      deprecator.warn("fubar")
+    rescue ActiveSupport::DeprecationException => error
+      error.message
+    end
+
+    assert_match(/fubar/, message)
+  end
+
+  test "silence and allow from a non-main Ractor" do
+    @deprecator.behavior = :silence
+    @deprecator.disallowed_warnings = :all
+    ActiveSupport::Ractors.make_shareable(@deprecator)
+
+    assert_nil on_ractor(@deprecator) { |deprecator| deprecator.silence { deprecator.warn("fubar") } }
+    assert_match(/fubar/, on_ractor(@deprecator) { |deprecator| deprecator.allow { deprecator.warn("fubar") } })
   end
 
   test "warn deprecation skips the internal caller locations" do

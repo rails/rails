@@ -51,15 +51,15 @@ module ActiveSupport
       end
 
       def begin_silence # :nodoc:
-        @silence_counter.value += 1
+        IsolatedExecutionState[@silence_counter_key] = silence_counter + 1
       end
 
       def end_silence # :nodoc:
-        @silence_counter.value -= 1
+        IsolatedExecutionState[@silence_counter_key] = silence_counter - 1
       end
 
       def silenced
-        @silenced || @silence_counter.value.nonzero?
+        @silenced || silence_counter.nonzero?
       end
 
       # Allow previously disallowed deprecation warnings within the block.
@@ -97,7 +97,13 @@ module ActiveSupport
         conditional = binding.local_variable_get(:if)
         conditional = conditional.call if conditional.respond_to?(:call)
         if conditional
-          @explicitly_allowed_warnings.bind(allowed_warnings, &block)
+          allowed_warnings_was = IsolatedExecutionState[@explicitly_allowed_warnings_key]
+          IsolatedExecutionState[@explicitly_allowed_warnings_key] = allowed_warnings
+          begin
+            yield
+          ensure
+            IsolatedExecutionState[@explicitly_allowed_warnings_key] = allowed_warnings_was
+          end
         else
           yield
         end
@@ -111,6 +117,10 @@ module ActiveSupport
       end
 
       private
+        def silence_counter
+          IsolatedExecutionState[@silence_counter_key] || 0
+        end
+
         # Outputs a deprecation warning message
         #
         # ```
@@ -158,9 +168,9 @@ module ActiveSupport
           [offending_line.path, offending_line.lineno, offending_line.label]
         end
 
-        RAILS_GEM_ROOT = File.expand_path("../../../..", __dir__) + "/"
+        RAILS_GEM_ROOT = (File.expand_path("../../../..", __dir__) + "/").freeze
         private_constant :RAILS_GEM_ROOT
-        LIB_DIR = RbConfig::CONFIG["libdir"]
+        LIB_DIR = -RbConfig::CONFIG["libdir"]
         private_constant :LIB_DIR
 
         def ignored_callstack?(path)
