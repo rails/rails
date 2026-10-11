@@ -1519,7 +1519,7 @@ module ActionView
                 next if k.blank? || v.nil?
 
                 output << sep
-                output << prefix_tag_option(key, k, v, escape)
+                prefix_tag_option(output, key, k, v, escape)
               end
             elsif type == :aria && value.is_a?(Hash)
               value.each_pair do |k, v|
@@ -1536,16 +1536,16 @@ module ActionView
                 end
 
                 output << sep
-                output << prefix_tag_option(key, k, v, escape)
+                prefix_tag_option(output, key, k, v, escape)
               end
             elsif type == :boolean
               if value
                 output << sep
-                output << boolean_tag_option(key)
+                boolean_tag_option(output, key)
               end
             elsif !value.nil?
               output << sep
-              output << tag_option(key, value, escape)
+              tag_option(output, key, value, escape)
             end
           end
           output unless output.empty?
@@ -1566,11 +1566,12 @@ module ActionView
             "<#{name}#{tag_options(options, escape)}#{tag_suffix}".html_safe
           end
 
-          def boolean_tag_option(key)
-            %(#{key}="#{key}")
+          def boolean_tag_option(output, key)
+            key = key.to_s
+            output << key << '="' << key << '"'
           end
 
-          def tag_option(key, value, escape)
+          def tag_option(output, key, value, escape)
             key = ERB::Util.xml_name_escape(key) if escape
 
             case value
@@ -1584,15 +1585,15 @@ module ActionView
             end
             value = value.gsub('"', "&quot;") if value.include?('"')
 
-            %(#{key}="#{value}")
+            output << key.to_s << '="' << value << '"'
           end
 
-          def prefix_tag_option(prefix, key, value, escape)
+          def prefix_tag_option(output, prefix, key, value, escape)
             key = "#{prefix}-#{key.to_s.dasherize}"
             unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
               value = value.to_json
             end
-            tag_option(key, value, escape)
+            tag_option(output, key, value, escape)
           end
 
           def respond_to_missing?(*args)
