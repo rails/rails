@@ -78,6 +78,22 @@ class ActiveStorage::Analyzer::ImageAnalyzer::ImageMagickTest < ActiveSupport::T
     end
   end
 
+  test "analyzing with variant processing disabled and ruby-vips unavailable" do
+    stub_const(ActiveStorage, :VIPS_AVAILABLE, false) do
+      previous_processor, ActiveStorage.variant_processor = ActiveStorage.variant_processor, :disabled
+
+      blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+      metadata = extract_metadata_from(blob)
+
+      assert_equal 4104, metadata[:width]
+      assert_equal 2736, metadata[:height]
+    rescue LoadError
+      ENV["BUILDKITE"] ? raise : skip("Variant processor image_magick is not installed")
+    ensure
+      ActiveStorage.variant_processor = previous_processor
+    end
+  end
+
   test "instrumenting analysis" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
 
