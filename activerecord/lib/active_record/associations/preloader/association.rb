@@ -190,7 +190,7 @@ module ActiveRecord
             # Processing only the first owner
             # because the record is modified but not an owner
             association = owners.first.association(reflection.name)
-            association.set_inverse_instance(record)
+            association.set_inverse_instance_from_queries(record)
           end
         end
 
@@ -228,7 +228,7 @@ module ActiveRecord
               association.target = record
 
               if i == 0 # Set inverse on first owner
-                association.set_inverse_instance(record)
+                association.set_inverse_instance_from_queries(record)
               end
             end
           end
