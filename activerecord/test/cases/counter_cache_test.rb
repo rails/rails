@@ -39,6 +39,37 @@ class CounterCacheTest < ActiveRecord::TestCase
     belongs_to :special_topic, foreign_key: "parent_id", counter_cache: "replies_count"
   end
 
+  class ::Cpk::Order
+    has_many :books_with_decoupled_query_constraints,
+      class_name: "Cpk::BookWithDecoupledQueryConstraints",
+      primary_key: :status,
+      foreign_key: :title,
+      query_constraints: :shop_id
+  end
+
+  class ::Cpk::OrderWithOrderedShops < Cpk::Order
+    default_scope { order(shop_id: :desc) }
+  end
+
+  class ::Cpk::BookWithDecoupledQueryConstraints < ActiveRecord::Base
+    self.table_name = :cpk_books
+    self.primary_key = [:author_id, :id]
+
+    belongs_to :order_with_decoupled_query_constraints,
+      class_name: "Cpk::Order",
+      primary_key: :status,
+      foreign_key: :title,
+      query_constraints: :shop_id,
+      counter_cache: :books_count
+
+    belongs_to :order_with_decoupled_query_constraints_and_touch,
+      class_name: "Cpk::OrderWithOrderedShops",
+      primary_key: :status,
+      foreign_key: :title,
+      query_constraints: :shop_id,
+      touch: true
+  end
+
   setup do
     @topic = Topic.find(1)
   end
@@ -60,6 +91,69 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_difference -> { @topic.reload.replies_count } do
       ScopedCounterCacheChild.create!(title: "Counter cache child", parent_id: @topic.id, approved: true)
     end
+  end
+
+  test "belongs_to counter cache creation uses decoupled query constraints" do
+    matching_order, other_order = create_orders_with_same_status
+
+    create_book_with_decoupled_query_constraints(matching_order)
+
+    assert_equal 1, matching_order.reload.books_count
+    assert_equal 0, other_order.reload.books_count
+  end
+
+  test "belongs_to counter cache destruction uses decoupled query constraints" do
+    matching_order, other_order = create_orders_with_same_status
+    book = create_book_with_decoupled_query_constraints(matching_order)
+
+    Cpk::BookWithDecoupledQueryConstraints.find(book.id).destroy!
+
+    assert_equal 0, matching_order.reload.books_count
+    assert_equal 0, other_order.reload.books_count
+  end
+
+  test "belongs_to counter cache reassignment uses decoupled query constraints" do
+    old_order, other_old_order = create_orders_with_same_status(status: "old")
+    new_order, other_new_order = create_orders_with_same_status(status: "new")
+    book = create_book_with_decoupled_query_constraints(old_order)
+
+    Cpk::BookWithDecoupledQueryConstraints.find(book.id).update!(title: new_order.status)
+
+    assert_equal 0, old_order.reload.books_count
+    assert_equal 0, other_old_order.reload.books_count
+    assert_equal 1, new_order.reload.books_count
+    assert_equal 0, other_new_order.reload.books_count
+  end
+
+  test "reset counters uses decoupled query constraints" do
+    matching_order, other_order = create_orders_with_same_status
+    create_book_with_decoupled_query_constraints(matching_order)
+    matching_order.update_column(:books_count, 0)
+    other_order.update_column(:books_count, 0)
+
+    Cpk::Order.reset_counters(matching_order.id, :books_with_decoupled_query_constraints)
+    Cpk::Order.reset_counters(other_order.id, :books_with_decoupled_query_constraints)
+
+    assert_equal 1, matching_order.reload.books_count
+    assert_equal 0, other_order.reload.books_count
+  end
+
+  test "belongs_to touch uses decoupled query constraints for the old target" do
+    other_old_order = Cpk::Order.create!(shop_id: 202, status: "old")
+    old_order = Cpk::Order.create!(shop_id: 101, status: "old")
+    new_order = Cpk::Order.create!(shop_id: 101, status: "new")
+    book = create_book_with_decoupled_query_constraints(old_order)
+    timestamp = 1.day.ago
+    timestamps = [other_old_order, old_order, new_order].to_h do |order|
+      order.update_column(:updated_at, timestamp)
+      [order, order.reload.updated_at]
+    end
+
+    Cpk::BookWithDecoupledQueryConstraints.find(book.id).update!(title: new_order.status)
+
+    assert_operator old_order.reload.updated_at, :>, timestamps[old_order]
+    assert_equal timestamps[other_old_order], other_old_order.reload.updated_at
+    assert_operator new_order.reload.updated_at, :>, timestamps[new_order]
   end
 
   test "increment counter" do
@@ -575,6 +669,24 @@ class CounterCacheTest < ActiveRecord::TestCase
   end
 
   private
+    def create_orders_with_same_status(status: "paid")
+      [
+        Cpk::Order.create!(shop_id: 101, status: status),
+        Cpk::Order.create!(shop_id: 202, status: status),
+      ]
+    end
+
+    def create_book_with_decoupled_query_constraints(order)
+      book = Cpk::BookWithDecoupledQueryConstraints.new(
+        author_id: 303,
+        shop_id: order.shop_id,
+        title: order.status
+      )
+      book.write_attribute(:id, 404)
+      book.save!
+      book
+    end
+
     def assert_touching(record, *attributes)
       record.update_columns attributes.index_with(5.minutes.ago)
       touch_times = attributes.index_with { |attr| record.public_send(attr) }
