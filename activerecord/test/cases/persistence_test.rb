@@ -625,6 +625,20 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_not_equal original.object_id, clone.object_id
   end
 
+  def test_becomes_keeps_strict_loading_association_cache
+    ship = Ship.create!(name: "Endurance", developer: Developer.first)
+    developer = Developer.preload(:strict_loading_ship).find(ship.developer_id)
+    sub = developer.becomes(SubDeveloper)
+    assert_predicate sub.association(:strict_loading_ship), :loaded?
+    assert_equal ship, sub.strict_loading_ship
+  end
+
+  def test_becomes_does_not_copy_non_strict_loading_association_cache
+    firm = Firm.preload(:account).first!
+    agency = firm.becomes(Agency)
+    assert_not_predicate agency.association(:account), :loaded?
+  end
+
   def test_delete_many
     original_count = Topic.count
     Topic.delete(deleting = [1, 2])
