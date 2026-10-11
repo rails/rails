@@ -981,6 +981,21 @@ class PerFormTokensControllerTest < ActionController::TestCase
   def setup
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
+
+    # A per-form token is derived from the path the form posts to, resolved
+    # against the request path. These tests were written against the
+    # "/per_form_tokens" that the `:controller(/:action)` catch-all generated
+    # for #index, so keep #index there rather than at "/per_form_tokens/index".
+    [@routes, SharedTestRoutes].each do |route_set|
+      already_routed = route_set.routes.any? { |route|
+        route.defaults[:controller] == "per_form_tokens" && route.defaults[:action] == "index"
+      }
+      next if already_routed
+
+      append_routes(route_set) do
+        get "/per_form_tokens", to: "per_form_tokens#index"
+      end
+    end
   end
 
   def teardown

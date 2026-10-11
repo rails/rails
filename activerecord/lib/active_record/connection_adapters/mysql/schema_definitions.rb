@@ -64,6 +64,17 @@ module ActiveRecord
         def disabled?
           !@enabled
         end
+
+        def as_schema_json
+          json = super
+          json["disabled"] = true unless @enabled
+          json
+        end
+
+        def init_from_schema_json(coder, references)
+          super
+          @enabled = !coder["disabled"]
+        end
       end
 
       # = Active Record MySQL Adapter \Table Definition
@@ -137,9 +148,11 @@ module ActiveRecord
         def remove_column(column_name, _type = nil, **options)
           extract_algorithm_and_lock!(options)
           # MySQL rejects `DROP COLUMN` on a column referenced by a foreign key,
-          # so drop the FK in the same `ALTER TABLE` statement as the column.
+          # so drop the FK in the same `ALTER TABLE` statement as the column,
+          # unless `remove_foreign_key` has already queued it.
           if fk = @td.conn.send(:foreign_key_for, name, column: column_name)
-            @operations << DropForeignKey.new(fk.name)
+            operation = DropForeignKey.new(fk.name)
+            @operations << operation unless @operations.include?(operation)
           end
           super
         end
@@ -181,7 +194,7 @@ module ActiveRecord
           if options[:collation] == :no_collation
             options.delete(:collation)
           else
-            options[:collation] ||= column.collation if conn.send(:text_type?, type)
+            options[:collation] ||= column.collation if conn.text_type?(type)
           end
 
           unless options.key?(:auto_increment)

@@ -301,8 +301,14 @@ class UrlHelperControllerTest < ActionController::TestCase
         to: "url_helper_controller_test/url_helper#show_named_route",
         as: :show_named_route
 
-      ActionDispatch.deprecator.silence do
-        get "/:controller(/:action(/:id))"
+      %w(
+        show_url_for
+        nil_url_for
+        normalize_recall_params
+        recall_params_not_changed
+      ).each do |action|
+        get "url_helper_controller_test/url_helper/#{action}",
+          to: "url_helper_controller_test/url_helper##{action}"
       end
 
       get "url_helper_controller_test/url_helper/normalize_recall_params",

@@ -107,6 +107,39 @@ module ActionDispatch
       end
     end
 
+    class MultilineMessageSyntaxError < SyntaxError; end
+
+    test "#source_extracts only treats message lines with a location as trace entries" do
+      exception = begin
+        raise MultilineMessageSyntaxError, <<~MESSAGE
+          Compilation Errors:
+
+          Error #1: RubyParse
+            File: [source]
+            Location: Line 1, Column 8
+          lib/file.rb:42: unexpected end-of-input
+        MESSAGE
+      rescue SyntaxError => ex
+        ex
+      end
+
+      wrapper = ExceptionWrapper.new(nil, exception)
+      traces = wrapper.source_extracts.map { |extract| extract[:trace].to_s }
+
+      assert_includes traces, "lib/file.rb:42: unexpected end-of-input"
+      assert_not traces.any? { |trace| trace.include?("Compilation Errors") }
+    end
+
+    test "#source_fragment skips a path that is not a file" do
+      exception = begin index; rescue TestError => ex; ex; end
+
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      Rails.stub(:root, Pathname.new(File.expand_path("..", __dir__))) do
+        assert_nil wrapper.send(:source_fragment, "dispatch", 1)
+      end
+    end
+
     test "#source_extracts works with nil backtrace_locations" do
       exception = begin eval "class Foo; yield; end"; rescue SyntaxError => ex; ex; end
 
@@ -130,6 +163,29 @@ module ActionDispatch
       end
       code[lineno + 2] = ["        1", ".time", "\n"]
       assert_equal({ code: code, line_number: lineno + 2, trace: wrapper.source_extracts.first[:trace] }, wrapper.source_extracts.first)
+    end
+
+    test "#source_extracts works without error_highlight" do
+      lineno = __LINE__
+      begin
+        1.time
+      rescue NameError => exc
+      end
+
+      error_highlight = Object.send(:remove_const, :ErrorHighlight) if defined?(ErrorHighlight)
+      wrapper = ExceptionWrapper.new(nil, exc)
+
+      # Without error_highlight there is no column to mark: the source is read from the
+      # file, relative to Rails.root, as for any other exception.
+      code = {}
+      File.foreach(__FILE__).to_a.drop(lineno - 1).take(6).each_with_index do |line, i|
+        code[lineno + i] = line
+      end
+      Rails.stub(:root, Pathname.new(File.expand_path("../..", __dir__))) do
+        assert_equal({ code: code, line_number: lineno + 2, trace: wrapper.source_extracts.first[:trace] }, wrapper.source_extracts.first)
+      end
+    ensure
+      Object.const_set(:ErrorHighlight, error_highlight) if error_highlight
     end
 
     class_eval "def _app_views_tests_show_html_erb;

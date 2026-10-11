@@ -2733,13 +2733,12 @@ association, you can achieve similar functionality by using a join table with
 #### `:validate`
 
 If you set the `:validate` option to `true`, then new associated objects will be
-validated whenever you save this object. By default, this is `false`: new
+validated whenever you save this object. If you set it to `false`, new
 associated objects will not be validated when this object is saved.
 
-`has_and_belongs_to_many` does not support the `:validate` option. For this type
-of association, you can achieve similar functionality by using a join table with
-has_many `:through` association. You can read more about this in the
-[`has_many :through` section](#has-many-through).
+The default depends on the type of association. For `has_many` and
+`has_and_belongs_to_many`, it is `true`. For `belongs_to` and `has_one`, it is
+`false`, unless the `:autosave` option is set to `true`.
 
 
 #### `:inverse_of`

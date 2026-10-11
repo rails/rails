@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 #--
 # Copyright (c) David Heinemeier Hansson
 #
@@ -35,6 +36,7 @@ require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/string/inflections"
 require "active_support/lazy_load_hooks"
 
+# :markup: rdoc
 # :include: ../README.rdoc
 module ActionMailer
   extend ::ActiveSupport::Autoload
@@ -60,15 +62,15 @@ module ActionMailer
 
   class << self
     # Enqueue many emails at once to be delivered through Active Job.
-    # When the individual job runs, it will send the email using +deliver_now+.
+    # When the individual job runs, it will send the email using `deliver_now`.
     def deliver_all_later(*deliveries, **options)
       _deliver_all_later("deliver_now", *deliveries, **options)
     end
 
     # Enqueue many emails at once to be delivered through Active Job.
-    # When the individual job runs, it will send the email using +deliver_now!+.
-    # That means that the message will be sent bypassing checking +perform_deliveries+
-    # and +raise_delivery_errors+, so use with caution.
+    # When the individual job runs, it will send the email using `deliver_now!`.
+    # That means that the message will be sent bypassing checking `perform_deliveries`
+    # and `raise_delivery_errors`, so use with caution.
     def deliver_all_later!(*deliveries, **options)
       _deliver_all_later("deliver_now!", *deliveries, **options)
     end

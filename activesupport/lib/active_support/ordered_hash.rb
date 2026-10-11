@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "yaml"
@@ -7,19 +8,21 @@ YAML.add_builtin_type("omap") do |type, val|
 end
 
 module ActiveSupport
-  # DEPRECATED: +ActiveSupport::OrderedHash+ implements a hash that preserves
+  # DEPRECATED: `ActiveSupport::OrderedHash` implements a hash that preserves
   # insertion order.
   #
-  #   oh = ActiveSupport::OrderedHash.new
-  #   oh[:a] = 1
-  #   oh[:b] = 2
-  #   oh.keys # => [:a, :b], this order is guaranteed
+  # ```
+  # oh = ActiveSupport::OrderedHash.new
+  # oh[:a] = 1
+  # oh[:b] = 2
+  # oh.keys # => [:a, :b], this order is guaranteed
+  # ```
   #
-  # Also, maps the +omap+ feature for YAML files
+  # Also, maps the `omap` feature for YAML files
   # (See https://yaml.org/type/omap.html) to support ordered items
   # when loading from YAML.
   #
-  # +ActiveSupport::OrderedHash+ is namespaced to prevent conflicts
+  # `ActiveSupport::OrderedHash` is namespaced to prevent conflicts
   # with other implementations.
   class OrderedHash < ::Hash # :nodoc:
     def encode_with(coder)
@@ -38,7 +41,7 @@ module ActiveSupport
       self
     end
 
-    # Returns true to make sure that this hash is extractable via <tt>Array#extract_options!</tt>
+    # Returns true to make sure that this hash is extractable via `Array#extract_options!`
     def extractable_options?
       true
     end

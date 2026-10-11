@@ -3,6 +3,8 @@
 require "cases/helper"
 
 class CopyTableTest < ActiveRecord::SQLite3TestCase
+  skip_under_ractor_proxy
+
   fixtures :customers
 
   def setup

@@ -224,7 +224,7 @@ module ActiveRecord
             quietly { ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root") }
           end
         end
-        assert_match("failed to execute:", e.message)
+        assert_match("failed to execute:\nsqlite3 --noop db_create.sqlite3 .schema --nosys > awesome-file.sql", e.message)
       end
     ensure
       FileUtils.rm_f(filename)

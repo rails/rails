@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_model/validations/comparability"
 require "active_model/validations/resolve_value"
 require "bigdecimal/util"
@@ -151,6 +152,7 @@ module ActiveModel
     end
 
     module HelperMethods
+      # :markup: rdoc
       # Validates whether the value of the specified attribute is numeric by
       # trying to convert it to a float with +Kernel.Float+ (if
       # <tt>only_integer</tt> is +false+) or applying it to the regular

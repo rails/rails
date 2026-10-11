@@ -14,6 +14,11 @@ module RenderImplicitAction
   end
 
   class RenderImplicitActionTest < Rack::TestCase
+    draw do
+      get "/render_implicit_action/simple/hyphen-ated", to: "render_implicit_action/simple#hyphen-ated"
+      get "/render_implicit_action/simple/not_implemented", to: "render_implicit_action/simple#not_implemented"
+    end
+
     test "render a simple action with new explicit call to render" do
       get "/render_implicit_action/simple/hello_world"
 

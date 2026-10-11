@@ -85,15 +85,11 @@ module Enumerable
   # ```
   def index_with(default = (no_default = true))
     if block_given?
-      result = {}
-      each { |elem| result[elem] = yield(elem) }
-      result
+      to_h { |elem| [elem, yield(elem)] } # rubocop:disable Rails/IndexWith
     elsif no_default
       to_enum(:index_with) { size if respond_to?(:size) }
     else
-      result = {}
-      each { |elem| result[elem] = default }
-      result
+      to_h { |elem| [elem, default] } # rubocop:disable Rails/IndexWith
     end
   end
 

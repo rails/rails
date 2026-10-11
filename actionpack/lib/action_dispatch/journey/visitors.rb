@@ -148,12 +148,7 @@ module ActionDispatch
         end
 
         def visit_SYMBOL(n)
-          symbol = n.to_sym
-          if symbol == :controller
-            [Journey::Format.required_path(symbol)]
-          else
-            [Journey::Format.required_segment(symbol)]
-          end
+          [Journey::Format.required_segment(n.to_sym)]
         end
       end
 

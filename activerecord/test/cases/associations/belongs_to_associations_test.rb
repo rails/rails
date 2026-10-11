@@ -371,7 +371,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_raises_type_mismatch_with_namespaced_class
     assert_nil defined?(Region), "This test requires that there is no top-level Region class"
 
-    ActiveRecord::Base.lease_connection.instance_eval do
+    main_ractor_connection(ActiveRecord::Base.lease_connection).instance_eval do
       create_table(:admin_regions, force: true) { |t| t.string :name }
       add_column :admin_users, :region_id, :integer
     end
@@ -386,7 +386,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Admin.send :remove_const, "Region" if Admin.const_defined?("Region")
     Admin.send :remove_const, "RegionalUser" if Admin.const_defined?("RegionalUser")
 
-    ActiveRecord::Base.lease_connection.instance_eval do
+    main_ractor_connection(ActiveRecord::Base.lease_connection).instance_eval do
       remove_column :admin_users, :region_id if column_exists?(:admin_users, :region_id)
       drop_table :admin_regions, if_exists: true
     end

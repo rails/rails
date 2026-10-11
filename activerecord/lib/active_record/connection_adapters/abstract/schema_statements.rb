@@ -1285,7 +1285,7 @@ module ActiveRecord
         return if options[:if_not_exists] == true && foreign_key_exists?(from_table, to_table, **options.slice(:column, :primary_key))
 
         at = build_alter_table_definition from_table
-        at.add_foreign_key to_table, options
+        at.add_foreign_key(to_table, **options)
 
         execute_alter_table(at)
       end
@@ -1325,10 +1325,8 @@ module ActiveRecord
         to_table ||= options[:to_table]
         return if options.delete(:if_exists) == true && !foreign_key_exists?(from_table, to_table, **options.slice(:column, :name))
 
-        fk_name_to_delete = foreign_key_for!(from_table, to_table: to_table, **options).name
-
         at = build_alter_table_definition from_table
-        at.drop_foreign_key fk_name_to_delete
+        at.remove_foreign_key(to_table, **options)
 
         execute_alter_table(at)
       end
@@ -1415,7 +1413,7 @@ module ActiveRecord
         return if if_not_exists && check_constraint_exists?(table_name, **options)
 
         at = build_alter_table_definition(table_name)
-        at.add_check_constraint(expression, options)
+        at.add_check_constraint(expression, **options)
 
         execute_alter_table(at)
       end
@@ -1444,10 +1442,8 @@ module ActiveRecord
 
         return if if_exists && !check_constraint_exists?(table_name, expression: expression, **options)
 
-        chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
-
         at = build_alter_table_definition(table_name)
-        at.drop_check_constraint(chk_name_to_delete)
+        at.remove_check_constraint(expression, **options)
 
         execute_alter_table(at)
       end

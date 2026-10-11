@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails"
 require "action_view"
 
 module ActionView
-  # = Action View Railtie
+  # Action View Railtie
+  # ===================
   class Railtie < Rails::Engine # :nodoc:
     config.action_view = ActiveSupport::OrderedOptions.new
     config.action_view.embed_authenticity_token_in_remote_forms = nil
@@ -150,6 +152,7 @@ module ActionView
     rake_tasks do |app|
       unless app.config.api_only
         load "action_view/tasks/cache_digests.rake"
+        load "action_view/tasks/herb.rake"
       end
     end
   end

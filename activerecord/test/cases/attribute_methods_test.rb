@@ -20,6 +20,8 @@ require "models/book_identifier"
 class AttributeMethodsTest < ActiveRecord::TestCase
   include InTimeZone
 
+  skip_under_ractor_proxy :"test_time_zone-aware_custom_attributes"
+
   class EpochTimestamp < ActiveRecord::Type::DateTime
     def deserialize(time_or_int)
       Time.at(time_or_int).utc if time_or_int

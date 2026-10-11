@@ -37,6 +37,11 @@ module Arel
         array = [InfixOperation.new(:+, 1, 2), InfixOperation.new(:+, 1, 3)]
         assert_equal 2, array.uniq.size
       end
+
+      def test_inequality_with_different_operator
+        array = [InfixOperation.new(:+, 1, 2), InfixOperation.new(:-, 1, 2)]
+        assert_equal 2, array.uniq.size
+      end
     end
   end
 end

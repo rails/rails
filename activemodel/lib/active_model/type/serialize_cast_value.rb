@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Type
     module SerializeCastValue # :nodoc:
@@ -8,7 +9,9 @@ module ActiveModel
       module ClassMethods
         def serialize_cast_value_compatible?
           return @serialize_cast_value_compatible if defined?(@serialize_cast_value_compatible)
-          @serialize_cast_value_compatible = ancestors.index(instance_method(:serialize_cast_value).owner) <= ancestors.index(instance_method(:serialize).owner)
+          ActiveSupport::Ractors.on_main(self) do
+            @serialize_cast_value_compatible = ancestors.index(instance_method(:serialize_cast_value).owner) <= ancestors.index(instance_method(:serialize).owner)
+          end
         end
       end
 

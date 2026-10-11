@@ -679,11 +679,18 @@ module Rails
       if defined?(AbstractController::Base)
         [AbstractController::Base, *AbstractController::Base.descendants].each do |controller|
           Ractor.make_shareable(controller.config)
+          Ractor.make_shareable(controller._wrapper_options) if controller.include?(ActionController::ParamsWrapper)
         end
       end
 
       if defined?(ActiveRecord::Base)
         ActiveRecord::Base.descendants.each(&:make_reflections_shareable!)
+      end
+
+      if defined?(ActiveJob::Base)
+        [ActiveJob::Base, *ActiveJob::Base.descendants].each do |job|
+          Ractor.make_shareable(job.queue_adapter)
+        end
       end
 
       Ractor.make_shareable(self)

@@ -22,10 +22,6 @@ class Contact
     options.each { |name, value| public_send("#{name}=", value) }
   end
 
-  def pseudonyms
-    nil
-  end
-
   def persisted?
     id
   end

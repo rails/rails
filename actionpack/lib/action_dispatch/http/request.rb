@@ -76,33 +76,25 @@ module ActionDispatch
     def commit_cookie_jar! # :nodoc:
     end
 
-    PASS_NOT_FOUND = Class.new { # :nodoc:
-      def self.action(_); self; end
-      def self.call(_); [404, { Constants::X_CASCADE => "pass" }, []]; end
-      def self.action_encoding_template(action); false; end
-    }
-
     def controller_class
-      params = path_parameters
-      params[:action] ||= "index"
-      controller_class_for(params[:controller])
+      controller_class_for(path_parameters[:controller])
     end
 
     def controller_class_for(name)
-      if name
-        controller_param = name.underscore
-        const_name = controller_param.camelize << "Controller"
-        begin
-          const_name.constantize
-        rescue NameError => error
-          if error.missing_name == const_name || const_name.start_with?("#{error.missing_name}::")
-            raise MissingController.new(error.message, error.name)
-          else
-            raise
-          end
+      unless name
+        raise MissingController, "No :controller in path parameters; the request has not been routed to a controller"
+      end
+
+      controller_param = name.underscore
+      const_name = controller_param.camelize << "Controller"
+      begin
+        const_name.constantize
+      rescue NameError => error
+        if error.missing_name == const_name || const_name.start_with?("#{error.missing_name}::")
+          raise MissingController.new(error.message, error.name)
+        else
+          raise
         end
-      else
-        PASS_NOT_FOUND
       end
     end
 
@@ -153,7 +145,7 @@ module ActionDispatch
     # Returns the URI pattern of the matched route for the request, using the same
     # format as `bin/rails routes`:
     #
-    #     request.route_uri_pattern # => "/:controller(/:action(/:id))(.:format)"
+    #     request.route_uri_pattern # => "/posts/:id(.:format)"
     def route_uri_pattern
       unless pattern = get_header("action_dispatch.route_uri_pattern")
         route = get_header("action_dispatch.route")

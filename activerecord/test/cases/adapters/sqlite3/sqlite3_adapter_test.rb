@@ -9,6 +9,12 @@ require "support/schema_dumping_helper"
 module ActiveRecord
   module ConnectionAdapters
     class SQLite3AdapterTest < ActiveRecord::SQLite3TestCase
+      skip_under_ractor_proxy :test_autoincrement_primary_key_is_dumped_as_the_default,
+        :test_copy_table_with_existing_records_have_custom_primary_key,
+        :test_copy_table_with_composite_primary_keys, :test_custom_primary_key_in_create_table,
+        :test_custom_primary_key_in_change_table, :test_add_column_with_custom_primary_key,
+        :test_remove_column_preserves_index_options, :test_auto_increment_preserved_on_table_changes
+
       include DdlHelper
       include SchemaDumpingHelper
 
@@ -1062,6 +1068,32 @@ module ActiveRecord
               end
               assert_equal @conn.pool, error.connection_pool
             end
+          end
+        end
+      end
+
+      def test_closed_database_errors_are_translated_to_connection_not_established
+        @conn.connect!
+
+        # A pre-flight close is healed by ensure_connection_ready, so the
+        # translation only fires when the connection dies mid-flight. sqlite3
+        # 2.x raises "cannot use a closed database" from most methods --
+        # including total_changes, the first thing perform_query touches.
+        error = assert_raises ActiveRecord::ConnectionNotEstablished do
+          @conn.send(:with_raw_connection) do |raw_connection|
+            raw_connection.close
+            raw_connection.total_changes
+          end
+        end
+        assert_equal @conn.pool, error.connection_pool
+
+        # prepare raises its own message, "prepare called on a closed
+        # database".
+        @conn.reconnect!
+        assert_raises ActiveRecord::ConnectionNotEstablished do
+          @conn.send(:with_raw_connection) do |raw_connection|
+            raw_connection.close
+            raw_connection.prepare("SELECT 1")
           end
         end
       end

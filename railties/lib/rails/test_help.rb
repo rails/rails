@@ -24,7 +24,7 @@ if defined?(ActiveRecord::Base)
   end
 
   ActiveSupport.on_load(:action_dispatch_integration_test) do
-    self.fixture_paths += ActiveSupport::TestCase.fixture_paths
+    self.fixture_paths |= ActiveSupport::TestCase.fixture_paths
   end
 else
   ActiveSupport.on_load(:active_support_test_case) do

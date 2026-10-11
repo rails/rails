@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/enumerable"
 
 module ActionView
@@ -81,18 +82,18 @@ module ActionView
         key.frozen? ? key.dup : key # #read_multi & #write may require mutability, Dalli 2.6.0.
       end
 
-      # `order_by` is an enumerable object containing keys of the cache,
+      # \`order_by\` is an enumerable object containing keys of the cache,
       # all keys are  passed in whether found already or not.
       #
-      # `cached_partials` is a hash. If the value exists
+      # \`cached_partials\` is a hash. If the value exists
       # it represents the rendered partial from the cache
-      # otherwise `Hash#fetch` will take the value of its block.
+      # otherwise \`Hash#fetch\` will take the value of its block.
       #
       # This method expects a block that will return the rendered
       # partial. An example is to render all results
       # for each element that was not found in the cache and store it as an array.
-      # Order it so that the first empty cache element in `cached_partials`
-      # corresponds to the first element in `rendered_partials`.
+      # Order it so that the first empty cache element in \`cached_partials\`
+      # corresponds to the first element in \`rendered_partials\`.
       #
       # If the partial is not already cached it will also be
       # written back to the underlying cache store.

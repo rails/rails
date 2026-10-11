@@ -129,6 +129,11 @@ module ActiveRecord
             self._primary_key_definition = ActiveRecord::Key.for(value)
 
             include CompositePrimaryKey if primary_key_definition.composite?
+
+            # Only invalidate loaded contexts; initial schema loading can resolve the primary key.
+            ([self] + descendants).each do |model|
+              model.reload_schema_from_cache(false) if model.schema_loaded?
+            end
           end
 
           private

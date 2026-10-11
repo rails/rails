@@ -61,7 +61,51 @@ module ActiveRecord
           (nulls_not_distinct.nil? || self.nulls_not_distinct == nulls_not_distinct)
       end
 
+      def as_schema_json
+        {
+          "table" => @table,
+          "name" => @name,
+          "unique" => @unique || nil,
+          "columns" => @columns,
+          "lengths" => @lengths.presence,
+          "orders" => @orders.presence,
+          "opclasses" => @opclasses.presence,
+          "where" => @where,
+          "type" => @type,
+          "using" => @using,
+          "include" => @include,
+          "nulls_not_distinct" => @nulls_not_distinct,
+          "comment" => @comment,
+          "invalid" => !@valid || nil
+        }
+      end
+
+      def init_from_schema_json(coder, references)
+        @table = coder["table"]
+        @name = coder["name"]
+        @unique = coder["unique"] || false
+        @columns = coder["columns"]
+        @lengths = coder["lengths"] || {}
+        @orders = symbolize_concise_options(coder["orders"])
+        @opclasses = symbolize_concise_options(coder["opclasses"])
+        @where = coder["where"]
+        @type = coder["type"]&.to_sym
+        @using = coder["using"]&.to_sym
+        @include = coder["include"]
+        @nulls_not_distinct = coder["nulls_not_distinct"]
+        @comment = coder["comment"]
+        @valid = !coder["invalid"]
+      end
+
       private
+        def symbolize_concise_options(options)
+          case options
+          when String then options.to_sym
+          when Hash then options.transform_values(&:to_sym)
+          else {}
+          end
+        end
+
         def concise_options(options)
           if columns.size == options.size && options.values.uniq.size == 1
             options.values.first
@@ -534,9 +578,7 @@ module ActiveRecord
       def timestamps(**options)
         options[:null] = false if options[:null].nil?
 
-        if !options.key?(:precision) && @conn.supports_datetime_with_precision?
-          options[:precision] = 6
-        end
+        options[:precision] = 6 unless options.key?(:precision)
 
         column(:created_at, :datetime, **options)
         column(:updated_at, :datetime, **options)
@@ -562,10 +604,8 @@ module ActiveRecord
         end
         type = aliased_types(type.to_s, type)
 
-        if @conn.supports_datetime_with_precision?
-          if type == :datetime && !options.key?(:precision)
-            options[:precision] = 6
-          end
+        if type == :datetime && !options.key?(:precision)
+          options[:precision] = 6
         end
 
         options[:primary_key] ||= type == :primary_key
@@ -639,6 +679,10 @@ module ActiveRecord
         change_column_default
         add_timestamps
         remove_timestamps
+        add_foreign_key
+        remove_foreign_key
+        add_check_constraint
+        remove_check_constraint
       ].freeze
 
       attr_reader :operations, :deferred_operations
@@ -692,16 +736,33 @@ module ActiveRecord
         remove_column(:created_at)
       end
 
-      def add_foreign_key(to_table, options)
+      def add_foreign_key(to_table, **options)
+        conn = @td.conn
+        return unless conn.use_foreign_keys?
+        options = conn.foreign_key_options(name, to_table, options)
         @operations << AddForeignKey.new(@td.new_foreign_key_definition(to_table, options))
+      end
+
+      def remove_foreign_key(to_table = nil, **options)
+        conn = @td.conn
+        return unless conn.use_foreign_keys?
+        to_table ||= options[:to_table]
+        drop_foreign_key(conn.send(:foreign_key_for!, name, to_table: to_table, **options).name)
       end
 
       def drop_foreign_key(name)
         @operations << DropForeignKey.new(name)
       end
 
-      def add_check_constraint(expression, options)
+      def add_check_constraint(expression, **options)
+        return unless @td.conn.supports_check_constraints?
         @operations << AddCheckConstraint.new(@td.new_check_constraint_definition(expression, options))
+      end
+
+      def remove_check_constraint(expression = nil, **options)
+        conn = @td.conn
+        return unless conn.supports_check_constraints?
+        drop_check_constraint(conn.send(:check_constraint_for!, name, expression: expression, **options).name)
       end
 
       def drop_check_constraint(constraint_name)

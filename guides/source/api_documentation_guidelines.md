@@ -38,8 +38,8 @@ For example, we use `[link:classes/ActiveRecord/Base.html]` to create a link to 
 
 This is preferred over absolute URLs such as `[https://api.rubyonrails.org/classes/ActiveRecord/Base.html]`, which would take the reader outside their current documentation version (e.g. edgeapi.rubyonrails.org).
 
-[RDoc Markup Reference]: https://ruby.github.io/rdoc/RDoc/MarkupReference.html
-[RDoc link markup]: https://ruby.github.io/rdoc/RDoc/MarkupReference.html#class-RDoc::MarkupReference-label-Links
+[RDoc Markup Reference]: https://ruby.github.io/rdoc/doc/markup_reference/rdoc_rdoc.html
+[RDoc link markup]: https://ruby.github.io/rdoc/doc/markup_reference/rdoc_rdoc.html#label-Links
 
 Wording
 -------

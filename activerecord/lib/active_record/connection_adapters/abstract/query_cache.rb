@@ -113,7 +113,7 @@ module ActiveRecord
       class QueryCacheRegistry # :nodoc:
         def initialize
           @mutex = Mutex.new
-          @map = ConnectionPool::WeakThreadKeyMap.new
+          @map = ObjectSpace::WeakKeyMap.new
         end
 
         def compute_if_absent(context)

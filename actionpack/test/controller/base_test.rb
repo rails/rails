@@ -277,10 +277,7 @@ class UrlOptionsTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         get "from_view", to: "url_options#from_view", as: :from_view
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
+        get "default_url_options/index", to: "default_url_options#index"
       end
 
       get :from_view, params: { route: "from_view_url" }
@@ -314,10 +311,7 @@ class DefaultUrlOptionsTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         get "from_view", to: "default_url_options#from_view", as: :from_view
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
+        get "default_url_options/new", to: "default_url_options#new"
       end
 
       get :from_view, params: { route: "from_view_url" }
@@ -333,10 +327,6 @@ class DefaultUrlOptionsTest < ActionController::TestCase
       set.draw do
         scope("/:locale") do
           resources :descriptions
-        end
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
         end
       end
 

@@ -57,6 +57,27 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     assert_equal %w(warn), @logger.logged(:warn)
   end
 
+  def test_proxies_messages_and_blocks_at_every_level
+    levels = [:debug, :info, :warn, :error, :fatal, :unknown]
+
+    levels.each do |level|
+      @log_subscriber.public_send(level, "#{level} message")
+      @log_subscriber.public_send(level) { "#{level} block" }
+    end
+
+    levels.each do |level|
+      assert_equal ["#{level} message", "#{level} block"], @logger.logged(level)
+    end
+  end
+
+  def test_logging_methods_do_nothing_without_a_logger
+    ActiveSupport::LogSubscriber.logger = nil
+
+    [:debug, :info, :warn, :error, :fatal, :unknown].each do |level|
+      assert_nil @log_subscriber.public_send(level, "message")
+    end
+  end
+
   def test_set_color_for_messages
     ActiveSupport.colorize_logging = true
     @log_subscriber.bar(nil)

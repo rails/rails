@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_model/attribute"
 
 module ActiveModel
@@ -25,7 +26,7 @@ module ActiveModel
       @types = types
       @additional_types = additional_types
       @default_attributes = default_attributes
-      @casted_values = {}
+      @casted_values = values.is_a?(IndexedRow) ? values.new_empty_mutable_row : {}
       @materialized = false
     end
 

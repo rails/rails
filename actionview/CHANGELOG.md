@@ -1,3 +1,25 @@
+*   Allow setting `config.action_view.erb_implementation` to `:herb` to
+    compile HTML+ERB templates through Herb.
+
+    With `config.load_defaults 8.2`, templates with the HTML format compile
+    through Herb, an ERB implementation that parses HTML+ERB and reports
+    structural problems, such as an unclosed tag, at compile time with their
+    template location. Valid templates render the same output as with Erubi.
+    All other template formats keep compiling through Erubi.
+
+    Set `config.action_view.erb_implementation` to `:erubi` to continue to
+    compile every template through Erubi.
+
+    *Marco Roth*
+
+*   Add a `herb:check` rake task to verify that the application's HTML+ERB
+    templates compile through Herb.
+
+    The task lists every template Herb rejects with its path and error, and
+    exits with a non-zero status when there are any.
+
+    *Marco Roth*
+
 *   Allow `translate`'s (and `t`'s) `scope:` option to be resolved relative to
     the current template when it starts with a period, mirroring the existing
     behavior for the key argument.

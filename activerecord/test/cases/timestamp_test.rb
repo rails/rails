@@ -635,6 +635,8 @@ class TimestampTest < ActiveRecord::TestCase
 end
 
 class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy :test_index_is_created_for_both_timestamps
+
   include DdlHelper
   self.use_transactional_tests = false
 

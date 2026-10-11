@@ -19,6 +19,8 @@ end
 class InsertAllTest < ActiveRecord::TestCase
   fixtures :books
 
+  skip_under_ractor_proxy
+
   def run(*)
     with_debug_event_reporting do
       super

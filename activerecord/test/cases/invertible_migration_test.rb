@@ -7,6 +7,8 @@ end
 
 module ActiveRecord
   class InvertibleMigrationTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     class SilentMigration < ActiveRecord::Migration::Current
       def write(text = "")
         # sssshhhhh!!

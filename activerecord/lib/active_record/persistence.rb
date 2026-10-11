@@ -172,29 +172,27 @@ module ActiveRecord
       def query_constraints(*columns_list)
         raise ArgumentError, "You must specify at least one column to be used in querying" if columns_list.empty?
 
-        @query_constraints_list = columns_list.map { |column| -column.to_s }.freeze
-        @has_query_constraints = @query_constraints_list
+        @query_constraints_definition = columns_list.map { |column| -column.to_s }.freeze
+        reload_schema_from_cache
       end
 
       def has_query_constraints? # :nodoc:
-        @has_query_constraints
+        !!query_constraints_definition
       end
 
       def query_constraints_list # :nodoc:
-        return @query_constraints_list if @query_constraints_list
+        schema_context.query_constraints_list
+      end
 
-        if base_class? || primary_key != base_class.primary_key
-          primary_key if primary_key.is_a?(Array)
-        else
-          base_class.query_constraints_list
-        end
+      def query_constraints_definition # :nodoc:
+        @query_constraints_definition
       end
 
       # Returns an array of column names to be used in queries. The source of column
       # names is derived from +query_constraints_list+ or +primary_key+. This method
       # is for internal use when the primary key is to be treated as an array.
       def composite_query_constraints_list # :nodoc:
-        @composite_query_constraints_list ||= query_constraints_list || Array(primary_key)
+        schema_context.composite_query_constraints_list
       end
 
       def _insert_record(connection, values, returning) # :nodoc:
@@ -253,8 +251,7 @@ module ActiveRecord
         def inherited(subclass)
           super
           subclass.class_eval do
-            @query_constraints_list = nil
-            @has_query_constraints = false
+            @query_constraints_definition = nil
           end
         end
 
@@ -697,7 +694,7 @@ module ActiveRecord
       toggle(attribute).update_attribute(attribute, self[attribute])
     end
 
-    # Reloads the record from the database.
+    # Replaces the record attributes with the current values in the database.
     #
     # This method finds the record by its primary key (which could be assigned
     # manually) and modifies the receiver in-place:
@@ -709,8 +706,8 @@ module ActiveRecord
     #   # Account Load (1.2ms)  SELECT "accounts".* FROM "accounts" WHERE "accounts"."id" = $1 LIMIT 1  [["id", 1]]
     #   # => #<Account id: 1, email: 'account@example.com'>
     #
-    # Attributes are reloaded from the database, and caches busted, in
-    # particular the associations cache and the QueryCache.
+    # Internal state managed by Active Record, such as the associations cache is
+    # reset accordingly, but custom instance variables are left as-is.
     #
     # If the record no longer exists in the database ActiveRecord::RecordNotFound
     # is raised. Otherwise, in addition to the in-place modification the method

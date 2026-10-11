@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -34,8 +35,10 @@ module ActionView
         private
           # Grouped choices look like this:
           #
-          #   [nil, []]
-          #   { nil => [] }
+          # ```
+          # [nil, []]
+          # { nil => [] }
+          # ```
           def grouped_choices?
             return false if @choices.blank?
 

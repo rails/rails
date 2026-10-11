@@ -199,7 +199,7 @@ module ActiveSupport
               results.merge!(super(names - results.keys, **options))
             end
 
-            results
+            results.slice(*names)
           end
 
           def write_serialized_entry(key, payload, **)

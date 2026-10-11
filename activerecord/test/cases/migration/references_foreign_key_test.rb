@@ -6,6 +6,8 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
       class ReferencesForeignKeyInCreateTest < ActiveRecord::TestCase
+        skip_under_ractor_proxy
+
         setup do
           @connection = ActiveRecord::Base.lease_connection
           @connection.create_table(:testing_parents, force: true)
@@ -111,6 +113,8 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
       class ReferencesForeignKeyTest < ActiveRecord::TestCase
+        skip_under_ractor_proxy
+
         setup do
           @connection = ActiveRecord::Base.lease_connection
           @connection.create_table(:testing_parents, force: true)

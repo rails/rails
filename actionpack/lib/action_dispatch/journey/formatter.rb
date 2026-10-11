@@ -139,13 +139,7 @@ module ActionDispatch
             !keys_to_keep.include?(bad_key)
           end
 
-          parameterized_parts.each do |k, v|
-            if k == :controller
-              parameterized_parts[k] = v
-            else
-              parameterized_parts[k] = v.to_param
-            end
-          end
+          parameterized_parts.transform_values!(&:to_param)
 
           parameterized_parts.compact!
           parameterized_parts

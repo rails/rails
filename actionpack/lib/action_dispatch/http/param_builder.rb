@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionDispatch
   class ParamBuilder
-    # --
+    #--
     # This implementation is based on Rack::QueryParser,
     # Copyright (C) 2007-2021 Leah Neukirchen <http://leahneukirchen.org/infopage.html>
 

@@ -293,6 +293,25 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_read_multi_preserves_order
+    first_key = SecureRandom.uuid
+    cached_key = SecureRandom.uuid
+    last_key = SecureRandom.uuid
+
+    @peek.write(first_key, "1", raw: true)
+    @peek.write(last_key, "3", raw: true)
+
+    @cache.with_local_cache do
+      # Seed the local cache so that only the middle key is a local hit.
+      @cache.write(cached_key, "2", raw: true)
+
+      results = @cache.read_multi(first_key, cached_key, last_key, raw: true)
+
+      assert_equal [first_key, cached_key, last_key], results.keys
+      assert_equal ["1", "2", "3"], results.values
+    end
+  end
+
   def test_local_cache_of_read_multi
     key = SecureRandom.uuid
     value = SecureRandom.alphanumeric

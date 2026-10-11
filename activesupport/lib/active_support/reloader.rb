@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/execution_wrapper"
@@ -5,26 +6,29 @@ require "active_support/executor"
 require "active_support/ractors"
 
 module ActiveSupport
-  # = Active Support \Reloader
+  # Active Support \Reloader
+  # ========================
   #
   # This class defines several callbacks:
   #
-  #   to_prepare -- Run once at application startup, and also from
-  #   +to_run+.
+  # ```
+  # to_prepare -- Run once at application startup, and also from
+  # +to_run+.
   #
-  #   to_run -- Run before a work run that is reloading. If
-  #   +reload_classes_only_on_change+ is true (the default), the class
-  #   unload will have already occurred.
+  # to_run -- Run before a work run that is reloading. If
+  # +reload_classes_only_on_change+ is true (the default), the class
+  # unload will have already occurred.
   #
-  #   to_complete -- Run after a work run that has reloaded. If
-  #   +reload_classes_only_on_change+ is false, the class unload will
-  #   have occurred after the work run, but before this callback.
+  # to_complete -- Run after a work run that has reloaded. If
+  # +reload_classes_only_on_change+ is false, the class unload will
+  # have occurred after the work run, but before this callback.
   #
-  #   before_class_unload -- Run immediately before the classes are
-  #   unloaded.
+  # before_class_unload -- Run immediately before the classes are
+  # unloaded.
   #
-  #   after_class_unload -- Run immediately after the classes are
-  #   unloaded.
+  # after_class_unload -- Run immediately after the classes are
+  # unloaded.
+  # ```
   #
   class Reloader < ExecutionWrapper
     define_callbacks :prepare

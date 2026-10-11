@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   class ObjectRenderer < PartialRenderer # :nodoc:
     include ObjectRendering

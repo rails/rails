@@ -546,7 +546,7 @@ Solid Queue, the default queue backend, supports bulk enqueuing using
 `enqueue_all`.
 
 [Other backends](#alternate-queuing-backends) like Sidekiq have a `push_bulk`
-method, which the Sidekiq adapter users. internally to push a large number of
+method, which the Sidekiq adapter uses internally to push a large number of
 jobs to Redis and prevent the round trip network latency. GoodJob also supports
 bulk enqueuing with the `GoodJob::Bulk.enqueue` method.
 
@@ -660,7 +660,7 @@ being enqueued based on a condition:
 ```ruby
 class GuestsCleanupJob < ApplicationJob
   before_enqueue do |job|
-    throw :abort if ENV.fetch("DISABLE_GUESTS_CLEANUP_JOB", true)
+    throw :abort if ENV["DISABLE_GUESTS_CLEANUP_JOB"] == "true"
   end
 
   def perform(guest)

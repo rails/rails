@@ -124,8 +124,7 @@ module ActiveRecord
           if key.is_a?(Array)
             queries = Array(value).map do |ids_set|
               raise ArgumentError, "Expected corresponding value for #{key} to be an Array" unless ids_set.is_a?(Array)
-              attributes = convert_dot_notation_to_hash(key.zip(ids_set).to_h)
-              expand_from_hash(attributes)
+              expand_from_hash(convert_dot_notation_to_hash(key.zip(ids_set).to_h))
             end
             grouping_queries(queries)
           elsif value.is_a?(Hash) && !table.has_column?(key)
@@ -163,8 +162,16 @@ module ActiveRecord
             if mapping.length == 1 || values.empty?
               column_name, aggr_attr = mapping.first
               values = values.map do |object|
-                object.respond_to?(aggr_attr) ? object.public_send(aggr_attr) : object
+                if object.is_a?(Range)
+                  range_begin = aggregate_attribute_value(object.begin, aggr_attr)
+                  range_end = aggregate_attribute_value(object.end, aggr_attr)
+
+                  Range.new(range_begin, range_end, object.exclude_end?)
+                else
+                  aggregate_attribute_value(object, aggr_attr)
+                end
               end
+
               self[column_name, values]
             else
               queries = values.map do |object|
@@ -224,6 +231,10 @@ module ActiveRecord
 
       def handler_for(object)
         @handlers.detect { |klass, _| klass === object }.last
+      end
+
+      def aggregate_attribute_value(object, attribute)
+        object.respond_to?(attribute) ? object.public_send(attribute) : object
       end
   end
 end
