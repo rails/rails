@@ -1,30 +1,34 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "action_view/helpers/tag_helper"
 
 module ActionView
   module Helpers # :nodoc:
-    # = Action View Debug \Helpers
+    # Action View Debug \Helpers
+    # ==========================
     #
     # Provides a set of methods for making it easier to debug \Rails objects.
     module DebugHelper
       include TagHelper
 
-      # Returns a YAML representation of +object+ wrapped with <pre> and </pre>.
-      # If the object cannot be converted to YAML using +to_yaml+, +inspect+ will be called instead.
+      # Returns a YAML representation of `object` wrapped with <pre> and </pre>.
+      # If the object cannot be converted to YAML using `to_yaml`, `inspect` will be called instead.
       # Useful for inspecting an object at the time of rendering.
       #
-      #   @user = User.new({ username: 'testing', password: 'xyz', age: 42})
-      #   debug(@user)
-      #   # =>
-      #   <pre class="debug_dump">--- !ruby/object:User
-      #   attributes:
-      #     updated_at:
-      #     username: testing
-      #     age: 42
-      #     password: xyz
-      #     created_at:
-      #   </pre>
+      # ```
+      # @user = User.new({ username: 'testing', password: 'xyz', age: 42})
+      # debug(@user)
+      # # =>
+      # <pre class="debug_dump">--- !ruby/object:User
+      # attributes:
+      #   updated_at:
+      #   username: testing
+      #   age: 42
+      #   password: xyz
+      #   created_at:
+      # </pre>
+      # ```
       def debug(object)
         Marshal.dump(object)
         object = ERB::Util.html_escape(object.to_yaml)

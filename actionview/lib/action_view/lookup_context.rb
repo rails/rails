@@ -1,15 +1,17 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "concurrent/map"
 require "active_support/core_ext/module/attribute_accessors"
 require "action_view/template/resolver"
 
 module ActionView
-  # = Action View Lookup Context
+  # Action View Lookup Context
+  # ==========================
   #
-  # <tt>LookupContext</tt> is the object responsible for holding all information
+  # `LookupContext` is the object responsible for holding all information
   # required for looking up templates, i.e. view paths and details.
-  # <tt>LookupContext</tt> is also responsible for generating a key, given to
+  # `LookupContext` is also responsible for generating a key, given to
   # view paths, used in the resolver cache lookup. Since this key is generated
   # only once during the request, it speeds up all cache accesses.
   class LookupContext # :nodoc:
@@ -273,7 +275,7 @@ module ActionView
     end
     private :initialize_details
 
-    # Override formats= to expand ["*/*"] values and automatically
+    # Override formats= to expand ["\*/*"] values and automatically
     # add :html as fallback to :js.
     def formats=(values)
       if values

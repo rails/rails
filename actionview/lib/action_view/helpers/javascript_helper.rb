@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   module Helpers # :nodoc:
-    # = Action View JavaScript \Helpers
+    # Action View JavaScript \Helpers
+    # ===============================
     module JavaScriptHelper
       mattr_accessor :auto_include_nonce
 
@@ -25,7 +27,9 @@ module ActionView
       # Also available through the alias j(). This is particularly helpful in JavaScript
       # responses, like:
       #
-      #   $('some_element').replaceWith('<%= j render 'some/element_template' %>');
+      # ```
+      # $('some_element').replaceWith('<%= j render 'some/element_template' %>');
+      # ```
       def escape_javascript(javascript)
         javascript = javascript.to_s
         if javascript.empty?
@@ -38,41 +42,56 @@ module ActionView
 
       alias_method :j, :escape_javascript
 
-      # Returns a JavaScript tag with the +content+ inside. Example:
-      #   javascript_tag "alert('All is good')"
+      # Returns a JavaScript tag with the `content` inside. Example:
+      #
+      # ```
+      # javascript_tag "alert('All is good')"
+      # ```
       #
       # Returns:
-      #   <script>
-      #   //<![CDATA[
-      #   alert('All is good')
-      #   //]]>
-      #   </script>
       #
-      # +html_options+ may be a hash of attributes for the <tt>\<script></tt>
+      # ```
+      # <script>
+      # //<![CDATA[
+      # alert('All is good')
+      # //]]>
+      # </script>
+      # ```
+      #
+      # `html_options` may be a hash of attributes for the `\<script>`
       # tag.
       #
-      #   javascript_tag "alert('All is good')", type: 'application/javascript'
+      # ```
+      # javascript_tag "alert('All is good')", type: 'application/javascript'
+      # ```
       #
       # Returns:
-      #   <script type="application/javascript">
-      #   //<![CDATA[
-      #   alert('All is good')
-      #   //]]>
-      #   </script>
+      #
+      # ```
+      # <script type="application/javascript">
+      # //<![CDATA[
+      # alert('All is good')
+      # //]]>
+      # </script>
+      # ```
       #
       # Instead of passing the content as an argument, you can also use a block
-      # in which case, you pass your +html_options+ as the first parameter.
+      # in which case, you pass your `html_options` as the first parameter.
       #
-      #   <%= javascript_tag type: 'application/javascript' do -%>
-      #     alert('All is good')
-      #   <% end -%>
+      # ```
+      # <%= javascript_tag type: 'application/javascript' do -%>
+      #   alert('All is good')
+      # <% end -%>
+      # ```
       #
       # If you have a content security policy enabled then you can add an automatic
-      # nonce value by passing <tt>nonce: true</tt> as part of +html_options+. Example:
+      # nonce value by passing `nonce: true` as part of `html_options`. Example:
       #
-      #   <%= javascript_tag nonce: true do -%>
-      #     alert('All is good')
-      #   <% end -%>
+      # ```
+      # <%= javascript_tag nonce: true do -%>
+      #   alert('All is good')
+      # <% end -%>
+      # ```
       def javascript_tag(content_or_options_with_block = nil, html_options = {}, &block)
         content =
           if block_given?

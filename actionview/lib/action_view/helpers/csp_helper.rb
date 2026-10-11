@@ -1,15 +1,19 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   module Helpers # :nodoc:
-    # = Action View CSP \Helpers
+    # Action View CSP \Helpers
+    # ========================
     module CspHelper
       # Returns a meta tag "csp-nonce" with the per-session nonce value
       # for allowing inline <script> tags.
       #
-      #   <head>
-      #     <%= csp_meta_tag %>
-      #   </head>
+      # ```
+      # <head>
+      #   <%= csp_meta_tag %>
+      # </head>
+      # ```
       #
       # This is used by the \Rails UJS helper to create dynamically
       # loaded inline <script> elements.

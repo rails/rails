@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/enumerable"
 require "active_support/syntax_error_proxy"
 
 module ActionView
-  # = Action View Errors
+  # Action View Errors
+  # ==================
   class ActionViewError < StandardError # :nodoc:
   end
 
