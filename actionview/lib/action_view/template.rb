@@ -255,11 +255,16 @@ module ActionView
       node_id = RubyVM::AbstractSyntaxTree.node_id_for_backtrace_location(location)
       found =
         if RubyVM::InstructionSequence.compile("").to_a[4][:parser] == :prism
-          require "prism"
-
-          if Prism::VERSION >= "1.0.0"
-            result = Prism.parse(compiled_source).value
+          if defined?(Ruby::Prism)
+            result = Ruby::Prism.parse(compiled_source).value
             result.breadth_first_search { |node| node.node_id == node_id }
+          else
+            require "prism"
+
+            if Prism::VERSION >= "1.0.0"
+              result = Prism.parse(compiled_source).value
+              result.breadth_first_search { |node| node.node_id == node_id }
+            end
           end
         else
           node = RubyVM::AbstractSyntaxTree.parse(compiled_source, keep_script_lines: true)
