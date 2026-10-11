@@ -25,6 +25,7 @@ module ActionController
       self.view_runtime = nil
     end
 
+    # Adds instrumentation to ActionController::Rendering#render
     def render(*)
       render_output = nil
       self.view_runtime = cleanup_view_runtime do
@@ -33,6 +34,7 @@ module ActionController
       render_output
     end
 
+    # Adds instrumentation to ActionController::DataStreaming#send_file
     def send_file(path, options = {})
       ActiveSupport::Notifications.instrument("send_file.action_controller",
         options.merge(path: path)) do
@@ -40,12 +42,14 @@ module ActionController
       end
     end
 
+    # Adds instrumentation to ActionController::DataStreaming#send_data
     def send_data(data, options = {})
       ActiveSupport::Notifications.instrument("send_data.action_controller", options) do
         super
       end
     end
 
+    # Adds instrumentation to ActionController::Redirecting#redirect_to
     def redirect_to(*)
       ActiveSupport::Notifications.instrument("redirect_to.action_controller", request: request) do |payload|
         result = super
