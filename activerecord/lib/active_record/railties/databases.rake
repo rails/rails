@@ -586,6 +586,58 @@ db_namespace = namespace :db do
       end
     end
   end
+
+  namespace :maintenance do
+    desc "Perform SQLite database maintenance (incremental vacuum and WAL checkpoint) for the current environment"
+    task vacuum: :load_config do
+      ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each do |pool|
+        db_config = pool.db_config
+        next unless db_config.adapter.include?("sqlite3")
+
+        pool.with_connection do |connection|
+          auto_vacuum = connection.execute("PRAGMA auto_vacuum").first["auto_vacuum"]
+
+          if auto_vacuum == 0
+            $stderr.puts "WARNING: Database #{db_config.database} has auto_vacuum=none. " \
+              "Incremental vacuum requires auto_vacuum=incremental. " \
+              "Set `pragmas: { auto_vacuum: incremental }` in database.yml and run VACUUM once to enable it. " \
+              "Skipping incremental vacuum."
+          else
+            connection.execute("PRAGMA incremental_vacuum(1000)")
+          end
+
+          connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        end
+      end
+    end
+
+    ActiveRecord::Tasks::DatabaseTasks.for_each(databases) do |name|
+      desc "Perform SQLite maintenance for #{name} database"
+      namespace :vacuum do
+        task name => :load_config do
+          ActiveRecord::Tasks::DatabaseTasks.with_temporary_pool_for_each(name: name) do |pool|
+            db_config = pool.db_config
+            next unless db_config.adapter.include?("sqlite3")
+
+            pool.with_connection do |connection|
+              auto_vacuum = connection.execute("PRAGMA auto_vacuum").first["auto_vacuum"]
+
+              if auto_vacuum == 0
+                $stderr.puts "WARNING: Database #{db_config.database} has auto_vacuum=none. " \
+                  "Incremental vacuum requires auto_vacuum=incremental. " \
+                  "Set `pragmas: { auto_vacuum: incremental }` in database.yml and run VACUUM once to enable it. " \
+                  "Skipping incremental vacuum."
+              else
+                connection.execute("PRAGMA incremental_vacuum(1000)")
+              end
+
+              connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            end
+          end
+        end
+      end
+    end
+  end
 end
 
 namespace :railties do
