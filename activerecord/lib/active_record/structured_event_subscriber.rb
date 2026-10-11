@@ -18,6 +18,26 @@ module ActiveRecord
     end
     debug_only :strict_loading_violation
 
+    def query_retry(event)
+      error = event.payload[:error]
+
+      emit_event("active_record.query_retry",
+        attempt: event.payload[:attempt],
+        exception_class: error.class.name,
+        exception_message: error.message,
+      )
+    end
+
+    def connection_retry(event)
+      error = event.payload[:error]
+
+      emit_event("active_record.connection_retry",
+        attempt: event.payload[:attempt],
+        exception_class: error.class.name,
+        exception_message: error.message,
+      )
+    end
+
     def sql(event)
       payload = event.payload
 
