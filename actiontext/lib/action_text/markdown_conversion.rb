@@ -293,10 +293,10 @@ module ActionText
           inner
         end
       end
-      # Trix uses <div> as its default block element and represents newlines as   
+      # Trix uses <div> as its default block element and represents newlines as
       #  tags (see
       # piece_view.js and block_view.js in the Trix source). Unlike <p>, a div of inline content
-      # adds no paragraph-separating newlines: its   
+      # adds no paragraph-separating newlines: its
       #  children already provide the spacing.
       alias_method :visit_div, :visit__container
       alias_method :visit_li, :visit__container
