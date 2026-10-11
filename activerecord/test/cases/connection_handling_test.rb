@@ -77,6 +77,18 @@ module ActiveRecord
         ActiveRecord::Base.release_connection
       end
 
+      test "#release_connection releases the given lease" do
+        ActiveRecord::Base.release_connection
+        leased_connection = ActiveRecord::Base.lease_connection
+        empty_lease = ActiveRecord::ConnectionAdapters::ConnectionPool::Lease.new
+
+        assert_not ActiveRecord::Base.connection_pool.release_connection(empty_lease)
+        assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
+        assert_same leased_connection, ActiveRecord::Base.lease_connection
+      ensure
+        ActiveRecord::Base.release_connection
+      end
+
       test "#with_connection use the already leased connection if available" do
         leased_connection = ActiveRecord::Base.lease_connection
         assert_predicate ActiveRecord::Base.connection_pool, :active_connection?
