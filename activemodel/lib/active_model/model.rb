@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
-  # = Active \Model \Basic \Model
+  # Active \Model \Basic \Model
+  # ===========================
   #
   # Allows implementing models similar to ActiveRecord::Base.
   # Includes ActiveModel::API for the required interface for an
@@ -10,34 +12,38 @@ module ActiveModel
   #
   # A minimal implementation could be:
   #
-  #   class Person
-  #     include ActiveModel::Model
-  #     attr_accessor :name, :age
-  #   end
+  # ```
+  # class Person
+  #   include ActiveModel::Model
+  #   attr_accessor :name, :age
+  # end
   #
-  #   person = Person.new(name: 'bob', age: '18')
-  #   person.name # => "bob"
-  #   person.age  # => "18"
+  # person = Person.new(name: 'bob', age: '18')
+  # person.name # => "bob"
+  # person.age  # => "18"
+  # ```
   #
-  # If for some reason you need to run code on <tt>initialize</tt>, make
-  # sure you call +super+ if you want the attributes hash initialization to
+  # If for some reason you need to run code on `initialize`, make
+  # sure you call `super` if you want the attributes hash initialization to
   # happen.
   #
-  #   class Person
-  #     include ActiveModel::Model
-  #     attr_accessor :id, :name, :omg
+  # ```
+  # class Person
+  #   include ActiveModel::Model
+  #   attr_accessor :id, :name, :omg
   #
-  #     def initialize(attributes={})
-  #       super
-  #       @omg ||= true
-  #     end
+  #   def initialize(attributes={})
+  #     super
+  #     @omg ||= true
   #   end
+  # end
   #
-  #   person = Person.new(id: 1, name: 'bob')
-  #   person.omg # => true
+  # person = Person.new(id: 1, name: 'bob')
+  # person.omg # => true
+  # ```
   #
   # For more detailed information on other functionalities available, please
-  # refer to the specific modules included in +ActiveModel::Model+
+  # refer to the specific modules included in `ActiveModel::Model`
   # (see below).
   module Model
     extend ActiveSupport::Concern
@@ -52,9 +58,11 @@ module ActiveModel
     # Returns a hash of the given methods with their names as keys and returned
     # values as values.
     #
-    #   person = Person.new(id: 1, name: "bob")
-    #   person.slice(:id, :name)
-    #   # => { "id" => 1, "name" => "bob" }
+    # ```
+    # person = Person.new(id: 1, name: "bob")
+    # person.slice(:id, :name)
+    # # => { "id" => 1, "name" => "bob" }
+    # ```
     #
     #--
     # Implemented by ActiveModel::Access#slice.
@@ -66,9 +74,11 @@ module ActiveModel
     #
     # Returns an array of the values returned by the given methods.
     #
-    #   person = Person.new(id: 1, name: "bob")
-    #   person.values_at(:id, :name)
-    #   # => [1, "bob"]
+    # ```
+    # person = Person.new(id: 1, name: "bob")
+    # person.values_at(:id, :name)
+    # # => [1, "bob"]
+    # ```
     #
     #--
     # Implemented by ActiveModel::Access#values_at.

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_model/attribute"
 
 module ActiveModel

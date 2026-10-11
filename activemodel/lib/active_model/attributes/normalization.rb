@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Attributes
     module Normalization
@@ -16,23 +17,25 @@ module ActiveModel
 
       # Normalizes a specified attribute using its declared normalizations.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   class User
-      #     include ActiveModel::Attributes
-      #     include ActiveModel::Attributes::Normalization
+      # ```
+      # class User
+      #   include ActiveModel::Attributes
+      #   include ActiveModel::Attributes::Normalization
       #
-      #     attribute :email, :string
+      #   attribute :email, :string
       #
-      #     normalizes :email, with: -> email { email.strip.downcase }
-      #   end
+      #   normalizes :email, with: -> email { email.strip.downcase }
+      # end
       #
-      #   legacy_user = User.load_from_legacy_data(...)
-      #   legacy_user.email # => " CRUISE-CONTROL@EXAMPLE.COM\n"
-      #   legacy_user.normalize_attribute(:email)
-      #   legacy_user.email # => "cruise-control@example.com"
+      # legacy_user = User.load_from_legacy_data(...)
+      # legacy_user.email # => " CRUISE-CONTROL@EXAMPLE.COM\n"
+      # legacy_user.normalize_attribute(:email)
+      # legacy_user.email # => "cruise-control@example.com"
+      # ```
       #
-      # ==== Behavior with Active Record
+      # #### Behavior with Active Record
       #
       # To prevent confusion, normalization will not be applied
       # when the attribute is fetched from the database. This means that if a
@@ -42,31 +45,33 @@ module ActiveModel
       #
       # Be aware that if your app was created before Rails 7.1, and your app
       # marshals instances of the targeted model (for example, when caching),
-      # then you should set ActiveRecord.marshalling_format_version to +7.1+ or
-      # higher via either <tt>config.load_defaults 7.1</tt> or
-      # <tt>config.active_record.marshalling_format_version = 7.1</tt>.
-      # Otherwise, +Marshal+ may attempt to serialize the normalization +Proc+
-      # and raise +TypeError+.
+      # then you should set ActiveRecord.marshalling_format_version to `7.1` or
+      # higher via either `config.load_defaults 7.1` or
+      # `config.active_record.marshalling_format_version = 7.1`.
+      # Otherwise, `Marshal` may attempt to serialize the normalization `Proc`
+      # and raise `TypeError`.
       #
-      #   class User < ActiveRecord::Base
-      #     normalizes :email, with: -> email { email.strip.downcase }
-      #     normalizes :phone, with: -> phone { phone.delete("^0-9").delete_prefix("1") }
-      #   end
+      # ```
+      # class User < ActiveRecord::Base
+      #   normalizes :email, with: -> email { email.strip.downcase }
+      #   normalizes :phone, with: -> phone { phone.delete("^0-9").delete_prefix("1") }
+      # end
       #
-      #   user = User.create(email: " CRUISE-CONTROL@EXAMPLE.COM\n")
-      #   user.email                  # => "cruise-control@example.com"
+      # user = User.create(email: " CRUISE-CONTROL@EXAMPLE.COM\n")
+      # user.email                  # => "cruise-control@example.com"
       #
-      #   user = User.find_by(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")
-      #   user.email                  # => "cruise-control@example.com"
-      #   user.email_before_type_cast # => "cruise-control@example.com"
+      # user = User.find_by(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")
+      # user.email                  # => "cruise-control@example.com"
+      # user.email_before_type_cast # => "cruise-control@example.com"
       #
-      #   User.where(email: "\tCRUISE-CONTROL@EXAMPLE.COM ").count         # => 1
-      #   User.where(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]).count # => 0
+      # User.where(email: "\tCRUISE-CONTROL@EXAMPLE.COM ").count         # => 1
+      # User.where(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]).count # => 0
       #
-      #   User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
-      #   User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
+      # User.exists?(email: "\tCRUISE-CONTROL@EXAMPLE.COM ")         # => true
+      # User.exists?(["email = ?", "\tCRUISE-CONTROL@EXAMPLE.COM "]) # => false
       #
-      #   User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
+      # User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
+      # ```
       def normalize_attribute(name)
         # Treat the value as a new, unnormalized value.
         send(:"#{name}=", send(name))
@@ -77,37 +82,39 @@ module ActiveModel
         # is applied when the attribute is assigned or validated.
         #
         # Because the normalization may be applied multiple times, it should be
-        # _idempotent_. In other words, applying the normalization more than once
+        # *idempotent*. In other words, applying the normalization more than once
         # should have the same result as applying it only once.
         #
-        # By default, the normalization will not be applied to +nil+ values. This
-        # behavior can be changed with the +:apply_to_nil+ option.
+        # By default, the normalization will not be applied to `nil` values. This
+        # behavior can be changed with the `:apply_to_nil` option.
         #
-        # ==== Options
+        # #### Options
         #
-        # * +:with+ - Any callable object that accepts the attribute's value as
+        # * `:with` - Any callable object that accepts the attribute's value as
         #   its sole argument, and returns it normalized.
-        # * +:apply_to_nil+ - Whether to apply the normalization to +nil+ values.
-        #   Defaults to +false+.
+        # * `:apply_to_nil` - Whether to apply the normalization to `nil` values.
+        #   Defaults to `false`.
         #
-        # ==== Examples
+        # #### Examples
         #
-        #   class User
-        #     include ActiveModel::Attributes
-        #     include ActiveModel::Attributes::Normalization
+        # ```
+        # class User
+        #   include ActiveModel::Attributes
+        #   include ActiveModel::Attributes::Normalization
         #
-        #     attribute :email, :string
-        #     attribute :phone, :string
+        #   attribute :email, :string
+        #   attribute :phone, :string
         #
-        #     normalizes :email, with: -> email { email.strip.downcase }
-        #     normalizes :phone, with: -> phone { phone.delete("^0-9").delete_prefix("1") }
-        #   end
+        #   normalizes :email, with: -> email { email.strip.downcase }
+        #   normalizes :phone, with: -> phone { phone.delete("^0-9").delete_prefix("1") }
+        # end
         #
-        #   user = User.new
-        #   user.email =    " CRUISE-CONTROL@EXAMPLE.COM\n"
-        #   user.email # => "cruise-control@example.com"
+        # user = User.new
+        # user.email =    " CRUISE-CONTROL@EXAMPLE.COM\n"
+        # user.email # => "cruise-control@example.com"
         #
-        #   User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
+        # User.normalize_value_for(:phone, "+1 (555) 867-5309") # => "5558675309"
+        # ```
         def normalizes(*names, with:, apply_to_nil: false)
           decorate_attributes(names) do |name, cast_type|
             NormalizedValueType.new(cast_type: cast_type, normalizer: with, normalize_nil: apply_to_nil)
@@ -116,21 +123,23 @@ module ActiveModel
           self.normalized_attributes = (normalized_attributes + names.map(&:to_sym)).freeze
         end
 
-        # Normalizes a given +value+ using normalizations declared for +name+.
+        # Normalizes a given `value` using normalizations declared for `name`.
         #
-        # ==== Examples
+        # #### Examples
         #
-        #   class User
-        #     include ActiveModel::Attributes
-        #     include ActiveModel::Attributes::Normalization
+        # ```
+        # class User
+        #   include ActiveModel::Attributes
+        #   include ActiveModel::Attributes::Normalization
         #
-        #     attribute :email, :string
+        #   attribute :email, :string
         #
-        #     normalizes :email, with: -> email { email.strip.downcase }
-        #   end
+        #   normalizes :email, with: -> email { email.strip.downcase }
+        # end
         #
-        #   User.normalize_value_for(:email, " CRUISE-CONTROL@EXAMPLE.COM\n")
-        #   # => "cruise-control@example.com"
+        # User.normalize_value_for(:email, " CRUISE-CONTROL@EXAMPLE.COM\n")
+        # # => "cruise-control@example.com"
+        # ```
         def normalize_value_for(name, value)
           type_for_attribute(name).cast(value)
         end

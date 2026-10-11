@@ -1,30 +1,34 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
-  # = Active \Model \Translation
+  # Active \Model \Translation
+  # ==========================
   #
   # Provides integration between your object and the \Rails internationalization
   # (i18n) framework.
   #
   # A minimal implementation could be:
   #
-  #   class TranslatedPerson
-  #     extend ActiveModel::Translation
-  #   end
+  # ```
+  # class TranslatedPerson
+  #   extend ActiveModel::Translation
+  # end
   #
-  #   TranslatedPerson.human_attribute_name('my_attribute')
-  #   # => "My attribute"
+  # TranslatedPerson.human_attribute_name('my_attribute')
+  # # => "My attribute"
+  # ```
   #
   # This also provides the required class methods for hooking into the
   # \Rails internationalization API, including being able to define a
-  # class-based +i18n_scope+ and +lookup_ancestors+ to find translations in
+  # class-based `i18n_scope` and `lookup_ancestors` to find translations in
   # parent classes.
   module Translation
     include ActiveModel::Naming
 
     singleton_class.attr_accessor :raise_on_missing_translations
 
-    # Returns the +i18n_scope+ for the class. Override if you want custom lookup.
+    # Returns the `i18n_scope` for the class. Override if you want custom lookup.
     def i18n_scope
       :activemodel
     end
@@ -42,9 +46,11 @@ module ActiveModel
     # Transforms attribute names into a more human format, such as "First name"
     # instead of "first_name".
     #
-    #   Person.human_attribute_name("first_name") # => "First name"
+    # ```
+    # Person.human_attribute_name("first_name") # => "First name"
+    # ```
     #
-    # Specify +options+ with additional translating options.
+    # Specify `options` with additional translating options.
     def human_attribute_name(attribute, options = {})
       attribute = attribute.to_s
 

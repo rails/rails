@@ -1,20 +1,24 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
-  # = Active \Model \ForbiddenAttributesError
+  # Active \Model \ForbiddenAttributesError
+  # =======================================
   #
   # Raised when forbidden attributes are used for mass assignment.
   #
-  #   class Person < ActiveRecord::Base
-  #   end
+  # ```
+  # class Person < ActiveRecord::Base
+  # end
   #
-  #   params = ActionController::Parameters.new(name: 'Bob')
-  #   Person.new(params)
-  #   # => ActiveModel::ForbiddenAttributesError
+  # params = ActionController::Parameters.new(name: 'Bob')
+  # Person.new(params)
+  # # => ActiveModel::ForbiddenAttributesError
   #
-  #   params.permit!
-  #   Person.new(params)
-  #   # => #<Person id: nil, name: "Bob">
+  # params.permit!
+  # Person.new(params)
+  # # => #<Person id: nil, name: "Bob">
+  # ```
   class ForbiddenAttributesError < StandardError
   end
 
