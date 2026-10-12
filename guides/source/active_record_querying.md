@@ -480,8 +480,8 @@ Customer.where(first_name: "does not exist").take!
 ```
 
 If you are using [composite primary
-keys](active_record_composite_primary_keys.html), see the [Conditions with
-`id`](active_record_composite_primary_keys.html#conditions-with-id) section of
+keys](active_record_composite_primary_keys.html), see the [Using
+`where`](active_record_composite_primary_keys.html#using-where) section of
 the Composite Primary Keys guide for the `find_by(id:)` behavior.
 
 [`find_by`]:
