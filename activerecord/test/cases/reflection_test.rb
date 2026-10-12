@@ -776,6 +776,20 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal ["blog_id", "blog_post_id"], blog_post_foreign_key
   end
 
+  def test_belongs_to_reflection_on_abstract_class_with_query_constraints_infers_foreign_key
+    abstract_class = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      query_constraints :blog_id, :id
+      belongs_to :blog_post, class_name: "Sharded::BlogPost"
+    end
+    concrete_class = Class.new(abstract_class) do
+      self.table_name = "sharded_comments"
+    end
+
+    assert_equal ["blog_id", "blog_post_id"], abstract_class.reflect_on_association(:blog_post).foreign_key
+    assert_equal ["blog_id", "blog_post_id"], concrete_class.reflect_on_association(:blog_post).foreign_key
+  end
+
   def test_has_many_foreign_key_derived_from_inverse_with_composite_foreign_key
     reflection = Sharded::BlogPost.reflect_on_association(:comments_with_inverse)
     assert_equal ["blog_id", "blog_post_id"], reflection.foreign_key
