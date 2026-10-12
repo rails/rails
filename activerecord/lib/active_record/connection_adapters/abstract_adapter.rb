@@ -471,6 +471,11 @@ module ActiveRecord
         end
       end
 
+      def retirement_due?(max_age) # :nodoc:
+        return false unless max_age
+        connection_age&.>= pool_jitter(max_age)
+      end
+
       # Mark the connection as needing to be retired, as if the age has
       # exceeded the maximum allowed.
       def force_retirement # :nodoc:
