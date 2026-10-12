@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
     class DisableJoinsAssociationScope < AssociationScope # :nodoc:

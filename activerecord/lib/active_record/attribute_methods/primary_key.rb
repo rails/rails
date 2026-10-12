@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module AttributeMethods
-    # = Active Record Attribute Methods Primary Key
+    # Active Record Attribute Methods Primary Key
+    # ===========================================
     module PrimaryKey
       extend ActiveSupport::Concern
 
@@ -78,7 +80,7 @@ module ActiveRecord
           end
 
           # Defines the primary key field -- can be overridden in subclasses.
-          # Overwriting will negate any effect of the +primary_key_prefix_type+
+          # Overwriting will negate any effect of the `primary_key_prefix_type`
           # setting, though.
           def primary_key
             primary_key_definition.name
@@ -122,9 +124,11 @@ module ActiveRecord
 
           # Sets the name of the primary key column.
           #
-          #   class Project < ActiveRecord::Base
-          #     self.primary_key = 'sysid'
-          #   end
+          # ```
+          # class Project < ActiveRecord::Base
+          #   self.primary_key = 'sysid'
+          # end
+          # ```
           def primary_key=(value)
             self._primary_key_definition = ActiveRecord::Key.for(value)
 

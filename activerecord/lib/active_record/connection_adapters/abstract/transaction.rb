@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/digest"
 
 module ActiveRecord
   module ConnectionAdapters
-    # = Active Record Connection Adapters Transaction State
+    # Active Record Connection Adapters Transaction State
+    # ===================================================
     class TransactionState
       def initialize(state = nil)
         @state = state
@@ -395,7 +397,8 @@ module ActiveRecord
         end
     end
 
-    # = Active Record Restart Parent \Transaction
+    # Active Record Restart Parent \Transaction
+    # =========================================
     class RestartParentTransaction < Transaction
       def initialize(connection, parent_transaction, **options)
         super(connection, **options)
@@ -423,7 +426,8 @@ module ActiveRecord
       def full_rollback?; false; end
     end
 
-    # = Active Record Savepoint \Transaction
+    # Active Record Savepoint \Transaction
+    # ====================================
     class SavepointTransaction < Transaction
       def initialize(connection, savepoint_name, parent_transaction, **options)
         super(connection, **options)
@@ -478,7 +482,8 @@ module ActiveRecord
       def full_rollback?; false; end
     end
 
-    # = Active Record Real \Transaction
+    # Active Record Real \Transaction
+    # ===============================
     class RealTransaction < Transaction
       def materialize!
         if joinable?

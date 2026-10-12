@@ -1,32 +1,36 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/enumerable"
 
 module ActiveRecord
   module Associations
-    # = Active Record Association Collection
+    # Active Record Association Collection
+    # ====================================
     #
     # CollectionAssociation is an abstract class that provides common stuff to
     # ease the implementation of association proxies that represent
     # collections. See the class hierarchy in Association.
     #
-    #   CollectionAssociation:
-    #     HasManyAssociation => has_many
-    #       HasManyThroughAssociation + ThroughAssociation => has_many :through
+    # ```
+    # CollectionAssociation:
+    #   HasManyAssociation => has_many
+    #     HasManyThroughAssociation + ThroughAssociation => has_many :through
+    # ```
     #
     # The CollectionAssociation class provides common methods to the collections
-    # defined by +has_and_belongs_to_many+, +has_many+ or +has_many+ with
-    # the <tt>:through association</tt> option.
+    # defined by `has_and_belongs_to_many`, `has_many` or `has_many` with
+    # the `:through association` option.
     #
     # You need to be careful with assumptions regarding the target: The proxy
     # does not fetch records from the database until it needs them, but new
-    # ones created with +build+ are added to the target. So, the target may be
+    # ones created with `build` are added to the target. So, the target may be
     # non-empty and still lack children waiting to be read from the database.
     # If you look directly to the database you cannot assume that's the entire
     # collection because new records may have been added to the target, etc.
     #
     # If you need to work on all current children, new and existing records,
-    # +load_target+ and the +loaded+ flag are your friends.
+    # `load_target` and the `loaded` flag are your friends.
     class CollectionAssociation < Association # :nodoc:
       attr_accessor :nested_attributes_target
 
@@ -115,8 +119,8 @@ module ActiveRecord
         end
       end
 
-      # Add +records+ to this association. Since +<<+ flattens its argument list
-      # and inserts each record, +push+ and +concat+ behave identically.
+      # Add `records` to this association. Since +<<+ flattens its argument list
+      # and inserts each record, `push` and `concat` behave identically.
       def concat(*records)
         records = records.flatten
         if owner.new_record?
@@ -128,8 +132,8 @@ module ActiveRecord
       end
 
       # Removes all records from the association without calling callbacks
-      # on the associated records. It honors the +:dependent+ option. However
-      # if the +:dependent+ value is +:destroy+ then in that case the +:delete_all+
+      # on the associated records. It honors the `:dependent` option. However
+      # if the `:dependent` value is `:destroy` then in that case the `:delete_all`
       # deletion strategy for the association is applied.
       #
       # You can force a particular deletion strategy by passing a parameter.
@@ -169,36 +173,36 @@ module ActiveRecord
         end
       end
 
-      # Removes +records+ from this association calling +before_remove+ and
-      # +after_remove+ callbacks.
+      # Removes `records` from this association calling `before_remove` and
+      # `after_remove` callbacks.
       #
-      # This method is abstract in the sense that +delete_records+ has to be
+      # This method is abstract in the sense that `delete_records` has to be
       # provided by descendants. Note this method does not imply the records
       # are actually removed from the database, that depends precisely on
-      # +delete_records+. They are in any case removed from the collection.
+      # `delete_records`. They are in any case removed from the collection.
       def delete(*records)
         delete_or_destroy(records, options[:dependent])
       end
 
-      # Deletes the +records+ and removes them from this association calling
-      # +before_remove+, +after_remove+, +before_destroy+ and +after_destroy+ callbacks.
+      # Deletes the `records` and removes them from this association calling
+      # `before_remove`, `after_remove`, `before_destroy` and `after_destroy` callbacks.
       #
       # Note that this method removes records from the database ignoring the
-      # +:dependent+ option.
+      # `:dependent` option.
       def destroy(*records)
         delete_or_destroy(records, :destroy)
       end
 
       # Returns the size of the collection by executing a SELECT COUNT(*)
       # query if the collection hasn't been loaded, and calling
-      # <tt>collection.size</tt> if it has.
+      # `collection.size` if it has.
       #
-      # If the collection has been already loaded +size+ and +length+ are
+      # If the collection has been already loaded `size` and `length` are
       # equivalent. If not and you are going to need the records anyway
-      # +length+ will take one less query. Otherwise +size+ is more efficient.
+      # `length` will take one less query. Otherwise `size` is more efficient.
       #
       # This method is abstract in the sense that it relies on
-      # +count_records+, which is a method descendants have to provide.
+      # `count_records`, which is a method descendants have to provide.
       def size
         if !find_target? || loaded?
           target.size
@@ -217,11 +221,11 @@ module ActiveRecord
       # Returns true if the collection is empty.
       #
       # If the collection has been loaded
-      # it is equivalent to <tt>collection.size.zero?</tt>. If the
+      # it is equivalent to `collection.size.zero?`. If the
       # collection has not been loaded, it is equivalent to
-      # <tt>!collection.exists?</tt>. If the collection has not already been
+      # `!collection.exists?`. If the collection has not already been
       # loaded and you are going to fetch the records anyway it is better to
-      # check <tt>collection.length.zero?</tt>.
+      # check `collection.length.zero?`.
       def empty?
         if loaded? || @association_ids || reflection.has_active_cached_counter?
           size.zero?
@@ -230,7 +234,7 @@ module ActiveRecord
         end
       end
 
-      # Replace this collection with +other_array+. This will perform a diff
+      # Replace this collection with `other_array`. This will perform a diff
       # and delete/add only records that have changed.
       def replace(other_array)
         other_array.each { |val| raise_on_type_mismatch!(val) }
@@ -321,10 +325,12 @@ module ActiveRecord
         #
         # So the task of this method is to merge them according to the following rules:
         #
-        #   * The final array must not have duplicates
-        #   * The order of the persisted array is to be preserved
-        #   * Any changes made to attributes on objects in the memory array are to be preserved
-        #   * Otherwise, attributes should have the value found in the database
+        # ```
+        # * The final array must not have duplicates
+        # * The order of the persisted array is to be preserved
+        # * Any changes made to attributes on objects in the memory array are to be preserved
+        # * Otherwise, attributes should have the value found in the database
+        # ```
         def merge_target_lists(persisted, memory)
           return persisted if memory.empty?
 
@@ -402,8 +408,8 @@ module ActiveRecord
         end
 
         # Delete the given records from the association,
-        # using one of the methods +:destroy+, +:delete_all+
-        # or +:nullify+ (or +nil+, in which case a default is used).
+        # using one of the methods `:destroy`, `:delete_all`
+        # or `:nullify` (or `nil`, in which case a default is used).
         def delete_records(records, method)
           raise NotImplementedError
         end

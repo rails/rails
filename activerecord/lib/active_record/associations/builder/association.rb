@@ -1,15 +1,19 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 # This is the parent Association class which defines the variables
 # used by all associations.
 #
 # The hierarchy is defined as follows:
-#  Association
-#    - SingularAssociation
-#      - BelongsToAssociation
-#      - HasOneAssociation
-#    - CollectionAssociation
-#      - HasManyAssociation
+#
+# ```
+# Association
+#   - SingularAssociation
+#     - BelongsToAssociation
+#     - HasOneAssociation
+#   - CollectionAssociation
+#     - HasManyAssociation
+# ```
 
 module ActiveRecord::Associations::Builder # :nodoc:
   class Association # :nodoc:
@@ -89,7 +93,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     # Defines the setter and getter methods for the association
     # class Post < ActiveRecord::Base
-    #   has_many :comments
+    #
+    # ```
+    # has_many :comments
+    # ```
+    #
     # end
     #
     # Post.first.comments and Post.first.comments= methods are defined by this method...

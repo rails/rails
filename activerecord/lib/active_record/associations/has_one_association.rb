@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
-    # = Active Record Has One Association
+    # Active Record Has One Association
+    # =================================
     class HasOneAssociation < SingularAssociation # :nodoc:
       include ForeignAssociation
 

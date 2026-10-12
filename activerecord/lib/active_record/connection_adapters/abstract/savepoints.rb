@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
-    # = Active Record Connection Adapters \Savepoints
+    # Active Record Connection Adapters \Savepoints
+    # =============================================
     module Savepoints
       def current_savepoint_name
         current_transaction.savepoint_name

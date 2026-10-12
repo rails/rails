@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
-    # = Active Record Through Association
+    # Active Record Through Association
+    # =================================
     module ThroughAssociation # :nodoc:
       delegate :source_reflection, to: :reflection
 
