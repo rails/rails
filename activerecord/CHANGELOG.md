@@ -1,3 +1,8 @@
+*   Fix `has_many`/`has_one :through` associations with `disable_joins: true`
+    raising when the owner's foreign key is composite.
+
+    *Federico Carrocera*
+
 *   Fix `where` with a `Range` of value objects on a single-mapping `composed_of`
     attribute.
 
