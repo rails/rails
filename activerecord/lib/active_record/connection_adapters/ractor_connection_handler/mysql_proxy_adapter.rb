@@ -307,10 +307,6 @@ module ActiveRecord
           remote_dispatch(:return_value_after_insert?, ...)
         end
 
-        def savepoint_errors_invalidate_transactions?
-          remote_dispatch(:savepoint_errors_invalidate_transactions?)
-        end
-
         def table_comment(...)
           remote_dispatch(:table_comment, ...)
         end

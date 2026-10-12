@@ -790,22 +790,23 @@ module ActiveRecord
         intent.deliver_result(result, warnings: warnings)
       end
 
-      # Executes `intent` below the public query pipeline — no logging, query
-      # transformers, transaction bookkeeping, or retries — and materializes
-      # the outcome.
+      # Executes `intent` below the public query pipeline — no logging or query
+      # transformers — and materializes the outcome.
       def execute_raw_intent(intent) # :nodoc:
         @lock.synchronize do
+          range_error = nil
           raw_result =
-            begin
-              ensure_connection_ready(allow_retry: intent.allow_retry, materialize_transactions: false)
-              perform_query(@raw_connection, intent)
-            rescue ::RangeError
-              # Re-raised untranslated: the calling pipeline handles RangeError
-              # with the empty-result fast path (see QueryIntent#run_query!).
-              raise
+            with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: intent.materialize_transactions) do |raw_connection|
+              perform_query(raw_connection, intent)
+            rescue ::RangeError => range_error
+              # The outer caller needs to see RangeError untranslated, so we need
+              # to store it here and re-raise outside of with_raw_connection's
+              # translation.
+              nil
             rescue => error
               raise translate_exception_class(error, intent.processed_sql, intent.binds)
             end
+          raise range_error if range_error
 
           result = cast_result(raw_result)
 
