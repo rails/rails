@@ -293,6 +293,85 @@ module ActiveRecord
         assert_same klass2.lease_connection, ActiveRecord::Base.lease_connection
       end
 
+      def test_establish_connection_reuses_pool_only_for_equal_config_by_default
+        klass2 = Class.new(Base) { def self.name; "klass2"; end }
+        config = ActiveRecord::Base.connection_pool.db_config.configuration_hash
+
+        pool = klass2.establish_connection(config)
+        pool.lease_connection
+
+        assert_same pool, klass2.establish_connection(config)
+        assert_predicate pool, :connected?
+
+        changed_config = config.merge(checkout_timeout: pool.db_config.checkout_timeout + 1)
+        assert_not_equal config, changed_config
+        new_pool = klass2.establish_connection(changed_config)
+
+        assert_not_same pool, new_pool
+        assert_same new_pool, klass2.connection_pool
+        assert_not_predicate pool, :connected?
+      ensure
+        klass2.remove_connection
+      end
+
+      def test_establish_connection_with_clobber_replaces_pool_with_equal_config
+        klass2 = Class.new(Base) { def self.name; "klass2"; end }
+        config = ActiveRecord::Base.connection_pool.db_config.configuration_hash
+
+        pool = klass2.establish_connection(config)
+        pool.lease_connection
+
+        new_pool = klass2.establish_connection(config, clobber: true)
+
+        assert_not_same pool, new_pool
+        assert_same new_pool, klass2.connection_pool
+        assert_not_predicate pool, :connected?
+      ensure
+        klass2.remove_connection
+      end
+
+      def test_establish_connection_with_clobber_false_reuses_pool_only_for_equal_config
+        klass2 = Class.new(Base) { def self.name; "klass2"; end }
+        config = ActiveRecord::Base.connection_pool.db_config.configuration_hash
+
+        pool = klass2.establish_connection(config, clobber: false)
+        pool.lease_connection
+
+        assert_same pool, klass2.establish_connection(config, clobber: false)
+        assert_same pool, klass2.establish_connection(**config, clobber: false)
+        assert_predicate pool, :connected?
+
+        changed_config = config.merge(checkout_timeout: pool.db_config.checkout_timeout + 1)
+        assert_not_equal config, changed_config
+        new_pool = klass2.establish_connection(changed_config, clobber: false)
+
+        assert_not_same pool, new_pool
+        assert_same new_pool, klass2.connection_pool
+        assert_not_predicate pool, :connected?
+      ensure
+        klass2.remove_connection
+      end
+
+      def test_establish_connection_with_clobber_accepts_configuration_as_keywords
+        klass2 = Class.new(Base) { def self.name; "klass2"; end }
+        config = ActiveRecord::Base.connection_pool.db_config.configuration_hash
+
+        pool = klass2.establish_connection(**config)
+
+        assert_same pool, klass2.establish_connection(**config)
+        assert_not_same pool, klass2.establish_connection(**config, clobber: true)
+      ensure
+        klass2.remove_connection
+      end
+
+      def test_establish_connection_rejects_configuration_as_both_positional_and_keywords
+        config = ActiveRecord::Base.connection_pool.db_config.configuration_hash
+
+        assert_raises(ArgumentError) do
+          Class.new(Base).establish_connection(config, **config)
+        end
+      end
+
       class ApplicationRecord < ActiveRecord::Base
         self.abstract_class = true
       end
