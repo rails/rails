@@ -639,8 +639,26 @@ module ActiveRecord
 
       def exec_restart_db_transaction() end # :nodoc:
 
+      # Whether a nested transaction may be emulated by restarting its parent,
+      # instead of nesting a savepoint.
+      def restart_parent_transactions? # :nodoc:
+        true
+      end
+
       def rollback_to_savepoint(name = nil)
         exec_rollback_to_savepoint(name)
+      end
+
+      def begin_savepoint_transaction(name) # :nodoc:
+        create_savepoint(name)
+      end
+
+      def commit_savepoint_transaction(name) # :nodoc:
+        release_savepoint(name)
+      end
+
+      def rollback_savepoint_transaction(name) # :nodoc:
+        rollback_to_savepoint(name) if active?
       end
 
       def default_sequence_name(table, column)
