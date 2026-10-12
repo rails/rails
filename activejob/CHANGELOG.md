@@ -1,3 +1,26 @@
+*   Updates these methods to return the block result:
+    * `assert_enqueued_jobs`
+    * `assert_no_enqueued_jobs`,
+    * `assert_performed_jobs`
+    * `assert_no_performed_jobs`.
+
+    This lets you more easily make use of a value computed inside the block, without needing to forward-declare a local variable. E.g. before:
+
+    ```ruby
+    result = nil
+    assert_enqueued_jobs(1) { result = compute_to_i("123") }
+    assert_equal 123, result
+    ```
+
+    After:
+
+    ```ruby
+    result = assert_enqueued_jobs(1) { compute_to_i("123") }
+    assert_equal 123, result
+    ```
+
+    *Alexander Momchilov*
+
 *   Fix continuation step cursors losing their type when a job is interrupted
     and resumed.
 
