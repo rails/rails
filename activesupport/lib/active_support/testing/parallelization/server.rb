@@ -69,15 +69,16 @@ module ActiveSupport
           @distributor.interrupt
         end
 
-        def shutdown
-          # Wait for initial queue to drain
-          while @distributor.pending?
-            sleep 0.1
-          end
-
+        def shutdown(worker_pids)
           @distributor.close
 
-          wait_for_active_workers
+          wait_for_workers(worker_pids)
+
+          # Dead workers may leave tests in their queues. Register those tests
+          # as unreported after the surviving workers have finished.
+          worker_pids.each_index do |worker_id|
+            while pop(worker_id); end
+          end
 
           @in_flight.values.each do |(klass, name, reporter)|
             result = Minitest::Result.from(klass.new(name))
@@ -93,25 +94,18 @@ module ActiveSupport
 
           @distributor.close
 
-          wait_for_active_workers
+          wait_for_workers(worker_pids)
         end
 
         private
-          def wait_for_active_workers
-            while active_workers?
-              reap_dead_workers
-              sleep 0.1
-            end
-          end
-
-          def reap_dead_workers
-            dead_pids = @worker_pids.values.select do |pid|
-              Process.waitpid(pid, Process::WNOHANG)
+          def wait_for_workers(worker_pids)
+            worker_pids.each do |pid|
+              Process.waitpid(pid)
             rescue Errno::ECHILD
-              true
+              nil
             end
 
-            remove_dead_workers(dead_pids)
+            remove_dead_workers(worker_pids)
           end
       end
     end

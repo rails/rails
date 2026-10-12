@@ -3,6 +3,19 @@
 require_relative "abstract_unit"
 
 class ParallelizationTest < ActiveSupport::TestCase
+  class DeadWorkerTest < ActiveSupport::TestCase
+    def self.runnable_methods
+      []
+    end
+
+    10.times do |i|
+      define_method("test_#{i}") do
+        Process.kill("KILL", Process.pid) if parallel_worker_id == 0
+        assert true
+      end
+    end
+  end
+
   def setup
     @original_worker_id = ActiveSupport::TestCase.parallel_worker_id
   end
@@ -58,10 +71,41 @@ class ParallelizationTest < ActiveSupport::TestCase
     assert_not server.active_workers?
   end
 
+  test "shutdown reports tests assigned to a worker that dies with pending work" do
+    skip "Process-based parallelization requires fork" unless Process.respond_to?(:fork)
+
+    begin
+      parallelization = ActiveSupport::Testing::Parallelization.new(2)
+      reporter = Minitest::StatisticsReporter.new
+      parallelization.start
+
+      10.times { |i| parallelization << [DeadWorkerTest, "test_#{i}", reporter] }
+
+      Timeout.timeout(5, Minitest::Assertion, "Expected shutdown to not hang") { parallelization.shutdown }
+
+      assert_equal 10, reporter.count
+      assert_equal 5, reporter.assertions
+      assert_equal %w[test_0 test_2 test_4 test_6 test_8], reporter.results.map(&:name).sort
+      assert reporter.results.all?(&:error?)
+      assert reporter.results.all? { |result| result.failure.error.message == "result not reported" }
+    ensure
+      if parallelization
+        parallelization.instance_variable_get(:@worker_pool).each do |pid|
+          unless Process.waitpid(pid, Process::WNOHANG)
+            Process.kill("KILL", pid)
+            Process.waitpid(pid)
+          end
+        rescue Errno::ECHILD
+          nil
+        end
+        DRb.stop_service
+      end
+    end
+  end
+
   test "shutdown handles workers that die during server shutdown" do
-    # Regression test: workers that exit without calling stop_worker AFTER
-    # the initial WNOHANG sweep in Parallelization#shutdown must still be
-    # detected inside Server#shutdown's wait_for_active_workers loop.
+    # Workers can exit without calling stop_worker after shutdown begins.
+    # Shutdown must still wait for their processes and remove them.
     parallelization = ActiveSupport::Testing::Parallelization.new(1)
     server = parallelization.instance_variable_get(:@queue_server)
     url = parallelization.instance_variable_get(:@url)
@@ -83,8 +127,7 @@ class ParallelizationTest < ActiveSupport::TestCase
     sleep 0.25
     assert server.active_workers?
 
-    # Schedule the kill AFTER shutdown begins, so the initial WNOHANG sweep
-    # in Parallelization#shutdown finds the worker still alive
+    # Schedule the kill after shutdown begins, while it waits for the worker.
     Thread.new do
       sleep 0.5
       Process.kill("KILL", worker_pid)
