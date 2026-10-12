@@ -15,6 +15,18 @@ module ActiveRecord
       other == records
     end
 
+    # Additive +query_constraints+ are matched when querying the association, but
+    # they are never written: only the foreign key is, by
+    # +ForeignAssociation#set_owner_attributes+. The association scope carries them
+    # as ordinary equality conditions though, and every equality condition in a
+    # scope otherwise becomes a default attribute on records built from it, which
+    # would make +build+ write columns that +<<+ and autosave leave alone.
+    def scope_for_create
+      attributes = super
+      columns = @association.reflection.query_constraints_target_columns
+      columns.any? ? attributes.except!(*columns) : attributes
+    end
+
     %w(insert insert_all insert! insert_all! upsert upsert_all).each do |method|
       class_eval <<~RUBY, __FILE__, __LINE__ + 1
         def #{method}(...)

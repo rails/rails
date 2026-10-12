@@ -13,6 +13,6 @@ module Sharded
 
     has_many :comments_via_posts,
       through: :blog_posts,
-      source: :comments_with_composite_pk
+      source: :comments_with_query_constraints
   end
 end
