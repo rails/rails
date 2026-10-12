@@ -37,6 +37,7 @@ module ActiveRecord
         extend(*extensions) if extensions.any?
       end
 
+      # Returns the associated target collection.
       def target
         @association.target
       end
