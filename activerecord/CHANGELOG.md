@@ -1,3 +1,12 @@
+*   Raise a clear error for a `Range` of `composed_of` values when the attribute
+    maps to more than one column.
+
+    One-column mappings answer a `Range` with `BETWEEN`. A mapping of several
+    columns has no such form, and asking for one raised
+    `NoMethodError: undefined method 'street' for an instance of Range`.
+
+    *Carlos Daniel Pohlod*
+
 *   Fix `where` with a `Range` of value objects on a single-mapping `composed_of`
     attribute.
 
