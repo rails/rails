@@ -181,7 +181,7 @@ module ActiveRecord
       end
 
       def query_constraints_list # :nodoc:
-        schema_context.query_constraints_list
+        query_constraints_definition || schema_context.query_constraints_list
       end
 
       def query_constraints_definition # :nodoc:
@@ -192,7 +192,7 @@ module ActiveRecord
       # names is derived from +query_constraints_list+ or +primary_key+. This method
       # is for internal use when the primary key is to be treated as an array.
       def composite_query_constraints_list # :nodoc:
-        schema_context.composite_query_constraints_list
+        query_constraints_definition || schema_context.composite_query_constraints_list
       end
 
       def _insert_record(connection, values, returning) # :nodoc:
