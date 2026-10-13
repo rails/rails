@@ -1,41 +1,49 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/module/attribute_accessors"
 
 module ActiveRecord
   module AttributeMethods
-    # = Active Record Attribute Methods \Dirty
+    # Active Record Attribute Methods \Dirty
+    # ======================================
     #
     # Provides a way to track changes in your Active Record models. It adds all
     # methods from ActiveModel::Dirty and adds database-specific methods.
     #
-    # A newly created +Person+ object is unchanged:
+    # A newly created `Person` object is unchanged:
     #
-    #   class Person < ActiveRecord::Base
-    #   end
+    # ```
+    # class Person < ActiveRecord::Base
+    # end
     #
-    #   person = Person.create(name: "Allison")
-    #   person.changed? # => false
+    # person = Person.create(name: "Allison")
+    # person.changed? # => false
+    # ```
     #
     # Change the name:
     #
-    #   person.name = 'Alice'
-    #   person.name_in_database          # => "Allison"
-    #   person.will_save_change_to_name? # => true
-    #   person.name_change_to_be_saved   # => ["Allison", "Alice"]
-    #   person.changes_to_save           # => {"name"=>["Allison", "Alice"]}
+    # ```
+    # person.name = 'Alice'
+    # person.name_in_database          # => "Allison"
+    # person.will_save_change_to_name? # => true
+    # person.name_change_to_be_saved   # => ["Allison", "Alice"]
+    # person.changes_to_save           # => {"name"=>["Allison", "Alice"]}
+    # ```
     #
     # Save the changes:
     #
-    #   person.save
-    #   person.name_in_database        # => "Alice"
-    #   person.saved_change_to_name?   # => true
-    #   person.saved_change_to_name    # => ["Allison", "Alice"]
-    #   person.name_before_last_save   # => "Allison"
+    # ```
+    # person.save
+    # person.name_in_database        # => "Alice"
+    # person.saved_change_to_name?   # => true
+    # person.saved_change_to_name    # => ["Allison", "Alice"]
+    # person.name_before_last_save   # => "Allison"
+    # ```
     #
     # Similar to ActiveModel::Dirty, methods can be invoked as
-    # +saved_change_to_name?+ or by passing an argument to the generic method
-    # <tt>saved_change_to_attribute?("name")</tt>.
+    # `saved_change_to_name?` or by passing an argument to the generic method
+    # `saved_change_to_attribute?("name")`.
     module Dirty
       extend ActiveSupport::Concern
 
@@ -59,7 +67,7 @@ module ActiveRecord
         attribute_method_suffix("_change_to_be_saved", "_in_database", parameters: false)
       end
 
-      # <tt>reload</tt> the record and clears changed attributes.
+      # `reload` the record and clears changed attributes.
       def reload(*)
         super.tap do
           @mutations_before_last_save = nil
@@ -71,18 +79,18 @@ module ActiveRecord
       #
       # This method is useful in after callbacks to determine if an attribute
       # was changed during the save that triggered the callbacks to run. It can
-      # be invoked as +saved_change_to_name?+ instead of
-      # <tt>saved_change_to_attribute?("name")</tt>.
+      # be invoked as `saved_change_to_name?` instead of
+      # `saved_change_to_attribute?("name")`.
       #
-      # ==== Options
+      # #### Options
       #
-      # [+from+]
-      #   When specified, this method will return false unless the original
-      #   value is equal to the given value.
+      # `from`
+      # :   When specified, this method will return false unless the original
+      # value is equal to the given value.
       #
-      # [+to+]
-      #   When specified, this method will return false unless the value will be
-      #   changed to the given value.
+      # `to`
+      # :   When specified, this method will return false unless the value will be
+      # changed to the given value.
       def saved_change_to_attribute?(attr_name, **options)
         mutations_before_last_save.changed?(attr_name.to_s, **options)
       end
@@ -93,8 +101,8 @@ module ActiveRecord
       #
       # This method is useful in after callbacks, to see the change in an
       # attribute during the save that triggered the callbacks to run. It can be
-      # invoked as +saved_change_to_name+ instead of
-      # <tt>saved_change_to_attribute("name")</tt>.
+      # invoked as `saved_change_to_name` instead of
+      # `saved_change_to_attribute("name")`.
       def saved_change_to_attribute(attr_name)
         mutations_before_last_save.change_to_attribute(attr_name.to_s)
       end
@@ -103,13 +111,13 @@ module ActiveRecord
       #
       # This method is useful in after callbacks to get the original value of an
       # attribute before the save that triggered the callbacks to run. It can be
-      # invoked as +name_before_last_save+ instead of
-      # <tt>attribute_before_last_save("name")</tt>.
+      # invoked as `name_before_last_save` instead of
+      # `attribute_before_last_save("name")`.
       def attribute_before_last_save(attr_name)
         mutations_before_last_save.original_value(attr_name.to_s)
       end
 
-      # Did the last call to +save+ have any changes to change?
+      # Did the last call to `save` have any changes to change?
       def saved_changes?
         mutations_before_last_save.any_changes?
       end
@@ -122,19 +130,19 @@ module ActiveRecord
       # Will this attribute change the next time we save?
       #
       # This method is useful in validations and before callbacks to determine
-      # if the next call to +save+ will change a particular attribute. It can be
-      # invoked as +will_save_change_to_name?+ instead of
-      # <tt>will_save_change_to_attribute?("name")</tt>.
+      # if the next call to `save` will change a particular attribute. It can be
+      # invoked as `will_save_change_to_name?` instead of
+      # `will_save_change_to_attribute?("name")`.
       #
-      # ==== Options
+      # #### Options
       #
-      # [+from+]
-      #   When specified, this method will return false unless the original
-      #   value is equal to the given value.
+      # `from`
+      # :   When specified, this method will return false unless the original
+      # value is equal to the given value.
       #
-      # [+to+]
-      #   When specified, this method will return false unless the value will be
-      #   changed to the given value.
+      # `to`
+      # :   When specified, this method will return false unless the value will be
+      # changed to the given value.
       def will_save_change_to_attribute?(attr_name, **options)
         mutations_from_database.changed?(attr_name.to_s, **options)
       end
@@ -144,8 +152,8 @@ module ActiveRecord
       #
       # This method is useful in validations and before callbacks, to see the
       # change to an attribute that will occur when the record is saved. It can
-      # be invoked as +name_change_to_be_saved+ instead of
-      # <tt>attribute_change_to_be_saved("name")</tt>.
+      # be invoked as `name_change_to_be_saved` instead of
+      # `attribute_change_to_be_saved("name")`.
       #
       # If the attribute will change, the result will be an array containing the
       # original value and the new value about to be saved.
@@ -159,13 +167,13 @@ module ActiveRecord
       #
       # This method is useful in validations and before callbacks, to see the
       # original value of an attribute prior to any changes about to be
-      # saved. It can be invoked as +name_in_database+ instead of
-      # <tt>attribute_in_database("name")</tt>.
+      # saved. It can be invoked as `name_in_database` instead of
+      # `attribute_in_database("name")`.
       def attribute_in_database(attr_name)
         mutations_from_database.original_value(attr_name.to_s)
       end
 
-      # Will the next call to +save+ have any changes to persist?
+      # Will the next call to `save` have any changes to persist?
       def has_changes_to_save?
         mutations_from_database.any_changes?
       end

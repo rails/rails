@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/numeric/time"
 
 module ActiveJob
@@ -21,48 +22,51 @@ module ActiveJob
       # You can also pass a block that'll be invoked if the retry attempts fail for custom logic rather than letting
       # the exception bubble up. This block is yielded with the job instance as the first and the error instance as the second parameter.
       #
-      # +retry_on+ and +discard_on+ handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
-      # which <tt>exception.is_a?(klass)</tt> holds true is the one invoked, if any.
+      # `retry_on` and `discard_on` handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
+      # which `exception.is_a?(klass)` holds true is the one invoked, if any.
       #
-      # ==== Options
-      # * <tt>:wait</tt> - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
+      # #### Options
+      #
+      # * `:wait` - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
       #   as a computing proc that takes the number of executions so far as an argument (and optionally the error),
       #   or as a symbol reference of
-      #   <tt>:polynomially_longer</tt>, which applies the wait algorithm of <tt>((executions**4) + (Kernel.rand * (executions**4) * jitter)) + 2</tt>
+      #   `:polynomially_longer`, which applies the wait algorithm of `((executions**4) + (Kernel.rand * (executions**4) * jitter)) + 2`
       #   (first wait ~3s, then ~18s, then ~83s, etc)
-      # * <tt>:attempts</tt> - Enqueues the job the specified number of times (default: 5 attempts) or a symbol reference of <tt>:unlimited</tt>
+      # * `:attempts` - Enqueues the job the specified number of times (default: 5 attempts) or a symbol reference of `:unlimited`
       #   to retry the job until it succeeds. The number of attempts includes the original job execution.
-      # * <tt>:queue</tt> - Re-enqueues the job on a different queue
-      # * <tt>:priority</tt> - Re-enqueues the job with a different priority
-      # * <tt>:jitter</tt> - A random delay of wait time used when calculating backoff. The default is 15% (0.15) which represents the upper bound of possible wait time (expressed as a percentage)
-      # * <tt>:report</tt> - Errors will be reported to the Rails.error reporter before being retried
+      # * `:queue` - Re-enqueues the job on a different queue
+      # * `:priority` - Re-enqueues the job with a different priority
+      # * `:jitter` - A random delay of wait time used when calculating backoff. The default is 15% (0.15) which represents the upper bound of possible wait time (expressed as a percentage)
+      # * `:report` - Errors will be reported to the Rails.error reporter before being retried
       #
-      # ==== Examples
+      # #### Examples
       #
-      #  class RemoteServiceJob < ActiveJob::Base
-      #    retry_on CustomAppException # defaults to ~3s wait, 5 attempts
-      #    retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
-      #    retry_on ThirdCustomAppException, wait: ->(executions, error) { error.retry_after || executions * 2 }
-      #    retry_on CustomInfrastructureException, wait: 5.minutes, attempts: :unlimited
+      # ```
+      # class RemoteServiceJob < ActiveJob::Base
+      #   retry_on CustomAppException # defaults to ~3s wait, 5 attempts
+      #   retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
+      #   retry_on ThirdCustomAppException, wait: ->(executions, error) { error.retry_after || executions * 2 }
+      #   retry_on CustomInfrastructureException, wait: 5.minutes, attempts: :unlimited
       #
-      #    retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
-      #    retry_on Net::OpenTimeout, Timeout::Error, wait: :polynomially_longer, attempts: 10 # retries at most 10 times for Net::OpenTimeout and Timeout::Error combined
-      #    # To retry at most 10 times for each individual exception:
-      #    # retry_on Net::OpenTimeout, wait: :polynomially_longer, attempts: 10
-      #    # retry_on Net::ReadTimeout, wait: 5.seconds, jitter: 0.30, attempts: 10
-      #    # retry_on Timeout::Error, wait: :polynomially_longer, attempts: 10
+      #   retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
+      #   retry_on Net::OpenTimeout, Timeout::Error, wait: :polynomially_longer, attempts: 10 # retries at most 10 times for Net::OpenTimeout and Timeout::Error combined
+      #   # To retry at most 10 times for each individual exception:
+      #   # retry_on Net::OpenTimeout, wait: :polynomially_longer, attempts: 10
+      #   # retry_on Net::ReadTimeout, wait: 5.seconds, jitter: 0.30, attempts: 10
+      #   # retry_on Timeout::Error, wait: :polynomially_longer, attempts: 10
       #
-      #    retry_on YetAnotherCustomAppException, report: true
-      #    retry_on EvenWorseCustomAppException do |job, error|
-      #      CustomErrorHandlingCode.handle(job, error)
-      #    end
+      #   retry_on YetAnotherCustomAppException, report: true
+      #   retry_on EvenWorseCustomAppException do |job, error|
+      #     CustomErrorHandlingCode.handle(job, error)
+      #   end
       #
-      #    def perform(*args)
-      #      # Might raise CustomAppException, AnotherCustomAppException, or YetAnotherCustomAppException for something domain specific
-      #      # Might raise ActiveRecord::Deadlocked when a local db deadlock is detected
-      #      # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
-      #    end
-      #  end
+      #   def perform(*args)
+      #     # Might raise CustomAppException, AnotherCustomAppException, or YetAnotherCustomAppException for something domain specific
+      #     # Might raise ActiveRecord::Deadlocked when a local db deadlock is detected
+      #     # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
+      #   end
+      # end
+      # ```
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT, report: false)
         case wait
         when :polynomially_longer, Integer, Float, ActiveSupport::Duration, Proc
@@ -95,27 +99,29 @@ module ActiveJob
       # Discard the job with no attempts to retry, if the exception is raised. This is useful when the subject of the job,
       # like an Active Record, is no longer available, and the job is thus no longer relevant.
       #
-      # Passing the <tt>:report</tt> option reports the error through the error reporter before discarding the job.
+      # Passing the `:report` option reports the error through the error reporter before discarding the job.
       #
       # You can also pass a block that'll be invoked. This block is yielded with the job instance as the first and the error instance as the second parameter.
       #
-      # +retry_on+ and +discard_on+ handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
-      # which <tt>exception.is_a?(klass)</tt> holds true is the one invoked, if any.
+      # `retry_on` and `discard_on` handlers are searched from bottom to top, and up the class hierarchy. The handler of the first class for
+      # which `exception.is_a?(klass)` holds true is the one invoked, if any.
       #
-      # ==== Example
+      # #### Example
       #
-      #  class SearchIndexingJob < ActiveJob::Base
-      #    discard_on ActiveJob::DeserializationError::RecordNotFound
-      #    discard_on CustomAppException, report: true
-      #    discard_on(AnotherCustomAppException) do |job, error|
-      #      CustomErrorHandlingCode.handle(job, error)
-      #    end
+      # ```
+      # class SearchIndexingJob < ActiveJob::Base
+      #   discard_on ActiveJob::DeserializationError::RecordNotFound
+      #   discard_on CustomAppException, report: true
+      #   discard_on(AnotherCustomAppException) do |job, error|
+      #     CustomErrorHandlingCode.handle(job, error)
+      #   end
       #
-      #    def perform(record)
-      #      # Will raise ActiveJob::DeserializationError::RecordNotFound if the record can't be found
-      #      # Might raise CustomAppException for something domain specific
-      #    end
-      #  end
+      #   def perform(record)
+      #     # Will raise ActiveJob::DeserializationError::RecordNotFound if the record can't be found
+      #     # Might raise CustomAppException for something domain specific
+      #   end
+      # end
+      # ```
       def discard_on(*exceptions, report: false)
         rescue_from(*exceptions) do |error|
           instrument :discard, error: error do
@@ -128,43 +134,48 @@ module ActiveJob
 
       # A block to run when a job is about to be discarded for any reason.
       #
-      # ==== Example
+      # #### Example
       #
-      #  class WorkJob < ActiveJob::Base
-      #    after_discard do |job, exception|
-      #      ExceptionNotifier.report(exception)
-      #    end
+      # ```
+      # class WorkJob < ActiveJob::Base
+      #   after_discard do |job, exception|
+      #     ExceptionNotifier.report(exception)
+      #   end
       #
-      #    ...
+      #   ...
       #
-      #  end
+      # end
+      # ```
       def after_discard(&blk)
         self.after_discard_procs += [blk]
       end
     end
 
     # Reschedules the job to be re-executed. This is useful in combination with
-    # {rescue_from}[rdoc-ref:ActiveSupport::Rescuable::ClassMethods#rescue_from].
+    # [rescue_from](rdoc-ref:ActiveSupport::Rescuable::ClassMethods#rescue_from).
     # When you rescue an exception from your job you can ask Active Job to retry
     # performing your job.
     #
-    # ==== Options
-    # * <tt>:wait</tt> - Enqueues the job with the specified delay in seconds
-    # * <tt>:wait_until</tt> - Enqueues the job at the time specified
-    # * <tt>:queue</tt> - Enqueues the job on the specified queue
-    # * <tt>:priority</tt> - Enqueues the job with the specified priority
+    # #### Options
     #
-    # ==== Examples
+    # * `:wait` - Enqueues the job with the specified delay in seconds
+    # * `:wait_until` - Enqueues the job at the time specified
+    # * `:queue` - Enqueues the job on the specified queue
+    # * `:priority` - Enqueues the job with the specified priority
     #
-    #  class SiteScraperJob < ActiveJob::Base
-    #    rescue_from(ErrorLoadingSite) do
-    #      retry_job queue: :low_priority
-    #    end
+    # #### Examples
     #
-    #    def perform(*args)
-    #      # raise ErrorLoadingSite if cannot scrape
-    #    end
-    #  end
+    # ```
+    # class SiteScraperJob < ActiveJob::Base
+    #   rescue_from(ErrorLoadingSite) do
+    #     retry_job queue: :low_priority
+    #   end
+    #
+    #   def perform(*args)
+    #     # raise ErrorLoadingSite if cannot scrape
+    #   end
+    # end
+    # ```
     def retry_job(options = {})
       instrument :enqueue_retry, options.slice(:error, :wait) do
         scheduled_at, queue_name, priority = self.scheduled_at, self.queue_name, self.priority

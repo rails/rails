@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module AttributeMethods
-    # = Active Record Attribute Methods \Read
+    # Active Record Attribute Methods \Read
+    # =====================================
     module Read
       extend ActiveSupport::Concern
 
@@ -22,9 +24,9 @@ module ActiveRecord
           end
       end
 
-      # Returns the value of the attribute identified by +attr_name+ after it
+      # Returns the value of the attribute identified by `attr_name` after it
       # has been type cast. For example, a date attribute will cast "2004-12-12"
-      # to <tt>Date.new(2004, 12, 12)</tt>. (For information about specific type
+      # to `Date.new(2004, 12, 12)`. (For information about specific type
       # casting behavior, see the types under ActiveModel::Type.)
       def read_attribute(attr_name, &block)
         name = attr_name.to_s

@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView # :nodoc:
   class Template # :nodoc:
-    # = Action View Template Handlers
+    # Action View Template Handlers
+    # =============================
     module Handlers # :nodoc:
       autoload :Raw, "action_view/template/handlers/raw"
       autoload :ERB, "action_view/template/handlers/erb"

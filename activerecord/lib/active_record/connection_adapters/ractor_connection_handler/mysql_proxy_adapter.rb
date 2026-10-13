@@ -177,10 +177,6 @@ module ActiveRecord
           remote_dispatch(:create_table, ...)
         end
 
-        def indexes(...)
-          remote_dispatch(:indexes, ...)
-        end
-
         def internal_string_options_for_primary_key
           remote_dispatch(:internal_string_options_for_primary_key)
         end
@@ -368,10 +364,6 @@ module ActiveRecord
 
           def drop_table_sql(...)
             remote_dispatch(:drop_table_sql, ...)
-          end
-
-          def fetch_column_definitions(...)
-            remote_dispatch(:fetch_column_definitions, ...)
           end
 
           def fetch_table_options(...)

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
@@ -47,7 +48,8 @@ module ActiveRecord
           :tinytext, :mediumtext, :longtext, :unsigned_integer, :unsigned_bigint
       end
 
-      # = Active Record MySQL Adapter \Index Definition
+      # Active Record MySQL Adapter \Index Definition
+      # =============================================
       class IndexDefinition < ActiveRecord::ConnectionAdapters::IndexDefinition # :nodoc:
         attr_accessor :enabled
 
@@ -77,7 +79,8 @@ module ActiveRecord
         end
       end
 
-      # = Active Record MySQL Adapter \Table Definition
+      # Active Record MySQL Adapter \Table Definition
+      # =============================================
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
@@ -126,7 +129,8 @@ module ActiveRecord
       AddIndex = Data.define(:index) # :nodoc:
       DropIndex = Data.define(:name) # :nodoc:
 
-      # = Active Record MySQL Adapter Alter \Table
+      # Active Record MySQL Adapter Alter \Table
+      # ========================================
       class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable # :nodoc:
         COMBINABLE_COMMANDS = (superclass::COMBINABLE_COMMANDS + %i[change_column rename_column add_index remove_index]).freeze
 
@@ -148,9 +152,11 @@ module ActiveRecord
         def remove_column(column_name, _type = nil, **options)
           extract_algorithm_and_lock!(options)
           # MySQL rejects `DROP COLUMN` on a column referenced by a foreign key,
-          # so drop the FK in the same `ALTER TABLE` statement as the column.
+          # so drop the FK in the same `ALTER TABLE` statement as the column,
+          # unless `remove_foreign_key` has already queued it.
           if fk = @td.conn.send(:foreign_key_for, name, column: column_name)
-            @operations << DropForeignKey.new(fk.name)
+            operation = DropForeignKey.new(fk.name)
+            @operations << operation unless @operations.include?(operation)
           end
           super
         end
@@ -229,28 +235,33 @@ module ActiveRecord
           end
       end
 
-      # = Active Record MySQL Adapter \Table
+      # Active Record MySQL Adapter \Table
+      # ==================================
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
 
         # Enables an index to be used by query optimizers.
         #
-        #   t.enable_index(:email)
+        # ```
+        # t.enable_index(:email)
+        # ```
         #
         # Note: only supported by MySQL version 8.0.0 and greater, and MariaDB version 10.6.0 and greater.
         #
-        # See {connection.enable_index}[rdoc-ref:SchemaStatements#enable_index]
+        # See [connection.enable_index](rdoc-ref:SchemaStatements#enable_index)
         def enable_index(index_name)
           @base.enable_index(name, index_name)
         end
 
         # Disables an index not to be used by query optimizers.
         #
-        #   t.disable_index(:email)
+        # ```
+        # t.disable_index(:email)
+        # ```
         #
         # Note: only supported by MySQL version 8.0.0 and greater, and MariaDB version 10.6.0 and greater.
         #
-        # See {connection.disable_index}[rdoc-ref:SchemaStatements#disable_index]
+        # See [connection.disable_index](rdoc-ref:SchemaStatements#disable_index)
         def disable_index(index_name)
           @base.disable_index(name, index_name)
         end

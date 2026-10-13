@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   # :stopdoc:
   module ConnectionAdapters
@@ -13,10 +14,10 @@ module ActiveRecord
 
       # Instantiates a new column in the table.
       #
-      # +name+ is the column's name, such as <tt>supplier_id</tt> in <tt>supplier_id bigint</tt>.
-      # +default+ is the type-casted default value, such as +new+ in <tt>sales_stage varchar(20) default 'new'</tt>.
-      # +sql_type_metadata+ is various information about the type of the column
-      # +null+ determines if this column allows +NULL+ values.
+      # `name` is the column's name, such as `supplier_id` in `supplier_id bigint`.
+      # `default` is the type-casted default value, such as `new` in `sales_stage varchar(20) default 'new'`.
+      # `sql_type_metadata` is various information about the type of the column
+      # `null` determines if this column allows `NULL` values.
       def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, **)
         @name = name.freeze
         @cast_type = cast_type
@@ -38,8 +39,11 @@ module ActiveRecord
 
       # Returns the human name of the column name.
       #
-      # ===== Examples
-      #  Column.new('sales_stage', ...).human_name # => 'Sales stage'
+      # ##### Examples
+      #
+      # ```
+      # Column.new('sales_stage', ...).human_name # => 'Sales stage'
+      # ```
       def human_name
         Base.human_attribute_name(@name)
       end

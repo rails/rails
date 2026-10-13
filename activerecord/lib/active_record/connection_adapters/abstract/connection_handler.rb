@@ -1,41 +1,47 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "concurrent/map"
 
 module ActiveRecord
   module ConnectionAdapters
-    # = Active Record Connection Handler
+    # Active Record Connection Handler
+    # ================================
     #
     # ConnectionHandler is a collection of ConnectionPool objects. It is used
     # for keeping separate connection pools that connect to different databases.
     #
     # For example, suppose that you have 5 models, with the following hierarchy:
     #
-    #   class Author < ActiveRecord::Base
-    #   end
+    # ```
+    # class Author < ActiveRecord::Base
+    # end
     #
-    #   class BankAccount < ActiveRecord::Base
-    #   end
+    # class BankAccount < ActiveRecord::Base
+    # end
     #
-    #   class Book < ActiveRecord::Base
-    #     establish_connection :library_db
-    #   end
+    # class Book < ActiveRecord::Base
+    #   establish_connection :library_db
+    # end
     #
-    #   class ScaryBook < Book
-    #   end
+    # class ScaryBook < Book
+    # end
     #
-    #   class GoodBook < Book
-    #   end
+    # class GoodBook < Book
+    # end
+    # ```
     #
     # And a database.yml that looked like this:
     #
-    #   development:
-    #     database: my_application
-    #     host: localhost
+    # ```
+    # development:
+    #   database: my_application
+    #   host: localhost
     #
-    #   library_db:
-    #     database: library
-    #     host: some.library.org
+    # library_db:
+    #   database: library
+    #   host: some.library.org
+    # ```
     #
     # Your primary database in the development environment is "my_application"
     # but the Book model connects to a separate database called "library_db"
@@ -90,7 +96,7 @@ module ActiveRecord
         connection_name_to_pool_manager.keys
       end
 
-      # Returns the pools for a connection handler and given role. If +:all+ is passed,
+      # Returns the pools for a connection handler and given role. If `:all` is passed,
       # all pools belonging to the connection handler will be returned.
       def connection_pool_list(role = nil)
         if role.nil? || role == :all
@@ -259,12 +265,15 @@ module ActiveRecord
         # Returns an instance of PoolConfig for a given adapter.
         # Accepts a hash one layer deep that contains all connection information.
         #
-        # == Example
+        # Example
+        # -------
         #
-        #   config = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
-        #   pool_config = Base.configurations.resolve_pool_config(:production)
-        #   pool_config.db_config.configuration_hash
-        #   # => { host: "localhost", database: "foo", adapter: "sqlite3" }
+        # ```
+        # config = { "production" => { "host" => "localhost", "database" => "foo", "adapter" => "sqlite3" } }
+        # pool_config = Base.configurations.resolve_pool_config(:production)
+        # pool_config.db_config.configuration_hash
+        # # => { host: "localhost", database: "foo", adapter: "sqlite3" }
+        # ```
         #
         def resolve_pool_config(config, connection_name, role, shard)
           db_config = Base.configurations.resolve(config)

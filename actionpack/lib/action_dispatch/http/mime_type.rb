@@ -237,6 +237,7 @@ module Mime
       def lookup(string)
         lookup = Mime.lookup_by_string
         return lookup[string] if lookup.key?(string)
+        return WILDCARD if string == "*/*"
 
         # fallback to the media-type without parameters if it was not found
         string = string.split(";", 2)[0]&.rstrip
@@ -353,6 +354,12 @@ module Mime
       @hash = [@string, @synonyms, @symbol].hash
       freeze
     end
+
+    # Returned when looking up `*/*`, the Accept header of most non-browser
+    # clients, instead of building an equal instance on each request. Unlike
+    # Mime::ALL, it's a plain unregistered type.
+    WILDCARD = new("*/*")
+    private_constant :WILDCARD
 
     def to_s
       @string

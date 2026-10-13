@@ -701,7 +701,7 @@ module ActiveRecord
         def add_exclusion_constraint(table_name, expression, **options)
           options = exclusion_constraint_options(table_name, expression, options)
           at = build_alter_table_definition(table_name)
-          at.add_exclusion_constraint(expression, options)
+          at.add_exclusion_constraint(expression, **options)
 
           execute_alter_table(at)
         end
@@ -722,9 +722,10 @@ module ActiveRecord
         # to provide this in a migration's +change+ method so it can be reverted.
         # In that case, +expression+ will be used by #add_exclusion_constraint.
         def remove_exclusion_constraint(table_name, expression = nil, **options)
-          excl_name_to_delete = exclusion_constraint_for!(table_name, expression: expression, **options).name
+          at = build_alter_table_definition(table_name)
+          at.remove_exclusion_constraint(expression, **options)
 
-          remove_constraint(table_name, excl_name_to_delete)
+          execute_alter_table(at)
         end
 
         # Checks to see if an exclusion constraint exists on a table for a given exclusion constraint definition.
@@ -763,7 +764,7 @@ module ActiveRecord
         def add_unique_constraint(table_name, column_name = nil, **options)
           options = unique_constraint_options(table_name, column_name, options)
           at = build_alter_table_definition(table_name)
-          at.add_unique_constraint(column_name, options)
+          at.add_unique_constraint(column_name, **options)
 
           execute_alter_table(at)
         end
@@ -788,9 +789,10 @@ module ActiveRecord
         # to provide this in a migration's +change+ method so it can be reverted.
         # In that case, +column_name+ will be used by #add_unique_constraint.
         def remove_unique_constraint(table_name, column_name = nil, **options)
-          unique_name_to_delete = unique_constraint_for!(table_name, column: column_name, **options).name
+          at = build_alter_table_definition(table_name)
+          at.remove_unique_constraint(column_name, **options)
 
-          remove_constraint(table_name, unique_name_to_delete)
+          execute_alter_table(at)
         end
 
         # Checks to see if a unique constraint exists on a table for a given unique constraint definition.

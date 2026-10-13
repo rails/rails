@@ -286,10 +286,6 @@ module ActiveRecord
           remote_dispatch(:index_name_exists?, ...)
         end
 
-        def indexes(...)
-          remote_dispatch(:indexes, ...)
-        end
-
         def remove_index(...)
           remote_dispatch(:remove_index, ...)
         end
@@ -445,10 +441,6 @@ module ActiveRecord
 
           def can_perform_case_insensitive_comparison_for?(...)
             pure_remote_dispatch(:can_perform_case_insensitive_comparison_for?, ...)
-          end
-
-          def fetch_column_definitions(...)
-            remote_dispatch(:fetch_column_definitions, ...)
           end
       end
     end

@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/inspect_backport"
 
 module ActiveModel
-  # = Active \Model \Error
+  # Active \Model \Error
+  # ====================
   #
   # Represents one single error
   class Error
@@ -117,21 +119,23 @@ module ActiveModel
 
     # The object which the error belongs to
     attr_reader :base
-    # The attribute of +base+ which the error belongs to
+    # The attribute of `base` which the error belongs to
     attr_reader :attribute
-    # The type of error, defaults to +:invalid+ unless specified
+    # The type of error, defaults to `:invalid` unless specified
     attr_reader :type
     # The raw value provided as the second parameter when calling
-    # <tt>errors#add</tt>
+    # `errors#add`
     attr_reader :raw_type
-    # The options provided when calling <tt>errors#add</tt>
+    # The options provided when calling `errors#add`
     attr_reader :options
 
     # Returns the error message.
     #
-    #   error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
-    #   error.message
-    #   # => "is too short (minimum is 5 characters)"
+    # ```
+    # error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+    # error.message
+    # # => "is too short (minimum is 5 characters)"
+    # ```
     def message
       case raw_type
       when Symbol
@@ -143,9 +147,11 @@ module ActiveModel
 
     # Returns the error details.
     #
-    #   error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
-    #   error.details
-    #   # => { error: :too_short, count: 5 }
+    # ```
+    # error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+    # error.details
+    # # => { error: :too_short, count: 5 }
+    # ```
     def details
       { error: raw_type }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
     end
@@ -153,14 +159,16 @@ module ActiveModel
 
     # Returns the full error message.
     #
-    #   error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
-    #   error.full_message
-    #   # => "Name is too short (minimum is 5 characters)"
+    # ```
+    # error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+    # error.full_message
+    # # => "Name is too short (minimum is 5 characters)"
+    # ```
     def full_message
       self.class.full_message(attribute, message, @base)
     end
 
-    # See if error matches provided +attribute+, +type+, and +options+.
+    # See if error matches provided `attribute`, `type`, and `options`.
     #
     # Omitted params are not checked for a match.
     def match?(attribute, type = nil, **options)
@@ -177,7 +185,7 @@ module ActiveModel
       true
     end
 
-    # See if error matches provided +attribute+, +type+, and +options+ exactly.
+    # See if error matches provided `attribute`, `type`, and `options` exactly.
     #
     # All params must be equal to Error's own attributes to be considered a
     # strict match. Callback and message options are filtered from both sides.

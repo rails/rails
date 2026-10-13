@@ -285,6 +285,30 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert_equal "video/*", Mime::Type.new("video/*").to_s
   end
 
+  test "lookup of */* returns the same unregistered type every time" do
+    mime = Mime::Type.lookup("*/*")
+
+    assert_instance_of Mime::Type, mime
+    assert_equal "*/*", mime.to_s
+    assert_nil mime.symbol
+    assert_equal "*/*", mime.ref
+    assert_not mime.all?
+    assert_not mime.html?
+    assert mime.eql?(Mime::Type.new("*/*"))
+    assert_equal Mime::Type.new("*/*").hash, mime.hash
+    assert_not_same Mime::ALL, mime
+    assert_same mime, Mime::Type.lookup("*/*")
+    assert_equal [mime], Mime::Type.parse("*/*")
+    assert_ractor_shareable mime
+  end
+
+  test "lookup of */* prefers a registered type" do
+    mime = Mime::Type.register("*/*", :anything)
+    assert_same mime, Mime::Type.lookup("*/*")
+  ensure
+    Mime::Type.unregister(:anything)
+  end
+
   test "can be initialized with parameters" do
     assert_equal "text/html; parameter", Mime::Type.new("text/html; parameter").to_s
     assert_equal "text/html; parameter=abc", Mime::Type.new("text/html; parameter=abc").to_s

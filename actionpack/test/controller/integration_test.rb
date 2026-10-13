@@ -663,6 +663,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       end
     end
 
+    assert_response :success
     assert_includes @response.headers, "a"
   end
 

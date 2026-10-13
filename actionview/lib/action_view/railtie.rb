@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails"
 require "action_view"
 
 module ActionView
-  # = Action View Railtie
+  # Action View Railtie
+  # ===================
   class Railtie < Rails::Engine # :nodoc:
     config.action_view = ActiveSupport::OrderedOptions.new
     config.action_view.embed_authenticity_token_in_remote_forms = nil

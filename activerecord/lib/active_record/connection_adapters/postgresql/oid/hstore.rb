@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "strscan"
 
 module ActiveRecord
@@ -82,7 +83,7 @@ module ActiveRecord
             ActiveRecord::Store::StringKeyedHashAccessor
           end
 
-          # Will compare the Hash equivalents of +raw_old_value+ and +new_value+.
+          # Will compare the Hash equivalents of `raw_old_value` and `new_value`.
           # By comparing hashes, this avoids an edge case where the order of
           # the keys change between the two hashes, and they would not be marked
           # as equal.

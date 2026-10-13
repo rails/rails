@@ -185,7 +185,7 @@ module ActiveRecord
       begin
         yield
       ensure
-        connected_to_stack.pop
+        pop_connected_to_stack
       end
     end
 
@@ -424,16 +424,29 @@ module ActiveRecord
           return_value.load if return_value.is_a? ActiveRecord::Relation
           return_value
         ensure
-          self.connected_to_stack.pop
+          pop_connected_to_stack
         end
       end
 
+      # The stack can be shared with another thread or fiber through
+      # ActiveSupport::IsolatedExecutionState.share_with (ActionController::Live
+      # does this for the streaming thread), so it is never modified in place.
+      # A modified copy replaces it instead, leaving the stack seen by the other
+      # execution context untouched.
       def append_to_connected_to_stack(entry)
         if entry[:shard].present? && entry[:klasses].any?(&:shard_swapping_prohibited?)
           raise ShardSwapProhibitedError, "cannot swap `shard` while shard swapping is prohibited."
         end
 
-        connected_to_stack << entry
+        stack = connected_to_stack.dup
+        stack << entry
+        ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = stack
+      end
+
+      def pop_connected_to_stack
+        stack = connected_to_stack.dup
+        stack.pop
+        ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = stack
       end
   end
 end

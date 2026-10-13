@@ -8,7 +8,7 @@
     Fixes #56888.
 
     *Pim Vermeyden*
-    
+
 *   Remove support for dynamic `:controller` and `:action` route segments.
 
     A route may no longer read the controller or the action out of the URL:

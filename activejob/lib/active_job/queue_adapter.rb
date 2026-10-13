@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/string/inflections"
 
 module ActiveJob
@@ -12,10 +13,11 @@ module ActiveJob
     end
   end
 
-  # = Active Job Queue adapter
+  # Active Job Queue adapter
+  # ========================
   #
-  # The +ActiveJob::QueueAdapter+ module is used to load the
-  # correct adapter. The default queue adapter is +:async+,
+  # The `ActiveJob::QueueAdapter` module is used to load the
+  # correct adapter. The default queue adapter is `:async`,
   # which loads the ActiveJob::QueueAdapters::AsyncAdapter.
   module QueueAdapter # :nodoc:
     extend ActiveSupport::Concern
@@ -30,21 +32,21 @@ module ActiveJob
     # Includes the setter method for changing the active queue adapter.
     module ClassMethods
       # Returns the backend queue provider. The default queue adapter
-      # is +:async+. See QueueAdapters for more information.
+      # is `:async`. See QueueAdapters for more information.
       def queue_adapter
         self.queue_adapter = :async if _queue_adapter.nil?
         _queue_adapter
       end
 
       # Returns string denoting the name of the configured queue adapter.
-      # By default returns <tt>"async"</tt>.
+      # By default returns `"async"`.
       def queue_adapter_name
         self.queue_adapter = :async if _queue_adapter_name.nil?
         _queue_adapter_name
       end
 
       # Specify the backend queue provider. The default queue adapter
-      # is the +:async+ queue. See QueueAdapters for more
+      # is the `:async` queue. See QueueAdapters for more
       # information.
       def queue_adapter=(name_or_adapter)
         case name_or_adapter

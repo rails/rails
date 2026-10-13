@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
-  # = Active \Model \API
+  # Active \Model \API
+  # ==================
   #
   # Includes the required interface for an object to interact with
   # Action Pack and Action View, using different Active \Model modules.
@@ -11,50 +13,56 @@ module ActiveModel
   #
   # A minimal implementation could be:
   #
-  #   class Person
-  #     include ActiveModel::API
-  #     attr_accessor :name, :age
-  #   end
+  # ```
+  # class Person
+  #   include ActiveModel::API
+  #   attr_accessor :name, :age
+  # end
   #
-  #   person = Person.new(name: 'bob', age: '18')
-  #   person.name # => "bob"
-  #   person.age  # => "18"
+  # person = Person.new(name: 'bob', age: '18')
+  # person.name # => "bob"
+  # person.age  # => "18"
+  # ```
   #
-  # Note that, by default, +ActiveModel::API+ implements #persisted?
-  # to return +false+, which is the most common case. You may want to override
+  # Note that, by default, `ActiveModel::API` implements #persisted?
+  # to return `false`, which is the most common case. You may want to override
   # it in your class to simulate a different scenario:
   #
-  #   class Person
-  #     include ActiveModel::API
-  #     attr_accessor :id, :name
+  # ```
+  # class Person
+  #   include ActiveModel::API
+  #   attr_accessor :id, :name
   #
-  #     def persisted?
-  #       self.id.present?
-  #     end
+  #   def persisted?
+  #     self.id.present?
   #   end
+  # end
   #
-  #   person = Person.new(id: 1, name: 'bob')
-  #   person.persisted? # => true
+  # person = Person.new(id: 1, name: 'bob')
+  # person.persisted? # => true
+  # ```
   #
   # Also, if for some reason you need to run code on initialize ( ::new ), make
-  # sure you call +super+ if you want the attributes hash initialization to
+  # sure you call `super` if you want the attributes hash initialization to
   # happen.
   #
-  #   class Person
-  #     include ActiveModel::API
-  #     attr_accessor :id, :name, :omg
+  # ```
+  # class Person
+  #   include ActiveModel::API
+  #   attr_accessor :id, :name, :omg
   #
-  #     def initialize(attributes={})
-  #       super
-  #       @omg ||= true
-  #     end
+  #   def initialize(attributes={})
+  #     super
+  #     @omg ||= true
   #   end
+  # end
   #
-  #   person = Person.new(id: 1, name: 'bob')
-  #   person.omg # => true
+  # person = Person.new(id: 1, name: 'bob')
+  # person.omg # => true
+  # ```
   #
   # For more detailed information on other functionalities available, please
-  # refer to the specific modules included in +ActiveModel::API+
+  # refer to the specific modules included in `ActiveModel::API`
   # (see below).
   module API
     extend ActiveSupport::Concern
@@ -68,31 +76,35 @@ module ActiveModel
       extend ActiveModel::Translation
     end
 
-    # Initializes a new model with the given +params+.
+    # Initializes a new model with the given `params`.
     #
-    #   class Person
-    #     include ActiveModel::API
-    #     attr_accessor :name, :age
-    #   end
+    # ```
+    # class Person
+    #   include ActiveModel::API
+    #   attr_accessor :name, :age
+    # end
     #
-    #   person = Person.new(name: 'bob', age: '18')
-    #   person.name # => "bob"
-    #   person.age  # => "18"
+    # person = Person.new(name: 'bob', age: '18')
+    # person.name # => "bob"
+    # person.age  # => "18"
+    # ```
     def initialize(attributes = {})
       assign_attributes(attributes) if attributes
 
       super()
     end
 
-    # Indicates if the model is persisted. Default is +false+.
+    # Indicates if the model is persisted. Default is `false`.
     #
-    #  class Person
-    #    include ActiveModel::API
-    #    attr_accessor :id, :name
-    #  end
+    # ```
+    # class Person
+    #   include ActiveModel::API
+    #   attr_accessor :id, :name
+    # end
     #
-    #  person = Person.new(id: 1, name: 'bob')
-    #  person.persisted? # => false
+    # person = Person.new(id: 1, name: 'bob')
+    # person.persisted? # => false
+    # ```
     def persisted?
       false
     end

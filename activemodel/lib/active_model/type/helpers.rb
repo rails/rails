@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_model/type/helpers/accepts_multiparameter_time"
 require "active_model/type/helpers/numeric"
 require "active_model/type/helpers/mutable"

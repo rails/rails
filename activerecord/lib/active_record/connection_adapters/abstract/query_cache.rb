@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "concurrent/map"
 require "concurrent/atomic/atomic_fixnum"
 
@@ -234,7 +235,7 @@ module ActiveRecord
 
       # Disable the query cache within the block.
       #
-      # Set <tt>dirties: false</tt> to prevent query caches on all connections from being cleared by write operations.
+      # Set `dirties: false` to prevent query caches on all connections from being cleared by write operations.
       # (By default, write operations dirty all connections' query caches in case they are replicas whose cache would now be outdated.)
       def uncached(dirties: true, &block)
         pool.disable_query_cache(dirties: dirties, &block)

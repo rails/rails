@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails"
 require "global_id/railtie"
 require "active_job"
 
 module ActiveJob
-  # = Active Job Railtie
+  # Active Job Railtie
+  # ==================
   class Railtie < Rails::Railtie # :nodoc:
     config.active_job = ActiveSupport::OrderedOptions.new
     config.active_job.custom_serializers = []

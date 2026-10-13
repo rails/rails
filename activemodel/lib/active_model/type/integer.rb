@@ -1,46 +1,54 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Type
-    # = Active Model \Integer \Type
+    # Active Model \Integer \Type
+    # ===========================
     #
     # Attribute type for integer representation. This type is registered under
-    # the +:integer+ key.
+    # the `:integer` key.
     #
-    #   class Person
-    #     include ActiveModel::Attributes
+    # ```
+    # class Person
+    #   include ActiveModel::Attributes
     #
-    #     attribute :age, :integer
-    #   end
+    #   attribute :age, :integer
+    # end
+    # ```
     #
-    # Values are cast using their +to_i+ method, except for blank strings, which
-    # are cast to +nil+. If a +to_i+ method is not defined or raises an error,
-    # the value will be cast to +nil+.
+    # Values are cast using their `to_i` method, except for blank strings, which
+    # are cast to `nil`. If a `to_i` method is not defined or raises an error,
+    # the value will be cast to `nil`.
     #
-    #   person = Person.new
+    # ```
+    # person = Person.new
     #
-    #   person.age = "18"
-    #   person.age # => 18
+    # person.age = "18"
+    # person.age # => 18
     #
-    #   person.age = ""
-    #   person.age # => nil
+    # person.age = ""
+    # person.age # => nil
     #
-    #   person.age = :not_an_integer
-    #   person.age # => nil (because Symbol does not define #to_i)
+    # person.age = :not_an_integer
+    # person.age # => nil (because Symbol does not define #to_i)
+    # ```
     #
     # Serialization also works under the same principle. Non-numeric strings are
-    # serialized as +nil+, for example.
+    # serialized as `nil`, for example.
     #
     # Serialization also validates that the integer can be stored using a
     # limited number of bytes. If it cannot, an ActiveModel::RangeError will be
     # raised. The default limit is 4 bytes, and can be customized when declaring
     # an attribute:
     #
-    #   class Person
-    #     include ActiveModel::Attributes
+    # ```
+    # class Person
+    #   include ActiveModel::Attributes
     #
-    #     attribute :age, :integer, limit: 6
-    #   end
+    #   attribute :age, :integer, limit: 6
+    # end
+    # ```
     class Integer < Value
       include Helpers::Immutable
       include Helpers::Numeric
@@ -137,7 +145,7 @@ module ActiveModel
         end
 
         # Only the first bytes of a string are cast, to bound the work done by
-        # +to_i+ on very long input.
+        # `to_i` on very long input.
         def max_cast_bytesize
           _limit * 4
         end

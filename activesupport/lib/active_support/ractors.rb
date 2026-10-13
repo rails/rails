@@ -95,6 +95,21 @@ module ActiveSupport
         end
       end
 
+      if defined?(Ractor)
+        # Returns whether `obj` is Ractor-shareable by delegating to
+        # `Ractor.shareable?`.
+        #
+        # On runtimes without `Ractor` (e.g. JRuby), every object is considered
+        # shareable.
+        def shareable?(obj)
+          Ractor.shareable?(obj)
+        end
+      else
+        def shareable?(obj)
+          true
+        end
+      end
+
       if defined?(Ractor) && RUBY_VERSION >= "4.0"
         def on_main(obj = nil, &block)
           if Ractor.main?
@@ -116,15 +131,6 @@ module ActiveSupport
         # `Ractor.make_shareable`, this shim returns `obj` unchanged.
         def make_shareable(...)
           Ractor.make_shareable(...)
-        end
-
-        # Returns whether `obj` is Ractor-shareable by delegating to
-        # `Ractor.shareable?`.
-        #
-        # On Ruby versions without `Ractor.shareable?`, this shim returns `obj`
-        # unchanged.
-        def shareable?(obj)
-          Ractor.shareable?(obj)
         end
 
         # Returns a Ractor-shareable proc by delegating to `Ractor.shareable_proc`.
@@ -162,10 +168,6 @@ module ActiveSupport
         end
 
         def make_shareable(obj, copy: false)
-          obj
-        end
-
-        def shareable?(obj)
           obj
         end
 

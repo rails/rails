@@ -1,27 +1,31 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Type
-    # = Active Model \ImmutableString \Type
+    # Active Model \ImmutableString \Type
+    # ===================================
     #
     # Attribute type to represent immutable strings. It casts incoming values to
     # frozen strings.
     #
-    #   class Person
-    #     include ActiveModel::Attributes
+    # ```
+    # class Person
+    #   include ActiveModel::Attributes
     #
-    #     attribute :name, :immutable_string
-    #   end
+    #   attribute :name, :immutable_string
+    # end
     #
-    #   person = Person.new
-    #   person.name = 1
+    # person = Person.new
+    # person.name = 1
     #
-    #   person.name # => "1"
-    #   person.name.frozen? # => true
+    # person.name # => "1"
+    # person.name.frozen? # => true
+    # ```
     #
-    # Values are coerced to strings using their +to_s+ method. Boolean values
-    # are treated differently, however: +true+ will be cast to <tt>"t"</tt> and
-    # +false+ will be cast to <tt>"f"</tt>.
+    # Values are coerced to strings using their `to_s` method. Boolean values
+    # are treated differently, however: `true` will be cast to `"t"` and
+    # `false` will be cast to `"f"`.
     class ImmutableString < Value
       include Helpers::Immutable
 

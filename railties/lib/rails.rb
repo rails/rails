@@ -9,6 +9,7 @@ require "active_support/core_ext/array/extract_options"
 
 require "rails/version"
 require "rails/deprecator"
+require "rails/structured_event_subscriber"
 require "rails/application"
 require "rails/backtrace_cleaner"
 

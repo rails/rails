@@ -185,10 +185,6 @@ module ActiveRecord
           SQLite3::SchemaDumper.create(self, options)
         end
 
-        def indexes(...)
-          remote_dispatch(:indexes, ...)
-        end
-
         def remove_check_constraint(...)
           remote_dispatch(:remove_check_constraint, ...)
         end
@@ -298,12 +294,6 @@ module ActiveRecord
 
           def validate_index_length!(...)
             remote_dispatch(:validate_index_length!, ...)
-          end
-
-          # ADAPTER SPECIFIC ========================================
-
-          def fetch_column_definitions(...)
-            remote_dispatch(:fetch_column_definitions, ...)
           end
       end
     end

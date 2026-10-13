@@ -1053,4 +1053,14 @@ class TimeZoneRactorTest < ActiveSupport::TestCase
     assert_equal "Asia/Tokyo", on_ractor { Time.use_zone("Tokyo") { Time.zone.tzinfo.name } }
     assert_includes on_ractor { ActiveSupport::TimeZone.country_zones(:fr).map(&:name) }, "Paris"
   end
+
+  def test_all_zones_and_offset_lookups_are_usable_from_a_non_main_ractor_once_shared
+    ActiveSupport::TimeZone.make_shareable!
+
+    assert_ractor_shareable ActiveSupport::TimeZone.all
+    assert_equal ActiveSupport::TimeZone.all.map(&:name), on_ractor { ActiveSupport::TimeZone.all.map(&:name) }
+    assert_equal ActiveSupport::TimeZone[-5].name, on_ractor { ActiveSupport::TimeZone[-5].name }
+    assert_equal ActiveSupport::TimeZone[3600].name, on_ractor { ActiveSupport::TimeZone[3600].name }
+    assert_equal ActiveSupport::TimeZone[-5].name, on_ractor { Time.find_zone(-5.hours).name }
+  end
 end

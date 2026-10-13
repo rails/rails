@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
-    # = Active Record Belongs To Polymorphic Association
+    # Active Record Belongs To Polymorphic Association
+    # ================================================
     class BelongsToPolymorphicAssociation < BelongsToAssociation # :nodoc:
       def klass
         type = owner.read_attribute(foreign_type)

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionController
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
@@ -94,21 +95,21 @@ module ActionController
         "Falling back to CSRF token verification for #{payload[:controller]}##{payload[:action]}"
       end
     end
-    event_log_level :csrf_token_fallback, :info
+    event_log_level :csrf_token_fallback, :warn
 
     def csrf_request_blocked(event)
       return unless ActionController::Base.log_warning_on_csrf_failure
 
       warn { event[:payload][:message] }
     end
-    event_log_level :csrf_request_blocked, :info
+    event_log_level :csrf_request_blocked, :warn
 
     def csrf_javascript_blocked(event)
       return unless ActionController::Base.log_warning_on_csrf_failure
 
       warn { event[:payload][:message] }
     end
-    event_log_level :csrf_javascript_blocked, :info
+    event_log_level :csrf_javascript_blocked, :warn
 
     def fragment_cache(event)
       return unless ActionController::Base.enable_fragment_cache_logging

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
     class DisableJoinsAssociationScope < AssociationScope # :nodoc:
@@ -17,7 +18,7 @@ module ActiveRecord
       private
         def last_scope_chain(reverse_chain, owner)
           first_item = reverse_chain.shift
-          first_scope = [first_item, false, [owner.read_attribute(first_item.join_foreign_key)]]
+          first_scope = [first_item, false, [ActiveRecord::Key.for(first_item.join_foreign_key).value_of(owner)]]
 
           reverse_chain.inject(first_scope) do |(reflection, ordered, join_ids), next_reflection|
             key = reflection.join_primary_key

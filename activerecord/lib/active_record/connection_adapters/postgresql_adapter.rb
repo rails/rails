@@ -33,6 +33,8 @@ module ActiveRecord
     # * <tt>:username</tt> - Defaults to be the same as the operating system name of the user running the application.
     # * <tt>:password</tt> - Password to be used if the server demands password authentication.
     # * <tt>:database</tt> - Defaults to be the same as the username.
+    # * <tt>:maintenance_database</tt> - The database to connect to when creating or dropping
+    #   the database, such as <tt>bin/rails db:create</tt>. Defaults to <tt>postgres</tt>.
     # * <tt>:schema_search_path</tt> - An optional schema search path for the connection given
     #   as a string of comma-separated schema names.
     # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO

@@ -491,6 +491,84 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     )
   end
 
+  test "<code> inside a table cell is stripped of surrounding whitespace" do
+    [ "  ", "\t", "\v", "\f" ].each do |whitespace|
+      assert_converted_to(
+        "| `[click](javascript:alert(1))` |",
+        "<table><tr><td><code>#{whitespace}[click](javascript:alert(1))#{whitespace}</code></td></tr></table>"
+      )
+    end
+  end
+
+  test "<pre> inside a table cell is stripped of surrounding whitespace" do
+    assert_converted_to(
+      "| `[click](javascript:alert(1))` |",
+      "<table><tr><td><pre>  [click](javascript:alert(1))  </pre></td></tr></table>"
+    )
+  end
+
+  test "<code> inside a table cell escapes pipes" do
+    assert_converted_to(
+      "| `x\\|[click](javascript:alert(1))` |",
+      "<table><tr><td><code>x|[click](javascript:alert(1))</code></td></tr></table>"
+    )
+  end
+
+  test "<code> inside a table header cell escapes pipes" do
+    assert_converted_to(
+      "| `x\\|[click](javascript:alert(1))` |\n| --- |",
+      "<table><tr><th><code>x|[click](javascript:alert(1))</code></th></tr></table>"
+    )
+  end
+
+  test "<pre> inside a table cell escapes pipes" do
+    assert_converted_to(
+      "| `x\\|[click](javascript:alert(1))` |",
+      "<table><tr><td><pre>x|[click](javascript:alert(1))</pre></td></tr></table>"
+    )
+  end
+
+  test "<code> inside a link in a table cell escapes pipes" do
+    assert_converted_to(
+      "| [`x\\|[click](javascript:alert(1))`](https://example.com) |",
+      "<table><tr><td><a href=\"https://example.com\"><code>x|[click](javascript:alert(1))</code></a></td></tr></table>"
+    )
+  end
+
+  test "<code> in a table row from an HTML4-parsed fragment escapes pipes" do
+    fragment = Nokogiri::HTML4.fragment("<table><tr><div><code>x|[click](javascript:alert(1))</code></div></tr></table>")
+    assert_equal "| `x\\|[click](javascript:alert(1))` |", ActionText::MarkdownConversion.node_to_markdown(fragment)
+  end
+
+  test "<code> inside a table cell escapes leading, trailing, and repeated pipes" do
+    assert_converted_to("| `\\|x\\|\\|y\\|` |", "<table><tr><td><code>|x||y|</code></td></tr></table>")
+  end
+
+  test "<code> containing a pipe outside a table does not escape it" do
+    assert_converted_to("`x|y`", "<code>x|y</code>")
+  end
+
+  test "adjacent <code> elements are separated by a space" do
+    assert_converted_to(
+      "Run `` echo `whoami` `` `[see docs](https://evil-phish.example/login)` for details.",
+      "<p>Run <code>echo `whoami`</code><code>[see docs](https://evil-phish.example/login)</code> for details.</p>"
+    )
+  end
+
+  test "<code> elements adjacent across an inline wrapper are separated by a space" do
+    assert_converted_to(
+      "`` echo `whoami` `` `[see docs](https://evil-phish.example/login)`",
+      "<code>echo `whoami`</code><span><code>[see docs](https://evil-phish.example/login)</code></span>"
+    )
+  end
+
+  test "<code> elements adjacent across merged <b> runs are separated by a space" do
+    assert_converted_to(
+      "**`` echo `whoami` `` `[see docs](https://evil-phish.example/login)`**",
+      "<b><code>echo `whoami`</code></b><b><code>[see docs](https://evil-phish.example/login)</code></b>"
+    )
+  end
+
   test "<pre> that follows a sibling starts its own block" do
     assert_converted_to(
       "before\n\n```\n[click](javascript:alert(1))\n```",
@@ -670,6 +748,13 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_converted_to(
       "[link](https://example.com/a%09b)",
       "<a href=\"https://example.com/a\tb\">link</a>"
+    )
+  end
+
+  test "<a> tags with pipes in href are encoded" do
+    assert_converted_to(
+      "| [click](https://example.com/a%7Cb) |",
+      '<table><tr><td><a href="https://example.com/a|b">click</a></td></tr></table>'
     )
   end
 

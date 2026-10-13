@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Lint
-    # == Active \Model \Lint \Tests
+    # Active \Model \Lint \Tests
+    # --------------------------
     #
     # You can test whether an object is compliant with the Active \Model API by
-    # including +ActiveModel::Lint::Tests+ in your TestCase. It will
+    # including `ActiveModel::Lint::Tests` in your TestCase. It will
     # include tests that tell you whether your object is fully compliant,
     # or if not, which aspects of the API are not implemented.
     #
@@ -14,19 +16,19 @@ module ActiveModel
     # you want all features out of the box.
     #
     # These tests do not attempt to determine the semantic correctness of the
-    # returned values. For instance, you could implement <tt>valid?</tt> to
-    # always return +true+, and the tests would pass. It is up to you to ensure
+    # returned values. For instance, you could implement `valid?` to
+    # always return `true`, and the tests would pass. It is up to you to ensure
     # that the values are semantically meaningful.
     #
     # Objects you pass in are expected to return a compliant object from a call
-    # to <tt>to_model</tt>. It is perfectly fine for <tt>to_model</tt> to return
-    # +self+.
+    # to `to_model`. It is perfectly fine for `to_model` to return
+    # `self`.
     module Tests
-      # Passes if the object's model responds to <tt>to_key</tt> and if calling
-      # this method returns +nil+ when the object is not persisted.
+      # Passes if the object's model responds to `to_key` and if calling
+      # this method returns `nil` when the object is not persisted.
       # Fails otherwise.
       #
-      # <tt>to_key</tt> returns an Enumerable of all (primary) key attributes
+      # `to_key` returns an Enumerable of all (primary) key attributes
       # of the model, and is used to a generate unique DOM id for the object.
       def test_to_key
         assert_respond_to model, :to_key
@@ -34,11 +36,11 @@ module ActiveModel
         assert model.to_key.nil?, "to_key should return nil when `persisted?` returns false"
       end
 
-      # Passes if the object's model responds to <tt>to_param</tt> and if
-      # calling this method returns +nil+ when the object is not persisted.
+      # Passes if the object's model responds to `to_param` and if
+      # calling this method returns `nil` when the object is not persisted.
       # Fails otherwise.
       #
-      # <tt>to_param</tt> is used to represent the object's key in URLs.
+      # `to_param` is used to represent the object's key in URLs.
       # Implementers can decide to either raise an exception or provide a
       # default in case the record uses a composite primary key. There are no
       # tests for this behavior in lint because it doesn't make sense to force
@@ -50,20 +52,20 @@ module ActiveModel
         assert model.to_param.nil?, "to_param should return nil when `persisted?` returns false"
       end
 
-      # Passes if the object's model responds to <tt>to_partial_path</tt> and if
+      # Passes if the object's model responds to `to_partial_path` and if
       # calling this method returns a string. Fails otherwise.
       #
-      # <tt>to_partial_path</tt> is used for looking up partials. For example,
+      # `to_partial_path` is used for looking up partials. For example,
       # a BlogPost model might return "blog_posts/blog_post".
       def test_to_partial_path
         assert_respond_to model, :to_partial_path
         assert_kind_of String, model.to_partial_path
       end
 
-      # Passes if the object's model responds to <tt>persisted?</tt> and if
-      # calling this method returns either +true+ or +false+. Fails otherwise.
+      # Passes if the object's model responds to `persisted?` and if
+      # calling this method returns either `true` or `false`. Fails otherwise.
       #
-      # <tt>persisted?</tt> is used when calculating the URL for an object.
+      # `persisted?` is used when calculating the URL for an object.
       # If the object is not persisted, a form for that object, for instance,
       # will route to the create action. If it is persisted, a form for the
       # object will route to the update action.
@@ -72,10 +74,10 @@ module ActiveModel
         assert_boolean model.persisted?, "persisted?"
       end
 
-      # Passes if the object's model responds to <tt>model_name</tt> both as
+      # Passes if the object's model responds to `model_name` both as
       # an instance method and as a class method, and if calling this method
-      # returns a string with some convenience methods: <tt>:human</tt>,
-      # <tt>:singular</tt> and <tt>:plural</tt>.
+      # returns a string with some convenience methods: `:human`,
+      # `:singular` and `:plural`.
       #
       # Check ActiveModel::Naming for more information.
       def test_model_naming
@@ -90,11 +92,11 @@ module ActiveModel
         assert_equal model.model_name, model.class.model_name
       end
 
-      # Passes if the object's model responds to <tt>errors</tt> and if calling
-      # <tt>[](attribute)</tt> on the result of this method returns an array.
+      # Passes if the object's model responds to `errors` and if calling
+      # `[](attribute)` on the result of this method returns an array.
       # Fails otherwise.
       #
-      # <tt>errors[attribute]</tt> is used to retrieve the errors of a model
+      # `errors[attribute]` is used to retrieve the errors of a model
       # for a given attribute. If errors are present, the method should return
       # an array of strings that are the errors for the attribute in question.
       # If localization is used, the strings should be localized for the current

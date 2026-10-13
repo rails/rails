@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_model/secure_password/bcrypt_password"
 require "active_model/secure_password/argon2_password"
 require "active_support/core_ext/numeric/time"
@@ -20,7 +21,9 @@ module ActiveModel
 
       # Registers a password algorithm for use with has_secure_password
       #
-      #   ActiveModel::SecurePassword.register_algorithm :argon2, Argon2Password
+      # ```
+      # ActiveModel::SecurePassword.register_algorithm :argon2, Argon2Password
+      # ```
       #
       # The algorithm class will be instantiated when used.
       def register_algorithm(name, algorithm_class)
@@ -36,160 +39,175 @@ module ActiveModel
 
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
-      # This mechanism requires you to have a +XXX_digest+ attribute,
-      # where +XXX+ is the attribute name of your desired password.
+      # This mechanism requires you to have a `XXX_digest` attribute,
+      # where `XXX` is the attribute name of your desired password.
       #
       # The following validations are added automatically:
+      #
       # * Password must be present on creation
       # * Password length should be less than or equal to 72 bytes
-      # * Confirmation of password (using a +XXX_confirmation+ attribute)
+      # * Confirmation of password (using a `XXX_confirmation` attribute)
       #
       # If confirmation validation is not needed, simply leave out the
-      # value for +XXX_confirmation+ (i.e. don't provide a form field for
-      # it). When this attribute has a +nil+ value, the validation will not be
+      # value for `XXX_confirmation` (i.e. don't provide a form field for
+      # it). When this attribute has a `nil` value, the validation will not be
       # triggered.
       #
-      # Additionally, a +XXX_challenge+ attribute is created. When set to a
-      # value other than +nil+, it will validate against the currently persisted
+      # Additionally, a `XXX_challenge` attribute is created. When set to a
+      # value other than `nil`, it will validate against the currently persisted
       # password. This validation relies on dirty tracking, as provided by
       # ActiveModel::Dirty; if dirty tracking methods are not defined, this
       # validation will fail.
       #
       # All of the above validations can be omitted by passing
-      # <tt>validations: false</tt> as an argument. This allows complete
+      # `validations: false` as an argument. This allows complete
       # customizability of validation behavior.
       #
       # A password reset token (valid for 15 minutes by default) is automatically
-      # configured when +reset_token+ is set to true (which it is by default)
-      # and the object responds to +generates_token_for+ (which Active Records do).
+      # configured when `reset_token` is set to true (which it is by default)
+      # and the object responds to `generates_token_for` (which Active Records do).
       #
       # Finally, the reset token expiry can be customized by passing a hash to
-      # +has_secure_password+:
+      # `has_secure_password`:
       #
-      #   has_secure_password reset_token: { expires_in: 1.hour }
+      # ```
+      # has_secure_password reset_token: { expires_in: 1.hour }
+      # ```
       #
-      # To use +has_secure_password+, add bcrypt (~> 3.1.7) to your Gemfile:
+      # To use `has_secure_password`, add bcrypt (~> 3.1.7) to your Gemfile:
       #
-      #   gem "bcrypt", "~> 3.1.7"
+      # ```
+      # gem "bcrypt", "~> 3.1.7"
+      # ```
       #
       # If you want to use a different password hashing algorithm, you can implement your own
-      # class that responds to +algorithm_name+, +hash_password+, +verify_password+, +password_salt+ and +validate+.
-      # For an example implementation, see +BCryptPassword+ in +bcrypt_password.rb+.
+      # class that responds to `algorithm_name`, `hash_password`, `verify_password`, `password_salt` and `validate`.
+      # For an example implementation, see `BCryptPassword` in `bcrypt_password.rb`.
       #
-      # ==== Examples
+      # #### Examples
       #
-      # ===== Using Active Record (which automatically includes ActiveModel::SecurePassword)
+      # ##### Using Active Record (which automatically includes ActiveModel::SecurePassword)
       #
-      #   # Schema: User(name:string, password_digest:string, recovery_password_digest:string)
-      #   class User < ActiveRecord::Base
-      #     has_secure_password
-      #     has_secure_password :recovery_password, validations: false
+      # ```
+      # # Schema: User(name:string, password_digest:string, recovery_password_digest:string)
+      # class User < ActiveRecord::Base
+      #   has_secure_password
+      #   has_secure_password :recovery_password, validations: false
+      # end
+      #
+      # user = User.new(name: "david", password: "", password_confirmation: "nomatch")
+      #
+      # user.password_algorithm                                        # => :bcrypt
+      # user.save                                                      # => false, password required
+      # user.password = "vr00m"
+      # user.save                                                      # => false, confirmation doesn't match
+      # user.password_confirmation = "vr00m"
+      # user.save                                                      # => true
+      #
+      # user.authenticate("notright")                                  # => false
+      # user.authenticate("vr00m")                                     # => user
+      # User.find_by(name: "david")&.authenticate("notright")          # => false
+      # User.find_by(name: "david")&.authenticate("vr00m")             # => user
+      #
+      # user.recovery_password = "42password"
+      # user.recovery_password_digest                                  # => "$2a$04$iOfhwahFymCs5weB3BNH/uXkTG65HR.qpW.bNhEjFP3ftli3o5DQC"
+      # user.save                                                      # => true
+      #
+      # user.authenticate_recovery_password("42password")              # => user
+      #
+      # user.update(password: "pwn3d", password_challenge: "")         # => false, challenge doesn't authenticate
+      # user.update(password: "nohack4u", password_challenge: "vr00m") # => true
+      #
+      # user.authenticate("vr00m")                                     # => false, old password
+      # user.authenticate("nohack4u")                                  # => user
+      # ```
+      #
+      # ##### Conditionally requiring a password
+      #
+      # ```
+      # class Account
+      #   include ActiveModel::SecurePassword
+      #
+      #   attr_accessor :is_guest, :password_digest
+      #
+      #   has_secure_password
+      #
+      #   def errors
+      #     super.tap { |errors| errors.delete(:password, :blank) if is_guest }
+      #   end
+      # end
+      #
+      # account = Account.new
+      # account.valid? # => false, password required
+      #
+      # account.is_guest = true
+      # account.valid? # => true
+      # ```
+      #
+      # ##### Using the password reset token
+      #
+      # ```
+      # user = User.create!(name: "david", password: "123", password_confirmation: "123")
+      # token = user.password_reset_token
+      # User.find_by_password_reset_token(token) # returns user
+      #
+      # # 16 minutes later...
+      # User.find_by_password_reset_token(token) # returns nil
+      #
+      # # raises ActiveSupport::MessageVerifier::InvalidSignature since the token is expired
+      # User.find_by_password_reset_token!(token)
+      # ```
+      #
+      # ##### Customizing the hashing algorithm
+      #
+      # `has_secure_password` supports `:bcrypt` (default) and `:argon2` out of the box.
+      # To use `:argon2`, add +gem "argon2", "~> 2.3"+ to your Gemfile and set the `algorithm` option:
+      #
+      # ```
+      # class User < ActiveRecord::Base
+      #   has_secure_password algorithm: :argon2
+      # end
+      # ```
+      #
+      # To add a custom algorithm, create a class that implements `hash_password`, `verify_password`, `password_salt`,
+      # `validate` and `algorithm_name` methods, then register it:
+      #
+      # ```
+      # class ScryptPassword
+      #   def initialize
+      #     require "scrypt"
+      #   rescue LoadError
+      #     warn "You don't have scrypt installed in your application. Please add it to your Gemfile and run bundle install."
+      #     raise
       #   end
       #
-      #   user = User.new(name: "david", password: "", password_confirmation: "nomatch")
-      #
-      #   user.password_algorithm                                        # => :bcrypt
-      #   user.save                                                      # => false, password required
-      #   user.password = "vr00m"
-      #   user.save                                                      # => false, confirmation doesn't match
-      #   user.password_confirmation = "vr00m"
-      #   user.save                                                      # => true
-      #
-      #   user.authenticate("notright")                                  # => false
-      #   user.authenticate("vr00m")                                     # => user
-      #   User.find_by(name: "david")&.authenticate("notright")          # => false
-      #   User.find_by(name: "david")&.authenticate("vr00m")             # => user
-      #
-      #   user.recovery_password = "42password"
-      #   user.recovery_password_digest                                  # => "$2a$04$iOfhwahFymCs5weB3BNH/uXkTG65HR.qpW.bNhEjFP3ftli3o5DQC"
-      #   user.save                                                      # => true
-      #
-      #   user.authenticate_recovery_password("42password")              # => user
-      #
-      #   user.update(password: "pwn3d", password_challenge: "")         # => false, challenge doesn't authenticate
-      #   user.update(password: "nohack4u", password_challenge: "vr00m") # => true
-      #
-      #   user.authenticate("vr00m")                                     # => false, old password
-      #   user.authenticate("nohack4u")                                  # => user
-      #
-      # ===== Conditionally requiring a password
-      #
-      #   class Account
-      #     include ActiveModel::SecurePassword
-      #
-      #     attr_accessor :is_guest, :password_digest
-      #
-      #     has_secure_password
-      #
-      #     def errors
-      #       super.tap { |errors| errors.delete(:password, :blank) if is_guest }
-      #     end
+      #   def hash_password(unencrypted_password)
+      #     SCrypt::Password.create(unencrypted_password)
       #   end
       #
-      #   account = Account.new
-      #   account.valid? # => false, password required
-      #
-      #   account.is_guest = true
-      #   account.valid? # => true
-      #
-      # ===== Using the password reset token
-      #
-      #   user = User.create!(name: "david", password: "123", password_confirmation: "123")
-      #   token = user.password_reset_token
-      #   User.find_by_password_reset_token(token) # returns user
-      #
-      #   # 16 minutes later...
-      #   User.find_by_password_reset_token(token) # returns nil
-      #
-      #   # raises ActiveSupport::MessageVerifier::InvalidSignature since the token is expired
-      #   User.find_by_password_reset_token!(token)
-      #
-      # ===== Customizing the hashing algorithm
-      #
-      # +has_secure_password+ supports +:bcrypt+ (default) and +:argon2+ out of the box.
-      # To use +:argon2+, add +gem "argon2", "~> 2.3"+ to your Gemfile and set the +algorithm+ option:
-      #
-      #   class User < ActiveRecord::Base
-      #     has_secure_password algorithm: :argon2
+      #   def verify_password(password, digest)
+      #     SCrypt::Password.new(digest) == password
       #   end
       #
-      # To add a custom algorithm, create a class that implements +hash_password+, +verify_password+, +password_salt+,
-      # +validate+ and +algorithm_name+ methods, then register it:
-      #
-      #   class ScryptPassword
-      #     def initialize
-      #       require "scrypt"
-      #     rescue LoadError
-      #       warn "You don't have scrypt installed in your application. Please add it to your Gemfile and run bundle install."
-      #       raise
-      #     end
-      #
-      #     def hash_password(unencrypted_password)
-      #       SCrypt::Password.create(unencrypted_password)
-      #     end
-      #
-      #     def verify_password(password, digest)
-      #       SCrypt::Password.new(digest) == password
-      #     end
-      #
-      #     def password_salt(digest)
-      #       SCrypt::Password.new(digest).salt
-      #     end
-      #
-      #     def validate(_record, _attribute)
-      #       # Scrypt has no maximum input size, no validation needed
-      #     end
-      #
-      #     def algorithm_name
-      #       :scrypt
-      #     end
+      #   def password_salt(digest)
+      #     SCrypt::Password.new(digest).salt
       #   end
       #
-      #   ActiveModel::SecurePassword.register_algorithm :scrypt, ScryptPassword
-      #
-      #   class User < ActiveRecord::Base
-      #     has_secure_password algorithm: :scrypt
+      #   def validate(_record, _attribute)
+      #     # Scrypt has no maximum input size, no validation needed
       #   end
+      #
+      #   def algorithm_name
+      #     :scrypt
+      #   end
+      # end
+      #
+      # ActiveModel::SecurePassword.register_algorithm :scrypt, ScryptPassword
+      #
+      # class User < ActiveRecord::Base
+      #   has_secure_password algorithm: :scrypt
+      # end
+      # ```
       #
       def has_secure_password(attribute = :password, validations: true, reset_token: true, algorithm: nil)
         # Resolve algorithm: can be a Symbol (for registry lookup), an instance, or default to BCrypt

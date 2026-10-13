@@ -534,7 +534,7 @@ The `:cache_hits` key is only included if the collection is rendered with `cache
 | `:job`       | Job object                             |
 | `:error`     | The error that caused the discard      |
 
-Jobs using [Continuation][] also emit the following events.
+Jobs using [`Continuation`][] also emit the following events.
 
 #### `interrupt.active_job`
 

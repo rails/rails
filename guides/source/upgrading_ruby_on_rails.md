@@ -181,10 +181,6 @@ Upgrading from Rails 8.0 to Rails 8.1
 
 For more information on changes made to Rails 8.1 please see the [release notes](8_1_release_notes.html).
 
-### The table columns inside `schema.rb` are now sorted alphabetically.
-
-Active Record now alphabetically sorts table columns in `schema.rb` by default, so dumps are consistent across machines and don’t flip-flop with migration order -- meaning fewer noisy diffs. `structure.sql` can still be leveraged to preserve exact column order. [See #53281 for more details on alphabetizing schema changes.](https://github.com/rails/rails/pull/53281)
-
 Upgrading from Rails 7.2 to Rails 8.0
 -------------------------------------
 
@@ -1505,7 +1501,7 @@ user.highlights.second.filename # => "town.jpg"
 
 Existing applications can opt in to this new behavior by setting [`config.active_storage.replace_on_assign_to_many`][] to `true`. The old behavior will be deprecated in Rails 7.0 and removed in Rails 7.1.
 
-[`config.active_storage.replace_on_assign_to_many`]: configuring.html#config-active-storage-replace-on-assign-to-many
+[`config.active_storage.replace_on_assign_to_many`]: https://guides.rubyonrails.org/v6.0/configuring.html#configuring-active-storage
 
 ### Custom exception handling applications
 

@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
-    # = Active Record Belongs To Association
+    # Active Record Belongs To Association
+    # ====================================
     class BelongsToAssociation < SingularAssociation # :nodoc:
       attr_reader :foreign_key, :foreign_type
 

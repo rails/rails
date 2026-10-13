@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
-    # = Active Record Has Many Through Association
+    # Active Record Has Many Through Association
+    # ==========================================
     class HasManyThroughAssociation < HasManyAssociation # :nodoc:
       include ThroughAssociation
 

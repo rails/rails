@@ -1,3 +1,10 @@
+*   Freeze events emitted by `ActiveSupport::EventReporter`.
+
+    Subscribers can no longer change the event seen by later subscribers.
+    Modifying the event in place now raises `FrozenError`, so `dup` it first.
+
+    *Keshav Biswa*
+
 *   Speed up JSON escaping with `String#tr!` on Ruby 4.1+.
 
     `ActiveSupport::JSON.encode` escaped `<`, `>`, `&`, U+2028 and U+2029 by

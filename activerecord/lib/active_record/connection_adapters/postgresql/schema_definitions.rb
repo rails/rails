@@ -380,7 +380,14 @@ module ActiveRecord
 
       # = Active Record PostgreSQL Adapter Alter \Table
       class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable # :nodoc:
-        COMBINABLE_COMMANDS = (superclass::COMBINABLE_COMMANDS + %i[change_column change_column_null]).freeze
+        COMBINABLE_COMMANDS = (superclass::COMBINABLE_COMMANDS + %i[
+          change_column
+          change_column_null
+          add_exclusion_constraint
+          remove_exclusion_constraint
+          add_unique_constraint
+          remove_unique_constraint
+        ]).freeze
 
         def add_column(column_name, type, **options)
           super
@@ -407,12 +414,20 @@ module ActiveRecord
           @operations << ValidateConstraint.new(name)
         end
 
-        def add_exclusion_constraint(expression, options)
+        def add_exclusion_constraint(expression, **options)
           @operations << AddExclusionConstraint.new(@td.new_exclusion_constraint_definition(expression, options))
         end
 
-        def add_unique_constraint(column_name, options)
+        def remove_exclusion_constraint(expression = nil, **options)
+          drop_constraint(@td.conn.send(:exclusion_constraint_for!, name, expression: expression, **options).name)
+        end
+
+        def add_unique_constraint(column_name = nil, **options)
           @operations << AddUniqueConstraint.new(@td.new_unique_constraint_definition(column_name, options))
+        end
+
+        def remove_unique_constraint(column_name = nil, **options)
+          drop_constraint(@td.conn.send(:unique_constraint_for!, name, column: column_name, **options).name)
         end
 
         private

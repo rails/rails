@@ -327,7 +327,7 @@ module ActionController
       # This processes the action in a child thread. It lets us return the response
       # code and headers back up the Rack stack, and still process the body in
       # parallel with sending data to the client.
-      ActiveSupport::Dependencies.interlock.continue_running(method(:new_controller_thread)) do
+      ActiveSupport::Dependencies.interlock.continue_running(->(&block) { new_controller_thread(&block) }) do
         t2 = Thread.current
 
         # Since we're processing the view in a different thread, copy the thread locals
