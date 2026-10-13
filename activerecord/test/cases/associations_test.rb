@@ -1319,6 +1319,19 @@ class PreloaderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_with_available_records_with_composite_key
+    comment = sharded_comments(:great_comment_blog_post_one)
+    blog_post = comment.blog_post
+    comment = Sharded::Comment.find(comment.id)
+
+    assert_no_queries do
+      ActiveRecord::Associations::Preloader.new(records: [comment], associations: :blog_post, available_records: [blog_post]).call
+
+      assert_predicate comment.association(:blog_post), :loaded?
+      assert_same blog_post, comment.blog_post
+    end
+  end
+
   def test_preload_with_available_records_sti
     book = Book.create!
     essay_special = EssaySpecial.create!
