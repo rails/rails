@@ -153,6 +153,10 @@ module ActionDispatch
         File.file?(file_path) && File.readable?(file_path)
       end
 
+      def root_entry?(name)
+        File.exist?("#{@root}/#{name.b}")
+      end
+
       def compressible?(content_type)
         @compressible_content_types.match?(content_type)
       end
@@ -169,9 +173,18 @@ module ActionDispatch
       def each_candidate_filepath(path_info)
         return unless path = clean_path(path_info)
 
+        # Most requests are for dynamic routes with nothing like them under the
+        # root directory. Probe the path's first segment once before building
+        # and stat(2)ing each candidate: when "/users" doesn't exist, neither
+        # can "/users/1", "/users/1.html", or "/users/1/index.html".
+        root = path == "/"
+        slash = path.index("/", 1)
+        top_level = slash ? path[1...slash] : path[1..]
+        top_level_exists = !root && root_entry?(top_level)
+
         ext = ::File.extname(path)
         content_type = ::Rack::Mime.mime_type(ext, nil)
-        yield path, content_type || "text/plain"
+        yield path, content_type || "text/plain" if top_level_exists
 
         # Tack on .html and /index.html only for paths that don't have an explicit,
         # resolvable file extension. No need to check for foo.js.html and
@@ -181,8 +194,17 @@ module ActionDispatch
           if ext != default_ext
             default_content_type = ::Rack::Mime.mime_type(default_ext, "text/plain")
 
-            yield "#{path}#{default_ext}", default_content_type
-            yield "#{path}/#{@index}#{default_ext}", default_content_type
+            # A top-level "/foo" may be served by "foo.html" rather than by an
+            # entry named "foo", so probe for that name instead.
+            if slash ? top_level_exists : root_entry?("#{top_level}#{default_ext}")
+              yield "#{path}#{default_ext}", default_content_type
+            end
+
+            if root
+              yield "/#{@index}#{default_ext}", default_content_type if root_entry?("#{@index}#{default_ext}")
+            elsif top_level_exists
+              yield "#{path}/#{@index}#{default_ext}", default_content_type
+            end
           end
         end
 

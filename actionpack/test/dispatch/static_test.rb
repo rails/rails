@@ -268,6 +268,19 @@ class StaticTest < ActiveSupport::TestCase
     assert_equal "I'm a teapot",           response.headers["x-custom-header"]
   end
 
+  def test_skips_candidate_files_under_missing_top_level_entries
+    checked = []
+
+    File.stub(:file?, ->(file) { checked << file; false }) do
+      assert_equal "Hello, World!", get("/users").body
+      assert_equal "Hello, World!", get("/users/").body
+      assert_equal "Hello, World!", get("/users/1").body
+      assert_equal "Hello, World!", get("/users/1.json").body
+    end
+
+    assert_empty checked
+  end
+
   def test_ignores_unknown_http_methods
     response = Rack::MockRequest.new(@app).request("BAD_METHOD", "/foo/bar.html")
     assert_equal 200, response.status
