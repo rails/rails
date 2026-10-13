@@ -304,6 +304,8 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Deprecations
 
+*  Deprecate `render` calls with `:renderable` objects that respond to `#render_in` without keyword arguments.
+
 ### Notable changes
 
 Action Mailer
@@ -345,8 +347,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
     `update_all`.
 
 ### Notable changes
-
-*   The table columns inside `schema.rb` are [now sorted alphabetically.](https://github.com/rails/rails/pull/53281)
 
 Active Storage
 --------------

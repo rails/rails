@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_job"
 
 module ActionMailer
-  # = Action Mailer \MailDeliveryJob
+  # Action Mailer \MailDeliveryJob
+  # ==============================
   #
-  # The +ActionMailer::MailDeliveryJob+ class is used when you
+  # The `ActionMailer::MailDeliveryJob` class is used when you
   # want to send emails outside of the request-response cycle. It supports
   # sending either parameterized or normal mail.
   #

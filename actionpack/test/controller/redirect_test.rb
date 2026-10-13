@@ -223,15 +223,17 @@ class RedirectController < ActionController::Base
   end
 
   def rescue_errors(e) raise e end
-
-  private
-    def dashboard_url(id, message)
-      url_for action: "dashboard", params: { "id" => id, "message" => message }
-    end
 end
 
 class RedirectTest < ActionController::TestCase
   tests RedirectController
+
+  def setup
+    super
+    # Targets of `redirect_to action: ...` that are not themselves actions.
+    draw_routes_for RedirectController, :hello_world, :other_host
+    draw_routes_for ModuleTest::ModuleRedirectController, :hello_world, :other_host
+  end
 
   def test_simple_redirect
     get :simple_redirect
@@ -447,10 +449,6 @@ class RedirectTest < ActionController::TestCase
     with_routing do |set|
       set.draw do
         resources :workshops
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
       end
 
       get :redirect_to_existing_record
@@ -469,10 +467,6 @@ class RedirectTest < ActionController::TestCase
         namespace :internal do
           resources :workshops
         end
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
       end
 
       get :redirect_to_polymorphic
@@ -486,10 +480,6 @@ class RedirectTest < ActionController::TestCase
       set.draw do
         namespace :internal do
           resources :workshops
-        end
-
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
         end
       end
 
@@ -535,9 +525,7 @@ class RedirectTest < ActionController::TestCase
   def test_redirect_to_with_block_and_accepted_options
     with_routing do |set|
       set.draw do
-        ActionDispatch.deprecator.silence do
-          get ":controller/:action"
-        end
+        get "redirect/hello_world", to: "redirect#hello_world"
       end
 
       get :redirect_to_with_block_and_options
@@ -675,12 +663,9 @@ class RedirectTest < ActionController::TestCase
 
   def test_redirect_to_path_relative_url_starting_with_an_at_with_notify
     with_path_relative_redirect(:notify) do
-      events = []
-      subscriber = ActiveSupport::Notifications.subscribe("unsafe_redirect.action_controller") do |*args|
-        events << ActiveSupport::Notifications::Event.new(*args)
+      events = capture_notifications("unsafe_redirect.action_controller") do
+        get :redirect_to_path_relative_url_starting_with_an_at
       end
-
-      get :redirect_to_path_relative_url_starting_with_an_at
 
       assert_response :redirect
       assert_equal "http://test.host@example.com", redirect_to_url
@@ -691,19 +676,14 @@ class RedirectTest < ActionController::TestCase
       assert_equal 'Path relative URL redirect detected: "@example.com"', event.payload[:message]
       assert_kind_of Array, event.payload[:stack_trace]
       assert event.payload[:stack_trace].any? { |line| line.include?("redirect_to_path_relative_url_starting_with_an_at") }
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
   end
 
   def test_redirect_to_path_relative_url_with_notify
     with_path_relative_redirect(:notify) do
-      events = []
-      subscriber = ActiveSupport::Notifications.subscribe("unsafe_redirect.action_controller") do |*args|
-        events << ActiveSupport::Notifications::Event.new(*args)
+      events = capture_notifications("unsafe_redirect.action_controller") do
+        get :redirect_to_path_relative_url
       end
-
-      get :redirect_to_path_relative_url
 
       assert_response :redirect
       assert_equal "http://test.hostexample.com", redirect_to_url
@@ -714,8 +694,6 @@ class RedirectTest < ActionController::TestCase
       assert_equal 'Path relative URL redirect detected: "example.com"', event.payload[:message]
       assert_kind_of Array, event.payload[:stack_trace]
       assert event.payload[:stack_trace].any? { |line| line.include?("redirect_to_path_relative_url") }
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
   end
 
@@ -759,22 +737,17 @@ class RedirectTest < ActionController::TestCase
 
   def test_redirect_to_absolute_url_does_not_notify
     with_path_relative_redirect(:notify) do
-      events = []
-      subscriber = ActiveSupport::Notifications.subscribe("unsafe_redirect.action_controller") do |*args|
-        events << ActiveSupport::Notifications::Event.new(*args)
+      assert_no_notifications("unsafe_redirect.action_controller") do
+        get :redirect_to_url
+        assert_response :redirect
+        assert_equal "http://www.rubyonrails.org/", redirect_to_url
       end
 
-      get :redirect_to_url
-      assert_response :redirect
-      assert_equal "http://www.rubyonrails.org/", redirect_to_url
-      assert_empty events
-
-      get :relative_url_redirect_with_status
-      assert_response :redirect
-      assert_equal "http://test.host/things/stuff", redirect_to_url
-      assert_empty events
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+      assert_no_notifications("unsafe_redirect.action_controller") do
+        get :relative_url_redirect_with_status
+        assert_response :redirect
+        assert_equal "http://test.host/things/stuff", redirect_to_url
+      end
     end
   end
 
@@ -807,18 +780,11 @@ class RedirectTest < ActionController::TestCase
 
   def test_redirect_to_query_string_url_does_not_trigger_path_relative_warning_with_notify
     with_path_relative_redirect(:notify) do
-      events = []
-      subscriber = ActiveSupport::Notifications.subscribe("unsafe_redirect.action_controller") do |*args|
-        events << ActiveSupport::Notifications::Event.new(*args)
+      assert_no_notifications("unsafe_redirect.action_controller") do
+        get :redirect_to_query_string_url
+        assert_response :redirect
+        assert_equal "http://test.host?foo=bar", redirect_to_url
       end
-
-      get :redirect_to_query_string_url
-      assert_response :redirect
-      assert_equal "http://test.host?foo=bar", redirect_to_url
-
-      assert_empty events.select { |e| e.payload[:message]&.include?("Path relative URL redirect detected") }
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
   end
 
@@ -863,12 +829,10 @@ class RedirectTest < ActionController::TestCase
 
   def test_redirect_to_external_with_action_on_open_redirect_notify
     with_action_on_open_redirect(:notify) do
-      events = []
-      subscriber = ActiveSupport::Notifications.subscribe("open_redirect.action_controller") do |*args|
-        events << ActiveSupport::Notifications::Event.new(*args)
+      events = capture_notifications("open_redirect.action_controller") do
+        get :redirect_to_url
       end
 
-      get :redirect_to_url
       assert_response :redirect
       assert_equal "http://www.rubyonrails.org/", redirect_to_url
 
@@ -877,8 +841,6 @@ class RedirectTest < ActionController::TestCase
       assert_equal "http://www.rubyonrails.org/", event.payload[:location]
       assert_kind_of ActionDispatch::Request, event.payload[:request]
       assert_kind_of Array, event.payload[:stack_trace]
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
     end
   end
 
@@ -1038,6 +1000,12 @@ module ModuleTest
 
   class ModuleRedirectTest < ActionController::TestCase
     tests ModuleRedirectController
+
+    def setup
+      super
+      draw_routes_for ModuleRedirectController, :hello_world, :other_host
+      draw_routes_for ::RedirectController, :hello_world, :other_host
+    end
 
     def test_simple_redirect
       get :simple_redirect

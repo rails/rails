@@ -140,8 +140,8 @@ module ActionController # :nodoc:
     end
 
     module ClassMethods
-      # Turn on request forgery protection. Bear in mind that GET and HEAD requests
-      # are not checked.
+      # Turn on request forgery protection. Bear in mind that GET, HEAD, and QUERY
+      # requests are not checked.
       #
       #     class ApplicationController < ActionController::Base
       #       protect_from_forgery
@@ -168,7 +168,7 @@ module ActionController # :nodoc:
       #     be added at the position of the protect_from_forgery call in your
       #     application. This means any callbacks added before are run first. This is
       #     useful when you want your forgery protection to depend on other callbacks,
-      #     like authentication methods (Oauth vs Cookie auth).
+      #     like authentication methods (OAuth vs Cookie auth).
       #
       #     If you need to add verification to the beginning of the callback chain,
       #     use `prepend: true`.
@@ -200,7 +200,7 @@ module ActionController # :nodoc:
       #       end
       #
       #       def handle_unverified_request
-      #         # Custom behavior for unverfied request
+      #         # Custom behavior for unverified request
       #       end
       #     end
       #
@@ -541,12 +541,6 @@ module ActionController # :nodoc:
         protection_strategy.handle_unverified_request
       end
 
-      def cross_origin_request?
-        !valid_request_origin? ||
-          sec_fetch_site_value == "cross-site" ||
-          using_header_only_for_forgery_protection?
-      end
-
       def unverified_request_warning_message
         if !valid_request_origin?
           "HTTP Origin header (#{request.origin}) didn't match request.base_url (#{request.base_url})"
@@ -585,14 +579,15 @@ module ActionController # :nodoc:
         end
       end
 
-      # GET requests are checked for cross-origin JavaScript after rendering.
+      # GET and QUERY requests are checked for cross-origin JavaScript after
+      # rendering.
       def mark_for_same_origin_verification! # :doc:
-        @_marked_for_same_origin_verification = request.get?
+        @_marked_for_same_origin_verification = request.get? || verified_query_request?
       end
 
       # If the `verify_request_for_forgery_protection` before_action ran,
       # verify that JavaScript responses are only served to same-origin
-      # GET requests.
+      # GET and QUERY requests.
       def marked_for_same_origin_verification? # :doc:
         @_marked_for_same_origin_verification ||= false
       end
@@ -604,22 +599,32 @@ module ActionController # :nodoc:
 
       AUTHENTICITY_TOKEN_LENGTH = 32
 
-      # Safe values for Sec-Fetch-Site header that indicate the request
-      # originated from the same site.
-      SAFE_FETCH_SITES = %w[ same-origin same-site ].freeze
-      private_constant :SAFE_FETCH_SITES
-
       # Returns true or false if a request is verified. The verification method
       # depends on the configured `forgery_protection_verification_strategy`:
       #
       # *   `:header_only` - Uses Sec-Fetch-Site header only (default)
       # *   `:header_or_legacy_token` - Uses Sec-Fetch-Site header with fallback to token
       #
-      # For all strategies, GET and HEAD requests are allowed without verification.
+      # For all strategies, GET, HEAD, and QUERY requests are allowed without
+      # verification. HTML forms cannot issue QUERY requests, and cross-origin
+      # QUERY requests always require a CORS preflight, so they cannot be forged
+      # through a victim's browser. A request tunneled through a form POST with
+      # `_method=query` does not share that protection, so it is verified like
+      # any other POST.
       #
       def verified_request? # :doc:
-        request.get? || request.head? || !protect_against_forgery? ||
+        request.get? || request.head? || verified_query_request? || !protect_against_forgery? ||
           (valid_request_origin? && verified_request_for_forgery_protection?)
+      end
+
+      # QUERY requests are exempt from forgery protection like GET and HEAD,
+      # but only when the request actually arrived with the QUERY method. A
+      # request tunneled through POST with a `_method=query` override (as newer
+      # Rack::MethodOverride versions support) was submitted as an ordinary
+      # form POST, which the exemption's rationale — HTML forms cannot emit
+      # QUERY, and cross-origin QUERY is always preflighted — does not cover.
+      def verified_query_request? # :doc:
+        request.query? && request.method == "QUERY"
       end
 
       def verified_request_for_forgery_protection?

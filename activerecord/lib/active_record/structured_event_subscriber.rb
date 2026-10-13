@@ -4,7 +4,7 @@ require "active_support/structured_event_subscriber"
 
 module ActiveRecord
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
-    IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
+    IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"].freeze
 
     def strict_loading_violation(event)
       owner = event.payload[:owner]
@@ -30,17 +30,9 @@ module ActiveRecord
 
         binds = []
         payload[:binds].each_with_index do |attr, i|
-          attribute_name = if attr.respond_to?(:name)
-            attr.name
-          elsif attr.respond_to?(:[]) && attr[i].respond_to?(:name)
-            attr[i].name
-          else
-            nil
-          end
-
+          attribute_name = attr.name if attr.is_a?(ActiveModel::Attribute)
           filtered_params = filter(attribute_name, casted_params[i])
-
-          binds << render_bind(attr, filtered_params)
+          binds << render_bind(attr, filtered_params, i)
         end
       end
 
@@ -61,19 +53,15 @@ module ActiveRecord
         casted_binds.respond_to?(:call) ? casted_binds.call : casted_binds
       end
 
-      def render_bind(attr, value)
-        case attr
-        when ActiveModel::Attribute
+      def render_bind(attr, value, i)
+        if attr.is_a?(ActiveModel::Attribute)
           if attr.type.binary? && attr.value
             value = "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
           end
-        when Array
-          attr = attr.first
+          [attr.name, value]
         else
-          attr = nil
+          ["$#{i + 1}", value]
         end
-
-        [attr&.name, value]
       end
 
       def filter(name, value)

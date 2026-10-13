@@ -5,6 +5,7 @@ require "models/topic"
 require "models/task"
 require "models/category"
 require "models/post"
+require "models/default"
 
 class QueryCacheTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
@@ -285,7 +286,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_paths, ["tasks"], {}, ActiveRecord::Base)
       end
 
-      ActiveRecord::Base.connection_pool.connections.each do |conn|
+      without_ractor_proxy { ActiveRecord::Base.connection_pool }.connections.each do |conn|
         assert_cache :off, conn
       end
 
@@ -299,6 +300,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert_cache :dirty
 
         thread_1_connection = ActiveRecord::Base.lease_connection
+        thread_1_physical = main_ractor_connection(thread_1_connection)
         ActiveRecord::Base.connection_handler.clear_active_connections!(:all)
         assert_cache :off, thread_1_connection
 
@@ -309,7 +311,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         thread = Thread.new {
           thread_2_connection = ActiveRecord::Base.lease_connection
 
-          assert_equal thread_2_connection, thread_1_connection
+          assert_equal main_ractor_connection(thread_2_connection), thread_1_physical
           assert_cache :off
 
           middleware {
@@ -328,7 +330,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         started.wait
 
         thread_1_connection = ActiveRecord::Base.lease_connection
-        assert_not_equal thread_1_connection, thread_2_connection
+        assert_not_equal main_ractor_connection(thread_1_connection), main_ractor_connection(thread_2_connection)
         assert_cache :dirty, thread_2_connection
         checked.set
         thread.join
@@ -336,7 +338,7 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert_cache :off, thread_2_connection
       }.call({})
 
-      ActiveRecord::Base.connection_pool.connections.each do |conn|
+      without_ractor_proxy { ActiveRecord::Base.connection_pool }.connections.each do |conn|
         assert_cache :off, conn
       end
     end
@@ -756,6 +758,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
   test "query cache is cleared for all thread when a connection is shared" do
     ActiveRecord::Base.connection_pool.pin_connection!(ActiveSupport::IsolatedExecutionState.context)
+    ActiveRecord::Base.lease_connection.begin_transaction(joinable: false, _lazy: false)
 
     begin
       assert_cache :off
@@ -784,6 +787,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
       assert_cache :clean
     ensure
+      ActiveRecord::Base.lease_connection.rollback_transaction
       ActiveRecord::Base.connection_pool.unpin_connection!
     end
   end
@@ -887,7 +891,7 @@ class QueryCacheMutableParamTest < ActiveRecord::TestCase
   end
 
   def setup
-    ActiveRecord::Base.lease_connection.create_table("json_objs", force: true) do |t|
+    main_ractor_connection(ActiveRecord::Base.lease_connection).create_table("json_objs", force: true) do |t|
       if current_adapter?(:PostgreSQLAdapter)
         t.jsonb "payload"
       else
@@ -928,7 +932,7 @@ class QuerySerializedParamTest < ActiveRecord::TestCase
   def setup
     @use_yaml_unsafe_load_was = ActiveRecord.use_yaml_unsafe_load
 
-    ActiveRecord::Base.lease_connection.create_table("yaml_objs", force: true) do |t|
+    main_ractor_connection(ActiveRecord::Base.lease_connection).create_table("yaml_objs", force: true) do |t|
       t.text "payload"
     end
 
@@ -970,6 +974,8 @@ end
 
 class QueryCacheExpiryTest < ActiveRecord::TestCase
   fixtures :tasks, :posts, :categories, :categories_posts
+
+  skip_under_ractor_proxy :test_insert_all, :test_insert_all_bang, :test_upsert_all
 
   def teardown
     Task.lease_connection.clear_query_cache
@@ -1021,6 +1027,18 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
         task = Task.find(1)
         task.starting = Time.now.utc
         task.save!
+      end
+    end
+  end
+
+  if current_adapter?(:PostgreSQLAdapter) && ActiveRecord::Base.lease_connection.supports_virtual_columns?
+    def test_update_with_returning_clears_cache
+      Default.cache do
+        record = Default.create!(random_number: 1)
+        assert_called(Default.connection_pool.query_cache, :clear, times: 1) do
+          record.update!(random_number: 2)
+        end
+        assert_equal 2, Default.find(record.id).random_number
       end
     end
   end
@@ -1151,44 +1169,28 @@ class TransactionInCachedSqlActiveRecordPayloadTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
   def test_payload_without_open_transaction
-    asserted = false
-
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      if event.payload[:cached]
-        assert_nil event.payload.fetch(:transaction)
-        asserted = true
-      end
-    end
-    Task.cache do
-      2.times { Task.count }
-    end
-
-    assert asserted
-  ensure
-    ActiveSupport::Notifications.unsubscribe(subscriber)
-  end
-
-  def test_payload_with_open_transaction
-    asserted = false
-    expected_transaction = nil
-
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      if event.payload[:cached]
-        assert_same expected_transaction, event.payload[:transaction]
-        asserted = true
-      end
-    end
-
-    Task.transaction do |transaction|
-      expected_transaction = transaction
-
+    notification = assert_notification("sql.active_record", cached: true) do
       Task.cache do
         2.times { Task.count }
       end
     end
 
-    assert asserted
-  ensure
-    ActiveSupport::Notifications.unsubscribe(subscriber)
+    assert_nil notification.payload.fetch(:transaction)
+  end
+
+  def test_payload_with_open_transaction
+    expected_transaction = nil
+
+    notification = assert_notification("sql.active_record", cached: true) do
+      Task.transaction do |transaction|
+        expected_transaction = transaction
+
+        Task.cache do
+          2.times { Task.count }
+        end
+      end
+    end
+
+    assert_same expected_transaction, notification.payload[:transaction]
   end
 end

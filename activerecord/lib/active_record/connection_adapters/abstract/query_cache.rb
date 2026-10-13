@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "concurrent/map"
 require "concurrent/atomic/atomic_fixnum"
 
@@ -10,9 +11,9 @@ module ActiveRecord
 
       class << self
         def included(base) # :nodoc:
-          dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :delete, :truncate,
-            :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction, :restart_db_transaction,
-            :exec_insert_all
+          dirties_query_cache base, :exec_query, :execute, :create, :insert, :update, :update_with_result,
+            :delete, :truncate, :truncate_tables, :rollback_to_savepoint, :rollback_db_transaction,
+            :restart_db_transaction, :exec_insert_all
         end
 
         def dirties_query_cache(base, *method_names)
@@ -113,18 +114,12 @@ module ActiveRecord
       class QueryCacheRegistry # :nodoc:
         def initialize
           @mutex = Mutex.new
-          @map = ConnectionPool::WeakThreadKeyMap.new
+          @map = ObjectSpace::WeakKeyMap.new
         end
 
         def compute_if_absent(context)
           @map[context] || @mutex.synchronize do
             @map[context] ||= yield
-          end
-        end
-
-        def clear
-          @map.synchronize do
-            @map.clear
           end
         end
       end
@@ -240,7 +235,7 @@ module ActiveRecord
 
       # Disable the query cache within the block.
       #
-      # Set <tt>dirties: false</tt> to prevent query caches on all connections from being cleared by write operations.
+      # Set `dirties: false` to prevent query caches on all connections from being cleared by write operations.
       # (By default, write operations dirty all connections' query caches in case they are replicas whose cache would now be outdated.)
       def uncached(dirties: true, &block)
         pool.disable_query_cache(dirties: dirties, &block)
@@ -272,7 +267,8 @@ module ActiveRecord
             result = lookup_sql_cache(sql, name, binds) || super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry)
             FutureResult.wrap(result)
           else
-            cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry) }
+            result = cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable, async: async, allow_retry: allow_retry) }
+            result.shuffle_rows(arel)
           end
         else
           super

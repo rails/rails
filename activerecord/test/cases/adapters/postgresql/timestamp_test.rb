@@ -165,6 +165,7 @@ end
 
 class PostgresqlTimestampMigrationTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlTimestampWithZone < ActiveRecord::Base; end
+  class PostgresqlTimestampPrecision < ActiveRecord::Base; end
 
   def test_adds_column_as_timestamp
     original, $stdout = $stdout, StringIO.new
@@ -206,4 +207,65 @@ class PostgresqlTimestampMigrationTest < ActiveRecord::PostgreSQLTestCase
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES.delete(:datetimes_as_enum)
     $stdout = original
   end
+
+  def test_timestamp_precision_metadata_uses_postgresql_default_for_bare_timestamp_types
+    with_timestamp_precision_table do
+      columns = columns_hash(PostgresqlTimestampPrecision)
+
+      assert_equal 6, columns["bare_timestamp"].precision
+      assert_equal 6, columns["bare_timestamptz"].precision
+      assert_equal 6, columns["explicit_timestamp_6"].precision
+      assert_equal 0, columns["explicit_timestamp_0"].precision
+      assert_equal 3, columns["explicit_timestamp_3"].precision
+    end
+  end
+
+  def test_time_precision_metadata_uses_postgresql_default_for_bare_time_types
+    with_timestamp_precision_table do
+      columns = columns_hash(PostgresqlTimestampPrecision)
+
+      assert_equal 6, columns["bare_time"].precision
+      assert_equal 6, columns["bare_timetz"].precision
+      assert_equal 0, columns["explicit_time_0"].precision
+      assert_equal 3, columns["explicit_timetz_3"].precision
+    end
+  end
+
+  def test_bare_timestamp_type_casting_uses_postgresql_default_precision
+    with_timestamp_precision_table do
+      time = ::Time.now.change(nsec: 123456789)
+      record = PostgresqlTimestampPrecision.new(bare_timestamp: time, bare_timestamptz: time)
+
+      assert_equal 123456000, record.bare_timestamp.nsec
+      assert_equal 123456000, record.bare_timestamptz.nsec
+    end
+  end
+
+  private
+    def with_timestamp_precision_table
+      connection = PostgresqlTimestampPrecision.lease_connection
+      connection.drop_table :postgresql_timestamp_precisions, if_exists: true
+      connection.execute(<<~SQL)
+        CREATE TABLE postgresql_timestamp_precisions (
+          bare_timestamp timestamp without time zone,
+          bare_timestamptz timestamp with time zone,
+          explicit_timestamp_6 timestamp(6) without time zone,
+          explicit_timestamp_0 timestamp(0) without time zone,
+          explicit_timestamp_3 timestamp(3) without time zone,
+          bare_time time without time zone,
+          bare_timetz time with time zone,
+          explicit_time_0 time(0) without time zone,
+          explicit_timetz_3 time(3) with time zone
+        )
+      SQL
+      PostgresqlTimestampPrecision.reset_column_information
+      yield
+    ensure
+      PostgresqlTimestampPrecision.reset_column_information
+      connection&.drop_table :postgresql_timestamp_precisions, if_exists: true
+    end
+
+    def columns_hash(model)
+      model.columns.index_by(&:name)
+    end
 end

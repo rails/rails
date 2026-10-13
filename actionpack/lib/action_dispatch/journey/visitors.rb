@@ -6,8 +6,8 @@ module ActionDispatch
   # :stopdoc:
   module Journey
     class Format
-      ESCAPE_PATH    = ->(value) { Router::Utils.escape_path(value) }
-      ESCAPE_SEGMENT = ->(value) { Router::Utils.escape_segment(value) }
+      ESCAPE_PATH    = ActiveSupport::Ractors.shareable_lambda { |value| Router::Utils.escape_path(value) }
+      ESCAPE_SEGMENT = ActiveSupport::Ractors.shareable_lambda { |value| Router::Utils.escape_segment(value) }
 
       Parameter = Struct.new(:name, :escaper) do
         def escape(value); escaper.call value; end
@@ -54,7 +54,7 @@ module ActionDispatch
 
     module Visitors # :nodoc:
       class Visitor # :nodoc:
-        DISPATCH_CACHE = {}
+        DISPATCH_CACHE = {} # rubocop:disable Style/MutableConstant
 
         def accept(node)
           visit(node)
@@ -95,7 +95,7 @@ module ActionDispatch
       end
 
       class FunctionalVisitor # :nodoc:
-        DISPATCH_CACHE = {}
+        DISPATCH_CACHE = {} # rubocop:disable Style/MutableConstant
 
         def accept(node, seed)
           visit(node, seed)
@@ -148,12 +148,7 @@ module ActionDispatch
         end
 
         def visit_SYMBOL(n)
-          symbol = n.to_sym
-          if symbol == :controller
-            [Journey::Format.required_path(symbol)]
-          else
-            [Journey::Format.required_segment(symbol)]
-          end
+          [Journey::Format.required_segment(n.to_sym)]
         end
       end
 

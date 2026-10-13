@@ -49,6 +49,11 @@ module ActiveRecord
         assert_equal Float::INFINITY, config.max_age
       end
 
+      def test_max_age_false_disables_it
+        config = HashConfig.new("default_env", "primary", max_age: false, adapter: "abstract")
+        assert_equal Float::INFINITY, config.max_age
+      end
+
       def test_keepalive_default_when_nil
         config = HashConfig.new("default_env", "primary", keepalive: nil, adapter: "abstract")
         assert_equal 600, config.keepalive
@@ -62,6 +67,16 @@ module ActiveRecord
       def test_when_no_keepalive_uses_default
         config = HashConfig.new("default_env", "primary", adapter: "abstract")
         assert_equal 600, config.keepalive
+      end
+
+      def test_keepalive_false_disables_it
+        config = HashConfig.new("default_env", "primary", keepalive: false, adapter: "abstract")
+        assert_nil config.keepalive
+      end
+
+      def test_keepalive_zero_disables_it
+        config = HashConfig.new("default_env", "primary", keepalive: 0, adapter: "abstract")
+        assert_nil config.keepalive
       end
 
       def test_max_connections_unlimited_when_nil
@@ -182,6 +197,11 @@ module ActiveRecord
         assert_equal 15.0, config.reaping_frequency
       end
 
+      def test_reaping_frequency_false_disables_it
+        config = HashConfig.new("default_env", "primary", reaping_frequency: false, adapter: "abstract")
+        assert_nil config.reaping_frequency
+      end
+
       def test_idle_timeout_default_when_nil
         config = HashConfig.new("default_env", "primary", idle_timeout: nil, adapter: "abstract")
         assert_nil config.idle_timeout
@@ -200,6 +220,16 @@ module ActiveRecord
       def test_idle_timeout_nil_when_less_than_or_equal_to_zero
         config = HashConfig.new("default_env", "primary", idle_timeout: "0", adapter: "abstract")
         assert_nil config.idle_timeout
+      end
+
+      def test_idle_timeout_false_disables_it
+        config = HashConfig.new("default_env", "primary", idle_timeout: false, adapter: "abstract")
+        assert_nil config.idle_timeout
+      end
+
+      def test_idle_timeout_true_uses_default
+        config = HashConfig.new("default_env", "primary", idle_timeout: true, adapter: "abstract")
+        assert_equal 300.0, config.idle_timeout
       end
 
       def test_default_schema_dump_value
@@ -233,6 +263,24 @@ module ActiveRecord
 
         config = HashConfig.new("default_env", "primary", database_tasks: "str", adapter: "abstract")
         assert_equal true, config.database_tasks?
+      end
+
+      def test_dump_schema_migrations_can_be_configured_per_database
+        ActiveRecord.stub(:dump_schema_migrations, true) do
+          config = HashConfig.new("default_env", "primary", adapter: "abstract")
+          assert_predicate config, :dump_schema_migrations?
+
+          config = HashConfig.new("default_env", "primary", dump_schema_migrations: false, adapter: "abstract")
+          assert_not_predicate config, :dump_schema_migrations?
+        end
+
+        ActiveRecord.stub(:dump_schema_migrations, false) do
+          config = HashConfig.new("default_env", "primary", adapter: "abstract")
+          assert_not_predicate config, :dump_schema_migrations?
+
+          config = HashConfig.new("default_env", "primary", dump_schema_migrations: true, adapter: "abstract")
+          assert_predicate config, :dump_schema_migrations?
+        end
       end
 
       def test_schema_cache_path_default_for_primary

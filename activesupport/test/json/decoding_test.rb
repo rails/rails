@@ -76,7 +76,7 @@ class TestJSONDecoding < ActiveSupport::TestCase
     "true" => true,
     "false" => false,
     "null" => nil
-  }
+  }.freeze
 
   TESTS.each_with_index do |(json, expected), index|
     fail_message = "JSON decoding failed for #{json}"

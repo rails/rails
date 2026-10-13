@@ -33,6 +33,26 @@ class ActionText::ControllerRenderTest < ActionDispatch::IntegrationTest
     assert_match %r" class=\S+mentionable-person\b", form_html
   end
 
+  test "renders an image attachment with its alt text" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    message = Message.create!(content: ActionText::Content.new(
+      %Q(<action-text-attachment sgid="#{blob.attachable_sgid}" alt="A racecar on a track"></action-text-attachment>)
+    ))
+
+    get message_path(message)
+    assert_select "#content img:match('alt', ?)", "A racecar on a track"
+  end
+
+  test "renders an image attachment without an alt attribute when it has no alt text" do
+    blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+    message = Message.create!(content: ActionText::Content.new.append_attachables(blob))
+
+    get message_path(message)
+    assert_select "#content img" do |imgs|
+      imgs.each { |img| assert_nil img["alt"] }
+    end
+  end
+
   test "resolves partials when controller is namespaced" do
     blob = create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
     message = Message.create!(content: ActionText::Content.new.append_attachables(blob))

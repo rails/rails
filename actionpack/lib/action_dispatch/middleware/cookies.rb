@@ -3,6 +3,7 @@
 # :markup: markdown
 
 require "active_support/core_ext/hash/keys"
+require "active_support/core_ext/integer/time"
 require "active_support/key_generator"
 require "active_support/message_verifier"
 require "active_support/json"
@@ -193,7 +194,12 @@ module ActionDispatch
   #     `:lax`.
   #
   class Cookies
-    HTTP_HEADER   = "Set-Cookie"
+    include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+
+    deprecate_constant :HTTP_HEADER, "Rack::SET_COOKIE",
+      deprecator: ActionDispatch.deprecator,
+      message: "ActionDispatch::Cookies::HTTP_HEADER is deprecated and will be removed in Rails 9.0. Use Rack::SET_COOKIE instead."
+
     GENERATOR_KEY = "action_dispatch.key_generator"
     SIGNED_COOKIE_SALT = "action_dispatch.signed_cookie_salt"
     ENCRYPTED_COOKIE_SALT = "action_dispatch.encrypted_cookie_salt"

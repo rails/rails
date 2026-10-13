@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord::Associations::Builder # :nodoc:
   class HasMany < CollectionAssociation # :nodoc:
     def self.macro
@@ -7,7 +8,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_options(options)
-      valid = super + [:counter_cache, :join_table, :index_errors, :as, :through]
+      valid = super + [:counter_cache, :join_table, :index_errors, :default_order, :as, :through]
       valid += [:foreign_type] if options[:as]
       valid += [:source, :source_type, :disable_joins] if options[:through]
       valid += [:ensuring_owner_was] if options[:dependent] == :destroy_async

@@ -14,14 +14,8 @@ class MySQLEmptyTablesTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   def test_empty_all_tables_uses_delete_not_truncate
-    queries = []
-    subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |event|
-      queries << event.payload[:sql] if event.payload[:name] == "Delete Tables"
-    end
-
-    @conn.empty_all_tables
-
-    ActiveSupport::Notifications.unsubscribe(subscriber)
+    queries = capture_notifications("sql.active_record") { @conn.empty_all_tables }
+      .select { |e| e.payload[:name] == "Delete Tables" }.map { |e| e.payload[:sql] }
 
     assert queries.any? { |q| q.include?("DELETE FROM") }, "Expected DELETE statements to be used"
     assert queries.none? { |q| q.include?("TRUNCATE") }, "Expected TRUNCATE statements to NOT be used"

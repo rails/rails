@@ -2,6 +2,7 @@
 
 require "abstract_unit"
 require "active_support/log_subscriber/test_helper"
+require "active_support/core_ext/object/with"
 require "action_controller/log_subscriber"
 
 class ACLogSubscriberTest < ActionController::TestCase
@@ -405,6 +406,34 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     assert_equal 2, logs.size
     assert_match(/Completed 404/, logs.last)
+  end
+
+  def test_csrf_warnings_are_logged_at_warn_level
+    @logger.level = Logger::WARN
+
+    subscriber = ActionController::LogSubscriber.new
+    subscriber.emit(name: "action_controller.csrf_request_blocked",
+      payload: { message: "Can't verify CSRF token authenticity." })
+    subscriber.emit(name: "action_controller.csrf_javascript_blocked",
+      payload: { message: "Blocked javascript:" })
+    subscriber.emit(name: "action_controller.csrf_token_fallback",
+      payload: { controller: "PostsController", action: "create" })
+
+    warnings = @logger.logged(:warn)
+    assert_equal 3, warnings.size
+    assert_match(/Can't verify CSRF token authenticity/, warnings[0])
+    assert_match(/Blocked javascript:/, warnings[1])
+    assert_match(/Falling back to CSRF token verification for PostsController#create/, warnings[2])
+  end
+
+  def test_csrf_warnings_are_not_logged_when_log_warning_on_csrf_failure_is_false
+    ActionController::Base.with(log_warning_on_csrf_failure: false) do
+      subscriber = ActionController::LogSubscriber.new
+      subscriber.emit(name: "action_controller.csrf_request_blocked",
+        payload: { message: "Can't verify CSRF token authenticity." })
+
+      assert_empty @logger.logged(:warn)
+    end
   end
 
   def logs

@@ -112,6 +112,29 @@ module ActiveRecord
       assert_not_equal book, other_book
     end
 
+    def test_out_of_range_bind_value_returns_an_empty_result
+      cache = Book.lease_connection.unprepared_statement do
+        StatementCache.create(Book.lease_connection) do |params|
+          Book.where(id: params.bind)
+        end
+      end
+
+      assert_equal [], cache.execute([2 << 63], Book.lease_connection)
+    end
+
+    def test_out_of_range_bind_value_returns_an_empty_result_when_async
+      cache = Book.lease_connection.unprepared_statement do
+        StatementCache.create(Book.lease_connection) do |params|
+          Book.where(id: params.bind)
+        end
+      end
+
+      promise = cache.execute([2 << 63], Book.lease_connection, async: true)
+
+      assert promise.is_a?(ActiveRecord::Promise)
+      assert_equal [], promise.value
+    end
+
     def test_find_by_does_not_use_statement_cache_if_table_name_is_changed
       liquid = Liquid.create(name: "salty")
 

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/core_ext/object/with"
+require "active_support/testing/ractors_assertions"
 require "timeout"
 require "rack/content_length"
 
@@ -28,6 +30,20 @@ class ResponseTest < ActiveSupport::TestCase
     @response.stream.write "foo"
     @response.stream.close
     assert_equal "foo", @response.body
+  end
+
+  def test_stream_write_returns_bytesize
+    result = @response.stream.write "foo"
+    @response.stream.close
+    assert_equal 3, result
+  end
+
+  def test_stream_write_dups_string_for_io_copy_stream_safety
+    sio = StringIO.new("Ho")
+    IO.copy_stream(sio, @response.stream)
+    @response.stream.write "me"
+    @response.stream.close
+    assert_equal "Home", @response.body
   end
 
   def test_write_after_close
@@ -417,6 +433,22 @@ class ResponseTest < ActiveSupport::TestCase
 
     _status, headers, _body = Rack::ContentLength.new(app).call(env)
     assert_header "content-length", "5", headers
+  end
+
+  class RactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "default_charset is readable from a non-main Ractor" do
+      assert_equal "utf-8", on_ractor { ActionDispatch::Response.default_charset }
+    end
+
+    test "default_headers assigned on the main Ractor are readable from a non-main Ractor" do
+      headers = { "x-frame-options" => "SAMEORIGIN" }.freeze
+
+      ActionDispatch::Response.with(default_headers: headers) do
+        assert_equal headers, on_ractor { ActionDispatch::Response.default_headers }
+      end
+    end
   end
 end
 

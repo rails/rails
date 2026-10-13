@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
-    # = Active Record Has One Association
+    # Active Record Has One Association
+    # =================================
     class HasOneAssociation < SingularAssociation # :nodoc:
       include ForeignAssociation
 
@@ -117,9 +119,18 @@ module ActiveRecord
         end
 
         def nullify_owner_attributes(record)
-          Array(reflection.foreign_key).each do |foreign_key_column|
-            record[foreign_key_column] = nil unless foreign_key_column.in?(Array(record.class.primary_key))
+          primary_key = ActiveRecord::Key.for(record.class.primary_key)
+          foreign_key = ActiveRecord::Key.for(reflection.foreign_key)
+
+          # Preserve shared primary key columns only if another foreign key
+          # column can be cleared to disassociate the record.
+          preserve_primary_key = foreign_key.any? { |key| !primary_key.include?(key) }
+
+          foreign_key.each do |foreign_key_column|
+            next if preserve_primary_key && primary_key.include?(foreign_key_column)
+            record.write_attribute(foreign_key_column, nil)
           end
+          record.write_attribute(reflection.type, nil) if reflection.type.present?
         end
 
         def transaction_if(value, &block)

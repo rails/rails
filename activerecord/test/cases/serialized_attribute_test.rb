@@ -156,7 +156,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
   end
 
   def test_json_symbolize_names_returns_symbolized_names
-    Topic.serialize :content, coder: ActiveRecord::Coders::JSON.new(symbolize_names: true)
+    Topic.serialize :content, coder: ActiveRecord::Coders::JSON.new(decode_options: { symbolize_names: true })
     my_post = posts(:welcome)
 
     t = Topic.new(content: my_post)
@@ -180,6 +180,25 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     myobj = Time.local(2008, 1, 1, 1, 0)
     topic = Topic.create("content" => myobj).reload
     assert_equal(myobj, topic.content)
+  end
+
+  def test_serialized_json_column_direct_attribute_assignment
+    Topic.serialize :content, coder: JSON, type: Hash
+
+    topic = Topic.new(content: { foo: "bar" })
+    topic.save!
+    topic.reload
+
+    assert_equal({ "foo" => "bar" }, topic.content)
+
+    topic.content = { baz: "qux" }
+
+    assert_equal({ "baz" => "qux" }, topic.content)
+
+    topic.save
+    topic.reload
+
+    assert_equal({ "baz" => "qux" }, topic.content)
   end
 
   def test_serialized_string_attribute

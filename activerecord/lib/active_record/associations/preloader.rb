@@ -1,31 +1,37 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/enumerable"
 
 module ActiveRecord
   module Associations
-    # = Active Record \Preloader
+    # Active Record \Preloader
+    # ========================
     #
     # Implements the details of eager loading of Active Record associations.
     #
     # Suppose that you have the following two Active Record models:
     #
-    #   class Author < ActiveRecord::Base
-    #     # columns: name, age
-    #     has_many :books
-    #   end
+    # ```
+    # class Author < ActiveRecord::Base
+    #   # columns: name, age
+    #   has_many :books
+    # end
     #
-    #   class Book < ActiveRecord::Base
-    #     # columns: title, sales, author_id
-    #   end
+    # class Book < ActiveRecord::Base
+    #   # columns: title, sales, author_id
+    # end
+    # ```
     #
     # When you load an author with all associated books Active Record will make
     # multiple queries like this:
     #
-    #   Author.includes(:books).where(name: ['bell hooks', 'Homer']).to_a
+    # ```
+    # Author.includes(:books).where(name: ['bell hooks', 'Homer']).to_a
     #
-    #   # SELECT `authors`.* FROM `authors` WHERE `name` IN ('bell hooks', 'Homer')
-    #   # SELECT `books`.* FROM `books` WHERE `author_id` IN (2, 5)
+    # # SELECT `authors`.* FROM `authors` WHERE `name` IN ('bell hooks', 'Homer')
+    # # SELECT `books`.* FROM `books` WHERE `author_id` IN (2, 5)
+    # ```
     #
     # Active Record saves the ids of the records from the first query to use in
     # the second. Depending on the number of associations involved there can be
@@ -34,12 +40,14 @@ module ActiveRecord
     # However, if there is a WHERE clause that spans across tables Active
     # Record will fall back to a slightly more resource-intensive single query:
     #
-    #   Author.includes(:books).where(books: {title: 'Illiad'}).to_a
-    #   # SELECT `authors`.`id` AS t0_r0, `authors`.`name` AS t0_r1, `authors`.`age` AS t0_r2,
-    #   #        `books`.`id`   AS t1_r0, `books`.`title`  AS t1_r1, `books`.`sales` AS t1_r2
-    #   # FROM `authors`
-    #   # LEFT OUTER JOIN `books` ON `authors`.`id` =  `books`.`author_id`
-    #   # WHERE `books`.`title` = 'Illiad'
+    # ```
+    # Author.includes(:books).where(books: {title: 'Iliad'}).to_a
+    # # SELECT `authors`.`id` AS t0_r0, `authors`.`name` AS t0_r1, `authors`.`age` AS t0_r2,
+    # #        `books`.`id`   AS t1_r0, `books`.`title`  AS t1_r1, `books`.`sales` AS t1_r2
+    # # FROM `authors`
+    # # LEFT OUTER JOIN `books` ON `authors`.`id` =  `books`.`author_id`
+    # # WHERE `books`.`title` = 'Iliad'
+    # ```
     #
     # This could result in many rows that contain redundant data and it performs poorly at scale
     # and is therefore only used when necessary.
@@ -59,39 +67,44 @@ module ActiveRecord
       #
       # In this description, 'association name' shall refer to the name passed
       # to an association creation method. For example, a model that specifies
-      # <tt>belongs_to :author</tt>, <tt>has_many :buyers</tt> has association
-      # names +:author+ and +:buyers+.
+      # `belongs_to :author`, `has_many :buyers` has association
+      # names `:author` and `:buyers`.
       #
-      # == Parameters
-      # +records+ is an array of ActiveRecord::Base. This array needs not be flat,
-      # i.e. +records+ itself may also contain arrays of records. In any case,
-      # +preload_associations+ will preload all associations records by
-      # flattening +records+.
+      # Parameters
+      # ----------
       #
-      # +associations+ specifies one or more associations that you want to
+      # `records` is an array of ActiveRecord::Base. This array needs not be flat,
+      # i.e. `records` itself may also contain arrays of records. In any case,
+      # `preload_associations` will preload all associations records by
+      # flattening `records`.
+      #
+      # `associations` specifies one or more associations that you want to
       # preload. It may be:
+      #
       # - a Symbol or a String which specifies a single association name. For
-      #   example, specifying +:books+ allows this method to preload all books
+      #   example, specifying `:books` allows this method to preload all books
       #   for an Author.
       # - an Array which specifies multiple association names. This array
-      #   is processed recursively. For example, specifying <tt>[:avatar, :books]</tt>
+      #   is processed recursively. For example, specifying `[:avatar, :books]`
       #   allows this method to preload an author's avatar as well as all of their
       #   books.
       # - a Hash which specifies multiple association names, as well as
       #   association names for the to-be-preloaded association objects. For
-      #   example, specifying <tt>{ author: :avatar }</tt> will preload a
+      #   example, specifying `{ author: :avatar }` will preload a
       #   book's author, as well as that author's avatar.
       #
-      # +:associations+ has the same format as the arguments to
-      # ActiveRecord::QueryMethods#includes. So +associations+ could look like
+      # `:associations` has the same format as the arguments to
+      # ActiveRecord::QueryMethods#includes. So `associations` could look like
       # this:
       #
-      #   :books
-      #   [ :books, :author ]
-      #   { author: :avatar }
-      #   [ :books, { author: :avatar } ]
+      # ```
+      # :books
+      # [ :books, :author ]
+      # { author: :avatar }
+      # [ :books, { author: :avatar } ]
+      # ```
       #
-      # +available_records+ is an array of ActiveRecord::Base. The Preloader
+      # `available_records` is an array of ActiveRecord::Base. The Preloader
       # will try to use the objects in this array to preload the requested
       # associations before querying the database. This can save database
       # queries by reusing in-memory objects. The optimization is only applied

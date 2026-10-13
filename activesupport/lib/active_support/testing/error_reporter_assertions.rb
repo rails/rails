@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -52,13 +53,15 @@ module ActiveSupport
       end
 
       # Assertion that the block should not cause an exception to be reported
-      # to +Rails.error+.
+      # to `Rails.error`.
       #
       # Passes if evaluated code in the yielded block reports no exception.
       #
-      #   assert_no_error_reported do
-      #     perform_service(param: 'no_exception')
-      #   end
+      # ```
+      # assert_no_error_reported do
+      #   perform_service(param: 'no_exception')
+      # end
+      # ```
       def assert_no_error_reported(&block)
         reports = ErrorCollector.record do
           _assert_nothing_raised_or_warn("assert_no_error_reported", &block)
@@ -67,24 +70,28 @@ module ActiveSupport
       end
 
       # Assertion that the block should cause at least one exception to be reported
-      # to +Rails.error+.
+      # to `Rails.error`.
       #
       # Passes if the evaluated code in the yielded block reports a matching exception.
       #
-      #   assert_error_reported(IOError) do
-      #     Rails.error.report(IOError.new("Oops"))
-      #   end
+      # ```
+      # assert_error_reported(IOError) do
+      #   Rails.error.report(IOError.new("Oops"))
+      # end
+      # ```
       #
       # To test further details about the reported exception, you can use the return
       # value.
       #
-      #   report = assert_error_reported(IOError) do
-      #     # ...
-      #   end
-      #   assert_equal "Oops", report.error.message
-      #   assert_equal "admin", report.context[:section]
-      #   assert_equal :warning, report.severity
-      #   assert_predicate report, :handled?
+      # ```
+      # report = assert_error_reported(IOError) do
+      #   # ...
+      # end
+      # assert_equal "Oops", report.error.message
+      # assert_equal "admin", report.context[:section]
+      # assert_equal :warning, report.severity
+      # assert_predicate report, :handled?
+      # ```
       def assert_error_reported(error_class = StandardError, &block)
         reports = ErrorCollector.record do
           _assert_nothing_raised_or_warn("assert_error_reported", &block)
@@ -106,15 +113,17 @@ module ActiveSupport
       # Captures reported errors from within the block that match the given
       # error class.
       #
-      #   reports = capture_error_reports(IOError) do
-      #     Rails.error.report(IOError.new("Oops"))
-      #     Rails.error.report(IOError.new("Oh no"))
-      #     Rails.error.report(StandardError.new)
-      #   end
+      # ```
+      # reports = capture_error_reports(IOError) do
+      #   Rails.error.report(IOError.new("Oops"))
+      #   Rails.error.report(IOError.new("Oh no"))
+      #   Rails.error.report(StandardError.new)
+      # end
       #
-      #   assert_equal 2, reports.size
-      #   assert_equal "Oops", reports.first.error.message
-      #   assert_equal "Oh no", reports.last.error.message
+      # assert_equal 2, reports.size
+      # assert_equal "Oops", reports.first.error.message
+      # assert_equal "Oh no", reports.last.error.message
+      # ```
       def capture_error_reports(error_class = StandardError, &block)
         reports = ErrorCollector.record(&block)
         reports.select { |r| error_class === r.error }

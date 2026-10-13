@@ -19,6 +19,13 @@ module ActionDispatch
         @simulator          = nil
       end
 
+      def freeze
+        ast
+        simulator
+
+        super
+      end
+
       def empty?
         routes.empty?
       end
@@ -40,6 +47,7 @@ module ActionDispatch
         routes.clear
         anchored_routes.clear
         custom_routes.clear
+        clear_cache!
       end
 
       def partition_route(route)

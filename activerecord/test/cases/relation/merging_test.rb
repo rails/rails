@@ -303,7 +303,9 @@ class RelationMergingTest < ActiveRecord::TestCase
   def test_merging_duplicated_annotations
     posts = Post.annotate("foo")
     assert_queries_match(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/\z}) do
-      posts.merge(posts).uniq!(:annotate).to_a
+      assert_deprecated(/`ActiveRecord::Relation#uniq!` is deprecated/, ActiveRecord.deprecator) do
+        posts.merge(posts).uniq!(:annotate).to_a
+      end
     end
 
     assert_queries_match(%r{FROM #{Regexp.escape(Post.quoted_table_name)} /\* foo \*/\z}) do

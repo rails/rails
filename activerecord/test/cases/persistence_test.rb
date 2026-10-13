@@ -40,7 +40,7 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_populates_autoincremented_id_pk_regardless_of_its_position_in_columns_list
-    auto_populated_column_names = AutoId.columns.select(&:auto_populated?).map(&:name)
+    auto_populated_column_names = AutoId.columns.select(&:auto_populated_on_insert?).map(&:name)
 
     # It's important we test a scenario where tables has more than one auto populated column
     # and the first column is not the primary key. Otherwise it will be a regular test not asserting this special case.
@@ -91,6 +91,21 @@ class PersistenceTest < ActiveRecord::TestCase
         assert_not_nil record.id
       end
     end
+
+    def test_fills_auto_populated_columns_on_update
+      record_with_defaults = Default.create
+
+      record_with_defaults.update!(random_number: 105)
+      assert_equal 1050,  record_with_defaults.virtual_stored_number
+    end if supports_virtual_columns?
+
+    def test_returning_columns_on_update_does_not_include_id
+      record_with_defaults = Default.create
+
+      sql = capture_sql { record_with_defaults.update!(random_number: 105) }.first
+
+      assert_equal false, (/RETURNING.*id/).match?(sql)
+    end
   elsif current_adapter?(:SQLite3Adapter)
     def test_fills_auto_populated_columns_on_creation
       record = Default.create
@@ -103,6 +118,17 @@ class PersistenceTest < ActiveRecord::TestCase
       assert_not_nil record.modified_time
       assert_not_nil record.modified_time_without_precision
       assert_not_nil record.modified_time_function
+    end
+
+    def test_does_not_fill_auto_populated_columns_on_update
+      # NOTE: When support for reload via RETURNING on update is added to sqlite this
+      #       test can be replaced with: test_fills_auto_populated_columns_on_update
+      record_with_defaults = Default.create
+      record_with_defaults.update!(random_number: 105)
+
+      assert_not_equal 1050, record_with_defaults.virtual_stored_number
+      record_with_defaults.reload
+      assert_equal 1050, record_with_defaults.virtual_stored_number
     end
   elsif current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
     def test_fills_auto_populated_columns_on_creation
@@ -167,6 +193,34 @@ class PersistenceTest < ActiveRecord::TestCase
 
     assert_not_equal "updated", Topic.first.content
     assert_not_equal "updated", Topic.second.content
+  end
+
+  def test_update_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    updated = Cpk::Book.update(book.id, title: "updated")
+
+    assert_equal book.id, updated.id
+    assert_equal "updated", book.reload.title
+  end
+
+  def test_update_bang_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    updated = Cpk::Book.update!(book.id, title: "updated")
+
+    assert_equal book.id, updated.id
+    assert_equal "updated", book.reload.title
+  end
+
+  def test_update_many_with_composite_primary_keys
+    first = cpk_books(:cpk_great_author_first_book)
+    second = cpk_books(:cpk_great_author_second_book)
+
+    Cpk::Book.update([first.id, second.id], [{ title: "first updated" }, { title: "second updated" }])
+
+    assert_equal "first updated", first.reload.title
+    assert_equal "second updated", second.reload.title
   end
 
   def test_class_level_update_without_ids
@@ -424,6 +478,16 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_destroy_with_empty_array_of_composite_primary_keys
+    assert_no_difference("Cpk::Book.count") do
+      assert_equal [], Cpk::Book.destroy([])
+    end
+  end
+
+  def test_update_with_empty_array_of_composite_primary_keys
+    assert_equal [], Cpk::Book.update([], [])
+  end
+
   def test_destroy_with_invalid_ids_for_a_model_that_expects_composite_keys
     books = [
       cpk_books(:cpk_great_author_first_book),
@@ -433,6 +497,25 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) do
       ids = books.map { |book| book.id.first }
       Cpk::Book.destroy(ids)
+    end
+  end
+
+  def test_delete_with_single_composite_primary_key
+    book = cpk_books(:cpk_great_author_first_book)
+
+    assert_difference("Cpk::Book.count", -1) do
+      assert_equal 1, Cpk::Book.delete(book.id)
+    end
+  end
+
+  def test_delete_with_multiple_composite_primary_keys
+    books = [
+      cpk_books(:cpk_great_author_first_book),
+      cpk_books(:cpk_great_author_second_book),
+    ]
+
+    assert_difference("Cpk::Book.count", -2) do
+      assert_equal 2, Cpk::Book.delete(books.map(&:id))
     end
   end
 
@@ -507,6 +590,15 @@ class PersistenceTest < ActiveRecord::TestCase
     client = company.becomes(Client)
     assert_predicate client, :persisted?
     assert_predicate client, :previously_new_record?
+  end
+
+  def test_becomes_preserve_mark_for_destruction
+    topic = topics(:first)
+    topic.mark_for_destruction
+    assert_predicate topic, :marked_for_destruction?
+
+    reply = topic.becomes(Reply)
+    assert_predicate reply, :marked_for_destruction?
   end
 
   def test_becomes_initializes_missing_attributes
@@ -897,6 +989,13 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal topic, topic.delete, "topic.delete did not return self"
     assert_predicate topic, :frozen?, "topic not frozen after delete"
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
+  end
+
+  def test_update_does_run_callbacks
+    record = Default.create
+    record.update!(char1: "B")
+
+    assert_equal true, record.after_update_commit_called
   end
 
   def test_delete_doesnt_run_callbacks
@@ -1585,6 +1684,19 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_nil post.reload[:wibble]
   end
 
+  def test_reload_preserves_custom_instance_variables
+    post = posts(:welcome)
+    custom_state = Object.new
+    post.instance_variable_set(:@custom_state, custom_state)
+
+    Post.where(id: post.id).update_all(title: "Reloaded title")
+    post.title = "Unsaved title"
+    post.reload
+
+    assert_equal "Reloaded title", post.title
+    assert_same custom_state, post.instance_variable_get(:@custom_state)
+  end
+
   def test_find_via_reload
     post = Post.new
 
@@ -1700,6 +1812,28 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_match(/WHERE .*color/, sql)
   end
 
+  def test_increment_and_decrement_use_query_constraints_not_composite_pk
+    topic_class = Class.new(Topic) do
+      self.inheritance_column = :_type_disabled
+      query_constraints :author_name, :id
+    end
+    topic = topic_class.create!(title: "New Topic", author_name: "Not David", replies_count: 0)
+
+    sql = nil
+    assert_difference -> { topic.reload.replies_count }, +1 do
+      sql = capture_sql { topic.increment!(:replies_count) }.first
+    end
+    assert_match(/WHERE .*author_name/, sql)
+    assert_match(/WHERE .*id/, sql)
+
+    sql = nil
+    assert_difference -> { topic.reload.replies_count }, -1 do
+      sql = capture_sql { topic.decrement!(:replies_count) }.first
+    end
+    assert_match(/WHERE .*author_name/, sql)
+    assert_match(/WHERE .*id/, sql)
+  end
+
   def test_it_is_possible_to_update_parts_of_the_query_constraints_config
     clothing_item = clothing_items(:green_t_shirt)
     clothing_item.color = "blue"
@@ -1733,16 +1867,104 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
     assert_nil klass.primary_key
     assert_nil klass.query_constraints_list
+    assert_not_predicate klass, :has_query_constraints?
   end
 
   def test_query_constraints_list_is_nil_for_non_cpk_model
     assert_nil Post.query_constraints_list
     assert_nil Dashboard.query_constraints_list
+    assert_not_predicate Post, :has_query_constraints?
   end
 
   def test_query_constraints_list_equals_to_composite_primary_key
     assert_equal(["shop_id", "id"], Cpk::Order.query_constraints_list)
     assert_equal(["author_id", "id"], Cpk::Book.query_constraints_list)
+  end
+
+  def test_schema_context_stores_query_constraint_lists
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      query_constraints :title, :id
+    end
+
+    context = klass.schema_context
+
+    assert_predicate context, :has_query_constraints?
+    assert_predicate klass, :has_query_constraints?
+    assert_equal ["title", "id"], context.query_constraints_list
+    assert_equal ["title", "id"], context.composite_query_constraints_list
+    assert_same context.query_constraints_list, klass.query_constraints_list
+    assert_same context.composite_query_constraints_list, klass.composite_query_constraints_list
+  end
+
+  def test_schema_context_derives_query_constraints_from_a_composite_primary_key
+    context = Cpk::Order.schema_context
+
+    assert_not_predicate context, :has_query_constraints?
+    assert_not_predicate Cpk::Order, :has_query_constraints?
+    assert_equal ["shop_id", "id"], context.query_constraints_list
+    assert_same context.query_constraints_list, context.composite_query_constraints_list
+  end
+
+  def test_query_constraints_defined_after_schema_load
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    topic = klass.find(topics(:first).id)
+    context = klass.schema_context
+
+    assert_not_predicate klass, :has_query_constraints?
+    klass.query_constraints :title, :id
+
+    assert_predicate klass, :has_query_constraints?
+    assert_equal ["title", "id"], klass.query_constraints_list
+    assert_equal ["title", "id"], klass.composite_query_constraints_list
+    assert_not_same context, klass.schema_context
+    assert_nil context.query_constraints_list
+    assert_uses_query_constraints_on_reload(topic, ["title", "id"])
+  end
+
+  def test_query_constraints_redefined_after_schema_load
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      query_constraints :title, :id
+    end
+    topic = klass.find(topics(:first).id)
+    context = klass.schema_context
+
+    klass.query_constraints :author_name, :id
+
+    assert_predicate klass, :has_query_constraints?
+    assert_equal ["author_name", "id"], klass.query_constraints_list
+    assert_equal ["author_name", "id"], klass.composite_query_constraints_list
+    assert_equal ["title", "id"], context.query_constraints_list
+    assert_uses_query_constraints_on_reload(topic, ["author_name", "id"])
+  end
+
+  def test_query_constraints_refresh_loaded_descendant_schemas
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    child = Class.new(klass)
+    grandchild = Class.new(child)
+    child_with_constraints = Class.new(klass) do
+      query_constraints :author_name, :id
+    end
+
+    assert_nil child.query_constraints_list
+    assert_nil grandchild.query_constraints_list
+    assert_equal ["author_name", "id"], child_with_constraints.query_constraints_list
+
+    klass.query_constraints :title, :id
+
+    [child, grandchild].each do |descendant|
+      assert_not_predicate descendant, :has_query_constraints?
+      assert_equal ["title", "id"], descendant.query_constraints_list
+      assert_equal ["title", "id"], descendant.composite_query_constraints_list
+    end
+    assert_predicate child_with_constraints, :has_query_constraints?
+    assert_equal ["author_name", "id"], child_with_constraints.query_constraints_list
+    assert_equal ["author_name", "id"], child_with_constraints.composite_query_constraints_list
   end
 
   def test_child_keeps_parents_query_constraints
@@ -1751,6 +1973,9 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
     used_clothing_item = clothing_items(:used_blue_jeans)
     assert_uses_query_constraints_on_reload(used_clothing_item, ["clothing_type", "color"])
+
+    assert_predicate ClothingItem, :has_query_constraints?
+    assert_not_predicate ClothingItem::Used, :has_query_constraints?
   end
 
   def test_child_keeps_parents_query_constraints_derived_from_composite_pk
@@ -1777,5 +2002,17 @@ class QueryConstraintsTest < ActiveRecord::TestCase
 
   def test_child_class_with_query_constraints_overrides_parents
     assert_equal(["clothing_type", "color", "size"], ClothingItem::Sized.query_constraints_list)
+    assert_predicate ClothingItem::Sized, :has_query_constraints?
+  end
+
+  def test_explicit_query_constraints_on_abstract_class_do_not_require_schema
+    abstract_class = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      query_constraints :blog_id, :id
+    end
+
+    assert_predicate abstract_class, :has_query_constraints?
+    assert_equal ["blog_id", "id"], abstract_class.query_constraints_list
+    assert_equal ["blog_id", "id"], abstract_class.composite_query_constraints_list
   end
 end

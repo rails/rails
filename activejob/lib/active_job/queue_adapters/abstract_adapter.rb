@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveJob
   module QueueAdapters
-    # = Active Job Abstract Adapter
+    # Active Job Abstract Adapter
+    # ===========================
     #
     # Active Job supports multiple job queue systems. ActiveJob::QueueAdapters::AbstractAdapter
     # forms the abstraction layer which makes this possible.
@@ -17,7 +19,7 @@ module ActiveJob
         raise NotImplementedError
       end
 
-      def stopping?
+      def stopping?(job = nil)
         !!@stopping
       end
     end

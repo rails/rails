@@ -11,10 +11,6 @@ module ActiveRecord
       klass&.primary_key
     end
 
-    def type(column_name)
-      arel_table.type_for_attribute(column_name)
-    end
-
     def has_column?(column_name)
       klass&.columns_hash&.key?(column_name)
     end
@@ -42,7 +38,7 @@ module ActiveRecord
         TableMetadata.new(association_klass, arel_table)
       else
         type_caster = TypeCaster::Connection.new(klass, table_name)
-        arel_table = Arel::Table.new(table_name, type_caster: type_caster)
+        arel_table = Arel::Table.new(name: table_name, type_caster: type_caster)
         TableMetadata.new(nil, arel_table)
       end
     end

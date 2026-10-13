@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/log_subscriber"
-
+# :markup: markdown
 module ActiveJob
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
@@ -199,7 +198,7 @@ module ActiveJob
       end
 
       def args_info(event)
-        if (arguments = event[:payload][:arguments])
+        if (arguments = event[:payload][:arguments]) && arguments.any?
           " with arguments: " +
             arguments.map { |arg| format(arg).inspect }.join(", ")
         else

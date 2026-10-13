@@ -20,13 +20,13 @@ class EnvConfigurationTest < ActiveSupport::TestCase
     end
   end
 
-  test "reqiure missing key raises key error" do
+  test "require missing key raises key error" do
     assert_raises(KeyError) do
       @config.require(:gone)
     end
   end
 
-  test "reqiure missing multiword key raises key error" do
+  test "require missing multiword key raises key error" do
     assert_raises(KeyError) do
       @config.require(:gone, :missing)
     end
@@ -94,7 +94,7 @@ class EnvConfigurationTest < ActiveSupport::TestCase
       @config.reload
       yield
     ensure
-      attributes.keys.each do |key|
+      attributes.each_key do |key|
         ENV.delete(key)
       end
     end

@@ -30,6 +30,31 @@ module ActiveModel
 
         assert_equal date, type.cast(values_hash_for_multiparameter_assignment)
       end
+
+      def test_type_cast_from_value_responding_to_to_date
+        type = Type::Date.new
+
+        assert_equal ::Date.new(1999, 12, 31), type.cast(::Time.utc(1999, 12, 31, 23, 59, 59))
+        assert_equal ::Date.new(2008, 2, 10), type.cast(::Date.new(2008, 2, 10))
+      end
+
+      def test_type_cast_from_non_iso_string
+        type = Type::Date.new
+
+        assert_equal ::Date.new(2008, 2, 1), type.cast("1 Feb 2008")
+      end
+
+      def test_type_cast_from_invalid_date_string_returns_nil
+        type = Type::Date.new
+
+        assert_nil type.cast("2008-02-31")
+      end
+
+      def test_type_cast_returns_non_date_values_unchanged
+        type = Type::Date.new
+
+        assert_equal 42, type.cast(42)
+      end
     end
   end
 end

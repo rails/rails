@@ -34,6 +34,10 @@ module ActionDispatch
           assert_equal "/foo%AAbar%AAbaz", Utils.normalize_path("/foo%aabar%aabaz")
         end
 
+        def test_normalize_path_uppercases_mixed_case_percent_escapes
+          assert_equal "/foo%AAbar%AAbaz", Utils.normalize_path("/foo%aAbar%Aabaz")
+        end
+
         def test_normalize_path_maintains_string_encoding
           path = "/foo%AAbar%AAbaz".b
           assert_equal Encoding::BINARY, Utils.normalize_path(path).encoding

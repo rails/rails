@@ -32,6 +32,16 @@ class AccessTest < ActiveSupport::TestCase
     assert_equal array[-2], array.second_to_last
   end
 
+  def test_specific_accessor_out_of_bounds
+    assert_nil [].second
+    assert_nil [].third
+    assert_nil [].fourth
+    assert_nil [].fifth
+    assert_nil [].forty_two
+    assert_nil %w( a b ).third_to_last
+    assert_nil %w( a ).second_to_last
+  end
+
   def test_including
     assert_equal [1, 2, 3, 4, 5], [1, 2, 4].including(3, 5).sort
     assert_equal [1, 2, 3, 4, 5], [1, 2, 4].including([3, 5]).sort

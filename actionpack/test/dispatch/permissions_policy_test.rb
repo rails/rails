@@ -39,6 +39,20 @@ class PermissionsPolicyTest < ActiveSupport::TestCase
 
     assert_equal "Invalid HTTP permissions policy source: [:non_existent]", exception.message
   end
+
+  def test_dynamic_directive
+    context = Object.new
+
+    @policy.geolocation -> { :self }
+    assert_equal "geolocation 'self'", @policy.build(context)
+  end
+
+  def test_dynamic_directive_returning_multiple_sources
+    context = Object.new
+
+    @policy.geolocation -> { [:self, "https://example.com"] }
+    assert_equal "geolocation 'self' https://example.com", @policy.build(context)
+  end
 end
 
 class PermissionsPolicyMiddlewareTest < ActionDispatch::IntegrationTest

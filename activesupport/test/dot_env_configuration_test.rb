@@ -105,6 +105,26 @@ class DotEnvConfigurationTest < ActiveSupport::TestCase
     assert_equal "1", @config.require(:one)
   end
 
+  test "strips inline comments from unquoted values" do
+    write_env_file_raw("ONE=1 # this is one")
+    assert_equal "1", @config.require(:one)
+  end
+
+  test "strips inline comment after a command substitution" do
+    write_env_file_raw("SECRET=$(echo hello) # inline note")
+    assert_equal "hello", @config.require(:secret)
+  end
+
+  test "keeps a # without preceding whitespace as part of an unquoted value" do
+    write_env_file_raw("URL=http://example.com#section")
+    assert_equal "http://example.com#section", @config.require(:url)
+  end
+
+  test "keeps # inside quoted values" do
+    write_env_file_raw('PASS="a # b"')
+    assert_equal "a # b", @config.require(:pass)
+  end
+
   test "ignores empty lines" do
     write_env_file_raw("ONE=1\n\nTWO=2")
     assert_equal "1", @config.require(:one)

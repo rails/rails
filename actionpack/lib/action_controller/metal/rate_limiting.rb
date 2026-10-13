@@ -20,7 +20,9 @@ module ActionController # :nodoc:
       # Rate limits are by default unique to the ip address making the request, but
       # you can provide your own identity function by passing a callable in the `by:`
       # parameter. It's evaluated within the context of the controller processing the
-      # request.
+      # request. If the callable returns an object that responds to `cache_key`, its
+      # value will be used as the cache key. This is useful if you want the rate limit
+      # to be scoped by an individual user, instead of their ip address.
       #
       # By default, rate limits are scoped to the controller's path. If you want to
       # share rate limits across multiple controllers, you can provide your own scope,
@@ -89,6 +91,7 @@ module ActionController # :nodoc:
     private
       def rate_limiting(to:, within:, by:, with:, store:, name:, scope:)
         by = by.is_a?(Symbol) ? send(by) : instance_exec(&by)
+        by = by.cache_key if by.respond_to?(:cache_key)
         to = to.is_a?(Symbol) ? send(to) : (to.respond_to?(:call) ? instance_exec(&to) : to)
         within = within.is_a?(Symbol) ? send(within) : (within.respond_to?(:call) ? instance_exec(&within) : within)
 

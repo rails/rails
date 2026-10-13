@@ -227,6 +227,15 @@ module JSONSharedTestCases
     end
   end
 
+  def test_not_compatible_with_serialize_active_record_coders_json
+    new_klass = Class.new(klass) do
+      serialize :payload, coder: ActiveRecord::Coders::JSON
+    end
+    assert_raises(ActiveRecord::AttributeMethods::Serialization::ColumnNotSerializableError) do
+      new_klass.new
+    end
+  end
+
   class MySettings
     def initialize(hash); @hash = hash end
     def to_hash; @hash end

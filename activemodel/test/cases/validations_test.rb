@@ -370,6 +370,18 @@ class ValidationsTest < ActiveModel::TestCase
     end
   end
 
+  def test_validate_with_bang_exposes_model_and_message
+    Topic.validates :title, presence: true
+
+    topic = Topic.new
+    error = assert_raise(ActiveModel::ValidationError) do
+      topic.validate!
+    end
+
+    assert_same topic, error.model
+    assert_equal "Validation failed: Title can't be blank", error.message
+  end
+
   def test_validate_with_bang_and_context
     Topic.validates :title, presence: true, on: :context
 
@@ -486,8 +498,11 @@ class ValidationsTest < ActiveModel::TestCase
     topic.validate
 
     assert_equal ["can't be blank"], topic.errors[:title]
+    assert topic.errors.added?(:title, :blank)
+    assert_equal({ title: [{ error: :blank }] }, topic.errors.details)
 
     assert topic.validate(:custom_context)
+    assert_empty topic.errors
   end
 
   def test_validations_some_with_except

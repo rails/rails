@@ -5,6 +5,8 @@ require "cases/helper"
 module ActiveRecord
   class Migration
     class ChangeSchemaTest < ActiveRecord::TestCase
+      skip_under_ractor_proxy
+
       attr_reader :connection, :table_name
 
       def setup
@@ -72,7 +74,7 @@ module ActiveRecord
         assert_equal "hello", one.default
         assert_equal true, two.cast_type.deserialize(two.default)
         assert_equal false, three.cast_type.deserialize(three.default)
-        assert_equal 1, four.default
+        assert_equal "1", four.default
         assert_equal "hello", five.default unless mysql
       end
 
@@ -485,6 +487,30 @@ module ActiveRecord
         assert_nothing_raised { connection.drop_table(:nonexistent, :nonexistent_sobrinho, if_exists: true) }
       end
 
+      if current_adapter?(:PostgreSQLAdapter)
+        def test_create_table_uses_batched_statements
+          connection.create_table :testings do |t|
+            t.column :foo, :string
+          end
+
+          assert_queries_count(1, include_schema: true) do
+            connection.create_table :testings, comment: "This is a table", force: true do |t|
+              t.column :foo, :string, comment: "This is a column"
+              t.column :bar, :string
+              t.index :foo, comment: "This is an index"
+              t.index :bar
+            end
+          end
+
+          assert connection.table_exists?(:testings)
+          assert connection.index_exists?(:testings, :foo)
+          assert connection.index_exists?(:testings, :bar)
+          assert_equal "This is a table", connection.table_comment(:testings)
+          assert_equal "This is a column", connection.columns(:testings).find { |c| c.name == "foo" }.comment
+          assert_equal "This is an index", connection.indexes(:testings).find { |i| i.columns == ["foo"] }.comment
+        end
+      end
+
       private
         def testing_table_with_only_foo_attribute
           connection.create_table :testings, id: false do |t|
@@ -497,6 +523,8 @@ module ActiveRecord
 
     if ActiveRecord::Base.lease_connection.supports_foreign_keys?
       class ChangeSchemaWithDependentObjectsTest < ActiveRecord::TestCase
+        skip_under_ractor_proxy
+
         self.use_transactional_tests = false
 
         setup do

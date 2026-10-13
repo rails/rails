@@ -92,6 +92,11 @@ class WithTest < ActiveSupport::TestCase
     assert_equal "1", @object.with(public_attr: "1", &:public_attr)
   end
 
+  test "returns the result of the block" do
+    result = @object.with(public_attr: "1") { :block_result }
+    assert_equal :block_result, result
+  end
+
   test "basic immediates don't respond to #with" do
     assert_not_respond_to nil, :with
     assert_not_respond_to true, :with

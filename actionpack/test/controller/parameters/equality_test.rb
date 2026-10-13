@@ -70,4 +70,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_kind_of ActionController::Parameters, person
     assert_kind_of ActionController::Parameters, addresses.first
   end
+
+  test "deconstruct_keys matches a pattern with a rest binding" do
+    @params => { person: { age:, **rest } }
+
+    assert_equal "32", age
+    assert_equal %i[name addresses].sort, rest.keys.map(&:to_sym).sort
+  end
 end

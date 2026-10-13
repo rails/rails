@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module AttributeAssignment
+    class InvalidParameterKey < StandardError # :nodoc:
+    end
+
     private
       def _assign_attributes(attributes)
         multi_parameter_attributes = nested_parameter_attributes = nil
@@ -32,7 +36,7 @@ module ActiveRecord
       # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate
       # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
       # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Integer and
-      # f for Float. If all the values for a given attribute are empty, the attribute will be set to +nil+.
+      # f for Float. If all the values for a given attribute are empty, the attribute will be set to `nil`.
       def assign_multiparameter_attributes(pairs)
         execute_callstack_for_multiparameter_attributes(
           extract_callstack_for_multiparameter_attributes(pairs)
@@ -59,13 +63,25 @@ module ActiveRecord
 
       def extract_callstack_for_multiparameter_attributes(pairs)
         attributes = {}
+        errors = []
 
         pairs.each do |(multiparameter_name, value)|
           attribute_name = multiparameter_name.split("(").first
           attributes[attribute_name] ||= {}
 
-          parameter_value = value.empty? ? nil : type_cast_attribute_value(multiparameter_name, value)
+          parameter_value = value.blank? ? nil : type_cast_attribute_value(multiparameter_name, value)
           attributes[attribute_name][find_parameter_position(multiparameter_name)] ||= parameter_value
+        rescue InvalidParameterKey => ex
+          errors << AttributeAssignmentError.new(
+            "invalid multiparameter attribute name #{multiparameter_name.inspect} (#{ex.message})",
+            ex,
+            multiparameter_name.split("(").first
+          )
+        end
+
+        unless errors.empty?
+          error_descriptions = errors.map(&:message).join(",")
+          raise MultiparameterAssignmentErrors.new(errors), "#{errors.size} error(s) on assignment of multiparameter attributes [#{error_descriptions}]"
         end
 
         attributes
@@ -76,7 +92,9 @@ module ActiveRecord
       end
 
       def find_parameter_position(multiparameter_name)
-        multiparameter_name.scan(/\(([0-9]*).*\)/).first.first.to_i
+        match = multiparameter_name.match(/\(([0-9]*).*\)/)
+        raise InvalidParameterKey, "could not parse parameter position from #{multiparameter_name.inspect}" unless match
+        match[1].to_i
       end
   end
 end

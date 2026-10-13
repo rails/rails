@@ -1,17 +1,19 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
-  # = Action View \Renderer
+  # Action View \Renderer
+  # =====================
   #
   # This is the main entry point for rendering. It basically delegates
   # to other objects like TemplateRenderer and PartialRenderer which
   # actually renders the template.
   #
-  # The Renderer will parse the options from the +render+ or +render_body+
+  # The Renderer will parse the options from the `render` or `render_body`
   # method and render a partial or a template based on the options. The
-  # +TemplateRenderer+ and +PartialRenderer+ objects are wrappers which do all
+  # `TemplateRenderer` and `PartialRenderer` objects are wrappers which do all
   # the setup and logic necessary to render a view and a new object is created
-  # each time +render+ is called.
+  # each time `render` is called.
   class Renderer
     attr_accessor :lookup_context
 
@@ -20,15 +22,15 @@ module ActionView
     end
 
     # Main render entry point shared by Action View and Action Controller.
-    def render(context, options)
-      render_to_object(context, options).body
+    def render(context, options, &block)
+      render_to_object(context, options, &block).body
     end
 
-    def render_to_object(context, options) # :nodoc:
+    def render_to_object(context, options, &block) # :nodoc:
       if options.key?(:partial)
         render_partial_to_object(context, options)
       else
-        render_template_to_object(context, options)
+        render_template_to_object(context, options, &block)
       end
     end
 
@@ -54,8 +56,8 @@ module ActionView
     end
 
     private
-      def render_template_to_object(context, options)
-        TemplateRenderer.new(@lookup_context).render(context, options)
+      def render_template_to_object(context, options, &block)
+        TemplateRenderer.new(@lookup_context).render(context, options, &block)
       end
 
       def render_partial_to_object(context, options, &block)

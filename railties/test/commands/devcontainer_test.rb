@@ -40,7 +40,10 @@ class Rails::Command::DevcontainerTest < ActiveSupport::TestCase
           "context" => "..",
           "dockerfile" => ".devcontainer/Dockerfile"
         },
-        "volumes" => ["../../app:/workspaces/app:cached"],
+        "volumes" => [
+          "../../app:/workspaces/app:cached",
+          "bundle-cache:/home/vscode/.local/share"
+        ],
         "command" => "sleep infinity",
         "depends_on" => ["selenium"]
       }

@@ -1,15 +1,19 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 # This is the parent Association class which defines the variables
 # used by all associations.
 #
 # The hierarchy is defined as follows:
-#  Association
-#    - SingularAssociation
-#      - BelongsToAssociation
-#      - HasOneAssociation
-#    - CollectionAssociation
-#      - HasManyAssociation
+#
+# ```
+# Association
+#   - SingularAssociation
+#     - BelongsToAssociation
+#     - HasOneAssociation
+#   - CollectionAssociation
+#     - HasManyAssociation
+# ```
 
 module ActiveRecord::Associations::Builder # :nodoc:
   class Association # :nodoc:
@@ -52,7 +56,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.build_scope(scope)
       if scope && scope.arity == 0
-        proc { instance_exec(&scope) }
+        scope_body = ActiveSupport::Ractors.try_shareable_proc(scope)
+        proc { instance_exec(&scope_body) }
       else
         scope
       end
@@ -88,7 +93,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     # Defines the setter and getter methods for the association
     # class Post < ActiveRecord::Base
-    #   has_many :comments
+    #
+    # ```
+    # has_many :comments
+    # ```
+    #
     # end
     #
     # Post.first.comments and Post.first.comments= methods are defined by this method...
@@ -150,7 +159,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
         end
       end
 
-      model.before_destroy(->(o) { o.association(reflection.name).handle_dependency })
+      name = reflection.name
+      model.before_destroy(->(o) { o.association(name).handle_dependency })
     end
 
     def self.add_after_commit_jobs_callback(model, dependent)

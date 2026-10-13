@@ -74,11 +74,11 @@ module ActionDispatch
       end
 
       def prepare_session(req)
-        Request::Session.create(self, req, @default_options)
+        Http::Session.create(self, req, @default_options)
       end
 
       def loaded_session?(session)
-        !session.is_a?(Request::Session) || session.loaded?
+        !session.is_a?(Http::Session) || session.loaded?
       end
     end
 

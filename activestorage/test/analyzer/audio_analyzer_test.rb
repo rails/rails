@@ -18,6 +18,17 @@ class ActiveStorage::Analyzer::AudioAnalyzerTest < ActiveSupport::TestCase
     assert_equal "Lavc57.64", metadata[:tags][:encoder]
   end
 
+  test "analyzing an audio file with ffprobe arguments that exclude the audio stream" do
+    blob = create_file_blob(filename: "audio.mp3", content_type: "audio/mp3")
+
+    ActiveStorage.with(ffprobe_arguments: "-select_streams v") do
+      metadata = extract_metadata_from(blob)
+
+      assert_not metadata[:duration]
+      assert_not metadata[:bit_rate]
+    end
+  end
+
   test "instrumenting analysis" do
     blob = create_file_blob(filename: "audio.mp3", content_type: "audio/mp3")
 

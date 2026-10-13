@@ -68,6 +68,22 @@ module ApplicationTests
       assert_includes Rails.application.config.filter_parameters, "message.special_attr"
     end
 
+    test "filter_parameters omit Proc and Regexp filter_attributes" do
+      app "development"
+
+      class Post < ActiveRecord::Base
+        self.table_name = "posts"
+        self.filter_attributes += [:special_attr, /secret/i, ->(key, value) { value.reverse! }]
+      end
+
+      assert_includes Rails.application.config.filter_parameters, "post.special_attr"
+
+      garbage = Rails.application.config.filter_parameters.grep(String).select do |filter|
+        filter.include?("#<Proc") || filter.include?("(?i-mx:")
+      end
+      assert_empty garbage
+    end
+
     test "filter_parameters are inherited from AR parent classes" do
       app "development"
 

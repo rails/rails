@@ -1,34 +1,40 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/notifications"
 
 module ActiveSupport
-  # = Active Support \Subscriber
+  # Active Support \Subscriber
+  # ==========================
   #
-  # +ActiveSupport::Subscriber+ is an object set to consume
+  # `ActiveSupport::Subscriber` is an object set to consume
   # ActiveSupport::Notifications. The subscriber dispatches notifications to
   # a registered object based on its given namespace.
   #
   # An example would be an Active Record subscriber responsible for collecting
   # statistics about queries:
   #
-  #   module ActiveRecord
-  #     class StatsSubscriber < ActiveSupport::Subscriber
-  #       attach_to :active_record
+  # ```
+  # module ActiveRecord
+  #   class StatsSubscriber < ActiveSupport::Subscriber
+  #     attach_to :active_record
   #
-  #       def sql(event)
-  #         Statsd.timing("sql.#{event.payload[:name]}", event.duration)
-  #       end
+  #     def sql(event)
+  #       Statsd.timing("sql.#{event.payload[:name]}", event.duration)
   #     end
   #   end
+  # end
+  # ```
   #
-  # After configured, whenever a <tt>"sql.active_record"</tt> notification is
+  # After configured, whenever a `"sql.active_record"` notification is
   # published, it will properly dispatch the event
-  # (ActiveSupport::Notifications::Event) to the +sql+ method.
+  # (ActiveSupport::Notifications::Event) to the `sql` method.
   #
   # We can detach a subscriber as well:
   #
-  #   ActiveRecord::StatsSubscriber.detach_from(:active_record)
+  # ```
+  # ActiveRecord::StatsSubscriber.detach_from(:active_record)
+  # ```
   class Subscriber
     class << self
       # Attach the subscriber to a namespace.
@@ -36,7 +42,6 @@ module ActiveSupport
         @namespace  = namespace
         @subscriber = subscriber
         @notifier   = notifier
-        @inherit_all = inherit_all
 
         subscribers << subscriber
 

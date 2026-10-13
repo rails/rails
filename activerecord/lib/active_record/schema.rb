@@ -15,7 +15,7 @@ module ActiveRecord
   #       t.string :name, null: false
   #     end
   #
-  #     add_index :authors, :name, :unique
+  #     add_index :authors, :name, unique: true
   #
   #     create_table :posts do |t|
   #       t.integer :author_id, null: false
@@ -72,6 +72,36 @@ module ActiveRecord
       @class_for_version[version] ||= Class.new(Migration::Compatibility.find(version)) do
         include Definition
       end
+    end
+
+    def self.load_schema_migrations(file) # :nodoc:
+      # The marker is matched the way Ruby recognizes it, so files with CRLF
+      # line endings or without a trailing newline load too.
+      _schema, marker, data = File.read(file).rpartition(/^__END__\r?$/)
+
+      raise ActiveRecordError, "No __END__ found in #{file}" if marker.empty?
+
+      seen = Set.new
+      versions = []
+
+      data.each_line do |line|
+        line.strip!
+        next if line.empty?
+
+        if !line.match?(/\A\d+\z/)
+          raise ActiveRecordError, "Invalid migration version #{line.inspect} found after __END__"
+        end
+
+        if seen.include?(line)
+          raise ActiveRecordError, "Duplicate migration version #{line.inspect} found after __END__"
+        end
+
+        seen << line
+        versions << line
+      end
+
+      versions -= connection_pool.schema_migration.versions
+      connection_pool.schema_migration.create_versions(versions)
     end
   end
 end

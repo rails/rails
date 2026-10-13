@@ -475,7 +475,6 @@ module ActionMailer
   # * <tt>deliver_later_queue_name</tt> - The queue name used by <tt>deliver_later</tt> with the default
   #   <tt>delivery_job</tt>. Mailers can set this to use a custom queue name.
   class Base < AbstractController::Base
-    include Callbacks
     include DeliveryMethods
     include QueuedDelivery
     include Rescuable
@@ -494,9 +493,11 @@ module ActionMailer
     include AbstractController::Callbacks
     include AbstractController::Caching
 
+    include Callbacks
+
     include ActionView::Layouts
 
-    PROTECTED_IVARS = AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [:@_action_has_layout]
+    PROTECTED_IVARS = (AbstractController::Rendering::DEFAULT_PROTECTED_INSTANCE_VARIABLES + [:@_action_has_layout]).freeze
 
     helper ActionMailer::MailHelper
 
@@ -607,6 +608,19 @@ module ActionMailer
         end.to_s
       end
 
+      def mail(...)
+        MessageDelivery.new(self, :mail, ...)
+      end
+
+      def action_methods
+        methods = super
+        if self == ActionMailer::Base
+          methods.dup.add("mail").freeze
+        else
+          methods
+        end
+      end
+
     private
       def set_payload_for_mail(payload, mail)
         payload[:mail]               = mail.encoded
@@ -642,11 +656,11 @@ module ActionMailer
       @_message = Mail.new
     end
 
-    def process(method_name, *args) # :nodoc:
+    def process(method_name, *args, **kwargs) # :nodoc:
       payload = {
         mailer: self.class.name,
         action: method_name,
-        args: args
+        args: kwargs.empty? ? args : args + [kwargs]
       }
 
       ActiveSupport::Notifications.instrument("process.action_mailer", payload) do
@@ -654,7 +668,6 @@ module ActionMailer
         @_message = NullMail.new unless @_mail_was_called
       end
     end
-    ruby2_keywords(:process)
 
     class NullMail # :nodoc:
       def body; "" end

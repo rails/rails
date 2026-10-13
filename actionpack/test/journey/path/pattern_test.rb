@@ -268,15 +268,6 @@ module ActionDispatch
           assert_equal "rss", match[2]
         end
 
-        def test_named_captures
-          path = path_from_string "/books(/:action(.:format))"
-
-          uri = "/books/list.rss"
-          match = path =~ uri
-          named_captures = { "action" => "list", "format" => "rss" }
-          assert_equal named_captures, match.named_captures
-        end
-
         def test_requirements_for_missing_keys_check
           name_regex = /test/
 

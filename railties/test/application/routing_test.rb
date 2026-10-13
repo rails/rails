@@ -22,6 +22,17 @@ module ApplicationTests
       assert_equal 200, last_response.status
     end
 
+    test "rails/welcome is not duplicated when routes reload in development" do
+      app("development")
+
+      3.times { Rails.application.reload_routes! }
+
+      welcome_routes = Rails.application.routes.routes.select do |route|
+        route.defaults[:controller] == "rails/welcome" && route.defaults[:action] == "index"
+      end
+      assert_equal 1, welcome_routes.size
+    end
+
     test "rails/info in development" do
       app("development")
       get "/rails/info"
@@ -183,7 +194,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller(/:action)'
+          get 'foo', to: 'foo#index'
         end
       RUBY
 
@@ -250,7 +261,8 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller(/:action)'
+          get 'foo', to: 'foo#index'
+          get 'bar', to: 'bar#index'
         end
       RUBY
 
@@ -301,7 +313,7 @@ module ApplicationTests
     test "routes appending blocks" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller/:action'
+          get 'lose' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['LOSE']] }
         end
       RUBY
 
@@ -329,7 +341,7 @@ module ApplicationTests
     test "routes appending blocks after reload" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get ':controller/:action'
+          get 'lose' => lambda { |e| [200, {'Content-Type'=>'text/plain'}, ['LOSE']] }
         end
       RUBY
 
@@ -359,7 +371,7 @@ module ApplicationTests
       RUBY
 
       app_file "config/routes/external.rb", <<-RUBY
-        get ':controller/:action'
+        get 'success/index', to: 'success#index'
       RUBY
 
       controller :success, <<-RUBY
@@ -836,6 +848,65 @@ module ApplicationTests
       app "development"
 
       assert_instance_of ActiveSupport::EventedFileUpdateChecker, Rails.application.routes_reloader.send(:updater)
+    end
+
+    test "a route to a missing controller logs a warning on boot when eager loading" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure { config.eager_load = true }
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "/photos", to: "photos#index"
+        end
+      RUBY
+
+      assert_nothing_raised { app("development") }
+
+      log = File.read("#{app_path}/log/development.log")
+      assert_match %r{GET /photos\(\.:format\) references a missing controller: .*PhotosController}, log
+    end
+
+    test "a route to a missing controller is not reported on boot when not eager loading" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure { config.eager_load = false }
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "/photos", to: "photos#index"
+        end
+      RUBY
+
+      app("development")
+
+      log_path = "#{app_path}/log/development.log"
+      assert_no_match(/references a missing controller/, File.exist?(log_path) ? File.read(log_path) : "")
+    end
+
+    test "routes to existing controllers boot when eager loading" do
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure { config.eager_load = true }
+      RUBY
+
+      app_file "app/controllers/photos_controller.rb", <<-RUBY
+        class PhotosController < ActionController::Base
+          def index
+            render plain: "photos"
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get "/photos", to: "photos#index"
+        end
+      RUBY
+
+      app("development")
+
+      get "/photos"
+      assert_equal "photos", last_response.body
     end
   end
 end

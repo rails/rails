@@ -12,7 +12,7 @@ Scroll = Struct.new(:id, :to_param, :title, :body, :updated_at, :created_at) do
 end
 
 class ScrollsController < ActionController::Base
-  FEEDS = {}
+  FEEDS = {} # rubocop:disable Style/MutableConstant
   FEEDS["defaults"] = <<-EOT
         atom_feed(:schema_date => '2008') do |feed|
           feed.title("My great blog!")

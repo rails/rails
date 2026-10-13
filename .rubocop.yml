@@ -53,6 +53,10 @@ Rails/IndexWith:
 Style/AndOr:
   Enabled: true
 
+# Align `end` with the line that starts the block.
+Layout/BlockAlignment:
+  Enabled: true
+
 Layout/ClosingHeredocIndentation:
   Enabled: true
 
@@ -170,6 +174,12 @@ Style/FrozenStringLiteralComment:
     - 'activestorage/db/update_migrate/**/*.rb'
     - 'actionmailbox/db/migrate/**/*.rb'
     - 'actiontext/db/migrate/**/*.rb'
+    - '**/*.md'
+
+Style/MutableConstant:
+  Enabled: true
+  EnforcedStyle: literals
+  Exclude:
     - '**/*.md'
 
 Style/MapToHash:

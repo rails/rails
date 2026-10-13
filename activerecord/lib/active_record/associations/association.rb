@@ -1,37 +1,43 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
-    # = Active Record Associations
+    # Active Record Associations
+    # ==========================
     #
     # This is the root class of all associations ('+ Foo' signifies an included module Foo):
     #
-    #   Association
-    #     SingularAssociation
-    #       HasOneAssociation + ForeignAssociation
-    #         HasOneThroughAssociation + ThroughAssociation
-    #       BelongsToAssociation
-    #         BelongsToPolymorphicAssociation
-    #     CollectionAssociation
-    #       HasManyAssociation + ForeignAssociation
-    #         HasManyThroughAssociation + ThroughAssociation
+    # ```
+    # Association
+    #   SingularAssociation
+    #     HasOneAssociation + ForeignAssociation
+    #       HasOneThroughAssociation + ThroughAssociation
+    #     BelongsToAssociation
+    #       BelongsToPolymorphicAssociation
+    #   CollectionAssociation
+    #     HasManyAssociation + ForeignAssociation
+    #       HasManyThroughAssociation + ThroughAssociation
+    # ```
     #
     # Associations in Active Record are middlemen between the object that
-    # holds the association, known as the <tt>owner</tt>, and the associated
-    # result set, known as the <tt>target</tt>. Association metadata is available in
-    # <tt>reflection</tt>, which is an instance of +ActiveRecord::Reflection::AssociationReflection+.
+    # holds the association, known as the `owner`, and the associated
+    # result set, known as the `target`. Association metadata is available in
+    # `reflection`, which is an instance of `ActiveRecord::Reflection::AssociationReflection`.
     #
     # For example, given
     #
-    #   class Blog < ActiveRecord::Base
-    #     has_many :posts
-    #   end
+    # ```
+    # class Blog < ActiveRecord::Base
+    #   has_many :posts
+    # end
     #
-    #   blog = Blog.first
+    # blog = Blog.first
+    # ```
     #
-    # The association of <tt>blog.posts</tt> has the object +blog+ as its
-    # <tt>owner</tt>, the collection of its posts as <tt>target</tt>, and
-    # the <tt>reflection</tt> object represents a <tt>:has_many</tt> macro.
+    # The association of `blog.posts` has the object `blog` as its
+    # `owner`, the collection of its posts as `target`, and
+    # the `reflection` object represents a `:has_many` macro.
     class Association # :nodoc:
       attr_accessor :owner
       attr_reader :reflection, :disable_joins
@@ -57,7 +63,7 @@ module ActiveRecord
         @target
       end
 
-      # Resets the \loaded flag to +false+ and sets the \target to +nil+.
+      # Resets the \loaded flag to `false` and sets the \target to `nil`.
       def reset
         @loaded = false
         @stale_state = nil
@@ -67,8 +73,8 @@ module ActiveRecord
         reset if loaded? && target.nil?
       end
 
-      # Reloads the \target and returns +self+ on success.
-      # The QueryCache is cleared if +force+ is true.
+      # Reloads the \target and returns `self` on success.
+      # The QueryCache is cleared if `force` is true.
       def reload(force = false)
         klass.connection_pool.clear_query_cache if force && klass
         reset
@@ -82,7 +88,7 @@ module ActiveRecord
         @loaded
       end
 
-      # Asserts the \target has been loaded setting the \loaded flag to +true+.
+      # Asserts the \target has been loaded setting the \loaded flag to `true`.
       def loaded!
         @loaded = true
         @stale_state = stale_state
@@ -98,7 +104,7 @@ module ActiveRecord
         loaded? && @stale_state != stale_state
       end
 
-      # Sets the target of this association to <tt>\target</tt>, and the \loaded flag to +true+.
+      # Sets the target of this association to `\target`, and the \loaded flag to `true`.
       def target=(target)
         @target = target
         loaded!
@@ -178,14 +184,14 @@ module ActiveRecord
 
       # Loads the \target if needed and returns it.
       #
-      # This method is abstract in the sense that it relies on +find_target+,
+      # This method is abstract in the sense that it relies on `find_target`,
       # which is expected to be provided by descendants.
       #
       # If the \target is already \loaded it is just returned. Thus, you can call
-      # +load_target+ unconditionally to get the \target.
+      # `load_target` unconditionally to get the \target.
       #
       # ActiveRecord::RecordNotFound is rescued within the method, and it is
-      # not reraised. The proxy is \reset and +nil+ is the return value.
+      # not reraised. The proxy is \reset and `nil` is the return value.
       def load_target
         @target = find_target(async: false) if (@stale_state && stale_target?) || find_target?
 
@@ -230,6 +236,18 @@ module ActiveRecord
 
       def create!(attributes = nil, &block)
         _create_record(attributes, true, &block)
+      end
+
+      def violates_strict_loading?
+        return unless find_target?
+
+        return if @skip_strict_loading
+
+        return unless owner.validation_context.nil?
+
+        return reflection.strict_loading? if reflection.options.key?(:strict_loading)
+
+        owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
       end
 
       # Whether the association represents a single record
@@ -281,16 +299,6 @@ module ActiveRecord
           @skip_strict_loading = skip_strict_loading_was
         end
 
-        def violates_strict_loading?
-          return if @skip_strict_loading
-
-          return unless owner.validation_context.nil?
-
-          return reflection.strict_loading? if reflection.options.key?(:strict_loading)
-
-          owner.strict_loading? && !owner.strict_loading_n_plus_one_only?
-        end
-
         # The scope for this association.
         #
         # Note that the association_scope is merged into the target_scope only when the
@@ -333,7 +341,7 @@ module ActiveRecord
           false
         end
 
-        # Raises ActiveRecord::AssociationTypeMismatch unless +record+ is of
+        # Raises ActiveRecord::AssociationTypeMismatch unless `record` is of
         # the kind of the class of the associated objects. Meant to be used as
         # a safety check when you are about to assign an associated record.
         def raise_on_type_mismatch!(record)
@@ -368,15 +376,14 @@ module ActiveRecord
 
         # Returns true if record contains the foreign_key
         def foreign_key_for?(record)
-          foreign_key = Array(reflection.foreign_key)
-          foreign_key.all? { |key| record._has_attribute?(key) }
+          ActiveRecord::Key.for(reflection.foreign_key).all? { |key| record.has_attribute?(key) }
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,
         # so that when stale_state is different from the value stored on the last find_target,
         # the target is stale.
         #
-        # This is only relevant to certain associations, which is why it returns +nil+ by default.
+        # This is only relevant to certain associations, which is why it returns `nil` by default.
         def stale_state
         end
 
@@ -409,12 +416,28 @@ module ActiveRecord
         end
 
         def matches_foreign_key?(record)
-          if foreign_key_for?(record)
-            record.read_attribute(reflection.foreign_key) == owner.id ||
-              (foreign_key_for?(owner) && owner.read_attribute(reflection.foreign_key) == record.id)
-          else
-            owner.read_attribute(reflection.foreign_key) == record.id
-          end
+          (foreign_key_for?(record) && record_foreign_key_matches_owner?(record)) ||
+            (foreign_key_for?(owner) && owner_foreign_key_matches_record?(record))
+        end
+
+        def record_foreign_key_matches_owner?(record)
+          foreign_key_values(record) == active_record_primary_key_values(owner)
+        end
+
+        def owner_foreign_key_matches_record?(record)
+          foreign_key_values(owner) == association_primary_key_values(record)
+        end
+
+        def foreign_key_values(record)
+          ActiveRecord::Key.for(reflection.foreign_key).map { |key| record.read_attribute(key) }
+        end
+
+        def active_record_primary_key_values(record)
+          ActiveRecord::Key.for(reflection.active_record_primary_key).map { |key| record.read_attribute(key) }
+        end
+
+        def association_primary_key_values(record)
+          ActiveRecord::Key.for(reflection.association_primary_key(record.class)).map { |key| record.read_attribute(key) }
         end
     end
   end

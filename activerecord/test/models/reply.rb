@@ -77,3 +77,21 @@ module Web
     belongs_to :topic, foreign_key: "parent_id", counter_cache: true, class_name: "Web::Topic"
   end
 end
+
+class ReplyWithAliasedParentId < ActiveRecord::Base
+  self.table_name = "topics"
+  self.inheritance_column = nil
+
+  alias_attribute :discussion_id, :parent_id
+
+  belongs_to :topic, foreign_key: :discussion_id, counter_cache: :replies_count
+end
+
+class ReplyWithAliasedTouchParentId < ActiveRecord::Base
+  self.table_name = "topics"
+  self.inheritance_column = nil
+
+  alias_attribute :discussion_id, :parent_id
+
+  belongs_to :topic, foreign_key: :discussion_id, touch: true
+end

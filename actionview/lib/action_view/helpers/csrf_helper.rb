@@ -1,23 +1,27 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   module Helpers # :nodoc:
-    # = Action View CSRF \Helpers
+    # Action View CSRF \Helpers
+    # =========================
     module CsrfHelper
       # Returns meta tags "csrf-param" and "csrf-token" with the name of the cross-site
       # request forgery protection parameter and token, respectively.
       #
-      #   <head>
-      #     <%= csrf_meta_tags %>
-      #   </head>
+      # ```
+      # <head>
+      #   <%= csrf_meta_tags %>
+      # </head>
+      # ```
       #
       # These are used to generate the dynamic forms that implement non-remote links with
-      # <tt>:method</tt>.
+      # `:method`.
       #
       # You don't need to use these tags for regular forms as they generate their own hidden fields.
       #
       # For Ajax requests other than GETs, extract the "csrf-token" from the meta-tag and send as the
-      # +X-CSRF-Token+ HTTP header.
+      # `X-CSRF-Token` HTTP header.
       #
       def csrf_meta_tags
         if defined?(protect_against_forgery?) && protect_against_forgery?

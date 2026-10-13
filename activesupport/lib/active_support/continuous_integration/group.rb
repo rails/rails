@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "tmpdir"
@@ -75,7 +76,7 @@ module ActiveSupport
         def execute_task(type, title, payload)
           case type
           when :step  then execute_step(title, payload)
-          when :group then execute_group(title, payload)
+          when :group then execute_group(payload)
           end
         end
 
@@ -96,7 +97,7 @@ module ActiveSupport
           success
         end
 
-        def execute_group(name, block)
+        def execute_group(block)
           all_success = true
           TaskCollector.new(&block).tasks.each do |type, title, payload|
             unless execute_task(type, title, payload)

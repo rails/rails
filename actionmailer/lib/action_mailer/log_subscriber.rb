@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/log_subscriber"
-
+# :markup: markdown
 module ActionMailer
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     self.namespace = "action_mailer"

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "ipaddr"
 
 module ActiveRecord
@@ -12,8 +13,8 @@ module ActiveRecord
           end
 
           def type_cast_for_schema(value)
-            # If the subnet mask is equal to /32, don't output it
-            if value.prefix == 32
+            # If the subnet mask covers the full address, don't output it
+            if value.prefix == (value.ipv6? ? 128 : 32)
               "\"#{value}\""
             else
               "\"#{value}/#{value.prefix}\""

@@ -2,6 +2,8 @@
 
 # :markup: markdown
 
+require "active_support/core_ext/string/filters"
+
 module ActionCable
   module Server
     # # Action Cable Server Broadcasting
@@ -11,22 +13,24 @@ module ActionCable
     # broadcastings are streamed directly to the clients subscribed to the named
     # broadcasting. Let's explain with a full-stack example:
     #
-    #     class WebNotificationsChannel < ApplicationCable::Channel
-    #       def subscribed
-    #         stream_from "web_notifications_#{current_user.id}"
-    #       end
-    #     end
+    # ```
+    # class WebNotificationsChannel < ApplicationCable::Channel
+    #   def subscribed
+    #     stream_from "web_notifications_#{current_user.id}"
+    #   end
+    # end
     #
-    #     # Somewhere in your app this is called, perhaps from a NewCommentJob:
-    #     ActionCable.server.broadcast \
-    #       "web_notifications_1", { title: "New things!", body: "All that's fit for print" }
+    # # Somewhere in your app this is called, perhaps from a NewCommentJob:
+    # ActionCable.server.broadcast \
+    #   "web_notifications_1", { title: "New things!", body: "All that's fit for print" }
     #
-    #     # Client-side JavaScript, which assumes you've already requested the right to send web notifications:
-    #     App.cable.subscriptions.create("WebNotificationsChannel", {
-    #       received: function(data) {
-    #         new Notification(data['title'], { body: data['body'] })
-    #       }
-    #     })
+    # # Client-side JavaScript, which assumes you've already requested the right to send web notifications:
+    # App.cable.subscriptions.create("WebNotificationsChannel", {
+    #   received: function(data) {
+    #     new Notification(data['title'], { body: data['body'] })
+    #   }
+    # })
+    # ```
     module Broadcasting
       # Broadcast a hash directly to a named `broadcasting`. This will later be JSON
       # encoded.

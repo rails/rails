@@ -120,4 +120,40 @@ class IsolatedExecutionStateTest < ActiveSupport::TestCase
     assert_nil result[:secret2]
     assert_equal "keep this", result[:keep]
   end
+
+  test "#key? returns true for existing key" do
+    ActiveSupport::IsolatedExecutionState[:test] = 42
+    assert ActiveSupport::IsolatedExecutionState.key?(:test)
+  end
+
+  test "#key? returns false for non-existing key" do
+    assert_not ActiveSupport::IsolatedExecutionState.key?(:nonexistent)
+  end
+
+  test "#key? returns false/nil when no state initialized" do
+    ActiveSupport::IsolatedExecutionState.clear
+    Thread.current.active_support_execution_state = nil
+    assert_not ActiveSupport::IsolatedExecutionState.key?(:anything)
+  end
+
+  test "#delete removes key and returns its value" do
+    ActiveSupport::IsolatedExecutionState[:test] = 42
+    result = ActiveSupport::IsolatedExecutionState.delete(:test)
+    assert_equal 42, result
+    assert_nil ActiveSupport::IsolatedExecutionState[:test]
+  end
+
+  test "#delete returns nil for non-existing key" do
+    assert_nil ActiveSupport::IsolatedExecutionState.delete(:nonexistent)
+  end
+
+  test "#context returns the current thread when isolation level is :thread" do
+    ActiveSupport::IsolatedExecutionState.isolation_level = :thread
+    assert_equal Thread.current, ActiveSupport::IsolatedExecutionState.context
+  end
+
+  test "#context returns the current fiber when isolation level is :fiber" do
+    ActiveSupport::IsolatedExecutionState.isolation_level = :fiber
+    assert_equal Fiber.current, ActiveSupport::IsolatedExecutionState.context
+  end
 end

@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 module ActiveSupport
@@ -26,14 +27,6 @@ module ActiveSupport
       end
 
       private
-        def mon_try_enter
-          if @owner != Thread.current
-            return false unless @mutex.try_lock
-            @owner = Thread.current
-          end
-          @count += 1
-        end
-
         def mon_enter
           @mutex.lock if @owner != Thread.current
           @owner = Thread.current

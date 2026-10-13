@@ -38,6 +38,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/app/views/layouts/mailer.html.erb
   test/dummy/app/views/layouts/mailer.text.erb
   test/dummy/app/views/pwa/manifest.json.erb
+  test/dummy/app/views/pwa/offline.html.erb
   test/dummy/app/views/pwa/service-worker.js
   test/dummy/bin/ci
   test/dummy/bin/dev
@@ -74,7 +75,7 @@ DEFAULT_PLUGIN_FILES = %w(
   test/dummy/tmp/pids/.keep
   test/dummy/tmp/storage/.keep
   test/test_helper.rb
-)
+).freeze
 
 class PluginGeneratorTest < Rails::Generators::TestCase
   include PluginHelpers

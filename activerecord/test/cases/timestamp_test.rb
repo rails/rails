@@ -9,6 +9,8 @@ require "models/pet"
 require "models/toy"
 require "models/car"
 require "models/task"
+require "models/cpk/book"
+require "models/cpk/order"
 
 class TimestampTest < ActiveRecord::TestCase
   fixtures :developers, :owners, :pets, :toys, :cars, :tasks
@@ -568,9 +570,73 @@ class TimestampTest < ActiveRecord::TestCase
     toy = Toy.first
     assert_equal ["created_at", "updated_at"], toy.send(:all_timestamp_attributes_in_model)
   end
+
+  def test_saving_cpk_record_with_touching_should_touch_parent
+    order = Cpk::Order.create!(id: [1, 2])
+    book = Cpk::Book.create!(id: [3, 4], order: order)
+
+    time = 3.days.ago.at_beginning_of_hour
+    order.update_columns(updated_at: time)
+
+    travel(1.second) do
+      book.update!(title: "Updated Title")
+    end
+
+    assert_not_equal time, order.reload.updated_at
+  end
+
+  def test_destroying_cpk_record_with_touching_should_touch_parent
+    order = Cpk::Order.create!(id: [1, 2])
+    book = Cpk::Book.create!(id: [3, 4], order: order)
+
+    time = 3.days.ago.at_beginning_of_hour
+    order.update_columns(updated_at: time)
+
+    travel(1.second) do
+      book.destroy
+    end
+
+    assert_not_equal time, order.reload.updated_at
+  end
+
+  def test_changing_cpk_parent_touches_both_new_and_old_parent_when_one_fk_component_changes
+    old_order = Cpk::Order.create!(id: [1, 2])
+    new_order = Cpk::Order.create!(id: [1, 3]) # same shop_id
+    book = Cpk::Book.create!(id: [3, 4], order: old_order)
+
+    time = 3.days.ago.at_beginning_of_hour
+    old_order.update_columns(updated_at: time)
+    new_order.update_columns(updated_at: time)
+
+    travel(1.second) do
+      book.update!(order: new_order)
+    end
+
+    assert_not_equal time, old_order.reload.updated_at
+    assert_not_equal time, new_order.reload.updated_at
+  end
+
+  def test_changing_cpk_parent_touches_both_new_and_old_parent_when_all_fk_components_change
+    old_order = Cpk::Order.create!(id: [1, 2])
+    new_order = Cpk::Order.create!(id: [3, 4]) # different shop_id
+    book = Cpk::Book.create!(id: [3, 4], order: old_order)
+
+    time = 3.days.ago.at_beginning_of_hour
+    old_order.update_columns(updated_at: time)
+    new_order.update_columns(updated_at: time)
+
+    travel(1.second) do
+      book.update!(order: new_order)
+    end
+
+    assert_not_equal time, old_order.reload.updated_at
+    assert_not_equal time, new_order.reload.updated_at
+  end
 end
 
 class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy :test_index_is_created_for_both_timestamps
+
   include DdlHelper
   self.use_transactional_tests = false
 

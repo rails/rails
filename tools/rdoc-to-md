@@ -8,7 +8,7 @@ require "strscan"
 require "rdoc"
 require "prism"
 
-OPTIONS = {}
+OPTIONS = {} # rubocop:disable Style/MutableConstant
 
 OptionParser
   .new do |opts|

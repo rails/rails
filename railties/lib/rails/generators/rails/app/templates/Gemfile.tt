@@ -27,12 +27,7 @@ gem "solid_cable"
 <% if depend_on_bootsnap? -%>
 
 # Reduces boot times through caching; required in config/boot.rb
-gem "bootsnap", require: false
-<% end -%>
-<% unless options.skip_kamal? -%>
-
-# Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
-gem "kamal", require: false
+gem "bootsnap", ">= 1.24.1", require: false
 <% end -%>
 <% unless options.skip_thruster? -%>
 
@@ -42,7 +37,8 @@ gem "thruster", require: false
 <% unless skip_active_storage? -%>
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-gem "image_processing", "~> 1.2"
+gem "image_processing", "~> 2.0"
+gem "ruby-vips", "~> 2.3", require: false
 <% end -%>
 <%- if options.api? -%>
 
@@ -71,13 +67,22 @@ group :development, :test do
 <%- end -%>
 end
 <% end -%>
-<%- unless options.api? || options.skip_dev_gems? -%>
+<% unless options.skip_dev_gems? -%>
+<% if !options.skip_kamal? || !options.api? -%>
 
 group :development do
+<% unless options.skip_kamal? -%>
+  # Deploy this application anywhere as a Docker container [https://kamal-deploy.org]
+  gem "kamal", require: false
+<% end -%>
+<%- unless options.api? -%>
+
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
-end
 <%- end -%>
+end
+<% end -%>
+<% end -%>
 <%- if depends_on_system_test? -%>
 
 group :test do

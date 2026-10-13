@@ -6,8 +6,8 @@ module ActiveRecord
   module ConnectionAdapters
     class RegistrationTest < ActiveRecord::TestCase
       def setup
-        @original_adapters = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup
-        ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).delete("fake")
+        @original_adapters = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup.freeze
+        ActiveRecord::ConnectionAdapters.instance_variable_set(:@adapters, @original_adapters.except("fake").freeze)
         @fake_adapter_path = File.expand_path("../../support/fake_adapter.rb", __dir__)
       end
 
@@ -65,7 +65,12 @@ module ActiveRecord
       include ActiveSupport::Testing::Isolation
 
       def setup
-        @original_adapters = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup
+        @original_adapters = ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).dup.freeze
+        ActiveRecord::ConnectionAdapters.instance_variable_set(:@adapters, @original_adapters)
+      end
+
+      def teardown
+        ActiveRecord::ConnectionAdapters.instance_variable_set(:@adapters, @original_adapters)
       end
 
       test "#resolve raises if the adapter is using the pre 7.2 adapter registration API" do
@@ -77,8 +82,6 @@ module ActiveRecord
           "Database configuration specifies nonexistent 'fake_legacy' adapter. Available adapters are: abstract, fake, mysql2, postgresql, sqlite3, trilogy. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile if it's not in the list of available adapters.",
           exception.message
         )
-      ensure
-        ActiveRecord::ConnectionAdapters.instance_variable_get(:@adapters).delete("fake_legacy")
       end
     end
   end

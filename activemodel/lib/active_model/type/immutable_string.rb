@@ -1,39 +1,31 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Type
-    # = Active Model \ImmutableString \Type
+    # Active Model \ImmutableString \Type
+    # ===================================
     #
     # Attribute type to represent immutable strings. It casts incoming values to
     # frozen strings.
     #
-    #   class Person
-    #     include ActiveModel::Attributes
+    # ```
+    # class Person
+    #   include ActiveModel::Attributes
     #
-    #     attribute :name, :immutable_string
-    #   end
+    #   attribute :name, :immutable_string
+    # end
     #
-    #   person = Person.new
-    #   person.name = 1
+    # person = Person.new
+    # person.name = 1
     #
-    #   person.name # => "1"
-    #   person.name.frozen? # => true
+    # person.name # => "1"
+    # person.name.frozen? # => true
+    # ```
     #
-    # Values are coerced to strings using their +to_s+ method. Boolean values
-    # are treated differently, however: +true+ will be cast to <tt>"t"</tt> and
-    # +false+ will be cast to <tt>"f"</tt>. These strings can be customized when
-    # declaring an attribute:
-    #
-    #   class Person
-    #     include ActiveModel::Attributes
-    #
-    #     attribute :active, :immutable_string, true: "aye", false: "nay"
-    #   end
-    #
-    #   person = Person.new
-    #   person.active = true
-    #
-    #   person.active # => "aye"
+    # Values are coerced to strings using their `to_s` method. Boolean values
+    # are treated differently, however: `true` will be cast to `"t"` and
+    # `false` will be cast to `"f"`.
     class ImmutableString < Value
       include Helpers::Immutable
 
@@ -58,6 +50,16 @@ module ActiveModel
 
       def serialize_cast_value(value) # :nodoc:
         value
+      end
+
+      def as_schema_json
+        super.merge!("true" => @true, "false" => @false)
+      end
+
+      def init_from_schema_json(coder, references)
+        super
+        @true = coder["true"]
+        @false = coder["false"]
       end
 
       private

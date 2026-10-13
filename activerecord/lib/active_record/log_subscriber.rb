@@ -2,7 +2,7 @@
 
 module ActiveRecord
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
-    IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
+    IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"].freeze
 
     self.namespace = "active_record"
 
@@ -53,25 +53,6 @@ module ActiveRecord
     end
 
     private
-      def type_casted_binds(casted_binds)
-        casted_binds.respond_to?(:call) ? casted_binds.call : casted_binds
-      end
-
-      def render_bind(attr, value)
-        case attr
-        when ActiveModel::Attribute
-          if attr.type.binary? && attr.value
-            value = "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
-          end
-        when Array
-          attr = attr.first
-        else
-          attr = nil
-        end
-
-        [attr&.name, value]
-      end
-
       def colorize_payload_name(name, payload_name)
         if payload_name.blank? || payload_name == "SQL" # SQL vs Model Load/Exists
           color(name, MAGENTA, bold: true)
@@ -81,23 +62,35 @@ module ActiveRecord
       end
 
       def sql_color(sql)
-        case sql
-        when /\A\s*rollback/mi
-          RED
-        when /select .*for update/mi, /\A\s*lock/mi
-          WHITE
-        when /\A\s*select/i
-          BLUE
-        when /\A\s*insert/i
-          GREEN
-        when /\A\s*update/i
-          YELLOW
-        when /\A\s*delete/i
-          RED
-        when /transaction\s*\Z/i
-          CYAN
+        color = if (match = sql.match(/\A\s*(\w+)(?:\s|\Z)/))
+          case match[1].downcase
+          when "rollback"
+            RED
+          when "lock"
+            WHITE
+          when "select"
+            if sql.match?(/for update/mi)
+              WHITE
+            else
+              BLUE
+            end
+          when "insert"
+            GREEN
+          when "update"
+            YELLOW
+          when "delete"
+            RED
+          end
+        end
+
+        if color
+          color
         else
-          MAGENTA
+          if sql.match?(/transaction\s*\Z/i)
+            CYAN
+          else
+            MAGENTA
+          end
         end
       end
 
@@ -119,10 +112,6 @@ module ActiveRecord
 
       def query_source_location
         backtrace_cleaner.first_clean_frame
-      end
-
-      def filter(name, value)
-        ActiveRecord::Base.inspection_filter.filter_param(name, value)
       end
   end
 end

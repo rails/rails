@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveJob
   # Raised during job payload deserialization when it references an uninitialized job class.
   class UnknownJobClassError < NameError
@@ -8,7 +9,8 @@ module ActiveJob
     end
   end
 
-  # = Active Job \Core
+  # Active Job \Core
+  # ================
   #
   # Provides general behavior that will be included into every Active Job
   # object that inherits from ActiveJob::Base.
@@ -65,7 +67,7 @@ module ActiveJob
     # These methods will be included into any Active Job object, adding
     # helpers for de/serialization and creation of job instances.
     module ClassMethods
-      # Creates a new job instance from a hash created with +serialize+
+      # Creates a new job instance from a hash created with `serialize`
       def deserialize(job_data)
         job_class = job_data["job_class"].safe_constantize
         raise UnknownJobClassError, job_data["job_class"] unless job_class
@@ -79,20 +81,23 @@ module ActiveJob
       # perform_later with the job arguments to enqueue the job with the
       # preconfigured options
       #
-      # ==== Options
-      # * <tt>:wait</tt> - Enqueues the job with the specified delay
-      # * <tt>:wait_until</tt> - Enqueues the job at the time specified
-      # * <tt>:queue</tt> - Enqueues the job on the specified queue
-      # * <tt>:priority</tt> - Enqueues the job with the specified priority
+      # #### Options
       #
-      # ==== Examples
+      # * `:wait` - Enqueues the job with the specified delay
+      # * `:wait_until` - Enqueues the job at the time specified
+      # * `:queue` - Enqueues the job on the specified queue
+      # * `:priority` - Enqueues the job with the specified priority
       #
-      #    VideoJob.set(queue: :some_queue).perform_later(Video.last)
-      #    VideoJob.set(wait: 5.minutes).perform_later(Video.last)
-      #    VideoJob.set(wait_until: Time.now.tomorrow).perform_later(Video.last)
-      #    VideoJob.set(queue: :some_queue, wait: 5.minutes).perform_later(Video.last)
-      #    VideoJob.set(queue: :some_queue, wait_until: Time.now.tomorrow).perform_later(Video.last)
-      #    VideoJob.set(queue: :some_queue, wait: 5.minutes, priority: 10).perform_later(Video.last)
+      # #### Examples
+      #
+      # ```
+      # VideoJob.set(queue: :some_queue).perform_later(Video.last)
+      # VideoJob.set(wait: 5.minutes).perform_later(Video.last)
+      # VideoJob.set(wait_until: Time.now.tomorrow).perform_later(Video.last)
+      # VideoJob.set(queue: :some_queue, wait: 5.minutes).perform_later(Video.last)
+      # VideoJob.set(queue: :some_queue, wait_until: Time.now.tomorrow).perform_later(Video.last)
+      # VideoJob.set(queue: :some_queue, wait: 5.minutes, priority: 10).perform_later(Video.last)
+      # ```
       def set(options = {})
         ConfiguredJob.new(self, options)
       end
@@ -100,7 +105,8 @@ module ActiveJob
 
     # Creates a new job instance. Takes the arguments that will be
     # passed to the perform method.
-    def initialize(*arguments)
+    def initialize(*arguments, **kwargs)
+      arguments << Hash.ruby2_keywords_hash(kwargs) unless kwargs.empty?
       @arguments  = arguments
       @job_id     = SecureRandom.uuid
       @queue_name = self.class.queue_name
@@ -110,7 +116,6 @@ module ActiveJob
       @exception_executions = {}
       @timezone   = Time.zone&.name
     end
-    ruby2_keywords(:initialize)
 
     # Returns a hash with the job data that can safely be passed to the
     # queuing adapter.
@@ -132,31 +137,33 @@ module ActiveJob
     end
 
     # Attaches the stored job data to the current instance. Receives a hash
-    # returned from +serialize+
+    # returned from `serialize`
     #
-    # ==== Examples
+    # #### Examples
     #
-    #    class DeliverWebhookJob < ActiveJob::Base
-    #      attr_writer :attempt_number
+    # ```
+    # class DeliverWebhookJob < ActiveJob::Base
+    #   attr_writer :attempt_number
     #
-    #      def attempt_number
-    #        @attempt_number ||= 0
-    #      end
+    #   def attempt_number
+    #     @attempt_number ||= 0
+    #   end
     #
-    #      def serialize
-    #        super.merge('attempt_number' => attempt_number + 1)
-    #      end
+    #   def serialize
+    #     super.merge('attempt_number' => attempt_number + 1)
+    #   end
     #
-    #      def deserialize(job_data)
-    #        super
-    #        self.attempt_number = job_data['attempt_number']
-    #      end
+    #   def deserialize(job_data)
+    #     super
+    #     self.attempt_number = job_data['attempt_number']
+    #   end
     #
-    #      rescue_from(Timeout::Error) do |exception|
-    #        raise exception if attempt_number > 5
-    #        retry_job(wait: 10)
-    #      end
-    #    end
+    #   rescue_from(Timeout::Error) do |exception|
+    #     raise exception if attempt_number > 5
+    #     retry_job(wait: 10)
+    #   end
+    # end
+    # ```
     def deserialize(job_data)
       self.job_id               = job_data["job_id"]
       self.provider_job_id      = job_data["provider_job_id"]

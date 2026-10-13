@@ -7,6 +7,8 @@ end
 
 module ActiveRecord
   class InvertibleMigrationTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     class SilentMigration < ActiveRecord::Migration::Current
       def write(text = "")
         # sssshhhhh!!
@@ -473,10 +475,10 @@ module ActiveRecord
           create_table("grapes")
         end
       end
-      assert_equal [[:create_table, ["apples"], block], [:drop_table, ["elderberries"], nil],
-                    [:create_table, ["clementines"], nil], [:create_table, ["dates"], nil],
-                    [:drop_table, ["bananas"], block], [:drop_table, ["grapes"], nil],
-                    [:drop_table, ["figs"], nil]], recorder.commands
+      assert_equal [[:create_table, ["apples"], {}, block], [:drop_table, ["elderberries"], {}, nil],
+                    [:create_table, ["clementines"], {}, nil], [:create_table, ["dates"], {}, nil],
+                    [:drop_table, ["bananas"], {}, block], [:drop_table, ["grapes"], {}, nil],
+                    [:drop_table, ["figs"], {}, nil]], recorder.commands
     end
 
     def test_legacy_up

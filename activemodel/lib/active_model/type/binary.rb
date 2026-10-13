@@ -1,13 +1,17 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+require "active_support/core_ext/object/json"
+
 module ActiveModel
   module Type
-    # = Active Model \Binary \Type
+    # Active Model \Binary \Type
+    # ==========================
     #
     # Attribute type for representation of binary data. This type is registered
-    # under the +:binary+ key.
+    # under the `:binary` key.
     #
-    # Non-string values are coerced to strings using their +to_s+ method.
+    # Non-string values are coerced to strings using their `to_s` method.
     class Binary < Value
       def type
         :binary
@@ -48,6 +52,10 @@ module ActiveModel
           @value
         end
         alias_method :to_str, :to_s
+
+        def as_json(options = nil)
+          @value.as_json(options)
+        end
 
         def hex
           @value.unpack1("H*")

@@ -12,10 +12,10 @@ module ActiveStorage
     include ActiveSupport::Testing::EventReporterAssertions
 
     setup do
-    @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
-    @old_logger = ActiveStorage::LogSubscriber.logger
-    ActiveStorage::LogSubscriber.logger = @logger
-  end
+      @logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
+      @old_logger = ActiveStorage::LogSubscriber.logger
+      ActiveStorage::LogSubscriber.logger = @logger
+    end
 
     teardown do
       ActiveStorage::LogSubscriber.logger = @old_logger

@@ -2,7 +2,7 @@
 
 # :markup: markdown
 
-require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/class/attribute"
 require "action_dispatch/http/filter_redirect"
 require "action_dispatch/http/cache"
 require "monitor"
@@ -97,10 +97,10 @@ module ActionDispatch # :nodoc:
 
     CONTENT_TYPE = "Content-Type"
     SET_COOKIE   = "Set-Cookie"
-    NO_CONTENT_CODES = [100, 101, 102, 103, 204, 205, 304]
+    NO_CONTENT_CODES = [100, 101, 102, 103, 204, 205, 304].freeze
 
-    cattr_accessor :default_charset, default: "utf-8"
-    cattr_accessor :default_headers
+    class_attribute :default_charset, default: "utf-8", instance_accessor: false
+    class_attribute :default_headers, instance_accessor: false
 
     include Rack::Response::Helpers
     # Aliasing these off because AD::Http::Cache::Response defines them.
@@ -119,7 +119,7 @@ module ActionDispatch # :nodoc:
         @str_body = nil
       end
 
-      BODY_METHODS = { to_ary: true }
+      BODY_METHODS = { to_ary: true }.freeze
 
       def respond_to?(method, include_private = false)
         if BODY_METHODS.key?(method)
@@ -150,7 +150,8 @@ module ActionDispatch # :nodoc:
 
         @str_body = nil
         @response.commit!
-        @buf.push string
+        @buf.push string.frozen? ? string : string.dup
+        string.bytesize
       end
       alias_method :<<, :write
 
@@ -482,7 +483,7 @@ module ActionDispatch # :nodoc:
 
   private
     ContentTypeHeader = Struct.new :mime_type, :charset
-    NullContentTypeHeader = ContentTypeHeader.new nil, nil
+    NullContentTypeHeader = ContentTypeHeader.new(nil, nil).freeze
 
     CONTENT_TYPE_PARSER = /
       \A
@@ -557,7 +558,7 @@ module ActionDispatch # :nodoc:
         @response.body
       end
 
-      BODY_METHODS = { to_ary: true, each: true, call: true, to_path: true }
+      BODY_METHODS = { to_ary: true, each: true, call: true, to_path: true }.freeze
 
       def respond_to?(method, include_private = false)
         if BODY_METHODS.key?(method)

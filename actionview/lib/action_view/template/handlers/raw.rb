@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   module Template::Handlers
-    class Raw
+    class Raw # :nodoc:
       def call(template, source)
         "#{source.inspect}.html_safe;"
       end

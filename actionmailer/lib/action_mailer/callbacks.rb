@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionMailer
   module Callbacks
     extend ActiveSupport::Concern
@@ -15,18 +16,24 @@ module ActionMailer
       # Defines a callback that will get called right before the
       # message is sent to the delivery method.
       def before_deliver(*filters, &blk)
-        set_callback(:deliver, :before, *filters, &blk)
+        _insert_callbacks(filters, blk) do |name, options|
+          set_callback(:deliver, :before, name, options)
+        end
       end
 
       # Defines a callback that will get called right after the
       # message's delivery method is finished.
       def after_deliver(*filters, &blk)
-        set_callback(:deliver, :after, *filters, &blk)
+        _insert_callbacks(filters, blk) do |name, options|
+          set_callback(:deliver, :after, name, options)
+        end
       end
 
       # Defines a callback that will get called around the message's deliver method.
       def around_deliver(*filters, &blk)
-        set_callback(:deliver, :around, *filters, &blk)
+        _insert_callbacks(filters, blk) do |name, options|
+          set_callback(:deliver, :around, name, options)
+        end
       end
 
       def internal_methods # :nodoc:

@@ -1,15 +1,11 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/structured_event_subscriber"
 
 module ActionView
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
     VIEWS_PATTERN = /^app\/views\//
-
-    def initialize
-      @root = nil
-      super
-    end
 
     def render_template(event)
       emit_debug_event("action_view.render_template",
@@ -53,18 +49,34 @@ module ActionView
     end
     debug_only :render_collection
 
+    class << self
+      def rails_root
+        Utils.rails_root
+      end
+
+      def rails_root=(rails_root)
+        Utils.rails_root = rails_root
+      end
+    end
+
     module Utils # :nodoc:
+      class << self
+        attr_accessor :rails_root
+      end
+
+      self.rails_root = "/"
+
       private
         def from_rails_root(string)
           return unless string
 
-          string = string.sub("#{rails_root}/", "")
+          string = string.sub(rails_root, "")
           string.sub!(VIEWS_PATTERN, "")
           string
         end
 
         def rails_root # :doc:
-          @root ||= Rails.try(:root)
+          Utils.rails_root
         end
     end
 
@@ -72,6 +84,10 @@ module ActionView
 
     class Start # :nodoc:
       include Utils
+
+      def silenced?(_name)
+        !ActiveSupport.event_reporter.debug_mode?
+      end
 
       def start(name, id, payload)
         ActiveSupport.event_reporter.debug("action_view.render_start",

@@ -113,4 +113,32 @@ class TransliterateTest < ActiveSupport::TestCase
     assert_predicate string, :ascii_only?
     assert_not_equal string.object_id, ActiveSupport::Inflector.transliterate(string).object_id
   end
+
+  def test_transliterate_does_not_mutate_a_non_frozen_gb18030_argument
+    string = "中文".encode(Encoding::GB18030)
+    assert_not string.frozen?
+    original_encoding = string.encoding
+    original_bytes = string.bytes
+    ActiveSupport::Inflector.transliterate(string)
+    assert_equal original_encoding, string.encoding
+    assert_equal original_bytes, string.bytes
+  end
+
+  def test_transliterate_does_not_mutate_a_non_frozen_us_ascii_argument
+    string = String.new("caf\xC3\xA9", encoding: Encoding::US_ASCII)
+    assert_not string.frozen?
+    original_encoding = string.encoding
+    original_bytes = string.bytes
+    ActiveSupport::Inflector.transliterate(string)
+    assert_equal original_encoding, string.encoding
+    assert_equal original_bytes, string.bytes
+  end
+
+  def test_parameterize_does_not_mutate_a_non_frozen_gb18030_argument
+    string = "中文".encode(Encoding::GB18030)
+    assert_not string.frozen?
+    original_encoding = string.encoding
+    ActiveSupport::Inflector.parameterize(string)
+    assert_equal original_encoding, string.encoding
+  end
 end

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord::Associations::Builder # :nodoc:
   class HasOne < SingularAssociation # :nodoc:
     def self.macro

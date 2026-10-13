@@ -213,28 +213,22 @@ module AssociationDeprecationTest
     end
 
     def assert_user_facing_reflection(model, association)
-      payloads = []
-      callback = ->(event) { payloads << event.payload }
-
-      ActiveSupport::Notifications.subscribed(callback, "deprecated_association.active_record") do
+      events = capture_notifications("deprecated_association.active_record") do
         model.new.send(association)
       end
 
-      assert_equal 1, payloads.size
-      assert_equal model.reflect_on_association(association), payloads[0][:reflection]
+      assert_equal 1, events.size
+      assert_equal model.reflect_on_association(association), events[0].payload[:reflection]
     end
 
     test "report publishes an Active Support notification in :notify mode" do
-      payloads = []
-      callback = ->(event) { payloads << event.payload }
-
       line = __LINE__ + 2
-      ActiveSupport::Notifications.subscribed(callback, "deprecated_association.active_record") do
+      events = capture_notifications("deprecated_association.active_record") do
         DATS::Car.new.deprecated_tires
       end
 
-      assert_equal 1, payloads.size
-      payload = payloads.first
+      assert_equal 1, events.size
+      payload = events.first.payload
 
       assert_equal DATS::Car.reflect_on_association(:deprecated_tires), payload[:reflection]
 

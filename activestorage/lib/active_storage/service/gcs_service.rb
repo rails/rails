@@ -45,16 +45,6 @@ module ActiveStorage
       end
     end
 
-    def update_metadata(key, content_type:, disposition: nil, filename: nil, custom_metadata: {})
-      instrument :update_metadata, key: key, content_type: content_type, disposition: disposition do
-        file_for(key).update do |file|
-          file.content_type = content_type
-          file.content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
-          file.metadata = custom_metadata
-        end
-      end
-    end
-
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
         file_for(key).download(range: range).string
@@ -191,6 +181,14 @@ module ActiveStorage
 
       def file_for(key, skip_lookup: true)
         bucket.file(key, skip_lookup: skip_lookup)
+      end
+
+      def update_metadata_for(key, content_type:, disposition: nil, filename: nil, custom_metadata: {})
+        file_for(key).update do |file|
+          file.content_type = content_type
+          file.content_disposition = content_disposition_with(type: disposition, filename: filename) if disposition && filename
+          file.metadata = custom_metadata
+        end
       end
 
       # Reads the file for the given key in chunks, yielding each to the block.

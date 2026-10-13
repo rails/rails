@@ -188,7 +188,7 @@ module ActiveRecord
       posts = Post.select("posts.*").joins(:comments).includes(:comments)
       assert_equal %w(
         id author_id title body type legacy_comments_count taggings_with_delete_all_count taggings_with_destroy_count
-        tags_count indestructible_tags_count tags_with_destroy_count tags_with_nullify_count
+        tags_count indestructible_tags_count tags_with_destroy_count tags_with_nullify_count deleted_at
       ), posts.first.attributes.keys
     end
 
@@ -214,6 +214,13 @@ module ActiveRecord
       end
 
       assert_equal "`select' with block doesn't take arguments.", error.message
+    end
+
+    def test_select_with_duplicated_column
+      post = Post.select("posts.id, posts.title, posts.id").find(1)
+
+      assert_equal 1, post.id
+      assert_equal "Welcome to the weblog", post.title
     end
   end
 end

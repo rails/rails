@@ -90,6 +90,11 @@ module ActionDispatch
           defaults       = route.defaults
           required_parts = route.required_parts
 
+          # After query param extraction, so empty values are consumed as path parts.
+          parameterized_parts.delete_if do |key, value|
+            value.to_s.blank? && !required_parts.include?(key)
+          end
+
           route.parts.reverse_each do |key|
             break if defaults[key].nil? && parameterized_parts[key].present?
             next if parameterized_parts[key].to_s != defaults[key].to_s
@@ -116,6 +121,12 @@ module ActionDispatch
         nil
       end
 
+      def freeze
+        eager_load!
+
+        super
+      end
+
       private
         def extract_parameterized_parts(route, options, recall)
           parameterized_parts = recall.merge(options)
@@ -128,13 +139,7 @@ module ActionDispatch
             !keys_to_keep.include?(bad_key)
           end
 
-          parameterized_parts.each do |k, v|
-            if k == :controller
-              parameterized_parts[k] = v
-            else
-              parameterized_parts[k] = v.to_param
-            end
-          end
+          parameterized_parts.transform_values!(&:to_param)
 
           parameterized_parts.compact!
           parameterized_parts

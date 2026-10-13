@@ -13,6 +13,7 @@ class Rails::EnvsTest < ActiveSupport::TestCase
     app("production")
 
     ENV["MYSTERY"] = "hidden"
+    Rails.app.creds.reload
     assert_equal "hidden", Rails.app.envs.require(:mystery)
 
     ENV.delete("MYSTERY")

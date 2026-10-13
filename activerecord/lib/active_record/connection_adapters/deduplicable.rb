@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module Deduplicable
@@ -7,7 +8,8 @@ module ActiveRecord
 
       module ClassMethods
         def registry
-          @registry ||= {}
+          registries = ActiveSupport::Ractors.store_if_absent(:active_record_deduplicable_registries) { {} }
+          registries[self] ||= {}
         end
 
         def new(*, **)
@@ -16,7 +18,7 @@ module ActiveRecord
       end
 
       def deduplicate
-        self.class.registry[self] ||= deduplicated
+        self.class.registry[self] ||= frozen? ? self : deduplicated
       end
       alias :-@ :deduplicate
 

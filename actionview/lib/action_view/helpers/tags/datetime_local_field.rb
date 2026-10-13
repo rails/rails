@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -9,11 +10,7 @@ module ActionView
           super
         end
 
-        class << self
-          def field_type
-            @field_type ||= "datetime-local"
-          end
-        end
+        @field_type = "datetime-local"
 
         private
           def format_datetime(value)

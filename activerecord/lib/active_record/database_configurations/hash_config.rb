@@ -39,6 +39,22 @@ module ActiveRecord
         super(env_name, name)
         @configuration_hash = configuration_hash.symbolize_keys.freeze
         validate_configuration!
+        query_log_tags = @configuration_hash[:query_log_tags]
+        @query_log_tags_format = (query_log_tags["format"]&.to_sym if query_log_tags.is_a?(Hash))
+        @query_log_tags_prepend_comment = (query_log_tags["prepend_comment"] if query_log_tags.is_a?(Hash))
+      end
+
+      def ==(other)
+        other.is_a?(DatabaseConfig) && comparable_values == other.comparable_values
+      end
+      alias :eql? :==
+
+      def hash # :nodoc:
+        comparable_values.hash
+      end
+
+      def comparable_values # :nodoc:
+        super << configuration_hash
       end
 
       # Determines whether a database configuration is for a replica / readonly
@@ -93,17 +109,24 @@ module ActiveRecord
       end
 
       def max_age
-        v = configuration_hash[:max_age]&.to_i
-        if v && v > 0
-          v
-        else
+        case v = configuration_hash[:max_age]
+        when nil, false
           Float::INFINITY
+        else
+          v = v.to_i
+          v > 0 ? v : Float::INFINITY
         end
       end
 
       def query_cache
         configuration_hash[:query_cache]
       end
+
+      def query_log_tags_config # :nodoc:
+        configuration_hash[:query_log_tags]
+      end
+
+      attr_reader :query_log_tags_format, :query_log_tags_prepend_comment # :nodoc:
 
       def max_queue
         max_threads * 4
@@ -114,17 +137,37 @@ module ActiveRecord
       end
 
       def reaping_frequency # :nodoc:
-        configuration_hash.fetch(:reaping_frequency, default_reaping_frequency)&.to_f
+        case frequency = configuration_hash.fetch(:reaping_frequency, default_reaping_frequency)
+        when nil, false
+          nil
+        else
+          frequency.to_f
+        end
       end
 
       def idle_timeout
-        timeout = configuration_hash.fetch(:idle_timeout, 300).to_f
-        timeout if timeout > 0
+        default = 300
+        case timeout = configuration_hash.fetch(:idle_timeout, default)
+        when nil, false
+          nil
+        when true
+          default.to_f
+        else
+          timeout = timeout.to_f
+          timeout if timeout > 0
+        end
       end
 
       def keepalive
-        keepalive = (configuration_hash[:keepalive] || 600).to_f
-        keepalive if keepalive > 0
+        case keepalive = configuration_hash[:keepalive]
+        when false
+          nil
+        when nil, true
+          600.0 # default
+        else
+          keepalive = keepalive.to_f
+          keepalive if keepalive > 0.0
+        end
       end
 
       def adapter
@@ -193,6 +236,10 @@ module ActiveRecord
 
       def use_metadata_table? # :nodoc:
         configuration_hash.fetch(:use_metadata_table, true)
+      end
+
+      def dump_schema_migrations? # :nodoc:
+        configuration_hash.fetch(:dump_schema_migrations, ActiveRecord.dump_schema_migrations)
       end
 
       private

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_model/validations/resolve_value"
 
 module ActiveModel
@@ -10,7 +11,7 @@ module ActiveModel
       MESSAGES  = { is: :wrong_length, minimum: :too_short, maximum: :too_long }.freeze
       CHECKS    = { is: :==, minimum: :>=, maximum: :<= }.freeze
 
-      RESERVED_OPTIONS = [:minimum, :maximum, :within, :is, :too_short, :too_long]
+      RESERVED_OPTIONS = [:minimum, :maximum, :within, :is, :too_short, :too_long].freeze
 
       def initialize(options)
         if range = (options.delete(:in) || options.delete(:within))
@@ -51,8 +52,9 @@ module ActiveModel
         CHECKS.each do |key, validity_check|
           next unless check_value = options[key]
 
+          check_value = resolve_value(record, check_value)
+
           if !value.nil? || skip_nil_check?(key)
-            check_value = resolve_value(record, check_value)
             next if value_length.public_send(validity_check, check_value)
           end
 
@@ -74,51 +76,53 @@ module ActiveModel
     module HelperMethods
       # Validates that the specified attributes match the length restrictions
       # supplied. Only one constraint option can be used at a time apart from
-      # +:minimum+ and +:maximum+ that can be combined together:
+      # `:minimum` and `:maximum` that can be combined together:
       #
-      #   class Person < ActiveRecord::Base
-      #     validates_length_of :first_name, maximum: 30
-      #     validates_length_of :last_name, maximum: 30, message: "less than 30 if you don't mind"
-      #     validates_length_of :fax, in: 7..32, allow_nil: true
-      #     validates_length_of :phone, in: 7..32, allow_blank: true
-      #     validates_length_of :user_name, within: 6..20, too_long: 'pick a shorter name', too_short: 'pick a longer name'
-      #     validates_length_of :zip_code, minimum: 5, too_short: 'please enter at least 5 characters'
-      #     validates_length_of :smurf_leader, is: 4, message: "papa is spelled with 4 characters... don't play me."
-      #     validates_length_of :words_in_essay, minimum: 100, too_short: 'Your essay must be at least 100 words.'
+      # ```
+      # class Person < ActiveRecord::Base
+      #   validates_length_of :first_name, maximum: 30
+      #   validates_length_of :last_name, maximum: 30, message: "less than 30 if you don't mind"
+      #   validates_length_of :fax, in: 7..32, allow_nil: true
+      #   validates_length_of :phone, in: 7..32, allow_blank: true
+      #   validates_length_of :user_name, within: 6..20, too_long: 'pick a shorter name', too_short: 'pick a longer name'
+      #   validates_length_of :zip_code, minimum: 5, too_short: 'please enter at least 5 characters'
+      #   validates_length_of :smurf_leader, is: 4, message: "papa is spelled with 4 characters... don't play me."
+      #   validates_length_of :words_in_essay, minimum: 100, too_short: 'Your essay must be at least 100 words.'
       #
-      #     private
-      #       def words_in_essay
-      #         essay.scan(/\w+/)
-      #       end
-      #   end
+      #   private
+      #     def words_in_essay
+      #       essay.scan(/\w+/)
+      #     end
+      # end
+      # ```
       #
       # Constraint options:
       #
-      # * <tt>:minimum</tt> - The minimum size of the attribute.
-      # * <tt>:maximum</tt> - The maximum size of the attribute. Allows +nil+ by
-      #   default if not used with +:minimum+.
-      # * <tt>:is</tt> - The exact size of the attribute.
-      # * <tt>:within</tt> - A range specifying the minimum and maximum size of
+      # * `:minimum` - The minimum size of the attribute.
+      # * `:maximum` - The maximum size of the attribute. Allows `nil` by
+      #   default if not used with `:minimum`.
+      # * `:is` - The exact size of the attribute.
+      # * `:within` - A range specifying the minimum and maximum size of
       #   the attribute.
-      # * <tt>:in</tt> - A synonym (or alias) for <tt>:within</tt>.
+      # * `:in` - A synonym (or alias) for `:within`.
       #
       # Other options:
       #
-      # * <tt>:allow_nil</tt> - Attribute may be +nil+; skip validation.
-      # * <tt>:allow_blank</tt> - Attribute may be blank; skip validation.
-      # * <tt>:too_long</tt> - The error message if the attribute goes over the
+      # * `:allow_nil` - Attribute may be `nil`; skip validation.
+      # * `:allow_blank` - Attribute may be blank; skip validation.
+      # * `:too_long` - The error message if the attribute goes over the
       #   maximum (default is: "is too long (maximum is %{count} characters)").
-      # * <tt>:too_short</tt> - The error message if the attribute goes under the
+      # * `:too_short` - The error message if the attribute goes under the
       #   minimum (default is: "is too short (minimum is %{count} characters)").
-      # * <tt>:wrong_length</tt> - The error message if using the <tt>:is</tt>
+      # * `:wrong_length` - The error message if using the `:is`
       #   method and the attribute is the wrong size (default is: "is the wrong
       #   length (should be %{count} characters)").
-      # * <tt>:message</tt> - The error message to use for a <tt>:minimum</tt>,
-      #   <tt>:maximum</tt>, or <tt>:is</tt> violation. An alias of the appropriate
-      #   <tt>too_long</tt>/<tt>too_short</tt>/<tt>wrong_length</tt> message.
+      # * `:message` - The error message to use for a `:minimum`,
+      #   `:maximum`, or `:is` violation. An alias of the appropriate
+      #   `too_long`/`too_short`/`wrong_length` message.
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+, and +:strict+.
+      # `:if`, `:unless`, `:on`, and `:strict`.
       # See ActiveModel::Validations::ClassMethods#validates for more information.
       def validates_length_of(*attr_names)
         validates_with LengthValidator, _merge_attributes(attr_names)

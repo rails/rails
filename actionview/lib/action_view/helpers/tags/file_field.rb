@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -21,7 +22,7 @@ module ActionView
 
         private
           def hidden_field_for_multiple_file(options)
-            tag_options = { "name" => options["name"], "type" => "hidden", "value" => "" }
+            tag_options = { "name" => options["name"], "type" => "hidden", "value" => "", "disabled" => options["disabled"], "form" => options["form"] }
             tag_options["autocomplete"] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
             tag("input", tag_options)
           end

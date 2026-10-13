@@ -30,10 +30,6 @@ module ActiveRecord
         ActiveRecord::Encryption::EncryptedAttributeType.prepend(ExtendedEncryptableType)
       end
 
-      # When modifying this file run performance tests in
-      # +activerecord/test/cases/encryption/performance/extended_deterministic_queries_performance_test.rb+
-      # to make sure performance overhead is acceptable.
-      #
       # @TODO We will extend this to support previous "encryption context" versions in future iterations
       # @TODO Experimental. Support for every kind of query is pending
       # @TODO It should not patch anything if not needed (no previous schemes or no support for previous encryption schemes)

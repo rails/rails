@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "action_mailbox/version"
@@ -25,7 +26,7 @@ module ActionMailbox
     end
 
     CONTENT_TYPE = "message/rfc822"
-    USER_AGENT   = "Action Mailbox relayer v#{ActionMailbox.version}"
+    USER_AGENT   = "Action Mailbox relayer v#{ActionMailbox.version}".freeze
 
     attr_reader :uri, :username, :password
 

@@ -1,30 +1,53 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module AttributeMethods
-    # = Active Record Attribute Methods Before Type Cast
+    # Active Record Attribute Methods Before Type Cast
+    # ================================================
     #
     # ActiveRecord::AttributeMethods::BeforeTypeCast provides a way to
     # read the value of the attributes before typecasting and deserialization.
     #
-    #   class Task < ActiveRecord::Base
-    #   end
+    # ```
+    # class Task < ActiveRecord::Base
+    # end
     #
-    #   task = Task.new(id: '1', completed_on: '2012-10-21')
-    #   task.id           # => 1
-    #   task.completed_on # => Sun, 21 Oct 2012
+    # task = Task.new(id: '1', completed_on: '2012-10-21')
+    # task.id           # => 1
+    # task.completed_on # => Sun, 21 Oct 2012
     #
-    #   task.attributes_before_type_cast
-    #   # => {"id"=>"1", "completed_on"=>"2012-10-21", ... }
-    #   task.read_attribute_before_type_cast('id')           # => "1"
-    #   task.read_attribute_before_type_cast('completed_on') # => "2012-10-21"
+    # task.attributes_before_type_cast
+    # # => {"id"=>"1", "completed_on"=>"2012-10-21", ... }
+    # task.read_attribute_before_type_cast('id')           # => "1"
+    # task.read_attribute_before_type_cast('completed_on') # => "2012-10-21"
+    # ```
     #
     # In addition to #read_attribute_before_type_cast and #attributes_before_type_cast,
-    # it declares a method for all attributes with the <tt>*_before_type_cast</tt>
+    # it declares a method for all attributes with the `*_before_type_cast`
     # suffix.
     #
-    #   task.id_before_type_cast           # => "1"
-    #   task.completed_on_before_type_cast # => "2012-10-21"
+    # ```
+    # task.id_before_type_cast           # => "1"
+    # task.completed_on_before_type_cast # => "2012-10-21"
+    # ```
+    #
+    # It also declares a method for all attributes with the `*_for_database`
+    # suffix, returning the serialized value used when writing to the database, and
+    # a method with the `*_came_from_user?` suffix, returning whether the
+    # attribute was assigned from user input (as opposed to loaded from the database
+    # or left at its default).
+    #
+    # ```
+    # class Book < ActiveRecord::Base
+    #   enum :status, { draft: 1, published: 2 }
+    # end
+    #
+    # book = Book.new(status: "published")
+    # book.status_for_database     # => 2
+    # book.status_came_from_user?  # => true
+    # book.id_came_from_user?      # => false
+    # ```
     module BeforeTypeCast
       extend ActiveSupport::Concern
 
@@ -33,18 +56,20 @@ module ActiveRecord
         attribute_method_suffix "_came_from_user?", parameters: false
       end
 
-      # Returns the value of the attribute identified by +attr_name+ before
+      # Returns the value of the attribute identified by `attr_name` before
       # typecasting and deserialization.
       #
-      #   class Task < ActiveRecord::Base
-      #   end
+      # ```
+      # class Task < ActiveRecord::Base
+      # end
       #
-      #   task = Task.new(id: '1', completed_on: '2012-10-21')
-      #   task.read_attribute('id')                            # => 1
-      #   task.read_attribute_before_type_cast('id')           # => '1'
-      #   task.read_attribute('completed_on')                  # => Sun, 21 Oct 2012
-      #   task.read_attribute_before_type_cast('completed_on') # => "2012-10-21"
-      #   task.read_attribute_before_type_cast(:completed_on)  # => "2012-10-21"
+      # task = Task.new(id: '1', completed_on: '2012-10-21')
+      # task.read_attribute('id')                            # => 1
+      # task.read_attribute_before_type_cast('id')           # => '1'
+      # task.read_attribute('completed_on')                  # => Sun, 21 Oct 2012
+      # task.read_attribute_before_type_cast('completed_on') # => "2012-10-21"
+      # task.read_attribute_before_type_cast(:completed_on)  # => "2012-10-21"
+      # ```
       def read_attribute_before_type_cast(attr_name)
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
@@ -52,16 +77,18 @@ module ActiveRecord
         attribute_before_type_cast(name)
       end
 
-      # Returns the value of the attribute identified by +attr_name+ after
+      # Returns the value of the attribute identified by `attr_name` after
       # serialization.
       #
-      #   class Book < ActiveRecord::Base
-      #     enum :status, { draft: 1, published: 2 }
-      #   end
+      # ```
+      # class Book < ActiveRecord::Base
+      #   enum :status, { draft: 1, published: 2 }
+      # end
       #
-      #   book = Book.new(status: "published")
-      #   book.read_attribute(:status)              # => "published"
-      #   book.read_attribute_for_database(:status) # => 2
+      # book = Book.new(status: "published")
+      # book.read_attribute(:status)              # => "published"
+      # book.read_attribute_for_database(:status) # => 2
+      # ```
       def read_attribute_for_database(attr_name)
         name = attr_name.to_s
         name = self.class.attribute_aliases[name] || name
@@ -71,14 +98,16 @@ module ActiveRecord
 
       # Returns a hash of attributes before typecasting and deserialization.
       #
-      #   class Task < ActiveRecord::Base
-      #   end
+      # ```
+      # class Task < ActiveRecord::Base
+      # end
       #
-      #   task = Task.new(title: nil, is_done: true, completed_on: '2012-10-21')
-      #   task.attributes
-      #   # => {"id"=>nil, "title"=>nil, "is_done"=>true, "completed_on"=>Sun, 21 Oct 2012, "created_at"=>nil, "updated_at"=>nil}
-      #   task.attributes_before_type_cast
-      #   # => {"id"=>nil, "title"=>nil, "is_done"=>true, "completed_on"=>"2012-10-21", "created_at"=>nil, "updated_at"=>nil}
+      # task = Task.new(title: nil, is_done: true, completed_on: '2012-10-21')
+      # task.attributes
+      # # => {"id"=>nil, "title"=>nil, "is_done"=>true, "completed_on"=>Sun, 21 Oct 2012, "created_at"=>nil, "updated_at"=>nil}
+      # task.attributes_before_type_cast
+      # # => {"id"=>nil, "title"=>nil, "is_done"=>true, "completed_on"=>"2012-10-21", "created_at"=>nil, "updated_at"=>nil}
+      # ```
       def attributes_before_type_cast
         @attributes.values_before_type_cast
       end
@@ -89,15 +118,17 @@ module ActiveRecord
       end
 
       private
-        # Dispatch target for <tt>*_before_type_cast</tt> attribute methods.
+        # Dispatch target for `*_before_type_cast` attribute methods.
         def attribute_before_type_cast(attr_name)
           @attributes[attr_name].value_before_type_cast
         end
 
+        # Dispatch target for `*_for_database` attribute methods.
         def attribute_for_database(attr_name)
           @attributes[attr_name].value_for_database
         end
 
+        # Dispatch target for `*_came_from_user?` attribute methods.
         def attribute_came_from_user?(attr_name)
           @attributes[attr_name].came_from_user?
         end

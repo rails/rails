@@ -46,13 +46,18 @@ class SubscriptionsTestChannelTest < ActionCable::Channel::TestCase
 
     assert_predicate subscription, :confirmed?
     assert_not subscription.rejected?
-    assert_equal 1, connection.transmissions.size
+    assert_equal 1, socket.transmissions.size
     assert_equal ActionCable::INTERNAL[:message_types][:confirmation],
-                 connection.transmissions.last["type"]
+                 socket.transmissions.last["type"]
   end
 end
 
 class StubConnectionTest < ActionCable::Channel::TestCase
+  class Connection < ActionCable::Connection::Base
+    identified_by :username, :admin
+  end
+
+  tests_connection Connection
   tests SubscriptionsTestChannel
 
   def test_connection_identifiers
@@ -63,6 +68,12 @@ class StubConnectionTest < ActionCable::Channel::TestCase
     assert_equal "John", subscription.username
     assert subscription.admin
     assert_equal "John:true", connection.connection_identifier
+  end
+
+  def test_unknown_identifiers
+    assert_raises NoMethodError do
+      stub_connection non_existing: "John"
+    end
   end
 end
 
@@ -78,9 +89,9 @@ class RejectionTestChannelTest < ActionCable::Channel::TestCase
 
     assert_not subscription.confirmed?
     assert_predicate subscription, :rejected?
-    assert_equal 1, connection.transmissions.size
+    assert_equal 1, socket.transmissions.size
     assert_equal ActionCable::INTERNAL[:message_types][:rejection],
-                 connection.transmissions.last["type"]
+                 socket.transmissions.last["type"]
   end
 end
 
@@ -126,6 +137,31 @@ class StreamsTestChannelTest < ActionCable::Channel::TestCase
     unsubscribe
 
     assert_no_streams
+  end
+end
+
+class SymbolStreamsTestChannel < ActionCable::Channel::Base
+  def subscribed
+    stream_from :my_room
+  end
+end
+
+class SymbolStreamsTestChannelTest < ActionCable::Channel::TestCase
+  def test_assert_has_stream_with_symbol_broadcasting
+    subscribe
+
+    # stream_from coerces the broadcasting with String(), so it is stored as a
+    # String; the assertion must coerce its argument the same way to match.
+    assert_equal ["my_room"], subscription.stream_names
+    assert_has_stream :my_room
+  end
+
+  def test_assert_has_no_stream_with_symbol_broadcasting
+    subscribe
+
+    # The stream is active, so asserting its absence must fail loudly rather
+    # than silently passing because the raw Symbol never matched the String key.
+    assert_raises(Minitest::Assertion) { assert_has_no_stream :my_room }
   end
 end
 
@@ -178,6 +214,12 @@ class PerformTestChannel < ActionCable::Channel::Base
 end
 
 class PerformTestChannelTest < ActionCable::Channel::TestCase
+  class Connection < ActionCable::Connection::Base
+    identified_by :user_id
+  end
+
+  tests_connection Connection
+
   def setup
     stub_connection user_id: 2016
     subscribe id: 5
@@ -206,6 +248,26 @@ class PerformUnsubscribedTestChannelTest < ActionCable::Channel::TestCase
   end
 end
 
+class SymbolBroadcastTestChannel < ActionCable::Channel::Base
+end
+
+class SymbolBroadcastTestChannelTest < ActionCable::Channel::TestCase
+  def test_assert_broadcasts_with_string_stream_name
+    # Control: a String stream name already works.
+    assert_broadcasts("my_room", 1) do
+      ActionCable.server.broadcast("my_room", { text: "hi" })
+    end
+  end
+
+  def test_assert_broadcasts_with_symbol_stream_name
+    # A Symbol naming a literal stream must be treated as that stream, like
+    # stream_from(:my_room) does, not scoped to the channel as a broadcastable.
+    assert_broadcasts(:my_room, 1) do
+      ActionCable.server.broadcast("my_room", { text: "hi" })
+    end
+  end
+end
+
 class BroadcastsTestChannel < ActionCable::Channel::Base
   def broadcast(data)
     ActionCable.server.broadcast(
@@ -222,6 +284,12 @@ class BroadcastsTestChannel < ActionCable::Channel::Base
 end
 
 class BroadcastsTestChannelTest < ActionCable::Channel::TestCase
+  class Connection < ActionCable::Connection::Base
+    identified_by :user_id
+  end
+
+  tests_connection Connection
+
   def setup
     stub_connection user_id: 2017
     subscribe id: 5
@@ -247,5 +315,48 @@ class BroadcastsTestChannelTest < ActionCable::Channel::TestCase
     assert_broadcast_on(user, text: "SOS") do
       perform :broadcast_to_user, message: "SOS"
     end
+  end
+end
+
+class PeriodicCounterChannel < ActionCable::Channel::Base
+  periodically :tick, every: 5
+
+  attr_reader :tick_count
+
+  def subscribed
+    @tick_count = 0
+  end
+
+  private
+    def tick
+      @tick_count += 1
+    end
+end
+
+class PeriodicCounterChannelTest < ActionCable::Channel::TestCase
+  tests PeriodicCounterChannel
+
+  def test_advance_time_fires_periodic_callback_when_interval_is_reached
+    subscribe
+    assert_equal 0, subscription.tick_count
+
+    advance_time 4
+    assert_equal 0, subscription.tick_count
+
+    advance_time 1
+    assert_equal 1, subscription.tick_count
+
+    advance_time 12
+    assert_equal 3, subscription.tick_count
+  end
+
+  def test_timer_stops_firing_after_unsubscribe
+    subscribe
+    advance_time 5
+    assert_equal 1, subscription.tick_count
+
+    unsubscribe
+    advance_time 100
+    assert_equal 1, subscription.tick_count
   end
 end

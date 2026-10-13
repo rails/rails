@@ -34,18 +34,39 @@ module ActiveRecord
     self.use_instantiated_fixtures = false
     self.use_transactional_tests = true
 
+    # Schema statements only run on the main Ractor's real connection, never
+    # through a proxied one. Like the adapter-specific test cases below, tests
+    # that emit DDL are left out of a ractor proxy run.
+    def self.skip_under_ractor_proxy(*tests)
+      return unless ractor_proxy?
+
+      if tests.empty?
+        define_singleton_method(:run) { |*| }
+      else
+        excluded = tests.map(&:to_s)
+        define_singleton_method(:runnable_methods) { super() - excluded }
+      end
+    end
+
     def after_teardown
       super
       check_connection_leaks
     end
 
-    def check_connection_leaks
+    def check_connection_leaks(connection_pools = nil)
       return if in_memory_db?
+
+      # Leak checking is physical-pool maintenance (reaper, owner threads);
+      # inspect the real pools, not the Ractor facades a self-proxy run
+      # resolves by default.
+      connection_pools ||= without_ractor_proxy do
+        ActiveRecord::Base.connection_handler.each_connection_pool.to_a
+      end
 
       # Make sure tests didn't leave a connection owned by some background thread
       # which could lead to some slow wait in a subsequent thread.
       leaked_conn = []
-      ActiveRecord::Base.connection_handler.each_connection_pool do |pool|
+      connection_pools.each do |pool|
         # Ensure all in flights tasks are completed.
         # Otherwise they may still hold a connection.
         if pool.async_executor
@@ -60,15 +81,20 @@ module ActiveRecord
           end
         end
 
-        pool.reap
-        pool.connections.each do |conn|
-          if conn.in_use?
-            if conn.owner != Fiber.current && conn.owner != Thread.current
-              leaked_conn << [conn.owner, conn.owner.backtrace]
-              conn.owner&.kill
+        # Avoid racing the pool reaper while it is performing maintenance.
+        pool.reaper_lock do
+          wait_for_pool_maintenance(pool)
+
+          pool.reap
+          pool.connections.each do |conn|
+            if conn.in_use?
+              if conn.owner != Fiber.current && conn.owner != Thread.current
+                leaked_conn << [conn.owner, conn.owner.backtrace]
+                conn.owner&.kill
+              end
+              conn.steal!
+              pool.checkin(conn)
             end
-            conn.steal!
-            pool.checkin(conn)
           end
         end
       end
@@ -81,6 +107,21 @@ module ActiveRecord
           puts
         end
         raise "Found #{leaked_conn.size} leaked connection after #{self.class.name}##{name}"
+      end
+    end
+
+    def wait_for_pool_maintenance(pool)
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
+
+      while Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
+        pool.synchronize do
+          executor = pool.async_executor
+
+          return if pool.instance_variable_get(:@maintaining).zero? &&
+            executor&.completed_task_count == executor&.scheduled_task_count
+        end
+
+        sleep 0.05
       end
     end
 
@@ -134,6 +175,19 @@ module ActiveRecord
     def assert_no_column(model, column_name, msg = nil)
       model.reset_column_information
       assert_not_includes model.column_names, column_name.to_s, msg
+    end
+
+    def assert_equal_unordered(expected, actual, message = nil)
+      expected = expected.to_a
+      actual = actual.to_a
+
+      unmatched = actual.dup
+      aligned = expected.each_with_object([]) do |element, result|
+        index = unmatched.index(element)
+        result << unmatched.delete_at(index) if index
+      end
+
+      assert_equal expected, aligned + unmatched, message
     end
 
     def with_has_many_inversing(model = ActiveRecord::Base)
@@ -192,7 +246,7 @@ module ActiveRecord
     end
 
     def with_temporary_connection_pool(&block)
-      pool_config = ActiveRecord::Base.connection_pool.pool_config
+      pool_config = without_ractor_proxy { ActiveRecord::Base.connection_pool }.pool_config
       new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new(pool_config)
 
       pool_config.stub(:pool, new_pool, &block)
@@ -212,7 +266,7 @@ module ActiveRecord
       adapter.remove_instance_variable(:@native_database_types) if adapter.instance_variable_defined?(:@native_database_types)
     end
 
-    def with_env_tz(new_tz = "US/Eastern")
+    def with_env_tz(new_tz = "America/New_York")
       old_tz, ENV["TZ"] = ENV["TZ"], new_tz
       yield
     ensure
@@ -250,7 +304,7 @@ module ActiveRecord
     # This method makes sure that tests don't leak global state related to time zones.
     EXPECTED_ZONE = nil
     EXPECTED_DEFAULT_TIMEZONE = :utc
-    EXPECTED_AWARE_TYPES = [:datetime, :time]
+    EXPECTED_AWARE_TYPES = [:datetime, :time].freeze
     EXPECTED_TIME_ZONE_AWARE_ATTRIBUTES = false
     def verify_default_timezone_config
       if Time.zone != EXPECTED_ZONE
@@ -288,15 +342,26 @@ module ActiveRecord
     end
 
     def clean_up_connection_handler
-      handler = ActiveRecord::Base.connection_handler
-      handler.instance_variable_get(:@connection_name_to_pool_manager).each do |owner, pool_manager|
+      # Physical pool-manager surgery: inspect the real pools, not the Ractor
+      # facades a self-proxy run resolves by default.
+      pool_managers = without_ractor_proxy do
+        ActiveRecord::Base.connection_handler.send(:connection_name_to_pool_manager)
+      end
+      removed_pool_configs = []
+
+      pool_managers.each do |owner, pool_manager|
         pool_manager.role_names.each do |role_name|
           next if role_name == ActiveRecord::Base.default_role &&
                   # TODO: Remove this helper when `remove_connection` for different shards is fixed.
                   # See https://github.com/rails/rails/pull/49382.
                   ["ActiveRecord::Base", "ARUnit2Model", "Contact", "ContactSti"].include?(owner)
-          pool_manager.remove_role(role_name)
+          removed_pool_configs.concat(pool_manager.remove_role(role_name)&.values || [])
         end
+      end
+
+      remaining_pool_configs = pool_managers.values.flat_map(&:pool_configs)
+      removed_pool_configs.compact.uniq.each do |pool_config|
+        pool_config.disconnect! unless remaining_pool_configs.include?(pool_config)
       end
     end
 

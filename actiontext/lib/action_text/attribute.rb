@@ -91,12 +91,35 @@ module ActionText
         scope :"with_rich_text_#{name}_and_embeds", -> { includes("rich_text_#{name}": { embeds_attachments: :blob }) }
       end
 
-      # Eager load all dependent RichText models in bulk.
+      ##
+      # :method: with_rich_text_*
+      #
+      # Includes the RichText associations in your query to avoid N+1 queries.
+      #
+      # For example, include the RichText associations for "content":
+      #
+      #     Message.all.with_rich_text_content
+
+      ##
+      # :method: with_rich_text_*_and_embeds
+      #
+      # Includes the RichText associations and embedded attachments in your query to avoid N+1 queries.
+      #
+      # For example, include the RichText associations and embeds for "content":
+      #
+      #     Message.all.with_rich_text_content_and_embeds
+
+      # Includes all RichText associations in your query to avoid N+1 queries:
+      #
+      #     Message.all.with_all_rich_text
       def with_all_rich_text
         includes(rich_text_association_names)
       end
 
-      # Returns the names of all rich text associations.
+      # Returns the names of all RichText associations.
+      #
+      #     Message.rich_text_association_names
+      #     # => [:rich_text_content]
       def rich_text_association_names
         reflect_on_all_associations(:has_one).collect(&:name).select { |n| n.start_with?("rich_text_") }
       end

@@ -207,7 +207,61 @@ class ExecutorTest < ActiveSupport::TestCase
     assert_equal 1, completed_count
   end
 
+  def test_complete_runs_eagerly_on_websocket_upgrade
+    completed = false
+    executor.to_complete { completed = true }
+
+    app = proc { [101, { "upgrade" => "websocket", "connection" => "upgrade" }, []] }
+    env = Rack::MockRequest.env_for
+
+    status, _, body = unlinted_middleware(app).call(env)
+
+    assert_equal 101, status
+    assert completed, "executor state should be completed eagerly on WebSocket upgrade rather than waiting for body close"
+
+    body.close if body.respond_to?(:close)
+  end
+
+  def test_complete_runs_eagerly_on_full_rack_hijack
+    completed = false
+    executor.to_complete { completed = true }
+
+    hijack_io = IO.pipe.first
+    app = proc do |hijack_env|
+      hijack_env["rack.hijack_io"] = hijack_io
+      [200, {}, []]
+    end
+    env = Rack::MockRequest.env_for
+
+    unlinted_middleware(app).call(env)
+
+    assert completed, "executor state should be completed eagerly when the app installs rack.hijack_io"
+  ensure
+    hijack_io&.close
+  end
+
+  def test_complete_runs_once_when_hijack_response_also_registers_response_finished
+    completed_count = 0
+    executor.to_complete { completed_count += 1 }
+
+    app = proc { [101, { "upgrade" => "websocket", "connection" => "upgrade" }, []] }
+    env = Rack::MockRequest.env_for
+    env["rack.response_finished"] = []
+
+    unlinted_middleware(app).call(env)
+
+    assert_equal 1, completed_count, "eager hijack completion should mark the executor done"
+
+    env["rack.response_finished"].each { |cb| cb.call(env, 101, {}, nil) }
+
+    assert_equal 1, completed_count, "the response_finished callback must not run a second complete!"
+  end
+
   private
+    def unlinted_middleware(inner_app)
+      ActionDispatch::Executor.new(inner_app, executor)
+    end
+
     def call_and_return_body(env = Rack::MockRequest.env_for, &block)
       app = block || proc { [200, {}, []] }
       _, _, body = middleware(app).call(env)

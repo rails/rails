@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -9,7 +10,7 @@ module ActionView
 
           if options["autosave"]
             if options["autosave"] == true
-              options["autosave"] = request.host.split(".").reverse.join(".")
+              options["autosave"] = @template_object.request.host.split(".").reverse.join(".")
             end
             options["results"] ||= 10
           end

@@ -14,7 +14,7 @@ module ActiveRecord
         end
 
         def teardown
-          reset_connection
+          reset_pool
         end
 
         def test_boolean_types

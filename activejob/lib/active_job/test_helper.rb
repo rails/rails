@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/class/subclasses"
 require "active_support/testing/assertions"
 
@@ -12,42 +13,72 @@ module ActiveJob
 
     include ActiveSupport::Testing::Assertions
 
-    module TestQueueAdapter
-      extend ActiveSupport::Concern
+    module TestQueueAdapter # :nodoc:
+      @excluded_jobs = Set.new
+      @cache = {}
+      @adapters = {}
 
-      included do
-        class_attribute :_test_adapter, instance_accessor: false, instance_predicate: false
+      class << self
+        attr_accessor :test_adapter
+        attr_reader :excluded_jobs
+
+        def excluded?(job)
+          @cache.fetch(job) do
+            @cache[job] = compute_excluded(job)
+          end
+        end
+
+        def exclude(job)
+          excluded_jobs << job
+          @cache.clear
+        end
+
+        def reset
+          excluded_jobs.clear
+          @cache.clear
+          @adapters.clear
+          @test_adapter = nil
+          @default_test_adapter = nil
+        end
+
+        def adapter_for(job)
+          return if excluded?(job)
+
+          if test_adapter
+            test_adapter
+          elsif @adapters[job]
+            @adapters[job]
+          elsif job._queue_adapter.nil?
+            @default_test_adapter ||= ActiveJob::QueueAdapters::TestAdapter.new
+            @adapters[job] ||= @default_test_adapter
+          end
+        end
+
+        private
+          def compute_excluded(job)
+            while job <= ActiveJob::Base
+              return true if excluded_jobs.include?(job)
+              job = job.superclass
+            end
+            false
+          end
       end
 
-      module ClassMethods
-        def queue_adapter
-          self._test_adapter.nil? ? super : self._test_adapter
-        end
+      def queue_adapter
+        TestQueueAdapter.adapter_for(self) || super
+      end
 
-        def disable_test_adapter
-          self._test_adapter = nil
-        end
-
-        def enable_test_adapter(test_adapter)
-          self._test_adapter = test_adapter
-        end
+      def disable_test_adapter
+        TestQueueAdapter.exclude(self)
       end
     end
 
     ActiveSupport.on_load(:active_job) do
-      ActiveJob::Base.include(TestQueueAdapter)
+      ActiveJob::Base.extend(TestQueueAdapter)
     end
 
     def before_setup # :nodoc:
-      queue_adapter_specific_to_this_test_class = queue_adapter_for_test
-      queue_adapter_changed_jobs.each do |klass|
-        if queue_adapter_specific_to_this_test_class
-          klass.enable_test_adapter(queue_adapter_specific_to_this_test_class)
-        elsif klass._queue_adapter.nil?
-          klass.enable_test_adapter(ActiveJob::QueueAdapters::TestAdapter.new)
-        end
-      end
-
+      TestQueueAdapter.test_adapter = queue_adapter_for_test
       clear_enqueued_jobs
       clear_performed_jobs
       super
@@ -56,7 +87,7 @@ module ActiveJob
     def after_teardown # :nodoc:
       super
 
-      queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
+      TestQueueAdapter.reset
     end
 
     # Returns a queue adapter instance to use with all Active Job test helpers.
@@ -68,57 +99,67 @@ module ActiveJob
 
     # Asserts that the number of enqueued jobs matches the given number.
     #
-    #   def test_jobs
-    #     assert_enqueued_jobs 0
-    #     HelloJob.perform_later('david')
-    #     assert_enqueued_jobs 1
-    #     HelloJob.perform_later('abdelkader')
-    #     assert_enqueued_jobs 2
-    #   end
+    # ```
+    # def test_jobs
+    #   assert_enqueued_jobs 0
+    #   HelloJob.perform_later('david')
+    #   assert_enqueued_jobs 1
+    #   HelloJob.perform_later('abdelkader')
+    #   assert_enqueued_jobs 2
+    # end
+    # ```
     #
     # If a block is passed, asserts that the block will cause the specified number of
     # jobs to be enqueued.
     #
-    #   def test_jobs_again
-    #     assert_enqueued_jobs 1 do
-    #       HelloJob.perform_later('cristian')
-    #     end
-    #
-    #     assert_enqueued_jobs 2 do
-    #       HelloJob.perform_later('aaron')
-    #       HelloJob.perform_later('rafael')
-    #     end
+    # ```
+    # def test_jobs_again
+    #   assert_enqueued_jobs 1 do
+    #     HelloJob.perform_later('cristian')
     #   end
     #
-    # Asserts the number of times a specific job was enqueued by passing +:only+ option.
-    #
-    #   def test_logging_job
-    #     assert_enqueued_jobs 1, only: LoggingJob do
-    #       LoggingJob.perform_later
-    #       HelloJob.perform_later('jeremy')
-    #     end
+    #   assert_enqueued_jobs 2 do
+    #     HelloJob.perform_later('aaron')
+    #     HelloJob.perform_later('rafael')
     #   end
+    # end
+    # ```
     #
-    # Asserts the number of times a job except specific class was enqueued by passing +:except+ option.
+    # Asserts the number of times a specific job was enqueued by passing `:only` option.
     #
-    #   def test_logging_job
-    #     assert_enqueued_jobs 1, except: HelloJob do
-    #       LoggingJob.perform_later
-    #       HelloJob.perform_later('jeremy')
-    #     end
+    # ```
+    # def test_logging_job
+    #   assert_enqueued_jobs 1, only: LoggingJob do
+    #     LoggingJob.perform_later
+    #     HelloJob.perform_later('jeremy')
     #   end
+    # end
+    # ```
     #
-    # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
+    # Asserts the number of times a job except specific class was enqueued by passing `:except` option.
+    #
+    # ```
+    # def test_logging_job
+    #   assert_enqueued_jobs 1, except: HelloJob do
+    #     LoggingJob.perform_later
+    #     HelloJob.perform_later('jeremy')
+    #   end
+    # end
+    # ```
+    #
+    # `:only` and `:except` options accept Class, Array of Class, or Proc. When passed a Proc,
     # a hash containing the job's class and its argument are passed as argument.
     #
-    # Asserts the number of times a job is enqueued to a specific queue by passing +:queue+ option.
+    # Asserts the number of times a job is enqueued to a specific queue by passing `:queue` option.
     #
-    #   def test_logging_job
-    #     assert_enqueued_jobs 2, queue: 'default' do
-    #       LoggingJob.perform_later
-    #       HelloJob.perform_later('elfassy')
-    #     end
+    # ```
+    # def test_logging_job
+    #   assert_enqueued_jobs 2, queue: 'default' do
+    #     LoggingJob.perform_later
+    #     HelloJob.perform_later('elfassy')
     #   end
+    # end
+    # ```
     def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil, &block)
       require_active_job_test_adapter!("assert_enqueued_jobs")
 
@@ -139,50 +180,62 @@ module ActiveJob
 
     # Asserts that no jobs have been enqueued.
     #
-    #   def test_jobs
-    #     assert_no_enqueued_jobs
-    #     HelloJob.perform_later('jeremy')
-    #     assert_enqueued_jobs 1
-    #   end
+    # ```
+    # def test_jobs
+    #   assert_no_enqueued_jobs
+    #   HelloJob.perform_later('jeremy')
+    #   assert_enqueued_jobs 1
+    # end
+    # ```
     #
     # If a block is passed, asserts that the block will not cause any job to be enqueued.
     #
-    #   def test_jobs_again
-    #     assert_no_enqueued_jobs do
-    #       # No job should be enqueued from this block
-    #     end
+    # ```
+    # def test_jobs_again
+    #   assert_no_enqueued_jobs do
+    #     # No job should be enqueued from this block
     #   end
+    # end
+    # ```
     #
-    # Asserts that no jobs of a specific kind are enqueued by passing +:only+ option.
+    # Asserts that no jobs of a specific kind are enqueued by passing `:only` option.
     #
-    #   def test_no_logging
-    #     assert_no_enqueued_jobs only: LoggingJob do
-    #       HelloJob.perform_later('jeremy')
-    #     end
+    # ```
+    # def test_no_logging
+    #   assert_no_enqueued_jobs only: LoggingJob do
+    #     HelloJob.perform_later('jeremy')
     #   end
+    # end
+    # ```
     #
-    # Asserts that no jobs except specific class are enqueued by passing +:except+ option.
+    # Asserts that no jobs except specific class are enqueued by passing `:except` option.
     #
-    #   def test_no_logging
-    #     assert_no_enqueued_jobs except: HelloJob do
-    #       HelloJob.perform_later('jeremy')
-    #     end
+    # ```
+    # def test_no_logging
+    #   assert_no_enqueued_jobs except: HelloJob do
+    #     HelloJob.perform_later('jeremy')
     #   end
+    # end
+    # ```
     #
-    # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
+    # `:only` and `:except` options accept Class, Array of Class, or Proc. When passed a Proc,
     # a hash containing the job's class and its argument are passed as argument.
     #
-    # Asserts that no jobs are enqueued to a specific queue by passing +:queue+ option
+    # Asserts that no jobs are enqueued to a specific queue by passing `:queue` option
     #
-    #   def test_no_logging
-    #     assert_no_enqueued_jobs queue: 'default' do
-    #       LoggingJob.set(queue: :some_queue).perform_later
-    #     end
+    # ```
+    # def test_no_logging
+    #   assert_no_enqueued_jobs queue: 'default' do
+    #     LoggingJob.set(queue: :some_queue).perform_later
     #   end
+    # end
+    # ```
     #
     # Note: This assertion is simply a shortcut for:
     #
-    #   assert_enqueued_jobs 0, &block
+    # ```
+    # assert_enqueued_jobs 0, &block
+    # ```
     def assert_no_enqueued_jobs(only: nil, except: nil, queue: nil, &block)
       require_active_job_test_adapter!("assert_no_enqueued_jobs")
 
@@ -190,91 +243,105 @@ module ActiveJob
     end
 
     # Asserts that the number of performed jobs matches the given number.
-    # If no block is passed, <tt>perform_enqueued_jobs</tt>
+    # If no block is passed, `perform_enqueued_jobs`
     # must be called around or after the job call.
     #
-    #   def test_jobs
-    #     assert_performed_jobs 0
+    # ```
+    # def test_jobs
+    #   assert_performed_jobs 0
     #
-    #     perform_enqueued_jobs do
-    #       HelloJob.perform_later('xavier')
-    #     end
-    #     assert_performed_jobs 1
-    #
-    #     HelloJob.perform_later('yves')
-    #
-    #     perform_enqueued_jobs
-    #
-    #     assert_performed_jobs 2
+    #   perform_enqueued_jobs do
+    #     HelloJob.perform_later('xavier')
     #   end
+    #   assert_performed_jobs 1
+    #
+    #   HelloJob.perform_later('yves')
+    #
+    #   perform_enqueued_jobs
+    #
+    #   assert_performed_jobs 2
+    # end
+    # ```
     #
     # If a block is passed, asserts that the block will cause the specified number of
     # jobs to be performed.
     #
-    #   def test_jobs_again
-    #     assert_performed_jobs 1 do
-    #       HelloJob.perform_later('robin')
-    #     end
-    #
-    #     assert_performed_jobs 2 do
-    #       HelloJob.perform_later('carlos')
-    #       HelloJob.perform_later('sean')
-    #     end
+    # ```
+    # def test_jobs_again
+    #   assert_performed_jobs 1 do
+    #     HelloJob.perform_later('robin')
     #   end
     #
-    # This method also supports filtering. If the +:only+ option is specified,
+    #   assert_performed_jobs 2 do
+    #     HelloJob.perform_later('carlos')
+    #     HelloJob.perform_later('sean')
+    #   end
+    # end
+    # ```
+    #
+    # This method also supports filtering. If the `:only` option is specified,
     # then only the listed job(s) will be performed.
     #
-    #     def test_hello_job
-    #       assert_performed_jobs 1, only: HelloJob do
-    #         HelloJob.perform_later('jeremy')
-    #         LoggingJob.perform_later
-    #       end
-    #     end
+    # ```
+    # def test_hello_job
+    #   assert_performed_jobs 1, only: HelloJob do
+    #     HelloJob.perform_later('jeremy')
+    #     LoggingJob.perform_later
+    #   end
+    # end
+    # ```
     #
-    # Also if the +:except+ option is specified,
+    # Also if the `:except` option is specified,
     # then the job(s) except specific class will be performed.
     #
-    #     def test_hello_job
-    #       assert_performed_jobs 1, except: LoggingJob do
-    #         HelloJob.perform_later('jeremy')
-    #         LoggingJob.perform_later
-    #       end
-    #     end
+    # ```
+    # def test_hello_job
+    #   assert_performed_jobs 1, except: LoggingJob do
+    #     HelloJob.perform_later('jeremy')
+    #     LoggingJob.perform_later
+    #   end
+    # end
+    # ```
     #
     # An array may also be specified, to support testing multiple jobs.
     #
-    #     def test_hello_and_logging_jobs
-    #       assert_nothing_raised do
-    #         assert_performed_jobs 2, only: [HelloJob, LoggingJob] do
-    #           HelloJob.perform_later('jeremy')
-    #           LoggingJob.perform_later('stewie')
-    #           RescueJob.perform_later('david')
-    #         end
-    #       end
+    # ```
+    # def test_hello_and_logging_jobs
+    #   assert_nothing_raised do
+    #     assert_performed_jobs 2, only: [HelloJob, LoggingJob] do
+    #       HelloJob.perform_later('jeremy')
+    #       LoggingJob.perform_later('stewie')
+    #       RescueJob.perform_later('david')
     #     end
+    #   end
+    # end
+    # ```
     #
     # A proc may also be specified. When passed a Proc, the job's instance will be passed as argument.
     #
-    #     def test_hello_and_logging_jobs
-    #       assert_nothing_raised do
-    #         assert_performed_jobs(1, only: ->(job) { job.is_a?(HelloJob) }) do
-    #           HelloJob.perform_later('jeremy')
-    #           LoggingJob.perform_later('stewie')
-    #           RescueJob.perform_later('david')
-    #         end
-    #       end
+    # ```
+    # def test_hello_and_logging_jobs
+    #   assert_nothing_raised do
+    #     assert_performed_jobs(1, only: ->(job) { job.is_a?(HelloJob) }) do
+    #       HelloJob.perform_later('jeremy')
+    #       LoggingJob.perform_later('stewie')
+    #       RescueJob.perform_later('david')
     #     end
+    #   end
+    # end
+    # ```
     #
-    # If the +:queue+ option is specified,
+    # If the `:queue` option is specified,
     # then only the job(s) enqueued to a specific queue will be performed.
     #
-    #     def test_assert_performed_jobs_with_queue_option
-    #       assert_performed_jobs 1, queue: :some_queue do
-    #         HelloJob.set(queue: :some_queue).perform_later("jeremy")
-    #         HelloJob.set(queue: :other_queue).perform_later("bogdan")
-    #       end
-    #     end
+    # ```
+    # def test_assert_performed_jobs_with_queue_option
+    #   assert_performed_jobs 1, queue: :some_queue do
+    #     HelloJob.set(queue: :some_queue).perform_later("jeremy")
+    #     HelloJob.set(queue: :other_queue).perform_later("bogdan")
+    #   end
+    # end
+    # ```
     def assert_performed_jobs(number, only: nil, except: nil, queue: nil, &block)
       require_active_job_test_adapter!("assert_performed_jobs")
 
@@ -295,56 +362,68 @@ module ActiveJob
 
     # Asserts that no jobs have been performed.
     #
-    #   def test_jobs
-    #     assert_no_performed_jobs
+    # ```
+    # def test_jobs
+    #   assert_no_performed_jobs
     #
-    #     perform_enqueued_jobs do
-    #       HelloJob.perform_later('matthew')
-    #       assert_performed_jobs 1
-    #     end
+    #   perform_enqueued_jobs do
+    #     HelloJob.perform_later('matthew')
+    #     assert_performed_jobs 1
     #   end
+    # end
+    # ```
     #
     # If a block is passed, asserts that the block will not cause any job to be performed.
     #
-    #   def test_jobs_again
-    #     assert_no_performed_jobs do
-    #       # No job should be performed from this block
-    #     end
+    # ```
+    # def test_jobs_again
+    #   assert_no_performed_jobs do
+    #     # No job should be performed from this block
     #   end
+    # end
+    # ```
     #
-    # The block form supports filtering. If the +:only+ option is specified,
+    # The block form supports filtering. If the `:only` option is specified,
     # then only the listed job(s) will not be performed.
     #
-    #   def test_no_logging
-    #     assert_no_performed_jobs only: LoggingJob do
-    #       HelloJob.perform_later('jeremy')
-    #     end
+    # ```
+    # def test_no_logging
+    #   assert_no_performed_jobs only: LoggingJob do
+    #     HelloJob.perform_later('jeremy')
     #   end
+    # end
+    # ```
     #
-    # Also if the +:except+ option is specified,
+    # Also if the `:except` option is specified,
     # then the job(s) except specific class will not be performed.
     #
-    #   def test_no_logging
-    #     assert_no_performed_jobs except: HelloJob do
-    #       HelloJob.perform_later('jeremy')
-    #     end
+    # ```
+    # def test_no_logging
+    #   assert_no_performed_jobs except: HelloJob do
+    #     HelloJob.perform_later('jeremy')
     #   end
+    # end
+    # ```
     #
-    # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
+    # `:only` and `:except` options accept Class, Array of Class, or Proc. When passed a Proc,
     # an instance of the job will be passed as argument.
     #
-    # If the +:queue+ option is specified,
+    # If the `:queue` option is specified,
     # then only the job(s) enqueued to a specific queue will not be performed.
     #
-    #   def test_assert_no_performed_jobs_with_queue_option
-    #     assert_no_performed_jobs queue: :some_queue do
-    #       HelloJob.set(queue: :other_queue).perform_later("jeremy")
-    #     end
+    # ```
+    # def test_assert_no_performed_jobs_with_queue_option
+    #   assert_no_performed_jobs queue: :some_queue do
+    #     HelloJob.set(queue: :other_queue).perform_later("jeremy")
     #   end
+    # end
+    # ```
     #
     # Note: This assertion is simply a shortcut for:
     #
-    #   assert_performed_jobs 0, &block
+    # ```
+    # assert_performed_jobs 0, &block
+    # ```
     def assert_no_performed_jobs(only: nil, except: nil, queue: nil, &block)
       require_active_job_test_adapter!("assert_no_performed_jobs")
 
@@ -353,62 +432,71 @@ module ActiveJob
 
     # Asserts that the job has been enqueued with the given arguments.
     #
-    #   def test_assert_enqueued_with
-    #     MyJob.perform_later(1,2,3)
-    #     assert_enqueued_with(job: MyJob, args: [1,2,3])
+    # ```
+    # def test_assert_enqueued_with
+    #   MyJob.perform_later(1,2,3)
+    #   assert_enqueued_with(job: MyJob, args: [1,2,3])
     #
-    #     MyJob.set(wait_until: Date.tomorrow.noon, queue: "my_queue").perform_later
-    #     assert_enqueued_with(at: Date.tomorrow.noon, queue: "my_queue")
-    #   end
+    #   MyJob.set(wait_until: Date.tomorrow.noon, queue: "my_queue").perform_later
+    #   assert_enqueued_with(at: Date.tomorrow.noon, queue: "my_queue")
+    # end
+    # ```
     #
     # For keyword arguments, specify them as a hash inside an array:
     #
-    #   def test_assert_enqueued_with_keyword_arguments
-    #     MyJob.perform_later(arg1: 'value1', arg2: 'value2')
-    #     assert_enqueued_with(job: MyJob, args: [{ arg1: 'value1', arg2: 'value2' }])
-    #   end
+    # ```
+    # def test_assert_enqueued_with_keyword_arguments
+    #   MyJob.perform_later(arg1: 'value1', arg2: 'value2')
+    #   assert_enqueued_with(job: MyJob, args: [{ arg1: 'value1', arg2: 'value2' }])
+    # end
+    # ```
     #
     # The given arguments may also be specified as matcher procs that return a
     # boolean value indicating whether a job's attribute meets certain criteria.
     #
     # For example, a proc can be used to match a range of times:
     #
-    #   def test_assert_enqueued_with
-    #     at_matcher = ->(job_at) { (Date.yesterday..Date.tomorrow).cover?(job_at) }
+    # ```
+    # def test_assert_enqueued_with
+    #   at_matcher = ->(job_at) { (Date.yesterday..Date.tomorrow).cover?(job_at) }
     #
-    #     MyJob.set(wait_until: Date.today.noon).perform_later
+    #   MyJob.set(wait_until: Date.today.noon).perform_later
     #
-    #     assert_enqueued_with(job: MyJob, at: at_matcher)
-    #   end
+    #   assert_enqueued_with(job: MyJob, at: at_matcher)
+    # end
+    # ```
     #
     # A proc can also be used to match a subset of a job's args:
     #
-    #   def test_assert_enqueued_with
-    #     args_matcher = ->(job_args) { job_args[0].key?(:foo) }
+    # ```
+    # def test_assert_enqueued_with
+    #   args_matcher = ->(job_args) { job_args[0].key?(:foo) }
     #
-    #     MyJob.perform_later(foo: "bar", other_arg: "No need to check in the test")
+    #   MyJob.perform_later(foo: "bar", other_arg: "No need to check in the test")
     #
-    #     assert_enqueued_with(job: MyJob, args: args_matcher)
-    #   end
+    #   assert_enqueued_with(job: MyJob, args: args_matcher)
+    # end
+    # ```
     #
     # If a block is passed, asserts that the block will cause the job to be
     # enqueued with the given arguments.
     #
-    #   def test_assert_enqueued_with
-    #     assert_enqueued_with(job: MyJob, args: [1,2,3]) do
-    #       MyJob.perform_later(1,2,3)
-    #     end
-    #
-    #     assert_enqueued_with(job: MyJob, at: Date.tomorrow.noon) do
-    #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
-    #     end
+    # ```
+    # def test_assert_enqueued_with
+    #   assert_enqueued_with(job: MyJob, args: [1,2,3]) do
+    #     MyJob.perform_later(1,2,3)
     #   end
+    #
+    #   assert_enqueued_with(job: MyJob, at: Date.tomorrow.noon) do
+    #     MyJob.set(wait_until: Date.tomorrow.noon).perform_later
+    #   end
+    # end
+    # ```
     def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
       require_active_job_test_adapter!("assert_enqueued_with")
 
       expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
-      potential_matches = []
 
       if block_given?
         original_enqueued_jobs = enqueued_jobs.dup
@@ -420,22 +508,7 @@ module ActiveJob
         jobs = enqueued_jobs
       end
 
-      matching_job = jobs.find do |enqueued_job|
-        deserialized_job = deserialize_args_for_assertion(enqueued_job)
-        potential_matches << deserialized_job
-
-        expected_args.all? do |key, value|
-          if value.respond_to?(:call)
-            value.call(deserialized_job[key])
-          else
-            value == deserialized_job[key]
-          end
-        end
-      end
-
-      matching_class = potential_matches.select do |enqueued_job|
-        enqueued_job["job_class"] == job.to_s
-      end
+      matching_job, potential_matches, matching_class = find_matching_job(jobs, expected_args, job)
 
       message = +"No enqueued job found with #{expected}"
       if potential_matches.empty?
@@ -453,66 +526,73 @@ module ActiveJob
 
     # Asserts that the job has been performed with the given arguments.
     #
-    #   def test_assert_performed_with
-    #     MyJob.perform_later(1,2,3)
+    # ```
+    # def test_assert_performed_with
+    #   MyJob.perform_later(1,2,3)
     #
-    #     perform_enqueued_jobs
+    #   perform_enqueued_jobs
     #
-    #     assert_performed_with(job: MyJob, args: [1,2,3])
+    #   assert_performed_with(job: MyJob, args: [1,2,3])
     #
-    #     MyJob.set(wait_until: Date.tomorrow.noon, queue: "my_queue").perform_later
+    #   MyJob.set(wait_until: Date.tomorrow.noon, queue: "my_queue").perform_later
     #
-    #     perform_enqueued_jobs
+    #   perform_enqueued_jobs
     #
-    #     assert_performed_with(at: Date.tomorrow.noon, queue: "my_queue")
-    #   end
+    #   assert_performed_with(at: Date.tomorrow.noon, queue: "my_queue")
+    # end
+    # ```
     #
     # The given arguments may also be specified as matcher procs that return a
     # boolean value indicating whether a job's attribute meets certain criteria.
     #
     # For example, a proc can be used to match a range of times:
     #
-    #   def test_assert_performed_with
-    #     at_matcher = ->(job_at) { (Date.yesterday..Date.tomorrow).cover?(job_at) }
+    # ```
+    # def test_assert_performed_with
+    #   at_matcher = ->(job_at) { (Date.yesterday..Date.tomorrow).cover?(job_at) }
     #
-    #     MyJob.set(wait_until: Date.today.noon).perform_later
+    #   MyJob.set(wait_until: Date.today.noon).perform_later
     #
-    #     perform_enqueued_jobs
+    #   perform_enqueued_jobs
     #
-    #     assert_performed_with(job: MyJob, at: at_matcher)
-    #   end
+    #   assert_performed_with(job: MyJob, at: at_matcher)
+    # end
+    # ```
     #
     # A proc can also be used to match a subset of a job's args:
     #
-    #   def test_assert_performed_with
-    #     args_matcher = ->(job_args) { job_args[0].key?(:foo) }
+    # ```
+    # def test_assert_performed_with
+    #   args_matcher = ->(job_args) { job_args[0].key?(:foo) }
     #
-    #     MyJob.perform_later(foo: "bar", other_arg: "No need to check in the test")
+    #   MyJob.perform_later(foo: "bar", other_arg: "No need to check in the test")
     #
-    #     perform_enqueued_jobs
+    #   perform_enqueued_jobs
     #
-    #     assert_performed_with(job: MyJob, args: args_matcher)
-    #   end
+    #   assert_performed_with(job: MyJob, args: args_matcher)
+    # end
+    # ```
     #
     # If a block is passed, that block performs all of the jobs that were
     # enqueued throughout the duration of the block and asserts that
     # the job has been performed with the given arguments in the block.
     #
-    #   def test_assert_performed_with
-    #     assert_performed_with(job: MyJob, args: [1,2,3]) do
-    #       MyJob.perform_later(1,2,3)
-    #     end
-    #
-    #     assert_performed_with(job: MyJob, at: Date.tomorrow.noon) do
-    #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
-    #     end
+    # ```
+    # def test_assert_performed_with
+    #   assert_performed_with(job: MyJob, args: [1,2,3]) do
+    #     MyJob.perform_later(1,2,3)
     #   end
+    #
+    #   assert_performed_with(job: MyJob, at: Date.tomorrow.noon) do
+    #     MyJob.set(wait_until: Date.tomorrow.noon).perform_later
+    #   end
+    # end
+    # ```
     def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, priority: nil, &block)
       require_active_job_test_adapter!("assert_performed_with")
 
       expected = { job: job, args: args, at: at, queue: queue, priority: priority }.compact
       expected_args = prepare_args_for_assertion(expected)
-      potential_matches = []
 
       if block_given?
         original_performed_jobs_count = performed_jobs.count
@@ -524,22 +604,7 @@ module ActiveJob
         jobs = performed_jobs
       end
 
-      matching_job = jobs.find do |enqueued_job|
-        deserialized_job = deserialize_args_for_assertion(enqueued_job)
-        potential_matches << deserialized_job
-
-        expected_args.all? do |key, value|
-          if value.respond_to?(:call)
-            value.call(deserialized_job[key])
-          else
-            value == deserialized_job[key]
-          end
-        end
-      end
-
-      matching_class = potential_matches.select do |enqueued_job|
-        enqueued_job["job_class"] == job.to_s
-      end
+      matching_job, potential_matches, matching_class = find_matching_job(jobs, expected_args, job)
 
       message = +"No performed job found with #{expected}"
       if potential_matches.empty?
@@ -560,63 +625,71 @@ module ActiveJob
     # that were enqueued throughout the duration of the block. If a block is
     # not given, performs all of the enqueued jobs up to this point in the test.
     #
-    #   def test_perform_enqueued_jobs
-    #     perform_enqueued_jobs do
-    #       MyJob.perform_later(1, 2, 3)
-    #     end
-    #     assert_performed_jobs 1
-    #   end
-    #
-    #   def test_perform_enqueued_jobs_without_block
+    # ```
+    # def test_perform_enqueued_jobs
+    #   perform_enqueued_jobs do
     #     MyJob.perform_later(1, 2, 3)
-    #
-    #     perform_enqueued_jobs
-    #
-    #     assert_performed_jobs 1
     #   end
+    #   assert_performed_jobs 1
+    # end
     #
-    # This method also supports filtering. If the +:only+ option is specified,
+    # def test_perform_enqueued_jobs_without_block
+    #   MyJob.perform_later(1, 2, 3)
+    #
+    #   perform_enqueued_jobs
+    #
+    #   assert_performed_jobs 1
+    # end
+    # ```
+    #
+    # This method also supports filtering. If the `:only` option is specified,
     # then only the listed job(s) will be performed.
     #
-    #   def test_perform_enqueued_jobs_with_only
-    #     perform_enqueued_jobs(only: MyJob) do
-    #       MyJob.perform_later(1, 2, 3) # will be performed
-    #       HelloJob.perform_later(1, 2, 3) # will not be performed
-    #     end
-    #     assert_performed_jobs 1
+    # ```
+    # def test_perform_enqueued_jobs_with_only
+    #   perform_enqueued_jobs(only: MyJob) do
+    #     MyJob.perform_later(1, 2, 3) # will be performed
+    #     HelloJob.perform_later(1, 2, 3) # will not be performed
     #   end
+    #   assert_performed_jobs 1
+    # end
+    # ```
     #
-    # Also if the +:except+ option is specified,
+    # Also if the `:except` option is specified,
     # then the job(s) except specific class will be performed.
     #
-    #   def test_perform_enqueued_jobs_with_except
-    #     perform_enqueued_jobs(except: HelloJob) do
-    #       MyJob.perform_later(1, 2, 3) # will be performed
-    #       HelloJob.perform_later(1, 2, 3) # will not be performed
-    #     end
-    #     assert_performed_jobs 1
+    # ```
+    # def test_perform_enqueued_jobs_with_except
+    #   perform_enqueued_jobs(except: HelloJob) do
+    #     MyJob.perform_later(1, 2, 3) # will be performed
+    #     HelloJob.perform_later(1, 2, 3) # will not be performed
     #   end
+    #   assert_performed_jobs 1
+    # end
+    # ```
     #
-    # +:only+ and +:except+ options accept Class, Array of Class, or Proc. When passed a Proc,
+    # `:only` and `:except` options accept Class, Array of Class, or Proc. When passed a Proc,
     # an instance of the job will be passed as argument.
     #
-    # If the +:queue+ option is specified,
+    # If the `:queue` option is specified,
     # then only the job(s) enqueued to a specific queue will be performed.
     #
-    #   def test_perform_enqueued_jobs_with_queue
-    #     perform_enqueued_jobs queue: :some_queue do
-    #       MyJob.set(queue: :some_queue).perform_later(1, 2, 3) # will be performed
-    #       HelloJob.set(queue: :other_queue).perform_later(1, 2, 3) # will not be performed
-    #     end
-    #     assert_performed_jobs 1
+    # ```
+    # def test_perform_enqueued_jobs_with_queue
+    #   perform_enqueued_jobs queue: :some_queue do
+    #     MyJob.set(queue: :some_queue).perform_later(1, 2, 3) # will be performed
+    #     HelloJob.set(queue: :other_queue).perform_later(1, 2, 3) # will not be performed
     #   end
+    #   assert_performed_jobs 1
+    # end
+    # ```
     #
-    # If the +:at+ option is specified, then only jobs that have been enqueued
+    # If the `:at` option is specified, then only jobs that have been enqueued
     # to run at or before the given time will be performed. This includes jobs
     # that have been enqueued without a time.
     #
     # If queue_adapter_for_test is overridden to return a different adapter,
-    # +perform_enqueued_jobs+ will merely execute the block.
+    # `perform_enqueued_jobs` will merely execute the block.
     def perform_enqueued_jobs(only: nil, except: nil, queue: nil, at: nil, &block)
       unless block_given?
         require_active_job_test_adapter!("perform_enqueued_jobs (without a block)")
@@ -655,9 +728,11 @@ module ActiveJob
 
     # Accesses the queue_adapter set by ActiveJob::Base.
     #
-    #   def test_assert_job_has_custom_queue_adapter_set
-    #     assert_instance_of CustomQueueAdapter, HelloJob.queue_adapter
-    #   end
+    # ```
+    # def test_assert_job_has_custom_queue_adapter_set
+    #   assert_instance_of CustomQueueAdapter, HelloJob.queue_adapter
+    # end
+    # ```
     def queue_adapter
       ActiveJob::Base.queue_adapter
     end
@@ -749,18 +824,34 @@ module ActiveJob
         end
       end
 
+      def find_matching_job(jobs, expected_args, job)
+        potential_matches = []
+
+        matching_job = jobs.find do |enqueued_job|
+          deserialized_job = deserialize_args_for_assertion(enqueued_job)
+          potential_matches << deserialized_job
+
+          expected_args.all? do |key, value|
+            if value.respond_to?(:call)
+              value.call(deserialized_job[key])
+            else
+              value == deserialized_job[key]
+            end
+          end
+        end
+
+        matching_class = potential_matches.select do |enqueued_job|
+          enqueued_job["job_class"] == job.to_s
+        end
+
+        [matching_job, potential_matches, matching_class]
+      end
+
       def instantiate_job(payload, skip_deserialize_arguments: false)
         job = payload[:job].deserialize(payload)
         job.scheduled_at = Time.at(payload[:at]) if payload.key?(:at)
         job.send(:deserialize_arguments_if_needed) unless skip_deserialize_arguments
         job
-      end
-
-      def queue_adapter_changed_jobs
-        (ActiveJob::Base.descendants << ActiveJob::Base).select do |klass|
-          # only override explicitly set adapters, a quirk of `class_attribute`
-          klass.singleton_class.public_instance_methods(false).include?(:_queue_adapter)
-        end
       end
 
       def validate_option(only: nil, except: nil)

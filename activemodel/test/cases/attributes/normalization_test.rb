@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/testing/ractors_assertions"
 
 class NormalizedAttributeTest < ActiveModel::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   class Aircraft
     include ActiveModel::API
     include ActiveModel::Attributes
@@ -88,6 +91,19 @@ class NormalizedAttributeTest < ActiveModel::TestCase
     assert_equal "Only Titlecase", NormalizedAircraft.normalize_value_for(:name, "ONLY titlecase")
   end
 
+  test "does not re-apply normalization on repeated validation" do
+    succ = Class.new(Aircraft) do
+      normalizes :name, with: -> name { name.succ }
+    end
+
+    aircraft = succ.new(name: "a")
+    assert_equal "b", aircraft.name
+
+    aircraft.valid?
+    aircraft.valid?
+    assert_equal "b", aircraft.name
+  end
+
   test "minimizes number of times normalization is applied" do
     count_applied = Class.new(Aircraft) do
       normalizes :name, with: -> name { name.succ }
@@ -101,5 +117,9 @@ class NormalizedAttributeTest < ActiveModel::TestCase
 
     aircraft.name.replace("0")
     assert_equal "0", aircraft.name
+  end
+
+  test ".normalized_attributes is ractor safe" do
+    assert_ractor_shareable NormalizedAircraft.normalized_attributes
   end
 end

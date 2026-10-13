@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/hash/slice"
 
 module ActiveModel
@@ -12,102 +13,133 @@ module ActiveModel
       #
       # Examples of using the default Rails validators:
       #
-      #   validates :username, absence: true
-      #   validates :terms, acceptance: true
-      #   validates :password, confirmation: true
-      #   validates :username, exclusion: { in: %w(admin superuser) }
-      #   validates :email, format: { with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i, on: :create }
-      #   validates :age, inclusion: { in: 0..9 }
-      #   validates :first_name, length: { maximum: 30 }
-      #   validates :age, numericality: true
-      #   validates :username, presence: true
+      # ```
+      # validates :username, absence: true
+      # validates :terms, acceptance: true
+      # validates :password, confirmation: true
+      # validates :username, exclusion: { in: %w(admin superuser) }
+      # validates :email, format: { with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i, on: :create }
+      # validates :age, inclusion: { in: 0..9 }
+      # validates :first_name, length: { maximum: 30 }
+      # validates :age, numericality: true
+      # validates :username, presence: true
+      # ```
       #
-      # The power of the +validates+ method comes when using custom validators
+      # The power of the `validates` method comes when using custom validators
       # and default validators in one call for a given attribute.
       #
-      #   class EmailValidator < ActiveModel::EachValidator
-      #     def validate_each(record, attribute, value)
-      #       record.errors.add attribute, (options[:message] || "is not an email") unless
-      #         /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i.match?(value)
-      #     end
+      # ```
+      # class EmailValidator < ActiveModel::EachValidator
+      #   def validate_each(record, attribute, value)
+      #     record.errors.add attribute, (options[:message] || "is not an email") unless
+      #       /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i.match?(value)
       #   end
+      # end
       #
-      #   class Person
-      #     include ActiveModel::Validations
-      #     attr_accessor :name, :email
+      # class Person
+      #   include ActiveModel::Validations
+      #   attr_accessor :name, :email
       #
-      #     validates :name, presence: true, length: { maximum: 100 }
-      #     validates :email, presence: true, email: true
-      #   end
+      #   validates :name, presence: true, length: { maximum: 100 }
+      #   validates :email, presence: true, email: true
+      # end
+      # ```
       #
       # Validator classes may also exist within the class being validated
       # allowing custom modules of validators to be included as needed.
       #
-      #   class Film
-      #     include ActiveModel::Validations
+      # ```
+      # class Film
+      #   include ActiveModel::Validations
       #
-      #     class TitleValidator < ActiveModel::EachValidator
-      #       def validate_each(record, attribute, value)
-      #         record.errors.add attribute, "must start with 'the'" unless /\Athe/i.match?(value)
-      #       end
+      #   class TitleValidator < ActiveModel::EachValidator
+      #     def validate_each(record, attribute, value)
+      #       record.errors.add attribute, "must start with 'the'" unless /\Athe/i.match?(value)
       #     end
-      #
-      #     validates :name, title: true
       #   end
+      #
+      #   validates :name, title: true
+      # end
+      # ```
       #
       # Additionally validator classes may be in another namespace and still
       # used within any class.
       #
-      #   validates :name, :'film/title' => true
+      # ```
+      # validates :name, :'film/title' => true
+      # ```
       #
       # The validators hash can also handle regular expressions, ranges, arrays
       # and strings in shortcut form.
       #
-      #   validates :email, format: /@/
-      #   validates :role, inclusion: %w(admin contributor)
-      #   validates :password, length: 6..20
+      # ```
+      # validates :email, format: /@/
+      # validates :role, inclusion: %w(admin contributor)
+      # validates :password, length: 6..20
+      # ```
       #
       # When using shortcut form, ranges and arrays are passed to your
-      # validator's initializer as <tt>options[:in]</tt> while other types
-      # including regular expressions and strings are passed as <tt>options[:with]</tt>.
+      # validator's initializer as `options[:in]` while other types
+      # including regular expressions and strings are passed as `options[:with]`.
       #
       # There is also a list of options that could be used along with validators:
       #
-      # * <tt>:on</tt> - Specifies the contexts where this validation is active.
-      #   Runs in all validation contexts by default +nil+. You can pass a symbol
-      #   or an array of symbols. (e.g. <tt>on: :create</tt> or
-      #   <tt>on: :custom_validation_context</tt> or
-      #   <tt>on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:except_on</tt> - Specifies the contexts where this validation is not active.
-      #   Runs in all validation contexts by default +nil+. You can pass a symbol
-      #   or an array of symbols. (e.g. <tt>except: :create</tt> or
-      #   <tt>except_on: :custom_validation_context</tt> or
-      #   <tt>except_on: [:create, :custom_validation_context]</tt>)
-      # * <tt>:if</tt> - Specifies a method, proc or string to call to determine
-      #   if the validation should occur (e.g. <tt>if: :allow_validation</tt>,
-      #   or <tt>if: Proc.new { |user| user.signup_step > 2 }</tt>). The method,
-      #   proc or string should return or evaluate to a +true+ or +false+ value.
-      # * <tt>:unless</tt> - Specifies a method, proc, or string to call to determine
-      #   if the validation should not occur (e.g. <tt>unless: :skip_validation</tt>,
-      #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
-      #   method, proc, or string should return or evaluate to a +true+ or
-      #   +false+ value.
-      # * <tt>:allow_nil</tt> - Skip validation if the attribute is +nil+.
-      # * <tt>:allow_blank</tt> - Skip validation if the attribute is blank.
-      # * <tt>:strict</tt> - If the <tt>:strict</tt> option is set to true
+      # * `:on` - Specifies the contexts where this validation is active.
+      #   Runs in all validation contexts by default `nil`. You can pass a symbol
+      #   or an array of symbols. (e.g. `on: :create` or
+      #   `on: :custom_validation_context` or
+      #   `on: [:create, :custom_validation_context]`)
+      # * `:except_on` - Specifies the contexts where this validation is not active.
+      #   Runs in all validation contexts by default `nil`. You can pass a symbol
+      #   or an array of symbols. (e.g. `except_on: :create` or
+      #   `except_on: :custom_validation_context` or
+      #   `except_on: [:create, :custom_validation_context]`)
+      # * `:if` - Specifies a method, proc or string to call to determine
+      #   if the validation should occur (e.g. `if: :allow_validation`,
+      #   or `if: Proc.new { |user| user.signup_step > 2 }`). The method,
+      #   proc or string should return or evaluate to a `true` or `false` value.
+      #   Multiple methods or procs can be passed as an array to check multiple
+      #   conditions, all of which must pass for validation to occur
+      #   (e.g. `if: [:allow_validation, Proc.new { |user| user.signup_step > 2 }]`)
+      # * `:unless` - Specifies a method, proc, or string to call to determine
+      #   if the validation should not occur (e.g. `unless: :skip_validation`,
+      #   or `unless: Proc.new { |user| user.signup_step <= 2 }`). The
+      #   method, proc, or string should return or evaluate to a `true` or
+      #   `false` value. Multiple methods or procs can be passed as an array to
+      #   check multiple conditions, all of which must pass for validation not to occur
+      #   (e.g. `unless: [:skip_validation, Proc.new { |user| user.signup_step <= 2 }]`)
+      # * `:allow_nil` - Skip validation if the attribute is `nil`.
+      # * `:allow_blank` - Skip validation if the attribute is blank.
+      # * `:strict` - If the `:strict` option is set to true
       #   will raise ActiveModel::StrictValidationFailed instead of adding the error.
-      #   <tt>:strict</tt> option can also be set to any other exception.
+      #   `:strict` option can also be set to any other exception.
       #
       # Example:
       #
-      #   validates :password, presence: true, confirmation: true, if: :password_required?
-      #   validates :token, length: { is: 24 }, strict: TokenLengthException
+      # ```
+      # validates :password, presence: true, confirmation: true, if: :password_required?
+      # validates :token, length: { is: 24 }, strict: TokenLengthException
+      # ```
       #
+      # Finally, the options `:if`, `:unless`, `:on`, `:allow_blank`, `:allow_nil`, `:strict`
+      # and `:message` can be given to one specific validator, as a hash:
       #
-      # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+, +:strict+
-      # and +:message+ can be given to one specific validator, as a hash:
+      # ```
+      # validates :password, presence: { if: :password_required?, message: 'is forgotten.' }, confirmation: true
+      # ```
       #
-      #   validates :password, presence: { if: :password_required?, message: 'is forgotten.' }, confirmation: true
+      # When `:if`, `:unless`, or `:on` appear at both the `validates` level and
+      # inside a specific validator's options, they are combined rather than the
+      # inner option replacing the outer one. All `:if` conditions must pass,
+      # any `:unless` condition will skip validation, and `:on` contexts are merged:
+      #
+      # ```
+      # validates :password, presence: { if: :local_check? }, if: :global_check?
+      # # Equivalent to: validates_presence_of :password, if: [:global_check?, :local_check?]
+      # ```
+      #
+      # Other per-validator options (`:allow_blank`, `:allow_nil`, `:strict`,
+      # `:message`) override the same option given at the `validates` level.
       def validates(*attributes)
         defaults = attributes.extract_options!.dup
         validations = defaults.slice!(*_validates_default_keys)
@@ -128,28 +160,30 @@ module ActiveModel
 
           next unless options
 
-          validates_with(validator, defaults.merge(_parse_validates_options(options)))
+          validates_with(validator, _merge_validates_options(defaults, _parse_validates_options(options)))
         end
       end
 
       # This method is used to define validations that cannot be corrected by end
       # users and are considered exceptional. So each validator defined with bang
-      # or <tt>:strict</tt> option set to <tt>true</tt> will always raise
+      # or `:strict` option set to `true` will always raise
       # ActiveModel::StrictValidationFailed instead of adding error
-      # when validation fails. See <tt>validates</tt> for more information about
+      # when validation fails. See `validates` for more information about
       # the validation itself.
       #
-      #   class Person
-      #     include ActiveModel::Validations
+      # ```
+      # class Person
+      #   include ActiveModel::Validations
       #
-      #     attr_accessor :name
-      #     validates! :name, presence: true
-      #   end
+      #   attr_accessor :name
+      #   validates! :name, presence: true
+      # end
       #
-      #   person = Person.new
-      #   person.name = ''
-      #   person.valid?
-      #   # => ActiveModel::StrictValidationFailed: Name can't be blank
+      # person = Person.new
+      # person.name = ''
+      # person.valid?
+      # # => ActiveModel::StrictValidationFailed: Name can't be blank
+      # ```
       def validates!(*attributes)
         options = attributes.extract_options!
         options[:strict] = true
@@ -161,6 +195,16 @@ module ActiveModel
       # additional default keys. This can be done by overwriting this method.
       def _validates_default_keys
         [:if, :unless, :on, :allow_blank, :allow_nil, :strict, :except_on]
+      end
+
+      def _merge_validates_options(defaults, validator_options)
+        defaults.merge(validator_options) do |key, default_val, validator_val|
+          if key == :if || key == :unless || key == :on
+            Array(default_val) + Array(validator_val)
+          else
+            validator_val
+          end
+        end
       end
 
       def _parse_validates_options(options)

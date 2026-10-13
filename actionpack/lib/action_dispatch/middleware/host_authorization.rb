@@ -20,7 +20,7 @@ module ActionDispatch
   # info if `config.consider_all_requests_local` is set to true, otherwise the
   # body is empty.
   class HostAuthorization
-    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", ".test", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")]
+    ALLOWED_HOSTS_IN_DEVELOPMENT = [".localhost", ".test", IPAddr.new("0.0.0.0/0"), IPAddr.new("::/0")].freeze
     PORT_REGEX = /(?::\d+)/ # :nodoc:
     SUBDOMAIN_REGEX = /(?:[a-z0-9-]+\.)/i # :nodoc:
     IPV4_HOSTNAME = /(?<host>\d+\.\d+\.\d+\.\d+)#{PORT_REGEX}?/ # :nodoc:
@@ -73,10 +73,11 @@ module ActionDispatch
         end
 
         def sanitize_string(host)
+          port = "#{PORT_REGEX}?" unless host.match?(/:\d+\z/)
           if host.start_with?(".")
-            /\A#{SUBDOMAIN_REGEX}?#{Regexp.escape(host[1..-1])}#{PORT_REGEX}?\z/i
+            /\A#{SUBDOMAIN_REGEX}?#{Regexp.escape(host[1..-1])}#{port}\z/i
           else
-            /\A#{Regexp.escape host}#{PORT_REGEX}?\z/i
+            /\A#{Regexp.escape host}#{port}\z/i
           end
         end
 

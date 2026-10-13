@@ -12,7 +12,7 @@ class ServerTest < ActiveSupport::TestCase
     server.start_worker("worker-1", 1234)
     assert server.active_workers?
 
-    server.stop_worker("worker-1", 1234)
+    server.stop_worker("worker-1")
     assert_not server.active_workers?
   end
 

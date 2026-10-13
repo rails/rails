@@ -27,7 +27,7 @@ module ActiveRecord
       self.class.reflect_on_all_associations.each do |r|
         if touch = r.options[:touch]
           if r.macro == :belongs_to
-            ActiveRecord::Associations::Builder::BelongsTo.touch_record(self, changes_to_save, r.foreign_key, r.name, touch)
+            ActiveRecord::Associations::Builder::BelongsTo.touch_record(self, :attribute_change_to_be_saved, r.name, touch)
           elsif r.macro == :has_one
             ActiveRecord::Associations::Builder::HasOne.touch_record(self, r.name, touch)
           end

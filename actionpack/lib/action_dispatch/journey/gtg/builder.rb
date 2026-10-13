@@ -10,7 +10,7 @@ module ActionDispatch
       class Builder # :nodoc:
         DUMMY_END_NODE = Nodes::Dummy.new
 
-        attr_reader :root, :ast, :endpoints
+        attr_reader :root, :ast
 
         def initialize(root)
           @root      = root

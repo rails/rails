@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+require "date"
+
 module ActiveJob
   module Serializers
     class DateTimeSerializer < TimeObjectSerializer # :nodoc:

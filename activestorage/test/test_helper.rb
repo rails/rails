@@ -88,6 +88,33 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.service = previous_service
     end
 
+    # libvips names its ImageMagick loader after the major version it was built
+    # against, and Vips.block does nothing for a name it cannot find, so pass both.
+    VIPS_MAGICK_LOADERS = %w( VipsForeignLoadMagick VipsForeignLoadMagick7 ).freeze
+    VIPS_SVG_LOADERS = %w( VipsForeignLoadSvg ).freeze
+
+    # libvips can set an operation's blocked state but not read it, so probe once here, before any
+    # test has had the chance to change it, by opening a file that only an unfuzzed loader reads.
+    VIPS_LOADERS_DISABLED_AT_BOOT =
+      if defined?(::Vips)
+        begin
+          ::Vips::Image.new_from_file(File.expand_path("fixtures/files/colors.bmp", __dir__))
+          false
+        rescue ::Vips::Error
+          true
+        end
+      else
+        true
+      end
+
+    def with_vips_loaders_enabled(*class_names)
+      class_names.each { |class_name| Vips.block(class_name, false) }
+
+      yield
+    ensure
+      class_names.each { |class_name| Vips.block(class_name, VIPS_LOADERS_DISABLED_AT_BOOT) }
+    end
+
     def with_strict_loading_by_default(&block)
       strict_loading_was = ActiveRecord::Base.strict_loading_by_default
       ActiveRecord::Base.strict_loading_by_default = true
@@ -128,6 +155,7 @@ class User < ActiveRecord::Base
   validates :name, presence: true
 
   has_one_attached :avatar
+  has_one_attached :icon, dependent: :purge
   has_one_attached :cover_photo, dependent: false, service: :local
   has_one_attached :avatar_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
@@ -160,6 +188,7 @@ class User < ActiveRecord::Base
   has_one_attached :avatar_with_lazy_analysis, analyze: :lazily
 
   has_many_attached :highlights
+  has_many_attached :favorites, dependent: :purge
   has_many_attached :vlogs, dependent: false, service: :local
   has_many_attached :highlights_with_variants do |attachable|
     attachable.variant :thumb, resize_to_limit: [100, 100]
@@ -207,6 +236,8 @@ class User < ActiveRecord::Base
     @notification_sent = true if highlights_attachments.any?(&:previously_new_record?)
   end
 end
+
+class SpecialUser < User; end
 
 class Group < ActiveRecord::Base
   has_one_attached :avatar

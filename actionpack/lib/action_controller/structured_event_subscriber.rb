@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionController
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
-    INTERNAL_PARAMS = %w(controller action format _method only_path)
+    INTERNAL_PARAMS = %w(controller action format _method only_path).freeze
 
     class_attribute :_rescue_from_event_backtrace, instance_accessor: false, default: nil # :nodoc:
 

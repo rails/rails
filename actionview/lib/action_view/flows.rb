@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/string/output_safety"
 
 module ActionView
@@ -10,7 +11,7 @@ module ActionView
       @content = Hash.new { |h, k| h[k] = ActiveSupport::SafeBuffer.new }
     end
 
-    # Called by _layout_for to read stored values.
+    # Called by \_layout_for to read stored values.
     def get(key)
       @content[key]
     end

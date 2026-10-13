@@ -1,40 +1,50 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Type
-    # = Active Model \Time \Type
+    # Active Model \Time \Type
+    # ========================
     #
     # Attribute type for time of day representation. It is registered under the
-    # +:time+ key.
+    # `:time` key.
     #
-    #   class Event
-    #     include ActiveModel::Attributes
+    # ```
+    # class Event
+    #   include ActiveModel::Attributes
     #
-    #     attribute :start, :time
-    #   end
+    #   attribute :start, :time
+    # end
+    # ```
     #
     # String values are parsed using the ISO 8601 datetime format, but are
     # normalized to have a date of 2000-01-01 and be in the UTC time zone.
     #
-    #   event = Event.new
-    #   event.start = "2004-10-25T01:23:45-06:00"
+    # ```
+    # event = Event.new
+    # event.start = "2004-10-25T01:23:45-06:00"
     #
-    #   event.start.class # => Time
-    #   event.start       # => 2000-01-01 07:23:45 UTC
+    # event.start.class # => Time
+    # event.start       # => 2000-01-01 07:23:45 UTC
+    # ```
     #
     # Partial time-only formats are also accepted.
     #
-    #   event.start = "00:01:02+03:00"
-    #   event.start # => 1999-12-31 21:01:02 UTC
+    # ```
+    # event.start = "00:01:02+03:00"
+    # event.start # => 1999-12-31 21:01:02 UTC
+    # ```
     #
     # The degree of sub-second precision can be customized when declaring an
     # attribute:
     #
-    #   class Event
-    #     include ActiveModel::Attributes
+    # ```
+    # class Event
+    #   include ActiveModel::Attributes
     #
-    #     attribute :start, :time, precision: 4
-    #   end
+    #   attribute :start, :time, precision: 4
+    # end
+    # ```
     class Time < Value
       include Helpers::Timezone
       include Helpers::AcceptsMultiparameterTime.new(

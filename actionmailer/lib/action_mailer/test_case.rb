@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/test_case"
 require "rails-dom-testing"
 
@@ -91,26 +92,30 @@ module ActionMailer
       #
       # By default, assert against the last delivered Mail.
       #
-      #   UsersMailer.create(user).deliver_now
-      #   assert_part :text do |text|
-      #     assert_includes text, "Welcome, #{user.email}"
-      #   end
-      #   assert_part :html do |html|
-      #     assert_dom html.root, "h1", text: "Welcome, #{user.email}"
-      #   end
+      # ```
+      # UsersMailer.create(user).deliver_now
+      # assert_part :text do |text|
+      #   assert_includes text, "Welcome, #{user.email}"
+      # end
+      # assert_part :html do |html|
+      #   assert_dom html.root, "h1", text: "Welcome, #{user.email}"
+      # end
+      # ```
       #
       # Assert against a Mail instance when provided
       #
-      #   mail = UsersMailer.create(user)
-      #   assert_part :text, mail do |text|
-      #     assert_includes text, "Welcome, #{user.email}"
-      #   end
-      #   assert_part :html, mail do |html|
-      #     assert_dom html.root, "h1", text: "Welcome, #{user.email}"
-      #   end
+      # ```
+      # mail = UsersMailer.create(user)
+      # assert_part :text, mail do |text|
+      #   assert_includes text, "Welcome, #{user.email}"
+      # end
+      # assert_part :html, mail do |html|
+      #   assert_dom html.root, "h1", text: "Welcome, #{user.email}"
+      # end
+      # ```
       def assert_part(content_type, mail = last_delivered_mail!)
         mime_type = Mime[content_type]
-        part = [*mail.parts, mail].find { |part| mime_type.match?(part.mime_type) }
+        part = [*mail.all_parts, mail].find { |part| mime_type.match?(part.mime_type) }
         decoder = _decoders[mime_type]
 
         assert_not_nil part, "expected part matching #{mime_type} in #{mail.inspect}"
@@ -122,13 +127,15 @@ module ActionMailer
       #
       # By default, assert against the last delivered Mail.
       #
-      #   UsersMailer.create(user).deliver_now
+      # ```
+      # UsersMailer.create(user).deliver_now
       #
-      #   assert_no_part :html
-      #   assert_no_part :text
+      # assert_no_part :html
+      # assert_no_part :text
+      # ```
       def assert_no_part(content_type, mail = last_delivered_mail!)
         mime_type = Mime[content_type]
-        part = [*mail.parts, mail].find { |part| mime_type.match?(part.mime_type) }
+        part = [*mail.all_parts, mail].find { |part| mime_type.match?(part.mime_type) }
 
         assert_nil part, "expected no part matching #{mime_type} in #{mail.inspect}"
       end

@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "yaml"
 
 module ActiveRecord
-  module Coders # :nodoc:
+  module Coders
     class YAMLColumn < ColumnSerializer # :nodoc:
-      class SafeCoder
+      class SafeCoder # :nodoc:
         def initialize(permitted_classes: [], unsafe_load: nil)
           @permitted_classes = permitted_classes
           @unsafe_load = unsafe_load

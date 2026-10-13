@@ -9,6 +9,26 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     assert_equal "Captioned", attachment.caption
   end
 
+  test "from_attachable with alt" do
+    attachment = ActionText::Attachment.from_attachable(attachable, alt: "A racecar on a track")
+    assert_equal "A racecar on a track", attachment.alt
+  end
+
+  test "alt is nil when unset" do
+    assert_nil ActionText::Attachment.from_attachable(attachable).alt
+  end
+
+  test "alt and caption are independent" do
+    attachment = ActionText::Attachment.from_attachable(attachable, alt: "A racecar on a track", caption: "Vroom vroom")
+    assert_equal "A racecar on a track", attachment.alt
+    assert_equal "Vroom vroom", attachment.caption
+  end
+
+  test "alt survives being rebuilt with full attributes" do
+    attachment = attachment_from_html(%Q(<action-text-attachment sgid="#{attachable.attachable_sgid}" alt="A racecar on a track"></action-text-attachment>))
+    assert_equal "A racecar on a track", attachment.with_full_attributes.alt
+  end
+
   test "proxies missing methods to attachable" do
     attachable.instance_eval { def proxied; "proxied"; end }
     attachment = ActionText::Attachment.from_attachable(attachable)
@@ -93,6 +113,12 @@ class ActionText::AttachmentTest < ActiveSupport::TestCase
     attachable = Page.create! title: "Homepage"
     assert_equal "pages/page", assert_deprecated(ActionText.deprecator) { attachable.to_trix_content_attachment_partial_path }
     assert_equal "pages/page", attachable.to_editor_content_attachment_partial_path
+  end
+
+  test "inspect shows attachable" do
+    attachment = ActionText::Attachment.from_attachable(attachable)
+
+    assert_match(/\A#<ActionText::Attachment:0x[0-9a-f]+ @attachable=/, attachment.inspect)
   end
 
   private

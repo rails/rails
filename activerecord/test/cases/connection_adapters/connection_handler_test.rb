@@ -247,7 +247,7 @@ module ActiveRecord
           assert_instance_of String, db_config.env_name
           assert_instance_of String, db_config.name
 
-          db_config.configuration_hash.keys.each do |key|
+          db_config.configuration_hash.each_key do |key|
             assert_instance_of Symbol, key
           end
         end
@@ -336,6 +336,29 @@ module ActiveRecord
         assert_equal :reading, ActiveRecord.reading_role
       end
 
+      def test_clean_up_connection_handler_disconnects_pools
+        db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
+        pool_manager = without_ractor_proxy do
+          ActiveRecord::Base.connection_handler.send(:connection_name_to_pool_manager)["ActiveRecord::Base"]
+        end
+
+        leaked_pools = []
+        assert_nothing_raised do # "too many clients"
+          25.times do
+            pool_config = ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :reading, :default)
+            pool_manager.set_pool_config(:reading, :default, pool_config)
+
+            pool = pool_config.pool
+            connections = 5.times.map { pool.checkout }
+            connections.each { |c| c.execute("SELECT 1") }
+            connections.each { |c| pool.checkin(c) }
+            leaked_pools << pool
+
+            clean_up_connection_handler
+          end
+        end
+      end
+
       if Process.respond_to?(:fork)
         def test_connection_pool_per_pid
           object_id = ActiveRecord::Base.lease_connection.object_id
@@ -418,7 +441,10 @@ module ActiveRecord
             Process.waitpid outer_pid
             active, child_id, child_count = Marshal.load(rd.read)
 
-            assert_equal false, active
+            # A Ractor self-proxy run checks out and registers a fresh
+            # token-pinned connection, which connects eagerly; the child's
+            # intermediate disconnected state is not observable through it.
+            assert_equal false, active unless ractor_proxy?
             assert_not_equal object_id, child_id
             rd.close
 

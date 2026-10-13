@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
@@ -7,12 +8,27 @@ module ActiveRecord
         delegate :add_sql_comment!, :mariadb?, to: :@conn, private: true
 
         private
-          def visit_DropForeignKey(name)
-            "DROP FOREIGN KEY #{name}"
+          def visit_AlterTable(o)
+            sql = +super
+            sql << ", #{o.algorithm}" if o.algorithm
+            sql << ", #{o.lock}" if o.lock
+            sql
           end
 
-          def visit_DropCheckConstraint(name)
-            "DROP #{mariadb? ? 'CONSTRAINT' : 'CHECK'} #{name}"
+          def visit_DropForeignKey(o)
+            "DROP FOREIGN KEY #{o.name}"
+          end
+
+          def visit_DropCheckConstraint(o)
+            "DROP #{mariadb? ? 'CONSTRAINT' : 'CHECK'} #{o.name}"
+          end
+
+          def visit_AddIndex(o)
+            "ADD #{accept(o.index)}"
+          end
+
+          def visit_DropIndex(o)
+            "DROP INDEX #{quote_column_name(o.name)}"
           end
 
           def visit_AddColumnDefinition(o)
@@ -36,6 +52,7 @@ module ActiveRecord
           def visit_CreateIndexDefinition(o)
             sql = visit_IndexDefinition(o.index, true)
             sql << " #{o.algorithm}" if o.algorithm
+            sql << " #{o.lock}" if o.lock
             sql
           end
 

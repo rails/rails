@@ -254,7 +254,7 @@ this method is `false`, an `ActiveModel::ForbiddenAttributesError` exception is
 raised.
 
 NOTE: `permitted?` is used for [strong
-params](https://guides.rubyonrails.org/action_controller_overview.html#strong-parameters)
+params](https://guides.rubyonrails.org/action_controller_overview.html#securing-submitted-parameters)
 integration whereby you are assigning a params attribute from a request.
 
 ```irb

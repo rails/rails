@@ -178,6 +178,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_equal queries, capture_sql_and_binds { post.comments.to_a }
   end
 
+  def test_has_many_writes_foreign_key_through_alias_attribute
+    author = authors(:david)
+    post = author.posts_with_aliased_author_id.create!(title: "New Post", body: "Body")
+    assert_equal author.id, post.writer_id
+    assert_equal author.id, post.author_id
+  end
+
+  def test_has_many_sets_inverse_instance_through_alias_attribute_foreign_key
+    author = authors(:david)
+    author.posts_with_aliased_author_id.create!(title: "New Post", body: "Body")
+    post = author.posts_with_aliased_author_id.reload.first
+    assert_same author, post.author
+  end
+
   def test_has_many_build_with_options
     college = College.create(name: "UFMT")
     Student.create(active: true, college_id: college.id, name: "Sarah")
@@ -654,6 +668,43 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
     assert_equal firm.limited_clients.length, firm.limited_clients.size
     assert_equal firm.limited_clients.length, firm.limited_clients.count
+  end
+
+  def test_default_order
+    post = posts(:welcome)
+
+    comments = post.comments.order(:body)
+    assert_equal [2, 1], comments.pluck(:id)
+    assert_equal 2, comments.first.id
+
+    comments = post.ordered_comments
+    assert_equal [2, 1], comments.pluck(:id)
+    assert_equal 2, comments.first.id
+
+    comments = post.ordered_comments.order(:id)
+    assert_equal [1, 2], comments.pluck(:id)
+    assert_equal 1, comments.first.id
+  end
+
+  def test_default_order_is_applied_when_the_target_is_loaded
+    author = authors(:david)
+
+    # The generated SQL (used by pluck/count/to_sql) honors default_order.
+    assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.pluck(:id)
+
+    # The materialized collection must honor it too, not come back in
+    # arbitrary database order.
+    assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.to_a.map(&:id)
+    assert_equal [6, 5, 4, 2, 1], author.posts_with_default_order.reload.map(&:id)
+  end
+
+  def test_default_order_keeps_using_the_statement_cache
+    author = authors(:david)
+    association = author.association(:posts_with_default_order)
+
+    # The ORDER BY is baked into the cached SQL, so the statement cache must
+    # not be bypassed.
+    assert_not association.send(:skip_statement_cache?, association.scope)
   end
 
   def test_finding
@@ -2036,6 +2087,27 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert great_author.books.include?(book)
   end
 
+  def test_collection_for_new_record_owner_with_composite_primary_key_present
+    book = Cpk::Book.create!(id: [1, 10], title: "Some book")
+    chapter = book.chapters.create!(id: [1, 100], title: "Some chapter")
+
+    new_book = Cpk::Book.new(id: [1, 10])
+    assert_predicate new_book, :new_record?
+
+    assert_equal [chapter], new_book.chapters.to_a
+  end
+
+  def test_collection_for_new_record_owner_with_composite_primary_key_missing
+    book = Cpk::Book.create!(id: [1, 10], title: "Some book")
+    book.chapters.create!(id: [1, 100], title: "Some chapter")
+
+    new_book = Cpk::Book.new(author_id: 1)
+    assert_predicate new_book, :new_record?
+    assert_not new_book.attribute_present?(:id)
+
+    assert_empty new_book.chapters
+  end
+
   def test_included_in_collection_for_new_records
     client = Client.create(name: "Persisted")
     assert_nil client.client_of
@@ -2149,6 +2221,30 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, firm.client_ids.size
     firm.clients.build
     assert_equal 1, firm.clients.size
+  end
+
+  def test_ids_reader_on_loaded_association_of_new_record
+    client = Client.create!(name: "Client")
+    firm = Firm.new(name: "Startup")
+    firm.clients = [client]
+
+    assert_predicate firm.clients, :loaded?
+    assert_equal [client.id], firm.clients.ids
+  end
+
+  def test_pluck_on_loaded_association_of_new_record
+    client = Client.create!(name: "Client")
+    firm = Firm.new(name: "Startup")
+    firm.clients = [client]
+
+    assert_equal ["Client"], firm.clients.pluck(:name)
+  end
+
+  def test_pluck_on_unloaded_association_of_new_record
+    Client.create!(name: "Client")
+    firm = Firm.new(name: "Startup")
+
+    assert_equal [], firm.clients.pluck(:name)
   end
 
   def test_ids_reader_cache_should_be_cleared_when_collection_is_deleted
@@ -2299,22 +2395,22 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_predicate firm.clients, :loaded?
 
     author = Author.create!(name: "Carl")
-    third  = topics(:third)
-    fourth = topics(:fourth).becomes(Topic)
 
-    new_topic = author.topics_without_type.build
+    new_topic = author.topics.build
 
-    assert_not_predicate author.topics_without_type, :loaded?
+    assert_not_predicate author.topics, :loaded?
 
-    assert_queries_count(1) do
-      if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :SQLite3Adapter)
-        assert_equal fourth, author.topics_without_type.first
-        assert_equal third, author.topics_without_type.second
+    queries = capture_sql do
+      assert_queries_count(1) do
+        author.topics.first
+        author.topics.second
+        assert_equal new_topic, author.topics.last
       end
-      assert_equal new_topic, author.topics_without_type.last
     end
 
-    assert_predicate author.topics_without_type, :loaded?
+    assert_no_match(/ORDER BY|LIMIT/, queries.sole)
+
+    assert_predicate author.topics, :loaded?
   end
 
   def test_calling_first_nth_or_last_on_existing_record_with_create_should_not_load_association
@@ -2693,7 +2789,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     bulb2 = car.bulbs.create
     bulb3 = Bulb.create
 
-    assert_equal [bulb1, bulb2], car.bulbs
+    assert_equal_unordered [bulb1, bulb2], car.bulbs
     result = car.bulbs.replace([bulb3, bulb1])
     assert_equal [bulb1, bulb3], car.bulbs
     assert_equal [bulb1, bulb3], result
@@ -3203,7 +3299,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       :anonymous_class, :primary_key, :foreign_key, :dependent, :validate, :inverse_of,
       :strict_loading, :query_constraints, :deprecated, :autosave, :class_name, :before_add,
       :after_add, :before_remove, :after_remove, :extend, :counter_cache, :join_table,
-      :index_errors, :as, :through
+      :index_errors, :default_order, :as, :through
     MESSAGE
   end
 
@@ -3244,7 +3340,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_ids_reader_on_preloaded_association_with_composite_primary_key
     great_author = cpk_authors(:cpk_great_author)
 
-    assert_equal great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
+    assert_equal_unordered great_author.books.ids, Cpk::Author.preload(:books).find(great_author.id).book_ids
+  end
+
+  def test_ids_writer_with_composite_primary_key_and_string_ids
+    great_author = cpk_authors(:cpk_great_author)
+    book_ids = great_author.books.ids
+
+    # ids coming from request params, URLs, or JSON are strings.
+    great_author.book_ids = book_ids.map { |id| id.map(&:to_s) }
+
+    assert_equal book_ids.sort, great_author.reload.books.ids.sort
   end
 
   private
@@ -3254,7 +3360,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 end
 
 class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
-  include WaitForAsyncTestHelper
+  include WaitForTestHelper
 
   self.use_transactional_tests = false
 
@@ -3267,14 +3373,9 @@ class AsyncHasManyAssociationsTest < ActiveRecord::TestCase
       firm.association(:clients).async_load_target
       wait_for_async_query
 
-      events = []
-      callback = -> (event) do
-        events << event unless event.payload[:name] == "SCHEMA"
-      end
-
-      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+      events = capture_notifications("sql.active_record") do
         assert_equal 3, firm.clients.size
-      end
+      end.reject { |e| e.payload[:name] == "SCHEMA" }
 
       assert_no_queries do
         assert_not_nil firm.clients[2]

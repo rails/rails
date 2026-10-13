@@ -185,7 +185,7 @@ spec.homepage    = "http://example.com"
 spec.summary     = "Enhance your API endpoints"
 spec.description = "Adds common API functionality like request throttling, response caching, and automatic API documentation."
 
-...
+# ...
 
 spec.metadata["source_code_uri"] = "http://example.com"
 spec.metadata["changelog_uri"] = "http://example.com"

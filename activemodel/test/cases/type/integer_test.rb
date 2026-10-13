@@ -165,6 +165,20 @@ module ActiveModel
         end
       end
 
+      test "long strings are truncated before being cast" do
+        type = Type::Integer.new # default limit: 4, byte cap: 16
+        # Only the first _limit * 4 == 16 bytes should be considered
+        assert_equal ("1" * 16).to_i, type.cast("1" * 17)
+      end
+
+      test "strings within the byte cap are cast normally" do
+        type = Type::Integer.new # default limit: 4, byte cap: 16
+        # A 16-byte numeric string is at the cap and should not be truncated
+        assert_equal 1234567890123456, type.cast("1234567890123456")
+        # Shorter strings are unaffected
+        assert_equal 42, type.cast("42-some-slug")
+      end
+
       test "Marshal round-trip preserves behaviour" do
         type = Integer.new
         restored = Marshal.load(Marshal.dump(type))

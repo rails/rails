@@ -25,7 +25,7 @@ Engines can be thought of as miniature applications that encapsulate specific
 functionality and integrate with a larger Rails application. An engine extends a
 [plugin](plugins.html), with the
 [`Rails::Engine`](https://api.rubyonrails.org/classes/Rails/Engine.html) class
-[inheriting](engines.html#the-inheritance-hierarchy) behavior from
+[inheriting](engines.html#inheritance-hierarchy) behavior from
 [`Rails::Railtie`](https://api.rubyonrails.org/classes/Rails/Railtie.html).
 
 Some examples of engines in action:
@@ -723,12 +723,12 @@ Next, create a form so that comments can be added to an article. Render the
 underneath the `render @article.comments` line.
 
 ```erb
-...
+  <%# ... %>
   <%= render @article.comments %>
 
   <!-- Render the comments form -->
   <%= render "blorgh/comments/form" %>
-...
+  <%# ... %>
 ```
 
 Next, create the `blorgh/comments/form` partial that we just referenced. To do
@@ -1341,7 +1341,7 @@ guide, and works precisely the same way as the `config/initializers` directory
 inside an application. The same thing goes if you want to use a standard
 initializer.
 
-For locales, simply place the [locale files in the `config/locales` directory](i18n.html#providing-translations-for-internationalized-strings),
+For locales, simply place the [locale files in the `config/locales` directory](i18n.html#creating-locale-dictionaries),
 just like you would in an application.
 
 Improving the Engine

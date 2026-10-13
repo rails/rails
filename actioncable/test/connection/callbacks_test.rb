@@ -54,7 +54,9 @@ class ActionCable::Connection::CallbacksTest < ActionCable::TestCase
   setup do
     @server = TestServer.new
     @env = Rack::MockRequest.env_for "/test", "HTTP_HOST" => "localhost", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket"
-    @connection = Connection.new(@server, @env)
+
+    @socket = ActionCable::Server::Socket.new(@server, @env)
+    @connection = Connection.new(@server, @socket)
     @identifier = { channel: "ActionCable::Connection::CallbacksTest::ChatChannel" }.to_json
   end
 
@@ -78,8 +80,7 @@ class ActionCable::Connection::CallbacksTest < ActionCable::TestCase
   end
 
   test "around_command callback" do
-    env["QUERY_STRING"] = "context=test"
-    connection = Connection.new(server, env)
+    @env["QUERY_STRING"] = "context=test"
 
     assert_difference -> { ChatChannel.words_spoken.size }, +1 do
       # We need to add subscriptions first

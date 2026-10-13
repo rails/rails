@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/number_helper/number_converter"
@@ -5,7 +6,7 @@ require "active_support/number_helper/number_converter"
 module ActiveSupport
   module NumberHelper
     class NumberToHumanSizeConverter < NumberConverter # :nodoc:
-      STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb, :pb, :eb, :zb]
+      STORAGE_UNITS = [:byte, :kb, :mb, :gb, :tb, :pb, :eb, :zb].freeze
 
       self.namespace      = :human
       self.validate_float = true

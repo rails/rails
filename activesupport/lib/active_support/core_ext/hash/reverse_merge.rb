@@ -1,13 +1,18 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 class Hash
-  # Merges the caller into +other_hash+. For example,
+  # Merges the caller into `other_hash`. For example,
   #
-  #   options = options.reverse_merge(size: 25, velocity: 10)
+  # ```
+  # options = options.reverse_merge(size: 25, velocity: 10)
+  # ```
   #
   # is equivalent to
   #
-  #   options = { size: 25, velocity: 10 }.merge(options)
+  # ```
+  # options = { size: 25, velocity: 10 }.merge(options)
+  # ```
   #
   # This is particularly useful for initializing an options hash
   # with default values.
@@ -16,7 +21,7 @@ class Hash
   end
   alias_method :with_defaults, :reverse_merge
 
-  # Destructive +reverse_merge+.
+  # Destructive `reverse_merge`.
   def reverse_merge!(other_hash)
     replace(reverse_merge(other_hash))
   end

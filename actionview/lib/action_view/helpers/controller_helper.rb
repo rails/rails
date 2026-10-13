@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/module/attr_internal"
 
 module ActionView
   module Helpers # :nodoc:
-    # = Action View Controller \Helpers
+    # Action View Controller \Helpers
+    # ===============================
     #
     # This module keeps all methods and behavior in ActionView
     # that simply delegates to the controller.
@@ -13,7 +15,7 @@ module ActionView
 
       CONTROLLER_DELEGATES = [:request_forgery_protection_token, :params,
         :session, :cookies, :response, :headers, :flash, :action_name,
-        :controller_name, :controller_path]
+        :controller_name, :controller_path].freeze
 
       delegate(*CONTROLLER_DELEGATES, to: :controller)
 

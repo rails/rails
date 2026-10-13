@@ -9,17 +9,17 @@ class ActiveStorage::NamedVariantTest < ActiveSupport::TestCase
     @user = User.new(name: "joe")
   end
 
-  test "explicity sets the process to immediate" do
+  test "explicitly sets the process to immediate" do
     named_variant = @user.attachment_reflections["avatar_with_immediate_variants"].named_variants[:immediate_thumb]
     assert_equal :immediately, named_variant.process(@user)
   end
 
-  test "explicity sets the process to later" do
+  test "explicitly sets the process to later" do
     named_variant = @user.attachment_reflections["avatar_with_later_variants"].named_variants[:later_thumb]
     assert_equal :later, named_variant.process(@user)
   end
 
-  test "explicity sets the process to on_demand" do
+  test "explicitly sets the process to on_demand" do
     named_variant = @user.attachment_reflections["avatar_with_lazy_variants"].named_variants[:lazy_thumb]
     assert_equal :lazily, named_variant.process(@user)
   end

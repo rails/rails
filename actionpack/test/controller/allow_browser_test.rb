@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 class AllowBrowserController < ActionController::Base
   allow_browser versions: { safari: "16.4", chrome: "119", firefox: "123", opera: "106", ie: false }, block: -> { head :upgrade_required }, only: :hello
@@ -97,4 +98,26 @@ class AllowBrowserTest < ActionController::TestCase
       @request.headers["User-Agent"] = agent
       get action
     end
+end
+
+class AllowBrowserRactorTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
+  test "the default block is shareable" do
+    assert_ractor_shareable ActionController::AllowBrowser::ClassMethods.const_get(:DEFAULT_UNSUPPORTED_BROWSER_RESPONSE)
+  end
+
+  test "allow_browser registers a shareable callback when the application opts in" do
+    old_action = ActiveSupport::Ractors.unshareable_proc_action
+    ActiveSupport::Ractors.unshareable_proc_action = :raise
+
+    klass = Class.new(ActionController::Base) do
+      allow_browser versions: :modern
+    end
+
+    assert_equal ActionController::Base._process_action_callbacks.count + 1,
+      klass._process_action_callbacks.count
+  ensure
+    ActiveSupport::Ractors.unshareable_proc_action = old_action
+  end
 end

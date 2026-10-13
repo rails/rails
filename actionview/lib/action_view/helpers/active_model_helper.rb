@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/enumerable"
 
@@ -8,7 +9,8 @@ module ActionView
     module ActiveModelHelper
     end
 
-    # = Active \Model Instance Tag \Helpers
+    # Active \Model Instance Tag \Helpers
+    # ===================================
     module ActiveModelInstanceTag
       def object
         @active_model_object ||= begin

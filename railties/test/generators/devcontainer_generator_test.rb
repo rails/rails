@@ -75,6 +75,19 @@ module Rails
         end
       end
 
+      def test_app_volumes
+        run_generator
+
+        assert_compose_file do |compose|
+          expected_volumes = ["../../rails_app:/workspaces/rails_app:cached", "bundle-cache:/home/vscode/.local/share"]
+          actual_volumes = compose["services"]["rails-app"]["volumes"]
+          expected_volumes.each do |volume|
+            assert_includes actual_volumes, volume
+          end
+          assert_equal ["bundle-cache", "redis-data"], compose["volumes"].keys
+        end
+      end
+
       def test_database_default_sqlite3
         run_generator
 
@@ -100,7 +113,7 @@ module Rails
             },
           }
           assert_equal expected_mariadb_config, compose["services"]["mariadb"]
-          assert_includes compose["volumes"].keys, "mariadb-data"
+          assert_equal ["bundle-cache", "redis-data", "mariadb-data"], compose["volumes"].keys
           assert_includes compose["services"]["rails-app"]["depends_on"], "mariadb"
         end
 
@@ -127,7 +140,7 @@ module Rails
             },
           }
           assert_equal expected_mariadb_config, compose["services"]["mariadb"]
-          assert_includes compose["volumes"].keys, "mariadb-data"
+          assert_equal ["bundle-cache", "redis-data", "mariadb-data"], compose["volumes"].keys
           assert_includes compose["services"]["rails-app"]["depends_on"], "mariadb"
         end
 
@@ -144,7 +157,7 @@ module Rails
         assert_no_file "config/database.yml"
         assert_compose_file do |compose|
           expected_mysql_config = {
-            "image" => "mysql/mysql-server:8.0",
+            "image" => "mysql:9.7",
             "restart" => "unless-stopped",
             "environment" => {
               "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
@@ -154,7 +167,7 @@ module Rails
             "networks" => ["default"],
           }
           assert_equal expected_mysql_config, compose["services"]["mysql"]
-          assert_includes compose["volumes"].keys, "mysql-data"
+          assert_equal ["bundle-cache", "redis-data", "mysql-data"], compose["volumes"].keys
           assert_includes compose["services"]["rails-app"]["depends_on"], "mysql"
         end
 
@@ -188,7 +201,7 @@ module Rails
             }
           }
           assert_equal expected_postgres_config, compose["services"]["postgres"]
-          assert_includes compose["volumes"].keys, "postgres-data"
+          assert_equal ["bundle-cache", "redis-data", "postgres-data"], compose["volumes"].keys
           assert_includes compose["services"]["rails-app"]["depends_on"], "postgres"
         end
 
@@ -206,7 +219,7 @@ module Rails
         assert_no_file "config/database.yml"
         assert_compose_file do |compose|
           expected_mysql_config = {
-            "image" => "mysql/mysql-server:8.0",
+            "image" => "mysql:9.7",
             "restart" => "unless-stopped",
             "environment" => {
               "MYSQL_ALLOW_EMPTY_PASSWORD" => "true",
@@ -216,7 +229,7 @@ module Rails
             "networks" => ["default"],
           }
           assert_equal expected_mysql_config, compose["services"]["mysql"]
-          assert_includes compose["volumes"].keys, "mysql-data"
+          assert_equal ["bundle-cache", "redis-data", "mysql-data"], compose["volumes"].keys
           assert_includes compose["services"]["rails-app"]["depends_on"], "mysql"
         end
 
@@ -275,7 +288,7 @@ module Rails
             "volumes" => ["redis-data:/data"]
           }
           assert_equal expected_redis_config, compose["services"]["redis"]
-          assert_equal ["redis-data"], compose["volumes"].keys
+          assert_equal ["bundle-cache", "redis-data"], compose["volumes"].keys
         end
 
         assert_devcontainer_json_file do |devcontainer_json|
@@ -291,7 +304,7 @@ module Rails
         assert_compose_file do |compose|
           assert_not_includes compose["services"]["rails-app"]["depends_on"], "redis"
           assert_nil compose["services"]["redis"]
-          assert_nil compose["volumes"]
+          assert_equal ["bundle-cache"], compose["volumes"].keys
         end
 
         assert_devcontainer_json_file do |devcontainer_json|
@@ -380,7 +393,7 @@ module Rails
                 "context" => "..",
                 "dockerfile" => ".devcontainer/Dockerfile"
               },
-              "volumes" => ["../../#{folder_name}:/workspaces/#{folder_name}:cached"],
+              "volumes" => ["../../#{folder_name}:/workspaces/#{folder_name}:cached", "bundle-cache:/home/vscode/.local/share"],
               "command" => "sleep infinity"
             }
             actual_independent_config = compose["services"]["rails-app"].except("depends_on")

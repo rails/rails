@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
     class Preloader
@@ -20,7 +21,7 @@ module ActiveRecord
             if owners.first.association(through_reflection.name).loaded?
               if source_type = reflection.options[:source_type]
                 through_records = through_records.select do |record|
-                  record[reflection.foreign_type] == source_type
+                  record.read_attribute(reflection.foreign_type) == source_type
                 end
               end
             end

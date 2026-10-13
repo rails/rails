@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "uri"
 require "rack"
 
 module ActionDispatch
   class QueryParser
     DEFAULT_SEP = /& */n
-    COMMON_SEP = { ";" => /; */n, ";," => /[;,] */n, "&" => /& */n, "&;" => /[&;] */n }
+    COMMON_SEP = { ";" => /; */n, ";," => /[;,] */n, "&" => /& */n, "&;" => /[&;] */n }.freeze
 
     def self.strict_query_string_separator
       ActionDispatch.deprecator.warn <<~MSG

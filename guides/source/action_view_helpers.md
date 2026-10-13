@@ -268,7 +268,7 @@ would output the following HTML:
 ```
 
 See the [`button_to` API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-button_to)
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NavigationHelper.html#method-i-button_to)
 for more information.
 
 ### current_page?
@@ -282,7 +282,7 @@ Returns true if the current request URL matches the given `options`.
 ```
 
 See the [`current_page?` API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-current_page-3F)
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NavigationHelper.html#method-i-current_page-3F)
 for more information.
 
 ### link_to
@@ -325,7 +325,7 @@ It would output the following HTML:
 ```
 
 See the [`link_to` API
-Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/UrlHelper.html#method-i-link_to)
+Documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/NavigationHelper.html#method-i-link_to)
 for more information.
 
 ### mail_to

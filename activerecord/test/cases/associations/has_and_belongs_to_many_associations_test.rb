@@ -754,6 +754,21 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_not_predicate developer.projects, :loaded?
   end
 
+  def test_ids_reader_on_loaded_association_of_new_record
+    developer = Developer.new("name" => "Joe")
+    developer.projects = [projects(:active_record)]
+
+    assert_predicate developer.projects, :loaded?
+    assert_equal [projects(:active_record).id], developer.projects.ids
+  end
+
+  def test_pluck_on_loaded_association_of_new_record
+    developer = Developer.new("name" => "Joe")
+    developer.projects = [projects(:active_record)]
+
+    assert_equal [projects(:active_record).name], developer.projects.pluck(:name)
+  end
+
   def test_assign_ids
     developer = Developer.new("name" => "Joe")
     developer.project_ids = projects(:active_record, :action_controller).map(&:id)

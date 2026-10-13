@@ -53,7 +53,7 @@ On the other hand, those loaders do not manage anything else. In particular, the
 Project Structure
 -----------------
 
-In a Rails application file names have to match the constants they define, with directories acting as namespaces.
+In a Rails application, file names have to match the constants they define, with directories acting as namespaces.
 
 For example, the file `app/helpers/users_helper.rb` should define `UsersHelper` and the file `app/controllers/admin/payments_controller.rb` should define `Admin::PaymentsController`.
 
@@ -413,7 +413,9 @@ Eager Loading
 
 In production-like environments it is generally better to load all the application code when the application boots. Eager loading puts everything in memory ready to serve requests right away, and it is also [CoW](https://en.wikipedia.org/wiki/Copy-on-write)-friendly.
 
-Eager loading is controlled by the flag [`config.eager_load`][], which is disabled by default in all environments except `production`. When a Rake task gets executed, `config.eager_load` is overridden by [`config.rake_eager_load`][], which is `false` by default. So, by default, in production environments Rake tasks do not eager load the application.
+Eager loading is controlled by the flag [`config.eager_load`][]. By default, `development` does not eager load, `test` eager loads if the environment variable `CI` is present, and `production` eager loads.
+
+For Rake task, however, the value assigned to `config.eager_load` is replaced with [`config.rake_eager_load`][]. By default, this one is `false` in `development` and `production`, and matches `config.eager_load` in `test`.
 
 The order in which files are eager-loaded is undefined.
 

@@ -26,7 +26,9 @@ class SelectedMembership < Membership
 end
 
 class TenantMembership < Membership
-  cattr_accessor :current_member
+  class << self
+    attr_accessor :current_member
+  end
 
   belongs_to :member
   belongs_to :club

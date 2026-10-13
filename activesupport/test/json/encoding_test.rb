@@ -61,6 +61,21 @@ class TestJSONEncoding < ActiveSupport::TestCase
     end
   end
 
+  def test_fragment_with_invalid_encoding
+    ActiveSupport.escape_html_entities_in_json = true
+    fragment = JSON::Fragment.new(%{"<&} + 255.chr + %{"})
+
+    if ActiveSupport::JSON::Encoding::TR_ESCAPE_SUPPORTED
+      assert_raises(ArgumentError) { ActiveSupport::JSON.encode("a" => fragment) }
+    else
+      result = ActiveSupport::JSON.encode("a" => fragment)
+      assert_not_predicate result, :valid_encoding?
+      assert_equal Encoding::UTF_8, result.encoding
+    end
+  ensure
+    ActiveSupport.escape_html_entities_in_json = false
+  end
+
   def test_hash_keys_encoding
     ActiveSupport.escape_html_entities_in_json = true
     assert_equal "{\"\\u003c\\u003e\":\"\\u003c\\u003e\"}", ActiveSupport::JSON.encode("<>" => "<>")
@@ -142,6 +157,23 @@ class TestJSONEncoding < ActiveSupport::TestCase
     assert_equal "some_value", parsed["custom_123"]
   end
 
+  def test_hash_with_keys_whose_as_json_returns_a_string
+    # Keys that are not String/Symbol must be serialized via #to_s, even when
+    # their #as_json returns a String (e.g. Time, DateTime). Otherwise the key
+    # format silently diverges from the historical encoder.
+    with_standard_json_time_format(true) do
+      time = Time.utc(2009, 1, 1, 12, 30, 0)
+      assert_equal %({"#{time}":1}), ActiveSupport::JSON.encode(time => 1)
+
+      datetime = DateTime.new(2009, 1, 1, 12, 30, 0)
+      assert_equal %({"#{datetime}":1}), ActiveSupport::JSON.encode(datetime => 1)
+
+      Time.use_zone("Tokyo") do
+        twz = Time.utc(2009, 1, 1, 12, 30, 0).in_time_zone
+        assert_equal %({"#{twz}":1}), ActiveSupport::JSON.encode(twz => 1)
+      end
+    end
+  end
 
   def test_hash_should_allow_key_filtering_with_only
     assert_equal %({"a":1}), ActiveSupport::JSON.encode({ "a" => 1, :b => 2, :c => 3 }, { only: "a" })
@@ -584,6 +616,21 @@ EXPECTED
     ensure
       ActiveSupport::JSON::Encoding.time_precision = old_value
     end
+end
+
+if RUBY_VERSION >= "4.0"
+  class JSONRactorShareabilityTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+
+    def test_encoders_are_ractor_shareable
+      assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }, escape: false) }.value
+      assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }) }.value
+      ActiveSupport::JSON::Encoding.with(escape_js_separators_in_json: false) do
+        assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }) }.value
+      end
+      assert_equal '{"a":1}', Ractor.new { ActiveSupport::JSON.encode({ a: 1 }, escape_html_entities: false) }.value
+    end
+  end
 end
 
 if defined?(::JSON::Coder)

@@ -21,6 +21,23 @@ module ActiveModel
         assert_equal 1, type.cast("1")
       end
 
+      test "long numeric strings are cast without truncation" do
+        type = Type::BigInteger.new
+        assert_equal 18446744073709551615, type.cast("18446744073709551615")
+        assert_equal(-9999999999999999999999999999999, type.cast("-9999999999999999999999999999999"))
+      end
+
+      test "long strings are truncated to twice the precision before being cast" do
+        type = Type::BigInteger.new(precision: 20)
+        assert_equal 18446744073709551615, type.cast("18446744073709551615")
+        assert_equal ("1" * 40).to_i, type.cast("1" * 41)
+      end
+
+      test "very long strings are truncated before being cast without a precision" do
+        type = Type::BigInteger.new
+        assert_equal ("9" * 2000).to_i, type.cast("9" * 5000)
+      end
+
       def test_small_values
         type = Type::BigInteger.new
         assert_equal(-9999999999999999999999999999999, type.serialize(-9999999999999999999999999999999))
@@ -29,6 +46,13 @@ module ActiveModel
       def test_large_values
         type = Type::BigInteger.new
         assert_equal 9999999999999999999999999999999, type.serialize(9999999999999999999999999999999)
+      end
+
+      def test_serialize_string
+        type = Type::BigInteger.new
+        assert_equal 0, type.serialize("0")
+        assert_equal 123, type.serialize("123abc")
+        assert_nil type.serialize("not a number")
       end
 
       def test_integer_like_classes_that_are_greater_than_4_bytes_still_serialize

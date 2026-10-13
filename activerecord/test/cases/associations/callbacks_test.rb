@@ -129,9 +129,9 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
       has_and_belongs_to_many :developers_with_callbacks,
                                 class_name: "Developer",
                                 before_add: lambda { |o, r|
-        dev     = r
-        new_dev = r.new_record?
-      }
+                                  dev     = r
+                                  new_dev = r.new_record?
+                                }
     end
     rec = klass.create!
     alice = Developer.new(name: "alice")

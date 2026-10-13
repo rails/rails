@@ -139,6 +139,14 @@ module ActiveRecord
       assert_equal [book_two], Cpk::Book.where(title: "The Alchemist", [:author_id, :id] => [[3, 4]])
     end
 
+    def test_where_with_tuple_syntax_and_association_syntax_combined
+      order = Cpk::Order.create!(id: [1, 2])
+      book = order.books.create!(id: [3, 4])
+
+      assert_equal [book], Cpk::Book.where([:shop_id, :order_id] => [[1, 2]], order: order)
+      assert_equal [book], Cpk::Book.where(order: order, [:shop_id, :order_id] => [[1, 2]])
+    end
+
     def test_with_tuple_syntax_and_large_values_list
       # sqlite3 raises "Expression tree is too large (maximum depth 1000)"
       skip if current_adapter?(:SQLite3Adapter)
@@ -147,6 +155,18 @@ module ActiveRecord
         ids = [[1, 2]] * 1500
         Cpk::Book.where([:author_id, :id] => ids).to_sql
       end
+    end
+
+    def test_where_with_tuple_syntax_referencing_another_table
+      categorization = categorizations(:mary_thinking_general)
+
+      key = [:category_id, "authors.name"]
+
+      conditions = [
+        [categorization.category_id, categorization.author.name],
+      ]
+
+      assert_equal [categorization], Categorization.joins(:author).where(key => conditions)
     end
 
     def test_where_with_nil_cpk_association

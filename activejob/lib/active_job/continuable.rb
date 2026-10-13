@@ -1,17 +1,20 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveJob
-  # = Active Job Continuable
+  # Active Job Continuable
+  # ======================
   #
   # The Continuable module provides the ability to track the progress of your
   # jobs, and continue from where they left off if interrupted.
   #
   # Mix ActiveJob::Continuable into your job to enable continuations.
   #
-  # See {ActiveJob::Continuation}[rdoc-ref:ActiveJob::Continuation] for usage.
+  # See [ActiveJob::Continuation](rdoc-ref:ActiveJob::Continuation) for usage.
   #
   module Continuable
     extend ActiveSupport::Concern
+    include ActiveJob::Attributes
 
     included do
       class_attribute :max_resumptions, instance_writer: false
@@ -50,17 +53,20 @@ module ActiveJob
     end
 
     def serialize # :nodoc:
-      super.merge("continuation" => continuation.to_h, "resumptions" => resumptions)
+      super.merge("continuation" => serialize_continuation_if_needed, "resumptions" => resumptions)
     end
 
     def deserialize(job_data) # :nodoc:
       super
-      self.continuation = Continuation.new(self, job_data.fetch("continuation", {}))
+      @serialized_continuation = job_data.fetch("continuation", {})
       self.resumptions = job_data.fetch("resumptions", 0)
     end
 
     def checkpoint! # :nodoc:
-      interrupt!(reason: :stopping) if queue_adapter.stopping?
+      if (reason = queue_adapter.stopping?(self))
+        reason = :stopping if reason == true
+        interrupt!(reason: reason)
+      end
     end
 
     def interrupt!(reason:) # :nodoc:
@@ -69,6 +75,26 @@ module ActiveJob
     end
 
     private
+      # The continuation is deserialized at the same point as the job arguments,
+      # inside perform_now, so that a cursor that fails to deserialize raises
+      # where retry_on/discard_on/rescue_from handlers can handle the error.
+      def deserialize_arguments_if_needed
+        super
+
+        if continuation_serialized?
+          self.continuation = Continuation.new(self, @serialized_continuation)
+          @serialized_continuation = nil
+        end
+      end
+
+      def serialize_continuation_if_needed
+        continuation_serialized? ? @serialized_continuation : continuation.to_h
+      end
+
+      def continuation_serialized?
+        @serialized_continuation
+      end
+
       def continue(&block)
         if continuation.started?
           self.resumptions += 1
@@ -82,7 +108,7 @@ module ActiveJob
         raise
       rescue StandardError => e
         if resume_errors_after_advancing? && continuation.advanced?
-          resume_job(exception: e)
+          resume_job(e)
         else
           raise
         end

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_record/connection_adapters/abstract_mysql_adapter"
 require "active_record/connection_adapters/mysql2/database_statements"
 
@@ -8,7 +9,8 @@ require "mysql2"
 
 module ActiveRecord
   module ConnectionAdapters
-    # = Active Record MySQL2 Adapter
+    # Active Record MySQL2 Adapter
+    # ============================
     class Mysql2Adapter < AbstractMysqlAdapter
       ER_BAD_DB_ERROR           = 1049
       ER_DBACCESS_DENIED_ERROR  = 1044
@@ -56,7 +58,6 @@ module ActiveRecord
       def initialize(...)
         super
 
-        @affected_rows_before_warnings = nil
         @config[:flags] ||= 0
 
         if @config[:flags].kind_of? Array
@@ -66,42 +67,6 @@ module ActiveRecord
         end
 
         @connection_parameters ||= @config
-      end
-
-      def supports_json?
-        !mariadb? && database_version >= "5.7.8"
-      end
-
-      def supports_comments?
-        true
-      end
-
-      def supports_comments_in_create?
-        true
-      end
-
-      def supports_savepoints?
-        true
-      end
-
-      def savepoint_errors_invalidate_transactions?
-        true
-      end
-
-      def supports_lazy_transactions?
-        true
-      end
-
-      def error_number(exception)
-        exception.error_number if exception.respond_to?(:error_number)
-      end
-
-      #--
-      # CONNECTION MANAGEMENT ====================================
-      #++
-
-      def connected?
-        !(@raw_connection.nil? || @raw_connection.closed?)
       end
 
       def active?
@@ -115,29 +80,18 @@ module ActiveRecord
         end || false
       end
 
-      alias :reset! :reconnect!
-
-      # Disconnects from the database if already connected.
-      # Otherwise, this method does nothing.
-      def disconnect!
-        @lock.synchronize do
-          super
-          @raw_connection&.close
-          @raw_connection = nil
-        end
-      end
-
       def discard! # :nodoc:
         @lock.synchronize do
           super
+          IO.for_fd(@raw_connection.socket, autoclose: false).reopen(IO::NULL) if @raw_connection rescue nil
           @raw_connection&.automatic_close = false
           @raw_connection = nil
         end
       end
 
       private
-        def text_type?(type)
-          TYPE_MAP.lookup(type).is_a?(Type::String) || TYPE_MAP.lookup(type).is_a?(Type::Text)
+        def error_number(exception)
+          exception.error_number if exception.respond_to?(:error_number)
         end
 
         def connect
@@ -160,10 +114,6 @@ module ActiveRecord
           super
         end
 
-        def full_version
-          database_version.full_version_string
-        end
-
         def get_full_version
           any_raw_connection.server_info[:version]
         end
@@ -180,10 +130,6 @@ module ActiveRecord
           else
             super
           end
-        end
-
-        def default_prepared_statements
-          false
         end
 
         ActiveRecord::Type.register(:immutable_string, adapter: :mysql2) do |_, **args|

@@ -49,6 +49,23 @@ module ActiveModel
         assert_equal false, type.cast(:off)
         assert_equal false, type.cast(:OFF)
       end
+
+      def test_serialize_boolean
+        type = Type::Boolean.new
+        assert_nil type.serialize("")
+        assert_nil type.serialize(nil)
+        assert_equal true, type.serialize(true)
+        assert_equal true, type.serialize("yes")
+        assert_equal false, type.serialize(false)
+        assert_equal false, type.serialize("0")
+      end
+
+      def test_serialize_cast_value_passes_the_value_through
+        type = Type::Boolean.new
+        assert_equal true, type.serialize_cast_value(true)
+        assert_equal false, type.serialize_cast_value(false)
+        assert_nil type.serialize_cast_value(nil)
+      end
     end
   end
 end

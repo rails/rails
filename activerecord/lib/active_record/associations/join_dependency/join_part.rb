@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
     class JoinDependency # :nodoc:
@@ -45,25 +46,8 @@ module ActiveRecord
           raise NotImplementedError
         end
 
-        def extract_record(row, column_names_with_alias)
-          # This code is performance critical as it is called per row.
-          # see: https://github.com/rails/rails/pull/12185
-          hash = {}
-
-          index = 0
-          length = column_names_with_alias.length
-
-          while index < length
-            column = column_names_with_alias[index]
-            hash[column.name] = row[column.alias]
-            index += 1
-          end
-
-          hash
-        end
-
-        def instantiate(row, aliases, column_types = {}, &block)
-          base_klass.instantiate(extract_record(row, aliases), column_types, &block)
+        def instantiate(row, column_types = {}, &block)
+          base_klass.instantiate(row, column_types, &block)
         end
       end
     end

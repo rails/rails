@@ -3,6 +3,8 @@
 require "abstract_unit"
 
 class RateLimitedController < ActionController::Base
+  ModelWithKey = Struct.new(:cache_key)
+
   self.cache_store = ActiveSupport::Cache::MemoryStore.new
   rate_limit to: 2, within: 2.seconds, only: :limited
   rate_limit to: 5, within: 1.minute, name: "long-term", only: :limited
@@ -28,6 +30,11 @@ class RateLimitedController < ActionController::Base
 
   rate_limit to: -> { params[:max_requests]&.to_i || 2 }, within: -> { params[:time_window]&.to_i&.seconds || 2.seconds }, only: :limited_with_callable_to_within
   def limited_with_callable_to_within
+    head :ok
+  end
+
+  rate_limit to: 2, within: 2.seconds, by: -> { ModelWithKey.new(params[:rate_limit_key]) }, only: :limited_with_key
+  def limited_with_key
     head :ok
   end
 
@@ -224,6 +231,19 @@ class RateLimitingTest < ActionController::TestCase
     assert_raises ActionController::TooManyRequests do
       get :limited_with_callable_to_within, params: { max_requests: 3, time_window: 5 }
     end
+  end
+
+  test "limit by object with cache_key" do
+    get :limited_with_key, params: { rate_limit_key: "user/1" }
+    get :limited_with_key, params: { rate_limit_key: "user/1" }
+    assert_response :ok
+
+    assert_raises ActionController::TooManyRequests do
+      get :limited_with_key, params: { rate_limit_key: "user/1" }
+    end
+
+    get :limited_with_key, params: { rate_limit_key: "user/2" }
+    assert_response :ok
   end
 
   test "cross-controller rate limit" do

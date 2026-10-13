@@ -2,8 +2,11 @@
 
 require "abstract_unit"
 require "rails/backtrace_cleaner"
+require "active_support/testing/ractors_assertions"
 
 class BacktraceCleanerTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::RactorsAssertions
+
   def setup
     @cleaner = Rails::BacktraceCleaner.new
   end
@@ -88,5 +91,23 @@ class BacktraceCleanerTest < ActiveSupport::TestCase
     method_name = ActionView::Template.new(nil, "app/views/application/index.html.erb", nil, locals: []).send :method_name
     frame = @cleaner.clean_frame("app/views/application/index.html.erb:4:in 'block in #{method_name}'", :all)
     assert_equal "app/views/application/index.html.erb:4", frame
+  end
+
+  test "backtrace cleaner can be made Ractor shareable" do
+    assert_ractor_make_shareable @cleaner
+  end
+
+  test "backtrace cleaner cleans from a non-main Ractor" do
+    assert_ractor_make_shareable @cleaner
+
+    backtrace = [ "#{Rails::BacktraceCleaner.root}app/models/post.rb:4:in 'boom'",
+                  "#{RbConfig::CONFIG["rubylibdir"]}/net/http.rb:12:in 'get'" ]
+    original_experimental_warning = Warning[:experimental]
+    Warning[:experimental] = false
+    result = on_ractor(@cleaner, backtrace) { |cleaner, lines| cleaner.clean(lines) }
+
+    assert_equal ["app/models/post.rb:4:in 'boom'"], result
+  ensure
+    Warning[:experimental] = original_experimental_warning
   end
 end

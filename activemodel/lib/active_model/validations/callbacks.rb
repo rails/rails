@@ -1,24 +1,28 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Validations
-    # = Active \Model \Validation \Callbacks
+    # Active \Model \Validation \Callbacks
+    # ====================================
     #
     # Provides an interface for any class to have ClassMethods#before_validation and
     # ClassMethods#after_validation callbacks.
     #
-    # First, include +ActiveModel::Validations::Callbacks+ from the class you are
+    # First, include `ActiveModel::Validations::Callbacks` from the class you are
     # creating:
     #
-    #   class MyModel
-    #     include ActiveModel::Validations::Callbacks
+    # ```
+    # class MyModel
+    #   include ActiveModel::Validations::Callbacks
     #
-    #     before_validation :do_stuff_before_validation
-    #     after_validation  :do_stuff_after_validation
-    #   end
+    #   before_validation :do_stuff_before_validation
+    #   after_validation  :do_stuff_after_validation
+    # end
+    # ```
     #
-    # Like other <tt>before_*</tt> callbacks if +before_validation+ throws
-    # +:abort+ then <tt>valid?</tt> will not be called.
+    # Like other `before_*` callbacks if `before_validation` throws
+    # `:abort` then `valid?` will not be called.
     module Callbacks
       extend ActiveSupport::Concern
 
@@ -32,26 +36,28 @@ module ActiveModel
       module ClassMethods
         # Defines a callback that will get called right before validation.
         #
-        #   class Person
-        #     include ActiveModel::Validations
-        #     include ActiveModel::Validations::Callbacks
+        # ```
+        # class Person
+        #   include ActiveModel::Validations
+        #   include ActiveModel::Validations::Callbacks
         #
-        #     attr_accessor :name
+        #   attr_accessor :name
         #
-        #     validates_length_of :name, maximum: 6
+        #   validates_length_of :name, maximum: 6
         #
-        #     before_validation :remove_whitespaces
+        #   before_validation :remove_whitespaces
         #
-        #     private
-        #       def remove_whitespaces
-        #         name.strip!
-        #       end
-        #   end
+        #   private
+        #     def remove_whitespaces
+        #       name.strip!
+        #     end
+        # end
         #
-        #   person = Person.new
-        #   person.name = '  bob  '
-        #   person.valid? # => true
-        #   person.name   # => "bob"
+        # person = Person.new
+        # person.name = '  bob  '
+        # person.valid? # => true
+        # person.name   # => "bob"
+        # ```
         def before_validation(*args, &block)
           options = args.extract_options!
 
@@ -62,29 +68,31 @@ module ActiveModel
 
         # Defines a callback that will get called right after validation.
         #
-        #   class Person
-        #     include ActiveModel::Validations
-        #     include ActiveModel::Validations::Callbacks
+        # ```
+        # class Person
+        #   include ActiveModel::Validations
+        #   include ActiveModel::Validations::Callbacks
         #
-        #     attr_accessor :name, :status
+        #   attr_accessor :name, :status
         #
-        #     validates_presence_of :name
+        #   validates_presence_of :name
         #
-        #     after_validation :set_status
+        #   after_validation :set_status
         #
-        #     private
-        #       def set_status
-        #         self.status = errors.empty?
-        #       end
-        #   end
+        #   private
+        #     def set_status
+        #       self.status = errors.empty?
+        #     end
+        # end
         #
-        #   person = Person.new
-        #   person.name = ''
-        #   person.valid? # => false
-        #   person.status # => false
-        #   person.name = 'bob'
-        #   person.valid? # => true
-        #   person.status # => true
+        # person = Person.new
+        # person.name = ''
+        # person.valid? # => false
+        # person.status # => false
+        # person.name = 'bob'
+        # person.valid? # => true
+        # person.status # => true
+        # ```
         def after_validation(*args, &block)
           options = args.extract_options!
           options = options.dup

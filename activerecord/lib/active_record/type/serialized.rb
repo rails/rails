@@ -6,6 +6,7 @@ module ActiveRecord
       undef to_yaml if method_defined?(:to_yaml)
 
       include ActiveModel::Type::Helpers::Mutable
+      include QueryPredicates::Decorator
 
       attr_reader :subtype, :coder
 
@@ -65,6 +66,11 @@ module ActiveRecord
       end
 
       private
+        # Prevent Ruby 4.0 "delegator does not forward private method" warning.
+        # Kernel#inspect calls instance_variables_to_inspect which, without this,
+        # triggers Delegator#respond_to_missing? for a private method.
+        define_method(:instance_variables_to_inspect, Kernel.instance_method(:instance_variables))
+
         def default_value?(value)
           value == coder.load(nil)
         end

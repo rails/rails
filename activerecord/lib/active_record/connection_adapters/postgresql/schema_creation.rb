@@ -8,22 +8,16 @@ module ActiveRecord
           delegate :quoted_include_columns_for_index, to: :@conn
           delegate :database_version, to: :@conn
 
-          def visit_AlterTable(o)
-            sql = super
-            sql << o.constraint_validations.map { |fk| visit_ValidateConstraint fk }.join(" ")
-            sql << o.exclusion_constraint_adds.map { |con| visit_AddExclusionConstraint con }.join(" ")
-            sql << o.unique_constraint_adds.map { |con| visit_AddUniqueConstraint con }.join(" ")
-          end
-
           def visit_AddForeignKey(o)
             super.dup.tap do |sql|
-              sql << " NOT VALID" unless o.validate?
+              sql << " NOT VALID" unless o.foreign_key.validate?
             end
           end
 
           def visit_ForeignKeyDefinition(o)
             super.dup.tap do |sql|
               sql << " DEFERRABLE INITIALLY #{o.deferrable.to_s.upcase}" if o.deferrable
+              sql << " NOT ENFORCED" unless o.enforced?
             end
           end
 
@@ -31,8 +25,8 @@ module ActiveRecord
             super.dup.tap { |sql| sql << " NOT VALID" unless o.validate? }
           end
 
-          def visit_ValidateConstraint(name)
-            "VALIDATE CONSTRAINT #{quote_column_name(name)}"
+          def visit_ValidateConstraint(o)
+            "VALIDATE CONSTRAINT #{quote_column_name(o.name)}"
           end
 
           def visit_ExclusionConstraintDefinition(o)
@@ -69,11 +63,11 @@ module ActiveRecord
           end
 
           def visit_AddExclusionConstraint(o)
-            "ADD #{accept(o)}"
+            "ADD #{accept(o.exclusion_constraint)}"
           end
 
           def visit_AddUniqueConstraint(o)
-            "ADD #{accept(o)}"
+            "ADD #{accept(o.unique_constraint)}"
           end
 
           def visit_ChangeColumnDefinition(o)

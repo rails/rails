@@ -33,7 +33,8 @@ class CurrentAttributesIntegrationTest < ActiveSupport::TestCase
 
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
-        get "/customers/:action", controller: :customers
+        get "/customers/set_current_customer", to: "customers#set_current_customer"
+        get "/customers/set_no_customer", to: "customers#set_no_customer"
       end
     RUBY
 

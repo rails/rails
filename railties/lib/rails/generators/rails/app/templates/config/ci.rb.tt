@@ -7,7 +7,6 @@ CI.run do
 <% unless options.skip_rubocop? -%>
     step "Style: Ruby", "bin/rubocop"
 <% end -%>
-
 <% unless options.skip_bundler_audit? -%>
     step "Security: Gem audit", "bin/bundler-audit"
 <% end -%>
@@ -20,8 +19,8 @@ CI.run do
 <% unless options.skip_brakeman? -%>
     step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
 <% end -%>
-
 <% unless options[:skip_test] -%>
+
     group "Tests" do
       step "Tests: Rails", "bin/rails test"
 <% unless options.skip_active_record? -%>

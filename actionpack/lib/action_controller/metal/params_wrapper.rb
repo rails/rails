@@ -83,7 +83,7 @@ module ActionController
   module ParamsWrapper
     extend ActiveSupport::Concern
 
-    EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8)
+    EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8).freeze
 
     class Options < Struct.new(:name, :format, :include, :exclude, :klass, :model) # :nodoc:
       def self.from_hash(hash)
@@ -154,6 +154,17 @@ module ActionController
         end
       end
 
+      def freeze
+        return self if frozen?
+
+        if format.any?
+          name
+          include
+        end
+        @mutex = nil
+        super
+      end
+
       private
         # Determine the wrapper model from the controller's name. By convention, this
         # could be done by trying to find the defined model that has the same singular
@@ -186,10 +197,6 @@ module ActionController
     end
 
     module ClassMethods
-      def _set_wrapper_options(options)
-        self._wrapper_options = Options.from_hash(options)
-      end
-
       # Sets the name of the wrapper key, or the model which `ParamsWrapper` would use
       # to determine the attribute names from.
       #

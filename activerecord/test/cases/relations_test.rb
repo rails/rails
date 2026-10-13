@@ -27,6 +27,7 @@ require "models/reader"
 require "models/category"
 require "models/categorization"
 require "models/edge"
+require "models/clothing_item"
 require "models/wheel"
 require "models/subscriber"
 require "models/cpk"
@@ -172,16 +173,16 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_subquery
     relation = Topic.where(approved: true)
-    assert_equal relation.to_a, Topic.select("*").from(relation).to_a
-    assert_equal relation.to_a, Topic.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Topic.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Topic.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Topic.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Topic.select("a.*").from(relation, :a).to_a
   end
 
   def test_finding_with_subquery_with_binds
     relation = Post.first.comments
-    assert_equal relation.to_a, Comment.select("*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Comment.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("a.*").from(relation, :a).to_a
   end
 
   def test_finding_with_subquery_without_select_does_not_change_the_select
@@ -254,9 +255,21 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_subquery_with_eager_loading_in_from
     relation = Comment.includes(:post).where("posts.type": "Post").order(:id)
-    assert_equal relation.to_a, Comment.select("*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
-    assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+    assert_equal_unordered relation.to_a, Comment.select("*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("subquery.*").from(relation).to_a
+    assert_equal_unordered relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+  end
+
+  unless current_adapter?(:SQLite3Adapter)
+    def test_select_with_union_in_from
+      arel1 = Comment.where(id: 1).arel
+      arel2 = Comment.where(id: 2).arel
+      union = Arel::Nodes::Union.new(arel1, arel2)
+      expected = [comments(:greetings), comments(:more_greetings)]
+
+      assert_equal_unordered expected, Comment.select("subquery.*").from(union).to_a
+      assert_equal_unordered expected, Comment.select("a.*").from(union, :a).to_a
+    end
   end
 
   def test_finding_with_subquery_with_eager_loading_in_where
@@ -387,6 +400,19 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal edge_2.source_id, ordered_edge.all.reverse_order.first.source_id
   end
 
+  def test_reverse_order_uses_query_constraints
+    ClothingItem.delete_all
+    # Insert so that the id order is the reverse of the query_constraints order,
+    # to catch a reverse_order that falls back to ordering by the primary key.
+    zzz = ClothingItem.create!(clothing_type: "zzz", color: "red")
+    aaa = ClothingItem.create!(clothing_type: "aaa", color: "blue")
+
+    assert_equal aaa.id, ClothingItem.all.first.id
+    assert_equal zzz.id, ClothingItem.all.last.id
+    assert_equal zzz.id, ClothingItem.all.reverse_order.first.id
+    assert_equal aaa.id, ClothingItem.all.reverse_order.last.id
+  end
+
   def test_order_with_hash_and_symbol_generates_the_same_sql
     assert_equal Topic.order(:id).to_sql, Topic.order(id: :asc).to_sql
   end
@@ -452,6 +478,16 @@ class RelationTest < ActiveRecord::TestCase
   def test_reorder_deduplication
     topics = Topic.reorder("id desc", "id desc")
     assert_equal ["id desc"], topics.order_values
+  end
+
+  def test_regroup_deduplication
+    topics = Topic.regroup(:author_id, :author_id)
+    assert_equal [:author_id], topics.group_values
+  end
+
+  def test_default_order_deduplication
+    topics = Topic.default_order("id desc", "id desc")
+    assert_equal ["id desc"], topics.default_order_values
   end
 
   def test_finding_with_reorder_by_aliased_attributes
@@ -1553,7 +1589,7 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     relation.stub(:find_by, find_by_mock) do
-      relation.stub(:find_by!, find_by_mock) do # create_or_find_by always call find_by! on retry
+      relation.stub(:take!, find_by_mock) do # use :take! instead of :find_by! because of the rewhere change
         assert_equal bob, relation.find_or_create_by(nick: "bob")
       end
     end
@@ -1595,6 +1631,21 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal subscriber, Subscriber.create_or_find_by(nick: "bob")
     assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
+  end
+
+  def test_create_or_find_by_with_polluted_scope
+    subscriber = Subscriber.create!(nick: "bob")
+
+    scoped_relation = Subscriber.where(nick: "alice")
+
+    assert_equal subscriber, scoped_relation.create_or_find_by(nick: "bob")
+  end
+
+  def test_create_or_find_by_bang_with_polluted_scope
+    subscriber = Subscriber.create!(nick: "bob")
+    scoped_relation = Subscriber.where(nick: "alice")
+
+    assert_equal subscriber, scoped_relation.create_or_find_by!(nick: "bob")
   end
 
   def test_create_or_find_by_rollbacks_a_transaction
@@ -1997,6 +2048,25 @@ class RelationTest < ActiveRecord::TestCase
     assert_nil relation.order_values.first
   end
 
+  def test_default_order
+    comments = posts(:welcome).comments.default_order(:body)
+    assert_equal [2, 1], comments.pluck(:id)
+    assert_equal 2, comments.first.id
+
+    comments = comments.order(:id)
+    assert_equal [1, 2], comments.pluck(:id)
+    assert_equal 1, comments.first.id
+  end
+
+  def test_reverse_order_reverses_default_order
+    # reverse_order should reverse the default order, just like a regular
+    # order, rather than discarding it in favor of the primary key.
+    assert_equal Post.order("title ASC").reverse_order.ids, Post.default_order("title ASC").reverse_order.ids
+
+    relation = Post.default_order("title ASC").reverse_order
+    assert_match(/ORDER BY title DESC/, relation.to_sql)
+  end
+
   def test_reorder_with_first
     post = nil
 
@@ -2150,13 +2220,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "relations show the records in #inspect" do
-    relation = Post.limit(2)
-    assert_equal "#<ActiveRecord::Relation [#{Post.limit(2).map(&:inspect).join(', ')}]>", relation.inspect
+    relation = Post.order(:id).limit(2)
+    assert_equal "#<ActiveRecord::Relation [#{Post.order(:id).limit(2).map(&:inspect).join(', ')}]>", relation.inspect
   end
 
   test "relations limit the records in #inspect at 10" do
-    relation = Post.limit(11)
-    assert_equal "#<ActiveRecord::Relation [#{Post.limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
+    relation = Post.order(:id).limit(11)
+    assert_equal "#<ActiveRecord::Relation [#{Post.order(:id).limit(10).map(&:inspect).join(', ')}, ...]>", relation.inspect
   end
 
   test "relations don't load all records in #inspect" do
@@ -2523,7 +2593,87 @@ class CreateOrFindByWithinTransactions < ActiveRecord::TestCase
       duel { Subscriber.find_or_create_by!(nick: "bob") }
     end
 
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+      def test_three_concurrent_find_or_create_by_within_repeatable_read_transactions
+        three_concurrent_creates(:find_or_create_by, :repeatable_read)
+      end
+
+      def test_three_concurrent_find_or_create_by_bang_within_repeatable_read_transactions
+        three_concurrent_creates(:find_or_create_by!, :repeatable_read)
+      end
+
+      def test_three_concurrent_find_or_create_by_within_savepoints_in_repeatable_read_transactions
+        three_concurrent_creates(:find_or_create_by, :repeatable_read, requires_new: true) do
+          Subscriber.create!(nick: "after_#{Thread.current.object_id}")
+        end
+
+        assert_equal 2, Subscriber.where("nick LIKE 'after_%'").count
+      end
+
+      def test_three_concurrent_find_or_create_by_within_read_committed_transactions
+        three_concurrent_creates(:find_or_create_by, :read_committed)
+      end
+
+      def test_three_concurrent_find_or_create_by_bang_within_read_committed_transactions
+        three_concurrent_creates(:find_or_create_by!, :read_committed)
+      end
+    end
+
     private
+      def three_concurrent_creates(method, isolation, requires_new: false)
+        threads = []
+        assert_nil Subscriber.find_by(nick: "bob")
+
+        ready = Concurrent::CountDownLatch.new(2)
+        winner_committed = Concurrent::Event.new
+        duplicate_inserts = Concurrent::CyclicBarrier.new(2)
+
+        subscriber = ->(*args) do
+          payload = args.last
+          if threads.include?(Thread.current) && payload[:exception_object].is_a?(ActiveRecord::RecordNotUnique)
+            # Both duplicate INSERTs must hold their shared record locks before
+            # either transaction attempts the readback.
+            raise "Timed out waiting for duplicate INSERTs" unless duplicate_inserts.wait(10)
+          end
+        end
+
+        ActiveSupport::Notifications.subscribed(subscriber, "sql.active_record") do
+          2.times do
+            threads << Thread.new do
+              Thread.current.report_on_exception = false
+              Subscriber.transaction(isolation: isolation) do
+                # Read in the outer transaction so requires_new uses a savepoint
+                # instead of restarting the parent transaction.
+                Subscriber.find_by(nick: "bob") if requires_new
+                record = Subscriber.transaction(requires_new: requires_new) do
+                  Subscriber.public_send(method, nick: "bob") do
+                    # The initial SELECT has missed the row, establishing a stale
+                    # snapshot under REPEATABLE READ before the winner commits.
+                    ready.count_down
+                    raise "Timed out waiting for the winner to commit" unless winner_committed.wait(10)
+                  end
+                end
+                yield if block_given?
+                record
+              end
+            end
+          end
+
+          assert ready.wait(10), "Timed out waiting for the initial SELECTs"
+          winner = Subscriber.transaction { Subscriber.create!(nick: "bob") }
+          winner_committed.set
+
+          threads.each do |thread|
+            assert thread.join(15), "Timed out waiting for find_or_create_by"
+            assert_equal winner, thread.value
+          end
+          assert_equal 1, Subscriber.where(nick: "bob").count
+        end
+      ensure
+        threads.each { |thread| thread.kill if thread.alive? }
+        threads.each { |thread| thread.join unless thread.status.nil? }
+      end
+
       def duel
         assert_nil Subscriber.find_by(nick: "bob")
 

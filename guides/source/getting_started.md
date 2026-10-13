@@ -72,7 +72,7 @@ TIP: Any commands prefaced with a dollar sign `$` should be run in the terminal.
 
 For this project, you will need:
 
-* Ruby 3.3 or newer
+* Ruby 3.4 or newer
 * Rails 8.2.0 or newer
 * A code editor
 
@@ -119,33 +119,33 @@ Let's take a quick glance at the files and directories that are included in a
 new Rails application. You can open this folder in your code editor or run
 `ls -la` in your terminal to see the files and directories.
 
-| File/Folder | Purpose |
-| ----------- | ------- |
-|app/|Contains the controllers, models, views, helpers, mailers, jobs, and assets for your application. **You'll focus mostly on this folder for the remainder of this guide.**|
-|bin/|Contains the `rails` script that starts your app and can contain other scripts you use to set up, update, deploy, or run your application.|
-|config/|Contains configuration for your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
-|config.ru|[Rack](https://rack.github.io) configuration for Rack-based servers used to start the application.|
-|db/|Contains your current database schema, as well as the database migrations.|
-|Dockerfile|Configuration file for Docker.|
-|Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the [Bundler](https://bundler.io) gem.|
-|lib/|Extended modules for your application.|
-|log/|Application log files.|
-|public/|Contains static files and compiled assets. When your app is running, this directory will be exposed as-is.|
-|Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing `Rakefile`, you should add your own tasks by adding files to the `lib/tasks` directory of your application.|
-|README.md|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
-|script/|Contains one-off or general purpose [scripts](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/script/USAGE) and [benchmarks](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/benchmark/USAGE).|
-|storage/|Contains SQLite databases and Active Storage files for Disk Service. This is covered in [Active Storage Overview](active_storage_overview.html).|
-|test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
-|tmp/|Temporary files (like cache and pid files).|
-|vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
-|.dockerignore|This file tells Docker which files it should not copy into the container.|
-|.gitattributes|This file defines metadata for specific paths in a Git repository. This metadata can be used by Git and other tools to enhance their behavior. See the [gitattributes documentation](https://git-scm.com/docs/gitattributes) for more information.|
-|.git/|Contains Git repository files.|
-|.github/|Contains GitHub specific files.|
-|.gitignore|This file tells Git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more information about ignoring files.|
-|.kamal/|Contains Kamal secrets and deployment hooks.|
-|.rubocop.yml|This file contains the configuration for RuboCop.|
-|.ruby-version|This file contains the default Ruby version.|
+| File/Folder             | Purpose                                                                                                                                                                                                                                                                        |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| app/                    | Contains the controllers, models, views, helpers, mailers, jobs, and assets for your application. **You'll focus mostly on this folder for the remainder of this guide.**                                                                                                      |
+| bin/                    | Contains the `rails` script that starts your app and can contain other scripts you use to set up, update, deploy, or run your application.                                                                                                                                     |
+| config/                 | Contains configuration for your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).                                                                                                                |
+| config.ru               | [Rack](https://rack.github.io) configuration for Rack-based servers used to start the application.                                                                                                                                                                             |
+| db/                     | Contains your current database schema, as well as the database migrations.                                                                                                                                                                                                     |
+| Dockerfile              | Configuration file for Docker.                                                                                                                                                                                                                                                 |
+| Gemfile<br>Gemfile.lock | These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the [Bundler](https://bundler.io) gem.                                                                                                                   |
+| lib/                    | Extended modules for your application.                                                                                                                                                                                                                                         |
+| log/                    | Application log files.                                                                                                                                                                                                                                                         |
+| public/                 | Contains static files and compiled assets. When your app is running, this directory will be exposed as-is.                                                                                                                                                                     |
+| Rakefile                | This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing `Rakefile`, you should add your own tasks by adding files to the `lib/tasks` directory of your application. |
+| README.md               | This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.                                                                                                                     |
+| script/                 | Contains one-off or general purpose [scripts](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/script/USAGE) and [benchmarks](https://github.com/rails/rails/blob/main/railties/lib/rails/generators/rails/benchmark/USAGE).                       |
+| storage/                | Contains SQLite databases and Active Storage files for Disk Service. This is covered in [Active Storage Overview](active_storage_overview.html).                                                                                                                               |
+| test/                   | Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).                                                                                                                                                               |
+| tmp/                    | Temporary files (like cache and pid files).                                                                                                                                                                                                                                    |
+| vendor/                 | A place for all third-party code. In a typical Rails application this includes vendored gems.                                                                                                                                                                                  |
+| .dockerignore           | This file tells Docker which files it should not copy into the container.                                                                                                                                                                                                      |
+| .gitattributes          | This file defines metadata for specific paths in a Git repository. This metadata can be used by Git and other tools to enhance their behavior. See the [gitattributes documentation](https://git-scm.com/docs/gitattributes) for more information.                             |
+| .git/                   | Contains Git repository files.                                                                                                                                                                                                                                                 |
+| .github/                | Contains GitHub specific files.                                                                                                                                                                                                                                                |
+| .gitignore              | This file tells Git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more information about ignoring files.                                                                                      |
+| .kamal/                 | Contains Kamal secrets and deployment hooks.                                                                                                                                                                                                                                   |
+| .rubocop.yml            | This file contains the configuration for RuboCop.                                                                                                                                                                                                                              |
+| .ruby-version           | This file contains the default Ruby version.                                                                                                                                                                                                                                   |
 
 ### Model-View-Controller Basics
 
@@ -1237,7 +1237,7 @@ will look like this:
 
 ```html
 <form action="/products" accept-charset="UTF-8" method="post">
-  <input type="hidden" name="authenticity_token" value="UHQSKXCaFqy_aoK760zpSMUPy6TMnsLNgbPMABwN1zpW-Jx6k-2mISiF0ulZOINmfxPdg5xMyZqdxSW1UK-H-Q" autocomplete="off">
+  <input type="hidden" name="authenticity_token" value="UHQSKXCaFqy_aoK760zpSMUPy6TMnsLNgbPMABwN1zpW-Jx6k-2mISiF0ulZOINmfxPdg5xMyZqdxSW1UK-H-Q">
 
   <div>
     <label for="product_name">Name</label>
@@ -1299,7 +1299,7 @@ filtered for security. That's where the `product_params` method comes into play.
 
 In `product_params`, we tell Rails to inspect the params and ensure there is a
 key named `:product` with an array of parameters as the value. The only
-permitted parameters for products is `:name` and Rails will ignore any other
+permitted parameters for products are `:name` and Rails will ignore any other
 parameters. This protects our application from malicious users who might try to
 hack our application.
 
@@ -2042,7 +2042,7 @@ es:
 You'll now see "Products" when viewing the English locale and "Productos" when
 viewing the Spanish locale.
 
-Learn more about the [Rails Internationalization (I18n) API](i18n.html).
+Learn more about [Internationalization (I18n)](i18n.html).
 
 Action Mailer and Email Notifications
 -----------------------------
@@ -2137,7 +2137,7 @@ of these subscribers.
 Let's generate a model called Subscriber to store these email addresses and
 associate them with the respective product.
 
-NOTE: Here we are not specifying a type for `email` as rails automatically defaults to a `string` when a type is not given for migrations.
+NOTE: Here we are not specifying a type for `email` as Rails automatically defaults to a `string` when a type is not given for migrations.
 
 ```bash
 $ bin/rails generate model Subscriber product:belongs_to email
@@ -2826,7 +2826,7 @@ the Active Record object for that record. Each fixture generates a helper in the
 test suite to make it easy to reference fixtures by name since their database
 IDs may be different each run.
 
-Then we ensure the tshirt is out of stock by updating it's inventory to 0.
+Then we ensure the tshirt is out of stock by updating its inventory to 0.
 
 Next, we use `assert_emails` to ensure 2 emails were generated by the code
 inside the block. To trigger the emails, we update the product's inventory count

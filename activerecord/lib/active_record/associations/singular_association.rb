@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
     class SingularAssociation < Association # :nodoc:
@@ -14,11 +15,10 @@ module ActiveRecord
         target
       end
 
-      # Resets the \loaded flag to +false+ and sets the \target to +nil+.
+      # Resets the \loaded flag to `false` and sets the \target to `nil`.
       def reset
         super
         @target = nil
-        @future_target = nil
       end
 
       # Implements the writer method, e.g. foo.bar= for Foo.belongs_to :bar

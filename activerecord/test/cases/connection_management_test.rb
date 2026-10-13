@@ -52,6 +52,7 @@ module ActiveRecord
 
       test "connections are cleared even if inside a non-joinable transaction" do
         ActiveRecord::Base.connection_pool.pin_connection!(Thread.current)
+        ActiveRecord::Base.lease_connection.begin_transaction(joinable: false, _lazy: false)
         Thread.new do
           assert ActiveRecord::Base.lease_connection
           assert ActiveRecord::Base.connection_handler.active_connections?(:all)
@@ -60,6 +61,8 @@ module ActiveRecord
           assert_not ActiveRecord::Base.connection_handler.active_connections?(:all)
         end.join
       ensure
+        connection = ActiveRecord::Base.lease_connection
+        connection.rollback_transaction if connection.transaction_open?
         ActiveRecord::Base.connection_pool.unpin_connection!
       end
 

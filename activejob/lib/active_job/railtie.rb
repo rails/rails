@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails"
 require "global_id/railtie"
 require "active_job"
 
 module ActiveJob
-  # = Active Job Railtie
+  # Active Job Railtie
+  # ==================
   class Railtie < Rails::Railtie # :nodoc:
     config.active_job = ActiveSupport::OrderedOptions.new
     config.active_job.custom_serializers = []
@@ -88,8 +90,9 @@ module ActiveJob
 
     initializer "active_job.set_reloader_hook" do |app|
       ActiveSupport.on_load(:active_job) do
+        reloader = app.reloader
         ActiveJob::Callbacks.singleton_class.set_callback(:execute, :around, prepend: true) do |_, inner|
-          app.reloader.wrap do
+          reloader.wrap do
             inner.call
           end
         end

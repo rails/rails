@@ -2,9 +2,11 @@
 
 require_relative "abstract_unit"
 require "active_support/log_subscriber/test_helper"
+require "active_support/testing/ractors_assertions"
 
 class SyncLogSubscriberTest < ActiveSupport::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
+  include ActiveSupport::Testing::RactorsAssertions
 
   class MyLogSubscriber < ActiveSupport::LogSubscriber
     attr_reader :event
@@ -53,6 +55,27 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     assert_equal %w(debug), @logger.logged(:debug)
     assert_equal %w(info), @logger.logged(:info)
     assert_equal %w(warn), @logger.logged(:warn)
+  end
+
+  def test_proxies_messages_and_blocks_at_every_level
+    levels = [:debug, :info, :warn, :error, :fatal, :unknown]
+
+    levels.each do |level|
+      @log_subscriber.public_send(level, "#{level} message")
+      @log_subscriber.public_send(level) { "#{level} block" }
+    end
+
+    levels.each do |level|
+      assert_equal ["#{level} message", "#{level} block"], @logger.logged(level)
+    end
+  end
+
+  def test_logging_methods_do_nothing_without_a_logger
+    ActiveSupport::LogSubscriber.logger = nil
+
+    [:debug, :info, :warn, :error, :fatal, :unknown].each do |level|
+      assert_nil @log_subscriber.public_send(level, "message")
+    end
   end
 
   def test_set_color_for_messages
@@ -175,7 +198,7 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
   end
 
   class MockSemanticLogger < MockLogger
-    LEVELS = [:debug, :info]
+    LEVELS = [:debug, :info].freeze
     def level
       LEVELS[super]
     end
@@ -198,6 +221,27 @@ class SyncLogSubscriberTest < ActiveSupport::TestCase
     instrument "debug_only.my_log_subscriber"
     wait
     assert_not_empty @logger.logged(:debug)
+  end
+
+  def test_log_levels_are_ractor_safe
+    assert_ractor_shareable MyLogSubscriber.log_levels
+  end
+
+  if RUBY_VERSION >= "4.0"
+    def test_logger_is_ractor_safe
+      previous_logger = ActiveSupport::LogSubscriber.logger
+      logger = ActiveSupport::Ractors::Logger.new
+      ActiveSupport::Ractors.make_shareable(logger)
+      ActiveSupport::LogSubscriber.logger = logger
+      other_ractor_logger = on_ractor do
+        ActiveSupport::LogSubscriber.logger
+      end
+
+      assert_same logger, other_ractor_logger
+    ensure
+      ActiveSupport::LogSubscriber.logger = previous_logger
+      logger&.close
+    end
   end
 
   private

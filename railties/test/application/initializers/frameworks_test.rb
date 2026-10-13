@@ -117,7 +117,8 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "/:controller(/:action)"
+          get "/foo/included_helpers", to: "foo#included_helpers"
+          get "/foo/not_included_helper", to: "foo#not_included_helper"
         end
       RUBY
 
@@ -149,7 +150,7 @@ module ApplicationTests
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get "/:controller(/:action)"
+          get "/omg/show", to: "omg#show"
         end
       RUBY
 
@@ -200,6 +201,55 @@ module ApplicationTests
       Dir.chdir("#{app_path}/app") do
         app("development")
         assert_raises(NoMethodError) { "hello".exclude? "lo" }
+      end
+    end
+
+    if RUBY_VERSION >= "4.0"
+      test "notification subscriptions are recorded" do
+        add_to_config "ActiveSupport::Ractors.unshareable_proc_action = :warn"
+
+        app_file "config/initializers/subscriptions.rb", <<-RUBY
+          WitnessError = Class.new(StandardError)
+
+          ActiveSupport::Notifications.subscribe("active_record.sql") { raise WitnessError }
+        RUBY
+
+        app("development")
+
+        # Main Ractor receives notifications
+        assert_raises(WitnessError) do
+          ActiveSupport::Notifications.instrument("active_record.sql")
+        end
+
+        previous_report_on_exception = Thread.report_on_exception
+        Thread.report_on_exception = false
+
+        # Worker Ractor received notifications
+        error = assert_raises(Ractor::RemoteError) do
+          Ractor.new do
+            ActiveSupport::Notifications.instrument("active_record.sql")
+          end.join
+        end
+
+        assert_instance_of(WitnessError, error.cause)
+      ensure
+        Thread.report_on_exception = previous_report_on_exception
+      end
+
+      test "Notification subscriptions can be added after boot" do
+        add_to_config "ActiveSupport::Ractors.unshareable_proc_action = :warn"
+
+        app_file "config/initializers/subscriptions.rb", <<-RUBY
+          WitnessError = Class.new(StandardError)
+
+          ActiveSupport::Notifications.subscribe("active_record.sql") { raise WitnessError }
+        RUBY
+
+        app("development")
+
+        assert_nothing_raised do
+          ActiveSupport::Notifications.subscribe("sql.active_record") { }
+        end
       end
     end
 

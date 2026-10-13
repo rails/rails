@@ -36,6 +36,17 @@ class ActionCable::TestCase < ActiveSupport::TestCase
       raise "Executor could not complete all tasks in 2 seconds" unless timeout > 0
     end
   end
+
+  def wait_for(message: "condition not met", timeout: 5, interval: 0.01)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout
+    loop do
+      return if yield
+      if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+        raise Timeout::Error, "#{message} after #{timeout} seconds"
+      end
+      sleep interval
+    end
+  end
 end
 
 require_relative "../../tools/test_common"

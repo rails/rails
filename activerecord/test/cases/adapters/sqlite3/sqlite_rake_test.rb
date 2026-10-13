@@ -177,7 +177,7 @@ module ActiveRecord
       dbfile   = @database
       filename = "awesome-file.sql"
       ActiveRecord::Base.lease_connection.stub(:data_sources, ["foo", "bar", "prefix_foo", "ignored_foo"]) do
-        ActiveRecord::SchemaDumper.stub(:ignore_tables, [/^prefix_/, "ignored_foo"]) do
+        ActiveRecord.stub(:schema_ignored_tables, [/^prefix_/, "ignored_foo"]) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
         end
       end
@@ -187,6 +187,24 @@ module ActiveRecord
       assert_match(/bar/, contents)
       assert_no_match(/prefix_foo/, contents)
       assert_no_match(/ignored_foo/, contents)
+    ensure
+      FileUtils.rm_f(filename)
+      FileUtils.rm_f(dbfile)
+    end
+
+    def test_structure_dump_with_schema_ignored_tables_as_a_set
+      dbfile   = @database
+      filename = "awesome-file.sql"
+
+      ActiveRecord::Base.lease_connection.stub(:data_sources, ["bar", "foo"]) do
+        ActiveRecord.stub(:schema_ignored_tables, Set["foo"]) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
+        end
+      end
+
+      contents = File.read(filename)
+      assert_match(/CREATE TABLE bar/, contents)
+      assert_no_match(/foo/, contents)
     ensure
       FileUtils.rm_f(filename)
       FileUtils.rm_f(dbfile)
@@ -206,7 +224,7 @@ module ActiveRecord
             quietly { ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root") }
           end
         end
-        assert_match("failed to execute:", e.message)
+        assert_match("failed to execute:\nsqlite3 --noop db_create.sqlite3 .schema --nosys > awesome-file.sql", e.message)
       end
     ensure
       FileUtils.rm_f(filename)

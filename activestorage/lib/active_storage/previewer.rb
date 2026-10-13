@@ -79,7 +79,7 @@ module ActiveStorage
         to.binmode
 
         open_tempfile do |err|
-          IO.popen(argv, err: err) { |out| IO.copy_stream(out, to) }
+          IO.popen(argv, in: IO::NULL, err: err) { |out| IO.copy_stream(out, to) }
           err.rewind
 
           unless $?.success?

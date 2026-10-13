@@ -311,9 +311,9 @@ class ContinuousIntegrationTest < ActiveSupport::TestCase
             @CI.run("CI", nil) do
               group "Checks", parallel: 2 do
                 step "Fail", "false"
-                step "Should not run 1", "true"
-                step "Should not run 2", "true"
-                step "Should not run 3", "true"
+                step "Should not run 1", "sleep", "0.1"
+                step "Should not run 2", "sleep", "0.1"
+                step "Should not run 3", "sleep", "0.1"
               end
             end
           end

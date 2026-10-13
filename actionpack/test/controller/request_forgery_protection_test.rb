@@ -429,6 +429,23 @@ module RequestForgeryProtectionTests
     assert_not_blocked { head :index }
   end
 
+  def test_should_allow_query
+    assert_not_blocked { process :index, method: "QUERY" }
+  end
+
+  def test_should_allow_query_without_token_or_sec_fetch_site
+    session[:_csrf_token] = nil
+    assert_not_blocked { query :index }
+  end
+
+  def test_should_not_exempt_query_tunneled_through_method_override
+    # A POST carrying _method=query (tunneled by newer Rack::MethodOverride
+    # versions) was submitted as an ordinary form POST and must be verified
+    # like one, not inherit QUERY's exemption.
+    @request.env["rack.methodoverride.original_method"] = "POST"
+    assert_blocked { query :index }
+  end
+
   def test_should_allow_post_without_token_on_unsafe_action
     assert_not_blocked { post :unsafe }
   end
@@ -659,6 +676,22 @@ module RequestForgeryProtectionTests
     ensure
       ActionController::LogSubscriber.logger = old_logger
       ActionController::Base.log_warning_on_csrf_failure = true
+    end
+  end
+
+  def test_should_only_allow_same_origin_js_query_with_xhr_header
+    assert_cross_origin_blocked { query :same_origin_js }
+    assert_cross_origin_blocked { query :same_origin_js, format: "js" }
+    assert_cross_origin_blocked do
+      @request.accept = "text/javascript"
+      query :negotiate_same_origin
+    end
+
+    assert_cross_origin_not_blocked { query :same_origin_js, xhr: true }
+    assert_cross_origin_not_blocked { query :same_origin_js, xhr: true, format: "js" }
+    assert_cross_origin_not_blocked do
+      @request.accept = "text/javascript"
+      query :negotiate_same_origin, xhr: true
     end
   end
 
@@ -948,6 +981,21 @@ class PerFormTokensControllerTest < ActionController::TestCase
   def setup
     @old_request_forgery_protection_token = ActionController::Base.request_forgery_protection_token
     ActionController::Base.request_forgery_protection_token = :custom_authenticity_token
+
+    # A per-form token is derived from the path the form posts to, resolved
+    # against the request path. These tests were written against the
+    # "/per_form_tokens" that the `:controller(/:action)` catch-all generated
+    # for #index, so keep #index there rather than at "/per_form_tokens/index".
+    [@routes, SharedTestRoutes].each do |route_set|
+      already_routed = route_set.routes.any? { |route|
+        route.defaults[:controller] == "per_form_tokens" && route.defaults[:action] == "index"
+      }
+      next if already_routed
+
+      append_routes(route_set) do
+        get "/per_form_tokens", to: "per_form_tokens#index"
+      end
+    end
   end
 
   def teardown

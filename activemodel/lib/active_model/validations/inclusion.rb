@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_model/validations/clusivity"
 
 module ActiveModel
@@ -18,26 +19,29 @@ module ActiveModel
       # Validates whether the value of the specified attribute is available in a
       # particular enumerable object.
       #
-      #   class Person < ActiveRecord::Base
-      #     validates_inclusion_of :role, in: %w( admin contributor )
-      #     validates_inclusion_of :age, in: 0..99
-      #     validates_inclusion_of :format, in: %w( jpg gif png ), message: "extension %{value} is not included in the list"
-      #     validates_inclusion_of :states, in: ->(person) { STATES[person.country] }
-      #     validates_inclusion_of :karma, in: :available_karmas
-      #   end
+      # ```
+      # class Person < ActiveRecord::Base
+      #   validates_inclusion_of :role, in: %w( admin contributor )
+      #   validates_inclusion_of :age, in: 0..99
+      #   validates_inclusion_of :format, in: %w( jpg gif png ), message: "extension %{value} is not included in the list"
+      #   validates_inclusion_of :states, in: ->(person) { STATES[person.country] }
+      #   validates_inclusion_of :karma, in: :available_karmas
+      # end
+      # ```
       #
       # Configuration options:
-      # * <tt>:in</tt> - An enumerable object of available items. This can be
+      #
+      # * `:in` - An enumerable object of available items. This can be
       #   supplied as a proc, lambda, or symbol which returns an enumerable. If the
       #   enumerable is a numerical, time, or datetime range the test is performed
-      #   with <tt>Range#cover?</tt>, otherwise with <tt>include?</tt>. When using
+      #   with `Range#cover?`, otherwise with `include?`. When using
       #   a proc or lambda the instance under validation is passed as an argument.
-      # * <tt>:within</tt> - A synonym(or alias) for <tt>:in</tt>
-      # * <tt>:message</tt> - Specifies a custom error message (default is: "is
+      # * `:within` - A synonym(or alias) for `:in`
+      # * `:message` - Specifies a custom error message (default is: "is
       #   not included in the list").
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
+      # `:if`, `:unless`, `:on`, `:allow_nil`, `:allow_blank`, and `:strict`.
       # See ActiveModel::Validations::ClassMethods#validates for more information.
       def validates_inclusion_of(*attr_names)
         validates_with InclusionValidator, _merge_attributes(attr_names)

@@ -3,12 +3,21 @@
 require "isolation/abstract_unit"
 
 module ApplicationTests
-  class ActiveStorageEngineTest < ActiveSupport::TestCase
+  class AnalyzersIntegrationTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
 
     include ActiveJob::TestHelper
 
-    self.file_fixture_path = "#{RAILS_FRAMEWORK_ROOT}/activestorage/test/fixtures/files"
+    self.file_fixture_path = "test/fixtures/files"
+
+    def app(...)
+      super
+
+      # `app` runs `active_job.set_configs` initializer, which sets `ActiveJob::Base.queue_adapter = :async`,
+      # after `ActiveJob::TestHelper#before_setup`.
+      # So we need to reset it to `:test` for Active Job test helpers to work.
+      ActiveJob::Base._queue_adapter = nil
+    end
 
     def setup
       build_app

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -8,7 +9,7 @@ module ActionView
           options = @options.stringify_keys
 
           if range = options.delete("in") || options.delete("within")
-            options.update("min" => range.min, "max" => range.max)
+            options.update("min" => range.begin, "max" => (range.max if range.end))
           end
 
           @options = options

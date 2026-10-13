@@ -1,7 +1,9 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "concurrent/map"
 require "active_support/core_ext/object/try"
+require "active_support/ractors"
 
 module ActiveSupport
   module Notifications
@@ -53,28 +55,106 @@ module ActiveSupport
     #
     # This class is thread safe. All methods are reentrant.
     class Fanout
+      # An immutable set of subscriptions, replaced rather than mutated, so that
+      # it can be shared with other Ractors as a whole.
+      class Registry # :nodoc:
+        NO_PATTERNS = {}.freeze
+        NO_SUBSCRIBERS = [].freeze
+
+        attr_reader :string_subscribers, :other_subscribers
+
+        def initialize(string_subscribers = NO_PATTERNS, other_subscribers = NO_SUBSCRIBERS)
+          @string_subscribers = string_subscribers
+          @other_subscribers = other_subscribers
+          freeze
+        end
+
+        def [](pattern)
+          @string_subscribers[pattern] || NO_SUBSCRIBERS
+        end
+
+        def size
+          @string_subscribers.size + @other_subscribers.size
+        end
+
+        def add(subscriber, prepend: false)
+          pattern = subscriber.pattern
+
+          if String === pattern
+            listeners = self[pattern]
+            with_pattern(pattern, prepend ? [subscriber, *listeners] : [*listeners, subscriber])
+          else
+            with_other_subscribers([*@other_subscribers, subscriber])
+          end
+        end
+
+        def delete(subscriber)
+          pattern = subscriber.try(:pattern)
+
+          if String === pattern
+            with_pattern(pattern, self[pattern] - [subscriber])
+          else
+            with_other_subscribers(@other_subscribers - [subscriber])
+          end
+        end
+
+        def delete_pattern(pattern)
+          with_pattern(pattern, NO_SUBSCRIBERS)
+        end
+
+        private
+          def with_pattern(pattern, listeners)
+            string_subscribers =
+              if listeners.empty?
+                @string_subscribers.except(pattern)
+              else
+                @string_subscribers.merge(pattern => listeners.freeze)
+              end
+
+            Registry.new(string_subscribers.freeze, @other_subscribers)
+          end
+
+          def with_other_subscribers(other_subscribers)
+            Registry.new(@string_subscribers, other_subscribers.freeze)
+          end
+      end
+
       def initialize
         @mutex = Mutex.new
-        @string_subscribers = Concurrent::Map.new { |h, k| h.compute_if_absent(k) { [] } }
-        @other_subscribers = []
+        @registry = Registry.new
         @all_listeners_for = Concurrent::Map.new
         @groups_for = Concurrent::Map.new
       end
 
-      def inspect # :nodoc:
-        total_patterns = @string_subscribers.size + @other_subscribers.size
-        "#<#{self.class} (#{total_patterns} patterns)>"
+      def to_ractor_snapshot # :nodoc:
+        @registry
       end
 
-      def subscribe(pattern = nil, callable = nil, monotonic: false, &block)
+      def load_ractor_snapshot(registry) # :nodoc:
+        @mutex.synchronize do
+          @registry = registry
+          clear_cache
+        end
+      end
+
+      def inspect # :nodoc:
+        "#<#{self.class} (#{@registry.size} patterns)>"
+      end
+
+      def subscribe(pattern = nil, callable = nil, monotonic: false, prepend: false, &block)
+        block = ActiveSupport::Ractors.try_shareable_proc(block) if block
+
         subscriber = Subscribers.new(pattern, callable || block, monotonic)
         @mutex.synchronize do
           case pattern
           when String
-            @string_subscribers[pattern] << subscriber
+            @registry = @registry.add(subscriber, prepend: prepend)
             clear_cache(pattern)
           when NilClass, Regexp
-            @other_subscribers << subscriber
+            if prepend
+              raise ArgumentError, "Cannot prepend Regex subscribers"
+            end
+            @registry = @registry.add(subscriber)
             clear_cache
           else
             raise ArgumentError,  "pattern must be specified as a String, Regexp or empty"
@@ -87,18 +167,15 @@ module ActiveSupport
         @mutex.synchronize do
           case subscriber_or_name
           when String
-            @string_subscribers[subscriber_or_name].clear
+            @registry = @registry.delete_pattern(subscriber_or_name)
+            @registry.other_subscribers.each { |sub| sub.unsubscribe!(subscriber_or_name) }
             clear_cache(subscriber_or_name)
-            @other_subscribers.each { |sub| sub.unsubscribe!(subscriber_or_name) }
           else
             pattern = subscriber_or_name.try(:pattern)
-            if String === pattern
-              @string_subscribers[pattern].delete(subscriber_or_name)
-              clear_cache(pattern)
-            else
-              @other_subscribers.delete(subscriber_or_name)
-              clear_cache
-            end
+            pattern = nil unless String === pattern
+
+            @registry = @registry.delete(subscriber_or_name)
+            clear_cache(pattern)
           end
         end
       end
@@ -213,24 +290,26 @@ module ActiveSupport
         groups
       end
 
-      # A +Handle+ is used to record the start and finish time of event.
+      # A `Handle` is used to record the start and finish time of event.
       #
       # Both #start and #finish must each be called exactly once.
       #
       # Where possible, it's best to use the block form: ActiveSupport::Notifications.instrument.
-      # +Handle+ is a low-level API intended for cases where the block form can't be used.
+      # `Handle` is a low-level API intended for cases where the block form can't be used.
       #
-      #   handle = ActiveSupport::Notifications.instrumenter.build_handle("my.event", {})
-      #   begin
-      #     handle.start
-      #     # work to be instrumented
-      #   ensure
-      #     handle.finish
-      #   end
+      # ```
+      # handle = ActiveSupport::Notifications.instrumenter.build_handle("my.event", {})
+      # begin
+      #   handle.start
+      #   # work to be instrumented
+      # ensure
+      #   handle.finish
+      # end
+      # ```
       class Handle
         include FanoutIteration
 
-        def initialize(notifier, name, id, groups, payload) # :nodoc:
+        def initialize(name, id, groups, payload) # :nodoc:
           @name = name
           @id = id
           @payload = payload
@@ -291,7 +370,7 @@ module ActiveSupport
         if groups.empty?
           NullHandle
         else
-          Handle.new(self, name, id, groups, payload)
+          Handle.new(name, id, groups, payload)
         end
       end
 
@@ -319,9 +398,9 @@ module ActiveSupport
       def all_listeners_for(name)
         # this is correctly done double-checked locking (Concurrent::Map's lookups have volatile semantics)
         @all_listeners_for[name] || @mutex.synchronize do
-          # use synchronisation when accessing @subscribers
+          # use synchronisation when accessing @registry
           @all_listeners_for[name] ||=
-            @string_subscribers[name] + @other_subscribers.select { |s| s.subscribed_to?(name) }
+            @registry[name] + @registry.other_subscribers.select { |s| s.subscribed_to?(name) }
         end
       end
 

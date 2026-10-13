@@ -67,7 +67,11 @@ module ActionDispatch
     # :stopdoc: Default to 2 years as recommended on hstspreload.org.
     HSTS_EXPIRES_IN = 63072000
 
-    PERMANENT_REDIRECT_REQUEST_METHODS = %w[GET HEAD] # :nodoc:
+    # QUERY is deliberately not included: 301 permits clients to rewrite the
+    # method to GET, which would drop the request body, so QUERY (like POST and
+    # other body-carrying methods) gets a 307 that preserves method and body
+    # per RFC 10008's redirect semantics.
+    PERMANENT_REDIRECT_REQUEST_METHODS = %w[GET HEAD].freeze # :nodoc:
 
     def self.default_hsts_options
       { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }

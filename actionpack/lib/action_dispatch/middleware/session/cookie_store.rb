@@ -59,7 +59,7 @@ module ActionDispatch
         end
       end
 
-      DEFAULT_SAME_SITE = proc { |request| request.cookies_same_site_protection } # :nodoc:
+      DEFAULT_SAME_SITE = ActiveSupport::Ractors.shareable_proc { |request| request.cookies_same_site_protection } # :nodoc:
 
       def initialize(app, options = {})
         options[:cookie_only] = true

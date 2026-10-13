@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
+require "active_support/testing/ractors_assertions"
 
 module ActionDispatch
   class ExceptionWrapperTest < ActionDispatch::IntegrationTest
@@ -106,6 +107,39 @@ module ActionDispatch
       end
     end
 
+    class MultilineMessageSyntaxError < SyntaxError; end
+
+    test "#source_extracts only treats message lines with a location as trace entries" do
+      exception = begin
+        raise MultilineMessageSyntaxError, <<~MESSAGE
+          Compilation Errors:
+
+          Error #1: RubyParse
+            File: [source]
+            Location: Line 1, Column 8
+          lib/file.rb:42: unexpected end-of-input
+        MESSAGE
+      rescue SyntaxError => ex
+        ex
+      end
+
+      wrapper = ExceptionWrapper.new(nil, exception)
+      traces = wrapper.source_extracts.map { |extract| extract[:trace].to_s }
+
+      assert_includes traces, "lib/file.rb:42: unexpected end-of-input"
+      assert_not traces.any? { |trace| trace.include?("Compilation Errors") }
+    end
+
+    test "#source_fragment skips a path that is not a file" do
+      exception = begin index; rescue TestError => ex; ex; end
+
+      wrapper = ExceptionWrapper.new(nil, exception)
+
+      Rails.stub(:root, Pathname.new(File.expand_path("..", __dir__))) do
+        assert_nil wrapper.send(:source_fragment, "dispatch", 1)
+      end
+    end
+
     test "#source_extracts works with nil backtrace_locations" do
       exception = begin eval "class Foo; yield; end"; rescue SyntaxError => ex; ex; end
 
@@ -131,6 +165,29 @@ module ActionDispatch
       assert_equal({ code: code, line_number: lineno + 2, trace: wrapper.source_extracts.first[:trace] }, wrapper.source_extracts.first)
     end
 
+    test "#source_extracts works without error_highlight" do
+      lineno = __LINE__
+      begin
+        1.time
+      rescue NameError => exc
+      end
+
+      error_highlight = Object.send(:remove_const, :ErrorHighlight) if defined?(ErrorHighlight) && ErrorHighlight
+      wrapper = ExceptionWrapper.new(nil, exc)
+
+      # Without error_highlight there is no column to mark: the source is read from the
+      # file, relative to Rails.root, as for any other exception.
+      code = {}
+      File.foreach(__FILE__).to_a.drop(lineno - 1).take(6).each_with_index do |line, i|
+        code[lineno + i] = line
+      end
+      Rails.stub(:root, Pathname.new(File.expand_path("../..", __dir__))) do
+        assert_equal({ code: code, line_number: lineno + 2, trace: wrapper.source_extracts.first[:trace] }, wrapper.source_extracts.first)
+      end
+    ensure
+      Object.const_set(:ErrorHighlight, error_highlight) if error_highlight
+    end
+
     class_eval "def _app_views_tests_show_html_erb;
       raise TestError; end", "app/views/tests/show.html.erb", 2
 
@@ -140,16 +197,15 @@ module ActionDispatch
       template = TestTemplate.new("_app_views_tests_show_html_erb")
       resolver = Data.define(:built_templates).new(built_templates: [template])
 
-      wrapper = nil
       assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
         wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 1))
-      end
 
-      assert_equal [{
-        code: { 1 => "translated @ _app_views_tests_show_html_erb:3" },
-        line_number: 1,
-        trace: wrapper.source_extracts.first[:trace]
-      }], wrapper.source_extracts
+        assert_equal [{
+          code: { 1 => "translated @ _app_views_tests_show_html_erb:3" },
+          line_number: 1,
+          trace: wrapper.source_extracts.first[:trace]
+        }], wrapper.source_extracts
+      end
     end
 
     class_eval "def _app_views_tests_nested_html_erb;
@@ -166,29 +222,28 @@ module ActionDispatch
       template = TestTemplate.new("_app_views_tests_nested_html_erb")
       resolver = Data.define(:built_templates).new(built_templates: [template])
 
-      wrapper = nil
       assert_called(ActionView::PathRegistry, :all_resolvers, nil, returns: [resolver]) do
         wrapper = ExceptionWrapper.new(nil, TopErrorProxy.new(exception, 5))
-      end
 
-      extracts = wrapper.source_extracts
-      assert_equal({
-        code: { 1 => "translated @ _app_views_tests_nested_html_erb:5" },
-        line_number: 1,
-        trace: extracts[0][:trace]
-      }, extracts[0])
-      # extracts[1] is Array#each (unreliable backtrace across rubies)
-      assert_equal({
-        code: { 1 => "translated @ _app_views_tests_nested_html_erb:4" },
-        line_number: 1,
-        trace: extracts[2][:trace]
-      }, extracts[2])
-      # extracts[3] is Array#each (unreliable backtrace across rubies)
-      assert_equal({
-        code: { 1 => "translated @ _app_views_tests_nested_html_erb:3" },
-        line_number: 1,
-        trace: extracts[4][:trace]
-      }, extracts[4])
+        extracts = wrapper.source_extracts
+        assert_equal({
+          code: { 1 => "translated @ _app_views_tests_nested_html_erb:5" },
+          line_number: 1,
+          trace: extracts[0][:trace]
+        }, extracts[0])
+        # extracts[1] is Array#each (unreliable backtrace across rubies)
+        assert_equal({
+          code: { 1 => "translated @ _app_views_tests_nested_html_erb:4" },
+          line_number: 1,
+          trace: extracts[2][:trace]
+        }, extracts[2])
+        # extracts[3] is Array#each (unreliable backtrace across rubies)
+        assert_equal({
+          code: { 1 => "translated @ _app_views_tests_nested_html_erb:3" },
+          line_number: 1,
+          trace: extracts[4][:trace]
+        }, extracts[4])
+      end
     end
 
     test "#application_trace returns traces only from the application" do
@@ -366,6 +421,32 @@ module ActionDispatch
       request = ActionDispatch::Request.new(env)
 
       assert_equal true, wrapper.show?(request)
+    end
+  end
+
+  class ExceptionWrapperRactorTest < ActiveSupport::TestCase
+    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::RactorsAssertions
+
+    test "the rescue tables are readable from a non-main Ractor once shared" do
+      ActiveSupport::Ractors.make_shareable(ExceptionWrapper.rescue_responses)
+      ActiveSupport::Ractors.make_shareable(ExceptionWrapper.rescue_templates)
+      ActiveSupport::Ractors.make_shareable(ExceptionWrapper.wrapper_exceptions)
+      ActiveSupport::Ractors.make_shareable(ExceptionWrapper.silent_exceptions)
+
+      statuses = on_ractor {
+        [
+          ExceptionWrapper.rescue_responses["ActionController::RoutingError"],
+          ExceptionWrapper.rescue_templates["ActionController::RoutingError"],
+          ExceptionWrapper.wrapper_exceptions,
+          ExceptionWrapper.silent_exceptions,
+        ]
+      }
+
+      assert_equal :not_found, statuses[0]
+      assert_equal "routing_error", statuses[1]
+      assert_equal ExceptionWrapper.wrapper_exceptions, statuses[2]
+      assert_equal ExceptionWrapper.silent_exceptions, statuses[3]
     end
   end
 end

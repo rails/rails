@@ -133,8 +133,16 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       "library_ID" => "12345"
     }
 
+    protected_metadata = {
+      "analyzed" => "yolo",
+      "identified" => 42,
+      "composed" => "maybe",
+    }
+
+    all_metadata = metadata.merge(protected_metadata)
+
     post rails_direct_uploads_url, params: { blob: {
-      filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: metadata } }
+      filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain", metadata: all_metadata } }
 
     response.parsed_body.tap do |details|
       assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed!(details["signed_id"])

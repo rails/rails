@@ -3,7 +3,7 @@
 require "abstract_unit"
 
 class ActionableExceptionsTest < ActionDispatch::IntegrationTest
-  Actions = []
+  Actions = [] # rubocop:disable Style/MutableConstant
 
   class ActionError < StandardError
     include ActiveSupport::ActionableError

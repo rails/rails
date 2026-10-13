@@ -14,13 +14,13 @@ jobs:
   rails-new-docker:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Remove Gemfile.lock
       run: rm -f Gemfile.lock
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 3.4
+        ruby-version: ruby
         bundler-cache: true
     - name: Generate --dev app
       run: |

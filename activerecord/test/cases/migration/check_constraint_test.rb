@@ -7,6 +7,8 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
   module ActiveRecord
     class Migration
       class CheckConstraintTest < ActiveRecord::TestCase
+        skip_under_ractor_proxy
+
         include SchemaDumpingHelper
 
         class Trade < ActiveRecord::Base
@@ -118,10 +120,13 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
 
         def test_add_check_constraint_with_if_not_exists_options
           @connection.add_check_constraint :trades, "quantity > 0"
+          assert_equal 1, @connection.check_constraints("trades").size
 
           assert_nothing_raised do
             @connection.add_check_constraint :trades, "quantity > 0", if_not_exists: true
           end
+
+          assert_equal 1, @connection.check_constraints("trades").size
         end
 
         if supports_non_unique_constraint_name?
@@ -274,6 +279,10 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
             @connection.remove_check_constraint :trades, name: "quantity_check", if_exists: true
           end
 
+          assert_nothing_raised do
+            @connection.remove_check_constraint :trades, "quantity > 0", if_exists: true
+          end
+
           error = assert_raises ArgumentError do
             @connection.remove_check_constraint :trades, name: "quantity_check"
           end
@@ -315,6 +324,8 @@ if ActiveRecord::Base.lease_connection.supports_check_constraints?
   end
 
   class CheckConstraintViolationTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     self.use_transactional_tests = false
 
     class Trade < ActiveRecord::Base

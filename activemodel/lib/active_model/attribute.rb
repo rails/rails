@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/object/duplicable"
 
 module ActiveModel
@@ -248,7 +249,7 @@ module ActiveModel
       end
 
       class Uninitialized < Attribute # :nodoc:
-        UNINITIALIZED_ORIGINAL_VALUE = Object.new
+        UNINITIALIZED_ORIGINAL_VALUE = Object.new.freeze
 
         def initialize(name, type)
           super(name, nil, type)

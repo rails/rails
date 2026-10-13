@@ -15,23 +15,19 @@
 /config/credentials/*.key
 
 # Ignore all logfiles and tempfiles.
-/log/*
-/tmp/*
+/log/**
+/tmp/**
 <% if keeps? -%>
 !/log/.keep
 !/tmp/.keep
-
-# Ignore pidfiles, but keep the directory.
-/tmp/pids/*
 !/tmp/pids/.keep
 <% end -%>
 <% unless skip_storage? -%>
 
 # Ignore storage (uploaded files in development and any SQLite databases).
-/storage/*
+/storage/**
 <% if keeps? -%>
 !/storage/.keep
-/tmp/storage/*
 !/tmp/storage/.keep
 <% end -%>
 <% end -%>
@@ -39,7 +35,7 @@
 
 # Ignore assets.
 /node_modules/
-/app/assets/builds/*
+/app/assets/builds/**
 !/app/assets/builds/.keep
 /public/assets
 <% end -%>

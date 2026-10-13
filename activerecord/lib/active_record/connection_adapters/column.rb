@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   # :stopdoc:
   module ConnectionAdapters
@@ -13,16 +14,16 @@ module ActiveRecord
 
       # Instantiates a new column in the table.
       #
-      # +name+ is the column's name, such as <tt>supplier_id</tt> in <tt>supplier_id bigint</tt>.
-      # +default+ is the type-casted default value, such as +new+ in <tt>sales_stage varchar(20) default 'new'</tt>.
-      # +sql_type_metadata+ is various information about the type of the column
-      # +null+ determines if this column allows +NULL+ values.
+      # `name` is the column's name, such as `supplier_id` in `supplier_id bigint`.
+      # `default` is the type-casted default value, such as `new` in `sales_stage varchar(20) default 'new'`.
+      # `sql_type_metadata` is various information about the type of the column
+      # `null` determines if this column allows `NULL` values.
       def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, **)
         @name = name.freeze
         @cast_type = cast_type
         @sql_type_metadata = sql_type_metadata
         @null = null
-        @default = default.nil? || cast_type.mutable? ? default : cast_type.deserialize(default)
+        @default = default
         @default_function = default_function
         @collation = collation
         @comment = comment
@@ -38,8 +39,11 @@ module ActiveRecord
 
       # Returns the human name of the column name.
       #
-      # ===== Examples
-      #  Column.new('sales_stage', ...).human_name # => 'Sales stage'
+      # ##### Examples
+      #
+      # ```
+      # Column.new('sales_stage', ...).human_name # => 'Sales stage'
+      # ```
       def human_name
         Base.human_attribute_name(@name)
       end
@@ -66,13 +70,34 @@ module ActiveRecord
         coder["comment"] = @comment
       end
 
+      def as_schema_json
+        data = {}
+        encode_with(data)
+        data
+      end
+
+      def init_from_schema_json(coder, references)
+        coder["cast_type"] = references[coder["cast_type"]] if coder["cast_type"]
+        coder["sql_type_metadata"] = references[coder["sql_type_metadata"]] if coder["sql_type_metadata"]
+        init_with(coder)
+      end
+
       # whether the column is auto-populated by the database using a sequence
       def auto_incremented_by_db?
         false
       end
 
-      def auto_populated?
+      def auto_populated_on_insert?
         auto_incremented_by_db? || default_function
+      end
+
+      def auto_populated?
+        auto_populated_on_insert?
+      end
+      deprecate auto_populated?: :auto_populated_on_insert?, deprecator: ActiveRecord.deprecator
+
+      def auto_populated_on_update?
+        virtual?
       end
 
       def ==(other)

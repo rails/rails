@@ -60,6 +60,20 @@ module ActionText
           "[#{caption || filename}]"
         end
 
+        def attachable_markdown_representation(caption = nil, attachment_links: false)
+          title = (caption || filename).to_s
+
+          if attachment_links
+            renderer = ActionText::Content.renderer
+            raise ArgumentError, "attachment_links requires a rendering context" unless renderer
+
+            url = renderer.url_for(self)
+            MarkdownConversion.markdown_link(title, url, image: image?)
+          else
+            "\\[#{MarkdownConversion.escape_markdown_text(title)}\\]"
+          end
+        end
+
         def to_trix_content_attachment_partial_path
           to_editor_content_attachment_partial_path
         end

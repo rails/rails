@@ -1,14 +1,17 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 class NameError
   # Extract the name of the missing constant from the exception message.
   #
-  #   begin
-  #     HelloWorld
-  #   rescue NameError => e
-  #     e.missing_name
-  #   end
-  #   # => "HelloWorld"
+  # ```
+  # begin
+  #   HelloWorld
+  # rescue NameError => e
+  #   e.missing_name
+  # end
+  # # => "HelloWorld"
+  # ```
   def missing_name
     # Since ruby v2.3.0 `did_you_mean` gem is loaded by default.
     # It extends NameError#message with spell corrections which are SLOW.
@@ -35,12 +38,14 @@ class NameError
 
   # Was this exception raised because the given name was missing?
   #
-  #   begin
-  #     HelloWorld
-  #   rescue NameError => e
-  #     e.missing_name?("HelloWorld")
-  #   end
-  #   # => true
+  # ```
+  # begin
+  #   HelloWorld
+  # rescue NameError => e
+  #   e.missing_name?("HelloWorld")
+  # end
+  # # => true
+  # ```
   def missing_name?(name)
     if name.is_a? Symbol
       self.name == name

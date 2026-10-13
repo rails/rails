@@ -291,7 +291,7 @@ class ComparisonValidationTest < ActiveModel::TestCase
   def test_validates_comparison_of_incomparables
     Topic.validates_comparison_of :approved, less_than: "cat"
 
-    assert_invalid_values([12], "comparison of Integer with String failed")
+    assert_invalid_values([12], /\Acomparison of Integer with String failed/)
     assert_invalid_values([nil])
     assert_valid_values([])
   end
@@ -305,8 +305,8 @@ class ComparisonValidationTest < ActiveModel::TestCase
 
   def test_validates_comparison_of_no_options
     error = assert_raises(ArgumentError) do
-        Topic.validates_comparison_of(:approved)
-      end
+      Topic.validates_comparison_of(:approved)
+    end
     assert_equal "Expected one of :greater_than, :greater_than_or_equal_to, :equal_to," \
                  " :less_than, :less_than_or_equal_to, or :other_than option to be supplied.", error.message
   end
@@ -316,7 +316,7 @@ class ComparisonValidationTest < ActiveModel::TestCase
       with_each_topic_approved_value(values) do |topic, value|
         assert_predicate topic, :invalid?, "#{value.inspect} failed comparison"
         assert_predicate topic.errors[:approved], :any?, "FAILED for #{value.inspect}"
-        assert_equal error, topic.errors[:approved].first if error
+        assert_match error, topic.errors[:approved].first if error
       end
     end
 

@@ -664,6 +664,18 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal t, t.advance(months: 0)
   end
 
+  def test_advance_does_not_mutate_options
+    options = { weeks: 1, days: 2 }
+    Time.new(2024, 1, 1).advance(options)
+    assert_equal({ weeks: 1, days: 2 }, options)
+  end
+
+  def test_advance_with_frozen_options
+    assert_nothing_raised do
+      Time.new(2024, 1, 1).advance({ weeks: 1, days: 2 }.freeze)
+    end
+  end
+
   def test_advance_gregorian_proleptic
     assert_equal Time.local(1582, 10, 14, 15, 15, 10), Time.local(1582, 10, 15, 15, 15, 10).advance(days: -1)
     assert_equal Time.local(1582, 10, 15, 15, 15, 10), Time.local(1582, 10, 14, 15, 15, 10).advance(days: 1)
@@ -861,10 +873,19 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_to_fs_custom_date_format
-    Time::DATE_FORMATS[:custom] = "%Y%m%d%H%M%S"
-    assert_equal "20050221143000", Time.local(2005, 2, 21, 14, 30, 0).to_fs(:custom)
+    ActiveSupport::TimeFormats.stub(:lookup, ->(format) { { custom: "%Y%m%d%H%M%S" }[format] }) do
+      assert_equal "20050221143000", Time.utc(2005, 2, 21, 14, 30, 0).to_fs(:custom)
+    end
+  end
+
+  def test_deprecated_to_fs_custom_date_format
+    assert_equal "2005-02-21 14:30:00 UTC", Time.utc(2005, 2, 21, 14, 30, 0).to_fs(:custom)
+    assert_deprecated(ActiveSupport.deprecator) do
+      Time::DATE_FORMATS[:custom] = "%Y%m%d%H%M%S"
+    end
+    assert_equal "20050221143000", Time.utc(2005, 2, 21, 14, 30, 0).to_fs(:custom)
   ensure
-    Time::DATE_FORMATS.delete(:custom)
+    ActiveSupport::TimeFormats::DEPRECATED_LIST.delete(:custom)
   end
 
   def test_rfc3339_with_fractional_seconds
@@ -1147,13 +1168,15 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_at_with_datetime
     assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0))
+    assert_raise(TypeError) { Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0), 0) }
+  end
 
-    # Only test this if the underlying Time.at raises a TypeError
-    begin
-      Time.at_without_coercion(Time.now, 0)
-    rescue TypeError
-      assert_raise(TypeError) { assert_equal(Time.utc(2000, 1, 1, 0, 0, 0), Time.at(DateTime.civil(2000, 1, 1, 0, 0, 0), 0)) }
-    end
+  def test_at_with_datetime_sub_second_precision
+    dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(1, 1_000_000), "+0") # .000001s
+    assert_equal 1, Time.at(dt).usec
+
+    dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(123_457, 1_000_000), "+0")
+    assert_equal 123_457, Time.at(dt).usec
   end
 
   def test_at_with_datetime_returns_local_time
@@ -1172,14 +1195,9 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_at_with_time_with_zone
-    assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"]))
-
-    # Only test this if the underlying Time.at raises a TypeError
-    begin
-      Time.at_without_coercion(Time.now, 0)
-    rescue TypeError
-      assert_raise(TypeError) { assert_equal(Time.utc(2000, 1, 1, 0, 0, 0), Time.at(ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"]), 0)) }
-    end
+    twz = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
+    assert_equal Time.utc(2000, 1, 1, 0, 0, 0), Time.at(twz)
+    assert_raise(TypeError) { Time.at(twz, 0) }
   end
 
   def test_at_with_in_option
@@ -1237,6 +1255,17 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_minus_with_datetime
     assert_equal 86_400.0, Time.utc(2000, 1, 2) - DateTime.civil(2000, 1, 1)
+    assert_instance_of Float, Time.utc(2000, 1, 2) - DateTime.civil(2000, 1, 1)
+  end
+
+  def test_minus_with_datetime_sub_second_precision
+    dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(1, 1_000_000), "+0") # .000001s
+    assert_equal Rational(999_999, 1_000_000), Time.utc(2000, 1, 1, 0, 0, 1) - dt
+    assert_instance_of Float, Time.utc(2000, 1, 1, 0, 0, 1) - dt
+
+    dt = DateTime.civil(2000, 1, 1, 0, 0, Rational(123_457, 1_000_000), "+0")
+    assert_equal Rational(876_543, 1_000_000), Time.utc(2000, 1, 1, 0, 0, 1) - dt
+    assert_instance_of Float, Time.utc(2000, 1, 1, 0, 0, 1) - dt
   end
 
   def test_time_created_with_local_constructor_cannot_represent_times_during_hour_skipped_by_dst
@@ -1302,19 +1331,33 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       Time.rfc3339("1999-12-31")
     end
 
-    assert_equal "invalid date", exception.message
+    assert_match(/\Ainvalid (date|rfc3339 format)/, exception.message)
 
     exception = assert_raises(ArgumentError) do
       Time.rfc3339("1999-12-31T19:00:00")
     end
 
-    assert_equal "invalid date", exception.message
+    assert_match(/\Ainvalid (date|rfc3339 format)/, exception.message)
 
     exception = assert_raises(ArgumentError) do
       Time.rfc3339("foobar")
     end
 
-    assert_equal "invalid date", exception.message
+    assert_match(/\Ainvalid (date|rfc3339 format)/, exception.message)
+  end
+
+  def test_rfc3339_parse_with_utc_designator
+    time = Time.rfc3339("1999-12-31T19:00:00Z")
+
+    assert_predicate time, :utc?
+    assert_equal Time.utc(1999, 12, 31, 19, 0, 0), time
+  end
+
+  def test_rfc3339_parse_with_numeric_zero_offset
+    time = Time.rfc3339("1999-12-31T19:00:00+00:00")
+
+    assert_not_predicate time, :utc?
+    assert_equal 0, time.utc_offset
   end
 
   def test_prev_day
