@@ -103,7 +103,7 @@ module ActiveRecord
           raw_timestamp_to_cache_version(timestamp)
 
         elsif timestamp = updated_at
-          timestamp.utc.to_fs(cache_timestamp_format)
+          timestamp_to_cache_version(timestamp.utc)
         end
       elsif self.class.has_attribute?("updated_at")
         raise ActiveModel::MissingAttributeError, "missing attribute 'updated_at' for #{self.class}"
@@ -203,6 +203,22 @@ module ActiveRecord
           key.ljust(20, "0")
         else
           key
+        end
+      end
+
+      # Formats a time with the `cache_timestamp_format`.
+      #
+      # The default `:usec` format is put together from the fields of
+      # the time, which is faster than Time#strftime. Years before 0 are
+      # left to `strftime`, as it pads them to a different width.
+      def timestamp_to_cache_version(timestamp)
+        if cache_timestamp_format == :usec && timestamp.instance_of?(::Time) && (year = timestamp.year) >= 0
+          Kernel.format(
+            "%04d%02d%02d%02d%02d%02d%06d",
+            year, timestamp.month, timestamp.day, timestamp.hour, timestamp.min, timestamp.sec, timestamp.usec
+          )
+        else
+          timestamp.to_fs(cache_timestamp_format)
         end
       end
   end

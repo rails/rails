@@ -14,6 +14,12 @@ module ActiveRecord
       self.cache_versioning = true
     end
 
+    class CacheMeWithNumberVersion < ActiveRecord::Base
+      self.table_name = "cache_me_with_versions"
+      self.cache_versioning = true
+      self.cache_timestamp_format = :number
+    end
+
     setup do
       @connection = ActiveRecord::Base.lease_connection
       ddl_connection = main_ractor_connection(@connection)
@@ -119,6 +125,70 @@ module ActiveRecord
         record_from_db.updated_at = { 1 => 2016, 2 => 11, 3 => 12, 4 => 1, 5 => 2, 6 => 3, 7 => 22 }
         record_from_db.cache_version
       end
+    end
+
+    test "cache_version does not call strftime" do
+      record = CacheMeWithVersion.create
+      record_from_db = CacheMeWithVersion.find(record.id)
+
+      assert_not_called_on_instance_of(Time, :strftime) do
+        record.cache_version
+        record_from_db.cache_version
+      end
+    end
+
+    test "cache_version is updated_at in UTC, down to the microsecond" do
+      record = CacheMeWithVersion.create
+
+      [
+        [Time.utc(2026, 1, 2, 3, 4, 5, 6), "20260102030405000006"],
+        [Time.new(2026, 1, 2, 3, 4, 5, "+09:00"), "20260101180405000000"],
+        [Time.utc(999, 12, 31, 23, 59, 59, 999_999), "09991231235959999999"],
+        [Time.utc(10000, 1, 1), "100000101000000000000"],
+        [Time.utc(-1, 1, 2, 3, 4, 5, 6), "-00010102030405000006"],
+      ].each do |updated_at, version|
+        record.updated_at = updated_at
+        assert_equal version, record.cache_version
+      end
+    end
+
+    test "cache_version is updated_at in UTC when attributes are time zone aware" do
+      with_timezone_config aware_attributes: true, zone: "Tokyo" do
+        CacheMeWithVersion.reset_column_information
+
+        record = CacheMeWithVersion.create(updated_at: Time.utc(2026, 1, 2, 3, 4, 5, 6))
+        assert_kind_of ActiveSupport::TimeWithZone, record.updated_at
+
+        assert_equal "20260102030405000006", record.cache_version
+        assert_equal "20260102030405000006", CacheMeWithVersion.find(record.id).cache_version
+      ensure
+        CacheMeWithVersion.reset_column_information
+      end
+    end
+
+    test "cache_version follows cache_timestamp_format" do
+      record = CacheMeWithNumberVersion.create
+      record.updated_at = Time.utc(2026, 1, 2, 3, 4, 5, 6)
+
+      assert_equal "20260102030405", record.cache_version
+    end
+
+    test "cache_version formats anything but a Time with to_fs" do
+      timestamp = Object.new
+      def timestamp.utc; self; end
+      def timestamp.to_fs(format); "formatted with #{format}"; end
+
+      record = CacheMeWithVersion.create
+      record.define_singleton_method(:updated_at) { timestamp }
+
+      assert_equal "formatted with usec", record.cache_version
+    end
+
+    test "cache_version does not call the format method of the record" do
+      record = CacheMeWithVersion.create
+      record.define_singleton_method(:format) { "pdf" }
+
+      assert_equal record.updated_at.utc.to_fs(:usec), record.cache_version
     end
 
     test "updated_at on class but not on instance raises an error" do
