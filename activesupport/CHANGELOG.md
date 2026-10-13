@@ -1,14 +1,12 @@
-*   Fix `BroadcastLogger#method_missing` to execute blocks only once when broadcasting to multiple loggers.
+*   Fix `BroadcastLogger` executing the block of a custom logger method once per logger.
 
-    Previously, when calling methods like `tagged` via `method_missing` with multiple broadcast destinations,
-    the block would be executed once per destination. This caused issues such as duplicate callback executions
-    when using `BroadcastLogger` with `ActiveJob`.
-
-    The fix applies the same block-wrapping semantics used in `dispatch` to ensure blocks are executed only
-    once, with subsequent loggers receiving the cached result.
+    Methods that `BroadcastLogger` doesn't define itself are forwarded to every broadcast
+    that responds to them. When more than one did and a block was given, each logger
+    executed the block again. The block is now executed at most once, and subsequent
+    loggers receive the first result, the same as for the built-in logging methods.
 
     *Quint Pieters*
-    
+
 *   Freeze events emitted by `ActiveSupport::EventReporter`.
 
     Subscribers can no longer change the event seen by later subscribers.
