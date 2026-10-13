@@ -377,6 +377,7 @@ module Rails
 
           if respond_to?(:action_dispatch)
             action_dispatch.strict_accept_header = true
+            action_dispatch.use_url_safe_cookies = true
             action_dispatch.default_headers = {
               "X-Frame-Options" => "SAMEORIGIN",
               "X-Content-Type-Options" => "nosniff",

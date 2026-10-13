@@ -1,3 +1,9 @@
+*   Add `config.action_dispatch.use_url_safe_cookies` to encode signed and
+    encrypted cookies with URL-safe Base64, avoiding percent-escaping work on
+    every `Set-Cookie` header. Enabled by `config.load_defaults 8.2`.
+
+    *Akira Matsuda*
+
 *   Fix `rails.deprecation` structured events not being emitted.
 
     *Azmi Muwahid*

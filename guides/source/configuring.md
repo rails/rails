@@ -66,6 +66,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.action_dispatch.strict_accept_header`](#config-action-dispatch-strict-accept-header): `true`
+- [`config.action_dispatch.use_url_safe_cookies`](#config-action-dispatch-use-url-safe-cookies): `true`
 - [`config.action_view.erb_implementation`](#config-action-view-erb-implementation): `:herb`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
@@ -2480,6 +2481,21 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 6.0                   | `true`               |
+
+#### `config.action_dispatch.use_url_safe_cookies`
+
+Controls whether signed and encrypted cookies are encoded with URL-safe
+Base64, so that `Set-Cookie` headers need no percent-escaping. Cookies
+written with the standard encoding remain readable, but processes running
+with this option disabled cannot read cookies written with it enabled, so
+enable it only once an upgrade is fully rolled out.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
 
 #### `config.action_dispatch.perform_deep_munge`
 

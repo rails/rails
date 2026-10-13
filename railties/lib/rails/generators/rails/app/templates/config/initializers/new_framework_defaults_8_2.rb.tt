@@ -154,3 +154,12 @@
 # to continue to compile HTML templates through Erubi.
 #++
 # Rails.application.config.action_view.erb_implementation = :herb
+
+###
+# Encode signed and encrypted cookies with URL-safe Base64, so that
+# Set-Cookie headers need no percent-escaping. Cookies written with the
+# previous encoding are still readable, but cookies written with this
+# default enabled cannot be read by older Rails processes, so enable it
+# only once the upgrade is fully rolled out.
+#++
+# Rails.application.config.action_dispatch.use_url_safe_cookies = true

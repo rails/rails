@@ -624,6 +624,63 @@ class CookiesTest < ActionController::TestCase
     assert_equal verifier.generate(45), controller_cookies[:user_id]
   end
 
+  URL_SAFE_COOKIE_VALUE = /\A[a-zA-Z0-9_-]+(--[a-zA-Z0-9_-]+)*\z/
+
+  def test_signed_cookie_with_url_safe_encoding
+    @request.env["action_dispatch.use_url_safe_cookies"] = true
+
+    get :set_signed_cookie
+
+    assert_match URL_SAFE_COOKIE_VALUE, controller_cookies[:user_id]
+    assert_equal 45, controller_cookies.signed[:user_id]
+  end
+
+  def test_encrypted_cookie_with_url_safe_encoding
+    @request.env["action_dispatch.use_url_safe_cookies"] = true
+
+    get :set_encrypted_cookie
+
+    assert_match URL_SAFE_COOKIE_VALUE, controller_cookies[:foo]
+    assert_equal "bar", controller_cookies.encrypted[:foo]
+  end
+
+  def test_signed_cookie_written_with_standard_encoding_remains_readable_with_url_safe_encoding
+    @request.env["action_dispatch.use_url_safe_cookies"] = true
+
+    secret = key_generator.generate_key(signed_cookie_salt)
+    legacy_value = ActiveSupport::MessageVerifier.new(secret, serializer: Marshal, digest: "SHA1").generate(45)
+    @request.headers["Cookie"] = "user_id=#{legacy_value}"
+
+    get :get_signed_cookie
+
+    assert_equal 45, controller_cookies.signed[:user_id]
+  end
+
+  def test_encrypted_cookie_written_with_standard_encoding_remains_readable_with_url_safe_encoding
+    @request.env["action_dispatch.use_url_safe_cookies"] = true
+
+    secret = key_generator.generate_key(authenticated_encrypted_cookie_salt, 32)
+    legacy_value = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm", serializer: Marshal).encrypt_and_sign("bar")
+    @request.headers["Cookie"] = "foo=#{::Rack::Utils.escape legacy_value}"
+
+    get :get_encrypted_cookie
+
+    assert_equal "bar", controller_cookies.encrypted[:foo]
+  end
+
+  def test_encrypted_cookie_written_with_a_rotated_secret_and_standard_encoding_remains_readable_with_url_safe_encoding
+    @request.env["action_dispatch.use_url_safe_cookies"] = true
+    old_secret = key_generator.generate_key("old salt", 32)
+    @request.env["action_dispatch.cookies_rotations"].rotate :encrypted, old_secret
+
+    legacy_value = ActiveSupport::MessageEncryptor.new(old_secret, cipher: "aes-256-gcm", serializer: Marshal).encrypt_and_sign("bar")
+    @request.headers["Cookie"] = "foo=#{::Rack::Utils.escape legacy_value}"
+
+    get :get_encrypted_cookie
+
+    assert_equal "bar", controller_cookies.encrypted[:foo]
+  end
+
   def test_signed_cookie_using_custom_digest
     @request.env["action_dispatch.signed_cookie_digest"] = "SHA256"
 

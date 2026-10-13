@@ -88,6 +88,10 @@ module ActionDispatch
       get_header Cookies::USE_COOKIES_WITH_METADATA
     end
 
+    def use_url_safe_cookies
+      get_header Cookies::USE_URL_SAFE_COOKIES
+    end
+
     # :startdoc:
   end
 
@@ -214,6 +218,7 @@ module ActionDispatch
     COOKIES_ROTATIONS = "action_dispatch.cookies_rotations"
     COOKIES_SAME_SITE_PROTECTION = "action_dispatch.cookies_same_site_protection"
     USE_COOKIES_WITH_METADATA = "action_dispatch.use_cookies_with_metadata"
+    USE_URL_SAFE_COOKIES = "action_dispatch.use_url_safe_cookies"
 
     # Cookies can typically store 4096 bytes.
     MAX_COOKIE_SIZE = 4096
@@ -631,7 +636,7 @@ module ActionDispatch
         super
 
         secret = request.key_generator.generate_key(request.signed_cookie_salt)
-        @verifier = ActiveSupport::MessageVerifier.new(secret, digest: signed_cookie_digest, serializer: SERIALIZER)
+        @verifier = ActiveSupport::MessageVerifier.new(secret, digest: signed_cookie_digest, serializer: SERIALIZER, url_safe: request.use_url_safe_cookies)
 
         request.cookies_rotations.signed.each do |(*secrets)|
           options = secrets.extract_options!
@@ -662,17 +667,23 @@ module ActionDispatch
         if request.use_authenticated_cookie_encryption
           key_len = ActiveSupport::MessageEncryptor.key_len(encrypted_cookie_cipher)
           secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, key_len)
-          @encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: encrypted_cookie_cipher, serializer: SERIALIZER)
+          @encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: encrypted_cookie_cipher, serializer: SERIALIZER, url_safe: request.use_url_safe_cookies)
         else
           key_len = ActiveSupport::MessageEncryptor.key_len("aes-256-cbc")
           secret = request.key_generator.generate_key(request.encrypted_cookie_salt, key_len)
           sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
-          @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", serializer: SERIALIZER)
+          @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", serializer: SERIALIZER, url_safe: request.use_url_safe_cookies)
         end
+
+        # Unlike signed messages, an encrypted message's layout depends on its
+        # Base64 variant (the unpadded auth tag and IV are shorter), so a
+        # URL-safe encryptor cannot read cookies written with the standard
+        # encoding. Keep reading those through standard-encoding rotations.
+        rotate_encryptor(@encryptor)
 
         request.cookies_rotations.encrypted.each do |(*secrets)|
           options = secrets.extract_options!
-          @encryptor.rotate(*secrets, serializer: SERIALIZER, **options)
+          rotate_encryptor(@encryptor, *secrets, serializer: SERIALIZER, **options)
         end
 
         if upgrade_legacy_hmac_aes_cbc_cookies?
@@ -680,16 +691,24 @@ module ActionDispatch
           secret = request.key_generator.generate_key(request.encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(legacy_cipher))
           sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
 
-          @encryptor.rotate(secret, sign_secret, cipher: legacy_cipher, digest: digest, serializer: SERIALIZER)
+          rotate_encryptor(@encryptor, secret, sign_secret, cipher: legacy_cipher, digest: digest, serializer: SERIALIZER)
         elsif prepare_upgrade_legacy_hmac_aes_cbc_cookies?
           future_cipher = encrypted_cookie_cipher
           secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(future_cipher))
 
-          @encryptor.rotate(secret, nil, cipher: future_cipher, serializer: SERIALIZER)
+          rotate_encryptor(@encryptor, secret, nil, cipher: future_cipher, serializer: SERIALIZER)
         end
       end
 
       private
+        # Adds a rotation, plus its standard-encoding twin when cookies are
+        # written URL-safe. With no secrets, only the twin of the encryptor's own
+        # configuration is added, for cookies written before the switch.
+        def rotate_encryptor(encryptor, *secrets, **options)
+          encryptor.rotate(*secrets, **options) unless secrets.empty?
+          encryptor.rotate(*secrets, **options, url_safe: false) if request.use_url_safe_cookies
+        end
+
         def parse(name, encrypted_message, purpose: nil)
           rotated = false
           data = @encryptor.decrypt_and_verify(encrypted_message, purpose: purpose, on_rotation: -> { rotated = true })

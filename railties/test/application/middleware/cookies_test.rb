@@ -260,7 +260,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      encryptor = ActiveSupport::MessageEncryptor.new(app.key_generator.generate_key("salt", 32), cipher: "aes-256-gcm", serializer: Marshal)
+      encryptor = ActiveSupport::MessageEncryptor.new(app.key_generator.generate_key("salt", 32), cipher: "aes-256-gcm", serializer: Marshal, url_safe: true)
 
       get "/foo/write_raw_cookie_one"
       get "/foo/read_encrypted"
@@ -336,7 +336,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      encryptor = ActiveSupport::MessageEncryptor.new(app.key_generator.generate_key("salt", 32), cipher: "aes-256-gcm")
+      encryptor = ActiveSupport::MessageEncryptor.new(app.key_generator.generate_key("salt", 32), cipher: "aes-256-gcm", url_safe: true)
 
       get "/foo/write_raw_cookie_one"
       get "/foo/read_encrypted"
