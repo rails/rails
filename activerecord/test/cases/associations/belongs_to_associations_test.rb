@@ -86,6 +86,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_empty Comment.where(author: [])
   end
 
+  def test_where_on_association_with_a_composite_key_rejects_bare_ids
+    assert_raises(ArgumentError) { Cpk::Chapter.where(book: 1) }
+    assert_raises(ArgumentError) { Cpk::Chapter.where(book: [nil, [1, 2]]) }
+    assert_raises(ArgumentError) { Cpk::NonCpkBook.where(non_cpk_order: 1) }
+  end
+
   def test_where_on_association_with_empty_array_avoids_queries
     assert_no_queries do
       assert_empty Comment.where(post: []).to_a
