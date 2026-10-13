@@ -297,6 +297,16 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not Topic.new.respond_to?(:extra)
   end
 
+  def test_define_attribute_keeps_defaults_read_only_when_possible
+    klass = Class.new(Topic)
+    klass.load_schema
+
+    klass.define_attribute("extra", ActiveModel::Type::Integer.new, default: 5, user_provided_default: false)
+
+    assert_predicate klass._default_attributes, :frozen?
+    assert_equal 5, klass.new.extra
+  end
+
   def test_preserving_time_objects_with_local_time_conversion_to_default_timezone_utc
     with_env_tz eastern_time_zone do
       with_timezone_config default: :utc do

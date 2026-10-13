@@ -27,6 +27,7 @@ module ActiveRecord
         def define_default(name, attribute)
           set = defaults.respond_to?(:writable) ? defaults.writable : defaults
           set[name] = attribute
+          set = set.read_only if set.values.all?(&:freezable?)
           @defaults = set
           @column_defaults = nil
         end
