@@ -1,3 +1,23 @@
+*   Skip building `ActiveSupport::EventReporter` events that no subscriber would consume.
+
+    Subscribers can define `consumes?(name)` to say whether they would act on an
+    event with that name. `Rails.event.notify` now returns before resolving the
+    payload, capturing the source location and building the event when every
+    matching subscriber declines, and `Rails.event.emitting?(name)` exposes the
+    same answer so emitters can skip assembling payloads that would go nowhere:
+
+    ```ruby
+    if Rails.event.emitting?("user.created")
+      Rails.event.notify("user.created", expensive_payload_for(user))
+    end
+    ```
+
+    The framework log subscribers implement `consumes?` from their logger's level,
+    so a production app logging at `:warn` no longer builds the per-request
+    `action_controller.request_started` and `request_completed` events.
+
+    *Akira Matsuda*
+
 *   Freeze events emitted by `ActiveSupport::EventReporter`.
 
     Subscribers can no longer change the event seen by later subscribers.

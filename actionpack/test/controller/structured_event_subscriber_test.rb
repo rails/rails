@@ -134,6 +134,35 @@ module ActionController
       assert event[:payload][:duration_ms].is_a?(Numeric)
     end
 
+    class SilencedEventSubscriber
+      def emit(event)
+        raise "no event should have been emitted"
+      end
+
+      def consumes?(name)
+        false
+      end
+    end
+
+    def test_request_events_are_not_built_when_no_subscriber_consumes_them
+      params = Object.new
+      def params.each_pair
+        raise "the request_started payload should not have been built"
+      end
+      payload = { controller: "PostsController", action: "show", params: params, status: 200 }
+      event = ActiveSupport::Notifications::Event.new("process_action.action_controller", nil, nil, "abc", payload)
+      event.record { }
+
+      reporter = ActiveSupport::EventReporter.new(SilencedEventSubscriber.new, raise_on_error: true)
+      ActiveSupport.with(event_reporter: reporter) do
+        subscriber = ActionController::StructuredEventSubscriber.new
+        assert_nothing_raised do
+          subscriber.start_processing(event)
+          subscriber.process_action(event)
+        end
+      end
+    end
+
     def test_unpermitted_parameters
       with_debug_event_reporting do
         assert_event_reported("action_controller.unpermitted_parameters", payload: {

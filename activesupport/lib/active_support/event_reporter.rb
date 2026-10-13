@@ -370,6 +370,27 @@ module ActiveSupport
       @subscribers.delete_if { |s| subscriber === s[:subscriber] }
     end
 
+    # Whether any subscriber would currently consume an event with the given
+    # name. Subscribers that respond to `consumes?` (such as the framework log
+    # subscribers, which discard events below their logger's level) are asked;
+    # all other subscribers are assumed to consume everything. Emitters can use
+    # this to skip building event payloads that would go nowhere:
+    #
+    # ```ruby
+    # if Rails.event.emitting?("user.created")
+    #   Rails.event.notify("user.created", expensive_payload_for(user))
+    # end
+    # ```
+    def emitting?(name)
+      name = resolve_name(name)
+      event = { name: name }
+
+      @subscribers.any? do |subscriber_entry|
+        filter = subscriber_entry[:filter]
+        (!filter || filter.call(event)) && subscriber_consumes?(subscriber_entry[:subscriber], name)
+      end
+    end
+
     # Reports an event to all registered subscribers. An event name and payload can be provided:
     #
     # ```
@@ -412,12 +433,19 @@ module ActiveSupport
       event = { name: name }
 
       subscribers = []
+      consumed = false
       @subscribers.each do |subscriber_entry|
         filter = subscriber_entry[:filter]
-        subscribers << subscriber_entry[:subscriber] if !filter || filter.call(event)
+        if !filter || filter.call(event)
+          subscriber = subscriber_entry[:subscriber]
+          subscribers << subscriber
+          consumed ||= subscriber_consumes?(subscriber, name)
+        end
       end
 
-      return if subscribers.empty?
+      # Don't build the event when every subscriber would discard it anyway
+      # (e.g. log subscribers whose logger level silences this event).
+      return unless consumed
 
       payload = resolve_payload(name_or_object, payload, filter_payload, kwargs)
 
@@ -603,6 +631,17 @@ module ActiveSupport
     end
 
     private
+      # Errors here must not bypass the per-subscriber error handling in
+      # #notify: a subscriber whose consumes? blows up is treated as
+      # consuming, so the error surfaces in #emit where it is rescued.
+      def subscriber_consumes?(subscriber, name)
+        return true unless subscriber.respond_to?(:consumes?)
+
+        subscriber.consumes?(name)
+      rescue
+        true
+      end
+
       def filter_parameters
         self.class.filter_parameters || ActiveSupport.filter_parameters
       end
