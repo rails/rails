@@ -1877,7 +1877,7 @@ module ActiveRecord
             buckets[:stashed_join] = stashed_left_joins
             return buckets, Arel::Nodes::OuterJoin
           else
-            stashed_left_joins.unshift construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
+            stashed_outer_join = construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
           end
         end
 
@@ -1910,6 +1910,7 @@ module ActiveRecord
         end
 
         buckets[:stashed_join].concat stashed_left_joins if stashed_left_joins
+        buckets[:stashed_join].unshift stashed_outer_join if stashed_outer_join
         buckets[:stashed_join].unshift stashed_eager_load if stashed_eager_load
 
         return buckets, Arel::Nodes::InnerJoin
