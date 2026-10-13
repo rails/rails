@@ -479,16 +479,16 @@ module ActiveRecord
       # Whether the joins of the relation itself keep it to one row per record,
       # so that a limit can be applied to the query the eager load joins into.
       def using_limitable_joins?
+        joins = classify_join_values(joins_values)
+        left_outer_joins = classify_join_values(left_outer_joins_values)
+
         # A CTE is joined on the model's foreign key, so it can match many rows.
         # It is not an association either, so it has no reflection to look at.
-        return false if joins_values.any? { |join| cte_join?(join) } ||
-          left_outer_joins_values.any? { |join| cte_join?(join) }
+        return false unless joins.cte_names.empty? && left_outer_joins.cte_names.empty?
 
         using_limitable_reflections?(
           construct_join_dependency(
-            select_association_list(joins_values).concat(
-              select_association_list(left_outer_joins_values)
-            ), nil
+            joins.association_names + left_outer_joins.association_names, nil
           ).reflections
         )
       end

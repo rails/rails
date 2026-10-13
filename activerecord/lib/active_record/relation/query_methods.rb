@@ -147,14 +147,17 @@ module ActiveRecord
         end
     end
 
-    # A wrapper to distinguish CTE joins from other nodes.
-    class CTEJoin # :nodoc:
-      attr_reader :name
+    # The joins of a relation, grouped by how they are built into the query.
+    #
+    # +named_joins+ are association names, built into one join dependency rooted
+    # at the model. +stashed_joins+ are join dependencies that are built already,
+    # joined in that order after it. +leading_joins+ and +join_nodes+ are Arel
+    # nodes, joined before and after both.
+    JoinBuckets = Data.define(:leading_joins, :named_joins, :stashed_joins, :join_nodes, :join_type) # :nodoc:
 
-      def initialize(name)
-        @name = name
-      end
-    end
+    # The values passed to QueryMethods#joins and QueryMethods#left_outer_joins,
+    # sorted by what they are.
+    JoinValues = Data.define(:association_names, :join_dependencies, :cte_names, :nodes) # :nodoc:
 
     FROZEN_EMPTY_ARRAY = [].freeze
     FROZEN_EMPTY_HASH = {}.freeze
@@ -1777,10 +1780,8 @@ module ActiveRecord
         joins |= eager_load_values unless eager_load_values.empty?
         joins |= includes_values unless includes_values.empty?
 
-        join_dependencies = []
-        join_dependencies.unshift construct_join_dependency(
-          select_named_joins(joins, join_dependencies), nil
-        )
+        values = classify_join_values(joins)
+        [construct_join_dependency(values.association_names, nil), *values.join_dependencies]
       end
 
       def assert_modifiable!
@@ -1836,51 +1837,56 @@ module ActiveRecord
         Symbol === join_name && with_values.any? { _1.key?(join_name) }
       end
 
-      def select_named_joins(join_names, stashed_joins = nil, &block)
-        cte_joins, associations = join_names.partition { |join_name| cte_join?(join_name) }
+      # Sorts the values passed to #joins and #left_outer_joins by what they are:
+      # association names to build a join dependency from, join dependencies
+      # merged in from a relation of another model, names of CTEs the relation
+      # defines, and Arel nodes.
+      def classify_join_values(values)
+        association_names = []
+        join_dependencies = []
+        cte_names = []
+        nodes = []
 
-        cte_joins.each do |cte_name|
-          block&.call(CTEJoin.new(cte_name))
-        end
-
-        select_association_list(associations, stashed_joins, &block)
-      end
-
-      def select_association_list(associations, stashed_joins = nil)
-        result = []
-        associations.each do |association|
-          case association
-          when Hash, Symbol, Array
-            result << association
+        values.each do |value|
+          case value
+          when Symbol
+            if cte_join?(value)
+              cte_names << value
+            else
+              association_names << value
+            end
+          when Hash, Array
+            association_names << value
           when ActiveRecord::Associations::JoinDependency
-            stashed_joins&.<< association
+            join_dependencies << value
           else
-            yield association if block_given?
+            nodes << value
           end
         end
-        result
+
+        JoinValues.new(association_names, join_dependencies, cte_names, nodes)
       end
 
       def build_join_buckets
-        buckets = Hash.new { |h, k| h[k] = [] }
+        leading_joins = []
+        join_nodes = []
 
         unless left_outer_joins_values.empty?
-          stashed_left_joins = []
-          left_joins = select_named_joins(left_outer_joins_values, stashed_left_joins) do |left_join|
-            if left_join.is_a?(CTEJoin)
-              buckets[:join_node] << build_with_join_node(left_join.name, Arel::Nodes::OuterJoin)
-            else
-              raise ArgumentError, "only Hash, Symbol and Array are allowed"
-            end
+          left_values = classify_join_values(left_outer_joins_values)
+          raise ArgumentError, "only Hash, Symbol and Array are allowed" unless left_values.nodes.empty?
+
+          left_values.cte_names.each do |cte_name|
+            join_nodes << build_with_join_node(cte_name, Arel::Nodes::OuterJoin)
           end
 
+          left_joins = left_values.association_names
+          stashed_left_joins = left_values.join_dependencies
+
           if joins_values.empty?
-            buckets[:named_join] = left_joins
-            buckets[:stashed_join] = stashed_left_joins
-            return buckets, Arel::Nodes::OuterJoin
-          else
-            stashed_outer_join = construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
+            return JoinBuckets.new(leading_joins, left_joins, stashed_left_joins, join_nodes, Arel::Nodes::OuterJoin)
           end
+
+          stashed_outer_join = construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
         end
 
         joins = joins_values.dup
@@ -1895,45 +1901,50 @@ module ActiveRecord
         while joins.first.is_a?(Arel::Nodes::Join)
           join_node = joins.shift
           if !join_node.is_a?(Arel::Nodes::LeadingJoin) && (stashed_eager_load || stashed_left_joins)
-            buckets[:join_node] << join_node
+            join_nodes << join_node
           else
-            buckets[:leading_join] << join_node
+            leading_joins << join_node
           end
         end
 
-        buckets[:named_join] = select_named_joins(joins, buckets[:stashed_join]) do |join|
-          if join.is_a?(Arel::Nodes::Join)
-            buckets[:join_node] << join
-          elsif join.is_a?(CTEJoin)
-            buckets[:join_node] << build_with_join_node(join.name)
-          else
-            raise "unknown class: %s" % join.class.name
-          end
+        values = classify_join_values(joins)
+
+        values.cte_names.each do |cte_name|
+          join_nodes << build_with_join_node(cte_name)
         end
 
-        buckets[:stashed_join].concat stashed_left_joins if stashed_left_joins
-        buckets[:stashed_join].unshift stashed_outer_join if stashed_outer_join
-        buckets[:stashed_join].unshift stashed_eager_load if stashed_eager_load
+        values.nodes.each do |node|
+          raise "unknown class: %s" % node.class.name unless node.is_a?(Arel::Nodes::Join)
+          join_nodes << node
+        end
 
-        return buckets, Arel::Nodes::InnerJoin
+        named_joins = values.association_names
+        stashed_inner_joins = values.join_dependencies
+
+        # The join dependencies rooted at the model never depend on another join,
+        # while the ones merged in from a relation of another model join to the
+        # tables they bring in, so those come first.
+        stashed_joins = [
+          stashed_eager_load, stashed_outer_join, *stashed_inner_joins, *stashed_left_joins
+        ].compact
+
+        JoinBuckets.new(leading_joins, named_joins, stashed_joins, join_nodes, Arel::Nodes::InnerJoin)
       end
 
       def build_joins(join_sources, aliases = nil)
         return join_sources if joins_values.empty? && left_outer_joins_values.empty?
 
-        buckets, join_type = build_join_buckets
+        buckets = build_join_buckets
 
-        named_joins   = buckets[:named_join]
-        stashed_joins = buckets[:stashed_join]
-        leading_joins = buckets[:leading_join]
-        join_nodes    = buckets[:join_node]
+        leading_joins = buckets.leading_joins
+        join_nodes    = buckets.join_nodes
 
         join_sources.concat(leading_joins) unless leading_joins.empty?
 
-        unless named_joins.empty? && stashed_joins.empty?
+        unless buckets.named_joins.empty? && buckets.stashed_joins.empty?
           alias_tracker = alias_tracker(leading_joins + join_nodes, aliases)
-          join_dependency = construct_join_dependency(named_joins, join_type)
-          join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker, references_values))
+          join_dependency = construct_join_dependency(buckets.named_joins, buckets.join_type)
+          join_sources.concat(join_dependency.join_constraints(buckets.stashed_joins, alias_tracker, references_values))
         end
 
         join_sources.concat(join_nodes) unless join_nodes.empty?
