@@ -1,10 +1,11 @@
-*   Fix the order of `LEFT OUTER JOIN`s when `eager_load` is combined with joins
-    merged from another relation.
+*   Fix the order of joins when `eager_load` or `left_joins` is combined with
+    joins merged from a relation of another model.
 
-    The join built by `eager_load` is rooted at the base table, so it has to come
-    before any joins that are merged in from a relation of another model, since
-    those depend on the tables it brings in. It was emitted last instead, which
-    produced an invalid query:
+    The join built by `eager_load`, and the one built from the association names
+    passed to `left_joins`, are rooted at the base table, so they have to come
+    before the joins merged in from a relation of another model, since those
+    depend on the tables they bring in. They were emitted after them instead,
+    which produced an invalid query:
 
     ```ruby
     Post.eager_load(:comments).merge(Comment.left_joins(:user))
@@ -14,6 +15,14 @@
     # after:  ... FROM "posts"
     #             LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
     #             LEFT OUTER JOIN "users" ON "users"."id" = "comments"."user_id"
+
+    Post.left_joins(:comments).merge(Comment.joins(:ratings))
+    # before: ... FROM "posts"
+    #             INNER JOIN "ratings" ON "ratings"."comment_id" = "comments"."id"
+    #             LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    # after:  ... FROM "posts"
+    #             LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    #             INNER JOIN "ratings" ON "ratings"."comment_id" = "comments"."id"
     ```
 
     *Ryuta Kamizono*
