@@ -100,6 +100,16 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Cpk::Comment.where(commentable: post).count
   end
 
+  def test_where_on_polymorphic_association_with_cpk_relation
+    post = Cpk::Post.create!(title: "Welcome", author: "Mary")
+    other = Cpk::Post.create!(title: "Welcome", author: "Bob")
+    comment = Cpk::Comment.create!(commentable: post)
+    Cpk::Comment.create!(commentable: other)
+
+    assert_equal [comment], Cpk::Comment.where(commentable: Cpk::Post.where(author: "Mary")).to_a
+    assert_empty Cpk::Comment.where(commentable: Cpk::Post.none)
+  end
+
   def test_assigning_belongs_to_on_destroyed_object
     client = Client.create!(name: "Client")
     client.destroy!

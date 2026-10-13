@@ -25,7 +25,12 @@ module ActiveRecord
         def type_to_ids_mapping
           default_hash = Hash.new { |hsh, key| hsh[key] = [] }
           values.each_with_object(default_hash) do |value, hash|
-            hash[klass(value)&.polymorphic_name] << convert_to_id(value)
+            ids = hash[klass(value)&.polymorphic_name]
+            if value.is_a?(Relation) && reflection.join_primary_key_definition(value.model).composite?
+              ids.concat(value.pluck(primary_key(value)))
+            else
+              ids << convert_to_id(value)
+            end
           end
         end
 
