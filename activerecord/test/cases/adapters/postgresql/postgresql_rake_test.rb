@@ -392,12 +392,13 @@ module ActiveRecord
         "adapter"  => "postgresql",
         "database" => "my-app-db"
       }
-      @filename = "/tmp/awesome-file.sql"
+      @tmpdir = Dir.mktmpdir
+      @filename = File.join(@tmpdir, "awesome-file.sql")
       FileUtils.touch(@filename)
     end
 
     def teardown
-      FileUtils.rm_f(@filename)
+      FileUtils.rm_rf(@tmpdir)
     end
 
     # This test actually runs a dump so we can ensure all the arguments are parsed correctly.

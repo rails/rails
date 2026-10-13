@@ -214,7 +214,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
     error = assert_raises(ActiveRecord::MismatchedForeignKey) do
       @conn.execute(<<~SQL)
-        CREATE TABLE activerecord_unittest.foos (
+        CREATE TABLE #{@conn.current_database}.foos (
           id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
           old_car_id bigint,
           INDEX index_foos_on_old_car_id (old_car_id),
@@ -242,7 +242,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
     error = assert_raises(ActiveRecord::MismatchedForeignKey) do
       @conn.execute(<<~SQL)
-        CREATE TABLE activerecord_unittest.foos (
+        CREATE TABLE #{@conn.current_database}.foos (
           id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
           car_id int,
           INDEX index_foos_on_car_id (car_id),
@@ -270,7 +270,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
 
     error = assert_raises(ActiveRecord::MismatchedForeignKey) do
       @conn.execute(<<~SQL)
-        CREATE TABLE activerecord_unittest.foos (
+        CREATE TABLE #{@conn.current_database}.foos (
           id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
           subscriber_id bigint,
           INDEX index_foos_on_subscriber_id (subscriber_id),
