@@ -52,6 +52,11 @@ module ActionDispatch
       "identity" => nil
     }.freeze
 
+    # `Accept-Encoding` matchers, precomputed to avoid a Regexp allocation
+    # per negotiation
+    ACCEPTABLE = PRECOMPRESSED.keys.index_with { |encoding| /\b#{encoding}\b/i }.freeze
+    private_constant :ACCEPTABLE
+
     def initialize(root, index: "index", headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript|image\/svg\+xml)/)
       @root = root.chomp("/").b
       @index = index
@@ -67,11 +72,11 @@ module ActionDispatch
     end
 
     def attempt(env)
-      request = Rack::Request.new env
+      request_method = env[::Rack::REQUEST_METHOD]
 
-      if request.get? || request.head?
-        if found = find_file(request.path_info, accept_encoding: request.accept_encoding)
-          serve request, *found
+      if request_method == "GET" || request_method == "HEAD"
+        if found = find_file(env[::Rack::PATH_INFO], env)
+          serve Rack::Request.new(env), *found
         end
       end
     end
@@ -101,9 +106,9 @@ module ActionDispatch
       #
       # If a matching file is found, the path and necessary response headers
       # (Content-Type, Content-Encoding) are returned.
-      def find_file(path_info, accept_encoding:)
+      def find_file(path_info, env)
         each_candidate_filepath(path_info) do |filepath, content_type|
-          if response = try_files(filepath, content_type, accept_encoding: accept_encoding)
+          if response = try_files(filepath, content_type, env)
             return response
           end
         end
@@ -112,7 +117,7 @@ module ActionDispatch
       DEFAULT_UTF8_CONTENT_TYPES = [ Mime[:html], Mime[:css] ].freeze
       private_constant :DEFAULT_UTF8_CONTENT_TYPES
 
-      def try_files(filepath, content_type, accept_encoding:)
+      def try_files(filepath, content_type, env)
         headers = { Rack::CONTENT_TYPE => content_type }
 
         if DEFAULT_UTF8_CONTENT_TYPES.include?(content_type)
@@ -120,13 +125,13 @@ module ActionDispatch
         end
 
         if compressible? content_type
-          try_precompressed_files filepath, headers, accept_encoding: accept_encoding
+          try_precompressed_files filepath, headers, env
         elsif file_readable? filepath
           [ filepath, headers ]
         end
       end
 
-      def try_precompressed_files(filepath, headers, accept_encoding:)
+      def try_precompressed_files(filepath, headers, env)
         each_precompressed_filepath(filepath) do |content_encoding, precompressed_filepath|
           if file_readable? precompressed_filepath
             # Identity encoding is default, so we skip Accept-Encoding negotiation and
@@ -139,7 +144,7 @@ module ActionDispatch
             else
               headers[ActionDispatch::Constants::VARY] = "accept-encoding"
 
-              if accept_encoding.any? { |enc, _| /\b#{content_encoding}\b/i.match?(enc) }
+              if accept_encoding(env).any? { |enc, _| ACCEPTABLE[content_encoding].match?(enc) }
                 headers[ActionDispatch::Constants::CONTENT_ENCODING] = content_encoding
                 return precompressed_filepath, headers
               end
@@ -148,11 +153,16 @@ module ActionDispatch
         end
       end
 
+      def accept_encoding(env)
+        ::Rack::Utils.q_values(env["HTTP_ACCEPT_ENCODING"])
+      end
+
       def file_readable?(path)
         file_path = File.join(@root, path.b)
         File.file?(file_path) && File.readable?(file_path)
       end
 
+      # Whether the root directory has an entry (file or directory) by this name.
       def root_entry?(name)
         File.exist?("#{@root}/#{name.b}")
       end
