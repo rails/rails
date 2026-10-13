@@ -121,8 +121,8 @@ module ActiveRecord
             target = through_association.target
 
             if inverse && target && !target.is_a?(Array)
-              Array(target.id).zip(Array(inverse.foreign_key)).map do |primary_key_value, foreign_key_column|
-                attributes[foreign_key_column] = primary_key_value
+              source_reflection.active_record_primary_key_definition.zip(inverse.foreign_key_definition) do |primary_key_column, foreign_key_column|
+                attributes[foreign_key_column] = target.read_attribute(primary_key_column)
               end
             end
           end

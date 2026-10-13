@@ -1493,6 +1493,29 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal post_direct.author_id, post_through.author_id
   end
 
+  def test_build_through_singular_association_uses_the_source_primary_key
+    firm = make_model "Firm"
+    client = make_model "Client"
+    account = make_model "Account"
+    firm.table_name = client.table_name = "companies"
+    firm.inheritance_column = client.inheritance_column = nil
+    account.table_name = "accounts"
+
+    firm.has_many :named_clients, anonymous_class: client, primary_key: :name, foreign_key: :firm_name, inverse_of: :named_firm
+    client.belongs_to :named_firm, anonymous_class: firm, primary_key: :name, foreign_key: :firm_name, inverse_of: :named_clients
+    account.belongs_to :firm, anonymous_class: firm
+    account.has_many :named_clients, through: :firm, anonymous_class: client
+
+    acme = firm.create!(name: "Acme")
+    owner = account.create!(firm: acme, credit_limit: 10)
+
+    built = owner.named_clients.build(name: "Built")
+    assert_equal "Acme", built.firm_name
+
+    built.save!
+    assert_equal [built], acme.named_clients.reload
+  end
+
   def test_has_many_through_with_scope_that_should_not_be_fully_merged
     Club.has_many :distinct_memberships, -> { distinct }, class_name: "Membership"
     Club.has_many :special_favorites, through: :distinct_memberships, source: :member
