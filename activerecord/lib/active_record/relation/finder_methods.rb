@@ -456,14 +456,7 @@ module ActiveRecord
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
         if eager_loading && has_limit_or_offset? && !(
-          using_limitable_reflections?(join_dependency.reflections) &&
-          using_limitable_reflections?(
-            construct_join_dependency(
-              select_association_list(joins_values).concat(
-                select_association_list(left_outer_joins_values)
-              ), nil
-            ).reflections
-          )
+          using_limitable_reflections?(join_dependency.reflections) && using_limitable_joins?
         )
           relation = skip_query_cache_if_necessary do
             model.with_connection do |c|
@@ -481,6 +474,23 @@ module ActiveRecord
 
       def using_limitable_reflections?(reflections)
         reflections.none?(&:collection?)
+      end
+
+      # Whether the joins of the relation itself keep it to one row per record,
+      # so that a limit can be applied to the query the eager load joins into.
+      def using_limitable_joins?
+        # A CTE is joined on the model's foreign key, so it can match many rows.
+        # It is not an association either, so it has no reflection to look at.
+        return false if joins_values.any? { |join| cte_join?(join) } ||
+          left_outer_joins_values.any? { |join| cte_join?(join) }
+
+        using_limitable_reflections?(
+          construct_join_dependency(
+            select_association_list(joins_values).concat(
+              select_association_list(left_outer_joins_values)
+            ), nil
+          ).reflections
+        )
       end
 
       def find_with_ids(*ids)

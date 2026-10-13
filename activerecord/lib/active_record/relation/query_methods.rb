@@ -1832,10 +1832,12 @@ module ActiveRecord
         end
       end
 
+      def cte_join?(join_name)
+        Symbol === join_name && with_values.any? { _1.key?(join_name) }
+      end
+
       def select_named_joins(join_names, stashed_joins = nil, &block)
-        cte_joins, associations = join_names.partition do |join_name|
-          Symbol === join_name && with_values.any? { _1.key?(join_name) }
-        end
+        cte_joins, associations = join_names.partition { |join_name| cte_join?(join_name) }
 
         cte_joins.each do |cte_name|
           block&.call(CTEJoin.new(cte_name))
