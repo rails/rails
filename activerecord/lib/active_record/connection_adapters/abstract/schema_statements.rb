@@ -9,6 +9,10 @@ module ActiveRecord
     module SchemaStatements
       EMPTY_METADATA = [].freeze # :nodoc:
 
+      def compatibility_behavior_for(migration_class) # :nodoc:
+        ActiveRecord::Migration::CompatibilityBehavior
+      end
+
       # Returns a hash of mappings from the abstract data types to the native
       # database types. See TableDefinition#column for details on the recognized
       # abstract data types.
@@ -1473,6 +1477,11 @@ module ActiveRecord
 
       def internal_string_options_for_primary_key # :nodoc:
         { primary_key: true }
+      end
+
+      # Whether to inject `default: nil` for an integer or bigint primary key.
+      def inject_legacy_primary_key_default?(type) # :nodoc:
+        [:integer, :bigint].include?(type)
       end
 
       def assume_migrated_upto_version(version)
