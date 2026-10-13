@@ -2,6 +2,8 @@
 
 # :markup: markdown
 
+require "concurrent/map"
+
 module ActionDispatch
   module Routing
     # # Action Dispatch Routing PolymorphicRoutes
@@ -249,6 +251,7 @@ module ActionDispatch
             @key_strategy = key_strategy
             @prefix       = prefix
             @suffix       = suffix
+            @method_names_key = :"action_dispatch_polymorphic_#{prefix}#{suffix}_method_names"
           end
 
           def handle_string(record)
@@ -350,7 +353,14 @@ module ActionDispatch
             end
 
             def get_method_for_string(str)
-              "#{prefix}#{str}_#{suffix}"
+              names = method_names
+              names[str] || names.compute_if_absent(-str.to_s) { -"#{prefix}#{str}_#{suffix}" }
+            end
+
+            # Builders are frozen and shared across Ractors (see the make_shareable
+            # call below), so the per-builder memo lives in Ractor-local storage.
+            def method_names
+              ActiveSupport::Ractors.store_if_absent(@method_names_key) { Concurrent::Map.new }
             end
 
             [nil, "new", "edit"].each do |action|
