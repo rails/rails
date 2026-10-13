@@ -3,9 +3,10 @@
 module ActiveRecord
   class PredicateBuilder
     class AssociationQueryValue # :nodoc:
-      def initialize(reflection, value)
+      def initialize(reflection, value, model)
         @reflection = reflection
         @value = value
+        @model = model
       end
 
       def queries
@@ -42,7 +43,7 @@ module ActiveRecord
         end
 
         def polymorphic_name
-          reflection.polymorphic_name
+          @model.polymorphic_name
         end
 
         def select_clause?
