@@ -40,8 +40,10 @@ module ActiveRecord
 
         ignore_tables = ActiveRecord.schema_ignored_tables
         if ignore_tables.any?
-          ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
-          condition = ignore_tables.map { |table| connection.quote(table) }.join(", ")
+          condition = with_target_connection do |conn|
+            ignored = conn.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
+            ignored.map { |table| conn.quote(table) }.join(", ")
+          end
           args << "SELECT sql || ';' FROM sqlite_master WHERE tbl_name NOT IN (#{condition}) ORDER BY tbl_name, type DESC, name"
         else
           args << ".schema --nosys"

@@ -33,8 +33,10 @@ module ActiveRecord
 
         ignore_tables = ActiveRecord.schema_ignored_tables
         if ignore_tables.any?
-          ignore_tables = connection.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
-          args += ignore_tables.map { |table| "--ignore-table=#{db_config.database}.#{table}" }
+          ignored = with_target_connection do |conn|
+            conn.data_sources.select { |table| ignore_tables.any? { |pattern| pattern === table } }
+          end
+          args += ignored.map { |table| "--ignore-table=#{db_config.database}.#{table}" }
         end
 
         args.concat([db_config.database.to_s])
