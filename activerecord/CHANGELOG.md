@@ -1,3 +1,23 @@
+*   Fix the order of `LEFT OUTER JOIN`s when `eager_load` is combined with joins
+    merged from another relation.
+
+    The join built by `eager_load` is rooted at the base table, so it has to come
+    before any joins that are merged in from a relation of another model, since
+    those depend on the tables it brings in. It was emitted last instead, which
+    produced an invalid query:
+
+    ```ruby
+    Post.eager_load(:comments).merge(Comment.left_joins(:user))
+    # before: ... FROM "posts"
+    #             LEFT OUTER JOIN "users" ON "users"."id" = "comments"."user_id"
+    #             LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    # after:  ... FROM "posts"
+    #             LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    #             LEFT OUTER JOIN "users" ON "users"."id" = "comments"."user_id"
+    ```
+
+    *Ryuta Kamizono*
+
 *   Move adapter-specific migration version compatibility into the connection adapters.
 
     The adjustments that `ActiveRecord::Migration::Compatibility` applied through

@@ -1910,7 +1910,7 @@ module ActiveRecord
         end
 
         buckets[:stashed_join].concat stashed_left_joins if stashed_left_joins
-        buckets[:stashed_join] << stashed_eager_load if stashed_eager_load
+        buckets[:stashed_join].unshift stashed_eager_load if stashed_eager_load
 
         return buckets, Arel::Nodes::InnerJoin
       end
