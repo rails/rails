@@ -1,3 +1,8 @@
+*   Fix duplicated record creation when using nested attributes and `create_with`
+    on an association.
+
+    *Jerome Dalbert*
+
 *   Fix `has_many`/`has_one :through` associations with `disable_joins: true`
     raising when the owner's foreign key is composite.
 
