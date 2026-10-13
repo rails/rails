@@ -123,7 +123,7 @@ module Rails
         def disable_query_cache_in_console!
           return unless defined?(ActiveRecord::Base)
 
-          ActiveRecord::Base.connection_handler.each_connection_pool.select(&:query_cache_enabled).each(&:disable_query_cache!)
+          ActiveRecord::QueryCache.disable_for_current_unit_of_work!
         end
     end
   end
