@@ -1,3 +1,17 @@
+*   Fix `eager_load` with a `limit` on a relation that joins a CTE.
+
+    Working out whether the limit could be applied to the joined query took the
+    name of the CTE for an association name:
+
+    ```ruby
+    Post.with(commented_posts: Comment.select(:post_id))
+      .joins(:commented_posts).eager_load(:author).limit(2)
+    # ActiveRecord::ConfigurationError: Can't join 'Post' to association named
+    # 'commented_posts'; perhaps you misspelled it?
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fix the order of joins when `eager_load` or `left_joins` is combined with
     joins merged from a relation of another model.
 
