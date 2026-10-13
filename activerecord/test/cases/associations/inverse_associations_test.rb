@@ -714,6 +714,29 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
     assert_equal post2, comment.post
   end
+
+  def test_inverse_from_queries_does_not_match_a_through_inverse
+    comment_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+      self.inheritance_column = nil
+      def self.name = "Comment"
+    end
+    post_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      self.inheritance_column = nil
+      def self.name = "Post"
+      has_many :comments, anonymous_class: comment_class, inverse_of: :thread_post
+    end
+    comment_class.belongs_to :post, anonymous_class: post_class
+    comment_class.belongs_to :parent, anonymous_class: comment_class, optional: true
+    comment_class.has_one :thread_post, through: :parent, source: :post
+
+    post = post_class.create!(title: "Thread", body: "Thread")
+    comment_class.create!(post_id: post.id, body: "Parentless")
+
+    comment = post.comments.where(post_id: post.id).to_a.first
+    assert_nil comment.thread_post
+  end
 end
 
 class InverseBelongsToTests < ActiveRecord::TestCase
