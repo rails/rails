@@ -319,6 +319,46 @@ module ActiveModel
       assert_not_equal attribute_set[:foo].value, dup[:foo].value
     end
 
+    test "read_only returns a frozen set with frozen attributes" do
+      attributes = AttributeSet.new(
+        foo: Attribute.from_database(:foo, "bar", Type::String.new),
+        baz: Attribute.from_database(:baz, "1", Type::Integer.new)
+      )
+      read_only = attributes.read_only
+
+      assert_predicate read_only, :frozen?
+      assert_predicate read_only.attributes, :frozen?
+      assert_predicate read_only[:foo], :frozen?
+      assert_predicate read_only[:foo].value, :frozen?
+      assert_equal({ foo: "bar", baz: 1 }, read_only.to_hash)
+      assert_equal [:foo, :baz], read_only.keys
+      assert_not read_only.key?(:missing)
+    end
+
+    test "read_only rejects uninitialized attributes" do
+      attributes = AttributeSet.new(foo: Attribute.uninitialized(:foo, Type::String.new))
+      assert_raises(ArgumentError) { attributes.read_only }
+    end
+
+    test "read only set can't be mutated but writable returns a mutable copy" do
+      read_only = AttributeSet.new(foo: Attribute.from_database(:foo, "bar", Type::String.new)).read_only
+
+      assert_not_respond_to read_only, :[]=
+      writable = read_only.writable
+      writable[:foo] = Attribute.from_database(:foo, "changed", Type::String.new)
+
+      assert_equal "changed", writable[:foo].value
+      assert_equal "bar", read_only[:foo].value
+    end
+
+    test "read only set deep_dup and map stay read only" do
+      read_only = AttributeSet.new(foo: Attribute.from_database(:foo, "bar", Type::String.new)).read_only
+
+      assert_predicate read_only.deep_dup, :frozen?
+      assert_equal read_only, read_only.deep_dup
+      assert_predicate read_only.map { |attr| attr.with_value_from_user("x") }, :frozen?
+    end
+
     private
       def attributes_with_uninitialized_key
         builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)

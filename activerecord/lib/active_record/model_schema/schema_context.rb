@@ -16,8 +16,19 @@ module ActiveRecord
           attribute_set = context.attribute_set
           context.model_class.apply_pending_attribute_modifications(attribute_set)
 
-          @defaults = attribute_set
+          @defaults = if attribute_set.values.all?(&:freezable?)
+            attribute_set.read_only
+          else
+            attribute_set
+          end
           @context = context
+        end
+
+        def define_default(name, attribute)
+          set = defaults.respond_to?(:writable) ? defaults.writable : defaults
+          set[name] = attribute
+          @defaults = set
+          @column_defaults = nil
         end
 
         def types

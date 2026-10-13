@@ -38,7 +38,7 @@ module ActiveModel
     end
 
     def writable
-      ReadWriteAttributeSet.new(self, {})
+      AttributeSet.new(attributes.transform_values(&:dup))
     end
 
     def to_hash
@@ -54,6 +54,10 @@ module ActiveModel
 
     def deep_dup
       self.class.new(attributes.transform_values(&:deep_dup))
+    end
+
+    def ==(other)
+      other.class == self.class && attributes == other.attributes
     end
 
     attr_reader :attributes
