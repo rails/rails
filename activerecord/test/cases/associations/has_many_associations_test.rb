@@ -670,6 +670,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal firm.limited_clients.length, firm.limited_clients.count
   end
 
+  def test_nullification_on_cpk_association_with_pk_column_when_owner_is_destroyed
+    chapter = Cpk::Chapter.create!(id: [1, 2])
+    book = Cpk::NullifiedBookWithChapters.create!(id: [1, 3])
+    book.chapters << chapter
+
+    book.destroy
+
+    chapter.reload
+    assert_nil chapter.book_id
+    assert_equal 1, chapter.author_id
+  end
+
   def test_default_order
     post = posts(:welcome)
 
