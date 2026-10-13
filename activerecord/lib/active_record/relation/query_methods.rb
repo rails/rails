@@ -156,6 +156,14 @@ module ActiveRecord
       end
     end
 
+    # The joins of a relation, grouped by how they are built into the query.
+    #
+    # +named_joins+ are association names, built into one join dependency rooted
+    # at the model. +stashed_joins+ are join dependencies that are built already,
+    # joined in that order after it. +leading_joins+ and +join_nodes+ are Arel
+    # nodes, joined before and after both.
+    JoinBuckets = Data.define(:leading_joins, :named_joins, :stashed_joins, :join_nodes, :join_type) # :nodoc:
+
     FROZEN_EMPTY_ARRAY = [].freeze
     FROZEN_EMPTY_HASH = {}.freeze
 
@@ -1862,25 +1870,24 @@ module ActiveRecord
       end
 
       def build_join_buckets
-        buckets = Hash.new { |h, k| h[k] = [] }
+        leading_joins = []
+        join_nodes = []
 
         unless left_outer_joins_values.empty?
           stashed_left_joins = []
           left_joins = select_named_joins(left_outer_joins_values, stashed_left_joins) do |left_join|
             if left_join.is_a?(CTEJoin)
-              buckets[:join_node] << build_with_join_node(left_join.name, Arel::Nodes::OuterJoin)
+              join_nodes << build_with_join_node(left_join.name, Arel::Nodes::OuterJoin)
             else
               raise ArgumentError, "only Hash, Symbol and Array are allowed"
             end
           end
 
           if joins_values.empty?
-            buckets[:named_join] = left_joins
-            buckets[:stashed_join] = stashed_left_joins
-            return buckets, Arel::Nodes::OuterJoin
-          else
-            stashed_outer_join = construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
+            return JoinBuckets.new(leading_joins, left_joins, stashed_left_joins, join_nodes, Arel::Nodes::OuterJoin)
           end
+
+          stashed_outer_join = construct_join_dependency(left_joins, Arel::Nodes::OuterJoin)
         end
 
         joins = joins_values.dup
@@ -1895,45 +1902,47 @@ module ActiveRecord
         while joins.first.is_a?(Arel::Nodes::Join)
           join_node = joins.shift
           if !join_node.is_a?(Arel::Nodes::LeadingJoin) && (stashed_eager_load || stashed_left_joins)
-            buckets[:join_node] << join_node
+            join_nodes << join_node
           else
-            buckets[:leading_join] << join_node
+            leading_joins << join_node
           end
         end
 
-        buckets[:named_join] = select_named_joins(joins, buckets[:stashed_join]) do |join|
+        stashed_inner_joins = []
+        named_joins = select_named_joins(joins, stashed_inner_joins) do |join|
           if join.is_a?(Arel::Nodes::Join)
-            buckets[:join_node] << join
+            join_nodes << join
           elsif join.is_a?(CTEJoin)
-            buckets[:join_node] << build_with_join_node(join.name)
+            join_nodes << build_with_join_node(join.name)
           else
             raise "unknown class: %s" % join.class.name
           end
         end
 
-        buckets[:stashed_join].concat stashed_left_joins if stashed_left_joins
-        buckets[:stashed_join].unshift stashed_outer_join if stashed_outer_join
-        buckets[:stashed_join].unshift stashed_eager_load if stashed_eager_load
+        # The join dependencies rooted at the model never depend on another join,
+        # while the ones merged in from a relation of another model join to the
+        # tables they bring in, so those come first.
+        stashed_joins = [
+          stashed_eager_load, stashed_outer_join, *stashed_inner_joins, *stashed_left_joins
+        ].compact
 
-        return buckets, Arel::Nodes::InnerJoin
+        JoinBuckets.new(leading_joins, named_joins, stashed_joins, join_nodes, Arel::Nodes::InnerJoin)
       end
 
       def build_joins(join_sources, aliases = nil)
         return join_sources if joins_values.empty? && left_outer_joins_values.empty?
 
-        buckets, join_type = build_join_buckets
+        buckets = build_join_buckets
 
-        named_joins   = buckets[:named_join]
-        stashed_joins = buckets[:stashed_join]
-        leading_joins = buckets[:leading_join]
-        join_nodes    = buckets[:join_node]
+        leading_joins = buckets.leading_joins
+        join_nodes    = buckets.join_nodes
 
         join_sources.concat(leading_joins) unless leading_joins.empty?
 
-        unless named_joins.empty? && stashed_joins.empty?
+        unless buckets.named_joins.empty? && buckets.stashed_joins.empty?
           alias_tracker = alias_tracker(leading_joins + join_nodes, aliases)
-          join_dependency = construct_join_dependency(named_joins, join_type)
-          join_sources.concat(join_dependency.join_constraints(stashed_joins, alias_tracker, references_values))
+          join_dependency = construct_join_dependency(buckets.named_joins, buckets.join_type)
+          join_sources.concat(join_dependency.join_constraints(buckets.stashed_joins, alias_tracker, references_values))
         end
 
         join_sources.concat(join_nodes) unless join_nodes.empty?
