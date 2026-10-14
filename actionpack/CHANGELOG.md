@@ -1,3 +1,14 @@
+*   Render the error page instead of a 500 when an invalid `multipart/form-data`
+    request is received and `Rails.application.routes` is used as the
+    `exceptions_app`.
+
+    The invalid body's parse error was recorded on the request env and re-raised
+    when the routes exceptions app read the params while dispatching, which
+    turned the intended `/400` response into a failsafe 500. The poisoned body is
+    now neutralized before the request is handed to the exceptions app.
+
+    *Ben Younes*
+
 *   Remove support for dynamic `:controller` and `:action` route segments.
 
     A route may no longer read the controller or the action out of the URL:
