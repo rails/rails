@@ -1,3 +1,15 @@
+*   Add `config.public_file_server.compressible_content_types` and
+    `config.public_file_server.precompressed`.
+
+    Apps can choose which static files are served precompressed, and which
+    encodings (`.br`, `.gz`) are looked for.
+
+    ```ruby
+    config.public_file_server.compressible_content_types = %w[ text/html text/css text/javascript application/json application/wasm image/svg+xml ]
+    ```
+
+    *Keenan Brock*
+
 *   Fix `rails.deprecation` structured events not being emitted.
 
     *Azmi Muwahid*

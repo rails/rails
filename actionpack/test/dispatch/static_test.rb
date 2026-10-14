@@ -189,6 +189,53 @@ class StaticTest < ActiveSupport::TestCase
     assert_equal "gzip",            response.headers["Content-Encoding"]
   end
 
+  def test_does_not_serve_gzip_files_for_incompressible_content_types
+    file_name = "/gzip/data.json"
+    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
+    assert_equal File.read(File.join(@root, file_name)), response.body
+    assert_equal "application/json", response.headers["content-type"]
+    assert_nil response.headers["content-encoding"]
+    assert_nil response.headers["vary"]
+  end
+
+  def test_serves_gzip_files_for_configured_compressible_content_types
+    @app = build_app(DummyApp, @root, compressible_content_types: %r{\Aapplication/json\z})
+
+    file_name = "/gzip/data.json"
+    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
+    assert_gzip  file_name, response
+    assert_equal "application/json", response.headers["content-type"]
+    assert_equal "accept-encoding",  response.headers["vary"]
+    assert_equal "gzip",             response.headers["content-encoding"]
+  end
+
+  def test_serves_gzip_files_for_configured_compressible_content_types_array
+    @app = build_app(DummyApp, @root, compressible_content_types: %w[ application/json image/svg+xml ])
+
+    file_name = "/gzip/data.json"
+    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
+    assert_gzip  file_name, response
+    assert_equal "gzip", response.headers["content-encoding"]
+
+    file_name = "/gzip/logo-bcb6d75d927347158af5.svg"
+    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
+    assert_gzip  file_name, response
+    assert_equal "gzip", response.headers["content-encoding"]
+
+    file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
+    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip")
+    assert_nil response.headers["content-encoding"]
+  end
+
+  def test_serves_only_configured_precompressed_encodings
+    @app = build_app(DummyApp, @root, precompressed: [:gzip])
+
+    file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
+    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "gzip, br")
+    assert_gzip  file_name, response
+    assert_equal "gzip", response.headers["content-encoding"]
+  end
+
   def test_set_vary_when_origin_compressed_but_client_cant_accept
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "None")
@@ -321,10 +368,10 @@ class StaticTest < ActiveSupport::TestCase
   end
 
   private
-    def build_app(app, path, index: "index", headers: {})
+    def build_app(app, path, index: "index", headers: {}, **options)
       Rack::Lint.new(
         ActionDispatch::Static.new(
-          Rack::Lint.new(app), path, index: index, headers: headers,
+          Rack::Lint.new(app), path, index: index, headers: headers, **options,
         ),
       )
     end

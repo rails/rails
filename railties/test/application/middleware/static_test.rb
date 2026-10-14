@@ -66,5 +66,28 @@ module ApplicationTests
 
       assert_equal "/other-index.html\n", last_response.body
     end
+
+    test "public_file_server.compressible_content_types configurable" do
+      app_file "public/data.json", "{}"
+      app_file "public/data.json.gz", "{}"
+      add_to_config "config.public_file_server.compressible_content_types = %w[ application/json ]"
+
+      require "#{app_path}/config/environment"
+
+      get "/data.json", {}, "HTTP_ACCEPT_ENCODING" => "gzip"
+      assert_equal "gzip", last_response.headers["Content-Encoding"]
+    end
+
+    test "public_file_server.precompressed configurable" do
+      app_file "public/app.js", "console.log('hi')"
+      app_file "public/app.js.gz", "console.log('hi')"
+      app_file "public/app.js.br", "not really brotli"
+      add_to_config "config.public_file_server.precompressed = [:gzip]"
+
+      require "#{app_path}/config/environment"
+
+      get "/app.js", {}, "HTTP_ACCEPT_ENCODING" => "br, gzip"
+      assert_equal "gzip", last_response.headers["Content-Encoding"]
+    end
   end
 end
