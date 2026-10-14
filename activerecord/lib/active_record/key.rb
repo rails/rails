@@ -104,6 +104,27 @@ module ActiveRecord
         @columns = [@name].freeze
       end
 
+      def each
+        return super unless block_given?
+        yield @name
+        self
+      end
+
+      def all?
+        return super unless block_given?
+        yield(@name) ? true : false
+      end
+
+      def any?
+        return super unless block_given?
+        yield(@name) ? true : false
+      end
+
+      def map
+        return super unless block_given?
+        [yield(@name)]
+      end
+
       def composite?
         false
       end
