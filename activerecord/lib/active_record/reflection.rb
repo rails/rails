@@ -207,12 +207,7 @@ module ActiveRecord
 
         scope_chain_items.inject(klass_scope, &:merge!)
 
-        primary_key_column_names = join_primary_key_definition.columns
-        foreign_key_column_names = join_foreign_key_definition.columns
-
-        primary_foreign_key_pairs = primary_key_column_names.zip(foreign_key_column_names)
-
-        primary_foreign_key_pairs.each do |primary_key_column_name, foreign_key_column_name|
+        join_primary_key_definition.zip(join_foreign_key_definition) do |primary_key_column_name, foreign_key_column_name|
           primary_key_attribute = predicate_builder.predicate_attribute(table[primary_key_column_name])
           foreign_key_attribute = predicate_builder.predicate_attribute(foreign_table[foreign_key_column_name])
 
