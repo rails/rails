@@ -82,6 +82,24 @@ class TestERBTemplate < ActiveSupport::TestCase
     super
   end
 
+  def test_render_builds_instrumentation_payload_only_when_subscribed
+    @template = new_template
+
+    assert_notification("!render_template.action_view", virtual_path: "hello", identifier: "hello template") do
+      render
+    end
+
+    # The render above compiled the template. Compiling also calls instrument_payload,
+    # so the stub has to come after the first render.
+    @template.stub(:instrument_payload, -> { flunk "payload built with no subscribers" }) do
+      assert_equal "Hello", render
+    end
+
+    assert_notification("!render_template.action_view", virtual_path: "hello", identifier: "hello template") do
+      render
+    end
+  end
+
   def test_basic_template
     @template = new_template
     assert_equal "Hello", render
