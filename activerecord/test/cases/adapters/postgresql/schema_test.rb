@@ -634,6 +634,18 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     @connection.execute('DROP SCHEMA IF EXISTS "Test_CamelSchema" CASCADE')
   end
 
+  def test_reset_pk_sequence_with_a_schema_qualified_name_on_the_search_path
+    @connection.create_table("public.widgets_on_search_path")
+    widget = Class.new(ActiveRecord::Base) { self.table_name = "public.widgets_on_search_path" }
+    widget.create!(id: 100)
+
+    @connection.reset_pk_sequence!(widget.table_name)
+
+    assert_equal 101, widget.create!.id
+  ensure
+    @connection.drop_table("public.widgets_on_search_path", if_exists: true)
+  end
+
   def test_set_pk_sequence
     table_name = "#{SCHEMA_NAME}.#{PK_TABLE_NAME}"
     _, sequence_name = @connection.pk_and_sequence_for table_name
