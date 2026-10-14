@@ -511,12 +511,12 @@ module ActiveRecord
         if autosave && record.marked_for_destruction?
           record.destroy
         elsif autosave != false
-          primary_key = ActiveRecord::Key.for(reflection.active_record_primary_key)
+          primary_key = reflection.active_record_primary_key_definition
           primary_key_value = primary_key.map { |key| read_attribute(key) }
           return unless (autosave && record.changed_for_autosave?) || _record_changed?(reflection, record, primary_key_value)
 
           unless reflection.through_reflection
-            foreign_key = ActiveRecord::Key.for(reflection.foreign_key)
+            foreign_key = reflection.foreign_key_definition
             primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
 
             primary_key_foreign_key_pairs.each do |primary_key, foreign_key|
@@ -540,13 +540,13 @@ module ActiveRecord
         record.new_record? ||
           (association_foreign_key_changed?(reflection, record, key) ||
           inverse_polymorphic_association_changed?(reflection, record)) ||
-          ActiveRecord::Key.for(reflection.foreign_key).any? { |fk| record.will_save_change_to_attribute?(record.class.attribute_aliases[fk] || fk) }
+          reflection.foreign_key_definition.any? { |fk| record.will_save_change_to_attribute?(record.class.attribute_aliases[fk] || fk) }
       end
 
       def association_foreign_key_changed?(reflection, record, key)
         return false if reflection.through_reflection?
 
-        foreign_key = ActiveRecord::Key.for(reflection.foreign_key)
+        foreign_key = reflection.foreign_key_definition
         return false unless foreign_key.all? { |key| record.has_attribute?(key) }
 
         foreign_key.map { |key| record.read_attribute(key) } != Array(key)
@@ -575,7 +575,7 @@ module ActiveRecord
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?
-            foreign_key = ActiveRecord::Key.for(reflection.foreign_key)
+            foreign_key = reflection.foreign_key_definition
             foreign_key.each { |key| write_attribute(key, nil) }
             record.destroy
           elsif autosave != false
@@ -590,8 +590,8 @@ module ActiveRecord
             end
 
             if association.updated?
-              primary_key = ActiveRecord::Key.for(reflection.association_primary_key(record.class))
-              foreign_key = ActiveRecord::Key.for(reflection.foreign_key)
+              primary_key = reflection.association_primary_key_definition(record.class)
+              foreign_key = reflection.foreign_key_definition
 
               primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
               primary_key_foreign_key_pairs.each do |primary_key, foreign_key|

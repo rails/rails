@@ -112,4 +112,40 @@ class KeyTest < ActiveRecord::TestCase
     assert_predicate Cpk::Book.primary_key_definition, :composite?
     assert_equal ["author_id", "id"], Cpk::Book.primary_key_definition.name
   end
+
+  def test_include
+    assert_includes Key.for("id"), "id"
+    assert_not_includes Key.for("id"), "shop_id"
+    assert_includes Key.for([:shop_id, :id]), "shop_id"
+    assert_not_includes Key.for([:shop_id, :id]), "author_id"
+    assert_not_includes Key.for(nil), "id"
+  end
+
+  def test_subset_of_single_key
+    single = Key.for("id")
+
+    assert single.subset?(Key.for("id"))
+    assert_not single.subset?(Key.for("shop_id"))
+    assert single.subset?(Key.for([:shop_id, :id]))
+    assert_not single.subset?(Key.for([:shop_id, :author_id]))
+    assert_not single.subset?(Key.for(nil))
+  end
+
+  def test_subset_of_composite_key
+    composite = Key.for([:shop_id, :id])
+
+    assert composite.subset?(Key.for([:id, :shop_id]))
+    assert composite.subset?(Key.for([:shop_id, :id, :author_id]))
+    assert_not composite.subset?(Key.for([:shop_id, :author_id]))
+    assert_not composite.subset?(Key.for("id"))
+    assert_not composite.subset?(Key.for(nil))
+  end
+
+  def test_none_is_a_subset_of_every_key
+    none = Key.for(nil)
+
+    assert none.subset?(Key.for("id"))
+    assert none.subset?(Key.for([:shop_id, :id]))
+    assert none.subset?(Key.for(nil))
+  end
 end

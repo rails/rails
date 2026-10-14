@@ -60,8 +60,8 @@ module ActiveRecord
         end
 
         def last_chain_scope(scope, reflection, owner)
-          primary_key = ActiveRecord::Key.for(reflection.join_primary_key)
-          foreign_key = ActiveRecord::Key.for(reflection.join_foreign_key)
+          primary_key = reflection.join_primary_key_definition
+          foreign_key = reflection.join_foreign_key_definition
 
           table = reflection.aliased_table
           primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
@@ -83,8 +83,8 @@ module ActiveRecord
         end
 
         def next_chain_scope(scope, reflection, next_reflection)
-          primary_key = ActiveRecord::Key.for(reflection.join_primary_key)
-          foreign_key = ActiveRecord::Key.for(reflection.join_foreign_key)
+          primary_key = reflection.join_primary_key_definition
+          foreign_key = reflection.join_foreign_key_definition
 
           table = reflection.aliased_table
           foreign_table = next_reflection.aliased_table

@@ -119,8 +119,8 @@ module ActiveRecord
         end
 
         def nullify_owner_attributes(record)
-          primary_key = ActiveRecord::Key.for(record.class.primary_key)
-          foreign_key = ActiveRecord::Key.for(reflection.foreign_key)
+          primary_key = record.class.primary_key_definition
+          foreign_key = reflection.foreign_key_definition
 
           # Preserve shared primary key columns only if another foreign key
           # column can be cleared to disassociate the record.
