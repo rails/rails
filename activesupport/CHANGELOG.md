@@ -1,3 +1,12 @@
+*   Fix `BroadcastLogger` executing the block of a custom logger method once per logger.
+
+    Methods that `BroadcastLogger` doesn't define itself are forwarded to every broadcast
+    that responds to them. When more than one did and a block was given, each logger
+    executed the block again. The block is now executed at most once, and subsequent
+    loggers receive the first result, the same as for the built-in logging methods.
+
+    *Quint Pieters*
+
 *   Freeze events emitted by `ActiveSupport::EventReporter`.
 
     Subscribers can no longer change the event seen by later subscribers.

@@ -296,6 +296,23 @@ module ActiveSupport
         end
       end
 
+      # Like +dispatch_block+, but sends to the given loggers and returns
+      # every logger's value.
+      def broadcast_block(loggers, method, *args, **kwargs)
+        called, memo = false, nil
+
+        loggers.map do |logger|
+          logger.send(method, *args, **kwargs) do |*args, **kwargs|
+            if called
+              memo
+            else
+              called = true
+              memo = yield(*args, **kwargs)
+            end
+          end
+        end
+      end
+
       def method_missing(name, ...)
         loggers = @broadcasts.select { |logger| logger.respond_to?(name) }
 
@@ -303,6 +320,10 @@ module ActiveSupport
           super
         elsif loggers.one?
           loggers.first.send(name, ...)
+        elsif block_given?
+          # One logger can't execute a block twice, so it needs to be memoized
+          # before being handed to more than one logger.
+          broadcast_block(loggers, name, ...)
         else
           loggers.map { |logger| logger.send(name, ...) }
         end

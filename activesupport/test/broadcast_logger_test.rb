@@ -292,6 +292,31 @@ module ActiveSupport
       assert_equal [[::Logger::INFO, "Hello", nil]], log2.adds
     end
 
+    test "calling a custom method that accepts a block when *multiple* loggers have implemented it is yielded only once" do
+      logger = BroadcastLogger.new(CustomLogger.new, FakeLogger.new, CustomLogger.new)
+
+      called = 0
+      result = logger.bar do
+        called += 1
+        "Hello"
+      end
+
+      assert_equal 1, called, "block should be called just once"
+      assert_equal ["Hello", "Hello", "Hello"], result
+    end
+
+    test "calling a custom method that accepts a block passes the block arguments through" do
+      loggers = [CustomLogger.new, CustomLogger.new].each do |logger|
+        logger.define_singleton_method(:with_context) { |context, &block| block.call(context, level: :info) }
+      end
+      logger = BroadcastLogger.new(*loggers)
+
+      yielded = []
+      logger.with_context("request") { |context, level:| yielded << [context, level] }
+
+      assert_equal [["request", :info]], yielded
+    end
+
     test "calling a method that accepts args" do
       logger = BroadcastLogger.new(CustomLogger.new)
 
