@@ -1,3 +1,12 @@
+*   Fix `remove_index` and `index_exists?` in migrations declaring version 4.2
+    to honor `table_name_prefix` and `table_name_suffix`.
+
+    With a prefix set, `remove_index` raised `ArgumentError: Index name '...'
+    on table '...' does not exist`, and `index_exists?` returned `false` for an
+    index that exists.
+
+    *Carlos Daniel Pohlod*
+
 *   Raise the original error when SQLite rolls back a transaction on its own.
 
     When a statement or `COMMIT` fails with errors such as `SQLITE_FULL`, the
