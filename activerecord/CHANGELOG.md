@@ -1,3 +1,16 @@
+*   Dump `create_schema` with `if_not_exists: true` for every schema that holds
+    a dumped extension.
+
+    A relocatable extension, such as `btree_gin` or `pg_trgm`, can live in a schema
+    that `dump_schemas` does not cover. The Ruby schema dump wrote
+    `enable_extension "extensions.btree_gin"` without `create_schema` for it, and
+    `db:schema:load` failed with `PG::InvalidSchemaName`. When the schema was in
+    `dump_schemas`, the dump wrote `create_schema "extensions"`, and the load
+    failed with `PG::DuplicateSchema` where the schema exists already, as on Supabase.
+    The dump now writes `create_schema "extensions", if_not_exists: true` in both cases.
+
+    *Tusshar Laddha*
+
 *   Fix `eager_load` with a `limit` on a relation that joins a CTE.
 
     Working out whether the limit could be applied to the joined query took the
