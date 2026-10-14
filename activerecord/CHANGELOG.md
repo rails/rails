@@ -1,3 +1,10 @@
+*   Deprecate `supports_native_partitioning?` on the PostgreSQL adapter.
+
+    It always returns `true` since the minimum PostgreSQL version became 10.0,
+    which supports native partitioning.
+
+    *Yasuo Honda*
+
 *   Dump `create_schema` with `if_not_exists: true` for every schema that holds
     a dumped extension.
 
