@@ -60,6 +60,10 @@ module ActiveModel
       other.class == self.class && attributes == other.attributes
     end
 
+    def read_only?
+      true
+    end
+
     attr_reader :attributes
 
     private
@@ -183,6 +187,10 @@ module ActiveModel
       other.class == self.class && attributes == other.attributes
     end
 
+    def read_only?
+      false
+    end
+
     protected
       attr_reader :attributes
 
@@ -193,12 +201,13 @@ module ActiveModel
   end
 
   class LazyAttributeSet < AttributeSet # :nodoc:
-    def initialize(values, types, additional_types, default_attributes, attributes = {})
+    def initialize(values, types, additional_types, default_attributes, attributes, default_keys)
       super(attributes)
       @values = values
       @types = types
       @additional_types = additional_types
       @default_attributes = default_attributes
+      @default_keys = default_keys
       @casted_values = values.is_a?(IndexedRow) ? values.new_empty_mutable_row : {}
       @materialized = false
     end
@@ -237,7 +246,8 @@ module ActiveModel
         types.dup,
         additional_types.dup,
         default_attributes.dup,
-        attributes.transform_values(&:deep_dup)
+        attributes.transform_values(&:deep_dup),
+        @default_keys
       )
     end
 
@@ -247,7 +257,8 @@ module ActiveModel
         types,
         additional_types,
         default_attributes,
-        attributes.transform_values(&block)
+        attributes.transform_values(&block),
+        @default_keys
       )
     end
 
@@ -274,7 +285,7 @@ module ActiveModel
         if value_present
           @attributes[name] = Attribute.from_database(name, value, type, @casted_values[name])
         elsif types.key?(name)
-          if attr = default_attributes[name]
+          if (@default_keys.nil? || @default_keys.include?(name)) && (attr = default_attributes[name])
             @attributes[name] = attr.dup
           else
             @attributes[name] = Attribute.uninitialized(name, type)

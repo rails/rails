@@ -332,7 +332,8 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     builder = klass.attributes_builder
 
     assert_same builder, klass.attributes_builder
-    assert_equal ["id"], builder.default_attributes.keys
+    assert builder.default_keys.include?("id")
+    assert_not builder.default_keys.include?("title")
 
     klass.reset_column_information
 
@@ -349,7 +350,8 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     klass.primary_key = "title"
 
     assert_not_same builder, child.attributes_builder
-    assert_equal ["title"], child.attributes_builder.default_attributes.keys
+    assert child.attributes_builder.default_keys.include?("title")
+    assert_not child.attributes_builder.default_keys.include?("id")
   end
 
   def test_auto_detect_primary_key_from_schema
