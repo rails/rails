@@ -275,8 +275,26 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     k.primary_key = "foo"
     subclass = Class.new(k)
 
-    assert_equal "foo", k._primary_key_definition&.name
-    assert_equal "foo", subclass._primary_key_definition&.name
+    assert_equal "foo", k.primary_key
+    assert_equal "foo", subclass.primary_key
+  end
+
+  def test_primary_key_inherited_when_assigned_after_subclass_is_defined
+    k = Class.new(ActiveRecord::Base) { self.table_name = "topics" }
+    subclass = Class.new(k)
+    assert_equal "id", subclass.primary_key
+
+    k.primary_key = "title"
+    assert_equal "title", subclass.primary_key
+  end
+
+  def test_primary_key_assigned_on_subclass_is_not_overridden_by_parent
+    k = Class.new(ActiveRecord::Base) { self.table_name = "topics" }
+    subclass = Class.new(k) { self.primary_key = "title" }
+
+    k.primary_key = "author_name"
+    assert_equal "author_name", k.primary_key
+    assert_equal "title", subclass.primary_key
   end
 
   def test_primary_key_assignment_reloads_schema
