@@ -68,6 +68,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_dispatch.strict_accept_header`](#config-action-dispatch-strict-accept-header): `true`
 - [`config.action_view.erb_implementation`](#config-action-view-erb-implementation): `:herb`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
+- [`config.active_job.immutable_arguments`](#config-active-job-immutable-arguments): `true`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
@@ -3511,6 +3512,20 @@ class NotificationJob < ApplicationJob
   self.enqueue_after_transaction_commit = false
 end
 ```
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is |
+| --------------------- | -------------------- |
+| (original)            | `false`              |
+| 8.2                   | `true`               |
+
+#### `config.active_job.immutable_arguments`
+
+Controls whether Active Job copies string, array, and hash arguments before
+calling `perform`. When true, mutations of those `perform` parameters do not
+leak into later retries. GlobalID records are passed through unchanged.
+Mutating `job.arguments` still updates the stored arguments used on retry.
 
 The default value depends on the `config.load_defaults` target version:
 
