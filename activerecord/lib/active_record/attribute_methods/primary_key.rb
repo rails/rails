@@ -91,8 +91,10 @@ module ActiveRecord
           end
 
           def primary_key_definition # :nodoc:
-            reset_primary_key unless _primary_key_definition
-            _primary_key_definition
+            _primary_key_definition || begin
+              reset_primary_key
+              _primary_key_definition
+            end
           end
 
           # Returns a quoted version of the primary key name.
