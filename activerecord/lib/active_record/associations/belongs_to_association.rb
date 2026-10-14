@@ -150,8 +150,8 @@ module ActiveRecord
             target_key = primary_key(record.class)
             return if !force && keys_match?(record, target_key)
 
-            foreign_key.each_with_index do |column, index|
-              owner.write_attribute(column, record.read_attribute(target_key[index]))
+            foreign_key.zip(target_key) do |column, target_column|
+              owner.write_attribute(column, record.read_attribute(target_column))
             end
           else
             owner_pk = owner.class.primary_key_definition
@@ -174,8 +174,8 @@ module ActiveRecord
           if target_key.composite?
             return false unless fk.length == target_key.length
 
-            fk.each_with_index do |column, index|
-              return false unless owner.read_attribute(column) == record.read_attribute(target_key[index])
+            fk.zip(target_key) do |column, target_column|
+              return false unless owner.read_attribute(column) == record.read_attribute(target_column)
             end
             true
           else

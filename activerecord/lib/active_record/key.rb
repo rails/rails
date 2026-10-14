@@ -125,6 +125,12 @@ module ActiveRecord
         [yield(@name)]
       end
 
+      def zip(other)
+        return [[@name, other[0]]] unless block_given?
+        yield @name, other[0]
+        nil
+      end
+
       def composite?
         false
       end
@@ -176,6 +182,10 @@ module ActiveRecord
         @columns = columns.map { |column| -column.to_s }.freeze
         @name = @columns
         @inferred_key = @columns.include?("id") ? Single.new("id").freeze : self
+      end
+
+      def zip(other, &)
+        @columns.zip(other.to_a, &)
       end
 
       def composite?
@@ -249,6 +259,10 @@ module ActiveRecord
       end
 
       def each
+      end
+
+      def zip(other, &)
+        EMPTY.zip(other.to_a, &)
       end
     end
   end

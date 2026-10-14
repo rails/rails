@@ -141,6 +141,21 @@ class KeyTest < ActiveRecord::TestCase
     assert_not composite.subset?(Key.for(nil))
   end
 
+  def test_zip
+    [Key.for("id"), Key.for([:shop_id, :id]), Key.for(nil)].each do |key|
+      other_columns = key.to_a.map { |column| "other_#{column}" }
+      other = Key.for(key.composite? ? other_columns : other_columns.first)
+      expected = key.to_a.zip(other.to_a)
+
+      assert_equal expected, key.zip(other)
+      assert_equal expected, key.zip(other.to_a)
+
+      yielded = []
+      assert_nil key.zip(other) { |column, other_column| yielded << [column, other_column] }
+      assert_equal expected, yielded
+    end
+  end
+
   def test_none_is_a_subset_of_every_key
     none = Key.for(nil)
 
