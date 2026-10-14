@@ -315,7 +315,7 @@ module ActiveRecord
           else
             default_attribute = ActiveModel::Attribute.from_database(name, value, type)
           end
-          schema_context.attributes.define_default(name, default_attribute)
+          _default_attributes[name] = default_attribute
         end
 
         def reset_default_attributes

@@ -24,14 +24,6 @@ module ActiveRecord
           @context = context
         end
 
-        def define_default(name, attribute)
-          set = defaults.respond_to?(:writable) ? defaults.writable : defaults
-          set[name] = attribute
-          set = set.read_only if set.values.all?(&:freezable?)
-          @defaults = set
-          @column_defaults = nil
-        end
-
         def types
           @types ||= defaults.cast_types.tap do |hash|
             hash.default = ActiveModel::Type.default_value
