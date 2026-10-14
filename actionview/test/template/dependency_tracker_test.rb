@@ -102,6 +102,13 @@ module SharedTrackerTests
     assert_equal ["messages/layout", "messages/show"], tracker.dependencies.sort
   end
 
+  def test_dependency_of_cached_collection_partial
+    template = FakeTemplate.new("<%= render partial: 'messages/message', collection: @messages, cached: true %>", :erb)
+    tracker = make_tracker("messages/index", template)
+
+    assert_equal ["messages/message"], tracker.dependencies
+  end
+
   def test_dependency_of_template_layout_standalone
     template = FakeTemplate.new("<%= render layout: 'messages/layout' do %>", :erb)
     tracker = make_tracker("messages/layout", template)

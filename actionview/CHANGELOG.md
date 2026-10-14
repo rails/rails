@@ -1,3 +1,12 @@
+*   Fix the `:ruby` render tracker ignoring partials rendered with
+    `cached: true`.
+
+    A `cache` block around `render partial: ..., collection: ..., cached: true`
+    didn't change its digest when that partial changed, so it kept serving
+    the old fragment.
+
+    *Jose Farias*
+
 *   Fix the debug page for errors raised in view templates on Ruby 4.1.
 
     Ruby 4.1 builds prism into the interpreter as `Ruby::Prism`, and
