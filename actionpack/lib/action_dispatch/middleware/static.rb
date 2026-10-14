@@ -55,15 +55,26 @@ module ActionDispatch
     def initialize(root, index: "index", headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript|image\/svg\+xml)/)
       @root = root.chomp("/").b
       @index = index
+      @headers = headers
 
       @precompressed = Array(precompressed).map(&:to_s) | %w[ identity ]
       @compressible_content_types = compressible_content_types
 
-      @file_server = ::Rack::Files.new(@root, headers)
+      # Pass only non-callable headers to Rack::Files. Callables are resolved
+      # per-request in #serve so they are not stringified as #<Proc:...>.
+      static_headers = headers.reject { |_, value| value.respond_to?(:call) }
+      @file_server = ::Rack::Files.new(@root, static_headers)
     end
 
     def call(env)
-      attempt(env) || @file_server.call(env)
+      attempt(env) || begin
+        status, headers, body = @file_server.call(env)
+        if status != 304
+          request = Rack::Request.new(env)
+          headers = headers.merge(resolved_headers(request.path_info, env))
+        end
+        [status, headers, body]
+      end
     end
 
     def attempt(env)
@@ -78,17 +89,25 @@ module ActionDispatch
 
     private
       def serve(request, filepath, content_headers)
+        path_info = request.path_info
         original, request.path_info =
           request.path_info, ::Rack::Utils.escape_path(filepath).b
 
         @file_server.call(request.env).tap do |status, headers, body|
           # Omit content-encoding/type/etc headers for 304 Not Modified
           if status != 304
+            headers.update(resolved_headers(path_info, request.env))
             headers.update(content_headers)
           end
         end
       ensure
         request.path_info = original
+      end
+
+      def resolved_headers(path, env)
+        @headers.transform_values do |value|
+          value.respond_to?(:call) ? value.call(path, env) : value
+        end
       end
 
       # Match a URI path to a static file to be served.
