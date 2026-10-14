@@ -32,6 +32,10 @@ module ActiveRecord
     end
     alias_method :size, :length
 
+    def [](index)
+      @columns[index]
+    end
+
     def to_a
       @columns
     end

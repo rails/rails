@@ -147,12 +147,11 @@ module ActiveRecord
 
         def replace_keys(record, force: false)
           if record
-            target_columns = primary_key(record.class).columns
-            return if !force && keys_match?(record, target_columns)
+            target_key = primary_key(record.class)
+            return if !force && keys_match?(record, target_key)
 
-            fk_columns = foreign_key.columns
-            fk_columns.length.times do |index|
-              owner.write_attribute(fk_columns[index], record.read_attribute(target_columns[index]))
+            foreign_key.each_with_index do |column, index|
+              owner.write_attribute(column, record.read_attribute(target_key[index]))
             end
           else
             owner_pk = owner.class.primary_key_definition
@@ -168,14 +167,20 @@ module ActiveRecord
           end
         end
 
-        def keys_match?(record, target_columns)
-          fk_columns = foreign_key.columns
-          return false unless fk_columns.length == target_columns.length
+        def keys_match?(record, target_key)
+          fk = foreign_key
+          return false unless fk.composite? == target_key.composite?
 
-          fk_columns.length.times do |index|
-            return false unless owner.read_attribute(fk_columns[index]) == record.read_attribute(target_columns[index])
+          if target_key.composite?
+            return false unless fk.length == target_key.length
+
+            fk.each_with_index do |column, index|
+              return false unless owner.read_attribute(column) == record.read_attribute(target_key[index])
+            end
+            true
+          else
+            owner.read_attribute(fk.name) == record.read_attribute(target_key.name)
           end
-          true
         end
 
         def primary_key(klass)
