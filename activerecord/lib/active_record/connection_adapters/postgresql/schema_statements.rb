@@ -321,7 +321,6 @@ module ActiveRecord
               primary_key_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
 
               primary_key_column_and_sequences.rows.each do |table, column, namespace, sequence|
-                table = Utils.extract_schema_qualified_name(table).to_s
                 @tables[table].column = column
                 @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
               end
@@ -338,7 +337,6 @@ module ActiveRecord
               uuid_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
 
               uuid_column_and_sequences.rows.each do |table, column, namespace, sequence|
-                table = Utils.extract_schema_qualified_name(table).to_s
                 @tables[table].column = column
                 @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
               end
@@ -378,10 +376,10 @@ module ActiveRecord
             end
 
             def primary_key_column_and_sequence_sql(tables)
-              tables = tables.map { |table| "#{@adapter.quote(@adapter.quote_table_name(table))}::regclass" }
               <<~SQL
-              SELECT dep.refobjid::regclass::text, attr.attname, nsp.nspname, seq.relname
-              FROM pg_class      seq,
+              SELECT tables.name, attr.attname, nsp.nspname, seq.relname
+              FROM (VALUES #{tables_values_sql(tables)}) AS tables (name, oid),
+                  pg_class      seq,
                   pg_attribute  attr,
                   pg_depend     dep,
                   pg_constraint cons,
@@ -395,14 +393,13 @@ module ActiveRecord
                 AND seq.relnamespace  = nsp.oid
                 AND cons.contype      = 'p'
                 AND dep.classid       = 'pg_class'::regclass
-                AND dep.refobjid      IN (#{tables.join(", ")})
+                AND dep.refobjid      = tables.oid
               SQL
             end
 
             def uuid_column_and_sequence_sql(tables)
-              tables = tables.map { |table| "#{@adapter.quote(@adapter.quote_table_name(table))}::regclass" }
               <<~SQL
-              SELECT t.oid::regclass::text, attr.attname, nsp.nspname,
+              SELECT tables.name, attr.attname, nsp.nspname,
                 CASE
                   WHEN pg_get_expr(def.adbin, def.adrelid) !~* 'nextval' THEN NULL
                   WHEN split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2) ~ '.' THEN
@@ -410,15 +407,22 @@ module ActiveRecord
                            strpos(split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2), '.')+1)
                   ELSE split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2)
                 END
-              FROM pg_class       t
+              FROM (VALUES #{tables_values_sql(tables)}) AS tables (name, oid)
+              JOIN pg_class       t    ON (t.oid = tables.oid)
               JOIN pg_attribute   attr ON (t.oid = attrelid)
               JOIN pg_attrdef     def  ON (adrelid = attrelid AND adnum = attnum)
               JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
               JOIN pg_namespace   nsp  ON (t.relnamespace = nsp.oid)
-              WHERE t.oid IN (#{tables.join(", ")})
-                AND cons.contype = 'p'
+              WHERE cons.contype = 'p'
                 AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval|uuid_generate|gen_random_uuid'
               SQL
+            end
+
+            # Return the given name as the key; regclass::text omits the schema of a table on the search_path.
+            def tables_values_sql(tables)
+              tables.map do |table|
+                "(#{@adapter.quote(table)}, #{@adapter.quote(@adapter.quote_table_name(table))}::regclass)"
+              end.join(", ")
             end
 
             def select_max_column_value_sql(table, column)
