@@ -1037,7 +1037,7 @@ module ActiveRecord
                 #{resolved_tables(schema, group)}
                 SELECT t.relname AS table_name,
                        pg_catalog.obj_description(t.oid, 'pg_class') AS comment,
-                       #{supports_native_partitioning? ? "pg_catalog.pg_get_partkeydef(t.oid)" : "NULL"} AS partition_key,
+                       pg_catalog.pg_get_partkeydef(t.oid) AS partition_key,
                        i.inhparent::regclass::text AS parent
                 FROM tables t
                 LEFT JOIN pg_inherits i ON i.inhrelid = t.oid

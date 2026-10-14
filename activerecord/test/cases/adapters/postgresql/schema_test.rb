@@ -1053,8 +1053,6 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_list_partition_options_is_dumped
-    skip("current adapter doesn't support native partitioning") unless supports_native_partitioning?
-
     options = "PARTITION BY LIST (kind)"
 
     @connection.create_table "trains", id: false, options: options do |t|
@@ -1068,8 +1066,6 @@ class SchemaCreateTableOptionsTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_range_partition_options_is_dumped
-    skip("current adapter doesn't support native partitioning") unless supports_native_partitioning?
-
     options = "PARTITION BY RANGE (created_at)"
 
     @connection.create_table "trains", id: false, options: options do |t|
