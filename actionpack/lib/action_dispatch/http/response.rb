@@ -312,7 +312,7 @@ module ActionDispatch # :nodoc:
 
     # Media type of response.
     def media_type
-      parsed_content_type_header.mime_type
+      parsed_content_type_header.mime_type&.dup
     end
 
     def sending_file=(v)
@@ -339,7 +339,7 @@ module ActionDispatch # :nodoc:
     # you're giving them, so we need to send that along.
     def charset
       header_info = parsed_content_type_header
-      header_info.charset || self.class.default_charset
+      header_info.charset&.dup || self.class.default_charset
     end
 
     # The response code of the request.
@@ -492,7 +492,11 @@ module ActionDispatch # :nodoc:
     /x # :nodoc:
 
     def parse_content_type(content_type)
-      if content_type && match = CONTENT_TYPE_PARSER.match(content_type)
+      # Without parameters or whitespace, the whole value is the media type, which
+      # is what CONTENT_TYPE_PARSER would return.
+      if String === content_type && !content_type.empty? && !content_type.match?(/[;\s]/)
+        ContentTypeHeader.new(String.new(content_type), nil)
+      elsif content_type && match = CONTENT_TYPE_PARSER.match(content_type)
         ContentTypeHeader.new(match[:mime_type], match[:charset])
       else
         NullContentTypeHeader
@@ -501,8 +505,22 @@ module ActionDispatch # :nodoc:
 
     # Small internal convenience method to get the parsed version of the current
     # content type header.
+    #
+    # The header is read several times per response, so the result for the last
+    # parsed value is kept. It is keyed by a frozen copy of that value, which a
+    # change to the header in place doesn't affect.
     def parsed_content_type_header
-      parse_content_type(get_header(CONTENT_TYPE))
+      content_type = get_header(CONTENT_TYPE)
+      return parse_content_type(content_type) unless content_type.instance_of?(String)
+
+      parsed = @parsed_content_type
+      if parsed && parsed == content_type && parsed.encoding == content_type.encoding
+        @parsed_content_type_header
+      else
+        header_info = parse_content_type(content_type).freeze
+        @parsed_content_type = content_type.frozen? ? content_type : content_type.dup.freeze
+        @parsed_content_type_header = header_info
+      end
     end
 
     def set_content_type(content_type, charset)

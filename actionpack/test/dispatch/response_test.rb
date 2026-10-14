@@ -138,6 +138,64 @@ class ResponseTest < ActiveSupport::TestCase
     assert_nil @response.content_type
   end
 
+  test "media type and charset follow changes to the Content-Type header" do
+    @response.headers["Content-Type"] = +"text/csv; charset=iso-8859-1"
+    assert_equal "text/csv", @response.media_type
+    assert_equal "iso-8859-1", @response.charset
+
+    @response.headers["Content-Type"].replace("text/plain; charset=utf-16")
+    assert_equal "text/plain", @response.media_type
+    assert_equal "utf-16", @response.charset
+
+    @response.headers["Content-Type"] = "application/json"
+    assert_equal "application/json", @response.media_type
+    assert_equal "utf-8", @response.charset
+
+    @response.headers.delete("Content-Type")
+    assert_nil @response.media_type
+    assert_equal "utf-8", @response.charset
+  end
+
+  test "media type and charset return a new string on every read" do
+    @response.content_type = "text/csv; charset=iso-8859-1"
+
+    @response.media_type << "-changed"
+    @response.charset << "-changed"
+
+    assert_equal "text/csv", @response.media_type
+    assert_equal "iso-8859-1", @response.charset
+    assert_not_same @response.media_type, @response.media_type
+    assert_not_same @response.charset, @response.charset
+    assert_equal "text/csv; charset=iso-8859-1", @response.headers["Content-Type"]
+  end
+
+  test "media type is parsed from the Content-Type header as is" do
+    {
+      "text/plain" => "text/plain",
+      "text/plain " => "text/plain ",
+      "text/plain\t" => "text/plain\t",
+      " text/plain" => nil,
+      "text/plain; header=present" => "text/plain; header=present",
+      "text/plain;charset=utf-16" => "text/plain",
+      "" => nil,
+    }.each do |header, media_type|
+      @response.headers["Content-Type"] = header
+      if media_type
+        assert_equal media_type, @response.media_type, header.inspect
+      else
+        assert_nil @response.media_type, header.inspect
+      end
+    end
+
+    @response.headers["Content-Type"] = "text/plain".b
+    assert_equal Encoding::BINARY, @response.media_type.encoding
+    @response.headers["Content-Type"] = "text/plain"
+    assert_equal Encoding::UTF_8, @response.media_type.encoding
+
+    @response.headers["Content-Type"] = "text/plain".html_safe
+    assert_instance_of String, @response.media_type
+  end
+
   test "simple output" do
     @response.body = "Hello, World!"
 
