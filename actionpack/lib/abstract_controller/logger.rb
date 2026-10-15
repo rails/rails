@@ -27,6 +27,10 @@ module AbstractController
     end
 
     def logger
+      # Reading through the class config when no instance copy exists
+      # avoids materializing the per-instance inheritable copy just to
+      # look at the logger.
+      config = (defined?(@_config) && @_config) || self.class.config
       config[:logger]
     end
 
