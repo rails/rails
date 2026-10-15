@@ -1437,6 +1437,16 @@ module ActiveRecord
               raise(ArgumentError, "Table '#{table_name}' has no unique constraint for #{column || options}")
           end
 
+          # Every table on the search path as [regclass::text, relname]. regclass::text
+          # schema-qualifies a name unless it resolves unqualified on the search path.
+          def search_path_tables
+            query_rows(<<~SQL, "SCHEMA")
+              SELECT c.oid::regclass::text, c.relname
+              FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+              WHERE n.nspname = ANY (current_schemas(false)) AND c.relkind IN ('r','p')
+            SQL
+          end
+
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'r','v','m','p','f'" # (r)elation/table, (v)iew, (m)aterialized view, (p)artitioned table, (f)oreign table

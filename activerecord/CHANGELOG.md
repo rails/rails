@@ -1,3 +1,12 @@
+*   Truncate tables shadowed by a same-named table earlier on the PostgreSQL
+    `search_path`.
+
+    `db:truncate_all` and the reset of parallel test databases truncated the
+    table a bare name resolves to twice and left the shadowed one untouched.
+    They also failed on a table whose name contains a dot.
+
+    *Sergei Malykh*
+
 *   Fix `remove_index` and `index_exists?` in migrations declaring version 4.2
     to honor `table_name_prefix` and `table_name_suffix`.
 
