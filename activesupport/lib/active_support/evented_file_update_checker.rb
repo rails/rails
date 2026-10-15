@@ -76,13 +76,13 @@ module ActiveSupport
       attr_reader :updated, :files
 
       def initialize(files, dirs)
-        gem_paths = Gem.path
+        gem_paths = Gem.path.map { |path| File.join(File.expand_path(path), "") }
         files = files.map { |f| Pathname(f).expand_path }
-        files.reject! { |f| f.to_s.start_with?(*gem_paths) }
+        files.reject! { |f| File.join(f, "").start_with?(*gem_paths) }
         @files = files.to_set
 
         @dirs = dirs.each_with_object({}) do |(dir, exts), hash|
-          next if dir.start_with?(*gem_paths)
+          next if File.join(File.expand_path(dir), "").start_with?(*gem_paths)
           hash[Pathname(dir).expand_path] = Array(exts).map { |ext| ext.to_s.sub(/\A\.?/, ".") }.to_set
         end
 
