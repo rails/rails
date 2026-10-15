@@ -127,6 +127,12 @@ module ActiveModel
       self[name].value(&block)
     end
 
+    # Like #fetch_value, but raises MissingAttributeError if the attribute is
+    # uninitialized.
+    def fetch_value!(name)
+      self[name].value!
+    end
+
     def write_from_database(name, value)
       @attributes[name] = self[name].with_value_from_database(value)
     end
@@ -236,6 +242,24 @@ module ActiveModel
         else
           attr = default_attribute(name, value_present, value)
           attr.value(&block)
+        end
+      end
+    end
+
+    def fetch_value!(name)
+      if attr = @attributes[name]
+        return attr.value!
+      end
+
+      @casted_values.fetch(name) do
+        value_present = true
+        value = values.fetch(name) { value_present = false }
+
+        if value_present
+          type = additional_types.fetch(name, types[name])
+          @casted_values[name] = type.deserialize(value)
+        else
+          default_attribute(name, value_present, value).value!
         end
       end
     end

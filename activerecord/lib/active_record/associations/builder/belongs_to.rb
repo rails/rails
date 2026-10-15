@@ -51,7 +51,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       old_foreign_id = if foreign_key.any? { |fk| o.public_send(change_method, fk) }
         foreign_key.map_value do |fk|
           change = o.public_send(change_method, fk)
-          change ? change.first : o.read_attribute(fk)
+          change ? change.first : o.read_attr(fk)
         end
       end
 
@@ -153,11 +153,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
             association = record.association(name)
 
             fk_missing_or_changed = association.foreign_key.any? do |fk|
-              record.read_attribute(fk).nil? || record.attribute_changed?(fk)
+              record.read_attr(fk).nil? || record.attribute_changed?(fk)
             end
 
             fk_missing_or_changed ||
-              (polymorphic && (record.read_attribute(association.foreign_type).nil? || record.attribute_changed?(association.foreign_type)))
+              (polymorphic && (record.read_attr(association.foreign_type).nil? || record.attribute_changed?(association.foreign_type)))
           }
 
           model.validates_presence_of reflection.name, message: :required, if: condition

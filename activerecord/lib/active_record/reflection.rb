@@ -602,7 +602,7 @@ module ActiveRecord
       def association_scope_cache(klass, owner, &block)
         key = self
         if polymorphic?
-          key = [key, owner.read_attribute(@foreign_type)]
+          key = [key, owner.read_attr(@foreign_type)]
         end
         klass.with_connection do |connection|
           klass.cached_find_by_statement(connection, key, &block)
@@ -717,7 +717,7 @@ module ActiveRecord
       end
 
       def join_id_for(owner) # :nodoc:
-        join_foreign_key_definition.map { |key| owner.read_attribute(key) }
+        join_foreign_key_definition.map { |key| owner.read_attr(key) }
       end
 
       def through_reflection

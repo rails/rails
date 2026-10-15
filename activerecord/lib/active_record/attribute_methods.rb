@@ -72,6 +72,8 @@ module ActiveRecord
       def alias_attribute(new_name, old_name)
         super
 
+        include Read::AliasResolution unless include?(Read::AliasResolution)
+
         if @alias_attributes_mass_generated
           ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
             generate_alias_attribute_methods(code_generator, new_name, old_name)
@@ -118,7 +120,7 @@ module ActiveRecord
           unless abstract_class?
             load_schema
             super(attribute_names)
-            alias_attribute :id_value, :id if _has_attribute?("id") && !_has_attribute?("id_value")
+            define_id_value if _has_attribute?("id") && !_has_attribute?("id_value")
           end
 
           generate_alias_attributes
@@ -281,6 +283,19 @@ module ActiveRecord
           child_class.class_eval do
             @alias_attributes_mass_generated = false
             @attribute_names = nil
+          end
+        end
+
+        # Composite primary key models get a real alias, which makes
+        # +where(id_value: ...)+ work. Other models get a plain reader, so
+        # they don't take the alias resolution slow path.
+        def define_id_value
+          if composite_primary_key?
+            alias_attribute :id_value, :id
+          elsif !attribute_alias?("id_value")
+            ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
+              define_method_attribute("id", owner: owner, as: "id_value")
+            end
           end
         end
     end

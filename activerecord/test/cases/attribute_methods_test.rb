@@ -46,27 +46,52 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     ActiveRecord::Base.attribute_method_patterns = @old_matchers
   end
 
-  test "#id_value alias is defined if id column exist" do
+  test "#id_value reader is defined without an alias if id column exist" do
     new_topic_model = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
     end
 
     new_topic_model.define_attribute_methods
     assert_includes new_topic_model.attribute_names, "id"
+    assert new_topic_model.method_defined?(:id_value)
+    assert_not_includes new_topic_model.attribute_aliases, "id_value"
+    assert_not new_topic_model.include?(ActiveRecord::AttributeMethods::Read::AliasResolution)
+  end
+
+  test "#id_value alias is defined if id column exist for a CPK model" do
+    new_book_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "cpk_books"
+    end
+
+    new_book_model.define_attribute_methods
+    assert_includes new_book_model.attribute_aliases, "id_value"
+    assert new_book_model.include?(ActiveRecord::AttributeMethods::Read::AliasResolution)
+  end
+
+  test "#id_value alias is defined when the primary key becomes composite" do
+    new_topic_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+
+    new_topic_model.define_attribute_methods
+    new_topic_model.primary_key = [:id, :title]
+
+    new_topic_model.define_attribute_methods
     assert_includes new_topic_model.attribute_aliases, "id_value"
+    assert_equal 1, new_topic_model.where(id_value: 1).count
   end
 
   test "#id_value alias does not accumulate duplicates when table_name is reassigned" do
     klass = Class.new(ActiveRecord::Base)
 
-    klass.table_name = "topics"
-    klass.first
+    klass.table_name = "cpk_books"
+    klass.define_attribute_methods
 
-    klass.table_name = "authors"
-    klass.first
+    klass.table_name = "cpk_chapters"
+    klass.define_attribute_methods
 
-    klass.table_name = "topics"
-    klass.first
+    klass.table_name = "cpk_books"
+    klass.define_attribute_methods
 
     assert_equal ["id_value"], klass.send(:aliases_by_attribute_name)["id"]
   end
@@ -477,6 +502,22 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
     assert_nothing_raised { computer[:extendedWarranty] }
     assert_nothing_raised { computer[:no_column_exists] }
+  end
+
+  test "read_attr reads attributes and aliased attributes by String name" do
+    topic = Topic.new(title: "Don't change the topic")
+
+    assert_equal "Don't change the topic", topic.read_attr("title")
+    assert_equal "Don't change the topic", topic.read_attr("heading")
+    assert_nil topic.read_attr("no_column_exists")
+  end
+
+  test "read_attr raises ActiveModel::MissingAttributeError when the attribute isn't selected" do
+    computer = Computer.select(:id, :extendedWarranty).first
+    assert_raises(ActiveModel::MissingAttributeError, match: /missing attribute 'developer'/) do
+      computer.read_attr("developer")
+    end
+    assert_nothing_raised { computer.read_attr("extendedWarranty") }
   end
 
   test "read_attribute when false" do

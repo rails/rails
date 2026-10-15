@@ -10,15 +10,10 @@ module ActiveRecord
 
       def initialize(owner, reflection)
         super
-        aliases = owner.class.attribute_aliases
-        foreign_key = reflection.foreign_key_definition
-        if foreign_key.any? { |key| aliases.key?(key) }
-          foreign_key = ActiveRecord::Key.for(foreign_key.map_value { |key| aliases[key] || key })
-        end
-        @foreign_key = foreign_key
+        @foreign_key = reflection.foreign_key_definition.resolve_aliases(owner)
+        @foreign_type = nil
         if reflection.polymorphic?
-          ft = reflection.foreign_type
-          @foreign_type = aliases[ft] || ft
+          @foreign_type = owner.resolve_alias(reflection.foreign_type)
         end
       end
 
@@ -150,7 +145,7 @@ module ActiveRecord
             return if !force && keys_match?(record, target_key)
 
             foreign_key.zip(target_key) do |column, target_column|
-              owner.write_attribute(column, record.read_attribute(target_column))
+              owner.write_attribute(column, record.read_attr(target_column))
             end
           else
             owner_pk = owner.class.primary_key_definition
@@ -174,11 +169,11 @@ module ActiveRecord
             return false unless fk.length == target_key.length
 
             fk.zip(target_key) do |column, target_column|
-              return false unless owner.read_attribute(column) == record.read_attribute(target_column)
+              return false unless owner.read_attr(column) == record.read_attr(target_column)
             end
             true
           else
-            owner.read_attribute(fk.name) == record.read_attribute(target_key.name)
+            owner.read_attr(fk.name) == record.read_attr(target_key.name)
           end
         end
 
@@ -187,7 +182,7 @@ module ActiveRecord
         end
 
         def foreign_key_present?
-          foreign_key.all? { |fk| owner.read_attribute(fk) }
+          foreign_key.all? { |fk| owner.read_attr(fk) }
         end
 
         def invertible_for?(record)
@@ -197,7 +192,7 @@ module ActiveRecord
 
         def stale_state
           value = foreign_key.map_value do |fk|
-            owner.read_attribute(fk) { |n| owner.send(:missing_attribute, n, caller) }
+            owner.read_attr(fk)
           end
           foreign_key.composite? ? (value if value.any?) : value
         end
