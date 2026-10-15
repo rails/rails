@@ -1772,9 +1772,18 @@ module ActionView
       #  # => "123 foo bar"
       # ```
       def token_list(*args)
-        tokens = build_tag_values(*args).flat_map { |value| CGI.unescape_html(value.to_s).split(/\s+/) }.uniq
+        tokens = []
+        build_tag_values(*args).each do |value|
+          value = value.to_s
+          value = CGI.unescape_html(value) if value.include?("&")
+          # The block form of split yields each token without building an
+          # array per value.
+          value.split(/\s+/) { |token| tokens << token }
+        end
+        tokens.uniq!
 
-        safe_join(tokens, " ")
+        # Inlined safe_join: the tokens are already a flat array.
+        tokens.map! { |token| ERB::Util.unwrapped_html_escape(token) }.join(" ").html_safe
       end
       alias_method :class_names, :token_list
 
