@@ -321,6 +321,7 @@ module ActionController
       @_action_has_layout @_view_context_class
       @_view_renderer @_lookup_context @_routes @_view_runtime @_db_runtime @_helper_proxy
       @_marked_for_same_origin_verification @_verify_authenticity_token_ran @_rendered_format
+      @_real_csrf_token_source @_real_csrf_token
     )).freeze
 
     def _protected_ivars
