@@ -190,4 +190,27 @@ class KeyTest < ActiveRecord::TestCase
     assert none.subset?(Key.for([:shop_id, :id]))
     assert none.subset?(Key.for(nil))
   end
+
+  def test_none_yields_no_columns
+    none = Key.for(nil)
+    yielded = []
+
+    assert none.all? { |column| yielded << column; false }
+    assert_not none.any? { |column| yielded << column; true }
+    assert none.none? { |column| yielded << column; true }
+    assert_equal [], none.map { |column| yielded << column }
+    none.each { |column| yielded << column }
+    none.each_with_index { |column, _| yielded << column }
+
+    assert_empty yielded
+  end
+
+  def test_single_key_predicates_accept_patterns
+    key = Key.for("id")
+
+    assert key.all?(String)
+    assert_not key.all?(Integer)
+    assert key.any?("id")
+    assert key.none?(Integer)
+  end
 end
