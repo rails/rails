@@ -210,6 +210,8 @@ module ActionDispatch # :nodoc:
       @committed    = false
       @sending      = false
       @sent         = false
+      @parsed_content_type = nil
+      @parsed_content_type_raw = nil
 
       prepare_cache_control!
 
@@ -500,15 +502,46 @@ module ActionDispatch # :nodoc:
     end
 
     # Small internal convenience method to get the parsed version of the current
-    # content type header.
+    # content type header. The result is memoized per raw header value, since
+    # the header is read several times per request (content negotiation,
+    # charset, committing the response) and parsing allocates a MatchData and
+    # its captures each time. A missing header is not memoized: it parses to
+    # a shared null object without allocating.
     def parsed_content_type_header
-      parse_content_type(get_header(CONTENT_TYPE))
+      raw = get_header(CONTENT_TYPE)
+      return NullContentTypeHeader unless raw
+
+      if raw == @parsed_content_type_raw
+        @parsed_content_type
+      else
+        @parsed_content_type_raw = raw
+        @parsed_content_type = parse_content_type(raw)
+      end
     end
+
+    # Parts of a Content-Type header that the parser could read differently
+    # than they were given: parameters, whitespace, quoting.
+    AMBIGUOUS_CONTENT_TYPE_PART = /[;\s"]/
+    private_constant :AMBIGUOUS_CONTENT_TYPE_PART
 
     def set_content_type(content_type, charset)
       type = content_type || ""
-      type = "#{type}; charset=#{charset.to_s.downcase}" if charset
+      if charset
+        charset = charset.to_s.downcase
+        type = "#{type}; charset=#{charset}"
+      else
+        charset = nil
+      end
       set_header CONTENT_TYPE, type
+
+      # We serialized the parts ourselves, so prime the parsed-header memo
+      # instead of letting the reader regexp-parse our own output back apart.
+      # Parts the parser could read differently go through the parser.
+      mime_type = content_type.presence
+      unless mime_type&.match?(AMBIGUOUS_CONTENT_TYPE_PART) || charset&.match?(AMBIGUOUS_CONTENT_TYPE_PART) || charset == ""
+        @parsed_content_type_raw = type
+        @parsed_content_type = ContentTypeHeader.new(mime_type, charset)
+      end
     end
 
     def before_committed
