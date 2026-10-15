@@ -55,8 +55,18 @@ module ActiveRecord
     #   user = User.find_by(name: 'Phusion')
     #   user_path(user)  # => "/users/Phusion"
     def to_param
+      id = self.id
       return unless id
-      Array(id).join(self.class.param_delimiter)
+
+      # Only composite primary keys need their values joined. A single
+      # integer or string key is stringified directly, without the wrapping
+      # array that Array(id).join would allocate. The string is still copied
+      # so that callers never hold the record's own attribute value.
+      case id
+      when Integer then id.to_s
+      when String then id.dup
+      else Array(id).join(self.class.param_delimiter)
+      end
     end
 
     # Returns a stable cache key that can be used to identify this record.
