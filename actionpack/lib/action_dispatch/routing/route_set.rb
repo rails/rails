@@ -901,7 +901,10 @@ module ActionDispatch
 
       def call(env)
         req = make_request(env)
-        req.path_info = Journey::Router::Utils.normalize_path(req.path_info)
+        path_info = req.path_info
+        unless Journey::Router::Utils.normalized_path?(path_info)
+          req.path_info = Journey::Router::Utils.normalize_path(path_info)
+        end
         @router.serve(req)
       end
 
