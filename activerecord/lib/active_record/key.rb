@@ -27,6 +27,13 @@ module ActiveRecord
       @columns.each(&block)
     end
 
+    def all?(...) = @columns.all?(...)
+    def any?(...) = @columns.any?(...)
+    def none?(...) = @columns.none?(...)
+    def count(...) = @columns.count(...)
+    def map(&) = @columns.map(&)
+    def each_with_index(&) = @columns.each_with_index(&)
+
     def length
       @columns.length
     end
@@ -109,9 +116,6 @@ module ActiveRecord
     end
 
     class Single < Key # :nodoc:
-      NO_PATTERN = Object.new.freeze
-      private_constant :NO_PATTERN
-
       def initialize(name)
         @name = -name.to_s
         @columns = [@name].freeze
@@ -123,17 +127,28 @@ module ActiveRecord
         self
       end
 
-      # A sentinel default, as a rest parameter would allocate on every call.
-      def all?(pattern = NO_PATTERN)
-        return super(pattern) unless NO_PATTERN.equal?(pattern)
+      def all?(pattern = (no_pattern = true))
+        return super(pattern) unless no_pattern
         return super() unless block_given?
         yield(@name) ? true : false
       end
 
-      def any?(pattern = NO_PATTERN)
-        return super(pattern) unless NO_PATTERN.equal?(pattern)
+      def any?(pattern = (no_pattern = true))
+        return super(pattern) unless no_pattern
         return super() unless block_given?
         yield(@name) ? true : false
+      end
+
+      def none?(pattern = (no_pattern = true))
+        return super(pattern) unless no_pattern
+        return super() unless block_given?
+        yield(@name) ? false : true
+      end
+
+      def each_with_index
+        return super unless block_given?
+        yield @name, 0
+        @columns
       end
 
       def map
@@ -312,7 +327,9 @@ module ActiveRecord
 
       def all?(...) = EMPTY.all?(...)
       def any?(...) = EMPTY.any?(...)
+      def none?(...) = EMPTY.none?(...)
       def map(...) = EMPTY.map(...)
+      def each_with_index(&) = EMPTY.each_with_index(&)
 
       def zip(other, &)
         EMPTY.zip(other.to_a, &)
