@@ -86,10 +86,34 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_empty Comment.where(author: [])
   end
 
+  def test_where_on_association_with_a_composite_key_rejects_bare_ids
+    assert_raises(ArgumentError) { Cpk::Chapter.where(book: 1) }
+    assert_raises(ArgumentError) { Cpk::Chapter.where(book: [nil, [1, 2]]) }
+    assert_raises(ArgumentError) { Cpk::NonCpkBook.where(non_cpk_order: 1) }
+  end
+
+  def test_where_on_association_with_empty_array_avoids_queries
+    assert_no_queries do
+      assert_empty Comment.where(post: []).to_a
+      assert_empty Cpk::Chapter.where(book: []).to_a
+      assert_empty Cpk::Chapter.where(book: Cpk::Book.none).to_a
+    end
+  end
+
   def test_where_on_polymorphic_association_with_cpk
     post = Cpk::Post.create!(title: "Welcome", author: "Mary")
     post.comments << Cpk::Comment.create!
     assert_equal 1, Cpk::Comment.where(commentable: post).count
+  end
+
+  def test_where_on_polymorphic_association_with_cpk_relation
+    post = Cpk::Post.create!(title: "Welcome", author: "Mary")
+    other = Cpk::Post.create!(title: "Welcome", author: "Bob")
+    comment = Cpk::Comment.create!(commentable: post)
+    Cpk::Comment.create!(commentable: other)
+
+    assert_equal [comment], Cpk::Comment.where(commentable: Cpk::Post.where(author: "Mary")).to_a
+    assert_empty Cpk::Comment.where(commentable: Cpk::Post.none)
   end
 
   def test_assigning_belongs_to_on_destroyed_object

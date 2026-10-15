@@ -59,6 +59,11 @@ module ActiveRecord
 
         def convert_to_id(value)
           if primary_key.is_a?(Array)
+            unless value.nil? || value.is_a?(Base)
+              raise ArgumentError, "#{reflection.active_record}##{reflection.name} matches on more than one column, " \
+                "so it must be queried with records or relations rather than ids"
+            end
+
             primary_key.map do |attribute|
               next nil if value.nil?
 
