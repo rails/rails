@@ -7,6 +7,7 @@ require "models/computer"
 require "models/owner"
 require "models/pet"
 require "models/cpk"
+require "models/subscriber"
 
 class IntegrationTest < ActiveRecord::TestCase
   fixtures :companies, :developers, :owners, :pets
@@ -24,6 +25,13 @@ class IntegrationTest < ActiveRecord::TestCase
     client = Client.new
     client.id = 1
     assert_equal "1", client.to_param
+  end
+
+  def test_to_param_with_a_string_primary_key_returns_a_copy_of_the_id
+    subscriber = Subscriber.new(nick: "nick")
+
+    assert_equal "nick", subscriber.to_param
+    assert_not_same subscriber.id, subscriber.to_param
   end
 
   def test_to_param_class_method
