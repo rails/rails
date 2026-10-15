@@ -27,7 +27,7 @@ module ActiveModel
             end
             [attr.name, attr]
           end]
-          AttributeSet.new(attributes_hash)
+          AttributeSet.new(IndexedRow::Mutable[attributes_hash])
         end
       end
     end

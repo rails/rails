@@ -14,13 +14,28 @@ module ActiveRecord
 
         private
           def define_method_attribute(canonical_name, owner:, as: canonical_name)
+            # Don't load the schema here, methods can be defined on classes
+            # without a table (e.g. alias_attribute on an abstract class).
+            ord = columns_hash[canonical_name]&.ord if schema_loaded?
+
+            # Generated methods are cached by name and shared between models,
+            # so readers that embed an ord are cached per ord. Attributes
+            # without a column (e.g. from the attributes API) have no ord.
+            namespace = ord ? :"active_record_ord_#{ord}" : :active_record
+
             ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
               canonical_name
             ) do |temp_method_name, attr_name_expr|
-              owner.define_cached_method(temp_method_name, as: as, namespace: :active_record) do |batch|
+              read = if ord
+                "_read_attribute_at!(#{ord}, #{attr_name_expr})"
+              else
+                "_read_attribute!(#{attr_name_expr})"
+              end
+
+              owner.define_cached_method(temp_method_name, as: as, namespace: namespace) do |batch|
                 batch <<
                   "def #{temp_method_name}" <<
-                  "  _read_attribute!(#{attr_name_expr})" <<
+                  "  #{read}" <<
                   "end"
               end
             end
@@ -55,6 +70,16 @@ module ActiveRecord
 
       # Internal read without alias resolution that raises for uninitialized attributes.
       def _read_attribute!(attr_name) # :nodoc:
+        @attributes.fetch_value!(attr_name)
+      rescue ActiveModel::MissingAttributeError
+        raise if @attributes.key?(attr_name)
+        missing_attribute(attr_name, RUBY_VERSION >= "3.4" ? caller_locations : caller)
+      end
+
+      # Like #_read_attribute!, but also takes the attribute's +index+ (its
+      # column's +ord+). Called by the generated reader methods for attributes
+      # that have a column.
+      def _read_attribute_at!(index, attr_name) # :nodoc:
         @attributes.fetch_value!(attr_name)
       rescue ActiveModel::MissingAttributeError
         raise if @attributes.key?(attr_name)
