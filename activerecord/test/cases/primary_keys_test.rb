@@ -325,6 +325,33 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_equal ["title", "id"], child.composite_query_constraints_list
   end
 
+  def test_attributes_builder_is_reused_until_the_schema_is_reloaded
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    builder = klass.attributes_builder
+
+    assert_same builder, klass.attributes_builder
+    assert_equal ["id"], builder.default_attributes.keys
+
+    klass.reset_column_information
+
+    assert_not_same builder, klass.attributes_builder
+  end
+
+  def test_primary_key_assignment_rebuilds_the_attributes_builder
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    child = Class.new(klass)
+    builder = child.attributes_builder
+
+    klass.primary_key = "title"
+
+    assert_not_same builder, child.attributes_builder
+    assert_equal ["title"], child.attributes_builder.default_attributes.keys
+  end
+
   def test_auto_detect_primary_key_from_schema
     MixedCaseMonkey.reset_primary_key
     assert_equal "monkeyID", MixedCaseMonkey.primary_key
