@@ -219,7 +219,7 @@ module ActiveModel
     end
 
     def key?(name)
-      (values.key?(name) || types.key?(name) || @attributes.key?(name)) && self[name].initialized?
+      values.key?(name) || ((types.key?(name) || @attributes.key?(name)) && self[name].initialized?)
     end
 
     def keys
