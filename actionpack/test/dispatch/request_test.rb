@@ -612,6 +612,20 @@ class RequestHost < BaseRequestTest
     assert_equal "glu.ttono.us", request.host_with_port
   end
 
+  test "host strips a trailing port and nothing else" do
+    assert_equal "example.com", stub_request("HTTP_HOST" => "example.com").host
+    assert_equal "example.com", stub_request("HTTP_HOST" => "example.com:8080").host
+    assert_equal "[::1]", stub_request("HTTP_HOST" => "[::1]").host
+    assert_equal "[::1]", stub_request("HTTP_HOST" => "[::1]:3000").host
+    assert_equal "example.com", stub_request("HTTP_X_FORWARDED_HOST" => "example.com:8080", "HTTP_HOST" => "internal:3000").host
+  end
+
+  test "host is memoized per request" do
+    request = stub_request("HTTP_HOST" => "example.com:8080")
+    assert_same request.host, request.host
+    assert_same request.raw_host_with_port, request.raw_host_with_port
+  end
+
   test "http host" do
     request = stub_request "HTTP_HOST" => "rubyonrails.org:8080"
     assert_equal "rubyonrails.org", request.host

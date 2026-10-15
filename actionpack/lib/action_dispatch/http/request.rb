@@ -62,13 +62,15 @@ module ActionDispatch
     def initialize(env)
       super
 
-      @rack_request      = nil
-      @method            = nil
-      @request_method    = nil
-      @remote_ip         = nil
-      @original_fullpath = nil
-      @fullpath          = nil
-      @ip                = nil
+      @rack_request        = nil
+      @method              = nil
+      @request_method      = nil
+      @remote_ip           = nil
+      @original_fullpath   = nil
+      @fullpath            = nil
+      @ip                  = nil
+      @raw_host_with_port  = nil
+      @host                = nil
     end
 
     # Built lazily: most Request objects are created by middlewares that
