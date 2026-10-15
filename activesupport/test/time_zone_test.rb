@@ -747,6 +747,19 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.strptime("2014-10-26 01:00:00", "%Y-%m-%d %H:%M:%S")
   end
 
+  def test_utc?
+    %w[UTC Etc/UTC Etc/UCT Etc/Universal Etc/Zulu Universal Zulu UCT].each do |name|
+      assert_predicate ActiveSupport::TimeZone[name], :utc?, "expected #{name} to be utc?"
+    end
+
+    ["Eastern Time (US & Canada)", "London", "Etc/GMT", "Etc/GMT+1", "Africa/Abidjan"].each do |name|
+      assert_not_predicate ActiveSupport::TimeZone[name], :utc?, "expected #{name} not to be utc?"
+    end
+
+    assert_predicate ActiveSupport::TimeZone.create("Custom", nil, TZInfo::Timezone.get("Etc/UTC")), :utc?
+    assert_not_predicate ActiveSupport::TimeZone.create("Custom", 0, TZInfo::Timezone.get("Etc/GMT")), :utc?
+  end
+
   def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
     tzinfo = TZInfo::Timezone.get("America/New_York")
     zone = ActiveSupport::TimeZone.create(tzinfo.name, nil, tzinfo)
@@ -908,8 +921,8 @@ class TimeZoneTest < ActiveSupport::TestCase
     twz = ActiveSupport::TimeZone["Eastern Time (US & Canada)"].local(2000, 1, 1)
     utc = ActiveSupport::TimeZone["UTC"].local(2000, 1, 1)
 
-    assert_equal ["2000-01-01T00:00:00.000-05:00", "2000-01-01T00:00:00Z", "2000-01-01 00:00:00.000000000 EST -05:00"],
-      on_ractor(twz, utc) { |t, u| [t.xmlschema(3), u.xmlschema, t.inspect] }
+    assert_equal ["2000-01-01T00:00:00.000-05:00", "2000-01-01T00:00:00Z", "2000-01-01 00:00:00.000000000 EST -05:00", false, true],
+      on_ractor(twz, utc) { |t, u| [t.xmlschema(3), u.xmlschema, t.inspect, t.utc?, u.utc?] }
   end
 
   def test_us_zones
