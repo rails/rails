@@ -120,9 +120,13 @@ module ActionDispatch
           return mapping.call(self, [record_or_hash_or_array, options], false)
         end
 
-        opts   = options.dup
-        action = opts.delete :action
-        type   = opts.delete(:routing_type) || :url
+        if options.empty?
+          opts, action, type = options, nil, :url
+        else
+          opts   = options.dup
+          action = opts.delete :action
+          type   = opts.delete(:routing_type) || :url
+        end
 
         HelperMethodBuilder.polymorphic_method self,
                                                record_or_hash_or_array,
@@ -143,9 +147,13 @@ module ActionDispatch
           return mapping.call(self, [record_or_hash_or_array, options], true)
         end
 
-        opts   = options.dup
-        action = opts.delete :action
-        type   = :path
+        if options.empty?
+          opts, action = options, nil
+        else
+          opts   = options.dup
+          action = opts.delete :action
+        end
+        type = :path
 
         HelperMethodBuilder.polymorphic_method self,
                                                record_or_hash_or_array,
@@ -235,7 +243,7 @@ module ActionDispatch
             when nil
               raise ArgumentError, "Nil location provided. Can't build URI."
             else
-              method, args = builder.handle_model record_or_hash_or_array
+              return builder.dispatch_model(recipient, record_or_hash_or_array, options.empty? ? nil : options)
             end
 
             if options.empty?
@@ -270,26 +278,26 @@ module ActionDispatch
             target.public_send get_method_for_class klass
           end
 
-          def handle_model(record)
-            args  = []
-
-            model = record.to_model
-            named_route = if model.persisted?
-              args << model
-              get_method_for_string model.model_name.singular_route_key
-            else
-              get_method_for_class model
-            end
-
-            [named_route, args]
-          end
-
           def handle_model_call(target, record)
             if mapping = polymorphic_mapping(target, record)
               mapping.call(target, [record], suffix == "path")
             else
-              method, args = handle_model(record)
-              target.public_send(method, *args)
+              dispatch_model(target, record)
+            end
+          end
+
+          # Calls the named route helper for a model straight away, rather
+          # than building an argument list and a pair for the caller to splat
+          # apart again.
+          def dispatch_model(target, record, options = nil)
+            model = record.to_model
+
+            if model.persisted?
+              method = get_method_for_string(model.model_name.singular_route_key)
+              options ? target.public_send(method, model, options) : target.public_send(method, model)
+            else
+              method = get_method_for_class(model)
+              options ? target.public_send(method, options) : target.public_send(method)
             end
           end
 
