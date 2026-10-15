@@ -49,11 +49,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
       foreign_key = association.foreign_key
 
       old_foreign_id = if foreign_key.any? { |fk| o.public_send(change_method, fk) }
-        values = foreign_key.map do |fk|
+        foreign_key.map_value do |fk|
           change = o.public_send(change_method, fk)
           change ? change.first : o.read_attribute(fk)
         end
-        foreign_key.composite? ? values : values.first
       end
 
       if old_foreign_id
