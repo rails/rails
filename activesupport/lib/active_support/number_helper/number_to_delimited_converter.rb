@@ -9,36 +9,38 @@ module ActiveSupport
       self.validate_float = true
 
       def convert
-        parts.join(options[:separator])
+        number_string = number.to_s
+        return number_string if number.respond_to?(:finite?) && !number.finite?
+
+        if number_string.include?(".")
+          left, right = number_string.split(".")
+        else
+          # Integers are by far the most common input, and their to_s is a
+          # fresh String that can be delimited in place. A String number is
+          # the caller's own object, so copy it, into a plain String as split
+          # would have produced, whatever subclass it was.
+          left = number.is_a?(::String) ? ::String.new(number_string) : number_string
+        end
+
+        if delimiter_pattern
+          left.gsub!(delimiter_pattern) do |digit_to_delimit|
+            "#{digit_to_delimit}#{options[:delimiter]}"
+          end
+        elsif (delimiter = options[:delimiter])
+          # Insert the delimiter every three digits from the right, so that
+          # earlier insertion points stay valid and no group strings are built.
+          first_digit = left.start_with?("-", "+") ? 1 : 0
+          position = left.size - 3
+          while position > first_digit
+            left.insert(position, delimiter)
+            position -= 3
+          end
+        end
+
+        right ? "#{left}#{options[:separator]}#{right}" : left
       end
 
       private
-        def parts
-          return [number.to_s] if number.respond_to?(:finite?) && !number.finite?
-
-          left, right = number.to_s.split(".")
-          if delimiter_pattern
-            left.gsub!(delimiter_pattern) do |digit_to_delimit|
-              "#{digit_to_delimit}#{options[:delimiter]}"
-            end
-          else
-            left_parts = []
-            sign = left.slice!(0) if left.start_with?("-", "+")
-            offset = left.size % 3
-            if offset > 0
-              left_parts << left[0, offset]
-            end
-
-            (left.size / 3).times do |i|
-              left_parts << left[offset + (i * 3), 3]
-            end
-
-            left = "#{sign}#{left_parts.join(options[:delimiter])}"
-          end
-
-          [left, right].compact
-        end
-
         def delimiter_pattern
           options[:delimiter_pattern]
         end
