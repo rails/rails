@@ -3,9 +3,10 @@
 module ActiveRecord
   class PredicateBuilder
     class AssociationQueryValue # :nodoc:
-      def initialize(reflection, value)
+      def initialize(reflection, value, model)
         @reflection = reflection
         @value = value
+        @model = model
       end
 
       def queries
@@ -42,7 +43,7 @@ module ActiveRecord
         end
 
         def polymorphic_name
-          reflection.polymorphic_name
+          @model.polymorphic_name
         end
 
         def select_clause?
@@ -50,7 +51,10 @@ module ActiveRecord
         end
 
         def polymorphic_clause?
-          primary_type && !value.where_values_hash.has_key?(primary_type)
+          if primary_type
+            column = value.model.attribute_aliases[primary_type] || primary_type
+            !value.where_values_hash.has_key?(column)
+          end
         end
 
         def convert_to_id(value)

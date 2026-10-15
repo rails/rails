@@ -24,6 +24,31 @@ module ActiveRecord
     fixtures :authors, :author_addresses, :categories, :categorizations, :cars, :treasures, :price_estimates,
       :binaries, :edges, :essays, :posts, :comments, :topics
 
+    class AliasedSponsor < ActiveRecord::Base
+      self.table_name = "sponsors"
+      alias_attribute :kind, :sponsorable_type
+    end
+
+    class AliasedMember < ActiveRecord::Base
+      self.table_name = "members"
+      has_one :sponsor, as: :sponsorable, foreign_type: :kind, class_name: "ActiveRecord::WhereTest::AliasedSponsor"
+    end
+
+    class AbstractMember < ActiveRecord::Base
+      self.abstract_class = true
+      self.table_name = "members"
+      has_one :sponsor, as: :sponsorable, class_name: "ActiveRecord::WhereTest::AliasedSponsor"
+    end
+
+    class MemberWithInheritedSponsor < AbstractMember
+    end
+
+    class CustomPolymorphicNameMember < AliasedMember
+      def self.polymorphic_name
+        "custom_member"
+      end
+    end
+
     def test_type_casting_nested_joins
       comment = comments(:eager_other_comment1)
       assert_equal [comment], Comment.joins(post: :author).where(authors: { id: "2-foo" })
@@ -306,6 +331,39 @@ module ActiveRecord
       actual   = PriceEstimate.where(estimate_of: Treasure.where(id: [1, 2]))
 
       assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_inverse_polymorphic_relation_with_an_abstract_declaring_class
+      member = MemberWithInheritedSponsor.create!(name: "Concrete member")
+      member.create_sponsor!
+      other_member = MemberWithInheritedSponsor.create!(name: "Abstract type")
+      AliasedSponsor.create!(sponsorable_id: other_member.id, sponsorable_type: AbstractMember.polymorphic_name)
+
+      assert_equal [member], MemberWithInheritedSponsor.where(sponsor: AliasedSponsor.all).to_a
+    end
+
+    def test_inverse_polymorphic_relation_with_an_inherited_custom_polymorphic_name
+      member = CustomPolymorphicNameMember.create!(name: "Custom polymorphic name")
+      member.create_sponsor!
+      other_member = AliasedMember.create!(name: "Declaring type")
+      other_member.create_sponsor!
+
+      assert_equal [member], CustomPolymorphicNameMember.where(sponsor: AliasedSponsor.all).to_a
+    end
+
+    def test_inverse_polymorphic_relation_with_an_sti_origin
+      expected = HiddenTreasure.where(id: PriceEstimate.where(estimate_of_type: "Treasure").select(:estimate_of_id))
+      actual = HiddenTreasure.where(price_estimates: PriceEstimate.all)
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_inverse_polymorphic_relation_respects_an_aliased_type_condition
+      member = AliasedMember.create!(name: "Aliased type condition")
+      AliasedSponsor.create!(sponsorable_id: member.id, sponsorable_type: "Other")
+
+      assert_equal [member], AliasedMember.where(sponsor: AliasedSponsor.where(kind: "Other")).to_a
+      assert_equal [member], AliasedMember.where(sponsor: AliasedSponsor.where(sponsorable_type: "Other")).to_a
     end
 
     def test_polymorphic_sti_shallow_where
