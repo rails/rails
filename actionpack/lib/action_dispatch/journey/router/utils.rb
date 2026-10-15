@@ -80,6 +80,8 @@ module ActionDispatch
 
           private
             def escape(component, pattern)
+              return component unless component.match?(pattern)
+
               component.gsub(pattern) { |unsafe| percent_encode(unsafe) }.force_encoding(US_ASCII)
             end
 
