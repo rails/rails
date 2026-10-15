@@ -172,7 +172,7 @@ module ActiveRecord
             super unless internal
           end
 
-          def new_column_from_field(table_name, field, definitions)
+          def new_column_from_field(table_name, field, definitions, ord)
             default = field["dflt_value"]
 
             type_metadata = fetch_type_metadata(field["type"])
@@ -197,7 +197,8 @@ module ActiveRecord
               collation: field["collation"],
               auto_increment: field["auto_increment"],
               rowid: rowid,
-              generated_type: generated_type
+              generated_type: generated_type,
+              ord: ord
             )
           end
 
