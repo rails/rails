@@ -342,6 +342,7 @@ module Rails
           "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations,
           "action_dispatch.cookies_same_site_protection" => coerce_same_site_protection(config.action_dispatch.cookies_same_site_protection),
           "action_dispatch.use_cookies_with_metadata" => config.action_dispatch.use_cookies_with_metadata,
+          "action_dispatch.use_url_safe_cookies" => config.action_dispatch.use_url_safe_cookies,
           "action_dispatch.content_security_policy" => config.content_security_policy,
           "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only,
           "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator,

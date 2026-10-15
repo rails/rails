@@ -1,3 +1,20 @@
+*   Encode signed and encrypted cookies with URL-safe Base64.
+
+    Standard Base64 cookie payloads contain `+`, `/`, and `=` characters that
+    must be percent-escaped into every `Set-Cookie` header — for a typical
+    encrypted session cookie, that's a dozen or more String allocations per
+    response, plus the corresponding unescaping when the cookie comes back.
+    URL-safe payloads need no escaping at all.
+
+    Cookies written with the standard encoding remain readable. However,
+    Rails processes running with this option disabled cannot read cookies
+    written with it enabled, so it is gated behind
+    `config.action_dispatch.use_url_safe_cookies`, enabled by
+    `config.load_defaults 8.2` and safe to turn on once an upgrade is fully
+    rolled out.
+
+    *Akira Matsuda*
+
 *   Short-circuit route matching for static paths.
 
     The route set now precomputes an exact-match table from request method

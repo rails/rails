@@ -190,7 +190,7 @@ module ApplicationTests
 
       cipher = "aes-256-gcm"
       secret = app.key_generator.generate_key("authenticated encrypted cookie")
-      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher, url_safe: true)
 
       get "/foo/read_raw_cookie"
       assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
@@ -246,7 +246,7 @@ module ApplicationTests
 
       cipher = "aes-256-gcm"
       secret = app.key_generator.generate_key("authenticated encrypted cookie")
-      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher, serializer: Marshal)
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher, serializer: Marshal, url_safe: true)
 
       get "/foo/read_raw_cookie"
       assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
@@ -301,7 +301,7 @@ module ApplicationTests
 
       cipher = "aes-256-gcm"
       secret = app.key_generator.generate_key("authenticated encrypted cookie")
-      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher, serializer: Marshal)
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher, serializer: Marshal, url_safe: true)
 
       get "/foo/read_raw_cookie"
       assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
@@ -377,7 +377,7 @@ module ApplicationTests
 
         cipher = "aes-256-gcm"
         secret = app.key_generator.generate_key("authenticated encrypted cookie")
-        encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher, serializer: Marshal)
+        encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher, serializer: Marshal, url_safe: true)
 
         get "/foo/read_raw_cookie"
         assert_equal 2, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
