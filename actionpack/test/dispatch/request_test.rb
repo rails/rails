@@ -544,6 +544,31 @@ class RequestControllerClass < BaseRequestTest
     assert_match(/No :controller in path parameters/, error.message)
   end
 
+  test "controller_class_for resolves a controller defined after a failed lookup" do
+    request = stub_request
+    assert_raises(ActionDispatch::MissingController) { request.controller_class_for("defined_later") }
+
+    Object.const_set(:DefinedLaterController, Class.new(ActionController::Base))
+    assert_equal DefinedLaterController, request.controller_class_for("defined_later")
+    assert_equal DefinedLaterController, request.controller_class_for("defined_later")
+  ensure
+    Object.send(:remove_const, :DefinedLaterController) if Object.const_defined?(:DefinedLaterController)
+  end
+
+  test "controller_class_for resolves a redefined controller afresh" do
+    request = stub_request
+    Object.const_set(:RedefinedController, Class.new(ActionController::Base))
+    first = request.controller_class_for("redefined")
+    assert_equal RedefinedController, first
+
+    Object.send(:remove_const, :RedefinedController)
+    Object.const_set(:RedefinedController, Class.new(ActionController::Base))
+    assert_equal RedefinedController, request.controller_class_for("redefined")
+    assert_not_same first, request.controller_class_for("redefined")
+  ensure
+    Object.send(:remove_const, :RedefinedController) if Object.const_defined?(:RedefinedController)
+  end
+
   test "controller_class raises MissingController when the controller does not exist" do
     request = stub_request
     request.path_parameters = { controller: "request_controller_class/nonexistent", action: "index" }
