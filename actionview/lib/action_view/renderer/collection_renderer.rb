@@ -166,6 +166,14 @@ module ActionView
             RenderedTemplate::EMPTY_SPACER
           end
 
+          # Caching and per-item layouts need each item's body on its own.
+          # Otherwise every item is rendered into one shared buffer, which
+          # saves a buffer and a RenderedTemplate per item that would only
+          # be joined back together.
+          if layout.nil? && !(template && will_cache?(@options, view))
+            return collection_into_buffer(view, template, collection, spacer, &block)
+          end
+
           collection_body = if template
             cache_collection_render(payload, view, template, collection) do |filtered_collection|
               collection_with_template(view, template, layout, filtered_collection, &block)
@@ -177,6 +185,42 @@ module ActionView
           return RenderedCollection.empty(@lookup_context.formats.first) if collection_body.empty?
 
           build_rendered_collection(collection_body, spacer)
+        end
+      end
+
+      def collection_into_buffer(view, template, collection, spacer, &block)
+        locals = @locals
+        cache = {}
+        spacer_body = spacer.body
+
+        partial_iteration = PartialIteration.new(collection.size)
+        buffer = nil
+        first_template = nil
+
+        collection.each_with_info do |object, (path, as, counter, iteration)|
+          index = partial_iteration.index
+
+          locals[as]        = object
+          locals[counter]   = index
+          locals[iteration] = partial_iteration
+
+          _template = (cache[path] ||= (template || find_template(path, @locals.keys + [as, counter, iteration])))
+
+          if buffer
+            buffer.safe_concat(spacer_body) unless spacer_body.empty?
+          else
+            buffer = OutputBuffer.new
+            first_template = _template
+          end
+
+          _template.render(view, locals, buffer, implicit_locals: [counter, iteration], &block)
+          partial_iteration.iterate!
+        end
+
+        if buffer
+          build_rendered_template(buffer.to_s, first_template)
+        else
+          RenderedCollection.empty(@lookup_context.formats.first)
         end
       end
 
