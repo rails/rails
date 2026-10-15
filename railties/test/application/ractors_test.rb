@@ -26,6 +26,15 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         teardown_app
       end
 
+      test "config.ractorize ractorizes the application on boot" do
+        add_to_env_config "production", "config.ractorize = true"
+
+        without_experimental_warnings { app "production" }
+
+        assert_ractor_shareable Rails.application
+        assert on_ractor { Rails.application.config.ractorize }
+      end
+
       test "ractorize! makes the app shareable in production mode" do
         app "production"
 
@@ -242,11 +251,15 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
 
       private
         def ractorize!
-          @original_experimental_warning = Warning[:experimental]
+          without_experimental_warnings { Rails.application.ractorize! }
+        end
+
+        def without_experimental_warnings
+          original = Warning[:experimental]
           Warning[:experimental] = false
-          Rails.application.ractorize!
+          yield
         ensure
-          Warning[:experimental] = @original_experimental_warning
+          Warning[:experimental] = original
         end
     end
   end
