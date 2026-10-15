@@ -108,6 +108,25 @@ module ActionDispatch
         assert_empty(s.keys)
       end
 
+      def test_symbol_and_string_keys_address_the_same_entry
+        session = Session.create(store, req, {})
+
+        session[:one] = "1"
+        assert_equal "1", session["one"]
+        assert_equal "1", session[:one]
+        assert session.key?(:one)
+        assert session.key?("one")
+        assert_equal ["one"], session.keys
+
+        session["two"] = "2"
+        assert_equal "2", session[:two]
+        assert_equal "2", session.delete(:two)
+        assert_not session.key?("two")
+
+        session.delete("one")
+        assert_empty session.keys
+      end
+
       def test_fetch
         session = Session.create(store, req, {})
 
