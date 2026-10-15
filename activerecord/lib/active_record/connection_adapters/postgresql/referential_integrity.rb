@@ -13,7 +13,7 @@ module ActiveRecord
 
             begin
               transaction(requires_new: true) do
-                execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
+                execute(search_path_tables.collect { |name, _table| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
               end
             rescue ActiveRecord::ActiveRecordError => e
               original_exception = e
@@ -35,7 +35,7 @@ module ActiveRecord
             ensure
               begin
                 transaction(requires_new: true) do
-                  execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
+                  execute(search_path_tables.collect { |name, _table| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
                 end
               rescue ActiveRecord::ActiveRecordError
               end
