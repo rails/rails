@@ -215,4 +215,55 @@ class RemapperTest < ActiveModel::TestCase
 
     assert_equal(2, remapped_row.values.size)
   end
+
+  Column = Struct.new(:ord)
+
+  test "#build with a column map lays the row out by ord" do
+    row = ActiveModel::IndexedRow["t0_r0" => 1, "t0_r1" => "George", "t0_r2" => 42]
+    column_map = { "id" => Column.new(0), "age" => Column.new(1), "name" => Column.new(2) }.freeze
+    remapper = ActiveModel::IndexedRow::Remapper.new(
+      row.indexes,
+      %w(t0_r0 t0_r1 t0_r2),
+      %w(id name age),
+      column_map,
+    )
+    remapped_row = remapper.build(row)
+
+    assert_same column_map, remapped_row.indexes
+    assert_equal [1, 42, "George"], remapped_row.row
+    assert_equal({ "id" => 1, "age" => 42, "name" => "George" }, remapped_row.to_h)
+  end
+
+  test "#build with a column map leaves unselected columns unset" do
+    row = ActiveModel::IndexedRow["t0_r0" => 1, "t0_r1" => "George"]
+    column_map = { "id" => Column.new(0), "age" => Column.new(1), "name" => Column.new(2) }.freeze
+    remapper = ActiveModel::IndexedRow::Remapper.new(
+      row.indexes,
+      %w(t0_r0 t0_r1),
+      %w(id name),
+      column_map,
+    )
+    remapped_row = remapper.build(row)
+
+    assert_not remapped_row.key?("age")
+    assert_equal :missing, remapped_row.fetch("age") { :missing }
+    assert_equal({ "id" => 1, "name" => "George" }, remapped_row.to_h)
+  end
+
+  test "#build with a column map adds unknown columns after the last ord" do
+    row = ActiveModel::IndexedRow["t0_r0" => 1, "extra" => "x"]
+    column_map = { "id" => Column.new(0), "name" => Column.new(2) }.freeze
+    remapper = ActiveModel::IndexedRow::Remapper.new(
+      row.indexes,
+      %w(t0_r0 extra),
+      %w(id extra),
+      column_map,
+    )
+    remapped_row = remapper.build(row)
+
+    assert_instance_of ActiveModel::IndexedRow::ExtendedIndexes, remapped_row.indexes
+    assert_equal "x", remapped_row.row[3]
+    assert_equal({ "id" => 1, "extra" => "x" }, remapped_row.to_h)
+    assert_equal 2, column_map.size
+  end
 end
