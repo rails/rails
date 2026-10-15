@@ -101,7 +101,9 @@ class String
         length_with_room_for_omission
       end
 
-    +"#{self[0, stop]}#{omission}"
+    # The slice is already a fresh, mutable string: append the omission to it
+    # rather than interpolating both into a third string.
+    self[0, stop] << omission
   end
 
   # Truncates `text` to at most `truncate_to` bytes in length without
