@@ -222,7 +222,6 @@ module ActiveRecord
           supports_force_drop_database?: supports_force_drop_database?,
           supports_identity_columns?: supports_identity_columns?,
           supports_insert_on_conflict?: supports_insert_on_conflict?,
-          supports_native_partitioning?: supports_native_partitioning?,
         )
       end
 
@@ -332,6 +331,7 @@ module ActiveRecord
       def supports_native_partitioning? # :nodoc:
         true
       end
+      deprecate :supports_native_partitioning?, deprecator: ActiveRecord.deprecator
 
       if PG::Connection.method_defined?(:close_prepared) # pg 1.6.0 & libpq 17
         def supports_close_prepared? # :nodoc:

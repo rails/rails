@@ -112,4 +112,55 @@ class KeyTest < ActiveRecord::TestCase
     assert_predicate Cpk::Book.primary_key_definition, :composite?
     assert_equal ["author_id", "id"], Cpk::Book.primary_key_definition.name
   end
+
+  def test_include
+    assert_includes Key.for("id"), "id"
+    assert_not_includes Key.for("id"), "shop_id"
+    assert_includes Key.for([:shop_id, :id]), "shop_id"
+    assert_not_includes Key.for([:shop_id, :id]), "author_id"
+    assert_not_includes Key.for(nil), "id"
+  end
+
+  def test_subset_of_single_key
+    single = Key.for("id")
+
+    assert single.subset?(Key.for("id"))
+    assert_not single.subset?(Key.for("shop_id"))
+    assert single.subset?(Key.for([:shop_id, :id]))
+    assert_not single.subset?(Key.for([:shop_id, :author_id]))
+    assert_not single.subset?(Key.for(nil))
+  end
+
+  def test_subset_of_composite_key
+    composite = Key.for([:shop_id, :id])
+
+    assert composite.subset?(Key.for([:id, :shop_id]))
+    assert composite.subset?(Key.for([:shop_id, :id, :author_id]))
+    assert_not composite.subset?(Key.for([:shop_id, :author_id]))
+    assert_not composite.subset?(Key.for("id"))
+    assert_not composite.subset?(Key.for(nil))
+  end
+
+  def test_zip
+    [Key.for("id"), Key.for([:shop_id, :id]), Key.for(nil)].each do |key|
+      other_columns = key.to_a.map { |column| "other_#{column}" }
+      other = Key.for(key.composite? ? other_columns : other_columns.first)
+      expected = key.to_a.zip(other.to_a)
+
+      assert_equal expected, key.zip(other)
+      assert_equal expected, key.zip(other.to_a)
+
+      yielded = []
+      assert_nil key.zip(other) { |column, other_column| yielded << [column, other_column] }
+      assert_equal expected, yielded
+    end
+  end
+
+  def test_none_is_a_subset_of_every_key
+    none = Key.for(nil)
+
+    assert none.subset?(Key.for("id"))
+    assert none.subset?(Key.for([:shop_id, :id]))
+    assert none.subset?(Key.for(nil))
+  end
 end

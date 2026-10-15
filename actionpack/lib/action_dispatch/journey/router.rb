@@ -21,18 +21,37 @@ module ActionDispatch
       end
 
       def eager_load!
-        # Eagerly trigger the simulator's initialization so it doesn't happen during a
-        # request cycle.
+        # Eagerly trigger the simulator's and the static route map's
+        # initialization so they don't happen during a request cycle.
         simulator
+        routes.static_exact_map
         nil
       end
 
       def serve(req)
-        recognize(req) do |route, parameters|
-          req.path_parameters = parameters
+        # A static path is certain to match its precomputed route first:
+        # dispatch to it without running the full matcher. If its app responds
+        # with X-Cascade "pass", fall through to the regular scan, skipping
+        # the route that already declined.
+        if (route = routes.static_exact_map[req.request_method]&.[](req.path_info))
+          req_params = req.path_parameters
+          req.path_parameters = req_params.empty? ? route.defaults.dup : req_params.merge(route.defaults)
           req.route = route
 
           _, headers, _ = response = route.app.serve(req)
+
+          return response unless headers[Constants::X_CASCADE] == "pass"
+
+          req.path_parameters = req_params
+        end
+
+        recognize(req) do |matched_route, parameters|
+          next if matched_route.equal?(route)
+
+          req.path_parameters = parameters
+          req.route = matched_route
+
+          _, headers, _ = response = matched_route.app.serve(req)
 
           return response unless headers[Constants::X_CASCADE] == "pass"
         end

@@ -89,12 +89,55 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         end
       end
 
+      test "jobs raise unhandled errors from a non-main Ractor" do
+        app_file "app/jobs/failing_job.rb", <<~RUBY
+          class FailingJob < ApplicationJob
+            def perform
+              raise ArgumentError, "unhandled"
+            end
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        raised = on_ractor do
+          FailingJob.perform_now
+        rescue => error
+          [error.class, error.message]
+        end
+
+        assert_equal [ArgumentError, "unhandled"], raised
+      end
+
       test "the application boots with unshareable_proc_action :raise" do
         add_to_env_config "production", "ActiveSupport::Ractors.unshareable_proc_action = :raise"
 
         app "production"
 
         assert_predicate Rails.application, :initialized?
+      end
+
+      test "deprecation warnings from jobs performed in a non-main Ractor reach the configured behavior" do
+        add_to_env_config "production", "config.active_support.report_deprecations = true"
+        add_to_env_config "production", "config.active_support.deprecation = :raise"
+        app_file "app/jobs/deprecated_job.rb", <<~RUBY
+          class DeprecatedJob < ApplicationJob
+            def perform
+              ActiveJob.deprecator.warn("DeprecatedJob is deprecated")
+            rescue ActiveSupport::DeprecationException => error
+              error.message
+            end
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_match "DeprecatedJob is deprecated", on_ractor { DeprecatedJob.perform_now }
+        assert_nil on_ractor { Rails.application.deprecators.silence { DeprecatedJob.perform_now } }
       end
 
       test "controller view paths are readable from a non-main Ractor" do
@@ -138,6 +181,31 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_nothing_raised do
           Rails.error.report(StandardError.new("test"))
         end
+      end
+
+      test "job arguments are serialized and deserialized from a non-main Ractor" do
+        app_file "config/initializers/money_serializer.rb", <<~RUBY
+          Money = Struct.new(:cents)
+
+          class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
+            def serialize(money) = super("cents" => money.cents)
+            def deserialize(hash) = Money.new(hash["cents"])
+            def klass = Money
+          end
+
+          Rails.application.config.active_job.custom_serializers << MoneySerializer
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ActiveJob::Serializers.serializers
+        arguments = [Time.utc(2026, 10, 7), 5.minutes, :ractor, Money.new(100), { retries: 3 }]
+        round_tripped = on_ractor(arguments) do |arguments|
+          ActiveJob::Arguments.deserialize(ActiveJob::Arguments.serialize(arguments))
+        end
+        assert_equal arguments, round_tripped
       end
 
       test "ractorize! makes model reflections Ractor-shareable" do

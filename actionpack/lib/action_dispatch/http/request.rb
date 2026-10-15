@@ -4,6 +4,7 @@
 
 require "stringio"
 
+require "concurrent/map"
 require "active_support/inflector"
 require "active_support/core_ext/enumerable"
 require "action_dispatch/http/headers"
@@ -61,17 +62,22 @@ module ActionDispatch
     def initialize(env)
       super
 
-      @rack_request = Rack::Request.new(env)
-
-      @method            = nil
-      @request_method    = nil
-      @remote_ip         = nil
-      @original_fullpath = nil
-      @fullpath          = nil
-      @ip                = nil
+      @rack_request        = nil
+      @method              = nil
+      @request_method      = nil
+      @remote_ip           = nil
+      @original_fullpath   = nil
+      @fullpath            = nil
+      @ip                  = nil
+      @raw_host_with_port  = nil
+      @host                = nil
     end
 
-    attr_reader :rack_request
+    # Built lazily: most Request objects are created by middlewares that
+    # never need the underlying Rack::Request.
+    def rack_request
+      @rack_request ||= Rack::Request.new(env)
+    end
 
     def commit_cookie_jar! # :nodoc:
     end
@@ -85,10 +91,20 @@ module ActionDispatch
         raise MissingController, "No :controller in path parameters; the request has not been routed to a controller"
       end
 
-      controller_param = name.underscore
-      const_name = controller_param.camelize << "Controller"
+      # Controller param => constant name, e.g. "posts" => "PostsController".
+      # The param encoding checks make this run several times per request, so
+      # the derived name is cached per param. Caching the string rather than
+      # the constant keeps it reload-safe: constantize resolves afresh every
+      # time. Only names that resolved are cached, so the cache is bounded by
+      # the controllers that exist.
+      const_names = ActiveSupport::Ractors.store_if_absent(:action_dispatch_controller_const_names) { Concurrent::Map.new }
+      unless const_name = const_names[name]
+        const_name = "#{name.underscore.camelize}Controller".freeze
+        cache_const_name = true
+      end
+
       begin
-        const_name.constantize
+        controller_class = const_name.constantize
       rescue NameError => error
         if error.missing_name == const_name || const_name.start_with?("#{error.missing_name}::")
           raise MissingController.new(error.message, error.name)
@@ -96,6 +112,9 @@ module ActionDispatch
           raise
         end
       end
+
+      const_names[-name] = const_name if cache_const_name
+      controller_class
     end
 
     # Returns true if the request has a header matching the given key parameter.

@@ -170,7 +170,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#exec_query fails with invalid query" do
-    error = assert_raises ActiveRecord::StatementInvalid, match: /'activerecord_unittest.bogus' doesn't exist/ do
+    error = assert_raises ActiveRecord::StatementInvalid, match: /'#{Regexp.escape(@conn.current_database)}\.bogus' doesn't exist/ do
       @conn.exec_query "SELECT * FROM bogus;"
     end
     assert_equal @conn.pool, error.connection_pool
@@ -182,7 +182,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
   end
 
   test "#execute fails with invalid query" do
-    error = assert_raises ActiveRecord::StatementInvalid, match: /Table 'activerecord_unittest.bogus' doesn't exist/ do
+    error = assert_raises ActiveRecord::StatementInvalid, match: /Table '#{Regexp.escape(@conn.current_database)}\.bogus' doesn't exist/ do
       @conn.execute "SELECT * FROM bogus;"
     end
     assert_equal @conn.pool, error.connection_pool

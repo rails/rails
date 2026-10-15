@@ -26,13 +26,13 @@ module ActiveRecord
             @extension_member_tables = members.fetch("table", []).map(&:last).to_set
             @extension_member_enum_types = members.fetch("enum", []).map(&:last).to_set
             @extension_member_schemas = members.fetch("schema", []).map(&:last)
+            @extensions = connection.extensions
           end
 
           def extensions(stream)
-            extensions = @connection.extensions
-            if extensions.any?
+            if @extensions.any?
               stream.puts "  # These are extensions that must be enabled in order to support this database"
-              extensions.sort.each do |extension|
+              @extensions.sort.each do |extension|
                 stream.puts "  enable_extension #{extension.inspect}"
               end
               stream.puts
@@ -54,14 +54,23 @@ module ActiveRecord
           end
 
           def schemas(stream)
-            schema_names = @dump_schemas - ["public"] - @extension_member_schemas
+            extension_schema_names = extension_schemas - @extension_member_schemas
+            schema_names = @dump_schemas - ["public"] - @extension_member_schemas - extension_schema_names
 
-            if schema_names.any?
+            if schema_names.any? || extension_schema_names.any?
               schema_names.sort.each do |name|
                 stream.puts "  create_schema #{name.inspect}"
               end
+              extension_schema_names.sort.each do |name|
+                stream.puts "  create_schema #{name.inspect}, if_not_exists: true"
+              end
               stream.puts
             end
+          end
+
+          def extension_schemas
+            @extensions.filter_map { |extension| extension.split(".", 2).first if extension.include?(".") }
+              .uniq.grep_v(/\Apg_/) - ["public"]
           end
 
           def tables(stream)

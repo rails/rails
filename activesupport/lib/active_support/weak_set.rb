@@ -7,9 +7,15 @@ module ActiveSupport
     # So we can simply use WeakMap as a `Set`.
     class WeakSet < ObjectSpace::WeakMap # :nodoc:
       alias_method :to_a, :keys
+      alias_method :each, :each_key
 
       def <<(object)
         self[object] = true
+      end
+
+      def initialize_copy(other)
+        super
+        other.each { |object| self << object }
       end
     end
   else
@@ -36,8 +42,18 @@ module ActiveSupport
         @map.values
       end
 
+      def each(&block)
+        @map.each_value(&block)
+      end
+
       def <<(object)
         self[object] = true
+      end
+
+      def initialize_copy(other)
+        super
+        @map = ObjectSpace::WeakMap.new
+        other.each { |object| self << object }
       end
     end
   end

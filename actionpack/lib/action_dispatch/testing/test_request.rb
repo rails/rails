@@ -31,10 +31,12 @@ module ActionDispatch
 
     def host=(host)
       set_header("HTTP_HOST", host)
+      reset_host_memos
     end
 
     def port=(number)
       set_header("SERVER_PORT", number)
+      reset_host_memos
     end
 
     def request_uri=(uri)
@@ -69,5 +71,12 @@ module ActionDispatch
       delete_header("action_dispatch.request.accepts")
       set_header("HTTP_ACCEPT", Array(mime_types).collect(&:to_s).join(","))
     end
+
+    private
+      # The host, and the port derived from it, are memoized on the request
+      # once read. Forget them so that a test can change the host afterwards.
+      def reset_host_memos
+        @raw_host_with_port = @host = @port = nil
+      end
   end
 end

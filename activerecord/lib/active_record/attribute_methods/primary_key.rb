@@ -8,10 +8,6 @@ module ActiveRecord
     module PrimaryKey
       extend ActiveSupport::Concern
 
-      included do
-        class_attribute :_primary_key_definition, instance_accessor: false
-      end
-
       # Returns this record's primary key value wrapped in an array if one is
       # available.
       def to_key
@@ -91,8 +87,7 @@ module ActiveRecord
           end
 
           def primary_key_definition # :nodoc:
-            reset_primary_key unless _primary_key_definition
-            _primary_key_definition
+            @primary_key_definition || load_primary_key_definition
           end
 
           # Returns a quoted version of the primary key name.
@@ -130,19 +125,50 @@ module ActiveRecord
           # end
           # ```
           def primary_key=(value)
-            self._primary_key_definition = ActiveRecord::Key.for(value)
+            @primary_key_definition = ActiveRecord::Key.for(value)
+            @primary_key_inherited = false
 
             include CompositePrimaryKey if primary_key_definition.composite?
 
             # Only invalidate loaded contexts; initial schema loading can resolve the primary key.
             ([self] + descendants).each do |model|
+              model.clear_inherited_primary_key
               model.reload_schema_from_cache(false) if model.schema_loaded?
             end
           end
 
+          protected
+            def clear_inherited_primary_key # :nodoc:
+              @primary_key_definition = nil if @primary_key_inherited
+            end
+
           private
-            def inherited(base)
-              super
+            # Subclasses inherit the primary key of the closest ancestor that
+            # has one, otherwise it is resolved from the schema.
+            def load_primary_key_definition
+              ActiveSupport::Ractors.on_main(self) do
+                definition = inherited_primary_key_definition
+                definition ||= base_class.primary_key_definition unless base_class?
+
+                if definition
+                  @primary_key_definition = definition
+                  @primary_key_inherited = true
+                else
+                  reset_primary_key
+                end
+
+                @primary_key_definition
+              end
+            end
+
+            def inherited_primary_key_definition
+              klass = self
+              while klass != Base
+                klass = klass.superclass
+                definition = klass.instance_variable_get(:@primary_key_definition)
+                return definition if definition
+              end
+              nil
             end
         end
     end

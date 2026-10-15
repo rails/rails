@@ -573,6 +573,7 @@ module ActiveRecord
     autoload :DefaultSchemaVersionsFormatter, "active_record/migration/default_schema_versions_formatter"
     autoload :ExecutionStrategy, "active_record/migration/execution_strategy"
     autoload :DefaultStrategy, "active_record/migration/default_strategy"
+    autoload :CompatibilityBehavior, "active_record/migration/compatibility_behavior"
 
     # This must be defined before the inherited hook, below
     class Current < Migration # :nodoc:
@@ -608,13 +609,11 @@ module ActiveRecord
         end
       end
 
-      # Ancestors are walked oldest-version-first, so the newest version's
-      # module ends up first in method lookup — the same order the per-class
-      # overrides produced.
       def compatible_table_definition(t)
-        (self.class.ancestors & Compatibility.version_classes).each do |version_class|
-          next unless version_class.const_defined?(:TableDefinition, false)
-          t.singleton_class.prepend(version_class.const_get(:TableDefinition, false))
+        behaviors = compatibility_behavior.class.ancestors.select { |klass| klass <= CompatibilityBehavior }.reverse
+        (behaviors + (self.class.ancestors & Compatibility.version_classes)).each do |klass|
+          next unless klass.const_defined?(:TableDefinition, false)
+          t.singleton_class.prepend(klass.const_get(:TableDefinition, false))
         end
         t
       end
@@ -837,6 +836,34 @@ module ActiveRecord
       @execution_strategy ||= (connection.migration_strategy || ActiveRecord.migration_strategy).new(self)
     end
 
+    def compatibility_behavior # :nodoc:
+      @compatibility_behavior ||=
+        if connection.respond_to?(:compatibility_behavior_for)
+          connection.compatibility_behavior_for(self.class).new(self)
+        else
+          CompatibilityBehavior.new(self)
+        end
+    end
+
+    def execute_operation(method, *arguments, **kwargs, &block) # :nodoc:
+      say_with_time "#{method}(#{format_arguments(arguments, kwargs)})" do
+        # Table names get the prefix and suffix here, except while a `change` is
+        # being recorded for revert: the recorder keeps the names as written and
+        # they come back through here on replay. The second argument of
+        # rename_table and remove_foreign_key is a table name too.
+        unless connection.respond_to? :revert
+          unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
+            arguments[0] = proper_table_name(arguments.first, table_name_options)
+            if method == :rename_table ||
+              (method == :remove_foreign_key && arguments.second)
+              arguments[1] = proper_table_name(arguments.second, table_name_options)
+            end
+          end
+        end
+        execution_strategy.send(method, *arguments, **kwargs, &block)
+      end
+    end
+
     self.verbose = true
     # instantiate the delegate object after initialize is defined
     self.delegate = new
@@ -1025,6 +1052,7 @@ module ActiveRecord
     ensure
       @connection = nil
       @execution_strategy = nil
+      @compatibility_behavior = nil
     end
 
     def write(text = "")
@@ -1071,19 +1099,8 @@ module ActiveRecord
     end
 
     def method_missing(method, *arguments, **kwargs, &block)
-      say_with_time "#{method}(#{format_arguments(arguments, kwargs)})" do
-        unless connection.respond_to? :revert
-          unless arguments.empty? || [:execute, :enable_extension, :disable_extension].include?(method)
-            arguments[0] = proper_table_name(arguments.first, table_name_options)
-            if method == :rename_table ||
-              (method == :remove_foreign_key && arguments.second)
-              arguments[1] = proper_table_name(arguments.second, table_name_options)
-            end
-          end
-        end
-        return super unless execution_strategy.respond_to?(method)
-        execution_strategy.send(method, *arguments, **kwargs, &block)
-      end
+      return super unless execution_strategy.respond_to?(method)
+      compatibility_behavior.public_send(method, *arguments, **kwargs, &block)
     end
 
     def copy(destination, sources, options = {})

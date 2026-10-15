@@ -1,3 +1,107 @@
+*   Fix `remove_index` and `index_exists?` in migrations declaring version 4.2
+    to honor `table_name_prefix` and `table_name_suffix`.
+
+    With a prefix set, `remove_index` raised `ArgumentError: Index name '...'
+    on table '...' does not exist`, and `index_exists?` returned `false` for an
+    index that exists.
+
+    *Carlos Daniel Pohlod*
+
+*   Raise the original error when SQLite rolls back a transaction on its own.
+
+    When a statement or `COMMIT` fails with errors such as `SQLITE_FULL`, the
+    original error is raised instead of "cannot rollback - no transaction is
+    active", records saved in the transaction are no longer `persisted?`, and
+    `after_rollback` callbacks run.
+
+    *Cole Robertson*
+
+*   Deprecate `supports_native_partitioning?` on the PostgreSQL adapter.
+
+    It always returns `true` since the minimum PostgreSQL version became 10.0,
+    which supports native partitioning.
+
+    *Yasuo Honda*
+
+*   Dump `create_schema` with `if_not_exists: true` for every schema that holds
+    a dumped extension.
+
+    A relocatable extension, such as `btree_gin` or `pg_trgm`, can live in a schema
+    that `dump_schemas` does not cover. The Ruby schema dump wrote
+    `enable_extension "extensions.btree_gin"` without `create_schema` for it, and
+    `db:schema:load` failed with `PG::InvalidSchemaName`. When the schema was in
+    `dump_schemas`, the dump wrote `create_schema "extensions"`, and the load
+    failed with `PG::DuplicateSchema` where the schema exists already, as on Supabase.
+    The dump now writes `create_schema "extensions", if_not_exists: true` in both cases.
+
+    *Tusshar Laddha*
+
+*   Fix `eager_load` with a `limit` on a relation that joins a CTE.
+
+    Working out whether the limit could be applied to the joined query took the
+    name of the CTE for an association name:
+
+    ```ruby
+    Post.with(commented_posts: Comment.select(:post_id))
+      .joins(:commented_posts).eager_load(:author).limit(2)
+    # ActiveRecord::ConfigurationError: Can't join 'Post' to association named
+    # 'commented_posts'; perhaps you misspelled it?
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix the order of joins when `eager_load` or `left_joins` is combined with
+    joins merged from a relation of another model.
+
+    The join built by `eager_load`, and the one built from the association names
+    passed to `left_joins`, are rooted at the base table, so they have to come
+    before the joins merged in from a relation of another model, since those
+    depend on the tables they bring in. They were emitted after them instead,
+    which produced an invalid query:
+
+    ```ruby
+    Post.eager_load(:comments).merge(Comment.left_joins(:user))
+    # before: ... FROM "posts"
+    #             LEFT OUTER JOIN "users" ON "users"."id" = "comments"."user_id"
+    #             LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    # after:  ... FROM "posts"
+    #             LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    #             LEFT OUTER JOIN "users" ON "users"."id" = "comments"."user_id"
+
+    Post.left_joins(:comments).merge(Comment.joins(:ratings))
+    # before: ... FROM "posts"
+    #             INNER JOIN "ratings" ON "ratings"."comment_id" = "comments"."id"
+    #             LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    # after:  ... FROM "posts"
+    #             LEFT OUTER JOIN "comments" ON "comments"."post_id" = "posts"."id"
+    #             INNER JOIN "ratings" ON "ratings"."comment_id" = "comments"."id"
+    ```
+
+    *Ryuta Kamizono*
+
+*   Move adapter-specific migration version compatibility into the connection adapters.
+
+    The adjustments that `ActiveRecord::Migration::Compatibility` applied through
+    `adapter_name` checks, such as the `timestamp` type for `:datetime` in
+    `Migration[6.1]` on PostgreSQL, are now defined by each adapter. Migrations on
+    the bundled adapters produce the same schema and the same verbose output as
+    before, with one exception: on PostgreSQL, a migration declaring 7.0 or
+    earlier that passes `force:` to `disable_extension` now keeps that value
+    instead of having it replaced by `:cascade`. Adapters that patched those
+    classes to adjust the behavior for their database should define it through
+    `compatibility_behavior_for` instead.
+
+    Adapters that subclass a bundled adapter now inherit its adjustments, which
+    the previous `adapter_name` checks never applied to them. On a PostgreSQL
+    subclass, for example, `disable_extension` in a migration declaring 7.0 or
+    earlier now adds `CASCADE`, and `:datetime` in one declaring 6.1 or earlier
+    becomes `timestamp` when `datetime_type` is `:timestamptz`. An adapter that
+    does not want an inherited adjustment can override
+    `compatibility_behavior_for` to return a subclass of the bundled behavior
+    that overrides that operation.
+
+    *Yasuo Honda*
+
 *   Fix `has_many`/`has_one :through` associations with `disable_joins: true`
     raising when the owner's foreign key is composite.
 

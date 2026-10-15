@@ -195,6 +195,11 @@ module ActiveRecord
         query_constraints_definition || schema_context.composite_query_constraints_list
       end
 
+      # The ActiveRecord::Key form of +composite_query_constraints_list+.
+      def composite_query_constraints_definition # :nodoc:
+        schema_context.composite_query_constraints_definition
+      end
+
       def _insert_record(connection, values, returning) # :nodoc:
         primary_key = self.primary_key
 

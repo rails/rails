@@ -11,9 +11,12 @@ module ActiveRecord
       def initialize(owner, reflection)
         super
         aliases = owner.class.attribute_aliases
-        fk = reflection.foreign_key
-        resolved_fk = fk.is_a?(Array) ? fk.map { |k| aliases[k] || k } : (aliases[fk] || fk)
-        @foreign_key = ActiveRecord::Key.for(resolved_fk)
+        foreign_key = reflection.foreign_key_definition
+        if foreign_key.columns.any? { |key| aliases.key?(key) }
+          resolved_fk = foreign_key.composite? ? foreign_key.map { |key| aliases[key] || key } : aliases[foreign_key.name]
+          foreign_key = ActiveRecord::Key.for(resolved_fk)
+        end
+        @foreign_key = foreign_key
         if reflection.polymorphic?
           ft = reflection.foreign_type
           @foreign_type = aliases[ft] || ft
@@ -129,7 +132,7 @@ module ActiveRecord
         end
 
         def update_counters_via_scope(klass, values, by)
-          primary_key = ActiveRecord::Key.for(primary_key(klass))
+          primary_key = primary_key(klass)
           scope = klass.all_queries_scope.where!(primary_key.where_hash(values))
           scope.update_counters(reflection.counter_cache_column => by, touch: reflection.options[:touch])
         end
@@ -143,25 +146,45 @@ module ActiveRecord
         end
 
         def replace_keys(record, force: false)
-          target_key_values = record ? ActiveRecord::Key.for(primary_key(record.class)).map { |col| record.read_attribute(col) } : []
-          owner_key_values = foreign_key.map { |fk| owner.read_attribute(fk) }
+          if record
+            target_key = primary_key(record.class)
+            return if !force && keys_match?(record, target_key)
 
-          return if !force && owner_key_values == target_key_values
+            foreign_key.zip(target_key) do |column, target_column|
+              owner.write_attribute(column, record.read_attribute(target_column))
+            end
+          else
+            owner_pk = owner.class.primary_key_definition
 
-          owner_pk = ActiveRecord::Key.for(owner.class.primary_key)
+            # Preserve shared primary key columns only if another foreign key
+            # column can be cleared to disassociate the record.
+            preserve_owner_pk = !foreign_key.subset?(owner_pk)
 
-          # Preserve shared primary key columns only if another foreign key
-          # column can be cleared to disassociate the record.
-          preserve_owner_pk = record.nil? && foreign_key.any? { |key| !owner_pk.include?(key) }
+            foreign_key.each do |key|
+              next if preserve_owner_pk && owner_pk.include?(key)
+              owner.write_attribute(key, nil)
+            end
+          end
+        end
 
-          foreign_key.each_with_index do |key, index|
-            next if preserve_owner_pk && owner_pk.include?(key)
-            owner.write_attribute(key, target_key_values[index])
+        def keys_match?(record, target_key)
+          fk = foreign_key
+          return false unless fk.composite? == target_key.composite?
+
+          if target_key.composite?
+            return false unless fk.length == target_key.length
+
+            fk.zip(target_key) do |column, target_column|
+              return false unless owner.read_attribute(column) == record.read_attribute(target_column)
+            end
+            true
+          else
+            owner.read_attribute(fk.name) == record.read_attribute(target_key.name)
           end
         end
 
         def primary_key(klass)
-          reflection.association_primary_key(klass)
+          reflection.association_primary_key_definition(klass)
         end
 
         def foreign_key_present?
@@ -174,10 +197,14 @@ module ActiveRecord
         end
 
         def stale_state
-          values = foreign_key.map do |fk|
-            owner.read_attribute(fk) { |n| owner.send(:missing_attribute, n, caller) }
+          if foreign_key.composite?
+            values = foreign_key.map do |fk|
+              owner.read_attribute(fk) { |n| owner.send(:missing_attribute, n, caller) }
+            end
+            values if values.any?
+          else
+            owner.read_attribute(foreign_key.name) { |n| owner.send(:missing_attribute, n, caller) }
           end
-          foreign_key.composite? ? (values if values.any?) : values.first
         end
     end
   end

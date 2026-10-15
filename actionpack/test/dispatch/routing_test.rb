@@ -4590,6 +4590,8 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       get "/projects/:id.:format" => ok, as: :project
       get "/pages/:id" => ok, as: :page
       get "/wiki/*page" => ok, as: :wiki
+      get "/articles/:id(.:format)" => ok, as: :article
+      get "/reports/:id(.:format)" => ok, as: :report, defaults: { format: :json }
     end
   end
 
@@ -4642,6 +4644,33 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
   test "glob segments with slashes are not escaped" do
     assert_equal "/wiki/foo/bar", Routes.url_helpers.wiki_path("foo/bar")
     assert_equal "/wiki/foo/bar", wiki_path("foo/bar")
+  end
+
+  test "a sole format option is rendered by the optional format segment" do
+    assert_equal "/articles/1.json", Routes.url_helpers.article_path(1, format: :json)
+    assert_equal "/articles/1.json", article_path(1, format: :json)
+    assert_equal "/articles/1.json", article_path(1, format: "json")
+    assert_equal "/articles/1.js%20on", article_path(1, format: "js on")
+  end
+
+  test "a sole format option generates the same URL as the general path" do
+    [[1, { format: :json }], [1, { format: "" }], [1, { format: " " }], [1, { format: nil }],
+     [1, { format: :json, trailing_slash: true }], [1, { trailing_slash: true }]].each do |args|
+      expected = Routes.stub(:optimize_routes_generation?, false) { article_path(*args) }
+      assert_equal expected, article_path(*args), "article_path(#{args.map(&:inspect).join(", ")})"
+    end
+  end
+
+  test "a blank format option is dropped rather than rendered as a trailing dot" do
+    assert_equal "/articles/1", article_path(1, format: "")
+    assert_equal "/articles/1", article_path(1, format: " ")
+    assert_equal "/articles/1", article_path(1, format: nil)
+  end
+
+  test "a format option equal to the route default is omitted as in the general path" do
+    assert_equal "/reports/1", report_path(1, format: :json)
+    assert_equal "/reports/1.xml", report_path(1, format: :xml)
+    assert_equal "/reports/1", report_path(1)
   end
 end
 

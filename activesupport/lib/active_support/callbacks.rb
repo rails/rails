@@ -166,6 +166,7 @@ module ActiveSupport
         class Before
           def initialize(user_callback, user_conditions, chain_config, filter, name)
             halted_lambda = chain_config[:terminator]
+            @direct_terminator = halted_lambda.respond_to?(:call_direct)
             @user_callback, @user_conditions, @halted_lambda, @filter, @name = user_callback, user_conditions, halted_lambda, filter, name
             freeze
           end
@@ -177,8 +178,16 @@ module ActiveSupport
             halted = env.halted
 
             if !halted && user_conditions.all? { |c| c.call(target, value) }
-              result_lambda = -> { user_callback.call target, value }
-              env.halted = halted_lambda.call(target, result_lambda)
+              # Terminators that implement call_direct receive the callback
+              # and its arguments as-is, sparing the thunk that the classic
+              # two-argument terminator interface requires allocating on
+              # every callback invocation.
+              env.halted = if @direct_terminator
+                halted_lambda.call_direct(target, user_callback, value)
+              else
+                result_lambda = -> { user_callback.call target, value }
+                halted_lambda.call(target, result_lambda)
+              end
               if env.halted
                 target.send :halted_callback_hook, filter, name
               end
@@ -718,6 +727,15 @@ module ActiveSupport
               terminate = true
               catch(:abort) do
                 result_lambda.call
+                terminate = false
+              end
+              terminate
+            end
+
+            def call_direct(target, user_callback, value)
+              terminate = true
+              catch(:abort) do
+                user_callback.call(target, value)
                 terminate = false
               end
               terminate

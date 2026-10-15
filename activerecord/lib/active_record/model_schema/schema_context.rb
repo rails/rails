@@ -26,9 +26,15 @@ module ActiveRecord
           end
         end
 
+        # Built once per schema context: this runs on every record
+        # instantiation, and the difference/except dance allocates on each
+        # call. The context is discarded by reload_schema_from_cache, which
+        # primary_key= also triggers, so a stale builder is never reused.
         def builder
-          primary_key_defaults = defaults.except(*(context.model_class.column_names - Array(context.model_class.primary_key)))
-          ActiveModel::AttributeSet::Builder.new(types, primary_key_defaults)
+          @builder ||= begin
+            primary_key_defaults = defaults.except(*(context.model_class.column_names - Array(context.model_class.primary_key)))
+            ActiveModel::AttributeSet::Builder.new(types, primary_key_defaults)
+          end
         end
 
         def column_defaults
@@ -38,7 +44,7 @@ module ActiveRecord
 
       attr_reader :model_class, :columns_hash, :columns, :column_names,
                   :content_columns, :query_constraints_list,
-                  :composite_query_constraints_list
+                  :composite_query_constraints_list, :composite_query_constraints_definition
 
       attr_reader :timestamp_attributes_for_create_in_model,
         :timestamp_attributes_for_update_in_model,
@@ -130,6 +136,7 @@ module ActiveRecord
         primary_key = self.primary_key
         @query_constraints_list = query_constraints || derive_query_constraints_list(primary_key)
         @composite_query_constraints_list = (@query_constraints_list || Array(primary_key)).freeze
+        @composite_query_constraints_definition = ActiveRecord::Key.for(@composite_query_constraints_list)
 
         @content_columns = @columns.reject do |c|
           Array(primary_key).include?(c.name) ||

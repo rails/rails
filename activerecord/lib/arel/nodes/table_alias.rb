@@ -11,6 +11,10 @@ module Arel # :nodoc: all
         relation.is_a?(Table) ? relation[name, self] : Attribute.new(self, name)
       end
 
+      def klass
+        relation.klass if relation.is_a?(Table)
+      end
+
       def table_name
         relation.respond_to?(:name) ? relation.name : name
       end
