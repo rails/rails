@@ -13,9 +13,13 @@ module ActiveModel
         Array.new(size, UNSET)
       end
 
-      # The largest +ord+ in +column_map+, or -1 if it is empty.
+      # The largest +ord+ in +column_map+, or -1 if it is empty. Columns
+      # without an +ord+ are skipped.
       def max_ord(column_map)
-        column_map.each_value.inject(-1) { |max, column| column.ord > max ? column.ord : max }
+        column_map.each_value.inject(-1) do |max, column|
+          ord = column.ord
+          ord && ord > max ? ord : max
+        end
       end
 
       def [](hash)
@@ -66,10 +70,13 @@ module ActiveModel
     end
 
     def ==(other)
-      if other.is_a?(Hash)
+      case other
+      when Hash
         to_hash == other
+      when IndexedRow
+        to_hash == other.to_hash
       else
-        super
+        false
       end
     end
 
@@ -128,6 +135,29 @@ module ActiveModel
       keys.index_with { |column| @row[index_for(column)] }
     end
     alias_method :to_hash, :to_h
+
+    def each_value
+      return enum_for(:each_value) { size } unless block_given?
+
+      @indexes.each_key do |column|
+        if index = index_for(column)
+          yield @row[index]
+        end
+      end
+      self
+    end
+
+    # Returns a Mutable row with the same indexes, so the new row keeps the
+    # same layout.
+    def transform_values
+      return enum_for(:transform_values) { size } unless block_given?
+
+      Mutable.new(@indexes, @row.map { |value| UNSET.equal?(value) ? value : yield(value) })
+    end
+
+    def except(*columns)
+      to_h.except(*columns)
+    end
 
     def new_empty_mutable_row
       Mutable.new(@indexes, size: @row.size)
@@ -200,9 +230,22 @@ module ActiveModel
     # Wraps an immutable column map and adds indexes for columns it doesn't
     # have, such as aliases selected alongside a model's columns.
     class ExtendedIndexes
+      # Returns +indexes+ with +column+ added at +index+, without modifying
+      # +indexes+.
+      def self.add(indexes, column, index)
+        if indexes.is_a?(self)
+          new(indexes.indexes, indexes.extra.merge(column => index).freeze)
+        else
+          new(indexes, { column => index }.freeze)
+        end
+      end
+
+      attr_reader :indexes, :extra
+
       def initialize(indexes, extra)
         @indexes = indexes
         @extra = extra
+        freeze
       end
 
       def [](column)
@@ -225,15 +268,49 @@ module ActiveModel
         self
       end
 
+      def each_value(&block)
+        return enum_for(:each_value) { size } unless block
+
+        @indexes.each_value(&block)
+        @extra.each_value(&block)
+        self
+      end
+
       def size
         @indexes.size + @extra.size
+      end
+
+      def ==(other)
+        other.is_a?(ExtendedIndexes) && @indexes == other.indexes && @extra == other.extra
+      end
+      alias_method :eql?, :==
+
+      def hash
+        [ExtendedIndexes, @indexes, @extra].hash
       end
     end
 
     class Mutable < self
+      # Builds a Mutable row from a Hash, indexed in the Hash's order.
+      def self.[](hash)
+        return hash if hash.is_a?(self)
+
+        new(IndexedRow.build_indexes(hash.keys).freeze, hash.values)
+      end
+
       def initialize(indexes, row = nil, size: indexes.size)
         @indexes = indexes
         @row = row || IndexedRow.unset_row(size)
+      end
+
+      def initialize_copy(other)
+        super
+        @row = @row.dup
+      end
+
+      def freeze
+        @row.freeze
+        super
       end
 
       def size
@@ -241,12 +318,22 @@ module ActiveModel
       end
       alias_method :length, :size
 
+      # Columns that aren't in the indexes are added after the last index.
+      # The indexes are replaced rather than modified, since they're usually
+      # shared with other rows.
       def []=(column, value)
-        if (entry = @indexes[column]) && (index = entry.ord) < @row.size
-          @row[index] = value
+        if entry = @indexes[column]
+          index = entry.ord
         else
-          raise KeyError, "key not found: #{column.inspect}"
+          index = [@row.size, IndexedRow.max_ord(@indexes) + 1].max
+          @indexes = ExtendedIndexes.add(@indexes, column, index)
         end
+
+        if index >= @row.size
+          @row.concat(IndexedRow.unset_row(index - @row.size + 1))
+        end
+
+        @row[index] = value
       end
     end
 

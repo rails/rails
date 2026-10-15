@@ -505,7 +505,7 @@ module ActiveRecord
     def initialize(attributes = nil)
       @new_record = true
       @attributes = self.class.attributes_builder.build_from_initialize(
-        self.class._default_attributes
+        self.class.columns_hash, self.class._default_attributes
       )
 
       init_internals
