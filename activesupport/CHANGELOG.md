@@ -1,3 +1,9 @@
+*   Report unfinished parallel tests when a worker dies with queued work.
+
+    Fixes #59037.
+
+    *Jay Liu*
+
 *   Freeze events emitted by `ActiveSupport::EventReporter`.
 
     Subscribers can no longer change the event seen by later subscribers.
