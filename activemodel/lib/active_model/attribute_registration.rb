@@ -39,15 +39,20 @@ module ActiveModel
       end
 
       def _default_attributes # :nodoc:
-        @default_attributes ||= AttributeSet.new({}).tap do |attribute_set|
-          apply_pending_attribute_modifications(attribute_set)
+        @default_attributes || ActiveSupport::Ractors.on_main(self) do
+          @default_attributes ||= AttributeSet.new({}).tap do |attribute_set|
+            apply_pending_attribute_modifications(attribute_set)
+            ActiveSupport::Ractors.try_make_shareable(attribute_set)
+          end
         end
       end
 
       def attribute_types # :nodoc:
-        @attribute_types ||= _default_attributes.cast_types.tap do |hash|
-          hash.default = Type.default_value
-          ActiveSupport::Ractors.try_make_shareable(hash)
+        @attribute_types || ActiveSupport::Ractors.on_main(self) do
+          @attribute_types ||= _default_attributes.cast_types.tap do |hash|
+            hash.default = Type.default_value
+            ActiveSupport::Ractors.try_make_shareable(hash)
+          end
         end
       end
 
