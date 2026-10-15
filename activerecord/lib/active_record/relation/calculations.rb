@@ -549,14 +549,15 @@ module ActiveRecord
           end
 
           result.then do |calculated_data|
-            if association
-              key_ids = if association.klass.base_class.composite_primary_key?
+            if associated
+              primary_key = association.association_primary_key_definition
+              key_ids = if primary_key.composite?
                 calculated_data.collect { |row| group_aliases.map { |group_alias| row[group_alias] } }
               else
                 calculated_data.collect { |row| row[group_aliases.first] }
               end
-              key_records = association.klass.base_class.where(association.klass.base_class.primary_key => key_ids)
-              key_records = key_records.index_by(&:id)
+              key_records = association.klass.base_class.where(primary_key.name => key_ids)
+              key_records = key_records.index_by { |record| primary_key.value_of(record) }
             end
 
             key_types = group_columns.each_with_object({}) do |(aliaz, col_name), types|
