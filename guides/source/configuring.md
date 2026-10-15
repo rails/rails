@@ -522,6 +522,14 @@ Defaults to `true`.
 If the server software (e.g. NGINX or Apache) should serve static files instead,
 set this value to `false`.
 
+#### `config.ractorize`
+
+When `true`, the application is made Ractor-shareable once it has booted, so
+requests can be served from non-main Ractors. This is experimental and requires
+Ruby 4.0 or later, a Rack version that provides `rack/ractorize`, and the
+`ractor-sharing` and `ractor-dispatch` gems in the `Gemfile`; booting raises a
+`LoadError` when the gems are missing. Defaults to `false`.
+
 #### `config.railties_order`
 
 Allows manually specifying the order that Railties/Engines are loaded. The

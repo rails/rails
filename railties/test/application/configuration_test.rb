@@ -149,6 +149,16 @@ module ApplicationTests
       assert_match(/You're using a cache/, error.message)
     end
 
+    test "config.ractorize raises on boot when the ractor gems are not in the bundle" do
+      add_to_config "config.ractorize = true"
+
+      error = ActiveSupport::Ractors.stub(:gems_available?, false) do
+        assert_raise(RuntimeError) { app "production" }
+      end
+
+      assert_match "requires the ractor-sharing and ractor-dispatch gems", error.message
+    end
+
     test "renders an exception on pending migration" do
       add_to_config <<-RUBY
         config.active_record.migration_error    = :page_load
