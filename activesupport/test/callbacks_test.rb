@@ -790,6 +790,31 @@ module CallbacksTest
     set_save_callbacks
   end
 
+  # A terminator object implementing +call_direct+ receives the callback and
+  # its arguments instead of a thunk.
+  class DirectCallbackTerminator
+    attr_reader :direct_calls
+
+    def initialize
+      @direct_calls = 0
+    end
+
+    def call(_target, _result_lambda)
+      raise "the thunk-based interface must not be used when call_direct is available"
+    end
+
+    def call_direct(target, user_callback, value)
+      @direct_calls += 1
+      user_callback.call(target, value) == :halt
+    end
+  end
+
+  class CallbackDirectTerminator < AbstractCallbackTerminator
+    TERMINATOR = DirectCallbackTerminator.new
+    define_callbacks :save, terminator: TERMINATOR
+    set_save_callbacks
+  end
+
   class CallbackDefaultTerminator < AbstractCallbackTerminator
     define_callbacks :save
 
@@ -973,6 +998,24 @@ module CallbacksTest
       terminator = CallbackTerminatorSkippingAfterCallbacks.new
       terminator.save
       assert_equal ["first", "second"], terminator.history
+    end
+  end
+
+  class CallbackDirectTerminatorTest < ActiveSupport::TestCase
+    def test_direct_terminator_receives_the_callback_without_a_thunk
+      terminator = CallbackDirectTerminator.new
+      direct_calls_before = CallbackDirectTerminator::TERMINATOR.direct_calls
+      terminator.save
+      assert_equal ["first", "second", "third", "first"], terminator.history
+      assert_equal 2, CallbackDirectTerminator::TERMINATOR.direct_calls - direct_calls_before
+      assert_not terminator.saved
+    end
+
+    def test_direct_termination_invokes_hook
+      terminator = CallbackDirectTerminator.new
+      terminator.save
+      assert_equal :second, terminator.halted
+      assert_equal :save, terminator.callback_name
     end
   end
 
