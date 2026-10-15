@@ -118,7 +118,7 @@ module ActiveRecord
       # keyed by table name when given an Array of tables.
       def columns(table_name)
         result = fetch_column_definitions(Array(table_name).map(&:to_s)).to_h do |table, definitions|
-          [table, definitions.map { |field| new_column_from_field(table, field, definitions) }]
+          [table, definitions.each_with_index.map { |field, ord| new_column_from_field(table, field, definitions, ord) }]
         end
 
         table_name.is_a?(Array) ? result : result[table_name.to_s]
