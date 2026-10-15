@@ -65,18 +65,20 @@ module ActiveRecord
     end
 
     def association_cached?(name) # :nodoc:
-      @association_cache.key?(name)
+      @association_cache&.key?(name) || false
     end
 
     def initialize_dup(*) # :nodoc:
-      @association_cache = {}
+      @association_cache = nil
       super
     end
 
     private
+      # The cache is built on the first association access: most records
+      # are instantiated, read and discarded without touching an association.
       def init_internals
         super
-        @association_cache = {}
+        @association_cache = nil
       end
 
       # Returns the specified association instance if it exists, +nil+ otherwise.
@@ -86,7 +88,7 @@ module ActiveRecord
 
       # Set the specified association instance.
       def association_instance_set(name, association)
-        @association_cache[name] = association
+        (@association_cache ||= {})[name] = association
       end
 
       def deprecated_associations_api_guard(association, method_name)
