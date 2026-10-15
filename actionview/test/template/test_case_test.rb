@@ -69,6 +69,20 @@ module ActionView
       assert_nil ActionView::Base.empty.config.something_odd
     end
 
+    test "config is built from the controller's config on first read" do
+      controller = ActionView::TestCase::TestController.new
+      view = ActionView::Base.with_empty_template_cache.with_view_paths([], {}, controller)
+      assert_nil view.instance_variable_get(:@_config)
+
+      controller.config.asset_host = "assets.example.com"
+      assert_equal "assets.example.com", view.config.asset_host
+      assert_same view.config, view.config
+
+      view.config.asset_host = "view.example.com"
+      assert_equal "view.example.com", view.config.asset_host
+      assert_equal "assets.example.com", controller.config.asset_host
+    end
+
     test "works without testing a helper module" do
       assert_equal "Eloy", render("developers/developer", developer: DeveloperStruct.new("Eloy"))
     end

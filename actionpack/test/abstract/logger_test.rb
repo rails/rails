@@ -24,6 +24,16 @@ module AbstractController
         Parent.logger = nil
       end
 
+      test "reading the logger does not build an instance configuration" do
+        controller = Child.new
+        controller.logger
+
+        assert_nil controller.instance_variable_get(:@_config)
+
+        controller.logger = ActiveSupport::Logger.new(nil)
+        assert_same controller.logger, controller.config.logger
+      end
+
       test "logger assigned on an instance does not leak to the class" do
         # A throwaway subclass: assigning the logger on Child, even to reset
         # it to nil afterwards, would store an explicit value in Child's own
