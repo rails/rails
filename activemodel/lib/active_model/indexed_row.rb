@@ -4,7 +4,20 @@
 
 module ActiveModel
   class IndexedRow # :nodoc:
+    UNSET = Module.new.freeze
+    private_constant :UNSET
+
     class << self
+      # A row of +size+ slots that are all unset, to be filled in by position.
+      def unset_row(size)
+        Array.new(size, UNSET)
+      end
+
+      # The largest +ord+ in +column_map+, or -1 if it is empty.
+      def max_ord(column_map)
+        column_map.each_value.inject(-1) { |max, column| column.ord > max ? column.ord : max }
+      end
+
       def [](hash)
         return hash if hash.is_a?(self)
 
@@ -27,25 +40,25 @@ module ActiveModel
     end
 
     def size
-      @indexes.size
+      keys.size
     end
     alias_method :length, :size
 
     def each_key(&block)
-      @indexes.each_key(&block)
+      keys.each(&block)
     end
 
     def keys
-      @indexes.keys
+      @indexes.each_key.select { |column| key?(column) }
     end
 
     def values
-      @row.dup
+      @row.reject { |v| UNSET.equal?(v) }
     end
 
     def values_at(*columns)
       columns.map! do |column|
-        if index = @indexes[column]
+        if index = index_for(column)
           @row[index]
         end
       end
@@ -71,11 +84,11 @@ module ActiveModel
     end
 
     def key?(column)
-      @indexes.key?(column)
+      !index_for(column).nil?
     end
 
     def fetch(column)
-      if index = @indexes[column]
+      if index = index_for(column)
         @row[index]
       elsif block_given?
         yield
@@ -85,13 +98,13 @@ module ActiveModel
     end
 
     def [](column)
-      if index = @indexes[column]
+      if index = index_for(column)
         @row[index]
       end
     end
 
     def to_h
-      @indexes.transform_values { |index| @row[index] }
+      keys.index_with { |column| @row[index_for(column)] }
     end
     alias_method :to_hash, :to_h
 
@@ -99,31 +112,107 @@ module ActiveModel
       Mutable.new(@indexes, size: @row.size)
     end
 
+    # Builds rows keyed by +new_columns+ out of rows keyed by +old_columns+.
+    #
+    # When +column_map+ is given, the new rows are laid out by the +ord+ of
+    # each column in it, and columns it doesn't have are given indexes after
+    # its last one (see ExtendedIndexes). Without one, every column is
+    # extra, so the new row is in the order of +new_columns+.
     class Remapper
-      def initialize(initial_indexes, old_columns, new_columns = old_columns)
-        @initial_indexes = initial_indexes
+      EMPTY = {}.freeze
+      private_constant :EMPTY
 
+      def initialize(initial_indexes, old_columns, new_columns = old_columns, column_map = EMPTY)
         # Handle duplicate keys
         pairs = new_columns.zip(old_columns).to_h
-        new_columns = pairs.keys
-        old_columns = pairs.values
 
-        @new_indexes = IndexedRow.build_indexes(new_columns)
-        @indexes_to_extract = old_columns.map { |column| @initial_indexes.fetch(column) }
+        extra = nil
+        last_ord = nil
+
+        # [ord in the new row, index in the original row]
+        slots = pairs.map do |new_column, old_column|
+          if column = column_map[new_column]
+            ord = column.ord
+          else
+            extra ||= {}
+            last_ord ||= IndexedRow.max_ord(column_map)
+            ord = extra[new_column] = (last_ord += 1)
+          end
+
+          [ord, initial_indexes.fetch(old_column).ord]
+        end
+        slots.sort_by!(&:first)
+
+        @new_indexes = if extra.nil?
+          column_map
+        elsif column_map.empty?
+          extra.freeze
+        else
+          ExtendedIndexes.new(column_map, extra.freeze)
+        end
+
+        # If the new row has no gaps, it can be built with a single
+        # values_at. Otherwise fill in an unset row by position.
+        if slots.each_with_index.all? { |(ord, _), i| ord == i }
+          @indexes_to_extract = slots.map(&:last)
+          @slots = nil
+        else
+          @slots = slots
+          @width = slots.last.first + 1
+        end
       end
 
       def build(original_row)
-        IndexedRow.new(@new_indexes, original_row.row.values_at(*@indexes_to_extract).freeze)
+        values = original_row.row
+
+        if @slots
+          row = IndexedRow.unset_row(@width)
+          @slots.each { |ord, index| row[ord] = values[index] }
+        else
+          row = values.values_at(*@indexes_to_extract)
+        end
+
+        IndexedRow.new(@new_indexes, row.freeze)
+      end
+    end
+
+    # Wraps an immutable column map and adds indexes for columns it doesn't
+    # have, such as aliases selected alongside a model's columns.
+    class ExtendedIndexes
+      def initialize(indexes, extra)
+        @indexes = indexes
+        @extra = extra
+      end
+
+      def [](column)
+        @indexes[column] || @extra[column]
+      end
+
+      def fetch(column, &block)
+        @indexes.fetch(column) { @extra.fetch(column, &block) }
+      end
+
+      def key?(column)
+        @indexes.key?(column) || @extra.key?(column)
+      end
+
+      def each_key(&block)
+        return enum_for(:each_key) { size } unless block
+
+        @indexes.each_key(&block)
+        @extra.each_key(&block)
+        self
+      end
+
+      def size
+        @indexes.size + @extra.size
       end
     end
 
     class Mutable < self
-      UNSET = Module.new.freeze
-      private_constant :UNSET
-
       def initialize(indexes, row = nil, size: indexes.size)
         @indexes = indexes
-        @row = row || Array.new(size, UNSET)
+        @row = row || IndexedRow.unset_row(size)
       end
 
       def size
@@ -131,68 +220,26 @@ module ActiveModel
       end
       alias_method :length, :size
 
-      def keys
-        @indexes.reject { |k, v| UNSET.equal?(@row[v]) }.keys
-      end
-
-      def key?(column)
-        index = @indexes[column]
-        index && !UNSET.equal?(@row[index])
-      end
-
-      def values
-        @row.reject { |v| UNSET.equal?(v) }
-      end
-
-      def values_at(*columns)
-        columns.map! do |column|
-          if index = @indexes[column]
-            value = @row[index]
-            UNSET.equal?(value) ? nil : value
-          end
-        end
-        columns
-      end
-
-      def [](column)
-        if index = @indexes[column]
-          value = @row[index]
-          return if UNSET.equal?(value)
-          value
-        end
-      end
-
       def []=(column, value)
-        if index = @indexes[column]
+        if (entry = @indexes[column]) && (index = entry.ord) < @row.size
           @row[index] = value
         else
           raise KeyError, "key not found: #{column.inspect}"
         end
       end
+    end
 
-      def fetch(column)
-        if index = @indexes[column]
-          value = @row[index]
-          if UNSET.equal?(value)
-            if block_given?
-              yield
-            else
-              raise KeyError, "key not found: #{column.inspect}"
-            end
-          else
-            value
-          end
-        elsif block_given?
-          yield
-        else
-          raise KeyError, "key not found: #{column.inspect}"
+    private
+      # The position of +column+ in the row, or +nil+ if the row doesn't
+      # have it. The values in +@indexes+ are either Integers or Columns
+      # (both respond to +ord+). A column map can include columns that
+      # weren't selected, so their +ord+ can be past the end of the row or
+      # point at an UNSET slot.
+      def index_for(column)
+        if entry = @indexes[column]
+          index = entry.ord
+          index if index < @row.size && !UNSET.equal?(@row[index])
         end
       end
-
-      def to_h
-        @indexes.transform_values { |index| @row[index] }.reject { |k, v| UNSET.equal?(v) }
-      end
-      alias_method :to_hash, :to_h
-    end
   end
 end
