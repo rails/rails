@@ -757,7 +757,7 @@ module ActiveRecord
       end
 
       @association_cache = fresh_object.instance_variable_get(:@association_cache)
-      @association_cache.each_value { |association| association.owner = self }
+      @association_cache&.each_value { |association| association.owner = self }
       @attributes = fresh_object.instance_variable_get(:@attributes)
       @new_record = false
       @previously_new_record = false
@@ -826,6 +826,8 @@ module ActiveRecord
       end
 
       def strict_loaded_associations
+        return [] unless @association_cache
+
         @association_cache.find_all do |_, assoc|
           assoc.owner.strict_loading? && !assoc.owner.strict_loading_n_plus_one_only?
         end.map(&:first)
