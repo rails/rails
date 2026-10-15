@@ -646,7 +646,9 @@ module ActionController # :nodoc:
         when "cross-site"
           origin_trusted?
         when nil
-          !request.ssl? && !ActionDispatch::Http::URL.secure_protocol
+          # Fall back to the Origin header: browsers always send it on POSTs,
+          # so a request with a mismatched Origin is cross-site.
+          (request.origin.nil? || request.origin == request.base_url) && !request.ssl? && !ActionDispatch::Http::URL.secure_protocol
         else
           false
         end
