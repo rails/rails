@@ -190,6 +190,58 @@ module ActiveRecord
       @column_indexes ||= ActiveModel::IndexedRow.build_indexes(columns)
     end
 
+    def map_rows(column_map) # :nodoc:
+      # We're going to build a lookup table for how the column map expects
+      # attributes to be laid out.  The `ord` method on the column
+      # corresponds to the index generated in the reader/writer methods, so
+      # we need to ensure that the values in the row line up with the
+      # expected indexes.
+      #
+      # "pending" columns are columns that the schema didn't know about so
+      # we didn't generate methods. For example column aliases.
+      #
+      # Pending columns are given indexes after the last one in the column
+      # map, and the rows get a proxy that wraps the column map with those
+      # extra indexes, so the column map itself is never modified.
+      #
+      # The LUT is only built once we find a column that is out of place,
+      # so in the common case (selected columns are in schema order) the
+      # rows are used as-is.
+      shuffle_lut = nil
+      pending = nil
+      last_ord = nil
+
+      @columns.each_with_index do |name, i|
+        if column = column_map[name]
+          ord = column.ord
+        else
+          pending ||= {}
+          last_ord ||= ActiveModel::IndexedRow.max_ord(column_map)
+          ord = pending[name] = (last_ord += 1)
+        end
+
+        if shuffle_lut
+          shuffle_lut << ord
+        elsif ord != i
+          shuffle_lut = (0...i).to_a << ord
+        end
+      end
+
+      indexes = pending ? ActiveModel::IndexedRow::ExtendedIndexes.new(column_map, pending.freeze) : column_map
+
+      if shuffle_lut
+        width = shuffle_lut.max + 1
+
+        @rows.map do |row|
+          shuffled = ActiveModel::IndexedRow.unset_row(width)
+          shuffle_lut.each_with_index { |ord, i| shuffled[ord] = row[i] }
+          yield ActiveModel::IndexedRow.new(indexes, shuffled.freeze)
+        end
+      else
+        @rows.map { |row| yield ActiveModel::IndexedRow.new(indexes, row) }
+      end
+    end
+
     def indexed_rows # :nodoc:
       @indexed_rows ||= begin
         columns = column_indexes
