@@ -20,6 +20,34 @@ class IndexedRowTest < ActiveModel::TestCase
     assert_nil @row["missing"]
   end
 
+  test "#at" do
+    assert_equal "George", @row.at(0)
+    assert_equal "Abitbol", @row.at(1)
+    assert_equal 42, @row.at(2)
+    assert_nil @row.at(3)
+  end
+
+  test "#fetch_at" do
+    assert_equal "George", @row.fetch_at(0)
+    assert_equal 42, @row.fetch_at(2)
+    assert_equal :missing, @row.fetch_at(3) { :missing }
+    error = assert_raises(KeyError) { @row.fetch_at(3) }
+    assert_equal "index not found: 3", error.message
+  end
+
+  test "#at and #fetch_at treat unset slots as missing" do
+    values = ActiveModel::IndexedRow.unset_row(3)
+    values[0] = 1
+    values[2] = nil
+    row = ActiveModel::IndexedRow.new({ "id" => 0, "name" => 1, "age" => 2 }, values.freeze)
+
+    assert_equal 1, row.at(0)
+    assert_nil row.at(1)
+    assert_nil row.at(2)
+    assert_equal :missing, row.fetch_at(1) { :missing }
+    assert_nil row.fetch_at(2) { :missing }
+  end
+
   test "#size" do
     assert_equal @hash.size, @row.size
   end
@@ -69,6 +97,17 @@ class EmptyMutableIndexedRowTest < ActiveModel::TestCase
     @hash = { "first_name" => "George", "last_name" => "Abitbol", "age" => 42 }.freeze
     @reference = ActiveModel::IndexedRow[@hash]
     @row = @reference.new_empty_mutable_row
+  end
+
+  test "#at and #fetch_at" do
+    assert_nil @row.at(0)
+    assert_equal :missing, @row.fetch_at(0) { :missing }
+    assert_raises(KeyError) { @row.fetch_at(0) }
+
+    @row["first_name"] = "George"
+    assert_equal "George", @row.at(0)
+    assert_equal "George", @row.fetch_at(0)
+    assert_nil @row.at(1)
   end
 
   test "#[]" do
