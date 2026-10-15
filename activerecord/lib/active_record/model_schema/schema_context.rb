@@ -26,9 +26,15 @@ module ActiveRecord
           end
         end
 
+        # Built once per schema context: this runs on every record
+        # instantiation, and the difference/except dance allocates on each
+        # call. The context is discarded by reload_schema_from_cache, which
+        # primary_key= also triggers, so a stale builder is never reused.
         def builder
-          primary_key_defaults = defaults.except(*(context.model_class.column_names - Array(context.model_class.primary_key)))
-          ActiveModel::AttributeSet::Builder.new(types, primary_key_defaults)
+          @builder ||= begin
+            primary_key_defaults = defaults.except(*(context.model_class.column_names - Array(context.model_class.primary_key)))
+            ActiveModel::AttributeSet::Builder.new(types, primary_key_defaults)
+          end
         end
 
         def column_defaults
