@@ -719,7 +719,8 @@ module ActionController # :nodoc:
       # Creates a masked version of the authenticity token that varies on each
       # request. The masking is used to mitigate SSL attacks like BREACH.
       def masked_authenticity_token(form_options: {})
-        action, method = form_options.values_at(:action, :method)
+        action = form_options[:action]
+        method = form_options[:method]
 
         raw_token = if per_form_csrf_tokens && action && method
           action_path = normalize_action_path(action)
@@ -804,11 +805,18 @@ module ActionController # :nodoc:
           request.env[CSRF_TOKEN] = csrf_token_storage_strategy.fetch(request) || generate_csrf_token
         end
 
-        decode_csrf_token(csrf_token)
+        # Decoded once per token rather than once per read: a page asks for
+        # the real token once per form it renders.
+        if @_real_csrf_token_source == csrf_token
+          @_real_csrf_token
+        else
+          @_real_csrf_token_source = csrf_token
+          @_real_csrf_token = decode_csrf_token(csrf_token)
+        end
       end
 
       def per_form_csrf_token(session, action_path, method) # :doc:
-        csrf_token_hmac(session, [action_path, method.downcase].join("#"))
+        csrf_token_hmac(session, "#{action_path}##{method.downcase}")
       end
 
       GLOBAL_CSRF_TOKEN_IDENTIFIER = "!real_csrf_token"
@@ -819,11 +827,7 @@ module ActionController # :nodoc:
       end
 
       def csrf_token_hmac(session, identifier) # :doc:
-        OpenSSL::HMAC.digest(
-          OpenSSL::Digest::SHA256.new,
-          real_csrf_token(session),
-          identifier
-        )
+        OpenSSL::HMAC.digest("SHA256", real_csrf_token(session), identifier)
       end
 
       def xor_byte_strings(s1, s2) # :doc:
@@ -869,7 +873,15 @@ module ActionController # :nodoc:
         end
       end
 
+      # An absolute path made only of RFC 3986 path characters, and not a
+      # network-path reference ("//host/path"). The URI parser hands such a
+      # path back untouched, so it is not worth parsing.
+      PLAIN_ABSOLUTE_PATH = %r{\A/(?!/)(?:[A-Za-z0-9\-._~!$&'()*+,;=:@/]|%[0-9A-Fa-f]{2})*\z}
+      private_constant :PLAIN_ABSOLUTE_PATH
+
       def normalize_action_path(action_path)
+        return action_path.chomp("/") if action_path.match?(PLAIN_ABSOLUTE_PATH)
+
         uri = URI.parse(action_path)
 
         if uri.relative? && (action_path.blank? || !action_path.start_with?("/"))

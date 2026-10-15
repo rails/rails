@@ -647,15 +647,10 @@ module ActionView
 
         def token_tag(token = nil, form_options: {})
           if token != false && defined?(protect_against_forgery?) && protect_against_forgery?
-            token =
-              if token == true || token.nil?
-                form_authenticity_token(form_options: form_options.merge(authenticity_token: token))
-              else
-                token
-              end
+            token = form_authenticity_token(form_options: form_options) if token == true || token.nil?
             options = { type: "hidden", name: request_forgery_protection_token.to_s, value: token }
             options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
-            tag(:input, **options)
+            tag(:input, options)
           else
             ""
           end
@@ -664,7 +659,7 @@ module ActionView
         def method_tag(method)
           options = { type: "hidden", name: "_method", value: method.to_s }
           options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete
-          tag("input", **options)
+          tag("input", options)
         end
 
         # Returns an array of hashes each containing :name and :value keys
