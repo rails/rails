@@ -101,6 +101,27 @@ module ActiveModel
       end
     end
 
+    # Like #fetch, but looks the value up by its index in the row (the
+    # column's +ord+) rather than by name.
+    def fetch_at(index)
+      value = index < @row.size ? @row[index] : UNSET
+
+      if !UNSET.equal?(value)
+        value
+      elsif block_given?
+        yield
+      else
+        raise KeyError, "index not found: #{index.inspect}"
+      end
+    end
+
+    # Like #[], but looks the value up by its index in the row (the
+    # column's +ord+) rather than by name.
+    def at(index)
+      value = @row[index]
+      value unless UNSET.equal?(value)
+    end
+
     def to_h
       keys.index_with { |column| @row[index_for(column)] }
     end
