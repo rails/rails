@@ -1550,7 +1550,7 @@ module ActionView
                 next if k.blank? || v.nil?
 
                 output << sep
-                output << prefix_tag_option(key, k, v, escape)
+                append_prefix_tag_option(output, key, k, v, escape)
               end
             elsif type == :aria && value.is_a?(Hash)
               value.each_pair do |k, v|
@@ -1567,16 +1567,16 @@ module ActionView
                 end
 
                 output << sep
-                output << prefix_tag_option(key, k, v, escape)
+                append_prefix_tag_option(output, key, k, v, escape)
               end
             elsif type == :boolean
               if value
                 output << sep
-                output << boolean_tag_option(key)
+                append_boolean_tag_option(output, key)
               end
             elsif !value.nil?
               output << sep
-              output << tag_option(key, value, escape)
+              append_tag_option(output, key, value, escape)
             end
           end
           output unless output.empty?
@@ -1598,15 +1598,34 @@ module ActionView
           end
 
           def boolean_tag_option(key)
-            %(#{key}="#{key}")
+            output = +""
+            append_boolean_tag_option(output, key)
+            output
+          end
+
+          def append_boolean_tag_option(output, key)
+            key = Symbol === key ? key.name : key.to_s
+            output << key
+            output << "=\""
+            output << key
+            output << "\""
           end
 
           def tag_option(key, value, escape)
+            output = +""
+            append_tag_option(output, key, value, escape)
+            output
+          end
+
+          # Appends a single attribute to +output+ without allocating an
+          # intermediate string per attribute.
+          def append_tag_option(output, key, value, escape)
+            key = Symbol === key ? key.name : key.to_s
             key = ERB::Util.xml_name_escape(key) if escape
 
             case value
             when Array, Hash
-              value = TagHelper.build_tag_values(value) if key.to_s == "class"
+              value = TagHelper.build_tag_values(value) if key == "class"
               value = escape ? @view_context.safe_join(value, " ") : value.join(" ")
             when Regexp
               value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
@@ -1615,15 +1634,24 @@ module ActionView
             end
             value = value.gsub('"', "&quot;") if value.include?('"')
 
-            %(#{key}="#{value}")
+            output << key
+            output << "=\""
+            output << value
+            output << "\""
           end
 
           def prefix_tag_option(prefix, key, value, escape)
+            output = +""
+            append_prefix_tag_option(output, prefix, key, value, escape)
+            output
+          end
+
+          def append_prefix_tag_option(output, prefix, key, value, escape)
             key = "#{prefix}-#{key.to_s.dasherize}"
             unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
               value = value.to_json
             end
-            tag_option(key, value, escape)
+            append_tag_option(output, key, value, escape)
           end
 
           def respond_to_missing?(*args)
