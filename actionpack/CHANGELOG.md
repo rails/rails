@@ -1,3 +1,20 @@
+*   Short-circuit route matching for static paths.
+
+    The route set now precomputes an exact-match table from request method
+    and path to the route that is certain to be their first match: anchored
+    routes with a single request method, no extra request constraints, and
+    no dynamic segments outside trailing optional groups (so
+    `GET /posts(.:format)` is registered under `GET /posts`). Paths that an
+    earlier route could also match are excluded at build time, preserving
+    precedence, and anything not in the table takes the regular matcher.
+
+    Dispatching a request to such a route skips the simulator walk, the
+    pattern match, and parameter extraction: in a 193-route set, routing a
+    request to a static route takes ~0.8μs instead of 1.4–2.4μs, while
+    dynamic routes are unaffected. Matching behavior is unchanged.
+
+    *Akira Matsuda*
+
 *   Remove support for dynamic `:controller` and `:action` route segments.
 
     A route may no longer read the controller or the action out of the URL:
