@@ -8,6 +8,8 @@ module ActionController
     class_attribute :_rescue_from_event_backtrace, instance_accessor: false, default: nil # :nodoc:
 
     def start_processing(event)
+      return unless emitting?("action_controller.request_started")
+
       payload = event.payload
       params = {}
       payload[:params].each_pair do |k, v|
@@ -26,6 +28,8 @@ module ActionController
     end
 
     def process_action(event)
+      return unless emitting?("action_controller.request_completed")
+
       payload = event.payload
       status = payload[:status]
 

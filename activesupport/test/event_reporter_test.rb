@@ -59,6 +59,65 @@ module ActiveSupport
       end
     end
 
+    class SilencedSubscriber < EventReporter::TestHelper::EventSubscriber
+      def consumes?(name)
+        false
+      end
+    end
+
+    class BrokenConsumesSubscriber < EventReporter::TestHelper::EventSubscriber
+      def consumes?(name)
+        raise StandardError, "consumes? blew up"
+      end
+    end
+
+    test "notify does not build the event when no subscriber consumes it" do
+      silenced = SilencedSubscriber.new
+      reporter = EventReporter.new(silenced, raise_on_error: true)
+      reporter.notify("silenced.event", id: 1)
+
+      assert_empty silenced.events
+    end
+
+    test "notify emits to every matching subscriber when at least one consumes the event" do
+      silenced = SilencedSubscriber.new
+      reporter = EventReporter.new(silenced, @subscriber, raise_on_error: true)
+
+      reporter.notify("consumed.event", id: 1)
+
+      assert_equal 1, @subscriber.events.size
+      assert_equal 1, silenced.events.size, "subscribers that do not consume still see the event when it is built"
+    end
+
+    test "subscribers without consumes? are assumed to consume everything" do
+      @reporter.notify("some.event")
+      assert_equal 1, @subscriber.events.size
+    end
+
+    test "a subscriber whose consumes? raises is treated as consuming" do
+      broken = BrokenConsumesSubscriber.new
+      reporter = EventReporter.new(broken, raise_on_error: true)
+
+      reporter.notify("some.event")
+
+      assert_equal 1, broken.events.size
+    end
+
+    test "emitting? reports whether any subscriber would consume the event" do
+      assert @reporter.emitting?("some.event")
+      assert @reporter.emitting?(:some_event)
+      assert_not EventReporter.new(raise_on_error: true).emitting?("some.event")
+      assert_not EventReporter.new(SilencedSubscriber.new, raise_on_error: true).emitting?("some.event")
+    end
+
+    test "emitting? honors subscription filters" do
+      reporter = EventReporter.new(raise_on_error: true)
+      reporter.subscribe(@subscriber) { |event| event[:name].start_with?("user.") }
+
+      assert reporter.emitting?("user.created")
+      assert_not reporter.emitting?("order.created")
+    end
+
     test "#subscribe" do
       reporter = ActiveSupport::EventReporter.new
       subscribers = reporter.subscribe(@subscriber)
