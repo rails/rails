@@ -863,7 +863,7 @@ module ActionController # :nodoc:
         if forgery_protection_origin_check
           # We accept blank origin headers because some user agents don't send it.
           raise InvalidCrossOriginRequest, NULL_ORIGIN_MESSAGE if request.origin == "null"
-          request.origin.nil? || request.origin == request.base_url
+          request.origin.nil? || request.origin == request.base_url || origin_trusted?
         else
           true
         end

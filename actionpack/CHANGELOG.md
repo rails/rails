@@ -1,3 +1,12 @@
+*   Allow `protect_from_forgery trusted_origins:` when the origin check is enabled.
+
+    `forgery_protection_origin_check` rejected any request whose `Origin` header
+    didn't match `request.base_url` before trusted origins were consulted, so
+    cross-site requests from trusted origins were always blocked in applications
+    using `load_defaults` 5.0 or later.
+
+    *Chris Oliver*
+
 *   Remove support for dynamic `:controller` and `:action` route segments.
 
     A route may no longer read the controller or the action out of the URL:

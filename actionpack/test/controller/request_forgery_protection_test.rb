@@ -1941,6 +1941,34 @@ class TrustedOriginsHeaderOnlyControllerTest < ActionController::TestCase
     post :index
     assert_response :success
   end
+
+  test "allows cross-site POST from trusted origin with origin check" do
+    with_forgery_protection_origin_check do
+      @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+      @request.set_header "HTTP_ORIGIN", "https://trusted.example.com"
+      post :index
+      assert_response :success
+    end
+  end
+
+  test "blocks cross-site POST from untrusted origin with origin check" do
+    with_forgery_protection_origin_check do
+      @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+      @request.set_header "HTTP_ORIGIN", "https://untrusted.example.com"
+      assert_raises(ActionController::InvalidCrossOriginRequest) do
+        post :index
+      end
+    end
+  end
+
+  private
+    def with_forgery_protection_origin_check
+      old_setting = ActionController::Base.forgery_protection_origin_check
+      ActionController::Base.forgery_protection_origin_check = true
+      yield
+    ensure
+      ActionController::Base.forgery_protection_origin_check = old_setting
+    end
 end
 
 class TrustedOriginsHeaderOrLegacyTokenControllerTest < ActionController::TestCase
@@ -1967,6 +1995,34 @@ class TrustedOriginsHeaderOrLegacyTokenControllerTest < ActionController::TestCa
       post :index
     end
   end
+
+  test "allows cross-site POST from trusted origin with origin check" do
+    with_forgery_protection_origin_check do
+      @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+      @request.set_header "HTTP_ORIGIN", "https://trusted.example.com"
+      post :index
+      assert_response :success
+    end
+  end
+
+  test "blocks cross-site POST from untrusted origin with origin check" do
+    with_forgery_protection_origin_check do
+      @request.set_header "HTTP_SEC_FETCH_SITE", "cross-site"
+      @request.set_header "HTTP_ORIGIN", "https://untrusted.example.com"
+      assert_raises(ActionController::InvalidCrossOriginRequest) do
+        post :index
+      end
+    end
+  end
+
+  private
+    def with_forgery_protection_origin_check
+      old_setting = ActionController::Base.forgery_protection_origin_check
+      ActionController::Base.forgery_protection_origin_check = true
+      yield
+    ensure
+      ActionController::Base.forgery_protection_origin_check = old_setting
+    end
 end
 
 class InvalidAuthenticityTokenDeprecationTest < ActiveSupport::TestCase
