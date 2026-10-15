@@ -61,8 +61,7 @@ module ActionDispatch
     def initialize(env)
       super
 
-      @rack_request = Rack::Request.new(env)
-
+      @rack_request      = nil
       @method            = nil
       @request_method    = nil
       @remote_ip         = nil
@@ -71,7 +70,11 @@ module ActionDispatch
       @ip                = nil
     end
 
-    attr_reader :rack_request
+    # Built lazily: most Request objects are created by middlewares that
+    # never need the underlying Rack::Request.
+    def rack_request
+      @rack_request ||= Rack::Request.new(env)
+    end
 
     def commit_cookie_jar! # :nodoc:
     end
