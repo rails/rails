@@ -25,19 +25,21 @@ module AbstractController
       end
 
       test "logger assigned on an instance does not leak to the class" do
+        # A throwaway subclass: assigning the logger on Child, even to reset
+        # it to nil afterwards, would store an explicit value in Child's own
+        # configuration that shadows Parent's for the inheritance test.
+        controller_class = Class.new(Parent)
         class_logger = ActiveSupport::Logger.new(nil)
         instance_logger = ActiveSupport::Logger.new(nil)
-        Child.logger = class_logger
+        controller_class.logger = class_logger
 
-        child = Child.new
-        child.logger = instance_logger
+        controller = controller_class.new
+        controller.logger = instance_logger
 
-        assert_same instance_logger, child.logger
-        assert_same instance_logger, child.config.logger
-        assert_same class_logger, Child.logger
-        assert_same class_logger, Child.new.logger
-      ensure
-        Child.logger = nil
+        assert_same instance_logger, controller.logger
+        assert_same instance_logger, controller.config.logger
+        assert_same class_logger, controller_class.logger
+        assert_same class_logger, controller_class.new.logger
       end
     end
   end
