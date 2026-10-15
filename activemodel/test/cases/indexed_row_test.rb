@@ -122,9 +122,12 @@ class EmptyMutableIndexedRowTest < ActiveModel::TestCase
     @row["age"] = 42
     assert_equal 42, @row["age"]
 
-    assert_raises KeyError do
-      @row["missing"] = true
-    end
+    indexes = @row.indexes
+    @row["missing"] = true
+    assert_equal true, @row["missing"]
+    assert_equal 3, @row.indexes["missing"]
+    assert_not_same indexes, @row.indexes
+    assert_not indexes.key?("missing"), "shared indexes should not be modified"
   end
 
   test "#size" do
