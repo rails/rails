@@ -833,6 +833,15 @@ class PreloaderTest < ActiveRecord::TestCase
            :members, :member_details, :organizations, :cpk_authors, :cpk_orders, :cpk_books, :cpk_order_agreements,
            :dogs, :other_dogs
 
+  class SelfReferencingCompany < ActiveRecord::Base
+    self.table_name = "companies"
+    self.inheritance_column = nil
+
+    belongs_to :parent, class_name: name, foreign_key: :firm_id, optional: true
+    belongs_to :mentor, class_name: name, foreign_key: :client_of, optional: true
+    has_one :parents_mentor, through: :parent, source: :mentor
+  end
+
   def test_preload_with_scope
     post = posts(:welcome)
 
@@ -1382,6 +1391,28 @@ class PreloaderTest < ActiveRecord::TestCase
 
     assert_predicate author.association(:essay_category), :loaded?
     assert categories.map(&:__id__).include?(author.essay_category.__id__)
+  end
+
+  def test_preload_with_available_records_does_not_match_through_keys_against_the_owner
+    mentor = SelfReferencingCompany.create!(name: "Parent's mentor")
+    unrelated = SelfReferencingCompany.create!(name: "Owner's mentor")
+    parent = SelfReferencingCompany.create!(name: "Parent", mentor: mentor)
+    owner = SelfReferencingCompany.create!(name: "Owner", parent: parent, mentor: unrelated)
+
+    [:loaded, :unloaded].each do |state|
+      [owner, parent, mentor, unrelated].each(&:reload) if state == :unloaded
+
+      assert_no_queries do
+        ActiveRecord::Associations::Preloader.new(
+          records: [owner],
+          associations: :parents_mentor,
+          available_records: [parent, mentor, unrelated]
+        ).call
+      end
+
+      assert_predicate owner.association(:parents_mentor), :loaded?, state
+      assert_same mentor, owner.parents_mentor, state
+    end
   end
 
   def test_preload_with_only_some_records_available_with_through_associations

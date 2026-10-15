@@ -89,6 +89,12 @@ module ActiveRecord
           end
         end
 
+        # The owner and target aren't directly linked, so their keys can't
+        # confirm that a record belongs to this association.
+        def matches_foreign_key?(record)
+          false
+        end
+
         def foreign_key_present?
           through_reflection.belongs_to? && Array(through_reflection.foreign_key).all? do |foreign_key_column|
             !owner.read_attribute(foreign_key_column).nil?
