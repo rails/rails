@@ -12,10 +12,20 @@ module ActionMailbox
     extend  ActiveSupport::Concern
     include ActiveSupport::Callbacks
 
-    TERMINATOR = ActiveSupport::Ractors.shareable_lambda do |mailbox, chain|
-      chain.call
-      mailbox.finished_processing?
+    # Implements call_direct so that before callbacks don't have to allocate
+    # a thunk per invocation (see ActiveSupport::Callbacks::Filters::Before).
+    class Terminator # :nodoc:
+      def call(mailbox, chain)
+        chain.call
+        mailbox.finished_processing?
+      end
+
+      def call_direct(mailbox, user_callback, value)
+        user_callback.call(mailbox, value)
+        mailbox.finished_processing?
+      end
     end
+    TERMINATOR = Terminator.new.freeze
 
     included do
       define_callbacks :process, terminator: TERMINATOR, skip_after_callbacks_if_terminated: true
