@@ -221,7 +221,7 @@ module ActionView
       #
       # ```
       # link_to nil, "http://example.com"
-      # # => <a href="http://www.example.com">http://www.example.com</a>
+      # # => <a href="http://example.com">http://example.com</a>
       # ```
       #
       # More concise yet, when `name` is an Active Record model that defines a
