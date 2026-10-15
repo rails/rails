@@ -641,7 +641,14 @@ module ActionView
       end
 
       def instrument_render_template(&block)
-        ActiveSupport::Notifications.instrument("!render_template.action_view", instrument_payload, &block)
+        # Nothing in the framework subscribes to this event; test helpers such
+        # as assert_template do. Build the payload only when someone listens,
+        # since this runs for every template and partial rendered.
+        if ActiveSupport::Notifications.notifier.listening?("!render_template.action_view")
+          ActiveSupport::Notifications.instrument("!render_template.action_view", instrument_payload, &block)
+        else
+          yield
+        end
       end
 
       def instrument_payload
