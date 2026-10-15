@@ -29,8 +29,7 @@ module ActiveRecord
       # to `Date.new(2004, 12, 12)`. (For information about specific type
       # casting behavior, see the types under ActiveModel::Type.)
       def read_attribute(attr_name, &block)
-        name = attr_name.to_s
-        name = self.class.attribute_aliases[name] || name
+        name = resolve_alias(attr_name.to_s)
 
         @attributes.fetch_value(name, &block)
       end
