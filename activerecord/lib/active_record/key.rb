@@ -104,6 +104,10 @@ module ActiveRecord
       raise NotImplementedError
     end
 
+    def resolve_aliases(owner)
+      raise NotImplementedError
+    end
+
     class Single < Key # :nodoc:
       def initialize(name)
         @name = -name.to_s
@@ -159,7 +163,7 @@ module ActiveRecord
       end
 
       def value_of(record)
-        record.read_attribute(@name)
+        record.read_attr(@name)
       end
 
       def expects_multiple_ids?(value)
@@ -185,6 +189,16 @@ module ActiveRecord
 
       def subset?(other)
         other.include?(@name)
+      end
+
+      def resolve_aliases(owner)
+        aliaz = owner.resolve_alias(@name)
+
+        if aliaz == @name
+          self
+        else
+          self.class.new(aliaz)
+        end
       end
     end
 
@@ -224,7 +238,7 @@ module ActiveRecord
       end
 
       def value_of(record)
-        @columns.map { |column| record.read_attribute(column) }
+        @columns.map { |column| record.read_attr(column) }
       end
 
       # A single composite id is itself an Array, so several ids are an Array of
@@ -253,6 +267,14 @@ module ActiveRecord
 
       def subset?(other)
         @columns.all? { |column| other.include?(column) }
+      end
+
+      def resolve_aliases(owner)
+        if @columns.any? { |name| owner.resolve_alias(name) != name }
+          self.class.new(@columns.map { |n| owner.resolve_alias(n) })
+        else
+          self
+        end
       end
     end
 

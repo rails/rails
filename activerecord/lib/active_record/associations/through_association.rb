@@ -64,7 +64,7 @@ module ActiveRecord
           if Array(association_primary_key) == reflection.klass.composite_query_constraints_list && !options[:source_type]
             join_attributes = { source_reflection.name => records }
           else
-            assoc_pk_values = records.map { |record| record.read_attribute(association_primary_key) }
+            assoc_pk_values = records.map { |record| record.read_attr(association_primary_key) }
             join_attributes = { source_reflection.foreign_key => assoc_pk_values }
           end
 
@@ -84,7 +84,7 @@ module ActiveRecord
         def stale_state
           if through_reflection.belongs_to?
             Array(through_reflection.foreign_key).filter_map do |foreign_key_column|
-              owner.read_attribute(foreign_key_column)
+              owner.read_attr(foreign_key_column)
             end.presence
           end
         end
@@ -97,7 +97,7 @@ module ActiveRecord
 
         def foreign_key_present?
           through_reflection.belongs_to? && Array(through_reflection.foreign_key).all? do |foreign_key_column|
-            !owner.read_attribute(foreign_key_column).nil?
+            !owner.read_attr(foreign_key_column).nil?
           end
         end
 

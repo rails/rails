@@ -54,6 +54,13 @@ module ActiveModel
       @value
     end
 
+    # Like #value, but raises MissingAttributeError if the attribute is
+    # uninitialized.
+    def value! # :nodoc:
+      @value = type_cast(value_before_type_cast) unless defined?(@value)
+      @value
+    end
+
     def original_value
       if assigned?
         original_attribute.original_value
@@ -268,6 +275,10 @@ module ActiveModel
           if block_given?
             yield name
           end
+        end
+
+        def value!
+          raise ActiveModel::MissingAttributeError, "missing attribute '#{name}'"
         end
 
         def original_value

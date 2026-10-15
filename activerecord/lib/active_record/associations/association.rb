@@ -429,15 +429,15 @@ module ActiveRecord
         end
 
         def foreign_key_values(record)
-          reflection.foreign_key_definition.map { |key| record.read_attribute(key) }
+          reflection.foreign_key_definition.map { |key| record.read_attr(key) }
         end
 
         def active_record_primary_key_values(record)
-          reflection.active_record_primary_key_definition.map { |key| record.read_attribute(key) }
+          reflection.active_record_primary_key_definition.map { |key| record.read_attr(key) }
         end
 
         def association_primary_key_values(record)
-          reflection.association_primary_key_definition(record.class).map { |key| record.read_attribute(key) }
+          reflection.association_primary_key_definition(record.class).map { |key| record.read_attr(key) }
         end
     end
   end

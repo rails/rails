@@ -266,9 +266,9 @@ module ActiveRecord
 
           def derive_key(owner, key)
             if key.is_a?(Array)
-              key.map { |k| convert_key(owner.read_attribute(k)) }
+              key.map { |k| convert_key(owner.read_attr(k)) }
             else
-              convert_key(owner.read_attribute(key))
+              convert_key(owner.read_attr(key))
             end
           end
 

@@ -163,6 +163,21 @@ module ActiveModel
       assert_nil attributes.fetch_value(:bar)
     end
 
+    test "fetch_value! returns the value for initialized and unknown attributes" do
+      attributes = attributes_with_uninitialized_key
+
+      assert_equal 1, attributes.fetch_value!(:foo)
+      assert_nil attributes.fetch_value!(:wibble)
+    end
+
+    test "fetch_value! raises for uninitialized attributes" do
+      attributes = attributes_with_uninitialized_key
+
+      assert_raises(ActiveModel::MissingAttributeError, match: /missing attribute 'bar'/) do
+        attributes.fetch_value!(:bar)
+      end
+    end
+
     test "the primary_key is always initialized" do
       defaults = { foo: Attribute.from_user(:foo, nil, nil) }
       builder = AttributeSet::Builder.new({ foo: Type::Integer.new }, defaults, nil)
