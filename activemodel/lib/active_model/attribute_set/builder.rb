@@ -6,25 +6,68 @@ require "active_model/attribute"
 module ActiveModel
   class AttributeSet # :nodoc:
     class Builder # :nodoc:
+      class InitializeContext # :nodoc:
+        def initialize(builder)
+          @builder = builder
+          freeze
+        end
+
+        def needs_default?(name)
+          true
+        end
+
+        def type_keys
+          @builder.type_keys
+        end
+
+        def type_key?(name)
+          @builder.type_key?(name)
+        end
+
+        def type_for_name(name)
+          @builder.type_for_name(name)
+        end
+
+        def default_attributes
+          @builder.default_attributes
+        end
+      end
+
       attr_reader :types, :default_attributes, :default_keys
 
       # +default_keys+ limits which of +default_attributes+ records loaded from
       # the database fall back to (anything responding to <tt>include?</tt>).
-      # When nil, all of them do.
       def initialize(types, default_attributes, default_keys)
         @types = types
         @default_attributes = default_attributes
         @default_keys = default_keys
+        @init_context = InitializeContext.new(self)
       end
 
-      def build_from_database(values = {}, additional_types = {})
-        LazyAttributeSet.new(values, types, additional_types, default_attributes, nil, default_keys)
+      def build_from_database(values, additional_types)
+        LazyAttributeSet.new(values, additional_types, self)
       end
 
       EMPTY = {}.freeze
 
       def build_from_initialize(columns_hash, default_attributes)
-        LazyAttributeSet.new(EMPTY, types, EMPTY, default_attributes, nil, nil)
+        LazyAttributeSet.new(EMPTY, EMPTY, @init_context)
+      end
+
+      def needs_default?(name)
+        @default_keys.include?(name)
+      end
+
+      def type_keys
+        @types.keys
+      end
+
+      def type_key?(name)
+        @types.key?(name)
+      end
+
+      def type_for_name(name)
+        @types[name]
       end
     end
   end
