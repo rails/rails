@@ -22,6 +22,19 @@ module ActiveRecord
       include Serialization
     end
 
+    # This gets overridden on models that use attribute aliases.
+    # Internal, don't call it!
+    def resolve_alias(attr_name) # :nodoc:
+      attr_name
+    end
+
+    # Included by +alias_attribute+, so only models with aliases pay for the lookup.
+    module AliasResolution # :nodoc:
+      def resolve_alias(attr_name)
+        self.class.attribute_aliases[attr_name] || attr_name
+      end
+    end
+
     RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name superclass).freeze
 
     class GeneratedAttributeMethods < Module # :nodoc:
@@ -72,7 +85,7 @@ module ActiveRecord
       def alias_attribute(new_name, old_name)
         super
 
-        include Read::AliasResolution unless include?(Read::AliasResolution)
+        include AliasResolution unless include?(AliasResolution)
 
         if @alias_attributes_mass_generated
           ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
@@ -345,8 +358,7 @@ module ActiveRecord
     # person.has_attribute?(:nothing)  # => false
     # ```
     def has_attribute?(attr_name)
-      attr_name = attr_name.to_s
-      attr_name = self.class.attribute_aliases[attr_name] || attr_name
+      attr_name = resolve_alias(attr_name.to_s)
       @attributes.key?(attr_name)
     end
 
@@ -424,9 +436,7 @@ module ActiveRecord
     # task.attribute_present?(:is_done) # => true
     # ```
     def attribute_present?(attr_name)
-      attr_name = attr_name.to_s
-      attr_name = self.class.attribute_aliases[attr_name] || attr_name
-      value = _read_attribute(attr_name)
+      value = read_attribute(attr_name)
       !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
     end
 

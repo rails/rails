@@ -42,20 +42,6 @@ module ActiveRecord
         @attributes.fetch_value!(resolve_alias(attr_name))
       end
 
-      # This gets overridden on models that use attribute aliases.
-      # Also internal, don't call it!
-      def resolve_alias(attr_name) # :nodoc:
-        attr_name
-      end
-
-      # Included by +alias_attribute+, so only models with aliases pay for
-      # the lookup in #read_attr.
-      module AliasResolution # :nodoc:
-        def resolve_alias(attr_name)
-          self.class.attribute_aliases[attr_name] || attr_name
-        end
-      end
-
       # This method exists to avoid the expensive primary_key check internally, without
       # breaking compatibility with the read_attribute API
       def _read_attribute(attr_name, &block) # :nodoc:

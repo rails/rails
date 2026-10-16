@@ -144,8 +144,7 @@ module ActiveRecord
 
       # Returns whether a given attribute is encrypted or not.
       def encrypted_attribute?(attribute_name)
-        name = attribute_name.to_s
-        name = self.class.attribute_aliases[name] || name
+        name = resolve_alias(attribute_name.to_s)
 
         return false unless self.class.encrypted_attributes&.include? name.to_sym
 

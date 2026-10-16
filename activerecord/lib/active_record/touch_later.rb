@@ -13,8 +13,7 @@ module ActiveRecord
 
       @_defer_touch_attrs ||= timestamp_attributes_for_update_in_model
       @_defer_touch_attrs |= names.map! do |name|
-        name = name.to_s
-        self.class.attribute_aliases[name] || name
+        resolve_alias(name.to_s)
       end unless names.empty?
 
       @_touch_time = current_time_from_proper_timezone
