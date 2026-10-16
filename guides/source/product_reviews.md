@@ -438,7 +438,7 @@ alongside the reviews.
       <div>
         <% 5.downto(1).each do |i| %>
           <%= link_to product_path(product, rating: i), aria: { label: "#{pluralize(i, "star")} — #{product.rating_percentage(i)}% of reviews" } do %>
-            <div class: "review__summary", aria-hidden="true">
+            <div class="review__summary", aria-hidden="true">
               <div class="review__stars"><%= i %></div>
               <div class="gold">★</div>
               <div class="review__bars">
