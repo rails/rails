@@ -232,7 +232,14 @@ module ActiveModel
   # Attributes are cached in a plain Array, by the index of the attribute's
   # name in the indexes of +values+, which cover every attribute of the
   # model plus any extra columns (such as aliases) the row was loaded with.
+  # Methods that take a name look its index up once and work by index from
+  # there.
   class LazyAttributeSet < AttributeSet # :nodoc:
+    # Marks the slots in +@casted_values+ that haven't been cast yet, since
+    # a value can be cast to +nil+.
+    UNCAST = Object.new.freeze
+    private_constant :UNCAST
+
     def indexes
       @indexes || upgrade_legacy_ivars
     end
@@ -245,7 +252,9 @@ module ActiveModel
       # Additional types (like from `select count(*) as blah`)
       @additional_types = additional_types
       @ctx = ctx
-      @casted_values = values.new_empty_mutable_row
+      # Values cast from +values+, by the same index. Only values in the
+      # row are cast, so this is never longer than the row.
+      @casted_values = [UNCAST] * values.row.size
       @materialized = false
       @indexes = values.indexes
     end
@@ -255,8 +264,24 @@ module ActiveModel
       @casted_values = @casted_values.dup
     end
 
+    def [](name)
+      if index = index_for_name(name)
+        attribute_at(name, index)
+      else
+        Attribute.null(name)
+      end
+    end
+
+    def []=(name, attribute)
+      store(indexes.fetch(name).ord, attribute)
+    end
+
     def key?(name)
-      values.key?(name) || ((@ctx.type_key?(name) || !lookup(name).nil?) && self[name].initialized?)
+      index = index_for_name(name)
+      return false unless index
+
+      values.key_at?(index) ||
+        ((@ctx.type_key?(name) || !lookup(index).nil?) && attribute_at(name, index).initialized?)
     end
 
     def keys
@@ -266,43 +291,38 @@ module ActiveModel
 
     def fetch_value(name, &block)
       index = index_for_name(name)
-
       return unless index
 
-      if attr = lookup(name)
-        return attr.value(&block)
-      end
-
-      @casted_values.fetch(name) do
-        value_present = true
-        value = values.fetch(name) { value_present = false }
-
-        if value_present
-          type = additional_types.fetch(name, @ctx.type_for_name(name))
-          @casted_values[name] = type.deserialize(value)
-        else
-          attr = default_attribute(name, value_present, value)
-          attr.value(&block)
-        end
+      if attr = lookup(index)
+        attr.value(&block)
+      else
+        fetch_cast_value(name, index) { |attribute| attribute.value(&block) }
       end
     end
 
     def fetch_value!(name)
-      if attr = lookup(name)
-        return attr.value!
-      end
+      index = index_for_name(name)
+      return unless index
 
-      @casted_values.fetch(name) do
-        value_present = true
-        value = values.fetch(name) { value_present = false }
-
-        if value_present
-          type = additional_types.fetch(name, @ctx.type_for_name(name))
-          @casted_values[name] = type.deserialize(value)
-        else
-          default_attribute(name, value_present, value).value!
-        end
+      if attr = lookup(index)
+        attr.value!
+      else
+        fetch_cast_value(name, index, &:value!)
       end
+    end
+
+    def write_from_database(name, value)
+      write(name) { |attribute| attribute.with_value_from_database(value) }
+    end
+
+    def write_from_user(name, value)
+      raise FrozenError, "can't modify frozen attributes" if frozen?
+      write(name) { |attribute| attribute.with_value_from_user(value) }
+      value
+    end
+
+    def write_cast_value(name, value)
+      write(name) { |attribute| attribute.with_cast_value(value) }
     end
 
     def deep_dup
@@ -323,11 +343,11 @@ module ActiveModel
       target.each_key do |name|
         next if own.key?(name)
 
-        unless @indexes.key?(name)
+        unless index = index_for_name(name)
           index = [@attributes.size, IndexedRow.max_ord(@indexes) + 1].max
           @indexes = IndexedRow::ExtendedIndexes.add(@indexes, name, index)
         end
-        store(name, target[name])
+        store(index, target[name])
       end
       self
     end
@@ -351,7 +371,7 @@ module ActiveModel
       end
 
     private
-      attr_reader :values, :types, :additional_types
+      attr_reader :values, :additional_types
 
       def default_attributes
         @ctx.default_attributes
@@ -365,24 +385,55 @@ module ActiveModel
         end
       end
 
+      # +indexes+ has every name the set can hold, so a name without an
+      # index isn't an attribute.
       def index_for_name(name)
-        indexes[name].ord
+        indexes[name]&.ord
       end
 
       def lookup(index)
-        if entry = (@indexes || upgrade_legacy_ivars)[name]
-          @attributes[entry.ord]
+        @attributes[index]
+      end
+
+      def store(index, attribute)
+        @attributes[index] = attribute
+      end
+
+      def attribute_at(name, index)
+        lookup(index) || default_attribute(name, index)
+      end
+
+      # Stores the block's result for the attribute +name+. Unknown names
+      # get Attribute::Null, which raises before anything is stored.
+      def write(name)
+        index = index_for_name(name)
+        attribute = index ? attribute_at(name, index) : Attribute.null(name)
+        store(index, yield(attribute))
+      end
+
+      # The value at +index+ for an attribute that hasn't been built yet:
+      # cast from the row (and kept in +@casted_values+), or the block's
+      # result for the default attribute when the row doesn't have it.
+      def fetch_cast_value(name, index)
+        value = @casted_values.fetch(index, UNCAST)
+        return value unless UNCAST.equal?(value)
+
+        value_present = true
+        value = values.fetch_at(index) { value_present = false }
+
+        if value_present
+          @casted_values[index] = type_for(name).deserialize(value)
+        else
+          yield default_attribute(name, index, false, nil)
         end
       end
 
-      # The row's indexes have every attribute the set can hold, so a name
-      # that isn't in them is a bug.
-      def store(name, attribute)
-        @attributes[(@indexes || upgrade_legacy_ivars).fetch(name).ord] = attribute
+      def type_for(name)
+        additional_types.fetch(name, @ctx.type_for_name(name))
       end
 
       def cached_names
-        indexes.each_key.select { |name| lookup(name) }
+        indexes.each_key.select { |name| lookup(index_for_name(name)) }
       end
 
       # Sets loaded from older Marshal dumps (e.g. Rails 6.1) have their
@@ -402,18 +453,19 @@ module ActiveModel
 
       def default_attribute(
         name,
+        index,
         value_present = true,
-        value = values.fetch(name) { value_present = false }
+        value = values.fetch_at(index) { value_present = false }
       )
-        type = additional_types.fetch(name, @ctx.type_for_name(name))
-
         if value_present
-          store(name, Attribute.from_database(name, value, type, @casted_values[name]))
+          casted = @casted_values.fetch(index, UNCAST)
+          casted = nil if UNCAST.equal?(casted)
+          store(index, Attribute.from_database(name, value, type_for(name), casted))
         elsif @ctx.type_key?(name)
           if @ctx.needs_default?(name) && (attr = default_attributes.fetch(name) { nil })
-            store(name, attr.dup)
+            store(index, attr.dup)
           else
-            store(name, Attribute.uninitialized(name, type))
+            store(index, Attribute.uninitialized(name, type_for(name)))
           end
         else
           Attribute.null(name)
