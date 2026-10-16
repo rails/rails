@@ -63,10 +63,22 @@ module ActiveJob
       end
     end
 
+    module FrozenQueueNameParts # :nodoc:
+      def queue_name_prefix=(prefix)
+        super(prefix.freeze)
+      end
+
+      def queue_name_delimiter=(delimiter)
+        super(delimiter.freeze)
+      end
+    end
+
     included do
       class_attribute :queue_name, instance_accessor: false, default: ActiveSupport::Ractors.shareable_proc { self.class.default_queue_name }
       class_attribute :queue_name_delimiter, instance_accessor: false, default: "_"
       class_attribute :queue_name_prefix
+
+      singleton_class.prepend FrozenQueueNameParts
     end
 
     # Returns the name of the queue the job will be run on.
