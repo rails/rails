@@ -153,7 +153,6 @@ module ActiveRecord
           supports_lazy_transactions?: supports_lazy_transactions?,
           supports_materialized_views?: supports_materialized_views?,
           supports_nulls_not_distinct?: supports_nulls_not_distinct?,
-          supports_optimizer_hints?: supports_optimizer_hints?,
           supports_partial_index?: supports_partial_index?,
           supports_partitioned_indexes?: supports_partitioned_indexes?,
           supports_restart_db_transaction?: supports_restart_db_transaction?,
@@ -1166,7 +1165,7 @@ module ActiveRecord
 
       private
         def reconnect_can_restore_state?
-          !@proxied && transaction_manager.restorable? && !@raw_connection_dirty
+          transaction_manager.restorable? && !@raw_connection_dirty
         end
 
         # Lock the monitor, ensure we're properly connected and

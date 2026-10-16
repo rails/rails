@@ -452,7 +452,7 @@ module ActiveRecord
       end
 
       def materialize!
-        connection.create_savepoint(savepoint_name)
+        connection.begin_savepoint_transaction(savepoint_name)
         super
       end
 
@@ -467,14 +467,14 @@ module ActiveRecord
 
       def rollback
         unless @state.invalidated?
-          connection.rollback_to_savepoint(savepoint_name) if materialized? && connection.active?
+          connection.rollback_savepoint_transaction(savepoint_name) if materialized?
         end
         @state.rollback!
         @instrumenter.finish(:rollback) if materialized?
       end
 
       def commit
-        connection.release_savepoint(savepoint_name) if materialized?
+        connection.commit_savepoint_transaction(savepoint_name) if materialized?
         @state.commit!
         @instrumenter.finish(:commit) if materialized?
       end
@@ -552,7 +552,7 @@ module ActiveRecord
                 joinable: joinable,
                 run_commit_callbacks: run_commit_callbacks
               )
-            elsif current_transaction.restartable?
+            elsif @connection.restart_parent_transactions? && current_transaction.restartable?
               RestartParentTransaction.new(
                 @connection,
                 current_transaction,

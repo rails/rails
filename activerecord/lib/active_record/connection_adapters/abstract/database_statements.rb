@@ -639,8 +639,26 @@ module ActiveRecord
 
       def exec_restart_db_transaction() end # :nodoc:
 
+      # Whether a nested transaction may be emulated by restarting its parent,
+      # instead of nesting a savepoint.
+      def restart_parent_transactions? # :nodoc:
+        true
+      end
+
       def rollback_to_savepoint(name = nil)
         exec_rollback_to_savepoint(name)
+      end
+
+      def begin_savepoint_transaction(name) # :nodoc:
+        create_savepoint(name)
+      end
+
+      def commit_savepoint_transaction(name) # :nodoc:
+        release_savepoint(name)
+      end
+
+      def rollback_savepoint_transaction(name) # :nodoc:
+        rollback_to_savepoint(name) if active?
       end
 
       def default_sequence_name(table, column)
@@ -772,22 +790,23 @@ module ActiveRecord
         intent.deliver_result(result, warnings: warnings)
       end
 
-      # Executes `intent` below the public query pipeline — no logging, query
-      # transformers, transaction bookkeeping, or retries — and materializes
-      # the outcome.
+      # Executes `intent` below the public query pipeline — no logging or query
+      # transformers — and materializes the outcome.
       def execute_raw_intent(intent) # :nodoc:
         @lock.synchronize do
+          range_error = nil
           raw_result =
-            begin
-              ensure_connection_ready(allow_retry: intent.allow_retry, materialize_transactions: false)
-              perform_query(@raw_connection, intent)
-            rescue ::RangeError
-              # Re-raised untranslated: the calling pipeline handles RangeError
-              # with the empty-result fast path (see QueryIntent#run_query!).
-              raise
+            with_raw_connection(allow_retry: intent.allow_retry, materialize_transactions: intent.materialize_transactions) do |raw_connection|
+              perform_query(raw_connection, intent)
+            rescue ::RangeError => range_error
+              # The outer caller needs to see RangeError untranslated, so we need
+              # to store it here and re-raise outside of with_raw_connection's
+              # translation.
+              nil
             rescue => error
               raise translate_exception_class(error, intent.processed_sql, intent.binds)
             end
+          raise range_error if range_error
 
           result = cast_result(raw_result)
 

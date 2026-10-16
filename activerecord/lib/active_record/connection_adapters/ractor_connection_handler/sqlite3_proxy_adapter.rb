@@ -159,10 +159,6 @@ module ActiveRecord
           remote_dispatch(:high_precision_current_timestamp)
         end
 
-        def reset_isolation_level
-          remote_dispatch(:reset_isolation_level)
-        end
-
         def write_query?(...)
           remote_dispatch(:write_query?, ...)
         end
