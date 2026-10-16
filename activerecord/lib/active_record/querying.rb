@@ -103,13 +103,19 @@ module ActiveRecord
 
       message_bus.instrument("instantiation.active_record", payload) do
         if result_set.includes_column?(inheritance_column)
-          # Subclasses share the table, so their columns have the same ords.
-          result_set.map_rows(columns_hash) { |record|
-            instantiate(record, column_types, &block)
+          # Each row is laid out for the class its type names, so subclasses
+          # with attributes of their own don't need their rows re-laid.
+          classes = Hash.new do |h, type|
+            h[type] = discriminate_class_for_record(inheritance_column => type)
+          end
+          column_map_for = ->(type) { classes[type].attributes_builder.indexes }
+
+          result_set.map_rows_by(inheritance_column, column_map_for) { |record, type|
+            instantiate_instance_of(classes[type], record, column_types, &block)
           }
         else
           # Instantiate a homogeneous set
-          result_set.map_rows(columns_hash) { |record|
+          result_set.map_rows(attributes_builder.indexes) { |record|
             instantiate_instance_of(self, record, column_types, &block)
           }
         end

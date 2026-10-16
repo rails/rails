@@ -631,6 +631,42 @@ class InheritanceAttributeTest < ActiveRecord::TestCase
   end
 end
 
+class InheritanceDeclaredAttributeTest < ActiveRecord::TestCase
+  class Company < ActiveRecord::Base
+    self.table_name = "companies"
+    attribute :rank, :integer, default: 1
+  end
+
+  class Startup < Company
+    attribute :runway, :integer, default: 7
+  end
+
+  class Empire < Company
+  end
+
+  def test_subclass_declared_attribute_loaded_through_parent
+    Startup.create!(name: "startup")
+
+    startup = Company.find_by!(name: "startup")
+    assert_instance_of Startup, startup
+    assert_equal 1, startup.rank
+    assert_equal 7, startup.runway
+  end
+
+  def test_subclass_declared_attribute_loaded_through_parent_with_alias
+    Startup.create!(name: "startup")
+
+    startup = Company.select("companies.*, 42 AS answer").find_by!(name: "startup")
+    assert_equal 7, startup.runway
+    assert_equal 42, startup[:answer]
+  end
+
+  def test_subclass_without_declared_attributes_shares_the_parent_layout
+    assert_same Company.attributes_builder.indexes, Empire.attributes_builder.indexes
+    assert_not_same Company.attributes_builder.indexes, Startup.attributes_builder.indexes
+  end
+end
+
 class InheritanceAttributeMappingTest < ActiveRecord::TestCase
   setup do
     Company.delete_all
