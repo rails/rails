@@ -337,10 +337,6 @@ module ActiveModel
       end
     end
 
-    # An empty, frozen row, for records that have no values from the
-    # database (see AttributeSet::Builder#build_from_initialize).
-    EMPTY = new({}.freeze, [].freeze).freeze
-
     private
       # The position of +column+ in the row, or +nil+ if the row doesn't
       # have it. The values in +@indexes+ are either Integers or Columns

@@ -99,7 +99,13 @@ module ActiveRecord
       # how this "single-table" inheritance mapping is implemented.
       def instantiate(attributes, column_types = {}, &block)
         klass = discriminate_class_for_record(attributes)
-        attributes = klass.attributes_builder.row_from_hash(attributes) if attributes.is_a?(Hash)
+        if attributes.is_a?(Hash)
+          attributes = klass.attributes_builder.row_from_hash(attributes)
+        elsif !klass.equal?(self)
+          # Rows are laid out for this class, and +klass+ may be an STI
+          # subclass with attributes of its own.
+          attributes = klass.attributes_builder.relayout(attributes)
+        end
         instantiate_instance_of(klass, attributes, column_types, &block)
       end
 
