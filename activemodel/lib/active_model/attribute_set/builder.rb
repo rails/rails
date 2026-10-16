@@ -44,14 +44,25 @@ module ActiveModel
         @init_context = InitializeContext.new(self)
       end
 
+      # +values+ is an IndexedRow of raw values from the database. Use
+      # #row_from_hash to build one from a Hash.
       def build_from_database(values, additional_types)
         LazyAttributeSet.new(values, additional_types, self)
+      end
+
+      # Lays +hash+ out like a row loaded from the database: each name at
+      # its index in +default_attributes+, and names it doesn't have after
+      # the last one.
+      def row_from_hash(hash)
+        row = IndexedRow::Mutable.new(default_attributes.indexes)
+        hash.each { |name, value| row[name] = value }
+        row.freeze
       end
 
       EMPTY = {}.freeze
 
       def build_from_initialize(columns_hash, default_attributes)
-        LazyAttributeSet.new(EMPTY, EMPTY, @init_context)
+        LazyAttributeSet.new(IndexedRow::EMPTY, EMPTY, @init_context)
       end
 
       def needs_default?(name)
