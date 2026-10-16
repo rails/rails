@@ -79,6 +79,69 @@ class KeyTest < ActiveRecord::TestCase
     assert_equal [7, value], Key.for([:tenant_id, :payload]).map_value.with_index { |_column, index| [7, value][index] }
   end
 
+  def test_mapping_preserves_column_pairs
+    mapping = Key::Mapping.new(
+      reference_key: Key.for([:account_id, :post_id]),
+      target_key: Key.for([:account_id, :id])
+    )
+
+    assert_equal [
+      ["account_id", "account_id"],
+      ["post_id", "id"],
+    ], mapping.to_a
+    assert_equal ["account_id", "post_id"], mapping.reference_key.name
+    assert_equal ["account_id", "id"], mapping.target_key.name
+    assert_not_predicate mapping, :empty?
+
+    empty = Key::Mapping.empty
+    assert_predicate empty, :empty?
+    assert_not_predicate empty.reference_key, :present?
+    assert_not_predicate empty.target_key, :present?
+    assert_empty empty.to_a
+  end
+
+  def test_mapping_composes_corresponding_keys
+    constraints = Key::Mapping.new(
+      reference_key: Key.for(:account_id),
+      target_key: Key.for(:account_id)
+    )
+    reference = Key::Mapping.new(
+      reference_key: Key.for(:post_id),
+      target_key: Key.for(:id)
+    )
+
+    assert_equal [
+      ["account_id", "account_id"],
+      ["post_id", "id"],
+    ], (constraints + reference).to_a
+
+    [[:post_id, :id], [[:post_id], [:id]], [[:account_id, :post_id], [:account_id, :id]]].each do |reference_name, target_name|
+      mapping = Key::Mapping.new(reference_key: Key.for(reference_name), target_key: Key.for(target_name))
+
+      assert_equal mapping, Key::Mapping.empty + mapping
+      assert_equal mapping, mapping + Key::Mapping.empty
+    end
+  end
+
+  def test_mapping_normalize_scalarizes_single_column_keys_without_changing_the_original
+    [[:post_id, [:id]], [[:post_id], :id], [[:post_id], [:id]]].each do |reference, target|
+      reference_key = Key.for(reference)
+      target_key = Key.for(target)
+      mapping = Key::Mapping.new(reference_key: reference_key, target_key: target_key)
+      normalized = mapping.normalize
+
+      assert_equal "post_id", normalized.reference_key.name
+      assert_equal "id", normalized.target_key.name
+      assert_not_predicate normalized.reference_key, :composite?
+      assert_not_predicate normalized.target_key, :composite?
+      assert_equal reference_key, mapping.reference_key
+      assert_equal target_key, mapping.target_key
+    end
+
+    composite = Key::Mapping.new(reference_key: Key.for([:account_id, :post_id]), target_key: Key.for([:account_id, :id]))
+    assert_equal composite, composite.normalize
+  end
+
   def test_where_hash_for_simple_key
     assert_equal({ "id" => 5 }, Key.for("id").where_hash(5))
     assert_equal({ "id" => [1, 2, 3] }, Key.for("id").where_hash([1, 2, 3]))
@@ -130,6 +193,26 @@ class KeyTest < ActiveRecord::TestCase
 
     topic = Topic.new(id: 7)
     assert_equal 7, Topic.primary_key_definition.value_of(topic)
+  end
+
+  def test_value_of_applies_normalizers_by_column_position
+    book = Cpk::Book.new(id: [1, 3])
+    key = Cpk::Book.primary_key_definition
+
+    assert_equal [1, "3"], key.value_of(book, [nil, :to_s.to_proc])
+    assert_equal [11, 3], key.value_of(book, [->(value) { value + 10 }, nil])
+    assert_equal [1, 3], key.value_of(book, nil)
+    assert_equal [1, 3], book.id
+
+    repeated_key = Key.for([:id, :id])
+    assert_equal ["7", 7], repeated_key.value_of(Topic.new(id: 7), [:to_s.to_proc, nil])
+
+    topic = Topic.new(id: 7)
+    assert_equal "7", Key.for(:id).value_of(topic, [:to_s.to_proc])
+    assert_equal 7, Key.for(:id).value_of(topic, [nil])
+    topic.stub(:read_attr, [10, 20]) do
+      assert_equal [10, 20, 30], Key.for(:payload).value_of(topic, [->(component) { component + [30] }])
+    end
   end
 
   def test_model_exposes_definition
@@ -189,5 +272,28 @@ class KeyTest < ActiveRecord::TestCase
     assert none.subset?(Key.for("id"))
     assert none.subset?(Key.for([:shop_id, :id]))
     assert none.subset?(Key.for(nil))
+  end
+
+  def test_none_yields_no_columns
+    none = Key.for(nil)
+    yielded = []
+
+    assert none.all? { |column| yielded << column; false }
+    assert_not none.any? { |column| yielded << column; true }
+    assert none.none? { |column| yielded << column; true }
+    assert_equal [], none.map { |column| yielded << column }
+    none.each { |column| yielded << column }
+    none.each_with_index { |column, _| yielded << column }
+
+    assert_empty yielded
+  end
+
+  def test_single_key_predicates_accept_patterns
+    key = Key.for("id")
+
+    assert key.all?(String)
+    assert_not key.all?(Integer)
+    assert key.any?("id")
+    assert key.none?(Integer)
   end
 end

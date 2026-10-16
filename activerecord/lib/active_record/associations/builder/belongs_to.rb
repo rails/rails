@@ -48,31 +48,32 @@ module ActiveRecord::Associations::Builder # :nodoc:
       association = o.association(name)
       foreign_key = association.foreign_key
 
-      old_foreign_id = if foreign_key.any? { |fk| o.public_send(change_method, fk) }
-        foreign_key.map_value do |fk|
-          change = o.public_send(change_method, fk)
-          change ? change.first : o.read_attr(fk)
+      if foreign_key.any? { |key| o.public_send(change_method, key) }
+        read_old = lambda do |column|
+          change = o.public_send(change_method, column)
+          change ? change.first : o._read_attr(column)
         end
-      end
+        old_reference = foreign_key.map_value { |key| read_old.call(key) }
 
-      if old_foreign_id
-        reflection = association.reflection
-        if reflection.polymorphic?
-          foreign_type = association.foreign_type
-          change = o.public_send(change_method, foreign_type)
-          klass = (change && change.first) || o.public_send(foreign_type)
-          klass = o.class.polymorphic_class_for(klass)
-        else
-          klass = association.klass
-        end
-        primary_key = reflection.association_primary_key(klass)
-        old_record = klass.find_by(primary_key => [old_foreign_id])
-
-        if old_record
-          if touch != true
-            old_record.touch_later(touch)
+        if old_reference
+          reflection = association.reflection
+          if reflection.polymorphic?
+            type = read_old.call(association.foreign_type) || o.public_send(association.foreign_type)
+            klass = o.class.polymorphic_class_for(type)
           else
-            old_record.touch_later
+            klass = association.klass
+          end
+
+          old_route = reflection.association_route(origin_class: o.class, destination_class: klass)
+          old_origin_id = old_route._origin_key.map_value { |key| read_old.call(key) }
+          old_record = klass.find_by(old_route.destination_key.name => [old_origin_id])
+
+          if old_record
+            if touch != true
+              old_record.touch_later(touch)
+            else
+              old_record.touch_later
+            end
           end
         end
       end
@@ -153,11 +154,11 @@ module ActiveRecord::Associations::Builder # :nodoc:
             association = record.association(name)
 
             fk_missing_or_changed = association.foreign_key.any? do |fk|
-              record.read_attr(fk).nil? || record.attribute_changed?(fk)
+              record._read_attr(fk).nil? || record.attribute_changed?(fk)
             end
 
             fk_missing_or_changed ||
-              (polymorphic && (record.read_attr(association.foreign_type).nil? || record.attribute_changed?(association.foreign_type)))
+              (polymorphic && (record._read_attr(association.foreign_type).nil? || record.attribute_changed?(association.foreign_type)))
           }
 
           model.validates_presence_of reflection.name, message: :required, if: condition

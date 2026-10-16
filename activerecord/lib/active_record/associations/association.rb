@@ -110,15 +110,15 @@ module ActiveRecord
         loaded!
       end
 
-      def scope
+      def scope(routes = nil)
         if disable_joins
-          DisableJoinsAssociationScope.create.scope(self)
+          DisableJoinsAssociationScope.create.scope(self, routes)
         elsif (scope = klass.current_scope) && scope.try(:proxy_association) == self
           scope.spawn
         elsif scope = klass.global_current_scope
-          target_scope.merge!(association_scope).merge!(scope)
+          target_scope.merge!(association_scope(routes)).merge!(scope)
         else
-          target_scope.merge!(association_scope)
+          target_scope.merge!(association_scope(routes))
         end
       end
 
@@ -268,7 +268,8 @@ module ActiveRecord
             Base.strict_loading_violation!(owner: owner.class, reflection: reflection)
           end
 
-          scope = self.scope
+          routes = reflection.association_route_chain(origin_class: owner.class, destination_class: klass)
+          scope = self.scope(routes)
           if skip_statement_cache?(scope)
             if async
               return scope.load_async.then(&:to_a)
@@ -277,14 +278,13 @@ module ActiveRecord
             end
           end
 
-          sc = reflection.association_scope_cache(klass, owner) do |params|
-            as = AssociationScope.create { params.bind }
-            target_scope.merge!(as.scope(self))
+          sc = reflection.association_scope_cache(klass, routes) do |params|
+            as = AssociationScope.create { |_, column| params.bind(column) }
+            target_scope.merge!(as.scope(self, routes))
           end
 
-          binds = AssociationScope.get_bind_values(owner, reflection.chain)
           klass.with_connection do |c|
-            sc.execute(binds, c, async: async) do |record|
+            sc.execute(owner.method(:read_attr), c, async: async) do |record|
               set_inverse_instance(record)
               set_strict_loading(record)
             end
@@ -305,12 +305,12 @@ module ActiveRecord
         # scope method is called. This is because at that point the call may be surrounded
         # by scope.scoping { ... } or unscoped { ... } etc, which affects the scope which
         # actually gets built.
-        def association_scope
+        def association_scope(routes = nil)
           if klass
             @association_scope ||= if disable_joins
-              DisableJoinsAssociationScope.scope(self)
+              DisableJoinsAssociationScope.scope(self, routes)
             else
-              AssociationScope.scope(self)
+              AssociationScope.scope(self, routes)
             end
           end
         end
@@ -376,7 +376,13 @@ module ActiveRecord
 
         # Returns true if record contains the foreign_key
         def foreign_key_for?(record)
-          reflection.foreign_key_definition.all? { |key| record.has_attribute?(key) }
+          # Through reflections have no single route to take the key from.
+          if reflection.through_reflection?
+            reflection.foreign_key_definition.all? { |key| record.has_attribute?(key) }
+          else
+            route = reflection.association_route(origin_class: owner.class, destination_class: record.class)
+            route._reference_destination_key.all? { |key| record._has_attribute?(key) }
+          end
         end
 
         # This should be implemented to return the values of the relevant key(s) on the owner,
@@ -416,28 +422,8 @@ module ActiveRecord
         end
 
         def matches_foreign_key?(record)
-          (foreign_key_for?(record) && record_foreign_key_matches_owner?(record)) ||
-            (foreign_key_for?(owner) && owner_foreign_key_matches_record?(record))
-        end
-
-        def record_foreign_key_matches_owner?(record)
-          foreign_key_values(record) == active_record_primary_key_values(owner)
-        end
-
-        def owner_foreign_key_matches_record?(record)
-          foreign_key_values(owner) == association_primary_key_values(record)
-        end
-
-        def foreign_key_values(record)
-          reflection.foreign_key_definition.map { |key| record.read_attr(key) }
-        end
-
-        def active_record_primary_key_values(record)
-          reflection.active_record_primary_key_definition.map { |key| record.read_attr(key) }
-        end
-
-        def association_primary_key_values(record)
-          reflection.association_primary_key_definition(record.class).map { |key| record.read_attr(key) }
+          route = reflection.association_route(origin_class: owner.class, destination_class: record.class)
+          route.key_values_match?(owner, record)
         end
     end
   end
