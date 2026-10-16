@@ -110,7 +110,7 @@ where you will store migrations for that database. We'll look more at `migration
 later on in this guide.
 
 You can also configure the schema dump file by setting `schema_dump` to a custom schema file name
-or completely skip the schema dumping by setting `schema_dump: false`.
+or completely skip the schema dumping by setting `disable_schema_dump: true`.
 
 Now that we have a new database, let's set up the connection model.
 
