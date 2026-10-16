@@ -132,6 +132,15 @@ module ActiveRecord
       end
     end
 
+    def each_pair
+      if @column_types
+        @columns.each_with_index do |name, index|
+          type = @column_types[index] || Type.default_value
+          yield(name, type)
+        end
+      end
+    end
+
     # Same as column_types, but no integer based indexes.  The value isn't
     # cached, so avoid repeated calls.
     def column_types_by_name # :nodoc:

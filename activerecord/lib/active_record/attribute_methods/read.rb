@@ -77,11 +77,12 @@ module ActiveRecord
         missing_attribute(attr_name, RUBY_VERSION >= "3.4" ? caller_locations : caller)
       end
 
-      # Like #_read_attribute!, but also takes the attribute's +index+ (its
-      # column's +ord+). Called by the generated reader methods for attributes
-      # that have a column.
+      # Like #_read_attribute!, but takes the attribute's +index+ (its
+      # column's +ord+). The name is only used for the error when the
+      # attribute is missing. Called by the generated reader methods for
+      # attributes that have a column.
       def _read_attribute_at!(index, attr_name) # :nodoc:
-        @attributes.fetch_value!(attr_name)
+        @attributes.fetch_value_at!(index)
       rescue ActiveModel::MissingAttributeError
         raise if @attributes.key?(attr_name)
         missing_attribute(attr_name, RUBY_VERSION >= "3.4" ? caller_locations : caller)
