@@ -202,6 +202,22 @@ module Rails
         assert_operator(Rails.application.routes, :is_a?, Engine::LazyRouteSet)
       end
 
+      test "routes referenced in the application class body are lazy" do
+        add_to_config "config.exceptions_app = routes"
+
+        require "#{app_path}/config/environment"
+
+        assert_operator(Rails.application.routes, :is_a?, Engine::LazyRouteSet)
+      end
+
+      test "route_set_class can still be overridden by the application" do
+        add_to_config "config.route_set_class = ActionDispatch::Routing::RouteSet"
+
+        require "#{app_path}/config/environment"
+
+        assert_instance_of(ActionDispatch::Routing::RouteSet, Rails.application.routes)
+      end
+
       test "reloads routes when recognize_path is called" do
         require "#{app_path}/config/environment"
 
