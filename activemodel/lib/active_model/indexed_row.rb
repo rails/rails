@@ -53,7 +53,9 @@ module ActiveModel
     end
 
     def keys
-      @indexes.each_key.select { |column| key?(column) }
+      keys = []
+      @indexes.each_key { |column| keys << column if key?(column) }
+      keys
     end
 
     def values

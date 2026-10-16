@@ -6,35 +6,62 @@ require "active_model/attribute"
 module ActiveModel
   class AttributeSet # :nodoc:
     class Builder # :nodoc:
-      class InitializeContext # :nodoc:
-        def initialize(builder)
-          @builder = builder
-          freeze
+      # What a LazyAttributeSet looks up about the model's attributes, by
+      # their index in the builder's #indexes.
+      class Context # :nodoc:
+        attr_reader :type_keys
+
+        # +names+ are the attribute names by index, +types+ a Hash of types
+        # by name, and +defaults+ the default attributes by index that
+        # attributes a row doesn't have fall back to.
+        def initialize(names, types, defaults)
+          @names = names
+          @types = names.map { |name| types[name] }.freeze
+          @type_keys_lut = names.map { |name| types.key?(name) }.freeze
+          @type_keys = types.keys.freeze
+          @defaults = defaults
         end
 
-        def needs_default?(name)
-          true
+        def type_key_at?(index)
+          @type_keys_lut[index]
         end
 
-        def type_keys
-          @builder.type_keys
+        # The type of the attribute at +index+. Indexes after the model's
+        # are for names a row has that the model doesn't, typed by
+        # +additional_types+ in order.
+        def type_at(index, additional_types)
+          if index < @types.size
+            @types[index]
+          else
+            additional_types[index - @types.size] || Type.default_value
+          end
         end
 
-        def type_key?(name)
-          @builder.type_key?(name)
+        # The name of the attribute at +index+.
+        def name_at(index)
+          @names[index]
         end
 
-        def type_for_name(name)
-          @builder.type_for_name(name)
+        # The default attribute for the attribute at +index+, if any.
+        def default_at(index)
+          @defaults[index]
         end
+      end
 
-        def default_attributes
-          @builder.default_attributes
+      # For records loaded from the database, which only fall back to the
+      # defaults in +default_keys+. Other attributes the row doesn't have
+      # are missing.
+      class FromDBContext < Context # :nodoc:
+        def initialize(names, types, defaults, default_keys)
+          defaults = names.each_with_index.map do |name, index|
+            defaults[index] if default_keys.include?(name)
+          end
+          super(names, types, defaults.freeze)
         end
+      end
 
-        def indexes
-          @builder.indexes
-        end
+      # For new records, which fall back to every default.
+      class FromInitContext < Context # :nodoc:
       end
 
       attr_reader :types, :default_attributes, :default_keys, :indexes
@@ -49,14 +76,25 @@ module ActiveModel
         # an index for every attribute of the model: the columns first, then
         # the other attributes, then any typed names the defaults lack.
         @indexes = indexes_for(types, default_attributes.indexes)
+        @names = names_for(@indexes)
+        @defaults = @names.map { |name| default_attributes.fetch(name) { nil } }.freeze
+        @from_db_context = FromDBContext.new(@names, types, @defaults, default_keys)
+        @from_init_context = FromInitContext.new(@names, types, @defaults)
         @empty_row = IndexedRow.new(@indexes, [].freeze).freeze
-        @init_context = InitializeContext.new(self)
       end
 
+      EMPTY_TYPES = [].freeze
+
       # +values+ is an IndexedRow of raw values from the database. Use
-      # #row_from_hash to build one from a Hash.
-      def build_from_database(values, additional_types)
-        LazyAttributeSet.new(values, additional_types, self)
+      # #row_from_hash to build one from a Hash. +additional_types+ are the
+      # types of the names +values+ has after the ones in #indexes (such as
+      # aliases), in order (see #type_at).
+      def build_from_database(values, additional_types = EMPTY_TYPES)
+        LazyAttributeSet.new(values, additional_types, @from_db_context)
+      end
+
+      def build_from_initialize
+        LazyAttributeSet.new(@empty_row, EMPTY_TYPES, @from_init_context)
       end
 
       # Lays +hash+ out like a row loaded from the database: each name at
@@ -81,29 +119,52 @@ module ActiveModel
         new_row.freeze
       end
 
-      EMPTY = {}.freeze
-
-      def build_from_initialize(columns_hash, default_attributes)
-        LazyAttributeSet.new(@empty_row, EMPTY, @init_context)
+      # Copies the attributes of +attribute_set+, which may be laid out some
+      # other way (as when decoded from YAML), into a set laid out with
+      # #indexes, so it can be read by index.
+      def relayout_attributes(attribute_set)
+        attributes = IndexedRow::Mutable.new(@indexes)
+        attribute_set.each_value { |attribute| attributes[attribute.name] = attribute }
+        AttributeSet.new(attributes)
       end
 
-      def needs_default?(name)
-        @default_keys.include?(name)
+      # A copy of this builder that uses +types+ (a Hash by name) for the
+      # attributes it has, or this builder if +types+ has none of them.
+      # The copy keeps the same #indexes, so rows laid out for this builder
+      # work with it.
+      def with_types(types)
+        overrides = types.select { |name, _| @indexes.key?(name) }
+        return self if overrides.empty?
+
+        copy = dup
+        copy.types = @types.merge(overrides)
+        copy.from_db_context = FromDBContext.new(@names, copy.types, @defaults, @default_keys)
+        copy
       end
 
-      def type_keys
-        @types.keys
+      # Converts +column_types+, a Hash of types by name, into the
+      # +additional_types+ for a row laid out with +indexes+ (see
+      # #build_from_database).
+      def additional_types_for(indexes, column_types)
+        return EMPTY_TYPES if column_types.empty? || !indexes.is_a?(IndexedRow::ExtendedIndexes)
+
+        types = []
+        indexes.extra.each do |name, ord|
+          types[ord - @names.size] = column_types[name] if ord >= @names.size
+        end
+        types
       end
 
-      def type_key?(name)
-        @types.key?(name)
-      end
-
-      def type_for_name(name)
-        @types[name]
-      end
+      protected
+        attr_writer :types, :from_db_context
 
       private
+        def names_for(indexes)
+          names = []
+          indexes.each_key { |name| names[indexes[name].ord] = name }
+          names.freeze
+        end
+
         def indexes_for(types, indexes)
           missing = types.each_key.reject { |name| indexes.key?(name) }
           return indexes if missing.empty?

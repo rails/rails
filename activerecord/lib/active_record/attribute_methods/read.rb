@@ -28,7 +28,7 @@ module ActiveRecord
               canonical_name
             ) do |temp_method_name, attr_name_expr|
               read = if ord
-                "read_attribute_at(#{ord}, #{attr_name_expr})"
+                "read_attribute_at(#{ord})"
               else
                 "_read_attribute(#{attr_name_expr})"
               end
@@ -73,11 +73,11 @@ module ActiveRecord
         @attributes.fetch_value!(attr_name)
       end
 
-      # Like #_read_attribute, but also takes the attribute's +index+ (its
-      # column's +ord+). Called by the generated reader methods for attributes
-      # that have a column.
-      def read_attribute_at(index, attr_name, &block) # :nodoc:
-        @attributes.fetch_value(attr_name, &block)
+      # Like #_read_attribute, but takes the attribute's +index+ (its
+      # column's +ord+) instead of its name. Called by the generated reader
+      # methods for attributes that have a column.
+      def read_attribute_at(index, &block) # :nodoc:
+        @attributes.fetch_value_at(index, &block)
       end
 
       alias :attribute :_read_attribute
