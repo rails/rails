@@ -64,6 +64,10 @@ module ActiveRecord
       @affected_rows = affected_rows
     end
 
+    def raw_column_types
+      @column_types
+    end
+
     # Returns true if this result set includes the column named `name`
     def includes_column?(name)
       @columns.include? name
@@ -122,6 +126,21 @@ module ActiveRecord
           end
           types.freeze
         end
+      else
+        EMPTY_HASH
+      end
+    end
+
+    # Same as column_types, but no integer based indexes.  The value isn't
+    # cached, so avoid repeated calls.
+    def column_types_by_name # :nodoc:
+      if @column_types
+        types = {}
+        @columns.each_with_index do |name, index|
+          type = @column_types[index] || Type.default_value
+          types[name] = type
+        end
+        types.freeze
       else
         EMPTY_HASH
       end
