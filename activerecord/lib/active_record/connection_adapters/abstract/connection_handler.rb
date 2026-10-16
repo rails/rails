@@ -130,9 +130,11 @@ module ActiveRecord
         # don't remove the connection. Connections should only be removed if we are
         # establishing a connection on a class that is already connected to a different
         # configuration.
+        # In-memory databases are the exception: they live and die with their
+        # connection, so reusing the pool would silently reuse the database.
         existing_pool_config = pool_manager.get_pool_config(role, shard)
 
-        if !clobber && existing_pool_config && existing_pool_config.db_config == db_config
+        if !clobber && existing_pool_config && existing_pool_config.db_config == db_config && !volatile_database?(db_config)
           # Update the pool_config's connection class if it differs. This is used
           # for ensuring that ActiveRecord::Base and the primary_abstract_class use
           # the same pool. Without this granular swapping will not work correctly.
@@ -302,6 +304,16 @@ module ActiveRecord
           else
             owner_name
           end
+        end
+
+        # Databases whose contents are destroyed when their connection closes.
+        def volatile_database?(db_config)
+          # this is required so tests won't break :)
+          return false if db_config.env_name.start_with?("arunit")
+
+          db_config.respond_to?(:database) &&
+            db_config.adapter.to_s.include?("sqlite") &&
+            db_config.database.to_s == ":memory:"
         end
     end
   end

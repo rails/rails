@@ -225,6 +225,21 @@ module ActiveRecord
         ActiveRecord::Base.configurations = @prev_configs
       end
 
+      if current_adapter?(:SQLite3Adapter)
+        def test_establish_connection_to_in_memory_database_does_not_reuse_pool
+          config = { adapter: "sqlite3", database: ":memory:" }
+          pool = @handler.establish_connection(config)
+          pool.lease_connection.create_table(:posts)
+
+          new_pool = @handler.establish_connection(config)
+
+          assert_not_same pool, new_pool
+          assert_empty new_pool.lease_connection.tables
+        ensure
+          @handler.clear_all_connections!
+        end
+      end
+
       def test_symbolized_configurations_assignment
         @prev_configs = ActiveRecord::Base.configurations
         config = {
