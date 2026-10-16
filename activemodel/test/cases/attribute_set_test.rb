@@ -18,10 +18,26 @@ module ActiveModel
 
     test "building with custom types" do
       builder = AttributeSet::Builder.new({ foo: Type::Float.new }, AttributeSet.new(IndexedRow::Mutable[{}]), [:foo])
-      attributes = builder.build_from_database(builder.row_from_hash(foo: "3.3", bar: "4.4"), { bar: Type::Integer.new })
+      row = builder.row_from_hash(foo: "3.3", bar: "4.4")
+      attributes = builder.build_from_database(row, builder.additional_types_for(row.indexes, { bar: Type::Integer.new }))
 
       assert_equal 3.3, attributes[:foo].value
       assert_equal 4, attributes[:bar].value
+    end
+
+    test "building with types that override the builder's" do
+      builder = AttributeSet::Builder.new({ foo: Type::Float.new }, AttributeSet.new(IndexedRow::Mutable[{}]), [:foo])
+      row = builder.row_from_hash(foo: "3.3")
+      attributes = builder.with_types(foo: Type::Integer.new).build_from_database(row)
+
+      assert_equal 3, attributes[:foo].value
+      assert_equal 3.3, builder.build_from_database(row)[:foo].value
+    end
+
+    test "with_types returns the builder if it has none of the attributes" do
+      builder = AttributeSet::Builder.new({ foo: Type::Float.new }, AttributeSet.new(IndexedRow::Mutable[{}]), [:foo])
+
+      assert_same builder, builder.with_types(bar: Type::Integer.new)
     end
 
     test "[] returns a null object" do
