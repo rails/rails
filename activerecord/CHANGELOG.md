@@ -1,3 +1,13 @@
+*   Fix `establish_connection` reusing the existing connection pool for SQLite
+    `:memory:` databases.
+
+    Re-establishing a connection with the same in-memory config returned the
+    same pool and connection, so the new "database" still contained the tables
+    and data from the previous one. In-memory databases now always get a fresh
+    pool.
+
+    *Ruy Rocha*
+
 *   Fix `remove_index` and `index_exists?` in migrations declaring version 4.2
     to honor `table_name_prefix` and `table_name_suffix`.
 
