@@ -30,9 +30,13 @@ module ActiveModel
         def default_attributes
           @builder.default_attributes
         end
+
+        def indexes
+          @builder.indexes
+        end
       end
 
-      attr_reader :types, :default_attributes, :default_keys
+      attr_reader :types, :default_attributes, :default_keys, :indexes
 
       # +default_keys+ limits which of +default_attributes+ records loaded from
       # the database fall back to (anything responding to <tt>include?</tt>).
@@ -40,6 +44,11 @@ module ActiveModel
         @types = types
         @default_attributes = default_attributes
         @default_keys = default_keys
+        # Rows loaded from the database are laid out with these, so a row has
+        # an index for every attribute of the model: the columns first, then
+        # the other attributes, then any typed names the defaults lack.
+        @indexes = indexes_for(types, default_attributes.indexes)
+        @empty_row = IndexedRow.new(@indexes, [].freeze).freeze
         @init_context = InitializeContext.new(self)
       end
 
@@ -50,18 +59,31 @@ module ActiveModel
       end
 
       # Lays +hash+ out like a row loaded from the database: each name at
-      # its index in +default_attributes+, and names it doesn't have after
-      # the last one.
+      # its index in #indexes, and names it doesn't have after the last one.
       def row_from_hash(hash)
-        row = IndexedRow::Mutable.new(default_attributes.indexes)
+        row = IndexedRow::Mutable.new(@indexes)
         hash.each { |name, value| row[name] = value }
         row.freeze
+      end
+
+      # Returns +row+ if it's laid out with #indexes (possibly with extra
+      # names, such as aliases, after them). Otherwise copies it into that
+      # layout, as when a row laid out for an STI parent is loaded as a
+      # subclass that declares attributes of its own.
+      def relayout(row)
+        layout = row.indexes
+        layout = layout.indexes if layout.is_a?(IndexedRow::ExtendedIndexes)
+        return row if layout.equal?(@indexes)
+
+        new_row = IndexedRow::Mutable.new(@indexes)
+        row.indexes.each_key { |name| new_row[name] = row.fetch(name) if row.key?(name) }
+        new_row.freeze
       end
 
       EMPTY = {}.freeze
 
       def build_from_initialize(columns_hash, default_attributes)
-        LazyAttributeSet.new(IndexedRow::EMPTY, EMPTY, @init_context)
+        LazyAttributeSet.new(@empty_row, EMPTY, @init_context)
       end
 
       def needs_default?(name)
@@ -79,6 +101,15 @@ module ActiveModel
       def type_for_name(name)
         @types[name]
       end
+
+      private
+        def indexes_for(types, indexes)
+          missing = types.each_key.reject { |name| indexes.key?(name) }
+          return indexes if missing.empty?
+
+          last_ord = IndexedRow.max_ord(indexes)
+          IndexedRow::ExtendedIndexes.new(indexes, missing.index_with { last_ord += 1 }.freeze)
+        end
     end
   end
 

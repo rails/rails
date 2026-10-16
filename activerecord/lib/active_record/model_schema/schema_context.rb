@@ -137,10 +137,21 @@ module ActiveRecord
           column = columns_hash[name]
           [name, column&.ord || (last_ord += 1)]
         end.freeze
+        indexes = inherited_indexes(indexes)
 
         row = ActiveModel::IndexedRow.unset_row(last_ord + 1)
         attributes.each { |name, attribute| row[indexes[name]] = attribute }
         ActiveModel::IndexedRow::Mutable.new(indexes, row)
+      end
+
+      # An STI subclass that doesn't change its parent's layout shares the
+      # parent's indexes, so rows laid out for the parent can be checked with
+      # +equal?+ (see ActiveModel::AttributeSet::Builder#relayout).
+      def inherited_indexes(indexes) # :nodoc:
+        return indexes if model_class.base_class?
+
+        parent_indexes = model_class.superclass.attributes_builder.indexes
+        parent_indexes == indexes ? parent_indexes : indexes
       end
 
       def freeze
