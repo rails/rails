@@ -26,7 +26,7 @@ module ActionView
       # First, it will ensure that any thrown `MissingTranslation` messages will
       # be rendered as inline spans that:
       #
-      # * Have a `translation-missing` class applied
+      # * Have a `translation_missing` class applied
       # * Contain the missing key as the value of the `title` attribute
       # * Have a titleized version of the last key segment as text
       #
