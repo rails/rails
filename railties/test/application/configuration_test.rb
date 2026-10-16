@@ -4043,6 +4043,34 @@ module ApplicationTests
       assert_equal true, ActiveSupport.utc_to_local_returns_utc_offset_times
     end
 
+    test "config.active_support can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "8.0"'
+
+      app_file "config/initializers/new_framework_defaults_8_1.rb", <<-RUBY
+        Rails.application.config.active_support.escape_js_separators_in_json = false
+        Rails.application.config.active_support.time_precision = 0
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveSupport.escape_js_separators_in_json
+      assert_equal 0, ActiveSupport.time_precision
+    end
+
+    test "ActiveSupport settings assigned directly in an initializer are not overridden by config.active_support" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "6.1"'
+
+      app_file "config/initializers/utc_to_local.rb", <<-RUBY
+        ActiveSupport.utc_to_local_returns_utc_offset_times = false
+      RUBY
+
+      app "development"
+
+      assert_equal false, ActiveSupport.utc_to_local_returns_utc_offset_times
+    end
+
     test "ActiveStorage.queues[:analysis] is :active_storage_analysis by default in 6.0" do
       remove_from_config '.*config\.load_defaults.*\n'
       add_to_config 'config.load_defaults "6.0"'
