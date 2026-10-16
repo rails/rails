@@ -50,6 +50,32 @@ class LengthValidationTest < ActiveModel::TestCase
     assert_equal ["is too short (minimum is 5 characters)"], t.errors["title"]
   end
 
+  def test_validates_length_of_using_both_is_and_minimum
+    Topic.validates_length_of :title, is: 5, minimum: 3
+
+    t = Topic.new("title" => "ab")
+    assert_predicate t, :invalid?
+    assert_equal ["is the wrong length (should be 5 characters)", "is too short (minimum is 3 characters)"], t.errors[:title]
+
+    t.title = "abcd"
+    assert_predicate t, :invalid?
+    assert_equal ["is the wrong length (should be 5 characters)"], t.errors[:title]
+
+    t.title = "abcde"
+    assert_predicate t, :valid?
+  end
+
+  def test_validates_length_of_using_within_takes_precedence_over_minimum_and_maximum
+    Topic.validates_length_of :title, within: 2..4, minimum: 3, maximum: 10
+
+    t = Topic.new("title" => "ab")
+    assert_predicate t, :valid?
+
+    t.title = "abcde"
+    assert_predicate t, :invalid?
+    assert_equal ["is too long (maximum is 4 characters)"], t.errors[:title]
+  end
+
   def test_validates_length_of_using_maximum_should_allow_nil
     Topic.validates_length_of :title, maximum: 10
     t = Topic.new
