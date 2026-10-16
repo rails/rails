@@ -43,7 +43,7 @@ module ActiveRecord
       def marshal_load(state)
         attributes_from_database, new_record, associations = state
 
-        attributes = self.class.attributes_builder.build_from_database(attributes_from_database)
+        attributes = self.class.attributes_builder.build_from_database(attributes_from_database, {})
         init_with_attributes(attributes, new_record)
 
         if associations
