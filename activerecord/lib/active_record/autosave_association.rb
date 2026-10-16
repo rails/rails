@@ -540,7 +540,7 @@ module ActiveRecord
         record.new_record? ||
           (association_foreign_key_changed?(reflection, record, key) ||
           inverse_polymorphic_association_changed?(reflection, record)) ||
-          reflection.foreign_key_definition.any? { |fk| record.will_save_change_to_attribute?(record.class.attribute_aliases[fk] || fk) }
+          reflection.foreign_key_definition.any? { |fk| record.will_save_change_to_attribute?(record.resolve_alias(fk)) }
       end
 
       def association_foreign_key_changed?(reflection, record, key)

@@ -502,8 +502,7 @@ module ActiveRecord
     #
     # Also see #update_column.
     def update_attribute(name, value)
-      name = name.to_s
-      name = self.class.attribute_aliases[name] || name
+      name = resolve_alias(name.to_s)
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
@@ -525,8 +524,7 @@ module ActiveRecord
     # and #update_attribute! raises ActiveRecord::RecordNotSaved. See
     # ActiveRecord::Callbacks for further details.
     def update_attribute!(name, value)
-      name = name.to_s
-      name = self.class.attribute_aliases[name] || name
+      name = resolve_alias(name.to_s)
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
@@ -597,8 +595,7 @@ module ActiveRecord
       _raise_readonly_record_error if readonly?
 
       attributes = attributes.transform_keys do |key|
-        name = key.to_s
-        name = self.class.attribute_aliases[name] || name
+        name = resolve_alias(key.to_s)
         verify_readonly_attribute(name) || name
       end
 
@@ -804,8 +801,7 @@ module ActiveRecord
 
       attribute_names = timestamp_attributes_for_update_in_model
       attribute_names = (attribute_names | names).map! do |name|
-        name = name.to_s
-        name = self.class.attribute_aliases[name] || name
+        name = resolve_alias(name.to_s)
         verify_readonly_attribute(name)
         name
       end

@@ -55,7 +55,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_includes new_topic_model.attribute_names, "id"
     assert new_topic_model.method_defined?(:id_value)
     assert_not_includes new_topic_model.attribute_aliases, "id_value"
-    assert_not new_topic_model.include?(ActiveRecord::AttributeMethods::Read::AliasResolution)
+    assert_not new_topic_model.include?(ActiveRecord::AttributeMethods::AliasResolution)
   end
 
   test "#id_value alias is defined if id column exist for a CPK model" do
@@ -65,7 +65,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
     new_book_model.define_attribute_methods
     assert_includes new_book_model.attribute_aliases, "id_value"
-    assert new_book_model.include?(ActiveRecord::AttributeMethods::Read::AliasResolution)
+    assert new_book_model.include?(ActiveRecord::AttributeMethods::AliasResolution)
   end
 
   test "#id_value alias is defined when the primary key becomes composite" do
