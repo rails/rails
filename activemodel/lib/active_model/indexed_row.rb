@@ -131,6 +131,11 @@ module ActiveModel
       value unless UNSET.equal?(value)
     end
 
+    # Like #key?, but looks the column up by its index in the row.
+    def key_at?(index)
+      index < @row.size && !UNSET.equal?(@row[index])
+    end
+
     def to_h
       keys.index_with { |column| @row[index_for(column)] }
     end
