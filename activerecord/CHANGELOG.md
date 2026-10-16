@@ -1,3 +1,13 @@
+*   Fix `ActiveRecord::Base.establish_connection` reusing the existing connection
+    pool when given a Hash config for a SQLite `:memory:` database.
+
+    Re-establishing a connection with the same in-memory config returned the
+    same pool, so the new "database" still contained the tables and data of the
+    previous one. Configs passed as a Hash now get a fresh pool. Named
+    configurations and `connects_to` are unchanged.
+
+    *Ruy Rocha*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one
