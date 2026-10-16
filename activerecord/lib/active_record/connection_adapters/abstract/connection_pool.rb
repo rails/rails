@@ -403,7 +403,11 @@ module ActiveRecord
           @connections << @pinned_connection
         end
 
-        @pinned_connection.lock_thread = ActiveSupport::IsolatedExecutionState.context if lock_thread
+        # A nested pin keeps the lock an outer one installed: another thread
+        # may hold it mid-statement.
+        if lock_thread && @pinned_connection.lock.equal?(ActiveSupport::Concurrency::NullLock)
+          @pinned_connection.lock_thread = ActiveSupport::IsolatedExecutionState.context
+        end
         @pinned_connection.pinned = true
       end
 

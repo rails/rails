@@ -1223,6 +1223,23 @@ module ActiveRecord
         assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
       end
 
+      def test_pin_connection_nesting_keeps_lock
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+
+        @pool.pin_connection!(true)
+        actual_lock = @pool.lease_connection.lock
+        assert_not_equal ActiveSupport::Concurrency::NullLock, actual_lock
+
+        @pool.pin_connection!(true)
+        assert_same actual_lock, @pool.lease_connection.lock
+
+        @pool.unpin_connection!
+        assert_same actual_lock, @pool.lease_connection.lock
+
+        @pool.unpin_connection!
+        assert_equal ActiveSupport::Concurrency::NullLock, @pool.lease_connection.lock
+      end
+
       def test_inspect_does_not_show_secrets
         assert_match(/#<ActiveRecord::ConnectionAdapters::ConnectionPool env_name="\w+" role=:writing>/, @pool.inspect)
 
