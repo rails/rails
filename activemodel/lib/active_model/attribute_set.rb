@@ -230,8 +230,8 @@ module ActiveModel
   end
 
   # Attributes are cached in a plain Array, by the index of the attribute's
-  # name in +indexes+ (initially the indexes of +default_attributes+). Names
-  # that aren't in +indexes+ are added after the last index.
+  # name in the indexes of +values+, which cover every attribute of the
+  # model plus any extra columns (such as aliases) the row was loaded with.
   class LazyAttributeSet < AttributeSet # :nodoc:
     def indexes
       @indexes || upgrade_legacy_ivars
@@ -247,7 +247,7 @@ module ActiveModel
       @ctx = ctx
       @casted_values = values.new_empty_mutable_row
       @materialized = false
-      @indexes = default_attributes.indexes
+      @indexes = values.indexes
     end
 
     def initialize_copy(other)
@@ -265,6 +265,10 @@ module ActiveModel
     end
 
     def fetch_value(name, &block)
+      index = index_for_name(name)
+
+      return unless index
+
       if attr = lookup(name)
         return attr.value(&block)
       end
@@ -310,6 +314,24 @@ module ActiveModel
       dup.transform_attributes!(&block)
     end
 
+    # Used by +becomes+, where the record takes on the attributes of another
+    # class. This is the only way a set gains names its row doesn't have, so
+    # their indexes are added after the last one here.
+    def reverse_merge!(target_attributes)
+      own = attributes
+      target = target_attributes.attributes
+      target.each_key do |name|
+        next if own.key?(name)
+
+        unless @indexes.key?(name)
+          index = [@attributes.size, IndexedRow.max_ord(@indexes) + 1].max
+          @indexes = IndexedRow::ExtendedIndexes.add(@indexes, name, index)
+        end
+        store(name, target[name])
+      end
+      self
+    end
+
     protected
       # An IndexedRow of every attribute, for the methods that work on all
       # of them. Built on each call, so writes must go through #store.
@@ -343,21 +365,20 @@ module ActiveModel
         end
       end
 
-      def lookup(name)
+      def index_for_name(name)
+        indexes[name].ord
+      end
+
+      def lookup(index)
         if entry = (@indexes || upgrade_legacy_ivars)[name]
           @attributes[entry.ord]
         end
       end
 
+      # The row's indexes have every attribute the set can hold, so a name
+      # that isn't in them is a bug.
       def store(name, attribute)
-        if entry = (@indexes || upgrade_legacy_ivars)[name]
-          index = entry.ord
-        else
-          index = [@attributes.size, IndexedRow.max_ord(@indexes) + 1].max
-          @indexes = IndexedRow::ExtendedIndexes.add(@indexes, name, index)
-        end
-
-        @attributes[index] = attribute
+        @attributes[(@indexes || upgrade_legacy_ivars).fetch(name).ord] = attribute
       end
 
       def cached_names
