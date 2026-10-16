@@ -1,3 +1,12 @@
+*   Authentication generator: store a random session token in the cookie
+    again, as the original generator did, instead of the session ID.
+
+    A cookie that holds the ID can authenticate a different session that
+    later gets the same ID, for example after a database restore.
+    Existing applications are not changed.
+
+    *Andrey Samsonov*
+
 *   Automatically detect Aube as a javaScript package manager.
 
     Rails generators now detect Aube as the javaScript package manager
