@@ -88,7 +88,7 @@ module ActiveRecord
     def _load_from_sql(result_set, &block) # :nodoc:
       return [] if result_set.empty?
 
-      column_types = result_set.column_types
+      column_types = result_set.column_types_by_name
 
       unless column_types.empty?
         column_types = column_types.reject { |k, _| attribute_types.key?(k) }
