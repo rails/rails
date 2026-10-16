@@ -1,3 +1,10 @@
+*   Automatically detect Aube as a javaScript package manager.
+
+    Rails generators now detect Aube as the javaScript package manager
+    when `aube-lock.yaml` is present.
+
+    *Florent Beaurain*
+
 *   Fix `rails.deprecation` structured events not being emitted.
 
     *Azmi Muwahid*
