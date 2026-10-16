@@ -138,6 +138,19 @@ module ActiveModel
       self[name].value!
     end
 
+    # Like #fetch_value, but looks the attribute up by its +index+ in
+    # #indexes rather than by name. Returns +nil+ for a missing attribute,
+    # as Attribute::Null does.
+    def fetch_value_at(index, &block)
+      attributes.at(index)&.value(&block)
+    end
+
+    # Like #fetch_value!, but looks the attribute up by its +index+ (see
+    # #fetch_value_at).
+    def fetch_value_at!(index)
+      attributes.at(index)&.value!
+    end
+
     def write_from_database(name, value)
       store(name, self[name].with_value_from_database(value))
     end
@@ -190,15 +203,6 @@ module ActiveModel
       attributes.values
     end
 
-    def reverse_merge!(target_attributes)
-      own = attributes
-      target = target_attributes.attributes
-      target.each_key do |name|
-        store(name, target[name]) unless own.key?(name)
-      end
-      self
-    end
-
     def ==(other)
       other.class == self.class && attributes == other.attributes
     end
@@ -243,6 +247,8 @@ module ActiveModel
       @indexes || upgrade_legacy_ivars
     end
 
+    # +ctx+ is a Builder::Context, for looking up the model's attributes
+    # by index.
     def initialize(values, additional_types, ctx)
       super([])
       # The raw data from the database
@@ -253,7 +259,7 @@ module ActiveModel
       @ctx = ctx
       # Values cast from +values+, by the same index. Only values in the
       # row are cast, so this is never longer than the row.
-      @casted_values = [UNCAST] * values.row.size
+      @casted_values = Array.new(values.row.size, UNCAST)
       @materialized = false
       @indexes = values.indexes
     end
@@ -280,7 +286,7 @@ module ActiveModel
       return false unless index
 
       values.key_at?(index) ||
-        ((@ctx.type_key?(name) || !lookup(index).nil?) && attribute_at(name, index).initialized?)
+        ((@ctx.type_key_at?(index) || !lookup(index).nil?) && attribute_at(name, index).initialized?)
     end
 
     def keys
@@ -292,22 +298,39 @@ module ActiveModel
       index = index_for_name(name)
       return unless index
 
-      if attr = lookup(index)
-        attr.value(&block)
-      else
-        fetch_cast_value(name, index) { |attribute| attribute.value(&block) }
-      end
+      value_at(index, name, &block)
     end
 
     def fetch_value!(name)
       index = index_for_name(name)
       return unless index
 
-      if attr = lookup(index)
-        attr.value!
-      else
-        fetch_cast_value(name, index, &:value!)
+      value_at!(index, name)
+    end
+
+    # Rows are laid out by column +ord+, so the ords that generated reader
+    # methods pass are indexes into this set.
+    def fetch_value_at(index, &block)
+      # Same as #value_at, inlined since generated readers call this.
+      if attr = @attributes[index]
+        return attr.value(&block)
       end
+
+      value = @casted_values.fetch(index, UNCAST)
+      return value unless UNCAST.equal?(value)
+
+      cast_value(@ctx.name_at(index), index) { |attribute| attribute.value(&block) }
+    end
+
+    def fetch_value_at!(index)
+      if attr = @attributes[index]
+        return attr.value!
+      end
+
+      value = @casted_values.fetch(index, UNCAST)
+      return value unless UNCAST.equal?(value)
+
+      cast_value(@ctx.name_at(index), index, &:value!)
     end
 
     def write_from_database(name, value)
@@ -333,24 +356,6 @@ module ActiveModel
       dup.transform_attributes!(&block)
     end
 
-    # Used by +becomes+, where the record takes on the attributes of another
-    # class. This is the only way a set gains names its row doesn't have, so
-    # their indexes are added after the last one here.
-    def reverse_merge!(target_attributes)
-      own = attributes
-      target = target_attributes.attributes
-      target.each_key do |name|
-        next if own.key?(name)
-
-        unless index = index_for_name(name)
-          index = [@attributes.size, IndexedRow.max_ord(@indexes) + 1].max
-          @indexes = IndexedRow::ExtendedIndexes.add(@indexes, name, index)
-        end
-        store(index, target[name])
-      end
-      self
-    end
-
     protected
       # An IndexedRow of every attribute, for the methods that work on all
       # of them. Built on each call, so writes must go through #store.
@@ -371,10 +376,6 @@ module ActiveModel
 
     private
       attr_reader :values, :additional_types
-
-      def default_attributes
-        @ctx.default_attributes
-      end
 
       def materialize
         unless @materialized
@@ -398,6 +399,30 @@ module ActiveModel
         @attributes[index] = attribute
       end
 
+      # These are on the path of every attribute read, so they check the
+      # caches directly and only call out to cast a value the first time.
+      def value_at(index, name, &block)
+        if attr = @attributes[index]
+          return attr.value(&block)
+        end
+
+        value = @casted_values.fetch(index, UNCAST)
+        return value unless UNCAST.equal?(value)
+
+        cast_value(name, index) { |attribute| attribute.value(&block) }
+      end
+
+      def value_at!(index, name)
+        if attr = @attributes[index]
+          return attr.value!
+        end
+
+        value = @casted_values.fetch(index, UNCAST)
+        return value unless UNCAST.equal?(value)
+
+        cast_value(name, index, &:value!)
+      end
+
       def attribute_at(name, index)
         lookup(index) || default_attribute(name, index)
       end
@@ -410,29 +435,28 @@ module ActiveModel
         store(index, yield(attribute))
       end
 
-      # The value at +index+ for an attribute that hasn't been built yet:
-      # cast from the row (and kept in +@casted_values+), or the block's
+      # The value at +index+ for an attribute that hasn't been built or cast
+      # yet: cast from the row (and kept in +@casted_values+), or the block's
       # result for the default attribute when the row doesn't have it.
-      def fetch_cast_value(name, index)
-        value = @casted_values.fetch(index, UNCAST)
-        return value unless UNCAST.equal?(value)
-
+      def cast_value(name, index)
         value_present = true
         value = values.fetch_at(index) { value_present = false }
 
         if value_present
-          @casted_values[index] = type_for(name).deserialize(value)
+          @casted_values[index] = type_for(index).deserialize(value)
         else
           yield default_attribute(name, index, false, nil)
         end
       end
 
-      def type_for(name)
-        additional_types.fetch(name, @ctx.type_for_name(name))
+      def type_for(index)
+        @ctx.type_at(index, additional_types)
       end
 
       def cached_names
-        indexes.each_key.select { |name| lookup(index_for_name(name)) }
+        names = []
+        indexes.each_key { |name| names << name if lookup(index_for_name(name)) }
+        names
       end
 
       # Sets loaded from older Marshal dumps (e.g. Rails 6.1) have their
@@ -459,16 +483,184 @@ module ActiveModel
         if value_present
           casted = @casted_values.fetch(index, UNCAST)
           casted = nil if UNCAST.equal?(casted)
-          store(index, Attribute.from_database(name, value, type_for(name), casted))
-        elsif @ctx.type_key?(name)
-          if @ctx.needs_default?(name) && (attr = default_attributes.fetch(name) { nil })
+          store(index, Attribute.from_database(name, value, type_for(index), casted))
+        elsif @ctx.type_key_at?(index)
+          if attr = @ctx.default_at(index)
             store(index, attr.dup)
           else
-            store(index, Attribute.uninitialized(name, type_for(name)))
+            store(index, Attribute.uninitialized(name, type_for(index)))
           end
         else
           Attribute.null(name)
         end
+      end
+  end
+
+  # This is an adapter specifically for people using `becomes`.
+  class ReindexedAttributeSet # :nodoc:
+    def initialize(shared, own)
+      @shared = shared
+      @own = own
+      @to_shared = to_shared_indexes
+    end
+
+    def indexes
+      @own.indexes
+    end
+
+    def [](name)
+      set_for(name)[name]
+    end
+
+    def []=(name, attribute)
+      set_for(name)[name] = attribute
+    end
+
+    def key?(name)
+      set_for(name).key?(name)
+    end
+    alias :include? :key?
+
+    def keys
+      @shared.keys | own_only(@own.keys)
+    end
+
+    def fetch_value(name, &block)
+      set_for(name).fetch_value(name, &block)
+    end
+
+    def fetch_value!(name)
+      set_for(name).fetch_value!(name)
+    end
+
+    def fetch_value_at(index, &block)
+      if shared_index = @to_shared[index]
+        @shared.fetch_value_at(shared_index, &block)
+      else
+        @own.fetch_value_at(index, &block)
+      end
+    end
+
+    def fetch_value_at!(index)
+      if shared_index = @to_shared[index]
+        @shared.fetch_value_at!(shared_index)
+      else
+        @own.fetch_value_at!(index)
+      end
+    end
+
+    def write_from_database(name, value)
+      set_for(name).write_from_database(name, value)
+    end
+
+    def write_from_user(name, value)
+      raise FrozenError, "can't modify frozen attributes" if frozen?
+      set_for(name).write_from_user(name, value)
+    end
+
+    def write_cast_value(name, value)
+      set_for(name).write_cast_value(name, value)
+    end
+
+    def reset(name)
+      set_for(name).reset(name)
+    end
+
+    def to_hash
+      keys.index_with { |name| self[name].value }
+    end
+    alias :to_h :to_hash
+
+    def cast_types
+      @shared.cast_types.merge(own_only(@own.cast_types))
+    end
+
+    def values_before_type_cast
+      @shared.values_before_type_cast.merge(own_only(@own.values_before_type_cast))
+    end
+
+    def values_for_database
+      @shared.values_for_database.merge(own_only(@own.values_for_database))
+    end
+
+    def accessed
+      @shared.accessed | own_only(@own.accessed)
+    end
+
+    def each_value(&block)
+      return enum_for(:each_value) unless block
+
+      @shared.each_value(&block)
+      @own.each_value { |attribute| yield attribute unless shared?(attribute.name) }
+      self
+    end
+
+    def values
+      each_value.to_a
+    end
+
+    def map(&block)
+      self.class.new(@shared.map(&block), @own.map(&block))
+    end
+
+    def deep_dup
+      self.class.new(@shared.deep_dup, @own.deep_dup)
+    end
+
+    def initialize_dup(_)
+      @shared = @shared.dup
+      @own = @own.dup
+      super
+    end
+
+    def initialize_clone(_)
+      @shared = @shared.clone
+      @own = @own.clone
+      super
+    end
+
+    def freeze
+      @shared.freeze
+      @own.freeze
+      super
+    end
+
+    def ==(other)
+      other.class == self.class && shared == other.shared && own == other.own
+    end
+
+    def read_only?
+      false
+    end
+
+    protected
+      attr_reader :shared, :own
+
+    private
+      # The index in +shared+ for each index in +own+, or +nil+ where
+      # +shared+ doesn't have the attribute.
+      def to_shared_indexes
+        shared_indexes = @shared.indexes
+        own_indexes = @own.indexes
+        map = []
+        own_indexes.each_key do |name|
+          if entry = shared_indexes[name]
+            map[own_indexes[name].ord] = entry.ord
+          end
+        end
+        map
+      end
+
+      def shared?(name)
+        @shared.indexes.key?(name)
+      end
+
+      def set_for(name)
+        shared?(name) ? @shared : @own
+      end
+
+      def own_only(names)
+        names.reject { |name, _| shared?(name) }
       end
   end
 end
