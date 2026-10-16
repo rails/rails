@@ -244,7 +244,7 @@ module ActiveModel
       # Additional types (like from `select count(*) as blah`)
       @additional_types = additional_types
       @ctx = ctx
-      @casted_values = values.is_a?(IndexedRow) ? values.new_empty_mutable_row : {}
+      @casted_values = values.new_empty_mutable_row
       @materialized = false
       @indexes = default_attributes.indexes
     end
