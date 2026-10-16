@@ -236,31 +236,30 @@ module ActiveModel
       @indexes || upgrade_legacy_ivars
     end
 
-    # +attributes+ is an IndexedRow of already cached attributes, or +nil+.
-    def initialize(values, types, additional_types, default_attributes, attributes, default_keys)
+    def initialize(values, additional_types, ctx)
       super([])
+      # The raw data from the database
       @values = values
-      @types = types
+
+      # Additional types (like from `select count(*) as blah`)
       @additional_types = additional_types
-      @default_attributes = default_attributes
-      @default_keys = default_keys
+      @ctx = ctx
       @casted_values = values.is_a?(IndexedRow) ? values.new_empty_mutable_row : {}
       @materialized = false
+      @indexes = default_attributes.indexes
+    end
 
-      if attributes
-        @indexes = attributes.indexes
-        attributes.each_key { |name| @attributes[@indexes[name].ord] = attributes[name] }
-      else
-        @indexes = default_attributes.indexes
-      end
+    def initialize_copy(other)
+      super
+      @casted_values = @casted_values.dup
     end
 
     def key?(name)
-      values.key?(name) || ((types.key?(name) || !lookup(name).nil?) && self[name].initialized?)
+      values.key?(name) || ((@ctx.type_key?(name) || !lookup(name).nil?) && self[name].initialized?)
     end
 
     def keys
-      keys = values.keys | types.keys | cached_names
+      keys = values.keys | @ctx.type_keys | cached_names
       keys.keep_if { |name| self[name].initialized? }
     end
 
@@ -274,7 +273,7 @@ module ActiveModel
         value = values.fetch(name) { value_present = false }
 
         if value_present
-          type = additional_types.fetch(name, types[name])
+          type = additional_types.fetch(name, @ctx.type_for_name(name))
           @casted_values[name] = type.deserialize(value)
         else
           attr = default_attribute(name, value_present, value)
@@ -293,7 +292,7 @@ module ActiveModel
         value = values.fetch(name) { value_present = false }
 
         if value_present
-          type = additional_types.fetch(name, types[name])
+          type = additional_types.fetch(name, @ctx.type_for_name(name))
           @casted_values[name] = type.deserialize(value)
         else
           default_attribute(name, value_present, value).value!
@@ -302,25 +301,12 @@ module ActiveModel
     end
 
     def deep_dup
-      LazyAttributeSet.new(
-        values.dup,
-        types.dup,
-        additional_types.dup,
-        default_attributes.dup,
-        attributes.transform_values(&:deep_dup),
-        @default_keys
-      )
+      map(&:deep_dup)
     end
 
     def map(&block)
-      LazyAttributeSet.new(
-        values,
-        types,
-        additional_types,
-        default_attributes,
-        attributes.transform_values(&block),
-        @default_keys
-      )
+      materialize
+      dup.transform_attributes!(&block)
     end
 
     protected
@@ -334,13 +320,24 @@ module ActiveModel
         IndexedRow::Mutable.new(indexes, row)
       end
 
+      # Replaces each cached attribute with the block's result. Only for
+      # fresh copies, since it modifies +@attributes+ in place.
+      def transform_attributes!
+        @attributes.map! { |attr| attr && yield(attr) }
+        self
+      end
+
     private
-      attr_reader :values, :types, :additional_types, :default_attributes
+      attr_reader :values, :types, :additional_types
+
+      def default_attributes
+        @ctx.default_attributes
+      end
 
       def materialize
         unless @materialized
           values.each_key { |key| self[key] }
-          types.each_key { |key| self[key] }
+          @ctx.type_keys.each { |key| self[key] }
           @materialized = true
         end
       end
@@ -386,12 +383,12 @@ module ActiveModel
         value_present = true,
         value = values.fetch(name) { value_present = false }
       )
-        type = additional_types.fetch(name, types[name])
+        type = additional_types.fetch(name, @ctx.type_for_name(name))
 
         if value_present
           store(name, Attribute.from_database(name, value, type, @casted_values[name]))
-        elsif types.key?(name)
-          if (@default_keys.nil? || @default_keys.include?(name)) && (attr = default_attributes.fetch(name) { nil })
+        elsif @ctx.type_key?(name)
+          if @ctx.needs_default?(name) && (attr = default_attributes.fetch(name) { nil })
             store(name, attr.dup)
           else
             store(name, Attribute.uninitialized(name, type))
