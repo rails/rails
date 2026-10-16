@@ -80,12 +80,35 @@ module ActiveRecord
         def instance
           ActiveSupport::IsolatedExecutionState[:active_record_scope_registry] ||= new
         end
+
+        # Undoes scopes that an interrupted +ensure+ (such as after a
+        # SystemStackError) left behind. Restores in place, because open
+        # +scoping+ blocks hold the registry object.
+        def install_executor_hooks(executor = ActiveSupport::Executor)
+          executor.register_hook(self)
+        end
+
+        def run
+          instance.snapshot
+        end
+
+        def complete(snapshot)
+          instance.restore(snapshot)
+        end
       end
 
       def initialize
         @current_scope        = {}
         @ignore_default_scope = {}
         @global_current_scope = {}
+      end
+
+      def snapshot
+        [@current_scope.dup, @ignore_default_scope.dup, @global_current_scope.dup]
+      end
+
+      def restore(snapshot)
+        @current_scope, @ignore_default_scope, @global_current_scope = snapshot
       end
 
       def current_scope(model, skip_inherited_scope = false)
