@@ -28,7 +28,7 @@ module AbstractController
           mattr_writer :fragment_cache_keys
         end
 
-        self.fragment_cache_keys = []
+        self.fragment_cache_keys = [].freeze
 
         if respond_to?(:helper_method)
           helper_method :combined_fragment_cache_key
@@ -56,7 +56,9 @@ module AbstractController
         #       end
         #     end
         def fragment_cache_key(value = nil, &key)
-          self.fragment_cache_keys += [key || -> { value }]
+          self.fragment_cache_keys = [
+            *fragment_cache_keys, ActiveSupport::Ractors.try_shareable_proc(key || -> { value })
+          ].freeze
         end
       end
 
