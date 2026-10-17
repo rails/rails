@@ -41,6 +41,31 @@ module ActiveModel
       end
     end
 
+    module AttributeReaderOverride
+      extend ActiveSupport::Concern
+
+      def name
+        "overridden"
+      end
+    end
+
+    class ModelWithOverrideBeforeAttribute
+      include ActiveModel::Model
+      include ActiveModel::Attributes
+      include AttributeReaderOverride
+
+      attribute :name, :string
+    end
+
+    class ModelWithOverrideAfterAttribute
+      include ActiveModel::Model
+      include ActiveModel::Attributes
+
+      attribute :name, :string
+
+      include AttributeReaderOverride
+    end
+
     test "models that proxy attributes do not conflict with models with generated methods" do
       ModelWithGeneratedAttributeMethods.new
 
@@ -182,6 +207,25 @@ module ActiveModel
       end
 
       assert_equal with_alias.type_for_attribute(:integer_field), with_alias.type_for_attribute(:x)
+    end
+
+    test "included module overrides attribute reader when included before attribute" do
+      model = ModelWithOverrideBeforeAttribute.new
+
+      assert_equal "overridden", model.name
+      assert_respond_to model, :name=
+      model.name = "written"
+      assert_equal "overridden", model.name
+    end
+
+    test "included module overrides attribute reader when included after attribute" do
+      assert_equal "overridden", ModelWithOverrideAfterAttribute.new.name
+    end
+
+    test "generated attribute reader is used when no override exists" do
+      model = ModelForAttributesTest.new(string_field: "from attribute")
+
+      assert_equal "from attribute", model.string_field
     end
   end
 end

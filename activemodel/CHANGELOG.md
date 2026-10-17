@@ -1,3 +1,15 @@
+*   Fix attribute method generation to preserve overrides from included modules.
+
+    Including a concern that defines an attribute reader before calling
+    `attribute` no longer loses to the generated accessor. Generation is
+    skipped when the method is already defined by an included module, while
+    methods defined directly on the class still get a generated target so
+    `super` keeps working. Restores Rails 8.0 precedence for the concern case.
+
+    Fixes #57281.
+
+    *Andrii Furmanets*
+
 *   Treat `:except_on` as a callback option in `ActiveModel::Error`.
 
     Errors from validations using `:except_on` now match `errors.added?` queries
