@@ -163,7 +163,7 @@ class Time
 
     raise ArgumentError, "argument out of range" if new_usec >= 1000000
 
-    new_sec += Rational(new_usec, 1000000)
+    new_sec += Rational(new_usec, 1000000) unless new_usec == 0
 
     if new_offset
       ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, new_offset)
