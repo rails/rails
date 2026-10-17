@@ -57,31 +57,31 @@ module ActionController
 
     private
       def process_action(*)
-        ActiveSupport::ExecutionContext[:controller] = self
+        ActiveSupport::ExecutionContext.set(controller: self) do
+          raw_payload = {
+            controller: self.class.name,
+            action: action_name,
+            request: request,
+            params: request.filtered_parameters,
+            headers: request.headers,
+            format: request.format.ref,
+            method: request.request_method,
+            path: request.filtered_path
+          }
 
-        raw_payload = {
-          controller: self.class.name,
-          action: action_name,
-          request: request,
-          params: request.filtered_parameters,
-          headers: request.headers,
-          format: request.format.ref,
-          method: request.request_method,
-          path: request.filtered_path
-        }
+          ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)
 
-        ActiveSupport::Notifications.instrument("start_processing.action_controller", raw_payload)
-
-        ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
-          result = super
-          payload[:response] = response
-          payload[:status]   = response.status
-          result
-        rescue => error
-          payload[:status] = ActionDispatch::ExceptionWrapper.status_code_for_exception(error.class.name)
-          raise
-        ensure
-          append_info_to_payload(payload)
+          ActiveSupport::Notifications.instrument("process_action.action_controller", raw_payload) do |payload|
+            result = super
+            payload[:response] = response
+            payload[:status]   = response.status
+            result
+          rescue => error
+            payload[:status] = ActionDispatch::ExceptionWrapper.status_code_for_exception(error.class.name)
+            raise
+          ensure
+            append_info_to_payload(payload)
+          end
         end
       end
 
