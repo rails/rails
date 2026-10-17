@@ -17,6 +17,12 @@ end
 class CatController < ActionController::Base
 end
 
+class DogController < ActionController::Base
+end
+
+class FishController < ActionController::Base
+end
+
 class SimpleController < ActionController::Base
   def status
     head :ok
@@ -126,6 +132,16 @@ class ControllerClassTests < ActiveSupport::TestCase
   def test_controller_name
     assert_equal "empty", EmptyController.controller_name
     assert_equal "contained_empty", Submodule::ContainedEmptyController.controller_name
+  end
+
+  def test_controller_name_set_on_the_main_ractor_is_accessible_from_a_ractor
+    assert_equal "dog", DogController.controller_name
+    assert_equal "dog", on_ractor { DogController.controller_name }
+  end
+
+  def test_controller_name_can_be_first_called_from_a_ractor
+    assert_equal "fish", on_ractor { FishController.controller_name }
+    assert_equal "fish", FishController.controller_name
   end
 
   def test_no_deprecation_when_action_view_record_identifier_is_included
