@@ -71,6 +71,11 @@ module ActiveModel
         define_attribute_method(name)
       end
 
+      def store_attribute(name, ...) # :nodoc:
+        super
+        define_attribute_method(name)
+      end
+
       # Returns an array of attribute names as strings.
       #
       # ```

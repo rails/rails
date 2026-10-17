@@ -36,7 +36,7 @@ module ActiveRecord
             hash.default = ActiveModel::Type.default_value
           end
           default_keys = DatabaseDefaultKeys.new(context.model_class.primary_key_definition, context.columns_hash)
-          @builder = ActiveModel::AttributeSet::Builder.new(@types, defaults, default_keys)
+          @builder = ActiveModel::AttributeSet::Builder.new(@types, defaults, default_keys, context.model_class)
           @column_defaults = defaults.to_hash.freeze if defaults.read_only?
         end
 
@@ -120,9 +120,9 @@ module ActiveRecord
 
         if attributes.each_value.all?(&:freezable?)
           attributes.each_value(&:freeze)
-          ActiveModel::ReadOnlyAttributeSet.new(attributes.freeze)
+          ActiveModel::ReadOnlyAttributeSet.new(attributes.freeze, model_class)
         else
-          ActiveModel::AttributeSet.new(attributes)
+          ActiveModel::AttributeSet.new(attributes, model_class)
         end
       end
 
@@ -165,6 +165,7 @@ module ActiveRecord
         @all_timestamp_attributes_in_model = (@timestamp_attributes_for_create_in_model + @timestamp_attributes_for_update_in_model).freeze
 
         model_class.make_pending_attribute_modifications_shareable
+        model_class.make_store_attribute_definitions_shareable
         default_attributes = build_default_attributes
         attributes = Attributes.new(self, default_attributes)
         if default_attributes.read_only? && ActiveSupport::Ractors.shareable?(default_attributes)
