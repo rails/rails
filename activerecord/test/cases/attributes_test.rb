@@ -7,6 +7,7 @@ require "active_support/core_ext/object/with"
 class OverloadedType < ActiveRecord::Base
   attribute :overloaded_float, :integer
   attribute :overloaded_boolean, :integer
+  attribute :overloaded_boolean_with_truthy_default, :integer
   attribute :overloaded_string_with_limit, :string, limit: 50
   attribute :non_existent_decimal, :decimal
   attribute :string_with_default, :string, default: "the overloaded default"
@@ -38,15 +39,26 @@ module ActiveRecord
       assert_equal 1.1, data.unoverloaded_float
     end
 
-    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
+    if current_adapter?(:Mysql2Adapter, :TrilogyAdapter, :SQLite3Adapter)
       test "overloading boolean types" do
-        # On MySQL-like databases `tinyint(1)` can easily be confused with a boolean.
+        # On MySQL-like databases `tinyint(1)` can easily be confused with a boolean,
+        # and SQLite has no native boolean type either, so both store booleans as
+        # integers and allow the column to be overridden with an :integer attribute.
         data = OverloadedType.new
 
         assert_equal 0, data.overloaded_boolean
         data.overloaded_boolean = "2"
         data.save!
         assert_equal 2, data.overloaded_boolean
+      end
+
+      test "a boolean column's truthy schema default is cast through an overridden integer type" do
+        data = OverloadedType.new
+
+        assert_equal 1, data.overloaded_boolean_with_truthy_default
+        data.overloaded_boolean_with_truthy_default = 2
+        data.save!
+        assert_equal 2, data.reload.overloaded_boolean_with_truthy_default
       end
     end
 
