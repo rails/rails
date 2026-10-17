@@ -6,6 +6,7 @@ require "models/numeric_data"
 class NumericalityValidationTest < ActiveRecord::TestCase
   def setup
     @model_class = NumericData.dup
+    @model_class.define_singleton_method(:model_name) { NumericData.model_name }
   end
 
   attr_reader :model_class
@@ -171,5 +172,20 @@ class NumericalityValidationTest < ActiveRecord::TestCase
     subject = model_class.new(bank_balance: "")
 
     assert_predicate subject, :valid?
+  end
+
+  def test_numericality_validation_with_custom_setter_and_invalid_value
+    model_class.validates_numericality_of(:temperature, greater_than_or_equal_to: 0, allow_nil: true)
+
+    model_class.define_method(:temperature=) do |value|
+      super(value)
+      super(temperature.round(6)) unless temperature.nil?
+    end
+
+    subject = model_class.new
+    subject.temperature = "abc"
+
+    assert_not_predicate subject, :valid?
+    assert_includes subject.errors[:temperature], "is not a number"
   end
 end
