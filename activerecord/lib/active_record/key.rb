@@ -2,8 +2,6 @@
 
 module ActiveRecord
   class Key # :nodoc:
-    include Enumerable
-
     def self.for(name)
       key = case name
       when Array
@@ -23,8 +21,10 @@ module ActiveRecord
       true
     end
 
-    def each(&block)
-      @columns.each(&block)
+    delegate :each, :map, :all?, :any?, :each_with_index, :index_with, :include?, to: :@columns
+
+    def zip(other)
+      @columns.zip(other.columns)
     end
 
     def all?(...) = @columns.all?(...)
