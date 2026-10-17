@@ -72,6 +72,9 @@ class RedisAdapterTest < ActionCable::TestCase
 
     @tx_adapter.broadcast("other channel", "after")
     assert_equal "after", after_queue.pop
+
+    @tx_adapter.broadcast("channel", "resubscribed")
+    assert_equal "resubscribed", before_queue.pop(timeout: WAIT_WHEN_EXPECTING_EVENT)
   ensure
     rx_adapter&.shutdown
   end
@@ -242,6 +245,19 @@ class RedisAdapterTest::ListenerReconnection < ActionCable::TestCase
     end
   end
 
+  class RecordingPubSub < FakePubSub
+    attr_reader :commands
+
+    def initialize(events)
+      super
+      @commands = Queue.new
+    end
+
+    def call(*command)
+      @commands << command
+    end
+  end
+
   class FakeConnection
     def initialize(pubsub)
       @pubsub = pubsub
@@ -292,4 +308,55 @@ class RedisAdapterTest::ListenerReconnection < ActionCable::TestCase
   ensure
     listener.instance_variable_get(:@thread)&.kill
   end
+
+  test "a restarted listener resubscribes existing channels after exhausting reconnect attempts" do
+    assert_restarted_listener_resubscribes do |events, _thread|
+      events << :drop
+    end
+  end
+
+  test "a restarted listener discards the stale client after its thread is killed" do
+    assert_restarted_listener_resubscribes do |_events, thread|
+      thread.kill
+    end
+  end
+
+  private
+    def assert_restarted_listener_resubscribes
+      events = Queue.new
+      pubsub = RecordingPubSub.new(events)
+      listener = ActionCable::SubscriptionAdapter::Redis::Listener.new(
+        FakeAdapter.new(FakeConnection.new(pubsub)), { reconnect_attempts: 0 }, InlineExecutor.new
+      )
+
+      confirmations = Queue.new
+      messages = Queue.new
+      listener.add_subscriber("channel", ->(message) { messages << message }, -> { confirmations << "channel" })
+      initial_subscriptions = 2.times.map { pubsub.commands.pop(timeout: 2) }
+      assert_includes initial_subscriptions, ["subscribe", ActionCable::SubscriptionAdapter::Redis::Listener::INTERNAL_CHANNEL]
+      assert_includes initial_subscriptions, ["subscribe", "channel"]
+      events << ["subscribe", "channel", 2]
+      assert_equal "channel", confirmations.pop(timeout: 2)
+      events << ["message", "channel", "before"]
+      assert_equal "before", messages.pop(timeout: 2)
+
+      original_thread = listener.instance_variable_get(:@thread)
+      yield events, original_thread
+      assert original_thread.join(2), "the listener did not stop"
+
+      listener.add_subscriber("other channel", ->(message) { messages << message }, -> { confirmations << "other channel" })
+      subscriptions = 3.times.map { pubsub.commands.pop(timeout: 2) }
+      assert_includes subscriptions, ["subscribe", ActionCable::SubscriptionAdapter::Redis::Listener::INTERNAL_CHANNEL]
+      assert_includes subscriptions.compact.flat_map { |command| command.drop(1) }, "channel"
+
+      subscriptions.each do |command|
+        command.drop(1).each { |channel| events << ["subscribe", channel, 3] }
+      end
+      events << ["message", "channel", "after"]
+      assert_equal "after", messages.pop(timeout: 2)
+      assert_equal "other channel", confirmations.pop(timeout: 2)
+      assert_empty confirmations
+    ensure
+      listener.instance_variable_get(:@thread)&.kill&.join
+    end
 end
