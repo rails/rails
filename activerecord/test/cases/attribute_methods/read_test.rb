@@ -10,6 +10,8 @@ module ActiveRecord
         def type; :integer; end
       end
 
+      FakeBuilder = Struct.new(:indexes)
+
       def setup
         @klass = Class.new(Class.new { def self.initialize_generated_modules; end }) do
           def self.superclass; Base; end
@@ -37,6 +39,10 @@ module ActiveRecord
 
           def self.columns_hash
             columns.index_by(&:name)
+          end
+
+          def self.attributes_builder
+            FakeBuilder.new(attribute_names.each_with_index.to_h)
           end
         end
       end
