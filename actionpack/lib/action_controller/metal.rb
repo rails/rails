@@ -161,7 +161,9 @@ module ActionController
     # #### Returns
     # *   `string`
     def self.controller_name
-      @controller_name ||= (name.demodulize.delete_suffix("Controller").underscore unless anonymous?)
+      @controller_name || ActiveSupport::Ractors.on_main(self) do
+        @controller_name ||= (name.demodulize.delete_suffix("Controller").underscore.freeze unless anonymous?)
+      end
     end
 
     def self.make_response!(request)
