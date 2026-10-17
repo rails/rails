@@ -16,6 +16,7 @@ module Rails
         date
         datetime
         decimal
+        delegated_type
         digest
         float
         integer
@@ -147,7 +148,7 @@ module Rails
                      when :boolean                     then false
                      when :references, :belongs_to,
                           :attachment, :attachments,
-                          :rich_text                   then nil
+                          :rich_text, :delegated_type  then nil
                      else
                        ""
         end
@@ -221,8 +222,12 @@ module Rails
         type == :attachments
       end
 
+      def delegated_type?
+        type == :delegated_type
+      end
+
       def virtual?
-        rich_text? || attachment? || attachments?
+        rich_text? || attachment? || attachments? || delegated_type?
       end
 
       def inject_options
