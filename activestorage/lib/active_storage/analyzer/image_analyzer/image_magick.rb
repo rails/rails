@@ -14,7 +14,7 @@ module ActiveStorage
   # the {ImageMagick}[http://www.imagemagick.org] system library.
   class Analyzer::ImageAnalyzer::ImageMagick < Analyzer::ImageAnalyzer
     def self.accept?(blob)
-      super && ActiveStorage.variant_processor == :mini_magick
+      super && (ActiveStorage.variant_processor == :mini_magick || (ActiveStorage.variant_processor == :disabled && MINIMAGICK_AVAILABLE))
     end
 
     private
