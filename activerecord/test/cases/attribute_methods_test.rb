@@ -500,8 +500,29 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_raises(ActiveModel::MissingAttributeError, match: /attribute 'developer' for Computer/) do
       computer[:developer]
     end
+    assert_raises(ActiveModel::MissingAttributeError, match: /attribute 'system' for Computer/) do
+      computer.system
+    end
     assert_nothing_raised { computer[:extendedWarranty] }
     assert_nothing_raised { computer[:no_column_exists] }
+  end
+
+  test "generated reader preserves a missing attribute error raised by the type" do
+    type = Class.new(ActiveRecord::Type::String) do
+      def deserialize(value)
+        raise ActiveModel::MissingAttributeError, "raised by the type" unless value.nil?
+        super
+      end
+    end.new
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      attribute :title, type
+    end
+
+    record = model.instantiate("title" => "Hello")
+    error = assert_raises(ActiveModel::MissingAttributeError) { record.title }
+    assert_equal "raised by the type", error.message
   end
 
   test "read_attr reads attributes and aliased attributes by String name" do
