@@ -179,4 +179,38 @@ class ActionText::ModelTest < ActiveSupport::TestCase
     message2.content = ""
     assert_not_predicate message2, :valid?
   end
+
+  test "overriding has_rich_text getter works" do
+    message = MessageWithOverriddenRichText.new
+
+    assert_equal "Default", message.content.to_plain_text
+
+    message.content = "<h1>Hello world</h1>"
+
+    assert_equal "Hello world", message.content.to_plain_text
+  end
+
+  test "overriding has_rich_text setter works" do
+    message = MessageWithOverriddenRichText.new
+    message.note = "Hello world"
+
+    assert_equal "<h1>Hello world</h1>", message.note.body.to_html
+  end
+
+  test "overriding has_rich_text setter works with store_if_blank: false" do
+    assert_difference("ActionText::RichText.count" => 1) do
+      message = MessageWithOverriddenRichText.create!(summary: "Hello world")
+      assert_equal "<h1>Hello world</h1>", message.summary.body.to_html
+    end
+
+    assert_difference("ActionText::RichText.count" => 0) do
+      MessageWithOverriddenRichText.create!(summary: "")
+    end
+  end
+
+  test "overriding has_rich_text predicate works" do
+    message = MessageWithOverriddenRichText.new(content: "<h1>Hello world</h1>")
+
+    assert_not_predicate message, :content?
+  end
 end
