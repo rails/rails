@@ -391,10 +391,15 @@ class Subscriptions {
     return this.add(subscription);
   }
   add(subscription) {
+    const existing = this.findAll(subscription.identifier).length > 0;
     this.subscriptions.push(subscription);
     this.consumer.ensureActiveConnection();
     this.notify(subscription, "initialized");
-    this.subscribe(subscription);
+    if (!existing) {
+      this.subscribe(subscription);
+    } else if (!this.guarantor.pendingSubscriptions.some((s => s.identifier === subscription.identifier))) {
+      this.notify(subscription, "connected");
+    }
     return subscription;
   }
   remove(subscription) {
