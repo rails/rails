@@ -21,7 +21,7 @@ module ActiveRecord
               owner.define_cached_method(temp_method_name, as: as, namespace: :active_record) do |batch|
                 batch <<
                   "def #{temp_method_name}" <<
-                  "  _read_attribute(#{attr_name_expr}) { |n| missing_attribute(n, caller) }" <<
+                  "  _read_attribute!(#{attr_name_expr})" <<
                   "end"
               end
             end
@@ -46,10 +46,17 @@ module ActiveRecord
         @attributes.fetch_value!(resolve_alias(attr_name))
       end
 
-      # This method exists to avoid the expensive primary_key check internally, without
-      # breaking compatibility with the read_attribute API
-      def _read_attribute(attr_name, &block) # :nodoc:
-        @attributes.fetch_value(attr_name, &block)
+      # Internal read without alias resolution. An uninitialized attribute returns nil.
+      def _read_attribute(attr_name) # :nodoc:
+        @attributes.fetch_value(attr_name)
+      end
+
+      # Internal read without alias resolution that raises for uninitialized attributes.
+      def _read_attribute!(attr_name) # :nodoc:
+        @attributes.fetch_value!(attr_name)
+      rescue ActiveModel::MissingAttributeError
+        raise if @attributes.key?(attr_name)
+        missing_attribute(attr_name, caller)
       end
 
       # Like #_read_attribute, but a missing attribute raises
