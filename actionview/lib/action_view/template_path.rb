@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
-  # = Action View \TemplatePath
+  # Action View \TemplatePath
+  # =========================
   #
   # Represents a template path within ActionView's lookup and rendering system,
   # like "users/show"

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/module/redefine_method"
 require "action_controller"
 require "action_controller/test_case"
@@ -8,9 +9,10 @@ require "action_view"
 require "rails-dom-testing"
 
 module ActionView
-  # = Action View Test Case
+  # Action View Test Case
+  # =====================
   #
-  # Read more about <tt>ActionView::TestCase</tt> in {Testing Rails Applications}[https://guides.rubyonrails.org/testing.html#testing-view-partials]
+  # Read more about `ActionView::TestCase` in [Testing Rails Applications](https://guides.rubyonrails.org/testing.html#testing-view-partials)
   # in the guides.
   class TestCase < ActiveSupport::TestCase
     class TestController < ActionController::Base
@@ -62,53 +64,59 @@ module ActionView
       delegate :lookup_context, to: :controller
       attr_accessor :controller, :request, :output_buffer
 
-      # Returns the content rendered by the last +render+ call.
+      # Returns the content rendered by the last `render` call.
       #
       # The returned object behaves like a string but also exposes a number of methods
       # that allows you to parse the content string in formats registered using
-      # <tt>.register_parser</tt>.
+      # `.register_parser`.
       #
       # By default includes the following parsers:
       #
-      # +.html+
+      # `.html`
       #
-      # Parse the <tt>rendered</tt> content String into HTML. By default, this means
-      # a <tt>Nokogiri::XML::Node</tt>.
+      # Parse the `rendered` content String into HTML. By default, this means
+      # a `Nokogiri::XML::Node`.
       #
-      #   test "renders HTML" do
-      #     article = Article.create!(title: "Hello, world")
+      # ```
+      # test "renders HTML" do
+      #   article = Article.create!(title: "Hello, world")
       #
-      #     render partial: "articles/article", locals: { article: article }
+      #   render partial: "articles/article", locals: { article: article }
       #
-      #     assert_pattern { rendered.html.at("main h1") => { content: "Hello, world" } }
-      #   end
+      #   assert_pattern { rendered.html.at("main h1") => { content: "Hello, world" } }
+      # end
+      # ```
       #
-      # To parse the rendered content into a <tt>Capybara::Simple::Node</tt>,
-      # re-register an <tt>:html</tt> parser with a call to
-      # <tt>Capybara.string</tt>:
+      # To parse the rendered content into a `Capybara::Simple::Node`,
+      # re-register an `:html` parser with a call to
+      # `Capybara.string`:
       #
-      #   register_parser :html, -> rendered { Capybara.string(rendered) }
+      # ```
+      # register_parser :html, -> rendered { Capybara.string(rendered) }
       #
-      #   test "renders HTML" do
-      #     article = Article.create!(title: "Hello, world")
+      # test "renders HTML" do
+      #   article = Article.create!(title: "Hello, world")
       #
-      #     render partial: article
+      #   render partial: article
       #
-      #     rendered.html.assert_css "h1", text: "Hello, world"
-      #   end
+      #   rendered.html.assert_css "h1", text: "Hello, world"
+      # end
+      # ```
       #
-      # +.json+
+      # `.json`
       #
-      # Parse the <tt>rendered</tt> content String into JSON. By default, this means
-      # a <tt>ActiveSupport::HashWithIndifferentAccess</tt>.
+      # Parse the `rendered` content String into JSON. By default, this means
+      # a `ActiveSupport::HashWithIndifferentAccess`.
       #
-      #   test "renders JSON" do
-      #     article = Article.create!(title: "Hello, world")
+      # ```
+      # test "renders JSON" do
+      #   article = Article.create!(title: "Hello, world")
       #
-      #     render formats: :json, partial: "articles/article", locals: { article: article }
+      #   render formats: :json, partial: "articles/article", locals: { article: article }
       #
-      #     assert_pattern { rendered.json => { title: "Hello, world" } }
-      #   end
+      #   assert_pattern { rendered.json => { title: "Hello, world" } }
+      # end
+      # ```
       attr_accessor :rendered
 
       module ClassMethods
@@ -127,72 +135,78 @@ module ActionView
         # Register a callable to parse rendered content for a given template
         # format.
         #
-        # Each registered parser will also define a +#rendered.[FORMAT]+ helper
-        # method, where +[FORMAT]+ corresponds to the value of the
-        # +format+ argument.
+        # Each registered parser will also define a `#rendered.[FORMAT]` helper
+        # method, where `[FORMAT]` corresponds to the value of the
+        # `format` argument.
         #
         # By default, ActionView::TestCase defines parsers for:
         #
-        # * +:html+ - returns an instance of +Nokogiri::XML::Node+
-        # * +:json+ - returns an instance of ActiveSupport::HashWithIndifferentAccess
+        # * `:html` - returns an instance of `Nokogiri::XML::Node`
+        # * `:json` - returns an instance of ActiveSupport::HashWithIndifferentAccess
         #
         # These pre-registered parsers also define corresponding helpers:
         #
-        # * +:html+ - defines +rendered.html+
-        # * +:json+ - defines +rendered.json+
+        # * `:html` - defines `rendered.html`
+        # * `:json` - defines `rendered.json`
         #
-        # ==== Parameters
+        # #### Parameters
         #
-        # [+format+]
-        #   The name (as a +Symbol+) of the format used to render the content.
+        # `format`
+        # :   The name (as a `Symbol`) of the format used to render the content.
         #
-        # [+callable+]
-        #   The parser. A callable object that accepts the rendered string as
-        #   its sole argument. Alternatively, the parser can be specified as a
-        #   block.
+        # `callable`
+        # :   The parser. A callable object that accepts the rendered string as
+        # its sole argument. Alternatively, the parser can be specified as a
+        # block.
         #
-        # ==== Examples
+        # #### Examples
         #
-        #   test "renders HTML" do
-        #     article = Article.create!(title: "Hello, world")
+        # ```
+        # test "renders HTML" do
+        #   article = Article.create!(title: "Hello, world")
         #
-        #     render partial: "articles/article", locals: { article: article }
+        #   render partial: "articles/article", locals: { article: article }
         #
-        #     assert_pattern { rendered.html.at("main h1") => { content: "Hello, world" } }
-        #   end
+        #   assert_pattern { rendered.html.at("main h1") => { content: "Hello, world" } }
+        # end
         #
-        #   test "renders JSON" do
-        #     article = Article.create!(title: "Hello, world")
+        # test "renders JSON" do
+        #   article = Article.create!(title: "Hello, world")
         #
-        #     render formats: :json, partial: "articles/article", locals: { article: article }
+        #   render formats: :json, partial: "articles/article", locals: { article: article }
         #
-        #     assert_pattern { rendered.json => { title: "Hello, world" } }
-        #   end
+        #   assert_pattern { rendered.json => { title: "Hello, world" } }
+        # end
+        # ```
         #
-        # To parse the rendered content into RSS, register a call to +RSS::Parser.parse+:
+        # To parse the rendered content into RSS, register a call to `RSS::Parser.parse`:
         #
-        #   register_parser :rss, -> rendered { RSS::Parser.parse(rendered) }
+        # ```
+        # register_parser :rss, -> rendered { RSS::Parser.parse(rendered) }
         #
-        #   test "renders RSS" do
-        #     article = Article.create!(title: "Hello, world")
+        # test "renders RSS" do
+        #   article = Article.create!(title: "Hello, world")
         #
-        #     render formats: :rss, partial: article
+        #   render formats: :rss, partial: article
         #
-        #     assert_equal "Hello, world", rendered.rss.items.last.title
-        #   end
+        #   assert_equal "Hello, world", rendered.rss.items.last.title
+        # end
+        # ```
         #
-        # To parse the rendered content into a +Capybara::Simple::Node+,
-        # re-register an +:html+ parser with a call to +Capybara.string+:
+        # To parse the rendered content into a `Capybara::Simple::Node`,
+        # re-register an `:html` parser with a call to `Capybara.string`:
         #
-        #   register_parser :html, -> rendered { Capybara.string(rendered) }
+        # ```
+        # register_parser :html, -> rendered { Capybara.string(rendered) }
         #
-        #   test "renders HTML" do
-        #     article = Article.create!(title: "Hello, world")
+        # test "renders HTML" do
+        #   article = Article.create!(title: "Hello, world")
         #
-        #     render partial: article
+        #   render partial: article
         #
-        #     rendered.html.assert_css "h1", text: "Hello, world"
-        #   end
+        #   rendered.html.assert_css "h1", text: "Hello, world"
+        # end
+        # ```
         #
         def register_parser(format, callable = nil, &block)
           parser = callable || block || :itself.to_proc
@@ -359,7 +373,7 @@ module ActionView
         end
       end
 
-      # The instance of ActionView::Base that is used by +render+.
+      # The instance of ActionView::Base that is used by `render`.
       def view
         @view ||= begin
           view = @controller.view_context

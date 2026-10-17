@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView # :nodoc:
   class Template # :nodoc:
-    # = Action View Text Template
+    # Action View Text Template
+    # =========================
     class Text # :nodoc:
       attr_accessor :type
 

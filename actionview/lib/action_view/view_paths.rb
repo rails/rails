@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   module ViewPaths
     extend ActiveSupport::Concern
@@ -37,8 +38,9 @@ module ActionView
 
       # Append a path to the list of view paths for this controller.
       #
-      # ==== Parameters
-      # * <tt>path</tt> - If a String is provided, it gets converted into
+      # #### Parameters
+      #
+      # * `path` - If a String is provided, it gets converted into
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
       def append_view_path(path)
@@ -47,8 +49,9 @@ module ActionView
 
       # Prepend a path to the list of view paths for this controller.
       #
-      # ==== Parameters
-      # * <tt>path</tt> - If a String is provided, it gets converted into
+      # #### Parameters
+      #
+      # * `path` - If a String is provided, it gets converted into
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
       def prepend_view_path(path)
@@ -62,8 +65,9 @@ module ActionView
 
       # Set the view paths.
       #
-      # ==== Parameters
-      # * <tt>paths</tt> - If a PathSet is provided, use that;
+      # #### Parameters
+      #
+      # * `paths` - If a PathSet is provided, use that;
       #   otherwise, process the parameter into a PathSet.
       def view_paths=(paths)
         self._view_paths = _build_view_paths(paths)
@@ -76,7 +80,7 @@ module ActionView
 
       private
         # Override this method in your controller if you want to change paths prefixes for finding views.
-        # Prefixes defined here will still be added to parents' <tt>._prefixes</tt>.
+        # Prefixes defined here will still be added to parents' `._prefixes`.
         def local_prefixes
           [controller_path]
         end
@@ -101,8 +105,9 @@ module ActionView
 
     # Append a path to the list of view paths for the current LookupContext.
     #
-    # ==== Parameters
-    # * <tt>path</tt> - If a String is provided, it gets converted into
+    # #### Parameters
+    #
+    # * `path` - If a String is provided, it gets converted into
     #   the default view path. You may also provide a custom view path
     #   (see ActionView::PathSet for more information)
     def append_view_path(path)
@@ -111,8 +116,9 @@ module ActionView
 
     # Prepend a path to the list of view paths for the current LookupContext.
     #
-    # ==== Parameters
-    # * <tt>path</tt> - If a String is provided, it gets converted into
+    # #### Parameters
+    #
+    # * `path` - If a String is provided, it gets converted into
     #   the default view path. You may also provide a custom view path
     #   (see ActionView::PathSet for more information)
     def prepend_view_path(path)
