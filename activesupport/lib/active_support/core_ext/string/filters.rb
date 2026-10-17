@@ -103,7 +103,10 @@ class String
 
     # The slice is already a fresh, mutable string: append the omission to it
     # rather than interpolating both into a third string.
-    self[0, stop] << omission
+    # Slice to_str instead of self so an ActiveSupport::SafeBuffer truncates to
+    # a plain String: for a String, to_str is the same object, but for a
+    # SafeBuffer it is a plain String, so the result is not html_safe.
+    to_str[0, stop] << omission
   end
 
   # Truncates `text` to at most `truncate_to` bytes in length without
