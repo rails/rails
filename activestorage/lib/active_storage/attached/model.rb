@@ -324,7 +324,7 @@ module ActiveStorage
     end
 
     def reload(*) # :nodoc:
-      super.tap { @attachment_changes = nil }
+      super.tap { @active_storage_attached = nil }
     end
 
     def becomes(klass) # :nodoc:
