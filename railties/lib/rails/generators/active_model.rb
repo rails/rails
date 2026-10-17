@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Rails
   module Generators
     # ActiveModel is a class to be implemented by each ORM to allow \Rails to
@@ -10,17 +11,21 @@ module Rails
     #
     # For example:
     #
-    #   ActiveRecord::Generators::ActiveModel.find(Foo, "params[:id]")
-    #   # => "Foo.find(params[:id])"
+    # ```
+    # ActiveRecord::Generators::ActiveModel.find(Foo, "params[:id]")
+    # # => "Foo.find(params[:id])"
     #
-    #   DataMapper::Generators::ActiveModel.find(Foo, "params[:id]")
-    #   # => "Foo.get(params[:id])"
+    # DataMapper::Generators::ActiveModel.find(Foo, "params[:id]")
+    # # => "Foo.get(params[:id])"
+    # ```
     #
     # On initialization, the ActiveModel accepts the instance name that will
     # receive the calls:
     #
-    #   builder = ActiveRecord::Generators::ActiveModel.new "@foo"
-    #   builder.save # => "@foo.save"
+    # ```
+    # builder = ActiveRecord::Generators::ActiveModel.new "@foo"
+    # builder.save # => "@foo.save"
+    # ```
     #
     # The only exception in ActiveModel for ActiveRecord is the use of self.build
     # instead of self.new.
@@ -34,25 +39,25 @@ module Rails
 
       # Used for:
       #
-      # * GET +index+
+      # * GET `index`
       def self.all(klass)
         "#{klass}.all"
       end
 
       # Used for:
       #
-      # * GET +show+
-      # * GET +edit+
-      # * PATCH / PUT +update+
-      # * DELETE +destroy+
+      # * GET `show`
+      # * GET `edit`
+      # * PATCH / PUT `update`
+      # * DELETE `destroy`
       def self.find(klass, params = nil)
         "#{klass}.find(#{params})"
       end
 
       # Used for:
       #
-      # * GET +new+
-      # * POST +create+
+      # * GET `new`
+      # * POST `create`
       def self.build(klass, params = nil)
         if params
           "#{klass}.new(#{params})"
@@ -63,29 +68,29 @@ module Rails
 
       # Used for:
       #
-      # * POST +create+
+      # * POST `create`
       def save
         "#{name}.save"
       end
 
       # Used for:
       #
-      # * PATCH / PUT +update+
+      # * PATCH / PUT `update`
       def update(params = nil)
         "#{name}.update(#{params})"
       end
 
       # Used for:
       #
-      # * POST +create+
-      # * PATCH / PUT +update+
+      # * POST `create`
+      # * PATCH / PUT `update`
       def errors
         "#{name}.errors"
       end
 
       # Used for:
       #
-      # * DELETE +destroy+
+      # * DELETE `destroy`
       def destroy
         "#{name}.destroy!"
       end

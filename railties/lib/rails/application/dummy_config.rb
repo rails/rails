@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 class DummyConfig # :nodoc:
   def initialize(config)
     @config = config

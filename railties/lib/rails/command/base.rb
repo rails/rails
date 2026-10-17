@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "thor"
 require "erb"
 
@@ -100,7 +101,9 @@ module Rails
 
         # Sets the base_name taking into account the current class namespace.
         #
-        #   Rails::Command::TestCommand.base_name # => 'rails'
+        # ```
+        # Rails::Command::TestCommand.base_name # => 'rails'
+        # ```
         def base_name
           @base_name ||= if base = name.to_s.split("::").first
             base.underscore
@@ -109,7 +112,9 @@ module Rails
 
         # Return command name without namespaces.
         #
-        #   Rails::Command::TestCommand.command_name # => 'test'
+        # ```
+        # Rails::Command::TestCommand.command_name # => 'test'
+        # ```
         def command_name
           @command_name ||= if command = name.to_s.split("::").last
             command.chomp!("Command")
@@ -132,8 +137,8 @@ module Rails
         # Default file root to place extra files a command might need, placed
         # one folder above the command file.
         #
-        # For a Rails::Command::TestCommand placed in <tt>rails/command/test_command.rb</tt>
-        # would return <tt>rails/test</tt>.
+        # For a Rails::Command::TestCommand placed in `rails/command/test_command.rb`
+        # would return `rails/test`.
         def default_command_root
           @default_command_root = resolve_path(".") unless defined?(@default_command_root)
           @default_command_root

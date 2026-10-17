@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/digest/uuid"
 
 class Rails::DevtoolsController < ActionController::Base # :nodoc:

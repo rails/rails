@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Rails
-  # Returns the currently loaded version of \Rails as a +Gem::Version+.
+  # Returns the currently loaded version of \Rails as a `Gem::Version`.
   def self.gem_version
     Gem::Version.new VERSION::STRING
   end
