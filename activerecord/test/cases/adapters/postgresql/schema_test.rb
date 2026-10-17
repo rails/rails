@@ -74,6 +74,14 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     self.table_name = "things"
   end
 
+  class SchemaMigration1 < ActiveRecord::Base
+    self.table_name = "test_schema.schema_migrations"
+  end
+
+  class SchemaMigration2 < ActiveRecord::Base
+    self.table_name = "test_schema2.schema_migrations"
+  end
+
   class Song < ActiveRecord::Base
     self.table_name = "music.songs"
     has_and_belongs_to_many :albums
@@ -269,6 +277,35 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     with_schema_search_path("PUBLIC") do
       assert_not(@connection.data_source_exists?(TABLE_NAME), "data_source exists but should not be found")
     end
+  end
+
+  def test_empty_all_tables_empties_a_table_shadowed_by_a_same_named_one_on_the_search_path
+    Thing1.create!(id: 1)
+    Thing2.create!(id: 1)
+
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
+      @connection.empty_all_tables
+    end
+
+    assert_equal 0, Thing1.count
+    assert_equal 0, Thing2.count
+  end
+
+  def test_empty_all_tables_keeps_internal_tables_in_every_schema_on_the_search_path
+    [SCHEMA_NAME, SCHEMA2_NAME].each do |schema|
+      @connection.create_table "#{schema}.#{@connection.pool.schema_migration.table_name}", id: false do |t|
+        t.string :version
+      end
+    end
+    SchemaMigration1.create!(version: "1")
+    SchemaMigration2.create!(version: "1")
+
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
+      @connection.empty_all_tables
+    end
+
+    assert_equal 1, SchemaMigration1.count
+    assert_equal 1, SchemaMigration2.count
   end
 
   def test_data_source_exists_wrong_schema

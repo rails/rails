@@ -378,6 +378,10 @@ module ActiveRecord
         end
       end
 
+      def tables_to_truncate # :nodoc:
+        tables
+      end
+
       # Runs the given block in a database transaction, and returns the result
       # of the block.
       #
@@ -692,7 +696,7 @@ module ActiveRecord
       end
 
       def empty_all_tables # :nodoc:
-        truncate_tables(*tables)
+        truncate_tables(*tables_to_truncate)
       end
 
       def empty_insert_statement_value(primary_key = nil)

@@ -306,6 +306,10 @@ module ActiveRecord
           remote_dispatch(:table_comment, ...)
         end
 
+        def tables_to_truncate
+          remote_dispatch(:tables_to_truncate)
+        end
+
         def type_to_sql(...)
           pure_remote_dispatch(:type_to_sql, ...)
         end
