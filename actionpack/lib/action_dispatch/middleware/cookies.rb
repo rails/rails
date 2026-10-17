@@ -2,6 +2,7 @@
 
 # :markup: markdown
 
+require "concurrent/map"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/integer/time"
 require "active_support/key_generator"
@@ -627,19 +628,30 @@ module ActionDispatch
     class SignedKeyRotatingCookieJar < AbstractCookieJar # :nodoc:
       include SerializedCookieJars
 
+      # The verifier is determined entirely by boot-time configuration, so it
+      # is built once per configuration and shared by every request that uses
+      # that configuration.
       def initialize(parent_jar)
         super
 
-        secret = request.key_generator.generate_key(request.signed_cookie_salt)
-        @verifier = ActiveSupport::MessageVerifier.new(secret, digest: signed_cookie_digest, serializer: SERIALIZER)
-
-        request.cookies_rotations.signed.each do |(*secrets)|
-          options = secrets.extract_options!
-          @verifier.rotate(*secrets, serializer: SERIALIZER, **options)
-        end
+        cache_key = [request.key_generator, request.signed_cookie_salt, signed_cookie_digest, request.cookies_rotations]
+        @verifier = ActiveSupport::Ractors.store_if_absent(:action_dispatch_cookie_verifiers) { Concurrent::Map.new }
+          .compute_if_absent(cache_key) { build_verifier }
       end
 
       private
+        def build_verifier
+          secret = request.key_generator.generate_key(request.signed_cookie_salt)
+          verifier = ActiveSupport::MessageVerifier.new(secret, digest: signed_cookie_digest, serializer: SERIALIZER)
+
+          request.cookies_rotations.signed.each do |(*secrets)|
+            options = secrets.extract_options!
+            verifier.rotate(*secrets, serializer: SERIALIZER, **options)
+          end
+
+          verifier
+        end
+
         def parse(name, signed_message, purpose: nil)
           rotated = false
           data = @verifier.verified(signed_message, purpose: purpose, on_rotation: -> { rotated = true })
@@ -656,40 +668,54 @@ module ActionDispatch
     class EncryptedKeyRotatingCookieJar < AbstractCookieJar # :nodoc:
       include SerializedCookieJars
 
+      # The encryptor is determined entirely by boot-time configuration, so it
+      # is built once per configuration and shared by every request that uses
+      # that configuration.
       def initialize(parent_jar)
         super
 
-        if request.use_authenticated_cookie_encryption
-          key_len = ActiveSupport::MessageEncryptor.key_len(encrypted_cookie_cipher)
-          secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, key_len)
-          @encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: encrypted_cookie_cipher, serializer: SERIALIZER)
-        else
-          key_len = ActiveSupport::MessageEncryptor.key_len("aes-256-cbc")
-          secret = request.key_generator.generate_key(request.encrypted_cookie_salt, key_len)
-          sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
-          @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", serializer: SERIALIZER)
-        end
-
-        request.cookies_rotations.encrypted.each do |(*secrets)|
-          options = secrets.extract_options!
-          @encryptor.rotate(*secrets, serializer: SERIALIZER, **options)
-        end
-
-        if upgrade_legacy_hmac_aes_cbc_cookies?
-          legacy_cipher = "aes-256-cbc"
-          secret = request.key_generator.generate_key(request.encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(legacy_cipher))
-          sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
-
-          @encryptor.rotate(secret, sign_secret, cipher: legacy_cipher, digest: digest, serializer: SERIALIZER)
-        elsif prepare_upgrade_legacy_hmac_aes_cbc_cookies?
-          future_cipher = encrypted_cookie_cipher
-          secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(future_cipher))
-
-          @encryptor.rotate(secret, nil, cipher: future_cipher, serializer: SERIALIZER)
-        end
+        cache_key = [request.key_generator, request.use_authenticated_cookie_encryption, encrypted_cookie_cipher,
+                     request.authenticated_encrypted_cookie_salt, request.encrypted_cookie_salt,
+                     request.encrypted_signed_cookie_salt, request.cookies_rotations,
+                     request.secret_key_base.present?, digest]
+        @encryptor = ActiveSupport::Ractors.store_if_absent(:action_dispatch_cookie_encryptors) { Concurrent::Map.new }
+          .compute_if_absent(cache_key) { build_encryptor }
       end
 
       private
+        def build_encryptor
+          if request.use_authenticated_cookie_encryption
+            key_len = ActiveSupport::MessageEncryptor.key_len(encrypted_cookie_cipher)
+            secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, key_len)
+            encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: encrypted_cookie_cipher, serializer: SERIALIZER)
+          else
+            key_len = ActiveSupport::MessageEncryptor.key_len("aes-256-cbc")
+            secret = request.key_generator.generate_key(request.encrypted_cookie_salt, key_len)
+            sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
+            encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", serializer: SERIALIZER)
+          end
+
+          request.cookies_rotations.encrypted.each do |(*secrets)|
+            options = secrets.extract_options!
+            encryptor.rotate(*secrets, serializer: SERIALIZER, **options)
+          end
+
+          if upgrade_legacy_hmac_aes_cbc_cookies?
+            legacy_cipher = "aes-256-cbc"
+            secret = request.key_generator.generate_key(request.encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(legacy_cipher))
+            sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
+
+            encryptor.rotate(secret, sign_secret, cipher: legacy_cipher, digest: digest, serializer: SERIALIZER)
+          elsif prepare_upgrade_legacy_hmac_aes_cbc_cookies?
+            future_cipher = encrypted_cookie_cipher
+            secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(future_cipher))
+
+            encryptor.rotate(secret, nil, cipher: future_cipher, serializer: SERIALIZER)
+          end
+
+          encryptor
+        end
+
         def parse(name, encrypted_message, purpose: nil)
           rotated = false
           data = @encryptor.decrypt_and_verify(encrypted_message, purpose: purpose, on_rotation: -> { rotated = true })
