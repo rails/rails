@@ -170,6 +170,13 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal %w[ REWORK ], result.pluck("name")
   end
 
+  def test_insert_all_raises_when_returning_contains_a_raw_string
+    error = assert_raises(ArgumentError) do
+      Book.insert_all! [{ name: "Rework", author_id: 1 }], returning: ["id; DROP TABLE books"]
+    end
+    assert_match(/Dangerous query method/, error.message)
+  end
+
   def test_insert_all_can_skip_duplicate_records
     skip unless supports_insert_on_duplicate_skip?
 
@@ -595,6 +602,20 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_equal "Perelandra 2", book.name, "Should have updated the name"
     assert_equal "111111", book.isbn, "Should have updated the isbn"
     assert_equal 7, book.author_id, "Should not have updated the author_id"
+  end
+
+  def test_upsert_all_raises_when_update_only_contains_a_raw_string
+    error = assert_raises(ArgumentError) do
+      Book.upsert_all [{ id: 101, name: "Perelandra 2", author_id: 7, isbn: "111111" }], update_only: ["name; DROP TABLE books"]
+    end
+    assert_match(/Dangerous query method/, error.message)
+  end
+
+  def test_upsert_all_raises_when_update_only_is_a_raw_string
+    error = assert_raises(ArgumentError) do
+      Book.upsert_all [{ id: 101, name: "Perelandra 2", author_id: 7, isbn: "111111" }], update_only: "name; DROP TABLE books"
+    end
+    assert_match(/Dangerous query method/, error.message)
   end
 
   def test_upsert_all_does_not_perform_an_upsert_if_a_partial_index_doesnt_apply
