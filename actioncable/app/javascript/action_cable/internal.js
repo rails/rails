@@ -10,11 +10,15 @@ export default {
     "unauthorized": "unauthorized",
     "invalid_request": "invalid_request",
     "server_restart": "server_restart",
-    "remote": "remote"
+    "remote": "remote",
+    "no_pong": "no_pong"
   },
   "default_mount_path": "/cable",
   "protocols": [
     "actioncable-v1-json",
     "actioncable-unsupported"
-  ]
+  ],
+  "extensions": {
+    "pong": "actioncable-ext-pong"
+  }
 }

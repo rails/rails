@@ -90,6 +90,13 @@ module ActionCable
       def disconnect
       end
 
+      # This method is called every time an Action Cable client responds to a server ping with a pong
+      # (only clients supporting the `pong` protocol extension do that). The message is the ping's payload
+      # echoed back by the client (a Unix timestamp by default).
+      # Override it in your class to track the connection's health (e.g., measure the round-trip time).
+      def handle_pong(message)
+      end
+
       def handle_open
         connect
         subscribe_to_internal_channel
@@ -106,6 +113,8 @@ module ActionCable
       end
 
       def handle_channel_command(payload)
+        return handle_pong(payload["message"]) if payload["command"] == "pong"
+
         run_callbacks :command do
           subscriptions.execute_command payload
         end
@@ -142,7 +151,13 @@ module ActionCable
       end
 
       def beat
-        transmit type: ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_i
+        if socket.respond_to?(:unresponsive?) && socket.unresponsive?
+          close(reason: ActionCable::INTERNAL[:disconnect_reasons][:no_pong])
+          # Force-close socket so it doesn't linger
+          socket.close!
+        else
+          transmit type: ActionCable::INTERNAL[:message_types][:ping], message: Time.now.to_i
+        end
       end
 
       ActiveSupport::InspectBackport.apply(self)
@@ -162,7 +177,10 @@ module ActionCable
         def send_welcome_message
           # Send welcome message to the internal connection monitor channel. This ensures
           # the connection monitor state is reset after a successful websocket connection.
-          transmit type: ActionCable::INTERNAL[:message_types][:welcome]
+          # It also confirms the protocol extensions enabled for this connection (if any).
+          message = { type: ActionCable::INTERNAL[:message_types][:welcome] }
+          message[:extensions] = socket.extensions if socket.respond_to?(:extensions) && socket.extensions.present?
+          transmit message
         end
     end
   end
