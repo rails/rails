@@ -166,11 +166,12 @@ module ActionView
             RenderedTemplate::EMPTY_SPACER
           end
 
-          # Caching and per-item layouts need each item's body on its own.
+          # Caching, per-item layouts and subclasses (like Jbuilder's, which
+          # collects each item's result) need each item's body on its own.
           # Otherwise every item is rendered into one shared buffer, which
           # saves a buffer and a RenderedTemplate per item that would only
           # be joined back together.
-          if layout.nil? && !(template && will_cache?(@options, view))
+          if instance_of?(CollectionRenderer) && layout.nil? && !(template && will_cache?(@options, view))
             return collection_into_buffer(view, template, collection, spacer, &block)
           end
 
