@@ -93,10 +93,14 @@ class IndexedRowTest < ActiveModel::TestCase
 end
 
 class EmptyMutableIndexedRowTest < ActiveModel::TestCase
+  def empty_mutable_row(row)
+    ActiveModel::IndexedRow::Mutable.new(row.indexes, size: row.row.size)
+  end
+
   setup do
     @hash = { "first_name" => "George", "last_name" => "Abitbol", "age" => 42 }.freeze
     @reference = ActiveModel::IndexedRow[@hash]
-    @row = @reference.new_empty_mutable_row
+    @row = empty_mutable_row(@reference)
   end
 
   test "#at and #fetch_at" do
@@ -173,7 +177,7 @@ class EmptyMutableIndexedRowTest < ActiveModel::TestCase
   test "built from a row with duplicated columns" do
     columns = ["id", "name", "id"].freeze
     reference = ActiveModel::IndexedRow.new(ActiveModel::IndexedRow.build_indexes(columns), [1, "George", 1].freeze)
-    row = reference.new_empty_mutable_row
+    row = empty_mutable_row(reference)
 
     assert_raises(KeyError) { row.fetch("id") }
     assert_equal(4, row.fetch("id") { 4 })
@@ -188,7 +192,7 @@ class EmptyMutableIndexedRowTest < ActiveModel::TestCase
   end
 
   test "built from an empty row" do
-    row = ActiveModel::IndexedRow[{}].new_empty_mutable_row
+    row = empty_mutable_row(ActiveModel::IndexedRow[{}])
 
     assert_equal 0, row.size
     assert_equal 0, row.length
@@ -201,7 +205,7 @@ class EmptyMutableIndexedRowTest < ActiveModel::TestCase
   test "built from a row with only duplicated columns" do
     columns = ["id", "id", "id"].freeze
     reference = ActiveModel::IndexedRow.new(ActiveModel::IndexedRow.build_indexes(columns), [1, 2, 3].freeze)
-    row = reference.new_empty_mutable_row
+    row = empty_mutable_row(reference)
 
     assert_equal 3, reference.fetch("id")
     assert_same reference.indexes, row.indexes
@@ -221,7 +225,7 @@ class EmptyMutableIndexedRowTest < ActiveModel::TestCase
     assert_equal 1, row.size
     assert_equal({ "id" => false }, row.to_h)
 
-    empty_row = row.new_empty_mutable_row
+    empty_row = empty_mutable_row(row)
     assert_same row.indexes, empty_row.indexes
     assert_equal 0, empty_row.size
     assert_raises(KeyError) { empty_row.fetch("id") }
