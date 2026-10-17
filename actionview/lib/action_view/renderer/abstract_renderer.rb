@@ -155,7 +155,7 @@ module ActionView
         template.format
       end
 
-      EMPTY_SPACER = new("", nil)
+      EMPTY_SPACER = new("", nil).freeze
     end
 
     private
