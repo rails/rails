@@ -119,6 +119,11 @@ module AdapterHelper
     end
   end
 
+  # The driver exception class behind a translated Active Record error.
+  def driver_error_class(error)
+    ractor_proxy? ? error.cause.cause.error_class : error.cause.class
+  end
+
   # Detects whether the server side of the connection physically has a
   # transaction open, independently of the adapter's opinion. Skips if we don't
   # know how to detect this.
