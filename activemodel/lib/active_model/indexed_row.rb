@@ -164,10 +164,6 @@ module ActiveModel
       to_h.except(*columns)
     end
 
-    def new_empty_mutable_row
-      Mutable.new(@indexes, size: @row.size)
-    end
-
     # Builds rows keyed by +new_columns+ out of rows keyed by +old_columns+.
     #
     # When +column_map+ is given, the new rows are laid out by the +ord+ of

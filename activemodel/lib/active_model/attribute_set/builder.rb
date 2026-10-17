@@ -19,6 +19,7 @@ module ActiveModel
           @type_keys_lut = names.map { |name| types.key?(name) }.freeze
           @type_keys = types.keys.freeze
           @defaults = defaults
+          freeze
         end
 
         def type_key_at?(index)
@@ -80,6 +81,7 @@ module ActiveModel
         @from_db_context = FromDBContext.new(@names, types, @defaults, default_keys)
         @from_init_context = FromInitContext.new(@names, types, @defaults)
         @empty_row = IndexedRow.new(@indexes, [].freeze).freeze
+        freeze
       end
 
       EMPTY_TYPES = [].freeze
@@ -138,7 +140,7 @@ module ActiveModel
         copy = dup
         copy.types = @types.merge(overrides)
         copy.from_db_context = FromDBContext.new(@names, copy.types, @defaults, @default_keys)
-        copy
+        copy.freeze
       end
 
       # Converts +column_types+, a Hash of types by name, into the
