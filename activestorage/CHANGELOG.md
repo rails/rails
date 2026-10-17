@@ -1,3 +1,10 @@
+*   `ActiveStorage::Streaming#send_blob_stream` now sets the `Content-Length` header for blobs.
+
+    Previously only `ActiveStorage::Blobs::ProxyController` set it. Representations (variants and
+    previews) are unchanged, as their size is not known up front.
+
+    *Bogdan Gusiev*
+
 *   Forward other options from `has_one_attached` and `has_many_attached` to the attachment association.
 
     ```ruby
