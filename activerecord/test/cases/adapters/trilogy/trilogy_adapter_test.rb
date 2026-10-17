@@ -355,7 +355,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
       connection.execute("SELECT SLEEP(2)")
     end
     assert_kind_of ActiveRecord::QueryAborted, error
-    assert_equal Trilogy::TimeoutError, error.cause.class
+    assert_equal Trilogy::TimeoutError, driver_error_class(error)
     assert_equal connection.pool, error.connection_pool
   ensure
     ActiveRecord::Base.establish_connection :arunit
