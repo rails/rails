@@ -16,11 +16,10 @@ module ActiveRecord
           def define_method_attribute(canonical_name, owner:, as: canonical_name)
             # Don't load the schema here, methods can be defined on classes
             # without a table (e.g. alias_attribute on an abstract class).
-            ord = columns_hash[canonical_name]&.ord if schema_loaded?
+            ord = attributes_builder.indexes[canonical_name]&.ord if schema_loaded?
 
             # Generated methods are cached by name and shared between models,
-            # so readers that embed an ord are cached per ord. Attributes
-            # without a column (e.g. from the attributes API) have no ord.
+            # so readers that embed an ord are cached per ord.
             namespace = ord ? :"active_record_ord_#{ord}" : :active_record
 
             ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
