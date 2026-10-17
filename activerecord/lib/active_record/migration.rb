@@ -802,7 +802,7 @@ module ActiveRecord
 
           FileUtils.cd(root) do
             Base.connection_handler.clear_all_connections!(:all)
-            system("bin/rails db:test:prepare")
+            system(RbConfig.ruby, "bin/rails", "db:test:prepare")
           end
         end
 
