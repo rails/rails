@@ -1,3 +1,14 @@
+*   Fix a deadlock between `ActionController::Live` and code reloading in
+    development.
+
+    A queued unload could block the Live child thread while waiting for the
+    parent request, which was itself waiting for the child to commit the
+    response.
+
+    Fixes #56888.
+
+    *Pim Vermeyden*
+
 *   Short-circuit route matching for static paths.
 
     The route set now precomputes an exact-match table from request method

@@ -43,6 +43,10 @@ module ActiveSupport # :nodoc:
         @lock.sharing(&block)
       end
 
+      def continue_running(schedule, &block)
+        @lock.continue_sharing(schedule, &block)
+      end
+
       def permit_concurrent_loads(&block)
         # Soft deprecated: no deprecation warning for now, but this is a no-op.
         yield if block

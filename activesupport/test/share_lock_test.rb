@@ -241,6 +241,154 @@ class ShareLockTest < ActiveSupport::TestCase
     end
   end
 
+  def test_sharing_continuation_precedes_waiting_exclusive
+    continuation_work = continuation_thread = exclusive = late_share = nil
+    exclusive_acquired = Concurrent::CountDownLatch.new
+    release_exclusive = Concurrent::CountDownLatch.new
+
+    @lock.sharing do
+      @lock.continue_sharing(->(&work) { continuation_work = work }) { }
+
+      exclusive = Thread.new do
+        @lock.sharing do
+          @lock.exclusive do
+            exclusive_acquired.count_down
+            release_exclusive.wait
+          end
+        end
+      end
+      assert_threads_stuck exclusive
+
+      late_share = Thread.new { @lock.sharing { } }
+      assert_threads_stuck late_share
+
+      continuation_thread = Thread.new(&continuation_work)
+      assert_threads_not_stuck continuation_thread
+      assert_threads_stuck [exclusive, late_share]
+    end
+
+    assert exclusive_acquired.wait(1)
+    assert_threads_stuck late_share
+
+    release_exclusive.count_down
+    assert_threads_not_stuck [exclusive, late_share]
+  ensure
+    release_exclusive&.count_down
+    [continuation_thread, exclusive, late_share].compact.each(&:kill)
+    [continuation_thread, exclusive, late_share].compact.each(&:join)
+  end
+
+  def test_pending_continuation_keeps_lock_busy_for_exclusive
+    work = continuation = exclusive = nil
+    continuation_started = Concurrent::CountDownLatch.new
+    release_continuation = Concurrent::CountDownLatch.new
+
+    @lock.sharing do
+      @lock.continue_sharing(->(&w) { work = w }) do
+        continuation_started.count_down
+        release_continuation.wait
+      end
+    end
+
+    # The parent's share is gone, but the scheduled continuation has not
+    # started yet: the lock must remain busy for exclusive until it runs.
+    assert_nil @lock.exclusive(no_wait: true) { flunk }
+
+    exclusive = Thread.new { @lock.exclusive { } }
+    assert_threads_stuck exclusive
+
+    continuation = Thread.new(&work)
+    assert continuation_started.wait(1)
+    assert_threads_stuck exclusive
+
+    release_continuation.count_down
+    assert_threads_not_stuck [continuation, exclusive]
+  ensure
+    release_continuation&.count_down
+    [continuation, exclusive].compact.each(&:kill)
+    [continuation, exclusive].compact.each(&:join)
+  end
+
+  def test_continuation_waits_for_active_exclusive
+    continuation = nil
+
+    @lock.sharing do
+      @lock.exclusive do
+        work = nil
+        @lock.continue_sharing(->(&w) { work = w }) { }
+
+        continuation = Thread.new(&work)
+        assert_threads_stuck continuation
+      end
+
+      # The continuation only needs the exclusive to finish, not the
+      # parent's share to be released.
+      assert_threads_not_stuck continuation
+    end
+  ensure
+    continuation&.kill
+    continuation&.join
+  end
+
+  def test_continuation_without_a_share_is_an_ordinary_share
+    work = work_thread = exclusive = nil
+    release_exclusive = Concurrent::CountDownLatch.new
+
+    # No share is held, so no continuation is registered: the scheduled
+    # work must behave like any other new sharer.
+    @lock.continue_sharing(->(&w) { work = w }) { }
+
+    with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
+      exclusive = Thread.new do
+        @lock.sharing do
+          @lock.exclusive { release_exclusive.wait }
+        end
+      end
+      assert_threads_stuck exclusive
+
+      work_thread = Thread.new(&work)
+      assert_threads_stuck work_thread
+
+      sharing_thread_release_latch.count_down
+      assert_threads_stuck work_thread
+
+      release_exclusive.count_down
+      assert_threads_not_stuck [exclusive, work_thread]
+    end
+  ensure
+    release_exclusive&.count_down
+    [work_thread, exclusive].compact.each(&:kill)
+    [work_thread, exclusive].compact.each(&:join)
+  end
+
+  def test_sharing_continuation_is_one_shot
+    runs = 0
+
+    @lock.sharing do
+      @lock.continue_sharing(lambda { |&work|
+        work.call
+        assert_raises(RuntimeError) { work.call }
+      }) do
+        runs += 1
+      end
+    end
+
+    assert_equal 1, runs
+  end
+
+  def test_failed_schedule_cancels_sharing_continuation
+    schedule_error = RuntimeError.new
+
+    raised_error = @lock.sharing do
+      assert_raises(RuntimeError) do
+        @lock.continue_sharing(->(&) { raise schedule_error }) { flunk }
+      end
+    end
+
+    assert_same schedule_error, raised_error
+    assert @lock.exclusive(no_wait: true) { true }
+  end
+
   def test_share_remains_reentrant_ignoring_a_waiting_exclusive
     with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
       ready = Concurrent::CyclicBarrier.new(2)
