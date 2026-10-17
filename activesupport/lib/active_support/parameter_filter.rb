@@ -42,6 +42,8 @@ module ActiveSupport
   #
   class ParameterFilter
     FILTERED = "[FILTERED]" # :nodoc:
+    CACHE_LIMIT = 256 # :nodoc:
+    private_constant :CACHE_LIMIT
 
     # Precompiles an array of filters that otherwise would be passed directly to
     # #initialize. Depending on the quantity and types of filters,
@@ -138,6 +140,14 @@ module ActiveSupport
 
       @regexps << Regexp.new(strings.join("|"), true) unless strings.empty?
       (@deep_regexps ||= []) << Regexp.new(deep_strings.join("|"), true) if deep_strings
+
+      @regexps_cacheable = cacheable?(@regexps)
+      @deep_regexps_cacheable = cacheable?(@deep_regexps)
+    end
+
+    # A custom match? implementation may not return the same result for the same key.
+    def cacheable?(regexps)
+      regexps && !regexps.empty? && regexps.all? { |regexp| regexp.method(:match?).owner == Regexp }
     end
 
     # If the regexp is a string-anchored exact match like /\Atoken\z/,
@@ -165,17 +175,17 @@ module ActiveSupport
       literal if literal.match?(/\A[a-zA-Z0-9_]+\z/)
     end
 
-    def call(params, full_parent_key = nil, original_params = params)
+    def call(params, full_parent_key = nil, original_params = params, regexp_cache = nil, deep_regexp_cache = nil)
       filtered_params = params.class.new
 
       params.each do |key, value|
-        filtered_params[key] = value_for_key(key, value, full_parent_key, original_params)
+        filtered_params[key] = value_for_key(key, value, full_parent_key, original_params, regexp_cache, deep_regexp_cache)
       end
 
       filtered_params
     end
 
-    def value_for_key(key, value, full_parent_key = nil, original_params = nil)
+    def value_for_key(key, value, full_parent_key = nil, original_params = nil, regexp_cache = nil, deep_regexp_cache = nil)
       key_s = key.to_s
 
       if @deep_regexps
@@ -189,14 +199,16 @@ module ActiveSupport
       elsif @exact_line_keys && key_s.include?("\n") &&
             key_s.split("\n").any? { |line| @exact_line_keys[line] }
         value = @mask
-      elsif @regexps.any? { |r| r.match?(key_s) }
+      elsif regexp_cache ? cached_match?(@regexps, key_s, regexp_cache) : @regexps.any? { |r| r.match?(key_s) }
         value = @mask
-      elsif @deep_regexps&.any? { |r| r.match?(full_key) }
+      elsif @deep_regexps && (deep_regexp_cache ? cached_match?(@deep_regexps, full_key, deep_regexp_cache) : @deep_regexps.any? { |r| r.match?(full_key) })
         value = @mask
       elsif value.is_a?(Hash)
-        value = call(value, full_key, original_params)
+        value = call(value, full_key, original_params, regexp_cache, deep_regexp_cache)
       elsif value.is_a?(Array)
-        value = value.map { |v| value_for_key(key, v, full_parent_key, original_params) }
+        regexp_cache ||= {} if @regexps_cacheable
+        deep_regexp_cache ||= {} if @deep_regexps_cacheable
+        value = value.map { |v| value_for_key(key, v, full_parent_key, original_params, regexp_cache, deep_regexp_cache) }
       elsif @blocks
         key = key.dup if key.duplicable?
         value = value.dup if value.duplicable?
@@ -204,6 +216,14 @@ module ActiveSupport
       end
 
       value
+    end
+
+    def cached_match?(regexps, candidate, cache)
+      cache.fetch(candidate) do
+        matched = regexps.any? { |regexp| regexp.match?(candidate) }
+        cache[candidate] = matched if cache.size < CACHE_LIMIT
+        matched
+      end
     end
   end
 end

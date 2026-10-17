@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "active_support/core_ext/enumerable"
 require "active_support/core_ext/hash"
 require "active_support/parameter_filter"
 
@@ -166,6 +167,110 @@ class ParameterFilterTest < ActiveSupport::TestCase
     assert_equal "[FILTERED]", last_line_filter.filter_param("foo\ntoken", "secret")
   end
 
+  test "filter checks each repeated key and full path once within an array" do
+    key_regexp = Regexp.new("token")
+    path_regexp = Regexp.new("private\\.note")
+    parameter_filter = ActiveSupport::ParameterFilter.new([key_regexp, path_regexp])
+    params = {
+      "records" => [
+        { "token" => "a", "private" => { "note" => "x" }, "visible" => "1" },
+        { "token" => "b", "private" => { "note" => "y" }, "visible" => "2" },
+      ],
+    }
+    result = nil
+
+    checked = record_match_candidates(key_regexp, path_regexp) { result = parameter_filter.filter(params) }
+
+    assert_equal({
+      "records" => [
+        { "token" => "[FILTERED]", "private" => { "note" => "[FILTERED]" }, "visible" => "1" },
+        { "token" => "[FILTERED]", "private" => { "note" => "[FILTERED]" }, "visible" => "2" },
+      ],
+    }, result)
+    assert_equal ["records", "records", "token", "private", "note", "visible"], checked[key_regexp]
+    assert_equal ["records", "records", "records.private", "records.private.note", "records.visible"], checked[path_regexp]
+  end
+
+  test "filter calls proc filters for every repeated key within an array" do
+    calls = []
+    parameter_filter = ActiveSupport::ParameterFilter.new([:password, ->(key, value, original_params) do
+      calls << [key, original_params]
+      value.upcase!
+    end])
+    params = { "items" => [{ "value" => "one" }, { "value" => "two" }] }
+
+    assert_equal({ "items" => [{ "value" => "ONE" }, { "value" => "TWO" }] }, parameter_filter.filter(params))
+    assert_equal [["value", params], ["value", params]], calls
+  end
+
+  test "filter checks keys every time once the array cache is full" do
+    token_regexp = Regexp.new("token")
+    parameter_filter = ActiveSupport::ParameterFilter.new([token_regexp])
+    cache_limit = ActiveSupport::ParameterFilter.const_get(:CACHE_LIMIT)
+    rows = Array.new(cache_limit) { |index| { "key#{index}" => index } }
+    rows << { "token" => "one" } << { "token" => "two" }
+    result = nil
+
+    checked = record_match_candidates(token_regexp) { result = parameter_filter.filter("rows" => rows) }
+
+    assert_equal [{ "token" => "[FILTERED]" }, { "token" => "[FILTERED]" }], result["rows"].last(2)
+    assert_equal 2, checked[token_regexp].count("token")
+  end
+
+  test "filter does not reuse decisions between calls" do
+    password_regexp = Regexp.new("password")
+    parameter_filter = ActiveSupport::ParameterFilter.new([password_regexp]).freeze
+    params = { "groups" => [{ "name" => "one" }, { "name" => "two" }] }
+
+    first_call = record_match_candidates(password_regexp) { parameter_filter.filter(params) }
+    second_call = record_match_candidates(password_regexp) { parameter_filter.filter(params) }
+
+    assert_equal ["groups", "groups", "name"], first_call[password_regexp]
+    assert_equal first_call[password_regexp], second_call[password_regexp]
+  end
+
+  test "filter_param checks each repeated key once within nested arrays" do
+    password_regexp = Regexp.new("password")
+    original_params_received = []
+    parameter_filter = ActiveSupport::ParameterFilter.new([password_regexp, ->(key, value, original_params) do
+      original_params_received << original_params
+    end])
+    value = [
+      { "profile" => [{ "token" => "a" }, { "token" => "b" }] },
+      { "profile" => [{ "token" => "c" }, { "token" => "d" }] },
+    ]
+    result = nil
+
+    checked = record_match_candidates(password_regexp) { result = parameter_filter.filter_param("items", value) }
+
+    assert_equal value, result
+    assert_equal ["items", "items", "profile", "token"], checked[password_regexp]
+    assert_equal [nil, nil, nil, nil], original_params_received
+  end
+
+  test "filter does not cache decisions from custom regexp matchers" do
+    recording = Module.new do
+      def checked
+        @checked ||= []
+      end
+
+      def match?(candidate)
+        checked << candidate
+        super
+      end
+    end
+    params = { "items" => [{ "token" => "one" }, { "token" => "two" }] }
+    filtered = { "items" => [{ "token" => "[FILTERED]" }, { "token" => "[FILTERED]" }] }
+
+    key_matcher = Class.new(Regexp) { include recording }.new("token")
+    assert_equal filtered, ActiveSupport::ParameterFilter.new([key_matcher]).filter(params)
+    assert_equal ["items", "items", "token", "items", "token"], key_matcher.checked
+
+    path_matcher = Regexp.new("items\\.token").extend(recording)
+    assert_equal filtered, ActiveSupport::ParameterFilter.new([/password/, path_matcher]).filter(params)
+    assert_equal ["items", "items", "items.token", "items", "items.token"], path_matcher.checked
+  end
+
   test "precompile_filters" do
     patterns = [/A.a/, /b.B/i, "ccC", :ddD]
     keys = ["Aaa", "Bbb", "Ccc", "Ddd"]
@@ -192,4 +297,21 @@ class ParameterFilterTest < ActiveSupport::TestCase
     assert_equal [/token/i], ActiveSupport::ParameterFilter.precompile_filters(["user.token", "token"])
     assert_equal [/password/i], ActiveSupport::ParameterFilter.precompile_filters(["user_password", "password"])
   end
+
+  private
+    def record_match_candidates(*regexps)
+      checked = regexps.index_with { [] }
+      regexps.each do |regexp|
+        original_match = regexp.method(:match?)
+        regexp.define_singleton_method(:match?) do |candidate|
+          checked[regexp] << candidate
+          original_match.call(candidate)
+        end
+      end
+
+      yield
+      checked
+    ensure
+      regexps.each { |regexp| regexp.singleton_class.remove_method(:match?) }
+    end
 end
