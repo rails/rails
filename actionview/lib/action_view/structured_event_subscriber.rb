@@ -5,6 +5,8 @@ require "active_support/structured_event_subscriber"
 
 module ActionView
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
+    self.event_namespace = "action_view"
+
     VIEWS_PATTERN = /^app\/views\//
 
     def render_template(event)
