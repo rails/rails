@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Encryption
     # An encryption context configures the different entities used to perform encryption:

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_record/connection_adapters/abstract_mysql_adapter"
 
 gem "trilogy", "~> 2.7"

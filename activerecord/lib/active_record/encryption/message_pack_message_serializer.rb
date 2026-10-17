@@ -1,21 +1,24 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/message_pack"
 
 module ActiveRecord
   module Encryption
-    # A message serializer that serializes +Messages+ with MessagePack.
+    # A message serializer that serializes `Messages` with MessagePack.
     #
     # The message is converted to a hash with this structure:
     #
-    #   {
-    #     p: <payload>,
-    #     h: {
-    #       header1: value1,
-    #       header2: value2,
-    #       ...
-    #     }
+    # ```
+    # {
+    #   p: <payload>,
+    #   h: {
+    #     header1: value1,
+    #     header2: value2,
+    #     ...
     #   }
+    # }
+    # ```
     #
     # Then it is converted to the MessagePack format.
     class MessagePackMessageSerializer

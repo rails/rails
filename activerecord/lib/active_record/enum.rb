@@ -1,79 +1,94 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
   # Declare an enum attribute where the values map to integers in the database,
   # but can be queried by name. Example:
   #
-  #   class Conversation < ActiveRecord::Base
-  #     enum :status, [ :active, :archived ]
-  #   end
+  # ```
+  # class Conversation < ActiveRecord::Base
+  #   enum :status, [ :active, :archived ]
+  # end
   #
-  #   # conversation.update! status: 0
-  #   conversation.active!
-  #   conversation.active? # => true
-  #   conversation.status  # => "active"
+  # # conversation.update! status: 0
+  # conversation.active!
+  # conversation.active? # => true
+  # conversation.status  # => "active"
   #
-  #   # conversation.update! status: 1
-  #   conversation.archived!
-  #   conversation.archived? # => true
-  #   conversation.status    # => "archived"
+  # # conversation.update! status: 1
+  # conversation.archived!
+  # conversation.archived? # => true
+  # conversation.status    # => "archived"
   #
-  #   # conversation.status = 1
-  #   conversation.status = "archived"
+  # # conversation.status = 1
+  # conversation.status = "archived"
   #
-  #   conversation.status = nil
-  #   conversation.status.nil? # => true
-  #   conversation.status      # => nil
+  # conversation.status = nil
+  # conversation.status.nil? # => true
+  # conversation.status      # => nil
+  # ```
   #
   # Scopes based on the allowed values of the enum field will be provided
   # as well. With the above example:
   #
-  #   Conversation.active
-  #   Conversation.not_active
-  #   Conversation.archived
-  #   Conversation.not_archived
+  # ```
+  # Conversation.active
+  # Conversation.not_active
+  # Conversation.archived
+  # Conversation.not_archived
+  # ```
   #
   # Of course, you can also query them directly if the scopes don't fit your
   # needs:
   #
-  #   Conversation.where(status: [:active, :archived])
-  #   Conversation.where.not(status: :active)
+  # ```
+  # Conversation.where(status: [:active, :archived])
+  # Conversation.where.not(status: :active)
+  # ```
   #
-  # Defining scopes can be disabled by setting +:scopes+ to +false+.
+  # Defining scopes can be disabled by setting `:scopes` to `false`.
   #
-  #   class Conversation < ActiveRecord::Base
-  #     enum :status, [ :active, :archived ], scopes: false
-  #   end
+  # ```
+  # class Conversation < ActiveRecord::Base
+  #   enum :status, [ :active, :archived ], scopes: false
+  # end
+  # ```
   #
-  # You can set the default enum value by setting +:default+, like:
+  # You can set the default enum value by setting `:default`, like:
   #
-  #   class Conversation < ActiveRecord::Base
-  #     enum :status, [ :active, :archived ], default: :active
-  #   end
+  # ```
+  # class Conversation < ActiveRecord::Base
+  #   enum :status, [ :active, :archived ], default: :active
+  # end
   #
-  #   conversation = Conversation.new
-  #   conversation.status # => "active"
+  # conversation = Conversation.new
+  # conversation.status # => "active"
+  # ```
   #
   # It's possible to explicitly map the relation between attribute and
   # database integer with a hash:
   #
-  #   class Conversation < ActiveRecord::Base
-  #     enum :status, active: 0, archived: 1
-  #   end
+  # ```
+  # class Conversation < ActiveRecord::Base
+  #   enum :status, active: 0, archived: 1
+  # end
+  # ```
   #
   # Finally it's also possible to use a string column to persist the enumerated value.
   # Note that this will likely lead to slower database queries:
   #
-  #   class Conversation < ActiveRecord::Base
-  #     enum :status, active: "active", archived: "archived"
-  #   end
+  # ```
+  # class Conversation < ActiveRecord::Base
+  #   enum :status, active: "active", archived: "archived"
+  # end
+  # ```
   #
   # Note that when an array is used, the implicit mapping from the values to database
   # integers is derived from the order the values appear in the array. In the example,
-  # <tt>:active</tt> is mapped to +0+ as it's the first element, and <tt>:archived</tt>
-  # is mapped to +1+. In general, the +i+-th element is mapped to <tt>i-1</tt> in the
+  # `:active` is mapped to `0` as it's the first element, and `:archived`
+  # is mapped to `1`. In general, the `i`-th element is mapped to `i-1` in the
   # database.
   #
   # Therefore, once a value is added to the enum array, its position in the array must
@@ -84,84 +99,100 @@ module ActiveRecord
   # The mappings are exposed through a class method with the pluralized attribute
   # name, which return the mapping in an ActiveSupport::HashWithIndifferentAccess :
   #
-  #   Conversation.statuses[:active]    # => 0
-  #   Conversation.statuses["archived"] # => 1
+  # ```
+  # Conversation.statuses[:active]    # => 0
+  # Conversation.statuses["archived"] # => 1
+  # ```
   #
   # Use that class method when you need to know the ordinal value of an enum.
   # For example, you can use that when manually building SQL strings:
   #
-  #   Conversation.where("status <> ?", Conversation.statuses[:archived])
+  # ```
+  # Conversation.where("status <> ?", Conversation.statuses[:archived])
+  # ```
   #
-  # You can use the +:prefix+ or +:suffix+ options when you need to define
-  # multiple enums with same values. If the passed value is +true+, the methods
+  # You can use the `:prefix` or `:suffix` options when you need to define
+  # multiple enums with same values. If the passed value is `true`, the methods
   # are prefixed/suffixed with the name of the enum. It is also possible to
   # supply a custom value:
   #
-  #   class Conversation < ActiveRecord::Base
-  #     enum :status, [ :active, :archived ], suffix: true
-  #     enum :comments_status, [ :active, :inactive ], prefix: :comments
-  #   end
+  # ```
+  # class Conversation < ActiveRecord::Base
+  #   enum :status, [ :active, :archived ], suffix: true
+  #   enum :comments_status, [ :active, :inactive ], prefix: :comments
+  # end
+  # ```
   #
   # With the above example, the bang and predicate methods along with the
   # associated scopes are now prefixed and/or suffixed accordingly:
   #
-  #   conversation.active_status!
-  #   conversation.archived_status? # => false
+  # ```
+  # conversation.active_status!
+  # conversation.archived_status? # => false
   #
-  #   conversation.comments_inactive!
-  #   conversation.comments_active? # => false
+  # conversation.comments_inactive!
+  # conversation.comments_active? # => false
+  # ```
   #
   # If you want to disable the auto-generated methods on the model, you can do
-  # so by setting the +:instance_methods+ option to false:
+  # so by setting the `:instance_methods` option to false:
   #
-  #   class Conversation < ActiveRecord::Base
-  #     enum :status, [ :active, :archived ], instance_methods: false
-  #   end
+  # ```
+  # class Conversation < ActiveRecord::Base
+  #   enum :status, [ :active, :archived ], instance_methods: false
+  # end
+  # ```
   #
-  # By default, an +ArgumentError+ will be raised when assigning an invalid value:
+  # By default, an `ArgumentError` will be raised when assigning an invalid value:
   #
-  #   class Conversation < ActiveRecord::Base
-  #     enum :status, [ :active, :archived ]
-  #   end
+  # ```
+  # class Conversation < ActiveRecord::Base
+  #   enum :status, [ :active, :archived ]
+  # end
   #
-  #   conversation = Conversation.new
+  # conversation = Conversation.new
   #
-  #   conversation.status = :unknown # 'unknown' is not a valid status (ArgumentError)
+  # conversation.status = :unknown # 'unknown' is not a valid status (ArgumentError)
+  # ```
   #
   # If, instead, you want the enum value to be validated before saving, use the
-  # +:validate+ option:
+  # `:validate` option:
   #
-  #   class Conversation < ActiveRecord::Base
-  #     enum :status, [ :active, :archived ], validate: true
-  #   end
+  # ```
+  # class Conversation < ActiveRecord::Base
+  #   enum :status, [ :active, :archived ], validate: true
+  # end
   #
-  #   conversation = Conversation.new
+  # conversation = Conversation.new
   #
-  #   conversation.status = :unknown
-  #   conversation.valid? # => false
+  # conversation.status = :unknown
+  # conversation.valid? # => false
   #
-  #   conversation.status = nil
-  #   conversation.valid? # => false
+  # conversation.status = nil
+  # conversation.valid? # => false
   #
-  #   conversation.status = :active
-  #   conversation.valid? # => true
+  # conversation.status = :active
+  # conversation.valid? # => true
+  # ```
   #
   # You may also pass additional validation options:
   #
-  #   class Conversation < ActiveRecord::Base
-  #     enum :status, [ :active, :archived ], validate: { allow_nil: true }
-  #   end
+  # ```
+  # class Conversation < ActiveRecord::Base
+  #   enum :status, [ :active, :archived ], validate: { allow_nil: true }
+  # end
   #
-  #   conversation = Conversation.new
+  # conversation = Conversation.new
   #
-  #   conversation.status = :unknown
-  #   conversation.valid? # => false
+  # conversation.status = :unknown
+  # conversation.valid? # => false
   #
-  #   conversation.status = nil
-  #   conversation.valid? # => true
+  # conversation.status = nil
+  # conversation.valid? # => true
   #
-  #   conversation.status = :active
-  #   conversation.valid? # => true
+  # conversation.status = :active
+  # conversation.valid? # => true
+  # ```
   module Enum
     def self.extended(base) # :nodoc:
       base.class_attribute(:defined_enums, instance_writer: false, default: {})

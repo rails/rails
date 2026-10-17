@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   class Key # :nodoc:
     include Enumerable
@@ -115,13 +116,13 @@ module ActiveRecord
       raise NotImplementedError
     end
 
-    # Returns true if every column of this key is also a column of +other+.
+    # Returns true if every column of this key is also a column of `other`.
     def subset?(other)
       raise NotImplementedError
     end
 
     # Returns this key with each column resolved through the aliases of
-    # +owner+, a model or record, or self when no column is aliased.
+    # `owner`, a model or record, or self when no column is aliased.
     def resolve_aliases(owner)
       raise NotImplementedError
     end
@@ -314,7 +315,7 @@ module ActiveRecord
         @inferred_key.name
       end
 
-      # The Key form of +inferred_id+.
+      # The Key form of `inferred_id`.
       attr_reader :inferred_key
 
       def where_clauses(values)

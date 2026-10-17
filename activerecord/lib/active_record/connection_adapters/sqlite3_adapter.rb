@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/sqlite3/column"
@@ -19,29 +20,30 @@ SQLite3::ForkSafety.suppress_warnings!
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    # = Active Record \SQLite3 Adapter
+    # Active Record \SQLite3 Adapter
+    # ==============================
     #
-    # The \SQLite3 adapter works with the sqlite3[https://sparklemotion.github.io/sqlite3-ruby/]
+    # The \SQLite3 adapter works with the [sqlite3](https://sparklemotion.github.io/sqlite3-ruby/)
     # driver.
     #
-    # ==== Options
+    # #### Options
     #
-    # * +:database+ (String): Filesystem path to the database file.
-    # * +:statement_limit+ (Integer): Maximum number of prepared statements to cache per database connection. (default: 1000)
-    # * +:timeout+ (Integer): Timeout in milliseconds to use when waiting for a lock. (default: no wait)
-    # * +:strict+ (Boolean): Enable or disable strict mode. When enabled, this will
+    # * `:database` (String): Filesystem path to the database file.
+    # * `:statement_limit` (Integer): Maximum number of prepared statements to cache per database connection. (default: 1000)
+    # * `:timeout` (Integer): Timeout in milliseconds to use when waiting for a lock. (default: no wait)
+    # * `:strict` (Boolean): Enable or disable strict mode. When enabled, this will
     #   {disallow double-quoted string literals in SQL
     #   statements}[https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted].
     #   (default: see strict_strings_by_default)
-    # * +:extensions+ (Array): (<b>requires sqlite3 v2.4.0</b>) Each entry specifies a sqlite extension
+    # * `:extensions` (Array): (**requires sqlite3 v2.4.0**) Each entry specifies a sqlite extension
     #   to load for this database. The entry may be a filesystem path, or the name of a class that
-    #   responds to +.to_path+ to provide the filesystem path for the extension. See {sqlite3-ruby
+    #   responds to `.to_path` to provide the filesystem path for the extension. See {sqlite3-ruby
     #   documentation}[https://sparklemotion.github.io/sqlite3-ruby/SQLite3/Database.html#class-SQLite3::Database-label-SQLite+Extensions]
     #   for more information.
     #
     # There may be other options available specific to the SQLite3 driver. Please read the
     # documentation for
-    # {SQLite3::Database.new}[https://sparklemotion.github.io/sqlite3-ruby/SQLite3/Database.html#method-c-new]
+    # [SQLite3::Database.new](https://sparklemotion.github.io/sqlite3-ruby/SQLite3/Database.html#method-c-new)
     #
     class SQLite3Adapter < AbstractAdapter
       ADAPTER_NAME = "SQLite"
@@ -118,13 +120,15 @@ module ActiveRecord
       # {disallow double-quoted string literals in SQL
       # statements}[https://www.sqlite.org/quirks.html#double_quoted_string_literals_are_accepted],
       # which may prevent some typographical errors like creating an index for a non-existent
-      # column. The default is +false+.
+      # column. The default is `false`.
       #
       # If you wish to enable this mode you can add the following line to your application.rb file:
       #
-      #   config.active_record.sqlite3_adapter_strict_strings_by_default = true
+      # ```
+      # config.active_record.sqlite3_adapter_strict_strings_by_default = true
+      # ```
       #
-      # This can also be configured on individual databases by setting the +strict:+ option.
+      # This can also be configured on individual databases by setting the `strict:` option.
       #
       class_attribute :strict_strings_by_default, default: false
 
@@ -366,16 +370,19 @@ module ActiveRecord
       # Creates a virtual table
       #
       # Example:
-      #   create_virtual_table :emails, :fts5, ['sender', 'title', 'body']
+      #
+      # ```
+      # create_virtual_table :emails, :fts5, ['sender', 'title', 'body']
+      # ```
       def create_virtual_table(table_name, module_name, values)
         exec_query "CREATE VIRTUAL TABLE IF NOT EXISTS #{table_name} USING #{module_name} (#{values.join(", ")})"
       end
 
       # Drops a virtual table
       #
-      # Although this command ignores +module_name+ and +values+,
-      # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
-      # In that case, +module_name+, +values+ and +options+ will be used by #create_virtual_table.
+      # Although this command ignores `module_name` and `values`,
+      # it can be helpful to provide these in a migration's `change` method so it can be reverted.
+      # In that case, `module_name`, `values` and `options` will be used by #create_virtual_table.
       def drop_virtual_table(table_name, module_name, values, **options)
         drop_table(table_name)
       end
@@ -383,7 +390,10 @@ module ActiveRecord
       # Renames a table.
       #
       # Example:
-      #   rename_table('octopuses', 'octopi')
+      #
+      # ```
+      # rename_table('octopuses', 'octopi')
+      # ```
       def rename_table(table_name, new_name, **options)
         validate_table_length!(new_name) unless options[:_uses_legacy_table_name]
         schema_cache.clear_data_source_cache!(table_name.to_s)
@@ -905,9 +915,12 @@ module ActiveRecord
         # The sql is the statement the table was created with, and will have the
         # following sample form
         # CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        #                       "password_digest" varchar COLLATE "NOCASE",
-        #                       "o_id" integer,
-        #                       CONSTRAINT "fk_rails_78146ddd2e" FOREIGN KEY ("o_id") REFERENCES "os" ("id"));
+        #
+        # ```
+        # "password_digest" varchar COLLATE "NOCASE",
+        # "o_id" integer,
+        # CONSTRAINT "fk_rails_78146ddd2e" FOREIGN KEY ("o_id") REFERENCES "os" ("id"));
+        # ```
         def split_table_structure_sql(sql, column_names)
           return [] unless sql
 

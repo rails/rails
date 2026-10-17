@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_record/scoping/default"
 require "active_record/scoping/named"
 
@@ -8,7 +9,7 @@ module ActiveRecord
   # as which environment migrations were run in.
   #
   # This is enabled by default. To disable this functionality set
-  # `use_metadata_table` to false in your database configuration.
+  # \`use_metadata_table\` to false in your database configuration.
   class InternalMetadata # :nodoc:
     class NullInternalMetadata # :nodoc:
     end
@@ -81,7 +82,7 @@ module ActiveRecord
       end
     end
 
-    # Creates an internal metadata table with columns +key+ and +value+
+    # Creates an internal metadata table with columns `key` and `value`
     def create_table
       return unless enabled?
 
