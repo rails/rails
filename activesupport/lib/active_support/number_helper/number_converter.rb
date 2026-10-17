@@ -126,7 +126,9 @@ module ActiveSupport
       end
 
       def self.i18n_format_key # :nodoc:
-        @i18n_format_key ||= :"number.#{namespace}.format"
+        @i18n_format_key || ActiveSupport::Ractors.on_main(self) do
+          @i18n_format_key ||= :"number.#{namespace}.format"
+        end
       end
 
       def initialize(number, options)
