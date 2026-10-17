@@ -250,7 +250,8 @@ module ActiveModel
     # +ctx+ is a Builder::Context, for looking up the model's attributes
     # by index.
     def initialize(values, additional_types, ctx)
-      super([])
+      # Sized to hold every slot so reads by index stay in bounds
+      super(Array.new(values.indexes.size))
       # The raw data from the database
       @values = values
 
