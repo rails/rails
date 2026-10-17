@@ -5,7 +5,6 @@ require "prism"
 
 module ActionView
   class RenderParser # :nodoc:
-    ALL_KNOWN_KEYS = [:partial, :template, :layout, :formats, :locals, :object, :collection, :as, :status, :content_type, :location, :spacer_template].freeze
     RENDER_TYPE_KEYS = [:partial, :template, :layout].freeze
 
     def initialize(name, code)
@@ -107,7 +106,6 @@ module ActionView
         # Here we validate that the options have the keys we expect.
         keys = options.keys
         return if !keys.intersect?(RENDER_TYPE_KEYS)
-        return if (keys - ALL_KNOWN_KEYS).any?
 
         # Finally, we can return a valid set of options.
         options

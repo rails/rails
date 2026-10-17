@@ -1,3 +1,11 @@
+*   Fix the `:ruby` render tracker skipping `render` calls that pass an option
+    it doesn't recognize, like `cached:`, `locale:`, `variants:`, or `handlers:`.
+
+    A `cache` block around such a call didn't change its digest when the
+    rendered partial changed, so it kept serving the old fragment.
+
+    *Jose Farias*
+
 *   Fix the debug page for errors raised in view templates on Ruby 4.1.
 
     Ruby 4.1 builds prism into the interpreter as `Ruby::Prism`, and
