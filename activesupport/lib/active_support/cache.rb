@@ -548,11 +548,12 @@ module ActiveSupport
 
         options = names.extract_options!
         options = merged_options(options)
-        keys    = names.map { |name| normalize_key(name, options) }
+        normalized_keys = {}.compare_by_identity
+        keys = names.map { |name| normalized_keys[name] = normalize_key(name, options) }
 
         instrument_multi :read_multi, keys, options do |payload|
-          read_multi_entries(names, **options, event: payload).tap do |results|
-            payload[:hits] = results.keys.map { |name| normalize_key(name, options) }
+          read_multi_entries(names, **options, event: payload, normalized_keys: normalized_keys).tap do |results|
+            payload[:hits] = results.keys.map { |name| normalized_key_for(name, options, normalized_keys) }
           end
         end
       end
@@ -608,13 +609,14 @@ module ActiveSupport
 
         options = names.extract_options!
         options = merged_options(options)
-        keys    = names.map { |name| normalize_key(name, options) }
+        normalized_keys = {}.compare_by_identity
+        keys    = names.map { |name| normalized_keys[name] = normalize_key(name, options) }
         writes  = {}
         ordered = instrument_multi :read_multi, keys, options do |payload|
           if options[:force]
             reads = {}
           else
-            reads = read_multi_entries(names, **options)
+            reads = read_multi_entries(names, **options, normalized_keys: normalized_keys)
           end
 
           ordered = names.index_with do |name|
@@ -622,7 +624,7 @@ module ActiveSupport
           end
           writes.compact! if options[:skip_nil]
 
-          payload[:hits] = reads.keys.map { |name| normalize_key(name, options) }
+          payload[:hits] = reads.keys.map { |name| normalized_key_for(name, options, normalized_keys) }
           payload[:super_operation] = :fetch_multi
 
           ordered
@@ -871,7 +873,7 @@ module ActiveSupport
         # implement this method.
         def read_multi_entries(names, **options)
           names.each_with_object({}) do |name, results|
-            key   = normalize_key(name, options)
+            key   = normalized_key_for(name, options)
             entry = read_entry(key, **options)
 
             next unless entry
@@ -981,6 +983,13 @@ module ActiveSupport
         def normalize_key(key, options = nil)
           key = expand_and_namespace_key(key, options)
           truncate_key(key)
+        end
+
+        # Returns the key that #read_multi or #fetch_multi already normalized for
+        # +name+, or normalizes it. They pass their keys down to #read_multi_entries
+        # in +:normalized_keys+, so that each name is normalized once per call.
+        def normalized_key_for(name, options, normalized_keys = options[:normalized_keys])
+          normalized_keys&.[](name) || normalize_key(name, options)
         end
 
         def expand_and_namespace_key(key, options = nil)
