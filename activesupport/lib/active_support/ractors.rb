@@ -9,9 +9,28 @@ module ActiveSupport
   module Ractors # :nodoc:
     extend ActiveSupport::Autoload
     autoload :Logger
+    autoload :KeyLockHash
+
+    SHARING_AVAILABLE = begin
+      require "ractor/sharing"
+      true
+    rescue LoadError
+      false
+    end
+
+    DISPATCH_AVAILABLE = begin
+      require "ractor/dispatch"
+      true
+    rescue LoadError
+      false
+    end
 
     class << self
       attr_accessor :unshareable_proc_action
+
+      def gems_available?
+        SHARING_AVAILABLE && DISPATCH_AVAILABLE
+      end
 
       # Attempt to make a proc shareable. If successful, a shareable proc is returned.
       # If a Ractor::IsolationError is raised, the outcome will depend on how
@@ -111,13 +130,20 @@ module ActiveSupport
       end
 
       if defined?(Ractor) && RUBY_VERSION >= "4.0"
-        def on_main(obj = nil, &block)
-          if Ractor.main?
+        if DISPATCH_AVAILABLE
+          # Evaluates `block` against `obj` on the main Ractor, dispatching
+          # through `Ractor::Dispatch` when called from any other Ractor.
+          def on_main(obj = nil, &block)
+            if Ractor.main?
+              obj.instance_eval(&block)
+            else
+              shareable_block = Ractor.shareable_proc(&block)
+              Ractor::Dispatch.main.run { obj.instance_eval(&shareable_block) }
+            end
+          end
+        else
+          def on_main(obj = nil, &block)
             obj.instance_eval(&block)
-          else
-            require "ractor/dispatch"
-            shareable_block = Ractor.shareable_proc(&block)
-            Ractor::Dispatch.main.run { obj.instance_eval(&shareable_block) }
           end
         end
 

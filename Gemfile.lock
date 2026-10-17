@@ -72,7 +72,6 @@ PATH
       logger (>= 1.4.2)
       minitest (>= 5.1)
       psych (>= 4)
-      ractor-dispatch (>= 0.3.0)
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
       uri (>= 0.13.1)
@@ -439,6 +438,7 @@ GEM
     rackup (2.2.1)
       rack (>= 3)
     ractor-dispatch (0.3.0)
+    ractor-sharing (0.3.0)
     rails-dom-testing (2.3.0)
       activesupport (>= 5.0.0)
       minitest
@@ -723,6 +723,8 @@ DEPENDENCIES
   queue_classic (>= 4.0.0)
   rack (~> 3.0)
   rack-cache (~> 1.2)
+  ractor-dispatch (>= 0.3.0)
+  ractor-sharing (>= 0.3.0)
   rails!
   redcarpet (~> 3.6.1)
   redis (>= 4.0.1)
@@ -937,6 +939,7 @@ CHECKSUMS
   rack-test (2.2.0) sha256=005a36692c306ac0b4a9350355ee080fd09ddef1148a5f8b2ac636c720f5c463
   rackup (2.2.1) sha256=f737191fd5c5b348b7f0a4412a3b86383f88c43e13b8217b63d4c8d90b9e798d
   ractor-dispatch (0.3.0) sha256=cd2d46743303e00fe500df168b4dde85080160fd9f04539cada4b4dd5e588f68
+  ractor-sharing (0.3.0) sha256=9adb2f899e4e38f477a2d3c02368e8ff40be96b119172312253338ee1e22f63f
   rails (8.2.0.alpha)
   rails-dom-testing (2.3.0) sha256=8acc7953a7b911ca44588bf08737bc16719f431a1cc3091a292bca7317925c1d
   rails-html-sanitizer (1.7.0) sha256=28b145cceaf9cc214a9874feaa183c3acba036c9592b19886e0e45efc62b1e89

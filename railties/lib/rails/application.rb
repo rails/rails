@@ -471,6 +471,7 @@ module Rails
       raise "Application has been already initialized." if @initialized
       run_initializers(group, self)
       @initialized = true
+      ractorize! if config.ractorize
       self
     end
 
@@ -665,6 +666,13 @@ module Rails
     end
 
     def ractorize! # :nodoc:
+      unless ActiveSupport::Ractors.gems_available?
+        raise LoadError, <<~MSG.squish
+          Ractor support requires the ractor-sharing and ractor-dispatch gems.
+          Please add them to your Gemfile.
+        MSG
+      end
+
       warn "Ractor support in Rails is experimental and subject to change.", category: :experimental, uplevel: 1
 
       env_config
