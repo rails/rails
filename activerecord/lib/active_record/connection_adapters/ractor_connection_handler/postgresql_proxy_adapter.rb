@@ -437,6 +437,10 @@ module ActiveRecord
             remote_dispatch(:reference_name_for_table, ...)
           end
 
+          def search_path_tables
+            remote_dispatch(:search_path_tables)
+          end
+
           def validate_table_length!(...)
             remote_dispatch(:validate_table_length!, ...)
           end
