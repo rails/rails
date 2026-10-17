@@ -445,6 +445,11 @@ module ActiveRecord
   #       redirect_to root_url
   #     end
   #   end
+  #
+  # In nested transaction blocks, raising ActiveRecord::Rollback in the inner block
+  # does not issue a ROLLBACK for the outer transaction.
+  # See {ActiveRecord::Transactions::ClassMethods}[rdoc-ref:Transactions::ClassMethods]
+  # for nested transactions.
   class Rollback < ActiveRecordError
   end
 
