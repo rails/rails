@@ -676,6 +676,7 @@ module Rails
       ActiveSupport.run_load_hooks(:before_ractorize, self)
 
       ActiveSupport::TimeZone.make_shareable!
+      I18n::Railtie.make_shareable!
 
       Ractor.make_shareable(self)
       Ractor.make_shareable(Rails.env)
