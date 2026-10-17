@@ -145,7 +145,7 @@ module Rails
             end
 
             def update_devcontainer_db_host
-              container_env = devcontainer_json["containerEnv"]
+              container_env = devcontainer_json["containerEnv"] || {}
               db_name = database.name
 
               if container_env["DB_HOST"]
@@ -162,7 +162,13 @@ module Rails
 
               new_json = JSON.pretty_generate(container_env, indent: "  ", object_nl: "\n  ")
 
-              gsub_file(".devcontainer/devcontainer.json", /("containerEnv"\s*:\s*)(.|\n)*?(^\s{2}})/, "\\1#{new_json}")
+              if devcontainer_json["containerEnv"].present?
+                gsub_file(".devcontainer/devcontainer.json", /("containerEnv"\s*:\s*)(.|\n)*?(^\s{2}})/, "\\1#{new_json}")
+              else
+                gsub_file ".devcontainer/devcontainer.json", /(\s+\S+":.*)(?=\n\s*})/m do |match|
+                  "#{match},\n\n  \"containerEnv\": #{new_json}"
+                end
+              end
             end
 
             def update_devcontainer_db_feature
