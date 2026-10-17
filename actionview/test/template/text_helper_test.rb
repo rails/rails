@@ -140,6 +140,10 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "Hello &lt;sc...", truncate("Hello <script>code!</script>World!!", length: 12)
   end
 
+  def test_truncate_should_escape_html_safe_input
+    assert_equal "&lt;a title=&quot;he...", truncate('<a title="hello world">x</a>'.html_safe, length: 15)
+  end
+
   def test_truncate_should_not_escape_the_input_with_escape_false
     assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", length: 12, escape: false)
   end
