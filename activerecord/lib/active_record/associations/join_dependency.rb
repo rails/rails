@@ -108,7 +108,9 @@ module ActiveRecord
       private_constant :EMPTY_HASH
 
       def instantiate(result_set, strict_loading_value, &block)
-        primary_key = Array(join_root.primary_key).map { |column| aliases.column_alias(join_root, column) }
+        primary_key = Array(join_root.primary_key).map { |column|
+          aliases.column_alias(join_root, column)
+        }
 
         seen = Hash.new { |i, parent|
           i[parent] = Hash.new { |j, child_class|
@@ -145,7 +147,7 @@ module ActiveRecord
         }
 
         primary_key_indexes = primary_key.map { |name| result_set.column_indexes.fetch(name) }.freeze
-        remapper = ActiveModel::IndexedRow::Remapper.new(result_set.column_indexes, column_aliases.map(&:alias), column_aliases.map(&:name))
+        remapper = ActiveModel::IndexedRow::Remapper.new(result_set.column_indexes, column_aliases.map(&:alias), column_aliases.map(&:name), join_root.base_klass.attributes_builder.indexes)
 
         message_bus.instrument("instantiation.active_record", payload) do
           result_set.indexed_rows.each do |indexed_row|
@@ -289,7 +291,7 @@ module ActiveRecord
         def remapper(node, indexes)
           @remappers[node] ||= begin
             column_aliases = aliases.column_aliases(node)
-            ActiveModel::IndexedRow::Remapper.new(indexes, column_aliases.map(&:alias), column_aliases.map(&:name))
+            ActiveModel::IndexedRow::Remapper.new(indexes, column_aliases.map(&:alias), column_aliases.map(&:name), node.base_klass.attributes_builder.indexes)
           end
         end
 

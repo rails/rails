@@ -124,6 +124,15 @@ module ActiveRecord
       end
     end
 
+    def each_pair
+      if @column_types
+        @columns.each_with_index do |name, index|
+          type = @column_types[index] || Type.default_value
+          yield(name, type)
+        end
+      end
+    end
+
     def result # :nodoc:
       self
     end
@@ -187,10 +196,84 @@ module ActiveRecord
       @column_indexes ||= ActiveModel::IndexedRow.build_indexes(columns)
     end
 
+    def map_rows(column_map) # :nodoc:
+      layout = RowLayout.new(@columns, column_map)
+      @rows.map { |row| yield layout.build(row) }
+    end
+
+    # Like #map_rows, but each row is laid out for the column map that
+    # +column_map_for+ returns for that row's value of +column_name+, and
+    # that value is yielded with the row. +column_map_for+ is called once
+    # for each distinct value.
+    def map_rows_by(column_name, column_map_for) # :nodoc:
+      index = @columns.index(column_name)
+      layouts = {}
+
+      @rows.map do |row|
+        value = row[index]
+        layout = layouts[value] ||= RowLayout.new(@columns, column_map_for.call(value))
+        yield layout.build(row), value
+      end
+    end
+
     def indexed_rows # :nodoc:
       @indexed_rows ||= begin
         columns = column_indexes
         @rows.map { |row| ActiveModel::IndexedRow.new(columns, row) }.freeze
+      end
+    end
+
+    # Lays rows out the way a column map expects. The +ord+ method on each
+    # column corresponds to the index generated in the reader/writer
+    # methods, so the values in a row need to line up with those indexes.
+    #
+    # "Pending" columns are columns the schema didn't know about, so no
+    # methods were generated for them, for example column aliases. They
+    # are given indexes after the last one in the column map, and rows get
+    # a proxy that wraps the column map with those extra indexes, so the
+    # column map itself is never modified.
+    #
+    # The LUT is only built once a column is found out of place, so in the
+    # common case (selected columns are in schema order) rows are used
+    # as-is.
+    class RowLayout # :nodoc:
+      def initialize(columns, column_map)
+        shuffle_lut = nil
+        pending = nil
+        last_ord = nil
+
+        columns.each_with_index do |name, i|
+          if column = column_map[name]
+            ord = column.ord
+          else
+            pending ||= {}
+            last_ord ||= ActiveModel::IndexedRow.max_ord(column_map)
+            ord = pending[name] = (last_ord += 1)
+          end
+
+          if shuffle_lut
+            shuffle_lut << ord
+          elsif ord != i
+            shuffle_lut = (0...i).to_a << ord
+          end
+        end
+
+        @indexes = if pending
+          ActiveModel::IndexedRow::ExtendedIndexes.new(column_map, pending.freeze)
+        else
+          column_map
+        end
+        @shuffle_lut = shuffle_lut
+        @width = shuffle_lut.max + 1 if shuffle_lut
+      end
+
+      def build(row)
+        if @shuffle_lut
+          shuffled = ActiveModel::IndexedRow.unset_row(@width)
+          @shuffle_lut.each_with_index { |ord, i| shuffled[ord] = row[i] }
+          row = shuffled.freeze
+        end
+        ActiveModel::IndexedRow.new(@indexes, row)
       end
     end
 

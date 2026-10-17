@@ -6,9 +6,11 @@ require "active_support/core_ext/enumerable"
 module ActiveRecord
   module AttributeMethods
     class ReadTest < ActiveRecord::TestCase
-      FakeColumn = Struct.new(:name) do
+      FakeColumn = Struct.new(:name, :ord) do
         def type; :integer; end
       end
+
+      FakeBuilder = Struct.new(:indexes)
 
       def setup
         @klass = Class.new(Class.new { def self.initialize_generated_modules; end }) do
@@ -16,6 +18,7 @@ module ActiveRecord
           def self.base_class?; true; end
           def self.abstract_class?; false; end
           def self.load_schema; end
+          def self.schema_loaded?; true; end
 
           include ActiveRecord::AttributeMethods
 
@@ -31,13 +34,15 @@ module ActiveRecord
           end
 
           def self.columns
-            attribute_names.map { FakeColumn.new(name) }
+            attribute_names.each_with_index.map { |name, i| FakeColumn.new(name, i) }
           end
 
           def self.columns_hash
-            attribute_names.index_with { |name|
-              FakeColumn.new(name)
-            }
+            columns.index_by(&:name)
+          end
+
+          def self.attributes_builder
+            FakeBuilder.new(attribute_names.each_with_index.to_h)
           end
         end
       end

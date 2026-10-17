@@ -99,7 +99,24 @@ module ActiveRecord
       # how this "single-table" inheritance mapping is implemented.
       def instantiate(attributes, column_types = {}, &block)
         klass = discriminate_class_for_record(attributes)
-        instantiate_instance_of(klass, attributes, column_types, &block)
+        builder = klass.attributes_builder
+        if attributes.is_a?(Hash)
+          attributes = builder.row_from_hash(attributes)
+        elsif !klass.equal?(self)
+          # Rows are laid out for this class, and +klass+ may be an STI
+          # subclass with attributes of its own.
+          attributes = builder.relayout(attributes)
+        end
+
+        # +column_types+ can override the types of the class's attributes,
+        # as well as type the columns it doesn't have.
+        unless column_types.empty?
+          builder = builder.with_types(column_types)
+          column_types = builder.additional_types_for(attributes.indexes, column_types)
+        end
+
+        attributes = builder.build_from_database(attributes, column_types)
+        klass.allocate.init_with_attributes(attributes, &block)
       end
 
       # Updates an object (or multiple objects) and saves it to the database, if validations pass.
@@ -460,8 +477,10 @@ module ActiveRecord
       became = klass.allocate
 
       became.send(:initialize) do |becoming|
-        @attributes.reverse_merge!(becoming.instance_variable_get(:@attributes))
-        becoming.instance_variable_set(:@attributes, @attributes)
+        becoming.instance_variable_set(
+          :@attributes,
+          ActiveModel::ReindexedAttributeSet.new(@attributes, becoming.instance_variable_get(:@attributes))
+        )
         becoming.instance_variable_set(:@mutations_from_database, @mutations_from_database ||= nil)
         becoming.instance_variable_set(:@new_record, new_record?)
         becoming.instance_variable_set(:@previously_new_record, previously_new_record?)

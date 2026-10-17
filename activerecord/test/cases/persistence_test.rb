@@ -618,6 +618,17 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal 50, client.extra_size
   end
 
+  def test_becomes_a_class_with_a_different_table_reads_attributes_by_name
+    developer = Developer.new(name: "David", firm_id: 1)
+    assert_not_equal Developer.columns_hash["name"].ord, Company.columns_hash["name"].ord
+
+    company = developer.becomes(Company)
+
+    assert_equal "David", company.name
+    assert_equal 1, company.firm_id
+    assert_equal "David", developer.name
+  end
+
   def test_becomes_same_class_makes_clone
     original = Company.new(name: "GrowingCompany")
     clone = original.becomes(Company)
