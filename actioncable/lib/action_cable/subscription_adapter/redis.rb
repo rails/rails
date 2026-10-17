@@ -39,6 +39,14 @@ module ActionCable
         redis_connection_for_broadcasts.call("publish", channel, payload)
       end
 
+      # Publishes the whole batch in a single pipeline: one round trip to Redis
+      # instead of one per broadcast.
+      def broadcast_batch(broadcasts)
+        redis_connection_for_broadcasts.pipelined do |pipeline|
+          broadcasts.each { |channel, payload| pipeline.call("publish", channel_with_prefix(channel), payload) }
+        end
+      end
+
       def subscribe(channel, callback, success_callback = nil)
         listener.add_subscriber(channel, callback, success_callback)
       end
