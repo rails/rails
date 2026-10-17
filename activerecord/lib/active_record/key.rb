@@ -3,8 +3,6 @@
 # :markup: markdown
 module ActiveRecord
   class Key # :nodoc:
-    include Enumerable
-
     def self.for(name)
       key = case name
       when Array
@@ -24,9 +22,7 @@ module ActiveRecord
       true
     end
 
-    def each(&block)
-      @columns.each(&block)
-    end
+    delegate :each, :index_with, to: :@columns
 
     def all?(...) = @columns.all?(...)
     def any?(...) = @columns.any?(...)
