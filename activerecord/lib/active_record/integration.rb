@@ -188,11 +188,22 @@ module ActiveRecord
       def can_use_fast_cache_version?(timestamp)
         timestamp.is_a?(String) &&
           cache_timestamp_format == :usec &&
-          # FIXME: checking out a connection for this is wasteful
-          # we should store/cache this information in the schema cache
-          # or similar.
-          self.class.with_connection(&:default_timezone) == :utc &&
+          updated_at_stored_in_utc? &&
           !updated_at_came_from_user?
+      end
+
+      # The type that casts the raw value to a time is built with the
+      # default timezone of the database, so a connection is only checked
+      # out when the attribute has no such type, e.g. a computed column.
+      def updated_at_stored_in_utc?
+        type = @attributes[self.class.attribute_aliases["updated_at"] || "updated_at"].type
+        type = type.subtype if type.is_a?(AttributeMethods::TimeZoneConversion::TimeZoneConverter)
+
+        if type.is_a?(Type::Internal::Timezone)
+          type.is_utc?
+        else
+          self.class.with_connection(&:default_timezone) == :utc
+        end
       end
 
       # Converts a raw database string to `:usec`
