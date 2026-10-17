@@ -108,6 +108,17 @@ module ActiveJob
       raise DeserializationError
     end
 
+    # Returns a copy of `arguments` safe to pass to `perform`.
+    #
+    # Strings, arrays, and hashes are copied so in-place mutations do not leak
+    # into later retries. Other objects are returned as-is. GlobalID records are
+    # not duped, because `ActiveRecord::Base#dup` returns a new unsaved record.
+    # Keyword argument hashes keep their ruby2_keywords flag, which `Hash#dup`
+    # drops.
+    def copy(arguments) # :nodoc:
+      arguments.map { |argument| copy_argument(argument) }
+    end
+
     private
       # :nodoc:
       GLOBALID_KEY = "_aj_globalid"
@@ -128,6 +139,20 @@ module ActiveJob
       ].to_set.freeze
       private_constant :RESERVED_KEYS, :GLOBALID_KEY,
         :SYMBOL_KEYS_KEY, :RUBY2_KEYWORDS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
+
+      def copy_argument(argument)
+        case argument
+        when String
+          argument.frozen? ? argument : argument.dup
+        when Array
+          argument.map { |arg| copy_argument(arg) }
+        when Hash
+          duplicate = argument.transform_values { |value| copy_argument(value) }
+          Hash.ruby2_keywords_hash?(argument) ? Hash.ruby2_keywords_hash(duplicate) : duplicate
+        else
+          argument
+        end
+      end
 
       def deserialize_argument(argument)
         case argument

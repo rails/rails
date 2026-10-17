@@ -1,3 +1,19 @@
+*   Add `config.active_job.immutable_arguments` to keep job argument mutations
+    from leaking into retries.
+
+    When enabled, Active Job copies string, array, and hash arguments before
+    calling `perform`. Mutations of those parameters no longer change the
+    arguments used on the next retry. GlobalID records and other arguments are
+    passed through unchanged. Mutating `job.arguments` still updates the stored
+    arguments, so jobs that intentionally persist state there continue to work.
+
+    New applications (`config.load_defaults 8.2`) enable this by default.
+    Existing applications keep the previous behavior until they opt in via
+    `config/initializers/new_framework_defaults_8_2.rb` or by setting
+    `config.active_job.immutable_arguments = true`.
+
+    *Said Kaldybaev*
+
 *   Don't modify the job data a job was deserialized from when it's retried.
 
     ```ruby
