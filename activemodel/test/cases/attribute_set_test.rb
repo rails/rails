@@ -273,14 +273,8 @@ module ActiveModel
     end
 
     test "marshalling dump/load materialized attribute hash" do
-      builder = AttributeSet::Builder.new({ foo: Type::String.new }, AttributeSet.new(IndexedRow::Mutable[{}]), [:foo])
-
-      def builder.build_from_database(values = {}, additional_types = {})
-        attributes = LazyAttributeHash.new(types, values, additional_types, default_attributes)
-        AttributeSet.new(attributes)
-      end
-
-      attributes = builder.build_from_database(foo: "1")
+      attributes = LazyAttributeHash.new({ foo: Type::String.new }, { foo: "1" }, {}, AttributeSet.new(IndexedRow::Mutable[{}]))
+      attributes = AttributeSet.new(attributes)
 
       data = Marshal.dump(attributes)
       attributes = Marshal.load(data)
