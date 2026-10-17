@@ -130,6 +130,14 @@ module ActionText
           ActionText::ContentHelper.sanitizer = klass.safe_list_sanitizer.new
         end
       end
+
+      if extra_tags = app.config.action_text.extra_allowed_tags
+        ActionText::ContentHelper.extra_allowed_tags = extra_tags
+      end
+
+      if extra_attrs = app.config.action_text.extra_allowed_attributes
+        ActionText::ContentHelper.extra_allowed_attributes = extra_attrs
+      end
     end
   end
 end
