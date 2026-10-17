@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "action_dispatch"
 require "action_dispatch/http/upload"
 

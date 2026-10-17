@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveStorage
   # Generic base class for all Active Storage exceptions.
   class Error < StandardError; end

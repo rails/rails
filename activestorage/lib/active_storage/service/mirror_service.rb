@@ -1,16 +1,19 @@
 # frozen_string_literal: true
 
 
+# :markup: markdown
 module ActiveStorage
-  # = Active Storage Mirror \Service
+  # Active Storage Mirror \Service
+  # ==============================
   #
   # Wraps a set of mirror services and provides a single ActiveStorage::Service object that will all
-  # have the files uploaded to them. A +primary+ service is designated to answer calls to:
-  # * +download+
-  # * +exist?+
-  # * +url+
-  # * +url_for_direct_upload+
-  # * +headers_for_direct_upload+
+  # have the files uploaded to them. A `primary` service is designated to answer calls to:
+  #
+  # * `download`
+  # * `exist?`
+  # * `url`
+  # * `url_for_direct_upload`
+  # * `headers_for_direct_upload`
   class Service::MirrorService < Service
     attr_reader :primary, :mirrors
 
@@ -39,8 +42,8 @@ module ActiveStorage
       )
     end
 
-    # Upload the +io+ to the +key+ specified to all services. The upload to the primary service is done synchronously
-    # whereas the upload to the mirrors is done asynchronously. If a +checksum+ is provided, all services will
+    # Upload the `io` to the `key` specified to all services. The upload to the primary service is done synchronously
+    # whereas the upload to the mirrors is done asynchronously. If a `checksum` is provided, all services will
     # ensure a match when the upload has completed or raise an ActiveStorage::IntegrityError.
     def upload(key, io, checksum: nil, **options)
       io.rewind
@@ -48,12 +51,12 @@ module ActiveStorage
       mirror_later key, checksum: checksum
     end
 
-    # Delete the file at the +key+ on all services.
+    # Delete the file at the `key` on all services.
     def delete(key)
       perform_across_services :delete, key
     end
 
-    # Delete files at keys starting with the +prefix+ on all services.
+    # Delete files at keys starting with the `prefix` on all services.
     def delete_prefixed(prefix)
       perform_across_services :delete_prefixed, prefix
     end
@@ -62,7 +65,7 @@ module ActiveStorage
       ActiveStorage::MirrorJob.perform_later key, checksum: checksum
     end
 
-    # Copy the file at the +key+ from the primary service to each of the mirrors where it doesn't already exist.
+    # Copy the file at the `key` from the primary service to each of the mirrors where it doesn't already exist.
     # Both the existence checks and the uploads run in parallel across mirrors using the internal thread pool.
     def mirror(key, checksum:)
       instrument :mirror, key: key, checksum: checksum do
