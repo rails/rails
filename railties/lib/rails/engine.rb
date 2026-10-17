@@ -395,13 +395,7 @@ module Rails
             define_method(:railtie_namespace) { railtie }
 
             unless mod.respond_to?(:table_name_prefix)
-              define_method(:table_name_prefix) { "#{name}_" }
-
-              ActiveSupport.on_load(:active_record) do
-                mod.singleton_class.redefine_method(:table_name_prefix) do
-                  "#{ActiveRecord::Base.table_name_prefix}#{name}_"
-                end
-              end
+              define_method(:table_name_prefix) { [ActiveRecord::Base.table_name_prefix, name].compact.join + "_" }
             end
 
             unless mod.respond_to?(:use_relative_model_naming?)
