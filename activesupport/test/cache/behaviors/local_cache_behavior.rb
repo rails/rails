@@ -328,6 +328,20 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_read_multi_expands_each_name_once
+    key = SecureRandom.uuid
+    local_key = SecureRandom.uuid
+    @peek.write(key, "bar")
+
+    @cache.with_local_cache do
+      @cache.write(local_key, "baz")
+      names = [key, local_key, SecureRandom.uuid].map { |name| CacheStoreBehavior::CountingCacheKey.new(name) }
+
+      assert_equal({ names[0] => "bar", names[1] => "baz" }, @cache.read_multi(*names))
+      assert_equal [1, 1, 1], names.map(&:cache_key_calls)
+    end
+  end
+
   def test_local_cache_of_read_multi_with_expiry
     key = SecureRandom.uuid
     value = SecureRandom.alphanumeric

@@ -326,6 +326,39 @@ module CacheStoreBehavior
     assert_equal "bar", @cache.read("#{key}/foo")
   end
 
+  class CountingCacheKey
+    attr_reader :cache_key_calls
+
+    def initialize(key)
+      @key = key
+      @cache_key_calls = 0
+    end
+
+    def cache_key
+      @cache_key_calls += 1
+      @key
+    end
+  end
+
+  def test_read_multi_expands_each_name_once
+    key = SecureRandom.uuid
+    @cache.write(key, "bar")
+    hit = CountingCacheKey.new(key)
+    miss = CountingCacheKey.new(SecureRandom.uuid)
+
+    assert_equal({ hit => "bar" }, @cache.read_multi(hit, miss))
+    assert_equal [1, 1], [hit.cache_key_calls, miss.cache_key_calls]
+  end
+
+  def test_fetch_multi_expands_each_name_once
+    key = SecureRandom.uuid
+    @cache.write(key, "bar")
+    hit = CountingCacheKey.new(key)
+
+    assert_equal({ hit => "bar" }, @cache.fetch_multi(hit) { raise "Not called" })
+    assert_equal 1, hit.cache_key_calls
+  end
+
   InstanceTest = Struct.new(:name, :id) do
     def cache_key
       "#{name}/#{id}"
