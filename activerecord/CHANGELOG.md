@@ -1,3 +1,24 @@
+*   Deprecate passing a schema-qualified extension name to `enable_extension`
+    and `disable_extension` on PostgreSQL in favor of the `:schema` option.
+
+    An extension is not a schema object; the schema only names where its
+    member objects go.
+
+    ```ruby
+    # Before
+    enable_extension "heroku_ext.pgcrypto"
+
+    # After
+    enable_extension "pgcrypto", schema: "heroku_ext"
+    ```
+
+    `db/schema.rb` is dumped with the new syntax, and the schema is quoted.
+    `disable_extension` accepts `:schema` so that such a migration can be
+    reverted. Migrations and schema files for 8.1 or earlier keep accepting
+    the schema-qualified name without a warning.
+
+    *Yasuo Honda*
+
 *   Deprecate the option accessors on `ColumnDefinition`.
 
     Use `options` instead, for example `column.options[:limit]` instead of
