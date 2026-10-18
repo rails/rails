@@ -1468,6 +1468,19 @@ class RequestParameterFilter < BaseRequestTest
     end
   end
 
+  test "filtered_path passes the parameter to a proc filter as the original params" do
+    request = stub_request(
+      "QUERY_STRING" => "username=sikachu&secret=bd4f21f",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [
+        ->(key, value, original_params) { value.replace("[FILTERED]") if original_params[key] == "bd4f21f" }
+      ]
+    )
+
+    path = request.filtered_path
+    assert_equal request.script_name + "/authenticate?username=sikachu&secret=[FILTERED]", path
+  end
+
   test "filtered_path should not unescape a genuine '[FILTERED]' value" do
     request = stub_request(
       "QUERY_STRING" => "secret=bd4f21f&genuine=%5BFILTERED%5D",
