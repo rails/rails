@@ -7,6 +7,7 @@ This guide covers PostgreSQL specific usage of Active Record.
 
 After reading this guide, you will know:
 
+* How to enable PostgreSQL extensions.
 * How to use PostgreSQL's datatypes.
 * How to use UUID primary keys.
 * How to include non-key columns in indexes.
@@ -24,6 +25,86 @@ installed. Older versions are not supported.
 To get started with PostgreSQL have a look at the
 [configuring Rails guide](configuring.html#configuring-a-postgresql-database).
 It describes how to properly set up Active Record for PostgreSQL.
+
+Extensions
+----------
+
+PostgreSQL packages additional datatypes, functions, and operators as
+[extensions](https://www.postgresql.org/docs/current/extend-extensions.html).
+An extension is a database-level object: `CREATE EXTENSION` installs the SQL
+objects it bundles in one step, its name is unique within the database, and
+`DROP EXTENSION` removes those objects again as a whole.
+
+Enable an extension in a migration with `enable_extension`. It is reversible:
+
+```ruby
+# db/migrate/20131009135255_enable_hstore.rb
+class EnableHstore < ActiveRecord::Migration[8.2]
+  def change
+    enable_extension "hstore"
+  end
+end
+```
+
+The extension itself does not belong to a schema, but the objects it installs,
+its member objects, do. By default they are created in the current default
+object creation schema, which is the first existing schema in
+`schema_search_path`. Pass `schema:` to install them elsewhere, for example to
+keep the hundreds of functions and types that PostGIS installs out of
+`public`. `schema:` names where the member objects go, not a schema the
+extension belongs to:
+
+```ruby
+# db/migrate/20240101000000_install_postgis.rb
+class InstallPostgis < ActiveRecord::Migration[8.2]
+  def change
+    create_schema "postgis"
+    enable_extension "postgis", schema: "postgis"
+  end
+end
+```
+
+The schema must exist before the extension is enabled, and it usually has to
+be added to `schema_search_path` for the extension's functions to be found.
+Some extensions, PostGIS among them, are not relocatable: the schema chosen
+when enabling them cannot be changed afterwards. Others fix their schema in
+their control file, such as `postgis_topology` with `topology`, and reject any
+other `schema:`.
+
+Disable an extension with `disable_extension`. It drops the extension by name,
+since the name alone identifies it. To revert a `disable_extension` in
+`change` with the member objects back in the schema they were installed in,
+pass that schema with `schema:`. Like the type passed to `remove_column`, it is
+only used when the migration is reverted and does not affect what is dropped:
+
+```ruby
+# db/migrate/20240201000000_uninstall_postgis.rb
+class UninstallPostgis < ActiveRecord::Migration[8.2]
+  def change
+    disable_extension "postgis", schema: "postgis"
+  end
+end
+```
+
+Without `schema:`, reverting such a migration installs the member objects in
+the current default object creation schema.
+
+Since extensions are not schema objects, `enable_extension` statements are
+always written to `db/schema.rb`, regardless of
+[`config.active_record.dump_schemas`](configuring.html#config-active-record-dump-schemas).
+A schema that member objects were installed in with `schema:` is written before
+them as `create_schema`, with `if_not_exists: true` so that `db/schema.rb` also
+loads into a database where the schema already exists:
+
+```ruby
+create_schema "postgis", if_not_exists: true
+
+enable_extension "postgis", schema: "postgis"
+```
+
+NOTE: Rails 8.1 and earlier expressed the schema as part of the name,
+as in `enable_extension "postgis.postgis"`. This form is deprecated in
+favor of the `schema:` option.
 
 Datatypes
 ---------
