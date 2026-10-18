@@ -1187,8 +1187,14 @@ module ActiveRecord
     #    Post.where("id = 1").structurally_compatible?(Post.where("author_id = 3"))
     #    # => true
     #
-    #    Post.joins(:comments).structurally_compatible?(Post.where("id = 1"))
+    #    Post.joins(:comments).structurally_compatible?(Post.joins(:author))
     #    # => false
+    #
+    # Since #and and #or are focused on combining where-like clauses, a multi-value clause that
+    # this relation sets and the other one leaves unset is not counted as a difference.
+    #
+    #    Post.joins(:comments).structurally_compatible?(Post.where("id = 1"))
+    #    # => true
     #
     def structurally_compatible?(other)
       structurally_incompatible_values_for(other).empty?
