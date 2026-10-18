@@ -383,8 +383,15 @@ module ActiveRecord
   singleton_class.attr_accessor :maintain_test_schema
   self.maintain_test_schema = nil
 
-  singleton_class.attr_accessor :raise_on_assign_to_attr_readonly
-  self.raise_on_assign_to_attr_readonly = false
+  singleton_class.attr_accessor :_raise_on_assign_to_attr_readonly # :nodoc:
+  self._raise_on_assign_to_attr_readonly = true
+
+  def self.raise_on_assign_to_attr_readonly=(value)
+    deprecator.warn(<<~MSG)
+     `config.active_record.raise_on_assign_to_attr_readonly` is deprecated and will be removed in Rails 9.0.
+    MSG
+    @_raise_on_assign_to_attr_readonly = value
+  end
 
   singleton_class.attr_accessor :belongs_to_required_validates_foreign_key
   self.belongs_to_required_validates_foreign_key = true

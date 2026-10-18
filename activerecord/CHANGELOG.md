@@ -1,3 +1,11 @@
+*   Deprecate `config.active_record.raise_on_assign_to_attr_readonly`.
+
+    It has been a framework default since version 7.1, and keeping it as
+    a configuration flag is preventing further optimization of attribute
+    accessors. It will be removed in 9.0.
+
+    *Jean Boussier*
+
 *   Bump the minimum supported MySQL version to 5.7.9.
 
     This drops the workarounds for indexing `utf8mb4` `varchar(255)` columns.

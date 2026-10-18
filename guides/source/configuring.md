@@ -185,6 +185,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
 - [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
 - [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
+- [`config.active_record.raise_on_assign_to_attr_readonly`](#config-active-record-raise-on-assign-to-attr-readonly): `false`
 - [`config.ssl_options`](#config-ssl-options): `{ hsts: { subdomains: true } }`
 
 ### Rails General Configuration
@@ -1519,6 +1520,8 @@ database.
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.1                   | `true`               |
+
+Note: This configuration has been deprecated in Rails 8.2 and will be removed in 9.0.
 
 #### `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`
 
