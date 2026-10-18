@@ -54,10 +54,9 @@ module ActionDispatch
           @memos[idx]
         end
 
-        def move(t, full_string, token, start_index, token_matches_default)
-          return [] if t.empty?
-
-          next_states = []
+        def move(t, full_string, token, start_index, token_matches_default, next_states = [])
+          next_states.clear
+          return next_states if t.empty?
 
           transitions_count = t.size
           i = 0
