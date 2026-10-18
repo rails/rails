@@ -56,7 +56,7 @@ module ActiveRecord
         @attributes.fetch_value!(attr_name)
       rescue ActiveModel::MissingAttributeError
         raise if @attributes.key?(attr_name)
-        missing_attribute(attr_name, caller)
+        missing_attribute(attr_name, RUBY_VERSION >= "3.4" ? caller_locations : caller)
       end
 
       # Like #_read_attribute, but a missing attribute raises
