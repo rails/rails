@@ -220,7 +220,7 @@ module ActiveRecord # :nodoc:
   # It's even possible to call these dynamic finder methods on relations and named scopes.
   #
   # ```
-  # Payment.order("created_on").find_by_amount(50)
+  # Payment.order(:created_on).find_by_amount(50)
   # ```
   #
   # Saving arrays, hashes, and other non-mappable objects in text columns

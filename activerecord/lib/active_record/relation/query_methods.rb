@@ -1184,11 +1184,17 @@ module ActiveRecord
     # compatible is defined as: they must be scoping the same model, and they must differ only by
     # #where (if no #group has been defined) or #having (if a #group is present).
     #
-    #    Post.where("id = 1").structurally_compatible?(Post.where("author_id = 3"))
+    #    Post.where(id: 1).structurally_compatible?(Post.where(author_id: 3))
     #    # => true
     #
-    #    Post.joins(:comments).structurally_compatible?(Post.where("id = 1"))
+    #    Post.joins(:comments).structurally_compatible?(Post.joins(:author))
     #    # => false
+    #
+    # Since #and and #or are focused on combining where-like clauses, a multi-value clause that
+    # this relation sets and the other one leaves unset is not counted as a difference.
+    #
+    #    Post.joins(:comments).structurally_compatible?(Post.where(id: 1))
+    #    # => true
     #
     def structurally_compatible?(other)
       structurally_incompatible_values_for(other).empty?
@@ -1233,8 +1239,8 @@ module ActiveRecord
     # they must differ only by #where (if no #group has been defined) or #having (if a #group is
     # present).
     #
-    #    Post.where("id = 1").or(Post.where("author_id = 3"))
-    #    # SELECT `posts`.* FROM `posts` WHERE ((id = 1) OR (author_id = 3))
+    #    Post.where(id: 1).or(Post.where(author_id: 3))
+    #    # SELECT `posts`.* FROM `posts` WHERE (`posts`.`id` = 1 OR `posts`.`author_id` = 3)
     #
     def or(other)
       if other.is_a?(Relation)
@@ -1296,7 +1302,7 @@ module ActiveRecord
     #
     # Should be used with order.
     #
-    #   User.offset(10).order("name ASC")
+    #   User.offset(10).order(name: :asc)
     def offset(value)
       spawn.offset!(value)
     end

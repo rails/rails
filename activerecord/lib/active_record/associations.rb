@@ -1413,10 +1413,10 @@ module ActiveRecord
         #   Please, check the class documentation above for details.
         #
         # Option examples:
-        #   has_many :comments, -> { order("posted_on") }
+        #   has_many :comments, -> { order(:posted_on) }
         #   has_many :comments, -> { includes(:author) }
-        #   has_many :people, -> { where(deleted: false).order("name") }, class_name: "Person"
-        #   has_many :tracks, -> { order("position") }, dependent: :destroy
+        #   has_many :people, -> { where(deleted: false).order(:name) }, class_name: "Person"
+        #   has_many :tracks, -> { order(:position) }, dependent: :destroy
         #   has_many :comments, dependent: :nullify
         #   has_many :tags, as: :taggable
         #   has_many :reports, -> { readonly }
@@ -1941,7 +1941,7 @@ module ActiveRecord
         # Scope examples:
         #   has_and_belongs_to_many :projects, -> { includes(:milestones, :manager) }
         #   has_and_belongs_to_many :categories, ->(post) {
-        #     where("default_category = ?", post.default_category)
+        #     where(default_category: post.default_category)
         #   }
         #
         # ==== Extensions
