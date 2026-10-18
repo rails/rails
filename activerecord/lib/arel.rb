@@ -63,7 +63,7 @@ module Arel
     end
   end
 
-  STAR = ActiveSupport::Ractors.make_shareable(Arel::Nodes::SqlLiteral.new("*", retryable: true)) # :nodoc:
+  STAR = ActiveSupport::Ractors.make_shareable(Arel::Nodes::SqlLiteral.new("*", retryable: true).freeze) # :nodoc:
   private_constant :STAR
 
   def self.star # :nodoc:
