@@ -1,3 +1,15 @@
+*   Don't queue connection checkouts behind stalled background maintenance.
+
+    A connection whose background maintenance (such as a reaper preconnect or
+    keepalive) has run longer than `checkout_timeout` is no longer treated as
+    about to become available. Checkout now opens a new connection if the pool
+    has room, instead of raising `ConnectionTimeoutError` until the stuck
+    attempt ends.
+
+    Fixes #58990.
+
+    *Matheus Dutra Lima*
+
 *   Truncate tables shadowed by a same-named table earlier on the PostgreSQL
     `search_path`.
 

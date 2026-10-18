@@ -1748,7 +1748,8 @@ module ActiveRecord
 
       def test_checkout_queued_behind_maintenance_respects_checkout_timeout
         Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception
-        pool = new_pool_with_options(max_connections: 3, checkout_timeout: 0.1, reaping_frequency: nil, async: false)
+        # Full pool, so checkout can't fall back to opening a new connection
+        pool = new_pool_with_options(max_connections: 2, checkout_timeout: 0.1, reaping_frequency: nil, async: false)
 
         conn1 = pool.checkout
         conn2 = pool.checkout
@@ -1778,6 +1779,37 @@ module ActiveRecord
         maintenance_thread&.join(2)
         pool.checkin(conn2)
         Thread.report_on_exception = original_report_on_exception
+      end
+
+      def test_checkout_does_not_queue_behind_stalled_maintenance
+        pool = new_pool_with_options(max_connections: 3, checkout_timeout: 0.1, reaping_frequency: nil, async: false)
+
+        conn1 = pool.checkout
+        conn2 = pool.checkout
+        pool.checkin(conn1)
+
+        maintenance_started = Concurrent::Event.new
+        maintenance_continuing = Concurrent::Event.new
+
+        maintenance_thread = new_thread do
+          pool.send(:sequential_maintenance, proc { true }) do |_|
+            maintenance_started.set
+            maintenance_continuing.wait
+          end
+        end
+
+        maintenance_started.wait
+
+        # Checkout waits on the maintenance at first, then, once it has run longer
+        # than checkout_timeout, opens a new connection instead of timing out
+        conn3 = pool.checkout
+        assert_equal 3, pool.connections.size
+
+        pool.checkin(conn3)
+      ensure
+        maintenance_continuing.set
+        maintenance_thread&.join(2)
+        pool.checkin(conn2)
       end
 
       def test_disconnect_and_clear_reloadable_connections_attempt_to_wait_for_threads_to_return_their_conns

@@ -311,10 +311,11 @@ module ActiveRecord
         @now_connecting = 0
 
         # Sometimes otherwise-idle connections are temporarily held by the Reaper for
-        # maintenance. This variable tracks the number of connections currently in that
-        # state -- if a thread requests a connection and there are none available, it
-        # will await any in-maintenance connections in preference to creating a new one.
-        @maintaining = 0
+        # maintenance. This variable maps the connections currently in that state to
+        # when their maintenance started -- if a thread requests a connection and there
+        # are none available, it will await any in-maintenance connections that haven't
+        # stalled in preference to creating a new one.
+        @maintaining = {}.compare_by_identity
 
         @threads_blocking_new_connections = 0
 
@@ -720,7 +721,7 @@ module ActiveRecord
           # that are "stuck" there are helpless. They have no way of creating
           # new connections and are completely reliant on us feeding available
           # connections into the Queue.
-          needs_new_connection = @available.num_waiting > @maintaining
+          needs_new_connection = @available.num_waiting > upcoming_maintenance(@checkout_timeout).size
         end
 
         # This is intentionally done outside of the synchronized section as we
@@ -1023,7 +1024,7 @@ module ActiveRecord
         # the pool will hang.
         def checkout_for_maintenance(conn)
           synchronize do
-            @maintaining += 1
+            @maintaining[conn] = Process.clock_gettime(Process::CLOCK_MONOTONIC)
             @available.delete(conn)
             conn.lease
             conn
@@ -1042,8 +1043,18 @@ module ActiveRecord
           synchronize do
             conn.expire(false)
             @available.add_back(conn)
-            @maintaining -= 1
+            @maintaining.delete(conn)
           end
+        end
+
+        # Start times of the connections in maintenance that have been running
+        # for less than +limit+ seconds. Longer-running maintenance is assumed
+        # to be stalled (e.g. a connect attempt to an unresponsive server).
+        #
+        # Must be called in a +synchronize+ block.
+        def upcoming_maintenance(limit)
+          stalled_before = Process.clock_gettime(Process::CLOCK_MONOTONIC) - limit
+          @maintaining.values.select { |started_at| started_at > stalled_before }
         end
 
 
@@ -1214,20 +1225,27 @@ module ActiveRecord
         # too (because at least some of the time it takes to establish a new
         # connection must have already passed).
         #
+        # Maintenance that has already run longer than +checkout_timeout+ is
+        # assumed to be stalled, and is not waited on: otherwise a single stuck
+        # connection would hold up every checkout, even with room in the pool.
+        #
         # If background connections are available, this method will block and
-        # return a connection. If no background connections are available, it
-        # will immediately return +nil+.
+        # return a connection, or +nil+ once they have stalled. If no background
+        # connections are available, it will immediately return +nil+.
         def try_to_queue_for_background_connection(checkout_timeout)
-          return unless @maintaining > 0
+          return if @maintaining.empty?
 
           synchronize do
-            return unless @maintaining > @available.num_waiting
+            upcoming = upcoming_maintenance(checkout_timeout)
+            return unless upcoming.size > @available.num_waiting
 
             # Maintenance work (e.g. a keepalive ping) can stall for reasons outside
-            # our control, such as a slow or unresponsive database server, so this
-            # wait must stay bounded by the caller's own checkout_timeout rather than
-            # assume maintenance always finishes quickly.
-            @available.poll(checkout_timeout)
+            # our control, such as a slow or unresponsive database server, so only
+            # wait until the newest maintenance would count as stalled, then let the
+            # caller try to open a new connection instead.
+            @available.poll(upcoming.max + checkout_timeout - Process.clock_gettime(Process::CLOCK_MONOTONIC))
+          rescue ConnectionTimeoutError
+            nil
           end
         end
 
