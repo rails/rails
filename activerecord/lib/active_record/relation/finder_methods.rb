@@ -19,7 +19,7 @@ module ActiveRecord
     #   Person.find(1, 2, 6)    # returns an array for objects with IDs in (1, 2, 6)
     #   Person.find([7, 17])    # returns an array for objects with IDs in (7, 17), or with composite primary key [7, 17]
     #   Person.find([1])        # returns an array for the object with ID = 1
-    #   Person.where("administrator = 1").order("created_on DESC").find(1)
+    #   Person.where(administrator: 1).order(created_on: :desc).find(1)
     #
     # ==== Find a record for a composite primary key model
     #   TravelRoute.primary_key = [:origin, :destination]
@@ -167,7 +167,7 @@ module ActiveRecord
     #
     #   Person.first # returns the first object fetched by SELECT * FROM people ORDER BY people.id LIMIT 1
     #   Person.where(user_name: user_name).first
-    #   Person.order("created_on DESC").offset(5).first
+    #   Person.order(created_on: :desc).offset(5).first
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
     #
     def first(limit = nil)
@@ -189,7 +189,7 @@ module ActiveRecord
     #
     #   Person.last # returns the last object fetched by SELECT * FROM people
     #   Person.where(user_name: user_name).last
-    #   Person.order("created_on DESC").offset(5).last
+    #   Person.order(created_on: :desc).offset(5).last
     #   Person.last(3) # returns the last three objects fetched by SELECT * FROM people.
     #
     # Take note that in that last case, the results are sorted in ascending order:

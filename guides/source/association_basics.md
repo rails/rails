@@ -2997,18 +2997,18 @@ fetched through an association.
 ```ruby
 class Parts < ApplicationRecord
   has_and_belongs_to_many :assemblies,
-    -> { order("created_at DESC").limit(50) }
+    -> { order(created_at: :desc).limit(50) }
 end
 ```
 
 ##### `order`
 
 The `order` method dictates the order in which associated objects will be
-received (in the syntax used by an SQL `ORDER BY` clause).
+received.
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :books, -> { order "date_confirmed DESC" }
+  has_many :books, -> { order(date_confirmed: :desc) }
 end
 ```
 
