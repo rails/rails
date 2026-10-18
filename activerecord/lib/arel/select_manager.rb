@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
 require "arel/nodes/sql_literal"
+require "arel/nodes/node"
+require "arel/nodes/node_expression"
+require "arel/nodes/terminal"
 
 module Arel # :nodoc: all
   class SelectManager < Arel::TreeManager
     FOR_UPDATE = Nodes::SqlLiteral.new("FOR UPDATE").freeze
+    DISTINCT = Nodes::Distinct.new.freeze
 
     include Arel::Crud
 
@@ -164,7 +168,7 @@ module Arel # :nodoc: all
 
     def distinct(value = true)
       if value
-        @ctx.set_quantifier = Arel::Nodes::Distinct.new
+        @ctx.set_quantifier = DISTINCT
       else
         @ctx.set_quantifier = nil
       end
