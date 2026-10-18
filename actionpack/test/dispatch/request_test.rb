@@ -1239,6 +1239,12 @@ class RequestMimeType < BaseRequestTest
     assert_equal("application/xml; charset=UTF-8", request.content_type)
   end
 
+  test "uppercase content type" do
+    request = stub_request("CONTENT_TYPE" => "APPLICATION/JSON; charset=utf-8")
+
+    assert_equal(Mime[:json], request.content_mime_type)
+  end
+
   test "user agent" do
     assert_equal "TestAgent", stub_request("HTTP_USER_AGENT" => "TestAgent").user_agent
   end
