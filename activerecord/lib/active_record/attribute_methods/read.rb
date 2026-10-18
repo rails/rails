@@ -21,7 +21,10 @@ module ActiveRecord
               owner.define_cached_method(temp_method_name, as: as, namespace: :active_record) do |batch|
                 batch <<
                   "def #{temp_method_name}" <<
-                  "  _read_attribute!(#{attr_name_expr})" <<
+                  "  @attributes[#{attr_name_expr}].value!" <<
+                  "rescue ActiveModel::MissingAttributeError" <<
+                  "  raise if @attributes.key?(#{attr_name_expr})" <<
+                  "  missing_attribute(#{attr_name_expr}, #{RUBY_VERSION > '3.4' ? :caller_locations : :caller})" <<
                   "end"
               end
             end
