@@ -2,6 +2,8 @@
 
 module ActiveRecord
   class PredicateBuilder # :nodoc:
+    NO_MATCH = Arel.sql("1=0", retryable: true).freeze
+
     require "active_record/relation/predicate_builder/comparison"
     require "active_record/relation/predicate_builder/array_handler"
     require "active_record/relation/predicate_builder/basic_object_handler"
@@ -113,7 +115,7 @@ module ActiveRecord
       end
 
       def expand_from_hash(attributes, &block)
-        return [Arel.sql("1=0", retryable: true)] if attributes.empty?
+        return [NO_MATCH] if attributes.empty?
 
         attributes.flat_map do |key, value|
           if key.is_a?(Array) && key.size == 1
