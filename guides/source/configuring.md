@@ -1360,6 +1360,12 @@ The options are `:schema_search_path` (the default) which dumps any schemas list
 `:all` which always dumps all schemas regardless of the `schema_search_path`,
 or a string of comma separated schemas.
 
+PostgreSQL extensions are database-level objects rather than schema objects, so
+`enable_extension` statements are dumped regardless of this setting. So is a
+schema their member objects were installed in, as
+`create_schema "name", if_not_exists: true`. See
+[Extensions](active_record_postgresql.html#extensions) in the PostgreSQL guide.
+
 #### `config.active_record.before_committed_on_all_records`
 
 Enable before_committed! callbacks on all enrolled records in a transaction.
