@@ -21,10 +21,12 @@ module ActiveRecord
               owner.define_cached_method(temp_method_name, as: as, namespace: :active_record) do |batch|
                 batch <<
                   "def #{temp_method_name}" <<
-                  "  @attributes[#{attr_name_expr}].value!" <<
-                  "rescue ActiveModel::MissingAttributeError" <<
-                  "  raise if @attributes.key?(#{attr_name_expr})" <<
-                  "  missing_attribute(#{attr_name_expr}, #{RUBY_VERSION > '3.4' ? :caller_locations : :caller})" <<
+                  "  attr = @attributes[#{attr_name_expr}]" <<
+                  "  if attr.initialized?" <<
+                  "    attr.value!" <<
+                  "  else" <<
+                  "    missing_attribute(#{attr_name_expr}, #{RUBY_VERSION > '3.4' ? :caller_locations : :caller})" <<
+                  "  end" <<
                   "end"
               end
             end
@@ -52,14 +54,6 @@ module ActiveRecord
       # Internal read without alias resolution. An uninitialized attribute returns nil.
       def _read_attribute(attr_name) # :nodoc:
         @attributes.fetch_value(attr_name)
-      end
-
-      # Internal read without alias resolution that raises for uninitialized attributes.
-      def _read_attribute!(attr_name) # :nodoc:
-        @attributes.fetch_value!(attr_name)
-      rescue ActiveModel::MissingAttributeError
-        raise if @attributes.key?(attr_name)
-        missing_attribute(attr_name, RUBY_VERSION >= "3.4" ? caller_locations : caller)
       end
 
       # Like #_read_attribute, but a missing attribute raises
