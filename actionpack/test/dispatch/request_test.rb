@@ -1245,6 +1245,24 @@ class RequestMimeType < BaseRequestTest
     assert_equal(Mime[:json], request.content_mime_type)
   end
 
+  test "bare uppercase content type" do
+    request = stub_request("CONTENT_TYPE" => "APPLICATION/JSON")
+
+    assert_equal(Mime[:json], request.content_mime_type)
+  end
+
+  test "content type with surrounding whitespace" do
+    request = stub_request("CONTENT_TYPE" => " application/json ; charset=utf-8")
+
+    assert_equal(Mime[:json], request.content_mime_type)
+  end
+
+  test "content type with a comma" do
+    request = stub_request("CONTENT_TYPE" => "text/html, application/json")
+
+    assert_equal(Mime[:html], request.content_mime_type)
+  end
+
   test "user agent" do
     assert_equal "TestAgent", stub_request("HTTP_USER_AGENT" => "TestAgent").user_agent
   end
