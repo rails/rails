@@ -117,7 +117,7 @@ module ActiveRecord
         pool.synchronize do
           executor = pool.async_executor
 
-          return if pool.instance_variable_get(:@maintaining).zero? &&
+          return if pool.instance_variable_get(:@maintaining).empty? &&
             executor&.completed_task_count == executor&.scheduled_task_count
         end
 
