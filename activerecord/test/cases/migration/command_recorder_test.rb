@@ -560,6 +560,13 @@ module ActiveRecord
         assert_equal [:disable_extension, ["uuid-ossp"], {}, nil], @recorder.commands.first
       end
 
+      def test_invert_enable_extension_with_schema
+        @recorder.revert do
+          @recorder.enable_extension("hstore", schema: "custom_schema")
+        end
+        assert_equal [:disable_extension, ["hstore"], { schema: "custom_schema" }, nil], @recorder.commands.first
+      end
+
       def test_invert_disable_extension
         @recorder.revert do
           @recorder.disable_extension("uuid-ossp")
