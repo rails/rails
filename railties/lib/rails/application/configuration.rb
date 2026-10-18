@@ -407,6 +407,10 @@ module Rails
             active_job.enqueue_after_transaction_commit = true
           end
 
+          if respond_to?(:active_support)
+            active_support.message_serializer = :json
+          end
+
           ActiveSupport.raise_on_invalid_time_zone_parse = true
         else
           raise "Unknown version #{target_version.to_s.inspect}"
