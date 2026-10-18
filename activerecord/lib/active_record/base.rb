@@ -343,7 +343,6 @@ module ActiveRecord # :nodoc:
 
     include Core
     include Persistence
-    include ReadonlyAttributes
     include ModelSchema
     include Inheritance
     include Scoping
@@ -357,6 +356,7 @@ module ActiveRecord # :nodoc:
     include Locking::Pessimistic
     include Encryption::EncryptableRecord
     include AttributeMethods
+    include ReadonlyAttributes
     include Callbacks
     include Timestamp
     include Associations
