@@ -1,3 +1,13 @@
+*   Fix loading a PostgreSQL `structure.sql` dumped with `public` in
+    `schema_search_path`.
+
+    Naming the schema makes `pg_dump` emit `CREATE SCHEMA public;`, and every
+    new database already has `public`, so `db:schema:load` failed with
+    `schema "public" already exists`. Schemas are now dumped as
+    `CREATE SCHEMA IF NOT EXISTS`.
+
+    *Abdelkader Boudih*
+
 *   Bump the minimum supported MySQL version to 5.7.9.
 
     This drops the workarounds for indexing `utf8mb4` `varchar(255)` columns.

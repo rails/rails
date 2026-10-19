@@ -458,6 +458,35 @@ module ActiveRecord
       end
     end
 
+    def test_structure_dump_creates_schemas_only_if_missing
+      Kernel.stub(:system, true) do
+        File.write(@filename, <<~SQL)
+          CREATE SCHEMA public;
+          CREATE SCHEMA IF NOT EXISTS other;
+          CREATE SCHEMA audit;
+        SQL
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_equal <<~SQL, File.readlines(@filename).first(3).join
+          CREATE SCHEMA IF NOT EXISTS public;
+          CREATE SCHEMA IF NOT EXISTS other;
+          CREATE SCHEMA IF NOT EXISTS audit;
+        SQL
+      end
+    end
+
+    # With the schema named, pg_dump writes CREATE SCHEMA public, and every new
+    # database already has public, so the dump would not load.
+    def test_structure_dump_with_public_in_schema_search_path_is_loadable
+      config = @configuration.merge(
+        "database" => ARTest.config["connections"]["postgresql"]["arunit"]["database"],
+        "schema_search_path" => "public"
+      )
+
+      ActiveRecord::Tasks::DatabaseTasks.structure_dump(config, @filename)
+
+      assert_no_match(/^CREATE SCHEMA public;$/, File.read(@filename))
+    end
+
     def test_structure_dump_with_env
       expected_env = { "PGHOST" => "my.server.tld", "PGPORT" => "2345", "PGUSER" => "jane", "PGPASSWORD" => "s3cr3t" }
       expected_command = [expected_env, "pg_dump", "--schema-only", "--no-privileges", "--no-owner", "--file", @filename, "my-app-db"]

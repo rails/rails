@@ -113,6 +113,10 @@ module ActiveRecord
             File.foreach(filename) do |line|
               next if line.start_with?("\\restrict ")
 
+              # pg_dump --schema=public emits CREATE SCHEMA public, which every
+              # new database already has, so loading the dump would fail.
+              line = line.sub(/\ACREATE SCHEMA (?!IF NOT EXISTS )/, "CREATE SCHEMA IF NOT EXISTS ")
+
               if line.start_with?("\\unrestrict ")
                 removing_comments = true
                 next
