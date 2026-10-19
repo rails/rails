@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_record/connection_adapters/sql_type_metadata"
 require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
@@ -13,17 +14,18 @@ require "arel/collectors/substitute_binds"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    # = Active Record Abstract Adapter
+    # Active Record Abstract Adapter
+    # ==============================
     #
     # Active Record supports multiple database systems. AbstractAdapter and
     # related classes form the abstraction layer which makes this possible.
     # An AbstractAdapter represents a connection to a database, and provides an
     # abstract interface for database-specific functionality such as establishing
-    # a connection, escaping values, building the right SQL fragments for +:offset+
-    # and +:limit+ options, etc.
+    # a connection, escaping values, building the right SQL fragments for `:offset`
+    # and `:limit` options, etc.
     #
     # All the concrete database adapters follow the interface laid down in this class.
-    # {ActiveRecord::Base.lease_connection}[rdoc-ref:ConnectionHandling#lease_connection] returns an AbstractAdapter object, which
+    # [ActiveRecord::Base.lease_connection](rdoc-ref:ConnectionHandling#lease_connection) returns an AbstractAdapter object, which
     # you can use.
     #
     # Most of the methods in the adapter are useful during migrations. Most
@@ -39,8 +41,10 @@ module ActiveRecord
       # all migrations using that adapter will use the specified strategy
       # instead of the global ActiveRecord.migration_strategy.
       #
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy = CustomPostgresStrategy
-      #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.migration_strategy = CustomMySQLStrategy
+      # ```
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy = CustomPostgresStrategy
+      # ActiveRecord::ConnectionAdapters::Mysql2Adapter.migration_strategy = CustomMySQLStrategy
+      # ```
       class_attribute :migration_strategy, instance_writer: false
 
       include ActiveSupport::Callbacks
@@ -149,7 +153,6 @@ module ActiveRecord
           supports_lazy_transactions?: supports_lazy_transactions?,
           supports_materialized_views?: supports_materialized_views?,
           supports_nulls_not_distinct?: supports_nulls_not_distinct?,
-          supports_optimizer_hints?: supports_optimizer_hints?,
           supports_partial_index?: supports_partial_index?,
           supports_partitioned_indexes?: supports_partitioned_indexes?,
           supports_restart_db_transaction?: supports_restart_db_transaction?,
@@ -318,7 +321,7 @@ module ActiveRecord
       # Determines whether writes are currently being prevented.
       #
       # Returns true if the connection is a replica or returns
-      # the value of +current_preventing_writes+.
+      # the value of `current_preventing_writes`.
       def preventing_writes?
         return true if replica?
         return false if connection_descriptor.nil?
@@ -386,14 +389,14 @@ module ActiveRecord
         @pool.connection_descriptor
       end
 
-      # The role (e.g. +:writing+) for the current connection. In a
-      # non-multi role application, +:writing+ is returned.
+      # The role (e.g. `:writing`) for the current connection. In a
+      # non-multi role application, `:writing` is returned.
       def role
         @pool.role
       end
 
-      # The shard (e.g. +:default+) for the current connection. In
-      # a non-sharded application, +:default+ is returned.
+      # The shard (e.g. `:default`) for the current connection. In
+      # a non-sharded application, `:default` is returned.
       def shard
         @pool.shard
       end
@@ -788,13 +791,13 @@ module ActiveRecord
 
       # REFERENTIAL INTEGRITY ====================================
 
-      # Override to turn off referential integrity while executing <tt>&block</tt>.
+      # Override to turn off referential integrity while executing `&block`.
       def disable_referential_integrity
         yield
       end
 
       # Override to check all foreign key constraints in a database.
-      # The adapter should raise a +ActiveRecord::StatementInvalid+ if foreign key
+      # The adapter should raise a `ActiveRecord::StatementInvalid` if foreign key
       # constraints are not met.
       def check_all_foreign_keys_valid!
       end
@@ -977,7 +980,7 @@ module ActiveRecord
       #
       # Active Record cannot track if the database is getting modified using
       # this client. If that is the case, generally you'll want to invalidate
-      # the query cache using +ActiveRecord::Base.clear_query_cache+.
+      # the query cache using `ActiveRecord::Base.clear_query_cache`.
       def raw_connection
         with_raw_connection do |conn|
           disable_lazy_transactions!
@@ -1131,7 +1134,7 @@ module ActiveRecord
             (budget.reconnectable? && retryable_connection_error?(exception)))
       end
 
-      # Consume from +budget+ if +exception+ warrants another attempt. Query retries
+      # Consume from `budget` if `exception` warrants another attempt. Query retries
       # back off here; connection retries consume the reconnect allowance and rely
       # on the caller to ensure connection readiness before executing again.
       def attempt_retry(exception, budget) # :nodoc:
@@ -1162,23 +1165,23 @@ module ActiveRecord
 
       private
         def reconnect_can_restore_state?
-          !@proxied && transaction_manager.restorable? && !@raw_connection_dirty
+          transaction_manager.restorable? && !@raw_connection_dirty
         end
 
         # Lock the monitor, ensure we're properly connected and
         # transactions are materialized, and then yield the underlying
         # raw connection object.
         #
-        # If +allow_retry+ is true, a connection-related exception will
+        # If `allow_retry` is true, a connection-related exception will
         # cause an automatic reconnect and re-run of the block, up to
-        # the connection's configured +connection_retries+ setting
-        # and the configured +retry_deadline+ limit. (Note that when
-        # +allow_retry+ is true, it's possible to return without having marked
+        # the connection's configured `connection_retries` setting
+        # and the configured `retry_deadline` limit. (Note that when
+        # `allow_retry` is true, it's possible to return without having marked
         # the connection as verified. If the block is guaranteed to exercise the
-        # connection, consider calling `verified!` to avoid needless
+        # connection, consider calling \`verified!\` to avoid needless
         # verification queries in subsequent calls.)
         #
-        # If +materialize_transactions+ is false, the block will be run without
+        # If `materialize_transactions` is false, the block will be run without
         # ensuring virtual transactions have been materialized in the DB
         # server's state. The active transaction will also remain clean
         # (if it is not already dirty), meaning it's able to be restored
@@ -1190,7 +1193,7 @@ module ActiveRecord
         #
         # It's not the primary use case, so not something to optimize
         # for, but note that this method does need to be re-entrant:
-        # +materialize_transactions+ will re-enter if it has work to do,
+        # `materialize_transactions` will re-enter if it has work to do,
         # and the yield block can also do so under some circumstances.
         #
         # In the latter case, we really ought to guarantee the inner
@@ -1233,7 +1236,7 @@ module ActiveRecord
         end
 
         # Mark the connection as verified. Call this inside a
-        # `with_raw_connection` block only when the block is guaranteed to
+        # \`with_raw_connection\` block only when the block is guaranteed to
         # exercise the raw connection.
         def verified!
           @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)

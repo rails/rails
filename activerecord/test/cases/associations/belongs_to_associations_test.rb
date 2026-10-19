@@ -86,10 +86,44 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_empty Comment.where(author: [])
   end
 
+  def test_where_on_association_with_records_and_ids_builds_a_single_list
+    post = Post.new(id: 1)
+    special_post = SpecialPost.new(id: 2)
+
+    assert_equal Comment.where(post_id: [1, 7]).to_sql, Comment.where(post: [post, 7]).to_sql
+    assert_equal Comment.where(post_id: [1, nil, 7]).to_sql, Comment.where(post: [post, nil, 7]).to_sql
+    assert_equal Comment.where(post_id: [1, 2]).to_sql, Comment.where(post: [post, special_post]).to_sql
+    assert_equal Comment.where(post_id: [nil, 7]).to_sql, Comment.where(post: [nil, 7]).to_sql
+  end
+
+  def test_where_on_association_with_a_composite_key_rejects_bare_ids
+    assert_raises(ArgumentError) { Cpk::Chapter.where(book: 1) }
+    assert_raises(ArgumentError) { Cpk::Chapter.where(book: [nil, [1, 2]]) }
+    assert_raises(ArgumentError) { Cpk::NonCpkBook.where(non_cpk_order: 1) }
+  end
+
+  def test_where_on_association_with_empty_array_avoids_queries
+    assert_no_queries do
+      assert_empty Comment.where(post: []).to_a
+      assert_empty Cpk::Chapter.where(book: []).to_a
+      assert_empty Cpk::Chapter.where(book: Cpk::Book.none).to_a
+    end
+  end
+
   def test_where_on_polymorphic_association_with_cpk
     post = Cpk::Post.create!(title: "Welcome", author: "Mary")
     post.comments << Cpk::Comment.create!
     assert_equal 1, Cpk::Comment.where(commentable: post).count
+  end
+
+  def test_where_on_polymorphic_association_with_cpk_relation
+    post = Cpk::Post.create!(title: "Welcome", author: "Mary")
+    other = Cpk::Post.create!(title: "Welcome", author: "Bob")
+    comment = Cpk::Comment.create!(commentable: post)
+    Cpk::Comment.create!(commentable: other)
+
+    assert_equal [comment], Cpk::Comment.where(commentable: Cpk::Post.where(author: "Mary")).to_a
+    assert_empty Cpk::Comment.where(commentable: Cpk::Post.none)
   end
 
   def test_assigning_belongs_to_on_destroyed_object
@@ -172,6 +206,32 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_operator debate2.reload.updated_at, :>, time
   end
 
+  class AliasedKeySponsor < ActiveRecord::Base
+    self.table_name = "sponsors"
+
+    alias_attribute :ship_key, :club_id
+    belongs_to :ship, foreign_key: :ship_key, touch: true, optional: true
+  end
+
+  class RemappedKeySponsor < AliasedKeySponsor
+    alias_attribute :ship_key, :sponsorable_id
+  end
+
+  def test_belongs_to_touch_with_alias_attribute_foreign_key_remapped_by_a_subclass
+    decoy = Ship.create!(name: "Decoy")
+    original = Ship.create!(name: "Original")
+    replacement = Ship.create!(name: "Replacement")
+    sponsor = RemappedKeySponsor.create!(club_id: decoy.id, ship: original)
+    time = 1.day.ago
+    [decoy, original, replacement].each { |ship| ship.update_column(:updated_at, time) }
+
+    sponsor.update!(ship: replacement)
+
+    assert_operator original.reload.updated_at, :>, time
+    assert_operator replacement.reload.updated_at, :>, time
+    assert_equal time.to_i, decoy.reload.updated_at.to_i
+  end
+
   def test_belongs_to_required_validation_with_alias_attribute_foreign_key
     original_value = ActiveRecord.belongs_to_required_validates_foreign_key
     ActiveRecord.belongs_to_required_validates_foreign_key = false
@@ -201,6 +261,109 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_includes post.errors.full_messages, "Author must exist"
   ensure
     ActiveRecord.belongs_to_required_validates_foreign_key = original_value
+  end
+
+  class AliasedKeyComment < ActiveRecord::Base
+    self.table_name = "comments"
+    self.inheritance_column = nil
+
+    alias_attribute :post_key, :post_id
+    belongs_to :keyed_post, class_name: "Post", foreign_key: :post_key, optional: true, inverse_of: false
+  end
+
+  class RemappedKeyComment < AliasedKeyComment
+    alias_attribute :post_key, :author_id
+  end
+
+  def test_belongs_to_access_paths_resolve_aliases_for_each_concrete_owner_class
+    first = Post.create!(id: 9_000_501, title: "First", body: "First")
+    second = Post.create!(id: 9_000_502, title: "Second", body: "Second")
+    replacement = Post.create!(id: 9_000_503, title: "Replacement", body: "Replacement")
+    row = AliasedKeyComment.create!(post_id: first.id, author_id: second.id, body: "Aliased key comment")
+    expectations = {
+      AliasedKeyComment => [first, "post_id", "author_id"],
+      RemappedKeyComment => [second, "author_id", "post_id"],
+    }
+
+    expectations.each do |model, (target, key_column, other_column)|
+      comment = model.find(row.id)
+      message = model.name
+
+      assert_equal target, comment.keyed_post, message
+      assert_equal [comment], model.where(keyed_post: target).to_a, message
+      assert_equal comment, model.find_by(keyed_post: target), message
+      assert_equal [comment.id], model.joins(:keyed_post).where(posts: { id: target.id }).pluck(:id), message
+      assert_equal target, model.eager_load(:keyed_post).find(comment.id).keyed_post, message
+
+      other_value = comment.attributes[other_column]
+      comment.keyed_post = replacement
+      assert_equal replacement.id, comment.attributes[key_column], message
+      assert_equal other_value, comment.attributes[other_column], message
+    end
+
+    comments = expectations.keys.map { |model| model.find(row.id) }
+    ActiveRecord::Associations::Preloader.new(records: comments, associations: :keyed_post).call
+
+    assert_equal expectations.values.map(&:first), comments.map(&:keyed_post)
+  end
+
+  class SingletonKeyPost < ActiveRecord::Base
+    self.table_name = "posts"
+    self.inheritance_column = nil
+    self.primary_key = [:id]
+  end
+
+  class SingletonKeyComment < ActiveRecord::Base
+    self.table_name = "comments"
+    self.inheritance_column = nil
+
+    belongs_to :scalar_reference,
+      class_name: "BelongsToAssociationsTest::SingletonKeyPost",
+      foreign_key: :post_id,
+      primary_key: [:id],
+      optional: true
+    belongs_to :composite_reference,
+      class_name: "Post",
+      foreign_key: [:post_id],
+      primary_key: :id,
+      optional: true
+    belongs_to :composite_reference_and_target,
+      class_name: "BelongsToAssociationsTest::SingletonKeyPost",
+      foreign_key: [:post_id],
+      primary_key: [:id],
+      optional: true
+  end
+
+  def test_belongs_to_with_single_column_keys_declared_as_arrays
+    post = SingletonKeyPost.create!(title: "Single-column target", body: "Single-column target")
+    comment = SingletonKeyComment.create!(post_id: post.id_value, body: "Single-column reference")
+
+    [:scalar_reference, :composite_reference, :composite_reference_and_target].each do |name|
+      target = comment.association(name).klass.find_by!(id: post.id_value)
+      assert_equal target, comment.public_send(name)
+
+      comment.association(name).reset
+      ActiveRecord::Associations::Preloader.new(records: [comment], associations: name).call
+      assert_predicate comment.association(name), :loaded?
+      assert_equal target, comment.public_send(name)
+    end
+  end
+
+  def test_association_predicates_with_single_column_composite_keys
+    posts = ["First", "Second"].map do |title|
+      SingletonKeyPost.create!(title: title, body: title)
+    end
+    comments = posts.map do |post|
+      SingletonKeyComment.create!(post_id: post.id_value, body: post.title)
+    end
+    scope = SingletonKeyComment.where(id: comments.map(&:id)).order(:id)
+    post_ids = posts.map(&:id_value)
+
+    [:scalar_reference, :composite_reference, :composite_reference_and_target].each do |name|
+      assert_equal comments, scope.where(name => posts).to_a
+      assert_equal scope.where(post_id: [*post_ids, nil]).to_sql, scope.where(name => [*posts, nil]).to_sql
+      assert_equal scope.where(post_id: nil).to_sql, scope.where(name => [nil]).to_sql
+    end
   end
 
   def test_belongs_to_with_primary_key_joins_on_correct_column
@@ -736,6 +899,22 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal Member, sponsor.association(:sponsorable).klass
   end
 
+  def test_polymorphic_assignment_ignores_an_unresolvable_stored_type
+    member = Member.create!(name: "Replacement target")
+    sponsor = Sponsor.new(sponsorable_id: -1, sponsorable_type: "MissingSponsorableClass")
+
+    assert_nothing_raised { sponsor.sponsorable = member }
+    assert_same member, sponsor.sponsorable
+    assert_equal member.id, sponsor.sponsorable_id
+    assert_equal Member.polymorphic_name, sponsor.sponsorable_type
+
+    sponsor = Sponsor.new(sponsorable_id: 42, sponsorable_type: "MissingNamespace::MissingSponsorableClass")
+
+    assert_nothing_raised { sponsor.sponsorable = nil }
+    assert_nil sponsor.sponsorable_id
+    assert_nil sponsor.sponsorable_type
+  end
+
   def test_with_polymorphic_and_condition
     sponsor = Sponsor.create
     member = Member.create name: "Bert"
@@ -1057,6 +1236,42 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     line_item.invoice = Invoice.create!
 
     assert_queries_count(5) { line_item.touch }
+  end
+
+  def test_saving_does_not_resolve_an_unchanged_unresolvable_polymorphic_type
+    counting_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "sponsors"
+
+      def self.name; "Temp"; end
+
+      belongs_to :target, polymorphic: true, foreign_key: :sponsorable_id, foreign_type: :sponsorable_type, counter_cache: true, optional: true
+    end
+    touching_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "sponsors"
+
+      def self.name; "Temp"; end
+
+      belongs_to :target, polymorphic: true, foreign_key: :sponsorable_id, foreign_type: :sponsorable_type, touch: true, optional: true
+    end
+    target = Member.create!(name: "Touch target")
+    [
+      { club_id: 1, sponsorable_id: nil, sponsorable_type: "MissingNamespace::MissingSponsorableClass" },
+      { club_id: 2, sponsorable_id: target.id, sponsorable_type: "MissingTouchedClass" },
+      { club_id: 3, sponsorable_id: nil, sponsorable_type: "MissingTouchedClass" },
+    ].each do |attributes|
+      counting_model.create!.update_columns(attributes)
+    end
+
+    reference = counting_model.find_by!(club_id: 1)
+    reference.club_id = 4
+    assert_nothing_raised { reference.save! }
+
+    reference = touching_model.find_by!(club_id: 2)
+    reference.sponsorable_type = Member.polymorphic_name
+    assert_nothing_raised { reference.save! }
+
+    reference = touching_model.find_by!(club_id: 3)
+    assert_nothing_raised { reference.update!(target: target) }
   end
 
   def test_belongs_to_counter_after_update

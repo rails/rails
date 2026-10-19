@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -98,8 +99,8 @@ module ActiveRecord
         #
         # Not passing any specific constraint names will set the value for all deferrable constraints.
         #
-        # [<tt>deferred</tt>]
-        #   Valid values are +:deferred+ or +:immediate+.
+        # `deferred`
+        # :   Valid values are `:deferred` or `:immediate`.
         #
         # See https://www.postgresql.org/docs/current/sql-set-constraints.html
         def set_constraints(deferred, *constraints)
@@ -131,17 +132,22 @@ module ActiveRecord
           intent.finish
         end
 
+        def tables_to_truncate # :nodoc:
+          internal_tables = [pool.schema_migration.table_name, pool.internal_metadata.table_name]
+          search_path_tables.filter_map { |name, table| name unless internal_tables.include?(table) }
+        end
+
         private
           IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR].freeze
           private_constant :IDLE_TRANSACTION_STATUSES
 
-          # When RETURNING is globally disabled, a positional `pk` was
+          # When RETURNING is globally disabled, a positional \`pk\` was
           # historically the signal to use the currval fallback in
-          # `_exec_insert`. Resolve `sequence_name` from the caller's `pk` (or
+          # \`_exec_insert\`. Resolve \`sequence_name\` from the caller's \`pk\` (or
           # the schema cache's primary key) so the fallback still runs against
-          # the intended sequence — including on tables where a `BEFORE INSERT`
-          # trigger short-circuits `RETURNING` (e.g. partitioned inheritance).
-          # Then drop `pk` to skip the abstract's translation into `returning:`
+          # the intended sequence — including on tables where a \`BEFORE INSERT\`
+          # trigger short-circuits \`RETURNING\` (e.g. partitioned inheritance).
+          # Then drop \`pk\` to skip the abstract's translation into \`returning:\`
           # (which would force the RETURNING path and bypass the fallback).
           def resolve_currval_for_insert(arel_or_sql, pk, sequence_name, returning)
             return [sequence_name, pk] if @use_insert_returning

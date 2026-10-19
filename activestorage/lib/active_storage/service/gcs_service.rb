@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 gem "google-cloud-storage", "~> 1.11"
 require "google/apis/iamcredentials_v1"
 require "google/cloud/storage"
 
 module ActiveStorage
-  # = Active Storage \GCS \Service
+  # Active Storage \GCS \Service
+  # ============================
   #
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
@@ -144,11 +146,13 @@ module ActiveStorage
 
     # Returns the IAM client used for direct uploads and signed URLs.
     # By default, the authorization for the IAM client is set to
-    # {Application Default Credentials}[https://docs.cloud.google.com/docs/authentication/application-default-credentials],
+    # [Application Default Credentials](https://docs.cloud.google.com/docs/authentication/application-default-credentials),
     # fetched once at instantiation time, then refreshed automatically when expired.
     # This can be set to a different value to use other authorization methods.
     #
-    #   ActiveStorage::Blob.service.iam_client.authorization = Google::Auth::ImpersonatedServiceAccountCredentials.new(options)
+    # ```
+    # ActiveStorage::Blob.service.iam_client.authorization = Google::Auth::ImpersonatedServiceAccountCredentials.new(options)
+    # ```
     def iam_client
       @iam_client ||= Google::Apis::IamcredentialsV1::IAMCredentialsService.new.tap do |client|
         client.authorization ||= Google::Auth.get_application_default(["https://www.googleapis.com/auth/iam"])

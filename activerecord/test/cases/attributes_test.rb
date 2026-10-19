@@ -442,6 +442,26 @@ module ActiveRecord
       end
     end
 
+    test "define_attribute works after the schema is loaded with read only defaults" do
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "overloaded_types"
+      end
+      klass.load_schema
+      assert_predicate klass._default_attributes, :read_only?
+
+      klass.define_attribute("unoverloaded_float", Type::Integer.new)
+      klass.define_attribute("overloaded_float", Type::Integer.new, default: "3.3")
+      klass.define_attribute("non_existent_decimal", Type::Decimal.new, default: "1.5", user_provided_default: false)
+
+      assert_instance_of Type::Integer, klass.type_for_attribute("unoverloaded_float")
+      data = klass.new
+      assert_equal 3, data.overloaded_float
+      assert_equal BigDecimal("1.5"), data.non_existent_decimal
+
+      data.unoverloaded_float = "1.1"
+      assert_equal 1, data.unoverloaded_float
+    end
+
     test "serialize boolean for both string types" do
       default_string_type = Type.lookup(:string)
       immutable_string_type = Type.lookup(:immutable_string)

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "ipaddr"
 require "active_support/core_ext/array/wrap"
 require "active_support/inspect_backport"
@@ -91,7 +92,7 @@ module Rails
 
       # Loads default configuration values for a target version. This includes
       # defaults for versions prior to the target version. See the
-      # {configuration guide}[https://guides.rubyonrails.org/configuring.html#versioned-default-values]
+      # [configuration guide](https://guides.rubyonrails.org/configuring.html#versioned-default-values)
       # for the default values associated with a particular version.
       def load_defaults(target_version)
         # To introduce a change in behavior, follow these steps:
@@ -466,7 +467,7 @@ module Rails
         end
       end
 
-      # Load the <tt>config/database.yml</tt> to create the Rake tasks for
+      # Load the `config/database.yml` to create the Rake tasks for
       # multiple databases without loading the environment and filling in the
       # environment specific configuration values.
       #
@@ -488,7 +489,7 @@ module Rails
       end
 
       # Loads and returns the entire raw configuration of database from
-      # values stored in <tt>config/database.yml</tt>.
+      # values stored in `config/database.yml`.
       def database_configuration
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path
@@ -588,20 +589,24 @@ module Rails
       end
 
       # Specifies what class to use to store the session. Possible values
-      # are +:cache_store+, +:cookie_store+, +:mem_cache_store+, a custom
-      # store, or +:disabled+. +:disabled+ tells \Rails not to deal with
+      # are `:cache_store`, `:cookie_store`, `:mem_cache_store`, a custom
+      # store, or `:disabled`. `:disabled` tells \Rails not to deal with
       # sessions.
       #
-      # Additional options will be set as +session_options+:
+      # Additional options will be set as `session_options`:
       #
-      #   config.session_store :cookie_store, key: "_your_app_session"
-      #   config.session_options # => {key: "_your_app_session"}
+      # ```
+      # config.session_store :cookie_store, key: "_your_app_session"
+      # config.session_options # => {key: "_your_app_session"}
+      # ```
       #
       # If a custom store is specified as a symbol, it will be resolved to
-      # the +ActionDispatch::Session+ namespace:
+      # the `ActionDispatch::Session` namespace:
       #
-      #   # use ActionDispatch::Session::MyCustomStore as the session store
-      #   config.session_store :my_custom_store
+      # ```
+      # # use ActionDispatch::Session::MyCustomStore as the session store
+      # config.session_store :my_custom_store
+      # ```
       def session_store(new_session_store = nil, **options)
         if new_session_store
           @session_store = new_session_store

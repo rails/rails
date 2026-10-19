@@ -2004,4 +2004,15 @@ class QueryConstraintsTest < ActiveRecord::TestCase
     assert_equal(["clothing_type", "color", "size"], ClothingItem::Sized.query_constraints_list)
     assert_predicate ClothingItem::Sized, :has_query_constraints?
   end
+
+  def test_explicit_query_constraints_on_abstract_class_do_not_require_schema
+    abstract_class = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      query_constraints :blog_id, :id
+    end
+
+    assert_predicate abstract_class, :has_query_constraints?
+    assert_equal ["blog_id", "id"], abstract_class.query_constraints_list
+    assert_equal ["blog_id", "id"], abstract_class.composite_query_constraints_list
+  end
 end

@@ -200,6 +200,11 @@ module ActiveRecord
     end
 
     module ClassMethods
+      # The loaded schema context, if any, without loading it.
+      def current_schema_context # :nodoc:
+        @schema_context
+      end
+
       def schema_context # :nodoc:
         return @schema_context if schema_loaded?
         load_schema
@@ -587,6 +592,9 @@ module ActiveRecord
       end
 
       def make_reflections_shareable! # :nodoc:
+        _reflections.each_value do |reflection|
+          reflection.prepare_default_association_route if reflection.is_a?(ActiveRecord::Reflection::AssociationReflection)
+        end
         ActiveSupport::Ractors.try_make_shareable(aggregate_reflections)
         ActiveSupport::Ractors.try_make_shareable(_reflections)
         normalized_reflections

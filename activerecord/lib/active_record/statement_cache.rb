@@ -28,7 +28,13 @@ module ActiveRecord
   #
   #   cache.execute(["my book"], ClothingItem.lease_connection)
   class StatementCache # :nodoc:
-    class Substitute; end # :nodoc:
+    class Substitute # :nodoc:
+      attr_reader :key
+
+      def initialize(key = nil)
+        @key = key
+      end
+    end
 
     class Query # :nodoc:
       attr_reader :retryable
@@ -111,24 +117,37 @@ module ActiveRecord
     end
 
     class Params # :nodoc:
-      def bind; Substitute.new; end
+      def initialize
+        @index = 0
+      end
+
+      def bind(key = @index)
+        @index += 1
+        Substitute.new(key)
+      end
     end
 
     class BindMap # :nodoc:
       def initialize(bound_attributes)
-        @indexes = []
+        @substitutes = []
         @bound_attributes = bound_attributes
 
-        bound_attributes.each_with_index do |attr, i|
+        bound_attributes.each_with_index do |attr, offset|
           if ActiveModel::Attribute === attr && Substitute === attr.value
-            @indexes << i
+            @substitutes[offset] = attr.value
           end
         end
       end
 
       def bind(values)
         bas = @bound_attributes.dup
-        @indexes.each_with_index { |offset, i| bas[offset] = bas[offset].with_cast_value(values[i]) }
+        offset = 0
+        @substitutes.each do |substitute|
+          if substitute
+            bas[offset] = bas[offset].with_cast_value(values[substitute.key])
+          end
+          offset += 1
+        end
         bas
       end
     end

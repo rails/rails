@@ -1,10 +1,22 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
-    # = Active Record Has One Through Association
+    # Active Record Has One Through Association
+    # =========================================
     class HasOneThroughAssociation < HasOneAssociation # :nodoc:
       include ThroughAssociation
+
+      def reference_changed_for_autosave?(record)
+        inverse_type_changed = if reflection.inverse_of&.polymorphic?
+          record.read_attr(reflection.inverse_of.foreign_type) != reflection.active_record.polymorphic_name
+        end
+        inverse_type_changed || reference_key_changed_for_save?(record)
+      end
+
+      def synchronize_reference(_record)
+      end
 
       private
         def replace(record, save = true)

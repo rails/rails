@@ -1,38 +1,44 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/inflector"
 
 module ActiveRecord
-  # = Single table inheritance
+  # Single table inheritance
+  # ========================
   #
   # Active Record allows inheritance by storing the name of the class in a column that by
-  # default is named "type" (can be changed by overwriting <tt>Base.inheritance_column</tt>).
+  # default is named "type" (can be changed by overwriting `Base.inheritance_column`).
   # This means that an inheritance looking like this:
   #
-  #   class Company < ActiveRecord::Base; end
-  #   class Firm < Company; end
-  #   class Client < Company; end
-  #   class PriorityClient < Client; end
+  # ```
+  # class Company < ActiveRecord::Base; end
+  # class Firm < Company; end
+  # class Client < Company; end
+  # class PriorityClient < Client; end
+  # ```
   #
-  # When you do <tt>Firm.create(name: "37signals")</tt>, this record will be saved in
+  # When you do `Firm.create(name: "37signals")`, this record will be saved in
   # the companies table with type = "Firm". You can then fetch this row again using
-  # <tt>Company.where(name: '37signals').first</tt> and it will return a Firm object.
+  # `Company.where(name: '37signals').first` and it will return a Firm object.
   #
   # Be aware that because the type column is an attribute on the record every new
   # subclass will instantly be marked as dirty and the type column will be included
   # in the list of changed attributes on the record. This is different from non
   # Single Table Inheritance(STI) classes:
   #
-  #   Company.new.changed? # => false
-  #   Firm.new.changed?    # => true
-  #   Firm.new.changes     # => {"type"=>[nil, "Firm"]}
+  # ```
+  # Company.new.changed? # => false
+  # Firm.new.changed?    # => true
+  # Firm.new.changes     # => {"type"=>[nil, "Firm"]}
+  # ```
   #
   # If you don't have a type column defined in your table, single-table inheritance won't
   # be triggered. In that case, it'll work just like normal subclasses with no special magic
   # for differentiating between them or reloading the right type with find.
   #
   # All subclasses share the same database table. See the
-  # {Single Table Inheritance pattern}[https://www.martinfowler.com/eaaCatalog/singleTableInheritance.html]
+  # [Single Table Inheritance pattern](https://www.martinfowler.com/eaaCatalog/singleTableInheritance.html)
   # for more background.
   #
   module Inheritance
@@ -78,8 +84,8 @@ module ActiveRecord
         end
       end
 
-      # Returns +true+ if this does not need STI type condition. Returns
-      # +false+ if STI type condition needs to be applied.
+      # Returns `true` if this does not need STI type condition. Returns
+      # `false` if STI type condition needs to be applied.
       def descends_from_active_record?
         if self == Base
           false
@@ -98,23 +104,25 @@ module ActiveRecord
       end
 
       # Returns the first class in the inheritance hierarchy that descends from either an
-      # abstract class or from <tt>ActiveRecord::Base</tt>.
+      # abstract class or from `ActiveRecord::Base`.
       #
       # Consider the following behavior:
       #
-      #   class ApplicationRecord < ActiveRecord::Base
-      #     self.abstract_class = true
-      #   end
-      #   class Shape < ApplicationRecord
-      #     self.abstract_class = true
-      #   end
-      #   Polygon = Class.new(Shape)
-      #   Square = Class.new(Polygon)
+      # ```
+      # class ApplicationRecord < ActiveRecord::Base
+      #   self.abstract_class = true
+      # end
+      # class Shape < ApplicationRecord
+      #   self.abstract_class = true
+      # end
+      # Polygon = Class.new(Shape)
+      # Square = Class.new(Polygon)
       #
-      #   ApplicationRecord.base_class # => ApplicationRecord
-      #   Shape.base_class # => Shape
-      #   Polygon.base_class # => Polygon
-      #   Square.base_class # => Polygon
+      # ApplicationRecord.base_class # => ApplicationRecord
+      # Shape.base_class # => Shape
+      # Polygon.base_class # => Polygon
+      # Square.base_class # => Polygon
+      # ```
       attr_reader :base_class
 
       # Returns whether the class is a base class.
@@ -123,45 +131,49 @@ module ActiveRecord
         base_class == self
       end
 
-      # Set this to +true+ if this is an abstract class (see
-      # <tt>abstract_class?</tt>).
+      # Set this to `true` if this is an abstract class (see
+      # `abstract_class?`).
       # If you are using inheritance with Active Record and don't want a class
       # to be considered as part of the STI hierarchy, you must set this to
       # true.
-      # +ApplicationRecord+, for example, is generated as an abstract class.
+      # `ApplicationRecord`, for example, is generated as an abstract class.
       #
       # Consider the following default behavior:
       #
-      #   Shape = Class.new(ActiveRecord::Base)
-      #   Polygon = Class.new(Shape)
-      #   Square = Class.new(Polygon)
+      # ```
+      # Shape = Class.new(ActiveRecord::Base)
+      # Polygon = Class.new(Shape)
+      # Square = Class.new(Polygon)
       #
-      #   Shape.table_name   # => "shapes"
-      #   Polygon.table_name # => "shapes"
-      #   Square.table_name  # => "shapes"
-      #   Shape.create!      # => #<Shape id: 1, type: nil>
-      #   Polygon.create!    # => #<Polygon id: 2, type: "Polygon">
-      #   Square.create!     # => #<Square id: 3, type: "Square">
+      # Shape.table_name   # => "shapes"
+      # Polygon.table_name # => "shapes"
+      # Square.table_name  # => "shapes"
+      # Shape.create!      # => #<Shape id: 1, type: nil>
+      # Polygon.create!    # => #<Polygon id: 2, type: "Polygon">
+      # Square.create!     # => #<Square id: 3, type: "Square">
+      # ```
       #
-      # However, when using <tt>abstract_class</tt>, +Shape+ is omitted from
+      # However, when using `abstract_class`, `Shape` is omitted from
       # the hierarchy:
       #
-      #   class Shape < ActiveRecord::Base
-      #     self.abstract_class = true
-      #   end
-      #   Polygon = Class.new(Shape)
-      #   Square = Class.new(Polygon)
+      # ```
+      # class Shape < ActiveRecord::Base
+      #   self.abstract_class = true
+      # end
+      # Polygon = Class.new(Shape)
+      # Square = Class.new(Polygon)
       #
-      #   Shape.table_name   # => nil
-      #   Polygon.table_name # => "polygons"
-      #   Square.table_name  # => "polygons"
-      #   Shape.create!      # => NotImplementedError: Shape is an abstract class and cannot be instantiated.
-      #   Polygon.create!    # => #<Polygon id: 1, type: nil>
-      #   Square.create!     # => #<Square id: 2, type: "Square">
+      # Shape.table_name   # => nil
+      # Polygon.table_name # => "polygons"
+      # Square.table_name  # => "polygons"
+      # Shape.create!      # => NotImplementedError: Shape is an abstract class and cannot be instantiated.
+      # Polygon.create!    # => #<Polygon id: 1, type: nil>
+      # Square.create!     # => #<Square id: 2, type: "Square">
+      # ```
       #
       # Note that in the above example, to disallow the creation of a plain
-      # +Polygon+, you should use <tt>validates :type, presence: true</tt>,
-      # instead of setting it as an abstract class. This way, +Polygon+ will
+      # `Polygon`, you should use `validates :type, presence: true`,
+      # instead of setting it as an abstract class. This way, `Polygon` will
       # stay in the hierarchy, and Active Record will continue to correctly
       # derive the table name.
       attr_accessor :abstract_class
@@ -191,7 +203,7 @@ module ActiveRecord
         store_full_sti_class && store_full_class_name ? name : name.demodulize
       end
 
-      # Returns the class for the provided +type_name+.
+      # Returns the class for the provided `type_name`.
       #
       # It is used to find the class correspondent to the value stored in the inheritance column.
       def sti_class_for(type_name)
@@ -215,7 +227,7 @@ module ActiveRecord
         store_full_class_name ? base_class.name : base_class.name.demodulize
       end
 
-      # Returns the class for the provided +name+.
+      # Returns the class for the provided `name`.
       #
       # It is used to find the class correspondent to the value stored in the polymorphic type column.
       def polymorphic_class_for(name)
@@ -319,9 +331,9 @@ module ActiveRecord
           end
         end
 
-        # Called by +instantiate+ to decide which class to use for a new
+        # Called by `instantiate` to decide which class to use for a new
         # record instance. For single-table inheritance, we check the record
-        # for a +type+ column and return the corresponding class.
+        # for a `type` column and return the corresponding class.
         def discriminate_class_for_record(record)
           if using_single_table_inheritance?(record)
             find_sti_class(record[inheritance_column])
@@ -380,7 +392,7 @@ module ActiveRecord
       # Sets the attribute used for single table inheritance to this class name if this is not the
       # ActiveRecord::Base descendant.
       # Considering the hierarchy Reply < Message < ActiveRecord::Base, this makes it possible to
-      # do Reply.new without having to set <tt>Reply[Reply.inheritance_column] = "Reply"</tt> yourself.
+      # do Reply.new without having to set `Reply[Reply.inheritance_column] = "Reply"` yourself.
       # No such attribute would be set for objects of the Message class in that example.
       def ensure_proper_type
         klass = self.class

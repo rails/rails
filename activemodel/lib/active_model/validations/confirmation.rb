@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Validations
     class ConfirmationValidator < EachValidator # :nodoc:
@@ -41,36 +42,41 @@ module ActiveModel
       # Encapsulates the pattern of wanting to validate a password or email
       # address field with a confirmation.
       #
-      #   Model:
-      #     class Person < ActiveRecord::Base
-      #       validates_confirmation_of :user_name, :password
-      #       validates_confirmation_of :email_address,
-      #                                 message: 'should match confirmation'
-      #     end
+      # ```
+      # Model:
+      #   class Person < ActiveRecord::Base
+      #     validates_confirmation_of :user_name, :password
+      #     validates_confirmation_of :email_address,
+      #                               message: 'should match confirmation'
+      #   end
       #
-      #   View:
-      #     <%= password_field "person", "password" %>
-      #     <%= password_field "person", "password_confirmation" %>
+      # View:
+      #   <%= password_field "person", "password" %>
+      #   <%= password_field "person", "password_confirmation" %>
+      # ```
       #
-      # The added +password_confirmation+ attribute is virtual; it exists only
+      # The added `password_confirmation` attribute is virtual; it exists only
       # as an in-memory attribute for validating the password. To achieve this,
       # the validation adds accessors to the model for the confirmation
       # attribute.
       #
-      # NOTE: This check is performed only if +password_confirmation+ is not
-      # +nil+. To require confirmation, make sure to add a presence check for
+      # NOTE: This check is performed only if `password_confirmation` is not
+      # `nil`. To require confirmation, make sure to add a presence check for
       # the confirmation attribute:
       #
-      #   validates_presence_of :password_confirmation, if: :password_changed?
+      # ```
+      # validates_presence_of :password_confirmation, if: :password_changed?
+      # ```
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "doesn't match
-      #   <tt>%{translated_attribute_name}</tt>").
-      # * <tt>:case_sensitive</tt> - Looks for an exact match. Ignored by
-      #   non-text columns (+true+ by default).
+      #
+      # * `:message` - A custom error message (default is: "doesn't match
+      #   `%{translated_attribute_name}`").
+      # * `:case_sensitive` - Looks for an exact match. Ignored by
+      #   non-text columns (`true` by default).
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
+      # `:if`, `:unless`, `:on`, `:allow_nil`, `:allow_blank`, and `:strict`.
       # See ActiveModel::Validations::ClassMethods#validates for more information.
       def validates_confirmation_of(*attr_names)
         validates_with ConfirmationValidator, _merge_attributes(attr_names)

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionText
   class Editor::TrixEditor < Editor # :nodoc:
     def as_canonical(editable_fragment)

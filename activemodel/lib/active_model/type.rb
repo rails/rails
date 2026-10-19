@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_model/type/helpers"
 require "active_model/type/serialize_cast_value"
 require "active_model/type/value"
@@ -26,7 +27,7 @@ module ActiveModel
       attr_accessor :registry # :nodoc:
 
       # Add a new type to the registry, allowing it to be referenced as a
-      # symbol by {attribute}[rdoc-ref:Attributes::ClassMethods#attribute].
+      # symbol by [attribute](rdoc-ref:Attributes::ClassMethods#attribute).
       def register(type_name, klass = nil, &block)
         registry.register(type_name, klass, &block)
       end

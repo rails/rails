@@ -1,3 +1,11 @@
+*   Fix the debug page for errors raised in view templates on Ruby 4.1.
+
+    Ruby 4.1 builds prism into the interpreter as `Ruby::Prism`, and
+    error_highlight accepts only its nodes. `ActionView::Template#spot` now
+    uses `Ruby::Prism` when it is available instead of the prism gem.
+
+    *Yasuo Honda*
+
 *   Allow setting `config.action_view.erb_implementation` to `:herb` to
     compile HTML+ERB templates through Herb.
 

@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "fileutils"
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
-  # = Active Storage \Disk \Service
+  # Active Storage \Disk \Service
+  # =============================
   #
   # Wraps a local disk path as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
@@ -108,7 +110,7 @@ module ActiveStorage
     # Every filesystem operation in DiskService resolves paths through this method (or through
     # make_path_for, which delegates here). This is the primary filesystem security check: all
     # path-traversal protection is enforced here. New methods that touch the filesystem MUST use
-    # path_for or make_path_for -- never construct paths from +root+ directly.
+    # path_for or make_path_for -- never construct paths from `root` directly.
     def path_for(key) # :nodoc:
       if key.blank?
         raise ActiveStorage::InvalidKeyError, "key is blank"

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/file/atomic"
 
 module ActiveRecord
@@ -223,7 +224,8 @@ module ActiveRecord
       end
     end
 
-    # = Active Record Connection Adapters Schema Cache
+    # Active Record Connection Adapters Schema Cache
+    # ==============================================
     class SchemaCache
       def self._load_from(filename) # :nodoc:
         return unless File.file?(filename)
@@ -336,7 +338,7 @@ module ActiveRecord
         end
       end
 
-      # Add internal cache for table with +table_name+.
+      # Add internal cache for table with `table_name`.
       def add(pool, table_name)
         pool.with_connection do
           if data_source_exists?(pool, table_name)
@@ -398,7 +400,7 @@ module ActiveRecord
         [@columns, @columns_hash, @primary_keys, @data_sources].sum(&:size)
       end
 
-      # Clear out internal caches for the data source +name+.
+      # Clear out internal caches for the data source `name`.
       def clear_data_source_cache!(_connection, name)
         @columns.delete name
         @columns_hash.delete name

@@ -795,6 +795,40 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal "new name", pirate.ship.reload.name
   end
 
+  def test_saving_the_owner_does_not_update_a_target_loaded_without_its_foreign_key
+    pirate = Pirate.create!(catchphrase: "Arr")
+    ship = Ship.create!(name: "Partial", pirate: pirate)
+    pirate = Pirate.find(pirate.id)
+    pirate.association(:ship).target = Ship.select(:id, :name).find(ship.id)
+    pirate.catchphrase = "Changed"
+
+    assert_no_queries_match(/UPDATE.*ships/i) { pirate.save! }
+  end
+
+  def test_saving_the_owner_does_not_update_a_polymorphic_target_loaded_without_its_type
+    owner = HasOneStaleTypeOwner.create!(name: "Partial")
+    child = HasOneStaleTypeChild.create!(poly_human_without_inverse_id: owner.id, poly_human_without_inverse_type: HasOneStaleTypeOwner.polymorphic_name)
+    owner = HasOneStaleTypeOwner.find(owner.id)
+    owner.association(:stale_type_child).target = HasOneStaleTypeChild.select(:id, :poly_human_without_inverse_id).find(child.id)
+    owner.name = "Changed"
+
+    assert_no_queries_match(/UPDATE.*faces/i) { owner.save! }
+  end
+
+  def test_saving_the_owner_restores_a_polymorphic_type_assigned_to_a_target_loaded_without_it
+    owner = HasOneStaleTypeOwner.create!(name: "Partial")
+    child = HasOneStaleTypeChild.create!(poly_human_without_inverse_id: owner.id, poly_human_without_inverse_type: "Other")
+    owner = HasOneStaleTypeOwner.find(owner.id)
+    partial_child = HasOneStaleTypeChild.select(:id, :poly_human_without_inverse_id).find(child.id)
+    owner.association(:stale_type_child).target = partial_child
+    partial_child.poly_human_without_inverse_type = "Other"
+    owner.name = "Changed"
+    owner.save!
+
+    assert_equal HasOneStaleTypeOwner.polymorphic_name, partial_child.poly_human_without_inverse_type
+    assert_equal HasOneStaleTypeOwner.polymorphic_name, child.reload.poly_human_without_inverse_type
+  end
+
   def test_has_one_autosave_with_primary_key_manually_set
     post = Post.create(id: 1234, title: "Some title", body: "Some content")
     author = Author.new(id: 33, name: "Hank Moody")

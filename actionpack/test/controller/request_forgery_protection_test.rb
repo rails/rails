@@ -1002,6 +1002,39 @@ class PerFormTokensControllerTest < ActionController::TestCase
     ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
   end
 
+  def test_normalize_action_path_matches_the_uri_parser
+    get :index
+
+    {
+      "/posts/1" => "/posts/1",
+      "/posts/1/" => "/posts/1",
+      "/" => "",
+      "/a%20b/c.d-e_f~g!h$i&j'k(l)m*n+o,p;q=r:s@t" => "/a%20b/c.d-e_f~g!h$i&j'k(l)m*n+o,p;q=r:s@t",
+      "/a/./b" => "/a/./b",
+      "/posts?page=2" => "/posts",
+      "/posts#top" => "/posts",
+      "//example.com/posts/" => "/posts",
+      "https://example.com/posts/" => "/posts",
+    }.each do |action_path, expected|
+      assert_equal expected, @controller.send(:normalize_action_path, action_path), action_path
+    end
+
+    ["/a%zz", "/a b", "/a\nb"].each do |action_path|
+      assert_raises(URI::InvalidURIError, action_path) { @controller.send(:normalize_action_path, action_path) }
+    end
+  end
+
+  def test_real_csrf_token_is_decoded_once_per_token
+    get :index
+
+    token = @controller.send(:real_csrf_token)
+    assert_same token, @controller.send(:real_csrf_token)
+
+    @controller.reset_csrf_token(@request)
+    assert_not_equal token, @controller.send(:real_csrf_token)
+    assert_equal Base64.urlsafe_decode64(@request.env["action_controller.csrf_token"]), @controller.send(:real_csrf_token)
+  end
+
   def test_per_form_token_is_same_size_as_global_token
     get :index
     expected = ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH

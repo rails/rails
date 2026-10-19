@@ -65,18 +65,20 @@ module ActiveRecord
     end
 
     def association_cached?(name) # :nodoc:
-      @association_cache.key?(name)
+      @association_cache&.key?(name) || false
     end
 
     def initialize_dup(*) # :nodoc:
-      @association_cache = {}
+      @association_cache = nil
       super
     end
 
     private
+      # The cache is built on the first association access: most records
+      # are instantiated, read and discarded without touching an association.
       def init_internals
         super
-        @association_cache = {}
+        @association_cache = nil
       end
 
       # Returns the specified association instance if it exists, +nil+ otherwise.
@@ -86,7 +88,7 @@ module ActiveRecord
 
       # Set the specified association instance.
       def association_instance_set(name, association)
-        @association_cache[name] = association
+        (@association_cache ||= {})[name] = association
       end
 
       def deprecated_associations_api_guard(association, method_name)
@@ -1411,10 +1413,10 @@ module ActiveRecord
         #   Please, check the class documentation above for details.
         #
         # Option examples:
-        #   has_many :comments, -> { order("posted_on") }
+        #   has_many :comments, -> { order(:posted_on) }
         #   has_many :comments, -> { includes(:author) }
-        #   has_many :people, -> { where(deleted: false).order("name") }, class_name: "Person"
-        #   has_many :tracks, -> { order("position") }, dependent: :destroy
+        #   has_many :people, -> { where(deleted: false).order(:name) }, class_name: "Person"
+        #   has_many :tracks, -> { order(:position) }, dependent: :destroy
         #   has_many :comments, dependent: :nullify
         #   has_many :tags, as: :taggable
         #   has_many :reports, -> { readonly }
@@ -1939,7 +1941,7 @@ module ActiveRecord
         # Scope examples:
         #   has_and_belongs_to_many :projects, -> { includes(:milestones, :manager) }
         #   has_and_belongs_to_many :categories, ->(post) {
-        #     where("default_category = ?", post.default_category)
+        #     where(default_category: post.default_category)
         #   }
         #
         # ==== Extensions

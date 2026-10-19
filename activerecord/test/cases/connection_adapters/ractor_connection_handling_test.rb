@@ -342,6 +342,165 @@ module ActiveRecord
             assert_equal ["first", "second"], conn.select_values("SELECT name FROM #{widgets_table} ORDER BY id")
           end
 
+          def test_checkout_does_not_connect_until_first_use
+            main_pool.disconnect!
+            conn = proxy_connection
+
+            assert_not_predicate main_side, :connected?
+            conn.transaction { }
+            assert_not_predicate main_side, :connected?
+
+            assert_equal 42, conn.select_value("SELECT 42")
+            assert_predicate main_side, :connected?
+          end
+
+          def test_checkout_does_not_verify_a_recently_used_connection
+            proxy_pool.with_connection { |conn| conn.select_value("SELECT 1") }
+            pinned = main_pool.connections.sole
+
+            pinned.stub(:active?, -> { flunk "a recently used connection should not be verified" }) do
+              proxy_pool.with_connection do |conn|
+                assert_same pinned, main_side
+                assert_equal 42, conn.select_value("SELECT 42")
+              end
+            end
+          end
+
+          def test_first_use_reconnects_a_connection_that_died_while_idle
+            proxy_pool.with_connection { |conn| conn.select_value("SELECT 1") }
+            pinned = main_pool.connections.sole
+            close_connection(pinned)
+            pinned.instance_variable_set(:@last_activity, nil)
+
+            proxy_pool.with_connection do |conn|
+              assert_equal 42, conn.select_value("SELECT 42")
+            end
+          end
+
+          def test_savepoints_are_mirrored_by_main_side_transactions
+            conn = proxy_connection
+
+            conn.transaction do
+              conn.transaction(requires_new: true) do
+                conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('inner', 1)"))
+                assert_equal 2, main_side.open_transactions
+              end
+              assert_equal 1, main_side.open_transactions
+            end
+
+            assert_equal 0, main_side.open_transactions
+            assert_equal ["inner"], conn.select_values("SELECT name FROM #{widgets_table}")
+          end
+
+          def test_savepoint_rollback_on_an_inactive_connection_keeps_the_main_side_in_step
+            conn = proxy_connection
+
+            conn.transaction do
+              main_side.stub(:active?, false) do
+                conn.transaction(requires_new: true) do
+                  conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('inner', 1)"))
+                  raise ActiveRecord::Rollback
+                end
+              end
+
+              assert_equal 1, main_side.open_transactions
+            end
+
+            assert_equal 0, main_side.open_transactions
+          end
+
+          def test_remote_schema_change_prevents_restoring_the_transaction
+            conn = proxy_connection
+            skip "DDL ends the transaction" unless conn.supports_ddl_transactions?
+
+            conn.transaction do
+              conn.add_column(widgets_table, :ractor_probe, :integer)
+              close_connection(main_side)
+
+              assert_raises(ActiveRecord::ConnectionNotEstablished, ActiveRecord::ConnectionFailed) do
+                conn.select_all("SELECT 42", nil, [], allow_retry: true)
+              end
+              raise ActiveRecord::Rollback
+            end
+          end
+
+          def test_query_after_the_main_side_reset_the_transaction_does_not_run_outside_it
+            conn = proxy_connection
+
+            assert_raises(ActiveRecord::ConnectionNotEstablished) do
+              conn.transaction do
+                conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('first', 1)"))
+                main_side.disconnect!
+                conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('second', 2)"))
+              end
+            end
+
+            assert_equal [], main_pool.with_connection { |c| c.select_values("SELECT name FROM #{widgets_table}") }
+          end
+
+          def test_transaction_invalidated_by_the_server_is_ended_on_the_main_side
+            conn = proxy_connection
+            pinned = main_side
+
+            pinned.stub(:savepoint_errors_invalidate_transactions?, true) do
+              assert_raises(ActiveRecord::Deadlocked) do
+                conn.transaction do
+                  conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('doomed', 1)"))
+                  with_server_side_deadlock_on_next_query(pinned) do
+                    conn.select_value("SELECT 1")
+                  end
+                end
+              end
+            end
+
+            assert_equal 0, pinned.open_transactions
+            conn.transaction do
+              conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('after', 2)"))
+            end
+            assert_equal ["after"], main_pool.with_connection { |c| c.select_values("SELECT name FROM #{widgets_table}") }
+          end
+
+          def test_failed_commit_is_rolled_back_on_the_main_side
+            conn = proxy_connection
+            pinned = main_side
+            failing_commit = -> { raise ActiveRecord::StatementInvalid, "made-up commit failure" }
+
+            error = assert_raises(ActiveRecord::StatementInvalid) do
+              pinned.stub(:commit_db_transaction, failing_commit) do
+                conn.transaction do
+                  conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('uncommitted', 1)"))
+                end
+              end
+            end
+
+            assert_equal "made-up commit failure", error.message
+            assert_equal 0, pinned.open_transactions
+            assert_not raw_transaction_open?(pinned)
+            assert_equal [], conn.select_values("SELECT name FROM #{widgets_table}")
+          end
+
+          def test_failed_savepoint_release_is_rolled_back_on_the_main_side
+            conn = proxy_connection
+            pinned = main_side
+            failing_release = ->(*) { raise ActiveRecord::StatementInvalid, "made-up release failure" }
+
+            conn.transaction do
+              conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('outer', 1)"))
+
+              assert_raises(ActiveRecord::StatementInvalid) do
+                pinned.stub(:release_savepoint, failing_release) do
+                  conn.transaction(requires_new: true) do
+                    conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('inner', 2)"))
+                  end
+                end
+              end
+
+              assert_equal 1, pinned.open_transactions
+            end
+
+            assert_equal ["outer"], conn.select_values("SELECT name FROM #{widgets_table}")
+          end
+
           def test_execute_returns_materialized_result
             result = proxy_connection.execute("SELECT 1 AS one")
             assert_kind_of ActiveRecord::Result, result
@@ -424,10 +583,11 @@ module ActiveRecord
 
           def test_connection_failure_is_not_retried_without_allow_retry
             conn = proxy_connection
-            close_connection(main_side)
 
-            assert_raises(ActiveRecord::ConnectionNotEstablished, ActiveRecord::ConnectionFailed) do
-              conn.select_all("SELECT 42")
+            with_connection_closed_on_next_query(main_side) do
+              assert_raises(ActiveRecord::ConnectionNotEstablished, ActiveRecord::ConnectionFailed) do
+                conn.select_all("SELECT 42")
+              end
             end
 
             assert_equal 1, conn.select_value("SELECT 1")
@@ -439,9 +599,10 @@ module ActiveRecord
 
             conn.transaction do
               conn.materialize_transactions
-              close_connection(pinned)
 
-              assert_equal [[42]], conn.select_all("SELECT 42", nil, [], allow_retry: true).rows
+              with_connection_closed_on_next_query(pinned) do
+                assert_equal [[42]], conn.select_all("SELECT 42", nil, [], allow_retry: true).rows
+              end
 
               assert pinned.transaction_open?
               conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('retried', 1)"))
@@ -457,7 +618,10 @@ module ActiveRecord
             assert_raises(ActiveRecord::ConnectionNotEstablished, ActiveRecord::ConnectionFailed) do
               conn.transaction do
                 conn.insert(Arel.sql("INSERT INTO #{widgets_table} (name, price) VALUES ('doomed', 1)"))
-                close_connection(pinned)
+
+                with_connection_closed_on_next_query(pinned) do
+                  conn.select_all("SELECT 42", nil, [], allow_retry: true)
+                end
               end
             end
 
@@ -513,6 +677,44 @@ module ActiveRecord
               connection.instance_variable_get(:@raw_connection).close
             end
 
+            # Closes the connection as the next query starts, so the query fails
+            # partway through, instead of the connection being found closed (and
+            # reconnected) beforehand.
+            def with_connection_closed_on_next_query(connection, &block)
+              perform_query = connection.method(:perform_query)
+              closed = false
+              close_once = ->(raw_connection, intent) do
+                unless closed
+                  closed = true
+                  raw_connection.close
+                end
+                perform_query.call(raw_connection, intent)
+              end
+
+              connection.stub(:perform_query, close_once, &block)
+            end
+
+            # Emulates a server that aborts the whole transaction on deadlock, as
+            # MySQL does, before reporting the error.
+            def with_server_side_deadlock_on_next_query(connection, &block)
+              perform_query = connection.method(:perform_query)
+              deadlocked = false
+              deadlock_once = ->(raw_connection, intent) do
+                unless deadlocked
+                  deadlocked = true
+                  if current_adapter?(:SQLite3Adapter)
+                    raw_connection.execute("ROLLBACK")
+                  else
+                    raw_connection.query("ROLLBACK")
+                  end
+                  raise ActiveRecord::Deadlocked, "made-up deadlock"
+                end
+                perform_query.call(raw_connection, intent)
+              end
+
+              connection.stub(:perform_query, deadlock_once, &block)
+            end
+
             def bind_placeholder(position)
               current_adapter?(:PostgreSQLAdapter) ? "$#{position}" : "?"
             end
@@ -534,6 +736,35 @@ module ActiveRecord
               ActiveRecord::Base.with_connection { |conn| conn.select_value("SELECT 41 + 1") }
             end
             assert_equal 42, result
+          end
+
+          def test_all_open_transactions_sees_a_worker_side_transaction
+            outside, inside = on_ractor do
+              [
+                ActiveRecord.all_open_transactions.size,
+                ActiveRecord::Base.transaction do
+                  ActiveRecord::Base.lease_connection.select_value("SELECT 1")
+                  ActiveRecord.all_open_transactions.size
+                end,
+              ]
+            end
+
+            assert_equal 0, outside
+            assert_equal 1, inside
+          end
+
+          def test_all_open_transactions_sees_a_transaction_on_a_pinned_connection
+            seen = on_ractor do
+              pool = ActiveRecord::Base.connection_pool
+              pool.pin_connection!(false)
+              begin
+                Thread.new { ActiveRecord::Base.transaction { ActiveRecord.all_open_transactions.size } }.value
+              ensure
+                pool.unpin_connection!
+              end
+            end
+
+            assert_equal 1, seen
           end
 
           def test_transaction_commit_rollback_and_generated_id

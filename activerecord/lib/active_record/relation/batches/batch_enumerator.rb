@@ -100,7 +100,7 @@ module ActiveRecord
 
       # Destroys records in batches. Returns the total number of rows affected.
       #
-      #   Person.where("age < 10").in_batches.destroy_all
+      #   Person.where(age: ...10).in_batches.destroy_all
       #
       # See Relation#destroy_all for details of how each batch is destroyed.
       def destroy_all

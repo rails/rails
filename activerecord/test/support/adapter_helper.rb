@@ -85,7 +85,6 @@ module AdapterHelper
     supports_nulls_not_distinct?
     supports_identity_columns?
     supports_virtual_columns?
-    supports_native_partitioning?
   ].each do |method_name|
     define_method method_name do
       ActiveRecord::Base.lease_connection.public_send(method_name)
@@ -118,6 +117,11 @@ module AdapterHelper
     else
       connection
     end
+  end
+
+  # The driver exception class behind a translated Active Record error.
+  def driver_error_class(error)
+    ractor_proxy? ? error.cause.cause.error_class : error.cause.class
   end
 
   # Detects whether the server side of the connection physically has a

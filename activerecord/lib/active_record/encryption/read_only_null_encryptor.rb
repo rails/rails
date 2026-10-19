@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Encryption
-    # A +NullEncryptor+ that will raise an error when trying to encrypt data
+    # A `NullEncryptor` that will raise an error when trying to encrypt data
     #
     # This is useful when you want to reveal ciphertexts for debugging purposes
     # and you want to make sure you won't overwrite any encryptable attribute with

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/hash/keys"
 
 module ActiveModel
@@ -9,22 +10,24 @@ module ActiveModel
     # Allows you to set all the attributes by passing in a hash of attributes with
     # keys matching the attribute names.
     #
-    # If the passed hash responds to <tt>permitted?</tt> method and the return value
-    # of this method is +false+ an ActiveModel::ForbiddenAttributesError
+    # If the passed hash responds to `permitted?` method and the return value
+    # of this method is `false` an ActiveModel::ForbiddenAttributesError
     # exception is raised.
     #
-    #   class Cat
-    #     include ActiveModel::AttributeAssignment
-    #     attr_accessor :name, :status
-    #   end
+    # ```
+    # class Cat
+    #   include ActiveModel::AttributeAssignment
+    #   attr_accessor :name, :status
+    # end
     #
-    #   cat = Cat.new
-    #   cat.assign_attributes(name: "Gorby", status: "yawning")
-    #   cat.name # => 'Gorby'
-    #   cat.status # => 'yawning'
-    #   cat.assign_attributes(status: "sleeping")
-    #   cat.name # => 'Gorby'
-    #   cat.status # => 'sleeping'
+    # cat = Cat.new
+    # cat.assign_attributes(name: "Gorby", status: "yawning")
+    # cat.name # => 'Gorby'
+    # cat.status # => 'yawning'
+    # cat.assign_attributes(status: "sleeping")
+    # cat.name # => 'Gorby'
+    # cat.status # => 'sleeping'
+    # ```
     def assign_attributes(new_attributes)
       unless new_attributes.respond_to?(:each_pair)
         raise ArgumentError, "When assigning attributes, you must pass a hash as an argument, #{new_attributes.class} passed."
@@ -36,23 +39,25 @@ module ActiveModel
 
     alias attributes= assign_attributes
 
-    # Like `BasicObject#method_missing`, `#attribute_writer_missing` is invoked
-    # when `#assign_attributes` is passed an unknown attribute name.
+    # Like \`BasicObject#method_missing\`, \`#attribute_writer_missing\` is invoked
+    # when \`#assign_attributes\` is passed an unknown attribute name.
     #
-    # By default, `#attribute_writer_missing` raises an UnknownAttributeError.
+    # By default, \`#attribute_writer_missing\` raises an UnknownAttributeError.
     #
-    #   class Rectangle
-    #     include ActiveModel::AttributeAssignment
+    # ```
+    # class Rectangle
+    #   include ActiveModel::AttributeAssignment
     #
-    #     attr_accessor :length, :width
+    #   attr_accessor :length, :width
     #
-    #     def attribute_writer_missing(name, value)
-    #       Rails.logger.warn "Tried to assign to unknown attribute #{name}"
-    #     end
+    #   def attribute_writer_missing(name, value)
+    #     Rails.logger.warn "Tried to assign to unknown attribute #{name}"
     #   end
+    # end
     #
-    #   rectangle = Rectangle.new
-    #   rectangle.assign_attributes(height: 10) # => Logs "Tried to assign to unknown attribute 'height'"
+    # rectangle = Rectangle.new
+    # rectangle.assign_attributes(height: 10) # => Logs "Tried to assign to unknown attribute 'height'"
+    # ```
     def attribute_writer_missing(name, value)
       raise UnknownAttributeError.new(self, name)
     end

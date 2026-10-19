@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     # Abstract representation of an index definition on a table. Instances of
@@ -117,7 +118,7 @@ module ActiveRecord
 
     # Abstract representation of a column definition. Instances of this type
     # are typically created by methods in TableDefinition, and added to the
-    # +columns+ attribute of said TableDefinition object, in order to be used
+    # `columns` attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
     ColumnDefinition = Struct.new(:name, :type, :options, :sql_type, :cast_type) do # :nodoc:
       self::OPTION_NAMES = [
@@ -388,25 +389,28 @@ module ActiveRecord
       alias :numeric :decimal
     end
 
-    # = Active Record Connection Adapters \Table \Definition
+    # Active Record Connection Adapters \Table \Definition
+    # ====================================================
     #
     # Represents the schema of an SQL table in an abstract way. This class
     # provides methods for manipulating the schema representation.
     #
-    # Inside migration files, the +t+ object in {create_table}[rdoc-ref:SchemaStatements#create_table]
+    # Inside migration files, the `t` object in [create_table](rdoc-ref:SchemaStatements#create_table)
     # is actually of this type:
     #
-    #   class SomeMigration < ActiveRecord::Migration[8.1]
-    #     def up
-    #       create_table :foo do |t|
-    #         puts t.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
-    #       end
-    #     end
-    #
-    #     def down
-    #       ...
+    # ```
+    # class SomeMigration < ActiveRecord::Migration[8.1]
+    #   def up
+    #     create_table :foo do |t|
+    #       puts t.class  # => "ActiveRecord::ConnectionAdapters::TableDefinition"
     #     end
     #   end
+    #
+    #   def down
+    #     ...
+    #   end
+    # end
+    # ```
     #
     class TableDefinition
       include ColumnMethods
@@ -462,27 +466,32 @@ module ActiveRecord
       # Returns an array of ColumnDefinition objects for the columns of the table.
       def columns; @columns_hash.values; end
 
-      # Returns a ColumnDefinition for the column with name +name+.
+      # Returns a ColumnDefinition for the column with name `name`.
       def [](name)
         @columns_hash[name.to_s]
       end
 
       # Instantiates a new column for the table.
-      # See {connection.add_column}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_column]
+      # See [connection.add_column](rdoc-ref:ConnectionAdapters::SchemaStatements#add_column)
       # for available options.
       #
       # Additional options are:
-      # * <tt>:index</tt> -
-      #   Create an index for the column. Can be either <tt>true</tt> or an options hash.
       #
-      # This method returns <tt>self</tt>.
+      # * `:index` -
+      #   Create an index for the column. Can be either `true` or an options hash.
       #
-      # == Examples
+      # This method returns `self`.
       #
-      #  # Assuming `td` is an instance of TableDefinition
-      #  td.column(:granted, :boolean, index: true)
+      # Examples
+      # --------
       #
-      # == Short-hand examples
+      # ```
+      # # Assuming `td` is an instance of TableDefinition
+      # td.column(:granted, :boolean, index: true)
+      # ```
+      #
+      # Short-hand examples
+      # -------------------
       #
       # Instead of calling #column directly, you can also work with the short-hand definitions for the default types.
       # They use the type as the method name instead of as a parameter and allow for multiple columns to be defined
@@ -490,50 +499,58 @@ module ActiveRecord
       #
       # What can be written like this with the regular calls to column:
       #
-      #   create_table :products do |t|
-      #     t.column :shop_id,     :integer
-      #     t.column :creator_id,  :integer
-      #     t.column :item_number, :string
-      #     t.column :name,        :string, default: "Untitled"
-      #     t.column :value,       :string, default: "Untitled"
-      #     t.column :created_at,  :datetime
-      #     t.column :updated_at,  :datetime
-      #   end
-      #   add_index :products, :item_number
+      # ```
+      # create_table :products do |t|
+      #   t.column :shop_id,     :integer
+      #   t.column :creator_id,  :integer
+      #   t.column :item_number, :string
+      #   t.column :name,        :string, default: "Untitled"
+      #   t.column :value,       :string, default: "Untitled"
+      #   t.column :created_at,  :datetime
+      #   t.column :updated_at,  :datetime
+      # end
+      # add_index :products, :item_number
+      # ```
       #
       # can also be written as follows using the short-hand:
       #
-      #   create_table :products do |t|
-      #     t.integer :shop_id, :creator_id
-      #     t.string  :item_number, index: true
-      #     t.string  :name, :value, default: "Untitled"
-      #     t.timestamps null: false
-      #   end
+      # ```
+      # create_table :products do |t|
+      #   t.integer :shop_id, :creator_id
+      #   t.string  :item_number, index: true
+      #   t.string  :name, :value, default: "Untitled"
+      #   t.timestamps null: false
+      # end
+      # ```
       #
       # There's a short-hand method for each of the type values declared at the top. And then there's
-      # TableDefinition#timestamps that'll add +created_at+ and +updated_at+ as datetimes.
+      # TableDefinition#timestamps that'll add `created_at` and `updated_at` as datetimes.
       #
-      # TableDefinition#references will add an appropriately-named _id column, plus a corresponding _type
-      # column if the <tt>:polymorphic</tt> option is supplied. If <tt>:polymorphic</tt> is a hash of
-      # options, these will be used when creating the <tt>_type</tt> column. The <tt>:index</tt> option
-      # will also create an index, similar to calling {add_index}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_index].
+      # TableDefinition#references will add an appropriately-named \_id column, plus a corresponding \_type
+      # column if the `:polymorphic` option is supplied. If `:polymorphic` is a hash of
+      # options, these will be used when creating the `_type` column. The `:index` option
+      # will also create an index, similar to calling [add_index](rdoc-ref:ConnectionAdapters::SchemaStatements#add_index).
       # So what can be written like this:
       #
-      #   create_table :taggings do |t|
-      #     t.integer :tag_id, :tagger_id, :taggable_id
-      #     t.string  :tagger_type
-      #     t.string  :taggable_type, default: 'Photo'
-      #   end
-      #   add_index :taggings, :tag_id, name: 'index_taggings_on_tag_id'
-      #   add_index :taggings, [:tagger_id, :tagger_type]
+      # ```
+      # create_table :taggings do |t|
+      #   t.integer :tag_id, :tagger_id, :taggable_id
+      #   t.string  :tagger_type
+      #   t.string  :taggable_type, default: 'Photo'
+      # end
+      # add_index :taggings, :tag_id, name: 'index_taggings_on_tag_id'
+      # add_index :taggings, [:tagger_id, :tagger_type]
+      # ```
       #
       # Can also be written as follows using references:
       #
-      #   create_table :taggings do |t|
-      #     t.references :tag, index: { name: 'index_taggings_on_tag_id' }
-      #     t.references :tagger, polymorphic: true
-      #     t.references :taggable, polymorphic: { default: 'Photo' }, index: false
-      #   end
+      # ```
+      # create_table :taggings do |t|
+      #   t.references :tag, index: { name: 'index_taggings_on_tag_id' }
+      #   t.references :tagger, polymorphic: true
+      #   t.references :taggable, polymorphic: { default: 'Photo' }, index: false
+      # end
+      # ```
       def column(name, type, index: nil, **options)
         name = name.to_s
         type = type.to_sym if type
@@ -549,8 +566,11 @@ module ActiveRecord
         self
       end
 
-      # remove the column +name+ from the table.
-      #   remove_column(:account_id)
+      # remove the column `name` from the table.
+      #
+      # ```
+      # remove_column(:account_id)
+      # ```
       def remove_column(name)
         @columns_hash.delete name.to_s
       end
@@ -558,7 +578,9 @@ module ActiveRecord
       # Adds index options to the indexes hash, keyed by column name
       # This is primarily used to track indexes that need to be created after the table
       #
-      #   index(:account_id, name: 'index_projects_on_account_id')
+      # ```
+      # index(:account_id, name: 'index_projects_on_account_id')
+      # ```
       def index(column_name, **options)
         indexes << [column_name, options]
       end
@@ -571,10 +593,12 @@ module ActiveRecord
         check_constraints << new_check_constraint_definition(expression, options)
       end
 
-      # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
-      # <tt>:updated_at</tt> to the table. See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
+      # Appends `:datetime` columns `:created_at` and
+      # `:updated_at` to the table. See [connection.add_timestamps](rdoc-ref:SchemaStatements#add_timestamps)
       #
-      #   t.timestamps null: false
+      # ```
+      # t.timestamps null: false
+      # ```
       def timestamps(**options)
         options[:null] = false if options[:null].nil?
 
@@ -586,11 +610,13 @@ module ActiveRecord
 
       # Adds a reference.
       #
-      #  t.references(:user)
-      #  t.belongs_to(:supplier, foreign_key: true)
-      #  t.belongs_to(:supplier, foreign_key: true, type: :integer)
+      # ```
+      # t.references(:user)
+      # t.belongs_to(:supplier, foreign_key: true)
+      # t.belongs_to(:supplier, foreign_key: true, type: :integer)
+      # ```
       #
-      # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
+      # See [connection.add_reference](rdoc-ref:SchemaStatements#add_reference) for details of the options you can use.
       def references(*args, **options)
         args.each do |ref_name|
           ReferenceDefinition.new(ref_name, **options).add_to(self)
@@ -778,51 +804,54 @@ module ActiveRecord
       end
     end
 
-    # = Active Record Connection Adapters \Table
+    # Active Record Connection Adapters \Table
+    # ========================================
     #
     # Represents an SQL table in an abstract way for updating a table.
-    # Also see TableDefinition and {connection.create_table}[rdoc-ref:SchemaStatements#create_table]
+    # Also see TableDefinition and [connection.create_table](rdoc-ref:SchemaStatements#create_table)
     #
     # Available transformations are:
     #
-    #   change_table :table do |t|
-    #     t.primary_key
-    #     t.column
-    #     t.index
-    #     t.rename_index
-    #     t.timestamps
-    #     t.change
-    #     t.change_default
-    #     t.change_null
-    #     t.rename
-    #     t.references
-    #     t.belongs_to
-    #     t.check_constraint
-    #     t.string
-    #     t.text
-    #     t.integer
-    #     t.bigint
-    #     t.float
-    #     t.decimal
-    #     t.numeric
-    #     t.datetime
-    #     t.timestamp
-    #     t.time
-    #     t.date
-    #     t.binary
-    #     t.blob
-    #     t.boolean
-    #     t.foreign_key
-    #     t.json
-    #     t.virtual
-    #     t.remove
-    #     t.remove_foreign_key
-    #     t.remove_references
-    #     t.remove_belongs_to
-    #     t.remove_index
-    #     t.remove_check_constraint
-    #     t.remove_timestamps
-    #   end
+    # ```
+    # change_table :table do |t|
+    #   t.primary_key
+    #   t.column
+    #   t.index
+    #   t.rename_index
+    #   t.timestamps
+    #   t.change
+    #   t.change_default
+    #   t.change_null
+    #   t.rename
+    #   t.references
+    #   t.belongs_to
+    #   t.check_constraint
+    #   t.string
+    #   t.text
+    #   t.integer
+    #   t.bigint
+    #   t.float
+    #   t.decimal
+    #   t.numeric
+    #   t.datetime
+    #   t.timestamp
+    #   t.time
+    #   t.date
+    #   t.binary
+    #   t.blob
+    #   t.boolean
+    #   t.foreign_key
+    #   t.json
+    #   t.virtual
+    #   t.remove
+    #   t.remove_foreign_key
+    #   t.remove_references
+    #   t.remove_belongs_to
+    #   t.remove_index
+    #   t.remove_check_constraint
+    #   t.remove_timestamps
+    # end
+    # ```
     #
     class Table
       include ColumnMethods
@@ -836,7 +865,9 @@ module ActiveRecord
 
       # Adds a new column to the named table.
       #
-      #  t.column(:name, :string)
+      # ```
+      # t.column(:name, :string)
+      # ```
       #
       # See TableDefinition#column for details of the options you can use.
       def column(column_name, type, index: nil, **options)
@@ -850,21 +881,25 @@ module ActiveRecord
 
       # Checks to see if a column exists.
       #
-      #  t.string(:name) unless t.column_exists?(:name, :string)
+      # ```
+      # t.string(:name) unless t.column_exists?(:name, :string)
+      # ```
       #
-      # See {connection.column_exists?}[rdoc-ref:SchemaStatements#column_exists?]
+      # See [connection.column_exists?](rdoc-ref:SchemaStatements#column_exists?)
       def column_exists?(column_name, type = nil, **options)
         @base.column_exists?(name, column_name, type, **options)
       end
 
-      # Adds a new index to the table. +column_name+ can be a single Symbol, or
+      # Adds a new index to the table. `column_name` can be a single Symbol, or
       # an Array of Symbols.
       #
-      #  t.index(:name)
-      #  t.index([:branch_id, :party_id], unique: true)
-      #  t.index([:branch_id, :party_id], unique: true, name: 'by_branch_party')
+      # ```
+      # t.index(:name)
+      # t.index([:branch_id, :party_id], unique: true)
+      # t.index([:branch_id, :party_id], unique: true, name: 'by_branch_party')
+      # ```
       #
-      # See {connection.add_index}[rdoc-ref:SchemaStatements#add_index] for details of the options you can use.
+      # See [connection.add_index](rdoc-ref:SchemaStatements#add_index) for details of the options you can use.
       def index(column_name, **options)
         raise_on_if_exist_options(options)
         @base.add_index(name, column_name, **options)
@@ -872,29 +907,35 @@ module ActiveRecord
 
       # Checks to see if an index exists.
       #
-      #  unless t.index_exists?(:branch_id)
-      #    t.index(:branch_id)
-      #  end
+      # ```
+      # unless t.index_exists?(:branch_id)
+      #   t.index(:branch_id)
+      # end
+      # ```
       #
-      # See {connection.index_exists?}[rdoc-ref:SchemaStatements#index_exists?]
+      # See [connection.index_exists?](rdoc-ref:SchemaStatements#index_exists?)
       def index_exists?(column_name = nil, **options)
         @base.index_exists?(name, column_name, **options)
       end
 
       # Renames the given index on the table.
       #
-      #  t.rename_index(:user_id, :account_id)
+      # ```
+      # t.rename_index(:user_id, :account_id)
+      # ```
       #
-      # See {connection.rename_index}[rdoc-ref:SchemaStatements#rename_index]
+      # See [connection.rename_index](rdoc-ref:SchemaStatements#rename_index)
       def rename_index(index_name, new_index_name)
         @base.rename_index(name, index_name, new_index_name)
       end
 
-      # Adds timestamps (+created_at+ and +updated_at+) columns to the table.
+      # Adds timestamps (`created_at` and `updated_at`) columns to the table.
       #
-      #  t.timestamps(null: false)
+      # ```
+      # t.timestamps(null: false)
+      # ```
       #
-      # See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
+      # See [connection.add_timestamps](rdoc-ref:SchemaStatements#add_timestamps)
       def timestamps(**options)
         raise_on_if_exist_options(options)
         @base.add_timestamps(name, **options)
@@ -902,8 +943,10 @@ module ActiveRecord
 
       # Changes the column's definition according to the new options.
       #
-      #  t.change(:name, :string, limit: 80)
-      #  t.change(:description, :text)
+      # ```
+      # t.change(:name, :string, limit: 80)
+      # t.change(:description, :text)
+      # ```
       #
       # See TableDefinition#column for details of the options you can use.
       def change(column_name, type, **options)
@@ -913,31 +956,37 @@ module ActiveRecord
 
       # Sets a new default value for a column.
       #
-      #  t.change_default(:qualification, 'new')
-      #  t.change_default(:authorized, 1)
-      #  t.change_default(:status, from: nil, to: "draft")
+      # ```
+      # t.change_default(:qualification, 'new')
+      # t.change_default(:authorized, 1)
+      # t.change_default(:status, from: nil, to: "draft")
+      # ```
       #
-      # See {connection.change_column_default}[rdoc-ref:SchemaStatements#change_column_default]
+      # See [connection.change_column_default](rdoc-ref:SchemaStatements#change_column_default)
       def change_default(column_name, default_or_changes)
         @base.change_column_default(name, column_name, default_or_changes)
       end
 
       # Sets or removes a NOT NULL constraint on a column.
       #
-      #  t.change_null(:qualification, true)
-      #  t.change_null(:qualification, false, 0)
+      # ```
+      # t.change_null(:qualification, true)
+      # t.change_null(:qualification, false, 0)
+      # ```
       #
-      # See {connection.change_column_null}[rdoc-ref:SchemaStatements#change_column_null]
+      # See [connection.change_column_null](rdoc-ref:SchemaStatements#change_column_null)
       def change_null(column_name, null, default = nil)
         @base.change_column_null(name, column_name, null, default)
       end
 
       # Removes the column(s) from the table definition.
       #
-      #  t.remove(:qualification)
-      #  t.remove(:qualification, :experience)
+      # ```
+      # t.remove(:qualification)
+      # t.remove(:qualification, :experience)
+      # ```
       #
-      # See {connection.remove_columns}[rdoc-ref:SchemaStatements#remove_columns]
+      # See [connection.remove_columns](rdoc-ref:SchemaStatements#remove_columns)
       def remove(*column_names, **options)
         raise_on_if_exist_options(options)
         @base.remove_columns(name, *column_names, **options)
@@ -945,22 +994,26 @@ module ActiveRecord
 
       # Removes the given index from the table.
       #
-      #   t.remove_index(:branch_id)
-      #   t.remove_index(column: [:branch_id, :party_id])
-      #   t.remove_index(name: :by_branch_party)
-      #   t.remove_index(:branch_id, name: :by_branch_party)
+      # ```
+      # t.remove_index(:branch_id)
+      # t.remove_index(column: [:branch_id, :party_id])
+      # t.remove_index(name: :by_branch_party)
+      # t.remove_index(:branch_id, name: :by_branch_party)
+      # ```
       #
-      # See {connection.remove_index}[rdoc-ref:SchemaStatements#remove_index]
+      # See [connection.remove_index](rdoc-ref:SchemaStatements#remove_index)
       def remove_index(column_name = nil, **options)
         raise_on_if_exist_options(options)
         @base.remove_index(name, column_name, **options)
       end
 
-      # Removes the timestamp columns (+created_at+ and +updated_at+) from the table.
+      # Removes the timestamp columns (`created_at` and `updated_at`) from the table.
       #
-      #  t.remove_timestamps
+      # ```
+      # t.remove_timestamps
+      # ```
       #
-      # See {connection.remove_timestamps}[rdoc-ref:SchemaStatements#remove_timestamps]
+      # See [connection.remove_timestamps](rdoc-ref:SchemaStatements#remove_timestamps)
       def remove_timestamps(**options)
         raise_on_if_exist_options(options)
         @base.remove_timestamps(name, **options)
@@ -968,19 +1021,23 @@ module ActiveRecord
 
       # Renames a column.
       #
-      #  t.rename(:description, :name)
+      # ```
+      # t.rename(:description, :name)
+      # ```
       #
-      # See {connection.rename_column}[rdoc-ref:SchemaStatements#rename_column]
+      # See [connection.rename_column](rdoc-ref:SchemaStatements#rename_column)
       def rename(column_name, new_column_name)
         @base.rename_column(name, column_name, new_column_name)
       end
 
       # Adds a reference.
       #
-      #  t.references(:user)
-      #  t.belongs_to(:supplier, foreign_key: true)
+      # ```
+      # t.references(:user)
+      # t.belongs_to(:supplier, foreign_key: true)
+      # ```
       #
-      # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
+      # See [connection.add_reference](rdoc-ref:SchemaStatements#add_reference) for details of the options you can use.
       def references(*args, **options)
         raise_on_if_exist_options(options)
         args.each do |ref_name|
@@ -989,12 +1046,14 @@ module ActiveRecord
       end
       alias :belongs_to :references
 
-      # Removes a reference. Optionally removes a +type+ column.
+      # Removes a reference. Optionally removes a `type` column.
       #
-      #  t.remove_references(:user)
-      #  t.remove_belongs_to(:supplier, polymorphic: true)
+      # ```
+      # t.remove_references(:user)
+      # t.remove_belongs_to(:supplier, polymorphic: true)
+      # ```
       #
-      # See {connection.remove_reference}[rdoc-ref:SchemaStatements#remove_reference]
+      # See [connection.remove_reference](rdoc-ref:SchemaStatements#remove_reference)
       def remove_references(*args, **options)
         raise_on_if_exist_options(options)
         args.each do |ref_name|
@@ -1005,10 +1064,12 @@ module ActiveRecord
 
       # Adds a foreign key to the table using a supplied table name.
       #
-      #  t.foreign_key(:authors)
-      #  t.foreign_key(:authors, column: :author_id, primary_key: "id")
+      # ```
+      # t.foreign_key(:authors)
+      # t.foreign_key(:authors, column: :author_id, primary_key: "id")
+      # ```
       #
-      # See {connection.add_foreign_key}[rdoc-ref:SchemaStatements#add_foreign_key]
+      # See [connection.add_foreign_key](rdoc-ref:SchemaStatements#add_foreign_key)
       def foreign_key(*args, **options)
         raise_on_if_exist_options(options)
         @base.add_foreign_key(name, *args, **options)
@@ -1016,10 +1077,12 @@ module ActiveRecord
 
       # Removes the given foreign key from the table.
       #
-      #  t.remove_foreign_key(:authors)
-      #  t.remove_foreign_key(column: :author_id)
+      # ```
+      # t.remove_foreign_key(:authors)
+      # t.remove_foreign_key(column: :author_id)
+      # ```
       #
-      # See {connection.remove_foreign_key}[rdoc-ref:SchemaStatements#remove_foreign_key]
+      # See [connection.remove_foreign_key](rdoc-ref:SchemaStatements#remove_foreign_key)
       def remove_foreign_key(*args, **options)
         raise_on_if_exist_options(options)
         @base.remove_foreign_key(name, *args, **options)
@@ -1027,18 +1090,22 @@ module ActiveRecord
 
       # Checks to see if a foreign key exists.
       #
-      #  t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
+      # ```
+      # t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
+      # ```
       #
-      # See {connection.foreign_key_exists?}[rdoc-ref:SchemaStatements#foreign_key_exists?]
+      # See [connection.foreign_key_exists?](rdoc-ref:SchemaStatements#foreign_key_exists?)
       def foreign_key_exists?(*args, **options)
         @base.foreign_key_exists?(name, *args, **options)
       end
 
       # Adds a check constraint.
       #
-      #  t.check_constraint("price > 0", name: "price_check")
+      # ```
+      # t.check_constraint("price > 0", name: "price_check")
+      # ```
       #
-      # See {connection.add_check_constraint}[rdoc-ref:SchemaStatements#add_check_constraint]
+      # See [connection.add_check_constraint](rdoc-ref:SchemaStatements#add_check_constraint)
       def check_constraint(*args, **options)
         raise_on_if_exist_options(options)
         @base.add_check_constraint(name, *args, **options)
@@ -1046,9 +1113,11 @@ module ActiveRecord
 
       # Removes the given check constraint from the table.
       #
-      #  t.remove_check_constraint(name: "price_check")
+      # ```
+      # t.remove_check_constraint(name: "price_check")
+      # ```
       #
-      # See {connection.remove_check_constraint}[rdoc-ref:SchemaStatements#remove_check_constraint]
+      # See [connection.remove_check_constraint](rdoc-ref:SchemaStatements#remove_check_constraint)
       def remove_check_constraint(*args, **options)
         raise_on_if_exist_options(options)
         @base.remove_check_constraint(name, *args, **options)
@@ -1056,11 +1125,13 @@ module ActiveRecord
 
       # Checks if a check_constraint exists on a table.
       #
-      #  unless t.check_constraint_exists?(name: "price_check")
-      #    t.check_constraint("price > 0", name: "price_check")
-      #  end
+      # ```
+      # unless t.check_constraint_exists?(name: "price_check")
+      #   t.check_constraint("price > 0", name: "price_check")
+      # end
+      # ```
       #
-      # See {connection.check_constraint_exists?}[rdoc-ref:SchemaStatements#check_constraint_exists?]
+      # See [connection.check_constraint_exists?](rdoc-ref:SchemaStatements#check_constraint_exists?)
       def check_constraint_exists?(*args, **options)
         @base.check_constraint_exists?(name, *args, **options)
       end

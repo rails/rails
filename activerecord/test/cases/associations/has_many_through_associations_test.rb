@@ -46,6 +46,8 @@ require "models/zine"
 require "models/interest"
 require "models/human"
 require "models/dats"
+require "models/ship"
+require "models/hardback"
 
 class RedundantJoinAuthor < ActiveRecord::Base
   self.table_name = "authors"
@@ -1047,6 +1049,64 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_empty author.named_categories.reload
   end
 
+  def test_deleting_an_unsaved_through_target_preserves_other_join_records
+    post = Post.new(title: "Unsaved through", body: "Unsaved through")
+    first = Tag.new(name: "First unsaved tag")
+    second = Tag.new(name: "Second unsaved tag")
+
+    post.tags.concat(first, second)
+    assert_equal [first, second], post.taggings.map(&:tag)
+
+    post.tags.delete(first)
+
+    assert_equal [second], post.taggings.map(&:tag)
+  end
+
+  def test_deleting_through_an_sti_source_type_updates_the_loaded_through_records
+    author = Author.create!(name: "STI source type author")
+    author.books.load
+    hardback = BestHardback.create!
+    author.best_hardbacks << hardback
+    join = author.books.find { |book| book.format_record == hardback }
+
+    author.best_hardbacks.delete(hardback)
+
+    assert_not Book.exists?(join.id)
+    assert_not_includes author.books, join
+  end
+
+  class ShipLink < ActiveRecord::Base
+    self.table_name = "sponsors"
+
+    belongs_to :ship, foreign_key: :club_id, primary_key: :pirate_id, optional: true
+  end
+
+  class ShipLinkPost < ActiveRecord::Base
+    self.table_name = "posts"
+    self.inheritance_column = nil
+
+    has_many :ship_links,
+      class_name: "HasManyThroughAssociationsTest::ShipLink",
+      foreign_key: :sponsorable_id
+    has_many :ships, through: :ship_links
+  end
+
+  class StringPirateIdShip < Ship
+    attribute :pirate_id, :string
+  end
+
+  def test_deleting_through_records_compares_keys_by_the_deleted_record_class
+    post = ShipLinkPost.create!(title: "Typed through", body: "Typed through")
+    ship = StringPirateIdShip.create!(pirate_id: 9_000_841, name: "String key ship")
+    link = ShipLink.create!(sponsorable_id: post.id, club_id: ship.pirate_id)
+    post.ship_links.load
+
+    post.ships.delete(ship)
+
+    assert_not ShipLink.exists?(link.id)
+    assert_empty post.ship_links
+  end
+
   def test_collection_singular_ids_getter_with_string_primary_keys
     book = books(:awdr)
     assert_equal 2, book.subscriber_ids.size
@@ -1491,6 +1551,81 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post_direct = author.posts.build
     post_through = organization.posts.build
     assert_equal post_direct.author_id, post_through.author_id
+  end
+
+  def test_build_through_singular_association_uses_the_source_primary_key
+    firm = make_model "Firm"
+    client = make_model "Client"
+    account = make_model "Account"
+    firm.table_name = client.table_name = "companies"
+    firm.inheritance_column = client.inheritance_column = nil
+    account.table_name = "accounts"
+
+    firm.has_many :named_clients, anonymous_class: client, primary_key: :name, foreign_key: :firm_name, inverse_of: :named_firm
+    client.belongs_to :named_firm, anonymous_class: firm, primary_key: :name, foreign_key: :firm_name, inverse_of: :named_clients
+    account.belongs_to :firm, anonymous_class: firm
+    account.has_many :named_clients, through: :firm, anonymous_class: client
+
+    acme = firm.create!(name: "Acme")
+    owner = account.create!(firm: acme, credit_limit: 10)
+
+    built = owner.named_clients.build(name: "Built")
+    assert_equal "Acme", built.firm_name
+
+    built.save!
+    assert_equal [built], acme.named_clients.reload
+  end
+
+  class AliasedKeyComment < ActiveRecord::Base
+    self.table_name = "comments"
+    self.inheritance_column = nil
+
+    alias_attribute :link_key, :post_id
+    alias_attribute :link_type, :author_type
+  end
+
+  class AliasedKeyPost < ActiveRecord::Base
+    self.table_name = "posts"
+    self.inheritance_column = nil
+
+    alias_attribute :link_key, :author_id
+    alias_attribute :link_type, :type
+    has_many :keyed_comments,
+      class_name: "HasManyThroughAssociationsTest::AliasedKeyComment",
+      foreign_key: :link_key
+    has_many :polymorphic_keyed_comments,
+      as: :commentable,
+      class_name: "HasManyThroughAssociationsTest::AliasedKeyComment",
+      foreign_key: :link_key,
+      foreign_type: :link_type
+  end
+
+  class AliasedKeyAuthor < ActiveRecord::Base
+    self.table_name = "authors"
+
+    has_many :keyed_posts,
+      class_name: "HasManyThroughAssociationsTest::AliasedKeyPost",
+      foreign_key: :author_id
+    has_many :keyed_comments, through: :keyed_posts
+    has_many :polymorphic_keyed_comments, through: :keyed_posts
+  end
+
+  def test_has_many_through_has_many_access_paths_agree_on_the_destination_class_aliases
+    owner = AliasedKeyAuthor.create!(name: "Aliased through")
+    post = AliasedKeyPost.create!(author_id: owner.id, title: "Aliased through", body: "Aliased through")
+    comment = AliasedKeyComment.create!(post_id: post.id, author_id: -1, body: "Aliased through comment")
+    polymorphic_comment = AliasedKeyComment.create!(
+      post_id: post.id, author_type: AliasedKeyPost.polymorphic_name, body: "Polymorphic through comment"
+    )
+
+    assert_equal [comment, polymorphic_comment], owner.keyed_comments.order(:id).to_a
+    assert_equal [comment, polymorphic_comment], AliasedKeyAuthor.where(id: owner.id).preload(:keyed_comments).first.keyed_comments.sort_by(&:id)
+    assert_equal [owner.id], AliasedKeyAuthor.joins(:keyed_comments).where(comments: { id: comment.id }).pluck(:id)
+
+    assert_equal [polymorphic_comment], owner.polymorphic_keyed_comments.to_a
+    assert_equal [polymorphic_comment], AliasedKeyAuthor.preload(:polymorphic_keyed_comments).find(owner.id).polymorphic_keyed_comments
+    assert_equal [owner.id], AliasedKeyAuthor.joins(:polymorphic_keyed_comments).where(comments: { id: polymorphic_comment.id }).pluck(:id)
+    assert_equal [polymorphic_comment], AliasedKeyAuthor.eager_load(:polymorphic_keyed_comments).find(owner.id).polymorphic_keyed_comments
   end
 
   def test_has_many_through_with_scope_that_should_not_be_fully_merged

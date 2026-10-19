@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "strscan"
 require "active_support/core_ext/erb/util"
 
@@ -150,11 +151,12 @@ module ActionView
         # a match of the first token before matching either token.
         #
         # For example, if we want to find tokens A, B, C, we do the following:
+        #
         # 1. Find a match for A: test error_column or advance scanner.
         # 2. Find a match for B or A:
-        #   a. If B: start over with next token set (B, C).
-        #   b. If A: test error_column or advance scanner.
-        #   c. Otherwise: Advance 1 byte
+        #   1.  If B: start over with next token set (B, C).
+        #   1.  If A: test error_column or advance scanner.
+        #   1.  Otherwise: Advance 1 byte
         #
         # Prioritize matching the next token over the current token once
         # a match for the current token has been found. This is to prevent

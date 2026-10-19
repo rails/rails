@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "concurrent/atomic/atomic_boolean"
 require "concurrent/atomic/read_write_lock"
 

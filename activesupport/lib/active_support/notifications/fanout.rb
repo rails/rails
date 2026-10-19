@@ -278,8 +278,15 @@ module ActiveSupport
 
         unless silenceable_groups.empty?
           silenceable_groups.each do |group_class, subscriptions|
-            active_subscriptions = subscriptions.reject { |s| s.silenced?(name) }
-            unless active_subscriptions.empty?
+            # Built in a single pass so that events whose silenceable
+            # subscribers are all silenced (debug-level subscribers in
+            # production, on every SQL and render event) allocate nothing.
+            active_subscriptions = nil
+            subscriptions.each do |s|
+              (active_subscriptions ||= []) << s unless s.silenced?(name)
+            end
+
+            if active_subscriptions
               groups = groups.dup if groups.frozen?
               base_groups = groups[group_class]
               groups[group_class] = base_groups ? base_groups + active_subscriptions : active_subscriptions

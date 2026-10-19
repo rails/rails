@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "action_view/dependency_tracker"
 
 module ActionView
@@ -7,10 +8,10 @@ module ActionView
     class << self
       # Supported options:
       #
-      # * <tt>name</tt>         - Template name
-      # * <tt>format</tt>       - Template format
-      # * +finder+              - An instance of ActionView::LookupContext
-      # * <tt>dependencies</tt> - An array of dependent views
+      # * `name`         - Template name
+      # * `format`       - Template format
+      # * `finder`              - An instance of ActionView::LookupContext
+      # * `dependencies` - An array of dependent views
       def digest(name:, format: nil, finder:, dependencies: nil)
         if dependencies.nil? || dependencies.empty?
           cache_key = "#{name}.#{format}"
@@ -37,7 +38,7 @@ module ActionView
         ActionView::Base.logger || NullLogger
       end
 
-      # Create a dependency tree for template named +name+.
+      # Create a dependency tree for template named `name`.
       def tree(name, finder, partial = false, seen = {})
         logical_name = name.gsub(%r|/_|, "/")
         interpolated = name.include?("#")

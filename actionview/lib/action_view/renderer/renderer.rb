@@ -1,17 +1,19 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
-  # = Action View \Renderer
+  # Action View \Renderer
+  # =====================
   #
   # This is the main entry point for rendering. It basically delegates
   # to other objects like TemplateRenderer and PartialRenderer which
   # actually renders the template.
   #
-  # The Renderer will parse the options from the +render+ or +render_body+
+  # The Renderer will parse the options from the `render` or `render_body`
   # method and render a partial or a template based on the options. The
-  # +TemplateRenderer+ and +PartialRenderer+ objects are wrappers which do all
+  # `TemplateRenderer` and `PartialRenderer` objects are wrappers which do all
   # the setup and logic necessary to render a view and a new object is created
-  # each time +render+ is called.
+  # each time `render` is called.
   class Renderer
     attr_accessor :lookup_context
 

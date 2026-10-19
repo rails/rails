@@ -62,6 +62,8 @@ module ActiveSupport
   autoload :Reloader
   autoload :SecureCompareRotator
   autoload :TimeFormats
+  autoload :WeakKeyMap
+  autoload :WeakSet
 
   eager_autoload do
     autoload :BacktraceCleaner

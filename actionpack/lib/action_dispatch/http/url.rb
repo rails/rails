@@ -311,7 +311,7 @@ module ActionDispatch
       #     req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #     req.raw_host_with_port # => "example.com:8080"
       def raw_host_with_port
-        if forwarded = x_forwarded_host.presence
+        @raw_host_with_port ||= if forwarded = x_forwarded_host.presence
           forwarded.split(/,\s?/).last
         else
           get_header("HTTP_HOST") || "#{server_name}:#{get_header('SERVER_PORT')}"
@@ -323,7 +323,13 @@ module ActionDispatch
       #     req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #     req.host # => "example.com"
       def host
-        raw_host_with_port.sub(/:\d+$/, "")
+        @host ||= begin
+          raw = raw_host_with_port
+          # Only strip a port when there could be one: a host without a colon
+          # is the common case in production, and the regexp substitution
+          # allocates a String and a MatchData even when nothing matches.
+          raw.include?(":") ? raw.sub(/:\d+$/, "") : raw
+        end
       end
 
       # Returns a host:port string for this request, such as "example.com" or

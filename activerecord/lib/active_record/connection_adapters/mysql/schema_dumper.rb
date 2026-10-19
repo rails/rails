@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
@@ -74,24 +75,16 @@ module ActiveRecord
           end
 
           def extract_expression_for_virtual_column(column)
-            if @connection.mariadb? && @connection.database_version < "10.2.5"
-              create_table_info = @connection.send(:create_table_info, table_name)
-              column_name = @connection.quote_column_name(column.name)
-              if %r/#{column_name} #{Regexp.quote(column.sql_type)}(?: COLLATE \w+)? AS \((?<expression>.+?)\) #{column.extra}/ =~ create_table_info
-                $~[:expression].inspect
-              end
-            else
-              scope = @connection.send(:quoted_scope, table_name)
-              column_name = @connection.quote(column.name)
-              sql = "SELECT generation_expression FROM information_schema.columns" \
-                    " WHERE table_schema = #{scope[:schema]}" \
-                    "   AND table_name = #{scope[:name]}" \
-                    "   AND column_name = #{column_name}"
-              # Calling .inspect leads into issues with the query result
-              # which already returns escaped quotes.
-              # We remove the escape sequence from the result in order to deal with double escaping issues.
-              @connection.query_value(sql).gsub("\\'", "'").inspect
-            end
+            scope = @connection.send(:quoted_scope, table_name)
+            column_name = @connection.quote(column.name)
+            sql = "SELECT generation_expression FROM information_schema.columns" \
+                  " WHERE table_schema = #{scope[:schema]}" \
+                  "   AND table_name = #{scope[:name]}" \
+                  "   AND column_name = #{column_name}"
+            # Calling .inspect leads into issues with the query result
+            # which already returns escaped quotes.
+            # We remove the escape sequence from the result in order to deal with double escaping issues.
+            @connection.query_value(sql).gsub("\\'", "'").inspect
           end
       end
     end

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "action_controller"
 
 class Rails::ApplicationController < ActionController::Base # :nodoc:

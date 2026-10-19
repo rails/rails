@@ -1,12 +1,18 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module AttributeMethods
-    # = Active Record Attribute Methods \Read
+    # Active Record Attribute Methods \Read
+    # =====================================
     module Read
       extend ActiveSupport::Concern
 
       module ClassMethods # :nodoc:
+        def resolve_alias(attr_name) # :nodoc:
+          attribute_aliases[attr_name] || attr_name
+        end
+
         private
           def define_method_attribute(canonical_name, owner:, as: canonical_name)
             ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
@@ -15,28 +21,48 @@ module ActiveRecord
               owner.define_cached_method(temp_method_name, as: as, namespace: :active_record) do |batch|
                 batch <<
                   "def #{temp_method_name}" <<
-                  "  _read_attribute(#{attr_name_expr}) { |n| missing_attribute(n, caller) }" <<
+                  "  _read_attribute!(#{attr_name_expr})" <<
                   "end"
               end
             end
           end
       end
 
-      # Returns the value of the attribute identified by +attr_name+ after it
+      # Returns the value of the attribute identified by `attr_name` after it
       # has been type cast. For example, a date attribute will cast "2004-12-12"
-      # to <tt>Date.new(2004, 12, 12)</tt>. (For information about specific type
+      # to `Date.new(2004, 12, 12)`. (For information about specific type
       # casting behavior, see the types under ActiveModel::Type.)
       def read_attribute(attr_name, &block)
-        name = attr_name.to_s
-        name = self.class.attribute_aliases[name] || name
+        name = resolve_alias(attr_name.to_s)
 
         @attributes.fetch_value(name, &block)
       end
 
-      # This method exists to avoid the expensive primary_key check internally, without
-      # breaking compatibility with the read_attribute API
-      def _read_attribute(attr_name, &block) # :nodoc:
-        @attributes.fetch_value(attr_name, &block)
+      # Like #read_attribute, but +attr_name+ must be a String, and a missing
+      # attribute raises ActiveModel::MissingAttributeError.
+      # We assume that attribute name is a string.  This is an internal method,
+      # don't call it!
+      def read_attr(attr_name) # :nodoc:
+        @attributes.fetch_value!(resolve_alias(attr_name))
+      end
+
+      # Internal read without alias resolution. An uninitialized attribute returns nil.
+      def _read_attribute(attr_name) # :nodoc:
+        @attributes.fetch_value(attr_name)
+      end
+
+      # Internal read without alias resolution that raises for uninitialized attributes.
+      def _read_attribute!(attr_name) # :nodoc:
+        @attributes.fetch_value!(attr_name)
+      rescue ActiveModel::MissingAttributeError
+        raise if @attributes.key?(attr_name)
+        missing_attribute(attr_name, RUBY_VERSION >= "3.4" ? caller_locations : caller)
+      end
+
+      # Like #_read_attribute, but a missing attribute raises
+      # ActiveModel::MissingAttributeError.
+      def _read_attr(attr_name) # :nodoc:
+        @attributes.fetch_value!(attr_name)
       end
 
       alias :attribute :_read_attribute

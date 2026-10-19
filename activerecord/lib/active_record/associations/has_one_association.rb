@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
-    # = Active Record Has One Association
+    # Active Record Has One Association
+    # =================================
     class HasOneAssociation < SingularAssociation # :nodoc:
       include ForeignAssociation
 
@@ -55,7 +57,32 @@ module ActiveRecord
         end
       end
 
+      def reference_changed_for_autosave?(record)
+        route = reflection.association_route(origin_class: owner.class, destination_class: record.class)
+        route.reference_needs_update?(owner, record) || reference_key_changed_for_save?(record)
+      end
+
+      def synchronize_reference(record)
+        route = reflection.association_route(origin_class: owner.class, destination_class: record.class)
+        route.write(owner, record, force: false)
+        set_inverse_instance(record)
+      end
+
       private
+        def reference_key_changed_for_save?(record)
+          # Through reflections have no single route to take the key from.
+          if reflection.through_reflection?
+            reflection.foreign_key_definition.any? do |key|
+              record.will_save_change_to_attribute?(record.class.attribute_aliases[key] || key)
+            end
+          else
+            route = reflection.association_route(origin_class: owner.class, destination_class: record.class)
+            route._reference_destination_key.any? do |key|
+              record.will_save_change_to_attribute?(key)
+            end
+          end
+        end
+
         def replace(record, save = true)
           raise_on_type_mismatch!(record) if record
 
@@ -117,18 +144,15 @@ module ActiveRecord
         end
 
         def nullify_owner_attributes(record)
-          primary_key = ActiveRecord::Key.for(record.class.primary_key)
-          foreign_key = ActiveRecord::Key.for(reflection.foreign_key)
+          route = reflection.association_route(origin_class: owner.class, destination_class: record.class)
+          primary_key = record.class.primary_key_definition
+          foreign_key = route._reference_destination_key
 
           # Preserve shared primary key columns only if another foreign key
           # column can be cleared to disassociate the record.
           preserve_primary_key = foreign_key.any? { |key| !primary_key.include?(key) }
 
-          foreign_key.each do |foreign_key_column|
-            next if preserve_primary_key && primary_key.include?(foreign_key_column)
-            record.write_attribute(foreign_key_column, nil)
-          end
-          record.write_attribute(reflection.type, nil) if reflection.type.present?
+          route.clear_reference(record, preserve: (primary_key if preserve_primary_key))
         end
 
         def transaction_if(value, &block)

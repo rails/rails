@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveStorage
   module Attached::Changes # :nodoc:
     extend ActiveSupport::Autoload

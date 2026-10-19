@@ -863,9 +863,11 @@ module ActiveRecord
           a.books.to_a
           Author.select(:status).joins(:books).group(:status).to_a
           Author.group(:name).count
+          Post.limit(2).count
+          Post.limit(2).count(:title)
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 9, notifications.length
+        assert_equal 11, notifications.length
 
         notifications.each do |n|
           assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
@@ -885,9 +887,11 @@ module ActiveRecord
           a.books.to_a
           Author.select(:status).joins(:books).group(:status).to_a
           Author.group(:name).count
+          Post.limit(2).count
+          Post.limit(2).count(:title)
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 9, notifications.length
+        assert_equal 11, notifications.length
 
         notifications.each do |n|
           assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
@@ -990,9 +994,10 @@ module ActiveRecord
       end
 
       test "can reconnect and retry queries under limit when retry deadline is set" do
+        connection = main_ractor_connection(@connection)
         attempts = 0
-        @connection.stub(:retry_deadline, 0.1) do
-          @connection.send(:with_raw_connection, allow_retry: true) do
+        connection.stub(:retry_deadline, 0.1) do
+          connection.send(:with_raw_connection, allow_retry: true) do
             if attempts == 0
               attempts += 1
               raise ActiveRecord::ConnectionFailed.new("Something happened to the connection")
@@ -1002,9 +1007,10 @@ module ActiveRecord
       end
 
       test "does not reconnect and retry queries when retries are disabled" do
+        connection = main_ractor_connection(@connection)
         assert_raises(ActiveRecord::ConnectionFailed) do
           attempts = 0
-          @connection.send(:with_raw_connection) do
+          connection.send(:with_raw_connection) do
             if attempts == 0
               attempts += 1
               raise ActiveRecord::ConnectionFailed.new("Something happened to the connection")
@@ -1014,10 +1020,11 @@ module ActiveRecord
       end
 
       test "does not reconnect and retry queries that exceed retry deadline" do
+        connection = main_ractor_connection(@connection)
         assert_raises(ActiveRecord::ConnectionFailed) do
           attempts = 0
-          @connection.stub(:retry_deadline, 0.1) do
-            @connection.send(:with_raw_connection, allow_retry: true) do
+          connection.stub(:retry_deadline, 0.1) do
+            connection.send(:with_raw_connection, allow_retry: true) do
               if attempts == 0
                 sleep(0.2)
                 attempts += 1

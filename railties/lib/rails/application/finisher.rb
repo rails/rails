@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/array/conversions"
 require "active_support/descendants_tracker"
@@ -169,7 +170,9 @@ module Rails
           # autoloaded constants are cleared we need to reload routes also in
           # case any was used there, as in
           #
-          #   mount MailPreview => 'mail_view'
+          # ```
+          # mount MailPreview => 'mail_view'
+          # ```
           #
           # This means routes are also reloaded if i18n is updated, which
           # might not be necessary, but in order to be more precise we need

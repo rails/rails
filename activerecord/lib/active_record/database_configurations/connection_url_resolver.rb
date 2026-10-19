@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "uri"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/hash/reverse_merge"
@@ -8,20 +9,23 @@ module ActiveRecord
   class DatabaseConfigurations
     # Expands a connection string into a hash.
     class ConnectionUrlResolver # :nodoc:
-      # == Example
+      # Example
+      # -------
       #
-      #   url = "postgresql://foo:bar@localhost:9000/foo_test?pool=5&timeout=3000"
-      #   ConnectionUrlResolver.new(url).to_hash
-      #   # => {
-      #     adapter:  "postgresql",
-      #     host:     "localhost",
-      #     port:     9000,
-      #     database: "foo_test",
-      #     username: "foo",
-      #     password: "bar",
-      #     pool:     "5",
-      #     timeout:  "3000"
-      #   }
+      # ```
+      # url = "postgresql://foo:bar@localhost:9000/foo_test?pool=5&timeout=3000"
+      # ConnectionUrlResolver.new(url).to_hash
+      # # => {
+      #   adapter:  "postgresql",
+      #   host:     "localhost",
+      #   port:     9000,
+      #   database: "foo_test",
+      #   username: "foo",
+      #   password: "bar",
+      #   pool:     "5",
+      #   timeout:  "3000"
+      # }
+      # ```
       def initialize(url)
         raise "Database URL cannot be empty" if url.blank?
         @uri     = uri_parser.parse(url)
@@ -50,13 +54,17 @@ module ActiveRecord
 
         # Converts the query parameters of the URI into a hash.
         #
-        #   "localhost?pool=5&reaping_frequency=2"
-        #   # => { pool: "5", reaping_frequency: "2" }
+        # ```
+        # "localhost?pool=5&reaping_frequency=2"
+        # # => { pool: "5", reaping_frequency: "2" }
+        # ```
         #
         # returns empty hash if no query present.
         #
-        #   "localhost"
-        #   # => {}
+        # ```
+        # "localhost"
+        # # => {}
+        # ```
         def query_hash
           Hash[(@query || "").split("&").map { |pair| pair.split("=", 2) }].symbolize_keys
         end

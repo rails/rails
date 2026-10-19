@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "action_view/helpers/tag_helper"
 require "active_support/html_safe_translation"
 
 module ActionView
   module Helpers # :nodoc:
-    # = Action View Translation \Helpers
+    # Action View Translation \Helpers
+    # ================================
     module TranslationHelper
       extend ActiveSupport::Concern
 
@@ -18,48 +20,50 @@ module ActionView
         mattr_accessor :debug_missing_translation, default: true
       end
 
-      # Delegates to <tt>I18n#translate</tt> but also performs three additional
+      # Delegates to `I18n#translate` but also performs three additional
       # functions.
       #
-      # First, it will ensure that any thrown +MissingTranslation+ messages will
+      # First, it will ensure that any thrown `MissingTranslation` messages will
       # be rendered as inline spans that:
       #
-      # * Have a <tt>translation-missing</tt> class applied
-      # * Contain the missing key as the value of the +title+ attribute
+      # * Have a `translation_missing` class applied
+      # * Contain the missing key as the value of the `title` attribute
       # * Have a titleized version of the last key segment as text
       #
       # For example, the value returned for the missing translation key
-      # <tt>"blog.post.title"</tt> will be:
+      # `"blog.post.title"` will be:
       #
-      #    <span
-      #      class="translation_missing"
-      #      title="translation missing: en.blog.post.title">Title</span>
+      # ```
+      # <span
+      #   class="translation_missing"
+      #   title="translation missing: en.blog.post.title">Title</span>
+      # ```
       #
       # This allows for views to display rather reasonable strings while still
       # giving developers a way to find missing translations.
       #
       # If you would prefer missing translations to raise an error, you can
       # opt out of span-wrapping behavior globally by setting
-      # <tt>config.i18n.raise_on_missing_translations = true</tt> or
-      # individually by passing <tt>raise: true</tt> as an option to
-      # <tt>translate</tt>.
+      # `config.i18n.raise_on_missing_translations = true` or
+      # individually by passing `raise: true` as an option to
+      # `translate`.
       #
-      # Second, if the key or the +:scope+ option starts with a period,
-      # <tt>translate</tt> will scope it by the current partial. Calling
-      # <tt>translate(".foo")</tt> or <tt>translate("bar", scope: ".foo")</tt>
-      # from the <tt>people/index.html.erb</tt> template is equivalent to
-      # calling <tt>translate("people.index.foo")</tt> or
-      # <tt>translate("bar", scope: "people.index.foo")</tt> respectively.
+      # Second, if the key or the `:scope` option starts with a period,
+      # `translate` will scope it by the current partial. Calling
+      # `translate(".foo")` or `translate("bar", scope: ".foo")`
+      # from the `people/index.html.erb` template is equivalent to
+      # calling `translate("people.index.foo")` or
+      # `translate("bar", scope: "people.index.foo")` respectively.
       # This makes it less repetitive to translate many keys within the same
       # partial and provides a convention to scope keys consistently. The key
       # takes precedence: if the key itself starts with a period, the
-      # +:scope+ option's own leading period is left as-is rather than
+      # `:scope` option's own leading period is left as-is rather than
       # expanded, preserving the pre-existing behavior for calls like
-      # <tt>translate(".bar", scope: ".foo")</tt>.
+      # `translate(".bar", scope: ".foo")`.
       #
-      # Third, the translation will be marked as <tt>html_safe</tt> if the key
-      # has the suffix "_html" or the last element of the key is "html". Calling
-      # <tt>translate("footer_html")</tt> or <tt>translate("footer.html")</tt>
+      # Third, the translation will be marked as `html_safe` if the key
+      # has the suffix "\_html" or the last element of the key is "html". Calling
+      # `translate("footer_html")` or `translate("footer.html")`
       # will return an HTML safe string that won't be escaped by other HTML
       # helper methods. This naming convention helps to identify translations
       # that include HTML tags so that you know what kind of output to expect
@@ -67,11 +71,13 @@ module ActionView
       # they can provide HTML values for.
       #
       # To access the translated text along with the fully resolved
-      # translation key, <tt>translate</tt> accepts a block:
+      # translation key, `translate` accepts a block:
       #
-      #     <%= translate(".relative_key") do |translation, resolved_key| %>
-      #       <span title="<%= resolved_key %>"><%= translation %></span>
-      #     <% end %>
+      # ```
+      # <%= translate(".relative_key") do |translation, resolved_key| %>
+      #   <span title="<%= resolved_key %>"><%= translation %></span>
+      # <% end %>
+      # ```
       #
       # This enables annotate translated text to be aware of the scope it was
       # resolved against.
@@ -117,7 +123,7 @@ module ActionView
       end
       alias :t :translate
 
-      # Delegates to <tt>I18n.localize</tt> with no additional functionality.
+      # Delegates to `I18n.localize` with no additional functionality.
       #
       # See https://www.rubydoc.info/gems/i18n/I18n/Backend/Base:localize
       # for more information.

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails/command/environment_argument"
 
 module Rails
@@ -58,7 +59,7 @@ module Rails
       Rails.env = environment
     end
 
-    # Whether to print a startup banner. Defaults to true; pass +--no-banner+
+    # Whether to print a startup banner. Defaults to true; pass `--no-banner`
     # to suppress it for one-off sessions.
     def banner?
       options.fetch(:banner, true)
@@ -123,7 +124,7 @@ module Rails
         def disable_query_cache_in_console!
           return unless defined?(ActiveRecord::Base)
 
-          ActiveRecord::Base.connection_handler.each_connection_pool.select(&:query_cache_enabled).each(&:disable_query_cache!)
+          ActiveRecord::QueryCache.disable_for_current_unit_of_work!
         end
     end
   end

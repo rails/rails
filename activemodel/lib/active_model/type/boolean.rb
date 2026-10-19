@@ -1,16 +1,18 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Type
-    # = Active Model \Boolean \Type
+    # Active Model \Boolean \Type
+    # ===========================
     #
     # A class that behaves like a boolean type, including rules for coercion of
     # user input.
     #
-    # - <tt>"false"</tt>, <tt>"f"</tt>, <tt>"0"</tt>, +0+ or any other value in
-    #   +FALSE_VALUES+ will be coerced to +false+.
-    # - Empty strings are coerced to +nil+.
-    # - All other values will be coerced to +true+.
+    # - `"false"`, `"f"`, `"0"`, `0` or any other value in
+    #   `FALSE_VALUES` will be coerced to `false`.
+    # - Empty strings are coerced to `nil`.
+    # - All other values will be coerced to `true`.
     class Boolean < Value
       include Helpers::Immutable
       FALSE_VALUES = [

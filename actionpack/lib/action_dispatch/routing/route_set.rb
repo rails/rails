@@ -198,13 +198,19 @@ module ActionDispatch
               super
               @required_parts = @route.required_parts
               @arg_size       = @required_parts.size
+              # A sole :format option can be rendered by the route's own optional
+              # format segment, unless the route has a default for it: the general
+              # path omits a format equal to the default, which the fast path
+              # cannot know about.
+              @format_optimizable = route.path.names.include?("format") && !route.defaults.key?(:format)
             end
 
             def call(t, method_name, args, inner_options, url_strategy)
-              if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
+              if args.size == arg_size && optimizable_options?(inner_options) && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
-                path = optimized_helper(args)
-                path << "/" if options[:trailing_slash] && !path.end_with?("/")
+                format = inner_options && inner_options[:format]
+                path = optimized_helper(args, format)
+                path << "/" if options[:trailing_slash] && !format && !path.end_with?("/")
                 options[:path] = path
 
                 original_script_name = options.delete(:original_script_name)
@@ -223,9 +229,20 @@ module ActionDispatch
             end
 
             private
-              def optimized_helper(args)
+              def optimizable_options?(inner_options)
+                inner_options.nil? ||
+                  (@format_optimizable && inner_options.size == 1 && inner_options[:format])
+              end
+
+              def optimized_helper(args, format = nil)
                 params = parameterize_args(args) do
                   raise_generation_error(args)
+                end
+                if format
+                  # As in the general path, a blank format is dropped rather than
+                  # rendered as a trailing dot.
+                  format = format.to_param
+                  params[:format] = format if format.present?
                 end
 
                 @route.format params
@@ -901,7 +918,10 @@ module ActionDispatch
 
       def call(env)
         req = make_request(env)
-        req.path_info = Journey::Router::Utils.normalize_path(req.path_info)
+        path_info = req.path_info
+        unless Journey::Router::Utils.normalized_path?(path_info)
+          req.path_info = Journey::Router::Utils.normalize_path(path_info)
+        end
         @router.serve(req)
       end
 

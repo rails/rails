@@ -37,18 +37,31 @@ module ActionDispatch
       end
 
       def evaluate(hash)
-        parts = @parts.dup
+        buffer = +""
+        add_to(buffer, hash)
+        buffer
+      end
 
+      # Appends this format's expansion to +buffer+ - or nothing at all when
+      # a parameter is missing, which is how an optional group whose
+      # parameter is absent drops out of the generated path. Building into a
+      # shared buffer avoids the intermediate arrays and strings a
+      # join-based evaluation allocates on every generated URL.
+      protected def add_to(buffer, hash)
         @parameters.each do |index|
-          param = parts[index]
-          value = hash[param.name]
-          return "" if value.nil?
-          parts[index] = param.escape value
+          return if hash[@parts[index].name].nil?
         end
 
-        @children.each { |index| parts[index] = parts[index].evaluate(hash) }
-
-        parts.join
+        @parts.each do |part|
+          case part
+          when String
+            buffer << part
+          when Journey::Format
+            part.add_to(buffer, hash)
+          else
+            buffer << part.escape(hash[part.name])
+          end
+        end
       end
     end
 

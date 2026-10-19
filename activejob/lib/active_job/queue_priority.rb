@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveJob
   module QueuePriority
     extend ActiveSupport::Concern
@@ -12,32 +13,36 @@ module ActiveJob
 
       # Specifies the priority of the queue to create the job with.
       #
-      #   class PublishToFeedJob < ActiveJob::Base
-      #     queue_with_priority 50
+      # ```
+      # class PublishToFeedJob < ActiveJob::Base
+      #   queue_with_priority 50
       #
-      #     def perform(post)
-      #       post.to_feed!
-      #     end
+      #   def perform(post)
+      #     post.to_feed!
       #   end
+      # end
+      # ```
       #
       # Can be given a block that will evaluate in the context of the job
       # so that a dynamic priority can be applied:
       #
-      #   class PublishToFeedJob < ApplicationJob
-      #     queue_with_priority do
-      #       post = self.arguments.first
+      # ```
+      # class PublishToFeedJob < ApplicationJob
+      #   queue_with_priority do
+      #     post = self.arguments.first
       #
-      #       if post.paid?
-      #         10
-      #       else
-      #         50
-      #       end
-      #     end
-      #
-      #     def perform(post)
-      #       post.to_feed!
+      #     if post.paid?
+      #       10
+      #     else
+      #       50
       #     end
       #   end
+      #
+      #   def perform(post)
+      #     post.to_feed!
+      #   end
+      # end
+      # ```
       def queue_with_priority(priority = nil, &block)
         if block_given?
           self.priority = ActiveSupport::Ractors.try_shareable_proc(block)

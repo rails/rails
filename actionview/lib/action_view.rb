@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 #--
 # Copyright (c) David Heinemeier Hansson
 #
@@ -28,6 +29,7 @@ require "active_support/rails"
 require "action_view/version"
 require "action_view/deprecator"
 
+# :markup: rdoc
 # :include: ../README.rdoc
 module ActionView
   extend ActiveSupport::Autoload

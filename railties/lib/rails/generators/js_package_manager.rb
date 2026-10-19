@@ -1,11 +1,18 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "pathname"
 
 module Rails
   module Generators
     module JsPackageManager # :nodoc:
       MANAGERS = {
+        aube: {
+          add: "aube add %s",
+          install: "aube ci",
+          lockfile: "aube-lock.yaml",
+          audit: nil
+        },
         bun: {
           add: "bun add %s",
           install: "bun install --frozen-lockfile",
@@ -33,7 +40,9 @@ module Rails
       }.freeze
 
       def self.detect(root)
-        if root.join("bun.lock").exist? || root.join("bun.lockb").exist? || root.join("bun.config.js").exist?
+        if root.join("aube-lock.yaml").exist?
+          :aube
+        elsif root.join("bun.lock").exist? || root.join("bun.lockb").exist? || root.join("bun.config.js").exist?
           :bun
         elsif root.join("pnpm-lock.yaml").exist?
           :pnpm

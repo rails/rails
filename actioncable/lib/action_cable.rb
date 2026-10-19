@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 #--
 # Copyright (c) 37signals LLC
 #

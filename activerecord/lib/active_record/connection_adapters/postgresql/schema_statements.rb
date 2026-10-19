@@ -1,25 +1,31 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+require "active_record/connection_adapters/postgresql/compatibility_behavior"
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module SchemaStatements
-        # Drops the database specified on the +name+ attribute
-        # and creates it again using the provided +options+.
+        # Drops the database specified on the `name` attribute
+        # and creates it again using the provided `options`.
         def recreate_database(name, options = {}) # :nodoc:
           drop_database(name)
           create_database(name, options)
         end
 
-        # Create a new PostgreSQL database. Options include <tt>:owner</tt>, <tt>:template</tt>,
-        # <tt>:encoding</tt> (defaults to utf8), <tt>:locale_provider</tt>, <tt>:locale</tt>,
-        # <tt>:collation</tt>, <tt>:ctype</tt>, <tt>:tablespace</tt>, and
-        # <tt>:connection_limit</tt> (note that MySQL uses <tt>:charset</tt> while PostgreSQL
-        # uses <tt>:encoding</tt>).
+        # Create a new PostgreSQL database. Options include `:owner`, `:template`,
+        # `:encoding` (defaults to utf8), `:locale_provider`, `:locale`,
+        # `:collation`, `:ctype`, `:tablespace`, and
+        # `:connection_limit` (note that MySQL uses `:charset` while PostgreSQL
+        # uses `:encoding`).
         #
         # Example:
-        #   create_database config[:database], config
-        #   create_database 'foo_development', encoding: 'unicode'
+        #
+        # ```
+        # create_database config[:database], config
+        # create_database 'foo_development', encoding: 'unicode'
+        # ```
         def create_database(name, options = {})
           options = { encoding: "utf8" }.merge!(options.symbolize_keys)
 
@@ -54,9 +60,12 @@ module ActiveRecord
         # Drops a PostgreSQL database.
         #
         # Example:
-        #   drop_database 'matt_development'
         #
-        # Note, for PostgreSQL versions >= 13 the SQL statement will include <tt>WITH (FORCE)</tt> to
+        # ```
+        # drop_database 'matt_development'
+        # ```
+        #
+        # Note, for PostgreSQL versions >= 13 the SQL statement will include `WITH (FORCE)` to
         # disconnect clients before dropping the database. This allows you to drop/reset the
         # database without stopping the \Rails server etc. See:
         # https://www.postgresql.org/docs/current/sql-dropdatabase.html
@@ -319,7 +328,6 @@ module ActiveRecord
               primary_key_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
 
               primary_key_column_and_sequences.rows.each do |table, column, namespace, sequence|
-                table = Utils.extract_schema_qualified_name(table).to_s
                 @tables[table].column = column
                 @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
               end
@@ -336,7 +344,6 @@ module ActiveRecord
               uuid_column_and_sequences = @adapter.exec_query(sql, "SCHEMA")
 
               uuid_column_and_sequences.rows.each do |table, column, namespace, sequence|
-                table = Utils.extract_schema_qualified_name(table).to_s
                 @tables[table].column = column
                 @tables[table].sequence = PostgreSQL::Name.new(namespace, sequence) if sequence
               end
@@ -376,10 +383,10 @@ module ActiveRecord
             end
 
             def primary_key_column_and_sequence_sql(tables)
-              tables = tables.map { |table| "#{@adapter.quote(@adapter.quote_table_name(table))}::regclass" }
               <<~SQL
-              SELECT dep.refobjid::regclass::text, attr.attname, nsp.nspname, seq.relname
-              FROM pg_class      seq,
+              SELECT tables.name, attr.attname, nsp.nspname, seq.relname
+              FROM (VALUES #{tables_values_sql(tables)}) AS tables (name, oid),
+                  pg_class      seq,
                   pg_attribute  attr,
                   pg_depend     dep,
                   pg_constraint cons,
@@ -393,14 +400,13 @@ module ActiveRecord
                 AND seq.relnamespace  = nsp.oid
                 AND cons.contype      = 'p'
                 AND dep.classid       = 'pg_class'::regclass
-                AND dep.refobjid      IN (#{tables.join(", ")})
+                AND dep.refobjid      = tables.oid
               SQL
             end
 
             def uuid_column_and_sequence_sql(tables)
-              tables = tables.map { |table| "#{@adapter.quote(@adapter.quote_table_name(table))}::regclass" }
               <<~SQL
-              SELECT t.oid::regclass::text, attr.attname, nsp.nspname,
+              SELECT tables.name, attr.attname, nsp.nspname,
                 CASE
                   WHEN pg_get_expr(def.adbin, def.adrelid) !~* 'nextval' THEN NULL
                   WHEN split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2) ~ '.' THEN
@@ -408,15 +414,22 @@ module ActiveRecord
                            strpos(split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2), '.')+1)
                   ELSE split_part(pg_get_expr(def.adbin, def.adrelid), '''', 2)
                 END
-              FROM pg_class       t
+              FROM (VALUES #{tables_values_sql(tables)}) AS tables (name, oid)
+              JOIN pg_class       t    ON (t.oid = tables.oid)
               JOIN pg_attribute   attr ON (t.oid = attrelid)
               JOIN pg_attrdef     def  ON (adrelid = attrelid AND adnum = attnum)
               JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
               JOIN pg_namespace   nsp  ON (t.relnamespace = nsp.oid)
-              WHERE t.oid IN (#{tables.join(", ")})
-                AND cons.contype = 'p'
+              WHERE cons.contype = 'p'
                 AND pg_get_expr(def.adbin, def.adrelid) ~* 'nextval|uuid_generate|gen_random_uuid'
               SQL
+            end
+
+            # Return the given name as the key; regclass::text omits the schema of a table on the search_path.
+            def tables_values_sql(tables)
+              tables.map do |table|
+                "(#{@adapter.quote(table)}, #{@adapter.quote(@adapter.quote_table_name(table))}::regclass)"
+              end.join(", ")
             end
 
             def select_max_column_value_sql(table, column)
@@ -509,7 +522,10 @@ module ActiveRecord
         # matches the Active Record default.
         #
         # Example:
-        #   rename_table('octopuses', 'octopi')
+        #
+        # ```
+        # rename_table('octopuses', 'octopi')
+        # ```
         def rename_table(table_name, new_name, **options)
           validate_table_length!(new_name) unless options[:_uses_legacy_table_name]
           clear_cache!
@@ -566,13 +582,13 @@ module ActiveRecord
           execute "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
         end
 
-        # Adds comment for given table column or drops it if +comment+ is a +nil+
+        # Adds comment for given table column or drops it if `comment` is a `nil`
         def change_column_comment(table_name, column_name, comment_or_changes) # :nodoc:
           clear_cache!
           execute change_column_comment_sql(table_name, column_name, comment_or_changes)
         end
 
-        # Adds comment for given table or drops it if +comment+ is a +nil+
+        # Adds comment for given table or drops it if `comment` is a `nil`
         def change_table_comment(table_name, comment_or_changes) # :nodoc:
           clear_cache!
           execute change_table_comment_sql(table_name, comment_or_changes)
@@ -680,24 +696,32 @@ module ActiveRecord
           table_name.is_a?(Array) ? result : result[table_name.to_s]
         end
 
-        # Adds a new exclusion constraint to the table. +expression+ is a String
+        # Adds a new exclusion constraint to the table. `expression` is a String
         # representation of a list of exclusion elements and operators.
         #
-        #   add_exclusion_constraint :products, "price WITH =, availability_range WITH &&", using: :gist, name: "price_check"
+        # ```
+        # add_exclusion_constraint :products, "price WITH =, availability_range WITH &&", using: :gist, name: "price_check"
+        # ```
         #
         # generates:
         #
-        #   ALTER TABLE "products" ADD CONSTRAINT price_check EXCLUDE USING gist (price WITH =, availability_range WITH &&)
+        # ```
+        # ALTER TABLE "products" ADD CONSTRAINT price_check EXCLUDE USING gist (price WITH =, availability_range WITH &&)
+        # ```
         #
-        # The +options+ hash can include the following keys:
-        # [<tt>:name</tt>]
-        #   The constraint name. Defaults to <tt>excl_rails_<identifier></tt>.
-        # [<tt>:deferrable</tt>]
-        #   Specify whether or not the exclusion constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
-        # [<tt>:using</tt>]
-        #   Specify which index method to use when creating this exclusion constraint (e.g. +:btree+, +:gist+ etc).
-        # [<tt>:where</tt>]
-        #   Specify an exclusion constraint on a subset of the table (internally PostgreSQL creates a partial index for this).
+        # The `options` hash can include the following keys:
+        #
+        # `:name`
+        # :   The constraint name. Defaults to `excl_rails_<identifier>`.
+        #
+        # `:deferrable`
+        # :   Specify whether or not the exclusion constraint should be deferrable. Valid values are `false` or `:immediate` or `:deferred` to specify the default behavior. Defaults to `false`.
+        #
+        # `:using`
+        # :   Specify which index method to use when creating this exclusion constraint (e.g. `:btree`, `:gist` etc).
+        #
+        # `:where`
+        # :   Specify an exclusion constraint on a subset of the table (internally PostgreSQL creates a partial index for this).
         def add_exclusion_constraint(table_name, expression, **options)
           options = exclusion_constraint_options(table_name, expression, options)
           at = build_alter_table_definition(table_name)
@@ -716,11 +740,13 @@ module ActiveRecord
 
         # Removes the given exclusion constraint from the table.
         #
-        #   remove_exclusion_constraint :products, name: "price_check"
+        # ```
+        # remove_exclusion_constraint :products, name: "price_check"
+        # ```
         #
-        # The +expression+ parameter will be ignored if present. It can be helpful
-        # to provide this in a migration's +change+ method so it can be reverted.
-        # In that case, +expression+ will be used by #add_exclusion_constraint.
+        # The `expression` parameter will be ignored if present. It can be helpful
+        # to provide this in a migration's `change` method so it can be reverted.
+        # In that case, `expression` will be used by #add_exclusion_constraint.
         def remove_exclusion_constraint(table_name, expression = nil, **options)
           at = build_alter_table_definition(table_name)
           at.remove_exclusion_constraint(expression, **options)
@@ -730,7 +756,9 @@ module ActiveRecord
 
         # Checks to see if an exclusion constraint exists on a table for a given exclusion constraint definition.
         #
-        #   exclusion_constraint_exists?(:invoices, name: "invoices_date_overlap")
+        # ```
+        # exclusion_constraint_exists?(:invoices, name: "invoices_date_overlap")
+        # ```
         #
         def exclusion_constraint_exists?(table_name, **options)
           if !options.key?(:name) && !options.key?(:expression)
@@ -741,26 +769,36 @@ module ActiveRecord
 
         # Adds a new unique constraint to the table.
         #
-        #   add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position", nulls_not_distinct: true
+        # ```
+        # add_unique_constraint :sections, [:position], deferrable: :deferred, name: "unique_position", nulls_not_distinct: true
+        # ```
         #
         # generates:
         #
-        #   ALTER TABLE "sections" ADD CONSTRAINT unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED
+        # ```
+        # ALTER TABLE "sections" ADD CONSTRAINT unique_position UNIQUE (position) DEFERRABLE INITIALLY DEFERRED
+        # ```
         #
         # If you want to change an existing unique index to deferrable, you can use :using_index to create deferrable unique constraints.
         #
-        #   add_unique_constraint :sections, deferrable: :deferred, name: "unique_position", using_index: "index_sections_on_position"
+        # ```
+        # add_unique_constraint :sections, deferrable: :deferred, name: "unique_position", using_index: "index_sections_on_position"
+        # ```
         #
-        # The +options+ hash can include the following keys:
-        # [<tt>:name</tt>]
-        #   The constraint name. Defaults to <tt>uniq_rails_<identifier></tt>.
-        # [<tt>:deferrable</tt>]
-        #   Specify whether or not the unique constraint should be deferrable. Valid values are +false+ or +:immediate+ or +:deferred+ to specify the default behavior. Defaults to +false+.
-        # [<tt>:using_index</tt>]
-        #   To specify an existing unique index name. Defaults to +nil+.
-        # [<tt>:nulls_not_distinct</tt>]
-        #   Create a unique constraint where NULLs are treated equally.
-        #   Note: only supported by PostgreSQL version 15.0.0 and greater.
+        # The `options` hash can include the following keys:
+        #
+        # `:name`
+        # :   The constraint name. Defaults to `uniq_rails_<identifier>`.
+        #
+        # `:deferrable`
+        # :   Specify whether or not the unique constraint should be deferrable. Valid values are `false` or `:immediate` or `:deferred` to specify the default behavior. Defaults to `false`.
+        #
+        # `:using_index`
+        # :   To specify an existing unique index name. Defaults to `nil`.
+        #
+        # `:nulls_not_distinct`
+        # :   Create a unique constraint where NULLs are treated equally.
+        # Note: only supported by PostgreSQL version 15.0.0 and greater.
         def add_unique_constraint(table_name, column_name = nil, **options)
           options = unique_constraint_options(table_name, column_name, options)
           at = build_alter_table_definition(table_name)
@@ -783,11 +821,13 @@ module ActiveRecord
 
         # Removes the given unique constraint from the table.
         #
-        #   remove_unique_constraint :sections, name: "unique_position"
+        # ```
+        # remove_unique_constraint :sections, name: "unique_position"
+        # ```
         #
-        # The +column_name+ parameter will be ignored if present. It can be helpful
-        # to provide this in a migration's +change+ method so it can be reverted.
-        # In that case, +column_name+ will be used by #add_unique_constraint.
+        # The `column_name` parameter will be ignored if present. It can be helpful
+        # to provide this in a migration's `change` method so it can be reverted.
+        # In that case, `column_name` will be used by #add_unique_constraint.
         def remove_unique_constraint(table_name, column_name = nil, **options)
           at = build_alter_table_definition(table_name)
           at.remove_unique_constraint(column_name, **options)
@@ -797,7 +837,9 @@ module ActiveRecord
 
         # Checks to see if a unique constraint exists on a table for a given unique constraint definition.
         #
-        #   unique_constraint_exists?(:sections, name: "unique_position")
+        # ```
+        # unique_constraint_exists?(:sections, name: "unique_position")
+        # ```
         #
         def unique_constraint_exists?(table_name, **options)
           if !options.key?(:name) && !options.key?(:column)
@@ -861,15 +903,21 @@ module ActiveRecord
           PostgreSQL::Table.new(table_name, base)
         end
 
+        def compatibility_behavior_for(migration_class) # :nodoc:
+          PostgreSQL::CompatibilityBehavior.for(migration_class)
+        end
+
         def create_schema_dumper(options) # :nodoc:
           PostgreSQL::SchemaDumper.create(self, options)
         end
 
         # Validates the given constraint.
         #
-        # Validates the constraint named +constraint_name+ on +accounts+.
+        # Validates the constraint named `constraint_name` on `accounts`.
         #
-        #   validate_constraint :accounts, :constraint_name
+        # ```
+        # validate_constraint :accounts, :constraint_name
+        # ```
         def validate_constraint(table_name, constraint_name)
           at = build_alter_table_definition table_name
           at.validate_constraint constraint_name
@@ -879,19 +927,25 @@ module ActiveRecord
 
         # Validates the given foreign key.
         #
-        # Validates the foreign key on +accounts.branch_id+.
+        # Validates the foreign key on `accounts.branch_id`.
         #
-        #   validate_foreign_key :accounts, :branches
+        # ```
+        # validate_foreign_key :accounts, :branches
+        # ```
         #
-        # Validates the foreign key on +accounts.owner_id+.
+        # Validates the foreign key on `accounts.owner_id`.
         #
-        #   validate_foreign_key :accounts, column: :owner_id
+        # ```
+        # validate_foreign_key :accounts, column: :owner_id
+        # ```
         #
-        # Validates the foreign key named +special_fk_name+ on the +accounts+ table.
+        # Validates the foreign key named `special_fk_name` on the `accounts` table.
         #
-        #   validate_foreign_key :accounts, name: :special_fk_name
+        # ```
+        # validate_foreign_key :accounts, name: :special_fk_name
+        # ```
         #
-        # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key.
+        # The `options` hash accepts the same keys as SchemaStatements#add_foreign_key.
         def validate_foreign_key(from_table, to_table = nil, **options)
           fk_name_to_validate = foreign_key_for!(from_table, to_table: to_table, **options).name
 
@@ -900,29 +954,37 @@ module ActiveRecord
 
         # Changes an existing foreign key constraint on a table.
         #
-        # The +enforced+ option toggles whether PostgreSQL checks referential integrity
+        # The `enforced` option toggles whether PostgreSQL checks referential integrity
         # during DML. Requires PostgreSQL 18.4+.
         #
-        # Like +validate_foreign_key+, this is a runtime helper rather than a migration
+        # Like `validate_foreign_key`, this is a runtime helper rather than a migration
         # command: it is not registered as reversible, so use it from application code
-        # or explicit +up+/+down+ methods. Accepted options are +:enforced+ plus
-        # identifying keys (+:column+, +:name+, +:to_table+).
+        # or explicit `up`/`down` methods. Accepted options are `:enforced` plus
+        # identifying keys (`:column`, `:name`, `:to_table`).
         #
-        # Changes the foreign key on +accounts.branch_id+ to NOT ENFORCED.
+        # Changes the foreign key on `accounts.branch_id` to NOT ENFORCED.
         #
-        #   change_foreign_key :accounts, :branches, enforced: false
+        # ```
+        # change_foreign_key :accounts, :branches, enforced: false
+        # ```
         #
-        # Changes the foreign key on +accounts.branch_id+ back to ENFORCED.
+        # Changes the foreign key on `accounts.branch_id` back to ENFORCED.
         #
-        #   change_foreign_key :accounts, :branches, enforced: true
+        # ```
+        # change_foreign_key :accounts, :branches, enforced: true
+        # ```
         #
-        # Changes the foreign key on +accounts.owner_id+.
+        # Changes the foreign key on `accounts.owner_id`.
         #
-        #   change_foreign_key :accounts, column: :owner_id, enforced: false
+        # ```
+        # change_foreign_key :accounts, column: :owner_id, enforced: false
+        # ```
         #
-        # Changes the foreign key named +special_fk_name+ on the +accounts+ table.
+        # Changes the foreign key named `special_fk_name` on the `accounts` table.
         #
-        #   change_foreign_key :accounts, name: :special_fk_name, enforced: false
+        # ```
+        # change_foreign_key :accounts, name: :special_fk_name, enforced: false
+        # ```
         #
         def change_foreign_key(from_table, to_table = nil, **options)
           unless supports_enforced_foreign_keys?
@@ -941,9 +1003,11 @@ module ActiveRecord
 
         # Validates the given check constraint.
         #
-        #   validate_check_constraint :products, name: "price_check"
+        # ```
+        # validate_check_constraint :products, name: "price_check"
+        # ```
         #
-        # The +options+ hash accepts the same keys as {add_check_constraint}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_check_constraint].
+        # The `options` hash accepts the same keys as [add_check_constraint](rdoc-ref:ConnectionAdapters::SchemaStatements#add_check_constraint).
         def validate_check_constraint(table_name, **options)
           chk_name_to_validate = check_constraint_for!(table_name, **options).name
 
@@ -1027,7 +1091,7 @@ module ActiveRecord
                 #{resolved_tables(schema, group)}
                 SELECT t.relname AS table_name,
                        pg_catalog.obj_description(t.oid, 'pg_class') AS comment,
-                       #{supports_native_partitioning? ? "pg_catalog.pg_get_partkeydef(t.oid)" : "NULL"} AS partition_key,
+                       pg_catalog.pg_get_partkeydef(t.oid) AS partition_key,
                        i.inhparent::regclass::text AS parent
                 FROM tables t
                 LEFT JOIN pg_inherits i ON i.inhrelid = t.oid
@@ -1425,6 +1489,16 @@ module ActiveRecord
           def unique_constraint_for!(table_name, column: nil, **options)
             unique_constraint_for(table_name, column: column, **options) ||
               raise(ArgumentError, "Table '#{table_name}' has no unique constraint for #{column || options}")
+          end
+
+          # Every table on the search path as [regclass::text, relname]. regclass::text
+          # schema-qualifies a name unless it resolves unqualified on the search path.
+          def search_path_tables
+            query_rows(<<~SQL, "SCHEMA")
+              SELECT c.oid::regclass::text, c.relname
+              FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+              WHERE n.nspname = ANY (current_schemas(false)) AND c.relkind IN ('r','p')
+            SQL
           end
 
           def data_source_sql(name = nil, type: nil)

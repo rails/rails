@@ -262,7 +262,7 @@ module ActiveSupport
     # Replaces `%Z` directive with +zone before passing to Time#strftime,
     # so that zone information is correct.
     def strftime(format)
-      format = format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}")
+      format = format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}") if format.include?("%Z")
       getlocal(utc_offset).strftime(format)
     end
 

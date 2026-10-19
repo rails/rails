@@ -133,6 +133,55 @@ class ResponseTest < ActiveSupport::TestCase
     assert_equal "application/aaron", @response.content_type
   end
 
+  def test_content_type_header_set_directly_after_being_read_is_picked_up
+    @response.content_type = "text/html"
+    assert_equal "text/html", @response.media_type
+
+    @response.headers["Content-Type"] = "application/aaron; charset=utf-16"
+    assert_equal "application/aaron", @response.media_type
+    assert_equal "utf-16", @response.charset
+
+    @response.headers.delete("Content-Type")
+    assert_nil @response.media_type
+    assert_equal "utf-8", @response.charset
+  end
+
+  def test_parsed_content_type_is_memoized_while_the_header_is_unchanged
+    @response.content_type = "text/html"
+    assert_same @response.media_type, @response.media_type
+
+    @response.headers["Content-Type"] = "text/html"
+    assert_same @response.media_type, @response.media_type
+  end
+
+  def test_content_type_set_through_the_writers_reads_back_like_a_parsed_header
+    [
+      ["text/html", nil],
+      ["text/html", "utf-16"],
+      ["text/html", :UTF8],
+      ["text/html", ""],
+      ["text/html", '"utf-8"'],
+      ["text/html", "utf 8"],
+      ["multipart/form-data; boundary=abc", "utf-8"],
+      ["text/html;charset=utf-16", nil],
+      [" text/html ", nil],
+      ["", "utf-8"],
+      ["", nil],
+      [nil, "utf-8"],
+      [nil, nil],
+    ].each do |content_type, charset|
+      written = ActionDispatch::Response.new
+      written.send(:set_content_type, content_type, charset)
+
+      parsed = ActionDispatch::Response.new
+      parsed.headers["Content-Type"] = written.headers["Content-Type"]
+
+      label = "content_type=#{content_type.inspect} charset=#{charset.inspect} header=#{written.headers["Content-Type"].inspect}"
+      assert_equal [parsed.media_type, parsed.charset, parsed.content_type],
+        [written.media_type, written.charset, written.content_type], label
+    end
+  end
+
   def test_empty_content_type_returns_nil
     @response.headers["Content-Type"] = ""
     assert_nil @response.content_type

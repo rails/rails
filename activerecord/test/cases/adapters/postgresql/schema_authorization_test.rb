@@ -13,7 +13,7 @@ class SchemaAuthorizationTest < ActiveRecord::PostgreSQLTestCase
     "id serial primary key",
     "name character varying(50)"
   ].freeze
-  USERS = ["rails_pg_schema_user1", "rails_pg_schema_user2"].freeze
+  USERS = ["u1", "u2"].map { |u| "#{ARTest.test_configuration_hashes["arunit"]["database"]}_#{u}" }.freeze
 
   def setup
     @connection = ActiveRecord::Base.lease_connection

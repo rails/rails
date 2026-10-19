@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Encryption
     # An encryptor that can encrypt data but can't decrypt it.

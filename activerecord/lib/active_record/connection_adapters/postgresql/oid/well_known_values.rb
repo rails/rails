@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 # This file is generated. Do not edit manually.
 #
 # To regenerate:
-#   bundle exec rake db:postgresql:update_well_known_oids
+#
+# ```
+# bundle exec rake db:postgresql:update_well_known_oids
+# ```
 
 module ActiveRecord
   module ConnectionAdapters

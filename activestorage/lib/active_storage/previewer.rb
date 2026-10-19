@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveStorage
-  # = Active Storage \Previewer
+  # Active Storage \Previewer
+  # =========================
   #
   # This is an abstract base class for previewers, which generate images from blobs. See
   # ActiveStorage::Previewer::MuPDFPreviewer and ActiveStorage::Previewer::VideoPreviewer for
@@ -35,15 +37,17 @@ module ActiveStorage
       # Executes a system command, capturing its binary output in a tempfile. Yields the tempfile.
       #
       # Use this method to shell out to a system library (e.g. muPDF or FFmpeg) for preview image
-      # generation. The resulting tempfile can be used as the +:io+ value in an attachable Hash:
+      # generation. The resulting tempfile can be used as the `:io` value in an attachable Hash:
       #
-      #   def preview
-      #     download_blob_to_tempfile do |input|
-      #       draw "my-drawing-command", input.path, "--format", "png", "-" do |output|
-      #         yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png"
-      #       end
+      # ```
+      # def preview
+      #   download_blob_to_tempfile do |input|
+      #     draw "my-drawing-command", input.path, "--format", "png", "-" do |output|
+      #       yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png"
       #     end
       #   end
+      # end
+      # ```
       #
       # The output tempfile is opened in the directory returned by #tmpdir.
       def draw(*argv) # :doc:

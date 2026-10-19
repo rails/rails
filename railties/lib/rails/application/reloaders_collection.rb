@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Rails
   class Application < Engine
     # Wraps the application's set of file reloaders. When a reloader is removed
-    # from the collection (via +clear+ or +delete+), its +deactivate+ method is
+    # from the collection (via `clear` or `delete`), its `deactivate` method is
     # called so it can clean up external state such as registered callbacks.
     class ReloadersCollection # :nodoc:
       include Enumerable

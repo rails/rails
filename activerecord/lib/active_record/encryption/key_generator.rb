@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "securerandom"
 
 module ActiveRecord
@@ -12,12 +13,12 @@ module ActiveRecord
         @hash_digest_class = hash_digest_class
       end
 
-      # Returns a random key. The key will have a size in bytes of +:length+ (configured +Cipher+'s length by default)
+      # Returns a random key. The key will have a size in bytes of `:length` (configured `Cipher`'s length by default)
       def generate_random_key(length: key_length)
         SecureRandom.random_bytes(length)
       end
 
-      # Returns a random key in hexadecimal format. The key will have a size in bytes of +:length+ (configured +Cipher+'s
+      # Returns a random key in hexadecimal format. The key will have a size in bytes of `:length` (configured `Cipher`'s
       # length by default)
       #
       # Hexadecimal format is handy for representing keys as printable text. To maximize the space of characters used, it is
@@ -26,15 +27,17 @@ module ActiveRecord
       #
       # To convert back to the original string with the desired length:
       #
-      #   [ value ].pack("H*")
+      # ```
+      # [ value ].pack("H*")
+      # ```
       def generate_random_hex_key(length: key_length)
         generate_random_key(length: length).unpack("H*")[0]
       end
 
-      # Derives a key from the given password. The key will have a size in bytes of +:length+ (configured +Cipher+'s length
+      # Derives a key from the given password. The key will have a size in bytes of `:length` (configured `Cipher`'s length
       # by default)
       #
-      # The generated key will be salted with the value of +ActiveRecord::Encryption.key_derivation_salt+
+      # The generated key will be salted with the value of `ActiveRecord::Encryption.key_derivation_salt`
       def derive_key_from(password, length: key_length)
         ActiveSupport::KeyGenerator.new(password, hash_digest_class: hash_digest_class)
           .generate_key(key_derivation_salt, length)

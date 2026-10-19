@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveJob
-  # = Active Job \Serializers
+  # Active Job \Serializers
+  # =======================
   #
-  # The +ActiveJob::Serializers+ module is used to store a list of known serializers
+  # The `ActiveJob::Serializers` module is used to store a list of known serializers
   # and to add new ones. It also has helpers to serialize/deserialize objects.
   module Serializers # :nodoc:
     extend ActiveSupport::Autoload
@@ -36,7 +38,7 @@ module ActiveJob
 
       # Returns deserialized object.
       # Will look up through all known serializers.
-      # If no serializer found will raise <tt>ArgumentError</tt>.
+      # If no serializer found will raise `ArgumentError`.
       def deserialize(argument)
         serializer_name = argument[OBJECT_SERIALIZER_KEY]
         raise ArgumentError, "Serializer name is not present in the argument: #{argument.inspect}" unless serializer_name
@@ -60,6 +62,13 @@ module ActiveJob
       def add_serializers(*new_serializers)
         new_serializers = new_serializers.flatten
         add_new_serializers(new_serializers)
+      end
+
+      def make_shareable! # :nodoc:
+        require "active_job/arguments"
+
+        ActiveSupport::Ractors.try_make_shareable(@serializers)
+        ActiveSupport::Ractors.try_make_shareable(@serializers_index)
       end
 
       private

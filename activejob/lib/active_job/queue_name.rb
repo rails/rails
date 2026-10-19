@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveJob
   module QueueName
     extend ActiveSupport::Concern
@@ -17,32 +18,36 @@ module ActiveJob
 
       # Specifies the name of the queue to process the job on.
       #
-      #   class PublishToFeedJob < ActiveJob::Base
-      #     queue_as :feeds
+      # ```
+      # class PublishToFeedJob < ActiveJob::Base
+      #   queue_as :feeds
       #
-      #     def perform(post)
-      #       post.to_feed!
-      #     end
+      #   def perform(post)
+      #     post.to_feed!
       #   end
+      # end
+      # ```
       #
       # Can be given a block that will evaluate in the context of the job
       # so that a dynamic queue name can be applied:
       #
-      #   class PublishToFeedJob < ApplicationJob
-      #     queue_as do
-      #       post = self.arguments.first
+      # ```
+      # class PublishToFeedJob < ApplicationJob
+      #   queue_as do
+      #     post = self.arguments.first
       #
-      #       if post.paid?
-      #         :paid_feeds
-      #       else
-      #         :feeds
-      #       end
-      #     end
-      #
-      #     def perform(post)
-      #       post.to_feed!
+      #     if post.paid?
+      #       :paid_feeds
+      #     else
+      #       :feeds
       #     end
       #   end
+      #
+      #   def perform(post)
+      #     post.to_feed!
+      #   end
+      # end
+      # ```
       def queue_as(part_name = nil, &block)
         if block_given?
           self.queue_name = ActiveSupport::Ractors.try_shareable_proc(block)
@@ -58,10 +63,22 @@ module ActiveJob
       end
     end
 
+    module FrozenQueueNameParts # :nodoc:
+      def queue_name_prefix=(prefix)
+        super(prefix.freeze)
+      end
+
+      def queue_name_delimiter=(delimiter)
+        super(delimiter.freeze)
+      end
+    end
+
     included do
       class_attribute :queue_name, instance_accessor: false, default: ActiveSupport::Ractors.shareable_proc { self.class.default_queue_name }
       class_attribute :queue_name_delimiter, instance_accessor: false, default: "_"
       class_attribute :queue_name_prefix
+
+      singleton_class.prepend FrozenQueueNameParts
     end
 
     # Returns the name of the queue the job will be run on.

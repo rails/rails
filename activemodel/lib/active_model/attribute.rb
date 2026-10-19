@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/object/duplicable"
 
 module ActiveModel
@@ -38,8 +39,24 @@ module ActiveModel
       @value = value unless value.nil?
     end
 
+    def freezable?
+      true
+    end
+
+    def freeze
+      value.freeze
+      super
+    end
+
     def value(&)
       # `defined?` is cheaper than `||=` when we get back falsy values
+      @value = type_cast(value_before_type_cast) unless defined?(@value)
+      @value
+    end
+
+    # Like #value, but raises MissingAttributeError if the attribute is
+    # uninitialized.
+    def value! # :nodoc:
       @value = type_cast(value_before_type_cast) unless defined?(@value)
       @value
     end
@@ -258,6 +275,10 @@ module ActiveModel
           if block_given?
             yield name
           end
+        end
+
+        def value!
+          raise ActiveModel::MissingAttributeError, "missing attribute '#{name}'"
         end
 
         def original_value

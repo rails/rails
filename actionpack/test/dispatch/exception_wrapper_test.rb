@@ -172,7 +172,7 @@ module ActionDispatch
       rescue NameError => exc
       end
 
-      error_highlight = Object.send(:remove_const, :ErrorHighlight) if defined?(ErrorHighlight)
+      error_highlight = Object.send(:remove_const, :ErrorHighlight) if defined?(ErrorHighlight) && ErrorHighlight
       wrapper = ExceptionWrapper.new(nil, exc)
 
       # Without error_highlight there is no column to mark: the source is read from the

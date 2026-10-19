@@ -714,6 +714,60 @@ class InverseHasManyTests < ActiveRecord::TestCase
 
     assert_equal post2, comment.post
   end
+
+  def test_inverse_from_queries_matches_keys_of_different_types
+    comment_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+      self.inheritance_column = nil
+      def self.name = "Comment"
+    end
+    post_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      self.inheritance_column = nil
+      def self.name = "Post"
+      has_many :body_comments, anonymous_class: comment_class, foreign_key: :body, inverse_of: :body_post
+    end
+    comment_class.belongs_to :body_post, anonymous_class: post_class, foreign_key: :body, inverse_of: :body_comments
+
+    post = post_class.create!(title: "Typed", body: "Typed")
+    comment_class.create!(post_id: post.id, body: post.id.to_s)
+
+    comment = post.body_comments.where(post_id: post.id).first
+    assert_same post, comment.body_post
+  end
+
+  def test_inverse_from_queries_does_not_match_a_through_inverse
+    comment_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+      self.inheritance_column = nil
+      def self.name = "Comment"
+    end
+    post_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      self.inheritance_column = nil
+      def self.name = "Post"
+      has_many :comments, anonymous_class: comment_class, inverse_of: :thread_post
+    end
+    comment_class.belongs_to :post, anonymous_class: post_class
+    comment_class.belongs_to :parent, anonymous_class: comment_class, optional: true
+    comment_class.has_one :thread_post, through: :parent, source: :post
+
+    post = post_class.create!(title: "Thread", body: "Thread")
+    comment_class.create!(post_id: post.id, body: "Parentless")
+
+    comment = post.comments.where(post_id: post.id).to_a.first
+    assert_nil comment.thread_post
+  end
+
+  def test_inverse_from_queries_only_matches_the_loaded_records_reference
+    grandparent = Comment.create!(post_id: posts(:welcome).id, body: "Grandparent")
+    parent = Comment.create!(post_id: posts(:welcome).id, body: "Parent", parent: grandparent)
+
+    loaded = parent.children.unscope(where: :parent_id).where(id: grandparent.id).to_a.first
+
+    assert_equal grandparent, loaded
+    assert_nil loaded.parent
+  end
 end
 
 class InverseBelongsToTests < ActiveRecord::TestCase

@@ -54,14 +54,16 @@ module ActiveSupport
       super(key.to_sym, *identifiers)
     end
 
-    def method_missing(method, *args)
+    # A single optional argument rather than a splat: reads are by far the most
+    # common call and must not allocate.
+    def method_missing(method, arg = nil)
       if method.end_with?("=")
-        self[method.name.chomp("=")] = args.first
+        self[method.name.chomp("=")] = arg
       elsif method.end_with?("!")
         name_string = method.name.chomp("!")
         self[name_string].presence || raise(KeyError.new(":#{name_string} is blank"))
       else
-        self[method.name]
+        self[method]
       end
     end
 

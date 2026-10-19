@@ -41,6 +41,8 @@ require "active_record/errors"
 module ActiveRecord
   extend ActiveSupport::Autoload
 
+  autoload :AssociationLink, "active_record/association_route"
+  autoload :AssociationRoute
   autoload :Base
   autoload :Callbacks
   autoload :ConnectionHandling
@@ -662,7 +664,7 @@ module ActiveRecord
 
   def self.all_open_transactions # :nodoc:
     open_transactions = []
-    Base.connection_handler.each_connection_pool do |pool|
+    ConnectionAdapters::ConnectionPool.each_used_pool do |pool|
       if active_connection = pool.active_connection
         current_transaction = active_connection.current_transaction
 
