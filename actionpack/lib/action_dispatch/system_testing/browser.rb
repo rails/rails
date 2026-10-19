@@ -52,6 +52,7 @@ module ActionDispatch
           options = ::Selenium::WebDriver::Chrome::Options.new
           options.add_argument("--disable-search-engine-choice-screen")
           options.add_argument("--headless") if name == :headless_chrome
+          options.add_argument("--mute-audio") if name == :headless_chrome
           options.add_argument("--disable-gpu") if Gem.win_platform?
           options
         end
