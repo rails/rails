@@ -232,7 +232,12 @@ module Rails
       end
 
       initializer :enable_yjit do
-        if config.yjit && defined?(RubyVM::YJIT.enable)
+        # Only one JIT can be enabled at a time: ZJIT, when asked for and
+        # available, otherwise YJIT.
+        if config.zjit && defined?(RubyVM::ZJIT.enable)
+          options = config.zjit.is_a?(Hash) ? config.zjit : {}
+          RubyVM::ZJIT.enable(**options)
+        elsif config.yjit && defined?(RubyVM::YJIT.enable)
           options = config.yjit.is_a?(Hash) ? config.yjit : {}
           RubyVM::YJIT.enable(**options)
         end

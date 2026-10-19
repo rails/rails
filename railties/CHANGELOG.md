@@ -1,3 +1,16 @@
+*   Add `config.zjit` to enable ZJIT after the application has booted.
+
+    Like `config.yjit`, it enables the JIT once boot is done, so it doesn't
+    compile code that only runs while booting, as `--zjit` or
+    `RUBY_ZJIT_ENABLE` would. When ZJIT is available it takes precedence over
+    `config.yjit`, since only one JIT can be enabled.
+
+    ```ruby
+    config.zjit = true
+    ```
+
+    *Sampo Kuokkanen*
+
 *   Add a `before_ractorize` load hook that runs in `Rails::Application#ractorize!`
     so frameworks, engines, and gems can prepare their own state to be shared
     with Ractors.
