@@ -27,7 +27,7 @@ module ActiveRecord
               canonical_name
             ) do |temp_method_name, attr_name_expr|
               read = if ord
-                "_read_attribute_at!(#{ord}, #{attr_name_expr})"
+                "_read_attribute_at!(#{ord})"
               else
                 "_read_attribute!(#{attr_name_expr})"
               end
@@ -77,12 +77,12 @@ module ActiveRecord
       end
 
       # Like #_read_attribute!, but takes the attribute's +index+ (its
-      # column's +ord+). The name is only used for the error when the
-      # attribute is missing. Called by the generated reader methods for
-      # attributes that have a column.
-      def _read_attribute_at!(index, attr_name) # :nodoc:
+      # column's +ord+) instead of its name. Called by the generated reader
+      # methods for attributes that have a column.
+      def _read_attribute_at!(index) # :nodoc:
         @attributes.fetch_value_at!(index)
       rescue ActiveModel::MissingAttributeError
+        attr_name = @attributes.name_at(index)
         raise if @attributes.key?(attr_name)
         missing_attribute(attr_name, RUBY_VERSION >= "3.4" ? caller_locations : caller)
       end
