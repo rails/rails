@@ -5487,6 +5487,8 @@ module ApplicationTests
     end
 
     test "config.zjit enables ZJIT instead of YJIT, and YJIT on a Ruby without ZJIT" do
+      skip "YJIT is already enabled, so ZJIT cannot be enabled" if defined?(RubyVM::ZJIT.enable) && RubyVM::YJIT.enabled?
+
       add_to_config "config.yjit = true"
       add_to_config "config.zjit = true"
       app "development"
