@@ -199,9 +199,12 @@ module ActiveRecord
       @column_indexes ||= ActiveModel::IndexedRow.build_indexes(columns)
     end
 
+    # Yields each row laid out for +column_map+, as an Array, with the
+    # indexes it's laid out with (see RowLayout).
     def map_rows(column_map) # :nodoc:
-      layout = RowLayout.new(@columns, column_map)
-      @rows.map { |row| yield layout.build(row) }
+      layout = RowLayout.new(@columns, column_map, @column_types)
+      indexes = layout.indexes
+      @rows.map { |row| yield layout.build(row), indexes }
     end
 
     # Like #map_rows, but each row is laid out for the column map that
@@ -214,8 +217,8 @@ module ActiveRecord
 
       @rows.map do |row|
         value = row[index]
-        layout = layouts[value] ||= RowLayout.new(@columns, column_map_for.call(value))
-        yield layout.build(row), value
+        layout = layouts[value] ||= RowLayout.new(@columns, column_map_for.call(value), @column_types)
+        yield layout.build(row), layout.indexes, value
       end
     end
 
@@ -232,17 +235,23 @@ module ActiveRecord
     #
     # "Pending" columns are columns the schema didn't know about, so no
     # methods were generated for them, for example column aliases. They
-    # are given indexes after the last one in the column map, and rows get
-    # a proxy that wraps the column map with those extra indexes, so the
-    # column map itself is never modified.
+    # are given indexes after the last one in the column map, and rows are
+    # laid out with a proxy that wraps the column map with those extra
+    # indexes (and the types the database gave them), so the column map
+    # itself is never modified.
     #
     # The LUT is only built once a column is found out of place, so in the
     # common case (selected columns are in schema order) rows are used
     # as-is.
     class RowLayout # :nodoc:
-      def initialize(columns, column_map)
+      attr_reader :indexes
+
+      # +column_types+ are the types of +columns+, by position, if the
+      # database gave them.
+      def initialize(columns, column_map, column_types = nil)
         shuffle_lut = nil
         pending = nil
+        pending_types = nil
         last_slot = nil
 
         columns.each_with_index do |name, i|
@@ -250,6 +259,9 @@ module ActiveRecord
             pending ||= {}
             last_slot ||= ActiveModel::IndexedRow.max_slot(column_map)
             slot = pending[name] = (last_slot += 1)
+            if type = column_types&.[](i)
+              (pending_types ||= {})[slot] = type
+            end
           end
 
           if shuffle_lut
@@ -259,7 +271,9 @@ module ActiveRecord
           end
         end
 
-        @indexes = if pending
+        @indexes = if pending_types
+          ActiveModel::IndexedRow::ExtendedIndexes.new(column_map, pending.freeze, pending_types.freeze)
+        elsif pending
           ActiveModel::IndexedRow::ExtendedIndexes.new(column_map, pending.freeze)
         else
           column_map
@@ -268,13 +282,13 @@ module ActiveRecord
         @width = shuffle_lut.max + 1 if shuffle_lut
       end
 
+      # Returns +row+ laid out by #indexes, as an Array.
       def build(row)
-        if @shuffle_lut
-          shuffled = ActiveModel::IndexedRow.unset_row(@width)
-          @shuffle_lut.each_with_index { |slot, i| shuffled[slot] = row[i] }
-          row = shuffled.freeze
-        end
-        ActiveModel::IndexedRow.new(@indexes, row)
+        return row unless @shuffle_lut
+
+        shuffled = ActiveModel::IndexedRow.unset_row(@width)
+        @shuffle_lut.each_with_index { |slot, i| shuffled[slot] = row[i] }
+        shuffled.freeze
       end
     end
 

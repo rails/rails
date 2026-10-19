@@ -107,19 +107,14 @@ module ActiveRecord
             h[type] = discriminate_class_for_record(inheritance_column => type)
           end
           column_map_for = ->(type) { classes[type].attributes_builder.indexes }
-          column_types = Hash.new do |h, klass|
-            h[klass] = extra_column_types(result_set, klass)
-          end
 
-          result_set.map_rows_by(inheritance_column, column_map_for) { |record, type|
-            klass = classes[type]
-            instantiate_instance_of(klass, record, column_types[klass], &block)
+          result_set.map_rows_by(inheritance_column, column_map_for) { |row, indexes, type|
+            instantiate_instance_of(classes[type], row, indexes, &block)
           }
         else
           # Instantiate a homogeneous set
-          column_types = extra_column_types(result_set, self)
-          result_set.map_rows(attributes_builder.indexes) { |record|
-            instantiate_instance_of(self, record, column_types, &block)
+          result_set.map_rows(attributes_builder.indexes) { |row, indexes|
+            instantiate_instance_of(self, row, indexes, &block)
           }
         end
       end
@@ -155,20 +150,6 @@ module ActiveRecord
     end
 
     private
-      # The types of the columns in +result_set+ that +klass+ doesn't have,
-      # in order. Rows are laid out with those columns after the class's
-      # attributes, in the same order (see Result#map_rows).
-      def extra_column_types(result_set, klass)
-        indexes = klass.attributes_builder.indexes
-        types = nil
-
-        result_set.each_pair do |name, type|
-          (types ||= []) << type unless indexes.key?(name)
-        end
-
-        types || ActiveModel::AttributeSet::Builder::EMPTY_TYPES
-      end
-
       def _sql_for_find(sql)
         return sql unless sql.is_a?(Array)
 
