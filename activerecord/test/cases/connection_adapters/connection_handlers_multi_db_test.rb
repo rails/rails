@@ -86,6 +86,34 @@ module ActiveRecord
         assert_equal "reading", relation.first.connection_role
       end
 
+      def test_connected_to_many_loads_returned_relations
+        SecondaryBase.connects_to database: { writing: { database: ":memory:", adapter: "sqlite3" }, secondary: { database: ":memory:", adapter: "sqlite3" } }
+
+        SecondaryBase.connected_to(role: :secondary) do
+          MultiConnectionTestModel.lease_connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
+          MultiConnectionTestModel.create!(connection_role: "secondary")
+        end
+
+        relation = MultiConnectionTestModel.all
+        result = ActiveRecord::Base.connected_to_many(SecondaryBase, role: :secondary) { relation }
+
+        assert_same relation, result
+        assert_equal :writing, SecondaryBase.current_role
+        assert_equal ["secondary"], result.map(&:connection_role)
+      end
+
+      def test_connected_to_many_restores_role_when_loading_raises
+        SecondaryBase.connects_to database: { writing: { database: ":memory:", adapter: "sqlite3" }, secondary: { database: ":memory:", adapter: "sqlite3" } }
+
+        assert_raises ActiveRecord::StatementInvalid do
+          ActiveRecord::Base.connected_to_many(SecondaryBase, role: :secondary) do
+            MultiConnectionTestModel.all
+          end
+        end
+
+        assert_equal :writing, SecondaryBase.current_role
+      end
+
       unless in_memory_db?
         def test_establish_connection_using_3_levels_config
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
