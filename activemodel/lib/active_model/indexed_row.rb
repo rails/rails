@@ -18,6 +18,11 @@ module ActiveModel
         indexes.each_value.max || -1
       end
 
+      # Whether +row+, an Array laid out by slot, has a value at +index+.
+      def key_at?(row, index)
+        index < row.size && !UNSET.equal?(row[index])
+      end
+
       def [](hash)
         return hash if hash.is_a?(self)
 
@@ -131,7 +136,7 @@ module ActiveModel
 
     # Like #key?, but looks the column up by its index in the row.
     def key_at?(index)
-      index < @row.size && !UNSET.equal?(@row[index])
+      IndexedRow.key_at?(@row, index)
     end
 
     def to_h
