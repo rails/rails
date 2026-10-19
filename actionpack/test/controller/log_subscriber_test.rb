@@ -284,6 +284,16 @@ class ACLogSubscriberTest < ActionController::TestCase
     assert_equal "Redirected to http://secret.foo.bar?username=repinel&password=[FILTERED]", logs[1]
   end
 
+  def test_filter_redirect_params_by_proc
+    @request.env["action_dispatch.parameter_filter"] = [
+      ->(key, value, original_params) { value.replace("[FILTERED]") if original_params[key] == "1234" }
+    ]
+    get :filterable_redirector_with_params
+
+    assert_equal 3, logs.size
+    assert_equal "Redirected to http://secret.foo.bar?username=repinel&password=[FILTERED]", logs[1]
+  end
+
   def test_filter_redirect_bad_uri
     @request.env["action_dispatch.parameter_filter"] = [/pass.+/]
 
