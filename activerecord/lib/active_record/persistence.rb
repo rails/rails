@@ -118,12 +118,13 @@ module ActiveRecord
 
         # +column_types+ can override the types of the class's attributes,
         # as well as type the columns it doesn't have.
+        indexes = attributes.indexes
         unless column_types.empty?
           builder = builder.with_types(column_types)
-          column_types = builder.additional_types_for(attributes.indexes, column_types)
+          indexes = builder.typed_indexes(indexes, column_types)
         end
 
-        attributes = builder.build_from_database(attributes, column_types)
+        attributes = builder.build_from_row(attributes.row, indexes)
         klass.allocate.init_with_attributes(attributes, &block)
       end
 
@@ -289,10 +290,11 @@ module ActiveRecord
           end
         end
 
-        # Given a class, an attributes hash, `instantiate_instance_of` returns a
-        # new instance of the class. Accepts only keys as strings.
-        def instantiate_instance_of(klass, attributes, column_types = {}, &block)
-          attributes = klass.attributes_builder.build_from_database(attributes, column_types)
+        # Given a class, a row Array and the indexes it's laid out with (see
+        # Result#map_rows), `instantiate_instance_of` returns a new instance
+        # of the class.
+        def instantiate_instance_of(klass, row, indexes, &block)
+          attributes = klass.attributes_builder.build_from_row(row, indexes)
           klass.allocate.init_with_attributes(attributes, &block)
         end
 

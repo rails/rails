@@ -27,14 +27,17 @@ module ActiveModel
           @type_keys_lut[index]
         end
 
-        # The type of the attribute at +index+. Indexes after the model's
-        # are for names a row has that the model doesn't, typed by
-        # +additional_types+ in order.
-        def type_at(index, additional_types)
+        # The type of the attribute at +index+ in a row laid out with
+        # +indexes+. Indexes after the model's are for names a row has that
+        # the model doesn't, typed by the query that selected them (see
+        # IndexedRow::ExtendedIndexes#type_at).
+        def type_at(index, indexes)
           if index < @types.size
             @types[index]
+          elsif indexes.is_a?(IndexedRow::ExtendedIndexes)
+            indexes.type_at(index) || Type.default_value
           else
-            additional_types[index - @types.size] || Type.default_value
+            Type.default_value
           end
         end
 
@@ -84,19 +87,23 @@ module ActiveModel
         freeze
       end
 
-      EMPTY_TYPES = [].freeze
       EMPTY_ROW = [].freeze
 
       # +values+ is an IndexedRow of raw values from the database. Use
-      # #row_from_hash to build one from a Hash. +additional_types+ are the
-      # types of the names +values+ has after the ones in #indexes (such as
-      # aliases), in order (see #type_at).
-      def build_from_database(values, additional_types = EMPTY_TYPES)
-        LazyAttributeSet.new(values.row, values.indexes, additional_types, @from_db_context)
+      # #row_from_hash to build one from a Hash.
+      def build_from_database(values)
+        build_from_row(values.row, values.indexes)
+      end
+
+      # Like #build_from_database, but takes the row Array and the indexes
+      # it's laid out with, which can type the names after the ones in
+      # #indexes, such as aliases (see #typed_indexes).
+      def build_from_row(row, indexes)
+        LazyAttributeSet.new(row, indexes, @from_db_context)
       end
 
       def build_from_initialize
-        LazyAttributeSet.new(EMPTY_ROW, @indexes, EMPTY_TYPES, @from_init_context)
+        LazyAttributeSet.new(EMPTY_ROW, @indexes, @from_init_context)
       end
 
       # Lays +hash+ out like a row loaded from the database: each name at
@@ -144,17 +151,19 @@ module ActiveModel
         copy.freeze
       end
 
-      # Converts +column_types+, a Hash of types by name, into the
-      # +additional_types+ for a row laid out with +indexes+ (see
-      # #build_from_database).
-      def additional_types_for(indexes, column_types)
-        return EMPTY_TYPES if column_types.empty? || !indexes.is_a?(IndexedRow::ExtendedIndexes)
+      # Returns +indexes+ with the types in +column_types+ (a Hash of types
+      # by name) for the names it has after the ones in #indexes, such as
+      # aliases (see #build_from_row).
+      def typed_indexes(indexes, column_types)
+        return indexes if column_types.empty? || !indexes.is_a?(IndexedRow::ExtendedIndexes)
 
-        types = []
+        types = {}
         indexes.extra.each do |name, slot|
-          types[slot - @names.size] = column_types[name] if slot >= @names.size
+          types[slot] = column_types[name] if slot >= @names.size && column_types[name]
         end
-        types
+        return indexes if types.empty?
+
+        IndexedRow::ExtendedIndexes.new(indexes.indexes, indexes.extra, types.freeze)
       end
 
       protected
