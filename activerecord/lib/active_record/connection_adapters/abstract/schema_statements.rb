@@ -1475,10 +1475,6 @@ module ActiveRecord
         insert_versions_sql(versions) if versions.any?
       end
 
-      def internal_string_options_for_primary_key # :nodoc:
-        { primary_key: true }
-      end
-
       # Whether to inject `default: nil` for an integer or bigint primary key.
       def inject_legacy_primary_key_default?(type) # :nodoc:
         [:integer, :bigint].include?(type)

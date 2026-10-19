@@ -7,7 +7,6 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
   include ConnectionHelper
 
   def setup
-    ActiveRecord::Base.lease_connection.send(:default_row_format)
     ActiveRecord::Base.lease_connection.singleton_class.class_eval do
       alias_method :execute_without_stub, :execute
       def execute(sql, name = nil)
@@ -222,13 +221,7 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   def test_create_mysql_database_with_encoding
-    if ActiveRecord::Base.lease_connection.send(:row_format_dynamic_by_default?)
-      assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8mb4`", create_database(:matt)
-    else
-      error = assert_raises(RuntimeError) { create_database(:matt) }
-      expected = "Configure a supported :charset and ensure innodb_large_prefix is enabled to support indexes on varchar(255) string columns."
-      assert_equal expected, error.message
-    end
+    assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8mb4`", create_database(:matt)
     assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, charset: "latin1")
     assert_equal "CREATE DATABASE `matt_aimonetti` DEFAULT COLLATE `utf8mb4_bin`", create_database(:matt_aimonetti, collation: "utf8mb4_bin")
   end
@@ -284,7 +277,7 @@ class ActiveSchemaTest < ActiveRecord::AbstractMysqlTestCase
   end
 
   def test_indexes_in_create
-    expected = /\ACREATE TEMPORARY TABLE `temp` \(INDEX `index_temp_on_zip` \(`zip`\)\)(?: ROW_FORMAT=DYNAMIC)? AS SELECT id, name, zip FROM a_really_complicated_query/
+    expected = /\ACREATE TEMPORARY TABLE `temp` \(INDEX `index_temp_on_zip` \(`zip`\)\) AS SELECT id, name, zip FROM a_really_complicated_query/
     actual = ActiveRecord::Base.lease_connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|
       t.index :zip
     end
