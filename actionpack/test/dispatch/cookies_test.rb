@@ -1064,7 +1064,9 @@ class CookiesTest < ActionController::TestCase
 
     @request.headers["Cookie"] = "foo=#{marshal_value}"
 
-    get :get_encrypted_cookie
+    assert_deprecated(ActionDispatch.deprecator) do
+      get :get_encrypted_cookie
+    end
 
     assert_not_equal "bar", controller_cookies[:foo]
     assert_equal "bar", controller_cookies.encrypted[:foo]
@@ -1084,7 +1086,9 @@ class CookiesTest < ActionController::TestCase
 
     @request.headers["Cookie"] = "foo=#{marshal_value}"
 
-    get :get_encrypted_cookie
+    assert_deprecated(ActionDispatch.deprecator) do
+      get :get_encrypted_cookie
+    end
 
     assert_not_equal "bar", controller_cookies[:foo]
     assert_equal "bar", controller_cookies.encrypted[:foo]
@@ -1104,7 +1108,9 @@ class CookiesTest < ActionController::TestCase
     message = ["566d4e75536d686e633246564e6b493062557079626c566d51574d30515430394c53315665564a694e4563786555744f57537454576b396a5a31566a626e52525054303d2d2d34663234333330623130623261306163363562316266323335396164666364613564643134623131"].pack("H*")
     @request.headers["Cookie"] = "foo=#{message}"
 
-    get :get_encrypted_cookie
+    assert_deprecated(ActionDispatch.deprecator) do
+      get :get_encrypted_cookie
+    end
 
     assert_not_equal "bar", controller_cookies[:foo]
     assert_equal "bar", controller_cookies.encrypted[:foo]
@@ -1113,6 +1119,18 @@ class CookiesTest < ActionController::TestCase
     encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm", serializer: Marshal)
 
     assert_equal "bar", encryptor.decrypt_and_verify(@response.cookies["foo"])
+  end
+
+  def test_authenticated_encrypted_cookie_does_not_emit_legacy_deprecation
+    secret = key_generator.generate_key(authenticated_encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len("aes-256-gcm"))
+    value = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm", serializer: Marshal).encrypt_and_sign("bar")
+
+    @request.headers["Cookie"] = "foo=#{::Rack::Utils.escape value}"
+
+    assert_not_deprecated(ActionDispatch.deprecator) do
+      get :get_encrypted_cookie
+    end
+    assert_equal "bar", controller_cookies.encrypted[:foo]
   end
 
   def test_encrypted_cookie_rotating_secret

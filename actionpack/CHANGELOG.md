@@ -1,3 +1,11 @@
+*   Deprecate upgrading legacy HMAC AES-256-CBC encrypted cookies.
+
+    Rails 9.0 will remove the upgrade path and treat these cookies as invalid. A
+    warning is emitted when a legacy AES-256-CBC encrypted cookie is read and
+    upgraded to authenticated encryption.
+
+    *Ben Sheldon*
+
 *   Short-circuit route matching for static paths.
 
     The route set now precomputes an exact-match table from request method
