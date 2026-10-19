@@ -38,6 +38,11 @@ module ActiveSupport
       autoload :NumberToPercentageConverter
     end
 
+    def self.eager_load! # :nodoc:
+      super
+      NumberConverter.subclasses.each(&:i18n_format_key)
+    end
+
     extend self
 
     # Formats +number+ into a phone number.
