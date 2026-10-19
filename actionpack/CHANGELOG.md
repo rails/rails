@@ -1,3 +1,10 @@
+*   Deprecate the `:fatal` default of `config.action_dispatch.debug_exception_log_level`.
+
+    Rails 9.0 will default to `:error`, which `load_defaults 7.1` already sets.
+    A warning is emitted when the option is left unset.
+
+    *Ben Sheldon*
+
 *   Short-circuit route matching for static paths.
 
     The route set now precomputes an exact-match table from request method

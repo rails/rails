@@ -33,7 +33,7 @@ module ActionDispatch
     config.action_dispatch.perform_deep_munge = true
     config.action_dispatch.request_id_header = ActionDispatch::Constants::X_REQUEST_ID
     config.action_dispatch.log_rescued_responses = true
-    config.action_dispatch.debug_exception_log_level = :fatal
+    config.action_dispatch.debug_exception_log_level = nil
     config.action_dispatch.strict_freshness = false
 
     config.action_dispatch.ignore_leading_brackets = nil
@@ -69,6 +69,16 @@ module ActionDispatch
 
       unless app.config.action_dispatch.domain_extractor.nil?
         ActionDispatch::Http::URL.domain_extractor = app.config.action_dispatch.domain_extractor
+      end
+
+      if app.config.action_dispatch.debug_exception_log_level.nil?
+        ActionDispatch.deprecator.warn(<<~MSG.squish)
+          The default value of `config.action_dispatch.debug_exception_log_level`
+          will change from `:fatal` to `:error` in Rails 9.0. Set it explicitly
+          to `:error` to adopt the new default, or to `:fatal` to keep the
+          current behavior.
+        MSG
+        app.config.action_dispatch.debug_exception_log_level = :fatal
       end
 
       unless app.config.action_dispatch.ignore_leading_brackets.nil?

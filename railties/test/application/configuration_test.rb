@@ -2969,6 +2969,33 @@ module ApplicationTests
       assert_equal "3", last_response.body
     end
 
+    test "debug_exception_log_level warns when unset" do
+      error = assert_raises(ActiveSupport::DeprecationException) do
+        make_basic_app do |app|
+          app.config.active_support.deprecation = :raise
+        end
+      end
+
+      assert_match(/debug_exception_log_level/, error.message)
+    end
+
+    test "debug_exception_log_level does not warn when set explicitly" do
+      make_basic_app do |app|
+        app.config.active_support.deprecation = :raise
+        app.config.action_dispatch.debug_exception_log_level = :fatal
+      end
+
+      class ::OmgController < ActionController::Base
+        def index
+          render plain: request.env["action_dispatch.debug_exception_log_level"]
+        end
+      end
+
+      get "/"
+
+      assert_equal "4", last_response.body
+    end
+
     test "ActiveRecord::Base.has_many_inversing is true by default for new apps" do
       app "development"
 

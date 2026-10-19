@@ -2357,6 +2357,8 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `:fatal`             |
 | 7.1                   | `:error`             |
 
+Leaving it unset (`:fatal`) is deprecated; Rails 9.0 will default to `:error`.
+
 [`ActionDispatch::DebugExceptions`]: https://api.rubyonrails.org/classes/ActionDispatch/DebugExceptions.html
 
 #### `config.action_dispatch.default_headers`
