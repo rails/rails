@@ -35,25 +35,103 @@ class RactorsTest < ActiveSupport::TestCase
     assert_equal "value", ActiveSupport::Ractors[:as_ractors_test_storage]
   end
 
-  if defined?(Ractor) && RUBY_VERSION >= "4.0"
-    def test_on_main_runs_block_on_main_ractor
-      value = Ractor.new do
-        ActiveSupport::Ractors.on_main { Ractor.main? }
-      end.value
+  def test_key_lock_hash_update_receives_nil_for_a_missing_key_and_stores_the_result
+    hash = ActiveSupport::Ractors::KeyLockHash.new
 
-      assert value
+    assert_equal [], hash.update(:list) { |list| Array(list) }
+    assert_equal [:a], hash.update(:list) { |list| list + [:a] }
+    assert_equal [:a], hash[:list]
+  end
+
+  def test_key_lock_hash_increment_counts_a_missing_key_from_zero
+    hash = ActiveSupport::Ractors::KeyLockHash.new(hits: 1)
+
+    assert_equal 1, hash.increment(:misses)
+    assert_equal 4, hash.increment(:hits, 3)
+  end
+
+  def test_key_lock_hash_fetch_follows_hash_fetch_semantics
+    hash = ActiveSupport::Ractors::KeyLockHash.new(present: 1)
+
+    assert_equal 1, hash.fetch(:present)
+    assert_equal 1, hash.fetch(:present, 2)
+    assert_equal 2, hash.fetch(:missing, 2)
+    assert_equal :missing, hash.fetch(:missing) { |key| key }
+    assert_raises(KeyError) { hash.fetch(:missing) }
+  end
+
+  def test_key_lock_hash_delete_returns_the_removed_value
+    hash = ActiveSupport::Ractors::KeyLockHash.new(a: 1)
+
+    assert_equal 1, hash.delete(:a)
+    assert_nil hash.delete(:a)
+    assert_not hash.key?(:a)
+  end
+
+  def test_key_lock_hash_to_h_and_initial_are_copies
+    initial = { a: 1 }
+    hash = ActiveSupport::Ractors::KeyLockHash.new(initial)
+    initial[:b] = 2
+    hash.to_h[:c] = 3
+
+    assert_equal({ a: 1 }, hash.to_h)
+    assert_equal [:a], hash.keys
+  end
+
+  if ActiveSupport::Ractors.gems_available?
+    def test_key_lock_hash_is_updated_across_ractors
+      hash = ActiveSupport::Ractors::KeyLockHash.new(hits: 1)
+
+      Ractor.new(hash) { |h| h.increment(:hits) }.join
+      Ractor.new(hash) { |h| h.update(:list) { |list| Array(list) + [:worker] } }.join
+
+      assert_equal 2, hash[:hits]
+      assert_equal [:worker], hash[:list]
+      assert Ractor.shareable?(hash[:list])
     end
+  end
 
-    def test_on_main_evaluates_block_against_object
-      object = Class.new do
-        self.singleton_class.attr_accessor :foo
-        self.foo = :foo
+  if RUBY_VERSION >= "4.0"
+    if ActiveSupport::Ractors.gems_available?
+      def test_on_main_runs_block_on_main_ractor
+        value = Ractor.new do
+          ActiveSupport::Ractors.on_main { Ractor.main? }
+        end.value
+
+        assert value
       end
-      Ractor.new(object) do |obj|
-        ActiveSupport::Ractors.on_main(obj) { @foo = :bar }
-      end.join
 
-      assert_equal :bar, object.foo
+      def test_on_main_evaluates_block_against_object
+        object = Class.new do
+          self.singleton_class.attr_accessor :foo
+          self.foo = :foo
+        end
+        Ractor.new(object) do |obj|
+          ActiveSupport::Ractors.on_main(obj) { @foo = :bar }
+        end.join
+
+        assert_equal :bar, object.foo
+      end
+    else
+      def test_on_main_runs_inline_on_the_main_ractor_without_ractor_dispatch
+        object = Class.new do
+          self.singleton_class.attr_accessor :foo
+        end
+
+        ActiveSupport::Ractors.on_main(object) { @foo = :bar }
+
+        assert_equal :bar, object.foo
+      end
+
+      def test_on_main_raises_from_a_non_main_ractor_without_ractor_dispatch
+        error = Ractor.new do
+          ActiveSupport::Ractors.on_main { Ractor.main? }
+        rescue RuntimeError => e
+          e.message
+        end.value
+
+        assert_match "needs the ractor-dispatch gem", error
+      end
     end
 
     def test_non_main_ractors_cannot_read_the_event_reporter_before_it_is_shareable
