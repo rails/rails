@@ -80,22 +80,22 @@ module ActiveModel
         @defaults = @names.map { |name| default_attributes.fetch(name) { nil } }.freeze
         @from_db_context = FromDBContext.new(@names, types, @defaults, default_keys)
         @from_init_context = FromInitContext.new(@names, types, @defaults)
-        @empty_row = IndexedRow.new(@indexes, [].freeze).freeze
         freeze
       end
 
       EMPTY_TYPES = [].freeze
+      EMPTY_ROW = [].freeze
 
       # +values+ is an IndexedRow of raw values from the database. Use
       # #row_from_hash to build one from a Hash. +additional_types+ are the
       # types of the names +values+ has after the ones in #indexes (such as
       # aliases), in order (see #type_at).
       def build_from_database(values, additional_types = EMPTY_TYPES)
-        LazyAttributeSet.new(values, additional_types, @from_db_context)
+        LazyAttributeSet.new(values.row, values.indexes, additional_types, @from_db_context)
       end
 
       def build_from_initialize
-        LazyAttributeSet.new(@empty_row, EMPTY_TYPES, @from_init_context)
+        LazyAttributeSet.new(EMPTY_ROW, @indexes, EMPTY_TYPES, @from_init_context)
       end
 
       # Lays +hash+ out like a row loaded from the database: each name at

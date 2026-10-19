@@ -239,8 +239,8 @@ module ActiveModel
   end
 
   # Attributes are cached in a plain Array, by the index of the attribute's
-  # name in the indexes of +values+, which cover every attribute of the
-  # model plus any extra columns (such as aliases) the row was loaded with.
+  # name in +indexes+, which cover every attribute of the model plus any
+  # extra columns (such as aliases) the row was loaded with.
   # Methods that take a name look its index up once and work by index from
   # there.
   class LazyAttributeSet < AttributeSet # :nodoc:
@@ -253,22 +253,22 @@ module ActiveModel
       @indexes || upgrade_legacy_ivars
     end
 
-    # +ctx+ is a Builder::Context, for looking up the model's attributes
-    # by index.
-    def initialize(values, additional_types, ctx)
+    # +row+ is the raw data from the database, an Array laid out by
+    # +indexes+ (see IndexedRow). +ctx+ is a Builder::Context, for looking
+    # up the model's attributes by index.
+    def initialize(row, indexes, additional_types, ctx)
       # Sized to hold every slot so reads by index stay in bounds
-      super(Array.new(values.indexes.size))
-      # The raw data from the database
-      @values = values
+      super(Array.new(indexes.size))
+      @row = row
 
       # Additional types (like from `select count(*) as blah`)
       @additional_types = additional_types
       @ctx = ctx
-      # Values cast from +values+, by the same index. Only values in the
-      # row are cast, so this is never longer than the row.
-      @casted_values = Array.new(values.row.size, UNCAST)
+      # Values cast from +row+, by the same index. Only values in the row
+      # are cast, so this is never longer than the row.
+      @casted_values = Array.new(row.size, UNCAST)
       @materialized = false
-      @indexes = values.indexes
+      @indexes = indexes
     end
 
     def initialize_copy(other)
@@ -292,12 +292,12 @@ module ActiveModel
       index = index_for_name(name)
       return false unless index
 
-      values.key_at?(index) ||
+      IndexedRow.key_at?(@row, index) ||
         ((@ctx.type_key_at?(index) || !lookup(index).nil?) && attribute_at(name, index).initialized?)
     end
 
     def keys
-      keys = values.keys | @ctx.type_keys | cached_names
+      keys = row_keys | @ctx.type_keys | cached_names
       keys.keep_if { |name| self[name].initialized? }
     end
 
@@ -382,11 +382,11 @@ module ActiveModel
       end
 
     private
-      attr_reader :values, :additional_types
+      attr_reader :additional_types
 
       def materialize
         unless @materialized
-          values.each_key { |key| self[key] }
+          row_keys.each { |key| self[key] }
           @ctx.type_keys.each { |key| self[key] }
           @materialized = true
         end
@@ -446,11 +446,8 @@ module ActiveModel
       # yet: cast from the row (and kept in +@casted_values+), or the block's
       # result for the default attribute when the row doesn't have it.
       def cast_value(name, index)
-        value_present = true
-        value = values.fetch_at(index) { value_present = false }
-
-        if value_present
-          @casted_values[index] = type_for(index).deserialize(value)
+        if IndexedRow.key_at?(@row, index)
+          @casted_values[index] = type_for(index).deserialize(@row[index])
         else
           yield default_attribute(name, index, false, nil)
         end
@@ -458,6 +455,13 @@ module ActiveModel
 
       def type_for(index)
         @ctx.type_at(index, additional_types)
+      end
+
+      # The names the row has a value for.
+      def row_keys
+        names = []
+        indexes.each_key { |name| names << name if IndexedRow.key_at?(@row, @indexes[name]) }
+        names
       end
 
       def cached_names
@@ -473,6 +477,8 @@ module ActiveModel
         legacy = @attributes
         @indexes = IndexedRow.build_indexes(legacy.keys).freeze
         @attributes = legacy.values
+        # Every attribute is in +@attributes+, so there's no row to read.
+        @row = [].freeze
         @indexes
       end
 
@@ -484,8 +490,8 @@ module ActiveModel
       def default_attribute(
         name,
         index,
-        value_present = true,
-        value = values.fetch_at(index) { value_present = false }
+        value_present = IndexedRow.key_at?(@row, index),
+        value = (@row[index] if value_present)
       )
         if value_present
           casted = @casted_values.fetch(index, UNCAST)
