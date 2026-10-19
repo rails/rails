@@ -21,10 +21,10 @@ module ActiveRecord
 
             # Generated methods are cached by name and shared between models,
             # so they're cached per slot.
-            namespace = :"active_record_slot_#{slot}"
+            namespace = :"active_record_slot"
 
             ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
-              canonical_name
+              "slot_#{slot}"
             ) do |temp_method_name|
               owner.define_cached_method(temp_method_name, as: as, namespace: namespace) do |batch|
                 batch <<
