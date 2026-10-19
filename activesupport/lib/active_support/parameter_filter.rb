@@ -96,9 +96,10 @@ module ActiveSupport
       @no_filters ? params.dup : call(params)
     end
 
-    # Returns filtered value for given key. For `Proc` filters, third block argument is not populated.
+    # Returns filtered value for given key. `Proc` filters receive `{ key => value }`
+    # as their third block argument, as `filter` would pass for that single pair.
     def filter_param(key, value)
-      @no_filters ? value : value_for_key(key, value)
+      @no_filters ? value : value_for_key(key, value, nil, @blocks && { key => value })
     end
 
   private
