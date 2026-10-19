@@ -16,17 +16,17 @@ module ActiveRecord
           def define_method_attribute(canonical_name, owner:, as: canonical_name)
             # Don't load the schema here, methods can be defined on classes
             # without a table (e.g. alias_attribute on an abstract class).
-            ord = attributes_builder.indexes[canonical_name]&.ord if schema_loaded?
+            slot = attributes_builder.indexes[canonical_name] if schema_loaded?
 
             # Generated methods are cached by name and shared between models,
-            # so readers that embed an ord are cached per ord.
-            namespace = ord ? :"active_record_ord_#{ord}" : :active_record
+            # so readers that embed a slot are cached per slot.
+            namespace = slot ? :"active_record_slot_#{slot}" : :active_record
 
             ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
               canonical_name
             ) do |temp_method_name, attr_name_expr|
-              read = if ord
-                "_read_attribute_at!(#{ord})"
+              read = if slot
+                "_read_attribute_at!(#{slot})"
               else
                 "_read_attribute!(#{attr_name_expr})"
               end
@@ -76,7 +76,7 @@ module ActiveRecord
       end
 
       # Like #_read_attribute!, but takes the attribute's +index+ (its
-      # column's +ord+) instead of its name. Called by the generated reader
+      # slot) instead of its name. Called by the generated reader
       # methods for attributes that have a column.
       def _read_attribute_at!(index) # :nodoc:
         @attributes.fetch_value_at!(index)

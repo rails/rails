@@ -618,7 +618,7 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_becomes_a_class_with_a_different_table_reads_attributes_by_name
     developer = Developer.new(name: "David", firm_id: 1)
-    assert_not_equal Developer.columns_hash["name"].ord, Company.columns_hash["name"].ord
+    assert_not_equal Developer.columns_hash["name"].slot, Company.columns_hash["name"].slot
 
     company = developer.becomes(Company)
 
