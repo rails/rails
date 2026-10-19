@@ -69,7 +69,7 @@ module ActionDispatch
 
     # QUERY is deliberately not included: 301 permits clients to rewrite the
     # method to GET, which would drop the request body, so QUERY (like POST and
-    # other body-carrying methods) gets a 307 that preserves method and body
+    # other body-carrying methods) gets a 308 that preserves method and body
     # per RFC 10008's redirect semantics.
     PERMANENT_REDIRECT_REQUEST_METHODS = %w[GET HEAD].freeze # :nodoc:
 
@@ -77,7 +77,9 @@ module ActionDispatch
       { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }
     end
 
-    def initialize(app, redirect: {}, hsts: {}, secure_cookies: true, ssl_default_redirect_status: nil)
+    NOT_GIVEN = Object.new # :nodoc:
+
+    def initialize(app, redirect: {}, hsts: {}, secure_cookies: true, ssl_default_redirect_status: NOT_GIVEN)
       @app = app
 
       @redirect = redirect
@@ -86,7 +88,18 @@ module ActionDispatch
       @secure_cookies = secure_cookies
 
       @hsts_header = build_hsts_header(normalize_hsts_options(hsts))
-      @ssl_default_redirect_status = ssl_default_redirect_status
+
+      if ssl_default_redirect_status.equal?(NOT_GIVEN)
+        @ssl_default_redirect_status = 308
+      else
+        ActionDispatch.deprecator.warn(<<~MSG.squish)
+          The `ssl_default_redirect_status:` argument of `ActionDispatch::SSL` is
+          deprecated and will be removed in Rails 9.0. To redirect non-GET/HEAD
+          requests with the default 308 status, stop passing the argument, or set
+          `config.action_dispatch.ssl_default_redirect_status = 308`.
+        MSG
+        @ssl_default_redirect_status = ssl_default_redirect_status
+      end
     end
 
     def call(env)
@@ -164,10 +177,8 @@ module ActionDispatch
       def redirection_status(request)
         if PERMANENT_REDIRECT_REQUEST_METHODS.include?(request.raw_request_method)
           301 # Issue a permanent redirect via a GET request.
-        elsif @ssl_default_redirect_status
-          @ssl_default_redirect_status
         else
-          307 # Issue a fresh request redirect to preserve the HTTP method.
+          @ssl_default_redirect_status || 307 # Preserve the HTTP method.
         end
       end
 
