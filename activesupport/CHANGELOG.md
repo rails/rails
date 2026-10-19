@@ -1,3 +1,12 @@
+*   Fix `String#truncate` returning an `html_safe` `ActiveSupport::SafeBuffer`.
+
+    Slicing `self` kept the result html_safe, so the `truncate` view helper
+    skipped escaping and could output a cut-open HTML tag. Slicing `to_str`
+    instead returns a plain `String` for a `SafeBuffer` while keeping the
+    single-copy behavior for a plain `String`.
+
+    *Azmi Muwahid*
+
 *   Skip building `ActiveSupport::EventReporter` events that no subscriber would consume.
 
     Subscribers can define `consumes?(name)` to say whether they would act on an

@@ -456,6 +456,16 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_not_predicate "Hello World!".truncate(12), :html_safe?
   end
 
+  def test_truncate_on_safe_buffer_returns_plain_string
+    # A SafeBuffer keeps html_safe through #[] (#59110), so the truncate view
+    # helper would skip escaping the cut HTML. Truncating to_str keeps the
+    # result a plain String (#59129).
+    truncated = "<a title=\"hello world\">x</a>".html_safe.truncate(15)
+    assert_equal "<a title=\"he...", truncated
+    assert_not_predicate truncated, :html_safe?
+    assert_instance_of String, truncated
+  end
+
   def test_remove
     original = "This is a good day to die"
     assert_equal "This is a good day", original.remove(" to die")
