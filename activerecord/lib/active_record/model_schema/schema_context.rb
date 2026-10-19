@@ -127,21 +127,21 @@ module ActiveRecord
         end
       end
 
-      # Lays +attributes+ out by each column's +ord+, so they can be read by
-      # index. Attributes without a column (or whose column has no +ord+, as
+      # Lays +attributes+ out by each column's slot, so they can be read by
+      # index. Attributes without a column (or whose column has no slot, as
       # with adapters that don't set it) go after the last column. The
       # indexes are Integers rather than columns, so they can be shared
       # between Ractors.
       def index_default_attributes(attributes) # :nodoc:
         columns_hash = model_class.columns_hash
-        last_ord = ActiveModel::IndexedRow.max_ord(columns_hash)
+        last_slot = columns_hash.each_value.filter_map(&:slot).max || -1
         indexes = attributes.each_key.to_h do |name|
           column = columns_hash[name]
-          [name, column&.ord || (last_ord += 1)]
+          [name, column&.slot || (last_slot += 1)]
         end.freeze
         indexes = inherited_indexes(indexes)
 
-        row = ActiveModel::IndexedRow.unset_row(last_ord + 1)
+        row = ActiveModel::IndexedRow.unset_row(last_slot + 1)
         attributes.each { |name, attribute| row[indexes[name]] = attribute }
         ActiveModel::IndexedRow::Mutable.new(indexes, row)
       end

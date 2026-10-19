@@ -173,7 +173,7 @@ module ActiveRecord
             super unless internal
           end
 
-          def new_column_from_field(table_name, field, definitions, ord)
+          def new_column_from_field(table_name, field, definitions, slot)
             default = field["dflt_value"]
 
             type_metadata = fetch_type_metadata(field["type"])
@@ -199,7 +199,7 @@ module ActiveRecord
               auto_increment: field["auto_increment"],
               rowid: rowid,
               generated_type: generated_type,
-              ord: ord
+              slot: slot
             )
           end
 
