@@ -226,9 +226,9 @@ module ActiveRecord
       end
     end
 
-    # Lays rows out the way a column map expects. The +ord+ method on each
-    # column corresponds to the index generated in the reader/writer
-    # methods, so the values in a row need to line up with those indexes.
+    # Lays rows out the way a column map expects. Each column's slot is the
+    # index generated in the reader/writer methods, so the values in a row
+    # need to line up with those indexes.
     #
     # "Pending" columns are columns the schema didn't know about, so no
     # methods were generated for them, for example column aliases. They
@@ -243,21 +243,19 @@ module ActiveRecord
       def initialize(columns, column_map)
         shuffle_lut = nil
         pending = nil
-        last_ord = nil
+        last_slot = nil
 
         columns.each_with_index do |name, i|
-          if column = column_map[name]
-            ord = column.ord
-          else
+          unless slot = column_map[name]
             pending ||= {}
-            last_ord ||= ActiveModel::IndexedRow.max_ord(column_map)
-            ord = pending[name] = (last_ord += 1)
+            last_slot ||= ActiveModel::IndexedRow.max_slot(column_map)
+            slot = pending[name] = (last_slot += 1)
           end
 
           if shuffle_lut
-            shuffle_lut << ord
-          elsif ord != i
-            shuffle_lut = (0...i).to_a << ord
+            shuffle_lut << slot
+          elsif slot != i
+            shuffle_lut = (0...i).to_a << slot
           end
         end
 
@@ -273,7 +271,7 @@ module ActiveRecord
       def build(row)
         if @shuffle_lut
           shuffled = ActiveModel::IndexedRow.unset_row(@width)
-          @shuffle_lut.each_with_index { |ord, i| shuffled[ord] = row[i] }
+          @shuffle_lut.each_with_index { |slot, i| shuffled[slot] = row[i] }
           row = shuffled.freeze
         end
         ActiveModel::IndexedRow.new(@indexes, row)
