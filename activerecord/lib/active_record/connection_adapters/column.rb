@@ -8,7 +8,7 @@ module ActiveRecord
     class Column
       include Deduplicable
 
-      attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment, :cast_type, :ord
+      attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment, :cast_type, :slot
 
       delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
 
@@ -18,8 +18,8 @@ module ActiveRecord
       # `default` is the type-casted default value, such as `new` in `sales_stage varchar(20) default 'new'`.
       # `sql_type_metadata` is various information about the type of the column
       # `null` determines if this column allows `NULL` values.
-      # `ord` is the column's position in the table, starting at 0.
-      def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, ord: nil, **)
+      # `slot` is the column's position in the table, starting at 0.
+      def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, slot: nil, **)
         @name = name.freeze
         @cast_type = cast_type
         @sql_type_metadata = sql_type_metadata
@@ -28,7 +28,7 @@ module ActiveRecord
         @default_function = default_function
         @collation = collation
         @comment = comment
-        @ord = ord
+        @slot = slot
       end
 
       def has_default?
@@ -59,7 +59,7 @@ module ActiveRecord
         @default_function = coder["default_function"]
         @collation = coder["collation"]
         @comment = coder["comment"]
-        @ord = coder["ord"]
+        @slot = coder["slot"]
       end
 
       def encode_with(coder)
@@ -71,7 +71,7 @@ module ActiveRecord
         coder["default_function"] = @default_function
         coder["collation"] = @collation
         coder["comment"] = @comment
-        coder["ord"] = @ord
+        coder["slot"] = @slot
       end
 
       def as_schema_json
@@ -114,7 +114,7 @@ module ActiveRecord
           default_function == other.default_function &&
           collation == other.collation &&
           comment == other.comment &&
-          ord == other.ord
+          slot == other.slot
       end
       alias :eql? :==
 
@@ -130,7 +130,7 @@ module ActiveRecord
           @default_function,
           @collation,
           @comment,
-          @ord,
+          @slot,
         ].hash
       end
 

@@ -6,7 +6,7 @@ require "active_support/core_ext/enumerable"
 module ActiveRecord
   module AttributeMethods
     class ReadTest < ActiveRecord::TestCase
-      FakeColumn = Struct.new(:name, :ord) do
+      FakeColumn = Struct.new(:name, :slot) do
         def type; :integer; end
       end
 

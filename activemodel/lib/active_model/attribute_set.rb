@@ -155,7 +155,7 @@ module ActiveModel
     # The name of the attribute at +index+. Searches #indexes, so it's for
     # error messages rather than the read path.
     def name_at(index)
-      indexes.each_key.find { |name| indexes[name].ord == index }
+      indexes.each_key.find { |name| indexes[name] == index }
     end
 
     def write_from_database(name, value)
@@ -286,7 +286,7 @@ module ActiveModel
     end
 
     def []=(name, attribute)
-      store(indexes.fetch(name).ord, attribute)
+      store(indexes.fetch(name), attribute)
     end
 
     def key?(name)
@@ -316,7 +316,7 @@ module ActiveModel
       value_at!(index, name)
     end
 
-    # Rows are laid out by column +ord+, so the ords that generated reader
+    # Rows are laid out by slot, so the slots that generated reader
     # methods pass are indexes into this set.
     def fetch_value_at(index, &block)
       # Same as #value_at, inlined since generated readers call this.
@@ -396,7 +396,7 @@ module ActiveModel
       # +indexes+ has every name the set can hold, so a name without an
       # index isn't an attribute.
       def index_for_name(name)
-        indexes[name]&.ord
+        indexes[name]
       end
 
       def lookup(index)
@@ -657,7 +657,7 @@ module ActiveModel
         map = []
         own_indexes.each_key do |name|
           if entry = shared_indexes[name]
-            map[own_indexes[name].ord] = entry.ord
+            map[own_indexes[name]] = entry
           end
         end
         map
