@@ -152,6 +152,12 @@ module ActiveModel
       attributes.at(index)&.value!
     end
 
+    # The name of the attribute at +index+. Searches #indexes, so it's for
+    # error messages rather than the read path.
+    def name_at(index)
+      indexes.each_key.find { |name| indexes[name].ord == index }
+    end
+
     def write_from_database(name, value)
       store(name, self[name].with_value_from_database(value))
     end
@@ -549,6 +555,10 @@ module ActiveModel
       else
         @own.fetch_value_at!(index)
       end
+    end
+
+    def name_at(index)
+      @own.name_at(index)
     end
 
     def write_from_database(name, value)
