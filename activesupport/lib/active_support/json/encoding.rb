@@ -93,7 +93,13 @@ module ActiveSupport
       UTF8_HTML_ENTITIES = UTF8_ESCAPED_CHARS.except("\u2028", "\u2029").freeze
       UTF8_JS_SEPARATORS = UTF8_ESCAPED_CHARS.slice("\u2028", "\u2029").freeze
 
-      TR_ESCAPE_SUPPORTED = Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("4.1.0")
+      # String#tr accepts a Hash as of Ruby 4.1 (ruby/ruby#18647). Checked
+      # directly, since development builds report 4.1.0 before they have it.
+      TR_ESCAPE_SUPPORTED = begin
+        "a".tr({ "a" => "b" }) == "b"
+      rescue ArgumentError, TypeError
+        false
+      end
 
       class JSONGemEncoder # :nodoc:
         attr_reader :options
