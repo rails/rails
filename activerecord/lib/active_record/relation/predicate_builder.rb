@@ -210,6 +210,8 @@ module ActiveRecord
       end
 
       def convert_dot_notation_to_hash(attributes)
+        return attributes unless attributes.any? { |key, value| value.is_a?(Hash) || (key.is_a?(String) && key.include?(".")) }
+
         attributes.each_with_object({}) do |(key, value), converted|
           if value.is_a?(Hash)
             if (existing = converted[key])

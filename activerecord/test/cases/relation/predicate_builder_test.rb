@@ -227,6 +227,13 @@ module ActiveRecord
       assert_match %r{schema.+table.+column}i, Topic.predicate_builder.build_from_hash("schema.table.column" => "value").first.to_sql
     end
 
+    def test_build_from_hash_with_dot_notation_matches_nested_hash
+      dot_predicates = Topic.predicate_builder.build_from_hash("topics.title" => "Rails", "topics.author_name" => "David", "approved" => true)
+      hash_predicates = Topic.predicate_builder.build_from_hash("topics" => { "title" => "Rails", "author_name" => "David" }, "approved" => true)
+
+      assert_equal hash_predicates.map(&:to_sql), dot_predicates.map(&:to_sql)
+    end
+
     def test_does_not_mutate
       defaults = { topics: { title: "rails" }, "topics.approved" => true }
       Topic.where(defaults).to_sql
