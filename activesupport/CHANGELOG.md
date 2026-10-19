@@ -1,3 +1,12 @@
+*   Apply `config.active_support` settings made in `config/initializers`.
+
+    `config.active_support` was copied onto `ActiveSupport` before the
+    application's initializers ran, so most settings made there, including in
+    `new_framework_defaults_*.rb`, were silently ignored. Settings changed by an
+    initializer are now applied after initialization.
+
+    *Marko Kajzer*
+
 *   Skip building `ActiveSupport::EventReporter` events that no subscriber would consume.
 
     Subscribers can define `consumes?(name)` to say whether they would act on an

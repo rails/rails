@@ -143,9 +143,20 @@ module ActiveSupport
     end
 
     initializer "active_support.set_configs" do |app|
-      app.config.active_support.each do |k, v|
+      applied = app.config.active_support.to_h
+
+      applied.each do |k, v|
         k = "#{k}="
         ActiveSupport.public_send(k, v) if ActiveSupport.respond_to? k
+      end
+
+      config.after_initialize do
+        app.config.active_support.each do |k, v|
+          next if applied.key?(k) && applied[k] == v
+
+          k = "#{k}="
+          ActiveSupport.public_send(k, v) if ActiveSupport.respond_to? k
+        end
       end
     end
 
