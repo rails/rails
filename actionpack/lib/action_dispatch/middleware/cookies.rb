@@ -680,7 +680,7 @@ module ActionDispatch
           secret = request.key_generator.generate_key(request.encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(legacy_cipher))
           sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
 
-          @encryptor.rotate(secret, sign_secret, cipher: legacy_cipher, digest: digest, serializer: SERIALIZER)
+          @legacy_encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: legacy_cipher, digest: digest, serializer: SERIALIZER)
         elsif prepare_upgrade_legacy_hmac_aes_cbc_cookies?
           future_cipher = encrypted_cookie_cipher
           secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len(future_cipher))
@@ -692,10 +692,28 @@ module ActionDispatch
       private
         def parse(name, encrypted_message, purpose: nil)
           rotated = false
-          data = @encryptor.decrypt_and_verify(encrypted_message, purpose: purpose, on_rotation: -> { rotated = true })
+          data = begin
+            @encryptor.decrypt_and_verify(encrypted_message, purpose: purpose, on_rotation: -> { rotated = true })
+          rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature
+            raise unless @legacy_encryptor
+            rotated = true
+            decrypt_legacy_hmac_aes_cbc_cookie(encrypted_message, purpose)
+          end
           super(name, data, force_reserialize: rotated)
         rescue ActiveSupport::MessageEncryptor::InvalidMessage, ActiveSupport::MessageVerifier::InvalidSignature
           nil
+        end
+
+        def decrypt_legacy_hmac_aes_cbc_cookie(encrypted_message, purpose)
+          data = @legacy_encryptor.decrypt_and_verify(encrypted_message, purpose: purpose)
+          unless data.nil?
+            ActionDispatch.deprecator.warn(<<~MSG.squish)
+              Upgrading cookies encrypted with legacy HMAC AES-256-CBC to authenticated
+              encryption is deprecated and will be removed in Rails 9.0. Such cookies
+              will then be treated as invalid.
+            MSG
+          end
+          data
         end
 
         def commit(name, options)
