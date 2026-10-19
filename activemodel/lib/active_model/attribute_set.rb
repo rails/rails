@@ -259,12 +259,14 @@ module ActiveModel
     # doesn't have (like from `select count(*) as blah`). +ctx+ is a
     # Builder::Context, for looking up the model's attributes by index.
     def initialize(row, indexes, ctx)
-      # Sized to hold every slot so reads by index stay in bounds
-      super(Array.new(indexes.size))
+      # Attributes are only built when something needs one (a write, a
+      # default, or #materialize), so +@attributes+ starts out +nil+.
+      super(nil)
       @row = row
       @ctx = ctx
       # Values cast from +row+, by the same index. Only values in the row
-      # are cast, so this is never longer than the row.
+      # are cast, so this is never longer than the row. Slots with a built
+      # attribute are UNCAST here, so reads check this first.
       @casted_values = Array.new(row.size, UNCAST)
       @materialized = false
       @indexes = indexes
@@ -318,25 +320,25 @@ module ActiveModel
     # methods pass are indexes into this set.
     def fetch_value_at(index, &block)
       # Same as #value_at, inlined since generated readers call this.
-      if attr = @attributes[index]
-        return attr.value(&block)
-      end
-
       value = @casted_values.fetch(index, UNCAST)
       return value unless UNCAST.equal?(value)
 
-      cast_value(@ctx.name_at(index), index) { |attribute| attribute.value(&block) }
+      if (attrs = @attributes) && (attr = attrs[index])
+        attr.value(&block)
+      else
+        cast_value(@ctx.name_at(index), index) { |attribute| attribute.value(&block) }
+      end
     end
 
     def fetch_value_at!(index)
-      if attr = @attributes[index]
-        return attr.value!
-      end
-
       value = @casted_values.fetch(index, UNCAST)
       return value unless UNCAST.equal?(value)
 
-      cast_value(@ctx.name_at(index), index, &:value!)
+      if (attrs = @attributes) && (attr = attrs[index])
+        attr.value!
+      else
+        cast_value(@ctx.name_at(index), index, &:value!)
+      end
     end
 
     def write_from_database(name, value)
@@ -345,7 +347,11 @@ module ActiveModel
 
     def write_from_user(name, value)
       raise FrozenError, "can't modify frozen attributes" if frozen?
-      write(name) { |attribute| attribute.with_value_from_user(value) }
+      index = index_for_name(name)
+      attribute = write(name) { |attr| attr.with_value_from_user(value) }
+      # Cast now so reads of the attribute stay on the fast path. Both hold
+      # the same object, so changes made in place are still detected.
+      @casted_values[index] = attribute.value if index < @casted_values.size
       value
     end
 
@@ -368,15 +374,24 @@ module ActiveModel
       def attributes
         materialize
 
-        row = IndexedRow.unset_row(@attributes.size)
-        @attributes.each_with_index { |attr, i| row[i] = attr if attr }
+        row = IndexedRow.unset_row(indexes.size)
+        @attributes&.each_with_index { |attr, i| row[i] = attr if attr }
         IndexedRow::Mutable.new(indexes, row)
       end
 
       # Replaces each cached attribute with the block's result. Only for
-      # fresh copies, since it modifies +@attributes+ in place.
+      # fresh copies, since it modifies +@attributes+ in place. The new
+      # attributes may hold new values, so their slots are uncast.
       def transform_attributes!
-        @attributes.map! { |attr| attr && yield(attr) }
+        return self unless @attributes
+
+        size = @casted_values.size
+        @attributes.each_with_index do |attr, i|
+          next unless attr
+
+          @attributes[i] = yield(attr)
+          @casted_values[i] = UNCAST if i < size
+        end
         self
       end
 
@@ -396,35 +411,38 @@ module ActiveModel
       end
 
       def lookup(index)
-        @attributes[index]
+        @attributes&.[](index)
       end
 
+      # The attribute now holds the value, so the cast value is dropped.
       def store(index, attribute)
-        @attributes[index] = attribute
+        (@attributes ||= Array.new(indexes.size))[index] = attribute
+        @casted_values[index] = UNCAST if index < @casted_values.size
+        attribute
       end
 
       # These are on the path of every attribute read, so they check the
       # caches directly and only call out to cast a value the first time.
       def value_at(index, name, &block)
-        if attr = @attributes[index]
-          return attr.value(&block)
-        end
-
         value = @casted_values.fetch(index, UNCAST)
         return value unless UNCAST.equal?(value)
 
-        cast_value(name, index) { |attribute| attribute.value(&block) }
+        if (attrs = @attributes) && (attr = attrs[index])
+          attr.value(&block)
+        else
+          cast_value(name, index) { |attribute| attribute.value(&block) }
+        end
       end
 
       def value_at!(index, name)
-        if attr = @attributes[index]
-          return attr.value!
-        end
-
         value = @casted_values.fetch(index, UNCAST)
         return value unless UNCAST.equal?(value)
 
-        cast_value(name, index, &:value!)
+        if (attrs = @attributes) && (attr = attrs[index])
+          attr.value!
+        else
+          cast_value(name, index, &:value!)
+        end
       end
 
       def attribute_at(name, index)
@@ -476,11 +494,13 @@ module ActiveModel
         @attributes = legacy.values
         # Every attribute is in +@attributes+, so there's no row to read.
         @row = [].freeze
+        @casted_values = []
         @indexes
       end
 
       def freeze_attributes
         materialize
+        @attributes ||= Array.new(indexes.size)
         @attributes.freeze
       end
 
