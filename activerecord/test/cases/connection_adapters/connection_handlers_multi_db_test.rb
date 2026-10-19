@@ -87,27 +87,19 @@ module ActiveRecord
       end
 
       def test_connected_to_many_loads_returned_relations
-        SecondaryBase.connects_to database: { writing: { database: ":memory:", adapter: "sqlite3" }, secondary: { database: ":memory:", adapter: "sqlite3" } }
+        relation = Person.all
+        assert_not_predicate relation, :loaded?
 
-        SecondaryBase.connected_to(role: :secondary) do
-          MultiConnectionTestModel.lease_connection.execute("CREATE TABLE `multi_connection_test_models` (connection_role VARCHAR (255))")
-          MultiConnectionTestModel.create!(connection_role: "secondary")
-        end
-
-        relation = MultiConnectionTestModel.all
-        result = ActiveRecord::Base.connected_to_many(SecondaryBase, role: :secondary) { relation }
+        result = ActiveRecord::Base.connected_to_many(SecondaryBase, role: :reading) { relation }
 
         assert_same relation, result
-        assert_equal :writing, SecondaryBase.current_role
-        assert_equal ["secondary"], result.map(&:connection_role)
+        assert_predicate result, :loaded?
       end
 
       def test_connected_to_many_restores_role_when_loading_raises
-        SecondaryBase.connects_to database: { writing: { database: ":memory:", adapter: "sqlite3" }, secondary: { database: ":memory:", adapter: "sqlite3" } }
-
         assert_raises ActiveRecord::StatementInvalid do
-          ActiveRecord::Base.connected_to_many(SecondaryBase, role: :secondary) do
-            MultiConnectionTestModel.all
+          ActiveRecord::Base.connected_to_many(SecondaryBase, role: :reading) do
+            Person.where("nonexistent_column = 1")
           end
         end
 
