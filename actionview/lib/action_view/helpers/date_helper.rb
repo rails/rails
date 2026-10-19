@@ -774,6 +774,11 @@ module ActionView
         def normalize_distance_of_time_argument_to_time(value)
           if value.is_a?(Numeric)
             Time.at(value)
+          elsif value.respond_to?(:comparable_time)
+            # A TimeWithZone already compares and subtracts as a Time, and reads
+            # year and month in its zone. Its to_time would build another Time in
+            # that zone through TZInfo, for every record read from the database.
+            value
           elsif value.respond_to?(:to_time)
             value.to_time
           else
