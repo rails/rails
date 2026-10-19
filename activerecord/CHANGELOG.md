@@ -1,3 +1,9 @@
+*   Deprecate `PostgreSQLAdapter.decode_dates` and `PostgreSQLAdapter.decode_dates=`.
+
+    Rails 9.0 will always decode date columns into `Date` objects.
+
+    *Ben Sheldon*
+
 *   Truncate tables shadowed by a same-named table earlier on the PostgreSQL
     `search_path`.
 

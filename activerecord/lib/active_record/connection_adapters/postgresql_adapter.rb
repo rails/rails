@@ -152,7 +152,31 @@ module ActiveRecord
       # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates = true
       # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '2024-01-01'::date").class #=> Date
       # ```
+      #
+      # Deprecated: date columns will always be decoded in Rails 9.0.
       class_attribute :decode_dates, default: false
+
+      module DeprecatedDecodeDates # :nodoc:
+        def decode_dates
+          warn_decode_dates_accessor_deprecation
+          super
+        end
+
+        def decode_dates=(value)
+          warn_decode_dates_accessor_deprecation
+          super
+        end
+
+        private
+          def warn_decode_dates_accessor_deprecation
+            ActiveRecord.deprecator.warn(<<~MSG.squish)
+              `PostgreSQLAdapter.decode_dates` is deprecated and will be removed in Rails 9.0,
+              when date columns will always be decoded into `Date` objects.
+            MSG
+          end
+      end
+      singleton_class.prepend DeprecatedDecodeDates
+      prepend DeprecatedDecodeDates
 
       ##
       # :singleton-method:
@@ -1432,7 +1456,7 @@ module ActiveRecord
             "timestamp" => PG::TextDecoder::TimestampUtc,
             "timestamptz" => PG::TextDecoder::TimestampWithTimeZone,
           }
-          coders_by_name["date"] = PG::TextDecoder::Date if decode_dates
+          coders_by_name["date"] = PG::TextDecoder::Date if ActiveRecord.deprecator.silence { decode_dates }
           coders_by_name["money"] = MoneyDecoder if decode_money
           coders_by_name["bytea"] = decode_bytea ? ByteaDecoder : ByteaMarker
 

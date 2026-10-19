@@ -1551,6 +1551,16 @@ module ActiveRecord
         end
       end
 
+      def test_decode_dates_is_deprecated
+        assert_deprecated(/PostgreSQLAdapter.decode_dates` is deprecated/, ActiveRecord.deprecator) do
+          PostgreSQLAdapter.decode_dates
+        end
+
+        assert_deprecated(/PostgreSQLAdapter.decode_dates` is deprecated/, ActiveRecord.deprecator) do
+          PostgreSQLAdapter.decode_dates = false
+        end
+      end
+
       def test_money_decoding_enabled
         db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
         with_postgresql_adapter(db_config.configuration_hash) do |connection|
@@ -1724,10 +1734,10 @@ module ActiveRecord
 
       private
         def with_postgresql_apdater_decode_dates
-          PostgreSQLAdapter.decode_dates = true
+          ActiveRecord.deprecator.silence { PostgreSQLAdapter.decode_dates = true }
           yield
         ensure
-          PostgreSQLAdapter.decode_dates = false
+          ActiveRecord.deprecator.silence { PostgreSQLAdapter.decode_dates = false }
         end
 
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)

@@ -3181,7 +3181,7 @@ module ApplicationTests
       app "development"
 
       _ = ActiveRecord::Base
-      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
+      assert_equal true, ActiveRecord.deprecator.silence { ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates }
     end
 
     test "PostgresqlAdapter.decode_dates is false by default for upgraded apps" do
@@ -3195,7 +3195,7 @@ module ApplicationTests
       app "development"
 
       _ = ActiveRecord::Base
-      assert_equal false, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
+      assert_equal false, ActiveRecord.deprecator.silence { ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates }
     end
 
     test "PostgresqlAdapter.decode_dates can be configured via config.active_record.postgresql_adapter_decode_dates" do
@@ -3211,7 +3211,7 @@ module ApplicationTests
       app "development"
 
       _ = ActiveRecord::Base
-      assert_equal true, ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates
+      assert_equal true, ActiveRecord.deprecator.silence { ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates }
     end
 
     test "PostgresqlAdapter.decode_money is true by default for new apps" do

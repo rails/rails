@@ -214,7 +214,7 @@ To keep using the current cache store, you can turn off cache versioning entirel
 
         ActiveSupport.on_load(:active_record_postgresqladapter) do
           self.decode_bytea = true if decode_bytea
-          self.decode_dates = true if decode_dates
+          ActiveRecord.deprecator.silence { self.decode_dates = true } if decode_dates
           self.decode_money = true if decode_money
         end
       end
