@@ -262,11 +262,9 @@ class RemapperTest < ActiveModel::TestCase
     assert_equal(2, remapped_row.values.size)
   end
 
-  Column = Struct.new(:ord)
-
-  test "#build with a column map lays the row out by ord" do
+  test "#build with a column map lays the row out by slot" do
     row = ActiveModel::IndexedRow["t0_r0" => 1, "t0_r1" => "George", "t0_r2" => 42]
-    column_map = { "id" => Column.new(0), "age" => Column.new(1), "name" => Column.new(2) }.freeze
+    column_map = { "id" => 0, "age" => 1, "name" => 2 }.freeze
     remapper = ActiveModel::IndexedRow::Remapper.new(
       row.indexes,
       %w(t0_r0 t0_r1 t0_r2),
@@ -282,7 +280,7 @@ class RemapperTest < ActiveModel::TestCase
 
   test "#build with a column map leaves unselected columns unset" do
     row = ActiveModel::IndexedRow["t0_r0" => 1, "t0_r1" => "George"]
-    column_map = { "id" => Column.new(0), "age" => Column.new(1), "name" => Column.new(2) }.freeze
+    column_map = { "id" => 0, "age" => 1, "name" => 2 }.freeze
     remapper = ActiveModel::IndexedRow::Remapper.new(
       row.indexes,
       %w(t0_r0 t0_r1),
@@ -296,9 +294,9 @@ class RemapperTest < ActiveModel::TestCase
     assert_equal({ "id" => 1, "name" => "George" }, remapped_row.to_h)
   end
 
-  test "#build with a column map adds unknown columns after the last ord" do
+  test "#build with a column map adds unknown columns after the last slot" do
     row = ActiveModel::IndexedRow["t0_r0" => 1, "extra" => "x"]
-    column_map = { "id" => Column.new(0), "name" => Column.new(2) }.freeze
+    column_map = { "id" => 0, "name" => 2 }.freeze
     remapper = ActiveModel::IndexedRow::Remapper.new(
       row.indexes,
       %w(t0_r0 extra),

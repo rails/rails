@@ -144,24 +144,24 @@ module ActiveRecord
         assert_equal 3, @cache.columns_hash("courses").size
       end
 
-      def test_connection_columns_record_their_ord_in_the_table
+      def test_connection_columns_record_their_slot_in_the_table
         columns = @connection.columns("courses")
-        assert_equal (0...columns.size).to_a, columns.map(&:ord)
+        assert_equal (0...columns.size).to_a, columns.map(&:slot)
       end
 
-      def test_columns_record_their_ord_in_the_table
+      def test_columns_record_their_slot_in_the_table
         columns = @cache.columns("courses")
-        assert_equal (0...columns.size).to_a, columns.map(&:ord)
-        assert_equal columns.map(&:ord), @cache.columns_hash("courses").values.map(&:ord)
+        assert_equal (0...columns.size).to_a, columns.map(&:slot)
+        assert_equal columns.map(&:slot), @cache.columns_hash("courses").values.map(&:slot)
       end
 
-      def test_add_all_records_column_ords
+      def test_add_all_records_column_slots
         cache = add_all_to_new_cache
         columns = cache.columns(@pool, "courses")
-        assert_equal (0...columns.size).to_a, columns.map(&:ord)
+        assert_equal (0...columns.size).to_a, columns.map(&:slot)
       end
 
-      def test_column_ords_survive_dump_and_load
+      def test_column_slots_survive_dump_and_load
         cache = add_all_to_new_cache
 
         ["yml", "dump", "json"].each do |ext|
@@ -170,7 +170,7 @@ module ActiveRecord
 
           loaded = load_bound_reflection(tempfile.path)
           columns = loaded.columns("courses")
-          assert_equal (0...columns.size).to_a, columns.map(&:ord), "column ords lost for .#{ext}"
+          assert_equal (0...columns.size).to_a, columns.map(&:slot), "column slots lost for .#{ext}"
         ensure
           tempfile&.unlink
         end

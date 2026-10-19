@@ -11,13 +11,9 @@ module ActiveModel
         Array.new(size, UNSET)
       end
 
-      # The largest +ord+ in +column_map+, or -1 if it is empty. Columns
-      # without an +ord+ are skipped.
-      def max_ord(column_map)
-        column_map.each_value.inject(-1) do |max, column|
-          ord = column.ord
-          ord && ord > max ? ord : max
-        end
+      # The largest slot in +indexes+, or -1 if it is empty.
+      def max_slot(indexes)
+        indexes.each_value.max || -1
       end
 
       def [](hash)
@@ -110,8 +106,8 @@ module ActiveModel
       end
     end
 
-    # Like #fetch, but looks the value up by its index in the row (the
-    # column's +ord+) rather than by name.
+    # Like #fetch, but looks the value up by its slot in the row
+    # rather than by name.
     def fetch_at(index)
       value = index < @row.size ? @row[index] : UNSET
 
@@ -124,8 +120,8 @@ module ActiveModel
       end
     end
 
-    # Like #[], but looks the value up by its index in the row (the
-    # column's +ord+) rather than by name.
+    # Like #[], but looks the value up by its slot in the row
+    # rather than by name.
     def at(index)
       value = @row[index]
       value unless UNSET.equal?(value)
@@ -166,7 +162,7 @@ module ActiveModel
 
     # Builds rows keyed by +new_columns+ out of rows keyed by +old_columns+.
     #
-    # When +column_map+ is given, the new rows are laid out by the +ord+ of
+    # When +column_map+ is given, the new rows are laid out by the slot of
     # each column in it, and columns it doesn't have are given indexes after
     # its last one (see ExtendedIndexes). Without one, every column is
     # extra, so the new row is in the order of +new_columns+.
@@ -179,19 +175,17 @@ module ActiveModel
         pairs = new_columns.zip(old_columns).to_h
 
         extra = nil
-        last_ord = nil
+        last_slot = nil
 
-        # [ord in the new row, index in the original row]
+        # [slot in the new row, index in the original row]
         slots = pairs.map do |new_column, old_column|
-          if column = column_map[new_column]
-            ord = column.ord
-          else
+          unless slot = column_map[new_column]
             extra ||= {}
-            last_ord ||= IndexedRow.max_ord(column_map)
-            ord = extra[new_column] = (last_ord += 1)
+            last_slot ||= IndexedRow.max_slot(column_map)
+            slot = extra[new_column] = (last_slot += 1)
           end
 
-          [ord, initial_indexes.fetch(old_column).ord]
+          [slot, initial_indexes.fetch(old_column)]
         end
         slots.sort_by!(&:first)
 
@@ -205,7 +199,7 @@ module ActiveModel
 
         # If the new row has no gaps, it can be built with a single
         # values_at. Otherwise fill in an unset row by position.
-        if slots.each_with_index.all? { |(ord, _), i| ord == i }
+        if slots.each_with_index.all? { |(slot, _), i| slot == i }
           @indexes_to_extract = slots.map(&:last)
           @slots = nil
         else
@@ -219,7 +213,7 @@ module ActiveModel
 
         if @slots
           row = IndexedRow.unset_row(@width)
-          @slots.each { |ord, index| row[ord] = values[index] }
+          @slots.each { |slot, index| row[slot] = values[index] }
         else
           row = values.values_at(*@indexes_to_extract)
         end
@@ -323,10 +317,8 @@ module ActiveModel
       # The indexes are replaced rather than modified, since they're usually
       # shared with other rows.
       def []=(column, value)
-        if entry = @indexes[column]
-          index = entry.ord
-        else
-          index = [@row.size, IndexedRow.max_ord(@indexes) + 1].max
+        unless index = @indexes[column]
+          index = [@row.size, IndexedRow.max_slot(@indexes) + 1].max
           @indexes = ExtendedIndexes.add(@indexes, column, index)
         end
 
@@ -340,13 +332,10 @@ module ActiveModel
 
     private
       # The position of +column+ in the row, or +nil+ if the row doesn't
-      # have it. The values in +@indexes+ are either Integers or Columns
-      # (both respond to +ord+). A column map can include columns that
-      # weren't selected, so their +ord+ can be past the end of the row or
-      # point at an UNSET slot.
+      # have it. A column map can include columns that weren't selected, so
+      # their slot can be past the end of the row or point at an UNSET one.
       def index_for(column)
-        if entry = @indexes[column]
-          index = entry.ord
+        if index = @indexes[column]
           index if index < @row.size && !UNSET.equal?(@row[index])
         end
       end

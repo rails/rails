@@ -150,8 +150,8 @@ module ActiveModel
         return EMPTY_TYPES if column_types.empty? || !indexes.is_a?(IndexedRow::ExtendedIndexes)
 
         types = []
-        indexes.extra.each do |name, ord|
-          types[ord - @names.size] = column_types[name] if ord >= @names.size
+        indexes.extra.each do |name, slot|
+          types[slot - @names.size] = column_types[name] if slot >= @names.size
         end
         types
       end
@@ -162,7 +162,7 @@ module ActiveModel
       private
         def names_for(indexes)
           names = []
-          indexes.each_key { |name| names[indexes[name].ord] = name }
+          indexes.each_key { |name| names[indexes[name]] = name }
           names.freeze
         end
 
@@ -170,8 +170,8 @@ module ActiveModel
           missing = types.each_key.reject { |name| indexes.key?(name) }
           return indexes if missing.empty?
 
-          last_ord = IndexedRow.max_ord(indexes)
-          IndexedRow::ExtendedIndexes.new(indexes, missing.index_with { last_ord += 1 }.freeze)
+          last_slot = IndexedRow.max_slot(indexes)
+          IndexedRow::ExtendedIndexes.new(indexes, missing.index_with { last_slot += 1 }.freeze)
         end
     end
   end
