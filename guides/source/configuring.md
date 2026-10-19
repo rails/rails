@@ -2614,6 +2614,8 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | `307`                |
 | 6.1                   | `308`                |
 
+This option is deprecated and will be removed in Rails 9.0, which will always use `308`.
+
 #### `config.action_dispatch.log_rescued_responses`
 
 Enables logging those unhandled exceptions configured in `rescue_responses`. It

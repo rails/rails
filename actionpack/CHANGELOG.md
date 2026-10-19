@@ -1,3 +1,11 @@
+*   Deprecate `config.action_dispatch.ssl_default_redirect_status`.
+
+    Rails 9.0 will remove the option and `ActionDispatch::SSL` will always
+    redirect non-GET/HEAD requests with a 308. A warning is emitted unless it is
+    set to 308, which `load_defaults 6.1` already does.
+
+    *Ben Sheldon*
+
 *   Short-circuit route matching for static paths.
 
     The route set now precomputes an exact-match table from request method

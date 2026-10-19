@@ -87,6 +87,15 @@ module ActionDispatch
 
       @hsts_header = build_hsts_header(normalize_hsts_options(hsts))
       @ssl_default_redirect_status = ssl_default_redirect_status
+
+      if @redirect && !@redirect[:status] && @ssl_default_redirect_status != 308
+        ActionDispatch.deprecator.warn(<<~MSG.squish)
+          `config.action_dispatch.ssl_default_redirect_status` is deprecated and
+          will be removed in Rails 9.0, when non-GET/HEAD requests will always be
+          redirected to HTTPS with a 308 status. Set it to 308 to adopt the new
+          behavior now.
+        MSG
+      end
     end
 
     def call(env)

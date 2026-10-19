@@ -7,12 +7,14 @@ class SSLTest < ActionDispatch::IntegrationTest
 
   def build_app(headers: {}, ssl_options: {})
     app = lambda { |env| [200, headers, []] }
-    Rack::Lint.new(
-      ActionDispatch::SSL.new(
-        Rack::Lint.new(app),
-        hsts: { subdomains: true }, **ssl_options,
+    ActionDispatch.deprecator.silence do
+      Rack::Lint.new(
+        ActionDispatch::SSL.new(
+          Rack::Lint.new(app),
+          hsts: { subdomains: true }, **ssl_options,
+        )
       )
-    )
+    end
   end
 end
 
@@ -84,6 +86,24 @@ class RedirectSSLTest < SSLTest
 
     assert_response 307
     assert_redirected_to "https://a/b?c=d"
+  end
+
+  test "deprecation warning unless ssl_default_redirect_status is 308" do
+    app = lambda { |env| [200, {}, []] }
+
+    assert_deprecated(/ssl_default_redirect_status` is deprecated/, ActionDispatch.deprecator) do
+      ActionDispatch::SSL.new(app)
+    end
+
+    assert_deprecated(/ssl_default_redirect_status` is deprecated/, ActionDispatch.deprecator) do
+      ActionDispatch::SSL.new(app, ssl_default_redirect_status: 307)
+    end
+
+    assert_not_deprecated(ActionDispatch.deprecator) do
+      ActionDispatch::SSL.new(app, ssl_default_redirect_status: 308)
+      ActionDispatch::SSL.new(app, redirect: { status: 307 })
+      ActionDispatch::SSL.new(app, redirect: false)
+    end
   end
 
   test "redirect with ssl_default_redirect_status" do
