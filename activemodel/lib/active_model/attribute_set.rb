@@ -255,15 +255,13 @@ module ActiveModel
     end
 
     # +row+ is the raw data from the database, an Array laid out by
-    # +indexes+ (see IndexedRow). +ctx+ is a Builder::Context, for looking
-    # up the model's attributes by index.
-    def initialize(row, indexes, additional_types, ctx)
+    # +indexes+ (see IndexedRow), which also type any names the model
+    # doesn't have (like from `select count(*) as blah`). +ctx+ is a
+    # Builder::Context, for looking up the model's attributes by index.
+    def initialize(row, indexes, ctx)
       # Sized to hold every slot so reads by index stay in bounds
       super(Array.new(indexes.size))
       @row = row
-
-      # Additional types (like from `select count(*) as blah`)
-      @additional_types = additional_types
       @ctx = ctx
       # Values cast from +row+, by the same index. Only values in the row
       # are cast, so this is never longer than the row.
@@ -383,8 +381,6 @@ module ActiveModel
       end
 
     private
-      attr_reader :additional_types
-
       def materialize
         unless @materialized
           row_keys.each { |key| self[key] }
@@ -455,7 +451,7 @@ module ActiveModel
       end
 
       def type_for(index)
-        @ctx.type_at(index, additional_types)
+        @ctx.type_at(index, @indexes)
       end
 
       # The names the row has a value for.

@@ -230,24 +230,36 @@ module ActiveModel
     end
 
     # Wraps an immutable column map and adds indexes for columns it doesn't
-    # have, such as aliases selected alongside a model's columns.
+    # have, such as aliases selected alongside a model's columns. The query
+    # that selected those columns can also say what type each one is.
     class ExtendedIndexes
+      EMPTY_TYPES = {}.freeze
+      private_constant :EMPTY_TYPES
+
       # Returns +indexes+ with +column+ added at +index+, without modifying
       # +indexes+.
       def self.add(indexes, column, index)
         if indexes.is_a?(self)
-          new(indexes.indexes, indexes.extra.merge(column => index).freeze)
+          new(indexes.indexes, indexes.extra.merge(column => index).freeze, indexes.extra_types)
         else
           new(indexes, { column => index }.freeze)
         end
       end
 
-      attr_reader :indexes, :extra
+      attr_reader :indexes, :extra, :extra_types
 
-      def initialize(indexes, extra)
+      # +extra_types+ has the types of the +extra+ columns that have one, by
+      # slot.
+      def initialize(indexes, extra, extra_types = EMPTY_TYPES)
         @indexes = indexes
         @extra = extra
+        @extra_types = extra_types
         freeze
+      end
+
+      # The type of the extra column at +slot+, if it has one.
+      def type_at(slot)
+        @extra_types[slot]
       end
 
       def [](column)
@@ -283,12 +295,13 @@ module ActiveModel
       end
 
       def ==(other)
-        other.is_a?(ExtendedIndexes) && @indexes == other.indexes && @extra == other.extra
+        other.is_a?(ExtendedIndexes) && @indexes == other.indexes && @extra == other.extra &&
+          @extra_types == other.extra_types
       end
       alias_method :eql?, :==
 
       def hash
-        [ExtendedIndexes, @indexes, @extra].hash
+        [ExtendedIndexes, @indexes, @extra, @extra_types].hash
       end
     end
 
