@@ -1,3 +1,12 @@
+*   Check `ActiveModel::Attributes` attribute methods without building the
+    attributes hash.
+
+    `respond_to?` for a method that is not defined no longer calls `attributes`.
+    A key that an `attributes` override adds, without an attribute or a method,
+    no longer makes the model respond to it. Active Record already works this way.
+
+    *Bruno Costanzo*
+
 *   Treat `:except_on` as a callback option in `ActiveModel::Error`.
 
     Errors from validations using `:except_on` now match `errors.added?` queries
