@@ -30,7 +30,8 @@ module ActiveRecord
       def attr_readonly(*attributes)
         self._attr_readonly = ActiveSupport::Ractors.make_shareable(_attr_readonly | attributes.map(&:to_s))
 
-        if ActiveRecord.raise_on_assign_to_attr_readonly
+        if ActiveRecord._raise_on_assign_to_attr_readonly
+          undefine_attribute_methods # The code generator changed
           include(HasReadonlyAttributes)
         end
       end
@@ -43,6 +44,27 @@ module ActiveRecord
       def readonly_attribute?(name) # :nodoc:
         _attr_readonly.include?(name)
       end
+
+      private
+        def define_method_attribute=(canonical_name, owner:, as: canonical_name)
+          if ActiveRecord._raise_on_assign_to_attr_readonly && readonly_attribute?(canonical_name)
+            ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
+              canonical_name, writer: true,
+            ) do |temp_method_name, attr_name_expr|
+              owner.define_cached_method(temp_method_name, as: "#{as}=", namespace: :active_record_readonly) do |batch|
+                batch <<
+                  "def #{temp_method_name}(value)" <<
+                  "  unless new_record?" <<
+                  "    raise ActiveRecord::ReadonlyAttributeError.new(#{attr_name_expr})" <<
+                  "  end" <<
+                  "  @attributes.write_from_user(#{attr_name_expr}, value)" <<
+                  "end"
+              end
+            end
+          else
+            super
+          end
+        end
     end
 
     module HasReadonlyAttributes # :nodoc:

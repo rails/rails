@@ -21,7 +21,7 @@ module ActiveRecord
               owner.define_cached_method(temp_method_name, as: "#{as}=", namespace: :active_record) do |batch|
                 batch <<
                   "def #{temp_method_name}(value)" <<
-                  "  _write_attribute(#{attr_name_expr}, value)" <<
+                  "  @attributes.write_from_user(#{attr_name_expr}, value)" <<
                   "end"
               end
             end
