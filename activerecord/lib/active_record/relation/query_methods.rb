@@ -726,9 +726,14 @@ module ActiveRecord
       else
         arel_column = order_column(column.to_s)
 
-        unless arel_column.is_a?(Arel::Nodes::SqlLiteral)
-          values = cast_values_for_in_order_of(values, arel_column.type_caster)
-        end
+        type_caster =
+          if arel_column.is_a?(Arel::Nodes::SqlLiteral)
+            model.type_caster.type_for_attribute(column)
+          else
+            arel_column.type_caster
+          end
+
+        values = cast_values_for_in_order_of(values, type_caster)
         return spawn.none! if values.empty?
       end
 
