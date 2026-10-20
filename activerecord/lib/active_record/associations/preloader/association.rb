@@ -90,9 +90,7 @@ module ActiveRecord
 
             def load_records
               loader_query.load_records_for_keys(keys_to_load) do |record|
-                loaders.each { |l|
-                  l.set_inverse(record)
-                }
+                loaders.each { |l|  l.set_inverse(record) }
               end
             end
 
