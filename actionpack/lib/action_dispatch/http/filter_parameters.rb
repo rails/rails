@@ -91,7 +91,9 @@ module ActionDispatch
         filtered_parts = parts.map do |part|
           if part.include?("=")
             key, value = part.split("=", 2)
-            "#{key}=#{parameter_filter.filter_param(key, value)}"
+            # Match nested keys such as user[name] against dotted filters like "user.name".
+            filter_key = key.gsub(/(?:\[|%5B)(.*?)(?:\]|%5D)/i, '.\1')
+            "#{key}=#{parameter_filter.filter_param(filter_key, value)}"
           else
             part
           end
