@@ -960,6 +960,26 @@ can use the `process: :later` option (with both `has_one_attached` and
 `has_many_attached`) to specify that Rails should generate them ahead of time
 (and not lazily).
 
+Transformation values can also depend on the record the file is attached to.
+When a value is a `Proc`, it is called with the record each time the variant is
+requested:
+
+```ruby
+class User < ApplicationRecord
+  has_one_attached :profile_photo do |attachable|
+    # Calls user.thumbnail_size
+    attachable.variant :thumb, resize_to_limit: :thumbnail_size.to_proc
+
+    # Calls the lambda with the user, e.g. returning [left, top, width, height]
+    attachable.variant :cropped, crop: ->(user) { user.crop_area }
+  end
+end
+```
+
+Variants are identified by their transformations, so when a `Proc` returns a
+different value, a new variant is generated instead of reusing the previous one.
+Any other value, including a symbol such as `format: :png`, is used as is.
+
 WARNING: It should be considered unsafe to provide arbitrary user supplied
 transformations or parameters to variant processors. This can potentially enable
 command injection vulnerabilities in your app.
