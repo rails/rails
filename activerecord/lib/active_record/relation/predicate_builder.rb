@@ -30,6 +30,12 @@ module ActiveRecord
       attributes.each_with_object([]) do |(key, value), result|
         if value.is_a?(Hash)
           result << Arel.sql(key, retryable: true)
+        elsif key.is_a?(Array)
+          key.each do |column|
+            if (idx = column.rindex("."))
+              result << Arel.sql(column[0, idx], retryable: true)
+            end
+          end
         elsif (idx = key.rindex("."))
           result << Arel.sql(key[0, idx], retryable: true)
         end

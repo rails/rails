@@ -206,6 +206,21 @@ module ActiveRecord
       assert_equal [categorization], Categorization.joins(:author).where(key => conditions)
     end
 
+    def test_where_with_tuple_syntax_referencing_another_table_with_includes
+      categorization = categorizations(:mary_thinking_general)
+
+      key = [:category_id, "authors.name"]
+
+      conditions = [
+        [categorization.category_id, categorization.author.name],
+      ]
+
+      relation = Categorization.includes(:author).where(key => conditions)
+
+      assert_equal %w{authors}, relation.references_values
+      assert_equal [categorization], relation
+    end
+
     def test_where_with_nil_cpk_association
       order = Cpk::Order.create!(id: [1, 2])
       book = order.books.create!(id: [3, 4])
