@@ -299,16 +299,22 @@ module ActiveRecord
           end
         end
 
-        # Composite primary key models get a real alias, which makes
-        # +where(id_value: ...)+ work. Other models get a plain reader, so
-        # they don't take the alias resolution slow path.
+        # Composite primary key models get a real alias. Other models get a
+        # plain reader and writer, so they don't take the alias resolution
+        # slow path, and an entry in +attribute_aliases+ so that queries such
+        # as +where(id_value: ...)+ still resolve to the +id+ column.
         def define_id_value
           if composite_primary_key?
             alias_attribute :id_value, :id
-          elsif !attribute_alias?("id_value")
+          else
+            target = attribute_alias("id_value")
+            return unless target.nil? || target == "id"
+
             ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
               define_method_attribute("id", owner: owner, as: "id_value")
+              send(:"define_method_attribute=", "id", owner: owner, as: "id_value")
             end
+            self.attribute_aliases = attribute_aliases.merge("id_value" => "id").freeze unless target
           end
         end
     end
