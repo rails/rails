@@ -150,12 +150,12 @@ module ActiveRecord
         if key.is_a?(Array)
           queries = Array(value).map do |ids_set|
             raise ArgumentError, "Expected corresponding value for #{key} to be an Array" unless ids_set.is_a?(Array)
-            build_from_hash(key.zip(ids_set).to_h)
+            build_from_hash(key.zip(ids_set).to_h, &block)
           end
           grouping_queries(queries)
         elsif value.is_a?(Hash) && !table.has_column?(key)
           table.associated_table(key, &block)
-            .predicate_builder.expand_from_hash(value.stringify_keys)
+            .predicate_builder.expand_from_hash(value.stringify_keys, &block)
         elsif (associated_reflection = table.associated_with(key))
           # Find the foreign key when using queries such as:
           # Post.where(author: author)
