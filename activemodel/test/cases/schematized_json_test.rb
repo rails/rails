@@ -3,11 +3,9 @@
 require "cases/helper"
 
 class Account
-  extend ActiveModel::Callbacks
   include ActiveModel::Attributes
+  include ActiveModel::Dirty
   include ActiveModel::SchematizedJson
-
-  define_model_callbacks :save
 
   attribute :settings
   has_json :settings, restricts_access: true, max_invites: 10, greeting: "Hello!", beta: :boolean
@@ -18,8 +16,8 @@ class Account
   attribute :flags_with_defaults, default: { "staff" => false, "early_adopter" => true }
   has_json :flags_with_defaults, staff: true, early_adopter: false
 
-  attribute :broken
-  has_json :broken, creation: :datetime, nesting: {}
+  attribute :mutable_defaults
+  has_json :mutable_defaults, greeting: +"Hello!"
 end
 
 class SchematizedJsonTest < ActiveModel::TestCase
@@ -76,13 +74,37 @@ class SchematizedJsonTest < ActiveModel::TestCase
     assert @account.flags_with_defaults.early_adopter?
   end
 
-  test "only standard json types are acceptable schema types" do
-    assert_raises(ArgumentError) do
-      @account.broken.creation = DateTime.now
-    end
+  test "defaults are not shared between records" do
+    @account.mutable_defaults.greeting << "!"
+    assert_equal "Hello!", Account.new.mutable_defaults.greeting
+  end
 
-    assert_raises(ArgumentError) do
-      @account.broken.nesting = { not: :valid }
+  test "reads are not a change" do
+    @account.settings.max_invites
+    assert_not_predicate @account, :changed?
+  end
+
+  test "writes are a change" do
+    @account.settings.max_invites = 5
+    assert_predicate @account, :settings_changed?
+  end
+
+  test "defaults are stored in the attribute" do
+    @account.settings.max_invites
+    assert_equal({ "restricts_access" => true, "max_invites" => 10, "greeting" => "Hello!", "beta" => nil }, @account.attributes["settings"])
+  end
+
+  test "mass assignment of an unknown key raises" do
+    assert_raises(NoMethodError) do
+      @account.settings = { "max_invites" => "5", "unknown" => "value" }
+    end
+  end
+
+  test "invalid schema types are rejected when declared" do
+    [{ creation: :datetime }, { nesting: {} }, { time: Time.now }].each do |schema|
+      assert_raises(ArgumentError, "expected #{schema} to be rejected") do
+        Class.new(Account) { attribute :broken; has_json :broken, **schema }
+      end
     end
   end
 end
