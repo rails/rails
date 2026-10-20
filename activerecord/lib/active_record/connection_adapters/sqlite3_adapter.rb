@@ -457,7 +457,9 @@ module ActiveRecord
 
       def rename_column(table_name, column_name, new_column_name) # :nodoc:
         column = column_for(table_name, column_name)
-        alter_table(table_name, rename: { column.name => new_column_name.to_s })
+        at = build_alter_table_definition(table_name)
+        at.rename_column(column.name, new_column_name)
+        execute_alter_table(at)
         rename_column_indexes(table_name, column.name, new_column_name)
       end
 

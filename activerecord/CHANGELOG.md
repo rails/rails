@@ -1,3 +1,13 @@
+*   Use native `ALTER TABLE ... RENAME COLUMN` for `rename_column` on SQLite.
+
+    `rename_column` rebuilt the table and copied index, check constraint and
+    virtual column SQL as written, so it failed when that SQL used the renamed
+    column. The rebuild also dropped triggers on the table, broke foreign keys
+    from other tables to the column, and lost a string primary key. SQLite
+    updates all of these when it renames the column itself.
+
+    *Bruno Costanzo*
+
 *   Deprecate `config.active_record.raise_on_assign_to_attr_readonly`.
 
     It has been a framework default since version 7.1, and keeping it as
