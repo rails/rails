@@ -311,6 +311,7 @@ module ActiveSupport
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
+      @utc = constant_utc_zone?(@tzinfo)
     end
     # :startdoc:
 
@@ -323,6 +324,10 @@ module ActiveSupport
     # Returns the offset of this time zone from UTC in seconds.
     def utc_offset
       @utc_offset || tzinfo&.current_period&.base_utc_offset
+    end
+
+    def utc? # :nodoc:
+      @utc
     end
 
     # Returns a formatted string of the offset from UTC, or an alternative
@@ -589,6 +594,17 @@ module ActiveSupport
     end
 
     private
+      UTC_TIME = ::Time.utc(2000)
+      private_constant :UTC_TIME
+
+      def constant_utc_zone?(tzinfo)
+        if tzinfo.utc_offset == 0
+          period = tzinfo.period_for_utc(UTC_TIME)
+          period.start_transition.nil? && period.end_transition.nil? &&
+            (period.abbreviation == "UTC" || period.abbreviation == "UCT")
+        end
+      end
+
       def parts_to_time(parts, now)
         raise ArgumentError, "invalid date" if parts.nil?
         return if parts.empty?

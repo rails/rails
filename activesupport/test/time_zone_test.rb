@@ -713,6 +713,19 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.strptime("2014-10-26 01:00:00", "%Y-%m-%d %H:%M:%S")
   end
 
+  def test_utc?
+    %w[UTC Etc/UTC Etc/UCT Etc/Universal Etc/Zulu Universal Zulu UCT].each do |name|
+      assert_predicate ActiveSupport::TimeZone[name], :utc?, "expected #{name} to be utc?"
+    end
+
+    ["Eastern Time (US & Canada)", "London", "Etc/GMT", "Etc/GMT+1", "Africa/Abidjan"].each do |name|
+      assert_not_predicate ActiveSupport::TimeZone[name], :utc?, "expected #{name} not to be utc?"
+    end
+
+    assert_predicate ActiveSupport::TimeZone.create("Custom", nil, TZInfo::Timezone.get("Etc/UTC")), :utc?
+    assert_not_predicate ActiveSupport::TimeZone.create("Custom", 0, TZInfo::Timezone.get("Etc/GMT")), :utc?
+  end
+
   def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
     tzinfo = TZInfo::Timezone.get("America/New_York")
     zone = ActiveSupport::TimeZone.create(tzinfo.name, nil, tzinfo)
