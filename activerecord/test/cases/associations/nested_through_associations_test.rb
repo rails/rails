@@ -407,6 +407,30 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     Club.default_scopes = prev_default_scope
   end
 
+  def test_reader_eager_loads_when_a_through_default_scope_adds_references_to_a_scoping_for_all_queries
+    prev_post_default_scopes = Post.default_scopes
+    prev_comment_default_scopes = Comment.default_scopes
+    # Neither scope eager loads alone: the scoping adds `includes`, and the
+    # default scope on the through model adds `references`. The source
+    # reflection's owner, Comment, has no default scope of its own here.
+    Post.default_scopes = [ActiveRecord::Scoping::DefaultScope.new(proc { Post.includes(:author).references(:authors) })]
+    Comment.default_scopes = []
+    author = authors(:david)
+    ratings = nil
+
+    # A named scope body runs without the current scope, but the scope for all
+    # queries still applies.
+    Rating.includes(comment: { post: :author }).scoping(all_queries: true) do
+      Rating.all._exec_scope { ratings = author.ratings.to_a; self }
+    end
+
+    assert_not_empty ratings
+    assert ratings.all? { |rating| rating.association(:comment).loaded? }
+  ensure
+    Post.default_scopes = prev_post_default_scopes
+    Comment.default_scopes = prev_comment_default_scopes
+  end
+
   def test_has_one_through_has_one_through_with_belongs_to_source_reflection_preload
     member = assert_queries_count(4) { Member.includes(:club_category).first }
     general = categories(:general)
