@@ -1050,6 +1050,23 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_includes ca_zones, ActiveSupport::TimeZone["Manitoba"]
     assert_not_includes ca_zones.map(&:name), "America/Winnipeg"
   end
+
+  def test_northwest_territories_mapping
+    northwest_territories = ActiveSupport::TimeZone["Northwest Territories"]
+    mountain_us = ActiveSupport::TimeZone["Mountain Time (US & Canada)"]
+
+    assert_equal "America/Inuvik", northwest_territories.standard_name
+    assert_equal "America/Denver", mountain_us.standard_name
+
+    assert_equal "America/Inuvik", northwest_territories.tzinfo.name
+  end
+
+  def test_country_zones_include_northwest_territories
+    ca_zones = ActiveSupport::TimeZone.country_zones(:ca)
+
+    assert_includes ca_zones, ActiveSupport::TimeZone["Northwest Territories"]
+    assert_not_includes ca_zones.map(&:name), "America/Inuvik"
+  end
 end
 
 class TimeZoneRactorTest < ActiveSupport::TestCase
