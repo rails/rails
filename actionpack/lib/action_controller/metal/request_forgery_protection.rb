@@ -827,7 +827,18 @@ module ActionController # :nodoc:
       end
 
       def csrf_token_hmac(session, identifier) # :doc:
-        OpenSSL::HMAC.digest("SHA256", real_csrf_token(session), identifier)
+        key = real_csrf_token(session)
+
+        # Keyed once per real token, then copied for each identifier: setting
+        # up the key costs more than the digest, and a page computes one HMAC
+        # per form it renders.
+        keyed_with, hmac = @_csrf_token_hmac
+        unless keyed_with.equal?(key)
+          hmac = OpenSSL::HMAC.new(key, "SHA256")
+          @_csrf_token_hmac = [key, hmac]
+        end
+
+        hmac.dup.update(identifier).digest
       end
 
       def xor_byte_strings(s1, s2) # :doc:
