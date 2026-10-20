@@ -865,19 +865,31 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal 67, image.height
   end
 
-  test "creating variation with dynamic variation" do
-    john = User.create!(name: "John")
+  test "creating variation with dynamic transformations" do
+    extra_attached = Class.new(User) do
+      def self.name; superclass.name; end
+
+      attr_accessor :thumb_size
+
+      has_one_attached :avatar_with_dynamic do |attachable|
+        attachable.variant :thumb, resize_to_limit: :thumb_size.to_proc
+      end
+    end
+
+    @user = @user.becomes(extra_attached)
+    @user.thumb_size = [100, 100]
 
     assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
       @user.avatar_with_dynamic.attach fixture_file_upload("racecar.jpg")
-      john.avatar_with_dynamic.attach fixture_file_upload("racecar.jpg")
     end
 
-    josh_variation = @user.avatar_with_dynamic.variant(:thumb).variation
-    john_variation = john.avatar_with_dynamic.variant(:thumb).variation
+    small_variation = @user.avatar_with_dynamic.variant(:thumb).variation
+    @user.thumb_size = [200, 200]
+    large_variation = @user.avatar_with_dynamic.variant(:thumb).variation
 
-    assert_equal({ format: "jpg", resize_to_limit: [100, 100] }, josh_variation.transformations)
-    assert_equal({ format: "jpg", resize_to_limit: [200, 200] }, john_variation.transformations)
+    assert_equal({ format: "jpg", resize_to_limit: [100, 100] }, small_variation.transformations)
+    assert_equal({ format: "jpg", resize_to_limit: [200, 200] }, large_variation.transformations)
+    assert_not_equal small_variation.key, large_variation.key
   end
 
   test "raises error when unknown variant name is used to generate variant" do
