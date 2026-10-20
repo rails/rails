@@ -138,6 +138,30 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     end
   end
 
+  test "deliver_all_later after accessing a message is disallowed" do
+    mail1 = DelayedMailer.test_message(1)
+    mail2 = DelayedMailer.test_message(2)
+    mail2.message # Load the message, which calls the mailer method.
+
+    assert_no_enqueued_jobs do
+      assert_raise(RuntimeError, match: "accessed the message before asking") do
+        ActionMailer.deliver_all_later(mail1, mail2)
+      end
+    end
+  end
+
+  test "deliver_all_later! after accessing a message is disallowed" do
+    mail1 = DelayedMailer.test_message(1)
+    mail2 = DelayedMailer.test_message(2)
+    mail2.message # Load the message, which calls the mailer method.
+
+    assert_no_enqueued_jobs do
+      assert_raise(RuntimeError, match: "accessed the message before asking") do
+        ActionMailer.deliver_all_later!(mail1, mail2)
+      end
+    end
+  end
+
   test "deliver_all_later enqueues multiple deliveries" do
     mail1 = DelayedMailer.test_message(1)
     mail2 = DelayedMailer.test_kwargs(argument: 1)
