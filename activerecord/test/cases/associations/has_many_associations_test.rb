@@ -751,6 +751,64 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not association.send(:skip_statement_cache?, association.scope)
   end
 
+  def test_reader_does_not_build_the_association_scope_when_using_the_statement_cache
+    author = authors(:david)
+    association = author.association(:posts)
+    expected = Post.where(author_id: author.id).ids.sort
+
+    assert_not_called(association, :scope) do
+      assert_equal expected, author.posts.to_a.map(&:id).sort
+    end
+  end
+
+  def test_reader_eager_loads_from_the_association_scope
+    posts = authors(:david).posts_with_comments.to_a
+
+    assert posts.all? { |post| post.association(:comments).loaded? }
+  end
+
+  def test_reader_eager_loads_from_a_scoping_for_all_queries
+    author = authors(:david)
+    posts = Post.eager_load(:comments).scoping(all_queries: true) { author.posts.to_a }
+
+    assert posts.all? { |post| post.association(:comments).loaded? }
+  end
+
+  def test_reader_eager_loads_from_a_scoping_for_all_queries_inside_a_named_scope_body
+    author = authors(:david)
+    posts = nil
+
+    # A named scope body runs without the current scope, but the scope for all
+    # queries still applies.
+    Post.eager_load(:comments).scoping(all_queries: true) do
+      Post.all._exec_scope { posts = author.posts.to_a; self }
+    end
+
+    assert posts.all? { |post| post.association(:comments).loaded? }
+  end
+
+  def test_reader_eager_loads_from_a_private_default_scope_method
+    post_class = Class.new(ActiveRecord::Base) do
+      self.table_name = "posts"
+      self.inheritance_column = :disabled
+      def self.name = "PostWithPrivateDefaultScope"
+      has_many :comments, foreign_key: :post_id
+
+      class << self
+        private def default_scope = eager_load(:comments)
+      end
+    end
+    author_class = Class.new(Author) do
+      def self.name = "AuthorWithPrivateDefaultScopePosts"
+      has_many :posts_with_private_default_scope, anonymous_class: post_class, foreign_key: :author_id
+    end
+
+    posts = author_class.find(authors(:david).id).posts_with_private_default_scope.to_a
+
+    assert_not_empty posts
+    assert posts.all? { |post| post.association(:comments).loaded? }
+  end
+
   def test_finding
     assert_equal 3, Firm.first.clients.length
   end
