@@ -161,6 +161,21 @@ class FieldOrderedValuesTest < ActiveRecord::TestCase
     assert_empty(Book.in_order_of(:nullable_status, [:bogus]).ids)
   end
 
+  def test_in_order_of_serializes_values_once
+    model = Class.new(Book) do
+      def self.name = "BookWithSerializedFormat"
+
+      serialize :format, coder: JSON
+    end
+    model.destroy_all
+    paperback = model.create!(format: { "type" => "paperback" })
+    ebook = model.create!(format: { "type" => "ebook" })
+
+    books = model.in_order_of(:format, [{ "type" => "ebook" }, { "type" => "paperback" }])
+
+    assert_equal([ebook.id, paperback.id], books.ids)
+  end
+
   def test_in_order_of_with_array_values
     order = [3, [5, 2], [4, 7], 1]
     posts = Post.in_order_of(:id, order).order(id: :asc)

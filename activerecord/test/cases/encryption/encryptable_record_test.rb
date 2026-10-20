@@ -151,6 +151,13 @@ class ActiveRecord::Encryption::EncryptableRecordTest < ActiveRecord::Encryption
     assert_equal 1, EncryptedBook.where(name: "Dune").count
   end
 
+  test "deterministic attributes can be ordered with in_order_of" do
+    hyperion = EncryptedBook.create!(name: "Hyperion")
+    solaris = EncryptedBook.create!(name: "Solaris")
+
+    assert_equal [solaris, hyperion], EncryptedBook.in_order_of(:name, ["Solaris", "Hyperion"]).to_a
+  end
+
   test "deterministic attributes can be created by passing deterministic: true" do
     book_1 = EncryptedBook.create!(name: "Dune")
     book_2 = EncryptedBook.create!(name: "Dune")
