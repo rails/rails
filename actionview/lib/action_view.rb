@@ -47,6 +47,7 @@ module ActionView
     autoload :PathRegistry
     autoload :PathSet
     autoload :RecordIdentifier
+    autoload :RenderParser
     autoload :Rendering
     autoload :RoutingUrlFor
     autoload :Template
