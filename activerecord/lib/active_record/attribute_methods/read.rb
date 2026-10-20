@@ -20,14 +20,10 @@ module ActiveRecord
               raise ArgumentError, "#{self.name} has no attribute `#{canonical_name}` to define a reader for"
             end
 
-            # Generated methods are cached by name and shared between models,
-            # so they're cached per slot.
-            namespace = :"active_record_slot"
-
             ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
-              "slot_#{slot}"
+              "_read_attribute_#{slot}"
             ) do |temp_method_name|
-              owner.define_cached_method(temp_method_name, as: as, namespace: namespace) do |batch|
+              owner.define_cached_method(temp_method_name, as: as, namespace: :active_record_slot) do |batch|
                 batch <<
                   "def #{temp_method_name}" <<
                   "  _read_attribute_at!(#{slot})" <<
