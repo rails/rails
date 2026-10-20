@@ -114,6 +114,28 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [developer], company.special_developers.where.not("contracts.id": nil)
   end
 
+  def test_nested_where_condition_on_a_joined_table_that_is_not_an_association
+    company = Company.create!(name: "special")
+    developer = SpecialDeveloper.create!
+    SpecialContract.create!(company: company, special_developer: developer)
+
+    relation = Company.joins(special_developers: :special_contracts)
+      .where(special_developers: { contracts: { company: company } })
+
+    assert_equal [company], relation
+  end
+
+  def test_tuple_where_condition_on_a_joined_table_that_is_not_an_association
+    company = Company.create!(name: "special")
+    developer = SpecialDeveloper.create!
+    SpecialContract.create!(company: company, special_developer: developer)
+
+    relation = SpecialDeveloper.joins(:special_contracts)
+      .where([:id, "contracts.company"] => [[developer.id, company]])
+
+    assert_equal [developer], relation
+  end
+
   def test_preload_with_nested_association
     posts = Post.where(id: [authors(:david).id, authors(:mary).id]).
       preload(:author, :author_favorites_with_scope).order(:id).to_a
