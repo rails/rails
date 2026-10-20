@@ -22,7 +22,7 @@ module ActiveModel
     end
 
     def cast_types
-      attributes.to_h.transform_values(&:type)
+      attributes.transform_values(&:type)
     end
 
     def keys
@@ -39,7 +39,7 @@ module ActiveModel
     end
 
     def writable
-      AttributeSet.new(attributes.transform_values(&:dup))
+      AttributeSet.new(attributes.transform_row(&:dup))
     end
 
     def to_hash
@@ -49,12 +49,12 @@ module ActiveModel
     alias :to_h :to_hash
 
     def map(&block)
-      new_attributes = attributes.transform_values(&block)
+      new_attributes = attributes.transform_row(&block)
       self.class.new(new_attributes)
     end
 
     def deep_dup
-      self.class.new(attributes.transform_values(&:deep_dup))
+      self.class.new(attributes.transform_row(&:deep_dup))
     end
 
     def ==(other)
@@ -104,15 +104,15 @@ module ActiveModel
     end
 
     def cast_types
-      attributes.to_h.transform_values(&:type)
+      attributes.transform_values(&:type)
     end
 
     def values_before_type_cast
-      attributes.to_h.transform_values(&:value_before_type_cast)
+      attributes.transform_values(&:value_before_type_cast)
     end
 
     def values_for_database
-      attributes.to_h.transform_values(&:value_for_database)
+      attributes.transform_values(&:value_for_database)
     end
 
     def to_hash
@@ -178,7 +178,7 @@ module ActiveModel
     end
 
     def deep_dup
-      AttributeSet.new(attributes.transform_values(&:dup_or_share))
+      AttributeSet.new(attributes.transform_row(&:dup_or_share))
     end
 
     def initialize_dup(_)
@@ -202,7 +202,7 @@ module ActiveModel
     end
 
     def map(&block)
-      new_attributes = attributes.transform_values(&block)
+      new_attributes = attributes.transform_row(&block)
       AttributeSet.new(new_attributes)
     end
 
@@ -472,11 +472,9 @@ module ActiveModel
         @ctx.type_at(index, @indexes)
       end
 
-      # The names the row has a value for.
+      # Every name the set can hold.
       def row_keys
-        names = []
-        indexes.each_key { |name| names << name if IndexedRow.key_at?(@row, @indexes[name]) }
-        names
+        indexes.keys
       end
 
       def cached_names

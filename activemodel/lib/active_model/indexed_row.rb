@@ -140,7 +140,7 @@ module ActiveModel
     end
 
     def to_h
-      keys.index_with { |column| @row[index_for(column)] }
+      transform_values(&:itself)
     end
     alias_method :to_hash, :to_h
 
@@ -155,10 +155,22 @@ module ActiveModel
       self
     end
 
-    # Returns a Mutable row with the same indexes, so the new row keeps the
-    # same layout.
     def transform_values
       return enum_for(:transform_values) { size } unless block_given?
+
+      hash = {}
+      @indexes.each_key do |column|
+        if index = index_for(column)
+          hash[column] = yield(@row[index])
+        end
+      end
+      hash
+    end
+
+    # Like #transform_values, but returns a Mutable row with the same
+    # indexes, so the new row keeps the same layout.
+    def transform_row
+      return enum_for(:transform_row) { size } unless block_given?
 
       Mutable.new(@indexes, @row.map { |value| UNSET.equal?(value) ? value : yield(value) })
     end
@@ -280,6 +292,10 @@ module ActiveModel
         @indexes.each_key(&block)
         @extra.each_key(&block)
         self
+      end
+
+      def keys
+        @indexes.keys + @extra.keys
       end
 
       def each_value(&block)
