@@ -1727,10 +1727,13 @@ module ActiveRecord
               model.attribute_aliases[key] || key
             end
           end
-          references = PredicateBuilder.references(opts)
-          self.references_values |= references unless references.empty?
+          opts = predicate_builder.convert_dot_notation_to_hash(opts)
 
-          parts = predicate_builder.build_from_hash(opts) do |table_name|
+          if (references = PredicateBuilder.references(opts))
+            self.references_values |= references
+          end
+
+          parts = predicate_builder.expand_from_hash(opts) do |table_name|
             lookup_table_klass_from_join_dependencies(table_name)
           end
         when Arel::Nodes::Node
