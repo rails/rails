@@ -899,7 +899,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal 67, image.height
   end
 
-  test "creating variation with dynamic variation method" do
+  test "creating variation with dynamic variation symbol to_proc" do
     john = User.create!(name: "John")
 
     assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
@@ -927,6 +927,14 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
 
     assert_equal({ format: "jpg", resize_to_limit: [100, 100] }, josh_variation.transformations)
     assert_equal({ format: "jpg", resize_to_limit: [200, 200] }, john_variation.transformations)
+  end
+
+  test "creating variation with dynamic variation does not evaluate symbol values" do
+    @user.highlights_with_dynamic.attach fixture_file_upload("racecar.jpg")
+
+    variation = @user.highlights_with_dynamic.first.variant(:thumb_png).variation
+
+    assert_equal({ format: :png, resize_to_limit: [100, 100] }, variation.transformations)
   end
 
   test "raises error when unknown variant name is used to generate variant" do

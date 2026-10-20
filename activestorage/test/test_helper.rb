@@ -158,7 +158,7 @@ class User < ActiveRecord::Base
   has_one_attached :icon, dependent: :purge
   has_one_attached :cover_photo, dependent: false, service: :local
   has_one_attached :avatar_with_dynamic do |attachable|
-    attachable.variant :thumb, resize_to_limit: :thumb_size
+    attachable.variant :thumb, resize_to_limit: :thumb_size.to_proc
     attachable.variant :thumb_proc, resize_to_limit: ->(model) { model.thumb_size }
   end
   has_one_attached :avatar_with_variants do |attachable|
@@ -198,8 +198,9 @@ class User < ActiveRecord::Base
     attachable.variant :thumb, resize_to_limit: [100, 100]
   end
   has_many_attached :highlights_with_dynamic do |attachable|
-    attachable.variant :thumb, resize_to_limit: :thumb_size
+    attachable.variant :thumb, resize_to_limit: :thumb_size.to_proc
     attachable.variant :thumb_proc, resize_to_limit: ->(model) { model.thumb_size }
+    attachable.variant :thumb_png, resize_to_limit: :thumb_size.to_proc, format: :png
   end
   has_many_attached :highlights_with_immediate_variants do |attachable|
     attachable.variant :immediate_thumb, resize_to_limit: [1, 1], process: :immediately
