@@ -5487,17 +5487,18 @@ module ApplicationTests
     end
 
     test "config.zjit enables ZJIT instead of YJIT, and YJIT on a Ruby without ZJIT" do
-      skip "YJIT is already enabled, so ZJIT cannot be enabled" if defined?(RubyVM::ZJIT.enable) && RubyVM::YJIT.enabled?
+      yjit_enabled_at_boot = defined?(RubyVM::YJIT.enabled?) && RubyVM::YJIT.enabled?
 
       add_to_config "config.yjit = true"
       add_to_config "config.zjit = true"
-      app "development"
+      silence_warnings { app "development" }
 
-      if defined?(RubyVM::ZJIT.enable)
+      if defined?(RubyVM::ZJIT.enable) && !yjit_enabled_at_boot
         assert_predicate RubyVM::ZJIT, :enabled?
         assert_not RubyVM::YJIT.enabled? if defined?(RubyVM::YJIT)
       elsif defined?(RubyVM::YJIT.enable)
         assert_predicate RubyVM::YJIT, :enabled?
+        assert_not RubyVM::ZJIT.enabled? if defined?(RubyVM::ZJIT)
       end
     end
 
