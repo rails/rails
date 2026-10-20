@@ -115,6 +115,22 @@ module ActiveModel
       end
     end
 
+    test "respond_to? for a nonexistent attribute method does not build the attributes hash" do
+      data = ModelForAttributesTest.new(integer_field: 1)
+
+      assert_not_called(data, :attributes) do
+        assert_not_respond_to data, :nonexistent
+        assert_not_respond_to data, :nonexistent=
+      end
+      assert_respond_to data, :integer_field
+    end
+
+    test "respond_to? for a nonexistent attribute method before initialize" do
+      data = ModelForAttributesTest.allocate
+
+      assert_not_respond_to data, :nonexistent
+    end
+
     test "children inherit attributes" do
       data = ChildModelForAttributesTest.new(integer_field: "4.4")
 
