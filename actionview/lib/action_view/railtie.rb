@@ -149,6 +149,14 @@ module ActionView
       end
     end
 
+    config.after_initialize do |app|
+      if app.config.eager_load
+        # Cached Builder templates skip the handler, which requires builder lazily.
+        require "builder"
+        ActionView::Template::CompilationCache.load(app.root)
+      end
+    end
+
     initializer "action_view.ractorize" do
       ActiveSupport.on_load(:before_ractorize) do
         ActionView::PathRegistry.make_shareable!
@@ -157,6 +165,8 @@ module ActionView
     end
 
     rake_tasks do |app|
+      load "action_view/tasks/views.rake"
+
       unless app.config.api_only
         load "action_view/tasks/cache_digests.rake"
         load "action_view/tasks/herb.rake"

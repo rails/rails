@@ -1,3 +1,7 @@
+*   Add `bin/rails views:precompile` to compile views at build time, improving runtime performance by avoiding template compilation on first render.
+
+    *Joel Hawksley*
+
 *   Fix the debug page for errors raised in view templates on Ruby 4.1.
 
     Ruby 4.1 builds prism into the interpreter as `Ruby::Prism`, and

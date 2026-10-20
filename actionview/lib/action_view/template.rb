@@ -184,6 +184,7 @@ module ActionView
     # in the guides.
 
     eager_autoload do
+      autoload :CompilationCache
       autoload :Error
       autoload :HTML
       autoload :Handlers
@@ -529,8 +530,8 @@ module ActionView
       # frozen string literal.
       def compiled_source
         set_strict_locals = strict_locals!
-        source = encode!
-        code = @handler.call(self, source)
+        cached = CompilationCache.fetch(identifier) if @source.is_a?(Sources::File)
+        code = cached || @handler.call(self, encode!)
 
         method_arguments =
           if set_strict_locals
