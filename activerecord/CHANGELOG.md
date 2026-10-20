@@ -1,3 +1,9 @@
+*   Fix `in_order_of` returning no records for types whose serialized value
+    changes when serialized again, like deterministic encryption, `json`
+    columns and `serialize` coders.
+
+    *Bruno Costanzo*
+
 *   Use native `ALTER TABLE ... RENAME COLUMN` for `rename_column` on SQLite.
 
     `rename_column` rebuilt the table and copied index, check constraint and

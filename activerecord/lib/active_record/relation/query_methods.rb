@@ -2328,7 +2328,7 @@ module ActiveRecord
             if value.nil?
               nil
             elsif !serialized.nil?
-              serialized
+              Arel::Nodes::Quoted.new(serialized)
             else
               bad_value
             end
