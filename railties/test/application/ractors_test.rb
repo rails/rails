@@ -37,6 +37,21 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_ractor_shareable Rails.backtrace_cleaner
       end
 
+      test "ractorize! runs before_ractorize load hooks with the application" do
+        app_file "config/initializers/before_ractorize.rb", <<~RUBY
+          $before_ractorize_calls = []
+          ActiveSupport.on_load(:before_ractorize) { $before_ractorize_calls << self }
+        RUBY
+
+        app "production"
+
+        assert_empty $before_ractorize_calls
+
+        ractorize!
+
+        assert_equal [Rails.application], $before_ractorize_calls
+      end
+
       test "ractorize! makes Rails.env shareable" do
         app "production"
 
@@ -154,6 +169,38 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         main_size = GreetingsController._view_paths.size
         assert_operator main_size, :>, 0
         assert_equal main_size, on_ractor { GreetingsController._view_paths.size }
+      end
+
+      test "controller names are readable from a non-main Ractor" do
+        app_file "app/controllers/greetings_controller.rb", <<~RUBY
+          class GreetingsController < ApplicationController
+          end
+        RUBY
+
+        app "production"
+
+        assert_equal "greetings", GreetingsController.instance_variable_get(:@controller_name), "computed on eager load"
+
+        ractorize!
+
+        assert_equal "greetings", on_ractor { GreetingsController.controller_name }
+      end
+
+      test "the configured queue name prefix and delimiter are readable from a non-main Ractor" do
+        add_to_env_config "production", 'config.active_job.queue_name_prefix = "app_#{Rails.env}"'
+        app_file "app/jobs/hello_job.rb", <<~RUBY
+          class HelloJob < ApplicationJob
+            self.queue_name_delimiter = "."
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ActiveJob::Base.queue_name_prefix
+        assert_ractor_shareable HelloJob.queue_name_delimiter
+        assert_equal "app_production.default", on_ractor { HelloJob.new.queue_name }
       end
 
       test "jobs are performed from a non-main Ractor" do

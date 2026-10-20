@@ -21,6 +21,7 @@ require "models/book"
 require "models/scoped_counter_cache_topic"
 require "models/scoped_counter_cache_child"
 require "models/cpk"
+require "models/post"
 require "active_support/core_ext/enumerable"
 require "active_support/testing/ractors_assertions"
 
@@ -386,6 +387,89 @@ class CounterCacheTest < ActiveRecord::TestCase
     assert_difference -> { michael.reload.cars_count }, -1 do
       car.destroy
     end
+  end
+
+  test "polymorphic counter cache is decremented through an aliased foreign type" do
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+
+      def self.name; "AliasedTypeComment"; end
+
+      alias_attribute :target_kind, :author_type
+      belongs_to :target,
+        polymorphic: true,
+        foreign_key: :author_id,
+        foreign_type: :target_kind,
+        counter_cache: :legacy_comments_count,
+        optional: true
+    end
+    target = Post.create!(title: "Aliased type", body: "Aliased type")
+    target.update_column(:legacy_comments_count, 1)
+    model.create!(post_id: target.id, body: "Aliased type comment").update_columns(
+      author_id: target.id,
+      author_type: Post.polymorphic_name
+    )
+    comment = model.find_by!(body: "Aliased type comment")
+
+    comment.author_id = nil
+    comment.save!
+
+    assert_equal 0, target.reload.legacy_comments_count
+  end
+
+  test "counter cache of the previous target is decremented through a foreign key alias remapped by a subclass" do
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "comments"
+      self.inheritance_column = nil
+
+      def self.name; "AliasedKeyComment"; end
+
+      alias_attribute :post_key, :post_id
+      belongs_to :keyed_post,
+        class_name: "Post",
+        foreign_key: :post_key,
+        counter_cache: :legacy_comments_count,
+        optional: true
+    end
+    remapped_model = Class.new(model) do
+      def self.name; "RemappedKeyComment"; end
+
+      alias_attribute :post_key, :author_id
+    end
+    decoy = Post.create!(title: "Decoy", body: "Decoy")
+    original = Post.create!(title: "Original", body: "Original")
+    replacement = Post.create!(title: "Replacement", body: "Replacement")
+    comment = remapped_model.create!(post_id: decoy.id, keyed_post: original, body: "Counted comment")
+    assert_equal 1, original.reload.legacy_comments_count
+
+    comment.update!(keyed_post: replacement)
+
+    assert_equal 0, original.reload.legacy_comments_count
+    assert_equal 1, replacement.reload.legacy_comments_count
+    assert_equal 0, decoy.reload.legacy_comments_count
+  end
+
+  test "counter cache is not decremented through a partial composite foreign key" do
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "sponsors"
+
+      def self.name; "CompositeCounterSponsor"; end
+
+      belongs_to :post,
+        foreign_key: [:club_id, :sponsorable_id],
+        primary_key: [:author_id, :id],
+        counter_cache: :legacy_comments_count,
+        optional: true
+    end
+    unrelated = Post.create!(author_id: nil, title: "Unrelated", body: "Unrelated")
+    post = Post.create!(author_id: 9_000_001, title: "Composite counter", body: "Composite counter")
+    reference = model.create!(club_id: nil, sponsorable_id: unrelated.id)
+    unrelated.update_column(:legacy_comments_count, 1)
+
+    reference.update!(club_id: post.author_id, sponsorable_id: post.id)
+
+    assert_equal 1, unrelated.reload.legacy_comments_count
+    assert_equal 1, post.reload.legacy_comments_count
   end
 
   test "update counters doesn't touch timestamps by default" do

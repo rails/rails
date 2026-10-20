@@ -306,6 +306,10 @@ module ActiveRecord
           remote_dispatch(:table_comment, ...)
         end
 
+        def tables_to_truncate
+          remote_dispatch(:tables_to_truncate)
+        end
+
         def type_to_sql(...)
           pure_remote_dispatch(:type_to_sql, ...)
         end
@@ -431,6 +435,10 @@ module ActiveRecord
 
           def reference_name_for_table(...)
             remote_dispatch(:reference_name_for_table, ...)
+          end
+
+          def search_path_tables
+            remote_dispatch(:search_path_tables)
           end
 
           def validate_table_length!(...)

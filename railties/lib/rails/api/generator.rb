@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "sdoc"
 require "active_support/core_ext/array/extract"
 

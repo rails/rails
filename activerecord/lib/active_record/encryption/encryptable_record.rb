@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Encryption
-    # This is the concern mixed in Active Record models to make them encryptable. It adds the +encrypts+
+    # This is the concern mixed in Active Record models to make them encryptable. It adds the `encrypts`
     # attribute declaration, as well as the API to encrypt and decrypt records.
     module EncryptableRecord
       extend ActiveSupport::Concern
@@ -14,36 +15,36 @@ module ActiveRecord
       end
 
       class_methods do
-        # Encrypts the +name+ attribute.
+        # Encrypts the `name` attribute.
         #
-        # ==== Options
+        # #### Options
         #
-        # * <tt>:key_provider</tt> - A key provider to provide encryption and decryption keys. Defaults to
-        #   +ActiveRecord::Encryption.key_provider+.
-        # * <tt>:key</tt> - A password to derive the key from. It's a shorthand for a +:key_provider+ that
+        # * `:key_provider` - A key provider to provide encryption and decryption keys. Defaults to
+        #   `ActiveRecord::Encryption.key_provider`.
+        # * `:key` - A password to derive the key from. It's a shorthand for a `:key_provider` that
         #   serves derived keys. Both options can't be used at the same time.
-        # * <tt>:deterministic</tt> - By default, encryption is not deterministic. It will use a random
+        # * `:deterministic` - By default, encryption is not deterministic. It will use a random
         #   initialization vector for each encryption operation. This means that encrypting the same content
-        #   with the same key twice will generate different ciphertexts. When set to +true+, it will generate the
+        #   with the same key twice will generate different ciphertexts. When set to `true`, it will generate the
         #   initialization vector based on the encrypted content. This means that the same content will generate
         #   the same ciphertexts. This enables querying encrypted text with Active Record. Deterministic encryption
         #   will use the oldest encryption scheme to encrypt new data by default. You can change this by setting
-        #   <tt>deterministic: { fixed: false }</tt>. That will make it use the newest encryption scheme for encrypting new
+        #   `deterministic: { fixed: false }`. That will make it use the newest encryption scheme for encrypting new
         #   data.
-        # * <tt>:support_unencrypted_data</tt> - When true, unencrypted data can be read normally. When false, it will raise errors.
-        #   Falls back to +config.active_record.encryption.support_unencrypted_data+ if no value is provided.
+        # * `:support_unencrypted_data` - When true, unencrypted data can be read normally. When false, it will raise errors.
+        #   Falls back to `config.active_record.encryption.support_unencrypted_data` if no value is provided.
         #   This is useful for scenarios where you encrypt one column, and want to disable support for unencrypted data
         #   without having to tweak the global setting.
-        # * <tt>:downcase</tt> - When true, it converts the encrypted content to downcase automatically. This allows to
-        #   effectively ignore case when querying data. Notice that the case is lost. Use +:ignore_case+ if you are interested
+        # * `:downcase` - When true, it converts the encrypted content to downcase automatically. This allows to
+        #   effectively ignore case when querying data. Notice that the case is lost. Use `:ignore_case` if you are interested
         #   in preserving it.
-        # * <tt>:ignore_case</tt> - When true, it behaves like +:downcase+ but, it also preserves the original case in a specially
-        #   designated column +original_<name>+. When reading the encrypted content, the version with the original case is
-        #   served. But you can still execute queries that will ignore the case. This option can only be used when +:deterministic+
+        # * `:ignore_case` - When true, it behaves like `:downcase` but, it also preserves the original case in a specially
+        #   designated column +original\_<name>+. When reading the encrypted content, the version with the original case is
+        #   served. But you can still execute queries that will ignore the case. This option can only be used when `:deterministic`
         #   is true.
-        # * <tt>:context_properties</tt> - Additional properties that will override +Context+ settings when this attribute is
-        #   encrypted and decrypted. E.g: +encryptor:+, +cipher:+, +message_serializer:+, etc.
-        # * <tt>:previous</tt> - List of previous encryption schemes. When provided, they will be used in order when trying to read
+        # * `:context_properties` - Additional properties that will override `Context` settings when this attribute is
+        #   encrypted and decrypted. E.g: `encryptor:`, `cipher:`, `message_serializer:`, etc.
+        # * `:previous` - List of previous encryption schemes. When provided, they will be used in order when trying to read
         #   the attribute. Each entry of the list can contain the properties supported by #encrypts. Also, when deterministic
         #   encryption is used, they will be used to generate additional ciphertexts to check in the queries.
         def encrypts(*names, key_provider: nil, key: nil, deterministic: false, support_unencrypted_data: nil, downcase: false, ignore_case: false, previous: [], compress: true, compressor: nil, **context_properties)
@@ -144,8 +145,7 @@ module ActiveRecord
 
       # Returns whether a given attribute is encrypted or not.
       def encrypted_attribute?(attribute_name)
-        name = attribute_name.to_s
-        name = self.class.attribute_aliases[name] || name
+        name = resolve_alias(attribute_name.to_s)
 
         return false unless self.class.encrypted_attributes&.include? name.to_sym
 
@@ -153,7 +153,7 @@ module ActiveRecord
         type.encrypted? read_attribute_before_type_cast(name)
       end
 
-      # Returns the ciphertext for +attribute_name+.
+      # Returns the ciphertext for `attribute_name`.
       def ciphertext_for(attribute_name)
         if encrypted_attribute?(attribute_name)
           read_attribute_before_type_cast(attribute_name)

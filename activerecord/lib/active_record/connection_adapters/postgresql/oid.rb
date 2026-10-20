@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_record/connection_adapters/postgresql/oid/array"
 require "active_record/connection_adapters/postgresql/oid/bit"
 require "active_record/connection_adapters/postgresql/oid/bit_varying"

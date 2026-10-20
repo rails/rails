@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "ipaddr"
 require "active_support/core_ext/array/wrap"
 require "active_support/inspect_backport"
@@ -25,7 +26,7 @@ module Rails
                     :content_security_policy_nonce_auto,
                     :require_master_key, :credentials, :disable_sandbox, :sandbox_by_default,
                     :add_autoload_paths_to_load_path, :rake_eager_load, :server_timing, :log_file_size,
-                    :dom_testing_default_html_version, :yjit, :action_on_early_load_hook
+                    :dom_testing_default_html_version, :yjit, :zjit, :action_on_early_load_hook
 
       attr_reader :encoding, :api_only, :loaded_config_version, :log_level
 
@@ -86,12 +87,13 @@ module Rails
         @server_timing                           = false
         @dom_testing_default_html_version        = :html4
         @yjit                                    = false
+        @zjit                                    = false
         @action_on_early_load_hook               = :log
       end
 
       # Loads default configuration values for a target version. This includes
       # defaults for versions prior to the target version. See the
-      # {configuration guide}[https://guides.rubyonrails.org/configuring.html#versioned-default-values]
+      # [configuration guide](https://guides.rubyonrails.org/configuring.html#versioned-default-values)
       # for the default values associated with a particular version.
       def load_defaults(target_version)
         # To introduce a change in behavior, follow these steps:
@@ -120,6 +122,7 @@ module Rails
           end
 
           if respond_to?(:active_record)
+            active_record.raise_on_assign_to_attr_readonly = false
             active_record.belongs_to_required_by_default = true
           end
 
@@ -284,6 +287,7 @@ module Rails
             active_record.sqlite3_adapter_strict_strings_by_default = true
             active_record.query_log_tags_format = :sqlcommenter
             active_record.raise_on_assign_to_attr_readonly = true
+            active_record.delete(:raise_on_assign_to_attr_readonly)
             active_record.belongs_to_required_validates_foreign_key = false
             active_record.before_committed_on_all_records = true
             active_record.default_column_serializer = nil
@@ -466,7 +470,7 @@ module Rails
         end
       end
 
-      # Load the <tt>config/database.yml</tt> to create the Rake tasks for
+      # Load the `config/database.yml` to create the Rake tasks for
       # multiple databases without loading the environment and filling in the
       # environment specific configuration values.
       #
@@ -488,7 +492,7 @@ module Rails
       end
 
       # Loads and returns the entire raw configuration of database from
-      # values stored in <tt>config/database.yml</tt>.
+      # values stored in `config/database.yml`.
       def database_configuration
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path
@@ -588,20 +592,24 @@ module Rails
       end
 
       # Specifies what class to use to store the session. Possible values
-      # are +:cache_store+, +:cookie_store+, +:mem_cache_store+, a custom
-      # store, or +:disabled+. +:disabled+ tells \Rails not to deal with
+      # are `:cache_store`, `:cookie_store`, `:mem_cache_store`, a custom
+      # store, or `:disabled`. `:disabled` tells \Rails not to deal with
       # sessions.
       #
-      # Additional options will be set as +session_options+:
+      # Additional options will be set as `session_options`:
       #
-      #   config.session_store :cookie_store, key: "_your_app_session"
-      #   config.session_options # => {key: "_your_app_session"}
+      # ```
+      # config.session_store :cookie_store, key: "_your_app_session"
+      # config.session_options # => {key: "_your_app_session"}
+      # ```
       #
       # If a custom store is specified as a symbol, it will be resolved to
-      # the +ActionDispatch::Session+ namespace:
+      # the `ActionDispatch::Session` namespace:
       #
-      #   # use ActionDispatch::Session::MyCustomStore as the session store
-      #   config.session_store :my_custom_store
+      # ```
+      # # use ActionDispatch::Session::MyCustomStore as the session store
+      # config.session_store :my_custom_store
+      # ```
       def session_store(new_session_store = nil, **options)
         if new_session_store
           @session_store = new_session_store

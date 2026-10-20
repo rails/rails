@@ -102,8 +102,9 @@ module ActiveRecord
 
     def bind_attribute(name, value) # :nodoc:
       if reflection = model._reflect_on_association(name)
-        name = reflection.foreign_key
-        value = value.read_attribute(reflection.association_primary_key) unless value.nil?
+        route = reflection.association_route(origin_class: model, destination_class: value&.class)
+        name = route.reference_origin_key.name
+        value = route.reference_destination_key.map_value { |column| value.read_attribute(column) } unless value.nil?
       end
 
       attr = predicate_builder.predicate_attribute(table[name])

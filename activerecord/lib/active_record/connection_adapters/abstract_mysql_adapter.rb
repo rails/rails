@@ -162,12 +162,12 @@ module ActiveRecord
       end
 
       def supports_virtual_columns?
-        mariadb? || database_version >= "5.7.5"
+        true
       end
 
       # See https://dev.mysql.com/doc/refman/en/optimizer-hints.html for more details.
       def supports_optimizer_hints?
-        !mariadb? && database_version >= "5.7.7"
+        !mariadb?
       end
 
       def supports_common_table_expressions?
@@ -219,7 +219,7 @@ module ActiveRecord
       end
 
       def supports_json?
-        !mariadb? && database_version >= "5.7.8"
+        !mariadb?
       end
 
       def supports_comments?
@@ -383,10 +383,8 @@ module ActiveRecord
           execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT COLLATE #{quote_table_name(options[:collation])}"
         elsif options[:charset]
           execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset])}"
-        elsif row_format_dynamic_by_default?
-          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET `utf8mb4`"
         else
-          raise "Configure a supported :charset and ensure innodb_large_prefix is enabled to support indexes on varchar(255) string columns."
+          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET `utf8mb4`"
         end
       end
 
@@ -711,8 +709,8 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < "5.6.4"
-          raise DatabaseVersionError, "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.6.4."
+        if database_version < "5.7.9"
+          raise DatabaseVersionError, "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.7.9."
         end
       end
 
@@ -1058,11 +1056,7 @@ module ActiveRecord
         end
 
         def supports_rename_index?
-          if mariadb?
-            database_version >= "10.5.2"
-          else
-            database_version >= "5.7.6"
-          end
+          !mariadb? || database_version >= "10.5.2"
         end
 
         def supports_rename_column?

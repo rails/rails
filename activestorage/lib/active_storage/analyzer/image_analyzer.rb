@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveStorage
-  # = Active Storage Image \Analyzer
+  # Active Storage Image \Analyzer
+  # ==============================
   #
   # This is an abstract base class for image analyzers, which extract width and height from an image blob.
   #
@@ -9,8 +11,10 @@ module ActiveStorage
   #
   # Example:
   #
-  #   ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick.new(blob).metadata
-  #   # => { width: 4104, height: 2736 }
+  # ```
+  # ActiveStorage::Analyzer::ImageAnalyzer::ImageMagick.new(blob).metadata
+  # # => { width: 4104, height: 2736 }
+  # ```
   class Analyzer::ImageAnalyzer < Analyzer
     extend ActiveSupport::Autoload
 

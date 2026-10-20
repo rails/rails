@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Encryption
     # Configuration API for ActiveRecord::Encryption
@@ -39,11 +40,13 @@ module ActiveRecord
 
         # Register callback to be invoked when an encrypted attribute is declared.
         #
-        # === Example
+        # ### Example
         #
-        #   ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, attribute_name|
-        #     ...
-        #   end
+        # ```
+        # ActiveRecord::Encryption.on_encrypted_attribute_declared do |klass, attribute_name|
+        #   ...
+        # end
+        # ```
         def on_encrypted_attribute_declared(&block)
           self.encrypted_attribute_declaration_listeners ||= Concurrent::Array.new
           self.encrypted_attribute_declaration_listeners << block

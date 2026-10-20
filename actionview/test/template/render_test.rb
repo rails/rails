@@ -539,6 +539,44 @@ module RenderTestCases
     assert_equal "local-variable\nlocal-variable", @controller_view.render([a, b])
   end
 
+  def test_render_partial_collection_with_spacer_template
+    assert_equal "Hello: davidonly partialHello: mary",
+      @view.render(partial: "test/customer", spacer_template: "test/partial_only", collection: [ Customer.new("david"), Customer.new("mary") ])
+  end
+
+  def test_render_partial_collection_inside_a_template_and_with_nested_partials
+    single = @view.render(partial: "test/partial_with_partial")
+    rendered = @view.render(inline: "[<%= render partial: 'test/partial_with_partial', collection: [1, 2] %>]")
+
+    assert_equal "[#{single}#{single}]", rendered
+    assert_predicate rendered, :html_safe?
+  end
+
+  def test_render_partial_collection_with_a_renderer_that_builds_the_collection_itself
+    renderer = Class.new(ActionView::CollectionRenderer) do
+      attr_reader :bodies
+
+      private
+        def build_rendered_collection(templates, spacer)
+          @bodies = templates.map(&:body)
+          super
+        end
+    end.new(@view.lookup_context, locals: {})
+
+    renderer.render_collection_with_partial([ Customer.new("david"), Customer.new("mary") ], "test/customer", @view, nil)
+    assert_equal [ "Hello: david", "Hello: mary" ], renderer.bodies
+  end
+
+  def test_render_partial_collection_with_a_handler_that_returns_its_output
+    assert_equal "<h1>partial html</h1><h1>partial html</h1>", @view.render(partial: "test/partialhtml", collection: [ 1, 2 ])
+  end
+
+  def test_render_partial_collection_with_a_handler_that_returns_its_output_keeps_each_body
+    renderer = ActionView::CollectionRenderer.new(@view.lookup_context, locals: {})
+    rendered = renderer.render_collection_with_partial([ 1, 2 ], "test/partialhtml", @view, nil)
+    assert_equal [ "<h1>partial html</h1>", "<h1>partial html</h1>" ], rendered.rendered_templates.map(&:body)
+  end
+
   def test_render_partial_with_empty_collection_should_return_nil
     assert_nil @view.render(partial: "test/customer", collection: [])
   end

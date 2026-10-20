@@ -38,7 +38,7 @@ class RedirectSSLTest < SSLTest
     self.app = build_app ssl_options: { redirect: redirect }
 
     post from
-    assert_response redirect[:status] || 307
+    assert_response redirect[:status] || 308
     assert_redirected_to to
   end
 
@@ -61,15 +61,15 @@ class RedirectSSLTest < SSLTest
     assert_redirected
   end
 
-  test "http POST is redirected to https with status 307" do
+  test "http POST is redirected to https with status 308" do
     assert_post_redirected
   end
 
-  test "http QUERY is redirected to https with status 307, preserving method and body" do
+  test "http QUERY is redirected to https with status 308, preserving method and body" do
     self.app = build_app
 
     query "http://a/b?c=d"
-    assert_response 307
+    assert_response 308
     assert_redirected_to "https://a/b?c=d"
   end
 
@@ -82,12 +82,31 @@ class RedirectSSLTest < SSLTest
 
     process :not_an_http_method, "http://a/b?c=d"
 
-    assert_response 307
+    assert_response 308
     assert_redirected_to "https://a/b?c=d"
   end
 
-  test "redirect with ssl_default_redirect_status" do
-    self.app = build_app(ssl_options: { ssl_default_redirect_status: 308 })
+  test "ssl_default_redirect_status argument is deprecated" do
+    app = lambda { |env| [200, {}, []] }
+
+    assert_deprecated(/ssl_default_redirect_status:` argument of `ActionDispatch::SSL` is deprecated/, ActionDispatch.deprecator) do
+      ActionDispatch::SSL.new(app, ssl_default_redirect_status: 308)
+    end
+
+    assert_not_deprecated(ActionDispatch.deprecator) do
+      ActionDispatch::SSL.new(app)
+    end
+  end
+
+  test "redirect with deprecated ssl_default_redirect_status of nil" do
+    self.app = ActionDispatch.deprecator.silence { build_app(ssl_options: { ssl_default_redirect_status: nil }) }
+
+    post "http://a/b?c=d"
+    assert_response 307
+  end
+
+  test "redirect with deprecated ssl_default_redirect_status" do
+    self.app = ActionDispatch.deprecator.silence { build_app(ssl_options: { ssl_default_redirect_status: 308 }) }
 
     get "http://a/b?c=d"
 

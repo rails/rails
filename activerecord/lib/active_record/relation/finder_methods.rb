@@ -5,6 +5,7 @@ require "active_support/core_ext/string/filters"
 module ActiveRecord
   module FinderMethods
     ONE_AS_ONE = "1 AS one"
+    ONE_AS_ONE_LITERAL = Arel.sql(ONE_AS_ONE, retryable: true).freeze # :nodoc:
 
     # Find by id - This can either be a specific id (ID), a list of ids (ID, ID, ID), or an array of ids ([ID, ID, ID]).
     # `ID` refers to an "identifier". For models with a single-column primary key, `ID` will be a single value,
@@ -18,7 +19,7 @@ module ActiveRecord
     #   Person.find(1, 2, 6)    # returns an array for objects with IDs in (1, 2, 6)
     #   Person.find([7, 17])    # returns an array for objects with IDs in (7, 17), or with composite primary key [7, 17]
     #   Person.find([1])        # returns an array for the object with ID = 1
-    #   Person.where("administrator = 1").order("created_on DESC").find(1)
+    #   Person.where(administrator: 1).order(created_on: :desc).find(1)
     #
     # ==== Find a record for a composite primary key model
     #   TravelRoute.primary_key = [:origin, :destination]
@@ -166,7 +167,7 @@ module ActiveRecord
     #
     #   Person.first # returns the first object fetched by SELECT * FROM people ORDER BY people.id LIMIT 1
     #   Person.where(user_name: user_name).first
-    #   Person.order("created_on DESC").offset(5).first
+    #   Person.order(created_on: :desc).offset(5).first
     #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
     #
     def first(limit = nil)
@@ -188,7 +189,7 @@ module ActiveRecord
     #
     #   Person.last # returns the last object fetched by SELECT * FROM people
     #   Person.where(user_name: user_name).last
-    #   Person.order("created_on DESC").offset(5).last
+    #   Person.order(created_on: :desc).offset(5).last
     #   Person.last(3) # returns the last three objects fetched by SELECT * FROM people.
     #
     # Take note that in that last case, the results are sorted in ascending order:
@@ -436,7 +437,7 @@ module ActiveRecord
         if distinct_value && offset_value
           relation = except(:order).limit!(1)
         else
-          relation = except(:select, :distinct, :order)._select!(Arel.sql(ONE_AS_ONE, retryable: true)).limit!(1)
+          relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE_LITERAL).limit!(1)
         end
 
         case conditions

@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 gem "aws-sdk-s3", "~> 1.48"
 
 require "aws-sdk-s3"
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
-  # = Active Storage \S3 \Service
+  # Active Storage \S3 \Service
+  # ===========================
   #
   # Wraps the Amazon Simple Storage Service (S3) as an Active Storage service.
   # See ActiveStorage::Service for the generic API documentation that applies to all services.

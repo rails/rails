@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
 
+# :markup: markdown
 module ActiveRecord
   # This is a thread locals registry for EXPLAIN. For example
   #
-  #   ActiveRecord::ExplainRegistry.queries
+  # ```
+  # ActiveRecord::ExplainRegistry.queries
+  # ```
   #
   # returns the collected queries local to the current thread.
   class ExplainRegistry # :nodoc:

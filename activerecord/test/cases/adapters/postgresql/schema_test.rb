@@ -3,22 +3,7 @@
 require "cases/helper"
 require "models/default"
 require "support/schema_dumping_helper"
-require "active_support/core_ext/object/with"
-
-module PGSchemaHelper
-  def with_schema_search_path(schema_search_path)
-    @connection.schema_search_path = schema_search_path
-    @connection.schema_cache.clear!
-    yield if block_given?
-  ensure
-    @connection.schema_search_path = "'$user', public"
-    @connection.schema_cache.clear!
-  end
-
-  def with_dump_schemas(value, &block)
-    ActiveRecord.with(dump_schemas: value, &block)
-  end
-end
+require "support/pg_schema_helper"
 
 class SchemaTest < ActiveRecord::PostgreSQLTestCase
   include PGSchemaHelper
@@ -72,6 +57,14 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   class Thing5 < ActiveRecord::Base
     self.table_name = "things"
+  end
+
+  class SchemaMigration1 < ActiveRecord::Base
+    self.table_name = "test_schema.schema_migrations"
+  end
+
+  class SchemaMigration2 < ActiveRecord::Base
+    self.table_name = "test_schema2.schema_migrations"
   end
 
   class Song < ActiveRecord::Base
@@ -269,6 +262,35 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
     with_schema_search_path("PUBLIC") do
       assert_not(@connection.data_source_exists?(TABLE_NAME), "data_source exists but should not be found")
     end
+  end
+
+  def test_empty_all_tables_empties_a_table_shadowed_by_a_same_named_one_on_the_search_path
+    Thing1.create!(id: 1)
+    Thing2.create!(id: 1)
+
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
+      @connection.empty_all_tables
+    end
+
+    assert_equal 0, Thing1.count
+    assert_equal 0, Thing2.count
+  end
+
+  def test_empty_all_tables_keeps_internal_tables_in_every_schema_on_the_search_path
+    [SCHEMA_NAME, SCHEMA2_NAME].each do |schema|
+      @connection.create_table "#{schema}.#{@connection.pool.schema_migration.table_name}", id: false do |t|
+        t.string :version
+      end
+    end
+    SchemaMigration1.create!(version: "1")
+    SchemaMigration2.create!(version: "1")
+
+    with_schema_search_path("#{SCHEMA_NAME}, #{SCHEMA2_NAME}") do
+      @connection.empty_all_tables
+    end
+
+    assert_equal 1, SchemaMigration1.count
+    assert_equal 1, SchemaMigration2.count
   end
 
   def test_data_source_exists_wrong_schema

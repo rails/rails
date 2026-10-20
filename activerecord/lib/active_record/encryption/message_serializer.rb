@@ -1,21 +1,24 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "base64"
 
 module ActiveRecord
   module Encryption
-    # A message serializer that serializes +Messages+ with JSON.
+    # A message serializer that serializes `Messages` with JSON.
     #
     # The generated structure is pretty simple:
     #
-    #   {
-    #     p: <payload>,
-    #     h: {
-    #       header1: value1,
-    #       header2: value2,
-    #       ...
-    #     }
+    # ```
+    # {
+    #   p: <payload>,
+    #   h: {
+    #     header1: value1,
+    #     header2: value2,
+    #     ...
     #   }
+    # }
+    # ```
     #
     # Both the payload and the header values are encoded with Base64
     # to prevent JSON parsing errors and encoding issues when

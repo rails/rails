@@ -7,12 +7,13 @@ module ActiveRecord
     class RactorConnectionHandler # :nodoc:
       class AbstractProxyAdapter < AbstractAdapter # :nodoc:
         class QueryRequest
-          attr_reader :sql, :name, :prepare, :batch, :allow_retry
+          attr_reader :sql, :name, :prepare, :batch, :allow_retry, :materialize_transactions
 
-          def initialize(sql:, name:, binds:, prepare:, batch:, allow_retry:)
+          def initialize(sql:, name:, binds:, prepare:, batch:, allow_retry:, materialize_transactions:)
             @prepare = !!prepare
             @batch = !!batch
             @allow_retry = !!allow_retry
+            @materialize_transactions = !!materialize_transactions
             @sql = sql
             @name = name
             @binds_payload = Proxy.dump_binds(binds)
@@ -31,7 +32,7 @@ module ActiveRecord
               binds: binds,
               prepare: prepare,
               allow_retry: allow_retry,
-              materialize_transactions: false,
+              materialize_transactions: materialize_transactions,
               batch: batch,
             )
             intent.notification_payload = {}

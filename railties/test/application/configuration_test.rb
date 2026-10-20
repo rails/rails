@@ -5481,6 +5481,27 @@ module ApplicationTests
       assert_equal 5, Regexp.timeout
     end
 
+    test "config.zjit is false by default" do
+      app "development"
+      assert_equal false, Rails.application.config.zjit
+    end
+
+    test "config.zjit enables ZJIT instead of YJIT, and YJIT on a Ruby without ZJIT" do
+      yjit_enabled_at_boot = defined?(RubyVM::YJIT.enabled?) && RubyVM::YJIT.enabled?
+
+      add_to_config "config.yjit = true"
+      add_to_config "config.zjit = true"
+      silence_warnings { app "development" }
+
+      if defined?(RubyVM::ZJIT.enable) && !yjit_enabled_at_boot
+        assert_predicate RubyVM::ZJIT, :enabled?
+        assert_not RubyVM::YJIT.enabled? if defined?(RubyVM::YJIT)
+      elsif defined?(RubyVM::YJIT.enable)
+        assert_predicate RubyVM::YJIT, :enabled?
+        assert_not RubyVM::ZJIT.enabled? if defined?(RubyVM::ZJIT)
+      end
+    end
+
     test "action_controller.logger defaults to Rails.logger" do
       restore_default_config
       add_to_config "config.logger = Logger.new(STDOUT, level: Logger::INFO)"

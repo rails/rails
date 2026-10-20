@@ -1061,6 +1061,14 @@ module Arel
       assert_nil manager.ast.cores.last.set_quantifier
     end
 
+    test "distinct shares one frozen node" do
+      first = Arel::SelectManager.new.distinct.ast.cores.last.set_quantifier
+      second = Arel::SelectManager.new.distinct.ast.cores.last.set_quantifier
+
+      assert_same first, second
+      assert_predicate first, :frozen?
+    end
+
     test "distinct chains" do
       manager = Arel::SelectManager.new
       assert_equal manager, manager.distinct

@@ -3,6 +3,7 @@
 # :markup: markdown
 require "concurrent/map"
 require "monitor"
+require "active_support/weak_key_map"
 
 require "active_record/connection_adapters/abstract/connection_pool/queue"
 require "active_record/connection_adapters/abstract/connection_pool/reaper"
@@ -199,31 +200,9 @@ module ActiveRecord
         end
       end
 
-      if RUBY_ENGINE == "ruby"
-        # Thanks to the GVL, the LeaseRegistry doesn't need to be synchronized on MRI
-        class LeaseRegistry < ObjectSpace::WeakKeyMap # :nodoc:
-          def [](context)
-            super || (self[context] = Lease.new)
-          end
-        end
-      else
-        class LeaseRegistry # :nodoc:
-          def initialize
-            @mutex = Mutex.new
-            @map = ObjectSpace::WeakKeyMap.new
-          end
-
-          def [](context)
-            @mutex.synchronize do
-              @map[context] ||= Lease.new
-            end
-          end
-
-          def clear
-            @mutex.synchronize do
-              @map.clear
-            end
-          end
+      class LeaseRegistry < ActiveSupport::WeakKeyMap # :nodoc:
+        def lease(context)
+          fetch_or_store(context) { Lease.new }
         end
       end
 
@@ -424,7 +403,11 @@ module ActiveRecord
           @connections << @pinned_connection
         end
 
-        @pinned_connection.lock_thread = ActiveSupport::IsolatedExecutionState.context if lock_thread
+        # A nested pin keeps the lock an outer one installed: another thread
+        # may hold it mid-statement.
+        if lock_thread && @pinned_connection.lock.equal?(ActiveSupport::Concurrency::NullLock)
+          @pinned_connection.lock_thread = ActiveSupport::IsolatedExecutionState.context
+        end
         @pinned_connection.pinned = true
       end
 
@@ -954,7 +937,7 @@ module ActiveRecord
 
       private
         def connection_lease
-          @leases[ActiveSupport::IsolatedExecutionState.context]
+          @leases.lease(ActiveSupport::IsolatedExecutionState.context)
         end
 
         def build_async_executor
@@ -1252,7 +1235,7 @@ module ActiveRecord
         # if owner_thread param is omitted, this must be called in synchronize block
         def remove_connection_from_thread_cache(conn, owner_thread = conn.owner)
           if owner_thread
-            @leases[owner_thread].clear(conn)
+            @leases[owner_thread]&.clear(conn)
           end
         end
         alias_method :release, :remove_connection_from_thread_cache

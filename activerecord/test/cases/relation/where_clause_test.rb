@@ -106,6 +106,25 @@ class ActiveRecord::Relation
       assert_not_empty WhereClause.new([Arel.sql("anything")])
     end
 
+    test "contradiction? recognizes empty IN and unboundable predicates through grouping" do
+      unboundable = ActiveRecord::Relation::QueryAttribute.new("id", 2**100, ActiveRecord::Type::Integer.new)
+
+      [table["id"].in([]), table["id"].eq(unboundable)].each do |predicate|
+        assert_predicate WhereClause.new([predicate]), :contradiction?
+
+        2.times do
+          predicate = Arel::Nodes::Grouping.new(predicate)
+          assert_predicate WhereClause.new([predicate]), :contradiction?
+        end
+      end
+    end
+
+    test "contradiction? does not mistake a grouped satisfiable alternative for a contradiction" do
+      predicate = table["id"].in([]).or(table["id"].eq(1))
+
+      assert_not_predicate WhereClause.new([Arel::Nodes::Grouping.new(predicate)]), :contradiction?
+    end
+
     test "invert cannot handle nil" do
       where_clause = WhereClause.new([nil])
 

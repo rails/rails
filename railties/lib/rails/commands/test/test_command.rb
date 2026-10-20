@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails/command"
 require "rails/commands/rake/rake_command"
 require "rails/test_unit/runner"

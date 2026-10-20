@@ -1,27 +1,28 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Encryption
-    # The algorithm used for encrypting and decrypting +Message+ objects.
+    # The algorithm used for encrypting and decrypting `Message` objects.
     #
     # It uses AES-256-GCM. It will generate a random IV for non deterministic encryption (default)
     # or derive an initialization vector from the encrypted content for deterministic encryption.
     #
-    # See +Cipher::Aes256Gcm+.
+    # See `Cipher::Aes256Gcm`.
     class Cipher
       DEFAULT_ENCODING = Encoding::UTF_8
 
-      # Encrypts the provided text and return an encrypted +Message+.
+      # Encrypts the provided text and return an encrypted `Message`.
       def encrypt(clean_text, key:, deterministic: false)
         cipher_for(key, deterministic: deterministic).encrypt(clean_text).tap do |message|
           message.headers.encoding = clean_text.encoding.name unless clean_text.encoding == DEFAULT_ENCODING
         end
       end
 
-      # Decrypt the provided +Message+.
+      # Decrypt the provided `Message`.
       #
-      # When +key+ is an Array, it will try all the keys raising a
-      # +ActiveRecord::Encryption::Errors::Decryption+ if none works.
+      # When `key` is an Array, it will try all the keys raising a
+      # `ActiveRecord::Encryption::Errors::Decryption` if none works.
       def decrypt(encrypted_message, key:)
         try_to_decrypt_with_each(encrypted_message, keys: Array(key)).tap do |decrypted_text|
           decrypted_text.force_encoding(encrypted_message.headers.encoding || DEFAULT_ENCODING)

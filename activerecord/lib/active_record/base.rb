@@ -220,7 +220,7 @@ module ActiveRecord # :nodoc:
   # It's even possible to call these dynamic finder methods on relations and named scopes.
   #
   # ```
-  # Payment.order("created_on").find_by_amount(50)
+  # Payment.order(:created_on).find_by_amount(50)
   # ```
   #
   # Saving arrays, hashes, and other non-mappable objects in text columns
@@ -343,7 +343,6 @@ module ActiveRecord # :nodoc:
 
     include Core
     include Persistence
-    include ReadonlyAttributes
     include ModelSchema
     include Inheritance
     include Scoping
@@ -357,6 +356,7 @@ module ActiveRecord # :nodoc:
     include Locking::Pessimistic
     include Encryption::EncryptableRecord
     include AttributeMethods
+    include ReadonlyAttributes
     include Callbacks
     include Timestamp
     include Associations

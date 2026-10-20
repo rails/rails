@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 
+# :markup: markdown
 module ActiveStorage
-  # = Active Storage \Attached
+  # Active Storage \Attached
+  # ========================
   #
   # Abstract base class for the concrete ActiveStorage::Attached::One and ActiveStorage::Attached::Many
   # classes that both provide proxy access to the blob association for a record.

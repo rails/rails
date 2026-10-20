@@ -1,16 +1,17 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Encryption
     # Implements a simple envelope encryption approach where:
     #
     # * It generates a random data-encryption key for each encryption operation.
     # * It stores the generated key along with the encrypted payload. It encrypts this key
-    #   with the master key provided in the +active_record_encryption.primary_key+ credential.
+    #   with the master key provided in the `active_record_encryption.primary_key` credential.
     #
     # This provider can work with multiple master keys. It will use the last one for encrypting.
     #
-    # When +config.active_record.encryption.store_key_references+ is true, it will also store a reference to
+    # When `config.active_record.encryption.store_key_references` is true, it will also store a reference to
     # the specific master key that was used to encrypt the data-encryption key. When not set,
     # it will try all the configured master keys looking for the right one, in order to
     # return the right decryption key.

@@ -201,17 +201,17 @@ module ActiveRecord
         scope_chain_items = join_scopes(table, predicate_builder)
         klass_scope       = klass_join_scope(table, predicate_builder)
 
-        if type
-          klass_scope.where!(type => foreign_klass.polymorphic_name)
+        route = association_route_for_join(foreign_klass)
+        route.destination_fixed_values.each do |column, value|
+          klass_scope.where!(column => value)
         end
-
         scope_chain_items.inject(klass_scope, &:merge!)
 
-        join_primary_key_definition.zip(join_foreign_key_definition) do |primary_key_column_name, foreign_key_column_name|
-          primary_key_attribute = predicate_builder.predicate_attribute(table[primary_key_column_name])
-          foreign_key_attribute = predicate_builder.predicate_attribute(foreign_table[foreign_key_column_name])
+        route.each_match do |origin_column, destination_column|
+          destination_attribute = predicate_builder.predicate_attribute(table[destination_column])
+          origin_attribute = predicate_builder.predicate_attribute(foreign_table[origin_column])
 
-          klass_scope.where!(primary_key_attribute.eq(foreign_key_attribute))
+          klass_scope.where!(destination_attribute.eq(origin_attribute))
         end
 
         if klass.finder_needs_type_condition?
@@ -219,6 +219,17 @@ module ActiveRecord
         end
 
         klass_scope
+      end
+
+      def association_scope_cache(klass, routes, &block)
+        key = [self, *routes]
+        klass.with_connection do |connection|
+          klass.cached_find_by_statement(connection, key, &block)
+        end
+      end
+
+      def association_route_for_join(origin_class, destination_class: klass)
+        association_route(origin_class: origin_class, destination_class: destination_class)
       end
 
       def join_scopes(table, predicate_builder = nil, klass = self.klass, record = nil) # :nodoc:
@@ -558,6 +569,8 @@ module ActiveRecord
         @association_foreign_key_definition = nil
         @association_primary_key_definition = nil
         @active_record_primary_key_definition = nil
+        @default_association_route = nil
+        @default_association_route_key = :"active_record_default_association_route_#{object_id}"
         @extensions = options[:extend] ? Array(options[:extend]) : FROZEN_EMPTY_ARRAY
         @extensions = @extensions.dup.freeze unless @extensions.frozen?
 
@@ -583,12 +596,11 @@ module ActiveRecord
 
         unless polymorphic?
           klass
-          join_primary_key_definition
+          association_primary_key_definition if belongs_to?
           inverse_of
           inverse_which_updates_counter_cache
         end
 
-        join_foreign_key_definition
         active_record_primary_key_definition
         association_foreign_key_definition
         counter_cache_column
@@ -599,18 +611,32 @@ module ActiveRecord
         super
       end
 
-      def association_scope_cache(klass, owner, &block)
-        key = self
-        if polymorphic?
-          key = [key, owner.read_attribute(@foreign_type)]
-        end
-        klass.with_connection do |connection|
-          klass.cached_find_by_statement(connection, key, &block)
-        end
+      def association_route_chain(origin_class: active_record, destination_class: nil)
+        [association_route(origin_class: origin_class, destination_class: destination_class)]
       end
 
       def join_table
         @join_table ||= -(options[:join_table]&.to_s || derive_join_table)
+      end
+
+      def association_route(origin_class: active_record, destination_class: nil)
+        if origin_class.equal?(active_record) && (slot = @default_association_route) &&
+            (destination_class.nil? || destination_class.equal?(slot[1])) && current_default_association_route?(slot)
+          return slot[3]
+        end
+
+        destination_class ||= klass unless polymorphic?
+
+        if origin_class.equal?(active_record) && destination_class.equal?(default_destination_class)
+          return default_association_route
+        end
+
+        # Schema contexts are replaced on reload, so key by both endpoints to
+        # avoid reusing routes with outdated keys.
+        by_destination = association_route_cache.fetch_or_store(origin_class.schema_context) { AssociationRoute::Cache.new }
+        by_destination.fetch_or_store(destination_class&.schema_context) do
+          resolve_association_route(origin_class, destination_class)
+        end
       end
 
       def foreign_key(infer_from_inverse_of: true)
@@ -657,35 +683,16 @@ module ActiveRecord
       end
 
       # Same as +active_record_primary_key+ but returns an ActiveRecord::Key.
+      # Only an explicit +:primary_key+ is memoized; derived keys follow the
+      # model's current schema.
       def active_record_primary_key_definition # :nodoc:
-        @active_record_primary_key_definition ||=
-          if options[:primary_key]
-            ActiveRecord::Key.for(options[:primary_key])
-          elsif active_record.has_query_constraints? || options[:query_constraints]
-            ActiveRecord::Key.for(active_record.query_constraints_list)
-          else
-            inferred_primary_key_definition(active_record)
-          end
-      end
-
-      def join_primary_key(klass = nil)
-        join_primary_key_definition(klass).name
-      end
-
-      def join_primary_key_definition(klass = nil) # :nodoc:
-        foreign_key_definition
-      end
-
-      def join_primary_type
-        type
-      end
-
-      def join_foreign_key
-        join_foreign_key_definition.name
-      end
-
-      def join_foreign_key_definition # :nodoc:
-        active_record_primary_key_definition
+        if options[:primary_key]
+          @active_record_primary_key_definition ||= ActiveRecord::Key.for(options[:primary_key])
+        elsif active_record.has_query_constraints? || options[:query_constraints]
+          ActiveRecord::Key.for(active_record.query_constraints_list)
+        else
+          inferred_primary_key_definition(active_record)
+        end
       end
 
       def check_validity!
@@ -716,10 +723,6 @@ module ActiveRecord
         end
       end
 
-      def join_id_for(owner) # :nodoc:
-        join_foreign_key_definition.map { |key| owner.read_attribute(key) }
-      end
-
       def through_reflection
         nil
       end
@@ -734,9 +737,11 @@ module ActiveRecord
         [self]
       end
 
-      # This is for clearing cache on the reflection. Useful for tests that need to compare
-      # SQL queries on associations.
-      def clear_association_scope_cache # :nodoc:
+      # Pass the concrete target class for polymorphic associations.
+      def clear_association_scope_cache(klass = self.klass) # :nodoc:
+        AssociationRoute::Cache.clear(self)
+        @default_association_route = nil unless frozen?
+        ActiveSupport::Ractors[@default_association_route_key] = nil
         klass.initialize_find_by_cache
       end
 
@@ -819,7 +824,96 @@ module ActiveRecord
         @deprecated
       end
 
+      # Resolves the default route ahead of the reflection being made
+      # shareable, so that every Ractor can read it from the frozen slot.
+      def prepare_default_association_route # :nodoc:
+        return unless @klass || polymorphic?
+        return unless active_record.send(:schema_loaded?) && (polymorphic? || klass.send(:schema_loaded?))
+
+        default_association_route
+      end
+
       private
+        def association_route_cache
+          AssociationRoute::Cache.for(self)
+        end
+
+        def default_destination_class
+          polymorphic? ? nil : klass
+        end
+
+        # Slots contain [origin context, destination class, destination context, route].
+        # A slot resolved before the reflection is frozen is shared until a schema
+        # context changes; slots resolved later are stored per Ractor.
+        def default_association_route
+          slot = @default_association_route
+          return slot[3] if current_default_association_route?(slot)
+
+          if frozen?
+            slot = ActiveSupport::Ractors[@default_association_route_key]
+            return slot[3] if current_default_association_route?(slot)
+          end
+
+          destination_class = default_destination_class
+          origin_context = active_record.schema_context
+          destination_context = destination_class&.schema_context
+          route = resolve_association_route(active_record, destination_class)
+          slot = [origin_context, destination_class, destination_context, route].freeze
+
+          if frozen?
+            ActiveSupport::Ractors[@default_association_route_key] = slot
+          else
+            @default_association_route = slot
+          end
+          route
+        end
+
+        # Compares loaded contexts by identity: a context matching the slot's
+        # was loaded when the slot was filled, so this needn't load anything.
+        def current_default_association_route?(slot)
+          slot &&
+            slot[0].equal?(active_record.current_schema_context) &&
+            slot[2].equal?(slot[1]&.current_schema_context)
+        end
+
+        def initialize_copy(other)
+          super
+          @default_association_route = nil
+          @default_association_route_key = :"active_record_default_association_route_#{object_id}"
+        end
+
+        def resolve_association_route(origin_class, destination_class)
+          fixed_values = type ? { type => -origin_class.polymorphic_name } : {}
+          build_association_route(reference_class: destination_class, target_class: origin_class, fixed_values: fixed_values)
+        end
+
+        def association_route_target_key(_target_class)
+          active_record_primary_key_definition
+        end
+
+        def association_route_class
+          AssociationRoute::Reverse
+        end
+
+        def build_association_route(reference_class:, target_class:, fixed_values: {})
+          reference = Key::Mapping.new(
+            reference_key: foreign_key_definition,
+            target_key: association_route_target_key(target_class)
+          )
+          constraints = association_route_constraints(reference_class, target_class)
+
+          association_route_class.new(
+            link: AssociationLink.for(
+              reference: reference, constraints: constraints, fixed_values: fixed_values,
+              reference_class: reference_class, target_class: target_class
+            )
+          )
+        end
+
+        def association_route_constraints(_reference_class, _target_class)
+          Key::Mapping.empty
+        end
+
         # Attempts to find the inverse association name automatically.
         # If it cannot find a suitable inverse association name, it returns
         # +nil+.
@@ -1032,19 +1126,28 @@ module ActiveRecord
         end
       end
 
-      def join_primary_key_definition(klass = nil) # :nodoc:
-        polymorphic? ? association_primary_key_definition(klass) : association_primary_key_definition
-      end
-
-      def join_foreign_key_definition # :nodoc:
-        foreign_key_definition
-      end
-
-      def join_foreign_type
-        foreign_type
-      end
-
       private
+        def resolve_association_route(origin_class, destination_class)
+          if polymorphic?
+            unless destination_class
+              return AssociationRoute.new(link: AssociationLink.for(reference_key: foreign_key_definition, fixed_values: { foreign_type => nil }, reference_class: origin_class))
+            end
+            fixed_values = { foreign_type => -destination_class.polymorphic_name }
+          else
+            fixed_values = {}
+          end
+
+          build_association_route(reference_class: origin_class, target_class: destination_class, fixed_values: fixed_values)
+        end
+
+        def association_route_target_key(target_class)
+          association_primary_key_definition(target_class)
+        end
+
+        def association_route_class
+          AssociationRoute
+        end
+
         def can_find_inverse_of_automatically?(*)
           !polymorphic? && super
         end
@@ -1062,9 +1165,8 @@ module ActiveRecord
     # in the Active Record class.
     class ThroughReflection < AbstractReflection # :nodoc:
       delegate :foreign_key, :foreign_key_definition, :foreign_type, :association_foreign_key,
-               :association_foreign_key_definition, :join_id_for, :type,
-               :active_record_primary_key, :active_record_primary_key_definition,
-               :join_foreign_key, :join_foreign_key_definition, to: :source_reflection
+               :association_foreign_key_definition, :type,
+               :active_record_primary_key, :active_record_primary_key_definition, to: :source_reflection
 
       def initialize(delegate_reflection)
         super()
@@ -1161,6 +1263,18 @@ module ActiveRecord
         collect_join_reflections [self]
       end
 
+      def association_route_chain(origin_class: active_record, destination_class: klass)
+        reflections = chain
+        reflections.each_with_index.map do |reflection, index|
+          hop_destination_class = index.zero? ? destination_class : reflection.klass
+          if index == reflections.length - 1
+            reflection.association_route(origin_class: origin_class, destination_class: hop_destination_class)
+          else
+            reflection.association_route_for_join(reflections[index + 1].klass, destination_class: hop_destination_class)
+          end
+        end
+      end
+
       # This is for clearing cache on the reflection. Useful for tests that need to compare
       # SQL queries on associations.
       def clear_association_scope_cache # :nodoc:
@@ -1205,12 +1319,23 @@ module ActiveRecord
         end
       end
 
-      def join_primary_key(klass = self.klass)
-        join_primary_key_definition(klass).name
+      def association_route(**)
+        raise ArgumentError, "Through associations do not have a single association route"
       end
 
-      def join_primary_key_definition(klass = self.klass) # :nodoc:
-        source_reflection.join_primary_key_definition(klass)
+      # The route from the final through record to the associated target.
+      def source_association_route(origin_class: nil, destination_class: klass)
+        if source_reflection.through_reflection?
+          source_reflection.source_association_route(origin_class: origin_class, destination_class: destination_class)
+        else
+          source_reflection.association_route(origin_class: origin_class || through_reflection.klass, destination_class: destination_class)
+        end
+      end
+
+      def association_route_for_join(origin_class, destination_class: klass)
+        # The first entry in chain represents the final join to the target table,
+        # so resolve that source association here.
+        source_association_route(origin_class: origin_class, destination_class: destination_class)
       end
 
       # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
@@ -1358,8 +1483,8 @@ module ActiveRecord
     end
 
     class PolymorphicReflection < AbstractReflection # :nodoc:
-      delegate :klass, :scope, :plural_name, :type, :join_primary_key, :join_primary_key_definition,
-               :join_foreign_key, :join_foreign_key_definition, :name, :scope_for, to: :@reflection
+      delegate :klass, :scope, :plural_name, :type, :name, :scope_for,
+               :association_route, :association_route_for_join, to: :@reflection
 
       def initialize(reflection, previous_reflection)
         super()
@@ -1388,12 +1513,13 @@ module ActiveRecord
     end
 
     class RuntimeReflection < AbstractReflection # :nodoc:
-      delegate :scope, :type, :constraints, :join_foreign_key, :join_foreign_key_definition, to: :@reflection
+      delegate :scope, :type, :constraints, to: :@reflection
 
-      def initialize(reflection, association)
+      def initialize(reflection, association, route)
         super()
         @reflection = reflection
         @association = association
+        @route = route
       end
 
       def klass
@@ -1404,12 +1530,8 @@ module ActiveRecord
         klass.arel_table
       end
 
-      def join_primary_key(klass = self.klass)
-        join_primary_key_definition(klass).name
-      end
-
-      def join_primary_key_definition(klass = self.klass) # :nodoc:
-        @reflection.join_primary_key_definition(klass)
+      def association_route(**)
+        @route
       end
 
       def all_includes; yield; end

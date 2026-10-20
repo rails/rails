@@ -90,6 +90,10 @@ module ActionMailer
       def _deliver_all_later(delivery_method, *deliveries, **options)
         deliveries = deliveries.first if deliveries.first.is_a?(Array)
 
+        if deliveries.any?(&:processed?)
+          raise MessageDelivery::ALREADY_PROCESSED_MESSAGE
+        end
+
         jobs = deliveries.map do |delivery|
           mailer_class = delivery.mailer_class
           delivery_job = mailer_class.delivery_job

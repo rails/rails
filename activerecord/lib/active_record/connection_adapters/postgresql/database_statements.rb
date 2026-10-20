@@ -132,6 +132,11 @@ module ActiveRecord
           intent.finish
         end
 
+        def tables_to_truncate # :nodoc:
+          internal_tables = [pool.schema_migration.table_name, pool.internal_metadata.table_name]
+          search_path_tables.filter_map { |name, table| name unless internal_tables.include?(table) }
+        end
+
         private
           IDLE_TRANSACTION_STATUSES = [PG::PQTRANS_IDLE, PG::PQTRANS_INTRANS, PG::PQTRANS_INERROR].freeze
           private_constant :IDLE_TRANSACTION_STATUSES

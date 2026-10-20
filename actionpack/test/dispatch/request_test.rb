@@ -531,11 +531,21 @@ end
 
 class RequestControllerClass < BaseRequestTest
   class WidgetsController < ActionController::Base; end
+  class GadgetsController < ActionController::Base; end
 
   test "controller_class returns the controller named in the path parameters" do
     request = stub_request
     request.path_parameters = { controller: "request_controller_class/widgets", action: "index" }
     assert_equal WidgetsController, request.controller_class
+  end
+
+  test "controller_class follows changes to the path parameters" do
+    request = stub_request
+    request.path_parameters = { controller: "request_controller_class/widgets", action: "index" }
+    assert_equal WidgetsController, request.controller_class
+
+    request.path_parameters = { controller: "request_controller_class/gadgets", action: "index" }
+    assert_equal GadgetsController, request.controller_class
   end
 
   test "controller_class raises MissingController when there is no controller in the path parameters" do
@@ -1239,6 +1249,30 @@ class RequestMimeType < BaseRequestTest
     assert_equal("application/xml; charset=UTF-8", request.content_type)
   end
 
+  test "uppercase content type" do
+    request = stub_request("CONTENT_TYPE" => "APPLICATION/JSON; charset=utf-8")
+
+    assert_equal(Mime[:json], request.content_mime_type)
+  end
+
+  test "bare uppercase content type" do
+    request = stub_request("CONTENT_TYPE" => "APPLICATION/JSON")
+
+    assert_equal(Mime[:json], request.content_mime_type)
+  end
+
+  test "content type with surrounding whitespace" do
+    request = stub_request("CONTENT_TYPE" => " application/json ; charset=utf-8")
+
+    assert_equal(Mime[:json], request.content_mime_type)
+  end
+
+  test "content type with a comma" do
+    request = stub_request("CONTENT_TYPE" => "text/html, application/json")
+
+    assert_equal(Mime[:html], request.content_mime_type)
+  end
+
   test "user agent" do
     assert_equal "TestAgent", stub_request("HTTP_USER_AGENT" => "TestAgent").user_agent
   end
@@ -1442,6 +1476,19 @@ class RequestParameterFilter < BaseRequestTest
       path = request.filtered_path
       assert_equal %w(/authenticate?username=sikachu secret=[FILTERED] api_key=[FILTERED]).join(sep), path
     end
+  end
+
+  test "filtered_path passes the parameter to a proc filter as the original params" do
+    request = stub_request(
+      "QUERY_STRING" => "username=sikachu&secret=bd4f21f",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [
+        ->(key, value, original_params) { value.replace("[FILTERED]") if original_params[key] == "bd4f21f" }
+      ]
+    )
+
+    path = request.filtered_path
+    assert_equal request.script_name + "/authenticate?username=sikachu&secret=[FILTERED]", path
   end
 
   test "filtered_path should not unescape a genuine '[FILTERED]' value" do

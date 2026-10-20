@@ -141,7 +141,7 @@ class SQLite3AutoRollbackTest < ActiveRecord::SQLite3TestCase
   setup do
     MemoryRecord.establish_connection(adapter: "sqlite3", database: ":memory:")
     @conn = FullItem.lease_connection
-    @conn.create_table(:full_items) { |t| t.text :body }
+    main_ractor_connection(@conn).create_table(:full_items) { |t| t.text :body }
     @conn.execute("PRAGMA max_page_count = #{@conn.select_value("PRAGMA page_count") + 2}")
   end
 
@@ -161,7 +161,7 @@ class SQLite3AutoRollbackTest < ActiveRecord::SQLite3TestCase
       end
     end
 
-    assert_instance_of ::SQLite3::FullException, error.cause
+    assert_equal ::SQLite3::FullException, driver_error_class(error)
     assert_not_predicate @conn, :transaction_open?
     assert_not_predicate record, :persisted?
     assert record.rolled_back
@@ -183,7 +183,7 @@ class SQLite3AutoRollbackTest < ActiveRecord::SQLite3TestCase
       end
     end
 
-    assert_instance_of ::SQLite3::FullException, error.cause
+    assert_equal ::SQLite3::FullException, driver_error_class(error)
     assert_not_predicate @conn, :transaction_open?
     assert_not_predicate outer, :persisted?
     assert_not_predicate inner, :persisted?

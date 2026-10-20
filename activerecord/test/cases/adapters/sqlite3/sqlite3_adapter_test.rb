@@ -1493,6 +1493,94 @@ module ActiveRecord
         conn.disconnect! if conn
       end
 
+      def test_rename_column_used_in_partial_index
+        @conn.create_table :books do |t|
+          t.integer :pages
+          t.index :pages, where: "pages > 10"
+        end
+
+        @conn.rename_column :books, :pages, :page_count
+
+        index = @conn.indexes(:books).first
+        assert_equal ["page_count"], index.columns
+        assert_equal '"page_count" > 10', index.where
+      end
+
+      def test_rename_column_used_in_expression_index
+        @conn.create_table :books do |t|
+          t.string :title
+          t.index "lower(title)", name: "index_books_on_lower_title"
+        end
+
+        @conn.rename_column :books, :title, :name
+
+        assert_equal 'lower("name")', @conn.indexes(:books).first.columns
+      end
+
+      def test_rename_column_used_in_check_constraint
+        @conn.create_table :books do |t|
+          t.integer :pages
+          t.check_constraint "pages > 0", name: "pages_positive"
+        end
+
+        @conn.rename_column :books, :pages, :page_count
+
+        assert_equal ['"page_count" > 0'], @conn.check_constraints(:books).map(&:expression)
+      end
+
+      def test_rename_column_used_in_virtual_column
+        @conn.create_table :books do |t|
+          t.string :title
+          t.virtual :title_upcase, type: :string, as: "upper(title)", stored: true
+        end
+
+        @conn.rename_column :books, :title, :name
+        @conn.execute("INSERT INTO books (name) VALUES ('hhgttg')")
+
+        assert_equal "HHGTTG", @conn.select_value("SELECT title_upcase FROM books")
+      end
+
+      def test_rename_column_keeps_triggers
+        @conn.create_table :books do |t|
+          t.string :title
+          t.integer :edits, default: 0
+        end
+        @conn.execute(<<~SQL)
+          CREATE TRIGGER books_count_edits AFTER UPDATE OF title ON books
+          BEGIN UPDATE books SET edits = edits + 1 WHERE id = NEW.id; END
+        SQL
+
+        @conn.rename_column :books, :title, :name
+
+        assert_equal ["books_count_edits"], @conn.select_values("SELECT name FROM sqlite_master WHERE type = 'trigger'")
+      end
+
+      def test_rename_column_referenced_by_foreign_key
+        @conn.create_table :authors do |t|
+          t.string :code, index: { unique: true }
+        end
+        @conn.create_table :books do |t|
+          t.string :author_code
+        end
+        @conn.add_foreign_key :books, :authors, column: :author_code, primary_key: :code
+
+        @conn.rename_column :authors, :code, :slug
+        @conn.execute("INSERT INTO authors (slug) VALUES ('douglas')")
+        @conn.execute("INSERT INTO books (author_code) VALUES ('douglas')")
+
+        assert_equal "slug", @conn.foreign_keys(:books).first.primary_key
+      end
+
+      def test_rename_primary_key_column
+        @conn.create_table :books, id: false do |t|
+          t.string :code, primary_key: true
+        end
+
+        @conn.rename_column :books, :code, :isbn
+
+        assert_equal "isbn", @conn.primary_key(:books)
+      end
+
       private
         def with_rails_root(&block)
           mod = Module.new do

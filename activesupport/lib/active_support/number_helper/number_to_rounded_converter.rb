@@ -9,6 +9,16 @@ module ActiveSupport
       self.namespace      = :precision
       self.validate_float = true
 
+      def self.separator_regexps(separator)
+        escaped_separator = Regexp.escape(separator)
+        [/(#{escaped_separator})(\d*[1-9])?0+\z/, /#{escaped_separator}\z/].freeze
+      end
+
+      COMMON_SEPARATOR_REGEXPS = {
+        "." => separator_regexps("."),
+        "," => separator_regexps(","),
+      }.freeze
+
       def convert
         helper = RoundingHelper.new(options)
         rounded_number = helper.round(number)
@@ -49,8 +59,9 @@ module ActiveSupport
 
         def format_number(number)
           if strip_insignificant_zeros
-            escaped_separator = Regexp.escape(options[:separator])
-            number.sub(/(#{escaped_separator})(\d*[1-9])?0+\z/, '\1\2').sub(/#{escaped_separator}\z/, "")
+            insignificant_zeros, trailing_separator =
+              COMMON_SEPARATOR_REGEXPS[options[:separator]] || self.class.separator_regexps(options[:separator])
+            number.sub(insignificant_zeros, '\1\2').sub(trailing_separator, "")
           else
             number
           end

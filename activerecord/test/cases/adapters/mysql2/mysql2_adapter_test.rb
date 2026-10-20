@@ -302,7 +302,7 @@ class Mysql2AdapterTest < ActiveRecord::Mysql2TestCase
       connection.execute("SELECT SLEEP(2)")
     end
     assert_kind_of ActiveRecord::QueryAborted, error
-    assert_equal Mysql2::Error::TimeoutError, error.cause.class
+    assert_equal Mysql2::Error::TimeoutError, driver_error_class(error)
     assert_equal connection.pool, error.connection_pool
   ensure
     ActiveRecord::Base.establish_connection :arunit

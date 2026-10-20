@@ -22,6 +22,19 @@ module ActiveRecord
       include Serialization
     end
 
+    # This gets overridden on models that use attribute aliases.
+    # Internal, don't call it!
+    def resolve_alias(attr_name) # :nodoc:
+      attr_name
+    end
+
+    # Included by +alias_attribute+, so only models with aliases pay for the lookup.
+    module AliasResolution # :nodoc:
+      def resolve_alias(attr_name)
+        self.class.attribute_aliases[attr_name] || attr_name
+      end
+    end
+
     RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name superclass).freeze
 
     class GeneratedAttributeMethods < Module # :nodoc:
@@ -72,6 +85,8 @@ module ActiveRecord
       def alias_attribute(new_name, old_name)
         super
 
+        include AliasResolution unless include?(AliasResolution)
+
         if @alias_attributes_mass_generated
           ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |code_generator|
             generate_alias_attribute_methods(code_generator, new_name, old_name)
@@ -118,7 +133,7 @@ module ActiveRecord
           unless abstract_class?
             load_schema
             super(attribute_names)
-            alias_attribute :id_value, :id if _has_attribute?("id") && !_has_attribute?("id_value")
+            define_id_value if _has_attribute?("id") && !_has_attribute?("id_value")
           end
 
           generate_alias_attributes
@@ -283,6 +298,19 @@ module ActiveRecord
             @attribute_names = nil
           end
         end
+
+        # Composite primary key models get a real alias, which makes
+        # +where(id_value: ...)+ work. Other models get a plain reader, so
+        # they don't take the alias resolution slow path.
+        def define_id_value
+          if composite_primary_key?
+            alias_attribute :id_value, :id
+          elsif !attribute_alias?("id_value")
+            ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
+              define_method_attribute("id", owner: owner, as: "id_value")
+            end
+          end
+        end
     end
 
     # A Person object with a name attribute can ask `person.respond_to?(:name)`,
@@ -330,8 +358,7 @@ module ActiveRecord
     # person.has_attribute?(:nothing)  # => false
     # ```
     def has_attribute?(attr_name)
-      attr_name = attr_name.to_s
-      attr_name = self.class.attribute_aliases[attr_name] || attr_name
+      attr_name = resolve_alias(attr_name.to_s)
       @attributes.key?(attr_name)
     end
 
@@ -409,9 +436,7 @@ module ActiveRecord
     # task.attribute_present?(:is_done) # => true
     # ```
     def attribute_present?(attr_name)
-      attr_name = attr_name.to_s
-      attr_name = self.class.attribute_aliases[attr_name] || attr_name
-      value = _read_attribute(attr_name)
+      value = read_attribute(attr_name)
       !value.nil? && !(value.respond_to?(:empty?) && value.empty?)
     end
 

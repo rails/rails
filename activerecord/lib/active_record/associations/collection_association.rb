@@ -291,7 +291,7 @@ module ActiveRecord
         end
       end
 
-      def scope
+      def scope(routes = nil)
         scope = super
         scope.none! if null_scope?
         scope.default_order!(options[:default_order]) if options[:default_order].present?
@@ -338,7 +338,7 @@ module ActiveRecord
             if mem_record = memory.delete(record)
 
               ((record.attribute_names & mem_record.attribute_names) - mem_record.changed_attribute_names_to_save - mem_record.class._attr_readonly).each do |name|
-                mem_record._write_attribute(name, record.read_attribute(name))
+                mem_record._write_attribute(name, record._read_attr(name))
               end
 
               mem_record

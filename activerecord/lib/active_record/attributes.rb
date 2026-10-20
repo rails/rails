@@ -237,10 +237,9 @@ module ActiveRecord
       #--
       # Implemented by ActiveModel::AttributeRegistration#attribute.
 
-      # This API only accepts type objects, and will do its work immediately instead of
-      # waiting for the schema to load. While this method
-      # is provided so it can be used by plugin authors, application code
-      # should probably use ClassMethods#attribute.
+      # This API only accepts type objects. While this method is provided so it
+      # can be used by plugin authors, application code should probably use
+      # ClassMethods#attribute.
       #
       # #### Parameters
       #
@@ -264,8 +263,17 @@ module ActiveRecord
         default: NO_DEFAULT_PROVIDED,
         user_provided_default: true
       )
-        attribute_types[name] = cast_type
-        define_default_attribute(name, default, cast_type, from_user: user_provided_default)
+        add_pending_attribute_modification(PendingType.new(name, cast_type))
+
+        unless default == NO_DEFAULT_PROVIDED
+          if user_provided_default
+            add_pending_attribute_modification(PendingDefault.new(name, default))
+          else
+            add_pending_attribute_modification(PendingDatabaseDefault.new(name, default))
+          end
+        end
+
+        reset_default_attributes
       end
 
       def _default_attributes # :nodoc:
@@ -302,20 +310,14 @@ module ActiveRecord
         NO_DEFAULT_PROVIDED = Object.new.freeze # :nodoc:
         private_constant :NO_DEFAULT_PROVIDED
 
-        def define_default_attribute(name, value, type, from_user:)
-          if value == NO_DEFAULT_PROVIDED
-            default_attribute = _default_attributes[name].with_type(type)
-          elsif from_user
-            default_attribute = ActiveModel::Attribute::UserProvidedDefault.new(
-              name,
-              value,
-              type,
-              _default_attributes.fetch(name.to_s) { nil },
-            )
-          else
-            default_attribute = ActiveModel::Attribute.from_database(name, value, type)
+        PendingType = ActiveModel::AttributeRegistration::ClassMethods::PendingType # :nodoc:
+        PendingDefault = ActiveModel::AttributeRegistration::ClassMethods::PendingDefault # :nodoc:
+
+        PendingDatabaseDefault = Struct.new(:name, :default) do # :nodoc:
+          def apply_to(attributes)
+            type = (attributes[name] || ActiveModel::Attribute.null(name)).type
+            attributes[name] = ActiveModel::Attribute.from_database(name, default, type)
           end
-          _default_attributes[name] = default_attribute
         end
 
         def reset_default_attributes

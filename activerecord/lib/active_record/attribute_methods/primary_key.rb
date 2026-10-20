@@ -134,6 +134,8 @@ module ActiveRecord
             ([self] + descendants).each do |model|
               model.clear_inherited_primary_key
               model.reload_schema_from_cache(false) if model.schema_loaded?
+              # Regenerate so the id_value reader is replaced by an alias.
+              model.undefine_attribute_methods if primary_key_definition.composite? && model.attribute_methods_generated?
             end
           end
 

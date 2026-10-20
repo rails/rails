@@ -62,7 +62,7 @@ module ActiveSupport
         @utc = nil
         @period = get_period_and_ensure_valid_local_time(period)
       end
-      @is_utc = zone == "UTC" || zone == "UCT"
+      @is_utc = nil
     end
 
     # Returns a `Time` instance that represents the time in `time_zone`.
@@ -118,6 +118,9 @@ module ActiveSupport
     # Time.zone.now.utc?                          # => false
     # ```
     def utc?
+      if @is_utc.nil?
+        @is_utc = time_zone.utc? || zone == "UTC" || zone == "UCT"
+      end
       @is_utc
     end
     alias_method :gmt?, :utc?
@@ -171,7 +174,7 @@ module ActiveSupport
     def xmlschema(fraction_digits = 0)
       precision = fraction_digits || 0
 
-      if @is_utc
+      if utc?
         utc.iso8601(precision)
       else
         transfer_time_values_to_utc_constructor(utc).getlocal(utc_offset).iso8601(precision)
@@ -233,7 +236,7 @@ module ActiveSupport
 
     # Returns a string of the object's date and time.
     def to_s
-      if @is_utc
+      if utc?
         transfer_time_values_to_utc_constructor(utc).to_s
       else
         transfer_time_values_to_utc_constructor(utc).getlocal(utc_offset).to_s
@@ -262,7 +265,7 @@ module ActiveSupport
     # Replaces `%Z` directive with +zone before passing to Time#strftime,
     # so that zone information is correct.
     def strftime(format)
-      format = format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}")
+      format = format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}") if format.include?("%Z")
       getlocal(utc_offset).strftime(format)
     end
 
@@ -575,7 +578,7 @@ module ActiveSupport
 
     def freeze
       # preload instance variables before freezing
-      period; utc; time; to_datetime; to_time
+      period; utc; time; utc?; to_datetime; to_time
       super
     end
 

@@ -177,10 +177,6 @@ module ActiveRecord
           remote_dispatch(:create_table, ...)
         end
 
-        def internal_string_options_for_primary_key
-          remote_dispatch(:internal_string_options_for_primary_key)
-        end
-
         def remove_foreign_key(...)
           remote_dispatch(:remove_foreign_key, ...)
         end
@@ -305,10 +301,6 @@ module ActiveRecord
 
         def return_value_after_insert?(...)
           remote_dispatch(:return_value_after_insert?, ...)
-        end
-
-        def savepoint_errors_invalidate_transactions?
-          remote_dispatch(:savepoint_errors_invalidate_transactions?)
         end
 
         def table_comment(...)

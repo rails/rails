@@ -1002,6 +1002,89 @@ class PerFormTokensControllerTest < ActionController::TestCase
     ActionController::Base.request_forgery_protection_token = @old_request_forgery_protection_token
   end
 
+  def test_normalize_action_path_matches_the_uri_parser
+    get :index
+
+    {
+      "/posts/1" => "/posts/1",
+      "/posts/1/" => "/posts/1",
+      "/" => "",
+      "/a%20b/c.d-e_f~g!h$i&j'k(l)m*n+o,p;q=r:s@t" => "/a%20b/c.d-e_f~g!h$i&j'k(l)m*n+o,p;q=r:s@t",
+      "/a/./b" => "/a/./b",
+      "/posts?page=2" => "/posts",
+      "/posts#top" => "/posts",
+      "//example.com/posts/" => "/posts",
+      "https://example.com/posts/" => "/posts",
+    }.each do |action_path, expected|
+      assert_equal expected, @controller.send(:normalize_action_path, action_path), action_path
+    end
+
+    ["/a%zz", "/a b", "/a\nb"].each do |action_path|
+      assert_raises(URI::InvalidURIError, action_path) { @controller.send(:normalize_action_path, action_path) }
+    end
+  end
+
+  def test_real_csrf_token_is_decoded_once_per_token
+    get :index
+
+    token = @controller.send(:real_csrf_token)
+    assert_same token, @controller.send(:real_csrf_token)
+
+    @controller.reset_csrf_token(@request)
+    assert_not_equal token, @controller.send(:real_csrf_token)
+    assert_equal Base64.urlsafe_decode64(@request.env["action_controller.csrf_token"]), @controller.send(:real_csrf_token)
+  end
+
+  def test_csrf_token_hmac_matches_an_hmac_of_the_real_token
+    get :index
+
+    2.times do
+      ["/posts/1#delete", "/posts/2#patch", "!real_csrf_token"].each do |identifier|
+        expected = OpenSSL::HMAC.digest("SHA256", @controller.send(:real_csrf_token), identifier)
+        assert_equal expected, @controller.send(:csrf_token_hmac, nil, identifier), identifier
+      end
+    end
+
+    @controller.reset_csrf_token(@request)
+    ["/posts/1#delete", "/posts/2#patch"].each do |identifier|
+      expected = OpenSSL::HMAC.digest("SHA256", @controller.send(:real_csrf_token), identifier)
+      assert_equal expected, @controller.send(:csrf_token_hmac, nil, identifier), identifier
+    end
+  end
+
+  def test_csrf_token_hmac_is_keyed_once_per_real_token
+    get :index
+    @controller.reset_csrf_token(@request)
+    real_csrf_token = @controller.send(:real_csrf_token)
+    hmac = OpenSSL::HMAC.new(real_csrf_token, "SHA256")
+
+    assert_called_with(OpenSSL::HMAC, :new, [real_csrf_token, "SHA256"], returns: hmac) do
+      @controller.send(:per_form_csrf_token, nil, "/posts/1", "delete")
+      @controller.send(:per_form_csrf_token, nil, "/posts/2", "delete")
+      @controller.send(:global_csrf_token)
+    end
+  end
+
+  def test_csrf_token_hmac_keying_that_fails_does_not_keep_the_previous_key
+    get :index
+    @controller.reset_csrf_token(@request)
+
+    OpenSSL::HMAC.stub(:new, ->(*) { raise OpenSSL::HMACError }) do
+      assert_raises(OpenSSL::HMACError) { @controller.send(:csrf_token_hmac, nil, "/posts/1#delete") }
+    end
+
+    expected = OpenSSL::HMAC.digest("SHA256", @controller.send(:real_csrf_token), "/posts/1#delete")
+    assert_equal expected, @controller.send(:csrf_token_hmac, nil, "/posts/1#delete")
+  end
+
+  def test_csrf_token_memos_are_not_passed_to_the_view
+    get :index
+
+    csrf_ivars = @controller.instance_variables.grep(/csrf/).map { |name| name.to_s.delete_prefix("@") }
+    assert_includes csrf_ivars, "_csrf_token_hmac"
+    assert_empty csrf_ivars & @controller.view_assigns.keys
+  end
+
   def test_per_form_token_is_same_size_as_global_token
     get :index
     expected = ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH

@@ -9,6 +9,14 @@
 
     *Pim Vermeyden*
 
+*   Deprecate the `ssl_default_redirect_status:` argument of `ActionDispatch::SSL`.
+
+    As of Rails 6.1, the default status is 308. This deprecates overriding it.
+    `ActionDispatch::SSL` used directly without the argument now also uses 308
+    instead of 307.
+
+    *Ben Sheldon*
+
 *   Short-circuit route matching for static paths.
 
     The route set now precomputes an exact-match table from request method

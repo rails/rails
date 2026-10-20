@@ -59,17 +59,9 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
     assert_equal "Trilogy", @conn.adapter_name
   end
 
-  test "#supports_json answers true without Maria DB and greater version" do
+  test "#supports_json answers true without Maria DB" do
     @conn.stub(:mariadb?, false) do
       assert_equal true, @conn.supports_json?
-    end
-  end
-
-  test "#supports_json answers false without Maria DB and lesser version" do
-    database_version = @conn.class::Version.new("5.0.0", nil)
-
-    @conn.stub(:database_version, database_version) do
-      assert_equal false, @conn.supports_json?
     end
   end
 
@@ -355,7 +347,7 @@ class TrilogyAdapterTest < ActiveRecord::TrilogyTestCase
       connection.execute("SELECT SLEEP(2)")
     end
     assert_kind_of ActiveRecord::QueryAborted, error
-    assert_equal Trilogy::TimeoutError, error.cause.class
+    assert_equal Trilogy::TimeoutError, driver_error_class(error)
     assert_equal connection.pool, error.connection_pool
   ensure
     ActiveRecord::Base.establish_connection :arunit

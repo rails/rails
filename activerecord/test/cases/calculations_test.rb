@@ -588,6 +588,14 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 1, c[companies(:first_client)]
   end
 
+  def test_should_calculate_grouped_association_with_primary_key_option
+    firm = companies(:first_firm)
+    clients = Client.where(id: [companies(:first_client).id, companies(:second_client).id])
+    clients.update_all(firm_name: firm.name)
+
+    assert_equal({ firm => 2 }, clients.group(:firm_with_primary_key).count)
+  end
+
   def test_should_calculate_grouped_by_function
     c = Company.group("UPPER(#{ARTest::QUOTED_TYPE})").count(:all)
     assert_equal 2, c[nil]

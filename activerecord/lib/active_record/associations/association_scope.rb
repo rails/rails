@@ -4,27 +4,28 @@
 module ActiveRecord
   module Associations
     class AssociationScope # :nodoc:
-      def self.scope(association)
-        INSTANCE.scope(association)
+      def self.scope(association, routes = nil)
+        INSTANCE.scope(association, routes)
       end
 
       def self.create(&block)
-        block ||= lambda { |val| val }
+        block ||= lambda { |owner, column| owner.read_attr(column) }
         new(block)
       end
 
-      def initialize(value_transformation)
-        @value_transformation = value_transformation
+      def initialize(value_reader)
+        @value_reader = value_reader
       end
 
       INSTANCE = create
 
-      def scope(association)
+      def scope(association, routes = nil)
         klass = association.klass
         reflection = association.reflection
         scope = klass.unscoped
         owner = association.owner
-        chain = get_chain(reflection, association, scope.alias_tracker)
+        routes ||= reflection.association_route_chain(origin_class: owner.class, destination_class: klass)
+        chain = get_chain(reflection, association, scope.alias_tracker, routes)
 
         extensions = reflection.extensions
         scope.extending!(extensions) unless extensions.empty?
@@ -35,72 +36,49 @@ module ActiveRecord
         scope
       end
 
-      def self.get_bind_values(owner, chain)
-        binds = []
-        last_reflection = chain.last
-
-        binds.push(*last_reflection.join_id_for(owner))
-        if last_reflection.type
-          binds << owner.class.polymorphic_name
-        end
-
-        chain.each_cons(2).each do |reflection, next_reflection|
-          if reflection.type
-            binds << next_reflection.klass.polymorphic_name
-          end
-        end
-        binds
-      end
-
       private
-        attr_reader :value_transformation
+        attr_reader :value_reader
 
         def join(table, constraint)
           Arel::Nodes::LeadingJoin.new(table, Arel::Nodes::On.new(constraint))
         end
 
         def last_chain_scope(scope, reflection, owner)
-          primary_key = reflection.join_primary_key_definition
-          foreign_key = reflection.join_foreign_key_definition
-
           table = reflection.aliased_table
-          primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
-          primary_key_foreign_key_pairs.each do |join_key, foreign_key|
-            value = transform_value(owner.read_attribute(foreign_key))
-            scope = apply_scope(scope, table, join_key, value)
+          route = reflection.association_route
+
+          route.each_constraint do |origin_column, destination_column|
+            value = value_reader.call(owner, origin_column)
+            scope = apply_scope(scope, table, destination_column, value, create_default: false)
           end
 
-          if reflection.type
-            polymorphic_type = transform_value(owner.class.polymorphic_name)
-            scope = apply_scope(scope, table, reflection.type, polymorphic_type)
+          route.each_reference do |origin_column, destination_column|
+            value = value_reader.call(owner, origin_column)
+            scope = apply_scope(scope, table, destination_column, value)
+          end
+
+          route.destination_fixed_values.each do |column, value|
+            scope = apply_scope(scope, table, column, value)
           end
 
           scope
         end
 
-        def transform_value(value)
-          value_transformation.call(value)
-        end
-
         def next_chain_scope(scope, reflection, next_reflection)
-          primary_key = reflection.join_primary_key_definition
-          foreign_key = reflection.join_foreign_key_definition
-
           table = reflection.aliased_table
           foreign_table = next_reflection.aliased_table
 
           predicate_builder = scope.predicate_builder
-          primary_key_foreign_key_pairs = primary_key.zip(foreign_key)
-          constraints = primary_key_foreign_key_pairs.map do |join_primary_key, foreign_key|
-            join_primary_key_attribute = predicate_builder.predicate_attribute(table[join_primary_key])
-            foreign_key_attribute = predicate_builder.predicate_attribute(foreign_table[foreign_key])
+          route = reflection.association_route
+          constraints = route.each_match.map do |origin_column, destination_column|
+            destination_attribute = predicate_builder.predicate_attribute(table[destination_column])
+            origin_attribute = predicate_builder.predicate_attribute(foreign_table[origin_column])
 
-            join_primary_key_attribute.eq(foreign_key_attribute)
+            destination_attribute.eq(origin_attribute)
           end.inject(&:and)
 
-          if reflection.type
-            value = transform_value(next_reflection.klass.polymorphic_name)
-            scope = apply_scope(scope, table, reflection.type, value)
+          route.destination_fixed_values.each do |column, value|
+            scope = apply_scope(scope, table, column, value)
           end
 
           scope.joins!(join(foreign_table, constraints))
@@ -109,22 +87,31 @@ module ActiveRecord
         class ReflectionProxy < SimpleDelegator # :nodoc:
           attr_reader :aliased_table
 
-          def initialize(reflection, aliased_table)
+          def initialize(reflection, aliased_table, route)
             super(reflection)
             @aliased_table = aliased_table
+            @route = route
+          end
+
+          def association_route(**)
+            @route
           end
 
           def all_includes(&); nil; end
         end
 
-        def get_chain(reflection, association, tracker)
+        def get_chain(reflection, association, tracker, routes)
           name = reflection.name
-          chain = [Reflection::RuntimeReflection.new(reflection, association)]
-          reflection.chain.drop(1).each do |refl|
-            aliased_table = tracker.aliased_table_for(refl.klass.arel_table) do
-              refl.alias_candidate(name)
+          chain = []
+          reflection.chain.zip(routes) do |refl, route|
+            if chain.empty?
+              chain << Reflection::RuntimeReflection.new(reflection, association, route)
+            else
+              aliased_table = tracker.aliased_table_for(refl.klass.arel_table) do
+                refl.alias_candidate(name)
+              end
+              chain << ReflectionProxy.new(refl, aliased_table, route)
             end
-            chain << ReflectionProxy.new(refl, aliased_table)
           end
           chain
         end
@@ -168,13 +155,28 @@ module ActiveRecord
           scope
         end
 
-        def apply_scope(scope, table, key, value)
-          if scope.table == table
+        def apply_scope(scope, table, key, value, create_default: true)
+          if scope.table == table && create_default
             scope.where!(key => value)
           else
-            scope.references_values |= [Arel.sql(table.name, retryable: true)]
-            scope.where!(TableMetadata.new(table.klass, table).predicate_builder[key, value])
+            if scope.table != table
+              scope.references_values |= [Arel.sql(table.name, retryable: true)]
+              predicate_builder = TableMetadata.new(table.klass, table).predicate_builder
+            else
+              predicate_builder = scope.predicate_builder
+            end
+
+            predicate = predicate_builder[key, value]
+            predicate = query_constraint(predicate) unless create_default
+            scope.where!(predicate)
           end
+        end
+
+        def query_constraint(predicate)
+          # WhereClause#to_h extracts ungrouped equalities for scope_for_create, so by
+          # grouping here, we hide query-only constraints from that extraction and avoid
+          # assigning them to new records.
+          Arel::Nodes::Grouping.new(predicate)
         end
 
         def redundant_join?(item, chain, join)

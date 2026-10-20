@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
-  # Returns the currently loaded version of Active Record as a +Gem::Version+.
+  # Returns the currently loaded version of Active Record as a `Gem::Version`.
   def self.gem_version
     Gem::Version.new VERSION::STRING
   end

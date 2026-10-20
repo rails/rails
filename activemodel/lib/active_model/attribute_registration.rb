@@ -39,9 +39,7 @@ module ActiveModel
       end
 
       def _default_attributes # :nodoc:
-        @default_attributes ||= AttributeSet.new({}).tap do |attribute_set|
-          apply_pending_attribute_modifications(attribute_set)
-        end
+        @default_attributes ||= AttributeSet.new(apply_pending_attribute_modifications({}))
       end
 
       def attribute_types # :nodoc:
@@ -61,14 +59,18 @@ module ActiveModel
         end
       end
 
-      def apply_pending_attribute_modifications(attribute_set) # :nodoc:
+      # Applies this class's (and its ancestors') attribute declarations to
+      # +attributes+, a hash of name => Attribute, and returns it.
+      def apply_pending_attribute_modifications(attributes) # :nodoc:
         if superclass.respond_to?(:apply_pending_attribute_modifications, true)
-          superclass.send(:apply_pending_attribute_modifications, attribute_set)
+          superclass.send(:apply_pending_attribute_modifications, attributes)
         end
 
         pending_attribute_modifications.each do |modification|
-          modification.apply_to(attribute_set)
+          modification.apply_to(attributes)
         end
+
+        attributes
       end
 
       def make_pending_attribute_modifications_shareable # :nodoc:
@@ -81,24 +83,25 @@ module ActiveModel
 
       private
         PendingType = Struct.new(:name, :type) do # :nodoc:
-          def apply_to(attribute_set)
-            attribute = attribute_set[name]
-            attribute_set[name] = attribute.with_type(type || attribute.type)
+          def apply_to(attributes)
+            attribute = attributes[name] || Attribute.null(name)
+            attributes[name] = attribute.with_type(type || attribute.type)
           end
         end
 
         PendingDefault = Struct.new(:name, :default) do # :nodoc:
-          def apply_to(attribute_set)
-            attribute_set[name] = attribute_set[name].with_user_default(default)
+          def apply_to(attributes)
+            attribute = attributes[name] || Attribute.null(name)
+            attributes[name] = attribute.with_user_default(default)
           end
         end
 
         PendingDecorator = Struct.new(:names, :decorator) do # :nodoc:
-          def apply_to(attribute_set)
-            (names || attribute_set.keys).each do |name|
-              attribute = attribute_set[name]
+          def apply_to(attributes)
+            (names || attributes.keys.select { |name| attributes[name].initialized? }).each do |name|
+              attribute = attributes[name] || Attribute.null(name)
               type = decorator.call(name, attribute.type)
-              attribute_set[name] = attribute.with_type(type) if type
+              attributes[name] = attribute.with_type(type) if type
             end
           end
         end
