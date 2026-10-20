@@ -83,7 +83,9 @@ module ActionDispatch
     end
 
     def controller_class
-      controller_class_for(path_parameters[:controller])
+      fetch_header("action_dispatch.request.controller_class") do |k|
+        set_header k, controller_class_for(path_parameters[:controller])
+      end
     end
 
     def controller_class_for(name)
@@ -414,7 +416,7 @@ module ActionDispatch
     # Override Rack's GET method to support indifferent access.
     def GET
       fetch_header("action_dispatch.request.query_parameters") do |k|
-        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
+        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(routed_controller_class, path_parameters[:action])
         rack_query_params = ActionDispatch::ParamBuilder.from_query_string(rack_request.query_string, encoding_template: encoding_template)
 
         set_header k, rack_query_params
@@ -427,7 +429,7 @@ module ActionDispatch
     # Override Rack's POST method to support indifferent access.
     def POST
       fetch_header("action_dispatch.request.request_parameters") do
-        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
+        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(routed_controller_class, path_parameters[:action])
 
         param_list = nil
         pr = parse_formatted_parameters(params_parsers) do
@@ -530,6 +532,14 @@ module ActionDispatch
     end
 
     private
+      # Like `controller_class`, but returns `nil` when the request was not routed
+      # to a controller.
+      def routed_controller_class
+        controller_class if path_parameters[:controller]&.valid_encoding?
+      rescue MissingController
+        nil
+      end
+
       def check_method(name)
         if name
           HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(locale: false)}")
