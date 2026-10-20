@@ -46,7 +46,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     ActiveRecord::Base.attribute_method_patterns = @old_matchers
   end
 
-  test "#id_value reader is defined without an alias if id column exist" do
+  test "#id_value reader and writer are defined without alias resolution if id column exist" do
     new_topic_model = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
     end
@@ -54,7 +54,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     new_topic_model.define_attribute_methods
     assert_includes new_topic_model.attribute_names, "id"
     assert new_topic_model.method_defined?(:id_value)
-    assert_not_includes new_topic_model.attribute_aliases, "id_value"
+    assert new_topic_model.method_defined?(:id_value=)
+    assert_equal "id", new_topic_model.attribute_aliases["id_value"]
     assert_not new_topic_model.include?(ActiveRecord::AttributeMethods::AliasResolution)
   end
 
@@ -111,6 +112,32 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.create(id: 123_456, title: "title").becomes(TitlePrimaryKeyTopic)
 
     assert_equal(123_456, topic.id_value)
+  end
+
+  test "#id_value= writes the id column for a model without a composite primary key" do
+    topic = Topic.new(title: "title")
+    topic.id_value = 123_456
+    topic.save!
+
+    assert_equal 123_456, topic.id
+    assert_equal "title", Topic.find(123_456).title
+  end
+
+  test "#id_value= writes the id column when the primary key is not id" do
+    title_keyed_topic = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.primary_key = :title
+    end
+    topic = title_keyed_topic.new(title: "title")
+    topic.id_value = 123_456
+
+    assert_equal 123_456, topic.id_value
+    assert_equal "title", topic.id
+  end
+
+  test "where(id_value:) queries the id column for a model without a composite primary key" do
+    assert_equal [topics(:second)], Topic.where(id_value: topics(:second).id).to_a
+    assert_equal [topics(:second).id], Topic.where(id_value: topics(:second).id).pluck(:id_value)
   end
 
   test "aliasing `id` attribute allows reading the column value for a CPK model" do
