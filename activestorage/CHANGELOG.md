@@ -1,5 +1,16 @@
 *   Add ability to define named variant transformations dynamically.
 
+    Transformation values given as a `Proc` are called with the record when the variant is generated.
+
+    ```ruby
+    class User < ApplicationRecord
+      has_one_attached :avatar do |attachable|
+        attachable.variant :thumb, resize_to_limit: :thumb_size.to_proc
+        attachable.variant :cropped, crop: ->(user) { user.crop_area }
+      end
+    end
+    ```
+
     *Carlos Palhares*
 
 *   Preserve committed proxy responses when a storage error interrupts a
