@@ -245,7 +245,7 @@ module ActiveSupport
       #   cache.increment("baz") # => 7
       #   cache.read_counter("baz") # 7
       #
-      # Failsafe: Raises errors.
+      # Failsafe: Returns +nil+ if the Redis server is unavailable.
       def increment(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
@@ -277,7 +277,7 @@ module ActiveSupport
       #   cache.decrement("baz") # => 3
       #   cache.read_counter("baz") # 3
       #
-      # Failsafe: Raises errors.
+      # Failsafe: Returns +nil+ if the Redis server is unavailable.
       def decrement(name, amount = 1, options = nil)
         options = merged_options(options)
         key = normalize_key(name, options)
@@ -300,7 +300,7 @@ module ActiveSupport
       # Clear the entire cache on all Redis servers. Safe to use on
       # shared servers if the cache is namespaced.
       #
-      # Failsafe: Raises errors.
+      # Failsafe: Returns +nil+ if the Redis server is unavailable.
       def clear(options = nil)
         failsafe :clear do
           if namespace = merged_options(options)[:namespace]
