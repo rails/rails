@@ -12,7 +12,7 @@ module ActiveSupport
   # The TimeZone class serves as a wrapper around `TZInfo::Timezone` instances.
   # It allows us to do the following:
   #
-  # * Limit the set of zones provided by TZInfo to a meaningful subset of 155
+  # * Limit the set of zones provided by TZInfo to a meaningful subset of 156
   #   zones.
   # * Retrieve and display zones with a friendlier name
   #   (e.g., "Eastern \Time (US & Canada)" instead of "America/New_York").
@@ -46,6 +46,7 @@ module ActiveSupport
       "Tijuana"                      => "America/Tijuana",
       "Mountain Time (US & Canada)"  => "America/Denver",
       "Alberta"                      => "America/Edmonton",
+      "Northwest Territories"        => "America/Inuvik",
       "Arizona"                      => "America/Phoenix",
       "Chihuahua"                    => "America/Chihuahua",
       "Mazatlan"                     => "America/Mazatlan",
