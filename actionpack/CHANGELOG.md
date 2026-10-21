@@ -1,3 +1,14 @@
+*   Fix a deadlock between `ActionController::Live` and code reloading in
+    development.
+
+    A queued unload could block the Live child thread while waiting for the
+    parent request, which was itself waiting for the child to commit the
+    response.
+
+    Fixes #56888.
+
+    *Pim Vermeyden*
+
 *   Deprecate the `ssl_default_redirect_status:` argument of `ActionDispatch::SSL`.
 
     As of Rails 6.1, the default status is 308. This deprecates overriding it.
