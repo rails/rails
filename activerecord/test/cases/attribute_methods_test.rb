@@ -534,6 +534,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_nothing_raised { computer[:no_column_exists] }
   end
 
+  test "generated reader raises from the caller when the attribute isn't selected" do
+    topic = Topic.select(:id).first
+
+    line = __LINE__ + 2
+    error = assert_raises(ActiveModel::MissingAttributeError, match: "missing attribute 'title' for Topic") do
+      topic.title
+    end
+
+    assert_includes error.backtrace.find { |frame| frame.start_with?(__FILE__) }, "#{__FILE__}:#{line}:in"
+  end
+
   test "generated reader preserves a missing attribute error raised by the type" do
     type = Class.new(ActiveRecord::Type::String) do
       def deserialize(value)
