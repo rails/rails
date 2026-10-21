@@ -83,8 +83,30 @@ module ActionDispatch
           params.transform_values { |v| Journey::Router::Utils.escape_fragment(v) }
         end
 
-        def escape_path(params)
-          params.transform_values { |v| Journey::Router::Utils.escape_path(v) }
+        # Ordinary dynamic segments use segment escaping so a decoded slash
+        # cannot pass into the interpolated path. Wildcard (*path) params and
+        # :controller keep path escaping, matching Journey URL generation.
+        def escape_route_params(params, request)
+          path_keys = path_escaped_param_names(request)
+
+          params.each_with_object({}) do |(key, value), escaped|
+            escaped[key] = if path_keys.include?(key.to_sym)
+              Journey::Router::Utils.escape_path(value)
+            else
+              Journey::Router::Utils.escape_segment(value)
+            end
+          end
+        end
+
+        def path_escaped_param_names(request)
+          names = [:controller]
+          spec = request.get_header("action_dispatch.route")&.path&.spec
+          return names unless spec
+
+          spec.each do |node|
+            names << node.name.to_sym if node.star?
+          end
+          names
         end
     end
 
@@ -93,9 +115,9 @@ module ActionDispatch
 
       def path(params, request)
         if block.match(URL_PARTS)
-          path     = interpolation_required?($1, params) ? $1 % escape_path(params)     : $1
-          query    = interpolation_required?($2, params) ? $2 % escape(params)          : $2
-          fragment = interpolation_required?($3, params) ? $3 % escape_fragment(params) : $3
+          path     = interpolation_required?($1, params) ? $1 % escape_route_params(params, request) : $1
+          query    = interpolation_required?($2, params) ? $2 % escape(params)                       : $2
+          fragment = interpolation_required?($3, params) ? $3 % escape_fragment(params)              : $3
 
           "#{path}#{query}#{fragment}"
         else
@@ -126,7 +148,7 @@ module ActionDispatch
         }.merge! options
 
         if !params.empty? && url_options[:path].match(/%\{\w*\}/)
-          url_options[:path] = (url_options[:path] % escape_path(params))
+          url_options[:path] = (url_options[:path] % escape_route_params(params, request))
         end
 
         unless options[:host] || options[:domain]
