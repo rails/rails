@@ -1,7 +1,7 @@
 *   Fix `preload_link_tag` raising `NameError` in views without `content_security_policy_nonce`,
     such as mailer views and `ActionView::Base.empty`.
 
-    *bastin*
+    *Bastin*
 
 *   Fix the debug page for errors raised in view templates on Ruby 4.1.
 
