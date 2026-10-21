@@ -215,7 +215,9 @@ module ActiveRecord
       end
 
       def type_casted_binds(binds) # :nodoc:
-        binds&.map do |value|
+        return binds if binds.nil? || binds.empty?
+
+        binds.map do |value|
           if ActiveModel::Attribute === value
             type_cast(value.value_for_database)
           else
