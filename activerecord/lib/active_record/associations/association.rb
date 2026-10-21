@@ -269,8 +269,8 @@ module ActiveRecord
           end
 
           routes = reflection.association_route_chain(origin_class: owner.class, destination_class: klass)
-          scope = self.scope(routes)
-          if skip_statement_cache?(scope)
+          if skip_statement_cache?(nil)
+            scope = self.scope(routes)
             if async
               return scope.load_async.then(&:to_a)
             else
@@ -401,11 +401,15 @@ module ActiveRecord
         end
 
         # Returns true if statement cache should be skipped on the association reader.
-        def skip_statement_cache?(scope)
+        #
+        # Checks where the association scope can get eager loading from, so the
+        # scope does not have to be built to decide.
+        def skip_statement_cache?(_scope)
           reflection.has_scope? ||
-            scope.eager_loading? ||
             klass.scope_attributes? ||
-            reflection.source_reflection.active_record.default_scopes.any?
+            klass.global_current_scope&.eager_loading? ||
+            reflection.source_reflection.active_record.default_scopes.any? ||
+            !Base.is_a?(klass.method(:default_scope).owner)
         end
 
         def enqueue_destroy_association(options)
