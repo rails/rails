@@ -293,7 +293,7 @@ module ActiveModel
       if self.class.respond_to?(:_default_attributes)
         da = self.class._default_attributes
         # mutate the copied @attributes object rather than calling `map` on
-        # the default attributes. This way we can keep the "LazyAttributeSet"
+        # the default attributes. This way we can keep the "LazyIndexedAttributeSet"
         # type
         da.values.each do |attr|
           attrs[attr.name] = attr.with_value_from_user(attrs.fetch_value(attr.name))

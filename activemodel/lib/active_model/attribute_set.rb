@@ -244,15 +244,13 @@ module ActiveModel
   # extra columns (such as aliases) the row was loaded with.
   # Methods that take a name look its index up once and work by index from
   # there.
-  class LazyAttributeSet < AttributeSet # :nodoc:
+  class LazyIndexedAttributeSet < AttributeSet # :nodoc:
     # Marks the slots in +@casted_values+ that haven't been cast yet, since
     # a value can be cast to +nil+.
     UNCAST = Object.new.freeze
     private_constant :UNCAST
 
-    def indexes
-      @indexes || upgrade_legacy_ivars
-    end
+    attr_reader :indexes
 
     # +row+ is the raw data from the database, an Array laid out by
     # +indexes+ (see IndexedRow), which also type any names the model
@@ -483,19 +481,6 @@ module ActiveModel
         names
       end
 
-      # Sets loaded from older Marshal dumps (e.g. Rails 6.1) have their
-      # instance variables restored directly, with +@attributes+ as a Hash
-      # and no +@indexes+. Convert them to the Array layout on first use.
-      def upgrade_legacy_ivars
-        legacy = @attributes
-        @indexes = IndexedRow.build_indexes(legacy.keys).freeze
-        @attributes = legacy.values
-        # Every attribute is in +@attributes+, so there's no row to read.
-        @row = [].freeze
-        @casted_values = []
-        @indexes
-      end
-
       def freeze_attributes
         materialize
         @attributes ||= Array.new(indexes.size)
@@ -520,6 +505,66 @@ module ActiveModel
           end
         else
           Attribute.null(name)
+        end
+      end
+  end
+
+  # Records marshaled in the Rails 6.1 format have their instance variables
+  # dumped directly, so their attribute sets load as this class (the name
+  # of the lazy attribute set at the time), with their attributes in Hashes
+  # by name. The first use builds every attribute and then works by name,
+  # like an AttributeSet. Its layout isn't the model's, so it can't be read
+  # by slot: the record lays it out like the model's first (see
+  # ActiveRecord::AttributeMethods::Read#_read_attribute_at!).
+  class LazyAttributeSet < AttributeSet # :nodoc:
+    # Raised when reading by slot, which needs the model's layout.
+    class NotLaidOut < StandardError # :nodoc:
+    end
+
+    def fetch_value_at(index)
+      raise NotLaidOut
+    end
+
+    def fetch_value_at!(index)
+      raise NotLaidOut
+    end
+
+    protected
+      def attributes
+        build_attributes if @attributes.is_a?(Hash)
+        @attributes
+      end
+
+    private
+      def lookup(name)
+        attributes[name]
+      end
+
+      def store(name, attribute)
+        attributes[name] = attribute
+      end
+
+      # +@values+ and +@casted_values+ are Hashes, or IndexedRows in dumps
+      # from later versions, so they're only read through methods both have.
+      def build_attributes
+        built = @attributes
+        names = @values.keys | @types.keys | built.keys
+        attributes = names.index_with { |name| built[name] || build_attribute(name) }
+        @attributes = IndexedRow::Mutable[attributes]
+      end
+
+      def build_attribute(name)
+        type = @additional_types.fetch(name) { @types[name] } || Type.default_value
+
+        if @values.key?(name)
+          Attribute.from_database(name, @values[name], type, @casted_values.fetch(name) { nil })
+        else
+          default_keys = @default_keys if defined?(@default_keys)
+          if (default_keys.nil? || default_keys.include?(name)) && (attr = @default_attributes.fetch(name) { nil })
+            attr.dup
+          else
+            Attribute.uninitialized(name, type)
+          end
         end
       end
   end
