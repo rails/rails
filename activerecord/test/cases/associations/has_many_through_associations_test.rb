@@ -1685,6 +1685,22 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     TenantMembership.current_member = nil
   end
 
+  def test_has_many_through_do_not_cache_association_reader_if_the_though_model_has_a_default_scope_method
+    member = Member.create!
+    favorite_club = Club.create!
+    other_club = Club.create!
+    MembershipWithDefaultScopeMethod.create!(member: member, club: favorite_club, favorite: true)
+    MembershipWithDefaultScopeMethod.create!(member: member, club: other_club, favorite: false)
+
+    MembershipWithDefaultScopeMethod.current_favorite = true
+    assert_equal [favorite_club], member.clubs_with_default_scope_method
+
+    MembershipWithDefaultScopeMethod.current_favorite = false
+    assert_equal [other_club], Member.find(member.id).clubs_with_default_scope_method
+  ensure
+    MembershipWithDefaultScopeMethod.current_favorite = nil
+  end
+
   def test_has_many_through_with_scope_that_has_joined_same_table_with_parent_relation
     assert_equal authors(:david), Author.joins(:comments_for_first_author).take
   end

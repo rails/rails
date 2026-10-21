@@ -56,6 +56,12 @@ module ActiveRecord
           super || has_default_scope?
         end
 
+        # Whether the model has a default scope, either declared with
+        # +default_scope+ or by overriding the +default_scope+ method.
+        def has_default_scope? # :nodoc:
+          default_scopes.any? || !Base.is_a?(method(:default_scope).owner)
+        end
+
         # Checks if the model has any default scopes. If all_queries
         # is set to true, the method will check if there are any
         # default_scopes for the model  where +all_queries+ is true.
@@ -140,10 +146,6 @@ module ActiveRecord
             default_scope = DefaultScope.new(scope, all_queries)
 
             self.default_scopes = [*default_scopes, default_scope].freeze
-          end
-
-          def has_default_scope?
-            default_scopes.any? || !Base.is_a?(method(:default_scope).owner)
           end
 
           def build_default_scope(relation = relation(), all_queries: nil)
