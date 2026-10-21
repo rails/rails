@@ -84,7 +84,7 @@ module ActiveModel
 
       private
         def method_missing(method_name, *args, **kwargs)
-          key = method_name.to_s.remove(/(\?|=)/)
+          key = method_name.name.remove(/(\?|=)/)
 
           if @schema.key? key.to_sym
             if method_name.ends_with?("?")
@@ -100,7 +100,7 @@ module ActiveModel
         end
 
         def respond_to_missing?(method_name, include_private = false)
-          @schema.key?(method_name.to_s.remove(/[?=]/).to_sym) || super
+          @schema.key?(method_name.name.remove(/[?=]/).to_sym) || super
         end
 
         def lookup_schema_type_for(key)
