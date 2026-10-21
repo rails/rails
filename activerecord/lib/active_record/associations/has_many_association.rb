@@ -81,7 +81,7 @@ module ActiveRecord
         # the loaded flag is set to true as well.
         def count_records
           count = if reflection.has_active_cached_counter?
-            owner.read_attr(reflection.counter_cache_column).to_i
+            owner.read_attribute(reflection.counter_cache_column).to_i
           else
             scope.count(:all)
           end
@@ -132,7 +132,7 @@ module ActiveRecord
             update_counter(-records.length) unless reflection.inverse_updates_counter_cache?
           else
             query_constraints = reflection.klass.composite_query_constraints_list
-            values = records.map { |r| query_constraints.map { |col| r.read_attr(col) } }
+            values = records.map { |r| query_constraints.map { |col| r.read_attribute(col) } }
             scope = self.scope.where(query_constraints => values)
             update_counter(-delete_count(method, scope))
           end

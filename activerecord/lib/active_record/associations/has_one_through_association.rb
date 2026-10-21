@@ -10,7 +10,7 @@ module ActiveRecord
 
       def reference_changed_for_autosave?(record)
         inverse_type_changed = if reflection.inverse_of&.polymorphic?
-          record.read_attr(reflection.inverse_of.foreign_type) != reflection.active_record.polymorphic_name
+          record.read_attribute(reflection.inverse_of.foreign_type) != reflection.active_record.polymorphic_name
         end
         inverse_type_changed || reference_key_changed_for_save?(record)
       end

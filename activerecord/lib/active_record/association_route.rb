@@ -68,25 +68,25 @@ module ActiveRecord
       if _reference_key.all? { |column| reference_record._has_attribute?(column) }
         target_columns = _target_key.columns if target_record
         _reference_key.each_with_index do |column, index|
-          return true if reference_record._read_attr(column) != target_record&._read_attr(target_columns[index])
+          return true if reference_record._read_attribute(column) != target_record&._read_attribute(target_columns[index])
         end
       end
 
       _fixed_values.any? do |column, value|
-        reference_record._has_attribute?(column) && reference_record._read_attr(column) != value
+        reference_record._has_attribute?(column) && reference_record._read_attribute(column) != value
       end
     end
 
     def write_reference(reference_record, target_record, force: true)
       target_columns = _target_key.columns if target_record
       _reference_key.each_with_index do |column, index|
-        value = target_record&._read_attr(target_columns[index])
-        next if !force && reference_record._read_attr(column) == value
+        value = target_record&._read_attribute(target_columns[index])
+        next if !force && reference_record._read_attribute(column) == value
         reference_record._write_attribute(column, value)
       end
 
       _fixed_values.each do |column, value|
-        next if !force && reference_record._read_attr(column) == value
+        next if !force && reference_record._read_attribute(column) == value
         reference_record._write_attribute(column, value)
       end unless _fixed_values.empty?
     end
@@ -99,7 +99,7 @@ module ActiveRecord
       return unless fixed_values
 
       _fixed_values.each_key do |column|
-        next if !force && reference_record._read_attr(column).nil?
+        next if !force && reference_record._read_attribute(column).nil?
         reference_record._write_attribute(column, nil)
       end
     end
@@ -135,7 +135,7 @@ module ActiveRecord
         target_columns = reference.target_key.columns if target_record
 
         reference_key.each_with_index do |column, index|
-          yield column, target_record&.read_attr(target_columns[index])
+          yield column, target_record&.read_attribute(target_columns[index])
         end
       end
   end
@@ -146,7 +146,7 @@ module ActiveRecord
   class AssociationLink::DeprecatedIdWriter < AssociationLink # :nodoc:
     def write_reference(reference_record, target_record, force: true)
       each_reference_value(target_record) do |column, value|
-        next if !force && reference_record.read_attr(column) == value
+        next if !force && reference_record.read_attribute(column) == value
         reference_record.write_attribute(column, value)
       end
     end
@@ -159,7 +159,7 @@ module ActiveRecord
       return unless fixed_values
 
       self.fixed_values.each_key.zip(_fixed_values.each_key) do |column, physical_column|
-        next if !force && reference_record._read_attr(physical_column).nil?
+        next if !force && reference_record._read_attribute(physical_column).nil?
         reference_record.write_attribute(column, nil)
       end
     end
@@ -260,7 +260,7 @@ module ActiveRecord
     end
 
     def origin_reference_complete?(origin)
-      _reference_origin_key.all? { |column| !origin._read_attr(column).nil? }
+      _reference_origin_key.all? { |column| !origin._read_attribute(column).nil? }
     end
 
     def reference_needs_update?(origin, destination)
