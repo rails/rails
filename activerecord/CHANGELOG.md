@@ -1,3 +1,15 @@
+*   Restore the scope registry when the executor completes.
+
+    A `SystemStackError` could stop the `ensure` blocks of `scoping` or
+    `evaluate_default_scope` before they reset the registry, so every later
+    query on that thread lost its default scope until the process restarted.
+    Each request or job wrapped by the Rails executor now ends with the
+    registry it started with.
+
+    Fixes #59136.
+
+    *Garrett Blehm*
+
 *   Fix `in_order_of` returning no records for types whose serialized value
     changes when serialized again, like deterministic encryption, `json`
     columns and `serialize` coders.

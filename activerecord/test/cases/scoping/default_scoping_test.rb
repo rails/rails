@@ -693,6 +693,43 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal 10, DeveloperCalledJamis.unscoped { DeveloperCalledJamis.poor }.length
   end
 
+  def test_executor_restores_scope_registry_left_behind_by_an_interrupted_block
+    executor = Class.new(ActiveSupport::Executor)
+    ActiveRecord::Scoping::ScopeRegistry.install_executor_hooks(executor)
+
+    executor.wrap do
+      # Simulate ensure blocks that a SystemStackError stopped before they reset the registry.
+      ActiveRecord::Scoping::ScopeRegistry.set_ignore_default_scope(DeveloperCalledJamis, true)
+      ActiveRecord::Scoping::ScopeRegistry.set_current_scope(Developer, Developer.where(name: "David"))
+
+      assert_equal 11, DeveloperCalledJamis.count
+      assert_equal 1, Developer.count
+    end
+
+    assert_equal 2, DeveloperCalledJamis.count
+    assert_equal 11, Developer.count
+  end
+
+  def test_executor_keeps_scopes_set_before_it_runs
+    executor = Class.new(ActiveSupport::Executor)
+    ActiveRecord::Scoping::ScopeRegistry.install_executor_hooks(executor)
+
+    Developer.where(name: "David").scoping do
+      DeveloperCalledJamis.unscoped do
+        executor.wrap do
+          assert_equal 1, Developer.count
+          assert_equal 11, DeveloperCalledJamis.count
+        end
+
+        assert_equal 1, Developer.count
+        assert_equal 11, DeveloperCalledJamis.count
+      end
+    end
+
+    assert_equal 11, Developer.count
+    assert_equal 2, DeveloperCalledJamis.count
+  end
+
   def test_default_scope_with_joins
     assert_equal Comment.where(post_id: SpecialPostWithDefaultScope.pluck(:id)).count,
                  Comment.joins(:special_post_with_default_scope).count
