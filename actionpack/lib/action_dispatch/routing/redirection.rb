@@ -91,9 +91,13 @@ module ActionDispatch
     class PathRedirect < Redirect
       URL_PARTS = /\A([^?]+)?(\?[^#]+)?(#.+)?\z/
 
+      # https://www.rfc-editor.org/rfc/rfc3986#section-3.1
+      # https://www.rfc-editor.org/rfc/rfc3986#section-4.2
+      SCHEME_OR_AUTHORITY = /\A(?:[a-z][a-z\d\-+.]*:|\/\/)/i # :nodoc:
+
       def path(params, request)
         if block.match(URL_PARTS)
-          path     = interpolation_required?($1, params) ? $1 % escape_path(params)     : $1
+          path     = interpolation_required?($1, params) ? interpolate_path($1, params) : $1
           query    = interpolation_required?($2, params) ? $2 % escape(params)          : $2
           fragment = interpolation_required?($3, params) ? $3 % escape_fragment(params) : $3
 
@@ -110,6 +114,21 @@ module ActionDispatch
       private
         def interpolation_required?(string, params)
           !params.empty? && string && string.match(/%\{\w*\}/)
+        end
+
+        # A decoded param must not give the target a scheme or host that the template
+        # lacks, or the redirect would leave the request's host.
+        def interpolate_path(template, params)
+          path = template % escape_path(params)
+          return path if template.match?(SCHEME_OR_AUTHORITY)
+
+          if path.start_with?("//")
+            path.sub("//", "/%2F")
+          elsif path.match?(SCHEME_OR_AUTHORITY)
+            "/#{path.sub(":", "%3A")}"
+          else
+            path
+          end
         end
     end
 

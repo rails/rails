@@ -257,6 +257,51 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     verify_redirect "http://www.example.com/names"
   end
 
+  def test_redirect_modulo_with_encoded_slash_in_leading_param_stays_on_host
+    draw do
+      get ":locale/account", to: redirect("/%{locale}/myaccount")
+    end
+
+    get "/%2Finjected/account"
+    verify_redirect "http://www.example.com/%2Finjected/myaccount"
+  end
+
+  def test_redirect_modulo_with_encoded_slash_in_leading_glob_stays_on_host
+    draw do
+      get "old/*path", to: redirect("/%{path}")
+    end
+
+    get "/old/%2Finjected"
+    verify_redirect "http://www.example.com/%2Finjected"
+  end
+
+  def test_redirect_modulo_with_encoded_slash_in_unprefixed_param_stays_on_host
+    draw do
+      get "old/:path", to: redirect("%{path}")
+    end
+
+    get "/old/%2F%2Finjected"
+    verify_redirect "http://www.example.com/%2Finjected"
+  end
+
+  def test_redirect_modulo_with_scheme_in_unprefixed_param_stays_on_host
+    draw do
+      get "old/:path", to: redirect("%{path}")
+    end
+
+    get "/old/https:%2F%2Finjected"
+    assert_equal "www.example.com", URI.parse(@response.headers["Location"]).host
+  end
+
+  def test_redirect_modulo_with_protocol_relative_template
+    draw do
+      get "assets/:name", to: redirect("//cdn.example.com/%{name}")
+    end
+
+    get "/assets/logo"
+    verify_redirect "http://cdn.example.com/logo"
+  end
+
   def test_redirect_proc
     draw do
       get "account/proc/:name", to: redirect { |params, req| "/#{params[:name].pluralize}" }
