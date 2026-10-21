@@ -370,14 +370,15 @@ module ActiveSupport
       include FanoutIteration
 
       def build_handle(name, id, payload)
-        groups = groups_for(name).map do |group_klass, grouped_listeners|
-          group_klass.new(grouped_listeners, name, id, payload)
-        end
+        groups = groups_for(name)
 
         if groups.empty?
           NullHandle
         else
-          Handle.new(name, id, groups, payload)
+          instances = groups.map do |group_klass, grouped_listeners|
+            group_klass.new(grouped_listeners, name, id, payload)
+          end
+          Handle.new(name, id, instances, payload)
         end
       end
 
