@@ -1,3 +1,13 @@
+*   Exit with a failure status when `rails` is run with an unrecognized command
+    outside of an application.
+
+    Previously, running a command such as `rails db:migrate` outside of an
+    application printed the `rails new` usage and exited with status 0.
+
+    Fixes #42607.
+
+    *Haresh Goyal*, *endenis*
+
 *   Add `config.zjit` to enable ZJIT after the application has booted.
 
     Like `config.yjit`, it enables the JIT once boot is done, so it doesn't
