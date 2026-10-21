@@ -333,19 +333,9 @@ module ActiveRecord
         database_version >= 12_00_00 # >= 12.0
       end
 
-      def supports_identity_columns? # :nodoc:
-        true
-      end
-      deprecate :supports_identity_columns?, deprecator: ActiveRecord.deprecator
-
       def supports_nulls_not_distinct?
         database_version >= 15_00_00 # >= 15.0
       end
-
-      def supports_native_partitioning? # :nodoc:
-        true
-      end
-      deprecate :supports_native_partitioning?, deprecator: ActiveRecord.deprecator
 
       if PG::Connection.method_defined?(:close_prepared) # pg 1.6.0 & libpq 17
         def supports_close_prepared? # :nodoc:
