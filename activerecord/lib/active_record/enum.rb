@@ -292,20 +292,22 @@ module ActiveRecord
           end
 
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
-          pairs.each do |label, value|
-            enum_values[label] = value
-            label = label.to_s
+          ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
+            pairs.each do |label, value|
+              enum_values[label] = value
+              label = label.to_s
 
-            value_method_name = "#{prefix}#{label}#{suffix}"
-            value_method_names << value_method_name
-            define_enum_methods(name, value_method_name, value, scopes, instance_methods)
+              value_method_name = "#{prefix}#{label}#{suffix}"
+              value_method_names << value_method_name
+              define_enum_methods(code_generator, name, value_method_name, value, scopes, instance_methods)
 
-            method_friendly_label = label.gsub(/[\W&&[:ascii:]]+/, "_")
-            value_method_alias = "#{prefix}#{method_friendly_label}#{suffix}"
+              method_friendly_label = label.gsub(/[\W&&[:ascii:]]+/, "_")
+              value_method_alias = "#{prefix}#{method_friendly_label}#{suffix}"
 
-            if value_method_alias != value_method_name && !value_method_names.include?(value_method_alias)
-              value_method_names << value_method_alias
-              define_enum_methods(name, value_method_alias, value, scopes, instance_methods)
+              if value_method_alias != value_method_name && !value_method_names.include?(value_method_alias)
+                value_method_names << value_method_alias
+                define_enum_methods(code_generator, name, value_method_alias, value, scopes, instance_methods)
+              end
             end
           end
         end
@@ -332,17 +334,23 @@ module ActiveRecord
         private
           attr_reader :klass
 
-          def define_enum_methods(name, value_method_name, value, scopes, instance_methods)
+          def define_enum_methods(code_generator, name, value_method_name, value, scopes, instance_methods)
             if instance_methods
-              compilable = ActiveModel::AttributeMethods::AttrNames.def_safe_name?(value_method_name) &&
-                ActiveModel::AttributeMethods::AttrNames.def_safe_name?(name) &&
-                !(Float === value && !value.finite?)
-              code = []
+              # Non-finite floats have no literal representation.
+              compilable = !(Float === value && !value.finite?)
 
               # def active?() status_for_database == 0 end
               klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
               if compilable
-                code << "def #{value_method_name}?; self.#{name}_for_database == #{value.inspect}; end"
+                reader = "#{name}_for_database"
+                reader_call = if ActiveModel::AttributeMethods::CALL_COMPILABLE_REGEXP.match?(reader)
+                  "self.#{reader}"
+                else
+                  "public_send(#{reader.to_sym.inspect})"
+                end
+                define_enum_method(code_generator, name, value, "?", as: "#{value_method_name}?") do |batch, method_name|
+                  batch << "def #{method_name}" << "#{reader_call} == #{value.inspect}" << "end"
+                end
               else
                 define_method("#{value_method_name}?") { public_send(:"#{name}_for_database") == value }
               end
@@ -350,12 +358,12 @@ module ActiveRecord
               # def active!() update!(status: 0) end
               klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
               if compilable
-                code << "def #{value_method_name}!; update!(#{name.dump} => #{value.inspect}); end"
+                define_enum_method(code_generator, name, value, "!", as: "#{value_method_name}!") do |batch, method_name|
+                  batch << "def #{method_name}" << "update!(#{name.dump} => #{value.inspect})" << "end"
+                end
               else
                 define_method("#{value_method_name}!") { update!(name => value) }
               end
-
-              module_eval("# frozen_string_literal: true\n" + code.join("\n"), __FILE__, __LINE__ - 1) unless code.empty?
             end
 
             if scopes
@@ -366,6 +374,16 @@ module ActiveRecord
               # scope :not_active, -> { where.not(status: 0) }
               klass.send(:detect_enum_conflict!, name, "not_#{value_method_name}", true)
               klass.scope "not_#{value_method_name}", -> { where(predicate_builder[name, value, :is_distinct_from]) }
+            end
+          end
+
+          # The generated body only depends on the attribute name and value, so
+          # the canonical name encodes both and the method is shared by every
+          # model with the same enum value.
+          def define_enum_method(code_generator, name, value, suffix, as:)
+            method_name = "__temp__#{"#{name}\0#{value.inspect}".unpack1("h*")}#{suffix}"
+            code_generator.define_cached_method(method_name, as: as, namespace: :active_record_enum) do |batch|
+              yield batch, method_name
             end
           end
       end

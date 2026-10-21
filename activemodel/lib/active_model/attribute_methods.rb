@@ -635,12 +635,6 @@ module ActiveModel
       module AttrNames # :nodoc:
         DEF_SAFE_NAME = /\A[a-zA-Z_]\w*\z/
 
-        # Whether +name+ can be used as is in a method definition, without
-        # resorting to the \__temp__ identifier.
-        def self.def_safe_name?(name)
-          name.ascii_only? && DEF_SAFE_NAME.match?(name)
-        end
-
         # We want to generate the methods via module_eval rather than
         # define_method, because define_method is slower on dispatch.
         #
@@ -657,7 +651,7 @@ module ActiveModel
         # key the @attributes in read_attribute.
         def self.define_attribute_accessor_method(attr_name, writer: false)
           method_name = "#{attr_name}#{'=' if writer}"
-          if def_safe_name?(attr_name)
+          if attr_name.ascii_only? && DEF_SAFE_NAME.match?(attr_name)
             yield method_name, "'#{attr_name}'"
           else
             safe_name = attr_name.unpack1("h*")
