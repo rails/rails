@@ -6,7 +6,7 @@ require "active_model/attribute"
 module ActiveModel
   class AttributeSet # :nodoc:
     class Builder # :nodoc:
-      # What a LazyAttributeSet looks up about the model's attributes, by
+      # What a LazyIndexedAttributeSet looks up about the model's attributes, by
       # their index in the builder's #indexes.
       class Context # :nodoc:
         attr_reader :type_keys
@@ -99,11 +99,11 @@ module ActiveModel
       # it's laid out with, which can type the names after the ones in
       # #indexes, such as aliases (see #typed_indexes).
       def build_from_row(row, indexes)
-        LazyAttributeSet.new(row, indexes, @from_db_context)
+        LazyIndexedAttributeSet.new(row, indexes, @from_db_context)
       end
 
       def build_from_initialize
-        LazyAttributeSet.new(EMPTY_ROW, @indexes, @from_init_context)
+        LazyIndexedAttributeSet.new(EMPTY_ROW, @indexes, @from_init_context)
       end
 
       # Lays +hash+ out like a row loaded from the database: each name at
