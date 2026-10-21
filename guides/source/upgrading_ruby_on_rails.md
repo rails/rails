@@ -154,6 +154,10 @@ be done by not calling `config.load_defaults` or calling it with a version older
 you MUST opt-in to the newer `7.1` marshal format before upgrading, and ensure all caches were
 either flushed or upgraded.
 
+Loading records dumped with the `6.1` format is no longer supported either. Records with cached
+associations raise a `TypeError` when loaded, and others can break at any time, so any cache that
+may still contain them must be flushed before upgrading.
+
 ### The negative scopes for enums now include records with `nil` values.
 
 Active Record negative scopes for enums now include records with `nil` values.

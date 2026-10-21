@@ -1,3 +1,13 @@
+*   Remove support for loading records marshalled with the Rails 6.1 format.
+
+    Dumping in that format was already removed. Loading it is no longer
+    supported either: records with cached associations, or dumped by Rails
+    6.0 and older, now raise a `TypeError`. Other records may still load,
+    but can break at any time, so caches containing them need to be flushed
+    before upgrading.
+
+    *Aaron Patterson*
+
 *   Fix `in_order_of` returning no records for types whose serialized value
     changes when serialized again, like deterministic encryption, `json`
     columns and `serialize` coders.
