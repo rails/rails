@@ -342,7 +342,7 @@ module ActiveRecord
               # def active?() status_for_database == 0 end
               klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
               if compilable
-                code << "def #{value_method_name}?; #{name}_for_database == #{value.inspect}; end"
+                code << "def #{value_method_name}?; self.#{name}_for_database == #{value.inspect}; end"
               else
                 define_method("#{value_method_name}?") { public_send(:"#{name}_for_database") == value }
               end
