@@ -2133,8 +2133,11 @@ module ActiveRecord
       end
 
       def build_order(arel)
-        orders = order_values.compact_blank
-        orders = default_order_values.compact_blank if orders.empty?
+        orders = order_values
+        orders = orders.compact_blank unless orders.empty?
+        if orders.empty? && !default_order_values.empty?
+          orders = default_order_values.compact_blank
+        end
         arel.order(*orders) unless orders.empty?
       end
 
