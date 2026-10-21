@@ -355,7 +355,7 @@ module ActiveRecord
                 define_method("#{value_method_name}!") { update!(name => value) }
               end
 
-              module_eval(code.join("\n"), __FILE__, __LINE__) unless code.empty?
+              module_eval("# frozen_string_literal: true\n" + code.join("\n"), __FILE__, __LINE__ - 1) unless code.empty?
             end
 
             if scopes

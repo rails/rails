@@ -1011,6 +1011,16 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate book, :proposed?
   end
 
+  test "enum bang methods pass frozen string values" do
+    book = Book.new
+    updated = nil
+    book.define_singleton_method(:update!) { |attributes| updated = attributes }
+
+    book.hard!
+    assert_equal({ "cover" => "hard" }, updated)
+    assert_predicate updated["cover"], :frozen?
+  end
+
   test "unicode characters for enum names" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"
