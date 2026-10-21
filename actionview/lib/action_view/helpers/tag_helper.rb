@@ -1647,7 +1647,7 @@ module ActionView
           end
 
           def append_prefix_tag_option(output, prefix, key, value, escape)
-            key = "#{prefix}-#{key.to_s.dasherize}"
+            key = "#{prefix}-#{(Symbol === key ? key.name : key.to_s).dasherize}"
             unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(BigDecimal)
               value = value.to_json
             end
