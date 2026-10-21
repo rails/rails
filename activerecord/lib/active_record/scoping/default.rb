@@ -142,6 +142,10 @@ module ActiveRecord
             self.default_scopes = [*default_scopes, default_scope].freeze
           end
 
+          def has_default_scope?
+            default_scopes.any? || !Base.is_a?(method(:default_scope).owner)
+          end
+
           def build_default_scope(relation = relation(), all_queries: nil)
             return if abstract_class?
 
