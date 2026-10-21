@@ -1725,12 +1725,17 @@ module ActiveRecord
             parts = [model.bound_sql_literal_for("(#{opts})", rest)]
           end
         when Hash
+          attribute_aliases = model.attribute_aliases
+
           opts = opts.transform_keys do |key|
             if key.is_a?(Array)
-              key.map { |k| model.attribute_aliases[k.to_s] || k.to_s }
+              key.map do |k|
+                k = k.is_a?(Symbol) ? k.name : k.to_s
+                attribute_aliases[k] || k
+              end
             else
-              key = key.to_s
-              model.attribute_aliases[key] || key
+              key = key.is_a?(Symbol) ? key.name : key.to_s
+              attribute_aliases[key] || key
             end
           end
           opts = predicate_builder.convert_dot_notation_to_hash(opts)
