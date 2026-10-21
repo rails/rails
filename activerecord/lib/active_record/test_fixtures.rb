@@ -90,8 +90,8 @@ module ActiveRecord
           self.fixture_sets = fixture_sets.dup
           fixture_set_names.each do |fs_name|
             key = fs_name.to_s.include?("/") ? -fs_name.to_s.tr("/", "_") : fs_name
-            key = -key.to_s if key.is_a?(Symbol)
-            fs_name = -fs_name.to_s if fs_name.is_a?(Symbol)
+            key = key.name if key.is_a?(Symbol)
+            fs_name = fs_name.name if fs_name.is_a?(Symbol)
             fixture_sets[key] = fs_name
           end
         end
@@ -366,7 +366,7 @@ module ActiveRecord
         @fixture_cache[fs_name] ||= {}
 
         instances = fixture_names.map do |f_name|
-          f_name = f_name.to_s if f_name.is_a?(Symbol)
+          f_name = f_name.name if f_name.is_a?(Symbol)
           @fixture_cache[fs_name].delete(f_name) if force_reload
 
           if @loaded_fixtures[fs_name][f_name]
