@@ -93,7 +93,7 @@ module ActionDispatch
 
       # https://www.rfc-editor.org/rfc/rfc3986#section-3.1
       # https://www.rfc-editor.org/rfc/rfc3986#section-4.2
-      SCHEME_OR_AUTHORITY = /\A(?:[a-z][a-z\d\-+.]*:|\/\/)/i
+      SCHEME_OR_AUTHORITY = /\A(?:[a-z][a-z\d\-+.]*:|\/\/)/i # :nodoc:
 
       def path(params, request)
         if block.match(URL_PARTS)
