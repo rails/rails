@@ -280,16 +280,28 @@ module ActiveRecord
             type = options[:type]
           end
 
+          unless [true, false, nil].include?(options[:identity])
+            raise ArgumentError, "The :identity option must be true or false, got #{options[:identity].inspect}"
+          end
+
+          if type == :primary_key && options[:identity]
+            raise ArgumentError, "The :identity option requires an explicit integer type such as :bigint"
+          end
+
           super
         end
 
         private
           def valid_column_definition_options
-            super + [:array, :using, :cast_as, :as, :type, :enum_type, :stored]
+            super + [:array, :using, :cast_as, :as, :type, :enum_type, :stored, :identity]
           end
 
           def aliased_types(name, fallback)
             fallback
+          end
+
+          def integer_like_primary_key?(type, options)
+            super && !options[:identity]
           end
 
           def integer_like_primary_key_type(type, options)
@@ -419,6 +431,10 @@ module ActiveRecord
         end
 
         def change_column(column_name, type, **options)
+          if options.key?(:identity)
+            raise ArgumentError, "change_column does not support the :identity option"
+          end
+
           cd = @td.new_column_definition(column_name, type, **options)
           @operations << ChangeColumnDefinition.new(cd, column_name)
           defer_comment(column_name, options[:comment]) if options.key?(:comment)

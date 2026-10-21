@@ -1345,6 +1345,10 @@ module ActiveRecord
             end
           end
 
+          def valid_primary_key_options
+            super + [:identity]
+          end
+
           def create_table_definition(name, **options)
             PostgreSQL::TableDefinition.new(self, name, **options)
           end
