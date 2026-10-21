@@ -137,5 +137,39 @@ module I18n
         result[path.absolute_current] = path.extensions
       end
     end
+
+    def self.make_shareable!
+      I18n.default_locale
+      ActiveSupport::Ractors.make_shareable(I18n.config.available_locales_set)
+      RactorConfig.install if RUBY_VERSION < "4.1" && I18n::Config.class_variable_defined?(:@@enforce_available_locales)
+    end
+
+    # Ruby 4.0 doesn't let non-main Ractors read class variables. Not needed after ruby-i18n/i18n#741.
+    module RactorConfig
+      class << self
+        attr_reader :settings
+
+        def install
+          @settings = ActiveSupport::Ractors.make_shareable({
+            default_locale: I18n.default_locale,
+            enforce_available_locales: I18n.enforce_available_locales,
+            available_locales_set: I18n.config.available_locales_set,
+          })
+          I18n::Config.prepend(self)
+        end
+      end
+
+      def default_locale
+        ActiveSupport::Ractors.main? ? super : RactorConfig.settings[:default_locale]
+      end
+
+      def enforce_available_locales
+        ActiveSupport::Ractors.main? ? super : RactorConfig.settings[:enforce_available_locales]
+      end
+
+      def available_locales_set
+        ActiveSupport::Ractors.main? ? super : RactorConfig.settings[:available_locales_set]
+      end
+    end
   end
 end
