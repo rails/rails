@@ -75,6 +75,11 @@ module ActiveRecord
         attr_name = @attributes.name_at(index)
         raise if @attributes.key?(attr_name)
         missing_attribute(attr_name, RUBY_VERSION >= "3.4" ? caller_locations : caller)
+      rescue ActiveModel::LazyAttributeSet::NotLaidOut
+        # Loaded from a Rails 6.1 Marshal dump, so the attributes need the
+        # model's layout before they can be read by slot.
+        @attributes = self.class.attributes_builder.relayout_attributes(@attributes)
+        retry
       end
 
       alias :attribute :_read_attribute
