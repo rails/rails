@@ -574,18 +574,6 @@ module ActiveRecord
         @extensions = options[:extend] ? Array(options[:extend]) : FROZEN_EMPTY_ARRAY
         @extensions = @extensions.dup.freeze unless @extensions.frozen?
 
-        if options[:query_constraints]
-          raise ConfigurationError, <<~MSG.squish
-            Setting `query_constraints:` option on `#{active_record}.#{macro} :#{name}` is not allowed.
-            To get the same behavior, use the `foreign_key` option instead.
-          MSG
-        end
-
-        # If the foreign key is an array, set query constraints options and don't use the foreign key
-        if options[:foreign_key].is_a?(Array)
-          options[:query_constraints] = options.delete(:foreign_key)
-        end
-
         @deprecated = !!options[:deprecated]
 
         ensure_option_not_given_as_class!(:class_name)
@@ -647,12 +635,19 @@ module ActiveRecord
       def foreign_key_definition(infer_from_inverse_of: true) # :nodoc:
         @foreign_key_definition ||= if options[:foreign_key]
           ActiveRecord::Key.for(options[:foreign_key])
-        elsif options[:query_constraints]
-          ActiveRecord::Key.for(options[:query_constraints])
         else
-          derived_fk = derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of)
+          if options[:query_constraints]
+            query_constraints = options[:query_constraints]
+            query_constraints = [query_constraints] unless query_constraints.is_a?(Array)
+            if query_constraints.any?(Hash)
+              raise ArgumentError,
+                "`query_constraints` with column mapping (Hash) on `#{active_record}.#{macro} :#{name}` " \
+                "requires an explicit `foreign_key` option."
+            end
+          end
 
-          if !derived_fk.is_a?(Array) && active_record.has_query_constraints?
+          derived_fk = derive_foreign_key(infer_from_inverse_of: infer_from_inverse_of)
+          if !options[:query_constraints] && !derived_fk.is_a?(Array) && active_record.has_query_constraints?
             derived_fk = derive_fk_query_constraints(derived_fk)
           end
 
@@ -688,7 +683,8 @@ module ActiveRecord
       def active_record_primary_key_definition # :nodoc:
         if options[:primary_key]
           @active_record_primary_key_definition ||= ActiveRecord::Key.for(options[:primary_key])
-        elsif active_record.has_query_constraints? || options[:query_constraints]
+        elsif options[:foreign_key].is_a?(Array) ||
+            (active_record.has_query_constraints? && !options[:foreign_key] && !options[:query_constraints])
           ActiveRecord::Key.for(active_record.query_constraints_list)
         else
           inferred_primary_key_definition(active_record)
@@ -697,6 +693,8 @@ module ActiveRecord
 
       def check_validity!
         return if @validated
+
+        association_route_constraints(nil, nil)
 
         check_validity_of_inverse!
 
@@ -911,7 +909,54 @@ module ActiveRecord
         end
 
         def association_route_constraints(_reference_class, _target_class)
-          Key::Mapping.empty
+          pairs = normalize_query_constraint_pairs(options[:query_constraints])
+          return Key::Mapping.empty if pairs.empty?
+
+          validate_query_constraint_pairs!(pairs)
+          active_record_columns, associated_record_columns = pairs.transpose
+          reference_columns, target_columns = if belongs_to?
+            [active_record_columns, associated_record_columns]
+          else
+            [associated_record_columns, active_record_columns]
+          end
+
+          Key::Mapping.new(
+            reference_key: Key.for(reference_columns),
+            target_key: Key.for(target_columns)
+          )
+        end
+
+        def normalize_query_constraint_pairs(query_constraints)
+          return FROZEN_EMPTY_ARRAY unless query_constraints
+
+          query_constraints = [query_constraints] unless query_constraints.is_a?(Array)
+          query_constraints.flat_map do |constraint|
+            case constraint
+            when Symbol, String
+              column = -constraint.to_s
+              [[column, column].freeze]
+            when Hash
+              constraint.map do |active_record_column, associated_record_column|
+                [-active_record_column.to_s, -associated_record_column.to_s].freeze
+              end
+            else
+              raise ArgumentError,
+                "`query_constraints` on `#{active_record}.#{macro} :#{name}` must contain column names or mappings."
+            end
+          end.uniq.freeze
+        end
+
+        def validate_query_constraint_pairs!(pairs)
+          foreign_key_columns = pairs.map do |active_record_column, associated_record_column|
+            belongs_to? ? active_record_column : associated_record_column
+          end
+          overlapping_foreign_keys = foreign_key_definition.columns & foreign_key_columns
+
+          if overlapping_foreign_keys.any?
+            raise ArgumentError,
+              "`query_constraints` on `#{active_record}.#{macro} :#{name}` " \
+              "must not include the foreign key columns #{overlapping_foreign_keys.inspect}."
+          end
         end
 
         # Attempts to find the inverse association name automatically.
@@ -969,9 +1014,11 @@ module ActiveRecord
         # Third, we must not have options such as <tt>:foreign_key</tt>
         # which prevent us from correctly guessing the inverse association.
         def can_find_inverse_of_automatically?(reflection, inverse_reflection = false)
+          foreign_key = reflection.options[:foreign_key]
+
           reflection.options[:inverse_of] != false &&
             !reflection.options[:through] &&
-            !reflection.options[:foreign_key] &&
+            (!foreign_key || (foreign_key.is_a?(Array) && !reflection.options[:query_constraints])) &&
             scope_allows_automatic_inverse_of?(reflection, inverse_reflection)
         end
 
@@ -1108,18 +1155,24 @@ module ActiveRecord
 
         if polymorphic? && options[:inverse_of] && klass
           inverse = klass.reflect_on_association(options[:inverse_of])
-          if inverse && inverse.options[:primary_key] && !inverse.options[:query_constraints]
+          if inverse && inverse.options[:primary_key] &&
+              !inverse.options[:query_constraints] && !inverse.options[:foreign_key].is_a?(Array)
             return inverse.active_record_primary_key_definition
           end
         end
 
         klass ||= self.klass
 
-        if klass.has_query_constraints? && options[:foreign_key] && !options[:query_constraints]
+        if options[:foreign_key].is_a?(Array)
+          target_key = klass.has_query_constraints? ? klass.composite_query_constraints_definition : primary_key_definition(klass)
+          return target_key.composite? ? target_key : ActiveRecord::Key.for(target_key.to_a)
+        end
+
+        if klass.has_query_constraints? && (options[:foreign_key] || options[:query_constraints])
           return inferred_primary_key_definition(klass)
         end
 
-        if klass.has_query_constraints? || options[:query_constraints]
+        if klass.has_query_constraints?
           klass.composite_query_constraints_definition
         else
           inferred_primary_key_definition(klass)
