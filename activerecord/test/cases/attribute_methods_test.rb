@@ -380,6 +380,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal topic.attributes, db_attributes
   end
 
+  test "attributes_for_database follows column order for attributes assigned on a new record" do
+    topic = Topic.new(content: "content", title: "title", author_name: "David")
+
+    assert_equal Topic.column_names, topic.attributes_for_database.keys
+    assert_equal Topic.column_names, topic.attributes_before_type_cast.keys
+    assert_equal Topic.column_names, Topic.instantiate(topic.attributes_for_database).attributes.keys
+  end
+
   test "read attributes after type cast on a date" do
     tz = "Pacific Time (US & Canada)"
 
