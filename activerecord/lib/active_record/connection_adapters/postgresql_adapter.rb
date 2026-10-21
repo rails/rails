@@ -234,7 +234,6 @@ module ActiveRecord
         super.merge(
           supports_close_prepared?: supports_close_prepared?,
           supports_force_drop_database?: supports_force_drop_database?,
-          supports_identity_columns?: supports_identity_columns?,
           supports_insert_on_conflict?: supports_insert_on_conflict?,
         )
       end
@@ -337,6 +336,7 @@ module ActiveRecord
       def supports_identity_columns? # :nodoc:
         true
       end
+      deprecate :supports_identity_columns?, deprecator: ActiveRecord.deprecator
 
       def supports_nulls_not_distinct?
         database_version >= 15_00_00 # >= 15.0
@@ -1310,7 +1310,7 @@ module ActiveRecord
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment,
-                     #{supports_identity_columns? ? 'attidentity' : quote('')} AS identity,
+                     a.attidentity AS identity,
                      #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated
                 FROM pg_attribute a
                 LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
@@ -1328,7 +1328,7 @@ module ActiveRecord
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment,
-                     #{supports_identity_columns? ? 'attidentity' : quote('')} AS identity,
+                     a.attidentity AS identity,
                      #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated,
                      r.relname
               FROM (

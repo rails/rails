@@ -1,3 +1,10 @@
+*   Deprecate `supports_identity_columns?` on the PostgreSQL adapter.
+
+    It always returns `true` since the minimum PostgreSQL version was raised to
+    10.0, which supports identity columns.
+
+    *Yasuo Honda*
+
 *   Fix `in_order_of` returning no records for types whose serialized value
     changes when serialized again, like deterministic encryption, `json`
     columns and `serialize` coders.
