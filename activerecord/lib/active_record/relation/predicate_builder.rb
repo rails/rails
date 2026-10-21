@@ -149,7 +149,7 @@ module ActiveRecord
 
         if key.is_a?(Array)
           queries = Array(value).map do |ids_set|
-            ids_set = ids_set.id if ids_set.is_a?(Base)
+            ids_set = ids_set.id if ids_set.respond_to?(:id)
             raise ArgumentError, "Expected corresponding value for #{key} to be an Array" unless ids_set.is_a?(Array)
             build_from_hash(key.zip(ids_set).to_h, &block)
           end

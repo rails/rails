@@ -150,6 +150,15 @@ module ActiveRecord
       assert_equal [book_one, book_two].sort, Cpk::Book.where([:author_id, :id] => [book_one, [3, 4]]).sort
     end
 
+    def test_where_with_tuple_syntax_and_delegated_composite_records
+      book_one = Cpk::Book.create!(id: [1, 2])
+      book_two = Cpk::Book.create!(id: [3, 4])
+      decorator = Class.new(SimpleDelegator)
+
+      assert_equal [book_one, book_two].sort,
+        Cpk::Book.where([:author_id, :id] => [book_one, book_two].map { |book| decorator.new(book) }).sort
+    end
+
     def test_where_with_tuple_syntax_and_no_values
       assert_no_queries do
         assert_empty Cpk::Book.where([:author_id, :id] => []).to_a
