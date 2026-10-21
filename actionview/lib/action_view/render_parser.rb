@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 # :markup: markdown
+require "prism"
+
 module ActionView
   class RenderParser # :nodoc:
     ALL_KNOWN_KEYS = [:partial, :template, :layout, :formats, :locals, :object, :collection, :as, :status, :content_type, :location, :spacer_template].freeze
@@ -12,8 +14,6 @@ module ActionView
     end
 
     def render_calls
-      require "prism"
-
       queue = [Prism.parse(@code).value]
       templates = []
 
