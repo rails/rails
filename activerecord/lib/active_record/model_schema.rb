@@ -126,7 +126,7 @@ module ActiveRecord
     # auto-incrementing integer (such as UUID).
     #
     # By default, records are subsorted by primary key to ensure deterministic results.
-    # To disable this subsort behavior, set `implicit_order_column` to `["column_name", nil]`.
+    # To disable this subsort behavior, set +implicit_order_column+ to <tt>["column_name", nil]</tt>.
 
     ##
     # :singleton-method: immutable_strings_by_default=
