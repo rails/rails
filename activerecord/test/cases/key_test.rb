@@ -230,7 +230,7 @@ class KeyTest < ActiveRecord::TestCase
     topic = Topic.new(id: 7)
     assert_equal "7", Key.for(:id).value_of(topic, [:to_s.to_proc])
     assert_equal 7, Key.for(:id).value_of(topic, [nil])
-    topic.stub(:read_attribute, [10, 20]) do
+    topic.stub(:read_attr, [10, 20]) do
       assert_equal [10, 20, 30], Key.for(:payload).value_of(topic, [->(component) { component + [30] }])
     end
   end

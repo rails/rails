@@ -560,12 +560,31 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_nil topic.read_attr("no_column_exists")
   end
 
-  test "read_attr raises ActiveModel::MissingAttributeError when the attribute isn't selected" do
+  test "read_attr returns nil when the attribute isn't selected" do
     computer = Computer.select(:id, :extendedWarranty).first
-    assert_raises(ActiveModel::MissingAttributeError, match: /missing attribute 'developer'/) do
-      computer.read_attr("developer")
+
+    assert_nil computer.read_attr("developer")
+    assert_equal computer.extendedWarranty, computer.read_attr("extendedWarranty")
+  end
+
+  test "internal readers preserve a missing attribute error raised by the type" do
+    type = Class.new(ActiveRecord::Type::String) do
+      def deserialize(value)
+        raise ActiveModel::MissingAttributeError, "raised by the type" unless value.nil?
+        super
+      end
+    end.new
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      attribute :title, type
+      alias_attribute :heading, :title
     end
-    assert_nothing_raised { computer.read_attr("extendedWarranty") }
+
+    record = model.instantiate("title" => "Hello")
+    assert_raises(ActiveModel::MissingAttributeError, match: "raised by the type") { record.read_attr("title") }
+    assert_raises(ActiveModel::MissingAttributeError, match: "raised by the type") { record.read_attr("heading") }
+    assert_raises(ActiveModel::MissingAttributeError, match: "raised by the type") { record._read_attribute("title") }
   end
 
   test "read_attribute when false" do

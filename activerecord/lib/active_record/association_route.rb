@@ -135,7 +135,7 @@ module ActiveRecord
         target_columns = reference.target_key.columns if target_record
 
         reference_key.each_with_index do |column, index|
-          yield column, target_record&.read_attribute(target_columns[index])
+          yield column, target_record&.read_attr(target_columns[index])
         end
       end
   end
@@ -146,7 +146,7 @@ module ActiveRecord
   class AssociationLink::DeprecatedIdWriter < AssociationLink # :nodoc:
     def write_reference(reference_record, target_record, force: true)
       each_reference_value(target_record) do |column, value|
-        next if !force && reference_record.read_attribute(column) == value
+        next if !force && reference_record.read_attr(column) == value
         reference_record.write_attribute(column, value)
       end
     end

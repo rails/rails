@@ -121,7 +121,7 @@ module ActiveRecord
         end
 
         def target_reflection_has_associated_record?
-          !(through_reflection.belongs_to? && Array(through_reflection.foreign_key).all? { |foreign_key_column| owner.read_attribute(foreign_key_column).blank? })
+          !(through_reflection.belongs_to? && Array(through_reflection.foreign_key).all? { |foreign_key_column| owner.read_attr(foreign_key_column).blank? })
         end
 
         def update_through_counter?(method)
@@ -218,7 +218,7 @@ module ActiveRecord
               route.origin_fixed_values
             end
             route.each_matching_origin(candidates, record).find_all do |candidate|
-              fixed_values.all? { |column, value| candidate.read_attribute(column) == value }
+              fixed_values.all? { |column, value| candidate.read_attr(column) == value }
             end
           end
         end

@@ -9,7 +9,7 @@ module ActiveRecord
       end
 
       def self.create(&block)
-        block ||= lambda { |owner, column| owner.read_attribute(column) }
+        block ||= lambda { |owner, column| owner.read_attr(column) }
         new(block)
       end
 
