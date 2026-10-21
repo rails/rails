@@ -77,14 +77,6 @@ module ActiveModel
       end
     end
 
-    def marshal_dump
-      [@types, @values, @additional_types, @default_attributes, @delegate_hash]
-    end
-
-    def marshal_load(values)
-      initialize(*values)
-    end
-
     protected
       def materialize
         unless @materialized

@@ -208,18 +208,6 @@ module ActiveRecord
         nil
       end
 
-      # We can't dump @reflection and @through_reflection since it contains the scope proc
-      def marshal_dump
-        ivars = (instance_variables - [:@reflection, :@through_reflection]).map { |name| [name, instance_variable_get(name)] }
-        [@reflection.name, ivars]
-      end
-
-      def marshal_load(data)
-        reflection_name, ivars = data
-        ivars.each { |name, val| instance_variable_set(name, val) }
-        @reflection = @owner.class._reflect_on_association(reflection_name)
-      end
-
       def initialize_attributes(record, except_from_scope_attributes = nil) # :nodoc:
         except_from_scope_attributes ||= {}
         skip_assign = [reflection.foreign_key, reflection.type].compact
