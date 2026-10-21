@@ -173,9 +173,11 @@ module ActiveModel
     test "fetch_value! raises for uninitialized attributes" do
       attributes = attributes_with_uninitialized_key
 
-      assert_raises(ActiveModel::MissingAttributeError, match: /missing attribute 'bar'/) do
+      error = assert_raises(ActiveModel::MissingAttributeError) do
         attributes.fetch_value!(:bar)
       end
+      assert_equal "uninitialized attribute", error.message
+      assert_empty error.backtrace
     end
 
     test "the primary_key is always initialized" do

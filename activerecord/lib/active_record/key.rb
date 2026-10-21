@@ -198,7 +198,7 @@ module ActiveRecord
       end
 
       def _value_of(record, normalizers = nil)
-        value = record._read_attr(@name)
+        value = record._read_attribute(@name)
         normalizer = normalizers&.first
         normalizer ? normalizer.call(value) : value
       end
@@ -289,12 +289,12 @@ module ActiveRecord
       def _value_of(record, normalizers = nil)
         if normalizers
           Array.new(@columns.length) do |index|
-            value = record._read_attr(@columns[index])
+            value = record._read_attribute(@columns[index])
             normalizer = normalizers[index]
             normalizer ? normalizer.call(value) : value
           end
         else
-          @columns.map { |column| record._read_attr(column) }
+          @columns.map { |column| record._read_attribute(column) }
         end
       end
 
