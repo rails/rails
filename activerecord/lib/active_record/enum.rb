@@ -334,13 +334,28 @@ module ActiveRecord
 
           def define_enum_methods(name, value_method_name, value, scopes, instance_methods)
             if instance_methods
+              compilable = ActiveModel::AttributeMethods::AttrNames.def_safe_name?(value_method_name) &&
+                ActiveModel::AttributeMethods::AttrNames.def_safe_name?(name) &&
+                !(Float === value && !value.finite?)
+              code = []
+
               # def active?() status_for_database == 0 end
               klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
-              define_method("#{value_method_name}?") { public_send(:"#{name}_for_database") == value }
+              if compilable
+                code << "def #{value_method_name}?; #{name}_for_database == #{value.inspect}; end"
+              else
+                define_method("#{value_method_name}?") { public_send(:"#{name}_for_database") == value }
+              end
 
               # def active!() update!(status: 0) end
               klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
-              define_method("#{value_method_name}!") { update!(name => value) }
+              if compilable
+                code << "def #{value_method_name}!; update!(#{name.dump} => #{value.inspect}); end"
+              else
+                define_method("#{value_method_name}!") { update!(name => value) }
+              end
+
+              module_eval(code.join("\n"), __FILE__, __LINE__) unless code.empty?
             end
 
             if scopes
