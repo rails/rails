@@ -64,11 +64,16 @@ module ActionView
           def retrieve_object(object)
             if object
               object
-            elsif @template_object.instance_variable_defined?("@#{@object_name}")
-              @template_object.instance_variable_get("@#{@object_name}")
+            elsif @object_name.empty? || @object_name.include?("[")
+              # Model-less forms (form_with url: ...) and the nested syntax (item[subobject])
+              # can't name an instance variable, so skip the lookup instead of rescuing.
+              nil
+            else
+              ivar = "@#{@object_name}"
+              @template_object.instance_variable_get(ivar) if @template_object.instance_variable_defined?(ivar)
             end
           rescue NameError
-            # As @object_name may contain the nested syntax (item[subobject]) we need to fallback to nil.
+            # Any other name that isn't a valid instance variable name falls back to nil.
             nil
           end
 
