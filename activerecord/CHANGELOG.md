@@ -1,10 +1,3 @@
-*   Deprecate `supports_identity_columns?` on the PostgreSQL adapter.
-
-    It always returns `true` since the minimum PostgreSQL version was raised to
-    10.0, which supports identity columns.
-
-    *Yasuo Honda*
-
 *   Fix `in_order_of` returning no records for types whose serialized value
     changes when serialized again, like deterministic encryption, `json`
     columns and `serialize` coders.
@@ -71,13 +64,6 @@
     `after_rollback` callbacks run.
 
     *Cole Robertson*
-
-*   Deprecate `supports_native_partitioning?` on the PostgreSQL adapter.
-
-    It always returns `true` since the minimum PostgreSQL version became 10.0,
-    which supports native partitioning.
-
-    *Yasuo Honda*
 
 *   Dump `create_schema` with `if_not_exists: true` for every schema that holds
     a dumped extension.
