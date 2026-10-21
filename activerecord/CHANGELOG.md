@@ -1,3 +1,15 @@
+*   Allow Active Record objects in the tuple `where` syntax.
+
+    The single column syntax already accepts records, so the tuple syntax now
+    accepts them too, and a record is expanded to its primary key values.
+
+    ```ruby
+    Cpk::Book.where([:author_id, :id] => book)
+    Cpk::Book.where([:author_id, :id] => [book_one, book_two])
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fix `in_order_of` returning no records for types whose serialized value
     changes when serialized again, like deterministic encryption, `json`
     columns and `serialize` coders.
