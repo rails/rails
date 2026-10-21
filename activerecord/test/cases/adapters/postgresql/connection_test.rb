@@ -244,6 +244,12 @@ module ActiveRecord
       end
     end
 
+    def test_supports_identity_columns_deprecation
+      assert_deprecated(ActiveRecord.deprecator) do
+        @connection.supports_identity_columns?
+      end
+    end
+
     private
       def cause_server_side_disconnect
         unless @connection.instance_variable_get(:@raw_connection).transaction_status == ::PG::PQTRANS_INTRANS
