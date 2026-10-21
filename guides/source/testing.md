@@ -1555,6 +1555,9 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
+Headless Chrome is started with `--mute-audio`, so pages that play sounds stay
+silent while tests run.
+
 If you want to use a remote browser, e.g. [Headless Chrome in
 Docker](https://github.com/SeleniumHQ/docker-selenium), you have to add a remote
 `url` and set `browser` as remote through `options`.

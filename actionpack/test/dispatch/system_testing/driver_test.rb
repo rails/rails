@@ -102,7 +102,7 @@ class DriverTest < ActiveSupport::TestCase
 
     expected = {
       "goog:chromeOptions" => {
-        "args" => ["--disable-search-engine-choice-screen", "--headless", "start-maximized"],
+        "args" => ["--disable-search-engine-choice-screen", "--headless", "--mute-audio", "start-maximized"],
         "mobileEmulation" => { "deviceName" => "iphone 6" },
         "prefs" => { "detach" => true }
       },

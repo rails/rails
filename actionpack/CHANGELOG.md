@@ -1,3 +1,12 @@
+*   System Testing: Mute audio in headless Chrome by default.
+
+    Headless Chrome is the full browser without a window, so pages that play
+    sounds are heard through the machine's speakers while system tests run.
+    Passing `--mute-audio` keeps headless runs silent, matching Playwright's
+    headless default. Headed Chrome is unchanged.
+
+    *Alexis*
+
 *   Deprecate the `ssl_default_redirect_status:` argument of `ActionDispatch::SSL`.
 
     As of Rails 6.1, the default status is 308. This deprecates overriding it.
