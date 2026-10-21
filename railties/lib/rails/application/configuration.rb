@@ -712,11 +712,19 @@ module Rails
             nil
           end
 
-          return random_key if random_key.present?
+          if random_key.blank?
+            random_key = SecureRandom.hex(64)
+            FileUtils.mkdir_p(key_file.dirname)
+            File.binwrite(key_file, random_key, perm: 0o600)
+          end
 
-          random_key = SecureRandom.hex(64)
-          FileUtils.mkdir_p(key_file.dirname)
-          File.binwrite(key_file, random_key)
+          unless Gem.win_platform?
+            begin
+              File.chmod(0o600, key_file) unless (File.stat(key_file).mode & 0o077).zero?
+            rescue SystemCallError
+            end
+          end
+
           random_key
         end
     end
