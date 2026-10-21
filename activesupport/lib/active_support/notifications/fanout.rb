@@ -245,7 +245,7 @@ module ActiveSupport
 
       class EventObjectGroup < BaseGroup # :nodoc:
         def start(name, id, payload)
-          @event = build_event(name, id, payload)
+          @event = build_event(name, id)
           @event.start!
         end
 
@@ -259,8 +259,8 @@ module ActiveSupport
         end
 
         private
-          def build_event(name, id, payload)
-            ActiveSupport::Notifications::Event.new name, nil, nil, id, payload
+          def build_event(name, id)
+            ActiveSupport::Notifications::Event.new name, nil, nil, id, nil
           end
       end
 
