@@ -391,7 +391,8 @@ module ActionView
         fetchpriority = options.delete(:fetchpriority)
         nopush = options.delete(:nopush) || false
         rel = mime_type == "module" || mime_type == :module ? "modulepreload" : "preload"
-        add_nonce = content_security_policy_nonce &&
+        add_nonce = respond_to?(:content_security_policy_nonce) &&
+          content_security_policy_nonce &&
           respond_to?(:request) &&
           request.content_security_policy_nonce_directives&.include?("#{as_type}-src")
 
