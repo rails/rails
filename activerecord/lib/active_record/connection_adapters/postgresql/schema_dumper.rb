@@ -125,6 +125,7 @@ module ActiveRecord
             end
 
             spec[:enum_type] = relation_name(column.sql_type).inspect if column.enum?
+            spec[:identity] = "true" if column.identity?
 
             spec
           end
@@ -134,7 +135,7 @@ module ActiveRecord
           end
 
           def explicit_primary_key_default?(column)
-            column.type == :uuid || (column.type == :integer && !column.serial?)
+            column.type == :uuid || (column.type == :integer && !column.auto_incremented_by_db?)
           end
 
           def schema_type(column)

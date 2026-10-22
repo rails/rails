@@ -13,7 +13,7 @@ module ActiveRecord
         if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           default_keys.concat([":auto_increment", ":charset", ":as", ":size", ":unsigned", ":first", ":after", ":type", ":stored"])
         elsif current_adapter?(:PostgreSQLAdapter)
-          default_keys.concat([":array", ":using", ":cast_as", ":as", ":type", ":enum_type", ":stored"])
+          default_keys.concat([":array", ":using", ":cast_as", ":as", ":type", ":enum_type", ":stored", ":identity"])
         elsif current_adapter?(:SQLite3Adapter)
           default_keys.concat([":as", ":type", ":stored"])
         end
@@ -41,6 +41,8 @@ module ActiveRecord
 
         if current_adapter?(:Mysql2Adapter, :TrilogyAdapter)
           primary_keys.concat([":unsigned", ":auto_increment"])
+        elsif current_adapter?(:PostgreSQLAdapter)
+          primary_keys.concat([":identity"])
         elsif current_adapter?(:SQLite3Adapter)
           table_keys.concat([":rename"])
         end
