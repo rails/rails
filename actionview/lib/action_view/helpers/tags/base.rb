@@ -10,10 +10,13 @@ module ActionView
         attr_reader :object
 
         def initialize(object_name, method_name, template_object, options = {})
-          @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
+          @object_name, @method_name = object_name.to_s, method_name.to_s
           @template_object = template_object
 
-          @object_name.sub!(/\[\]$/, "") || @object_name.sub!(/\[\]\]$/, "]")
+          if @object_name.include?("[]")
+            @object_name = @object_name.dup
+            @object_name.sub!(/\[\]$/, "") || @object_name.sub!(/\[\]\]$/, "]")
+          end
           @object = retrieve_object(options.delete(:object))
           @skip_default_ids = options.delete(:skip_default_ids)
           @allow_method_names_outside_object = options.delete(:allow_method_names_outside_object)
