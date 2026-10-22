@@ -2087,8 +2087,9 @@ module ActiveRecord
 
       def reverse_sql_order(order_query)
         if order_query.empty?
-          if !_order_columns.empty?
-            return _order_columns.map { |column| predicate_builder.predicate_attribute(table[column]).desc }
+          order_columns = _order_columns
+          if !order_columns.empty?
+            return order_columns.map { |column| predicate_builder.predicate_attribute(table[column]).desc }
           end
 
           raise IrreversibleOrderError, <<~MSG.squish
