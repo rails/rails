@@ -2,6 +2,7 @@
 
 require "cases/helper"
 require "models/topic"
+require "models/reply"
 
 module ActiveRecord
   class CloneTest < ActiveRecord::TestCase
@@ -33,6 +34,16 @@ module ActiveRecord
       cloned = topic.clone
       topic.author_name = "Aaron"
       assert_equal "Aaron", cloned.author_name
+    end
+
+    def test_shallow_associated_record_when_cloning_before_association_access
+      reply = Reply.first
+      cloned = reply.clone
+
+      cloned_topic = cloned.topic
+      reply_topic = assert_no_queries { reply.topic }
+
+      assert_same cloned_topic, reply_topic
     end
 
     def test_freezing_a_cloned_model_does_not_freeze_clone
