@@ -683,8 +683,7 @@ module ActiveRecord
       def active_record_primary_key_definition # :nodoc:
         if options[:primary_key]
           @active_record_primary_key_definition ||= ActiveRecord::Key.for(options[:primary_key])
-        elsif options[:foreign_key].is_a?(Array) ||
-            (active_record.has_query_constraints? && !options[:foreign_key] && !options[:query_constraints])
+        elsif composite_foreign_key_setup?
           ActiveRecord::Key.for(active_record.query_constraints_list)
         else
           inferred_primary_key_definition(active_record)
@@ -832,6 +831,15 @@ module ActiveRecord
       end
 
       private
+        def explicit_composite_foreign_key?
+          options[:foreign_key].is_a?(Array)
+        end
+
+        def composite_foreign_key_setup?
+          explicit_composite_foreign_key? ||
+            (active_record.has_query_constraints? && !options[:foreign_key] && !options[:query_constraints])
+        end
+
         def association_route_cache
           AssociationRoute::Cache.for(self)
         end
@@ -1163,7 +1171,7 @@ module ActiveRecord
 
         klass ||= self.klass
 
-        if options[:foreign_key].is_a?(Array)
+        if explicit_composite_foreign_key?
           target_key = klass.has_query_constraints? ? klass.composite_query_constraints_definition : primary_key_definition(klass)
           return target_key.composite? ? target_key : ActiveRecord::Key.for(target_key.to_a)
         end

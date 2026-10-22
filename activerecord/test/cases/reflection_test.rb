@@ -760,6 +760,22 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "id", actual
   end
 
+  def test_implicit_composite_foreign_key_respects_custom_target_primary_key_getter
+    target = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      def self.primary_key = "title"
+    end
+    owner = Class.new(ActiveRecord::Base) do
+      self.table_name = "sharded_comments"
+      query_constraints :blog_id, :id
+      belongs_to :target, anonymous_class: target
+    end
+
+    reflection = owner.reflect_on_association(:target)
+
+    assert_equal "title", reflection.association_primary_key
+  end
+
   def test_through_reflection_association_primary_key_with_composite_key
     reflection = Sharded::Blog.reflect_on_association(:comments_via_posts)
     actual = reflection.association_primary_key
