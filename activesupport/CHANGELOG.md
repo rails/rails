@@ -1,3 +1,9 @@
+*   Run async calculations and `async_find_by_sql`/`async_count_by_sql` synchronously inside a joinable transaction,
+    in the same fashion as `load_async`.
+
+    *Ben Sheldon*
+
+
 ## Rails 8.1.4 (September 24, 2026) ##
 
 *   Fix the debug error page rendering for `SyntaxError`s with multi-line messages.
