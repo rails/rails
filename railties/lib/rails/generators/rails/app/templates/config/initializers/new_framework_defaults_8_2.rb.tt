@@ -154,3 +154,12 @@
 # to continue to compile HTML templates through Erubi.
 #++
 # Rails.application.config.action_view.erb_implementation = :herb
+
+###
+# Serialize messages (signed IDs, signed GlobalIDs, Active Storage keys, etc.)
+# with JSON only, without falling back to deserializing `Marshal`.
+#
+# Before enabling, use the `message_serializer_fallback.active_support`
+# notification to confirm no `Marshal`-serialized messages remain in use.
+#++
+# Rails.application.config.active_support.message_serializer = :json

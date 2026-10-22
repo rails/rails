@@ -1,3 +1,11 @@
+*   Default `config.active_support.message_serializer` to `:json` for new apps.
+
+    With `config.load_defaults 8.2`, messages from `MessageVerifier` and
+    `MessageEncryptor` (signed IDs, signed GlobalIDs, Active Storage keys, etc.)
+    no longer fall back to deserializing `Marshal` payloads.
+
+    *Ben Sheldon*
+
 *   `ActiveSupport::ParameterFilter#filter_param` now passes `{ key => value }` to
     `Proc` filters as their third argument, the same hash `filter` would pass for that
     single pair, instead of `nil`.

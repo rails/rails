@@ -72,6 +72,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
 - [`config.active_storage.s3_public_uploads_via_acl`](#config-active-storage-s3-public-uploads-via-acl): `false`
+- [`config.active_support.message_serializer`](#config-active-support-message-serializer): `:json`
 
 #### Default Values for Target Version 8.1
 
@@ -3244,6 +3245,7 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `:marshal`           |
 | 7.1                   | `:json_allow_marshal` |
+| 8.2                   | `:json`               |
 
 [`ActiveSupport::MessageEncryptor`]: https://api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html
 [`ActiveSupport::MessageVerifier`]: https://api.rubyonrails.org/classes/ActiveSupport/MessageVerifier.html
