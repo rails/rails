@@ -32,9 +32,6 @@ class Member < ActiveRecord::Base
   has_many :favorite_memberships, -> { where(favorite: true) }, class_name: "Membership"
   has_many :clubs, through: :favorite_memberships
 
-  has_many :tenant_memberships
-  has_many :tenant_clubs, through: :tenant_memberships, class_name: "Club", source: :club
-
   has_many :memberships_with_default_scope_method,
     class_name: "MembershipWithDefaultScopeMethod"
   has_many :clubs_with_default_scope_method,
