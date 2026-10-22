@@ -651,8 +651,9 @@ module ActiveRecord
             return order(default_order_values)
           end
 
-          if !_order_columns.empty?
-            return order(_order_columns.map { |column| predicate_builder.predicate_attribute(table[column]).asc })
+          order_columns = _order_columns
+          if !order_columns.empty?
+            return order(order_columns.map { |column| predicate_builder.predicate_attribute(table[column]).asc })
           end
 
           if ActiveRecord.raise_on_missing_required_finder_order_columns
