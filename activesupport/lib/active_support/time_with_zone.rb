@@ -489,13 +489,31 @@ module ActiveSupport
       end
     end
 
-    %w(year mon month day mday wday yday hour min sec usec nsec to_date).each do |method_name|
-      class_eval <<~RUBY, __FILE__, __LINE__ + 1
-        def #{method_name}    # def month
-          time.#{method_name} #   time.month
-        end                   # end
-      RUBY
-    end
+    def year = time.year
+
+    def mon = time.mon
+
+    def month = time.month
+
+    def day = time.day
+
+    def mday = time.mday
+
+    def wday = time.wday
+
+    def yday = time.yday
+
+    def hour = time.hour
+
+    def min = time.min
+
+    def sec = time.sec
+
+    def usec = time.usec
+
+    def nsec = time.nsec
+
+    def to_date = time.to_date
 
     # Returns Array of parts of Time in sequence of
     # [seconds, minutes, hours, day, month, year, weekday, yearday, dst?, zone].
