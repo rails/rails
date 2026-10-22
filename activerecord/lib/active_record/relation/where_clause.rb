@@ -12,6 +12,9 @@ module ActiveRecord
       end
 
       def +(other)
+        return other if empty?
+        return self if other.empty?
+
         WhereClause.new(predicates + other.predicates)
       end
 
