@@ -35,6 +35,11 @@ class Member < ActiveRecord::Base
   has_many :tenant_memberships
   has_many :tenant_clubs, through: :tenant_memberships, class_name: "Club", source: :club
 
+  has_many :memberships_with_default_scope_method,
+    class_name: "MembershipWithDefaultScopeMethod"
+  has_many :clubs_with_default_scope_method,
+    through: :memberships_with_default_scope_method, class_name: "Club", source: :club
+
   has_one :club_through_many, through: :favorite_memberships, source: :club
 
   belongs_to :admittable, polymorphic: true
