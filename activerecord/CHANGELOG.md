@@ -62,6 +62,14 @@
 
     *Masaki Ozawa*
 
+*   Reduce deadlocks caused by deferred touches on chained associations.
+
+    Order pending touches by their loaded association depth, table name, and
+    primary key before commit. Preserve the positions of ordinary before-commit
+    callbacks and the enrollment order of after-commit callbacks.
+
+    *Masaki Ozawa*
+
 *   Fix preloading an ordered `has_many :through` association reusing the
     source records already loaded by an unordered one, ignoring its order.
 
