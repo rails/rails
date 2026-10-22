@@ -737,6 +737,16 @@ class RequestCGI < BaseRequestTest
     assert_equal "HTTP/1.1", request.server_protocol
     assert_equal "lighttpd", request.server_software
   end
+
+  test "each ENV_METHODS entry has a matching reader" do
+    headers = ActionDispatch::Request::ENV_METHODS.index_with { |name| "value for #{name}" }
+    request = ActionDispatch::Request.new(headers)
+
+    headers.each do |name, value|
+      reader = name.delete_prefix("HTTP_").downcase
+      assert_equal value, request.public_send(reader), "#{reader} should read #{name}"
+    end
+  end
 end
 
 class LocalhostTest < BaseRequestTest
