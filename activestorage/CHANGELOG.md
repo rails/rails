@@ -1,3 +1,11 @@
+*   Skip blobs that are already analyzed in `ActiveStorage::AnalyzeJob`.
+
+    A blob enqueued more than once, e.g. when attached to several records in one commit, is
+    downloaded and analyzed only once. Calling `analyze_later` on an analyzed blob no longer
+    re-analyzes it; call `ActiveStorage::Blob#analyze` instead.
+
+    *Andrew Fader*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 
@@ -119,6 +127,7 @@
     [GHSA-3f4q-8x5m-76v8]
 
     *Mike Dalessio*
+||||||| parent of 41b1f6c9c7 (Skip blobs that are already analyzed in ActiveStorage::AnalyzeJob)
 
 *   Detect axis-swapping orientations in the Vips image analyzer from libvips' normalized
     `orientation` field instead of parsing the `exif-ifd0-Orientation` label.
