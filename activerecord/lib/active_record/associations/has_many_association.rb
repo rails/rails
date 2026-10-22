@@ -34,27 +34,7 @@ module ActiveRecord
             t.destroyed_by_association = reflection
           end
 
-          unless target.empty?
-            association_class = target.first.class
-            if association_class.query_constraints_list
-              primary_key_column = association_class.query_constraints_list
-              ids = target.collect { |assoc| primary_key_column.map { |col| assoc.public_send(col) } }
-            else
-              primary_key_column = association_class.primary_key
-              ids = target.collect { |assoc| assoc.public_send(primary_key_column) }
-            end
-
-            ids.each_slice(owner.class.destroy_association_async_batch_size || ids.size) do |ids_batch|
-              enqueue_destroy_association(
-                owner_model_name: owner.class.to_s,
-                owner_id: owner.id,
-                association_class: reflection.klass.to_s,
-                association_ids: ids_batch,
-                association_primary_key_column: primary_key_column,
-                ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
-              )
-            end
-          end
+          enqueue_destroy_association_for(target)
         else
           delete_all
         end
@@ -130,6 +110,9 @@ module ActiveRecord
           if method == :destroy
             records.each(&:destroy!)
             update_counter(-records.length) unless reflection.inverse_updates_counter_cache?
+          elsif method == :destroy_async
+            enqueue_destroy_association_for(records, association_scope_attributes(records.first.class))
+            update_counter(-records.length) unless reflection.inverse_updates_counter_cache?
           else
             query_constraints = reflection.klass.composite_query_constraints_list
             values = records.map { |r| query_constraints.map { |col| r.read_attr(col) } }
@@ -163,6 +146,50 @@ module ActiveRecord
 
         def intersection(a, b)
           a & b
+        end
+
+        def association_scope_attributes(association_class)
+          route = reflection.association_route(origin_class: owner.class, destination_class: association_class)
+          attributes = route.reference_destination_key.zip(route.reference_origin_key).to_h do |destination_key, owner_key|
+            [destination_key, owner.read_attr(owner_key)]
+          end
+          attributes.merge!(route.destination_fixed_values)
+        end
+
+        def enqueue_destroy_association_for(records, scope_attributes = nil)
+          return if records.empty?
+
+          association_class = records.first.class
+          if association_class.query_constraints_list
+            primary_key_column = association_class.query_constraints_list
+            ids = records.collect { |assoc| primary_key_column.map { |col| assoc.read_attr(col) } }
+          else
+            primary_key_column = association_class.primary_key
+            ids = records.collect { |assoc| assoc.public_send(primary_key_column) }
+          end
+
+          ids.each_slice(owner.class.destroy_association_async_batch_size || ids.size) do |ids_batch|
+            job_arguments = {
+              owner_model_name: owner.class.to_s,
+              owner_id: owner.id,
+              association_class: reflection.klass.to_s,
+              association_ids: ids_batch,
+              association_primary_key_column: primary_key_column,
+              ensuring_owner_was_method: options.fetch(:ensuring_owner_was, nil)
+            }
+            job_arguments[:association_scope_attributes] = scope_attributes if scope_attributes
+
+            if scope_attributes
+              job_class = owner.class.destroy_association_async_job
+              if job_class
+                reflection.klass.current_transaction.after_commit do
+                  job_class.perform_later(**job_arguments)
+                end
+              end
+            else
+              enqueue_destroy_association(job_arguments)
+            end
+          end
         end
     end
   end

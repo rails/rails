@@ -1,3 +1,10 @@
+*   Enqueue `dependent: :destroy_async` jobs when records are removed from a
+    `has_many` association by replacing the collection.
+
+    Fixes #42430. Follow-up to #42452.
+
+    *Maciej Małecki*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one

@@ -141,6 +141,23 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
     BookDestroyAsyncWithScopedTags.delete_all
   end
 
+  test "replacing a has_many through does not destroy shared target records" do
+    tag = Tag.create!(name: "Der be treasure")
+    book = BookDestroyAsync.create!(tags: [tag])
+    other_book = BookDestroyAsync.create!(tags: [tag])
+
+    assert_no_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob do
+      book.tags = []
+    end
+
+    assert_predicate tag.reload, :persisted?
+    assert_equal [tag], other_book.tags.reload
+  ensure
+    Tagging.delete_all
+    Tag.delete_all
+    BookDestroyAsync.delete_all
+  end
+
   test "enqueues the has_many through to be deleted with custom primary key" do
     dl_keyed_has_many = DlKeyedHasManyThrough.create!
     dl_keyed_has_many2 = DlKeyedHasManyThrough.create!
@@ -355,6 +372,95 @@ class DestroyAssociationAsyncTest < ActiveRecord::TestCase
   ensure
     EssayDestroyAsync.delete_all
     BookDestroyAsync.delete_all
+  end
+
+  test "replacing a has_many destroys removed records using a job" do
+    book = BookDestroyAsync.create!(name: "Arr, matey!")
+    kept = book.essays.create!(name: "Der be treasure")
+    removed = book.essays.create!(name: "Der be rum")
+
+    assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+      book.essays = [kept]
+    end
+
+    assert_difference -> { EssayDestroyAsync.count }, -1 do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+
+    assert_predicate kept.reload, :persisted?
+    assert_not EssayDestroyAsync.exists?(removed.id)
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "rolling back a has_many replacement does not enqueue a destroy job" do
+    book = BookDestroyAsync.create!(name: "Arr, matey!")
+    essay = book.essays.create!(name: "Der be treasure")
+
+    assert_no_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob do
+      BookDestroyAsync.transaction do
+        book.essays = []
+        raise ActiveRecord::Rollback
+      end
+    end
+
+    assert_equal book, essay.reload.book
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "replacing a has_many does not destroy a record reassigned before the job runs" do
+    original_book = BookDestroyAsync.create!(name: "Arr, matey!")
+    new_book = BookDestroyAsync.create!(name: "Ahoy!")
+    essay = original_book.essays.create!(name: "Der be treasure")
+
+    original_book.essays = []
+    essay.update!(book: new_book)
+
+    assert_no_difference -> { EssayDestroyAsync.count } do
+      perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+    end
+
+    assert_equal new_book, essay.reload.book
+  ensure
+    EssayDestroyAsync.delete_all
+    BookDestroyAsync.delete_all
+  end
+
+  test "replacing a has_many with a custom primary key destroys removed records using a job" do
+    parent = DestroyAsyncParent.create!
+    child = parent.dl_keyed_has_many.create!
+
+    assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+      parent.dl_keyed_has_many = []
+    end
+
+    perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+
+    assert_not DlKeyedHasMany.exists?(child.many_key)
+  ensure
+    DlKeyedHasMany.delete_all
+    DestroyAsyncParent.delete_all
+  end
+
+  test "replacing a has_many with composite keys destroys removed records using a job" do
+    book = Cpk::BookDestroyAsync.create!(id: [1, 1])
+    kept = book.chapters.create!(id: [1, 1], title: "Chapter 1")
+    removed = book.chapters.create!(id: [1, 2], title: "Chapter 2")
+
+    assert_enqueued_jobs 1, only: ActiveRecord::DestroyAssociationAsyncJob do
+      book.chapters = [kept]
+    end
+
+    perform_enqueued_jobs only: ActiveRecord::DestroyAssociationAsyncJob
+
+    assert_predicate kept.reload, :persisted?
+    assert_not Cpk::ChapterDestroyAsync.where(author_id: removed.author_id, id: removed.read_attr(:id)).exists?
+  ensure
+    Cpk::ChapterDestroyAsync.delete_all
+    Cpk::BookDestroyAsync.delete_all
   end
 
   test "has_many with STI parent class destroys all children class records" do
