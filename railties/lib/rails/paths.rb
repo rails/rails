@@ -148,21 +148,21 @@ module Rails
         expanded.last
       end
 
-      %w(autoload_once eager_load autoload load_path).each do |m|
-        class_eval <<-RUBY, __FILE__, __LINE__ + 1
-          def #{m}!        # def eager_load!
-            @#{m} = true   #   @eager_load = true
-          end              # end
-                           #
-          def skip_#{m}!   # def skip_eager_load!
-            @#{m} = false  #   @eager_load = false
-          end              # end
-                           #
-          def #{m}?        # def eager_load?
-            @#{m}          #   @eager_load
-          end              # end
-        RUBY
-      end
+      def autoload_once! = @autoload_once = true
+      def skip_autoload_once! = @autoload_once = false
+      def autoload_once? = @autoload_once
+
+      def eager_load! = @eager_load = true
+      def skip_eager_load! = @eager_load = false
+      def eager_load? = @eager_load
+
+      def autoload! = @autoload = true
+      def skip_autoload! = @autoload = false
+      def autoload? = @autoload
+
+      def load_path! = @load_path = true
+      def skip_load_path! = @load_path = false
+      def load_path? = @load_path
 
       def each(&block)
         @paths.each(&block)
