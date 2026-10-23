@@ -202,6 +202,7 @@ module ActionDispatch
           end
 
           def build_host_url(host, port, protocol, options, path)
+            # Keep regexp encoding validation while avoiding captures for ordinary Strings.
             if String === host && host.instance_of?(String) && !host.empty? && !host.match?(/[:\[]/)
               host = host.dup
               port = nil unless options.key?(:port)
@@ -233,6 +234,7 @@ module ActionDispatch
           end
 
           def normalize_protocol(protocol)
+            # Preserve the generic path's encoding behavior for other inputs.
             if String === protocol && protocol.instance_of?(String) && protocol.encoding == Encoding::UTF_8
               case protocol
               when "http", "http:", "http://"

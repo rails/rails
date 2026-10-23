@@ -230,7 +230,7 @@ module AbstractController
           W.new.url_for(controller: "c", action: "a", host: "\xFF", protocol: true)
         end
 
-        assert_match(/UTF-8/, error.message)
+        assert_match(/invalid byte sequence in UTF-8/, error.message)
       end
 
       def test_host_string_subclasses_use_their_matcher

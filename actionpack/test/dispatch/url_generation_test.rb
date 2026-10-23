@@ -91,19 +91,20 @@ module TestUrlGeneration
       assert_equal "http://www.example.com/foo", foo_url(host: "httpz://www.example.com", protocol: "http://")
     end
 
-    test "domain extractors receive an independent host string" do
+    test "nonempty plain hosts are not mutated by domain extractors" do
       extractor = Module.new do
         def self.domain_from(host, _tld_length)
           host.replace("example.org")
         end
       end
-      host = +"original.example.com"
 
-      ActionDispatch::Http::URL.with(domain_extractor: extractor) do
-        assert_equal "https://cdn.example.org/foo", foo_url(host: host, protocol: "https", subdomain: "cdn")
+      [+"original.example.com", "original.example.com"].each do |host|
+        ActionDispatch::Http::URL.with(domain_extractor: extractor) do
+          assert_equal "https://cdn.example.org/foo", foo_url(host: host, protocol: "https", subdomain: "cdn")
+        end
+
+        assert_equal "original.example.com", host
       end
-
-      assert_equal "original.example.com", host
     end
 
     test "default ports are removed from the host" do
