@@ -3,6 +3,7 @@
 # :markup: markdown
 
 require "concurrent/map"
+require "uri"
 require "active_support/parameter_filter"
 
 module ActionDispatch
@@ -36,6 +37,24 @@ module ActionDispatch
             ActiveSupport::ParameterFilter.new(filters)
           end
         end
+
+        def filter_query_string(query_string, parameter_filter) # :nodoc:
+          query_string.split(/([&;])/).map do |part|
+            if part.include?("=")
+              key, value = part.split("=", 2)
+              "#{key}=#{parameter_filter.filter_param(decoded_query_key(key), value)}"
+            else
+              part
+            end
+          end.join("")
+        end
+
+        private
+          def decoded_query_key(key)
+            URI.decode_www_form_component(key).scrub
+          rescue ArgumentError
+            key
+          end
       end
       # :startdoc:
 
@@ -87,16 +106,7 @@ module ActionDispatch
       end
 
       def filtered_query_string # :doc:
-        parts = query_string.split(/([&;])/)
-        filtered_parts = parts.map do |part|
-          if part.include?("=")
-            key, value = part.split("=", 2)
-            "#{key}=#{parameter_filter.filter_param(key, value)}"
-          else
-            part
-          end
-        end
-        filtered_parts.join("")
+        FilterParameters.filter_query_string(query_string, parameter_filter)
       end
     end
   end
