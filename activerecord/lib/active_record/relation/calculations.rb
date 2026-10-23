@@ -323,11 +323,7 @@ module ActiveRecord
             ActiveRecord::Result.empty(async: @async)
           else
             model.with_connection do |c|
-              if @async
-                model._async_select_all(c, relation.arel, "#{model.name} Pluck")
-              else
-                c.select_all(relation.arel, "#{model.name} Pluck")
-              end
+              c.select_all(relation.arel, "#{model.name} Pluck", async: @async)
             end
           end
         end
@@ -513,11 +509,7 @@ module ActiveRecord
         else
           skip_query_cache_if_necessary do
             model.with_connection do |c|
-              if @async
-                model._async_select_all(c, query_builder, "#{model.name} #{operation.capitalize}")
-              else
-                c.select_all(query_builder, "#{model.name} #{operation.capitalize}")
-              end
+              c.select_all(query_builder, "#{model.name} #{operation.capitalize}", async: @async)
             end
           end
         end
@@ -576,11 +568,7 @@ module ActiveRecord
           relation.select_values = select_values
 
           result = skip_query_cache_if_necessary do
-            if @async
-              model._async_select_all(connection, relation.arel, "#{model.name} #{operation.capitalize}")
-            else
-              connection.select_all(relation.arel, "#{model.name} #{operation.capitalize}")
-            end
+            connection.select_all(relation.arel, "#{model.name} #{operation.capitalize}", async: @async)
           end
 
           result.then do |calculated_data|
