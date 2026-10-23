@@ -995,6 +995,32 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate computer, :extendedGold?
   end
 
+  test "enum on an attribute name starting with a capital letter" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      attribute :Status, :integer
+      enum :Status, [:proposed, :written]
+    end
+
+    book = klass.proposed.create!
+    assert_predicate book, :proposed?
+    assert_not_predicate book, :written?
+
+    book.written!
+    assert_predicate book, :written?
+    assert_not_predicate book, :proposed?
+  end
+
+  test "enum bang methods pass frozen string values" do
+    book = Book.new
+    updated = nil
+    book.define_singleton_method(:update!) { |attributes| updated = attributes }
+
+    book.hard!
+    assert_equal({ "cover" => "hard" }, updated)
+    assert_predicate updated["cover"], :frozen?
+  end
+
   test "unicode characters for enum names" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "books"

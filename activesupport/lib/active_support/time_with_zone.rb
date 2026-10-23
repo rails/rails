@@ -62,7 +62,7 @@ module ActiveSupport
         @utc = nil
         @period = get_period_and_ensure_valid_local_time(period)
       end
-      @is_utc = zone == "UTC" || zone == "UCT"
+      @is_utc = nil
     end
 
     # Returns a `Time` instance that represents the time in `time_zone`.
@@ -118,6 +118,9 @@ module ActiveSupport
     # Time.zone.now.utc?                          # => false
     # ```
     def utc?
+      if @is_utc.nil?
+        @is_utc = time_zone.utc? || zone == "UTC" || zone == "UCT"
+      end
       @is_utc
     end
     alias_method :gmt?, :utc?
@@ -171,7 +174,7 @@ module ActiveSupport
     def xmlschema(fraction_digits = 0)
       precision = fraction_digits || 0
 
-      if @is_utc
+      if utc?
         utc.iso8601(precision)
       else
         transfer_time_values_to_utc_constructor(utc).getlocal(utc_offset).iso8601(precision)
@@ -233,7 +236,7 @@ module ActiveSupport
 
     # Returns a string of the object's date and time.
     def to_s
-      if @is_utc
+      if utc?
         transfer_time_values_to_utc_constructor(utc).to_s
       else
         transfer_time_values_to_utc_constructor(utc).getlocal(utc_offset).to_s
@@ -486,13 +489,31 @@ module ActiveSupport
       end
     end
 
-    %w(year mon month day mday wday yday hour min sec usec nsec to_date).each do |method_name|
-      class_eval <<~RUBY, __FILE__, __LINE__ + 1
-        def #{method_name}    # def month
-          time.#{method_name} #   time.month
-        end                   # end
-      RUBY
-    end
+    def year = time.year
+
+    def mon = time.mon
+
+    def month = time.month
+
+    def day = time.day
+
+    def mday = time.mday
+
+    def wday = time.wday
+
+    def yday = time.yday
+
+    def hour = time.hour
+
+    def min = time.min
+
+    def sec = time.sec
+
+    def usec = time.usec
+
+    def nsec = time.nsec
+
+    def to_date = time.to_date
 
     # Returns Array of parts of Time in sequence of
     # [seconds, minutes, hours, day, month, year, weekday, yearday, dst?, zone].
@@ -575,7 +596,7 @@ module ActiveSupport
 
     def freeze
       # preload instance variables before freezing
-      period; utc; time; to_datetime; to_time
+      period; utc; time; utc?; to_datetime; to_time
       super
     end
 

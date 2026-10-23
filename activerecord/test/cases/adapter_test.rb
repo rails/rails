@@ -863,9 +863,11 @@ module ActiveRecord
           a.books.to_a
           Author.select(:status).joins(:books).group(:status).to_a
           Author.group(:name).count
+          Post.limit(2).count
+          Post.limit(2).count(:title)
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 9, notifications.length
+        assert_equal 11, notifications.length
 
         notifications.each do |n|
           assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"
@@ -885,9 +887,11 @@ module ActiveRecord
           a.books.to_a
           Author.select(:status).joins(:books).group(:status).to_a
           Author.group(:name).count
+          Post.limit(2).count
+          Post.limit(2).count(:title)
         end.select { |n| n.payload[:name] != "SCHEMA" }
 
-        assert_equal 9, notifications.length
+        assert_equal 11, notifications.length
 
         notifications.each do |n|
           assert n.payload[:allow_retry], "#{n.payload[:sql]} was not retryable"

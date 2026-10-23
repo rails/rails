@@ -101,9 +101,10 @@ class String
         length_with_room_for_omission
       end
 
-    # The slice is already a fresh, mutable string: append the omission to it
-    # rather than interpolating both into a third string.
-    self[0, stop] << omission
+    # Slice to_str, not self, so a SafeBuffer gives a plain String: the cut
+    # can split an HTML tag, so the result must not be html_safe. The slice is
+    # a fresh, mutable string, so append the omission to it.
+    to_str[0, stop] << omission
   end
 
   # Truncates `text` to at most `truncate_to` bytes in length without

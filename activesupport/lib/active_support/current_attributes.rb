@@ -157,7 +157,7 @@ module ActiveSupport
       delegate :set, :reset, to: :instance
 
       def clear_all # :nodoc:
-        if instances = current_instances
+        if (instances = current_instances) && !instances.empty?
           instances.values.each(&:reset)
           instances.clear
         end
@@ -237,11 +237,13 @@ module ActiveSupport
 
     private
       def resolve_defaults
-        defaults.each_with_object({}) do |(key, value), result|
+        result = {}
+        defaults.each do |key, value|
           if value != NOT_SET
             result[key] = Proc === value ? value.call : value.dup
           end
         end
+        result
       end
 
       # Declaring an attribute by one of these names would shadow the methods

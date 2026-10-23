@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveStorage
-  # = Active Storage \Attached \One
+  # Active Storage \Attached \One
+  # =============================
   #
   # Representation of a single attachment to a model.
   class Attached::One < Attached
@@ -34,33 +36,37 @@ module ActiveStorage
       change.present? ? change.attachment : record.public_send("#{name}_attachment")
     end
 
-    # Returns +true+ if an attachment is not attached.
+    # Returns `true` if an attachment is not attached.
     #
-    #   class User < ApplicationRecord
-    #     has_one_attached :avatar
-    #   end
+    # ```
+    # class User < ApplicationRecord
+    #   has_one_attached :avatar
+    # end
     #
-    #   User.new.avatar.blank? # => true
+    # User.new.avatar.blank? # => true
+    # ```
     def blank?
       !attached?
     end
 
-    # Returns the attachment record's JSON representation, or +nil+ when no
+    # Returns the attachment record's JSON representation, or `nil` when no
     # attachment is present.
     def as_json(options = nil)
       attached? ? attachment.as_json(options) : nil
     end
 
-    # Attaches an +attachable+ to the record.
+    # Attaches an `attachable` to the record.
     #
     # If the record is persisted and unchanged, the attachment is saved to
     # the database immediately. Otherwise, it'll be saved to the DB when the
     # record is next saved.
     #
-    #   person.avatar.attach(params[:avatar]) # ActionDispatch::Http::UploadedFile object
-    #   person.avatar.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
-    #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
-    #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
+    # ```
+    # person.avatar.attach(params[:avatar]) # ActionDispatch::Http::UploadedFile object
+    # person.avatar.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
+    # person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
+    # person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
+    # ```
     def attach(attachable)
       record.public_send("#{name}=", attachable)
       if record.persisted? && !record.changed?
@@ -71,21 +77,25 @@ module ActiveStorage
 
     # Calls attach, and raises an exception if the record was meant to be saved but at least one of the validations failed.
     #
-    #   person.avatar.attach!(params[:avatar]) # ActionDispatch::Http::UploadedFile object
-    #   person.avatar.attach!(params[:signed_blob_id]) # Signed reference to blob from direct upload
-    #   person.avatar.attach!(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
-    #   person.avatar.attach!(avatar_blob) # ActiveStorage::Blob object
+    # ```
+    # person.avatar.attach!(params[:avatar]) # ActionDispatch::Http::UploadedFile object
+    # person.avatar.attach!(params[:signed_blob_id]) # Signed reference to blob from direct upload
+    # person.avatar.attach!(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpeg")
+    # person.avatar.attach!(avatar_blob) # ActiveStorage::Blob object
+    # ```
     def attach!(attachable)
       attach(attachable) || raise(ActiveRecord::RecordNotSaved.new("Failed to save the record", record))
     end
 
-    # Returns +true+ if an attachment has been made.
+    # Returns `true` if an attachment has been made.
     #
-    #   class User < ApplicationRecord
-    #     has_one_attached :avatar
-    #   end
+    # ```
+    # class User < ApplicationRecord
+    #   has_one_attached :avatar
+    # end
     #
-    #   User.new.avatar.attached? # => false
+    # User.new.avatar.attached? # => false
+    # ```
     def attached?
       attachment.present?
     end

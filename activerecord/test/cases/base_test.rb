@@ -78,14 +78,16 @@ class ReadonlyTitlePostWithAbstractParent < ReadonlyTitleAbstractPost
   self.table_name = "posts"
 end
 
-previous_value, ActiveRecord.raise_on_assign_to_attr_readonly = ActiveRecord.raise_on_assign_to_attr_readonly, false
+previous_value, ActiveRecord._raise_on_assign_to_attr_readonly = ActiveRecord._raise_on_assign_to_attr_readonly, false
 
 class NonRaisingPost < Post
   attr_readonly :title
   alias_attribute :headline, :title
+
+  define_attribute_methods
 end
 
-ActiveRecord.raise_on_assign_to_attr_readonly = previous_value
+ActiveRecord._raise_on_assign_to_attr_readonly = previous_value
 
 class ReadonlyAuthorPost < Post
   attr_readonly :author_id
@@ -812,57 +814,61 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_readonly_attributes_when_configured_to_not_raise
-    assert_equal [ "title" ], NonRaisingPost.readonly_attributes
+    with_raise_on_assign_to_attr_readonly_disabled do
+      assert_equal [ "title" ], NonRaisingPost.readonly_attributes
 
-    post = NonRaisingPost.create(title: "cannot change this", body: "changeable")
-    assert_equal "cannot change this", post.title
-    assert_equal "changeable", post.body
+      post = NonRaisingPost.create(title: "cannot change this", body: "changeable")
+      assert_equal "cannot change this", post.title
+      assert_equal "changeable", post.body
 
-    post = Post.find(post.id)
-    assert_equal "cannot change this", post.title
-    assert_equal "changeable", post.body
+      post = Post.find(post.id)
+      assert_equal "cannot change this", post.title
+      assert_equal "changeable", post.body
 
-    post.title = "changed via assignment"
-    post.body = "changed via assignment"
-    post.save!
-    post.reload
-    assert_equal "cannot change this", post.title
-    assert_equal "changed via assignment", post.body
+      post.title = "changed via assignment"
+      post.body = "changed via assignment"
+      post.save!
+      post.reload
+      assert_equal "cannot change this", post.title
+      assert_equal "changed via assignment", post.body
 
-    post.write_attribute(:title, "changed via write_attribute")
-    post.write_attribute(:body, "changed via write_attribute")
-    post.save!
-    post.reload
-    assert_equal "cannot change this", post.title
-    assert_equal "changed via write_attribute", post.body
+      post.write_attribute(:title, "changed via write_attribute")
+      post.write_attribute(:body, "changed via write_attribute")
+      post.save!
+      post.reload
+      assert_equal "cannot change this", post.title
+      assert_equal "changed via write_attribute", post.body
 
-    post.assign_attributes(body: "changed via assign_attributes", title: "changed via assign_attributes")
-    post.save!
-    post.reload
-    assert_equal "cannot change this", post.title
-    assert_equal "changed via assign_attributes", post.body
+      post.assign_attributes(body: "changed via assign_attributes", title: "changed via assign_attributes")
+      post.save!
+      post.reload
+      assert_equal "cannot change this", post.title
+      assert_equal "changed via assign_attributes", post.body
 
-    post.update(title: "changed via update", body: "changed via update")
-    post.reload
-    assert_equal "cannot change this", post.title
-    assert_equal "changed via update", post.body
+      post.update(title: "changed via update", body: "changed via update")
+      post.reload
+      assert_equal "cannot change this", post.title
+      assert_equal "changed via update", post.body
 
-    post[:title] = "changed via []="
-    post[:body] = "changed via []="
-    post.save!
-    post.reload
-    assert_equal "cannot change this", post.title
-    assert_equal "changed via []=", post.body
+      post[:title] = "changed via []="
+      post[:body] = "changed via []="
+      post.save!
+      post.reload
+      assert_equal "cannot change this", post.title
+      assert_equal "changed via []=", post.body
+    end
   end
 
   def test_update_attribute_raises_for_a_readonly_aliased_attribute_when_configured_to_not_raise
-    post = NonRaisingPost.create!(title: "cannot change this", body: "changeable")
+    with_raise_on_assign_to_attr_readonly_disabled do
+      post = NonRaisingPost.create!(title: "cannot change this", body: "changeable")
 
-    assert_raises(ActiveRecord::ActiveRecordError) { post.update_attribute(:headline, "changed") }
-    assert_raises(ActiveRecord::ActiveRecordError) { post.update_attribute!(:headline, "changed") }
+      assert_raises(ActiveRecord::ActiveRecordError) { post.update_attribute(:headline, "changed") }
+      assert_raises(ActiveRecord::ActiveRecordError) { post.update_attribute!(:headline, "changed") }
 
-    post.reload
-    assert_equal "cannot change this", post.title
+      post.reload
+      assert_equal "cannot change this", post.title
+    end
   end
 
   def test_readonly_attributes_on_belongs_to_association
@@ -2210,6 +2216,15 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   private
+    def with_raise_on_assign_to_attr_readonly_disabled
+      previous_value, ActiveRecord._raise_on_assign_to_attr_readonly = ActiveRecord._raise_on_assign_to_attr_readonly, false
+      NonRaisingPost.undefine_attribute_methods
+      yield
+    ensure
+      ActiveRecord._raise_on_assign_to_attr_readonly = previous_value
+      NonRaisingPost.undefine_attribute_methods
+    end
+
     def with_timezone_config(cfg, &block)
       super(cfg) do
         Default.reset_column_information

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "pathname"
 require "active_support"
 require "rails/command/helpers/editor"

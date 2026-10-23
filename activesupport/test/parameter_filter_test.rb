@@ -83,6 +83,14 @@ class ParameterFilterTest < ActiveSupport::TestCase
     assert_equal "non secret value", parameter_filter.filter_param("baz", "non secret value")
   end
 
+  test "filter_param passes the pair to a proc filter as the original params" do
+    parameter_filter = ActiveSupport::ParameterFilter.new([
+      ->(key, value, original_params) { value.replace("[FILTERED]") if original_params[key] == "secret" }
+    ])
+    assert_equal "[FILTERED]", parameter_filter.filter_param("token", "secret")
+    assert_equal "visible", parameter_filter.filter_param("token", "visible")
+  end
+
   test "filter_param can work with empty filters" do
     parameter_filter = ActiveSupport::ParameterFilter.new
     assert_equal "bar", parameter_filter.filter_param("foo", "bar")

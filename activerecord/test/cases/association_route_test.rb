@@ -94,6 +94,51 @@ class AssociationRouteTest < ActiveRecord::TestCase
     end
   end
 
+  def test_writing_a_reference_with_unselected_keys_and_fixed_values
+    [ActiveRecord::AssociationLink, ActiveRecord::AssociationLink::DeprecatedIdWriter].each do |link_class|
+      link = link_class.new(
+        reference: build_mapping(reference_key: :route_fk, target_key: :id),
+        reference_class: AliasedRouteComment,
+        target_class: Post,
+        fixed_values: { "body" => "Fixed body" }
+      )
+      comment = AliasedRouteComment.instantiate("id" => 1)
+
+      link.write_reference(comment, Post.new(id: 42), force: false)
+
+      assert_equal 42, comment.post_id
+      assert_equal "Fixed body", comment.body
+    end
+  end
+
+  def test_clearing_a_reference_with_unselected_fixed_values
+    [ActiveRecord::AssociationLink, ActiveRecord::AssociationLink::DeprecatedIdWriter].each do |link_class|
+      link = link_class.new(
+        reference: build_mapping(reference_key: :post_id, target_key: :id),
+        fixed_values: { "body" => "Fixed body" }
+      )
+      comment = Comment.instantiate("id" => 1, "post_id" => 42)
+
+      link.clear_reference(comment, force: false)
+
+      assert_nil comment.post_id
+      assert_not comment.has_attribute?(:body)
+    end
+  end
+
+  def test_matching_records_with_unselected_keys
+    route = build_belongs_to_route(
+      reference: { reference_key: :post_id, target_key: :author_id },
+      constraints: { reference_key: nil, target_key: nil }
+    )
+    comment = Comment.instantiate("id" => 1, "post_id" => nil)
+    post = Post.instantiate("id" => 2)
+
+    assert route.key_values_match?(comment, post)
+    assert_equal [comment], route.each_matching_origin([comment], post).to_a
+    assert_not route.origin_reference_complete?(Comment.instantiate("id" => 3))
+  end
+
   def test_inverse_routes_reverse_the_same_foreign_key_mapping
     belongs_to = Client.reflect_on_association(:firm).association_route
     has_many = Firm.reflect_on_association(:clients_of_firm).association_route

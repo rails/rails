@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "prism"
-
 module Rails
   # Implements the logic behind +Rails::Command::NotesCommand+. See <tt>rails notes --help</tt> for usage information.
   #
@@ -17,6 +15,8 @@ module Rails
     # file's comments.
     class ParserExtractor < Struct.new(:pattern)
       def annotations(file)
+        require "prism"
+
         result = Prism.parse_file(file)
         return [] unless result.success?
 

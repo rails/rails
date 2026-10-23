@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module DynamicMatchers # :nodoc:
     private
@@ -58,12 +59,12 @@ module ActiveRecord
             end
 
             # The parameters in the signature may have reserved Ruby words, in order
-            # to prevent errors, we start each param name with `_`.
+            # to prevent errors, we start each param name with \`_\`.
             def signature(model, method_name)
               attribute_names(model, method_name.to_s).map { |name| "_#{name}" }.join(", ")
             end
 
-            # Given that the parameters starts with `_`, the finder needs to use the
+            # Given that the parameters starts with \`_\`, the finder needs to use the
             # same parameter name.
             def attributes_hash(model, method_name)
               "{" + attribute_names(model, method_name).map { |name| ":#{name} => _#{name}" }.join(",") + "}"

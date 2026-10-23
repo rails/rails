@@ -2,6 +2,8 @@
 
 # :markup: markdown
 
+require "action_dispatch/routing/redirection"
+
 module ActionController
   module Redirecting
     extend ActiveSupport::Concern
@@ -206,12 +208,7 @@ module ActionController
 
     def _compute_redirect_to_location(request, options) # :nodoc:
       case options
-      # The scheme name consist of a letter followed by any combination of letters,
-      # digits, and the plus ("+"), period ("."), or hyphen ("-") characters; and is
-      # terminated by a colon (":"). See
-      # https://tools.ietf.org/html/rfc3986#section-3.1 The protocol relative scheme
-      # starts with a double slash "//".
-      when /\A([a-z][a-z\d\-+.]*:|\/\/).*/i
+      when ActionDispatch::Routing::PathRedirect::SCHEME_OR_AUTHORITY
         options.to_str
       when String
         if !options.start_with?("/", "?") && !options.empty?

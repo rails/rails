@@ -1,51 +1,63 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
-  # = Active Record Connection Handling
+  # Active Record Connection Handling
+  # =================================
   module ConnectionHandling
     RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
     DEFAULT_ENV = -> { RAILS_ENV.call || "default_env" }
 
     # Establishes the connection to the database. Accepts a hash as input where
-    # the <tt>:adapter</tt> key must be specified with the name of a database adapter (in lower-case)
+    # the `:adapter` key must be specified with the name of a database adapter (in lower-case)
     # example for regular databases (MySQL, PostgreSQL, etc):
     #
-    #   ActiveRecord::Base.establish_connection(
-    #     adapter:  "mysql2",
-    #     host:     "localhost",
-    #     username: "myuser",
-    #     password: "mypass",
-    #     database: "somedatabase"
-    #   )
+    # ```
+    # ActiveRecord::Base.establish_connection(
+    #   adapter:  "mysql2",
+    #   host:     "localhost",
+    #   username: "myuser",
+    #   password: "mypass",
+    #   database: "somedatabase"
+    # )
+    # ```
     #
     # Example for SQLite database:
     #
-    #   ActiveRecord::Base.establish_connection(
-    #     adapter:  "sqlite3",
-    #     database: "path/to/dbfile"
-    #   )
+    # ```
+    # ActiveRecord::Base.establish_connection(
+    #   adapter:  "sqlite3",
+    #   database: "path/to/dbfile"
+    # )
+    # ```
     #
     # Also accepts keys as strings (for parsing from YAML for example):
     #
-    #   ActiveRecord::Base.establish_connection(
-    #     "adapter"  => "sqlite3",
-    #     "database" => "path/to/dbfile"
-    #   )
+    # ```
+    # ActiveRecord::Base.establish_connection(
+    #   "adapter"  => "sqlite3",
+    #   "database" => "path/to/dbfile"
+    # )
+    # ```
     #
     # Or a URL:
     #
-    #   ActiveRecord::Base.establish_connection(
-    #     "postgres://myuser:mypass@localhost/somedatabase"
-    #   )
+    # ```
+    # ActiveRecord::Base.establish_connection(
+    #   "postgres://myuser:mypass@localhost/somedatabase"
+    # )
+    # ```
     #
-    # In case {ActiveRecord::Base.configurations}[rdoc-ref:Core.configurations]
+    # In case [ActiveRecord::Base.configurations](rdoc-ref:Core.configurations)
     # is set (\Rails automatically loads the contents of config/database.yml into it),
     # a symbol can also be given as argument, representing a key in the
     # configuration hash:
     #
-    #   ActiveRecord::Base.establish_connection(:production)
+    # ```
+    # ActiveRecord::Base.establish_connection(:production)
+    # ```
     #
-    # The exceptions AdapterNotSpecified, AdapterNotFound, and +ArgumentError+
+    # The exceptions AdapterNotSpecified, AdapterNotFound, and `ArgumentError`
     # may be returned on an error.
     def establish_connection(config_or_env = nil)
       config_or_env ||= DEFAULT_ENV.call.to_sym
@@ -53,29 +65,33 @@ module ActiveRecord
       connection_handler.establish_connection(db_config, owner_name: self, role: current_role, shard: current_shard)
     end
 
-    # Connects a model to the databases specified. The +database+ keyword
-    # takes a hash consisting of a +role+ and a +database_key+.
+    # Connects a model to the databases specified. The `database` keyword
+    # takes a hash consisting of a `role` and a `database_key`.
     #
-    # This will look up the database config using the +database_key+ and
+    # This will look up the database config using the `database_key` and
     # establish a connection to that config.
     #
-    #   class AnimalsModel < ApplicationRecord
-    #     self.abstract_class = true
+    # ```
+    # class AnimalsModel < ApplicationRecord
+    #   self.abstract_class = true
     #
-    #     connects_to database: { writing: :primary, reading: :primary_replica }
-    #   end
+    #   connects_to database: { writing: :primary, reading: :primary_replica }
+    # end
+    # ```
     #
-    # +connects_to+ also supports horizontal sharding. The horizontal sharding API
+    # `connects_to` also supports horizontal sharding. The horizontal sharding API
     # supports read replicas as well. You can connect a model to a list of shards like this:
     #
-    #   class AnimalsModel < ApplicationRecord
-    #     self.abstract_class = true
+    # ```
+    # class AnimalsModel < ApplicationRecord
+    #   self.abstract_class = true
     #
-    #     connects_to shards: {
-    #       default: { writing: :primary, reading: :primary_replica },
-    #       shard_two: { writing: :primary_shard_two, reading: :primary_shard_replica_two }
-    #     }
-    #   end
+    #   connects_to shards: {
+    #     default: { writing: :primary, reading: :primary_replica },
+    #     shard_two: { writing: :primary_shard_two, reading: :primary_shard_replica_two }
+    #   }
+    # end
+    # ```
     #
     # Returns an array of database connections.
     def connects_to(database: {}, shards: {})
@@ -114,29 +130,33 @@ module ActiveRecord
     #
     # If only a role is passed, Active Record will look up the connection
     # based on the requested role. If a non-established role is requested
-    # an +ActiveRecord::ConnectionNotEstablished+ error will be raised:
+    # an `ActiveRecord::ConnectionNotEstablished` error will be raised:
     #
-    #   ActiveRecord::Base.connected_to(role: :writing) do
-    #     Dog.create! # creates dog using dog writing connection
-    #   end
+    # ```
+    # ActiveRecord::Base.connected_to(role: :writing) do
+    #   Dog.create! # creates dog using dog writing connection
+    # end
     #
-    #   ActiveRecord::Base.connected_to(role: :reading) do
-    #     Dog.create! # throws exception because we're on a replica
-    #   end
+    # ActiveRecord::Base.connected_to(role: :reading) do
+    #   Dog.create! # throws exception because we're on a replica
+    # end
+    # ```
     #
     # When swapping to a shard, the role must be passed as well. If a non-existent
-    # shard is passed, an +ActiveRecord::ConnectionNotEstablished+ error will be
+    # shard is passed, an `ActiveRecord::ConnectionNotEstablished` error will be
     # raised.
     #
     # When a shard and role is passed, Active Record will first lookup the role,
     # and then look up the connection by shard key.
     #
-    #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one_replica) do
-    #     Dog.first # finds first Dog record stored on the shard one replica
-    #   end
+    # ```
+    # ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one_replica) do
+    #   Dog.first # finds first Dog record stored on the shard one replica
+    # end
+    # ```
     #
-    # The +prevent_writes+ option can be passed to block writes on a connection;
-    # it defaults to +true+ when using the +reading+ role.
+    # The `prevent_writes` option can be passed to block writes on a connection;
+    # it defaults to `true` when using the `reading` role.
     def connected_to(role: nil, shard: nil, prevent_writes: role == ActiveRecord.reading_role, &blk)
       if self != Base && !abstract_class
         raise NotImplementedError, "calling `connected_to` is only allowed on ActiveRecord::Base or abstract classes."
@@ -158,18 +178,20 @@ module ActiveRecord
     end
 
     # Connects a role and optionally shard to the provided connection names.
-    # The +prevent_writes+ option can be passed to block writes on a connection;
-    # it defaults to +true+ when using the +reading+ role.
+    # The `prevent_writes` option can be passed to block writes on a connection;
+    # it defaults to `true` when using the `reading` role.
     #
-    # +connected_to_many+ is an alternative to deeply nested +connected_to+ blocks.
+    # `connected_to_many` is an alternative to deeply nested `connected_to` blocks.
     #
     # Usage:
     #
-    #   ActiveRecord::Base.connected_to_many(AnimalsRecord, MealsRecord, role: :reading) do
-    #     Dog.first # Read from animals replica
-    #     Dinner.first # Read from meals replica
-    #     Person.first # Read from primary writer
-    #   end
+    # ```
+    # ActiveRecord::Base.connected_to_many(AnimalsRecord, MealsRecord, role: :reading) do
+    #   Dog.first # Read from animals replica
+    #   Dinner.first # Read from meals replica
+    #   Person.first # Read from primary writer
+    # end
+    # ```
     def connected_to_many(*classes, role:, shard: nil, prevent_writes: role == ActiveRecord.reading_role)
       classes = classes.flatten
 
@@ -189,14 +211,14 @@ module ActiveRecord
       end
     end
 
-    # Passes the block to +connected_to+ for every +shard+ the
+    # Passes the block to `connected_to` for every `shard` the
     # model is configured to connect to, and returns the results
     # in an array. Raises an ArgumentError if the model is not
     # connected to any shards.
     #
-    # Optionally, +role+ and/or +prevent_writes+ can be passed which
-    # will be forwarded to each +connected_to+ call. +prevent_writes+
-    # defaults to +true+ when using the +reading+ role.
+    # Optionally, `role` and/or `prevent_writes` can be passed which
+    # will be forwarded to each `connected_to` call. `prevent_writes`
+    # defaults to `true` when using the `reading` role.
     def connected_to_all_shards(role: nil, prevent_writes: role == ActiveRecord.reading_role, &blk)
       if shard_keys.empty?
         raise ArgumentError, "`connected_to_all_shards` cannot be called on a model that is not connected to any shards."
@@ -208,14 +230,14 @@ module ActiveRecord
     end
 
     # Use a specified connection to a role and/or shard.
-    # The +prevent_writes+ option can be passed to block writes on a connection;
-    # it defaults to +true+ when using the +reading+ role.
+    # The `prevent_writes` option can be passed to block writes on a connection;
+    # it defaults to `true` when using the `reading` role.
     #
     # This method is useful for ensuring that a specific connection is
     # being used. For example, when booting a console in readonly mode.
     #
     # It is not recommended to use this method in a request since it
-    # does not yield to a block like +connected_to+.
+    # does not yield to a block like `connected_to`.
     def connecting_to(role: default_role, shard: default_shard, prevent_writes: role == ActiveRecord.reading_role)
       if role == ActiveRecord.reading_role && !prevent_writes
         raise ArgumentError, "cannot set `prevent_writes` to false when `role` is `reading`."
@@ -251,31 +273,33 @@ module ActiveRecord
     # Prevent writing to the database regardless of role.
     #
     # In some cases you may want to prevent writes to the database
-    # even if you are on a database that can write. +while_preventing_writes+
+    # even if you are on a database that can write. `while_preventing_writes`
     # will prevent writes to the database for the duration of the block.
     #
     # This method does not provide the same protection as a readonly
     # user and is meant to be a safeguard against accidental writes.
     #
-    # See +READ_QUERY+ for the queries that are blocked by this
+    # See `READ_QUERY` for the queries that are blocked by this
     # method.
     def while_preventing_writes(enabled = true, &block)
       connected_to(role: current_role, prevent_writes: enabled, &block)
     end
 
-    # Returns true if +role+ is the current connected role and if +shard+ is the
+    # Returns true if `role` is the current connected role and if `shard` is the
     # current connected shard. If no shard is passed, the default will be used.
     #
-    #   ActiveRecord::Base.connected_to(role: :writing) do
-    #     ActiveRecord::Base.connected_to?(role: :writing) #=> true
-    #     ActiveRecord::Base.connected_to?(role: :reading) #=> false
-    #   end
+    # ```
+    # ActiveRecord::Base.connected_to(role: :writing) do
+    #   ActiveRecord::Base.connected_to?(role: :writing) #=> true
+    #   ActiveRecord::Base.connected_to?(role: :reading) #=> false
+    # end
     #
-    #   ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
-    #     ActiveRecord::Base.connected_to?(role: :reading, shard: :shard_one) #=> true
-    #     ActiveRecord::Base.connected_to?(role: :reading, shard: :default) #=> false
-    #     ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one) #=> false
-    #   end
+    # ActiveRecord::Base.connected_to(role: :reading, shard: :shard_one) do
+    #   ActiveRecord::Base.connected_to?(role: :reading, shard: :shard_one) #=> true
+    #   ActiveRecord::Base.connected_to?(role: :reading, shard: :default) #=> false
+    #   ActiveRecord::Base.connected_to?(role: :writing, shard: :shard_one) #=> false
+    # end
+    # ```
     def connected_to?(role:, shard: ActiveRecord::Base.default_shard)
       current_role == role.to_sym && current_shard == shard.to_sym
     end
@@ -289,12 +313,12 @@ module ActiveRecord
     # also be used to "borrow" the connection to do database work unrelated
     # to any of the specific Active Records.
     # The connection will remain leased for the entire duration of the request
-    # or job, or until +#release_connection+ is called.
+    # or job, or until `#release_connection` is called.
     def lease_connection
       connection_pool.lease_connection
     end
 
-    # Soft deprecated. Use +#with_connection+ or +#lease_connection+ instead.
+    # Soft deprecated. Use `#with_connection` or `#lease_connection` instead.
     def connection
       pool = connection_pool
       if pool.permanent_lease?
@@ -324,12 +348,12 @@ module ActiveRecord
     end
 
     # Checkouts a connection from the pool, yield it and then check it back in.
-    # If a connection was already leased via #lease_connection or a parent call to
-    # #with_connection, that same connection is yielded.
+    # If a connection was already leased via #lease_connection or a parent call to #with_connection,
+    # that same connection is yielded.
     # If #lease_connection is called inside the block, the connection won't be checked
     # back in.
     # If #connection is called inside the block, the connection won't be checked back in
-    # unless the +prevent_permanent_checkout+ argument is set to +true+.
+    # unless the `prevent_permanent_checkout` argument is set to `true`.
     def with_connection(prevent_permanent_checkout: false, &block)
       connection_pool.with_connection(prevent_permanent_checkout: prevent_permanent_checkout, &block)
     end
@@ -350,9 +374,11 @@ module ActiveRecord
 
     # Returns the db_config object from the associated connection:
     #
-    #  ActiveRecord::Base.connection_db_config
-    #    #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
-    #      @name="primary", @config={pool: 5, timeout: 5000, database: "storage/development.sqlite3", adapter: "sqlite3"}>
+    # ```
+    # ActiveRecord::Base.connection_db_config
+    #   #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
+    #     @name="primary", @config={pool: 5, timeout: 5000, database: "storage/development.sqlite3", adapter: "sqlite3"}>
+    # ```
     #
     # Use only for reading.
     def connection_db_config
@@ -371,7 +397,7 @@ module ActiveRecord
       connection_handler.retrieve_connection(connection_specification_name, role: current_role, shard: current_shard)
     end
 
-    # Returns +true+ if Active Record is connected.
+    # Returns `true` if Active Record is connected.
     def connected?
       connection_handler.connected?(connection_specification_name, role: current_role, shard: current_shard)
     end

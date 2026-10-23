@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
-  # = Active Record Counter Cache
+  # Active Record Counter Cache
+  # ===========================
   module CounterCache
     extend ActiveSupport::Concern
 
@@ -15,25 +17,27 @@ module ActiveRecord
       # count query. This is useful when adding new counter caches, or if the
       # counter has been corrupted or modified directly by SQL.
       #
-      # ==== Parameters
+      # #### Parameters
       #
-      # * +id+ - The id of the object you wish to reset a counter on or an array of ids.
-      # * +counters+ - One or more association counters to reset. Association name or counter name can be given.
-      # * <tt>:touch</tt> - Touch timestamp columns when updating.
-      #   Pass +true+ to touch +updated_at+ and/or +updated_on+. Pass a symbol to
+      # * `id` - The id of the object you wish to reset a counter on or an array of ids.
+      # * `counters` - One or more association counters to reset. Association name or counter name can be given.
+      # * `:touch` - Touch timestamp columns when updating.
+      #   Pass `true` to touch `updated_at` and/or `updated_on`. Pass a symbol to
       #   touch that column or an array of symbols to touch just those ones.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   # For the Post with id #1, reset the comments_count
-      #   Post.reset_counters(1, :comments)
+      # ```
+      # # For the Post with id #1, reset the comments_count
+      # Post.reset_counters(1, :comments)
       #
-      #   # For posts with ids #1 and #2, reset the comments_count
-      #   Post.reset_counters([1, 2], :comments)
+      # # For posts with ids #1 and #2, reset the comments_count
+      # Post.reset_counters([1, 2], :comments)
       #
-      #   # Like above, but also touch the updated_at and/or updated_on
-      #   # attributes.
-      #   Post.reset_counters(1, :comments, touch: true)
+      # # Like above, but also touch the updated_at and/or updated_on
+      # # attributes.
+      # Post.reset_counters(1, :comments, touch: true)
+      # ```
       def reset_counters(id, *counters, touch: nil)
         pk = primary_key_definition
         ids = pk.expects_multiple_ids?(id) ? id : [id]
@@ -96,41 +100,43 @@ module ActiveRecord
       # with the given ID, altering the given hash of counters by the amount
       # given by the corresponding value:
       #
-      # ==== Parameters
+      # #### Parameters
       #
-      # * +id+ - The id of the object you wish to update a counter on or an array of ids.
-      # * +counters+ - A Hash containing the names of the fields
+      # * `id` - The id of the object you wish to update a counter on or an array of ids.
+      # * `counters` - A Hash containing the names of the fields
       #   to update as keys and the amount to update the field by as values.
-      # * <tt>:touch</tt> option - Touch timestamp columns when updating.
+      # * `:touch` option - Touch timestamp columns when updating.
       #   If attribute names are passed, they are updated along with updated_at/on
       #   attributes.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   # For the Post with id of 5, decrement the comments_count by 1, and
-      #   # increment the actions_count by 1
-      #   Post.update_counters 5, comments_count: -1, actions_count: 1
-      #   # Executes the following SQL:
-      #   # UPDATE posts
-      #   #    SET comments_count = COALESCE(comments_count, 0) - 1,
-      #   #        actions_count = COALESCE(actions_count, 0) + 1
-      #   #  WHERE id = 5
+      # ```
+      # # For the Post with id of 5, decrement the comments_count by 1, and
+      # # increment the actions_count by 1
+      # Post.update_counters 5, comments_count: -1, actions_count: 1
+      # # Executes the following SQL:
+      # # UPDATE posts
+      # #    SET comments_count = COALESCE(comments_count, 0) - 1,
+      # #        actions_count = COALESCE(actions_count, 0) + 1
+      # #  WHERE id = 5
       #
-      #   # For the Posts with id of 10 and 15, increment the comments_count by 1
-      #   Post.update_counters [10, 15], comments_count: 1
-      #   # Executes the following SQL:
-      #   # UPDATE posts
-      #   #    SET comments_count = COALESCE(comments_count, 0) + 1
-      #   #  WHERE id IN (10, 15)
+      # # For the Posts with id of 10 and 15, increment the comments_count by 1
+      # Post.update_counters [10, 15], comments_count: 1
+      # # Executes the following SQL:
+      # # UPDATE posts
+      # #    SET comments_count = COALESCE(comments_count, 0) + 1
+      # #  WHERE id IN (10, 15)
       #
-      #   # For the Posts with id of 10 and 15, increment the comments_count by 1
-      #   # and update the updated_at value for each counter.
-      #   Post.update_counters [10, 15], comments_count: 1, touch: true
-      #   # Executes the following SQL:
-      #   # UPDATE posts
-      #   #    SET comments_count = COALESCE(comments_count, 0) + 1,
-      #   #    `updated_at` = '2016-10-13T09:59:23-05:00'
-      #   #  WHERE id IN (10, 15)
+      # # For the Posts with id of 10 and 15, increment the comments_count by 1
+      # # and update the updated_at value for each counter.
+      # Post.update_counters [10, 15], comments_count: 1, touch: true
+      # # Executes the following SQL:
+      # # UPDATE posts
+      # #    SET comments_count = COALESCE(comments_count, 0) + 1,
+      # #    `updated_at` = '2016-10-13T09:59:23-05:00'
+      # #  WHERE id IN (10, 15)
+      # ```
       def update_counters(id, counters)
         pk = primary_key_definition
         id = [id] if pk.composite? && id.is_a?(Array) && !pk.expects_multiple_ids?(id)
@@ -140,31 +146,33 @@ module ActiveRecord
       # Increment a numeric field by one, via a direct SQL update.
       #
       # This method is used primarily for maintaining counter_cache columns that are
-      # used to store aggregate values. For example, a +DiscussionBoard+ may cache
+      # used to store aggregate values. For example, a `DiscussionBoard` may cache
       # posts_count and comments_count to avoid running an SQL query to calculate the
       # number of posts and comments there are, each time it is displayed.
       #
-      # ==== Parameters
+      # #### Parameters
       #
-      # * +counter_name+ - The name of the field that should be incremented.
-      # * +id+ - The id of the object that should be incremented or an array of ids.
-      # * <tt>:by</tt> - The amount by which to increment the value. Defaults to +1+.
-      # * <tt>:touch</tt> - Touch timestamp columns when updating.
-      #   Pass +true+ to touch +updated_at+ and/or +updated_on+. Pass a symbol to
+      # * `counter_name` - The name of the field that should be incremented.
+      # * `id` - The id of the object that should be incremented or an array of ids.
+      # * `:by` - The amount by which to increment the value. Defaults to `1`.
+      # * `:touch` - Touch timestamp columns when updating.
+      #   Pass `true` to touch `updated_at` and/or `updated_on`. Pass a symbol to
       #   touch that column or an array of symbols to touch just those ones.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   # Increment the posts_count column for the record with an id of 5
-      #   DiscussionBoard.increment_counter(:posts_count, 5)
+      # ```
+      # # Increment the posts_count column for the record with an id of 5
+      # DiscussionBoard.increment_counter(:posts_count, 5)
       #
-      #   # Increment the posts_count column for the record with an id of 5
-      #   # by a specific amount.
-      #   DiscussionBoard.increment_counter(:posts_count, 5, by: 3)
+      # # Increment the posts_count column for the record with an id of 5
+      # # by a specific amount.
+      # DiscussionBoard.increment_counter(:posts_count, 5, by: 3)
       #
-      #   # Increment the posts_count column for the record with an id of 5
-      #   # and update the updated_at value.
-      #   DiscussionBoard.increment_counter(:posts_count, 5, touch: true)
+      # # Increment the posts_count column for the record with an id of 5
+      # # and update the updated_at value.
+      # DiscussionBoard.increment_counter(:posts_count, 5, touch: true)
+      # ```
       def increment_counter(counter_name, id, by: 1, touch: nil)
         update_counters(id, counter_name => by, touch: touch)
       end
@@ -174,27 +182,29 @@ module ActiveRecord
       # This works the same as #increment_counter but reduces the column value by
       # 1 instead of increasing it.
       #
-      # ==== Parameters
+      # #### Parameters
       #
-      # * +counter_name+ - The name of the field that should be decremented.
-      # * +id+ - The id of the object that should be decremented or an array of ids.
-      # * <tt>:by</tt> - The amount by which to decrement the value. Defaults to +1+.
-      # * <tt>:touch</tt> - Touch timestamp columns when updating.
-      #   Pass +true+ to touch +updated_at+ and/or +updated_on+. Pass a symbol to
+      # * `counter_name` - The name of the field that should be decremented.
+      # * `id` - The id of the object that should be decremented or an array of ids.
+      # * `:by` - The amount by which to decrement the value. Defaults to `1`.
+      # * `:touch` - Touch timestamp columns when updating.
+      #   Pass `true` to touch `updated_at` and/or `updated_on`. Pass a symbol to
       #   touch that column or an array of symbols to touch just those ones.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   # Decrement the posts_count column for the record with an id of 5
-      #   DiscussionBoard.decrement_counter(:posts_count, 5)
+      # ```
+      # # Decrement the posts_count column for the record with an id of 5
+      # DiscussionBoard.decrement_counter(:posts_count, 5)
       #
-      #   # Decrement the posts_count column for the record with an id of 5
-      #   # by a specific amount.
-      #   DiscussionBoard.decrement_counter(:posts_count, 5, by: 3)
+      # # Decrement the posts_count column for the record with an id of 5
+      # # by a specific amount.
+      # DiscussionBoard.decrement_counter(:posts_count, 5, by: 3)
       #
-      #   # Decrement the posts_count column for the record with an id of 5
-      #   # and update the updated_at value.
-      #   DiscussionBoard.decrement_counter(:posts_count, 5, touch: true)
+      # # Decrement the posts_count column for the record with an id of 5
+      # # and update the updated_at value.
+      # DiscussionBoard.decrement_counter(:posts_count, 5, touch: true)
+      # ```
       def decrement_counter(counter_name, id, by: 1, touch: nil)
         update_counters(id, counter_name => -by, touch: touch)
       end

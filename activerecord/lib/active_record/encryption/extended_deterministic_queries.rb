@@ -1,25 +1,30 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Encryption
     # Automatically expand encrypted arguments to support querying both encrypted and unencrypted data
     #
     # Active Record \Encryption supports querying the db using deterministic attributes. For example:
     #
-    #   Contact.find_by(email_address: "jorge@hey.com")
+    # ```
+    # Contact.find_by(email_address: "jorge@hey.com")
+    # ```
     #
     # The value "jorge@hey.com" will get encrypted automatically to perform the query. But there is
     # a problem while the data is being encrypted. This won't work. During that time, you need these
     # queries to be:
     #
-    #   Contact.find_by(email_address: [ "jorge@hey.com", "<encrypted jorge@hey.com>" ])
+    # ```
+    # Contact.find_by(email_address: [ "jorge@hey.com", "<encrypted jorge@hey.com>" ])
+    # ```
     #
     # This patches ActiveRecord to support this automatically. It addresses both:
     #
-    # * ActiveRecord::Base - Used in <tt>Contact.find_by_email_address(...)</tt>
-    # * ActiveRecord::Relation - Used in <tt>Contact.internal.find_by_email_address(...)</tt>
+    # * ActiveRecord::Base - Used in `Contact.find_by_email_address(...)`
+    # * ActiveRecord::Relation - Used in `Contact.internal.find_by_email_address(...)`
     #
-    # This module is included if `config.active_record.encryption.extend_queries` is `true`.
+    # This module is included if \`config.active_record.encryption.extend_queries\` is \`true\`.
     module ExtendedDeterministicQueries
       def self.install_support
         # ActiveRecord::Base relies on ActiveRecord::Relation (ActiveRecord::QueryMethods) but it does

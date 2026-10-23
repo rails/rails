@@ -10,10 +10,13 @@ module ActionView
         attr_reader :object
 
         def initialize(object_name, method_name, template_object, options = {})
-          @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
+          @object_name, @method_name = object_name.to_s, method_name.to_s
           @template_object = template_object
 
-          @object_name.sub!(/\[\]$/, "") || @object_name.sub!(/\[\]\]$/, "]")
+          if @object_name.include?("[]")
+            @object_name = @object_name.dup
+            @object_name.sub!(/\[\]$/, "") || @object_name.sub!(/\[\]\]$/, "]")
+          end
           @object = retrieve_object(options.delete(:object))
           @skip_default_ids = options.delete(:skip_default_ids)
           @allow_method_names_outside_object = options.delete(:allow_method_names_outside_object)
@@ -64,11 +67,16 @@ module ActionView
           def retrieve_object(object)
             if object
               object
-            elsif @template_object.instance_variable_defined?("@#{@object_name}")
-              @template_object.instance_variable_get("@#{@object_name}")
+            elsif @object_name.empty? || @object_name.include?("[")
+              # Model-less forms (form_with url: ...) and the nested syntax (item[subobject])
+              # can't name an instance variable, so skip the lookup instead of rescuing.
+              nil
+            else
+              ivar = "@#{@object_name}"
+              @template_object.instance_variable_get(ivar) if @template_object.instance_variable_defined?(ivar)
             end
           rescue NameError
-            # As @object_name may contain the nested syntax (item[subobject]) we need to fallback to nil.
+            # Any other name that isn't a valid instance variable name falls back to nil.
             nil
           end
 

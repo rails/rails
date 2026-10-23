@@ -82,14 +82,12 @@ class PersistenceTest < ActiveRecord::TestCase
 
       assert_equal "A", record.binary_default_function
 
-      if supports_identity_columns?
-        klass = Class.new(ActiveRecord::Base) do
-          self.table_name = "postgresql_identity_table"
-        end
-
-        record = klass.create!
-        assert_not_nil record.id
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "postgresql_identity_table"
       end
+
+      record = klass.create!
+      assert_not_nil record.id
     end
 
     def test_fills_auto_populated_columns_on_update

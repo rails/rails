@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "digest/sha2"
 require "fileutils"
 require "json"

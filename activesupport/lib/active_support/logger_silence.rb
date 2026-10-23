@@ -3,6 +3,7 @@
 
 require "active_support/concern"
 require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/class/attribute"
 require "active_support/logger_thread_safe_level"
 
 module ActiveSupport
@@ -10,7 +11,7 @@ module ActiveSupport
     extend ActiveSupport::Concern
 
     included do
-      cattr_accessor :silencer, default: true
+      class_attribute :silencer, default: true, instance_writer: false, instance_predicate: false
       include ActiveSupport::LoggerThreadSafeLevel
     end
 

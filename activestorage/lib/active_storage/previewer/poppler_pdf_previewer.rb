@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveStorage
   class Previewer::PopplerPDFPreviewer < Previewer
     class << self

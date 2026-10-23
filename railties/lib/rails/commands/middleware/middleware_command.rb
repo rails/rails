@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Rails
   module Command
     class MiddlewareCommand < Base # :nodoc:

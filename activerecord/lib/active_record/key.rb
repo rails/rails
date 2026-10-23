@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   class Key # :nodoc:
-    include Enumerable
-
     def self.for(name)
       key = case name
       when Array
@@ -23,9 +22,7 @@ module ActiveRecord
       true
     end
 
-    def each(&block)
-      @columns.each(&block)
-    end
+    delegate :each, :index_with, to: :@columns
 
     def all?(...) = @columns.all?(...)
     def any?(...) = @columns.any?(...)
@@ -115,13 +112,13 @@ module ActiveRecord
       raise NotImplementedError
     end
 
-    # Returns true if every column of this key is also a column of +other+.
+    # Returns true if every column of this key is also a column of `other`.
     def subset?(other)
       raise NotImplementedError
     end
 
     # Returns this key with each column resolved through the aliases of
-    # +owner+, a model or record, or self when no column is aliased.
+    # `owner`, a model or record, or self when no column is aliased.
     def resolve_aliases(owner)
       raise NotImplementedError
     end
@@ -201,7 +198,7 @@ module ActiveRecord
       end
 
       def _value_of(record, normalizers = nil)
-        value = record._read_attr(@name)
+        value = record._read_attribute(@name)
         normalizer = normalizers&.first
         normalizer ? normalizer.call(value) : value
       end
@@ -292,12 +289,12 @@ module ActiveRecord
       def _value_of(record, normalizers = nil)
         if normalizers
           Array.new(@columns.length) do |index|
-            value = record._read_attr(@columns[index])
+            value = record._read_attribute(@columns[index])
             normalizer = normalizers[index]
             normalizer ? normalizer.call(value) : value
           end
         else
-          @columns.map { |column| record._read_attr(column) }
+          @columns.map { |column| record._read_attribute(column) }
         end
       end
 
@@ -314,7 +311,7 @@ module ActiveRecord
         @inferred_key.name
       end
 
-      # The Key form of +inferred_id+.
+      # The Key form of `inferred_id`.
       attr_reader :inferred_key
 
       def where_clauses(values)

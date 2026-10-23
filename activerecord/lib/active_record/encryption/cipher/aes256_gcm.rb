@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/inspect_backport"
 require "openssl"
 
@@ -11,7 +12,7 @@ module ActiveRecord
       # By default it will use random initialization vectors. For deterministic encryption, it will use a SHA-256 hash of
       # the text to encrypt and the secret.
       #
-      # See +Encryptor+
+      # See `Encryptor`
       class Aes256Gcm
         CIPHER_TYPE = "aes-256-gcm"
 

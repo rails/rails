@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 
+# :markup: markdown
 module ActiveRecord
   include ActiveSupport::Deprecation::DeprecatedConstantAccessor
 
-  # = Active Record Errors
+  # Active Record Errors
+  # ====================
   #
   # Generic Active Record exception class.
   class ActiveRecordError < StandardError
@@ -12,23 +14,25 @@ module ActiveRecord
 
   # Raised when the single-table inheritance mechanism fails to locate the subclass
   # (for example due to improper usage of column that
-  # {ActiveRecord::Base.inheritance_column}[rdoc-ref:ModelSchema.inheritance_column]
+  # [ActiveRecord::Base.inheritance_column](rdoc-ref:ModelSchema.inheritance_column)
   # points to).
   class SubclassNotFound < ActiveRecordError
   end
 
   # Raised when an object assigned to an association has an incorrect type.
   #
-  #   class Ticket < ActiveRecord::Base
-  #     has_many :patches
-  #   end
+  # ```
+  # class Ticket < ActiveRecord::Base
+  #   has_many :patches
+  # end
   #
-  #   class Patch < ActiveRecord::Base
-  #     belongs_to :ticket
-  #   end
+  # class Patch < ActiveRecord::Base
+  #   belongs_to :ticket
+  # end
   #
-  #   # Comments are not patches, this assignment raises AssociationTypeMismatch.
-  #   @ticket.patches << Comment.new(content: "Please attach tests to your patch.")
+  # # Comments are not patches, this assignment raises AssociationTypeMismatch.
+  # @ticket.patches << Comment.new(content: "Please attach tests to your patch.")
+  # ```
   class AssociationTypeMismatch < ActiveRecordError
   end
 
@@ -37,7 +41,7 @@ module ActiveRecord
   end
 
   # Raised when adapter not specified on connection (or configuration file
-  # +config/database.yml+ misses adapter field).
+  # `config/database.yml` misses adapter field).
   class AdapterNotSpecified < ActiveRecordError
   end
 
@@ -46,7 +50,7 @@ module ActiveRecord
   end
 
   # Raised when Active Record cannot find database adapter specified in
-  # +config/database.yml+ or programmatically.
+  # `config/database.yml` or programmatically.
   class AdapterNotFound < ActiveRecordError
   end
 
@@ -61,8 +65,8 @@ module ActiveRecord
   end
 
   # Raised when connection to the database could not been established (for example when
-  # {ActiveRecord::Base.lease_connection=}[rdoc-ref:ConnectionHandling#lease_connection]
-  # is given a +nil+ object).
+  # [ActiveRecord::Base.lease_connection=](rdoc-ref:ConnectionHandling#lease_connection)
+  # is given a `nil` object).
   class ConnectionNotEstablished < AdapterError
     def initialize(message = nil, connection_pool: nil)
       super(message, connection_pool: connection_pool)
@@ -122,8 +126,8 @@ module ActiveRecord
 
   # Raised when a pool was unable to get ahold of all its connections
   # to perform a "group" action such as
-  # {ActiveRecord::Base.connection_pool.disconnect!}[rdoc-ref:ConnectionAdapters::ConnectionPool#disconnect!]
-  # or {ActiveRecord::Base.connection_handler.clear_reloadable_connections!}[rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!].
+  # [ActiveRecord::Base.connection_pool.disconnect!](rdoc-ref:ConnectionAdapters::ConnectionPool#disconnect!)
+  # or [ActiveRecord::Base.connection_handler.clear_reloadable_connections!](rdoc-ref:ConnectionAdapters::ConnectionHandler#clear_reloadable_connections!).
   class ExclusiveConnectionTimeoutError < ConnectionTimeoutError
   end
 
@@ -132,7 +136,7 @@ module ActiveRecord
   end
 
   # Raised when shard swapping is attempted on a connection that prohibits it.
-  # See {ActiveRecord::ConnectionHandling#prohibit_shard_swapping}[rdoc-ref:ConnectionHandling#prohibit_shard_swapping].
+  # See [ActiveRecord::ConnectionHandling#prohibit_shard_swapping](rdoc-ref:ConnectionHandling#prohibit_shard_swapping).
   class ShardSwapProhibitedError < ArgumentError
     # This subclasses ArgumentError for backwards compatibility.
   end
@@ -150,19 +154,21 @@ module ActiveRecord
     end
   end
 
-  # Raised by {ActiveRecord::Base#save!}[rdoc-ref:Persistence#save!] and
-  # {ActiveRecord::Base.update_attribute!}[rdoc-ref:Persistence#update_attribute!]
+  # Raised by [ActiveRecord::Base#save!](rdoc-ref:Persistence#save!) and
+  # [ActiveRecord::Base.update_attribute!](rdoc-ref:Persistence#update_attribute!)
   # methods when a record failed to validate or cannot be saved due to any of the
-  # <tt>before_*</tt> callbacks throwing +:abort+. See
+  # `before_*` callbacks throwing `:abort`. See
   # ActiveRecord::Callbacks for further details.
   #
-  #   class Product < ActiveRecord::Base
-  #     before_save do
-  #       throw :abort if price < 0
-  #     end
+  # ```
+  # class Product < ActiveRecord::Base
+  #   before_save do
+  #     throw :abort if price < 0
   #   end
+  # end
   #
-  #   Product.create! # => raises an ActiveRecord::RecordNotSaved
+  # Product.create! # => raises an ActiveRecord::RecordNotSaved
+  # ```
   class RecordNotSaved < ActiveRecordError
     attr_reader :record
 
@@ -172,18 +178,20 @@ module ActiveRecord
     end
   end
 
-  # Raised by {ActiveRecord::Base#destroy!}[rdoc-ref:Persistence#destroy!]
+  # Raised by [ActiveRecord::Base#destroy!](rdoc-ref:Persistence#destroy!)
   # when a record cannot be destroyed due to any of the
-  # <tt>before_destroy</tt> callbacks throwing +:abort+. See
+  # `before_destroy` callbacks throwing `:abort`. See
   # ActiveRecord::Callbacks for further details.
   #
-  #   class User < ActiveRecord::Base
-  #     before_destroy do
-  #       throw :abort if still_active?
-  #     end
+  # ```
+  # class User < ActiveRecord::Base
+  #   before_destroy do
+  #     throw :abort if still_active?
   #   end
+  # end
   #
-  #   User.first.destroy! # => raises an ActiveRecord::RecordNotDestroyed
+  # User.first.destroy! # => raises an ActiveRecord::RecordNotDestroyed
+  # ```
   class RecordNotDestroyed < ActiveRecordError
     attr_reader :record
 
@@ -205,7 +213,7 @@ module ActiveRecord
 
   # Superclass for all database execution errors.
   #
-  # Wraps the underlying database error as +cause+.
+  # Wraps the underlying database error as `cause`.
   class StatementInvalid < AdapterError
     def initialize(message = nil, sql: nil, binds: nil, connection_pool: nil)
       super(message || $!&.message, connection_pool: connection_pool)
@@ -328,12 +336,14 @@ module ActiveRecord
   end
 
   # Raised when the number of placeholders in an SQL fragment passed to
-  # {ActiveRecord::Base.where}[rdoc-ref:QueryMethods#where]
+  # [ActiveRecord::Base.where](rdoc-ref:QueryMethods#where)
   # does not match the number of values supplied.
   #
   # For example, when there are two placeholders with only one value supplied:
   #
-  #   Location.where("lat = ? AND lng = ?", 53.7362)
+  # ```
+  # Location.where("lat = ? AND lng = ?", 53.7362)
+  # ```
   class PreparedStatementInvalid < ActiveRecordError
   end
 
@@ -397,8 +407,8 @@ module ActiveRecord
 
   # Raised when association is being configured improperly or user tries to use
   # offset and limit together with
-  # {ActiveRecord::Base.has_many}[rdoc-ref:Associations::ClassMethods#has_many] or
-  # {ActiveRecord::Base.has_and_belongs_to_many}[rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many]
+  # [ActiveRecord::Base.has_many](rdoc-ref:Associations::ClassMethods#has_many) or
+  # [ActiveRecord::Base.has_and_belongs_to_many](rdoc-ref:Associations::ClassMethods#has_and_belongs_to_many)
   # associations.
   class ConfigurationError < ActiveRecordError
   end
@@ -411,40 +421,42 @@ module ActiveRecord
   #
   # You can resolve this error by eager loading marked records before accessing
   # them. The
-  # {Eager Loading Associations}[https://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations]
+  # [Eager Loading Associations](https://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations)
   # guide covers solutions, such as using
-  # {ActiveRecord::Base.includes}[rdoc-ref:QueryMethods#includes].
+  # [ActiveRecord::Base.includes](rdoc-ref:QueryMethods#includes).
   class StrictLoadingViolationError < ActiveRecordError
   end
 
-  # {ActiveRecord::Base.transaction}[rdoc-ref:Transactions::ClassMethods#transaction]
+  # [ActiveRecord::Base.transaction](rdoc-ref:Transactions::ClassMethods#transaction)
   # uses this exception to distinguish a deliberate rollback from other exceptional situations.
   # Normally, raising an exception will cause the
-  # {.transaction}[rdoc-ref:Transactions::ClassMethods#transaction] method to rollback
-  # the database transaction *and* pass on the exception. But if you raise an
+  # [.transaction](rdoc-ref:Transactions::ClassMethods#transaction) method to rollback
+  # the database transaction **and** pass on the exception. But if you raise an
   # ActiveRecord::Rollback exception, then the database transaction will be rolled back,
   # without passing on the exception.
   #
   # For example, you could do this in your controller to rollback a transaction:
   #
-  #   class BooksController < ActionController::Base
-  #     def create
-  #       Book.transaction do
-  #         book = Book.new(params[:book])
-  #         book.save!
-  #         if today_is_friday?
-  #           # The system must fail on Friday so that our support department
-  #           # won't be out of job. We silently rollback this transaction
-  #           # without telling the user.
-  #           raise ActiveRecord::Rollback
-  #         end
+  # ```
+  # class BooksController < ActionController::Base
+  #   def create
+  #     Book.transaction do
+  #       book = Book.new(params[:book])
+  #       book.save!
+  #       if today_is_friday?
+  #         # The system must fail on Friday so that our support department
+  #         # won't be out of job. We silently rollback this transaction
+  #         # without telling the user.
+  #         raise ActiveRecord::Rollback
   #       end
-  #       # ActiveRecord::Rollback is the only exception that won't be passed on
-  #       # by ActiveRecord::Base.transaction, so this line will still be reached
-  #       # even on Friday.
-  #       redirect_to root_url
   #     end
+  #     # ActiveRecord::Rollback is the only exception that won't be passed on
+  #     # by ActiveRecord::Base.transaction, so this line will still be reached
+  #     # even on Friday.
+  #     redirect_to root_url
   #   end
+  # end
+  # ```
   class Rollback < ActiveRecordError
   end
 
@@ -457,8 +469,8 @@ module ActiveRecord
   UnknownAttributeError = ActiveModel::UnknownAttributeError
 
   # Raised when an error occurred while doing a mass assignment to an attribute through the
-  # {ActiveRecord::Base#attributes=}[rdoc-ref:ActiveModel::AttributeAssignment#attributes=] method.
-  # The exception has an +attribute+ property that is the name of the offending attribute.
+  # [ActiveRecord::Base#attributes=](rdoc-ref:ActiveModel::AttributeAssignment#attributes=) method.
+  # The exception has an `attribute` property that is the name of the offending attribute.
   class AttributeAssignmentError < ActiveRecordError
     attr_reader :exception, :attribute
 
@@ -470,8 +482,8 @@ module ActiveRecord
   end
 
   # Raised when there are multiple errors while doing a mass assignment through the
-  # {ActiveRecord::Base#attributes=}[rdoc-ref:ActiveModel::AttributeAssignment#attributes=]
-  # method. The exception has an +errors+ property that contains an array of AttributeAssignmentError
+  # [ActiveRecord::Base#attributes=](rdoc-ref:ActiveModel::AttributeAssignment#attributes=)
+  # method. The exception has an `errors` property that contains an array of AttributeAssignmentError
   # objects, each corresponding to the error while assigning to an attribute.
   class MultiparameterAssignmentErrors < ActiveRecordError
     attr_reader :errors
@@ -499,16 +511,18 @@ module ActiveRecord
 
   # Raised when a relation cannot be mutated because it's already loaded.
   #
-  #   class Task < ActiveRecord::Base
-  #   end
+  # ```
+  # class Task < ActiveRecord::Base
+  # end
   #
-  #   relation = Task.all
-  #   relation.load
-  #   relation.loaded? # => true
+  # relation = Task.all
+  # relation.load
+  # relation.loaded? # => true
   #
-  #   # Methods which try to mutate a loaded relation fail.
-  #   relation.where!(title: 'TODO')  # => ActiveRecord::UnmodifiableRelation
-  #   relation.limit!(5)              # => ActiveRecord::UnmodifiableRelation
+  # # Methods which try to mutate a loaded relation fail.
+  # relation.where!(title: 'TODO')  # => ActiveRecord::UnmodifiableRelation
+  # relation.limit!(5)              # => ActiveRecord::UnmodifiableRelation
+  # ```
   class UnmodifiableRelation < ActiveRecordError
   end
 
@@ -533,7 +547,7 @@ module ActiveRecord
   # In that case, beware of transactional tests, however, because they run test
   # cases in their own umbrella transaction. If you absolutely need to handle
   # these exceptions in tests please consider disabling transactional tests in
-  # the affected test class (<tt>self.use_transactional_tests = false</tt>).
+  # the affected test class (`self.use_transactional_tests = false`).
   #
   # Due to the aforementioned side-effects, this exception should not be raised
   # manually by users.
@@ -567,12 +581,12 @@ module ActiveRecord
   end
 
   # MissingRequiredOrderError is raised when a relation requires ordering but
-  # lacks any +order+ values in scope or any model order columns to use.
+  # lacks any `order` values in scope or any model order columns to use.
   class MissingRequiredOrderError < ActiveRecordError
   end
 
   # IrreversibleOrderError is raised when a relation's order is too complex for
-  # +reverse_order+ to automatically reverse.
+  # `reverse_order` to automatically reverse.
   class IrreversibleOrderError < ActiveRecordError
   end
 
@@ -612,14 +626,18 @@ module ActiveRecord
   #
   # For example, the following code would raise this exception:
   #
-  #   Post.order("REPLACE(title, 'misc', 'zzzz') asc").pluck(:id)
+  # ```
+  # Post.order("REPLACE(title, 'misc', 'zzzz') asc").pluck(:id)
+  # ```
   #
   # The desired result can be accomplished by wrapping the known-safe string
   # in Arel.sql:
   #
-  #   Post.order(Arel.sql("REPLACE(title, 'misc', 'zzzz') asc")).pluck(:id)
+  # ```
+  # Post.order(Arel.sql("REPLACE(title, 'misc', 'zzzz') asc")).pluck(:id)
+  # ```
   #
-  # Again, such a workaround should *not* be used when passing user-provided
+  # Again, such a workaround should **not** be used when passing user-provided
   # values, such as request parameters or model attributes to query methods.
   class UnknownAttributeReference < ActiveRecordError
   end

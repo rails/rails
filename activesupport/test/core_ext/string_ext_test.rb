@@ -456,6 +456,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_not_predicate "Hello World!".truncate(12), :html_safe?
   end
 
+  def test_truncate_of_html_safe_string_should_not_be_html_safe
+    assert_not_predicate "Hello World!".html_safe.truncate(8), :html_safe?
+    assert_not_predicate "<b>Hello</b> World!".html_safe.truncate(8), :html_safe?
+  end
+
   def test_remove
     original = "This is a good day to die"
     assert_equal "This is a good day", original.remove(" to die")

@@ -226,10 +226,9 @@ module ActiveRecord
           end
 
           def cast_result(result)
-            ar_result = if result.fields.empty?
+            ar_result = if (fields = result.fields).empty?
               ActiveRecord::Result.empty(affected_rows: result.cmd_tuples)
             else
-              fields = result.fields
               types = Array.new(fields.size)
               field_types = Array.new(fields.size)
               missing_oids = []

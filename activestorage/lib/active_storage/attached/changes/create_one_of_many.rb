@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveStorage
   class Attached::Changes::CreateOneOfMany < Attached::Changes::CreateOne # :nodoc:
     private

@@ -1,3 +1,22 @@
+*   Keep route redirects from a string template on the request host.
+
+    For `redirect("/%{path}")`, the request `GET /old/%2Finjected.example` made
+    the target `//injected.example`, which browsers follow to another host. So did
+    a scheme in a param at the start of the template, as in `redirect("%{path}")`.
+    When interpolation would give the target a scheme or host that the template
+    lacks, the delimiter is now percent-encoded. Templates that name a scheme or
+    host, such as `redirect("//cdn.example.com/%{path}")`, are unchanged.
+
+    *Mike Dalessio*
+
+*   Deprecate the `ssl_default_redirect_status:` argument of `ActionDispatch::SSL`.
+
+    As of Rails 6.1, the default status is 308. This deprecates overriding it.
+    `ActionDispatch::SSL` used directly without the argument now also uses 308
+    instead of 307.
+
+    *Ben Sheldon*
+
 *   Short-circuit route matching for static paths.
 
     The route set now precomputes an exact-match table from request method

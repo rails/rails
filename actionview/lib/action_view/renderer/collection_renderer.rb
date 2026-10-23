@@ -166,11 +166,13 @@ module ActionView
             RenderedTemplate::EMPTY_SPACER
           end
 
-          # Caching and per-item layouts need each item's body on its own.
-          # Otherwise every item is rendered into one shared buffer, which
-          # saves a buffer and a RenderedTemplate per item that would only
-          # be joined back together.
-          if layout.nil? && !(template && will_cache?(@options, view))
+          # Caching, per-item layouts and subclasses (like Jbuilder's, which
+          # collects each item's result) need each item's body on its own,
+          # and only templates that write into the buffer they are given can
+          # share one. Otherwise every item is rendered into one shared
+          # buffer, which saves a buffer and a RenderedTemplate per item that
+          # would only be joined back together.
+          if instance_of?(CollectionRenderer) && layout.nil? && template && renders_into_buffer?(template) && !will_cache?(@options, view)
             return collection_into_buffer(view, template, collection, spacer, &block)
           end
 
@@ -186,6 +188,14 @@ module ActionView
 
           build_rendered_collection(collection_body, spacer)
         end
+      end
+
+      # ERB's compiled templates append to the output buffer they are run
+      # with. Other handlers (html, raw, Jbuilder, jb...) return their result
+      # instead, which Template#render drops when it is given a buffer, so
+      # their items have to be rendered one by one.
+      def renders_into_buffer?(template)
+        Template::Handlers::ERB === template.handler
       end
 
       def collection_into_buffer(view, template, collection, spacer, &block)
@@ -204,7 +214,7 @@ module ActionView
           locals[counter]   = index
           locals[iteration] = partial_iteration
 
-          _template = (cache[path] ||= (template || find_template(path, @locals.keys + [as, counter, iteration])))
+          _template, implicit_locals = (cache[path] ||= [template || find_template(path, @locals.keys + [as, counter, iteration]), [counter, iteration]])
 
           if buffer
             buffer.safe_concat(spacer_body) unless spacer_body.empty?
@@ -213,7 +223,7 @@ module ActionView
             first_template = _template
           end
 
-          _template.render(view, locals, buffer, implicit_locals: [counter, iteration], &block)
+          _template.render(view, locals, buffer, implicit_locals: implicit_locals, &block)
           partial_iteration.iterate!
         end
 
@@ -237,9 +247,9 @@ module ActionView
           locals[counter]   = index
           locals[iteration] = partial_iteration
 
-          _template = (cache[path] ||= (template || find_template(path, @locals.keys + [as, counter, iteration])))
+          _template, implicit_locals = (cache[path] ||= [template || find_template(path, @locals.keys + [as, counter, iteration]), [counter, iteration]])
 
-          content = _template.render(view, locals, implicit_locals: [counter, iteration], &block)
+          content = _template.render(view, locals, implicit_locals: implicit_locals, &block)
           content = layout.render(view, locals) { content } if layout
           partial_iteration.iterate!
           build_rendered_template(content, _template)

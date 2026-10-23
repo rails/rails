@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   class Template
-    # = Action View Renderable Template for objects that respond to #render_in
+    # Action View Renderable Template for objects that respond to #render_in
+    # ======================================================================
     class Renderable # :nodoc:
       def initialize(renderable, &block)
         @renderable = renderable

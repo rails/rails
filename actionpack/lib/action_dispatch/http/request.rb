@@ -31,6 +31,7 @@ module ActionDispatch
 
     LOCALHOST = Regexp.union([/^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, /^::1$/, /^0:0:0:0:0:0:0:1(%.*)?$/]).freeze
 
+    # Environment keys displayed on exception pages.
     ENV_METHODS = %w[ AUTH_TYPE GATEWAY_INTERFACE
         PATH_TRANSLATED REMOTE_HOST
         REMOTE_IDENT REMOTE_USER REMOTE_ADDR
@@ -44,13 +45,104 @@ module ActionDispatch
         HTTP_X_CSRF_TOKEN HTTP_X_REQUEST_ID HTTP_X_FORWARDED_HOST
         ].freeze
 
-    ENV_METHODS.each do |env|
-      class_eval <<-METHOD, __FILE__, __LINE__ + 1
-        # frozen_string_literal: true
-        def #{env.delete_prefix("HTTP_").downcase}  # def accept_charset
-          get_header "#{env}"                       #   get_header "HTTP_ACCEPT_CHARSET"
-        end                                         # end
-      METHOD
+    def auth_type
+      get_header "AUTH_TYPE"
+    end
+
+    def gateway_interface
+      get_header "GATEWAY_INTERFACE"
+    end
+
+    def path_translated
+      get_header "PATH_TRANSLATED"
+    end
+
+    def remote_host
+      get_header "REMOTE_HOST"
+    end
+
+    def remote_ident
+      get_header "REMOTE_IDENT"
+    end
+
+    def remote_user
+      get_header "REMOTE_USER"
+    end
+
+    def remote_addr
+      get_header "REMOTE_ADDR"
+    end
+
+    def server_name
+      get_header "SERVER_NAME"
+    end
+
+    def server_protocol
+      get_header "SERVER_PROTOCOL"
+    end
+
+    def original_script_name
+      get_header "ORIGINAL_SCRIPT_NAME"
+    end
+
+    def accept
+      get_header "HTTP_ACCEPT"
+    end
+
+    def accept_charset
+      get_header "HTTP_ACCEPT_CHARSET"
+    end
+
+    def accept_encoding
+      get_header "HTTP_ACCEPT_ENCODING"
+    end
+
+    def accept_language
+      get_header "HTTP_ACCEPT_LANGUAGE"
+    end
+
+    def cache_control
+      get_header "HTTP_CACHE_CONTROL"
+    end
+
+    def from
+      get_header "HTTP_FROM"
+    end
+
+    def negotiate
+      get_header "HTTP_NEGOTIATE"
+    end
+
+    def pragma
+      get_header "HTTP_PRAGMA"
+    end
+
+    def client_ip
+      get_header "HTTP_CLIENT_IP"
+    end
+
+    def x_forwarded_for
+      get_header "HTTP_X_FORWARDED_FOR"
+    end
+
+    def origin
+      get_header "HTTP_ORIGIN"
+    end
+
+    def version
+      get_header "HTTP_VERSION"
+    end
+
+    def x_csrf_token
+      get_header "HTTP_X_CSRF_TOKEN"
+    end
+
+    def x_request_id
+      get_header "HTTP_X_REQUEST_ID"
+    end
+
+    def x_forwarded_host
+      get_header "HTTP_X_FORWARDED_HOST"
     end
 
     TRANSFER_ENCODING = "HTTP_TRANSFER_ENCODING" # :nodoc:
@@ -83,7 +175,9 @@ module ActionDispatch
     end
 
     def controller_class
-      controller_class_for(path_parameters[:controller])
+      fetch_header("action_dispatch.request.controller_class") do |k|
+        set_header k, controller_class_for(path_parameters[:controller])
+      end
     end
 
     def controller_class_for(name)
@@ -414,7 +508,7 @@ module ActionDispatch
     # Override Rack's GET method to support indifferent access.
     def GET
       fetch_header("action_dispatch.request.query_parameters") do |k|
-        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
+        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(routed_controller_class, path_parameters[:action])
         rack_query_params = ActionDispatch::ParamBuilder.from_query_string(rack_request.query_string, encoding_template: encoding_template)
 
         set_header k, rack_query_params
@@ -427,7 +521,7 @@ module ActionDispatch
     # Override Rack's POST method to support indifferent access.
     def POST
       fetch_header("action_dispatch.request.request_parameters") do
-        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(self, path_parameters[:controller], path_parameters[:action])
+        encoding_template = Http::Utils::CustomParamEncoder.action_encoding_template(routed_controller_class, path_parameters[:action])
 
         param_list = nil
         pr = parse_formatted_parameters(params_parsers) do
@@ -530,6 +624,14 @@ module ActionDispatch
     end
 
     private
+      # Like `controller_class`, but returns `nil` when the request was not routed
+      # to a controller.
+      def routed_controller_class
+        controller_class if path_parameters[:controller]&.valid_encoding?
+      rescue MissingController
+        nil
+      end
+
       def check_method(name)
         if name
           HTTP_METHOD_LOOKUP[name] || raise(ActionController::UnknownHttpMethod, "#{name}, accepted HTTP methods are #{HTTP_METHODS.to_sentence(locale: false)}")

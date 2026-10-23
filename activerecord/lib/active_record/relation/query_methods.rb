@@ -740,11 +740,17 @@ module ActiveRecord
       else
         arel_column = order_column(column.to_s)
 
-        unless arel_column.is_a?(Arel::Nodes::SqlLiteral)
-          values = cast_values_for_in_order_of(values, arel_column.type_caster)
-          if arel_column.is_a?(PredicateBuilder::ComparisonAttribute)
-            values = comparison_values_for_in_order_of(values, arel_column)
+        type_caster =
+          if arel_column.is_a?(Arel::Nodes::SqlLiteral)
+            model.type_caster.type_for_attribute(column)
+          else
+            arel_column.type_caster
           end
+
+        values = cast_values_for_in_order_of(values, type_caster)
+
+        if arel_column.is_a?(PredicateBuilder::ComparisonAttribute)
+          values = comparison_values_for_in_order_of(values, arel_column)
         end
         return spawn.none! if values.empty?
       end
@@ -1184,11 +1190,17 @@ module ActiveRecord
     # compatible is defined as: they must be scoping the same model, and they must differ only by
     # #where (if no #group has been defined) or #having (if a #group is present).
     #
-    #    Post.where("id = 1").structurally_compatible?(Post.where("author_id = 3"))
+    #    Post.where(id: 1).structurally_compatible?(Post.where(author_id: 3))
     #    # => true
     #
-    #    Post.joins(:comments).structurally_compatible?(Post.where("id = 1"))
+    #    Post.joins(:comments).structurally_compatible?(Post.joins(:author))
     #    # => false
+    #
+    # Since #and and #or are focused on combining where-like clauses, a multi-value clause that
+    # this relation sets and the other one leaves unset is not counted as a difference.
+    #
+    #    Post.joins(:comments).structurally_compatible?(Post.where(id: 1))
+    #    # => true
     #
     def structurally_compatible?(other)
       structurally_incompatible_values_for(other).empty?
@@ -1233,8 +1245,8 @@ module ActiveRecord
     # they must differ only by #where (if no #group has been defined) or #having (if a #group is
     # present).
     #
-    #    Post.where("id = 1").or(Post.where("author_id = 3"))
-    #    # SELECT `posts`.* FROM `posts` WHERE ((id = 1) OR (author_id = 3))
+    #    Post.where(id: 1).or(Post.where(author_id: 3))
+    #    # SELECT `posts`.* FROM `posts` WHERE (`posts`.`id` = 1 OR `posts`.`author_id` = 3)
     #
     def or(other)
       if other.is_a?(Relation)
@@ -1296,7 +1308,7 @@ module ActiveRecord
     #
     # Should be used with order.
     #
-    #   User.offset(10).order("name ASC")
+    #   User.offset(10).order(name: :asc)
     def offset(value)
       spawn.offset!(value)
     end
@@ -1673,8 +1685,7 @@ module ActiveRecord
     alias :without :excluding
 
     def excluding!(records) # :nodoc:
-      ids = records.map { |record| record.is_a?(model) ? record.id : record }
-      self.where_clause += build_where_clause(primary_key => ids).invert
+      self.where_clause += build_where_clause(primary_key => records).invert
       self
     end
 
@@ -1713,18 +1724,26 @@ module ActiveRecord
             parts = [model.bound_sql_literal_for("(#{opts})", rest)]
           end
         when Hash
+          attribute_aliases = model.attribute_aliases
+
           opts = opts.transform_keys do |key|
             if key.is_a?(Array)
-              key.map { |k| model.attribute_aliases[k.to_s] || k.to_s }
+              key.map do |k|
+                k = k.is_a?(Symbol) ? k.name : k.to_s
+                attribute_aliases[k] || k
+              end
             else
-              key = key.to_s
-              model.attribute_aliases[key] || key
+              key = key.is_a?(Symbol) ? key.name : key.to_s
+              attribute_aliases[key] || key
             end
           end
-          references = PredicateBuilder.references(opts)
-          self.references_values |= references unless references.empty?
+          opts = predicate_builder.convert_dot_notation_to_hash(opts)
 
-          parts = predicate_builder.build_from_hash(opts) do |table_name|
+          if (references = PredicateBuilder.references(opts))
+            self.references_values |= references
+          end
+
+          parts = predicate_builder.expand_from_hash(opts) do |table_name|
             lookup_table_klass_from_join_dependencies(table_name)
           end
         when Arel::Nodes::Node
@@ -2068,8 +2087,9 @@ module ActiveRecord
 
       def reverse_sql_order(order_query)
         if order_query.empty?
-          if !_order_columns.empty?
-            return _order_columns.map { |column| predicate_builder.predicate_attribute(table[column]).desc }
+          order_columns = _order_columns
+          if !order_columns.empty?
+            return order_columns.map { |column| predicate_builder.predicate_attribute(table[column]).desc }
           end
 
           raise IrreversibleOrderError, <<~MSG.squish
@@ -2113,8 +2133,11 @@ module ActiveRecord
       end
 
       def build_order(arel)
-        orders = order_values.compact_blank
-        orders = default_order_values.compact_blank if orders.empty?
+        orders = order_values
+        orders = orders.compact_blank unless orders.empty?
+        if orders.empty? && !default_order_values.empty?
+          orders = default_order_values.compact_blank
+        end
         arel.order(*orders) unless orders.empty?
       end
 
@@ -2322,7 +2345,7 @@ module ActiveRecord
             if value.nil?
               nil
             elsif !serialized.nil?
-              serialized
+              Arel::Nodes::Quoted.new(serialized)
             else
               bad_value
             end

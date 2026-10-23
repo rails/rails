@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/configuration_file"
 
 module ActiveRecord
@@ -8,7 +9,7 @@ module ActiveRecord
       include Enumerable
 
       ##
-      # Open a fixture file named +file+.  When called with a block, the block
+      # Open a fixture file named `file`.  When called with a block, the block
       # is called with the filehandle and the filehandle is automatically closed
       # when the block finishes.
       def self.open(file)

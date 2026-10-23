@@ -53,7 +53,13 @@ module ActiveRecord
 
         # Are there attributes associated with this scope?
         def scope_attributes? # :nodoc:
-          super || default_scopes.any? || respond_to?(:default_scope)
+          super || has_default_scope?
+        end
+
+        # Whether the model has a default scope, either declared with
+        # +default_scope+ or by overriding the +default_scope+ method.
+        def has_default_scope? # :nodoc:
+          default_scopes.any? || !Base.is_a?(method(:default_scope).owner)
         end
 
         # Checks if the model has any default scopes. If all_queries

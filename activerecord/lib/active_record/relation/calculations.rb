@@ -5,6 +5,9 @@ require "active_support/core_ext/enumerable"
 module ActiveRecord
   # = Active Record \Calculations
   module Calculations
+    COUNT_COLUMN_ALIAS = Arel.sql("count_column", retryable: true).freeze # :nodoc:
+    SUBQUERY_FOR_COUNT_ALIAS = Arel.sql("subquery_for_count", retryable: true).freeze # :nodoc:
+
     class ColumnAliasTracker # :nodoc:
       def initialize(connection)
         @connection = connection
@@ -324,7 +327,11 @@ module ActiveRecord
             ActiveRecord::Result.empty(async: @async)
           else
             model.with_connection do |c|
-              c.select_all(relation.arel, "#{model.name} Pluck", async: @async)
+              if @async
+                model._async_select_all(c, relation.arel, "#{model.name} Pluck")
+              else
+                c.select_all(relation.arel, "#{model.name} Pluck")
+              end
             end
           end
         end
@@ -482,7 +489,11 @@ module ActiveRecord
         else
           skip_query_cache_if_necessary do
             model.with_connection do |c|
-              c.select_all(query_builder, "#{model.name} #{operation.capitalize}", async: @async)
+              if @async
+                model._async_select_all(c, query_builder, "#{model.name} #{operation.capitalize}")
+              else
+                c.select_all(query_builder, "#{model.name} #{operation.capitalize}")
+              end
             end
           end
         end
@@ -548,7 +559,11 @@ module ActiveRecord
           relation.select_values = select_values
 
           result = skip_query_cache_if_necessary do
-            connection.select_all(relation.arel, "#{model.name} #{operation.capitalize}", async: @async)
+            if @async
+              model._async_select_all(connection, relation.arel, "#{model.name} #{operation.capitalize}")
+            else
+              connection.select_all(relation.arel, "#{model.name} #{operation.capitalize}")
+            end
           end
 
           result.then do |calculated_data|
@@ -661,14 +676,14 @@ module ActiveRecord
       def build_count_subquery(relation, column_name, distinct)
         if column_name == :all
           column_alias = Arel.star
-          relation.select_values = [ Arel.sql(FinderMethods::ONE_AS_ONE) ] unless distinct
+          relation.select_values = [ FinderMethods::ONE_AS_ONE_LITERAL ] unless distinct
           relation.unscope!(:order)
         else
-          column_alias = Arel.sql("count_column")
+          column_alias = COUNT_COLUMN_ALIAS
           relation.select_values = [ relation.aggregate_column(column_name).as(column_alias) ]
         end
 
-        subquery_alias = Arel.sql("subquery_for_count", retryable: true)
+        subquery_alias = SUBQUERY_FOR_COUNT_ALIAS
         select_value = operation_over_aggregate_column(column_alias, "count", false)
 
         relation.build_subquery(subquery_alias, select_value)

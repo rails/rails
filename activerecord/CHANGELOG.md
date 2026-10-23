@@ -1,3 +1,67 @@
+*   Fix `where` with an array of objects that delegate `#id`.
+
+    Such objects were expanded to their ids only when passed alone or in a one
+    element array, so a longer array was compared against `NULL`:
+
+    ```ruby
+    Author.where(id: [decorator.new(author_one), decorator.new(author_two)])
+    # WHERE "authors"."id" IN (NULL)
+    ```
+
+    *Ryuta Kamizono*
+
+*   Allow Active Record objects in the tuple `where` syntax.
+
+    The single column syntax already accepts records, so the tuple syntax now
+    accepts them too, and a record is expanded to its primary key values.
+
+    ```ruby
+    Cpk::Book.where([:author_id, :id] => book)
+    Cpk::Book.where([:author_id, :id] => [book_one, book_two])
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix `in_order_of` returning no records for types whose serialized value
+    changes when serialized again, like deterministic encryption, `json`
+    columns and `serialize` coders.
+
+    *Bruno Costanzo*
+
+*   Use native `ALTER TABLE ... RENAME COLUMN` for `rename_column` on SQLite.
+
+    `rename_column` rebuilt the table and copied index, check constraint and
+    virtual column SQL as written, so it failed when that SQL used the renamed
+    column. The rebuild also dropped triggers on the table, broke foreign keys
+    from other tables to the column, and lost a string primary key. SQLite
+    updates all of these when it renames the column itself.
+
+    *Bruno Costanzo*
+
+*   Deprecate `config.active_record.raise_on_assign_to_attr_readonly`.
+
+    It has been a framework default since version 7.1, and keeping it as
+    a configuration flag is preventing further optimization of attribute
+    accessors. It will be removed in 9.0.
+
+    *Jean Boussier*
+
+*   Bump the minimum supported MySQL version to 5.7.9.
+
+    This drops the workarounds for indexing `utf8mb4` `varchar(255)` columns.
+    On MySQL 5.6, InnoDB created tables as `ROW_FORMAT=COMPACT`, whose 767 byte
+    index prefix is too small for `varchar(255)` at four bytes per character,
+    so such an index required `innodb_file_per_table`,
+    `innodb_file_format = 'Barracuda'` and `innodb_large_prefix` to be enabled
+    on the server. Active Record worked around that by emitting
+    `ROW_FORMAT=DYNAMIC` on every `CREATE TABLE`, and by refusing to create a
+    `utf8mb4` database when the server was not configured that way. 5.7.9 is
+    the version where `innodb_default_row_format` defaults to `DYNAMIC`
+    (MariaDB 10.2.2), so neither is needed any more and tables are created
+    without an explicit `ROW_FORMAT`.
+
+    *Ryuta Kamizono*
+
 *   Truncate tables shadowed by a same-named table earlier on the PostgreSQL
     `search_path`.
 
@@ -24,13 +88,6 @@
     `after_rollback` callbacks run.
 
     *Cole Robertson*
-
-*   Deprecate `supports_native_partitioning?` on the PostgreSQL adapter.
-
-    It always returns `true` since the minimum PostgreSQL version became 10.0,
-    which supports native partitioning.
-
-    *Yasuo Honda*
 
 *   Dump `create_schema` with `if_not_exists: true` for every schema that holds
     a dumped extension.

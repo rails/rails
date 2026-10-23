@@ -2,7 +2,8 @@
 
 # :markup: markdown
 
-require "concurrent"
+require "concurrent/executor/thread_pool_executor"
+require "concurrent/timer_task"
 require "monitor"
 
 module ActionCable

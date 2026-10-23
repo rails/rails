@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveStorage
   class Analyzer::NullAnalyzer < Analyzer # :nodoc:
     def self.accept?(blob)

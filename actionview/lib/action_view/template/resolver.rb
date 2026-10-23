@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
@@ -7,7 +8,8 @@ require "action_view/template"
 require "concurrent/map"
 
 module ActionView
-  # = Action View Resolver
+  # Action View Resolver
+  # ====================
   class Resolver
     class PathParser # :nodoc:
       ParsedPath = Struct.new(:path, :details)

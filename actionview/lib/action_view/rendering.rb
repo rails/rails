@@ -182,7 +182,7 @@ module ActionView
           options[:partial] = action_name
         end
 
-        if !options.keys.intersect?([:partial, :file, :template])
+        if !(options.key?(:partial) || options.key?(:file) || options.key?(:template))
           options[:prefixes] ||= _prefixes
         end
 

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "openssl"
 
 module ActiveRecord
@@ -17,7 +18,9 @@ module ActiveRecord
 
       # Configure previous encryption schemes.
       #
-      #   config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
+      # ```
+      # config.active_record.encryption.previous = [ { key_provider: MyOldKeyProvider.new } ]
+      # ```
       def previous=(previous_schemes_properties)
         previous_schemes_properties.each do |properties|
           add_previous_scheme(**properties)

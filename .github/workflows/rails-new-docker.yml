@@ -27,7 +27,17 @@ jobs:
         bundle exec railties/exe/rails new $APP_PATH --dev
     - name: Build image
       run: |
+        # The generated Dockerfile uses the exact Ruby version of the runner, but the
+        # official image for a new Ruby release can lag behind the release by a day or so.
+        # Until it is published, build from the minor series tag, which points at the
+        # newest published patch release.
+        RUBY_VERSION=$(ruby -e "print Gem.ruby_version")
+        if ! podman manifest inspect docker.io/library/ruby:$RUBY_VERSION-slim > /dev/null 2>&1; then
+          echo "::warning::docker.io/library/ruby:$RUBY_VERSION-slim is not published yet, falling back to ruby:${RUBY_VERSION%.*}-slim"
+          RUBY_VERSION=${RUBY_VERSION%.*}
+        fi
         podman build -t $APP_NAME \
+        --build-arg RUBY_VERSION=$RUBY_VERSION \
         -v $(pwd):$(pwd) \
         -f ./$APP_PATH/Dockerfile \
         ./$APP_PATH

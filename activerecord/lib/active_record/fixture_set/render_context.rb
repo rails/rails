@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "base64"
 
 # NOTE: This class has to be defined in compact style in

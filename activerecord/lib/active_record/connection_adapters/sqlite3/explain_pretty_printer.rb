@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     module SQLite3
@@ -7,8 +8,10 @@ module ActiveRecord
         # Pretty prints the result of an EXPLAIN QUERY PLAN in a way that resembles
         # the output of the SQLite shell:
         #
-        #   0|0|0|SEARCH TABLE users USING INTEGER PRIMARY KEY (rowid=?) (~1 rows)
-        #   0|1|1|SCAN TABLE posts (~100000 rows)
+        # ```
+        # 0|0|0|SEARCH TABLE users USING INTEGER PRIMARY KEY (rowid=?) (~1 rows)
+        # 0|1|1|SCAN TABLE posts (~100000 rows)
+        # ```
         #
         def pp(result)
           result.map do |row|

@@ -34,7 +34,7 @@ module ActionMailer
     end
 
     # Method calls are delegated to the Mail::Message that's ready to deliver.
-    def __getobj__ # :nodoc:
+    def __getobj__(&) # :nodoc:
       @mail_message ||= processed_mailer.message
     end
 
@@ -47,6 +47,15 @@ module ActionMailer
     def message
       __getobj__
     end
+
+    ALREADY_PROCESSED_MESSAGE = "You've accessed the message before asking to " \
+      "deliver it later, so you may have made local changes that would " \
+      "be silently lost if we enqueued a job to deliver it. Why? Only " \
+      "the mailer method *arguments* are passed with the delivery job! " \
+      "Do not access the message in any way if you mean to deliver it " \
+      "later. Workarounds: 1. don't touch the message before calling " \
+      "#deliver_later, 2. only touch the message *within your mailer " \
+      "method*, or 3. use a custom Active Job instead of #deliver_later." # :nodoc:
 
     # Was the delegate loaded, causing the mailer action to be processed?
     def processed?
@@ -157,14 +166,7 @@ module ActionMailer
 
       def enqueue_delivery(delivery_method, options = {})
         if processed?
-          ::Kernel.raise "You've accessed the message before asking to " \
-            "deliver it later, so you may have made local changes that would " \
-            "be silently lost if we enqueued a job to deliver it. Why? Only " \
-            "the mailer method *arguments* are passed with the delivery job! " \
-            "Do not access the message in any way if you mean to deliver it " \
-            "later. Workarounds: 1. don't touch the message before calling " \
-            "#deliver_later, 2. only touch the message *within your mailer " \
-            "method*, or 3. use a custom Active Job instead of #deliver_later."
+          ::Kernel.raise ALREADY_PROCESSED_MESSAGE
         else
           @mailer_class.delivery_job.set(options).perform_later(
             @mailer_class.name, @action.to_s, delivery_method.to_s, args: @args)

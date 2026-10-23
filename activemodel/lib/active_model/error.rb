@@ -51,7 +51,11 @@ module ActiveModel
       defaults << :"errors.format"
       defaults << "%{attribute} %{message}"
 
-      attr_name = attribute.remove(/\.base\z/).tr(".", "_").humanize
+      attr_name = if attribute.include?(".")
+        attribute.remove(/\.base\z/).tr(".", "_").humanize
+      else
+        attribute.humanize
+      end
       attr_name = base_class.human_attribute_name(attribute, {
         default: attr_name,
         base: base,
@@ -76,11 +80,13 @@ module ActiveModel
 
       if base.class.respond_to?(:i18n_scope)
         i18n_scope = base.class.i18n_scope.to_s
-        attribute = attribute.to_s.remove(/\[\d+\]/)
+        attribute = attribute.to_s
+        attribute = attribute.remove(/\[\d+\]/) if attribute.include?("[")
 
-        defaults = base.class.lookup_ancestors.flat_map do |klass|
-          [ :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
-            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
+        defaults = []
+        base.class.lookup_ancestors.each do |klass|
+          defaults << :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}"
+          defaults << :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}"
         end
         defaults << :"#{i18n_scope}.errors.messages.#{type}"
 

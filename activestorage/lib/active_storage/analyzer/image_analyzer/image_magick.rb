@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 begin
   gem "mini_magick"
   require "mini_magick"
@@ -10,8 +11,8 @@ rescue LoadError => error
 end
 
 module ActiveStorage
-  # This analyzer relies on the third-party {MiniMagick}[https://github.com/minimagick/minimagick] gem. MiniMagick requires
-  # the {ImageMagick}[http://www.imagemagick.org] system library.
+  # This analyzer relies on the third-party [MiniMagick](https://github.com/minimagick/minimagick) gem. MiniMagick requires
+  # the [ImageMagick](http://www.imagemagick.org) system library.
   class Analyzer::ImageAnalyzer::ImageMagick < Analyzer::ImageAnalyzer
     def self.accept?(blob)
       super && ActiveStorage.variant_processor == :mini_magick

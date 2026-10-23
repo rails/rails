@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Rails
   class Application
     class DefaultMiddlewareStack
@@ -22,8 +23,11 @@ module Rails
           end
 
           if config.force_ssl
-            middleware.use ::ActionDispatch::SSL, **config.ssl_options,
-              ssl_default_redirect_status: config.action_dispatch.ssl_default_redirect_status
+            ssl_options = config.ssl_options
+            unless config.action_dispatch.ssl_default_redirect_status == 308
+              ssl_options = ssl_options.merge(ssl_default_redirect_status: config.action_dispatch.ssl_default_redirect_status)
+            end
+            middleware.use ::ActionDispatch::SSL, **ssl_options
           end
 
           if config.action_dispatch.x_sendfile_header

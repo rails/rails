@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveStorage
-  # = Active Storage \Analyzer
+  # Active Storage \Analyzer
+  # ========================
   #
   # This is an abstract base class for analyzers, which extract metadata from blobs. See
   # ActiveStorage::Analyzer::VideoAnalyzer for an example of a concrete subclass.
