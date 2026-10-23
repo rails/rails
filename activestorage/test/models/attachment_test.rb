@@ -448,6 +448,36 @@ class ActiveStorage::AttachmentTest < ActiveSupport::TestCase
     end
   end
 
+  test "attaching one blob to several records in a transaction enqueues AnalyzeJob once" do
+    blob = directly_upload_file_blob(filename: "racecar.jpg")
+    group = Group.create!
+
+    assert_enqueued_jobs 1, only: ActiveStorage::AnalyzeJob do
+      ActiveRecord::Base.transaction do
+        @user.avatar.attach(blob)
+        group.avatar.attach(blob)
+      end
+    end
+  end
+
+  test "attaching a freshly loaded copy of an unanalyzed blob still enqueues AnalyzeJob" do
+    blob = directly_upload_file_blob(filename: "racecar.jpg")
+    @user.avatar.attach(blob)
+
+    assert_enqueued_jobs 1, only: ActiveStorage::AnalyzeJob do
+      Group.create!.avatar.attach(ActiveStorage::Blob.find(blob.id))
+    end
+  end
+
+  test "analyze_later still enqueues AnalyzeJob for a blob an attachment already queued" do
+    blob = directly_upload_file_blob(filename: "racecar.jpg")
+    @user.avatar.attach(blob)
+
+    assert_enqueued_jobs 1, only: ActiveStorage::AnalyzeJob do
+      blob.analyze_later
+    end
+  end
+
   test "global ActiveStorage.analyze = :lazily skips enqueuing AnalyzeJob" do
     original = ActiveStorage.analyze
     ActiveStorage.analyze = :lazily
