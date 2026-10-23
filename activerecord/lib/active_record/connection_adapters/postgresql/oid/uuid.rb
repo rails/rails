@@ -28,16 +28,14 @@ module ActiveRecord
           private
             def cast_value(value)
               value = value.to_s
+              return value if value.match?(CANONICAL_UUID)
+
               format_uuid(value) if value.match?(ACCEPTABLE_UUID)
             end
 
             def format_uuid(uuid)
-              if uuid.match?(CANONICAL_UUID)
-                uuid
-              else
-                uuid = uuid.delete("{}-").downcase
-                "#{uuid[..7]}-#{uuid[8..11]}-#{uuid[12..15]}-#{uuid[16..19]}-#{uuid[20..]}"
-              end
+              uuid = uuid.delete("{}-").downcase
+              "#{uuid[..7]}-#{uuid[8..11]}-#{uuid[12..15]}-#{uuid[16..19]}-#{uuid[20..]}"
             end
         end
       end
