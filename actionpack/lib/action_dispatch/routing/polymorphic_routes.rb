@@ -162,17 +162,20 @@ module ActionDispatch
                                                opts
       end
 
-      %w(edit new).each do |action|
-        module_eval <<-EOT, __FILE__, __LINE__ + 1
-          # frozen_string_literal: true
-          def #{action}_polymorphic_url(record_or_hash, options = {})
-            polymorphic_url_for_action("#{action}", record_or_hash, options)
-          end
+      def edit_polymorphic_url(record_or_hash, options = {})
+        polymorphic_url_for_action("edit", record_or_hash, options)
+      end
 
-          def #{action}_polymorphic_path(record_or_hash, options = {})
-            polymorphic_path_for_action("#{action}", record_or_hash, options)
-          end
-        EOT
+      def edit_polymorphic_path(record_or_hash, options = {})
+        polymorphic_path_for_action("edit", record_or_hash, options)
+      end
+
+      def new_polymorphic_url(record_or_hash, options = {})
+        polymorphic_url_for_action("new", record_or_hash, options)
+      end
+
+      def new_polymorphic_path(record_or_hash, options = {})
+        polymorphic_path_for_action("new", record_or_hash, options)
       end
 
       private
