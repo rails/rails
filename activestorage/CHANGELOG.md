@@ -1,3 +1,9 @@
+*   Enqueue `ActiveStorage::AnalyzeJob` once when the same blob is attached to several records in one commit.
+
+    Each attachment's commit callback saw the blob as unanalyzed and enqueued its own job.
+
+    *Andrew Fader*
+
 *   Detect axis-swapping orientations in the Vips image analyzer from libvips' normalized
     `orientation` field instead of parsing the `exif-ifd0-Orientation` label.
 
