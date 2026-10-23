@@ -117,7 +117,8 @@ module ActiveRecord
       def build_record(entry)
         class_name, attributes_hash, is_new_record, * = entry
         klass = ActiveSupport::MessagePack::Extensions.load_class(class_name)
-        attributes = klass.attributes_builder.build_from_database(attributes_hash)
+        builder = klass.attributes_builder
+        attributes = builder.build_from_database(builder.row_from_hash(attributes_hash))
         klass.allocate.init_with_attributes(attributes, is_new_record)
       end
 

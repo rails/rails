@@ -88,12 +88,6 @@ module ActiveRecord
     def _load_from_sql(result_set, &block) # :nodoc:
       return [] if result_set.empty?
 
-      column_types = result_set.column_types
-
-      unless column_types.empty?
-        column_types = column_types.reject { |k, _| attribute_types.key?(k) }
-      end
-
       message_bus = ActiveSupport::Notifications.instrumenter
 
       payload = {
@@ -103,10 +97,21 @@ module ActiveRecord
 
       message_bus.instrument("instantiation.active_record", payload) do
         if result_set.includes_column?(inheritance_column)
-          result_set.indexed_rows.map { |record| instantiate(record, column_types, &block) }
+          # Each row is laid out for the class its type names, so subclasses
+          # with attributes of their own don't need their rows re-laid.
+          classes = Hash.new do |h, type|
+            h[type] = discriminate_class_for_record(inheritance_column => type)
+          end
+          column_map_for = ->(type) { classes[type].attributes_builder.indexes }
+
+          result_set.map_rows_by(inheritance_column, column_map_for) { |row, indexes, type|
+            instantiate_instance_of(classes[type], row, indexes, &block)
+          }
         else
           # Instantiate a homogeneous set
-          result_set.indexed_rows.map { |record| instantiate_instance_of(self, record, column_types, &block) }
+          result_set.map_rows(attributes_builder.indexes) { |row, indexes|
+            instantiate_instance_of(self, row, indexes, &block)
+          }
         end
       end
     end

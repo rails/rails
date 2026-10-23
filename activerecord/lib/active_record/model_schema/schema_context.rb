@@ -117,6 +117,7 @@ module ActiveRecord
           ActiveModel::Attribute.from_database(column.name, column.default, model_class.type_for_column(column))
         end
         model_class.apply_pending_attribute_modifications(attributes)
+        attributes = index_default_attributes(attributes)
 
         if attributes.each_value.all?(&:freezable?)
           attributes.each_value(&:freeze)
@@ -124,6 +125,35 @@ module ActiveRecord
         else
           ActiveModel::AttributeSet.new(attributes)
         end
+      end
+
+      # Lays +attributes+ out by each column's slot, so they can be read by
+      # index. Attributes without a column (or whose column has no slot, as
+      # with adapters that don't set it) go after the last column. The
+      # indexes are Integers rather than columns, so they can be shared
+      # between Ractors.
+      def index_default_attributes(attributes) # :nodoc:
+        columns_hash = model_class.columns_hash
+        last_slot = columns_hash.each_value.filter_map(&:slot).max || -1
+        indexes = attributes.each_key.to_h do |name|
+          column = columns_hash[name]
+          [name, column&.slot || (last_slot += 1)]
+        end.freeze
+        indexes = inherited_indexes(indexes)
+
+        row = ActiveModel::IndexedRow.unset_row(last_slot + 1)
+        attributes.each { |name, attribute| row[indexes[name]] = attribute }
+        ActiveModel::IndexedRow::Mutable.new(indexes, row)
+      end
+
+      # An STI subclass that doesn't change its parent's layout shares the
+      # parent's indexes, so rows laid out for the parent can be checked with
+      # +equal?+ (see ActiveModel::AttributeSet::Builder#relayout).
+      def inherited_indexes(indexes) # :nodoc:
+        return indexes if model_class.base_class?
+
+        parent_indexes = model_class.superclass.attributes_builder.indexes
+        parent_indexes == indexes ? parent_indexes : indexes
       end
 
       def freeze
