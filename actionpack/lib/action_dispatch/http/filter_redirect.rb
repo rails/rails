@@ -2,6 +2,8 @@
 
 # :markup: markdown
 
+require "action_dispatch/http/filter_parameters"
+
 module ActionDispatch
   module Http
     module FilterRedirect
@@ -37,16 +39,7 @@ module ActionDispatch
       def parameter_filtered_location
         uri = URI.parse(location)
         unless uri.query.nil? || uri.query.empty?
-          parts = uri.query.split(/([&;])/)
-          filtered_parts = parts.map do |part|
-            if part.include?("=")
-              key, value = part.split("=", 2)
-              "#{key}=#{request.parameter_filter.filter_param(key, value)}"
-            else
-              part
-            end
-          end
-          uri.query = filtered_parts.join("")
+          uri.query = FilterParameters.filter_query_string(uri.query, request.parameter_filter)
         end
         uri.to_s
       rescue URI::Error
