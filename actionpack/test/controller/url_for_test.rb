@@ -225,6 +225,17 @@ module AbstractController
         end
       end
 
+      def test_host_string_subclasses_use_their_matcher
+        host = Class.new(String) do
+          def match(pattern)
+            "https://www.basecamphq.com:8443".match(pattern)
+          end
+        end.new("original.example.com")
+
+        assert_equal "https://www.basecamphq.com:8443/c/a/i",
+          W.new.url_for(controller: "c", action: "a", id: "i", host: host)
+      end
+
       def test_host_and_protocol_string_proxies
         proxy = Class.new(BasicObject) do
           def initialize(value)
