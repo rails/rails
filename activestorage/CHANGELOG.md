@@ -1,3 +1,9 @@
+*   Enqueue `ActiveStorage::AnalyzeJob` once when the same blob is attached to several records in one commit.
+
+    Each attachment's commit callback saw the blob as unanalyzed and enqueued its own job.
+
+    *Andrew Fader*
+
 *   Preserve committed proxy responses when a storage error interrupts a
     streamed download.
 
@@ -119,6 +125,7 @@
     [GHSA-3f4q-8x5m-76v8]
 
     *Mike Dalessio*
+||||||| parent of ceb89d61d1 (Enqueue AnalyzeJob once for a blob attached to several records)
 
 *   Detect axis-swapping orientations in the Vips image analyzer from libvips' normalized
     `orientation` field instead of parsing the `exif-ifd0-Orientation` label.
