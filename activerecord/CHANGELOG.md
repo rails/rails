@@ -1,3 +1,10 @@
+*   Write `db/schema.rb` atomically when dumping the schema.
+
+    Processes loading the schema while it was being dumped could read an empty or partial file,
+    and a dump that failed partway left the truncated file behind.
+
+    *Andrew Fader*
+
 *   Exclude `default_order` in `Relation#exists?`.
 
     Previously, `exists?` only excluded explicit `order` values, causing
