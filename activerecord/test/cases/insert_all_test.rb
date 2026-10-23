@@ -873,9 +873,21 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
-  def test_insert_all_has_many_through
-    book = Book.first
-    assert_raise(ArgumentError) { book.subscribers.insert_all!([ { nick: "Jimmy" } ]) }
+  def test_bulk_insert_and_upsert_has_many_through
+    subscribers = Book.first.subscribers
+    attributes = { nick: "Jimmy" }
+
+    [
+      [:insert, attributes],
+      [:insert!, attributes],
+      [:insert_all, [attributes]],
+      [:insert_all!, [attributes]],
+      [:upsert, attributes],
+      [:upsert_all, [attributes]],
+    ].each do |method, records|
+      error = assert_raise(ArgumentError) { subscribers.public_send(method, records) }
+      assert_equal "Bulk insert or upsert is currently not supported for has_many through association", error.message
+    end
   end
 
   def test_upsert_all_on_relation
@@ -927,13 +939,6 @@ class InsertAllTest < ActiveRecord::TestCase
     assert_difference "Book.where(format: 'X').count", +2 do
       Book.create_with(format: "X").upsert_all([ { name: "A" }, { name: "B" } ])
     end
-  end
-
-  def test_upsert_all_has_many_through
-    skip unless supports_insert_on_duplicate_update?
-
-    book = Book.first
-    assert_raise(ArgumentError) { book.subscribers.upsert_all([ { nick: "Jimmy" } ]) }
   end
 
   def test_upsert_all_updates_using_provided_sql
