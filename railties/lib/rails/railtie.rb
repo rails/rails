@@ -267,12 +267,12 @@ module Rails
           end
         end
 
-        # receives an instance variable identifier, set the variable value if is
-        # blank and append given block to value, which will be used later in
-        # `#each_registered_block(type, &block)`
+        # Appends the given block to the blocks registered under +type+ for
+        # this railtie class, and returns them; they are run later by
+        # `#each_registered_block(type, &block)`.
         def register_block_for(type, &blk)
-          var_name = "@#{type}"
-          blocks = instance_variable_defined?(var_name) ? instance_variable_get(var_name) : instance_variable_set(var_name, [])
+          @registered_blocks ||= {}
+          blocks = (@registered_blocks[type] ||= [])
           blocks << blk if blk
           blocks
         end
