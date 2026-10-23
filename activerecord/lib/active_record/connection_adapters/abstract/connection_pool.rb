@@ -1198,7 +1198,9 @@ module ActiveRecord
             if conn = @available.poll || try_to_queue_for_background_connection(checkout_timeout) || try_to_checkout_new_connection
               conn
             else
-              @available.poll(checkout_timeout)
+              ActiveSupport::Notifications.instrument("checkout_wait.active_record", connection_pool: self, checkout_timeout: checkout_timeout) do
+                @available.poll(checkout_timeout)
+              end
             end
           end
         rescue ConnectionTimeoutError => ex
