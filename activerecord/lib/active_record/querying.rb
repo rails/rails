@@ -70,7 +70,7 @@ module ActiveRecord
     # Same as #find_by_sql but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_find_by_sql(sql, binds = [], preparable: nil, allow_retry: false, &block)
       with_connection do |c|
-        _async_select_all(c, _sql_for_find(sql), "#{name} Load", binds, preparable: preparable, allow_retry: allow_retry)
+        _query_by_sql(c, sql, binds, preparable: preparable, allow_retry: allow_retry, async: true)
       end.then do |result|
         _load_from_sql(result, &block)
       end
@@ -78,11 +78,6 @@ module ActiveRecord
 
     def _query_by_sql(connection, sql, binds = [], preparable: nil, async: false, allow_retry: false) # :nodoc:
       connection.select_all(sanitize_sql(sql), "#{name} Load", binds, preparable: preparable, async: async, allow_retry: allow_retry)
-    end
-
-    def _async_select_all(connection, arel, name, binds = [], **kwargs) # :nodoc:
-      async = !connection.current_transaction.joinable?
-      FutureResult.wrap(connection.select_all(arel, name, binds, async: async, **kwargs))
     end
 
     def _load_from_sql(result_set, &block) # :nodoc:
@@ -132,9 +127,7 @@ module ActiveRecord
     # Same as #count_by_sql but perform the query asynchronously and returns an ActiveRecord::Promise.
     def async_count_by_sql(sql)
       with_connection do |c|
-        _async_select_all(c, _sql_for_find(sql), "#{name} Count").then do |result|
-          result.rows.first&.first.to_i
-        end
+        c.select_value(sanitize_sql(sql), "#{name} Count", async: true).then(&:to_i)
       end
     end
   end
