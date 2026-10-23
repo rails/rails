@@ -1,3 +1,10 @@
+*   Touch the owner when deleting records from a `has_many :through` association
+    whose join model belongs to the owner with `touch: true` or a custom touch column.
+
+    Fixes #45967.
+
+    *Masaki Ozawa*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one

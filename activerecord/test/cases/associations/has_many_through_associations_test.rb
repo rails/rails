@@ -63,6 +63,27 @@ class RedundantJoinComment < ActiveRecord::Base
   has_one :post_author, through: :post, source: :author
 end
 
+class Book
+  has_many :touching_subscriptions
+  has_many :touching_subscribers, through: :touching_subscriptions, source: :subscriber
+  has_many :custom_touching_subscriptions
+  has_many :custom_touching_subscribers, through: :custom_touching_subscriptions, source: :subscriber
+end
+
+class TouchingSubscription < ActiveRecord::Base
+  self.table_name = "subscriptions"
+
+  belongs_to :book, touch: true
+  belongs_to :subscriber
+end
+
+class CustomTouchingSubscription < ActiveRecord::Base
+  self.table_name = "subscriptions"
+
+  belongs_to :book, touch: :updated_on
+  belongs_to :subscriber
+end
+
 class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :posts, :readers, :people, :comments, :authors, :categories, :taggings, :tags,
            :owners, :pets, :toys, :jobs, :references, :companies, :members, :author_addresses,
@@ -329,6 +350,38 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     people.create!(first_name: "Jeb")
     people.delete_all
     assert_nil people.first
+  end
+
+  def test_delete_on_association_touches_owner_of_through_record
+    book = Book.create!(name: "Touching Book")
+    subscribers = [Subscriber.create!(nick: "first"), Subscriber.create!(nick: "second")]
+    subscribers.each { |subscriber| TouchingSubscription.create!(book: book, subscriber: subscriber) }
+    previous_updated_at = 1.day.ago
+    book.update_column(:updated_at, previous_updated_at)
+
+    book.touching_subscriber_ids = [subscribers.first.id]
+
+    assert_operator book.updated_at, :>, previous_updated_at
+  end
+
+  def test_delete_all_on_association_touches_custom_column_once
+    book = Book.create!(name: "Touching Book")
+    subscribers = [Subscriber.create!(nick: "first"), Subscriber.create!(nick: "second")]
+    subscribers.each { |subscriber| CustomTouchingSubscription.create!(book: book, subscriber: subscriber) }
+    previous_updated_on = 1.day.ago.to_date
+    book.update_columns(updated_at: 1.day.ago, updated_on: previous_updated_on)
+    touches = []
+    book.define_singleton_method(:touch_later) do |*names|
+      touches << names
+      super(*names)
+    end
+
+    assert_queries_match(/DELETE .*subscriptions/i, count: 1) do
+      book.custom_touching_subscribers.delete_all
+    end
+
+    assert_equal [[:updated_on]], touches
+    assert_operator book.updated_on, :>, previous_updated_on
   end
 
   def test_concat
