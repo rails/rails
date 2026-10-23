@@ -1,11 +1,16 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/author"
 require "models/post"
 
 class OptimizerHintsTest < ActiveRecord::AbstractMysqlTestCase
   if supports_optimizer_hints?
-    fixtures :posts
+    fixtures :posts, :authors
+
+    def setup
+      @original_db_warnings_action = :ignore
+    end
 
     def test_optimizer_hints
       assert_queries_match(%r{\ASELECT /\*\+ NO_RANGE_OPTIMIZATION\(posts index_posts_on_author_id\) \*/}) do
@@ -52,6 +57,58 @@ class OptimizerHintsTest < ActiveRecord::AbstractMysqlTestCase
         posts = posts.select(:id).where(author_id: [0, 1]).limit(5)
         assert_equal 5, posts.count
         assert_empty Post.lease_connection.select_rows("SHOW WARNINGS")
+      end
+    end
+
+    def test_optimizer_hints_with_update_all_and_delete_all
+      posts = Post.optimizer_hints("NO_INDEX_MERGE(posts)").where(author_id: [0, 1])
+
+      assert_queries_match(%r{\AUPDATE /\*\+ NO_INDEX_MERGE\(posts\) \*/ `posts`}) do
+        assert_operator posts.update_all(title: "hinted"), :>, 0
+      end
+
+      assert_queries_match(%r{\ADELETE /\*\+ NO_INDEX_MERGE\(posts\) \*/ FROM `posts`}) do
+        assert_operator posts.delete_all, :>, 0
+      end
+    end
+
+    def test_optimizer_hints_with_update_all_and_delete_all_through_subquery
+      posts = Post.optimizer_hints("NO_RANGE_OPTIMIZATION(posts index_posts_on_author_id)")
+      posts = posts.joins(:author).where(author_id: [0, 1]).order(:id).limit(1)
+
+      assert_queries_match(%r{\AUPDATE `posts` .* IN \(SELECT `id` FROM \(SELECT /\*\+ NO_RANGE_OPTIMIZATION\(posts index_posts_on_author_id\) \*/ }) do
+        assert_equal 1, posts.update_all(title: "hinted")
+      end
+
+      assert_queries_match(%r{\ADELETE FROM `posts` .* IN \(SELECT `id` FROM \(SELECT /\*\+ NO_RANGE_OPTIMIZATION\(posts index_posts_on_author_id\) \*/ }) do
+        assert_equal 1, posts.delete_all
+      end
+    end
+
+    def test_global_optimizer_hints_with_update_all_and_delete_all_through_subquery
+      skip "SET_VAR hint requires MySQL 8.0.3 or later" if Post.lease_connection.database_version < "8.0.3"
+
+      posts = Post.optimizer_hints("/*+ SET_VAR(optimizer_switch = 'mrr=on') NO_ICP(posts) */")
+      posts = posts.joins(:author).where(author_id: [0, 1]).order(:id).limit(1)
+
+      assert_queries_match(%r{\AUPDATE /\*\+ SET_VAR\(optimizer_switch = 'mrr=on'\) \*/ `posts` .* IN \(SELECT `id` FROM \(SELECT /\*\+ NO_ICP\(posts\) \*/ }) do
+        assert_equal 1, posts.update_all(title: "hinted")
+        assert_empty Post.lease_connection.select_rows("SHOW WARNINGS")
+      end
+
+      assert_queries_match(%r{\ADELETE /\*\+ SET_VAR\(optimizer_switch = 'mrr=on'\) \*/ FROM `posts` .* IN \(SELECT `id` FROM \(SELECT /\*\+ NO_ICP\(posts\) \*/ }) do
+        assert_equal 1, posts.delete_all
+        assert_empty Post.lease_connection.select_rows("SHOW WARNINGS")
+      end
+    end
+
+    def test_optimizer_hints_on_joined_table_with_update_all_and_delete_all_through_subquery
+      posts = Post.optimizer_hints("NO_RANGE_OPTIMIZATION(authors PRIMARY)")
+      posts = posts.joins(:author).where(id: 0).order(:id).limit(1)
+
+      with_db_warnings_action(:raise) do
+        assert_equal 0, posts.update_all(title: "hinted")
+        assert_equal 0, posts.delete_all
       end
     end
 

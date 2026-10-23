@@ -86,7 +86,9 @@ module Arel # :nodoc: all
         def prepare_update_statement(o)
           if o.offset || has_group_by_and_having?(o) ||
             has_join_sources?(o) && has_limit_or_offset_or_orders?(o)
-            super
+            stmt = super
+            stmt.optimizer_hints = partition_optimizer_hints(o).first unless stmt.equal?(o)
+            stmt
           else
             o
           end
@@ -97,6 +99,7 @@ module Arel # :nodoc: all
         # to give it some prompting in the form of a subsubquery.
         def build_subselect(key, o)
           subselect = super
+          subselect.cores.last.optimizer_hints = partition_optimizer_hints(o).last
 
           # Materialize subquery by adding distinct
           # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
@@ -109,6 +112,14 @@ module Arel # :nodoc: all
             core = stmt.cores.last
             core.froms = Nodes::Grouping.new(subselect).as("__active_record_temp")
             core.projections = [Arel.sql(quote_column_name(key.name), retryable: true)]
+          end
+        end
+
+        def partition_optimizer_hints(o)
+          return [] unless o.optimizer_hints
+
+          @connection.class.partition_optimizer_hints(o.optimizer_hints.expr).map do |hints|
+            Nodes::OptimizerHints.new(hints) unless hints.empty?
           end
         end
     end

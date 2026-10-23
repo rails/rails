@@ -246,6 +246,7 @@ module Arel
         assert_edge("offset", dot)
         assert_edge("key", dot)
         assert_edge("returning", dot)
+        assert_edge("optimizer_hints", dot)
       end
 
       def test_Arel_Nodes_DeleteStatement
@@ -261,6 +262,7 @@ module Arel
         assert_edge("offset", dot)
         assert_edge("key", dot)
         assert_edge("returning", dot)
+        assert_edge("optimizer_hints", dot)
       end
     end
   end
