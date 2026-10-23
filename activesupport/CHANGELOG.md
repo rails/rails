@@ -1,3 +1,11 @@
+*   `ActiveSupport::Deprecation::DeprecatedObjectProxy` and
+    `DeprecatedInstanceVariableProxy` now inherit from `BasicObject`, so methods
+    added to `Object` after Active Support loads (such as `to_json`, `to_param`,
+    `blank?` or `in?`) are forwarded to the deprecated object with a warning
+    instead of running against the proxy itself.
+
+    *Akira Matsuda*
+
 *   Default `config.active_support.message_serializer` to `:json` for new apps.
 
     With `config.load_defaults 8.2`, messages from `MessageVerifier` and
