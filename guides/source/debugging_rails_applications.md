@@ -110,8 +110,8 @@ available log levels and their corresponding integer values are:
 A message is only written to the output if its level is equal to or higher than
 the configured log level. `Rails.logger.level` returns the current log level.
 
-The default Rails log level is `:debug` in development and `:info` in
-production. You can set the log level for an environment in the application
+The default Rails log level is `:debug` in development and `:info` in test
+and production. You can set the log level for an environment in the application
 config:
 
 ```ruby

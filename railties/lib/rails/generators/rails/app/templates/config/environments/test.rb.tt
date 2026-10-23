@@ -47,6 +47,10 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: "example.com" }
 
   <%- end -%>
+  # Logging every SQL query and rendered template at the debug level slows the test suite down.
+  # Set RAILS_LOG_LEVEL=debug to log everything.
+  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
+
   # Print deprecation notices to the stderr.
   config.active_support.deprecation = :stderr
 

@@ -102,6 +102,14 @@ module SharedGeneratorTests
     assert_gem_for_active_storage
   end
 
+  def test_test_environment_logs_at_info_level_unless_rails_log_level_is_set
+    run_generator
+
+    assert_file "#{application_path}/config/environments/test.rb" do |content|
+      assert_match(/^  config\.log_level = ENV\.fetch\("RAILS_LOG_LEVEL", "info"\)$/, content)
+    end
+  end
+
   def test_plugin_new_generate_pretend
     run_generator ["testapp", "--pretend"]
     default_files.each { |path| assert_no_file File.join("testapp", path) }
