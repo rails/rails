@@ -168,6 +168,15 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert_equal blob.byte_size.to_s, response.headers["Content-Length"], "Content-Length header should match blob size"
   end
 
+  test "Content-Length header is passed to the server when streaming" do
+    blob = create_file_blob(filename: "racecar.jpg")
+
+    status, headers, _body = Rails.application.call(Rack::MockRequest.env_for(rails_storage_proxy_url(blob)))
+
+    assert_equal 200, status
+    assert_equal blob.byte_size.to_s, headers["content-length"]
+  end
+
   private
     def with_streaming_chunk_max_size(size)
       old_size = ActiveStorage.streaming_chunk_max_size
