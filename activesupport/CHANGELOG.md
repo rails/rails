@@ -1,3 +1,16 @@
+*   `ActiveSupport::LoggerSilence.silencer` is now a `class_attribute`, so
+    it can be read from non-main Ractors.
+
+    The writer is now only defined on the class, and a subclass can set its
+    own value without changing the value of its parent.
+
+    ```ruby
+    ActiveSupport::Logger.silencer = false # Still works.
+    Rails.logger.silencer = false          # Now raises NoMethodError.
+    ```
+
+    *John Hawthorn*
+
 *   Default `config.active_support.message_serializer` to `:json` for new apps.
 
     With `config.load_defaults 8.2`, messages from `MessageVerifier` and
