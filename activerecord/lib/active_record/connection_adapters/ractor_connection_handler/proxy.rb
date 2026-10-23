@@ -134,7 +134,7 @@ module ActiveRecord
         def checkin_token(connection_token)
           main_operation do
             if connection = take_back_connection(connection_token)
-              connection.pool.checkin(connection) if connection.in_use?
+              connection.pool.checkin(connection) if connection.in_use? && !connection.pool.discarded?
             end
             nil
           end
