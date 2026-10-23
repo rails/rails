@@ -387,9 +387,11 @@ module Mime
 
     def ==(mime_type)
       return false unless mime_type
-      (@synonyms + [ self ]).any? do |synonym|
-        synonym.to_s == mime_type.to_s || synonym.to_sym == mime_type.to_sym
-      end
+      mime_string = mime_type.to_s
+      return true if @string == mime_string || @synonyms.include?(mime_string)
+
+      mime_symbol = mime_type.to_sym
+      @symbol == mime_symbol || @synonyms.any? { |synonym| synonym.to_sym == mime_symbol }
     end
 
     def eql?(other)
