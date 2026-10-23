@@ -1,3 +1,11 @@
+*   Add a `checkout_wait.active_record` notification.
+
+    It is emitted when a connection checkout waits because the pool is full,
+    and its duration is the time spent waiting, so pool saturation can be
+    measured without patching `ConnectionPool`.
+
+    *Andrew Fader*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one
