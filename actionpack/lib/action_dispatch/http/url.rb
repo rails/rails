@@ -202,7 +202,10 @@ module ActionDispatch
           end
 
           def build_host_url(host, port, protocol, options, path)
-            if match = host.match(HOST_REGEXP)
+            if String === host && host.instance_of?(String) && host.match?(/\A[^:\[]+\z/)
+              host = host.dup
+              port = nil unless options.key?(:port)
+            elsif match = host.match(HOST_REGEXP)
               protocol_from_host = match[1] if protocol.nil?
               host               = match[2]
               port               = match[3] unless options.key? :port
@@ -230,6 +233,15 @@ module ActionDispatch
           end
 
           def normalize_protocol(protocol)
+            if String === protocol && protocol.instance_of?(String) && protocol.encoding == Encoding::UTF_8
+              case protocol
+              when "http", "http:", "http://"
+                return "http://"
+              when "https", "https:", "https://"
+                return "https://"
+              end
+            end
+
             case protocol
             when nil
               secure_protocol ? "https://" : "http://"

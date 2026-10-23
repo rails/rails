@@ -207,15 +207,46 @@ module AbstractController
 
       def test_protocol_with_and_without_separators
         add_host!
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https")
-        )
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https:")
-        )
-        assert_equal("https://www.basecamphq.com/c/a/i",
-          W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https://")
-        )
+        %w[http https].each do |protocol|
+          [protocol, "#{protocol}:", "#{protocol}://"].each do |value|
+            assert_equal("#{protocol}://www.basecamphq.com/c/a/i",
+              W.new.url_for(controller: "c", action: "a", id: "i", protocol: value)
+            )
+          end
+        end
+      end
+
+      def test_protocol_encoding_is_preserved
+        add_host!
+        [Encoding::ISO_8859_1, Encoding::BINARY].each do |encoding|
+          url = W.new.url_for(controller: "c", action: "a", id: "i", protocol: "https".encode(encoding))
+          assert_equal "https://www.basecamphq.com/c/a/i", url
+          assert_equal encoding, url.encoding
+        end
+      end
+
+      def test_host_and_protocol_string_proxies
+        proxy = Class.new(BasicObject) do
+          def initialize(value)
+            @value = value
+          end
+
+          def nil?
+            false
+          end
+
+          def to_str
+            @value
+          end
+
+          def match(pattern)
+            @value.match(pattern)
+          end
+        end
+
+        assert_equal "https://www.basecamphq.com/c/a/i",
+          W.new.url_for(controller: "c", action: "a", id: "i",
+            host: proxy.new("www.basecamphq.com"), protocol: proxy.new("https"))
       end
 
       def test_without_protocol
