@@ -28,6 +28,8 @@ module ActiveRecord
           private
             def cast_value(value)
               value = value.to_s
+              return value if value.match?(CANONICAL_UUID)
+
               format_uuid(value) if value.match?(ACCEPTABLE_UUID)
             end
 
