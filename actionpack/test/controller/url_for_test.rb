@@ -225,6 +225,14 @@ module AbstractController
         end
       end
 
+      def test_invalid_host_encoding_is_rejected_before_protocol
+        error = assert_raises(ArgumentError) do
+          W.new.url_for(controller: "c", action: "a", host: "\xFF", protocol: true)
+        end
+
+        assert_match(/UTF-8/, error.message)
+      end
+
       def test_host_string_subclasses_use_their_matcher
         host = Class.new(String) do
           def match(pattern)

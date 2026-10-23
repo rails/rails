@@ -202,7 +202,7 @@ module ActionDispatch
           end
 
           def build_host_url(host, port, protocol, options, path)
-            if String === host && host.instance_of?(String) && host.match?(/\A[^:\[]+\z/)
+            if String === host && host.instance_of?(String) && !host.empty? && !host.match?(/[:\[]/)
               host = host.dup
               port = nil unless options.key?(:port)
             elsif match = host.match(HOST_REGEXP)
