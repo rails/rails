@@ -1,3 +1,17 @@
+*   Fix `left_joins` and `eager_load` dropping an intermediate join when the
+    same through association is joined from different parent paths.
+
+    The second path reused the intermediate join of the first path, so it
+    silently returned values from the wrong records instead of raising an error:
+
+    ```ruby
+    # `current_location` and `storing_location` are both `Location`s, which
+    # `has_one :setting, through: :setting_association`.
+    Book.left_joins(current_location: :setting, library: { storing_location: :setting })
+    ```
+
+    *Masaki Ozawa*
+
 *   Deprecate `ActiveRecord::Validations::NumericalityValidator`.
 
     Active Record now uses `ActiveModel::Validations::NumericalityValidator`
