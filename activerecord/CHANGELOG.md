@@ -1,3 +1,15 @@
+*   Add support for index storage parameters to PostgreSQL.
+
+    ```ruby
+    add_index :documents, :tags, using: :gin, with: { fastupdate: false }
+    # CREATE INDEX ... USING gin ("tags") WITH ("fastupdate" = 'false')
+    ```
+
+    The parameters are read back by `indexes` and dumped to `schema.rb`, so they
+    survive `db:schema:load`.
+
+    *Andrew Kane*, *Andrew Fader*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one

@@ -1068,7 +1068,7 @@ module ActiveRecord
                                   SELECT pg_get_indexdef(d.indexrelid, k + 1, true)
                                   FROM generate_subscripts(d.indkey, 1) AS k
                                   ORDER BY k
-                                ) AS columns, t.relname
+                                ) AS columns, i.reloptions, t.relname
                 FROM tables t
                 INNER JOIN pg_index d ON t.oid = d.indrelid
                 INNER JOIN pg_class i ON d.indexrelid = i.oid
@@ -1148,8 +1148,9 @@ module ActiveRecord
               comment = row[4]
               valid = row[5]
               columns = decode_string_array(row[6]).map { |c| Utils.unquote_identifier(c.strip.gsub('""', '"')) }
+              with = row[7] && decode_string_array(row[7]).to_h { |option| option.split("=", 2) }
 
-              using, expressions, include, nulls_not_distinct, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: INCLUDE \((.+?)\))?( NULLS NOT DISTINCT)?(?: WHERE (.+))?\z/m).flatten
+              using, expressions, include, nulls_not_distinct, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: INCLUDE \((.+?)\))?( NULLS NOT DISTINCT)?(?: WITH \(.+?\))?(?: WHERE (.+))?\z/m).flatten
 
               orders = {}
               opclasses = {}
@@ -1185,6 +1186,7 @@ module ActiveRecord
                 using: using.to_sym,
                 include: include_columns.presence,
                 nulls_not_distinct: nulls_not_distinct.present?,
+                with: with.presence,
                 comment: comment.presence,
                 valid: valid
               )

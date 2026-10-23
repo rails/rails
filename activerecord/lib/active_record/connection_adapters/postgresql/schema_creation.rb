@@ -7,7 +7,7 @@ module ActiveRecord
       class SchemaCreation < SchemaCreation # :nodoc:
         private
           delegate :quoted_include_columns_for_index, to: :@conn
-          delegate :database_version, to: :@conn
+          delegate :database_version, :quote, to: :@conn
 
           def visit_AddForeignKey(o)
             super.dup.tap do |sql|
@@ -139,6 +139,12 @@ module ActiveRecord
 
           def quoted_include_columns(o)
             String === o ? o : quoted_include_columns_for_index(o)
+          end
+
+          def quoted_index_storage_parameters(parameters)
+            return parameters if String === parameters
+
+            parameters.map { |name, value| "#{quote_column_name(name)} = #{quote(value)}" }.join(", ")
           end
 
           # Returns any SQL string to go between CREATE and TABLE. May be nil.

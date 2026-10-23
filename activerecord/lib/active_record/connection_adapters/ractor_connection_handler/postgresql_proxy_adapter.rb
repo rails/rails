@@ -73,6 +73,10 @@ module ActiveRecord
           pure_remote_dispatch(:supports_index_include?)
         end
 
+        def supports_index_with?
+          pure_remote_dispatch(:supports_index_with?)
+        end
+
         def supports_index_sort_order?
           pure_remote_dispatch(:supports_index_sort_order?)
         end

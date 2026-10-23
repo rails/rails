@@ -934,6 +934,18 @@ module ActiveRecord
       #
       # Note: only supported by PostgreSQL version 15.0.0 and greater.
       #
+      # ====== Creating an index with storage parameters
+      #
+      #   add_index(:people, :last_name, with: { fillfactor: 70 })
+      #
+      # generates:
+      #
+      #   CREATE INDEX index_people_on_last_name ON people (last_name) WITH (fillfactor = '70')
+      #
+      # A string is passed through as written, e.g. <tt>with: "fillfactor = 70"</tt>.
+      #
+      # Note: only supported by PostgreSQL.
+      #
       # ====== Creating an index with a specific method
       #
       #   add_index(:developers, :name, using: 'btree')
@@ -1618,6 +1630,7 @@ module ActiveRecord
           using: options[:using],
           include: options[:include],
           nulls_not_distinct: options[:nulls_not_distinct],
+          with: options[:with].is_a?(Hash) ? options[:with].to_h { |key, value| [key.to_s, value.to_s] } : options[:with],
           comment: options[:comment]
         )
 
@@ -1780,7 +1793,7 @@ module ActiveRecord
         end
 
         def valid_index_options
-          [:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct]
+          [:unique, :length, :order, :opclass, :where, :type, :using, :comment, :algorithm, :include, :nulls_not_distinct, :with]
         end
 
         def options_for_index_columns(options)
