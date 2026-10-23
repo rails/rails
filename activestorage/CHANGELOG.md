@@ -1,3 +1,11 @@
+*   Stream single byte ranges from `ActiveStorage::Blobs::ProxyController` instead of loading them into memory.
+
+    A single range is now read in steps of `ActiveStorage.streaming_chunk_max_size` rather than being
+    refused with `416 Range Not Satisfiable` when it is at least that size, so open-ended
+    requests like `bytes=1000-` work on large files.
+
+    *Andrew Fader*
+
 *   Keep the `Content-Length` header on responses streamed by `ActiveStorage::Blobs::ProxyController`.
 
     `ActionController::Live` dropped the header before the first write, so proxied blobs were sent chunked with no length.
