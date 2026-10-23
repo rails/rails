@@ -67,6 +67,8 @@ module ActiveStorage::Streaming
           disposition: blob.forced_disposition_for_serving || disposition || DEFAULT_BLOB_STREAMING_DISPOSITION,
           type: blob.content_type_for_serving) do |stream|
         blob.download do |chunk|
+          # Commit before the first write, otherwise ActionController::Live drops the Content-Length header.
+          response.commit! if !response.committed? && response.headers["Content-Length"]
           stream.write chunk
         end
       rescue ActiveStorage::FileNotFoundError
