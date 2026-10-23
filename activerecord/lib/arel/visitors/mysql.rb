@@ -85,7 +85,9 @@ module Arel # :nodoc: all
         def prepare_update_statement(o)
           if o.offset || has_group_by_and_having?(o) ||
             has_join_sources?(o) && has_limit_or_offset_or_orders?(o)
-            super
+            stmt = super
+            stmt.optimizer_hints = nil unless stmt.equal?(o)
+            stmt
           else
             o
           end

@@ -8,7 +8,9 @@ module Arel # :nodoc: all
           collector.retryable = false
           o = prepare_update_statement(o)
 
-          collector << "UPDATE "
+          collector << "UPDATE"
+          collect_optimizer_hints(o, collector)
+          collector << " "
 
           # UPDATE with JOIN is in the form of:
           #

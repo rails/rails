@@ -1,3 +1,24 @@
+*   `update_all` and `delete_all` keep the relation's optimizer hints.
+
+    Hints were only emitted for `SELECT`, so they were silently dropped from
+    the generated `UPDATE` and `DELETE`. They are now placed right after the
+    keyword, where MySQL and `pg_hint_plan` read them:
+
+    ```ruby
+    Post.optimizer_hints("INDEX(posts index_posts_on_author_id)").where(author_id: 1).update_all(title: "x")
+    # UPDATE /*+ INDEX(posts index_posts_on_author_id) */ `posts` SET ...
+    ```
+
+    When the statement is rewritten into a subquery (for example with `limit`,
+    `order` or `joins`), the hints are also copied into the subquery, where the
+    rows are actually filtered. On MySQL they are moved there, so a hint that
+    names a joined table doesn't raise an "Unresolved name" warning on the
+    outer statement.
+
+    Hints that come from a `default_scope` now apply to these statements too.
+
+    *Filip Sučić*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one
