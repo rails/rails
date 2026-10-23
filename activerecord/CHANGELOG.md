@@ -1,3 +1,15 @@
+*   Add support for index storage parameters to PostgreSQL.
+
+    ```ruby
+    add_index :documents, :tags, using: :gin, with: { fastupdate: false }
+    # CREATE INDEX ... USING gin ("tags") WITH ("fastupdate" = 'false')
+    ```
+
+    The parameters are read back by `indexes` and dumped to `schema.rb`, so they
+    survive `db:schema:load`.
+
+    *Andrew Kane*, *Andrew Fader*
+
 *   Fix `ArgumentError` when preloading an ordered `has_many :through` whose
     source is a loaded `has_and_belongs_to_many` or `:through` association
     holding a record no query returned, such as a new record.
@@ -202,6 +214,7 @@
     relations still carried it, adding a needless `ORDER BY` to each batch.
 
     *Clément Joubert*
+||||||| parent of a6a79c3389 (Add support for index storage parameters to PostgreSQL)
 
 *   Support `unscope(:default_order)`.
 
