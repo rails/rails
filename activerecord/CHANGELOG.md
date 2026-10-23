@@ -1,3 +1,15 @@
+*   Add support for extended statistics to PostgreSQL.
+
+    ```ruby
+    create_statistics :addresses, [:city, :zip_code], kinds: [:dependencies], name: "addresses_city_zip_code_stat"
+    # CREATE STATISTICS "addresses_city_zip_code_stat" (dependencies) ON "city", "zip_code" FROM "addresses"
+    ```
+
+    Statistics objects are read back by `statistics` and dumped to `schema.rb`,
+    so they survive `db:schema:load`.
+
+    *Andrew Fader*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one

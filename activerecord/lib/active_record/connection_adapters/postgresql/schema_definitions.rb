@@ -208,6 +208,8 @@ module ActiveRecord
         end
       end
 
+      StatisticsDefinition = Struct.new(:table_name, :name, :columns, :kinds)
+
       UniqueConstraintDefinition = Struct.new(:table_name, :column, :options) do
         def name
           options[:name]

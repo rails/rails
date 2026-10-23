@@ -22,11 +22,13 @@ module ActiveRecord
     # * change_table_comment (must supply a +:from+ and +:to+ option)
     # * create_enum
     # * create_join_table
+    # * create_statistics
     # * create_virtual_table
     # * create_table
     # * disable_extension
     # * drop_enum (must supply a list of values)
     # * drop_join_table
+    # * drop_statistics (must supply columns)
     # * drop_virtual_table (must supply options)
     # * drop_table (must supply a block)
     # * enable_extension
@@ -59,6 +61,7 @@ module ActiveRecord
         :add_exclusion_constraint, :remove_exclusion_constraint,
         :add_unique_constraint, :remove_unique_constraint,
         :create_enum, :drop_enum, :rename_enum, :add_enum_value, :rename_enum_value,
+        :create_statistics, :drop_statistics,
         :create_schema, :drop_schema,
         :create_virtual_table, :drop_virtual_table,
         :enable_index, :disable_index
@@ -153,6 +156,7 @@ module ActiveRecord
               add_unique_constraint: :remove_unique_constraint,
               enable_extension:  :disable_extension,
               create_enum:       :drop_enum,
+              create_statistics: :drop_statistics,
               create_schema:     :drop_schema,
               create_virtual_table: :drop_virtual_table
             }.each do |cmd, inv|
@@ -348,6 +352,19 @@ module ActiveRecord
         def invert_remove_unique_constraint(args, kwargs)
           _table, columns = args
           raise ActiveRecord::IrreversibleMigration, "remove_unique_constraint is only reversible if given a column_name." if columns.blank?
+          super
+        end
+
+        def invert_create_statistics(args, kwargs)
+          kwargs[:if_exists] = kwargs.delete(:if_not_exists) if kwargs.key?(:if_not_exists)
+          super
+        end
+
+        def invert_drop_statistics(args, kwargs)
+          _table, columns = args
+          raise ActiveRecord::IrreversibleMigration, "drop_statistics is only reversible if given columns." if columns.blank?
+
+          kwargs[:if_not_exists] = kwargs.delete(:if_exists) if kwargs.key?(:if_exists)
           super
         end
 

@@ -83,6 +83,29 @@ module ActiveRecord
             end
           end
 
+          def read_schema_metadata(tables)
+            super
+            @statistics = @connection.statistics(tables)
+          end
+
+          def table(table, stream)
+            super
+            statistics(table, stream)
+          end
+
+          # After the table, since a definition names the columns it covers.
+          def statistics(table, stream)
+            if (statistics = @statistics[table]).any?
+              stream.puts
+              statistics.each do |statistic|
+                parts = [ relation_name(remove_prefix_and_suffix(table)).inspect, statistic.columns.inspect, "name: #{statistic.name.inspect}" ]
+                parts << "kinds: #{statistic.kinds.inspect}" unless statistic.kinds.empty? || statistic.kinds == [:ndistinct, :dependencies, :mcv]
+
+                stream.puts "  create_statistics #{parts.join(', ')}"
+              end
+            end
+          end
+
           def exclusion_constraints_in_create(table, stream)
             if (exclusion_constraints = @exclusion_constraints[table]).any?
               exclusion_constraint_statements = exclusion_constraints.map do |exclusion_constraint|
