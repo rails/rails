@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_record/database_configurations"
+require "active_support/core_ext/file/atomic"
 
 module ActiveRecord
   module Tasks # :nodoc:
@@ -464,7 +465,8 @@ module ActiveRecord
           FileUtils.mkdir_p(db_dir)
           case format.to_sym
           when :ruby
-            File.open(filename, "w:utf-8") do |file|
+            # Write through a symlinked schema file rather than replacing the link.
+            File.atomic_write(File.exist?(filename) ? File.realpath(filename) : filename) do |file|
               ActiveRecord::SchemaDumper.dump(pool, file)
             end
           when :sql

@@ -445,6 +445,54 @@ module ActiveRecord
       ActiveRecord::Base.clear_cache!
     end
 
+    def test_dump_schema_keeps_existing_file_when_dump_fails
+      Dir.mktmpdir do |dir|
+        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
+          updated_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash.merge(schema_dump: "fake_db_config_schema.rb")
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", updated_hash)
+          path = "#{dir}/fake_db_config_schema.rb"
+          File.write(path, "previous schema")
+
+          failing_dump = ->(_pool, file) { file.write("partial"); raise "dump failed" }
+
+          ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+            ActiveRecord::SchemaDumper.stub(:dump, failing_dump) do
+              assert_raises(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config) }
+            end
+          end
+
+          assert_equal "previous schema", File.read(path)
+          assert_equal ["fake_db_config_schema.rb"], Dir.children(dir)
+        end
+      end
+    ensure
+      ActiveRecord::Base.clear_cache!
+    end
+
+    def test_dump_schema_writes_through_a_symlinked_schema_file
+      Dir.mktmpdir do |dir|
+        ActiveRecord::Tasks::DatabaseTasks.stub(:db_dir, dir) do
+          updated_hash = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary").configuration_hash.merge(schema_dump: "fake_db_config_schema.rb")
+          db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary", updated_hash)
+          target = "#{dir}/shared_schema.rb"
+          link = "#{dir}/fake_db_config_schema.rb"
+          File.write(target, "previous schema")
+          File.symlink(target, link)
+
+          ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+            ActiveRecord::SchemaDumper.stub(:dump, ->(_pool, file) { file.write("new schema") }) do
+              ActiveRecord::Tasks::DatabaseTasks.dump_schema(db_config)
+            end
+          end
+
+          assert File.symlink?(link)
+          assert_equal "new schema", File.read(target)
+        end
+      end
+    ensure
+      ActiveRecord::Base.clear_cache!
+    end
+
     def test_dump_schema_passes_the_given_format_to_check_schema_dump
       db_config = ActiveRecord::DatabaseConfigurations::HashConfig.new("arunit", "primary",
         adapter: "sqlite3",
