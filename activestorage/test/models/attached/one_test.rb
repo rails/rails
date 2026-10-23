@@ -517,6 +517,14 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal "funky.jpg", user.reload.avatar.filename.to_s
   end
 
+  test "creating a record with an attachment does not query for an existing attachment" do
+    blob = create_blob(filename: "funky.jpg")
+
+    assert_no_queries_match(/WHERE "active_storage_attachments"\."record_id" = .* LIMIT/) do
+      User.create!(name: "Jason", avatar: blob)
+    end
+  end
+
   test "creating a record with an existing blob from a signed ID attached" do
     user = User.create!(name: "Jason", avatar: create_blob(filename: "funky.jpg").signed_id)
     assert_equal "funky.jpg", user.reload.avatar.filename.to_s
