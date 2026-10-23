@@ -62,6 +62,13 @@
 
     *Masaki Ozawa*
 
+*   Touch the owner when deleting records from a `has_many :through` association
+    whose join model belongs to the owner with `touch: true` or a custom touch column.
+
+    Fixes #45967.
+
+    *Masaki Ozawa*
+
 *   Fix preloading an ordered `has_many :through` association reusing the
     source records already loaded by an unordered one, ignoring its order.
 
