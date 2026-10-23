@@ -557,7 +557,7 @@ module ActiveRecord
         end
 
         relation = where(primary_key => ids)
-        relation = relation.select(table[primary_key]) unless select_values.empty?
+        relation = relation.select(model.primary_key_definition.arel_columns(table)) unless select_values.empty?
         result = relation.to_a
 
         if result.size == expected_size
@@ -573,7 +573,7 @@ module ActiveRecord
 
         relation = except(:limit, :offset)
         relation = relation.where(primary_key => ids)
-        relation = relation.select(table[primary_key]) unless select_values.empty?
+        relation = relation.select(model.primary_key_definition.arel_columns(table)) unless select_values.empty?
         result = relation.records
 
         if result.size == ids.size
