@@ -16,19 +16,49 @@ module ActiveRecord
       other == records
     end
 
-    %w(insert insert_all insert! insert_all! upsert upsert_all).each do |method|
-      class_eval <<~RUBY, __FILE__, __LINE__ + 1
-        def #{method}(...)
-          if @association.reflection.through_reflection?
-            raise ArgumentError, "Bulk insert or upsert is currently not supported for has_many through association"
-          end
+    def insert(...)
+      ensure_bulk_insert_or_upsert_supported!
 
-          super
-        end
-      RUBY
+      super
+    end
+
+    def insert_all(...)
+      ensure_bulk_insert_or_upsert_supported!
+
+      super
+    end
+
+    def insert!(...)
+      ensure_bulk_insert_or_upsert_supported!
+
+      super
+    end
+
+    def insert_all!(...)
+      ensure_bulk_insert_or_upsert_supported!
+
+      super
+    end
+
+    def upsert(...)
+      ensure_bulk_insert_or_upsert_supported!
+
+      super
+    end
+
+    def upsert_all(...)
+      ensure_bulk_insert_or_upsert_supported!
+
+      super
     end
 
     private
+      def ensure_bulk_insert_or_upsert_supported!
+        if @association.reflection.through_reflection?
+          raise ArgumentError, "Bulk insert or upsert is currently not supported for has_many through association"
+        end
+      end
+
       def _new(attributes, &block)
         @association.build(attributes, &block)
       end
