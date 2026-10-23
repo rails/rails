@@ -131,9 +131,12 @@ module ActionDispatch
         def extract_parameterized_parts(route, options, recall)
           parameterized_parts = recall.merge(options)
 
-          keys_to_keep = route.parts.reverse_each.drop_while { |part|
-            !(options.key?(part) || route.scope_options.key?(part)) || (options[part].nil? && recall[part].nil?)
-          } | route.required_parts
+          # Keep the prefix through the last supplied part, plus all required parts.
+          parts = route.parts
+          last_kept = parts.rindex { |part|
+            (options.key?(part) || route.scope_options.key?(part)) && !(options[part].nil? && recall[part].nil?)
+          } || -1
+          keys_to_keep = parts.take(last_kept + 1) | route.required_parts
 
           parameterized_parts.delete_if do |bad_key, _|
             !keys_to_keep.include?(bad_key)
