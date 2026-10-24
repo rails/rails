@@ -12,6 +12,9 @@ class <%= class_name %> < <%= parent_class_name.classify %>
 <% attributes.select(&:attachments?).each do |attribute| -%>
   has_many_attached :<%= attribute.name %>
 <% end -%>
+<% attributes.select(&:delegated_type?).each do |attribute| -%>
+  delegated_type :<%= attribute.name %>, types: []
+<% end -%>
 <% attributes.select(&:token?).each do |attribute| -%>
   has_secure_token<% if attribute.name != "token" %> :<%= attribute.name %><% end %>
 <% end -%>
