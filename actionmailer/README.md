@@ -26,7 +26,7 @@ This can be as simple as:
 
 ```ruby
 class Notifier < ActionMailer::Base
-  default from: 'system@loudthinking.com'
+  default from: "system@loudthinking.com"
 
   def welcome(recipient)
     @recipient = recipient
@@ -40,7 +40,7 @@ ERB) that has the instance variables that are declared in the mailer action.
 
 So the corresponding body template for the method above could look like this:
 
-```erb
+```text
 Hello there,
 
 Mr. <%= @recipient %>
@@ -103,8 +103,8 @@ Example:
 
 ```ruby
 class AuthenticationMailer < ActionMailer::Base
-  default from: "awesome@application.com", subject: Proc.new {"E-mail was generated at #{Time.now}" }
-  ...
+  default from: "awesome@application.com", subject: Proc.new { "E-mail was generated at #{Time.now}" }
+  # ...
 end
 ```
 
@@ -114,10 +114,10 @@ The Base class has the full list of configuration options. Here's an example:
 
 ```ruby
 ActionMailer::Base.smtp_settings = {
-  address:        'smtp.yourserver.com', # default: localhost
-  port:           '25',                  # default: 25
-  user_name:      'user',
-  password:       'pass',
+  address:        "smtp.yourserver.com", # default: localhost
+  port:           "25",                  # default: 25
+  user_name:      "user",
+  password:       "pass",
   authentication: :plain                 # :plain, :login or :cram_md5
 }
 ```
