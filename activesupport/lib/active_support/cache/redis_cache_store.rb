@@ -179,11 +179,12 @@ module ActiveSupport
 
         options = names.extract_options!
         options = merged_options(options)
-        keys    = names.map { |name| normalize_key(name, options) }
+        normalized_keys = {}.compare_by_identity
+        keys = names.map { |name| normalized_keys[name] = normalize_key(name, options) }
 
         instrument_multi(:read_multi, keys, options) do |payload|
-          read_multi_entries(names, **options).tap do |results|
-            payload[:hits] = results.keys.map { |name| normalize_key(name, options) }
+          read_multi_entries(names, **options, normalized_keys: normalized_keys).tap do |results|
+            payload[:hits] = results.keys.map { |name| normalized_key_for(name, options, normalized_keys) }
           end
         end
       end
@@ -340,7 +341,7 @@ module ActiveSupport
           return {} if names == []
           raw = options&.fetch(:raw, false)
 
-          keys = names.map { |name| normalize_key(name, options) }
+          keys = names.map { |name| normalized_key_for(name, options) }
           keys_index = keys.each_with_index.to_h
 
           results = {}
