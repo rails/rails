@@ -48,6 +48,16 @@ class SendFileController < ActionController::Base
     send_data "foo", options
   end
 
+  def test_send_data_with_crlf_disposition
+    options = {
+      type: Mime[:png],
+      disposition: "attachment\r\nX-Evil: 1",
+      filename: "filename"
+    }
+
+    send_data "foo", options
+  end
+
   def test_send_file_headers_with_mime_lookup_with_symbol
     options = { type: :png }
 
@@ -153,6 +163,14 @@ class SendFileTest < ActionController::TestCase
     get :test_send_file_headers_with_disposition_as_a_symbol
 
     assert_equal %(disposition; filename="filename"; filename*=UTF-8''filename), response.get_header("Content-Disposition")
+  end
+
+  def test_send_data_sanitizes_crlf_in_disposition
+    get :test_send_data_with_crlf_disposition
+
+    header = response.get_header("Content-Disposition")
+    assert_no_match(/[\r\n]/, header)
+    assert_equal %(attachment; filename="filename"; filename*=UTF-8''filename), header
   end
 
   def test_send_file_headers_with_mime_lookup_with_symbol

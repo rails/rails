@@ -5,6 +5,11 @@
 module ActionDispatch
   module Http
     class ContentDisposition # :nodoc:
+      # HTTP token characters (RFC 7230 §3.2.6). Stopping at the first non-token
+      # character prevents disposition values like "attachment\r\nX-Evil: 1" from
+      # injecting additional response headers via Content-Disposition.
+      DISPOSITION_TOKEN = /\A[!\#$%&'*+\-.^_`|~0-9A-Za-z]+/
+
       def self.format(disposition:, filename:)
         new(disposition: disposition, filename: filename).to_s
       end
@@ -12,7 +17,7 @@ module ActionDispatch
       attr_reader :disposition, :filename
 
       def initialize(disposition:, filename:)
-        @disposition = disposition
+        @disposition = sanitize_disposition(disposition)
         @filename = filename
       end
 
@@ -37,6 +42,10 @@ module ActionDispatch
       end
 
       private
+        def sanitize_disposition(disposition)
+          disposition.to_s[DISPOSITION_TOKEN].presence || "attachment"
+        end
+
         def percent_escape(string, pattern)
           string.gsub(pattern) do |char|
             char.bytes.map { |byte| "%%%02X" % byte }.join
