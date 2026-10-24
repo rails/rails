@@ -86,6 +86,26 @@ module ActiveRecord
         assert_equal "reading", relation.first.connection_role
       end
 
+      def test_connected_to_many_loads_returned_relations
+        relation = Person.all
+        assert_not_predicate relation, :loaded?
+
+        result = ActiveRecord::Base.connected_to_many(SecondaryBase, role: :reading) { relation }
+
+        assert_same relation, result
+        assert_predicate result, :loaded?
+      end
+
+      def test_connected_to_many_restores_role_when_loading_raises
+        assert_raises ActiveRecord::StatementInvalid do
+          ActiveRecord::Base.connected_to_many(SecondaryBase, role: :reading) do
+            Person.where("nonexistent_column = 1")
+          end
+        end
+
+        assert_equal :writing, SecondaryBase.current_role
+      end
+
       unless in_memory_db?
         def test_establish_connection_using_3_levels_config
           previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
