@@ -564,6 +564,43 @@ module ActiveRecord
       reset_fixtures("posts", "authors", "author_addresses")
     end
 
+    def test_truncate_tables_ignores_schema_qualified_internal_tables
+      internal_metadata = @connection.pool.internal_metadata
+      internal_metadata[:foo] = "bar"
+      internal_table_name = internal_metadata.table_name
+
+      assert_not_equal 0, Post.count
+      assert_not_equal 0, internal_metadata.count
+
+      @connection.truncate_tables("posts", "myschema.#{internal_table_name}", "public.#{internal_table_name}")
+
+      assert_equal 0, Post.count
+      assert_not_equal 0, internal_metadata.count
+    ensure
+      reset_fixtures("posts")
+      internal_metadata.delete_all_entries
+    end
+
+    def test_truncate_tables_ignores_unqualified_internal_tables_when_prefix_is_schema_qualified
+      internal_metadata = @connection.pool.internal_metadata
+      internal_metadata[:foo] = "bar"
+      assert_not_equal 0, Post.count
+      assert_not_equal 0, internal_metadata.count
+
+      unqualified_table_name = internal_metadata.table_name
+      original_prefix = ActiveRecord::Base.table_name_prefix
+      ActiveRecord::Base.table_name_prefix = "myschema."
+      @connection.truncate_tables("posts", unqualified_table_name)
+      ActiveRecord::Base.table_name_prefix = original_prefix
+
+      assert_equal 0, Post.count
+      assert_not_equal 0, internal_metadata.count
+    ensure
+      ActiveRecord::Base.table_name_prefix = original_prefix
+      reset_fixtures("posts")
+      internal_metadata.delete_all_entries
+    end
+
     def test_truncate_tables_with_query_cache
       @connection.enable_query_cache!
 
