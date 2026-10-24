@@ -140,6 +140,26 @@ module Arel
         assert_equal false, collector.retryable
       end
 
+      test "update and delete statements place optimizer hints after the keyword" do
+        update = Arel::Nodes::UpdateStatement.new(@table)
+        update.values = [Arel.sql("name = 'foo'")]
+        update.optimizer_hints = Nodes::OptimizerHints.new(["NO_INDEX_MERGE(users)"])
+        assert_equal %(UPDATE /*+ NO_INDEX_MERGE(users) */ "users" SET name = 'foo'), compile(update)
+
+        delete = Arel::Nodes::DeleteStatement.new(@table)
+        delete.optimizer_hints = Nodes::OptimizerHints.new(["NO_INDEX_MERGE(users)"])
+        assert_equal %(DELETE /*+ NO_INDEX_MERGE(users) */ FROM "users"), compile(delete)
+      end
+
+      test "update statement rewritten into a subquery keeps optimizer hints in the subquery" do
+        update = Arel::Nodes::UpdateStatement.new(@table)
+        update.values = [Arel.sql("name = 'foo'")]
+        update.key = @table[:id]
+        update.limit = Nodes::Limit.new(1)
+        update.optimizer_hints = Nodes::OptimizerHints.new(["NO_INDEX_MERGE(users)"])
+        assert_equal %(UPDATE /*+ NO_INDEX_MERGE(users) */ "users" SET name = 'foo' WHERE ("users"."id") IN (SELECT /*+ NO_INDEX_MERGE(users) */ "users"."id" FROM "users" LIMIT 1)), compile(update)
+      end
+
       test "the to_sql visitor should visit built-in functions" do
         function = Nodes::Count.new([Arel.star])
         assert_equal "COUNT(*)", compile(function)
