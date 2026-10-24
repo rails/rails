@@ -273,6 +273,8 @@ class QueryCacheTest < ActiveRecord::TestCase
   end
 
   def test_query_cache_across_threads
+    ActiveRecord::Base.connection_pool.release_connection
+
     with_temporary_connection_pool do
       if in_memory_db?
         # Separate connections to an in-memory database create an entirely new database,
