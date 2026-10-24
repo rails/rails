@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Arel # :nodoc: all
   module Visitors
     class UnsupportedVisitError < StandardError
@@ -972,7 +973,7 @@ module Arel # :nodoc: all
         end
         alias :prepare_delete_statement :prepare_update_statement
 
-        # Used by dialects that support `UPDATE ... FROM` (PostgreSQL, SQLite).
+        # Used by dialects that support \`UPDATE ... FROM\` (PostgreSQL, SQLite).
         # Join clauses cannot reference the target table, so alias the updated
         # table, place the entire relation in the FROM clause, and add a
         # self-join (which requires the primary key).
