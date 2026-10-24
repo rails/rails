@@ -260,12 +260,12 @@ module ActiveRecord
       def define_attribute(
         name,
         cast_type,
-        default: NO_DEFAULT_PROVIDED,
+        default: (no_default = true),
         user_provided_default: true
       )
         add_pending_attribute_modification(PendingType.new(name, cast_type))
 
-        unless default == NO_DEFAULT_PROVIDED
+        unless no_default
           if user_provided_default
             add_pending_attribute_modification(PendingDefault.new(name, default))
           else
@@ -307,9 +307,6 @@ module ActiveRecord
         end
 
       private
-        NO_DEFAULT_PROVIDED = Object.new.freeze # :nodoc:
-        private_constant :NO_DEFAULT_PROVIDED
-
         PendingType = ActiveModel::AttributeRegistration::ClassMethods::PendingType # :nodoc:
         PendingDefault = ActiveModel::AttributeRegistration::ClassMethods::PendingDefault # :nodoc:
 
