@@ -462,6 +462,17 @@ module ActiveRecord
       assert_equal 1, data.unoverloaded_float
     end
 
+    test "define_attribute accepts a default whose == only handles its own kind" do
+      default = Struct.new(:value) { def ==(other) = value == other.value }.new(1)
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "overloaded_types"
+      end
+
+      klass.define_attribute("non_existent_value", Type::Value.new, default: default)
+
+      assert_equal default, klass.new.non_existent_value
+    end
+
     test "serialize boolean for both string types" do
       default_string_type = Type.lookup(:string)
       immutable_string_type = Type.lookup(:immutable_string)
