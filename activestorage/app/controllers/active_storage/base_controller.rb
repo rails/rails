@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 # The base class for all Active Storage controllers.
 class ActiveStorage::BaseController < ActiveStorage.base_controller_parent.constantize
   include ActiveStorage::SetCurrent

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "securerandom"
 
 module ActiveStorage::Streaming
@@ -58,8 +59,8 @@ module ActiveStorage::Streaming
       ranges.sum { |range| range.end - range.begin } < ActiveStorage.streaming_chunk_max_size
     end
 
-    # Stream the blob from storage directly to the response. The disposition can be controlled by setting +disposition+.
-    # The content type and filename is set directly from the +blob+.
+    # Stream the blob from storage directly to the response. The disposition can be controlled by setting `disposition`.
+    # The content type and filename is set directly from the `blob`.
     def send_blob_stream(blob, disposition: nil) # :doc:
       send_stream(
           filename: blob.filename.sanitized,

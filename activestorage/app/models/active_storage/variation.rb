@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "marcel"
 
-# = Active Storage \Variation
+# Active Storage \Variation
+# =========================
 #
 # A set of transformations that can be applied to a blob to create a variant. This class is exposed via
 # the ActiveStorage::Blob#variant method and should rarely be used directly.
@@ -10,9 +12,11 @@ require "marcel"
 # In case you do need to use this directly, it's instantiated using a hash of transformations where
 # the key is the command and the value is the arguments. Example:
 #
-#   ActiveStorage::Variation.new(resize_to_limit: [100, 100], colourspace: "b-w", rotate: "-90", saver: { trim: true })
+# ```
+# ActiveStorage::Variation.new(resize_to_limit: [100, 100], colourspace: "b-w", rotate: "-90", saver: { trim: true })
+# ```
 #
-# The options map directly to {ImageProcessing}[https://github.com/janko/image_processing] commands.
+# The options map directly to [ImageProcessing](https://github.com/janko/image_processing) commands.
 class ActiveStorage::Variation
   attr_reader :transformations
 
@@ -31,13 +35,13 @@ class ActiveStorage::Variation
       end
     end
 
-    # Returns a Variation instance with the transformations that were encoded by +encode+.
+    # Returns a Variation instance with the transformations that were encoded by `encode`.
     def decode(key)
       new ActiveStorage.verifier.verify(key, purpose: :variation)
     end
 
-    # Returns a signed key for the +transformations+, which can be used to refer to a specific
-    # variation in a URL or combined key (like <tt>ActiveStorage::Variant#key</tt>).
+    # Returns a signed key for the `transformations`, which can be used to refer to a specific
+    # variation in a URL or combined key (like `ActiveStorage::Variant#key`).
     def encode(transformations)
       ActiveStorage.verifier.generate(transformations, purpose: :variation)
     end
@@ -51,7 +55,7 @@ class ActiveStorage::Variation
     self.class.new transformations.reverse_merge(defaults)
   end
 
-  # Accepts a File object, performs the +transformations+ against it, and
+  # Accepts a File object, performs the `transformations` against it, and
   # saves the transformed image into a temporary file.
   def transform(file, &block)
     ActiveSupport::Notifications.instrument("transform.active_storage") do
@@ -71,7 +75,7 @@ class ActiveStorage::Variation
     Marcel::MimeType.for(extension: format.to_s)
   end
 
-  # Returns a signed key for all the +transformations+ that this variation was instantiated with.
+  # Returns a signed key for all the `transformations` that this variation was instantiated with.
   def key
     self.class.encode(transformations)
   end

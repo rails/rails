@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 # Provides asynchronous purging of ActiveStorage::Blob records via ActiveStorage::Blob#purge_later.
 class ActiveStorage::PurgeJob < ActiveStorage::BaseJob
   queue_as { ActiveStorage.queues[:purge] }
