@@ -248,6 +248,51 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     assert_equal({ counter_integer: 0, counter_callable: 0 }, Current.attributes)
   end
 
+  test "CurrentAttributes doesn't populate .defaults when not using defaults" do
+    assert_equal [:counter_integer, :counter_callable], Current.defaults.keys
+  end
+
+  test "CurrentAttributes accepts a default whose == only handles its own kind" do
+    default = Struct.new(:value) { def ==(other) = value == other.value }.new(1)
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      attribute :foo
+      attribute :bar, default: default
+    end
+
+    assert_equal({ bar: default }, current.attributes)
+  end
+
+  test "CurrentAttributes redeclaring an attribute without a default removes the inherited default" do
+    child = Class.new(Current) do
+      def self.name
+        "ChildCurrent"
+      end
+
+      attribute :counter_integer
+    end
+
+    assert_nil child.counter_integer
+    assert_not_includes child.attributes, :counter_integer
+    assert_equal 0, Current.counter_integer
+  end
+
+  test "CurrentAttributes defaults work with attribute names given as strings" do
+    current = Class.new(ActiveSupport::CurrentAttributes) do
+      def self.name
+        "MyCurrent"
+      end
+
+      attribute "foo", default: 1
+    end
+
+    assert_equal 1, current.foo
+    assert_equal({ foo: 1 }, current.attributes)
+  end
+
   test "#attributes returns different objects each time" do
     assert_not_same Current.attributes, Current.attributes
   end

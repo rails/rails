@@ -1,3 +1,15 @@
+*   Fix `CurrentAttributes` defaults for attribute names given as strings.
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      attribute "currency", default: "USD"
+    end
+
+    Current.currency # => "USD" (was nil)
+    ```
+
+    *Ryuta Kamizono*
+
 *   `ActiveSupport::Deprecation::DeprecatedObjectProxy` and
     `DeprecatedInstanceVariableProxy` now inherit from `BasicObject`, so methods
     added to `Object` after Active Support loads (such as `to_json`, `to_param`,
