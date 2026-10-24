@@ -98,8 +98,6 @@ module ActiveSupport
     include ActiveSupport::Callbacks
     define_callbacks :reset
 
-    NOT_SET = Object.new.freeze # :nodoc:
-
     class << self
       # Returns singleton instance for this class in this thread. If none exists, one is created.
       def instance
@@ -114,8 +112,10 @@ module ActiveSupport
       #   is a proc or lambda, it will be called whenever an instance is
       #   constructed. Otherwise, the value will be duplicated with `#dup`.
       #   Default values are re-assigned when the attributes are reset.
-      def attribute(*names, default: NOT_SET)
-        invalid_attribute_names = names.map(&:to_sym) & INVALID_ATTRIBUTE_NAMES
+      def attribute(*names, default: (no_default = true))
+        names = names.map(&:to_sym)
+
+        invalid_attribute_names = names & INVALID_ATTRIBUTE_NAMES
         if invalid_attribute_names.any?
           raise ArgumentError, "Restricted attribute names: #{invalid_attribute_names.join(", ")}"
         end
@@ -140,7 +140,7 @@ module ActiveSupport
           end
         end
 
-        self.defaults = defaults.merge(names.index_with { default })
+        self.defaults = no_default ? defaults.except(*names) : defaults.merge(names.index_with { default })
       end
 
       # Calls this callback before #reset is called on the instance. Used for resetting external collaborators that depend on current values.
@@ -237,13 +237,9 @@ module ActiveSupport
 
     private
       def resolve_defaults
-        result = {}
-        defaults.each do |key, value|
-          if value != NOT_SET
-            result[key] = Proc === value ? value.call : value.dup
-          end
+        defaults.transform_values do |value|
+          Proc === value ? value.call : value.dup
         end
-        result
       end
 
       # Declaring an attribute by one of these names would shadow the methods
