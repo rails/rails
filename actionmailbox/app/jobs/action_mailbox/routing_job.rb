@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionMailbox
   # Routing a new InboundEmail is an asynchronous operation, which allows the ingress controllers to quickly
   # accept new incoming emails without being burdened to hang while they're actually being processed.
