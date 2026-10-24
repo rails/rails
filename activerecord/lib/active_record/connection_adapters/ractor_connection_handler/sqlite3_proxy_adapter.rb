@@ -86,6 +86,10 @@ module ActiveRecord
           pure_remote_dispatch(:supports_partial_index?)
         end
 
+        def supports_row_value_comparison?
+          pure_remote_dispatch(:supports_row_value_comparison?)
+        end
+
         def supports_savepoints?
           pure_remote_dispatch(:supports_savepoints?)
         end

@@ -268,6 +268,10 @@ module ActiveRecord
         true
       end
 
+      def supports_row_value_comparison? # :nodoc:
+        true
+      end
+
       def connected?
         !(@raw_connection.nil? || @raw_connection.closed?)
       end

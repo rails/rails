@@ -728,6 +728,18 @@ module ActiveRecord
       assert_equal records.reverse.map(&:id), batched_ids
     end
 
+    def test_batch_cursors_over_several_columns_use_query_predicate_expressions
+      topic = Class.new(ActiveRecord::Base) do
+        self.table_name = "topics"
+        attribute :id, InvertedInteger.new
+      end
+      records = 3.times.map { topic.create!(title: "Batched Order") }
+      scope = topic.where(title: "Batched Order")
+
+      assert_equal records.reverse.map(&:id), scope.find_each(batch_size: 1, cursor: [:title, :id]).map(&:id)
+      assert_equal records.reverse.map(&:id), scope.in_batches(of: 1, cursor: [:title, :id]).flat_map(&:ids)
+    end
+
     def test_in_order_of_uses_query_predicate_expressions
       topic = topic_model_with_title_type(LowerString.new)
       alpha = topic.create!(title: "Alpha")

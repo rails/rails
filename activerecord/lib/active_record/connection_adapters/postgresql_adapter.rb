@@ -336,6 +336,16 @@ module ActiveRecord
         database_version >= 15_00_00 # >= 15.0
       end
 
+      def supports_row_value_comparison? # :nodoc:
+        true
+      end
+
+      # Before 18, PostgreSQL scans from the first value of an IN list on the first
+      # column unless its bound is repeated. From 18, repeating it makes ranges read too far.
+      def row_value_comparison_needs_leading_bound? # :nodoc:
+        database_version < 18_00_00 # < 18.0
+      end
+
       if PG::Connection.method_defined?(:close_prepared) # pg 1.6.0 & libpq 17
         def supports_close_prepared? # :nodoc:
           database_version >= 17_00_00
