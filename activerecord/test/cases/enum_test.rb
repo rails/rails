@@ -1043,6 +1043,16 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_predicate computer, :"Etc/GMT-1?"
   end
 
+  test "enum label conflicting with the method name alias of an earlier label" do
+    e = assert_raises(ArgumentError) do
+      Class.new(ActiveRecord::Base) do
+        self.table_name = "computers"
+        enum :timezone, { "Etc-GMT" => 0, "Etc_GMT" => 1 }
+      end
+    end
+    assert_match(/will generate an instance method "Etc_GMT\?", which is already defined by another enum/, e.message)
+  end
+
   test "deserialize enum value to original hash key" do
     proposed = Struct.new(:to_s).new("proposed")
     written = Struct.new(:to_s).new("written")
