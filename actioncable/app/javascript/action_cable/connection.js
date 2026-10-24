@@ -7,6 +7,8 @@ import logger from "./logger"
 
 const {message_types, protocols} = INTERNAL
 const supportedProtocols = protocols.slice(0, protocols.length - 1)
+// Optional protocol extensions (negotiated during handshake)
+const extensionProtocols = Object.values(INTERNAL.extensions)
 
 const indexOf = [].indexOf
 
@@ -17,6 +19,7 @@ class Connection {
     this.subscriptions = this.consumer.subscriptions
     this.monitor = new ConnectionMonitor(this)
     this.disconnected = true
+    this.sendPongs = false
   }
 
   send(data) {
@@ -33,10 +36,11 @@ class Connection {
       logger.log(`Attempted to open WebSocket, but existing socket is ${this.getState()}`)
       return false
     } else {
-      const socketProtocols = [...protocols, ...this.consumer.subprotocols || []]
+      const socketProtocols = [...protocols, ...extensionProtocols, ...this.consumer.subprotocols || []]
       logger.log(`Opening WebSocket, current state is ${this.getState()}, subprotocols: ${socketProtocols}`)
       if (this.webSocket) { this.uninstallEventHandlers() }
       this.webSocket = new adapters.WebSocket(this.consumer.url, socketProtocols)
+      this.sendPongs = false
       this.installEventHandlers()
       this.monitor.start()
       return true
@@ -127,19 +131,23 @@ Connection.reopenDelay = 500
 Connection.prototype.events = {
   message(event) {
     if (!this.isProtocolSupported()) { return }
-    const {identifier, message, reason, reconnect, type} = JSON.parse(event.data)
+    const {identifier, message, reason, reconnect, type, extensions} = JSON.parse(event.data)
     this.monitor.recordMessage()
     switch (type) {
       case message_types.welcome:
         if (this.triedToReconnect()) {
           this.reconnectAttempted = true
         }
+        this.sendPongs = (extensions || []).includes("pong")
         this.monitor.recordConnect()
         return this.subscriptions.reload()
       case message_types.disconnect:
         logger.log(`Disconnecting. Reason: ${reason}`)
         return this.close({allowReconnect: reconnect})
       case message_types.ping:
+        if (this.sendPongs) {
+          this.send({command: "pong", message})
+        }
         return null
       case message_types.confirmation:
         this.subscriptions.confirmSubscription(identifier)

@@ -3,8 +3,11 @@
 require "test_helper"
 require "stubs/test_server"
 require "active_support/core_ext/object/json"
+require "active_support/testing/time_helpers"
 
 class ActionCable::Server::SocketTest < ActionCable::TestCase
+  include ActiveSupport::Testing::TimeHelpers
+
   class Connection
     attr_reader :last_message, :socket, :connected
 
@@ -123,6 +126,50 @@ class ActionCable::Server::SocketTest < ActionCable::TestCase
     end
   end
 
+  test "negotiates the extensions offered by the client" do
+    run_in_eventmachine do
+      socket = open_socket("HTTP_SEC_WEBSOCKET_PROTOCOL" => "actioncable-v1-json, actioncable-ext-pong, actioncable-ext-unknown")
+      socket.process
+      wait_for_async
+
+      assert_equal ["pong"], socket.extensions
+    end
+  end
+
+  test "a client with pongs becomes unresponsive" do
+    run_in_eventmachine do
+      socket = open_socket("HTTP_SEC_WEBSOCKET_PROTOCOL" => "actioncable-v1-json, actioncable-ext-pong")
+      socket.process
+      wait_for_async
+
+      assert_not_predicate socket, :unresponsive?
+
+      travel ActionCable::Server::Connections::PONG_TIMEOUT + 1 do
+        assert_predicate socket, :unresponsive?
+
+        # Any message from the client refreshes it
+        socket.on_message({ command: "pong" }.to_json)
+        assert_not_predicate socket, :unresponsive?
+      end
+
+      travel(2 * (ActionCable::Server::Connections::PONG_TIMEOUT + 1)) do
+        assert_predicate socket, :unresponsive?
+      end
+    end
+  end
+
+  test "a client without pongs is never unresponsive" do
+    run_in_eventmachine do
+      socket = open_socket
+      socket.process
+      wait_for_async
+
+      travel ActionCable::Server::Connections::PONG_TIMEOUT + 1 do
+        assert_not_predicate socket, :unresponsive?
+      end
+    end
+  end
+
   test "rejecting a connection causes a 404" do
     run_in_eventmachine do
       class CallMeMaybe
@@ -144,9 +191,9 @@ class ActionCable::Server::SocketTest < ActionCable::TestCase
   end
 
   private
-    def open_socket
+    def open_socket(headers = {})
       env = Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
-        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
+        "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com", **headers
 
       ActionCable::Server::Socket.new(@server, env)
     end
