@@ -1,3 +1,10 @@
+*   Prevent `ActionController::Live` streams from blocking when a full buffer is
+    closed or aborted.
+
+    [GHSA-rwvh-fw6r-pwvp]
+
+    *Jeremy Daer*
+
 *   Set and extend the `Vary` header for rendered responses according to the
     request headers used in format negotiation.
 

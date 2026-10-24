@@ -221,7 +221,11 @@ module ActionController
           @response.delete_header "Content-Length"
         end
 
-        super
+        begin
+          super
+        rescue ClosedQueueError
+          raise IOError, "closed stream" if connected?
+        end
 
         unless connected?
           @buf.clear
@@ -241,14 +245,14 @@ module ActionController
         write string.end_with?("\n") ? string : "#{string}\n"
       end
 
-      # Write a 'close' event to the buffer; the producer/writing thread uses this to
-      # notify us that it's finished supplying content.
+      # Close the buffer; the producer/writing thread uses this to notify us that
+      # it's finished supplying content.
       #
       # See also #abort.
       def close
         synchronize do
           super
-          @buf.push nil
+          @buf.close
           @cv.broadcast
         end
       end
@@ -260,7 +264,9 @@ module ActionController
       def abort
         synchronize do
           @aborted = true
+          @buf.close
           @buf.clear
+          @cv.broadcast
         end
       end
 
