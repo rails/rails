@@ -1811,6 +1811,8 @@ end
 
 ```irb
 irb> person = Person.new
+irb> person.valid?
+=> false
 irb> person.errors.where(:name).first.type
 => :too_plain
 irb> person.errors.where(:name).first.full_message
@@ -1836,6 +1838,8 @@ end
 
 ```irb
 irb> person = Person.new
+irb> person.valid?
+=> false
 irb> person.errors.where(:base).first.full_message
 => "This person is invalid because ..."
 ```
