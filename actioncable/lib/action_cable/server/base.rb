@@ -44,7 +44,7 @@ module ActionCable
       include ActionCable::Server::Broadcasting
       include ActionCable::Server::Connections
 
-      cattr_accessor :config, instance_accessor: false, default: ActionCable::Server::Configuration.new
+      cattr_accessor :config, instance_accessor: false, default: ActionCable.config
 
       attr_reader :config
 
