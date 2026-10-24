@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "active_support/core_ext/string/access"
 require "active_support/core_ext/string/filters"
 require "openssl"

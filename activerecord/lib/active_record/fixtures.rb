@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "erb"
 require "yaml"
 require "active_support/dependencies"

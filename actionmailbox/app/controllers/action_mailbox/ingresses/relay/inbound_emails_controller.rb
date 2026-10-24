@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 module ActionMailbox
   # Ingests inbound emails relayed from an SMTP server.
   #

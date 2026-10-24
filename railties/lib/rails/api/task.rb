@@ -141,6 +141,7 @@ module Rails
 
         options << "-m"  << api_main
         options << "-e"  << "UTF-8"
+        options << "--markup=markdown"
 
         options << "-f"  << "api"
         options << "-T"  << "rails"

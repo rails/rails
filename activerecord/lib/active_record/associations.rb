@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 module ActiveRecord
   # See ActiveRecord::Associations::ClassMethods for documentation.
   module Associations # :nodoc:

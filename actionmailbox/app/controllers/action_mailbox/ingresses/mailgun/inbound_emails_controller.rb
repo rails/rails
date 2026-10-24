@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 module ActionMailbox
   # Ingests inbound emails from Mailgun. Requires the following parameters:
   #
