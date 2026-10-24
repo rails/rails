@@ -1,3 +1,8 @@
+*   Fix `preload_link_tag` raising `NameError` in views without `content_security_policy_nonce`,
+    such as mailer views and `ActionView::Base.empty`.
+
+    *Bastin*
+
 *   Fix the debug page for errors raised in view templates on Ruby 4.1.
 
     Ruby 4.1 builds prism into the interpreter as `Ruby::Prism`, and

@@ -1171,6 +1171,20 @@ class AssetTagHelperWithoutRequestTest < ActionView::TestCase
   end
 end
 
+class AssetTagHelperWithoutContentSecurityPolicyNonceTest < ActiveSupport::TestCase
+  include Rails::Dom::Testing::Assertions::DomAssertions
+
+  def test_preload_link_tag_without_content_security_policy_nonce
+    view = ActionView::Base.empty
+    assert_not_respond_to view, :content_security_policy_nonce
+
+    assert_dom_equal(
+      %(<link rel="preload" href="/application.js" as="script" type="text/javascript" />),
+      view.preload_link_tag("application.js")
+    )
+  end
+end
+
 class AssetTagHelperWithStreamingRequest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
