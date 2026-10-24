@@ -8,6 +8,6 @@ class ActiveStorage::AnalyzeJob < ActiveStorage::BaseJob
   retry_on ActiveStorage::IntegrityError, attempts: 10, wait: :polynomially_longer
 
   def perform(blob)
-    blob.analyze
+    blob.analyze unless blob.analyzed?
   end
 end
