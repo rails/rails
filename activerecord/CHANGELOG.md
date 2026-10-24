@@ -1,3 +1,10 @@
+*   Write `db/schema.rb` atomically when dumping the schema.
+
+    Processes loading the schema while it was being dumped could read an empty or partial file,
+    and a dump that failed partway left the truncated file behind.
+
+    *Andrew Fader*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one
