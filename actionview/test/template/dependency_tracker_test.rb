@@ -102,6 +102,19 @@ module SharedTrackerTests
     assert_equal ["messages/layout", "messages/show"], tracker.dependencies.sort
   end
 
+  def test_dependencies_of_partials_rendered_with_other_options
+    template = FakeTemplate.new(%{
+      <%= render partial: "messages/message", collection: @messages, cached: true %>
+      <%= render partial: "messages/header", locale: :es %>
+      <%= render partial: "messages/actions", variants: [:phone] %>
+      <%= render partial: "messages/form", handlers: [:erb] %>
+      <%= render partial: "messages/footer", unknown_render_option: "yes" %>
+    }, :erb)
+    tracker = make_tracker("messages/index", template)
+
+    assert_equal ["messages/actions", "messages/footer", "messages/form", "messages/header", "messages/message"], tracker.dependencies.sort
+  end
+
   def test_dependency_of_template_layout_standalone
     template = FakeTemplate.new("<%= render layout: 'messages/layout' do %>", :erb)
     tracker = make_tracker("messages/layout", template)
@@ -318,15 +331,6 @@ class RubyTrackerTest < Minitest::Test
 
   def make_tracker(name, template, view_paths = nil)
     ActionView::DependencyTracker::RubyTracker.new(name, template, view_paths)
-  end
-
-  def test_dependencies_skip_unknown_options
-    template = FakeTemplate.new(%{
-      <%= render partial: "unknown_render_call", unknown_render_option: "yes" %>
-    }, :erb)
-    tracker = make_tracker("interpolation/_string", template)
-
-    assert_equal [], tracker.dependencies
   end
 
   def test_dependencies_finds_spacer_templates
