@@ -62,7 +62,18 @@ module ActiveRecord
     def establish_connection(config_or_env = nil)
       config_or_env ||= DEFAULT_ENV.call.to_sym
       db_config = resolve_config_for_connection(config_or_env)
-      connection_handler.establish_connection(db_config, owner_name: self, role: current_role, shard: current_shard)
+
+      # An explicit in-memory SQLite config describes a brand new database.
+      # Named configs (:arunit, env names) keep reusing their pool.
+      clobber = config_or_env.is_a?(Hash) && in_memory_sqlite?(db_config)
+
+      connection_handler.establish_connection(
+        db_config,
+        owner_name: self,
+        role: current_role,
+        shard: current_shard,
+        clobber: clobber
+      )
     end
 
     # Connects a model to the databases specified. The `database` keyword
@@ -471,6 +482,10 @@ module ActiveRecord
         stack = connected_to_stack.dup
         stack.pop
         ActiveSupport::IsolatedExecutionState[:active_record_connected_to_stack] = stack
+      end
+
+      def in_memory_sqlite?(db_config)
+        db_config.adapter.to_s == "sqlite3" && db_config.database.to_s == ":memory:"
       end
   end
 end
