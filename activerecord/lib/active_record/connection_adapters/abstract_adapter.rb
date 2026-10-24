@@ -143,6 +143,7 @@ module ActiveRecord
           supports_foreign_keys?: supports_foreign_keys?,
           supports_foreign_tables?: supports_foreign_tables?,
           supports_index_include?: supports_index_include?,
+          supports_index_with?: supports_index_with?,
           supports_index_sort_order?: supports_index_sort_order?,
           supports_indexes_in_create?: supports_indexes_in_create?,
           supports_insert_conflict_target?: supports_insert_conflict_target?,
@@ -558,6 +559,11 @@ module ActiveRecord
 
       # Does this adapter support including non-key columns?
       def supports_index_include?
+        false
+      end
+
+      # Does this adapter support index storage parameters?
+      def supports_index_with?
         false
       end
 
