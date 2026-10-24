@@ -106,7 +106,7 @@ module Rails
 
         "railties" => {
           include: %w(
-            README.rdoc
+            README.md
             lib/**/*.rb
           ),
           exclude: %w(
