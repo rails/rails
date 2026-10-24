@@ -2533,7 +2533,8 @@ Use `ActionDispatch::ExceptionWrapper.rescue_responses` to observe the configura
   "ActiveRecord::RecordNotFound" => :not_found,
   "ActiveRecord::StaleObjectError" => :conflict,
   "ActiveRecord::RecordInvalid" => :unprocessable_entity,
-  "ActiveRecord::RecordNotSaved" => :unprocessable_entity
+  "ActiveRecord::RecordNotSaved" => :unprocessable_entity,
+  "ActiveRecord::NullByteError" => :bad_request
 }
 ```
 
