@@ -84,11 +84,11 @@ class ActionPackAssertionsController < ActionController::Base
   end
 
   def render_file_absolute_path
-    render file: File.expand_path("../../README.rdoc", __dir__)
+    render file: File.expand_path("../../README.md", __dir__)
   end
 
   def render_file_relative_path
-    render file: "README.rdoc"
+    render file: "README.md"
   end
 end
 
@@ -150,12 +150,12 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_render_file_absolute_path
     get :render_file_absolute_path
-    assert_match(/\A= Action Pack/, @response.body)
+    assert_match(/\A# Action Pack/, @response.body)
   end
 
   def test_render_file_relative_path
     get :render_file_relative_path
-    assert_match(/\A= Action Pack/, @response.body)
+    assert_match(/\A# Action Pack/, @response.body)
   end
 
   def test_get_request
