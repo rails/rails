@@ -19,10 +19,13 @@ module ActiveStorage::Streaming
 
       if ranges.length == 1
         range = ranges.first
-        content_type = blob.content_type_for_serving
-        data = blob.download_chunk(range)
 
+        response.status = :partial_content
+        response.headers["Accept-Ranges"] = "bytes"
         response.headers["Content-Range"] = "bytes #{range.begin}-#{range.end}/#{blob.byte_size}"
+        response.headers["Content-Length"] = range.size.to_s
+
+        return send_blob_stream(blob, disposition: disposition, range: range)
       else
         boundary = SecureRandom.hex
         content_type = "multipart/byteranges; boundary=#{boundary}"
@@ -54,21 +57,25 @@ module ActiveStorage::Streaming
 
     def ranges_valid?(ranges)
       return false if ranges.blank? || ranges.all?(&:blank?)
+      return true if ranges.one?
 
       ranges.sum { |range| range.end - range.begin } < ActiveStorage.streaming_chunk_max_size
     end
 
     # Stream the blob from storage directly to the response. The disposition can be controlled by setting +disposition+.
     # The content type and filename is set directly from the +blob+.
-    def send_blob_stream(blob, disposition: nil) # :doc:
+    def send_blob_stream(blob, disposition: nil, range: nil) # :doc:
       send_stream(
           filename: blob.filename.sanitized,
           disposition: blob.forced_disposition_for_serving || disposition || DEFAULT_BLOB_STREAMING_DISPOSITION,
           type: blob.content_type_for_serving) do |stream|
-        blob.download do |chunk|
+        each_blob_chunk(blob, range) do |chunk|
+          # Commit before the first write, otherwise ActionController::Live drops the Content-Length header.
+          response.commit! if !response.committed? && response.headers["Content-Length"]
           stream.write chunk
         end
       rescue ActiveStorage::FileNotFoundError
+        response.headers.delete("Content-Range")
         expires_now
         head :not_found
       rescue
@@ -77,6 +84,15 @@ module ActiveStorage::Streaming
         expires_now
         head :internal_server_error
         raise
+      end
+    end
+
+    # Yields the +range+ of the blob in reads of at most +streaming_chunk_max_size+, or the whole blob.
+    def each_blob_chunk(blob, range, &block)
+      return blob.download(&block) unless range
+
+      range.step(ActiveStorage.streaming_chunk_max_size) do |offset|
+        yield blob.download_chunk(offset..[offset + ActiveStorage.streaming_chunk_max_size - 1, range.end].min)
       end
     end
 end
