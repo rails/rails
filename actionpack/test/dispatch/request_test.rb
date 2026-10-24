@@ -1488,6 +1488,17 @@ class RequestParameterFilter < BaseRequestTest
     end
   end
 
+  test "filtered_path applies dotted filters to nested query string keys" do
+    request = stub_request(
+      "QUERY_STRING" => "user%5Bphone_number%5D=5550100&user[address][zip]=12345&user%5Bname%5D=sikachu",
+      "PATH_INFO" => "/users",
+      "action_dispatch.parameter_filter" => ["user.phone_number", "user.address.zip"]
+    )
+
+    path = request.filtered_path
+    assert_equal request.script_name + "/users?user%5Bphone_number%5D=[FILTERED]&user[address][zip]=[FILTERED]&user%5Bname%5D=sikachu", path
+  end
+
   test "filtered_path passes the parameter to a proc filter as the original params" do
     request = stub_request(
       "QUERY_STRING" => "username=sikachu&secret=bd4f21f",
