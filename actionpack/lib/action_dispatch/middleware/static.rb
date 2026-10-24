@@ -57,7 +57,7 @@ module ActionDispatch
     ACCEPTABLE = PRECOMPRESSED.keys.index_with { |encoding| /\b#{encoding}\b/i }.freeze
     private_constant :ACCEPTABLE
 
-    def initialize(root, index: "index", headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript|image\/svg\+xml)/)
+    def initialize(root, index: "index", headers: {}, precompressed: %i[ br gzip ], compressible_content_types: /\A(?:text\/|application\/javascript|wasm|image\/svg\+xml)/)
       @root = root.chomp("/").b
       @index = index
 
