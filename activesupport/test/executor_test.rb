@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "abstract_unit"
+require "active_support/core_ext/object/with"
+require "active_support/dependencies"
 
 class ExecutorTest < ActiveSupport::TestCase
   class DummyError < Exception
@@ -132,6 +134,34 @@ class ExecutorTest < ActiveSupport::TestCase
     executor.wrap { }
 
     assert_equal :some_state, supplied_state
+  end
+
+  def test_hook_can_release_interlock_from_another_fiber
+    ActiveSupport::IsolatedExecutionState.with(isolation_level: :fiber) do
+      interlock = ActiveSupport::Dependencies::Interlock.new
+
+      hook = Class.new do
+        define_method(:run) do
+          interlock.start_running
+        end
+
+        define_method(:complete) do |owner|
+          interlock.done_running(owner)
+        end
+      end.new
+
+      executor.register_hook(hook)
+
+      request_fiber = Fiber.new { executor.run! }
+      state = request_fiber.resume
+      assert_not request_fiber.alive?
+
+      Fiber.new { state.complete! }.resume
+
+      interlock.raw_state do |owners|
+        assert_empty owners
+      end
+    end
   end
 
   def test_nil_state_is_sufficient

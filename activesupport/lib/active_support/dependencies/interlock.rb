@@ -32,11 +32,13 @@ module ActiveSupport # :nodoc:
       end
 
       def start_running
-        @lock.start_sharing
+        owner = ActiveSupport::IsolatedExecutionState.context
+        @lock.start_sharing(owner: owner)
+        owner
       end
 
-      def done_running
-        @lock.stop_sharing
+      def done_running(owner = ActiveSupport::IsolatedExecutionState.context)
+        @lock.stop_sharing(owner: owner)
       end
 
       def running(&block)
