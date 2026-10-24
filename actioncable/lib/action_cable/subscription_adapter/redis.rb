@@ -176,6 +176,8 @@ module ActionCable
               if @thread && !@thread.alive?
                 @thread = nil
                 @reconnect_attempt = 0
+                @subscribed_client = nil
+                when_connected { resubscribe }
               end
 
               @thread ||= Thread.new do

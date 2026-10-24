@@ -1,3 +1,8 @@
+*   Restore existing Redis subscriptions when a new channel restarts a listener
+    that exhausted its reconnect attempts.
+
+    *Jay Liu*
+
 *   Move `ActionCable::Server::Configuration` to `ActionCable::Configuration`.
 
     The old constant remains available as an alias.
