@@ -493,7 +493,7 @@ module ActiveRecord
   #     title: "Alice's Adventures in Wonderland"
   #
   # However, in order to support composite primary key relationships,
-  # you must use the `composite_identify` method:
+  # you must use the +composite_identify+ method:
   #
   #   # app/models/book_orders.rb
   #   class BookOrder < ApplicationRecord

@@ -8,7 +8,7 @@ module ActiveRecord
     ONE_AS_ONE_LITERAL = Arel.sql(ONE_AS_ONE, retryable: true).freeze # :nodoc:
 
     # Find by id - This can either be a specific id (ID), a list of ids (ID, ID, ID), or an array of ids ([ID, ID, ID]).
-    # `ID` refers to an "identifier". For models with a single-column primary key, `ID` will be a single value,
+    # +ID+ refers to an "identifier". For models with a single-column primary key, +ID+ will be a single value,
     # and for models with a composite primary key, it will be an array of values.
     # If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised.
     # If the primary key is an integer, find by id coerces its arguments by using +to_i+.

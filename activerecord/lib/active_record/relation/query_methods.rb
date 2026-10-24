@@ -73,7 +73,7 @@ module ActiveRecord
       #    # INNER JOIN "comments" ON "comments"."post_id" = "posts"."id"
       #    # WHERE "authors"."id" IS NOT NULL AND "comments"."id" IS NOT NULL
       #
-      # You can define join type in the scope and +associated+ will not use `JOIN` by default.
+      # You can define join type in the scope and +associated+ will not use +JOIN+ by default.
       #
       #    Post.left_joins(:author).where.associated(:author)
       #    # SELECT "posts".* FROM "posts"
