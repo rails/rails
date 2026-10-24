@@ -25,9 +25,8 @@ export function findElement(root, selector) {
 export function dispatchEvent(element, type, eventInit = {}) {
   const { disabled } = element
   const { bubbles, cancelable, detail } = eventInit
-  const event = document.createEvent("Event")
+  const event = new Event(type, {bubbles: bubbles || true, cancelable: cancelable || true})
 
-  event.initEvent(type, bubbles || true, cancelable || true)
   event.detail = detail || {}
 
   try {
