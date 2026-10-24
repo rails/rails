@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/enumerable"
 
 module ActiveRecord
@@ -43,14 +44,14 @@ module ActiveRecord
 
     module ClassMethods
       # Do not use transactional tests for the given database. This overrides
-      # the default setting as defined by `use_transactional_tests`, which
+      # the default setting as defined by \`use_transactional_tests\`, which
       # applies to all database connection pools not explicitly configured here.
       def skip_transactional_tests_for_database(database_name)
         use_transactional_tests_for_database(database_name, false)
       end
 
       # Enable or disable transactions per database. This overrides the default
-      # setting as defined by `use_transactional_tests`, which applies to all
+      # setting as defined by \`use_transactional_tests\`, which applies to all
       # database connection pools not explicitly configured here.
       def use_transactional_tests_for_database(database_name, enabled = true)
         self.database_transactions_config = database_transactions_config.merge(database_name => enabled)
@@ -60,8 +61,10 @@ module ActiveRecord
       #
       # Examples:
       #
-      #   set_fixture_class some_fixture:        SomeModel,
-      #                     'namespaced/fixture' => Another::Model
+      # ```
+      # set_fixture_class some_fixture:        SomeModel,
+      #                   'namespaced/fixture' => Another::Model
+      # ```
       #
       # The keys must be the fixture names, that coincide with the short paths to the fixture files.
       def set_fixture_class(class_names = {})
@@ -113,8 +116,10 @@ module ActiveRecord
 
     # Generic fixture accessor for fixture names that may conflict with other methods.
     #
-    #   assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
-    #   assert_equal "Ruby on Rails", fixture(:web_sites, :rubyonrails).name
+    # ```
+    # assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
+    # assert_equal "Ruby on Rails", fixture(:web_sites, :rubyonrails).name
+    # ```
     def fixture(fixture_set_name, *fixture_names)
       active_record_fixture(fixture_set_name, *fixture_names)
     end

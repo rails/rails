@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   class PendingMigrationConnection # :nodoc:
     def self.with_temporary_pool(db_config, &block)

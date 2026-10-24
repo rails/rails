@@ -1,129 +1,147 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/module/attribute_accessors_per_thread"
 require "active_record/query_logs_formatter"
 
 module ActiveRecord
-  # = Active Record Query Logs
+  # Active Record Query Logs
+  # ========================
   #
   # Automatically append comments to SQL queries with runtime information tags. This can be used to trace troublesome
   # SQL statements back to the application code that generated these statements.
   #
-  # Query logs can be enabled via \Rails configuration in <tt>config/application.rb</tt> or an initializer:
+  # Query logs can be enabled via \Rails configuration in `config/application.rb` or an initializer:
   #
-  #     config.active_record.query_log_tags_enabled = true
+  # ```
+  # config.active_record.query_log_tags_enabled = true
+  # ```
   #
   # By default the name of the application, the name and action of the controller, or the name of the job are logged.
-  # The default format is {SQLCommenter}[https://open-telemetry.github.io/opentelemetry-sqlcommenter/].
+  # The default format is [SQLCommenter](https://open-telemetry.github.io/opentelemetry-sqlcommenter/).
   # The tags shown in a query comment can be configured via \Rails configuration:
   #
-  #     config.active_record.query_log_tags = [ :application, :controller, :action, :job ]
+  # ```
+  # config.active_record.query_log_tags = [ :application, :controller, :action, :job ]
+  # ```
   #
   # Active Record defines default tags available for use:
   #
-  # * +application+
-  # * +pid+
-  # * +socket+
-  # * +db_host+
-  # * +database+
-  # * +source_location+
+  # * `application`
+  # * `pid`
+  # * `socket`
+  # * `db_host`
+  # * `database`
+  # * `source_location`
   #
-  # WARNING: Calculating the +source_location+ of a query can be slow, so you should consider its impact if using it in a production environment.
+  # WARNING: Calculating the `source_location` of a query can be slow, so you should consider its impact if using it in a production environment.
   #
-  # Also see {config.active_record.verbose_query_logs}[https://guides.rubyonrails.org/debugging_rails_applications.html#verbose-query-logs].
+  # Also see [config.active_record.verbose_query_logs](https://guides.rubyonrails.org/debugging_rails_applications.html#verbose-query-logs).
   #
   # Action Controller adds default tags when loaded:
   #
-  # * +controller+
-  # * +action+
-  # * +namespaced_controller+
+  # * `controller`
+  # * `action`
+  # * `namespaced_controller`
   #
   # Active Job adds default tags when loaded:
   #
-  # * +job+
+  # * `job`
   #
-  # New comment tags can be defined by adding them in a +Hash+ to the tags +Array+. Tags can have dynamic content by
-  # setting a +Proc+ or lambda value in the +Hash+, and can reference any value stored by \Rails in the +context+ object.
-  # ActiveSupport::CurrentAttributes can be used to store application values. Tags with +nil+ values are
+  # New comment tags can be defined by adding them in a `Hash` to the tags `Array`. Tags can have dynamic content by
+  # setting a `Proc` or lambda value in the `Hash`, and can reference any value stored by \Rails in the `context` object.
+  # ActiveSupport::CurrentAttributes can be used to store application values. Tags with `nil` values are
   # omitted from the query comment.
   #
-  # +context+ includes the following keys:
+  # `context` includes the following keys:
   #
-  # * +controller+ - current Action Controller instance, if available
-  # * +job+ - current Active Job instance, if available
-  # * +connection+ - current database connection
-  # * +sql+ - current SQL query
+  # * `controller` - current Action Controller instance, if available
+  # * `job` - current Active Job instance, if available
+  # * `connection` - current database connection
+  # * `sql` - current SQL query
   #
   # Escaping is performed on the string returned, however untrusted user input should not be used.
   #
   # Example:
   #
-  #     config.active_record.query_log_tags = [
-  #       :namespaced_controller,
-  #       :action,
-  #       :job,
-  #       {
-  #         request_id: ->(context) { context[:controller]&.request&.request_id },
-  #         job_id: ->(context) { context[:job]&.job_id },
-  #         tenant_id: -> { Current.tenant&.id },
-  #         static: "value",
-  #       },
-  #     ]
+  # ```
+  # config.active_record.query_log_tags = [
+  #   :namespaced_controller,
+  #   :action,
+  #   :job,
+  #   {
+  #     request_id: ->(context) { context[:controller]&.request&.request_id },
+  #     job_id: ->(context) { context[:job]&.job_id },
+  #     tenant_id: -> { Current.tenant&.id },
+  #     static: "value",
+  #   },
+  # ]
+  # ```
   #
-  # WARNING: SQL query can contain sensitive data and using +:sql+ directly as a query log tag
+  # WARNING: SQL query can contain sensitive data and using `:sql` directly as a query log tag
   # is unsafe because it will log the query unfiltered.
   #
   # Example:
   #
-  #     # unsafe
-  #     config.active_record.query_log_tags = [:sql]
+  # ```
+  # # unsafe
+  # config.active_record.query_log_tags = [:sql]
   #
-  #     # safe
-  #     config.active_record.query_log_tags = [sql_length: ->(context) { context[:sql].length } ]
+  # # safe
+  # config.active_record.query_log_tags = [sql_length: ->(context) { context[:sql].length } ]
+  # ```
   #
   # By default the name of the application, the name and action of the controller, or the name of the job are logged
-  # using the {SQLCommenter}[https://open-telemetry.github.io/opentelemetry-sqlcommenter/] format. This can be changed
-  # via {config.active_record.query_log_tags_format}[https://guides.rubyonrails.org/configuring.html#config-active-record-query-log-tags-format]
+  # using the [SQLCommenter](https://open-telemetry.github.io/opentelemetry-sqlcommenter/) format. This can be changed
+  # via [config.active_record.query_log_tags_format](https://guides.rubyonrails.org/configuring.html#config-active-record-query-log-tags-format)
   #
-  # The format can also be overridden per connection pool through the +query_log_tags+
-  # key of a +database.yml+ entry. Connections checked out from that pool use the
-  # configured +format+, while setting +query_log_tags+ to +false+ instead opts the
+  # The format can also be overridden per connection pool through the `query_log_tags`
+  # key of a `database.yml` entry. Connections checked out from that pool use the
+  # configured `format`, while setting `query_log_tags` to `false` instead opts the
   # pool out of tagging entirely. Pools without any explicit configuration fall back
   # to the global defaults:
   #
-  #     production:
-  #       primary:
-  #         database: primary
-  #       analytics:
-  #         database: analytics
-  #         query_log_tags:
-  #           format: sqlcommenter
-  #       replica:
-  #         database: replica
-  #         replica: true
-  #         query_log_tags: false
+  # ```
+  # production:
+  #   primary:
+  #     database: primary
+  #   analytics:
+  #     database: analytics
+  #     query_log_tags:
+  #       format: sqlcommenter
+  #   replica:
+  #     database: replica
+  #     replica: true
+  #     query_log_tags: false
+  # ```
   #
   # Tag comments can be prepended to the query:
   #
-  #     config.active_record.query_log_tags_prepend_comment = true
+  # ```
+  # config.active_record.query_log_tags_prepend_comment = true
+  # ```
   #
   # Whether the comment is prepended can also be overridden per connection pool with a
-  # +prepend_comment+ key under +query_log_tags+ in a +database.yml+ entry. Connections
+  # `prepend_comment` key under `query_log_tags` in a `database.yml` entry. Connections
   # checked out from that pool use the configured value, while pools without any explicit
   # configuration fall back to the global default:
   #
-  #     production:
-  #       primary:
-  #         database: primary
-  #       analytics:
-  #         database: analytics
-  #         query_log_tags:
-  #           prepend_comment: true
+  # ```
+  # production:
+  #   primary:
+  #     database: primary
+  #   analytics:
+  #     database: analytics
+  #     query_log_tags:
+  #       prepend_comment: true
+  # ```
   #
   # For applications where the content will not change during the lifetime of
   # the request or job execution, the tags can be cached for reuse in every query:
   #
-  #    config.active_record.cache_query_log_tags = true
+  # ```
+  # config.active_record.cache_query_log_tags = true
+  # ```
   module QueryLogs
     class GetKeyHandler # :nodoc:
       def initialize(name)
@@ -260,8 +278,8 @@ module ActiveRecord
           end
         end
 
-        # Returns an SQL comment +String+ containing the query log tags.
-        # Sets and returns a cached comment if <tt>cache_query_log_tags</tt> is +true+.
+        # Returns an SQL comment `String` containing the query log tags.
+        # Sets and returns a cached comment if `cache_query_log_tags` is `true`.
         def comment(extra_context)
           formatter = resolve_formatter(extra_context[:connection])
 

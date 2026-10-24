@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 
+# :markup: markdown
 module ActiveRecord
   module Scoping
     extend ActiveSupport::Concern
@@ -55,23 +56,27 @@ module ActiveRecord
       populate_with_current_scope_attributes
     end
 
-    # This class stores the +:current_scope+ and +:ignore_default_scope+ values
+    # This class stores the `:current_scope` and `:ignore_default_scope` values
     # for different classes. The registry is stored as either a thread or fiber
     # local depending on the application configuration.
     #
     # This class allows you to store and get the scope values on different
     # classes and different types of scopes. For example, if you are attempting
-    # to get the current_scope for the +Board+ model, then you would use the
+    # to get the current_scope for the `Board` model, then you would use the
     # following code:
     #
-    #   registry = ActiveRecord::Scoping::ScopeRegistry
-    #   registry.set_current_scope(Board, some_new_scope)
+    # ```
+    # registry = ActiveRecord::Scoping::ScopeRegistry
+    # registry.set_current_scope(Board, some_new_scope)
+    # ```
     #
     # Now when you run:
     #
-    #   registry.current_scope(Board)
+    # ```
+    # registry.current_scope(Board)
+    # ```
     #
-    # You will obtain whatever was defined in +some_new_scope+.
+    # You will obtain whatever was defined in `some_new_scope`.
     class ScopeRegistry # :nodoc:
       class << self
         delegate :current_scope, :set_current_scope, :ignore_default_scope, :set_ignore_default_scope,
@@ -113,7 +118,7 @@ module ActiveRecord
       end
 
       private
-        # Obtains the value for a given +scope_type+ and +model+.
+        # Obtains the value for a given `scope_type` and `model`.
         def value_for(scope_type, model, skip_inherited_scope = false)
           return scope_type[model.name] if skip_inherited_scope
           klass = model
@@ -126,7 +131,7 @@ module ActiveRecord
           scope_type[klass.name]
         end
 
-        # Sets the +value+ for a given +scope_type+ and +model+.
+        # Sets the `value` for a given `scope_type` and `model`.
         def set_value_for(scope_type, model, value)
           scope_type[model.name] = value
         end

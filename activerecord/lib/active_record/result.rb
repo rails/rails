@@ -1,43 +1,47 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   ###
-  # = Active Record \Result
+  # Active Record \Result
+  # =====================
   #
   # This class encapsulates a result returned from calling
-  # {#exec_query}[rdoc-ref:ConnectionAdapters::DatabaseStatements#exec_query]
+  # [#exec_query](rdoc-ref:ConnectionAdapters::DatabaseStatements#exec_query)
   # on any database connection adapter. For example:
   #
-  #   result = ActiveRecord::Base.lease_connection.exec_query('SELECT id, title, body FROM posts')
-  #   result # => #<ActiveRecord::Result:0xdeadbeef>
+  # ```
+  # result = ActiveRecord::Base.lease_connection.exec_query('SELECT id, title, body FROM posts')
+  # result # => #<ActiveRecord::Result:0xdeadbeef>
   #
-  #   # Get the column names of the result:
-  #   result.columns
-  #   # => ["id", "title", "body"]
+  # # Get the column names of the result:
+  # result.columns
+  # # => ["id", "title", "body"]
   #
-  #   # Get the record values of the result:
-  #   result.rows
-  #   # => [[1, "title_1", "body_1"],
-  #         [2, "title_2", "body_2"],
-  #         ...
-  #        ]
+  # # Get the record values of the result:
+  # result.rows
+  # # => [[1, "title_1", "body_1"],
+  #       [2, "title_2", "body_2"],
+  #       ...
+  #      ]
   #
-  #   # Get an array of hashes representing the result (column => value):
-  #   result.to_a
-  #   # => [{"id" => 1, "title" => "title_1", "body" => "body_1"},
-  #         {"id" => 2, "title" => "title_2", "body" => "body_2"},
-  #         ...
-  #        ]
+  # # Get an array of hashes representing the result (column => value):
+  # result.to_a
+  # # => [{"id" => 1, "title" => "title_1", "body" => "body_1"},
+  #       {"id" => 2, "title" => "title_2", "body" => "body_2"},
+  #       ...
+  #      ]
   #
-  #   # Get the number of rows affected by the query:
-  #   result = ActiveRecord::Base.lease_connection.exec_query('INSERT INTO posts (title, body) VALUES ("title_3", "body_3"), ("title_4", "body_4")')
-  #   result.affected_rows
-  #   # => 2
+  # # Get the number of rows affected by the query:
+  # result = ActiveRecord::Base.lease_connection.exec_query('INSERT INTO posts (title, body) VALUES ("title_3", "body_3"), ("title_4", "body_4")')
+  # result.affected_rows
+  # # => 2
   #
-  #   # ActiveRecord::Result also includes Enumerable.
-  #   result.each do |row|
-  #     puts row['title'] + " " + row['body']
-  #   end
+  # # ActiveRecord::Result also includes Enumerable.
+  # result.each do |row|
+  #   puts row['title'] + " " + row['body']
+  # end
+  # ```
   class Result
     include Enumerable
 
@@ -61,7 +65,7 @@ module ActiveRecord
       @affected_rows = affected_rows
     end
 
-    # Returns true if this result set includes the column named +name+
+    # Returns true if this result set includes the column named `name`
     def includes_column?(name)
       @columns.include? name
     end
@@ -74,9 +78,9 @@ module ActiveRecord
     # Calls the given block once for each element in row collection, passing
     # row as parameter. Each row is a Hash-like, read only object.
     #
-    # To get real hashes, use +.to_a.each+.
+    # To get real hashes, use `.to_a.each`.
     #
-    # Returns an +Enumerator+ if no block is given.
+    # Returns an `Enumerator` if no block is given.
     def each(&block)
       if block_given?
         hash_rows.each(&block)
@@ -106,7 +110,7 @@ module ActiveRecord
       n ? hash_rows.last(n) : hash_rows.last
     end
 
-    # Returns the +ActiveRecord::Type+ type of all columns.
+    # Returns the `ActiveRecord::Type` type of all columns.
     # Note that not all database adapters return the result types,
     # so the hash may be empty.
     def column_types

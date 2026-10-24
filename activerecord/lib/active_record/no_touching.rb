@@ -1,24 +1,29 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
-  # = Active Record No Touching
+  # Active Record No Touching
+  # =========================
   module NoTouching
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Lets you selectively disable calls to +touch+ for the
+      # Lets you selectively disable calls to `touch` for the
       # duration of a block.
       #
-      # ==== Examples
-      #   ActiveRecord::Base.no_touching do
-      #     Project.first.touch  # does nothing
-      #     Message.first.touch  # does nothing
-      #   end
+      # #### Examples
       #
-      #   Project.no_touching do
-      #     Project.first.touch  # does nothing
-      #     Message.first.touch  # works, but does not touch the associated project
-      #   end
+      # ```
+      # ActiveRecord::Base.no_touching do
+      #   Project.first.touch  # does nothing
+      #   Message.first.touch  # does nothing
+      # end
+      #
+      # Project.no_touching do
+      #   Project.first.touch  # does nothing
+      #   Message.first.touch  # works, but does not touch the associated project
+      # end
+      # ```
       #
       def no_touching(&block)
         NoTouching.apply_to(self, &block)
@@ -43,12 +48,14 @@ module ActiveRecord
         end
     end
 
-    # Returns +true+ if the class has +no_touching+ set, +false+ otherwise.
+    # Returns `true` if the class has `no_touching` set, `false` otherwise.
     #
-    #   Project.no_touching do
-    #     Project.first.no_touching? # true
-    #     Message.first.no_touching? # false
-    #   end
+    # ```
+    # Project.no_touching do
+    #   Project.first.no_touching? # true
+    #   Message.first.no_touching? # false
+    # end
+    # ```
     #
     def no_touching?
       NoTouching.applied_to?(self.class)

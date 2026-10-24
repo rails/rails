@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   class TableMetadata # :nodoc:
     def initialize(klass, arel_table)

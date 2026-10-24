@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Querying
     QUERYING_METHODS = [
@@ -37,26 +38,30 @@ module ActiveRecord
 
     # Executes a custom SQL query against your database and returns all the results. The results will
     # be returned as an array, with the requested columns encapsulated as attributes of the model you call
-    # this method from. For example, if you call <tt>Product.find_by_sql</tt>, then the results will be returned in
-    # a +Product+ object with the attributes you specified in the SQL query.
+    # this method from. For example, if you call `Product.find_by_sql`, then the results will be returned in
+    # a `Product` object with the attributes you specified in the SQL query.
     #
     # If you call a complicated SQL query which spans multiple tables, the columns specified by the
     # SELECT will be attributes of the model, whether or not they are columns of the corresponding
     # table.
     #
-    # The +sql+ parameter is a full SQL query as a string. It will be called as is; there will be
+    # The `sql` parameter is a full SQL query as a string. It will be called as is; there will be
     # no database agnostic conversions performed. This should be a last resort because using
     # database-specific terms will lock you into using that particular database engine, or require you to
     # change your call if you switch engines.
     #
-    #   # A simple SQL query spanning multiple tables
-    #   Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
-    #   # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "author"=>"Quentin"}>, ...]
+    # ```
+    # # A simple SQL query spanning multiple tables
+    # Post.find_by_sql "SELECT p.title, c.author FROM posts p, comments c WHERE p.id = c.post_id"
+    # # => [#<Post:0x36bff9c @attributes={"title"=>"Ruby Meetup", "author"=>"Quentin"}>, ...]
+    # ```
     #
     # You can use the same string replacement techniques as you can with ActiveRecord::QueryMethods#where :
     #
-    #   Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
-    #   Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
+    # ```
+    # Post.find_by_sql ["SELECT title FROM posts WHERE author = ? AND created > ?", author_id, start_date]
+    # Post.find_by_sql ["SELECT body FROM comments WHERE author = :user_id OR approved_by = :user_id", { :user_id => user_id }]
+    # ```
     #
     # Note that building your own SQL query string from user input {may expose your application to
     # injection attacks}[https://guides.rubyonrails.org/security.html#sql-injection].
@@ -117,12 +122,14 @@ module ActiveRecord
     # as it could lock you into a specific database engine or require a code change to switch
     # database engines.
     #
-    #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
-    #   # => 12
+    # ```
+    # Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
+    # # => 12
+    # ```
     #
-    # ==== Parameters
+    # #### Parameters
     #
-    # * +sql+ - An SQL statement which should return a count query from the database, see the example above.
+    # * `sql` - An SQL statement which should return a count query from the database, see the example above.
     def count_by_sql(sql)
       with_connection do |c|
         c.select_value(_sql_for_find(sql), "#{name} Count").to_i

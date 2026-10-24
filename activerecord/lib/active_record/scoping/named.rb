@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
-  # = Active Record \Named \Scopes
+  # Active Record \Named \Scopes
+  # ============================
   module Scoping
     module Named
       extend ActiveSupport::Concern
@@ -9,16 +11,18 @@ module ActiveRecord
       module ClassMethods
         # Returns an ActiveRecord::Relation scope object.
         #
-        #   posts = Post.all
-        #   posts.size # Fires "select count(*) from  posts" and returns the count
-        #   posts.each {|p| puts p.name } # Fires "select * from posts" and loads post objects
+        # ```
+        # posts = Post.all
+        # posts.size # Fires "select count(*) from  posts" and returns the count
+        # posts.each {|p| puts p.name } # Fires "select * from posts" and loads post objects
         #
-        #   fruits = Fruit.all
-        #   fruits = fruits.where(color: 'red') if options[:red_only]
-        #   fruits = fruits.limit(10) if limited?
+        # fruits = Fruit.all
+        # fruits = fruits.where(color: 'red') if options[:red_only]
+        # fruits = fruits.limit(10) if limited?
+        # ```
         #
         # You can define a scope that applies to all finders using
-        # {default_scope}[rdoc-ref:Scoping::Default::ClassMethods#default_scope].
+        # [default_scope](rdoc-ref:Scoping::Default::ClassMethods#default_scope).
         def all(all_queries: (all_queries_not_set = true))
           if all_queries_not_set
             all_queries = nil
@@ -83,100 +87,114 @@ module ActiveRecord
         # Adds a class method for retrieving and querying objects.
         # The method is intended to return an ActiveRecord::Relation
         # object, which is composable with other scopes.
-        # If it returns +nil+ or +false+, an
-        # {all}[rdoc-ref:Scoping::Named::ClassMethods#all] scope is returned instead.
+        # If it returns `nil` or `false`, an
+        # [all](rdoc-ref:Scoping::Named::ClassMethods#all) scope is returned instead.
         #
         # A \scope represents a narrowing of a database query, such as
-        # <tt>where(color: :red).select('shirts.*').includes(:washing_instructions)</tt>.
+        # `where(color: :red).select('shirts.*').includes(:washing_instructions)`.
         #
-        #   class Shirt < ActiveRecord::Base
-        #     scope :red, -> { where(color: 'red') }
-        #     scope :dry_clean_only, -> { joins(:washing_instructions).where('washing_instructions.dry_clean_only = ?', true) }
-        #   end
+        # ```
+        # class Shirt < ActiveRecord::Base
+        #   scope :red, -> { where(color: 'red') }
+        #   scope :dry_clean_only, -> { joins(:washing_instructions).where('washing_instructions.dry_clean_only = ?', true) }
+        # end
+        # ```
         #
-        # The above calls to #scope define class methods <tt>Shirt.red</tt> and
-        # <tt>Shirt.dry_clean_only</tt>. <tt>Shirt.red</tt>, in effect,
-        # represents the query <tt>Shirt.where(color: 'red')</tt>.
+        # The above calls to #scope define class methods `Shirt.red` and
+        # `Shirt.dry_clean_only`. `Shirt.red`, in effect,
+        # represents the query `Shirt.where(color: 'red')`.
         #
         # Note that this is simply 'syntactic sugar' for defining an actual
         # class method:
         #
-        #   class Shirt < ActiveRecord::Base
-        #     def self.red
-        #       where(color: 'red')
-        #     end
+        # ```
+        # class Shirt < ActiveRecord::Base
+        #   def self.red
+        #     where(color: 'red')
         #   end
+        # end
+        # ```
         #
-        # Unlike <tt>Shirt.find(...)</tt>, however, the object returned by
-        # <tt>Shirt.red</tt> is not an Array but an ActiveRecord::Relation,
+        # Unlike `Shirt.find(...)`, however, the object returned by
+        # `Shirt.red` is not an Array but an ActiveRecord::Relation,
         # which is composable with other scopes; it resembles the association object
-        # constructed by a {has_many}[rdoc-ref:Associations::ClassMethods#has_many]
-        # declaration. For instance, you can invoke <tt>Shirt.red.first</tt>, <tt>Shirt.red.count</tt>,
-        # <tt>Shirt.red.where(size: 'small')</tt>. Also, just as with the
+        # constructed by a [has_many](rdoc-ref:Associations::ClassMethods#has_many)
+        # declaration. For instance, you can invoke `Shirt.red.first`, `Shirt.red.count`,
+        # `Shirt.red.where(size: 'small')`. Also, just as with the
         # association objects, named \scopes act like an Array, implementing
-        # Enumerable; <tt>Shirt.red.each(&block)</tt>, <tt>Shirt.red.first</tt>,
-        # and <tt>Shirt.red.inject(memo, &block)</tt> all behave as if
-        # <tt>Shirt.red</tt> really was an array.
+        # Enumerable; `Shirt.red.each(&block)`, `Shirt.red.first`,
+        # and `Shirt.red.inject(memo, &block)` all behave as if
+        # `Shirt.red` really was an array.
         #
         # These named \scopes are composable. For instance,
-        # <tt>Shirt.red.dry_clean_only</tt> will produce all shirts that are
+        # `Shirt.red.dry_clean_only` will produce all shirts that are
         # both red and dry clean only. Nested finds and calculations also work
-        # with these compositions: <tt>Shirt.red.dry_clean_only.count</tt>
+        # with these compositions: `Shirt.red.dry_clean_only.count`
         # returns the number of garments for which these criteria obtain.
-        # Similarly with <tt>Shirt.red.dry_clean_only.average(:thread_count)</tt>.
+        # Similarly with `Shirt.red.dry_clean_only.average(:thread_count)`.
         #
         # All scopes are available as class methods on the ActiveRecord::Base
         # descendant upon which the \scopes were defined. But they are also
-        # available to {has_many}[rdoc-ref:Associations::ClassMethods#has_many]
+        # available to [has_many](rdoc-ref:Associations::ClassMethods#has_many)
         # associations. If,
         #
-        #   class Person < ActiveRecord::Base
-        #     has_many :shirts
-        #   end
+        # ```
+        # class Person < ActiveRecord::Base
+        #   has_many :shirts
+        # end
+        # ```
         #
-        # then <tt>elton.shirts.red.dry_clean_only</tt> will return all of
+        # then `elton.shirts.red.dry_clean_only` will return all of
         # Elton's red, dry clean only shirts.
         #
         # \Named scopes can also have extensions, just as with
-        # {has_many}[rdoc-ref:Associations::ClassMethods#has_many] declarations:
+        # [has_many](rdoc-ref:Associations::ClassMethods#has_many) declarations:
         #
-        #   class Shirt < ActiveRecord::Base
-        #     scope :red, -> { where(color: 'red') } do
-        #       def dom_id
-        #         'red_shirts'
-        #       end
+        # ```
+        # class Shirt < ActiveRecord::Base
+        #   scope :red, -> { where(color: 'red') } do
+        #     def dom_id
+        #       'red_shirts'
         #     end
         #   end
+        # end
+        # ```
         #
         # Scopes can also be used while creating/building a record.
         #
-        #   class Article < ActiveRecord::Base
-        #     scope :published, -> { where(published: true) }
-        #   end
+        # ```
+        # class Article < ActiveRecord::Base
+        #   scope :published, -> { where(published: true) }
+        # end
         #
-        #   Article.published.new.published    # => true
-        #   Article.published.create.published # => true
+        # Article.published.new.published    # => true
+        # Article.published.create.published # => true
+        # ```
         #
         # \Class methods on your model are automatically available
         # on scopes. Assuming the following setup:
         #
-        #   class Article < ActiveRecord::Base
-        #     scope :published, -> { where(published: true) }
-        #     scope :featured, -> { where(featured: true) }
+        # ```
+        # class Article < ActiveRecord::Base
+        #   scope :published, -> { where(published: true) }
+        #   scope :featured, -> { where(featured: true) }
         #
-        #     def self.latest_article
-        #       order('published_at desc').first
-        #     end
-        #
-        #     def self.titles
-        #       pluck(:title)
-        #     end
+        #   def self.latest_article
+        #     order('published_at desc').first
         #   end
+        #
+        #   def self.titles
+        #     pluck(:title)
+        #   end
+        # end
+        # ```
         #
         # We are able to call the methods like this:
         #
-        #   Article.published.featured.latest_article
-        #   Article.featured.titles
+        # ```
+        # Article.published.featured.latest_article
+        # Article.featured.titles
+        # ```
         def scope(name, body, &block)
           unless body.respond_to?(:call)
             raise ArgumentError, "The scope body needs to be callable."

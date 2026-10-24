@@ -1,32 +1,41 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   # Statement cache is used to cache a single statement in order to avoid creating the AST again.
   # Initializing the cache is done by passing the statement in the create block:
   #
-  #   cache = StatementCache.create(ClothingItem.lease_connection) do |params|
-  #     Book.where(name: "my book").where("author_id > 3")
-  #   end
+  # ```
+  # cache = StatementCache.create(ClothingItem.lease_connection) do |params|
+  #   Book.where(name: "my book").where("author_id > 3")
+  # end
+  # ```
   #
   # The cached statement is executed by using the
-  # {connection.execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute] method:
+  # [connection.execute](rdoc-ref:ConnectionAdapters::DatabaseStatements#execute) method:
   #
-  #   cache.execute([], ClothingItem.lease_connection)
+  # ```
+  # cache.execute([], ClothingItem.lease_connection)
+  # ```
   #
   # The relation returned by the block is cached, and for each
-  # {execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute]
-  # call the cached relation gets duped. Database is queried when +to_a+ is called on the relation.
+  # [execute](rdoc-ref:ConnectionAdapters::DatabaseStatements#execute)
+  # call the cached relation gets duped. Database is queried when `to_a` is called on the relation.
   #
-  # If you want to cache the statement without the values you can use the +bind+ method of the
+  # If you want to cache the statement without the values you can use the `bind` method of the
   # block parameter.
   #
-  #   cache = StatementCache.create(ClothingItem.lease_connection) do |params|
-  #     Book.where(name: params.bind)
-  #   end
+  # ```
+  # cache = StatementCache.create(ClothingItem.lease_connection) do |params|
+  #   Book.where(name: params.bind)
+  # end
+  # ```
   #
-  # And pass the bind values as the first argument of +execute+ call.
+  # And pass the bind values as the first argument of `execute` call.
   #
-  #   cache.execute(["my book"], ClothingItem.lease_connection)
+  # ```
+  # cache.execute(["my book"], ClothingItem.lease_connection)
+  # ```
   class StatementCache # :nodoc:
     class Substitute # :nodoc:
       attr_reader :key

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails"
 require "active_record"
 require "active_support/core_ext/object/try"
@@ -12,7 +13,8 @@ require "active_model/railtie"
 require "action_controller/railtie"
 
 module ActiveRecord
-  # = Active Record Railtie
+  # Active Record Railtie
+  # =====================
   class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
     config.active_record.encryption = ActiveSupport::OrderedOptions.new
