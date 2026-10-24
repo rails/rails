@@ -68,15 +68,21 @@ module ActiveSupport
 
       patterns.sort_by! { |p| [p.count("."), p.size] }
 
+      string_regexps = []
       patterns.each do |pattern|
         # Remove redundant patterns, e.g. it's pointless to search for `user.password` or `user.password_confirmation`
         # if `password` is already a filter.
-        unless regexps.any? { |r| r.match?(pattern) }
-          regexps << Regexp.new(Regexp.escape(pattern), Regexp::IGNORECASE)
+        unless string_regexps.any? { |r| r.match?(pattern) }
+          string_regexps << Regexp.new(Regexp.escape(pattern), Regexp::IGNORECASE)
         end
       end
 
-      filters << Regexp.union(regexps)
+      regexps.concat(string_regexps)
+      deep_regexps = regexps.extract! { |regexp| regexp.source.include?("\\.") }
+
+      filters << Regexp.union(regexps) unless regexps.empty?
+      filters << Regexp.union(deep_regexps) unless deep_regexps.empty?
+      filters
     end
 
     # Create instance with given filters. Supported type of filters are `String`, `Regexp`, and `Proc`.
