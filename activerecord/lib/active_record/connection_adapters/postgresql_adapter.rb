@@ -574,10 +574,25 @@ module ActiveRecord
         query_value("SELECT pg_advisory_unlock(#{lock_id})", nil, materialize_transactions: true)
       end
 
-      def enable_extension(name, **)
-        schema, name = name.to_s.split(".").values_at(-2, -1)
+      # Enables an extension in the database.
+      #
+      # ```ruby
+      # enable_extension "hstore"
+      # ```
+      #
+      # `:schema`
+      # :   The schema in which to install the extension's member objects, not a
+      #     schema the extension belongs to. The schema must already exist.
+      #     Defaults to the current default object creation schema, unless the
+      #     extension's control file specifies a schema.
+      #
+      # ```ruby
+      # enable_extension "postgis", schema: "postgis"
+      # ```
+      def enable_extension(name, schema: nil, **)
+        name, schema = extension_name_and_schema(:enable_extension, name, schema)
         sql = +"CREATE EXTENSION IF NOT EXISTS \"#{name}\""
-        sql << " SCHEMA #{schema}" if schema
+        sql << " SCHEMA #{quote_schema_name(schema)}" if schema
 
         query_command(sql)
         reload_type_map
@@ -588,8 +603,19 @@ module ActiveRecord
       # `:force`
       # :   Set to `:cascade` to drop dependent objects as well.
       # Defaults to false.
-      def disable_extension(name, force: false)
-        _schema, name = name.to_s.split(".").values_at(-2, -1)
+      #
+      # `:schema`
+      # :   The schema the extension's member objects were installed in, not a
+      #     schema the extension belongs to. It does not affect what is dropped
+      #     and is not checked against the database. When the migration is
+      #     reverted, the extension is enabled again with its member objects in
+      #     that schema.
+      #
+      # ```ruby
+      # disable_extension "hstore", schema: "extensions"
+      # ```
+      def disable_extension(name, force: false, schema: nil)
+        name, _schema = extension_name_and_schema(:disable_extension, name, schema)
         query_command("DROP EXTENSION IF EXISTS \"#{name}\"#{' CASCADE' if force == :cascade}")
         reload_type_map
       end
@@ -603,6 +629,10 @@ module ActiveRecord
       end
 
       def extensions
+        extensions_with_schemas.map { |name, schema| [schema, name].compact.join(".") }
+      end
+
+      def extensions_with_schemas # :nodoc:
         query = <<~SQL
           SELECT
             pg_extension.extname,
@@ -616,10 +646,9 @@ module ActiveRecord
         SQL
         current = current_schema
 
-        query_all(query).cast_values.map do |row|
-          name, schema, control_schema = row
+        query_all(query).cast_values.map do |name, schema, control_schema|
           schema = nil if control_schema || schema == current
-          [schema, name].compact.join(".")
+          [name, schema]
         end
       end
 
@@ -877,6 +906,25 @@ module ActiveRecord
 
       private
         attr_reader :type_map
+
+        def extension_name_and_schema(method, name, schema)
+          name = name.to_s
+          return [name, schema] unless name.include?(".")
+
+          qualified_schema, _, name = name.rpartition(".")
+          schema ||= qualified_schema
+
+          ActiveRecord.deprecator.warn(<<~MSG.squish)
+            Passing a schema-qualified extension name to `#{method}` is deprecated
+            and will be removed in Rails #{ActiveRecord.deprecator.deprecation_horizon}.
+            An extension is a database-level object, not a schema object; the schema
+            only names where its member objects go. Pass the schema with the
+            `:schema` option instead:
+            `#{name.inspect}, schema: #{schema.inspect}`.
+          MSG
+
+          [name, schema]
+        end
 
         def connection_terminating_severity?(result)
           severity = result&.error_field(PG::PG_DIAG_SEVERITY_NONLOCALIZED)
