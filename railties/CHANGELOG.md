@@ -1,3 +1,14 @@
+*   Log at the info level in the test environment of new applications.
+
+    At the debug level every SQL query and rendered template is written to
+    `log/test.log`, which slows the test suite down. The generated
+    `config/environments/test.rb` now reads the level from `RAILS_LOG_LEVEL`,
+    like `production.rb`, defaulting to `"info"`:
+
+        RAILS_LOG_LEVEL=debug bin/rails test
+
+    *Marcello Costagliola*
+
 *   Create the local development/test secret file (`tmp/local_secret.txt`) with
     owner-only permissions (`0600`) instead of inheriting the process umask,
     and tighten the permissions of an existing file on read on non-Windows
