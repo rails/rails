@@ -1,3 +1,8 @@
+*   Fix joins that reach the same through association from different parent
+    paths reusing an intermediate join from the first path.
+
+    *Masaki Ozawa*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one
