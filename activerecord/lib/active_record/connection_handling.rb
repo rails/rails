@@ -156,6 +156,8 @@ module ActiveRecord
     #
     # +connected_to_many+ is an alternative to deeply nested +connected_to+ blocks.
     #
+    # If the block returns a relation, its records are loaded before returning.
+    #
     # Usage:
     #
     #   ActiveRecord::Base.connected_to_many(AnimalsRecord, MealsRecord, role: :reading) do
@@ -174,7 +176,9 @@ module ActiveRecord
 
       append_to_connected_to_stack(role: role, shard: shard, prevent_writes: prevent_writes, klasses: classes)
       begin
-        yield
+        return_value = yield
+        return_value.load if return_value.is_a?(ActiveRecord::Relation)
+        return_value
       ensure
         pop_connected_to_stack
       end
