@@ -1572,7 +1572,12 @@ module ActionView
             elsif type == :boolean
               if value
                 output << sep
-                append_boolean_tag_option(output, key)
+                if (String === value || Symbol === value) && (key == :hidden || key == "hidden")
+                  # hidden also takes a keyword, such as "until-found"
+                  append_tag_option(output, key, value, escape)
+                else
+                  append_boolean_tag_option(output, key)
+                end
               end
             elsif !value.nil?
               output << sep

@@ -1,3 +1,10 @@
+*   Render a string or symbol value of the `hidden` attribute as is, so
+    `tag.div(hidden: "until-found")` produces `hidden="until-found"` instead of
+    `hidden="hidden"`. `true` and `false` still render `hidden="hidden"` and no
+    attribute.
+
+    *Wleeaf*
+
 *   Fix the debug page for errors raised in view templates on Ruby 4.1.
 
     Ruby 4.1 builds prism into the interpreter as `Ruby::Prism`, and
