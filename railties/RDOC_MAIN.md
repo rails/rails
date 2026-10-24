@@ -28,7 +28,7 @@ The _**View layer**_ is composed of "templates" that are responsible for providi
 appropriate representations of your application's resources. Templates can
 come in a variety of formats, but most view templates are HTML with embedded
 Ruby code (\ERB files). Views are typically rendered to generate a controller response
-or to generate the body of an email. In \Rails, View generation is handled by [Action View](files/actionview/README.rdoc).
+or to generate the body of an email. In \Rails, View generation is handled by [Action View](files/actionview/README.md).
 
 ## Controller layer
 
@@ -38,15 +38,15 @@ can also generate XML, JSON, PDFs, mobile-specific views, and more. Controllers 
 manipulate models, and render view templates in order to generate the appropriate HTTP response.
 In \Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
 controller classes are derived from `ActionController::Base`. Action Dispatch and Action Controller
-are bundled together in [Action Pack](files/actionpack/README.rdoc).
+are bundled together in [Action Pack](files/actionpack/README.md).
 
 ## Frameworks and libraries
 
-[Active Record](files/activerecord/README.rdoc), [Active Model](files/activemodel/README.rdoc), [Action Pack](files/actionpack/README.rdoc), and [Action View](files/actionview/README.rdoc) can each be used independently outside \Rails.
+[Active Record](files/activerecord/README.rdoc), [Active Model](files/activemodel/README.rdoc), [Action Pack](files/actionpack/README.md), and [Action View](files/actionview/README.md) can each be used independently outside \Rails.
 
 In addition to that, \Rails also comes with:
 
-- [Action Mailer](files/actionmailer/README.rdoc), a library to generate and send emails
+- [Action Mailer](files/actionmailer/README.md), a library to generate and send emails
 - [Action Mailbox](files/actionmailbox/README.md), a library to receive emails within a \Rails application
 - [Active Job](files/activejob/README.md), a framework for declaring jobs and making them run on a variety of queuing backends
 - [Action Cable](files/actioncable/README.md), a framework to integrate WebSockets with a \Rails application

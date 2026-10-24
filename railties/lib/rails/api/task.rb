@@ -35,7 +35,7 @@ module Rails
 
         "actionpack" => {
           include: %w(
-            README.rdoc
+            README.md
             lib/abstract_controller/**/*.rb
             lib/action_controller.rb
             lib/action_controller/**/*.rb
@@ -46,7 +46,7 @@ module Rails
 
         "actionview" => {
           include: %w(
-            README.rdoc
+            README.md
             lib/action_view.rb
             lib/action_view/**/*.rb
           ),
@@ -55,7 +55,7 @@ module Rails
 
         "actionmailer" => {
           include: %w(
-            README.rdoc
+            README.md
             lib/action_mailer.rb
             lib/action_mailer/**/*.rb
           )
