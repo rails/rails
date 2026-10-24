@@ -71,7 +71,8 @@ module ActiveJob
       def _perform_job
         ActiveSupport::ExecutionContext[:job] = self
         run_callbacks :perform do
-          perform(*arguments)
+          args = ActiveJob.immutable_arguments ? Arguments.copy(arguments) : arguments
+          perform(*args)
         end
       end
   end
