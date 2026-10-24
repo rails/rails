@@ -10,7 +10,7 @@ module Rails
       RDOC_FILES = {
         "activesupport" => {
           include: %w(
-            README.rdoc
+            README.md
             lib/active_support.rb
             lib/active_support/**/*.rb
           )

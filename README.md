@@ -52,7 +52,7 @@ In addition to that, Rails also comes with:
 - [Action Cable](actioncable/README.md), a framework to integrate WebSockets with a Rails application
 - [Active Storage](activestorage/README.md), a library to attach cloud and local files to Rails applications
 - [Action Text](actiontext/README.md), a library to handle rich text content
-- [Active Support](activesupport/README.rdoc), a collection of utility classes and standard library extensions that are useful for Rails, and may also be used independently outside Rails
+- [Active Support](activesupport/README.md), a collection of utility classes and standard library extensions that are useful for Rails, and may also be used independently outside Rails
 
 ## Getting Started
 
