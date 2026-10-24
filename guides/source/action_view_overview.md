@@ -218,6 +218,17 @@ By default, Rails will compile each template to a method to render it. In the
 development environment, when you alter a template, Rails will check the file's
 modification time and recompile it.
 
+`bin/rails views:precompile` runs the application's and engines' views through
+their template handlers at build time and writes the result to
+`tmp/compiled_views`. Applications with
+`config.eager_load` enabled load this file at boot, so templates skip their
+template handler when first rendered. Run it with the deployment environment and
+ship the file with the build:
+
+```bash
+$ RAILS_ENV=production bin/rails views:precompile
+```
+
 There is also Fragment Caching for when different parts of the page need to be
 cached and expired separately. Learn more about it in the [caching
 guide](caching_with_rails.html#fragment-caching).
