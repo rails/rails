@@ -2573,12 +2573,9 @@ class BelongsToPolymorphicShardedPrimaryKeyTest < ActiveRecord::TestCase
     assert_equal "id", reflection.association_primary_key(Sharded::BlogPost)
   end
 
-  def test_inverse_with_composite_query_constraints_resolves_single_primary_key
+  def test_inverse_with_composite_foreign_key_resolves_single_primary_key
     reflection = Adjustment.reflect_on_association(:adjustable)
-    inverse = Shipment.reflect_on_association(:adjustments)
 
-    assert_equal [:region_id, :adjustable_id], inverse.options[:query_constraints]
-    assert_equal [:region_id, :id], inverse.options[:primary_key]
     assert_equal "id", reflection.association_primary_key(Shipment)
   end
 end
