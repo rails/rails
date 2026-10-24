@@ -75,8 +75,9 @@ module ActiveModel
 
     module HelperMethods
       # Validates that the specified attributes match the length restrictions
-      # supplied. Only one constraint option can be used at a time apart from
-      # `:minimum` and `:maximum` that can be combined together:
+      # supplied. The `:is`, `:minimum`, and `:maximum` options can be combined,
+      # and each one is checked separately. `:in` and `:within` are shorthand for
+      # `:minimum` and `:maximum`, and take precedence over them:
       #
       # ```
       # class Person < ActiveRecord::Base
