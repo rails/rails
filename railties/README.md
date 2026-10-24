@@ -1,14 +1,14 @@
-= Railties -- Gluing the Engine to the \Rails
+# Railties -- Gluing the Engine to the \Rails
 
 Railties is responsible for gluing all frameworks together. Overall, it:
 
 * handles the bootstrapping process for a \Rails application;
 
-* manages the +rails+ command line interface;
+* manages the `rails` command line interface;
 
 * and provides the \Rails generators core.
 
-== Download
+## Download
 
 The latest version of Railties can be installed with RubyGems:
 
@@ -18,13 +18,13 @@ Source code can be downloaded as part of the \Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/main/railties
 
-== License
+## License
 
 Railties is released under the MIT license:
 
 * https://opensource.org/licenses/MIT
 
-== Support
+## Support
 
 API documentation is at:
 
