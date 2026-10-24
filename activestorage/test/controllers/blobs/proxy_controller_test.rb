@@ -41,6 +41,22 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
     assert_equal "no-cache", response.headers["Cache-Control"]
   end
 
+  test "preserves a committed HTTP/1.0 response when the file disappears during download" do
+    assert_committed_download_failure_preserves_response ActiveStorage::FileNotFoundError, protocol: "HTTP/1.0"
+  end
+
+  test "preserves a committed HTTP/1.1 response when the file disappears during download" do
+    assert_committed_download_failure_preserves_response ActiveStorage::FileNotFoundError, protocol: "HTTP/1.1"
+  end
+
+  test "preserves a committed HTTP/1.0 response when storage raises during download" do
+    assert_committed_download_failure_preserves_response StandardError, protocol: "HTTP/1.0"
+  end
+
+  test "preserves a committed HTTP/1.1 response when storage raises during download" do
+    assert_committed_download_failure_preserves_response StandardError, protocol: "HTTP/1.1"
+  end
+
 
   test "forcing Content-Type to binary" do
     get rails_storage_proxy_url(create_blob(content_type: "text/html"))
@@ -189,6 +205,30 @@ class ActiveStorage::Blobs::ProxyControllerTest < ActionDispatch::IntegrationTes
   end
 
   private
+    def assert_committed_download_failure_preserves_response(error_class, protocol:)
+      blob = create_file_blob(filename: "racecar.jpg")
+      mock_download = lambda do |_, &block|
+        block.call "first chunk"
+        raise error_class, "Something is not cool!"
+      end
+
+      live_buffers = []
+      new_live_buffer = ActionController::Live::Buffer.method(:new)
+      record_live_buffer = ->(*args) { new_live_buffer.call(*args).tap { |buffer| live_buffers << buffer } }
+
+      ActionController::Live::Buffer.stub(:new, record_live_buffer) do
+        blob.service.stub(:download, mock_download) do
+          get rails_storage_proxy_url(blob), env: { "SERVER_PROTOCOL" => protocol }
+        end
+      end
+
+      assert_response :ok
+      assert_equal "max-age=3155695200, public, immutable", response.headers["Cache-Control"]
+      assert_equal "first chunk", response.body
+      assert live_buffers.all?(&:closed?), "Expected each Live::Buffer to be closed"
+      assert_equal (protocol == "HTTP/1.1" ? 1 : 0), live_buffers.size
+    end
+
     def with_streaming_chunk_max_size(size)
       old_size = ActiveStorage.streaming_chunk_max_size
       ActiveStorage.streaming_chunk_max_size = size

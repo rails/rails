@@ -1,3 +1,10 @@
+*   Preserve committed proxy responses when a storage error interrupts a
+    streamed download.
+
+    [GHSA-4v2w-w6g6-f8f8]
+
+    *Jeremy Daer*
+
 *   Derive `ActiveStorage::Filename#base` and `#extension` from the sanitized
     filename.
 
