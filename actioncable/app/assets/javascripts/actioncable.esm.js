@@ -262,16 +262,18 @@ Connection.prototype.events = {
       return null;
 
      case message_types.confirmation:
-      this.subscriptions.confirmSubscription(identifier);
-      if (this.reconnectAttempted) {
-        this.reconnectAttempted = false;
-        return this.subscriptions.notify(identifier, "connected", {
-          reconnected: true
-        });
-      } else {
-        return this.subscriptions.notify(identifier, "connected", {
-          reconnected: false
-        });
+      {
+        const confirmed = this.subscriptions.confirmSubscription(identifier);
+        if (confirmed.length === 0) {
+          return;
+        }
+        const reconnected = this.reconnectAttempted;
+        if (reconnected) {
+          this.reconnectAttempted = false;
+        }
+        return confirmed.forEach((subscription => this.subscriptions.notify(subscription, "connected", {
+          reconnected: reconnected
+        })));
       }
 
      case message_types.rejection:
@@ -357,6 +359,9 @@ class SubscriptionGuarantor {
     logger.log(`SubscriptionGuarantor forgetting ${subscription.identifier}`);
     this.pendingSubscriptions = this.pendingSubscriptions.filter((s => s !== subscription));
   }
+  isPending(subscription) {
+    return this.pendingSubscriptions.indexOf(subscription) !== -1;
+  }
   startGuaranteeing() {
     this.stopGuaranteeing();
     this.retrySubscribing();
@@ -381,6 +386,8 @@ class Subscriptions {
     this.consumer = consumer;
     this.guarantor = new SubscriptionGuarantor(this);
     this.subscriptions = [];
+    this.pendingUnsubscribes = {};
+    this.postponedSubscribes = {};
   }
   create(channelName, mixin) {
     const channel = channelName;
@@ -400,7 +407,7 @@ class Subscriptions {
   remove(subscription) {
     this.forget(subscription);
     if (!this.findAll(subscription.identifier).length) {
-      this.sendCommand(subscription, "unsubscribe");
+      this.unsubscribe(subscription);
     }
     return subscription;
   }
@@ -435,13 +442,44 @@ class Subscriptions {
     return subscriptions.map((subscription => typeof subscription[callbackName] === "function" ? subscription[callbackName](...args) : undefined));
   }
   subscribe(subscription) {
+    const {identifier: identifier} = subscription;
+    if (this.pendingUnsubscribes[identifier]) {
+      if (this.postponedSubscribes[identifier]) return;
+      this.postponedSubscribes[identifier] = setTimeout((() => {
+        delete this.postponedSubscribes[identifier];
+        this.findAll(identifier).forEach((s => this.subscribe(s)));
+      }), this.constructor.subscribeCooldownInterval);
+      return;
+    }
     if (this.sendCommand(subscription, "subscribe")) {
       this.guarantor.guarantee(subscription);
     }
   }
+  unsubscribe(subscription) {
+    const {identifier: identifier} = subscription;
+    this.sendCommand(subscription, "unsubscribe");
+    this.resetUnsubscribeCooldownLater(identifier);
+  }
   confirmSubscription(identifier) {
     logger.log(`Subscription confirmed ${identifier}`);
-    this.findAll(identifier).map((subscription => this.guarantor.forget(subscription)));
+    const subscriptions = this.findAll(identifier);
+    if (subscriptions.length === 0) {
+      this.unsubscribe({
+        identifier: identifier
+      });
+      return [];
+    }
+    const confirmed = subscriptions.filter((subscription => this.guarantor.isPending(subscription)));
+    confirmed.forEach((subscription => this.guarantor.forget(subscription)));
+    return confirmed;
+  }
+  resetUnsubscribeCooldownLater(identifier) {
+    if (this.pendingUnsubscribes[identifier]) {
+      clearTimeout(this.pendingUnsubscribes[identifier]);
+    }
+    this.pendingUnsubscribes[identifier] = setTimeout((() => {
+      delete this.pendingUnsubscribes[identifier];
+    }), this.constructor.subscribeCooldownInterval);
   }
   sendCommand(subscription, command) {
     const {identifier: identifier} = subscription;
@@ -451,6 +489,8 @@ class Subscriptions {
     });
   }
 }
+
+Subscriptions.subscribeCooldownInterval = 250;
 
 class Consumer {
   constructor(url) {
