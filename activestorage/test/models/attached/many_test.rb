@@ -899,6 +899,53 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal 67, image.height
   end
 
+  test "creating variation with dynamic transformations" do
+    extra_attached = Class.new(User) do
+      def self.name; superclass.name; end
+
+      attr_accessor :thumb_size
+
+      has_many_attached :highlights_with_dynamic do |attachable|
+        attachable.variant :thumb, resize_to_limit: :thumb_size.to_proc
+        attachable.variant :thumb_lambda, resize_to_limit: ->(user) { user.thumb_size }
+      end
+    end
+
+    @user = @user.becomes(extra_attached)
+    @user.thumb_size = [100, 100]
+
+    assert_no_enqueued_jobs only: ActiveStorage::TransformJob do
+      @user.highlights_with_dynamic.attach fixture_file_upload("racecar.jpg")
+    end
+
+    highlight = @user.highlights_with_dynamic.first
+
+    assert_equal({ format: "jpg", resize_to_limit: [100, 100] }, highlight.variant(:thumb).variation.transformations)
+    assert_equal({ format: "jpg", resize_to_limit: [100, 100] }, highlight.variant(:thumb_lambda).variation.transformations)
+
+    @user.thumb_size = [200, 200]
+
+    assert_equal({ format: "jpg", resize_to_limit: [200, 200] }, highlight.variant(:thumb).variation.transformations)
+    assert_equal({ format: "jpg", resize_to_limit: [200, 200] }, highlight.variant(:thumb_lambda).variation.transformations)
+  end
+
+  test "creating variation does not evaluate symbol transformation values" do
+    extra_attached = Class.new(User) do
+      def self.name; superclass.name; end
+
+      has_many_attached :highlights_as_png do |attachable|
+        attachable.variant :thumb, resize_to_limit: [100, 100], format: :png
+      end
+    end
+
+    @user = @user.becomes(extra_attached)
+    @user.highlights_as_png.attach fixture_file_upload("racecar.jpg")
+
+    variation = @user.highlights_as_png.first.variant(:thumb).variation
+
+    assert_equal({ format: :png, resize_to_limit: [100, 100] }, variation.transformations)
+  end
+
   test "raises error when unknown variant name is used to generate variant" do
     @user.highlights_with_variants.attach fixture_file_upload("racecar.jpg")
 

@@ -22,6 +22,12 @@ class ActiveStorage::NamedVariant # :nodoc:
     preprocessed?(record) ? :later : :lazily
   end
 
+  def transformations_for(record)
+    transformations.transform_values do |value|
+      value.is_a?(Proc) ? value.call(record) : value
+    end
+  end
+
   private
     def preprocessed?(record)
       case preprocessed
