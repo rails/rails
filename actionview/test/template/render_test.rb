@@ -1199,24 +1199,52 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
       view.render(partial: ModelType.new)
     end
 
+    def self.render_collection
+      resolver = ActionView::FixtureResolver.new("test/_item.html.erb" => "<%= item %>")
+      details = { locale: [:en], formats: [:html], variants: [], handlers: [:erb] }
+      lookup_context = ActionView::LookupContext.new([resolver], details, ["test"])
+      view = ActionView::Base.with_empty_template_cache.with_context(lookup_context)
+      view.render(partial: "test/item", collection: [1, 2, 3])
+    end
+
     test "renders an object partial with a namespaced partial name inside a non-main Ractor" do
       Mime.eager_load!
       rendered_on_main = self.class.render_object_partial
       assert_equal "Hello from model_types/model_type", rendered_on_main
 
-      ActionView::Template::Handlers::ERB.escape_ignore_list.freeze
-      ActiveSupport::Ractors.unshareable_proc_action = :raise
-      ActiveSupport::Notifications.send(:record_subscriptions)
-      Ractor.make_shareable(ActiveSupport.event_reporter)
-
-      I18n::Config.prepend(Module.new do
-        def available_locales = [:en].freeze
-      end)
+      prepare_rendering_on_ractor
 
       rendered_in_ractor = on_ractor { ObjectRenderingRactorTest.render_object_partial }
 
       assert_equal rendered_on_main, rendered_in_ractor
     end
+
+    test "renders a collection without a spacer template inside a non-main Ractor" do
+      Mime.eager_load!
+      rendered_on_main = self.class.render_collection
+      assert_equal "123", rendered_on_main
+
+      prepare_rendering_on_ractor
+
+      rendered_in_ractor = on_ractor { ObjectRenderingRactorTest.render_collection }
+
+      assert_equal rendered_on_main, rendered_in_ractor
+      assert_ractor_shareable ActionView::AbstractRenderer::RenderedTemplate::EMPTY_SPACER
+    end
+
+    private
+      # Changes global state. ActiveSupport::Testing::Isolation runs each test
+      # in its own process, so it doesn't reach other tests.
+      def prepare_rendering_on_ractor
+        ActionView::Template::Handlers::ERB.escape_ignore_list.freeze
+        ActiveSupport::Ractors.unshareable_proc_action = :raise
+        ActiveSupport::Notifications.send(:record_subscriptions)
+        Ractor.make_shareable(ActiveSupport.event_reporter)
+
+        I18n::Config.prepend(Module.new do
+          def available_locales = [:en].freeze
+        end)
+      end
   end
 
   private
