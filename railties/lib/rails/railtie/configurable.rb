@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 
+# :markup: markdown
 module Rails
   class Railtie
     module Configurable

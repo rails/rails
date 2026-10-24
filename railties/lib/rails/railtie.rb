@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/rails"
 require "rails/initializable"
 require "active_support/descendants_tracker"
@@ -9,7 +10,7 @@ require "active_support/core_ext/module/introspection"
 require "active_support/logger"
 
 module Rails
-  # +Rails::Railtie+ is the core of the \Rails framework and provides
+  # `Rails::Railtie` is the core of the \Rails framework and provides
   # several hooks to extend \Rails and/or modify the initialization process.
   #
   # Every major component of \Rails (Action Mailer, Action Controller, Active
@@ -17,7 +18,7 @@ module Rails
   # own initialization. This makes \Rails itself absent of any component hooks,
   # allowing other components to be used in place of any of the \Rails defaults.
   #
-  # Developing a \Rails extension does _not_ require implementing a railtie, but
+  # Developing a \Rails extension does *not* require implementing a railtie, but
   # if you need to interact with the \Rails framework during or after boot, then
   # a railtie is needed.
   #
@@ -25,110 +26,130 @@ module Rails
   #
   # * creating initializers
   # * configuring a \Rails framework for the application, like setting a generator
-  # * adding <tt>config.*</tt> keys to the environment
+  # * adding `config.*` keys to the environment
   # * setting up a subscriber with ActiveSupport::Notifications
   # * adding Rake tasks
   #
-  # == Creating a Railtie
+  # Creating a Railtie
+  # ------------------
   #
-  # To extend \Rails using a railtie, create a subclass of +Rails::Railtie+.
+  # To extend \Rails using a railtie, create a subclass of `Rails::Railtie`.
   # This class must be loaded during the \Rails boot process, and is conventionally
-  # called +MyNamespace::Railtie+.
+  # called `MyNamespace::Railtie`.
   #
   # The following example demonstrates an extension which can be used with or
   # without \Rails.
   #
-  #   # lib/my_gem/railtie.rb
-  #   module MyGem
-  #     class Railtie < Rails::Railtie
-  #     end
+  # ```
+  # # lib/my_gem/railtie.rb
+  # module MyGem
+  #   class Railtie < Rails::Railtie
   #   end
+  # end
   #
-  #   # lib/my_gem.rb
-  #   require "my_gem/railtie" if defined?(Rails::Railtie)
+  # # lib/my_gem.rb
+  # require "my_gem/railtie" if defined?(Rails::Railtie)
+  # ```
   #
-  # == Initializers
+  # Initializers
+  # ------------
   #
   # To add an initialization step to the \Rails boot process from your railtie, just
-  # define the initialization code with the +initializer+ macro:
+  # define the initialization code with the `initializer` macro:
   #
-  #   class MyGem::Railtie < Rails::Railtie
-  #     initializer "my_gem.configure_rails_initialization" do
-  #       # some initialization behavior
-  #     end
+  # ```
+  # class MyGem::Railtie < Rails::Railtie
+  #   initializer "my_gem.configure_rails_initialization" do
+  #     # some initialization behavior
   #   end
+  # end
+  # ```
   #
   # If specified, the block can also receive the application object, in case you
   # need to access some application-specific configuration, like middleware:
   #
-  #   class MyGem::Railtie < Rails::Railtie
-  #     initializer "my_gem.configure_rails_initialization" do |app|
-  #       app.middleware.use MyGem::Middleware
-  #     end
+  # ```
+  # class MyGem::Railtie < Rails::Railtie
+  #   initializer "my_gem.configure_rails_initialization" do |app|
+  #     app.middleware.use MyGem::Middleware
   #   end
+  # end
+  # ```
   #
-  # Finally, you can also pass <tt>:before</tt> and <tt>:after</tt> as options to
-  # +initializer+, in case you want to couple it with a specific step in the
+  # Finally, you can also pass `:before` and `:after` as options to
+  # `initializer`, in case you want to couple it with a specific step in the
   # initialization process.
   #
-  # == Configuration
+  # Configuration
+  # -------------
   #
   # Railties can access a config object which contains configuration shared by all
   # railties and the application:
   #
-  #   class MyGem::Railtie < Rails::Railtie
-  #     # Customize the ORM
-  #     config.app_generators.orm :my_gem_orm
+  # ```
+  # class MyGem::Railtie < Rails::Railtie
+  #   # Customize the ORM
+  #   config.app_generators.orm :my_gem_orm
   #
-  #     # Add a to_prepare block which is executed once in production
-  #     # and before each request in development.
-  #     config.to_prepare do
-  #       MyGem.setup!
-  #     end
+  #   # Add a to_prepare block which is executed once in production
+  #   # and before each request in development.
+  #   config.to_prepare do
+  #     MyGem.setup!
   #   end
+  # end
+  # ```
   #
-  # == Loading Rake Tasks and Generators
+  # Loading Rake Tasks and Generators
+  # ---------------------------------
   #
   # If your railtie has Rake tasks, you can tell \Rails to load them through the method
-  # +rake_tasks+:
+  # `rake_tasks`:
   #
-  #   class MyGem::Railtie < Rails::Railtie
-  #     rake_tasks do
-  #       load "path/to/my_gem.tasks"
-  #     end
+  # ```
+  # class MyGem::Railtie < Rails::Railtie
+  #   rake_tasks do
+  #     load "path/to/my_gem.tasks"
   #   end
+  # end
+  # ```
   #
   # By default, \Rails loads generators from your load path. However, if you want to place
   # your generators at a different location, you can specify in your railtie a block which
   # will load them during normal generators lookup:
   #
-  #   class MyGem::Railtie < Rails::Railtie
-  #     generators do
-  #       require "path/to/my_gem_generator"
-  #     end
+  # ```
+  # class MyGem::Railtie < Rails::Railtie
+  #   generators do
+  #     require "path/to/my_gem_generator"
   #   end
+  # end
+  # ```
   #
   # Since filenames on the load path are shared across gems, be sure that files you load
   # through a railtie have unique names.
   #
-  # == Run another program when the \Rails server starts
+  # Run another program when the \Rails server starts
+  # -------------------------------------------------
   #
   # In development, it's very usual to have to run another process next to the \Rails Server. In example
   # you might want to start the Webpack or React server. Or maybe you need to run your job scheduler process
   # like Sidekiq. This is usually done by opening a new shell and running the program from here.
   #
-  # \Rails allow you to specify a +server+ block which will get called when a \Rails server starts.
+  # \Rails allow you to specify a `server` block which will get called when a \Rails server starts.
   # This way, your users don't need to remember to have to open a new shell and run another program, making
   # this less confusing for everyone.
   # It can be used like this:
   #
-  #   class MyGem::Railtie < Rails::Railtie
-  #     server do
-  #       WebpackServer.start
-  #     end
+  # ```
+  # class MyGem::Railtie < Rails::Railtie
+  #   server do
+  #     WebpackServer.start
   #   end
+  # end
+  # ```
   #
-  # == Application and Engine
+  # Application and Engine
+  # ----------------------
   #
   # An engine is nothing more than a railtie with some initializers already set. And since
   # Rails::Application is an engine, the same configuration described here can be
@@ -181,7 +202,7 @@ module Rails
       end
 
       # Since Rails::Railtie cannot be instantiated, any methods that call
-      # +instance+ are intended to be called only on subclasses of a Railtie.
+      # `instance` are intended to be called only on subclasses of a Railtie.
       def instance
         @instance ||= new
       end
@@ -267,9 +288,9 @@ module Rails
           end
         end
 
-        # Appends the given block to the blocks registered under +type+ for
+        # Appends the given block to the blocks registered under `type` for
         # this railtie class, and returns them; they are run later by
-        # `#each_registered_block(type, &block)`.
+        # \`#each_registered_block(type, &block)\`.
         def register_block_for(type, &blk)
           @registered_blocks ||= {}
           blocks = (@registered_blocks[type] ||= [])
@@ -292,7 +313,7 @@ module Rails
       instance_eval(&block)
     end
 
-    # This is used to create the <tt>config</tt> object on Railties, an instance of
+    # This is used to create the `config` object on Railties, an instance of
     # Railtie::Configuration, that is used by Railties and Application to store
     # related configuration.
     def config
@@ -330,7 +351,7 @@ module Rails
         [].freeze
       end
 
-      # run `&block` in every registered block in `#register_block_for`
+      # run \`&block\` in every registered block in \`#register_block_for\`
       def each_registered_block(type, &block)
         klass = self.class
         while klass.respond_to?(type)

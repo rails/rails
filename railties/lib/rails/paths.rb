@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "pathname"
 
 module Rails
@@ -8,44 +9,54 @@ module Rails
     # It allows you to collect information about how you want to structure your application
     # paths through a Hash-like \API. It requires you to give a physical path on initialization.
     #
-    #   root = Root.new "/rails"
-    #   root.add "app/controllers", eager_load: true
+    # ```
+    # root = Root.new "/rails"
+    # root.add "app/controllers", eager_load: true
+    # ```
     #
     # The above command creates a new root object and adds "app/controllers" as a path.
     # This means we can get a Rails::Paths::Path object back like below:
     #
-    #   path = root["app/controllers"]
-    #   path.eager_load?               # => true
-    #   path.is_a?(Rails::Paths::Path) # => true
+    # ```
+    # path = root["app/controllers"]
+    # path.eager_load?               # => true
+    # path.is_a?(Rails::Paths::Path) # => true
+    # ```
     #
-    # The Path[rdoc-ref:Rails::Paths::Path] object is simply an enumerable and
+    # The [Path](rdoc-ref:Rails::Paths::Path) object is simply an enumerable and
     # allows you to easily add extra paths:
     #
-    #   path.is_a?(Enumerable) # => true
-    #   path.to_ary    # => ["app/controllers"]
+    # ```
+    # path.is_a?(Enumerable) # => true
+    # path.to_ary    # => ["app/controllers"]
     #
-    #   path << "lib/controllers"
-    #   path.to_ary    # => ["app/controllers", "lib/controllers"]
+    # path << "lib/controllers"
+    # path.to_ary    # => ["app/controllers", "lib/controllers"]
+    # ```
     #
     # Notice that when you add a path using #add, the
-    # Path[rdoc-ref:Rails::Paths::Path] object created already contains the path
+    # [Path](rdoc-ref:Rails::Paths::Path) object created already contains the path
     # with the same path value given to #add. In some situations, you may not
-    # want this behavior, so you can give <tt>:with</tt> as option.
+    # want this behavior, so you can give `:with` as option.
     #
-    #   root.add "config/routes", with: "config/routes.rb"
-    #   root["config/routes"].to_ary # => ["config/routes.rb"]
+    # ```
+    # root.add "config/routes", with: "config/routes.rb"
+    # root["config/routes"].to_ary # => ["config/routes.rb"]
+    # ```
     #
     # The #add method accepts the following options as arguments:
-    # +eager_load+, +autoload+, +autoload_once+, and +glob+.
+    # `eager_load`, `autoload`, `autoload_once`, and `glob`.
     #
-    # Finally, the Path[rdoc-ref:Rails::Paths::Path] object also provides a few
+    # Finally, the [Path](rdoc-ref:Rails::Paths::Path) object also provides a few
     # helpers:
     #
-    #   root = Root.new "/rails"
-    #   root.add "app/controllers"
+    # ```
+    # root = Root.new "/rails"
+    # root.add "app/controllers"
     #
-    #   root["app/controllers"].expanded # => ["/rails/app/controllers"]
-    #   root["app/controllers"].existent # => ["/rails/app/controllers"]
+    # root["app/controllers"].expanded # => ["/rails/app/controllers"]
+    # root["app/controllers"].existent # => ["/rails/app/controllers"]
+    # ```
     #
     # Check the Rails::Paths::Path documentation for more information.
     class Root
