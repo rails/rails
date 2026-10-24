@@ -2,13 +2,20 @@
 
 # :markup: markdown
 module ActiveRecord::Associations::Builder # :nodoc:
-  class HasAndBelongsToMany # :nodoc:
+  class HasAndBelongsToMany < CollectionAssociation # :nodoc:
     attr_reader :lhs_model, :association_name, :options
+
+    def self.valid_options(options)
+      super + %i[join_table association_foreign_key] - %i[primary_key query_constraints inverse_of dependent]
+    end
+
+    private_class_method :valid_options
 
     def initialize(association_name, lhs_model, options)
       @association_name = association_name
       @lhs_model = lhs_model
       @options = options
+      validate_options
     end
 
     def through_model
@@ -62,6 +69,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     private
+      def validate_options
+        self.class.send(:validate_options, @options)
+      end
+
       def middle_options(join_model)
         middle_options = {}
         middle_options[:class_name] = "#{lhs_model.name}::#{join_model.name}"
