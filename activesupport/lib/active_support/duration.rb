@@ -399,7 +399,7 @@ module ActiveSupport
     # 1.day.in_minutes # => 1440.0
     # ```
     def in_minutes
-      value / SECONDS_PER_MINUTE.to_f
+      value.fdiv(SECONDS_PER_MINUTE)
     end
 
     # Returns the amount of hours a duration covers as a float
@@ -408,7 +408,7 @@ module ActiveSupport
     # 1.day.in_hours # => 24.0
     # ```
     def in_hours
-      value / SECONDS_PER_HOUR.to_f
+      value.fdiv(SECONDS_PER_HOUR)
     end
 
     # Returns the amount of days a duration covers as a float
@@ -417,7 +417,7 @@ module ActiveSupport
     # 12.hours.in_days # => 0.5
     # ```
     def in_days
-      value / SECONDS_PER_DAY.to_f
+      value.fdiv(SECONDS_PER_DAY)
     end
 
     # Returns the amount of weeks a duration covers as a float
@@ -426,7 +426,7 @@ module ActiveSupport
     # 2.months.in_weeks # => 8.696
     # ```
     def in_weeks
-      value / SECONDS_PER_WEEK.to_f
+      value.fdiv(SECONDS_PER_WEEK)
     end
 
     # Returns the amount of months a duration covers as a float
@@ -435,7 +435,7 @@ module ActiveSupport
     # 9.weeks.in_months # => 2.07
     # ```
     def in_months
-      value / SECONDS_PER_MONTH.to_f
+      value.fdiv(SECONDS_PER_MONTH)
     end
 
     # Returns the amount of years a duration covers as a float
@@ -444,7 +444,7 @@ module ActiveSupport
     # 30.days.in_years # => 0.082
     # ```
     def in_years
-      value / SECONDS_PER_YEAR.to_f
+      value.fdiv(SECONDS_PER_YEAR)
     end
 
     # Returns `true` if `other` is also a Duration instance, which has the
