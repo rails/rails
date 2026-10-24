@@ -33,6 +33,12 @@ module ActiveStorage
     end
 
     def save
+      if record.previously_new_record?
+        # The record was inserted by this save, so it has no attachment to find or replace.
+        record.association(:"#{name}_attachment").loaded!
+        @attachment ||= build_attachment
+      end
+
       record.public_send("#{name}_attachment=", attachment)
       record.public_send("#{name}_blob=", blob)
     end
