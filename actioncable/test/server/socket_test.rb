@@ -34,7 +34,7 @@ class ActionCable::Server::SocketTest < ActionCable::TestCase
 
   test "making a connection with invalid headers" do
     run_in_eventmachine do
-      socket = ActionCable::Server::Socket.new(@server, Rack::MockRequest.env_for("/test"))
+      socket = ActionCable::Server::Socket.new(@server.websocket_server, Rack::MockRequest.env_for("/test"))
       response = socket.process
       assert_equal 404, response[0]
     end
@@ -137,7 +137,7 @@ class ActionCable::Server::SocketTest < ActionCable::TestCase
           "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.org", "rack.hijack" => CallMeMaybe.new
       )
 
-      socket = ActionCable::Server::Socket.new(@server, env)
+      socket = ActionCable::Server::Socket.new(@server.websocket_server, env)
       response = socket.process
       assert_equal 404, response[0]
     end
@@ -148,6 +148,6 @@ class ActionCable::Server::SocketTest < ActionCable::TestCase
       env = Rack::MockRequest.env_for "/test", "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
         "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
 
-      ActionCable::Server::Socket.new(@server, env)
+      ActionCable::Server::Socket.new(@server.websocket_server, env)
     end
 end
