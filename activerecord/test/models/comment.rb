@@ -81,6 +81,10 @@ end
 class VerySpecialComment < Comment
 end
 
+class CommentWithDefaultLimit < Comment
+  default_scope { limit(1) }
+end
+
 class CommentThatAutomaticallyAltersPostBody < Comment
   belongs_to :post, class_name: "PostThatLoadsCommentsInAnAfterSaveHook", foreign_key: :post_id
 

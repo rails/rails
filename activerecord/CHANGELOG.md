@@ -1,3 +1,18 @@
+*   Fix `disable_joins: true` associations ignoring `limit` and `offset` in their scope.
+
+    ```ruby
+    class Author < ActiveRecord::Base
+      has_many :recent_comments, -> { order(id: :desc).limit(2) },
+        through: :posts, source: :comments, disable_joins: true
+    end
+
+    author.recent_comments.to_a
+    # Before: all of the author's comments
+    # After:  the 2 most recent comments, as without `disable_joins`
+    ```
+
+    *Alex Kholodniak*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one

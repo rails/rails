@@ -54,6 +54,34 @@ class Author < ActiveRecord::Base
     source_type: "Member",
     disable_joins: true
 
+  has_many :limited_members,
+    -> { limit(1) },
+    through: :comments_with_order,
+    source: :origin,
+    source_type: "Member"
+
+  has_many :no_joins_limited_members,
+    -> { limit(1) },
+    through: :comments_with_order,
+    source: :origin,
+    source_type: "Member",
+    disable_joins: true
+
+  has_many :comments_desc_limited, -> { order(id: :desc).limit(2) }, through: :posts, source: :comments
+  has_many :no_joins_comments_desc_limited, -> { order(id: :desc).limit(2) }, through: :posts, source: :comments, disable_joins: true
+  has_many :comments_desc_limited_with_offset, -> { order(id: :desc).limit(2).offset(1) }, through: :posts, source: :comments
+  has_many :no_joins_comments_desc_limited_with_offset, -> { order(id: :desc).limit(2).offset(1) }, through: :posts, source: :comments, disable_joins: true
+  has_many :comments_desc_with_unscoped_limit, -> { order(id: :desc).unscope(:limit).limit(2) }, through: :posts, source: :comments
+  has_many :no_joins_comments_desc_with_unscoped_limit, -> { order(id: :desc).unscope(:limit).limit(2) }, through: :posts, source: :comments, disable_joins: true
+  has_many :comments_with_default_limit, through: :posts_sorted_by_id
+  has_many :members_named_included, -> { where(name: "included") }, through: :comments_with_default_limit, source: :origin, source_type: "Member"
+  has_many :no_joins_members_named_included, -> { where(name: "included") }, through: :comments_with_default_limit, source: :origin, source_type: "Member", disable_joins: true
+  has_one :post_with_highest_id, -> { order(id: :desc) }, class_name: "Post"
+  has_one :offset_very_special_comment, -> { offset(1) }, through: :post_with_highest_id, source: :very_special_comment
+  has_one :no_joins_offset_very_special_comment, -> { offset(1) }, through: :post_with_highest_id, source: :very_special_comment, disable_joins: true
+  has_one :comment_with_limit_zero, -> { limit(0) }, through: :post, source: :first_comment
+  has_one :no_joins_comment_with_limit_zero, -> { limit(0) }, through: :post, source: :first_comment, disable_joins: true
+
   has_many :ratings, through: :comments
   has_many :good_ratings,
     -> { where("ratings.value > 5").order(:id) },

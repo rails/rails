@@ -119,6 +119,7 @@ class Post < ActiveRecord::Base
     .where.not(p1: { id: 999999 })
   }, class_name: "VerySpecialComment"
   has_many :special_comments
+  has_many :comments_with_default_limit, class_name: "CommentWithDefaultLimit"
   has_many :nonexistent_comments, -> { where "comments.id < 0" }, class_name: "Comment"
 
   has_many :special_comments_ratings, through: :special_comments, source: :ratings
