@@ -40,6 +40,27 @@ if ActiveRecord::Base.lease_connection.supports_virtual_columns?
       VirtualColumn.partial_inserts = partial_inserts_was
     end
 
+    def test_virtual_columns_survive_schema_cache_dump_and_load
+      pool = ActiveRecord::Base.connection_pool
+      columns = @connection.columns("virtual_columns")
+
+      [".yml", ".json", ".dump"].each do |extension|
+        Tempfile.create(["schema_cache-", extension]) do |tempfile|
+          pool.schema_cache.dump_to(tempfile.path)
+
+          cache = ActiveRecord::ConnectionAdapters::SchemaReflection.new(tempfile.path)
+          cache.load!(pool)
+          loaded = cache.columns_hash(pool, "virtual_columns")
+
+          assert_equal columns, loaded.values, "expected columns to survive a #{extension} round trip"
+          assert_predicate loaded["upper_name"], :virtual_stored?
+          assert_predicate loaded["lower_name"], :virtual?
+          assert_not_predicate loaded["lower_name"], :virtual_stored?
+          assert_not_predicate loaded["name"], :virtual?
+        end
+      end
+    end
+
     def test_stored_column
       column = VirtualColumn.columns_hash["upper_name"]
       assert_predicate column, :virtual?

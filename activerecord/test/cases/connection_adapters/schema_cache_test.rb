@@ -456,6 +456,19 @@ module ActiveRecord
         end
       end
 
+      def test_dump_and_load_preserves_columns
+        cache = new_bound_reflection
+        columns = cache.columns("courses")
+
+        Tempfile.create(["schema_cache-", format_extension]) do |tempfile|
+          cache.dump_to(tempfile.path)
+
+          cache = load_bound_reflection(tempfile.path)
+
+          assert_equal columns, cache.columns("courses")
+        end
+      end
+
       def test_dump_and_load_with_gzip
         # Create an empty cache.
         cache = new_bound_reflection
