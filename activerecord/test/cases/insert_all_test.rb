@@ -1030,8 +1030,8 @@ class InsertAllTest < ActiveRecord::TestCase
     author = Author.create!(name: "Rafael")
     author.books.build(title: "Unpersisted Book")
 
-    assert_deprecated(ActiveRecord.deprecator) do
-      author.books.insert({ title: "New Book" })
+    assert_deprecated(/Using insert_all on association books/, ActiveRecord.deprecator) do
+      author.books.insert_all([{ title: "New Book" }])
     end
 
     author.books.load
@@ -1054,7 +1054,7 @@ class InsertAllTest < ActiveRecord::TestCase
     author = Author.create!(name: "Rafael")
     author.books.build(title: "Unpersisted Book")
 
-    assert_deprecated(ActiveRecord.deprecator) do
+    assert_deprecated(/Using insert on association books/, ActiveRecord.deprecator) do
       author.books.insert({ title: "New Book" })
     end
 
@@ -1076,7 +1076,7 @@ class InsertAllTest < ActiveRecord::TestCase
     author = Author.create!(name: "Rafael")
     author.books.build(title: "Unpersisted Book")
 
-    assert_deprecated(ActiveRecord.deprecator) do
+    assert_deprecated(/Using insert_all! on association books/, ActiveRecord.deprecator) do
       author.books.insert_all!([{ title: "New Book" }])
     end
 
@@ -1092,13 +1092,33 @@ class InsertAllTest < ActiveRecord::TestCase
     end
   end
 
+  def test_insert_bang_with_unpersisted_record_triggers_deprecation
+    author = Author.create!(name: "Rafael")
+    author.books.build(title: "Unpersisted Book")
+
+    assert_deprecated(/Using insert! on association books/, ActiveRecord.deprecator) do
+      author.books.insert!({ title: "New Book" })
+    end
+
+    author.books.load
+    assert_includes author.books.pluck(:title), "Unpersisted Book"
+  end
+
+  def test_insert_bang_without_unpersisted_records_has_no_deprecation
+    author = Author.create!(name: "Rafael")
+
+    assert_not_deprecated(ActiveRecord.deprecator) do
+      author.books.insert!({ title: "New Book" })
+    end
+  end
+
   def test_upsert_all_with_unpersisted_record_triggers_deprecation
     skip unless supports_insert_on_duplicate_update?
 
     author = Author.create!(name: "Rafael")
     author.books.build(title: "Unpersisted Book")
 
-    assert_deprecated(ActiveRecord.deprecator) do
+    assert_deprecated(/Using upsert_all on association books/, ActiveRecord.deprecator) do
       author.books.upsert_all([{ title: "New Book" }])
     end
 
@@ -1122,7 +1142,7 @@ class InsertAllTest < ActiveRecord::TestCase
     author = Author.create!(name: "Rafael")
     author.books.build(title: "Unpersisted Book")
 
-    assert_deprecated(ActiveRecord.deprecator) do
+    assert_deprecated(/Using upsert on association books/, ActiveRecord.deprecator) do
       author.books.upsert({ title: "New Book" })
     end
 
