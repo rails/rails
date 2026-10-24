@@ -29,9 +29,11 @@ module ActiveJob
       #
       # * `:wait` - Re-enqueues the job with a delay specified either in seconds (default: 3 seconds),
       #   as a computing proc that takes the number of executions so far as an argument (and optionally the error),
-      #   or as a symbol reference of
+      #   as a symbol reference of
       #   `:polynomially_longer`, which applies the wait algorithm of `((executions**4) + (Kernel.rand * (executions**4) * jitter)) + 2`
-      #   (first wait ~3s, then ~18s, then ~83s, etc)
+      #   (first wait ~3s, then ~18s, then ~83s, etc), or as any other symbol naming an instance method on the job
+      #   that computes the delay. Like a proc, the method takes the number of executions so far as an argument
+      #   (and optionally the error).
       # * `:attempts` - Enqueues the job the specified number of times (default: 5 attempts) or a symbol reference of `:unlimited`
       #   to retry the job until it succeeds. The number of attempts includes the original job execution.
       # * `:queue` - Re-enqueues the job on a different queue
@@ -46,6 +48,7 @@ module ActiveJob
       #   retry_on CustomAppException # defaults to ~3s wait, 5 attempts
       #   retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
       #   retry_on ThirdCustomAppException, wait: ->(executions, error) { error.retry_after || executions * 2 }
+      #   retry_on FourthCustomAppException, wait: :custom_wait # calls the custom_wait instance method below
       #   retry_on CustomInfrastructureException, wait: 5.minutes, attempts: :unlimited
       #
       #   retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
@@ -65,15 +68,20 @@ module ActiveJob
       #     # Might raise ActiveRecord::Deadlocked when a local db deadlock is detected
       #     # Might raise Net::OpenTimeout or Timeout::Error when the remote service is down
       #   end
+      #
+      #   private
+      #     def custom_wait(executions, error)
+      #       error.retry_after || executions * 2
+      #     end
       # end
       # ```
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil, jitter: JITTER_DEFAULT, report: false, &block)
         case wait
-        when :polynomially_longer, Integer, Float, ActiveSupport::Duration, Proc
+        when Symbol, Integer, Float, ActiveSupport::Duration, Proc
           # Supported wait type, continue.
         else
           raise ArgumentError, "Unsupported argument type for :wait, expected an Integer, Float, " \
-            "ActiveSupport::Duration, Proc, or :polynomially_longer, but got #{wait.inspect}"
+            "ActiveSupport::Duration, Proc, or Symbol, but got #{wait.inspect}"
         end
 
         wait = wait.is_a?(Proc) ? ActiveSupport::Ractors.try_shareable_proc(wait) : ActiveSupport::Ractors.try_make_shareable(wait)
@@ -214,12 +222,21 @@ module ActiveJob
           delay = seconds_or_duration_or_algorithm.to_f
           delay_jitter = determine_jitter_for_delay(delay, jitter)
           delay + delay_jitter
-        when Proc
-          algorithm = seconds_or_duration_or_algorithm
+        when Proc, Symbol
+          algorithm = seconds_or_duration_or_algorithm.is_a?(Symbol) ? wait_method(seconds_or_duration_or_algorithm) : seconds_or_duration_or_algorithm
           algorithm.arity == 2 || algorithm.arity < -1 ? algorithm.call(executions, error) : algorithm.call(executions)
         else
           raise "Couldn't determine a delay based on #{seconds_or_duration_or_algorithm.inspect}"
         end
+      end
+
+      def wait_method(name)
+        unless respond_to?(name, true)
+          raise ArgumentError, "Unsupported argument for :wait, expected :polynomially_longer or the name of " \
+            "an instance method on #{self.class.name}, but got #{name.inspect}"
+        end
+
+        method(name)
       end
 
       def determine_jitter_for_delay(delay, jitter)
