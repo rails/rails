@@ -150,6 +150,14 @@ class TagHelperTest < ActionView::TestCase
       tag.p(disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true, allowpaymentrequest: true, nomodule: true, playsinline: true)
   end
 
+  def test_tag_builder_options_hidden_with_keyword_value
+    assert_equal '<tr hidden="until-found"></tr>', tag.tr(hidden: "until-found")
+    assert_equal '<tr hidden="until-found"></tr>', tag.tr(hidden: :"until-found")
+    assert_equal '<tr hidden="hidden"></tr>', tag.tr(hidden: true)
+    assert_equal "<tr></tr>", tag.tr(hidden: false)
+    assert_equal '<div hidden="until-found"></div>', content_tag(:div, nil, "hidden" => "until-found")
+  end
+
   def test_tag_builder_with_options_builds_p_elements
     html = tag.with_options(id: "with-options") { |t| t.p("content") }
 
