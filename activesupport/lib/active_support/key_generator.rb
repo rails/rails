@@ -75,7 +75,9 @@ module ActiveSupport
 
     # Returns a derived key suitable for use.
     def generate_key(*args)
-      cache_keys[args.join("|")] ||= @key_generator.generate_key(*args)
+      # The splat array already exists, so keying by it directly avoids
+      # allocating a joined string per call.
+      cache_keys[args] ||= @key_generator.generate_key(*args)
     end
 
     private
