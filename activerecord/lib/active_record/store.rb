@@ -35,6 +35,10 @@ module ActiveRecord
   # For example, if you want to check for +uniqueness+ with +hstore+ you will
   # need to use a custom validation to handle it.
   #
+  # Normalizations declared with {.normalizes}[rdoc-ref:ActiveModel::Attributes::Normalization::ClassMethods#normalizes]
+  # apply to the store attribute, not its accessors. To normalize values within a store,
+  # declare the normalization for the store itself.
+  #
   # Examples:
   #
   #   class User < ActiveRecord::Base
