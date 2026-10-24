@@ -17,7 +17,7 @@ class HerbCheckerTest < ActiveSupport::TestCase
   def check
     require "action_view/herb_checker"
 
-    ActionView::HerbChecker.check(ActionController::Base.view_paths)
+    ActionView::HerbChecker.check(Rails.root)
   end
 
   test "returns an empty list for a default application" do
@@ -39,7 +39,7 @@ class HerbCheckerTest < ActiveSupport::TestCase
       "app/views/pages/broken.fr.html.erb",
       "app/views/pages/broken.html+phone.erb",
       "app/views/pages/broken.html.erb",
-    ], failures.map { |failure| failure.template.short_identifier }.sort
+    ], failures.map(&:path)
     assert_kind_of Herb::Engine::CompilationError, failures.first.error
   end
 
@@ -50,7 +50,7 @@ class HerbCheckerTest < ActiveSupport::TestCase
 
     failures = check
 
-    assert_equal ["app/views/pages/unsafe.html.erb"], failures.map { |failure| failure.template.short_identifier }
+    assert_equal ["app/views/pages/unsafe.html.erb"], failures.map(&:path)
     assert_kind_of Herb::Engine::SecurityError, failures.first.error
   end
 
@@ -83,6 +83,42 @@ class HerbCheckerTest < ActiveSupport::TestCase
   test "skips templates that are not HTML+ERB" do
     app_file "app/views/notes/export.text.erb", "for (i = 0; i<len; i++)"
     app_file "app/views/notes/plain.erb", "for (i = 0; i<len; i++)"
+
+    boot
+
+    assert_empty check
+  end
+
+  test "reports HTML+ERB templates outside of app/views" do
+    app_file "lib/templates/card.html.erb", "<div><%= title %>"
+    app_file "lib/templates/card.html+phone.erb", "<div><%= title %>"
+    app_file "lib/templates/card.text.erb", "for (i = 0; i<len; i++)"
+
+    boot
+
+    assert_equal [
+      "lib/templates/card.html+phone.erb",
+      "lib/templates/card.html.erb",
+    ], check.map(&:path)
+  end
+
+  test "skips templates excluded by Herb's default configuration" do
+    app_file "vendor/gems/broken.html.erb", "<div><%= hello %>"
+    app_file "node_modules/pkg/broken.html.erb", "<div><%= hello %>"
+    app_file "tmp/broken.html.erb", "<div><%= hello %>"
+
+    boot
+
+    assert_empty check
+  end
+
+  test "skips templates excluded by the application's .herb.yml" do
+    app_file ".herb.yml", <<~YAML
+      files:
+        exclude:
+          - "lib/templates/**/*"
+    YAML
+    app_file "lib/templates/card.html.erb", "<div><%= title %>"
 
     boot
 

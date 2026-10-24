@@ -2,34 +2,33 @@
 
 # :markup: markdown
 
+require "herb/configuration"
 require "action_view/template/handlers/erb/herb"
 require "herb/engine/validators/security_validator"
 
 module ActionView
   class HerbChecker # :nodoc:
-    Failure = Data.define(:template, :error)
+    Failure = Data.define(:path, :error)
 
-    def self.check(view_paths)
-      handler = Template::Handlers::ERB.new
+    HTML_ERB = /\.html(\+[^.\/]*)?\.erb\z/
 
-      view_paths.uniq.flat_map do |resolver|
-        next [] unless resolver.respond_to?(:all_unbound_templates)
+    def self.check(root)
+      root = File.expand_path(root)
 
-        unbound_templates = resolver.all_unbound_templates.select { |unbound|
-          unbound.format == :html && unbound.handler == :erb
-        }
+      ::Herb::Configuration.load(root).find_files(root).filter_map do |file|
+        next unless file.match?(HTML_ERB)
 
-        unbound_templates.filter_map { |unbound|
-          template = unbound.bind_locals([])
-          visitors = [::Herb::Engine::Validators::SecurityValidator.new]
-
-          begin
-            handler.call(template, template.source, implementation: Template::Handlers::ERB::Herb, validate_ruby: true, visitors: visitors)
-            nil
-          rescue ::Herb::Engine::CompilationError, ::Herb::Engine::SecurityError => error
-            Failure.new(template, error)
-          end
-        }
+        begin
+          Template::Handlers::ERB::Herb.new(
+            File.read(file),
+            trim: Template::Handlers::ERB.erb_trim_mode == "-",
+            validate_ruby: true,
+            visitors: [::Herb::Engine::Validators::SecurityValidator.new]
+          )
+          nil
+        rescue ::Herb::Engine::CompilationError, ::Herb::Engine::SecurityError => error
+          Failure.new(file.delete_prefix("#{root}/"), error)
+        end
       end
     end
   end

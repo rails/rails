@@ -5,13 +5,13 @@ namespace :herb do
   task check: :environment do
     require "action_view/herb_checker"
 
-    failures = ActionView::HerbChecker.check(ActionController::Base.view_paths)
+    failures = ActionView::HerbChecker.check(Rails.root)
 
     if failures.empty?
       puts "All HTML+ERB templates compile through Herb. All is good!"
     else
       failures.each do |failure|
-        puts "#{failure.template.short_identifier}:"
+        puts "#{failure.path}:"
         failure.error.message.strip.lines.first(10).each { |line| puts "  #{line}" }
         puts
       end
