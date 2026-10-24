@@ -136,7 +136,11 @@ module ActiveRecord
         end
 
         def delete_or_nullify_all_records(method)
-          delete_records(load_target, method)
+          if through_reflection_touch_options.empty?
+            delete_records(load_target, method)
+          else
+            transaction { delete_records(load_target, method) }
+          end
         end
 
         def delete_records(records, method)
@@ -164,6 +168,7 @@ module ActiveRecord
             count = scope.delete_all
           end
 
+          touch_owner_if_necessary(count) unless method == :destroy
           delete_through_records(records)
 
           if source_reflection.options[:counter_cache] && method != :destroy
@@ -178,6 +183,36 @@ module ActiveRecord
           end
 
           count
+        end
+
+        def touch_owner_if_necessary(count)
+          return if count.zero?
+
+          touches = through_reflection_touch_options
+          return if touches.empty?
+
+          owner.touch_later(*touches.reject { |touch| touch == true }.uniq)
+        end
+
+        def through_reflection_touch_options
+          candidates = if inverse = through_reflection.inverse_of
+            [inverse]
+          else
+            through_reflection.klass.reflect_on_all_associations(:belongs_to).select do |candidate|
+              next if candidate.scope
+              next unless candidate.foreign_key == through_reflection.foreign_key
+
+              if candidate.polymorphic?
+                candidate.name == through_reflection.options[:as]
+              else
+                owner.is_a?(candidate.klass)
+              end
+            end
+          end
+
+          candidates.filter_map do |candidate|
+            candidate.options[:touch]
+          end
         end
 
         def difference(a, b)
