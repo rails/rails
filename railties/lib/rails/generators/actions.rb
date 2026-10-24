@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "shellwords"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/string/strip"

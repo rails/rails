@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 begin
   gem "redis", ">= 4.0.1"
   require "redis"

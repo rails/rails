@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 redis_client_min_version = "0.28.0"
 begin
   gem "redis-client", ">= #{redis_client_min_version}"

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "mail"
 require "action_mailer/collector"
 require "active_support/core_ext/string/inflections"
