@@ -1,3 +1,24 @@
+*   Set and extend the `Vary` header for rendered responses according to the
+    request headers used in format negotiation.
+
+    `Vary: Accept` was only added when the request carried a usable `Accept`
+    header. A response to a request without one, negotiated to HTML or
+    JavaScript, could be stored by a shared cache and served to later clients
+    that requested a different representation.
+
+    Responses now vary on `Accept` and `X-Requested-With` whenever the format is
+    not given by the URL. XHR requests without `Accept` also vary on
+    `Content-Type`, which Rails uses as a legacy format fallback. When
+    `config.action_dispatch.ignore_accept_header` is enabled, responses vary
+    only on `X-Requested-With`.
+
+    These fields are appended to an existing `Vary` value without duplicating
+    fields case-insensitively. `Vary: *` remains unchanged.
+
+    [GHSA-r9jg-fmfx-2gv6]
+
+    *Jeremy Daer*
+
 *   Skip writing a `CacheStore` session that another request deleted while this
     one ran.
 
