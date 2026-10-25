@@ -47,7 +47,7 @@ The right setup depends on what you are trying to accomplish:
 Multiple database applications have a few important limitations and production
 considerations.
 
-##### Connection Pools
+##### Connection Pool Size
 
 Each database configuration can have its own connection pool. Roles, replicas,
 and shards can increase the total number of database connections your
@@ -55,20 +55,20 @@ application may open. Make sure the pool sizes in `config/database.yml` match
 your web server and job worker concurrency, and that your database servers can
 handle the total number of connections.
 
-##### Load Balancing Replicas
+##### No Replica Load Balancing
 
 Rails does not automatically load balance reads across multiple replicas. If
 your application needs replica load balancing, handle it in your database
 infrastructure or with application-specific connection logic.
 
-##### Transactions Across Databases
+##### No Transactions Across Databases
 
 Rails does not provide distributed transactions across database clusters. A
 transaction is scoped to one database connection. If a workflow writes to
 multiple databases, design it so it can tolerate partial failure, retry safely,
 or reconcile data later.
 
-##### Foreign Keys Across Databases
+##### No Foreign Keys Across Databases
 
 Database-level foreign keys generally cannot span separate database clusters.
 Keep data that requires strict database-level integrity in the same database
@@ -154,47 +154,26 @@ cache file. Other entries use names based on the database configuration name,
 such as `db/[CONFIGURATION_NAMESPACE]_schema.rb` and
 `db/[CONFIGURATION_NAMESPACE]_schema_cache.yml`.
 
-Let's now add an `animals` database and replicas for the `production`
-environment:
+Let's now add an `animals` database for the `production` environment:
 
-```yaml#7-24
+```yaml#7-12
 production:
   primary:
     database: my_primary_database
     username: root
     password: <%= ENV['ROOT_PASSWORD'] %>
     adapter: mysql2
-  primary_replica:
-    database: my_primary_database
-    username: root_readonly
-    password: <%= ENV['ROOT_READONLY_PASSWORD'] %>
-    adapter: mysql2
-    replica: true
   animals:
     database: my_animals_database
     username: animals_root
     password: <%= ENV['ANIMALS_ROOT_PASSWORD'] %>
     adapter: mysql2
     migrations_paths: db/animals_migrate
-  animals_replica:
-    database: my_animals_database
-    username: animals_readonly
-    password: <%= ENV['ANIMALS_READONLY_PASSWORD'] %>
-    adapter: mysql2
-    replica: true
 ```
 
 The updated configuration defines two writer databases, `primary` and
 `animals`. A writer database is the database Rails uses for inserts, updates,
-and deletes. Each writer also has a replica: `primary_replica` copies data from
-`primary`, and `animals_replica` copies data from `animals`. Rails can then
-send read queries to a replica when appropriate.
-
-INFO: Read replicas are database servers that keep a copy of a writer database's data
-and structure. The database system, not Rails, handles replication from the
-writer to the replica. Replication can be delayed, so applications need to
-account for the possibility that a replica has not received the latest write
-yet. Refer to your database documentation for replication setup and behavior.
+and deletes.
 
 #### Database Connection URLs
 
@@ -231,47 +210,9 @@ When Rails loads the `animals` configuration, it uses
 See [Configuring a Database](configuring.html#configuring-a-database) for
 details about how the configurations are merged.
 
-#### Configuration Settings
+#### Migration Paths and Schema Dumps
 
-When using multiple databases, there are a few important settings.
-
-First, the database name for a writer and its replica should be the same because
-they contain the same data. This means `primary` and `primary_replica` should
-have the same name, as should `animals` and `animals_replica`.
-
-```yaml#3,5
-production:
-  primary:
-    database: my_primary_database
-  primary_replica:
-    database: my_primary_database
-```
-
-Second, a different username can be used for each replica, and set
-the replica user's database permissions to only read and not write.
-
-```yaml#3,5
-production:
-  primary:
-    username: root
-  primary_replica:
-    username: root_readonly
-```
-
-When using a replica database, you need to add `replica: true` to the replica
-configuration in `config/database.yml`. Rails otherwise has no way of knowing
-which configuration is the replica and which one is the writer. Rails will not
-run certain tasks, such as migrations, against configurations marked as
-replicas. If you forget `replica: true`, Rails will treat the replica as
-another writer database and may run database tasks against it.
-
-```yaml#3
-production:
-  primary_replica:
-    replica: true
-```
-
-Lastly, for new writer databases, you need to set the `migrations_paths` key to
+For new writer databases, you need to set the `migrations_paths` key to
 the directory where you will store migrations for that database. We'll look more
 at `migrations_paths` later in [Generating Migrations](#generating-migrations).
 
@@ -296,6 +237,89 @@ production:
 
 If you want to skip dumping the schema for a database entirely, set
 `schema_dump: false`.
+
+#### Configuring a Replica
+
+Read replicas are database servers that keep a copy of a writer database's data
+and structure. The database system, not Rails, handles replication from the
+writer to the replica. Replication can be delayed, so applications need to
+account for the possibility that a replica has not received the latest write
+yet. Refer to your database documentation for replication setup and behavior.
+
+To add read replicas for the `primary` and `animals` databases, add a
+configuration for each replica to `config/database.yml`:
+
+```yaml#7-12,19-24
+production:
+  primary:
+    database: my_primary_database
+    username: root
+    password: <%= ENV['ROOT_PASSWORD'] %>
+    adapter: mysql2
+  primary_replica:
+    database: my_primary_database
+    username: root_readonly
+    password: <%= ENV['ROOT_READONLY_PASSWORD'] %>
+    adapter: mysql2
+    replica: true
+  animals:
+    database: my_animals_database
+    username: animals_root
+    password: <%= ENV['ANIMALS_ROOT_PASSWORD'] %>
+    adapter: mysql2
+    migrations_paths: db/animals_migrate
+  animals_replica:
+    database: my_animals_database
+    username: animals_readonly
+    password: <%= ENV['ANIMALS_READONLY_PASSWORD'] %>
+    adapter: mysql2
+    replica: true
+```
+
+Here, `primary_replica` copies data from `primary`, and `animals_replica`
+copies data from `animals`. Rails can then send read queries to a replica
+when appropriate.
+
+When configuring a replica, there are a few important settings.
+
+First, the database name for a writer and its replica should be the same because
+they contain the same data. This means `primary` and `primary_replica` should
+have the same name, as should `animals` and `animals_replica`.
+
+```yaml#3,5
+production:
+  primary:
+    database: my_primary_database
+  primary_replica:
+    database: my_primary_database
+```
+
+Second, use a different username for each replica, and set the replica user's
+database permissions to only read and not write.
+
+```yaml#4,7
+production:
+  primary:
+    database: my_primary_database
+    username: root
+  primary_replica:
+    database: my_primary_database
+    username: root_readonly
+```
+
+When using a replica database, you need to add `replica: true` to the replica
+configuration in `config/database.yml`. Rails otherwise has no way of knowing
+which configuration is the replica and which one is the writer. Rails will not
+run certain tasks, such as migrations, against configurations marked as
+replicas. If you forget `replica: true`, Rails will treat the replica as
+another writer database and may run database tasks against it.
+
+```yaml#4
+production:
+  primary_replica:
+    database: my_primary_database
+    replica: true
+```
 
 ### Connecting Models
 
@@ -414,11 +438,13 @@ end
 `Dog` now uses the `animals` database for writes and the `animals_replica`
 database for reads when Rails is switched to the reading role.
 
-WARNING: It's important to connect to each database from a single abstract class
-and then inherit from that class for the models stored in that database.
-Connecting multiple individual models to the same database multiplies the
-number of connections, because Rails uses the model class name for the
-connection specification name.
+WARNING: Define `connects_to` on a single abstract class for each database and
+have the models stored in that database inherit from it. `connects_to` can only
+be called on `ActiveRecord::Base` or abstract classes; calling it on a concrete
+model raises `NotImplementedError`. Defining the same database connection on
+multiple abstract classes creates separate connection pools, because Rails uses
+the class name for the connection specification name. Models that inherit from
+a common abstract class share its connection pools instead.
 
 ### Generating Migrations
 
