@@ -1128,7 +1128,8 @@ module ActionView
 
         def extra_tags_for_form(html_options)
           authenticity_token = html_options.delete("authenticity_token")
-          method = html_options.delete("method").to_s.downcase
+          method = html_options.delete("method")
+          method = (method.is_a?(Symbol) ? method.name : method.to_s).downcase
 
           method_tag = \
             case method
