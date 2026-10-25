@@ -1,3 +1,13 @@
+*   Fix comparisons between time-only attributes when the time zone conversion
+    crosses midnight.
+
+    Casting a time-only attribute no longer forces the result back to a fixed
+    date of 2000-01-01. Doing so discarded the day rollover produced by the
+    time zone conversion (e.g. `23:00` becoming `01:00` the next day), which
+    flipped the ordering of two values relative to each other.
+
+    *Ousama Ben Younes*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one
