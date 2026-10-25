@@ -1565,7 +1565,7 @@ module ActionView
 
                   v = @view_context.safe_join(tokens, " ")
                 else
-                  v = v.to_s
+                  v = v.is_a?(Symbol) ? v.name : v.to_s
                 end
 
                 output << sep
@@ -1636,6 +1636,8 @@ module ActionView
               value = escape ? @view_context.safe_join(value, " ") : value.join(" ")
             when Regexp
               value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
+            when Symbol
+              value = escape ? ERB::Util.unwrapped_html_escape(value.name) : value.name
             else
               value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
             end
