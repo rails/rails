@@ -64,6 +64,22 @@ module ActiveRecord
           Time.zone = old_time_zone
           ActiveRecord.default_timezone = old_default_timezone
         end
+
+        def test_cast_preserves_ordering_when_conversion_crosses_midnight
+          old_time_zone = Time.zone
+          Time.zone = "Helsinki" # UTC+2, so 23:00 UTC rolls over to the next day
+
+          subtype = ActiveRecord::Type::Time.new
+          converter = ActiveRecord::AttributeMethods::TimeZoneConversion::TimeZoneConverter.new(subtype)
+
+          earlier = converter.cast(::Time.utc(2000, 1, 1, 1, 0))
+          later = converter.cast(::Time.utc(2000, 1, 1, 23, 0))
+
+          assert later > earlier,
+            "expected later (#{later.inspect}) to sort after earlier (#{earlier.inspect})"
+        ensure
+          Time.zone = old_time_zone
+        end
       end
     end
   end
