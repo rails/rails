@@ -465,6 +465,23 @@ module ActiveRecord
       assert_same type, model.send(:type_for_column, column)
     end
 
+    test "immutable_strings_by_default leaves types without an immutable counterpart alone" do
+      # PostgreSQL's `OID::Array` delegates #type to its subtype, so a
+      # `varchar[]` column reports `:string` without being a string type.
+      type = Class.new(ActiveModel::Type::Value) do
+        def type
+          :string
+        end
+      end.new
+      column = ActiveRecord::ConnectionAdapters::Column.new("tags", type, nil)
+
+      model = Class.new(ActiveRecord::Base) do
+        self.immutable_strings_by_default = true
+      end
+
+      assert_same type, model.send(:type_for_column, column)
+    end
+
     test "immutable_strings_by_default does not affect `attribute :foo, :string`" do
       with_immutable_strings do
         OverloadedType.reset_column_information
