@@ -225,6 +225,25 @@ module ActiveRecord
         ActiveRecord::Base.configurations = @prev_configs
       end
 
+      if current_adapter?(:SQLite3Adapter)
+        class InMemoryConnectionBase < ActiveRecord::Base
+          self.abstract_class = true
+        end
+
+        def test_establish_connection_with_in_memory_hash_config_does_not_reuse_pool
+          config = { adapter: "sqlite3", database: ":memory:" }
+          pool = InMemoryConnectionBase.establish_connection(config)
+          pool.lease_connection.execute("CREATE TABLE posts (id INTEGER PRIMARY KEY)")
+
+          new_pool = InMemoryConnectionBase.establish_connection(config)
+
+          assert_not_same pool, new_pool
+          assert_empty new_pool.lease_connection.tables
+        ensure
+          InMemoryConnectionBase.remove_connection
+        end
+      end
+
       def test_symbolized_configurations_assignment
         @prev_configs = ActiveRecord::Base.configurations
         config = {
