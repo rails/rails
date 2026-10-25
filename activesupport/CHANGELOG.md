@@ -1,3 +1,10 @@
+*   `Symbol#to_s` now returns `Symbol#name`, the symbol's interned frozen String,
+    on Rubies before 4.1, which made that change in Ruby itself
+    ([Feature #22137](https://bugs.ruby-lang.org/issues/22137)). Mutating the
+    returned String raises `FrozenError`; Ruby 3.4 and 4.0 already warned about it.
+
+    *Akira Matsuda*
+
 *   `Symbol#to_param` now returns `Symbol#name`, the symbol's interned frozen
     String, instead of allocating a new one on every call before Ruby 4.1.
 
