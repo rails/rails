@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     class PoolConfig # :nodoc:
@@ -15,7 +16,14 @@ module ActiveRecord
       INSTANCES = ObjectSpace::WeakMap.new
       private_constant :INSTANCES
 
+      @next_pool_token = 0
+      @pool_token_lock = Mutex.new
+
       class << self
+        def next_pool_token
+          @pool_token_lock.synchronize { @next_pool_token += 1 }
+        end
+
         def discard_pools!
           INSTANCES.each_key(&:discard_pool!)
         end
@@ -33,6 +41,7 @@ module ActiveRecord
         @role = role
         @shard = shard
         @pool = nil
+        @pool_token = nil
         INSTANCES[self] = self
       end
 
@@ -66,6 +75,21 @@ module ActiveRecord
         @pool || synchronize { @pool ||= ConnectionAdapters::ConnectionPool.new(self) }
       end
 
+      def pool_token
+        @pool_token || synchronize { @pool_token ||= self.class.next_pool_token }
+      end
+
+      def pool_spec
+        spec = {
+          db_config: db_config,
+          connection_name: connection_descriptor.name.to_s.freeze,
+          role: role,
+          shard: shard,
+          pool_token: pool_token,
+        }
+        ActiveSupport::Ractors.make_shareable(spec, copy: true)
+      end
+
       def discard_pool!
         return unless @pool
 
@@ -74,6 +98,7 @@ module ActiveRecord
 
           @pool.discard!
           @pool = nil
+          @pool_token = nil
         end
       end
     end

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_record/connection_adapters/sql_type_metadata"
 require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
@@ -13,17 +14,18 @@ require "arel/collectors/substitute_binds"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    # = Active Record Abstract Adapter
+    # Active Record Abstract Adapter
+    # ==============================
     #
     # Active Record supports multiple database systems. AbstractAdapter and
     # related classes form the abstraction layer which makes this possible.
     # An AbstractAdapter represents a connection to a database, and provides an
     # abstract interface for database-specific functionality such as establishing
-    # a connection, escaping values, building the right SQL fragments for +:offset+
-    # and +:limit+ options, etc.
+    # a connection, escaping values, building the right SQL fragments for `:offset`
+    # and `:limit` options, etc.
     #
     # All the concrete database adapters follow the interface laid down in this class.
-    # {ActiveRecord::Base.lease_connection}[rdoc-ref:ConnectionHandling#lease_connection] returns an AbstractAdapter object, which
+    # [ActiveRecord::Base.lease_connection](rdoc-ref:ConnectionHandling#lease_connection) returns an AbstractAdapter object, which
     # you can use.
     #
     # Most of the methods in the adapter are useful during migrations. Most
@@ -39,8 +41,10 @@ module ActiveRecord
       # all migrations using that adapter will use the specified strategy
       # instead of the global ActiveRecord.migration_strategy.
       #
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy = CustomPostgresStrategy
-      #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.migration_strategy = CustomMySQLStrategy
+      # ```
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy = CustomPostgresStrategy
+      # ActiveRecord::ConnectionAdapters::Mysql2Adapter.migration_strategy = CustomMySQLStrategy
+      # ```
       class_attribute :migration_strategy, instance_writer: false
 
       include ActiveSupport::Callbacks
@@ -98,6 +102,68 @@ module ActiveRecord
         else
           raise ArgumentError, "default_timezone must be either 'utc' or 'local'"
         end
+      end
+
+      # The RactorConnectionHandler::AbstractProxyAdapter subclass standing in for this adapter's
+      # connections on worker Ractors.
+      def self.ractor_connection_proxy_class # :nodoc:
+        raise ActiveRecordError, "#{name} does not support Ractor connections"
+      end
+
+      def ractor_connection_profile # :nodoc:
+        {
+          proxy_class: self.class.ractor_connection_proxy_class,
+          adapter_class: self.class,
+          adapter_name: adapter_name,
+          prepared_statements: @prepared_statements,
+          table_definition_class: create_table_definition("__ractor_probe__").class,
+          arel_visitor_class: @visitor.class,
+          bind_params_length: bind_params_length,
+          capabilities: ractor_connection_capabilities,
+        }
+      end
+
+      def ractor_connection_capabilities # :nodoc:
+        {
+          supports_advisory_locks?: supports_advisory_locks?,
+          supports_bulk_alter?: supports_bulk_alter?,
+          supports_check_constraints?: supports_check_constraints?,
+          supports_comments?: supports_comments?,
+          supports_comments_in_create?: supports_comments_in_create?,
+          supports_common_table_expressions?: supports_common_table_expressions?,
+          supports_concurrent_connections?: supports_concurrent_connections?,
+          supports_ddl_transactions?: supports_ddl_transactions?,
+          supports_deferrable_constraints?: supports_deferrable_constraints?,
+          supports_disabling_indexes?: supports_disabling_indexes?,
+          supports_enforced_foreign_keys?: supports_enforced_foreign_keys?,
+          supports_exclusion_constraints?: supports_exclusion_constraints?,
+          supports_explain?: supports_explain?,
+          supports_expression_index?: supports_expression_index?,
+          supports_extensions?: supports_extensions?,
+          supports_foreign_keys?: supports_foreign_keys?,
+          supports_foreign_tables?: supports_foreign_tables?,
+          supports_index_include?: supports_index_include?,
+          supports_index_sort_order?: supports_index_sort_order?,
+          supports_indexes_in_create?: supports_indexes_in_create?,
+          supports_insert_conflict_target?: supports_insert_conflict_target?,
+          supports_insert_on_duplicate_skip?: supports_insert_on_duplicate_skip?,
+          supports_insert_on_duplicate_update?: supports_insert_on_duplicate_update?,
+          supports_insert_returning?: supports_insert_returning?,
+          supports_json?: supports_json?,
+          supports_lazy_transactions?: supports_lazy_transactions?,
+          supports_materialized_views?: supports_materialized_views?,
+          supports_nulls_not_distinct?: supports_nulls_not_distinct?,
+          supports_partial_index?: supports_partial_index?,
+          supports_partitioned_indexes?: supports_partitioned_indexes?,
+          supports_restart_db_transaction?: supports_restart_db_transaction?,
+          supports_savepoints?: supports_savepoints?,
+          supports_transaction_isolation?: supports_transaction_isolation?,
+          supports_unique_constraints?: supports_unique_constraints?,
+          supports_update_returning?: supports_update_returning?,
+          supports_validate_constraints?: supports_validate_constraints?,
+          supports_views?: supports_views?,
+          supports_virtual_columns?: supports_virtual_columns?,
+        }
       end
 
       DEFAULT_READ_QUERY = [:begin, :commit, :explain, :release, :rollback, :savepoint, :select, :with].freeze # :nodoc:
@@ -198,6 +264,7 @@ module ActiveRecord
         @last_activity = nil
         @verified = false
         @needs_reconnect = false
+        @proxied = false
         @unfinalized_intents = []
 
         @pool_jitter = rand * max_jitter
@@ -254,7 +321,7 @@ module ActiveRecord
       # Determines whether writes are currently being prevented.
       #
       # Returns true if the connection is a replica or returns
-      # the value of +current_preventing_writes+.
+      # the value of `current_preventing_writes`.
       def preventing_writes?
         return true if replica?
         return false if connection_descriptor.nil?
@@ -322,14 +389,14 @@ module ActiveRecord
         @pool.connection_descriptor
       end
 
-      # The role (e.g. +:writing+) for the current connection. In a
-      # non-multi role application, +:writing+ is returned.
+      # The role (e.g. `:writing`) for the current connection. In a
+      # non-multi role application, `:writing` is returned.
       def role
         @pool.role
       end
 
-      # The shard (e.g. +:default+) for the current connection. In
-      # a non-sharded application, +:default+ is returned.
+      # The shard (e.g. `:default`) for the current connection. In
+      # a non-sharded application, `:default` is returned.
       def shard
         @pool.shard
       end
@@ -372,6 +439,7 @@ module ActiveRecord
 
             @owner = ActiveSupport::IsolatedExecutionState.context
           end
+          @proxied = false
         else
           raise ActiveRecordError, "Cannot steal connection, it is not currently leased."
         end
@@ -388,6 +456,13 @@ module ActiveRecord
         if @raw_connection && @last_activity
           Process.clock_gettime(Process::CLOCK_MONOTONIC) - @last_activity
         end
+      end
+
+      # When true, this connection is the backend of a ractor proxy connection
+      attr_writer :proxied # :nodoc:
+
+      def proxied? # :nodoc:
+        @proxied
       end
 
       # Seconds since this connection was established. nil if not
@@ -557,10 +632,10 @@ module ActiveRecord
         false
       end
 
-      # Does this adapter support datetime with precision?
       def supports_datetime_with_precision?
-        false
+        true
       end
+      deprecate :supports_datetime_with_precision?, deprecator: ActiveRecord.deprecator
 
       # Does this adapter support JSON data type?
       def supports_json?
@@ -681,6 +756,11 @@ module ActiveRecord
       def drop_virtual_table(*) # :nodoc:
       end
 
+      # Lock used to read an existing record after a duplicate INSERT in a transaction.
+      def create_or_find_by_lock # :nodoc:
+        true
+      end
+
       def advisory_locks_enabled? # :nodoc:
         supports_advisory_locks? && @advisory_locks_enabled
       end
@@ -711,13 +791,13 @@ module ActiveRecord
 
       # REFERENTIAL INTEGRITY ====================================
 
-      # Override to turn off referential integrity while executing <tt>&block</tt>.
+      # Override to turn off referential integrity while executing `&block`.
       def disable_referential_integrity
         yield
       end
 
       # Override to check all foreign key constraints in a database.
-      # The adapter should raise a +ActiveRecord::StatementInvalid+ if foreign key
+      # The adapter should raise a `ActiveRecord::StatementInvalid` if foreign key
       # constraints are not met.
       def check_all_foreign_keys_valid!
       end
@@ -900,7 +980,7 @@ module ActiveRecord
       #
       # Active Record cannot track if the database is getting modified using
       # this client. If that is the case, generally you'll want to invalidate
-      # the query cache using +ActiveRecord::Base.clear_query_cache+.
+      # the query cache using `ActiveRecord::Base.clear_query_cache`.
       def raw_connection
         with_raw_connection do |conn|
           disable_lazy_transactions!
@@ -1054,7 +1134,7 @@ module ActiveRecord
             (budget.reconnectable? && retryable_connection_error?(exception)))
       end
 
-      # Consume from +budget+ if +exception+ warrants another attempt. Query retries
+      # Consume from `budget` if `exception` warrants another attempt. Query retries
       # back off here; connection retries consume the reconnect allowance and rely
       # on the caller to ensure connection readiness before executing again.
       def attempt_retry(exception, budget) # :nodoc:
@@ -1092,16 +1172,16 @@ module ActiveRecord
         # transactions are materialized, and then yield the underlying
         # raw connection object.
         #
-        # If +allow_retry+ is true, a connection-related exception will
+        # If `allow_retry` is true, a connection-related exception will
         # cause an automatic reconnect and re-run of the block, up to
-        # the connection's configured +connection_retries+ setting
-        # and the configured +retry_deadline+ limit. (Note that when
-        # +allow_retry+ is true, it's possible to return without having marked
+        # the connection's configured `connection_retries` setting
+        # and the configured `retry_deadline` limit. (Note that when
+        # `allow_retry` is true, it's possible to return without having marked
         # the connection as verified. If the block is guaranteed to exercise the
-        # connection, consider calling `verified!` to avoid needless
+        # connection, consider calling \`verified!\` to avoid needless
         # verification queries in subsequent calls.)
         #
-        # If +materialize_transactions+ is false, the block will be run without
+        # If `materialize_transactions` is false, the block will be run without
         # ensuring virtual transactions have been materialized in the DB
         # server's state. The active transaction will also remain clean
         # (if it is not already dirty), meaning it's able to be restored
@@ -1113,7 +1193,7 @@ module ActiveRecord
         #
         # It's not the primary use case, so not something to optimize
         # for, but note that this method does need to be re-entrant:
-        # +materialize_transactions+ will re-enter if it has work to do,
+        # `materialize_transactions` will re-enter if it has work to do,
         # and the yield block can also do so under some circumstances.
         #
         # In the latter case, we really ought to guarantee the inner
@@ -1156,7 +1236,7 @@ module ActiveRecord
         end
 
         # Mark the connection as verified. Call this inside a
-        # `with_raw_connection` block only when the block is guaranteed to
+        # \`with_raw_connection\` block only when the block is guaranteed to
         # exercise the raw connection.
         def verified!
           @last_activity = Process.clock_gettime(Process::CLOCK_MONOTONIC)

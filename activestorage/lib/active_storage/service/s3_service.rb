@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 gem "aws-sdk-s3", "~> 1.48"
 
 require "aws-sdk-s3"
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
-  # = Active Storage \S3 \Service
+  # Active Storage \S3 \Service
+  # ===========================
   #
   # Wraps the Amazon Simple Storage Service (S3) as an Active Storage service.
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
@@ -26,7 +28,7 @@ module ActiveStorage
       @public = public
 
       @upload_options = upload
-      @upload_options[:acl] = "public-read" if public?
+      @upload_options[:acl] = "public-read" if public? && ActiveStorage.s3_public_uploads_via_acl
     end
 
     def upload(key, io, checksum: nil, filename: nil, content_type: nil, disposition: nil, custom_metadata: {}, **)

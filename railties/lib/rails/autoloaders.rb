@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Rails
   # This is a private class, Rails.autoloaders provides the interface available
   # via a singleton instance.

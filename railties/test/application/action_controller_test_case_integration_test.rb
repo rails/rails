@@ -56,7 +56,8 @@ class ActionControllerTestCaseIntegrationTest < ActionController::TestCase
 
     app_file "config/routes.rb", <<~RUBY
       Rails.application.routes.draw do
-        get "/customers/:action", controller: :customers
+        get "/customers/get_current_customer", to: "customers#get_current_customer"
+        get "/customers/set_current_customer", to: "customers#set_current_customer"
       end
     RUBY
 

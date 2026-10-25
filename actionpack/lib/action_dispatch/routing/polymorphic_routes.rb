@@ -2,6 +2,8 @@
 
 # :markup: markdown
 
+require "concurrent/map"
+
 module ActionDispatch
   module Routing
     # # Action Dispatch Routing PolymorphicRoutes
@@ -118,9 +120,13 @@ module ActionDispatch
           return mapping.call(self, [record_or_hash_or_array, options], false)
         end
 
-        opts   = options.dup
-        action = opts.delete :action
-        type   = opts.delete(:routing_type) || :url
+        if options.empty?
+          opts, action, type = options, nil, :url
+        else
+          opts   = options.dup
+          action = opts.delete :action
+          type   = opts.delete(:routing_type) || :url
+        end
 
         HelperMethodBuilder.polymorphic_method self,
                                                record_or_hash_or_array,
@@ -141,9 +147,13 @@ module ActionDispatch
           return mapping.call(self, [record_or_hash_or_array, options], true)
         end
 
-        opts   = options.dup
-        action = opts.delete :action
-        type   = :path
+        if options.empty?
+          opts, action = options, nil
+        else
+          opts   = options.dup
+          action = opts.delete :action
+        end
+        type = :path
 
         HelperMethodBuilder.polymorphic_method self,
                                                record_or_hash_or_array,
@@ -152,18 +162,10 @@ module ActionDispatch
                                                opts
       end
 
-      %w(edit new).each do |action|
-        module_eval <<-EOT, __FILE__, __LINE__ + 1
-          # frozen_string_literal: true
-          def #{action}_polymorphic_url(record_or_hash, options = {})
-            polymorphic_url_for_action("#{action}", record_or_hash, options)
-          end
-
-          def #{action}_polymorphic_path(record_or_hash, options = {})
-            polymorphic_path_for_action("#{action}", record_or_hash, options)
-          end
-        EOT
-      end
+      def edit_polymorphic_url(record_or_hash, options = {}) = polymorphic_url_for_action("edit", record_or_hash, options)
+      def edit_polymorphic_path(record_or_hash, options = {}) = polymorphic_path_for_action("edit", record_or_hash, options)
+      def new_polymorphic_url(record_or_hash, options = {}) = polymorphic_url_for_action("new", record_or_hash, options)
+      def new_polymorphic_path(record_or_hash, options = {}) = polymorphic_path_for_action("new", record_or_hash, options)
 
       private
         def polymorphic_url_for_action(action, record_or_hash, options)
@@ -233,7 +235,7 @@ module ActionDispatch
             when nil
               raise ArgumentError, "Nil location provided. Can't build URI."
             else
-              method, args = builder.handle_model record_or_hash_or_array
+              return builder.dispatch_model(recipient, record_or_hash_or_array, options.empty? ? nil : options)
             end
 
             if options.empty?
@@ -249,6 +251,7 @@ module ActionDispatch
             @key_strategy = key_strategy
             @prefix       = prefix
             @suffix       = suffix
+            @method_names_key = :"action_dispatch_polymorphic_#{prefix}#{suffix}_method_names"
           end
 
           def handle_string(record)
@@ -267,26 +270,26 @@ module ActionDispatch
             target.public_send get_method_for_class klass
           end
 
-          def handle_model(record)
-            args  = []
-
-            model = record.to_model
-            named_route = if model.persisted?
-              args << model
-              get_method_for_string model.model_name.singular_route_key
-            else
-              get_method_for_class model
-            end
-
-            [named_route, args]
-          end
-
           def handle_model_call(target, record)
             if mapping = polymorphic_mapping(target, record)
               mapping.call(target, [record], suffix == "path")
             else
-              method, args = handle_model(record)
-              target.public_send(method, *args)
+              dispatch_model(target, record)
+            end
+          end
+
+          # Calls the named route helper for a model straight away, rather
+          # than building an argument list and a pair for the caller to splat
+          # apart again.
+          def dispatch_model(target, record, options = nil)
+            model = record.to_model
+
+            if model.persisted?
+              method = get_method_for_string(model.model_name.singular_route_key)
+              options ? target.public_send(method, model, options) : target.public_send(method, model)
+            else
+              method = get_method_for_class(model)
+              options ? target.public_send(method, options) : target.public_send(method)
             end
           end
 
@@ -350,7 +353,14 @@ module ActionDispatch
             end
 
             def get_method_for_string(str)
-              "#{prefix}#{str}_#{suffix}"
+              names = method_names
+              names[str] || names.compute_if_absent(-str.to_s) { -"#{prefix}#{str}_#{suffix}" }
+            end
+
+            # Builders are frozen and shared across Ractors (see the make_shareable
+            # call below), so the per-builder memo lives in Ractor-local storage.
+            def method_names
+              ActiveSupport::Ractors.store_if_absent(@method_names_key) { Concurrent::Map.new }
             end
 
             [nil, "new", "edit"].each do |action|

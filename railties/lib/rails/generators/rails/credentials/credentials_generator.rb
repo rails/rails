@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails/generators/base"
 require "rails/generators/rails/master_key/master_key_generator"
 require "active_support/encrypted_configuration"

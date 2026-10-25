@@ -1,43 +1,51 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/testing/file_fixtures"
 require "active_record/secure_token"
 
 module ActiveStorage
-  # = Active Storage \FixtureSet
+  # Active Storage \FixtureSet
+  # ==========================
   #
   # Fixtures are a way of organizing data that you want to test against; in
   # short, sample data.
   #
   # To learn more about fixtures, read the ActiveRecord::FixtureSet documentation.
   #
-  # === YAML
+  # ### YAML
   #
   # Like other Active Record-backed models, ActiveStorage::Attachment and
   # ActiveStorage::Blob records inherit from ActiveRecord::Base instances and
   # therefore can be populated by fixtures.
   #
-  # Consider a hypothetical <tt>Article</tt> model class, its related
+  # Consider a hypothetical `Article` model class, its related
   # fixture data, as well as fixture data for related ActiveStorage::Attachment
   # and ActiveStorage::Blob records:
   #
-  #   # app/models/article.rb
-  #   class Article < ApplicationRecord
-  #     has_one_attached :thumbnail
-  #   end
+  # ```
+  # # app/models/article.rb
+  # class Article < ApplicationRecord
+  #   has_one_attached :thumbnail
+  # end
+  # ```
   #
   # <code></code>
   #
-  #   # fixtures/active_storage/blobs.yml
-  #   first_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob filename: "first.png" %>
+  # ```
+  # # fixtures/active_storage/blobs.yml
+  # first_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob filename: "first.png" %>
+  # ```
   #
   # <code></code>
   #
-  #   # fixtures/active_storage/attachments.yml
-  #   first_thumbnail_attachment:
-  #     name: thumbnail
-  #     record: first (Article)
-  #     blob: first_thumbnail_blob
+  # ```
+  # # fixtures/active_storage/attachments.yml
+  # first_thumbnail_attachment:
+  #   name: thumbnail
+  #   record: first (Article)
+  #   blob: first_thumbnail_blob
+  # ```
   #
   # When processed, Active Record will insert database records for each fixture
   # entry and will ensure the Active Storage relationship is intact.
@@ -50,18 +58,20 @@ module ActiveStorage
     # by ActiveSupport::Testing::FileFixtures.file_fixture, and upload
     # the file to the Service
     #
-    # ==== Examples
+    # #### Examples
     #
-    #   # tests/fixtures/active_storage/blobs.yml
-    #   second_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob(
-    #     filename: "second.svg",
-    #   ) %>
+    # ```
+    # # tests/fixtures/active_storage/blobs.yml
+    # second_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob(
+    #   filename: "second.svg",
+    # ) %>
     #
-    #   third_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob(
-    #     filename: "third.svg",
-    #     content_type: "image/svg+xml",
-    #     service_name: "public"
-    #   ) %>
+    # third_thumbnail_blob: <%= ActiveStorage::FixtureSet.blob(
+    #   filename: "third.svg",
+    #   content_type: "image/svg+xml",
+    #   service_name: "public"
+    # ) %>
+    # ```
     #
     def self.blob(filename:, **attributes)
       new.prepare Blob.new(filename: filename, key: generate_unique_secure_token), **attributes

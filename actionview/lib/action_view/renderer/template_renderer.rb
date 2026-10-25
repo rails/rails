@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   class TemplateRenderer < AbstractRenderer # :nodoc:
     def render(context, options, &block)
@@ -12,9 +13,12 @@ module ActionView
     end
 
     private
+      NO_LOCALS = [].freeze
+      private_constant :NO_LOCALS
+
       # Determine the template to be rendered using the given options.
       def determine_template(options, &block)
-        keys = options.has_key?(:locals) ? options[:locals].keys : []
+        keys = options.has_key?(:locals) ? options[:locals].keys : NO_LOCALS
 
         if options.key?(:body)
           Template::Text.new(options[:body])

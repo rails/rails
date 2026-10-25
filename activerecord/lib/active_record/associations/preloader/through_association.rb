@@ -1,9 +1,19 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
     class Preloader
       class ThroughAssociation < Association # :nodoc:
+        EMPTY_FIXED_VALUES = {}.freeze
+        private_constant :EMPTY_FIXED_VALUES
+
+        def self.association_route_for(*)
+        end
+
+        def associate_records_from_unscoped(*)
+        end
+
         def preloaded_records
           @preloaded_records ||= source_preloaders.flat_map(&:preloaded_records)
         end
@@ -20,7 +30,7 @@ module ActiveRecord
             if owners.first.association(through_reflection.name).loaded?
               if source_type = reflection.options[:source_type]
                 through_records = through_records.select do |record|
-                  record.read_attribute(reflection.foreign_type) == source_type
+                  record.read_attr(reflection.foreign_type) == source_type
                 end
               end
             end
@@ -62,6 +72,10 @@ module ActiveRecord
         end
 
         private
+          def destination_fixed_values
+            EMPTY_FIXED_VALUES
+          end
+
           def data_available?
             owners.all? { |owner| loaded?(owner) } ||
               through_preloaders.all?(&:run?) && source_preloaders.all?(&:run?)

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "fileutils"
 require "active_support/notifications"
 require "active_support/dependencies"

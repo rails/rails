@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "action_view/helpers/content_exfiltration_prevention_helper"
 require "action_view/helpers/url_helper"
 require "action_view/helpers/text_helper"
@@ -7,13 +8,14 @@ require "active_support/core_ext/string/output_safety"
 
 module ActionView
   module Helpers # :nodoc:
-    # = Action View Form Tag \Helpers
+    # Action View Form Tag \Helpers
+    # =============================
     #
     # Provides a number of methods for creating form tags that don't rely on an Active Record object assigned to the template like
     # FormHelper does. Instead, you provide the names and values manually.
     #
-    # NOTE: The HTML options <tt>disabled</tt>, <tt>readonly</tt>, and <tt>multiple</tt> can all be treated as booleans. So specifying
-    # <tt>disabled: true</tt> will give <tt>disabled="disabled"</tt>.
+    # NOTE: The HTML options `disabled`, `readonly`, and `multiple` can all be treated as booleans. So specifying
+    # `disabled: true` will give `disabled="disabled"`.
     module FormTagHelper
       extend ActiveSupport::Concern
 
@@ -27,52 +29,56 @@ module ActionView
       self.embed_authenticity_token_in_remote_forms = nil
       self.default_enforce_utf8 = true
 
-      # Starts a form tag that points the action to a URL configured with <tt>url_for_options</tt> just like
+      # Starts a form tag that points the action to a URL configured with `url_for_options` just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
       #
-      # ==== Options
-      # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
-      # * <tt>:method</tt> - The method to use when submitting the form, usually either "get" or "post".
-      #   If "patch", "put", "delete", or another verb is used, a hidden input with name <tt>_method</tt>
+      # #### Options
+      #
+      # * `:multipart` - If set to true, the enctype is set to "multipart/form-data".
+      # * `:method` - The method to use when submitting the form, usually either "get" or "post".
+      #   If "patch", "put", "delete", or another verb is used, a hidden input with name `_method`
       #   is added to simulate the verb over post.
-      # * <tt>:authenticity_token</tt> - Authenticity token to use in the form. Use only if you need to
+      # * `:authenticity_token` - Authenticity token to use in the form. Use only if you need to
       #   pass custom authenticity token string, or to not add authenticity_token field at all
-      #   (by passing <tt>false</tt>).  Remote forms may omit the embedded authenticity token
-      #   by setting <tt>config.action_view.embed_authenticity_token_in_remote_forms = false</tt>.
+      #   (by passing `false`).  Remote forms may omit the embedded authenticity token
+      #   by setting `config.action_view.embed_authenticity_token_in_remote_forms = false`.
       #   This is helpful when you're fragment-caching the form. Remote forms get the
-      #   authenticity token from the <tt>meta</tt> tag, so embedding is unnecessary unless you
+      #   authenticity token from the `meta` tag, so embedding is unnecessary unless you
       #   support browsers without JavaScript.
-      # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
+      # * `:remote` - If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behavior. By default this behavior is an ajax submit.
-      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name utf8 is not output.
+      # * `:enforce_utf8` - If set to false, a hidden input with name utf8 is not output.
       # * Any other key creates standard HTML attributes for the tag.
       #
-      # ==== Examples
-      #   form_tag('/posts')
-      #   # => <form action="/posts" method="post">
+      # #### Examples
       #
-      #   form_tag('/posts/1', method: :put)
-      #   # => <form action="/posts/1" method="post"> ... <input name="_method" type="hidden" value="put" /> ...
+      # ```
+      # form_tag('/posts')
+      # # => <form action="/posts" method="post">
       #
-      #   form_tag('/upload', multipart: true)
-      #   # => <form action="/upload" method="post" enctype="multipart/form-data">
+      # form_tag('/posts/1', method: :put)
+      # # => <form action="/posts/1" method="post"> ... <input name="_method" type="hidden" value="put" /> ...
       #
-      #   <%= form_tag('/posts') do -%>
-      #     <div><%= submit_tag 'Save' %></div>
-      #   <% end -%>
-      #   # => <form action="/posts" method="post"><div><input type="submit" name="commit" value="Save" /></div></form>
+      # form_tag('/upload', multipart: true)
+      # # => <form action="/upload" method="post" enctype="multipart/form-data">
       #
-      #   <%= form_tag('/posts', remote: true) %>
-      #   # => <form action="/posts" method="post" data-remote="true">
+      # <%= form_tag('/posts') do -%>
+      #   <div><%= submit_tag 'Save' %></div>
+      # <% end -%>
+      # # => <form action="/posts" method="post"><div><input type="submit" name="commit" value="Save" /></div></form>
       #
-      #   form_tag(false, method: :get)
-      #   # => <form method="get">
+      # <%= form_tag('/posts', remote: true) %>
+      # # => <form action="/posts" method="post" data-remote="true">
       #
-      #   form_tag('http://far.away.com/form', authenticity_token: false)
-      #   # form without authenticity token
+      # form_tag(false, method: :get)
+      # # => <form method="get">
       #
-      #   form_tag('http://far.away.com/form', authenticity_token: "cf50faa3fe97702ca1ae")
-      #   # form with custom authenticity token
+      # form_tag('http://far.away.com/form', authenticity_token: false)
+      # # form without authenticity token
+      #
+      # form_tag('http://far.away.com/form', authenticity_token: "cf50faa3fe97702ca1ae")
+      # # form with custom authenticity token
+      # ```
       #
       def form_tag(url_for_options = {}, options = {}, &block)
         html_options = html_options_for_form(url_for_options, options)
@@ -83,20 +89,22 @@ module ActionView
         end
       end
 
-      # Generate an HTML <tt>id</tt> attribute value for the given name and
+      # Generate an HTML `id` attribute value for the given name and
       # field combination
       #
-      # Return the value generated by the <tt>FormBuilder</tt> for the given
+      # Return the value generated by the `FormBuilder` for the given
       # attribute name.
       #
-      #   <%= label_tag :post, :title %>
-      #   <%= text_field :post, :title, aria: { describedby: field_id(:post, :title, :error) } %>
-      #   <%= tag.span("is blank", id: field_id(:post, :title, :error) %>
+      # ```
+      # <%= label_tag :post, :title %>
+      # <%= text_field :post, :title, aria: { describedby: field_id(:post, :title, :error) } %>
+      # <%= tag.span("is blank", id: field_id(:post, :title, :error) %>
+      # ```
       #
-      # In the example above, the <tt><input type="text"></tt> element built by
-      # the call to <tt>text_field</tt> declares an
-      # <tt>aria-describedby</tt> attribute referencing the <tt><span></tt>
-      # element, sharing a common <tt>id</tt> root (<tt>post_title</tt>, in this
+      # In the example above, the `<input type="text">` element built by
+      # the call to `text_field` declares an
+      # `aria-describedby` attribute referencing the `<span>`
+      # element, sharing a common `id` root (`post_title`, in this
       # case).
       def field_id(object_name, method_name, *suffixes, index: nil, namespace: nil)
         if object_name.respond_to?(:model_name)
@@ -116,17 +124,19 @@ module ActionView
         ].tap(&:compact!).join("_")
       end
 
-      # Generate an HTML <tt>name</tt> attribute value for the given name and
+      # Generate an HTML `name` attribute value for the given name and
       # field combination
       #
-      # Return the value generated by the <tt>FormBuilder</tt> for the given
+      # Return the value generated by the `FormBuilder` for the given
       # attribute name.
       #
-      #   <%= text_field :post, :title, name: field_name(:post, :title, :subtitle) %>
-      #   <%# => <input type="text" name="post[title][subtitle]"> %>
+      # ```
+      # <%= text_field :post, :title, name: field_name(:post, :title, :subtitle) %>
+      # <%# => <input type="text" name="post[title][subtitle]"> %>
       #
-      #   <%= text_field :post, :tag, name: field_name(:post, :tag, multiple: true) %>
-      #   <%# => <input type="text" name="post[tag][]"> %>
+      # <%= text_field :post, :tag, name: field_name(:post, :tag, multiple: true) %>
+      # <%# => <input type="text" name="post[tag][]"> %>
+      # ```
       #
       def field_name(object_name, method_name, *method_names, multiple: false, index: nil)
         names = method_names.map! { |name| "[#{name}]" }.join
@@ -142,61 +152,65 @@ module ActionView
         end
       end
 
-      # Creates a dropdown selection box, or if the <tt>:multiple</tt> option is set to true, a multiple
+      # Creates a dropdown selection box, or if the `:multiple` option is set to true, a multiple
       # choice selection box.
       #
       # Helpers::FormOptions can be used to create common select boxes such as countries, time zones, or
-      # associated records. <tt>option_tags</tt> is a string containing the option tags for the select box.
+      # associated records. `option_tags` is a string containing the option tags for the select box.
       #
-      # ==== Options
-      # * <tt>:multiple</tt> - If set to true, the selection will allow multiple choices.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:include_blank</tt> - If set to true, an empty option will be created. If set to a string, the string will be used as the option's content and the value will be empty.
-      # * <tt>:prompt</tt> - Create a prompt option with blank value and the text asking user to select something.
+      # #### Options
+      #
+      # * `:multiple` - If set to true, the selection will allow multiple choices.
+      # * `:disabled` - If set to true, the user will not be able to use this input.
+      # * `:include_blank` - If set to true, an empty option will be created. If set to a string, the string will be used as the option's content and the value will be empty.
+      # * `:prompt` - Create a prompt option with blank value and the text asking user to select something.
       # * Any other key creates standard HTML attributes for the tag.
       #
-      # ==== Examples
-      #   select_tag "people", options_from_collection_for_select(@people, "id", "name")
-      #   # <select id="people" name="people"><option value="1">David</option></select>
+      # #### Examples
       #
-      #   select_tag "people", options_from_collection_for_select(@people, "id", "name", "1")
-      #   # <select id="people" name="people"><option value="1" selected="selected">David</option></select>
+      # ```
+      # select_tag "people", options_from_collection_for_select(@people, "id", "name")
+      # # <select id="people" name="people"><option value="1">David</option></select>
       #
-      #   select_tag "people", raw("<option>David</option>")
-      #   # => <select id="people" name="people"><option>David</option></select>
+      # select_tag "people", options_from_collection_for_select(@people, "id", "name", "1")
+      # # <select id="people" name="people"><option value="1" selected="selected">David</option></select>
       #
-      #   select_tag "count", raw("<option>1</option><option>2</option><option>3</option><option>4</option>")
-      #   # => <select id="count" name="count"><option>1</option><option>2</option>
-      #   #    <option>3</option><option>4</option></select>
+      # select_tag "people", raw("<option>David</option>")
+      # # => <select id="people" name="people"><option>David</option></select>
       #
-      #   select_tag "colors", raw("<option>Red</option><option>Green</option><option>Blue</option>"), multiple: true
-      #   # => <select id="colors" multiple="multiple" name="colors[]"><option>Red</option>
-      #   #    <option>Green</option><option>Blue</option></select>
+      # select_tag "count", raw("<option>1</option><option>2</option><option>3</option><option>4</option>")
+      # # => <select id="count" name="count"><option>1</option><option>2</option>
+      # #    <option>3</option><option>4</option></select>
       #
-      #   select_tag "locations", raw("<option>Home</option><option selected='selected'>Work</option><option>Out</option>")
-      #   # => <select id="locations" name="locations"><option>Home</option><option selected='selected'>Work</option>
-      #   #    <option>Out</option></select>
+      # select_tag "colors", raw("<option>Red</option><option>Green</option><option>Blue</option>"), multiple: true
+      # # => <select id="colors" multiple="multiple" name="colors[]"><option>Red</option>
+      # #    <option>Green</option><option>Blue</option></select>
       #
-      #   select_tag "access", raw("<option>Read</option><option>Write</option>"), multiple: true, class: 'form_input', id: 'unique_id'
-      #   # => <select class="form_input" id="unique_id" multiple="multiple" name="access[]"><option>Read</option>
-      #   #    <option>Write</option></select>
+      # select_tag "locations", raw("<option>Home</option><option selected='selected'>Work</option><option>Out</option>")
+      # # => <select id="locations" name="locations"><option>Home</option><option selected='selected'>Work</option>
+      # #    <option>Out</option></select>
       #
-      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: true
-      #   # => <select id="people" name="people"><option value="" label=" "></option><option value="1">David</option></select>
+      # select_tag "access", raw("<option>Read</option><option>Write</option>"), multiple: true, class: 'form_input', id: 'unique_id'
+      # # => <select class="form_input" id="unique_id" multiple="multiple" name="access[]"><option>Read</option>
+      # #    <option>Write</option></select>
       #
-      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: "All"
-      #   # => <select id="people" name="people"><option value="">All</option><option value="1">David</option></select>
+      # select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: true
+      # # => <select id="people" name="people"><option value="" label=" "></option><option value="1">David</option></select>
       #
-      #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), prompt: "Select something"
-      #   # => <select id="people" name="people"><option value="">Select something</option><option value="1">David</option></select>
+      # select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: "All"
+      # # => <select id="people" name="people"><option value="">All</option><option value="1">David</option></select>
       #
-      #   select_tag "destination", raw("<option>NYC</option><option>Paris</option><option>Rome</option>"), disabled: true
-      #   # => <select disabled="disabled" id="destination" name="destination"><option>NYC</option>
-      #   #    <option>Paris</option><option>Rome</option></select>
+      # select_tag "people", options_from_collection_for_select(@people, "id", "name"), prompt: "Select something"
+      # # => <select id="people" name="people"><option value="">Select something</option><option value="1">David</option></select>
       #
-      #   select_tag "credit_card", options_for_select([ "VISA", "MasterCard" ], "MasterCard")
-      #   # => <select id="credit_card" name="credit_card"><option>VISA</option>
-      #   #    <option selected="selected">MasterCard</option></select>
+      # select_tag "destination", raw("<option>NYC</option><option>Paris</option><option>Rome</option>"), disabled: true
+      # # => <select disabled="disabled" id="destination" name="destination"><option>NYC</option>
+      # #    <option>Paris</option><option>Rome</option></select>
+      #
+      # select_tag "credit_card", options_for_select([ "VISA", "MasterCard" ], "MasterCard")
+      # # => <select id="credit_card" name="credit_card"><option>VISA</option>
+      # #    <option selected="selected">MasterCard</option></select>
+      # ```
       def select_tag(name, option_tags = nil, options = {})
         option_tags ||= ""
         html_name = (options[:multiple] == true && !name.end_with?("[]")) ? "#{name}[]" : name
@@ -226,57 +240,65 @@ module ActionView
       # Creates a standard text field; use these text fields to input smaller chunks of text like a username
       # or a search query.
       #
-      # ==== Options
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:size</tt> - The number of visible characters that will fit in the input.
-      # * <tt>:maxlength</tt> - The maximum number of characters that the browser will allow the user to enter.
-      # * <tt>:placeholder</tt> - The text contained in the field by default which is removed when the field receives focus.
+      # #### Options
+      #
+      # * `:disabled` - If set to true, the user will not be able to use this input.
+      # * `:size` - The number of visible characters that will fit in the input.
+      # * `:maxlength` - The maximum number of characters that the browser will allow the user to enter.
+      # * `:placeholder` - The text contained in the field by default which is removed when the field receives focus.
       #   If set to true, use the translation found in the current I18n locale
       #   (through helpers.placeholder.<modelname>.<attribute>).
       # * Any other key creates standard HTML attributes for the tag.
       #
-      # ==== Examples
-      #   text_field_tag 'name'
-      #   # => <input id="name" name="name" type="text" />
+      # #### Examples
       #
-      #   text_field_tag 'query', 'Enter your search query here'
-      #   # => <input id="query" name="query" type="text" value="Enter your search query here" />
+      # ```
+      # text_field_tag 'name'
+      # # => <input id="name" name="name" type="text" />
       #
-      #   text_field_tag 'search', nil, placeholder: 'Enter search term...'
-      #   # => <input id="search" name="search" placeholder="Enter search term..." type="text" />
+      # text_field_tag 'query', 'Enter your search query here'
+      # # => <input id="query" name="query" type="text" value="Enter your search query here" />
       #
-      #   text_field_tag 'request', nil, class: 'special_input'
-      #   # => <input class="special_input" id="request" name="request" type="text" />
+      # text_field_tag 'search', nil, placeholder: 'Enter search term...'
+      # # => <input id="search" name="search" placeholder="Enter search term..." type="text" />
       #
-      #   text_field_tag 'address', '', size: 75
-      #   # => <input id="address" name="address" size="75" type="text" value="" />
+      # text_field_tag 'request', nil, class: 'special_input'
+      # # => <input class="special_input" id="request" name="request" type="text" />
       #
-      #   text_field_tag 'zip', nil, maxlength: 5
-      #   # => <input id="zip" maxlength="5" name="zip" type="text" />
+      # text_field_tag 'address', '', size: 75
+      # # => <input id="address" name="address" size="75" type="text" value="" />
       #
-      #   text_field_tag 'payment_amount', '$0.00', disabled: true
-      #   # => <input disabled="disabled" id="payment_amount" name="payment_amount" type="text" value="$0.00" />
+      # text_field_tag 'zip', nil, maxlength: 5
+      # # => <input id="zip" maxlength="5" name="zip" type="text" />
       #
-      #   text_field_tag 'ip', '0.0.0.0', maxlength: 15, size: 20, class: "ip-input"
-      #   # => <input class="ip-input" id="ip" maxlength="15" name="ip" size="20" type="text" value="0.0.0.0" />
+      # text_field_tag 'payment_amount', '$0.00', disabled: true
+      # # => <input disabled="disabled" id="payment_amount" name="payment_amount" type="text" value="$0.00" />
+      #
+      # text_field_tag 'ip', '0.0.0.0', maxlength: 15, size: 20, class: "ip-input"
+      # # => <input class="ip-input" id="ip" maxlength="15" name="ip" size="20" type="text" value="0.0.0.0" />
+      # ```
       def text_field_tag(name, value = nil, options = {})
         tag :input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
       end
 
       # Creates a label element. Accepts a block.
       #
-      # ==== Options
+      # #### Options
+      #
       # * Creates standard HTML attributes for the tag.
       #
-      # ==== Examples
-      #   label_tag 'name'
-      #   # => <label for="name">Name</label>
+      # #### Examples
       #
-      #   label_tag 'name', 'Your name'
-      #   # => <label for="name">Your name</label>
+      # ```
+      # label_tag 'name'
+      # # => <label for="name">Name</label>
       #
-      #   label_tag 'name', nil, class: 'small_label'
-      #   # => <label for="name" class="small_label">Name</label>
+      # label_tag 'name', 'Your name'
+      # # => <label for="name">Your name</label>
+      #
+      # label_tag 'name', nil, class: 'small_label'
+      # # => <label for="name" class="small_label">Name</label>
+      # ```
       def label_tag(name = nil, content_or_options = nil, options = nil, &block)
         if block_given? && content_or_options.is_a?(Hash)
           options = content_or_options = content_or_options.stringify_keys
@@ -291,19 +313,23 @@ module ActionView
       # Creates a hidden form input field used to transmit data that would be lost due to HTTP's statelessness or
       # data that should be hidden from the user.
       #
-      # ==== Options
+      # #### Options
+      #
       # * Creates standard HTML attributes for the tag.
       #
-      # ==== Examples
-      #   hidden_field_tag 'tags_list'
-      #   # => <input type="hidden" name="tags_list" id="tags_list" autocomplete="off" />
+      # #### Examples
       #
-      #   hidden_field_tag 'token', 'VUBJKB23UIVI1UU1VOBVI@'
-      #   # => <input type="hidden" name="token" id="token" value="VUBJKB23UIVI1UU1VOBVI@" autocomplete="off" />
+      # ```
+      # hidden_field_tag 'tags_list'
+      # # => <input type="hidden" name="tags_list" id="tags_list" autocomplete="off" />
       #
-      #   hidden_field_tag 'collected_input', '', onchange: "alert('Input collected!')"
-      #   # => <input type="hidden" name="collected_input" id="collected_input"
-      #        value="" onchange="alert(&#39;Input collected!&#39;)" autocomplete="off" />
+      # hidden_field_tag 'token', 'VUBJKB23UIVI1UU1VOBVI@'
+      # # => <input type="hidden" name="token" id="token" value="VUBJKB23UIVI1UU1VOBVI@" autocomplete="off" />
+      #
+      # hidden_field_tag 'collected_input', '', onchange: "alert('Input collected!')"
+      # # => <input type="hidden" name="collected_input" id="collected_input"
+      #      value="" onchange="alert(&#39;Input collected!&#39;)" autocomplete="off" />
+      # ```
       def hidden_field_tag(name, value = nil, options = {})
         html_options = options.merge(type: :hidden)
         unless ActionView::Base.remove_hidden_field_autocomplete
@@ -315,41 +341,47 @@ module ActionView
       # Creates a file upload field. If you are using file uploads then you will also need
       # to set the multipart option for the form tag:
       #
-      #   <%= form_tag '/upload', multipart: true do %>
-      #     <label for="file">File to Upload</label> <%= file_field_tag "file" %>
-      #     <%= submit_tag %>
-      #   <% end %>
+      # ```
+      # <%= form_tag '/upload', multipart: true do %>
+      #   <label for="file">File to Upload</label> <%= file_field_tag "file" %>
+      #   <%= submit_tag %>
+      # <% end %>
+      # ```
       #
       # The specified URL will then be passed a File object containing the selected file, or if the field
       # was left blank, a StringIO object.
       #
-      # ==== Options
+      # #### Options
+      #
       # * Creates standard HTML attributes for the tag.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:multiple</tt> - If set to true, *in most updated browsers* the user will be allowed to select multiple files.
-      # * <tt>:accept</tt> - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
+      # * `:disabled` - If set to true, the user will not be able to use this input.
+      # * `:multiple` - If set to true, \*in most updated browsers\* the user will be allowed to select multiple files.
+      # * `:accept` - If set to one or multiple mime-types, the user will be suggested a filter when choosing a file. You still need to set up model validations.
       #
-      # ==== Examples
-      #   file_field_tag 'attachment'
-      #   # => <input id="attachment" name="attachment" type="file" />
+      # #### Examples
       #
-      #   file_field_tag 'avatar', class: 'profile_input'
-      #   # => <input class="profile_input" id="avatar" name="avatar" type="file" />
+      # ```
+      # file_field_tag 'attachment'
+      # # => <input id="attachment" name="attachment" type="file" />
       #
-      #   file_field_tag 'picture', disabled: true
-      #   # => <input disabled="disabled" id="picture" name="picture" type="file" />
+      # file_field_tag 'avatar', class: 'profile_input'
+      # # => <input class="profile_input" id="avatar" name="avatar" type="file" />
       #
-      #   file_field_tag 'resume', value: '~/resume.doc'
-      #   # => <input id="resume" name="resume" type="file" value="~/resume.doc" />
+      # file_field_tag 'picture', disabled: true
+      # # => <input disabled="disabled" id="picture" name="picture" type="file" />
       #
-      #   file_field_tag 'user_pic', accept: 'image/png,image/gif,image/jpeg'
-      #   # => <input accept="image/png,image/gif,image/jpeg" id="user_pic" name="user_pic" type="file" />
+      # file_field_tag 'resume', value: '~/resume.doc'
+      # # => <input id="resume" name="resume" type="file" value="~/resume.doc" />
       #
-      #   file_field_tag 'user_pic', accept: ['image/png', 'image/gif']
-      #   # => <input accept="image/png,image/gif" id="user_pic" name="user_pic" type="file" />
+      # file_field_tag 'user_pic', accept: 'image/png,image/gif,image/jpeg'
+      # # => <input accept="image/png,image/gif,image/jpeg" id="user_pic" name="user_pic" type="file" />
       #
-      #   file_field_tag 'file', accept: 'text/html', class: 'upload', value: 'index.html'
-      #   # => <input accept="text/html" class="upload" id="file" name="file" type="file" value="index.html" />
+      # file_field_tag 'user_pic', accept: ['image/png', 'image/gif']
+      # # => <input accept="image/png,image/gif" id="user_pic" name="user_pic" type="file" />
+      #
+      # file_field_tag 'file', accept: 'text/html', class: 'upload', value: 'index.html'
+      # # => <input accept="text/html" class="upload" id="file" name="file" type="file" value="index.html" />
+      # ```
       def file_field_tag(name, options = {})
         if options[:accept].is_a?(Array)
           options = options.merge(accept: options[:accept].join(","))
@@ -359,66 +391,74 @@ module ActionView
 
       # Creates a password field, a masked text field that will hide the users input behind a mask character.
       #
-      # ==== Options
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:size</tt> - The number of visible characters that will fit in the input.
-      # * <tt>:maxlength</tt> - The maximum number of characters that the browser will allow the user to enter.
+      # #### Options
+      #
+      # * `:disabled` - If set to true, the user will not be able to use this input.
+      # * `:size` - The number of visible characters that will fit in the input.
+      # * `:maxlength` - The maximum number of characters that the browser will allow the user to enter.
       # * Any other key creates standard HTML attributes for the tag.
       #
-      # ==== Examples
-      #   password_field_tag 'pass'
-      #   # => <input id="pass" name="pass" type="password" />
+      # #### Examples
       #
-      #   password_field_tag 'secret', 'Your secret here'
-      #   # => <input id="secret" name="secret" type="password" value="Your secret here" />
+      # ```
+      # password_field_tag 'pass'
+      # # => <input id="pass" name="pass" type="password" />
       #
-      #   password_field_tag 'masked', nil, class: 'masked_input_field'
-      #   # => <input class="masked_input_field" id="masked" name="masked" type="password" />
+      # password_field_tag 'secret', 'Your secret here'
+      # # => <input id="secret" name="secret" type="password" value="Your secret here" />
       #
-      #   password_field_tag 'token', '', size: 15
-      #   # => <input id="token" name="token" size="15" type="password" value="" />
+      # password_field_tag 'masked', nil, class: 'masked_input_field'
+      # # => <input class="masked_input_field" id="masked" name="masked" type="password" />
       #
-      #   password_field_tag 'key', nil, maxlength: 16
-      #   # => <input id="key" maxlength="16" name="key" type="password" />
+      # password_field_tag 'token', '', size: 15
+      # # => <input id="token" name="token" size="15" type="password" value="" />
       #
-      #   password_field_tag 'confirm_pass', nil, disabled: true
-      #   # => <input disabled="disabled" id="confirm_pass" name="confirm_pass" type="password" />
+      # password_field_tag 'key', nil, maxlength: 16
+      # # => <input id="key" maxlength="16" name="key" type="password" />
       #
-      #   password_field_tag 'pin', '1234', maxlength: 4, size: 6, class: "pin_input"
-      #   # => <input class="pin_input" id="pin" maxlength="4" name="pin" size="6" type="password" value="1234" />
+      # password_field_tag 'confirm_pass', nil, disabled: true
+      # # => <input disabled="disabled" id="confirm_pass" name="confirm_pass" type="password" />
+      #
+      # password_field_tag 'pin', '1234', maxlength: 4, size: 6, class: "pin_input"
+      # # => <input class="pin_input" id="pin" maxlength="4" name="pin" size="6" type="password" value="1234" />
+      # ```
       def password_field_tag(name = "password", value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :password))
       end
 
       # Creates a text input area; use a textarea for longer text inputs such as blog posts or descriptions.
       #
-      # ==== Options
-      # * <tt>:size</tt> - A string specifying the dimensions (columns by rows) of the textarea (e.g., "25x10").
-      # * <tt>:rows</tt> - Specify the number of rows in the textarea
-      # * <tt>:cols</tt> - Specify the number of columns in the textarea
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
-      # * <tt>:escape</tt> - By default, the contents of the text input are HTML escaped.
+      # #### Options
+      #
+      # * `:size` - A string specifying the dimensions (columns by rows) of the textarea (e.g., "25x10").
+      # * `:rows` - Specify the number of rows in the textarea
+      # * `:cols` - Specify the number of columns in the textarea
+      # * `:disabled` - If set to true, the user will not be able to use this input.
+      # * `:escape` - By default, the contents of the text input are HTML escaped.
       #   If you need unescaped contents, set this to false.
       # * Any other key creates standard HTML attributes for the tag.
       #
-      # ==== Examples
-      #   textarea_tag 'post'
-      #   # => <textarea id="post" name="post"></textarea>
+      # #### Examples
       #
-      #   textarea_tag 'bio', @user.bio
-      #   # => <textarea id="bio" name="bio">This is my biography.</textarea>
+      # ```
+      # textarea_tag 'post'
+      # # => <textarea id="post" name="post"></textarea>
       #
-      #   textarea_tag 'body', nil, rows: 10, cols: 25
-      #   # => <textarea cols="25" id="body" name="body" rows="10"></textarea>
+      # textarea_tag 'bio', @user.bio
+      # # => <textarea id="bio" name="bio">This is my biography.</textarea>
       #
-      #   textarea_tag 'body', nil, size: "25x10"
-      #   # => <textarea name="body" id="body" cols="25" rows="10"></textarea>
+      # textarea_tag 'body', nil, rows: 10, cols: 25
+      # # => <textarea cols="25" id="body" name="body" rows="10"></textarea>
       #
-      #   textarea_tag 'description', "Description goes here.", disabled: true
-      #   # => <textarea disabled="disabled" id="description" name="description">Description goes here.</textarea>
+      # textarea_tag 'body', nil, size: "25x10"
+      # # => <textarea name="body" id="body" cols="25" rows="10"></textarea>
       #
-      #   textarea_tag 'comment', nil, class: 'comment_input'
-      #   # => <textarea class="comment_input" id="comment" name="comment"></textarea>
+      # textarea_tag 'description', "Description goes here.", disabled: true
+      # # => <textarea disabled="disabled" id="description" name="description">Description goes here.</textarea>
+      #
+      # textarea_tag 'comment', nil, class: 'comment_input'
+      # # => <textarea class="comment_input" id="comment" name="comment"></textarea>
+      # ```
       def textarea_tag(name, content = nil, options = {})
         options = options.stringify_keys
 
@@ -441,27 +481,31 @@ module ActionView
       #
       # Creates a check box form input tag.
       #
-      # ==== Options
-      # * <tt>:value</tt> - The value of the input. Defaults to <tt>"1"</tt>.
-      # * <tt>:checked</tt> - If set to true, the checkbox will be checked by default.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # #### Options
+      #
+      # * `:value` - The value of the input. Defaults to `"1"`.
+      # * `:checked` - If set to true, the checkbox will be checked by default.
+      # * `:disabled` - If set to true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
-      # ==== Examples
-      #   checkbox_tag 'accept'
-      #   # => <input id="accept" name="accept" type="checkbox" value="1" />
+      # #### Examples
       #
-      #   checkbox_tag 'rock', 'rock music'
-      #   # => <input id="rock" name="rock" type="checkbox" value="rock music" />
+      # ```
+      # checkbox_tag 'accept'
+      # # => <input id="accept" name="accept" type="checkbox" value="1" />
       #
-      #   checkbox_tag 'receive_email', 'yes', true
-      #   # => <input checked="checked" id="receive_email" name="receive_email" type="checkbox" value="yes" />
+      # checkbox_tag 'rock', 'rock music'
+      # # => <input id="rock" name="rock" type="checkbox" value="rock music" />
       #
-      #   checkbox_tag 'tos', 'yes', false, class: 'accept_tos'
-      #   # => <input class="accept_tos" id="tos" name="tos" type="checkbox" value="yes" />
+      # checkbox_tag 'receive_email', 'yes', true
+      # # => <input checked="checked" id="receive_email" name="receive_email" type="checkbox" value="yes" />
       #
-      #   checkbox_tag 'eula', 'accepted', false, disabled: true
-      #   # => <input disabled="disabled" id="eula" name="eula" type="checkbox" value="accepted" />
+      # checkbox_tag 'tos', 'yes', false, class: 'accept_tos'
+      # # => <input class="accept_tos" id="tos" name="tos" type="checkbox" value="yes" />
+      #
+      # checkbox_tag 'eula', 'accepted', false, disabled: true
+      # # => <input disabled="disabled" id="eula" name="eula" type="checkbox" value="accepted" />
+      # ```
       def checkbox_tag(name, *args)
         if args.length >= 4
           raise ArgumentError, "wrong number of arguments (given #{args.length + 1}, expected 1..4)"
@@ -482,23 +526,27 @@ module ActionView
       # Creates a radio button; use groups of radio buttons named the same to allow users to
       # select from a group of options.
       #
-      # ==== Options
-      # * <tt>:checked</tt> - If set to true, the radio button will be selected by default.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # #### Options
+      #
+      # * `:checked` - If set to true, the radio button will be selected by default.
+      # * `:disabled` - If set to true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
-      # ==== Examples
-      #   radio_button_tag 'favorite_color', 'maroon'
-      #   # => <input id="favorite_color_maroon" name="favorite_color" type="radio" value="maroon" />
+      # #### Examples
       #
-      #   radio_button_tag 'receive_updates', 'no', true
-      #   # => <input checked="checked" id="receive_updates_no" name="receive_updates" type="radio" value="no" />
+      # ```
+      # radio_button_tag 'favorite_color', 'maroon'
+      # # => <input id="favorite_color_maroon" name="favorite_color" type="radio" value="maroon" />
       #
-      #   radio_button_tag 'time_slot', "3:00 p.m.", false, disabled: true
-      #   # => <input disabled="disabled" id="time_slot_3:00_p.m." name="time_slot" type="radio" value="3:00 p.m." />
+      # radio_button_tag 'receive_updates', 'no', true
+      # # => <input checked="checked" id="receive_updates_no" name="receive_updates" type="radio" value="no" />
       #
-      #   radio_button_tag 'color', "green", true, class: "color_input"
-      #   # => <input checked="checked" class="color_input" id="color_green" name="color" type="radio" value="green" />
+      # radio_button_tag 'time_slot', "3:00 p.m.", false, disabled: true
+      # # => <input disabled="disabled" id="time_slot_3:00_p.m." name="time_slot" type="radio" value="3:00 p.m." />
+      #
+      # radio_button_tag 'color', "green", true, class: "color_input"
+      # # => <input checked="checked" class="color_input" id="color_green" name="color" type="radio" value="green" />
+      # ```
       def radio_button_tag(name, value, *args)
         if args.length >= 3
           raise ArgumentError, "wrong number of arguments (given #{args.length + 2}, expected 2..4)"
@@ -510,28 +558,32 @@ module ActionView
         tag :input, html_options
       end
 
-      # Creates a submit button with the text <tt>value</tt> as the caption.
+      # Creates a submit button with the text `value` as the caption.
       #
-      # ==== Options
-      # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>:disabled</tt> - If true, the user will not be able to use this input.
+      # #### Options
+      #
+      # * `:data` - This option can be used to add custom data attributes.
+      # * `:disabled` - If true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
-      # ==== Examples
-      #   submit_tag
-      #   # => <input name="commit" data-disable-with="Save changes" type="submit" value="Save changes" />
+      # #### Examples
       #
-      #   submit_tag "Edit this article"
-      #   # => <input name="commit" data-disable-with="Edit this article" type="submit" value="Edit this article" />
+      # ```
+      # submit_tag
+      # # => <input name="commit" data-disable-with="Save changes" type="submit" value="Save changes" />
       #
-      #   submit_tag "Save edits", disabled: true
-      #   # => <input disabled="disabled" name="commit" data-disable-with="Save edits" type="submit" value="Save edits" />
+      # submit_tag "Edit this article"
+      # # => <input name="commit" data-disable-with="Edit this article" type="submit" value="Edit this article" />
       #
-      #   submit_tag nil, class: "form_submit"
-      #   # => <input class="form_submit" name="commit" type="submit" />
+      # submit_tag "Save edits", disabled: true
+      # # => <input disabled="disabled" name="commit" data-disable-with="Save edits" type="submit" value="Save edits" />
       #
-      #   submit_tag "Edit", class: "edit_button"
-      #   # => <input class="edit_button" data-disable-with="Edit" name="commit" type="submit" value="Edit" />
+      # submit_tag nil, class: "form_submit"
+      # # => <input class="form_submit" name="commit" type="submit" />
+      #
+      # submit_tag "Edit", class: "edit_button"
+      # # => <input class="edit_button" data-disable-with="Edit" name="commit" type="submit" value="Edit" />
+      # ```
       #
       def submit_tag(value = "Save changes", options = {})
         options = options.deep_stringify_keys
@@ -540,39 +592,43 @@ module ActionView
         tag :input, tag_options
       end
 
-      # Creates a button element that defines a <tt>submit</tt> button,
-      # <tt>reset</tt> button or a generic button which can be used in
+      # Creates a button element that defines a `submit` button,
+      # `reset` button or a generic button which can be used in
       # JavaScript, for example. You can use the button tag as a regular
       # submit tag but it isn't supported in legacy browsers. However,
       # the button tag does allow for richer labels such as images and emphasis,
       # so this helper will also accept a block. By default, it will create
-      # a button tag with type <tt>submit</tt>, if type is not given.
+      # a button tag with type `submit`, if type is not given.
       #
-      # ==== Options
-      # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>:disabled</tt> - If true, the user will not be able to
+      # #### Options
+      #
+      # * `:data` - This option can be used to add custom data attributes.
+      # * `:disabled` - If true, the user will not be able to
       #   use this input.
       # * Any other key creates standard HTML options for the tag.
       #
-      # ==== Examples
-      #   button_tag
-      #   # => <button name="button" type="submit">Button</button>
+      # #### Examples
       #
-      #   button_tag 'Reset', type: 'reset'
-      #   # => <button name="button" type="reset">Reset</button>
+      # ```
+      # button_tag
+      # # => <button name="button" type="submit">Button</button>
       #
-      #   button_tag 'Button', type: 'button'
-      #   # => <button name="button" type="button">Button</button>
+      # button_tag 'Reset', type: 'reset'
+      # # => <button name="button" type="reset">Reset</button>
       #
-      #   button_tag 'Reset', type: 'reset', disabled: true
-      #   # => <button name="button" type="reset" disabled="disabled">Reset</button>
+      # button_tag 'Button', type: 'button'
+      # # => <button name="button" type="button">Button</button>
       #
-      #   button_tag(type: 'button') do
-      #     content_tag(:strong, 'Ask me!')
-      #   end
-      #   # => <button name="button" type="button">
-      #   #     <strong>Ask me!</strong>
-      #   #    </button>
+      # button_tag 'Reset', type: 'reset', disabled: true
+      # # => <button name="button" type="reset" disabled="disabled">Reset</button>
+      #
+      # button_tag(type: 'button') do
+      #   content_tag(:strong, 'Ask me!')
+      # end
+      # # => <button name="button" type="button">
+      # #     <strong>Ask me!</strong>
+      # #    </button>
+      # ```
       #
       def button_tag(content_or_options = nil, options = nil, &block)
         if content_or_options.is_a? Hash
@@ -592,34 +648,38 @@ module ActionView
 
       # Displays an image which when clicked will submit the form.
       #
-      # <tt>source</tt> is passed to AssetTagHelper#path_to_image
+      # `source` is passed to AssetTagHelper#path_to_image
       #
-      # ==== Options
-      # * <tt>:data</tt> - This option can be used to add custom data attributes.
-      # * <tt>:disabled</tt> - If set to true, the user will not be able to use this input.
+      # #### Options
+      #
+      # * `:data` - This option can be used to add custom data attributes.
+      # * `:disabled` - If set to true, the user will not be able to use this input.
       # * Any other key creates standard HTML options for the tag.
       #
-      # ==== Data attributes
+      # #### Data attributes
       #
-      # * <tt>confirm: 'question?'</tt> - This will add a JavaScript confirm
+      # * `confirm: 'question?'` - This will add a JavaScript confirm
       #   prompt with the question specified. If the user accepts, the form is
       #   processed normally, otherwise no action is taken.
       #
-      # ==== Examples
-      #   image_submit_tag("login.png")
-      #   # => <input src="/assets/login.png" type="image" />
+      # #### Examples
       #
-      #   image_submit_tag("purchase.png", disabled: true)
-      #   # => <input disabled="disabled" src="/assets/purchase.png" type="image" />
+      # ```
+      # image_submit_tag("login.png")
+      # # => <input src="/assets/login.png" type="image" />
       #
-      #   image_submit_tag("search.png", class: 'search_button', alt: 'Find')
-      #   # => <input class="search_button" src="/assets/search.png" type="image" />
+      # image_submit_tag("purchase.png", disabled: true)
+      # # => <input disabled="disabled" src="/assets/purchase.png" type="image" />
       #
-      #   image_submit_tag("agree.png", disabled: true, class: "agree_disagree_button")
-      #   # => <input class="agree_disagree_button" disabled="disabled" src="/assets/agree.png" type="image" />
+      # image_submit_tag("search.png", class: 'search_button', alt: 'Find')
+      # # => <input class="search_button" src="/assets/search.png" type="image" />
       #
-      #   image_submit_tag("save.png", data: { confirm: "Are you sure?" })
-      #   # => <input src="/assets/save.png" data-confirm="Are you sure?" type="image" />
+      # image_submit_tag("agree.png", disabled: true, class: "agree_disagree_button")
+      # # => <input class="agree_disagree_button" disabled="disabled" src="/assets/agree.png" type="image" />
+      #
+      # image_submit_tag("save.png", data: { confirm: "Are you sure?" })
+      # # => <input src="/assets/save.png" data-confirm="Are you sure?" type="image" />
+      # ```
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
         src = path_to_image(source, skip_pipeline: options.delete("skip_pipeline"))
@@ -628,24 +688,27 @@ module ActionView
 
       # Creates a field set for grouping HTML form elements.
       #
-      # <tt>legend</tt> will become the fieldset's title (optional as per W3C).
-      # <tt>options</tt> accept the same values as tag.
+      # `legend` will become the fieldset's title (optional as per W3C).
+      # `options` accept the same values as tag.
       #
-      # ==== Examples
-      #   <%= field_set_tag do %>
-      #     <p><%= text_field_tag 'name' %></p>
-      #   <% end %>
-      #   # => <fieldset><p><input id="name" name="name" type="text" /></p></fieldset>
+      # #### Examples
       #
-      #   <%= field_set_tag 'Your details' do %>
-      #     <p><%= text_field_tag 'name' %></p>
-      #   <% end %>
-      #   # => <fieldset><legend>Your details</legend><p><input id="name" name="name" type="text" /></p></fieldset>
+      # ```
+      # <%= field_set_tag do %>
+      #   <p><%= text_field_tag 'name' %></p>
+      # <% end %>
+      # # => <fieldset><p><input id="name" name="name" type="text" /></p></fieldset>
       #
-      #   <%= field_set_tag nil, class: 'format' do %>
-      #     <p><%= text_field_tag 'name' %></p>
-      #   <% end %>
-      #   # => <fieldset class="format"><p><input id="name" name="name" type="text" /></p></fieldset>
+      # <%= field_set_tag 'Your details' do %>
+      #   <p><%= text_field_tag 'name' %></p>
+      # <% end %>
+      # # => <fieldset><legend>Your details</legend><p><input id="name" name="name" type="text" /></p></fieldset>
+      #
+      # <%= field_set_tag nil, class: 'format' do %>
+      #   <p><%= text_field_tag 'name' %></p>
+      # <% end %>
+      # # => <fieldset class="format"><p><input id="name" name="name" type="text" /></p></fieldset>
+      # ```
       def field_set_tag(legend = nil, options = nil, &block)
         content = []
         content << content_tag("legend", legend) unless legend.blank?
@@ -657,69 +720,75 @@ module ActionView
 
       # Creates a text field of type "color".
       #
-      # ==== Options
+      # #### Options
       #
       # Supports the same options as #text_field_tag.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   color_field_tag 'name'
-      #   # => <input id="name" name="name" type="color" />
+      # ```
+      # color_field_tag 'name'
+      # # => <input id="name" name="name" type="color" />
       #
-      #   color_field_tag 'color', '#DEF726'
-      #   # => <input id="color" name="color" type="color" value="#DEF726" />
+      # color_field_tag 'color', '#DEF726'
+      # # => <input id="color" name="color" type="color" value="#DEF726" />
       #
-      #   color_field_tag 'color', nil, class: 'special_input'
-      #   # => <input class="special_input" id="color" name="color" type="color" />
+      # color_field_tag 'color', nil, class: 'special_input'
+      # # => <input class="special_input" id="color" name="color" type="color" />
       #
-      #   color_field_tag 'color', '#DEF726', class: 'special_input', disabled: true
-      #   # => <input disabled="disabled" class="special_input" id="color" name="color" type="color" value="#DEF726" />
+      # color_field_tag 'color', '#DEF726', class: 'special_input', disabled: true
+      # # => <input disabled="disabled" class="special_input" id="color" name="color" type="color" value="#DEF726" />
+      # ```
       def color_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :color))
       end
 
       # Creates a text field of type "search".
       #
-      # ==== Options
+      # #### Options
       #
       # Supports the same options as #text_field_tag.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   search_field_tag 'name'
-      #   # => <input id="name" name="name" type="search" />
+      # ```
+      # search_field_tag 'name'
+      # # => <input id="name" name="name" type="search" />
       #
-      #   search_field_tag 'search', 'Enter your search query here'
-      #   # => <input id="search" name="search" type="search" value="Enter your search query here" />
+      # search_field_tag 'search', 'Enter your search query here'
+      # # => <input id="search" name="search" type="search" value="Enter your search query here" />
       #
-      #   search_field_tag 'search', nil, class: 'special_input'
-      #   # => <input class="special_input" id="search" name="search" type="search" />
+      # search_field_tag 'search', nil, class: 'special_input'
+      # # => <input class="special_input" id="search" name="search" type="search" />
       #
-      #   search_field_tag 'search', 'Enter your search query here', class: 'special_input', disabled: true
-      #   # => <input disabled="disabled" class="special_input" id="search" name="search" type="search" value="Enter your search query here" />
+      # search_field_tag 'search', 'Enter your search query here', class: 'special_input', disabled: true
+      # # => <input disabled="disabled" class="special_input" id="search" name="search" type="search" value="Enter your search query here" />
+      # ```
       def search_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :search))
       end
 
       # Creates a text field of type "tel".
       #
-      # ==== Options
+      # #### Options
       #
       # Supports the same options as #text_field_tag.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   telephone_field_tag 'name'
-      #   # => <input id="name" name="name" type="tel" />
+      # ```
+      # telephone_field_tag 'name'
+      # # => <input id="name" name="name" type="tel" />
       #
-      #   telephone_field_tag 'tel', '0123456789'
-      #   # => <input id="tel" name="tel" type="tel" value="0123456789" />
+      # telephone_field_tag 'tel', '0123456789'
+      # # => <input id="tel" name="tel" type="tel" value="0123456789" />
       #
-      #   telephone_field_tag 'tel', nil, class: 'special_input'
-      #   # => <input class="special_input" id="tel" name="tel" type="tel" />
+      # telephone_field_tag 'tel', nil, class: 'special_input'
+      # # => <input class="special_input" id="tel" name="tel" type="tel" />
       #
-      #   telephone_field_tag 'tel', '0123456789', class: 'special_input', disabled: true
-      #   # => <input disabled="disabled" class="special_input" id="tel" name="tel" type="tel" value="0123456789" />
+      # telephone_field_tag 'tel', '0123456789', class: 'special_input', disabled: true
+      # # => <input disabled="disabled" class="special_input" id="tel" name="tel" type="tel" value="0123456789" />
+      # ```
       def telephone_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :tel))
       end
@@ -727,82 +796,83 @@ module ActionView
 
       # Creates a text field of type "date".
       #
-      # ==== Options
+      # #### Options
       #
       # Supports the same options as #text_field_tag.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   date_field_tag 'name'
-      #   # => <input id="name" name="name" type="date" />
+      # ```
+      # date_field_tag 'name'
+      # # => <input id="name" name="name" type="date" />
       #
-      #   date_field_tag 'date', '2014-12-31'
-      #   # => <input id="date" name="date" type="date" value="2014-12-31" />
+      # date_field_tag 'date', '2014-12-31'
+      # # => <input id="date" name="date" type="date" value="2014-12-31" />
       #
-      #   date_field_tag 'date', nil, class: 'special_input'
-      #   # => <input class="special_input" id="date" name="date" type="date" />
+      # date_field_tag 'date', nil, class: 'special_input'
+      # # => <input class="special_input" id="date" name="date" type="date" />
       #
-      #   date_field_tag 'date', '2014-12-31', class: 'special_input', disabled: true
-      #   # => <input disabled="disabled" class="special_input" id="date" name="date" type="date" value="2014-12-31" />
+      # date_field_tag 'date', '2014-12-31', class: 'special_input', disabled: true
+      # # => <input disabled="disabled" class="special_input" id="date" name="date" type="date" value="2014-12-31" />
+      # ```
       def date_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :date))
       end
 
       # Creates a text field of type "time".
       #
-      # ==== Options
+      # #### Options
       #
       # Supports the same options as #text_field_tag. Additionally, supports:
       #
-      # * <tt>:min</tt> - The minimum acceptable value.
-      # * <tt>:max</tt> - The maximum acceptable value.
-      # * <tt>:step</tt> - The acceptable value granularity.
-      # * <tt>:include_seconds</tt> - Include seconds and ms in the output timestamp format (true by default).
+      # * `:min` - The minimum acceptable value.
+      # * `:max` - The maximum acceptable value.
+      # * `:step` - The acceptable value granularity.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   time_field_tag 'name'
-      #   # => <input id="name" name="name" type="time" />
+      # ```
+      # time_field_tag 'name'
+      # # => <input id="name" name="name" type="time" />
       #
-      #   time_field_tag 'time', '01:01'
-      #   # => <input id="time" name="time" type="time" value="01:01" />
+      # time_field_tag 'time', '01:01'
+      # # => <input id="time" name="time" type="time" value="01:01" />
       #
-      #   time_field_tag 'time', nil, class: 'special_input'
-      #   # => <input class="special_input" id="time" name="time" type="time" />
+      # time_field_tag 'time', nil, class: 'special_input'
+      # # => <input class="special_input" id="time" name="time" type="time" />
       #
-      #   time_field_tag 'time', '01:01', include_seconds: true
-      #   # => <input id="time" name="time" type="time" value="01:01:00.000" />
-      #
-      #   time_field_tag 'time', '01:01', min: '00:00', max: '23:59', step: 1
-      #   # => <input id="time" max="23:59" min="00:00" name="time" step="1" type="time" value="01:01" />
+      # time_field_tag 'time', '01:01', min: '00:00', max: '23:59', step: 1
+      # # => <input id="time" max="23:59" min="00:00" name="time" step="1" type="time" value="01:01" />
+      # ```
       def time_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :time))
       end
 
       # Creates a text field of type "datetime-local".
       #
-      # ==== Options
+      # #### Options
       #
       # Supports the same options as #text_field_tag. Additionally, supports:
       #
-      # * <tt>:min</tt> - The minimum acceptable value.
-      # * <tt>:max</tt> - The maximum acceptable value.
-      # * <tt>:step</tt> - The acceptable value granularity.
-      # * <tt>:include_seconds</tt> - Include seconds in the output timestamp format (true by default).
+      # * `:min` - The minimum acceptable value.
+      # * `:max` - The maximum acceptable value.
+      # * `:step` - The acceptable value granularity.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   datetime_field_tag 'name'
-      #   # => <input id="name" name="name" type="datetime-local" />
+      # ```
+      # datetime_field_tag 'name'
+      # # => <input id="name" name="name" type="datetime-local" />
       #
-      #   datetime_field_tag 'datetime', '2014-01-01T01:01'
-      #   # => <input id="datetime" name="datetime" type="datetime-local" value="2014-01-01T01:01" />
+      # datetime_field_tag 'datetime', '2014-01-01T01:01'
+      # # => <input id="datetime" name="datetime" type="datetime-local" value="2014-01-01T01:01" />
       #
-      #   datetime_field_tag 'datetime', nil, class: 'special_input'
-      #   # => <input class="special_input" id="datetime" name="datetime" type="datetime-local" />
+      # datetime_field_tag 'datetime', nil, class: 'special_input'
+      # # => <input class="special_input" id="datetime" name="datetime" type="datetime-local" />
       #
-      #   datetime_field_tag 'datetime', '2014-01-01T01:01', class: 'special_input', disabled: true
-      #   # => <input disabled="disabled" class="special_input" id="datetime" name="datetime" type="datetime-local" value="2014-01-01T01:01" />
+      # datetime_field_tag 'datetime', '2014-01-01T01:01', class: 'special_input', disabled: true
+      # # => <input disabled="disabled" class="special_input" id="datetime" name="datetime" type="datetime-local" value="2014-01-01T01:01" />
+      # ```
       def datetime_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: "datetime-local"))
       end
@@ -811,148 +881,158 @@ module ActionView
 
       # Creates a text field of type "month".
       #
-      # ==== Options
+      # #### Options
       #
       # Supports the same options as #text_field_tag. Additionally, supports:
       #
-      # * <tt>:min</tt> - The minimum acceptable value.
-      # * <tt>:max</tt> - The maximum acceptable value.
-      # * <tt>:step</tt> - The acceptable value granularity.
+      # * `:min` - The minimum acceptable value.
+      # * `:max` - The maximum acceptable value.
+      # * `:step` - The acceptable value granularity.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   month_field_tag 'name'
-      #   # => <input id="name" name="name" type="month" />
+      # ```
+      # month_field_tag 'name'
+      # # => <input id="name" name="name" type="month" />
       #
-      #   month_field_tag 'month', '2014-01'
-      #   # => <input id="month" name="month" type="month" value="2014-01" />
+      # month_field_tag 'month', '2014-01'
+      # # => <input id="month" name="month" type="month" value="2014-01" />
       #
-      #   month_field_tag 'month', nil, class: 'special_input'
-      #   # => <input class="special_input" id="month" name="month" type="month" />
+      # month_field_tag 'month', nil, class: 'special_input'
+      # # => <input class="special_input" id="month" name="month" type="month" />
       #
-      #   month_field_tag 'month', '2014-01', class: 'special_input', disabled: true
-      #   # => <input disabled="disabled" class="special_input" id="month" name="month" type="month" value="2014-01" />
+      # month_field_tag 'month', '2014-01', class: 'special_input', disabled: true
+      # # => <input disabled="disabled" class="special_input" id="month" name="month" type="month" value="2014-01" />
+      # ```
       def month_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :month))
       end
 
       # Creates a text field of type "week".
       #
-      # ==== Options
+      # #### Options
       #
       # Supports the same options as #text_field_tag. Additionally, supports:
       #
-      # * <tt>:min</tt> - The minimum acceptable value.
-      # * <tt>:max</tt> - The maximum acceptable value.
-      # * <tt>:step</tt> - The acceptable value granularity.
+      # * `:min` - The minimum acceptable value.
+      # * `:max` - The maximum acceptable value.
+      # * `:step` - The acceptable value granularity.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   week_field_tag 'name'
-      #   # => <input id="name" name="name" type="week" />
+      # ```
+      # week_field_tag 'name'
+      # # => <input id="name" name="name" type="week" />
       #
-      #   week_field_tag 'week', '2014-W01'
-      #   # => <input id="week" name="week" type="week" value="2014-W01" />
+      # week_field_tag 'week', '2014-W01'
+      # # => <input id="week" name="week" type="week" value="2014-W01" />
       #
-      #   week_field_tag 'week', nil, class: 'special_input'
-      #   # => <input class="special_input" id="week" name="week" type="week" />
+      # week_field_tag 'week', nil, class: 'special_input'
+      # # => <input class="special_input" id="week" name="week" type="week" />
       #
-      #   week_field_tag 'week', '2014-W01', class: 'special_input', disabled: true
-      #   # => <input disabled="disabled" class="special_input" id="week" name="week" type="week" value="2014-W01" />
+      # week_field_tag 'week', '2014-W01', class: 'special_input', disabled: true
+      # # => <input disabled="disabled" class="special_input" id="week" name="week" type="week" value="2014-W01" />
+      # ```
       def week_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :week))
       end
 
       # Creates a text field of type "url".
       #
-      # ==== Options
+      # #### Options
       #
       # Supports the same options as #text_field_tag.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   url_field_tag 'name'
-      #   # => <input id="name" name="name" type="url" />
+      # ```
+      # url_field_tag 'name'
+      # # => <input id="name" name="name" type="url" />
       #
-      #   url_field_tag 'url', 'http://rubyonrails.org'
-      #   # => <input id="url" name="url" type="url" value="http://rubyonrails.org" />
+      # url_field_tag 'url', 'http://rubyonrails.org'
+      # # => <input id="url" name="url" type="url" value="http://rubyonrails.org" />
       #
-      #   url_field_tag 'url', nil, class: 'special_input'
-      #   # => <input class="special_input" id="url" name="url" type="url" />
+      # url_field_tag 'url', nil, class: 'special_input'
+      # # => <input class="special_input" id="url" name="url" type="url" />
       #
-      #   url_field_tag 'url', 'http://rubyonrails.org', class: 'special_input', disabled: true
-      #   # => <input disabled="disabled" class="special_input" id="url" name="url" type="url" value="http://rubyonrails.org" />
+      # url_field_tag 'url', 'http://rubyonrails.org', class: 'special_input', disabled: true
+      # # => <input disabled="disabled" class="special_input" id="url" name="url" type="url" value="http://rubyonrails.org" />
+      # ```
       def url_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :url))
       end
 
       # Creates a text field of type "email".
       #
-      # ==== Options
+      # #### Options
       #
       # Supports the same options as #text_field_tag.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   email_field_tag 'name'
-      #   # => <input id="name" name="name" type="email" />
+      # ```
+      # email_field_tag 'name'
+      # # => <input id="name" name="name" type="email" />
       #
-      #   email_field_tag 'email', 'email@example.com'
-      #   # => <input id="email" name="email" type="email" value="email@example.com" />
+      # email_field_tag 'email', 'email@example.com'
+      # # => <input id="email" name="email" type="email" value="email@example.com" />
       #
-      #   email_field_tag 'email', nil, class: 'special_input'
-      #   # => <input class="special_input" id="email" name="email" type="email" />
+      # email_field_tag 'email', nil, class: 'special_input'
+      # # => <input class="special_input" id="email" name="email" type="email" />
       #
-      #   email_field_tag 'email', 'email@example.com', class: 'special_input', disabled: true
-      #   # => <input disabled="disabled" class="special_input" id="email" name="email" type="email" value="email@example.com" />
+      # email_field_tag 'email', 'email@example.com', class: 'special_input', disabled: true
+      # # => <input disabled="disabled" class="special_input" id="email" name="email" type="email" value="email@example.com" />
+      # ```
       def email_field_tag(name, value = nil, options = {})
         text_field_tag(name, value, options.merge(type: :email))
       end
 
       # Creates a number field.
       #
-      # ==== Options
+      # #### Options
       #
       # Supports the same options as #text_field_tag. Additionally, supports:
       #
-      # * <tt>:min</tt> - The minimum acceptable value.
-      # * <tt>:max</tt> - The maximum acceptable value.
-      # * <tt>:in</tt> - A range specifying the <tt>:min</tt> and
-      #   <tt>:max</tt> values.
-      # * <tt>:within</tt> - Same as <tt>:in</tt>.
-      # * <tt>:step</tt> - The acceptable value granularity.
+      # * `:min` - The minimum acceptable value.
+      # * `:max` - The maximum acceptable value.
+      # * `:in` - A range specifying the `:min` and
+      #   `:max` values.
+      # * `:within` - Same as `:in`.
+      # * `:step` - The acceptable value granularity.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   number_field_tag 'quantity'
-      #   # => <input id="quantity" name="quantity" type="number" />
+      # ```
+      # number_field_tag 'quantity'
+      # # => <input id="quantity" name="quantity" type="number" />
       #
-      #   number_field_tag 'quantity', '1'
-      #   # => <input id="quantity" name="quantity" type="number" value="1" />
+      # number_field_tag 'quantity', '1'
+      # # => <input id="quantity" name="quantity" type="number" value="1" />
       #
-      #   number_field_tag 'quantity', nil, class: 'special_input'
-      #   # => <input class="special_input" id="quantity" name="quantity" type="number" />
+      # number_field_tag 'quantity', nil, class: 'special_input'
+      # # => <input class="special_input" id="quantity" name="quantity" type="number" />
       #
-      #   number_field_tag 'quantity', nil, min: 1
-      #   # => <input id="quantity" name="quantity" min="1" type="number" />
+      # number_field_tag 'quantity', nil, min: 1
+      # # => <input id="quantity" name="quantity" min="1" type="number" />
       #
-      #   number_field_tag 'quantity', nil, max: 9
-      #   # => <input id="quantity" name="quantity" max="9" type="number" />
+      # number_field_tag 'quantity', nil, max: 9
+      # # => <input id="quantity" name="quantity" max="9" type="number" />
       #
-      #   number_field_tag 'quantity', nil, in: 1...10
-      #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
+      # number_field_tag 'quantity', nil, in: 1...10
+      # # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
       #
-      #   number_field_tag 'quantity', nil, within: 1...10
-      #   # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
+      # number_field_tag 'quantity', nil, within: 1...10
+      # # => <input id="quantity" name="quantity" min="1" max="9" type="number" />
       #
-      #   number_field_tag 'quantity', nil, min: 1, max: 10
-      #   # => <input id="quantity" name="quantity" min="1" max="10" type="number" />
+      # number_field_tag 'quantity', nil, min: 1, max: 10
+      # # => <input id="quantity" name="quantity" min="1" max="10" type="number" />
       #
-      #   number_field_tag 'quantity', nil, min: 1, max: 10, step: 2
-      #   # => <input id="quantity" name="quantity" min="1" max="10" step="2" type="number" />
+      # number_field_tag 'quantity', nil, min: 1, max: 10, step: 2
+      # # => <input id="quantity" name="quantity" min="1" max="10" step="2" type="number" />
       #
-      #   number_field_tag 'quantity', '1', class: 'special_input', disabled: true
-      #   # => <input disabled="disabled" class="special_input" id="quantity" name="quantity" type="number" value="1" />
+      # number_field_tag 'quantity', '1', class: 'special_input', disabled: true
+      # # => <input disabled="disabled" class="special_input" id="quantity" name="quantity" type="number" value="1" />
+      # ```
       def number_field_tag(name, value = nil, options = {})
         options = options.stringify_keys
         options["type"] ||= "number"
@@ -964,20 +1044,22 @@ module ActionView
 
       # Creates a range form element.
       #
-      # ==== Options
+      # #### Options
       #
       # Supports the same options as #number_field_tag.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   range_field_tag 'quantity', '1'
-      #   # => <input id="quantity" name="quantity" type="range" value="1" />
+      # ```
+      # range_field_tag 'quantity', '1'
+      # # => <input id="quantity" name="quantity" type="range" value="1" />
       #
-      #   range_field_tag 'quantity', in: 1...10
-      #   # => <input id="quantity" name="quantity" min="1" max="9" type="range" />
+      # range_field_tag 'quantity', nil, in: 1...10
+      # # => <input id="quantity" name="quantity" min="1" max="9" type="range" />
       #
-      #   range_field_tag 'quantity', min: 1, max: 10, step: 2
-      #   # => <input id="quantity" name="quantity" min="1" max="10" step="2" type="range"
+      # range_field_tag 'quantity', nil, min: 1, max: 10, step: 2
+      # # => <input id="quantity" name="quantity" min="1" max="10" step="2" type="range" />
+      # ```
       def range_field_tag(name, value = nil, options = {})
         number_field_tag(name, value, options.merge(type: :range))
       end
@@ -986,15 +1068,17 @@ module ActionView
       #
       # The option_tags parameter has the same format as the container parameter from #options_for_select.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   datalist_tag('countries_datalist', ['Argentina', ['Brazil', { class: 'brazilian_option' }],
-      #                ['Chile', 'CL', { disabled: true }]], { class: 'sa-countries-sample' })
-      #   # => <datalist id="countries_datalist" class="sa-countries-sample">
-      #          <option value="Argentina">Argentina</option>
-      #          <option value="Brazil" class="brazilian_option">Brazil</option>
-      #          <option value="CL" disabled="disabled">Chile</option>
-      #        </datalist>
+      # ```
+      # datalist_tag('countries_datalist', ['Argentina', ['Brazil', { class: 'brazilian_option' }],
+      #              ['Chile', 'CL', { disabled: true }]], { class: 'sa-countries-sample' })
+      # # => <datalist id="countries_datalist" class="sa-countries-sample">
+      #        <option value="Argentina">Argentina</option>
+      #        <option value="Brazil" class="brazilian_option">Brazil</option>
+      #        <option value="CL" disabled="disabled">Chile</option>
+      #      </datalist>
+      # ```
       def datalist_tag(id, option_tags = nil, html_options = {})
         option_tags ||= ""
         content_tag("datalist", options_for_select(option_tags), { "id" => id }.update(html_options.stringify_keys))
@@ -1044,7 +1128,8 @@ module ActionView
 
         def extra_tags_for_form(html_options)
           authenticity_token = html_options.delete("authenticity_token")
-          method = html_options.delete("method").to_s.downcase
+          method = html_options.delete("method")
+          method = (method.is_a?(Symbol) ? method.name : method.to_s).downcase
 
           method_tag = \
             case method

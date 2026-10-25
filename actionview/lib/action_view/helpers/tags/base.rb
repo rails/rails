@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -9,10 +10,14 @@ module ActionView
         attr_reader :object
 
         def initialize(object_name, method_name, template_object, options = {})
-          @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
+          @object_name = object_name.is_a?(Symbol) ? object_name.name : object_name.to_s
+          @method_name = method_name.is_a?(Symbol) ? method_name.name : method_name.to_s
           @template_object = template_object
 
-          @object_name.sub!(/\[\]$/, "") || @object_name.sub!(/\[\]\]$/, "]")
+          if @object_name.include?("[]")
+            @object_name = @object_name.dup
+            @object_name.sub!(/\[\]$/, "") || @object_name.sub!(/\[\]\]$/, "]")
+          end
           @object = retrieve_object(options.delete(:object))
           @skip_default_ids = options.delete(:skip_default_ids)
           @allow_method_names_outside_object = options.delete(:allow_method_names_outside_object)
@@ -63,11 +68,16 @@ module ActionView
           def retrieve_object(object)
             if object
               object
-            elsif @template_object.instance_variable_defined?("@#{@object_name}")
-              @template_object.instance_variable_get("@#{@object_name}")
+            elsif @object_name.empty? || @object_name.include?("[")
+              # Model-less forms (form_with url: ...) and the nested syntax (item[subobject])
+              # can't name an instance variable, so skip the lookup instead of rescuing.
+              nil
+            else
+              ivar = "@#{@object_name}"
+              @template_object.instance_variable_get(ivar) if @template_object.instance_variable_defined?(ivar)
             end
           rescue NameError
-            # As @object_name may contain the nested syntax (item[subobject]) we need to fallback to nil.
+            # Any other name that isn't a valid instance variable name falls back to nil.
             nil
           end
 
@@ -81,15 +91,12 @@ module ActionView
           end
 
           def add_default_name_and_field_for_value(tag_value, options, field = "id")
-            if tag_value.nil?
-              add_default_name_and_field(options, field)
-            else
-              specified_field = options[field]
-              add_default_name_and_field(options, field)
+            specified_field = options[field]
+            add_default_name_and_field(options, field)
+            sanitized = sanitized_value(tag_value)
 
-              if specified_field.blank? && options[field].present?
-                options[field] += "_#{sanitized_value(tag_value)}"
-              end
+            if !sanitized.empty? && specified_field.blank? && options[field].present?
+              options[field] += "_#{sanitized}"
             end
           end
           alias_method :add_default_name_and_id_for_value, :add_default_name_and_field_for_value

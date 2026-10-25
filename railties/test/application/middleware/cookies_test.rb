@@ -54,8 +54,13 @@ module ApplicationTests
     test "signed cookies with SHA512 digest and marshal serializer and rotated out SHA256 and SHA1 digests" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get  ':controller(/:action)'
-          post ':controller(/:action)'
+          get 'foo/write_raw_cookie_sha1', to: 'foo#write_raw_cookie_sha1'
+          get 'foo/write_raw_cookie_sha256', to: 'foo#write_raw_cookie_sha256'
+          get 'foo/write_raw_cookie_one', to: 'foo#write_raw_cookie_one'
+          get 'foo/write_raw_cookie_two', to: 'foo#write_raw_cookie_two'
+          get 'foo/read_signed', to: 'foo#read_signed'
+          get 'foo/read_encrypted', to: 'foo#read_encrypted'
+          get 'foo/read_raw_cookie', to: 'foo#read_raw_cookie'
         end
       RUBY
 
@@ -124,8 +129,13 @@ module ApplicationTests
     test "signed cookies with SHA512 digest and JSON serializer and rotated out SHA256 and SHA1 digests" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get  ':controller(/:action)'
-          post ':controller(/:action)'
+          get 'foo/write_raw_cookie_sha1', to: 'foo#write_raw_cookie_sha1'
+          get 'foo/write_raw_cookie_sha256', to: 'foo#write_raw_cookie_sha256'
+          get 'foo/write_raw_cookie_one', to: 'foo#write_raw_cookie_one'
+          get 'foo/write_raw_cookie_two', to: 'foo#write_raw_cookie_two'
+          get 'foo/read_signed', to: 'foo#read_signed'
+          get 'foo/read_encrypted', to: 'foo#read_encrypted'
+          get 'foo/read_raw_cookie', to: 'foo#read_raw_cookie'
         end
       RUBY
 
@@ -194,8 +204,13 @@ module ApplicationTests
     test "encrypted cookies rotating multiple encryption keys" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get  ':controller(/:action)'
-          post ':controller(/:action)'
+          get 'foo/write_raw_cookie_sha1', to: 'foo#write_raw_cookie_sha1'
+          get 'foo/write_raw_cookie_sha256', to: 'foo#write_raw_cookie_sha256'
+          get 'foo/write_raw_cookie_one', to: 'foo#write_raw_cookie_one'
+          get 'foo/write_raw_cookie_two', to: 'foo#write_raw_cookie_two'
+          get 'foo/read_signed', to: 'foo#read_signed'
+          get 'foo/read_encrypted', to: 'foo#read_encrypted'
+          get 'foo/read_raw_cookie', to: 'foo#read_raw_cookie'
         end
       RUBY
 
@@ -265,8 +280,13 @@ module ApplicationTests
     test "encrypted cookies rotating multiple encryption keys with cookies serializer as json" do
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
-          get  ':controller(/:action)'
-          post ':controller(/:action)'
+          get 'foo/write_raw_cookie_sha1', to: 'foo#write_raw_cookie_sha1'
+          get 'foo/write_raw_cookie_sha256', to: 'foo#write_raw_cookie_sha256'
+          get 'foo/write_raw_cookie_one', to: 'foo#write_raw_cookie_one'
+          get 'foo/write_raw_cookie_two', to: 'foo#write_raw_cookie_two'
+          get 'foo/read_signed', to: 'foo#read_signed'
+          get 'foo/read_encrypted', to: 'foo#read_encrypted'
+          get 'foo/read_raw_cookie', to: 'foo#read_raw_cookie'
         end
       RUBY
 

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 begin
   require "thor/group"
 rescue LoadError
@@ -66,97 +67,125 @@ module Rails
       # given option named "name". A class option is created when this method
       # is invoked and you can set a hash to customize it.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   module Rails::Generators
-      #     class ControllerGenerator < Base
-      #       hook_for :test_framework, aliases: "-t"
-      #     end
+      # ```
+      # module Rails::Generators
+      #   class ControllerGenerator < Base
+      #     hook_for :test_framework, aliases: "-t"
       #   end
+      # end
+      # ```
       #
       # The example above will create a test framework option and will invoke
       # a generator based on the user supplied value.
       #
       # For example, if the user invoke the controller generator as:
       #
-      #   $ bin/rails generate controller Account --test-framework=test_unit
+      # ```
+      # $ bin/rails generate controller Account --test-framework=test_unit
+      # ```
       #
       # The controller generator will then try to invoke the following generators:
       #
-      #   "rails:test_unit", "test_unit:controller", "test_unit"
+      # ```
+      # "rails:test_unit", "test_unit:controller", "test_unit"
+      # ```
       #
       # Notice that "rails:generators:test_unit" could be loaded as well, what
       # \Rails looks for is the first and last parts of the namespace. This is what
       # allows any test framework to hook into \Rails as long as it provides any
       # of the hooks above.
       #
-      # ==== Options
+      # #### Options
       #
       # The first and last part used to find the generator to be invoked are
       # guessed based on class invokes hook_for, as noticed in the example above.
-      # This can be customized with two options: +:in+ and +:as+.
+      # This can be customized with two options: `:in` and `:as`.
       #
       # Let's suppose you are creating a generator that needs to invoke the
       # controller generator from test unit. Your first attempt is:
       #
-      #   class AwesomeGenerator < Rails::Generators::Base
-      #     hook_for :test_framework
-      #   end
+      # ```
+      # class AwesomeGenerator < Rails::Generators::Base
+      #   hook_for :test_framework
+      # end
+      # ```
       #
       # The lookup in this case for test_unit as input is:
       #
-      #   "test_unit:awesome", "test_unit"
+      # ```
+      # "test_unit:awesome", "test_unit"
+      # ```
       #
       # Which is not the desired lookup. You can change it by providing the
-      # +:as+ option:
+      # `:as` option:
       #
-      #   class AwesomeGenerator < Rails::Generators::Base
-      #     hook_for :test_framework, as: :controller
-      #   end
+      # ```
+      # class AwesomeGenerator < Rails::Generators::Base
+      #   hook_for :test_framework, as: :controller
+      # end
+      # ```
       #
       # And now it will look up at:
       #
-      #   "test_unit:controller", "test_unit"
+      # ```
+      # "test_unit:controller", "test_unit"
+      # ```
       #
       # Similarly, if you want it to also look up in the rails namespace, you
-      # just need to provide the +:in+ value:
+      # just need to provide the `:in` value:
       #
-      #   class AwesomeGenerator < Rails::Generators::Base
-      #     hook_for :test_framework, in: :rails, as: :controller
-      #   end
+      # ```
+      # class AwesomeGenerator < Rails::Generators::Base
+      #   hook_for :test_framework, in: :rails, as: :controller
+      # end
+      # ```
       #
       # And the lookup is exactly the same as previously:
       #
-      #   "rails:test_unit", "test_unit:controller", "test_unit"
+      # ```
+      # "rails:test_unit", "test_unit:controller", "test_unit"
+      # ```
       #
-      # ==== Switches
+      # #### Switches
       #
       # All hooks come with switches for user interface. If you do not want
       # to use any test framework, you can do:
       #
-      #   $ bin/rails generate controller Account --skip-test-framework
+      # ```
+      # $ bin/rails generate controller Account --skip-test-framework
+      # ```
       #
       # Or similarly:
       #
-      #   $ bin/rails generate controller Account --no-test-framework
+      # ```
+      # $ bin/rails generate controller Account --no-test-framework
+      # ```
       #
-      # ==== Boolean hooks
+      # #### Boolean hooks
       #
       # In some cases, you may want to provide a boolean hook. For example, webrat
       # developers might want to have webrat available on controller generator.
       # This can be achieved as:
       #
-      #   Rails::Generators::ControllerGenerator.hook_for :webrat, type: :boolean
+      # ```
+      # Rails::Generators::ControllerGenerator.hook_for :webrat, type: :boolean
+      # ```
       #
       # Then, if you want webrat to be invoked, just supply:
       #
-      #   $ bin/rails generate controller Account --webrat
+      # ```
+      # $ bin/rails generate controller Account --webrat
+      # ```
       #
       # The hooks lookup is similar as above:
       #
-      #   "rails:generators:webrat", "webrat:generators:controller", "webrat"
+      # ```
+      # "rails:generators:webrat", "webrat:generators:controller", "webrat"
+      # ```
       #
-      # ==== Custom invocations
+      # #### Custom invocations
       #
       # You can also supply a block to hook_for to customize how the hook is
       # going to be invoked. The block receives two arguments, an instance
@@ -167,9 +196,11 @@ module Rails
       # name as the resource generator, which is singular. To change this, we
       # can give a block to customize how the controller can be invoked.
       #
-      #   hook_for :resource_controller do |instance, controller|
-      #     instance.invoke controller, [ instance.name.pluralize ]
-      #   end
+      # ```
+      # hook_for :resource_controller do |instance, controller|
+      #   instance.invoke controller, [ instance.name.pluralize ]
+      # end
+      # ```
       #
       def self.hook_for(*names, &block)
         options = names.extract_options!
@@ -203,7 +234,9 @@ module Rails
 
       # Remove a previously added hook.
       #
-      #   remove_hook_for :orm
+      # ```
+      # remove_hook_for :orm
+      # ```
       def self.remove_hook_for(*names)
         remove_invocation(*names)
 

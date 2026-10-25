@@ -25,10 +25,9 @@ module ActionDispatch
       # The MIME type of the HTTP request, such as [Mime](:xml).
       def content_mime_type
         fetch_header("action_dispatch.request.content_type") do |k|
-          v = if get_header("CONTENT_TYPE") =~ /^([^,;]*)/
-            Mime::Type.lookup($1.strip.downcase)
-          else
-            nil
+          v = if (content_type = get_header("CONTENT_TYPE"))
+            type = media_type_of(content_type)
+            Mime.lookup_by_string[type] || Mime::Type.lookup(type.strip.downcase)
           end
           set_header k, v
         rescue ::Mime::Type::InvalidMimeType => e
@@ -238,6 +237,18 @@ module ActionDispatch
 
         def use_accept_header
           !MimeNegotiation.ignore_accept_header
+        end
+
+        # The media type is whatever precedes the first ";" or ",". Most
+        # requests send a bare one, which is returned as is; scanning for the
+        # separators with String#index rather than a Regexp keeps the common
+        # case free of allocations.
+        def media_type_of(content_type)
+          index = content_type.index(";")
+          if (comma = content_type.index(",")) && (!index || comma < index)
+            index = comma
+          end
+          index ? content_type[0, index] : content_type
         end
 
         def format_from_path_extension

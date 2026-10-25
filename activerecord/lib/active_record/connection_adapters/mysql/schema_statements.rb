@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+
+require "active_record/connection_adapters/mysql/compatibility_behavior"
+
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
@@ -20,10 +24,6 @@ module ActiveRecord
           [index, algorithm, if_not_exists]
         end
 
-        def create_table(table_name, options: default_row_format, **)
-          super
-        end
-
         def remove_foreign_key(from_table, to_table = nil, **options)
           # RESTRICT is by default in MySQL.
           options.delete(:on_update) if options[:on_update] == :restrict
@@ -31,16 +31,18 @@ module ActiveRecord
           super
         end
 
-        def internal_string_options_for_primary_key
-          super.tap do |options|
-            if !row_format_dynamic_by_default? && CHARSETS_OF_4BYTES_MAXLEN.include?(charset)
-              options[:collation] = collation.sub(/\A[^_]+/, "utf8")
-            end
-          end
+        # A legacy bigint primary key was autoincremented as well, so only an
+        # integer one needs the default.
+        def inject_legacy_primary_key_default?(type)
+          type == :integer
         end
 
         def update_table_definition(table_name, base)
           MySQL::Table.new(table_name, base)
+        end
+
+        def compatibility_behavior_for(migration_class)
+          MySQL::CompatibilityBehavior.for(migration_class)
         end
 
         def create_schema_dumper(options)
@@ -178,30 +180,6 @@ module ActiveRecord
               end
               MySQL::IndexDefinition.new(*index, **options)
             end
-          end
-
-          CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"].freeze
-
-          def row_format_dynamic_by_default?
-            if mariadb?
-              database_version >= "10.2.2"
-            else
-              database_version >= "5.7.9"
-            end
-          end
-
-          def default_row_format
-            return if row_format_dynamic_by_default?
-
-            unless defined?(@default_row_format)
-              if query_value("SELECT @@innodb_file_per_table = 1 AND @@innodb_file_format = 'Barracuda'") == 1
-                @default_row_format = "ROW_FORMAT=DYNAMIC"
-              else
-                @default_row_format = nil
-              end
-            end
-
-            @default_row_format
           end
 
           def valid_primary_key_options

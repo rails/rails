@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Arel # :nodoc: all
   module Nodes
     class TableAlias < Arel::Nodes::Binary
@@ -9,6 +10,10 @@ module Arel # :nodoc: all
 
       def [](name)
         relation.is_a?(Table) ? relation[name, self] : Attribute.new(self, name)
+      end
+
+      def klass
+        relation.klass if relation.is_a?(Table)
       end
 
       def table_name

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "irb/helper_method"
 require "irb/command"
 
@@ -11,7 +12,7 @@ module Rails
     class ControllerHelper < RailsHelperBase
       description "Gets helper methods available to ApplicationController."
 
-      # This method assumes an +ApplicationController+ exists, and that it extends ActionController::Base.
+      # This method assumes an `ApplicationController` exists, and that it extends ActionController::Base.
       def execute
         ApplicationController.helpers
       end
@@ -20,7 +21,7 @@ module Rails
     class ControllerInstance < RailsHelperBase
       description "Gets a new instance of ApplicationController."
 
-      # This method assumes an +ApplicationController+ exists, and that it extends ActionController::Base.
+      # This method assumes an `ApplicationController` exists, and that it extends ActionController::Base.
       def execute
         @controller ||= ApplicationController.new
       end

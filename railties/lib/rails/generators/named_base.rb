@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails/generators/base"
 require "rails/generators/generated_attribute"
 
@@ -17,7 +18,7 @@ module Rails
         parse_attributes! if respond_to?(:attributes)
       end
 
-      # Overrides <tt>Thor::Actions#template</tt> so it can tell if
+      # Overrides `Thor::Actions#template` so it can tell if
       # a template is currently being created.
       no_tasks do
         def template(source, *args, &block)
@@ -202,11 +203,13 @@ module Rails
         end
 
         # Add a class collisions name to be checked on class initialization. You
-        # can supply a hash with a +:prefix+ or +:suffix+ to be tested.
+        # can supply a hash with a `:prefix` or `:suffix` to be tested.
         #
-        # ==== Examples
+        # #### Examples
         #
-        #   check_class_collision suffix: "Decorator"
+        # ```
+        # check_class_collision suffix: "Decorator"
+        # ```
         #
         # If the generator is invoked with class name Admin, it will check for
         # the presence of "AdminDecorator".

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails"
 require "active_record"
 require "active_support/core_ext/object/try"
@@ -12,7 +13,8 @@ require "active_model/railtie"
 require "action_controller/railtie"
 
 module ActiveRecord
-  # = Active Record Railtie
+  # Active Record Railtie
+  # =====================
   class Railtie < Rails::Railtie # :nodoc:
     config.active_record = ActiveSupport::OrderedOptions.new
     config.active_record.encryption = ActiveSupport::OrderedOptions.new
@@ -458,9 +460,16 @@ To keep using the current cache store, you can turn off cache versioning entirel
       end
     end
 
+    initializer "active_record.ractorize" do
+      ActiveSupport.on_load(:before_ractorize) do
+        ActiveRecord::Base.descendants.each(&:make_reflections_shareable!)
+      end
+    end
+
     initializer "active_record.share_configs" do
       config.after_initialize do
         ActiveSupport::Ractors.make_shareable(ActiveRecord.query_transformers)
+        ActiveSupport::Ractors.make_shareable(ActiveRecord.schema_ignored_tables)
 
         ActiveSupport.on_load(:active_record) do
           ActiveRecord::Base.time_zone_aware_types.freeze

@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
-  # = Active \Model \Attributes
+  # Active \Model \Attributes
+  # =========================
   #
   # The Attributes module allows models to define attributes beyond simple Ruby
   # readers and writers. Similar to Active Record attributes, which are
@@ -10,23 +12,25 @@ module ActiveModel
   # serialization.
   #
   # To use Attributes, include the module in your model class and define your
-  # attributes using the +attribute+ macro. It accepts a name, a type, a default
+  # attributes using the `attribute` macro. It accepts a name, a type, a default
   # value, and any other options supported by the attribute type.
   #
-  # ==== Examples
+  # #### Examples
   #
-  #   class Person
-  #     include ActiveModel::Attributes
+  # ```
+  # class Person
+  #   include ActiveModel::Attributes
   #
-  #     attribute :name, :string
-  #     attribute :active, :boolean, default: true
-  #   end
+  #   attribute :name, :string
+  #   attribute :active, :boolean, default: true
+  # end
   #
-  #   person = Person.new
-  #   person.name = "Volmer"
+  # person = Person.new
+  # person.name = "Volmer"
   #
-  #   person.name # => "Volmer"
-  #   person.active # => true
+  # person.name # => "Volmer"
+  # person.active # => true
+  # ```
   module Attributes
     extend ActiveSupport::Autoload
 
@@ -48,18 +52,20 @@ module ActiveModel
       # type and default value may be specified, as well as any options
       # supported by the given cast type.
       #
-      #   class Person
-      #     include ActiveModel::Attributes
+      # ```
+      # class Person
+      #   include ActiveModel::Attributes
       #
-      #     attribute :name, :string
-      #     attribute :active, :boolean, default: true
-      #   end
+      #   attribute :name, :string
+      #   attribute :active, :boolean, default: true
+      # end
       #
-      #   person = Person.new
-      #   person.name = "Volmer"
+      # person = Person.new
+      # person.name = "Volmer"
       #
-      #   person.name   # => "Volmer"
-      #   person.active # => true
+      # person.name   # => "Volmer"
+      # person.active # => true
+      # ```
       def attribute(name, ...)
         super
         define_attribute_method(name)
@@ -67,14 +73,16 @@ module ActiveModel
 
       # Returns an array of attribute names as strings.
       #
-      #   class Person
-      #     include ActiveModel::Attributes
+      # ```
+      # class Person
+      #   include ActiveModel::Attributes
       #
-      #     attribute :name, :string
-      #     attribute :age, :integer
-      #   end
+      #   attribute :name, :string
+      #   attribute :age, :integer
+      # end
       #
-      #   Person.attribute_names # => ["name", "age"]
+      # Person.attribute_names # => ["name", "age"]
+      # ```
       def attribute_names
         attribute_types.keys
       end
@@ -120,33 +128,37 @@ module ActiveModel
     # Returns a hash of all the attributes with their names as keys and the
     # values of the attributes as values.
     #
-    #   class Person
-    #     include ActiveModel::Attributes
+    # ```
+    # class Person
+    #   include ActiveModel::Attributes
     #
-    #     attribute :name, :string
-    #     attribute :age, :integer
-    #   end
+    #   attribute :name, :string
+    #   attribute :age, :integer
+    # end
     #
-    #   person = Person.new
-    #   person.name = "Francesco"
-    #   person.age = 22
+    # person = Person.new
+    # person.name = "Francesco"
+    # person.age = 22
     #
-    #   person.attributes # => { "name" => "Francesco", "age" => 22}
+    # person.attributes # => { "name" => "Francesco", "age" => 22}
+    # ```
     def attributes
       @attributes.to_hash
     end
 
     # Returns an array of attribute names as strings.
     #
-    #   class Person
-    #     include ActiveModel::Attributes
+    # ```
+    # class Person
+    #   include ActiveModel::Attributes
     #
-    #     attribute :name, :string
-    #     attribute :age, :integer
-    #   end
+    #   attribute :name, :string
+    #   attribute :age, :integer
+    # end
     #
-    #   person = Person.new
-    #   person.attribute_names # => ["name", "age"]
+    # person = Person.new
+    # person.attribute_names # => ["name", "age"]
+    # ```
     def attribute_names
       @attributes.keys
     end
@@ -164,6 +176,10 @@ module ActiveModel
 
       def attribute(attr_name)
         @attributes.fetch_value(attr_name)
+      end
+
+      def attribute_method?(attr_name)
+        @attributes&.key?(attr_name)
       end
   end
 end

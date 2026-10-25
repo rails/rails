@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   # This class is used to create a table that keeps track of which migrations
   # have been applied to a given database. When a migration is run, its schema
@@ -62,7 +63,7 @@ module ActiveRecord
       @pool.with_connection do |connection|
         unless connection.table_exists?(table_name)
           connection.create_table(table_name, id: false) do |t|
-            t.string :version, **connection.internal_string_options_for_primary_key
+            t.string :version, primary_key: true
           end
         end
       end

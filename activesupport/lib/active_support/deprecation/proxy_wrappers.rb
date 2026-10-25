@@ -3,7 +3,7 @@
 
 module ActiveSupport
   class Deprecation
-    class DeprecationProxy # :nodoc:
+    class DeprecationProxy < ::BasicObject # :nodoc:
       def self.new(*args, **kwargs, &block)
         object = args.first
 
@@ -11,7 +11,10 @@ module ActiveSupport
         super
       end
 
-      instance_methods.each { |m| undef_method m unless /^__|^object_id$/.match?(m) }
+      # BasicObject defines these few methods itself. Forward them to the
+      # target like everything else, so that comparing or evaluating against a
+      # deprecated object warns too.
+      [:==, :!=, :!, :equal?, :instance_eval, :instance_exec].each { |m| undef_method m }
 
       # Don't give a deprecation warning on inspect since test/unit and error
       # logs rely on it for diagnostics.
@@ -19,9 +22,11 @@ module ActiveSupport
         target.inspect
       end
 
+      alias_method :object_id, :__id__
+
       private
         def method_missing(called, ...)
-          warn(caller_locations, called, ...)
+          warn(::Kernel.caller_locations, called, ...)
           target.__send__(called, ...)
         end
     end

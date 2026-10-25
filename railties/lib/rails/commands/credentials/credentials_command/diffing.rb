@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Rails::Command::CredentialsCommand::Diffing # :nodoc:
   GITATTRIBUTES_ENTRY = <<~END
     config/credentials/*.yml.enc diff=rails_credentials

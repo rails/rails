@@ -1,20 +1,19 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Associations
     class SingularAssociation < Association # :nodoc:
       # Implements the reader method, e.g. foo.bar for Foo.has_one :bar
       def reader
-        ensure_klass_exists!
-
-        if !loaded? || stale_target?
-          reload
-        end
+        reload_target = !loaded? || stale_target?
+        ensure_klass_exists! if reload_target || !@stale_state
+        reload if reload_target
 
         target
       end
 
-      # Resets the \loaded flag to +false+ and sets the \target to +nil+.
+      # Resets the \loaded flag to `false` and sets the \target to `nil`.
       def reset
         super
         @target = nil

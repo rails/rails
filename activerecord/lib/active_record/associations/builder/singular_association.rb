@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 # This class is inherited by the has_one and belongs_to association classes
 
 module ActiveRecord::Associations::Builder # :nodoc:
@@ -30,7 +31,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       CODE
     end
 
-    # Defines the (build|create)_association methods for belongs_to or has_one association
+    # Defines the (build|create)\_association methods for belongs_to or has_one association
     def self.define_constructors(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def build_#{name}(*args, &block)

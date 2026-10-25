@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "action_view/view_paths"
 require "active_support/core_ext/module/attr_internal"
 
@@ -101,10 +102,10 @@ module ActionView
     #
     # The view class must have the following methods:
     #
-    # * <tt>View.new(lookup_context, assigns, controller)</tt> — Create a new
+    # * `View.new(lookup_context, assigns, controller)` — Create a new
     #   ActionView instance for a controller and we can also pass the arguments.
     #
-    # * <tt>View#render(option)</tt> — Returns String with the rendered template.
+    # * `View#render(option)` — Returns String with the rendered template.
     #
     # Override this method in a module to change the default behavior.
     def view_context
@@ -181,7 +182,7 @@ module ActionView
           options[:partial] = action_name
         end
 
-        if !options.keys.intersect?([:partial, :file, :template])
+        if !(options.key?(:partial) || options.key?(:file) || options.key?(:template))
           options[:prefixes] ||= _prefixes
         end
 

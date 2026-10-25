@@ -5,6 +5,8 @@ require "support/schema_dumping_helper"
 
 if ActiveRecord::Base.lease_connection.supports_virtual_columns?
   class SQLite3VirtualColumnTest < ActiveRecord::SQLite3TestCase
+    skip_under_ractor_proxy
+
     include SchemaDumpingHelper
 
     class VirtualColumn < ActiveRecord::Base

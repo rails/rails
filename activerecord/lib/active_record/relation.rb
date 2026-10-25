@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 module ActiveRecord
   # = Active Record \Relation
   class Relation
@@ -102,8 +104,9 @@ module ActiveRecord
 
     def bind_attribute(name, value) # :nodoc:
       if reflection = model._reflect_on_association(name)
-        name = reflection.foreign_key
-        value = value.read_attribute(reflection.association_primary_key) unless value.nil?
+        route = reflection.association_route(origin_class: model, destination_class: value&.class)
+        name = route.reference_origin_key.name
+        value = route.reference_destination_key.map_value { |column| value.read_attribute(column) } unless value.nil?
       end
 
       attr = predicate_builder.predicate_attribute(table[name])
@@ -281,7 +284,7 @@ module ActiveRecord
         record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
-          rewhere(attributes).lock.take!
+          rewhere(attributes).lock(connection.create_or_find_by_lock).take!
         else
           rewhere(attributes).take!
         end
@@ -301,7 +304,7 @@ module ActiveRecord
         record
       rescue ActiveRecord::RecordNotUnique
         if connection.transaction_open?
-          rewhere(attributes).lock.take!
+          rewhere(attributes).lock(connection.create_or_find_by_lock).take!
         else
           rewhere(attributes).take!
         end
@@ -638,7 +641,7 @@ module ActiveRecord
     end
 
     def update(id = :all, attributes) # :nodoc:
-      if update_multiple_ids?(id)
+      if model.primary_key_definition.expects_multiple_ids?(id)
         if id.any?(ActiveRecord::Base)
           raise ArgumentError,
             "You are passing an array of ActiveRecord::Base instances to `update`. " \
@@ -662,7 +665,7 @@ module ActiveRecord
     end
 
     def update!(id = :all, attributes) # :nodoc:
-      if update_multiple_ids?(id)
+      if model.primary_key_definition.expects_multiple_ids?(id)
         if id.any?(ActiveRecord::Base)
           raise ArgumentError,
             "You are passing an array of ActiveRecord::Base instances to `update!`. " \
@@ -1378,7 +1381,7 @@ module ActiveRecord
 
     def preload_associations(records) # :nodoc:
       preload = preload_values
-      preload += includes_values unless eager_loading?
+      preload += includes_values unless includes_values.empty? || eager_loading?
       scope = strict_loading_value ? StrictLoadingScope : nil
       preload.each do |associations|
         ActiveRecord::Associations::Preloader.new(records: records, associations: associations, scope: scope).call
@@ -1392,17 +1395,6 @@ module ActiveRecord
       end
 
     private
-      # +update+/+update!+ accept either a single id or an array of ids. For a
-      # composite primary key a single id is itself an array, so an array of
-      # ids is an array of arrays, mirroring how +#destroy+ tells the two apart.
-      def update_multiple_ids?(id)
-        if model.composite_primary_key?
-          id.is_a?(Array) && (id.empty? || id.first.is_a?(Array))
-        else
-          id.is_a?(Array)
-        end
-      end
-
       def already_in_scope?(registry)
         @delegate_to_model && registry.current_scope(model, true)
       end

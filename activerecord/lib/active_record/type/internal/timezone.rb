@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Type
     module Internal
@@ -19,6 +20,17 @@ module ActiveRecord
 
         def ==(other)
           super(other) && timezone == other.timezone
+        end
+
+        def as_schema_json
+          json = super
+          json["timezone"] = @timezone
+          json
+        end
+
+        def init_from_schema_json(coder, references)
+          @timezone = coder["timezone"]&.to_sym
+          super
         end
 
         protected

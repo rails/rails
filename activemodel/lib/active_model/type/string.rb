@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_model/type/immutable_string"
 
 module ActiveModel
   module Type
-    # = Active Model \String \Type
+    # Active Model \String \Type
+    # ==========================
     #
-    # Attribute type for strings. It is registered under the +:string+ key.
+    # Attribute type for strings. It is registered under the `:string` key.
     #
     # This class is a specialization of ActiveModel::Type::ImmutableString. It
     # performs coercion in the same way, and can be configured in the same way.
@@ -23,7 +25,7 @@ module ActiveModel
         true
       end
 
-      def to_immutable_string
+      def to_immutable_string # :nodoc:
         ImmutableString.new(
           true: @true,
           false: @false,

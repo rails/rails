@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Arel # :nodoc: all
   module Nodes
     class InfixOperation < Binary
@@ -15,6 +16,15 @@ module Arel # :nodoc: all
         super(left, right)
         @operator = operator
       end
+
+      def hash
+        [super, @operator].hash
+      end
+
+      def eql?(other)
+        super && self.operator == other.operator
+      end
+      alias :== :eql?
     end
 
     class Multiplication < InfixOperation

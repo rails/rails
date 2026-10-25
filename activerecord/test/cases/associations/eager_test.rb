@@ -1273,6 +1273,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preloading_has_many_without_selecting_the_owner_key
+    firm = Firm.select(:id).preload(:clients_using_primary_key).find(companies(:first_firm).id)
+
+    assert_no_queries { assert_empty firm.clients_using_primary_key }
+  end
+
   def test_include_has_many_using_primary_key
     expected = Firm.find(1).clients_using_primary_key.sort_by(&:name)
     firm = Firm.all.merge!(includes: :clients_using_primary_key, order: "clients_using_primary_keys_companies.name").find(1)

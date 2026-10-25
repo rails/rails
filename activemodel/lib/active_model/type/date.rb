@@ -1,28 +1,32 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Type
-    # = Active Model \Date \Type
+    # Active Model \Date \Type
+    # ========================
     #
     # Attribute type for date representation. It is registered under the
-    # +:date+ key.
+    # `:date` key.
     #
-    #   class Person
-    #     include ActiveModel::Attributes
+    # ```
+    # class Person
+    #   include ActiveModel::Attributes
     #
-    #     attribute :birthday, :date
-    #   end
+    #   attribute :birthday, :date
+    # end
     #
-    #   person = Person.new
-    #   person.birthday = "1989-07-13"
+    # person = Person.new
+    # person.birthday = "1989-07-13"
     #
-    #   person.birthday.class # => Date
-    #   person.birthday.year  # => 1989
-    #   person.birthday.month # => 7
-    #   person.birthday.day   # => 13
+    # person.birthday.class # => Date
+    # person.birthday.year  # => 1989
+    # person.birthday.month # => 7
+    # person.birthday.day   # => 13
+    # ```
     #
     # String values are parsed using the ISO 8601 date format. Any other values
-    # are cast using their +to_date+ method, if it exists.
+    # are cast using their `to_date` method, if it exists.
     class Date < Value
       include Helpers::Immutable
       include Helpers::Timezone

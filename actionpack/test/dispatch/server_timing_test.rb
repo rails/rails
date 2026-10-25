@@ -119,6 +119,74 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "nested events of the same name are not double counted" do
+    outer_sleep = 0.02
+    inner_sleep = 0.02
+
+    stub_app = ->(_env) {
+      ActiveSupport::Notifications.instrument("render_partial.action_view") do
+        sleep outer_sleep
+        ActiveSupport::Notifications.instrument("render_partial.action_view") do
+          sleep inner_sleep
+        end
+      end
+      [200, {}, ["ok"]]
+    }
+    app = ActionDispatch::ServerTiming.new(stub_app)
+
+    _status, headers, = app.call(Rack::MockRequest.env_for("/"))
+    duration = server_timing_duration(headers[@header_name], "render_partial.action_view")
+
+    wall_clock_ms = (outer_sleep + inner_sleep) * 1000
+    # Inclusive sum would be ~1.5–2× wall clock; exclusive stays near wall clock.
+    assert_in_delta wall_clock_ms, duration, wall_clock_ms * 0.5
+    assert_operator duration, :<, wall_clock_ms * 1.5
+  end
+
+  test "sibling events of the same name still accumulate" do
+    first_sleep = 0.02
+    second_sleep = 0.02
+
+    stub_app = ->(_env) {
+      ActiveSupport::Notifications.instrument("render_partial.action_view") do
+        sleep first_sleep
+      end
+      ActiveSupport::Notifications.instrument("render_partial.action_view") do
+        sleep second_sleep
+      end
+      [200, {}, ["ok"]]
+    }
+    app = ActionDispatch::ServerTiming.new(stub_app)
+
+    _status, headers, = app.call(Rack::MockRequest.env_for("/"))
+    duration = server_timing_duration(headers[@header_name], "render_partial.action_view")
+
+    wall_clock_ms = (first_sleep + second_sleep) * 1000
+    assert_in_delta wall_clock_ms, duration, wall_clock_ms * 0.5
+  end
+
+  test "nested events of a different name are not subtracted" do
+    stub_app = ->(_env) {
+      ActiveSupport::Notifications.instrument("render_partial.action_view") do
+        sleep 0.01
+        ActiveSupport::Notifications.instrument("sql.active_record") do
+          sleep 0.02
+        end
+        sleep 0.01
+      end
+      [200, {}, ["ok"]]
+    }
+    app = ActionDispatch::ServerTiming.new(stub_app)
+
+    _status, headers, = app.call(Rack::MockRequest.env_for("/"))
+    partial_duration = server_timing_duration(headers[@header_name], "render_partial.action_view")
+    sql_duration = server_timing_duration(headers[@header_name], "sql.active_record")
+
+    assert_operator partial_duration, :>, sql_duration
+    assert_in_delta 40, partial_duration, 20
+    assert_in_delta 20, sql_duration, 15
+  end
+
   private
     def app
       @app ||= self.class.build_app do |middleware|
@@ -136,5 +204,16 @@ class ServerTimingTest < ActionDispatch::IntegrationTest
 
         yield
       end
+    end
+
+    def server_timing_duration(header, name)
+      header.to_s.split(",").each do |entry|
+        entry_name, *params = entry.strip.split(";")
+        next unless entry_name == name
+
+        dur = params.find { |param| param.start_with?("dur=") }
+        return dur.delete_prefix("dur=").to_f if dur
+      end
+      flunk "missing Server-Timing entry for #{name} in #{header.inspect}"
     end
 end

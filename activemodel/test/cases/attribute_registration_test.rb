@@ -100,7 +100,10 @@ module ActiveModel
       assert_same TYPE_2, klass.attribute_types["bar"]
     end
 
-    if RUBY_VERSION >= "4.0"
+    # Prior to 4.1 exiting single ractor mode break breaks require decorators:
+    # - https://bugs.ruby-lang.org/issues/22263
+    # - https://github.com/fxn/zeitwerk/pull/344
+    if RUBY_VERSION >= "4.1"
       test "attribute_types can be accessed in a Ractor" do
         previous = ActiveSupport::Ractors.unshareable_proc_action
         ActiveSupport::Ractors.unshareable_proc_action = :raise

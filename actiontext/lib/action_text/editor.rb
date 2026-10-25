@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionText
   class Editor # :nodoc:
     extend ActiveSupport::Autoload
@@ -15,30 +16,34 @@ module ActionText
 
     # Convert fragments served by the editor into the canonical form that Action Text stores.
     #
-    #   def as_canonical(editable_fragment)
-    #     editable_fragment.replace "my-editor-attachment" do |editor_attachment|
-    #       ActionText::Attachment.from_attributes(
-    #         "sgid" => editor_attachment["sgid"],
-    #         "content-type" => editor_attachment["content-type"]
-    #       )
-    #     end
+    # ```
+    # def as_canonical(editable_fragment)
+    #   editable_fragment.replace "my-editor-attachment" do |editor_attachment|
+    #     ActionText::Attachment.from_attributes(
+    #       "sgid" => editor_attachment["sgid"],
+    #       "content-type" => editor_attachment["content-type"]
+    #     )
     #   end
+    # end
+    # ```
     def as_canonical(editable_fragment)
       editable_fragment
     end
 
     # Convert fragments from the canonical form that Action Text stores into a format that is supported by the editor.
     #
-    #   def as_editable(canonical_fragment)
-    #     canonical_fragment.replace ActionText::Attachment.tag_name do |action_text_attachment|
-    #       attachment_attributes = {
-    #         "sgid" => action_text_attachment["sgid"],
-    #         "content-type" => action_text_attachment["content-type"]
-    #       }
+    # ```
+    # def as_editable(canonical_fragment)
+    #   canonical_fragment.replace ActionText::Attachment.tag_name do |action_text_attachment|
+    #     attachment_attributes = {
+    #       "sgid" => action_text_attachment["sgid"],
+    #       "content-type" => action_text_attachment["content-type"]
+    #     }
     #
-    #       ActionText::HtmlConversion.create_element("my-editor-attachment", attachment_attributes)
-    #     end
+    #     ActionText::HtmlConversion.create_element("my-editor-attachment", attachment_attributes)
     #   end
+    # end
+    # ```
     def as_editable(canonical_fragment)
       canonical_fragment
     end

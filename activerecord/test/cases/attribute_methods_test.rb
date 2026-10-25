@@ -20,6 +20,8 @@ require "models/book_identifier"
 class AttributeMethodsTest < ActiveRecord::TestCase
   include InTimeZone
 
+  skip_under_ractor_proxy :"test_time_zone-aware_custom_attributes"
+
   class EpochTimestamp < ActiveRecord::Type::DateTime
     def deserialize(time_or_int)
       Time.at(time_or_int).utc if time_or_int
@@ -44,27 +46,53 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     ActiveRecord::Base.attribute_method_patterns = @old_matchers
   end
 
-  test "#id_value alias is defined if id column exist" do
+  test "#id_value reader and writer are defined without alias resolution if id column exist" do
     new_topic_model = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
     end
 
     new_topic_model.define_attribute_methods
     assert_includes new_topic_model.attribute_names, "id"
+    assert new_topic_model.method_defined?(:id_value)
+    assert new_topic_model.method_defined?(:id_value=)
+    assert_equal "id", new_topic_model.attribute_aliases["id_value"]
+    assert_not new_topic_model.include?(ActiveRecord::AttributeMethods::AliasResolution)
+  end
+
+  test "#id_value alias is defined if id column exist for a CPK model" do
+    new_book_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "cpk_books"
+    end
+
+    new_book_model.define_attribute_methods
+    assert_includes new_book_model.attribute_aliases, "id_value"
+    assert new_book_model.include?(ActiveRecord::AttributeMethods::AliasResolution)
+  end
+
+  test "#id_value alias is defined when the primary key becomes composite" do
+    new_topic_model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+
+    new_topic_model.define_attribute_methods
+    new_topic_model.primary_key = [:id, :title]
+
+    new_topic_model.define_attribute_methods
     assert_includes new_topic_model.attribute_aliases, "id_value"
+    assert_equal 1, new_topic_model.where(id_value: 1).count
   end
 
   test "#id_value alias does not accumulate duplicates when table_name is reassigned" do
     klass = Class.new(ActiveRecord::Base)
 
-    klass.table_name = "topics"
-    klass.first
+    klass.table_name = "cpk_books"
+    klass.define_attribute_methods
 
-    klass.table_name = "authors"
-    klass.first
+    klass.table_name = "cpk_chapters"
+    klass.define_attribute_methods
 
-    klass.table_name = "topics"
-    klass.first
+    klass.table_name = "cpk_books"
+    klass.define_attribute_methods
 
     assert_equal ["id_value"], klass.send(:aliases_by_attribute_name)["id"]
   end
@@ -84,6 +112,32 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     topic = Topic.create(id: 123_456, title: "title").becomes(TitlePrimaryKeyTopic)
 
     assert_equal(123_456, topic.id_value)
+  end
+
+  test "#id_value= writes the id column for a model without a composite primary key" do
+    topic = Topic.new(title: "title")
+    topic.id_value = 123_456
+    topic.save!
+
+    assert_equal 123_456, topic.id
+    assert_equal "title", Topic.find(123_456).title
+  end
+
+  test "#id_value= writes the id column when the primary key is not id" do
+    title_keyed_topic = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.primary_key = :title
+    end
+    topic = title_keyed_topic.new(title: "title")
+    topic.id_value = 123_456
+
+    assert_equal 123_456, topic.id_value
+    assert_equal "title", topic.id
+  end
+
+  test "where(id_value:) queries the id column for a model without a composite primary key" do
+    assert_equal [topics(:second)], Topic.where(id_value: topics(:second).id).to_a
+    assert_equal [topics(:second).id], Topic.where(id_value: topics(:second).id).pluck(:id_value)
   end
 
   test "aliasing `id` attribute allows reading the column value for a CPK model" do
@@ -326,6 +380,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal topic.attributes, db_attributes
   end
 
+  test "attributes_for_database follows column order for attributes assigned on a new record" do
+    topic = Topic.new(content: "content", title: "title", author_name: "David")
+
+    assert_equal Topic.column_names, topic.attributes_for_database.keys
+    assert_equal Topic.column_names, topic.attributes_before_type_cast.keys
+    assert_equal Topic.column_names, Topic.instantiate(topic.attributes_for_database).attributes.keys
+  end
+
   test "read attributes after type cast on a date" do
     tz = "Pacific Time (US & Canada)"
 
@@ -473,8 +535,75 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_raises(ActiveModel::MissingAttributeError, match: /attribute 'developer' for Computer/) do
       computer[:developer]
     end
+    assert_raises(ActiveModel::MissingAttributeError, match: /attribute 'system' for Computer/) do
+      computer.system
+    end
     assert_nothing_raised { computer[:extendedWarranty] }
     assert_nothing_raised { computer[:no_column_exists] }
+  end
+
+  test "generated reader raises from the caller when the attribute isn't selected" do
+    topic = Topic.select(:id).first
+
+    line = __LINE__ + 2
+    error = assert_raises(ActiveModel::MissingAttributeError, match: "missing attribute 'title' for Topic") do
+      topic.title
+    end
+
+    assert_includes error.backtrace.find { |frame| frame.start_with?(__FILE__) }, "#{__FILE__}:#{line}:in"
+  end
+
+  test "generated reader preserves a missing attribute error raised by the type" do
+    type = Class.new(ActiveRecord::Type::String) do
+      def deserialize(value)
+        raise ActiveModel::MissingAttributeError, "raised by the type" unless value.nil?
+        super
+      end
+    end.new
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      attribute :title, type
+    end
+
+    record = model.instantiate("title" => "Hello")
+    error = assert_raises(ActiveModel::MissingAttributeError) { record.title }
+    assert_equal "raised by the type", error.message
+  end
+
+  test "read_attr reads attributes and aliased attributes by String name" do
+    topic = Topic.new(title: "Don't change the topic")
+
+    assert_equal "Don't change the topic", topic.read_attr("title")
+    assert_equal "Don't change the topic", topic.read_attr("heading")
+    assert_nil topic.read_attr("no_column_exists")
+  end
+
+  test "read_attr returns nil when the attribute isn't selected" do
+    computer = Computer.select(:id, :extendedWarranty).first
+
+    assert_nil computer.read_attr("developer")
+    assert_equal computer.extendedWarranty, computer.read_attr("extendedWarranty")
+  end
+
+  test "internal readers preserve a missing attribute error raised by the type" do
+    type = Class.new(ActiveRecord::Type::String) do
+      def deserialize(value)
+        raise ActiveModel::MissingAttributeError, "raised by the type" unless value.nil?
+        super
+      end
+    end.new
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      attribute :title, type
+      alias_attribute :heading, :title
+    end
+
+    record = model.instantiate("title" => "Hello")
+    assert_raises(ActiveModel::MissingAttributeError, match: "raised by the type") { record.read_attr("title") }
+    assert_raises(ActiveModel::MissingAttributeError, match: "raised by the type") { record.read_attr("heading") }
+    assert_raises(ActiveModel::MissingAttributeError, match: "raised by the type") { record._read_attribute("title") }
   end
 
   test "read_attribute when false" do

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "yaml"
 require "active_support/core_ext/hash/keys"
 require "active_support/key_generator"
@@ -673,18 +675,9 @@ module Rails
 
       @autoloaders, @reloaders, @routes_reloader = nil, nil, nil
 
-      ActionView::PathRegistry.make_shareable! if defined?(ActionView::PathRegistry)
+      ActiveSupport.run_load_hooks(:before_ractorize, self)
+
       ActiveSupport::TimeZone.make_shareable!
-
-      if defined?(AbstractController::Base)
-        [AbstractController::Base, *AbstractController::Base.descendants].each do |controller|
-          Ractor.make_shareable(controller.config)
-        end
-      end
-
-      if defined?(ActiveRecord::Base)
-        ActiveRecord::Base.descendants.each(&:make_reflections_shareable!)
-      end
 
       Ractor.make_shareable(self)
       Ractor.make_shareable(Rails.env)
@@ -692,7 +685,6 @@ module Rails
       Ractor.make_shareable(Rails.event)
       Ractor.make_shareable(Rails.error)
       Ractor.make_shareable(Rails.backtrace_cleaner)
-      ActionView::DependencyTracker.share_registry if defined?(ActionView)
 
       begin
         require "rack/ractorize"

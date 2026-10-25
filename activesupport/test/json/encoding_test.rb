@@ -61,6 +61,21 @@ class TestJSONEncoding < ActiveSupport::TestCase
     end
   end
 
+  def test_fragment_with_invalid_encoding
+    ActiveSupport.escape_html_entities_in_json = true
+    fragment = JSON::Fragment.new(%{"<&} + 255.chr + %{"})
+
+    if ActiveSupport::JSON::Encoding::TR_ESCAPE_SUPPORTED
+      assert_raises(ArgumentError) { ActiveSupport::JSON.encode("a" => fragment) }
+    else
+      result = ActiveSupport::JSON.encode("a" => fragment)
+      assert_not_predicate result, :valid_encoding?
+      assert_equal Encoding::UTF_8, result.encoding
+    end
+  ensure
+    ActiveSupport.escape_html_entities_in_json = false
+  end
+
   def test_hash_keys_encoding
     ActiveSupport.escape_html_entities_in_json = true
     assert_equal "{\"\\u003c\\u003e\":\"\\u003c\\u003e\"}", ActiveSupport::JSON.encode("<>" => "<>")

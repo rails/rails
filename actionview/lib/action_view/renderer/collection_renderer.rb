@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "action_view/renderer/partial_renderer"
 
 module ActionView
@@ -165,6 +166,16 @@ module ActionView
             RenderedTemplate::EMPTY_SPACER
           end
 
+          # Caching, per-item layouts and subclasses (like Jbuilder's, which
+          # collects each item's result) need each item's body on its own,
+          # and only templates that write into the buffer they are given can
+          # share one. Otherwise every item is rendered into one shared
+          # buffer, which saves a buffer and a RenderedTemplate per item that
+          # would only be joined back together.
+          if instance_of?(CollectionRenderer) && layout.nil? && template && renders_into_buffer?(template) && !will_cache?(@options, view)
+            return collection_into_buffer(view, template, collection, spacer, &block)
+          end
+
           collection_body = if template
             cache_collection_render(payload, view, template, collection) do |filtered_collection|
               collection_with_template(view, template, layout, filtered_collection, &block)
@@ -176,6 +187,50 @@ module ActionView
           return RenderedCollection.empty(@lookup_context.formats.first) if collection_body.empty?
 
           build_rendered_collection(collection_body, spacer)
+        end
+      end
+
+      # ERB's compiled templates append to the output buffer they are run
+      # with. Other handlers (html, raw, Jbuilder, jb...) return their result
+      # instead, which Template#render drops when it is given a buffer, so
+      # their items have to be rendered one by one.
+      def renders_into_buffer?(template)
+        Template::Handlers::ERB === template.handler
+      end
+
+      def collection_into_buffer(view, template, collection, spacer, &block)
+        locals = @locals
+        cache = {}
+        spacer_body = spacer.body
+
+        partial_iteration = PartialIteration.new(collection.size)
+        buffer = nil
+        first_template = nil
+
+        collection.each_with_info do |object, (path, as, counter, iteration)|
+          index = partial_iteration.index
+
+          locals[as]        = object
+          locals[counter]   = index
+          locals[iteration] = partial_iteration
+
+          _template, implicit_locals = (cache[path] ||= [template || find_template(path, @locals.keys + [as, counter, iteration]), [counter, iteration]])
+
+          if buffer
+            buffer.safe_concat(spacer_body) unless spacer_body.empty?
+          else
+            buffer = OutputBuffer.new
+            first_template = _template
+          end
+
+          _template.render(view, locals, buffer, implicit_locals: implicit_locals, &block)
+          partial_iteration.iterate!
+        end
+
+        if buffer
+          build_rendered_template(buffer.to_s, first_template)
+        else
+          RenderedCollection.empty(@lookup_context.formats.first)
         end
       end
 
@@ -192,9 +247,9 @@ module ActionView
           locals[counter]   = index
           locals[iteration] = partial_iteration
 
-          _template = (cache[path] ||= (template || find_template(path, @locals.keys + [as, counter, iteration])))
+          _template, implicit_locals = (cache[path] ||= [template || find_template(path, @locals.keys + [as, counter, iteration]), [counter, iteration]])
 
-          content = _template.render(view, locals, implicit_locals: [counter, iteration], &block)
+          content = _template.render(view, locals, implicit_locals: implicit_locals, &block)
           content = layout.render(view, locals) { content } if layout
           partial_iteration.iterate!
           build_rendered_template(content, _template)

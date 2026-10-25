@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 module ActionMailbox
   # Ingests inbound emails from SendGrid. Requires an +email+ parameter containing a full RFC 822 message.
   #

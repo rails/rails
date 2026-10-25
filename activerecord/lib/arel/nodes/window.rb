@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Arel # :nodoc: all
   module Nodes
     class Window < Arel::Nodes::Node
@@ -79,7 +80,7 @@ module Arel # :nodoc: all
       end
 
       def hash
-        super ^ @name.hash
+        [super, @name].hash
       end
 
       def eql?(other)

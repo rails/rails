@@ -1,8 +1,20 @@
 #!/bin/bash -e
 
 <% unless skip_active_record? -%>
-# If running the rails server then create or migrate existing database
-if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
+# If running the rails server (optionally via Thruster, and with any extra
+# flags such as -b) then create or migrate existing database
+rails_server_command() {
+  local prev=""
+  for arg in "$@"; do
+    if [ "$prev" == "./bin/rails" ] && [ "$arg" == "server" ]; then
+      return 0
+    fi
+    prev="$arg"
+  done
+  return 1
+}
+
+if rails_server_command "$@"; then
   ./bin/rails db:prepare
 fi
 

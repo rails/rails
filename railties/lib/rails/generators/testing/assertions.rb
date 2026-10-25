@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Rails
   module Generators
     module Testing
@@ -7,21 +8,27 @@ module Rails
         # Asserts a given file exists. You need to supply an absolute path or a path relative
         # to the configured destination:
         #
-        #   assert_file "config/environment.rb"
+        # ```
+        # assert_file "config/environment.rb"
+        # ```
         #
         # You can also give extra arguments. If the argument is a regexp, it will check if the
         # regular expression matches the given file content. If it's a string, it compares the
         # file with the given string:
         #
-        #   assert_file "config/environment.rb", /initialize/
+        # ```
+        # assert_file "config/environment.rb", /initialize/
+        # ```
         #
         # Finally, when a block is given, it yields the file content:
         #
-        #   assert_file "app/controllers/products_controller.rb" do |controller|
-        #     assert_instance_method :index, controller do |index|
-        #       assert_match(/Product\.all/, index)
-        #     end
+        # ```
+        # assert_file "app/controllers/products_controller.rb" do |controller|
+        #   assert_instance_method :index, controller do |index|
+        #     assert_match(/Product\.all/, index)
         #   end
+        # end
+        # ```
         def assert_file(relative, *contents)
           absolute = File.expand_path(relative, destination_root)
           assert File.exist?(absolute), "Expected file #{relative.inspect} to exist, but does not"
@@ -43,7 +50,9 @@ module Rails
         # Asserts a given file does not exist. You need to supply an absolute path or a
         # path relative to the configured destination:
         #
-        #   assert_no_file "config/random.rb"
+        # ```
+        # assert_no_file "config/random.rb"
+        # ```
         def assert_no_file(relative)
           absolute = File.expand_path(relative, destination_root)
           assert !File.exist?(absolute), "Expected file #{relative.inspect} to not exist, but does"
@@ -53,12 +62,16 @@ module Rails
         # Asserts a given migration exists. You need to supply an absolute path or a
         # path relative to the configured destination:
         #
-        #   assert_migration "db/migrate/create_products.rb"
+        # ```
+        # assert_migration "db/migrate/create_products.rb"
+        # ```
         #
         # This method manipulates the given path and tries to find any migration which
         # matches the migration name. For example, the call above is converted to:
         #
-        #   assert_file "db/migrate/003_create_products.rb"
+        # ```
+        # assert_file "db/migrate/003_create_products.rb"
+        # ```
         #
         # Consequently, assert_migration accepts the same arguments has assert_file.
         def assert_migration(relative, *contents, &block)
@@ -70,7 +83,9 @@ module Rails
         # Asserts a given migration does not exist. You need to supply an absolute path or a
         # path relative to the configured destination:
         #
-        #   assert_no_migration "db/migrate/create_products.rb"
+        # ```
+        # assert_no_migration "db/migrate/create_products.rb"
+        # ```
         def assert_no_migration(relative)
           file_name = migration_file_name(relative)
           assert_nil file_name, "Expected migration #{relative} to not exist, but found #{file_name}"
@@ -80,11 +95,13 @@ module Rails
         # class methods inside (class << self), only class methods which starts with "self.".
         # When a block is given, it yields the content of the method.
         #
-        #   assert_migration "db/migrate/create_products.rb" do |migration|
-        #     assert_class_method :up, migration do |up|
-        #       assert_match(/create_table/, up)
-        #     end
+        # ```
+        # assert_migration "db/migrate/create_products.rb" do |migration|
+        #   assert_class_method :up, migration do |up|
+        #     assert_match(/create_table/, up)
         #   end
+        # end
+        # ```
         def assert_class_method(method, content, &block)
           assert_instance_method "self.#{method}", content, &block
         end
@@ -92,11 +109,13 @@ module Rails
         # Asserts the given method exists in the given content. When a block is given,
         # it yields the content of the method.
         #
-        #   assert_file "app/controllers/products_controller.rb" do |controller|
-        #     assert_instance_method :index, controller do |index|
-        #       assert_match(/Product\.all/, index)
-        #     end
+        # ```
+        # assert_file "app/controllers/products_controller.rb" do |controller|
+        #   assert_instance_method :index, controller do |index|
+        #     assert_match(/Product\.all/, index)
         #   end
+        # end
+        # ```
         def assert_instance_method(method, content)
           assert content =~ /(\s+)def #{method}(\(.+\))?(.*?)\n\1end/m, "Expected to have method #{method}"
           assert_nothing_raised { yield $3.strip } if block_given?
@@ -106,14 +125,18 @@ module Rails
         # Asserts the given attribute type gets translated to a field type
         # properly:
         #
-        #   assert_field_type :date, :date_select
+        # ```
+        # assert_field_type :date, :date_select
+        # ```
         def assert_field_type(attribute_type, field_type)
           assert_equal(field_type, create_generated_attribute(attribute_type).field_type)
         end
 
         # Asserts the given attribute type gets a proper default value:
         #
-        #   assert_field_default_value :string, "MyString"
+        # ```
+        # assert_field_default_value :string, "MyString"
+        # ```
         def assert_field_default_value(attribute_type, value)
           if value.nil?
             assert_nil(create_generated_attribute(attribute_type).default)
@@ -123,21 +146,27 @@ module Rails
         end
 
         # Asserts a given initializer exists. You need to supply a path relative
-        # to the `config/initializers/` directory.
+        # to the \`config/initializers/\` directory.
         #
-        #   assert_initializer "mail_interceptors.rb"
+        # ```
+        # assert_initializer "mail_interceptors.rb"
+        # ```
         #
         # You can also give extra arguments. If the argument is a regexp, it will check if the
         # regular expression matches the given file content. If it's a string, it compares the
         # file with the given string:
         #
-        #   assert_initializer "mail_interceptors.rb", /SandboxEmailInterceptor/
+        # ```
+        # assert_initializer "mail_interceptors.rb", /SandboxEmailInterceptor/
+        # ```
         #
         # Finally, when a block is given, it yields the file content:
         #
-        #   assert_initializer "mail_interceptors.rb" do |initializer|
-        #     assert_match(/SandboxEmailInterceptor/, initializer)
-        #   end
+        # ```
+        # assert_initializer "mail_interceptors.rb" do |initializer|
+        #   assert_match(/SandboxEmailInterceptor/, initializer)
+        # end
+        # ```
         def assert_initializer(name, *contents, &block)
           assert_file("config/initializers/#{name}", *contents, &block)
         end

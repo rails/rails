@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
@@ -13,6 +14,15 @@ module ActiveRecord
         def initialize(type_metadata, extra: nil)
           super(type_metadata)
           @extra = extra
+        end
+
+        def as_schema_json
+          { "type_metadata" => __getobj__, "extra" => extra.presence }
+        end
+
+        def init_from_schema_json(coder, references)
+          __setobj__(references[coder["type_metadata"]])
+          @extra = coder["extra"] || ""
         end
 
         def ==(other)

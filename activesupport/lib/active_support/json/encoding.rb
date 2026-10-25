@@ -83,6 +83,24 @@ module ActiveSupport
       FULL_ESCAPE_REGEX = Regexp.union(*ESCAPED_CHARS.keys).freeze
       JS_SEPARATORS_REGEX = Regexp.union(U2028, U2029).freeze
 
+      UTF8_ESCAPED_CHARS = {
+        "\u2028" => '\u2028',
+        "\u2029" => '\u2029',
+        ">" => '\u003e',
+        "<" => '\u003c',
+        "&" => '\u0026',
+      }.freeze
+      UTF8_HTML_ENTITIES = UTF8_ESCAPED_CHARS.except("\u2028", "\u2029").freeze
+      UTF8_JS_SEPARATORS = UTF8_ESCAPED_CHARS.slice("\u2028", "\u2029").freeze
+
+      # String#tr accepts a Hash as of Ruby 4.1 (ruby/ruby#18647). Checked
+      # directly, since development builds report 4.1.0 before they have it.
+      TR_ESCAPE_SUPPORTED = begin
+        "a".tr({ "a" => "b" }) == "b"
+      rescue ArgumentError, TypeError
+        false
+      end
+
       class JSONGemEncoder # :nodoc:
         attr_reader :options
 
@@ -99,20 +117,39 @@ module ActiveSupport
 
           return json unless @options.fetch(:escape, true)
 
-          json.force_encoding(::Encoding::BINARY)
-          if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
-            if Encoding.escape_js_separators_in_json
-              json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
-            else
-              json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
-            end
-          elsif Encoding.escape_js_separators_in_json
-            json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
-          end
-          json.force_encoding(::Encoding::UTF_8)
+          escape!(json)
         end
 
         private
+          if TR_ESCAPE_SUPPORTED
+            def escape!(json)
+              if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
+                if Encoding.escape_js_separators_in_json
+                  json.tr!(UTF8_ESCAPED_CHARS)
+                else
+                  json.tr!(UTF8_HTML_ENTITIES)
+                end
+              elsif Encoding.escape_js_separators_in_json
+                json.tr!(UTF8_JS_SEPARATORS)
+              end
+              json
+            end
+          else
+            def escape!(json)
+              json.force_encoding(::Encoding::BINARY)
+              if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
+                if Encoding.escape_js_separators_in_json
+                  json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
+                else
+                  json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
+                end
+              elsif Encoding.escape_js_separators_in_json
+                json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
+              end
+              json.force_encoding(::Encoding::UTF_8)
+            end
+          end
+
           # Convert an object into a "JSON-ready" representation composed of
           # primitives like Hash, Array, String, Symbol, Numeric,
           # and `true`/`false`/`nil`.
@@ -209,18 +246,38 @@ module ActiveSupport
 
             return json unless @escape
 
-            json.force_encoding(::Encoding::BINARY)
-            if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
-              if Encoding.escape_js_separators_in_json
-                json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
-              else
-                json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
-              end
-            elsif Encoding.escape_js_separators_in_json
-              json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
-            end
-            json.force_encoding(::Encoding::UTF_8)
+            escape!(json)
           end
+
+          private
+            if TR_ESCAPE_SUPPORTED
+              def escape!(json)
+                if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
+                  if Encoding.escape_js_separators_in_json
+                    json.tr!(UTF8_ESCAPED_CHARS)
+                  else
+                    json.tr!(UTF8_HTML_ENTITIES)
+                  end
+                elsif Encoding.escape_js_separators_in_json
+                  json.tr!(UTF8_JS_SEPARATORS)
+                end
+                json
+              end
+            else
+              def escape!(json)
+                json.force_encoding(::Encoding::BINARY)
+                if @options.fetch(:escape_html_entities, Encoding.escape_html_entities_in_json)
+                  if Encoding.escape_js_separators_in_json
+                    json.gsub!(FULL_ESCAPE_REGEX, ESCAPED_CHARS)
+                  else
+                    json.gsub!(HTML_ENTITIES_REGEX, ESCAPED_CHARS)
+                  end
+                elsif Encoding.escape_js_separators_in_json
+                  json.gsub!(JS_SEPARATORS_REGEX, ESCAPED_CHARS)
+                end
+                json.force_encoding(::Encoding::UTF_8)
+              end
+            end
         end
       end
 

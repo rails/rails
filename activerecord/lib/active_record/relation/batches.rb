@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "active_record/relation/batches/batch_enumerator"
 
 module ActiveRecord

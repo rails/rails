@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_record/middleware/database_selector/resolver"
 
 module ActiveRecord
   module Middleware
-    # = Database Selector \Middleware
+    # Database Selector \Middleware
+    # =============================
     #
     # The DatabaseSelector Middleware provides a framework for automatically
     # swapping from the primary to the replica database connection. \Rails
@@ -24,16 +26,20 @@ module ActiveRecord
     # To use the DatabaseSelector in your application with default settings,
     # run the provided generator.
     #
-    #   $ bin/rails g active_record:multi_db
+    # ```
+    # $ bin/rails g active_record:multi_db
+    # ```
     #
-    # This will create a file named +config/initializers/multi_db.rb+ with the
+    # This will create a file named `config/initializers/multi_db.rb` with the
     # following contents:
     #
-    #   Rails.application.configure do
-    #     config.active_record.database_selector = { delay: 2.seconds }
-    #     config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
-    #     config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
-    #   end
+    # ```
+    # Rails.application.configure do
+    #   config.active_record.database_selector = { delay: 2.seconds }
+    #   config.active_record.database_resolver = ActiveRecord::Middleware::DatabaseSelector::Resolver
+    #   config.active_record.database_resolver_context = ActiveRecord::Middleware::DatabaseSelector::Resolver::Session
+    # end
+    # ```
     #
     # Alternatively you can set the options in your environment config or
     # any other config file loaded on boot.
@@ -41,13 +47,15 @@ module ActiveRecord
     # The default behavior can be changed by setting the config options to a
     # custom class:
     #
-    #   config.active_record.database_selector = { delay: 2.seconds }
-    #   config.active_record.database_resolver = MyResolver
-    #   config.active_record.database_resolver_context = MyResolver::MySession
+    # ```
+    # config.active_record.database_selector = { delay: 2.seconds }
+    # config.active_record.database_resolver = MyResolver
+    # config.active_record.database_resolver_context = MyResolver::MySession
+    # ```
     #
-    # Note: If you are using <tt>rails new my_app --minimal</tt> you will need
-    # to call <tt>require "active_support/core_ext/integer/time"</tt> to load
-    # the core extension in order to use +2.seconds+
+    # Note: If you are using `rails new my_app --minimal` you will need
+    # to call `require "active_support/core_ext/integer/time"` to load
+    # the core extension in order to use `2.seconds`
     class DatabaseSelector
       def initialize(app, resolver_klass = nil, context_klass = nil, options = {})
         @app = app

@@ -1,14 +1,19 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
         # This class uses the data from PostgreSQL pg_type table to build
         # the OID -> Type mapping.
-        #   - OID is an integer representing the type.
-        #   - Type is an OID::Type object.
-        # This class has side effects on the +store+ passed during initialization.
+        #
+        # ```
+        # - OID is an integer representing the type.
+        # - Type is an OID::Type object.
+        # ```
+        #
+        # This class has side effects on the `store` passed during initialization.
         class TypeMapInitializer # :nodoc:
           def initialize(store)
             @store = store

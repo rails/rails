@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Validations
     class AcceptanceValidator < EachValidator # :nodoc:
@@ -83,27 +84,30 @@ module ActiveModel
       # Encapsulates the pattern of wanting to validate the acceptance of a
       # terms of service check box (or similar agreement).
       #
-      #   class Person < ActiveRecord::Base
-      #     validates_acceptance_of :terms_of_service
-      #     validates_acceptance_of :eula, message: 'must be abided'
-      #   end
+      # ```
+      # class Person < ActiveRecord::Base
+      #   validates_acceptance_of :terms_of_service
+      #   validates_acceptance_of :eula, message: 'must be abided'
+      # end
+      # ```
       #
-      # If the database column does not exist, the +terms_of_service+ attribute
-      # is entirely virtual. This check is performed only if +terms_of_service+
-      # is not +nil+.
+      # If the database column does not exist, the `terms_of_service` attribute
+      # is entirely virtual. This check is performed only if `terms_of_service`
+      # is not `nil`.
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "must be
+      #
+      # * `:message` - A custom error message (default is: "must be
       #   accepted").
-      # * <tt>:accept</tt> - Specifies a value that is considered accepted.
+      # * `:accept` - Specifies a value that is considered accepted.
       #   Also accepts an array of possible values. The default value is
       #   an array ["1", true], which makes it easy to relate to an HTML
-      #   checkbox. This should be set to, or include, +true+ if you are validating
-      #   a database column, since the attribute is typecast from "1" to +true+
+      #   checkbox. This should be set to, or include, `true` if you are validating
+      #   a database column, since the attribute is typecast from "1" to `true`
       #   before validation.
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
+      # `:if`, `:unless`, `:on`, `:allow_nil`, `:allow_blank`, and `:strict`.
       # See ActiveModel::Validations::ClassMethods#validates for more information.
       def validates_acceptance_of(*attr_names)
         validates_with AcceptanceValidator, _merge_attributes(attr_names)

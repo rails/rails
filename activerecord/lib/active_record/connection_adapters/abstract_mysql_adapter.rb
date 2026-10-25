@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/mysql/column"
@@ -21,12 +22,29 @@ module ActiveRecord
 
       ##
       # :singleton-method:
-      # By default, the Mysql2Adapter will consider all columns of type <tt>tinyint(1)</tt>
+      # By default, the Mysql2Adapter will consider all columns of type `tinyint(1)`
       # as boolean. If you wish to disable this emulation you can add the following line
       # to your application.rb file:
       #
-      #   ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
+      # ```
+      # ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans = false
+      # ```
       class_attribute :emulate_booleans, default: true
+
+      class_attribute :cli_arg_map, instance_accessor: false, default: {
+        host: "--host",
+        port: "--port",
+        socket: "--socket",
+        username: "--user",
+        password: "--password",
+        encoding: "--default-character-set",
+        sslca: "--ssl-ca",
+        sslcert: "--ssl-cert",
+        sslcapath: "--ssl-capath",
+        sslcipher: "--ssl-cipher",
+        sslkey: "--ssl-key",
+        ssl_mode: "--ssl-mode"
+      }.freeze
 
       NATIVE_DATABASE_TYPES = { # rubocop:disable Style/MutableConstant
         primary_key: "bigint auto_increment PRIMARY KEY",
@@ -60,22 +78,18 @@ module ActiveRecord
       end
 
       class << self
+        def ractor_connection_proxy_class # :nodoc:
+          RactorConnectionHandler::MysqlProxyAdapter
+        end
+
+        def cli_args(config) # :nodoc:
+          cli_arg_map.filter_map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }
+        end
+
         def dbconsole(config, options = {})
           mysql_config = config.configuration_hash
 
-          args = {
-            host: "--host",
-            port: "--port",
-            socket: "--socket",
-            username: "--user",
-            encoding: "--default-character-set",
-            sslca: "--ssl-ca",
-            sslcert: "--ssl-cert",
-            sslcapath: "--ssl-capath",
-            sslcipher: "--ssl-cipher",
-            sslkey: "--ssl-key",
-            ssl_mode: "--ssl-mode"
-          }.filter_map { |opt, arg| "#{arg}=#{mysql_config[opt]}" if mysql_config[opt] }
+          args = cli_args(mysql_config.except(:password))
 
           if mysql_config[:password] && options[:include_password]
             args << "--password=#{mysql_config[:password]}"
@@ -147,17 +161,13 @@ module ActiveRecord
         true
       end
 
-      def supports_datetime_with_precision?
-        true
-      end
-
       def supports_virtual_columns?
-        mariadb? || database_version >= "5.7.5"
+        true
       end
 
       # See https://dev.mysql.com/doc/refman/en/optimizer-hints.html for more details.
       def supports_optimizer_hints?
-        !mariadb? && database_version >= "5.7.7"
+        !mariadb?
       end
 
       def supports_common_table_expressions?
@@ -198,6 +208,40 @@ module ActiveRecord
         end
       end
 
+      def create_or_find_by_lock # :nodoc:
+        # A shared lock provides a current read under REPEATABLE READ without
+        # upgrading the shared record lock acquired by a duplicate INSERT.
+        if mariadb? || database_version < "8.0.1"
+          "LOCK IN SHARE MODE"
+        else
+          "FOR SHARE"
+        end
+      end
+
+      def supports_json?
+        !mariadb?
+      end
+
+      def supports_comments?
+        true
+      end
+
+      def supports_comments_in_create?
+        true
+      end
+
+      def supports_savepoints?
+        true
+      end
+
+      def savepoint_errors_invalidate_transactions?
+        true
+      end
+
+      def supports_lazy_transactions?
+        true
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})", nil, materialize_transactions: true) == 1
       end
@@ -218,10 +262,11 @@ module ActiveRecord
       # Returns the available lock options for MySQL DDL operations.
       #
       # MySQL supports the following lock modes:
-      # * <tt>:default</tt> - Let MySQL decide the lock level.
-      # * <tt>:none</tt> - Allow concurrent reads and writes (online DDL).
-      # * <tt>:shared</tt> - Allow concurrent reads but block writes.
-      # * <tt>:exclusive</tt> - Block all concurrent reads and writes.
+      #
+      # * `:default` - Let MySQL decide the lock level.
+      # * `:none` - Allow concurrent reads and writes (online DDL).
+      # * `:shared` - Allow concurrent reads but block writes.
+      # * `:exclusive` - Block all concurrent reads and writes.
       def lock_options
         {
           default:   "LOCK = DEFAULT",
@@ -238,10 +283,18 @@ module ActiveRecord
         end
       end
 
-      # Must return the MySQL error number from the exception, if the exception has an
-      # error number.
-      def error_number(exception) # :nodoc:
-        raise NotImplementedError
+      def connected?
+        !(@raw_connection.nil? || @raw_connection.closed?)
+      end
+
+      alias :reset! :reconnect!
+
+      def disconnect!
+        @lock.synchronize do
+          super
+          @raw_connection&.close
+          @raw_connection = nil
+        end
       end
 
       # REFERENTIAL INTEGRITY ====================================
@@ -306,8 +359,8 @@ module ActiveRecord
 
       # SCHEMA STATEMENTS ========================================
 
-      # Drops the database specified on the +name+ attribute
-      # and creates it again using the provided +options+.
+      # Drops the database specified on the `name` attribute
+      # and creates it again using the provided `options`.
       def recreate_database(name, options = {})
         drop_database(name)
         sql = create_database(name, options)
@@ -315,29 +368,33 @@ module ActiveRecord
         sql
       end
 
-      # Create a new MySQL database with optional <tt>:charset</tt> and <tt>:collation</tt>.
+      # Create a new MySQL database with optional `:charset` and `:collation`.
       # Charset defaults to utf8mb4.
       #
       # Example:
-      #   create_database 'charset_test', charset: 'latin1', collation: 'latin1_bin'
-      #   create_database 'matt_development'
-      #   create_database 'matt_development', charset: :big5
+      #
+      # ```
+      # create_database 'charset_test', charset: 'latin1', collation: 'latin1_bin'
+      # create_database 'matt_development'
+      # create_database 'matt_development', charset: :big5
+      # ```
       def create_database(name, options = {})
         if options[:collation]
           execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT COLLATE #{quote_table_name(options[:collation])}"
         elsif options[:charset]
           execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset])}"
-        elsif row_format_dynamic_by_default?
-          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET `utf8mb4`"
         else
-          raise "Configure a supported :charset and ensure innodb_large_prefix is enabled to support indexes on varchar(255) string columns."
+          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET `utf8mb4`"
         end
       end
 
       # Drops a MySQL database.
       #
       # Example:
-      #   drop_database('sebastian_development')
+      #
+      # ```
+      # drop_database('sebastian_development')
+      # ```
       def drop_database(name) # :nodoc:
         execute "DROP DATABASE IF EXISTS #{quote_table_name(name)}"
       end
@@ -381,7 +438,10 @@ module ActiveRecord
       # Renames a table.
       #
       # Example:
-      #   rename_table('octopuses', 'octopi')
+      #
+      # ```
+      # rename_table('octopuses', 'octopi')
+      # ```
       def rename_table(table_name, new_name, **options)
         validate_table_length!(new_name) unless options[:_uses_legacy_table_name]
         schema_cache.clear_data_source_cache!(table_name.to_s)
@@ -392,19 +452,21 @@ module ActiveRecord
 
       # Drops a table or tables from the database.
       #
-      # [<tt>:force</tt>]
-      #   Set to +:cascade+ to drop dependent objects as well.
-      #   Defaults to false.
-      # [<tt>:if_exists</tt>]
-      #   Set to +true+ to only drop the table if it exists.
-      #   Defaults to false.
-      # [<tt>:temporary</tt>]
-      #   Set to +true+ to drop temporary table.
-      #   Defaults to false.
+      # `:force`
+      # :   Set to `:cascade` to drop dependent objects as well.
+      # Defaults to false.
       #
-      # Although this command ignores most +options+ and the block if one is given,
-      # it can be helpful to provide these in a migration's +change+ method so it can be reverted.
-      # In that case, +options+ and the block will be used by #create_table except if you provide more than one table which is not supported.
+      # `:if_exists`
+      # :   Set to `true` to only drop the table if it exists.
+      # Defaults to false.
+      #
+      # `:temporary`
+      # :   Set to `true` to drop temporary table.
+      # Defaults to false.
+      #
+      # Although this command ignores most `options` and the block if one is given,
+      # it can be helpful to provide these in a migration's `change` method so it can be reverted.
+      # In that case, `options` and the block will be used by #create_table except if you provide more than one table which is not supported.
       def drop_table(*table_names, **options)
         table_names.each { |table_name| schema_cache.clear_data_source_cache!(table_name.to_s) }
         execute drop_table_sql(*table_names, **options)
@@ -585,6 +647,11 @@ module ActiveRecord
         index.using == :btree || super
       end
 
+      def text_type?(type) # :nodoc:
+        cast_type = self.class::TYPE_MAP.lookup(type)
+        cast_type.is_a?(Type::String) || cast_type.is_a?(Type::Text)
+      end
+
       def empty_all_tables # :nodoc:
         table_names = tables - [pool.schema_migration.table_name, pool.internal_metadata.table_name]
         return if table_names.empty?
@@ -603,7 +670,9 @@ module ActiveRecord
 
         # MySQL 8.0.19 replaces `VALUES(<expression>)` clauses with row and column alias names, see https://dev.mysql.com/worklog/task/?id=6312 .
         # then MySQL 8.0.20 deprecates the `VALUES(<expression>)` see https://dev.mysql.com/worklog/task/?id=13325 .
-        if supports_insert_raw_alias_syntax?
+        if supports_insert_raw_alias_syntax? && insert.update_duplicates? && insert.raw_update_sql?
+          sql = +"INSERT #{insert.into} #{insert.values_list} ON DUPLICATE KEY UPDATE #{insert.raw_update_sql}"
+        elsif supports_insert_raw_alias_syntax?
           quoted_table_name = insert.model.quoted_table_name
           values_alias = quote_table_name("#{insert.model.table_name.parameterize}_values")
           sql = +"INSERT #{insert.into} #{insert.values_list} AS #{values_alias}"
@@ -613,13 +682,9 @@ module ActiveRecord
               sql << " ON DUPLICATE KEY UPDATE #{no_op_column}=#{quoted_table_name}.#{no_op_column}"
             end
           elsif insert.update_duplicates?
-            if insert.raw_update_sql?
-              sql = +"INSERT #{insert.into} #{insert.values_list} ON DUPLICATE KEY UPDATE #{insert.raw_update_sql}"
-            else
-              sql << " ON DUPLICATE KEY UPDATE "
-              sql << insert.touch_model_timestamps_unless { |column| "#{quoted_table_name}.#{column}<=>#{values_alias}.#{column}" }
-              sql << insert.updatable_columns.map { |column| "#{column}=#{values_alias}.#{column}" }.join(",")
-            end
+            sql << " ON DUPLICATE KEY UPDATE "
+            sql << insert.touch_model_timestamps_unless { |column| "#{quoted_table_name}.#{column}<=>#{values_alias}.#{column}" }
+            sql << insert.updatable_columns.map { |column| "#{column}=#{values_alias}.#{column}" }.join(",")
           end
         else
           sql = +"INSERT #{insert.into} #{insert.values_list}"
@@ -644,8 +709,8 @@ module ActiveRecord
       end
 
       def check_version # :nodoc:
-        if database_version < "5.6.4"
-          raise DatabaseVersionError, "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.6.4."
+        if database_version < "5.7.9"
+          raise DatabaseVersionError, "Your version of MySQL (#{database_version}) is too old. Active Record supports MySQL >= 5.7.9."
         end
       end
 
@@ -721,7 +786,15 @@ module ActiveRecord
       EMULATE_BOOLEANS_TRUE = { emulate_booleans: true }.freeze
 
       private
-        # `SHOW CREATE TABLE` is the only place MySQL reports a table's options, and
+        def full_version
+          database_version.full_version_string
+        end
+
+        def default_prepared_statements
+          false
+        end
+
+        # \`SHOW CREATE TABLE\` is the only place MySQL reports a table's options, and
         # it reads one table at a time.
         def fetch_table_options(tables)
           tables.index_with { |table| build_table_options(table, create_table_info(table)) }
@@ -899,6 +972,12 @@ module ActiveRecord
           warning.level == "Note" || super
         end
 
+        # Must return the MySQL error number from the exception, if the exception has an
+        # error number.
+        def error_number(exception)
+          raise NotImplementedError
+        end
+
         # See https://dev.mysql.com/doc/mysql-errors/en/server-error-reference.html
         ER_DB_CREATE_EXISTS     = 1007
         ER_FILSORT_ABORT        = 1028
@@ -977,11 +1056,7 @@ module ActiveRecord
         end
 
         def supports_rename_index?
-          if mariadb?
-            database_version >= "10.5.2"
-          else
-            database_version >= "5.7.6"
-          end
+          !mariadb? || database_version >= "10.5.2"
         end
 
         def supports_rename_column?
@@ -1088,9 +1163,9 @@ module ActiveRecord
         end
 
         # MariaDB reports a default as the SQL literal that produced it, where
-        # `SHOW FULL FIELDS` reports the value: a literal comes back quoted, and a
-        # newline inside one is written `\n`. Put them back into the form
-        # #new_column_from_field reads.
+        # \`SHOW FULL FIELDS\` reports the value: a literal comes back quoted, and a
+        # newline inside one is written \`\n\`. Put them back into the form #new_column_from_field
+        # reads.
         def unquote_mariadb_default(field)
           default = field["Default"]
           return if default.nil?

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/hash/slice"
 require "active_record/relation/merger"
@@ -10,25 +11,29 @@ module ActiveRecord
       already_in_scope?(model.scope_registry) ? model.all : clone
     end
 
-    # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an ActiveRecord::Relation.
-    # Returns an array representing the intersection of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
+    # Merges in the conditions from `other`, if `other` is an ActiveRecord::Relation.
+    # Returns an array representing the intersection of the resulting records with `other`, if `other` is an array.
     #
-    #   Post.where(published: true).joins(:comments).merge( Comment.where(spam: false) )
-    #   # Performs a single join query with both where conditions.
+    # ```
+    # Post.where(published: true).joins(:comments).merge( Comment.where(spam: false) )
+    # # Performs a single join query with both where conditions.
     #
-    #   recent_posts = Post.order('created_at DESC').first(5)
-    #   Post.where(published: true).merge(recent_posts)
-    #   # Returns the intersection of all published posts with the 5 most recently created posts.
-    #   # (This is just an example. You'd probably want to do this with a single query!)
+    # recent_posts = Post.order('created_at DESC').first(5)
+    # Post.where(published: true).merge(recent_posts)
+    # # Returns the intersection of all published posts with the 5 most recently created posts.
+    # # (This is just an example. You'd probably want to do this with a single query!)
+    # ```
     #
     # Procs will be evaluated by merge:
     #
-    #   Post.where(published: true).merge(-> { joins(:comments) })
-    #   # => Post.where(published: true).joins(:comments)
+    # ```
+    # Post.where(published: true).merge(-> { joins(:comments) })
+    # # => Post.where(published: true).joins(:comments)
+    # ```
     #
     # This is mainly intended for sharing common conditions between multiple associations.
     #
-    # For conditions that exist in both relations, those from <tt>other</tt> will take precedence.
+    # For conditions that exist in both relations, those from `other` will take precedence.
     # To find the intersection of two relations, use QueryMethods#and.
     def merge(other)
       if other.is_a?(Array)
@@ -52,18 +57,22 @@ module ActiveRecord
       end
     end
 
-    # Removes the condition(s) specified in +skips+ from the query.
+    # Removes the condition(s) specified in `skips` from the query.
     #
-    #   Post.order('id asc').except(:order)                  # removes the order condition
-    #   Post.where('id > 10').order('id asc').except(:where) # removes the where condition but keeps the order
+    # ```
+    # Post.order('id asc').except(:order)                  # removes the order condition
+    # Post.where('id > 10').order('id asc').except(:where) # removes the where condition but keeps the order
+    # ```
     def except(*skips)
       relation_with values.except(*skips)
     end
 
-    # Keeps only the condition(s) specified in +onlies+ in the query, removing all others.
+    # Keeps only the condition(s) specified in `onlies` in the query, removing all others.
     #
-    #   Post.order('id asc').only(:where)         # keeps only the where condition, removes the order
-    #   Post.order('id asc').only(:where, :order) # keeps only the where and order conditions
+    # ```
+    # Post.order('id asc').only(:where)         # keeps only the where condition, removes the order
+    # Post.order('id asc').only(:where, :order) # keeps only the where and order conditions
+    # ```
     def only(*onlies)
       relation_with values.slice(*onlies)
     end

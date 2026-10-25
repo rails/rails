@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Type
-    # = Active Model \Value \Type
+    # Active Model \Value \Type
+    # =========================
     #
     # The base class for all attribute types. This class also serves as the
     # default type for attributes that do not specify a type.
@@ -21,9 +23,9 @@ module ActiveModel
         @limit = limit
       end
 
-      # Returns true if this type can convert +value+ to a type that is usable
-      # by the database.  For example a boolean type can return +true+ if the
-      # value parameter is a Ruby boolean, but may return +false+ if the value
+      # Returns true if this type can convert `value` to a type that is usable
+      # by the database.  For example a boolean type can return `true` if the
+      # value parameter is a Ruby boolean, but may return `false` if the value
       # parameter is some other object.
       def serializable?(value, &)
         true
@@ -39,7 +41,7 @@ module ActiveModel
       # ActiveRecord::AttributeMethods::Read#read_attribute. The default
       # implementation just calls Value#cast.
       #
-      # +value+ The raw input, as provided from the database.
+      # `value` The raw input, as provided from the database.
       def deserialize(value)
         cast(value)
       end
@@ -53,15 +55,15 @@ module ActiveModel
       # ActiveRecord::AttributeMethods::Read#read_attribute. See also:
       # Value#cast_value.
       #
-      # +value+ The raw input, as provided to the attribute setter.
+      # `value` The raw input, as provided to the attribute setter.
       def cast(value)
         cast_value(value) unless value.nil?
       end
 
       # Casts a value from the ruby type to a type that the database knows how
       # to understand. The returned value from this method should be a
-      # +String+, +Numeric+, +Date+, +Time+, +Symbol+, +true+, +false+, or
-      # +nil+.
+      # `String`, `Numeric`, `Date`, `Time`, `Symbol`, `true`, `false`, or
+      # `nil`.
       def serialize(value)
         value
       end
@@ -78,30 +80,30 @@ module ActiveModel
         false
       end
 
-      # Determines whether a value has changed for dirty checking. +old_value+
-      # and +new_value+ will always be type-cast. Types should not need to
+      # Determines whether a value has changed for dirty checking. `old_value`
+      # and `new_value` will always be type-cast. Types should not need to
       # override this method.
       def changed?(old_value, new_value, _new_value_before_type_cast)
         old_value != new_value
       end
 
       # Determines whether the mutable value has been modified since it was
-      # read. Returns +false+ by default. If your type returns an object
+      # read. Returns `false` by default. If your type returns an object
       # which could be mutated, you should override this method. You will need
       # to either:
       #
-      # - pass +new_value+ to Value#serialize and compare it to
-      #   +raw_old_value+
+      # - pass `new_value` to Value#serialize and compare it to
+      #   `raw_old_value`
       #
       # or
       #
-      # - pass +raw_old_value+ to Value#deserialize and compare it to
-      #   +new_value+
+      # - pass `raw_old_value` to Value#deserialize and compare it to
+      #   `new_value`
       #
-      # +raw_old_value+ The original value, before being passed to
-      # +deserialize+.
+      # `raw_old_value` The original value, before being passed to
+      # `deserialize`.
       #
-      # +new_value+ The current value, after type casting.
+      # `new_value` The current value, after type casting.
       def changed_in_place?(raw_old_value, new_value)
         false
       end
@@ -145,10 +147,20 @@ module ActiveModel
         raise NoMethodError
       end
 
+      def as_schema_json
+        { "precision" => precision, "scale" => scale, "limit" => limit }
+      end
+
+      def init_from_schema_json(coder, references)
+        @precision = coder["precision"]
+        @scale = coder["scale"]
+        @limit = coder["limit"]
+      end
+
       private
         # Convenience method for types which do not need separate type casting
         # behavior for user and database inputs. Called by Value#cast for
-        # values except +nil+.
+        # values except `nil`.
         def cast_value(value) # :doc:
           value
         end

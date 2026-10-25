@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Validations
     module HelperMethods # :nodoc:

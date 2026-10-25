@@ -477,6 +477,28 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_predicate(book.association(:order_agreement), :stale_target?)
   end
+
+  class SelfReferencingCompany < ActiveRecord::Base
+    self.table_name = "companies"
+    self.inheritance_column = nil
+
+    belongs_to :parent, class_name: name, foreign_key: :firm_id, optional: true
+    belongs_to :mentor, class_name: name, foreign_key: :client_of, optional: true
+    has_one :scoped_parents_mentor, ->(owner) { where.not(name: owner.name) }, through: :parent, source: :mentor
+  end
+
+  def test_preloading_has_one_through_for_a_subclass_of_the_owner
+    owner_class = Class.new(SelfReferencingCompany) do
+      def self.name; "InheritedSelfReferencingCompany"; end
+    end
+    mentor = SelfReferencingCompany.create!(name: "Mentor")
+    parent = SelfReferencingCompany.create!(name: "Parent", mentor: mentor)
+    owner = owner_class.create!(name: "Owner", parent: parent)
+
+    ActiveRecord::Associations::Preloader.new(records: [owner], associations: :scoped_parents_mentor).call
+
+    assert_equal mentor, owner.scoped_parents_mentor
+  end
 end
 
 class DeprecatedHasOneThroughAssociationsTest < ActiveRecord::TestCase

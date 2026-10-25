@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/enumerable"
 
 module ActiveRecord
@@ -43,14 +44,14 @@ module ActiveRecord
 
     module ClassMethods
       # Do not use transactional tests for the given database. This overrides
-      # the default setting as defined by `use_transactional_tests`, which
+      # the default setting as defined by \`use_transactional_tests\`, which
       # applies to all database connection pools not explicitly configured here.
       def skip_transactional_tests_for_database(database_name)
         use_transactional_tests_for_database(database_name, false)
       end
 
       # Enable or disable transactions per database. This overrides the default
-      # setting as defined by `use_transactional_tests`, which applies to all
+      # setting as defined by \`use_transactional_tests\`, which applies to all
       # database connection pools not explicitly configured here.
       def use_transactional_tests_for_database(database_name, enabled = true)
         self.database_transactions_config = database_transactions_config.merge(database_name => enabled)
@@ -60,8 +61,10 @@ module ActiveRecord
       #
       # Examples:
       #
-      #   set_fixture_class some_fixture:        SomeModel,
-      #                     'namespaced/fixture' => Another::Model
+      # ```
+      # set_fixture_class some_fixture:        SomeModel,
+      #                   'namespaced/fixture' => Another::Model
+      # ```
       #
       # The keys must be the fixture names, that coincide with the short paths to the fixture files.
       def set_fixture_class(class_names = {})
@@ -90,8 +93,8 @@ module ActiveRecord
           self.fixture_sets = fixture_sets.dup
           fixture_set_names.each do |fs_name|
             key = fs_name.to_s.include?("/") ? -fs_name.to_s.tr("/", "_") : fs_name
-            key = -key.to_s if key.is_a?(Symbol)
-            fs_name = -fs_name.to_s if fs_name.is_a?(Symbol)
+            key = key.name if key.is_a?(Symbol)
+            fs_name = fs_name.name if fs_name.is_a?(Symbol)
             fixture_sets[key] = fs_name
           end
         end
@@ -113,8 +116,10 @@ module ActiveRecord
 
     # Generic fixture accessor for fixture names that may conflict with other methods.
     #
-    #   assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
-    #   assert_equal "Ruby on Rails", fixture(:web_sites, :rubyonrails).name
+    # ```
+    # assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
+    # assert_equal "Ruby on Rails", fixture(:web_sites, :rubyonrails).name
+    # ```
     def fixture(fixture_set_name, *fixture_names)
       active_record_fixture(fixture_set_name, *fixture_names)
     end
@@ -203,7 +208,7 @@ module ActiveRecord
         pools.each do |pool|
           pool.pin_connection!(lock_threads)
           @fixture_connection_pools << pool
-          pool.lease_connection
+          pool.lease_connection.begin_transaction(joinable: false, _lazy: false)
         end
 
         # When connections are established in the future, begin a transaction too
@@ -220,7 +225,7 @@ module ActiveRecord
               if !@fixture_connection_pools.include?(pool) && transactional_tests_for_pool?(pool)
                 pool.pin_connection!(lock_threads)
                 @fixture_connection_pools << pool
-                pool.lease_connection
+                pool.lease_connection.begin_transaction(joinable: false, _lazy: false)
               end
             end
           end
@@ -230,8 +235,23 @@ module ActiveRecord
       def teardown_transactional_fixtures
         ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
 
-        unless @fixture_connection_pools.map(&:unpin_connection!).all?
-          # Something caused the transaction to be committed or rolled back
+        clean = true
+        @fixture_connection_pools.each do |pool|
+          connection = pool.lease_connection
+          begin
+            if connection.transaction_open?
+              connection.rollback_transaction
+            else
+              # Something caused the transaction to be committed or rolled back
+              clean = false
+              connection.reset!
+            end
+          ensure
+            pool.unpin_connection!
+          end
+        end
+
+        unless clean
           # We can no longer trust the database is in a clean state.
           @@already_loaded_fixtures.clear
         end
@@ -246,7 +266,7 @@ module ActiveRecord
       # need to share a connection pool so that the reading connection
       # can see data in the open transaction on the writing connection.
       def setup_shared_connection_pool
-        handler = ActiveRecord::Base.connection_handler
+        handler = main_ractor_connection_handler
 
         handler.connection_pool_names.each do |name|
           pool_manager = handler.send(:connection_name_to_pool_manager)[name]
@@ -265,7 +285,7 @@ module ActiveRecord
       end
 
       def teardown_shared_connection_pool
-        handler = ActiveRecord::Base.connection_handler
+        handler = main_ractor_connection_handler
         removed_pool_configs = []
         pool_managers = handler.send(:connection_name_to_pool_manager)
 
@@ -287,6 +307,15 @@ module ActiveRecord
         remaining_pool_configs = pool_managers.values.flat_map(&:pool_configs)
         removed_pool_configs.compact.uniq.each do |pool_config|
           pool_config.disconnect! unless remaining_pool_configs.include?(pool_config)
+        end
+      end
+
+      def main_ractor_connection_handler
+        handler = ActiveRecord::Base.connection_handler
+        if handler.is_a?(ConnectionAdapters::RactorConnectionHandler)
+          handler.main_ractor_handler
+        else
+          handler
         end
       end
 
@@ -342,7 +371,7 @@ module ActiveRecord
         @fixture_cache[fs_name] ||= {}
 
         instances = fixture_names.map do |f_name|
-          f_name = f_name.to_s if f_name.is_a?(Symbol)
+          f_name = f_name.name if f_name.is_a?(Symbol)
           @fixture_cache[fs_name].delete(f_name) if force_reload
 
           if @loaded_fixtures[fs_name][f_name]

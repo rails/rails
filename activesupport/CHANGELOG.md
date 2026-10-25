@@ -1,3 +1,112 @@
+*   `Symbol#to_param` now returns `Symbol#name`, the symbol's interned frozen
+    String, instead of allocating a new one on every call before Ruby 4.1.
+
+    *Akira Matsuda*
+
+*   Fix `CurrentAttributes` defaults for attribute names given as strings.
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      attribute "currency", default: "USD"
+    end
+
+    Current.currency # => "USD" (was nil)
+    ```
+
+    *Ryuta Kamizono*
+
+*   `ActiveSupport::Deprecation::DeprecatedObjectProxy` and
+    `DeprecatedInstanceVariableProxy` now inherit from `BasicObject`, so methods
+    added to `Object` after Active Support loads (such as `to_json`, `to_param`,
+    `blank?` or `in?`) are forwarded to the deprecated object with a warning
+    instead of running against the proxy itself.
+
+    *Akira Matsuda*
+
+*   Default `config.active_support.message_serializer` to `:json` for new apps.
+
+    With `config.load_defaults 8.2`, messages from `MessageVerifier` and
+    `MessageEncryptor` (signed IDs, signed GlobalIDs, Active Storage keys, etc.)
+    no longer fall back to deserializing `Marshal` payloads.
+
+    *Ben Sheldon*
+
+*   `ActiveSupport::ParameterFilter#filter_param` now passes `{ key => value }` to
+    `Proc` filters as their third argument, the same hash `filter` would pass for that
+    single pair, instead of `nil`.
+
+    *Kengo Johira, Akira Matsuda*
+
+*   Skip building `ActiveSupport::EventReporter` events that no subscriber would consume.
+
+    Subscribers can define `consumes?(name)` to say whether they would act on an
+    event with that name. `Rails.event.notify` now returns before resolving the
+    payload, capturing the source location and building the event when every
+    matching subscriber declines, and `Rails.event.emitting?(name)` exposes the
+    same answer so emitters can skip assembling payloads that would go nowhere:
+
+    ```ruby
+    if Rails.event.emitting?("user.created")
+      Rails.event.notify("user.created", expensive_payload_for(user))
+    end
+    ```
+
+    The framework log subscribers implement `consumes?` from their logger's level,
+    so a production app logging at `:warn` no longer builds the per-request
+    `action_controller.request_started` and `request_completed` events.
+
+    *Akira Matsuda*
+
+*   Freeze events emitted by `ActiveSupport::EventReporter`.
+
+    Subscribers can no longer change the event seen by later subscribers.
+    Modifying the event in place now raises `FrozenError`, so `dup` it first.
+
+    *Keshav Biswa*
+
+*   Speed up JSON escaping with `String#tr!` on Ruby 4.1+.
+
+    `ActiveSupport::JSON.encode` escaped `<`, `>`, `&`, U+2028 and U+2029 by
+    forcing the generated JSON to BINARY and running `gsub!` over it. Ruby 4.1
+    accepts a Hash of pairs in `String#tr!`, which does the same substitution in
+    a single pass, with no Regexp and no encoding round-trip.
+
+    Escaping is 2x to 10x faster on documents that are large or contain many
+    escapable characters, and allocates fewer intermediate strings. Documents
+    smaller than roughly 128 bytes with nothing to escape are marginally
+    slower, since `tr!` builds a translation table where a pre-compiled Regexp
+    just fails to match. Raises `ArgumentError` when the passed
+    JSON isn't valid UTF-8.
+
+    *Jean Boussier*, *Federico Carrocera*
+
+*   Add `Manitoba` to `ActiveSupport::TimeZone::MAPPING`.
+
+    Manitoba no longer shares winter clocks with US Central time. The existing
+    `Central Time (US & Canada)` entry remains mapped to `America/Chicago` for
+    compatibility. Prefer `Manitoba` (or the IANA identifier `America/Winnipeg`)
+    for users in that region.
+
+    *Dan Williams*
+
+*   Fix `ActiveSupport::BroadcastLogger#tagged` when broadcasting to more than
+    one tagging logger..
+
+    ```ruby
+    broadcast = ActiveSupport::BroadcastLogger.new(logger1, logger2)
+    broadcast.tagged("BCX").info("Hello") # => both loggers log "[BCX] Hello"
+    ```
+
+    *Ben Younes*
+
+*   Preserve the requested key order in `ActiveSupport::Cache::Store#read_multi`
+    when a local cache is active.
+
+    `fetch_multi` was fixed for this, but `read_multi` still returned the local
+    cache hits first instead of following the order of the requested keys.
+
+    *Carlos Daniel Pohlod*
+
 *   Preserve the requested key order in `ActiveSupport::Cache::Store#fetch_multi`
     when a local cache is active.
 

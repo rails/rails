@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails/generators/actions/create_migration"
 
 module Rails
   module Generators
     # Holds common methods for migrations. It assumes that migrations have the
-    # [0-9]*_name format and can be used by other frameworks (like Sequel)
-    # just by implementing the +next_migration_number+ method.
+    # [0-9]*\_name format and can be used by other frameworks (like Sequel)
+    # just by implementing the `next_migration_number` method.
     module Migration
       extend ActiveSupport::Concern
       attr_reader :migration_number, :migration_file_name, :migration_class_name
@@ -51,7 +52,9 @@ module Rails
       # The migration number, migration file name, migration class name are
       # available as instance variables in the template to be rendered.
       #
-      #   migration_template "migration.rb", "db/migrate/add_foo_to_bar.rb"
+      # ```
+      # migration_template "migration.rb", "db/migrate/add_foo_to_bar.rb"
+      # ```
       def migration_template(source, destination, config = {})
         source = File.expand_path(find_in_source_paths(source.to_s))
 

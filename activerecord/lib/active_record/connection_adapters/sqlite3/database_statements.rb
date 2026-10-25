@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     module SQLite3
@@ -39,7 +40,15 @@ module ActiveRecord
         end
 
         def exec_rollback_db_transaction # :nodoc:
+          return if connected? && !@raw_connection.transaction_active?
+
           query_command("ROLLBACK TRANSACTION", "TRANSACTION", allow_retry: true, materialize_transactions: false)
+        end
+
+        def exec_rollback_to_savepoint(name = current_savepoint_name) # :nodoc:
+          return if connected? && !@raw_connection.transaction_active?
+
+          super
         end
 
         # https://stackoverflow.com/questions/17574784

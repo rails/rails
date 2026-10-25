@@ -1,98 +1,49 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   ###
-  # = Active Record \Result
+  # Active Record \Result
+  # =====================
   #
   # This class encapsulates a result returned from calling
-  # {#exec_query}[rdoc-ref:ConnectionAdapters::DatabaseStatements#exec_query]
+  # [#exec_query](rdoc-ref:ConnectionAdapters::DatabaseStatements#exec_query)
   # on any database connection adapter. For example:
   #
-  #   result = ActiveRecord::Base.lease_connection.exec_query('SELECT id, title, body FROM posts')
-  #   result # => #<ActiveRecord::Result:0xdeadbeef>
+  # ```
+  # result = ActiveRecord::Base.lease_connection.exec_query('SELECT id, title, body FROM posts')
+  # result # => #<ActiveRecord::Result:0xdeadbeef>
   #
-  #   # Get the column names of the result:
-  #   result.columns
-  #   # => ["id", "title", "body"]
+  # # Get the column names of the result:
+  # result.columns
+  # # => ["id", "title", "body"]
   #
-  #   # Get the record values of the result:
-  #   result.rows
-  #   # => [[1, "title_1", "body_1"],
-  #         [2, "title_2", "body_2"],
-  #         ...
-  #        ]
+  # # Get the record values of the result:
+  # result.rows
+  # # => [[1, "title_1", "body_1"],
+  #       [2, "title_2", "body_2"],
+  #       ...
+  #      ]
   #
-  #   # Get an array of hashes representing the result (column => value):
-  #   result.to_a
-  #   # => [{"id" => 1, "title" => "title_1", "body" => "body_1"},
-  #         {"id" => 2, "title" => "title_2", "body" => "body_2"},
-  #         ...
-  #        ]
+  # # Get an array of hashes representing the result (column => value):
+  # result.to_a
+  # # => [{"id" => 1, "title" => "title_1", "body" => "body_1"},
+  #       {"id" => 2, "title" => "title_2", "body" => "body_2"},
+  #       ...
+  #      ]
   #
-  #   # Get the number of rows affected by the query:
-  #   result = ActiveRecord::Base.lease_connection.exec_query('INSERT INTO posts (title, body) VALUES ("title_3", "body_3"), ("title_4", "body_4")')
-  #   result.affected_rows
-  #   # => 2
+  # # Get the number of rows affected by the query:
+  # result = ActiveRecord::Base.lease_connection.exec_query('INSERT INTO posts (title, body) VALUES ("title_3", "body_3"), ("title_4", "body_4")')
+  # result.affected_rows
+  # # => 2
   #
-  #   # ActiveRecord::Result also includes Enumerable.
-  #   result.each do |row|
-  #     puts row['title'] + " " + row['body']
-  #   end
+  # # ActiveRecord::Result also includes Enumerable.
+  # result.each do |row|
+  #   puts row['title'] + " " + row['body']
+  # end
+  # ```
   class Result
     include Enumerable
-
-    class IndexedRow
-      def initialize(column_indexes, row)
-        @column_indexes = column_indexes
-        @row = row
-      end
-
-      def size
-        @column_indexes.size
-      end
-      alias_method :length, :size
-
-      def each_key(&block)
-        @column_indexes.each_key(&block)
-      end
-
-      def keys
-        @column_indexes.keys
-      end
-
-      def ==(other)
-        if other.is_a?(Hash)
-          to_hash == other
-        else
-          super
-        end
-      end
-
-      def key?(column)
-        @column_indexes.key?(column)
-      end
-
-      def fetch(column)
-        if index = @column_indexes[column]
-          @row[index]
-        elsif block_given?
-          yield
-        else
-          raise KeyError, "key not found: #{column.inspect}"
-        end
-      end
-
-      def [](column)
-        if index = @column_indexes[column]
-          @row[index]
-        end
-      end
-
-      def to_h
-        @column_indexes.transform_values { |index| @row[index] }
-      end
-      alias_method :to_hash, :to_h
-    end
 
     attr_reader :columns, :rows, :affected_rows
 
@@ -105,9 +56,7 @@ module ActiveRecord
     end
 
     def initialize(columns, rows, column_types = nil, affected_rows: nil)
-      # We freeze the strings to prevent them getting duped when
-      # used as keys in ActiveRecord::Base's @attributes hash
-      @columns      = columns.each(&:-@).freeze
+      @columns      = columns.freeze
       @rows         = rows
       @hash_rows    = nil
       @column_types = column_types.freeze
@@ -116,7 +65,7 @@ module ActiveRecord
       @affected_rows = affected_rows
     end
 
-    # Returns true if this result set includes the column named +name+
+    # Returns true if this result set includes the column named `name`
     def includes_column?(name)
       @columns.include? name
     end
@@ -129,9 +78,9 @@ module ActiveRecord
     # Calls the given block once for each element in row collection, passing
     # row as parameter. Each row is a Hash-like, read only object.
     #
-    # To get real hashes, use +.to_a.each+.
+    # To get real hashes, use `.to_a.each`.
     #
-    # Returns an +Enumerator+ if no block is given.
+    # Returns an `Enumerator` if no block is given.
     def each(&block)
       if block_given?
         hash_rows.each(&block)
@@ -161,7 +110,7 @@ module ActiveRecord
       n ? hash_rows.last(n) : hash_rows.last
     end
 
-    # Returns the +ActiveRecord::Type+ type of all columns.
+    # Returns the `ActiveRecord::Type` type of all columns.
     # Note that not all database adapters return the result types,
     # so the hash may be empty.
     def column_types
@@ -239,22 +188,13 @@ module ActiveRecord
     end
 
     def column_indexes # :nodoc:
-      @column_indexes ||= begin
-        index = 0
-        hash = {}
-        length = columns.length
-        while index < length
-          hash[columns[index]] = index
-          index += 1
-        end
-        hash.freeze
-      end
+      @column_indexes ||= ActiveModel::IndexedRow.build_indexes(columns)
     end
 
     def indexed_rows # :nodoc:
       @indexed_rows ||= begin
         columns = column_indexes
-        @rows.map { |row| IndexedRow.new(columns, row) }.freeze
+        @rows.map { |row| ActiveModel::IndexedRow.new(columns, row) }.freeze
       end
     end
 

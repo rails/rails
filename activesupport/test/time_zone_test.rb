@@ -747,6 +747,19 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.strptime("2014-10-26 01:00:00", "%Y-%m-%d %H:%M:%S")
   end
 
+  def test_utc?
+    %w[UTC Etc/UTC Etc/UCT Etc/Universal Etc/Zulu Universal Zulu UCT].each do |name|
+      assert_predicate ActiveSupport::TimeZone[name], :utc?, "expected #{name} to be utc?"
+    end
+
+    ["Eastern Time (US & Canada)", "London", "Etc/GMT", "Etc/GMT+1", "Africa/Abidjan"].each do |name|
+      assert_not_predicate ActiveSupport::TimeZone[name], :utc?, "expected #{name} not to be utc?"
+    end
+
+    assert_predicate ActiveSupport::TimeZone.create("Custom", nil, TZInfo::Timezone.get("Etc/UTC")), :utc?
+    assert_not_predicate ActiveSupport::TimeZone.create("Custom", 0, TZInfo::Timezone.get("Etc/GMT")), :utc?
+  end
+
   def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
     tzinfo = TZInfo::Timezone.get("America/New_York")
     zone = ActiveSupport::TimeZone.create(tzinfo.name, nil, tzinfo)
@@ -781,6 +794,15 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "-01:00", ActiveSupport::TimeZone.seconds_to_utc_offset(-3_600)
     assert_equal "-00:59", ActiveSupport::TimeZone.seconds_to_utc_offset(-3_599)
     assert_equal "-05:30", ActiveSupport::TimeZone.seconds_to_utc_offset(-19_800)
+  end
+
+  def test_seconds_to_utc_offset_ignores_seconds
+    assert_equal "+02:30", ActiveSupport::TimeZone.seconds_to_utc_offset(9_017)
+    assert_equal "-02:30", ActiveSupport::TimeZone.seconds_to_utc_offset(-9_017, true)
+  end
+
+  def test_seconds_to_utc_offset_with_more_than_59_hours
+    assert_equal "+100:00", ActiveSupport::TimeZone.seconds_to_utc_offset(360_000)
   end
 
   def test_formatted_offset_positive
@@ -895,6 +917,14 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal ["2000-01-01 00:00:00 -0500", "Sat, 01 Jan 2000 00:00:00 -0500"], on_ractor(twz) { |t| [t.to_s, t.rfc2822] }
   end
 
+  def test_xmlschema_and_inspect_in_ractor
+    twz = ActiveSupport::TimeZone["Eastern Time (US & Canada)"].local(2000, 1, 1)
+    utc = ActiveSupport::TimeZone["UTC"].local(2000, 1, 1)
+
+    assert_equal ["2000-01-01T00:00:00.000-05:00", "2000-01-01T00:00:00Z", "2000-01-01 00:00:00.000000000 EST -05:00", false, true],
+      on_ractor(twz, utc) { |t, u| [t.xmlschema(3), u.xmlschema, t.inspect, t.utc?, u.utc?] }
+  end
+
   def test_us_zones
     assert_includes ActiveSupport::TimeZone.us_zones, ActiveSupport::TimeZone["Hawaii"]
     assert_not_includes ActiveSupport::TimeZone.us_zones, ActiveSupport::TimeZone["Kuala Lumpur"]
@@ -1003,6 +1033,23 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_not_includes ca_zones.map(&:name), "America/Vancouver"
     assert_not_includes ca_zones.map(&:name), "America/Edmonton"
   end
+
+  def test_manitoba_mapping
+    manitoba = ActiveSupport::TimeZone["Manitoba"]
+    central_us = ActiveSupport::TimeZone["Central Time (US & Canada)"]
+
+    assert_equal "America/Winnipeg", manitoba.standard_name
+    assert_equal "America/Chicago", central_us.standard_name
+
+    assert_equal "America/Winnipeg", manitoba.tzinfo.name
+  end
+
+  def test_country_zones_include_manitoba
+    ca_zones = ActiveSupport::TimeZone.country_zones(:ca)
+
+    assert_includes ca_zones, ActiveSupport::TimeZone["Manitoba"]
+    assert_not_includes ca_zones.map(&:name), "America/Winnipeg"
+  end
 end
 
 class TimeZoneRactorTest < ActiveSupport::TestCase
@@ -1018,5 +1065,15 @@ class TimeZoneRactorTest < ActiveSupport::TestCase
     assert_equal "2026-07-01 14:00:00 +0200", on_ractor { Time.utc(2026, 7, 1, 12).in_time_zone("Paris").to_s }
     assert_equal "Asia/Tokyo", on_ractor { Time.use_zone("Tokyo") { Time.zone.tzinfo.name } }
     assert_includes on_ractor { ActiveSupport::TimeZone.country_zones(:fr).map(&:name) }, "Paris"
+  end
+
+  def test_all_zones_and_offset_lookups_are_usable_from_a_non_main_ractor_once_shared
+    ActiveSupport::TimeZone.make_shareable!
+
+    assert_ractor_shareable ActiveSupport::TimeZone.all
+    assert_equal ActiveSupport::TimeZone.all.map(&:name), on_ractor { ActiveSupport::TimeZone.all.map(&:name) }
+    assert_equal ActiveSupport::TimeZone[-5].name, on_ractor { ActiveSupport::TimeZone[-5].name }
+    assert_equal ActiveSupport::TimeZone[3600].name, on_ractor { ActiveSupport::TimeZone[3600].name }
+    assert_equal ActiveSupport::TimeZone[-5].name, on_ractor { Time.find_zone(-5.hours).name }
   end
 end

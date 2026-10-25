@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   # :stopdoc:
   module ConnectionAdapters
@@ -35,6 +36,18 @@ module ActiveRecord
           @precision,
           @scale,
         ].hash
+      end
+
+      def as_schema_json
+        { "sql_type" => sql_type, "type" => type, "limit" => limit, "precision" => precision, "scale" => scale }
+      end
+
+      def init_from_schema_json(coder, references)
+        @sql_type = coder["sql_type"]
+        @type = coder["type"]&.to_sym
+        @limit = coder["limit"]
+        @precision = coder["precision"]
+        @scale = coder["scale"]
       end
 
       private

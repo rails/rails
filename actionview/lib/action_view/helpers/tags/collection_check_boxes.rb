@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "action_view/helpers/tags/collection_helpers"
 
 module ActionView

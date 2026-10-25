@@ -9,6 +9,8 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
 
   class PgArray < ActiveRecord::Base
     self.table_name = "pg_arrays"
+
+    belongs_to :parent, class_name: "PgArray", primary_key: [:ratings, :id], foreign_key: [:ratings, :parent_id], optional: true
   end
 
   def setup
@@ -20,6 +22,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
       @connection.create_table "pg_arrays", force: true do |t|
         t.string "tags", array: true, limit: 255
         t.integer "ratings", array: true
+        t.bigint :parent_id
         t.datetime :datetimes, array: true
         t.hstore :hstores, array: true
         t.decimal :decimals, array: true, default: [], precision: 10, scale: 2
@@ -45,6 +48,17 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     ratings_column = PgArray.columns_hash["ratings"]
     assert_equal :integer, ratings_column.type
     assert_predicate ratings_column, :array?
+  end
+
+  def test_immutable_strings_by_default_does_not_affect_array_columns
+    new_klass = Class.new(PgArray) do
+      self.immutable_strings_by_default = true
+    end
+
+    type = new_klass.type_for_attribute("tags")
+    assert_instance_of ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Array, type
+    assert_equal :string, type.type
+    assert_equal ["red"], new_klass.new(tags: ["red"]).tags
   end
 
   def test_not_compatible_with_serialize_array
@@ -345,6 +359,14 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     tags = ["black", "blue"]
     record = PgArray.create!(tags: tags)
     assert_equal record, PgArray.where(tags: tags).take
+  end
+
+  def test_find_by_association_with_array_in_composite_key
+    parent = PgArray.create!(ratings: [10, 20])
+    record = PgArray.create!(ratings: parent.ratings, parent_id: parent.id)
+
+    assert_equal record, PgArray.where(parent: parent).take
+    assert_equal record, PgArray.find_by(parent: parent)
   end
 
   def test_uniqueness_validation

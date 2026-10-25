@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/delegation"
@@ -5,23 +6,28 @@ require "active_support/core_ext/object/blank"
 require "active_support/logger"
 
 module ActiveSupport
-  # = Active Support Tagged Logging
+  # Active Support Tagged Logging
+  # =============================
   #
   # Wraps any standard Logger object to provide tagging capabilities.
   #
   # May be called with a block:
   #
-  #   logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
-  #   logger.tagged('BCX') { logger.info 'Stuff' }                                  # Logs "[BCX] Stuff"
-  #   logger.tagged('BCX', "Jason") { |tagged_logger| tagged_logger.info 'Stuff' }  # Logs "[BCX] [Jason] Stuff"
-  #   logger.tagged('BCX') { logger.tagged('Jason') { logger.info 'Stuff' } }       # Logs "[BCX] [Jason] Stuff"
+  # ```
+  # logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+  # logger.tagged('BCX') { logger.info 'Stuff' }                                  # Logs "[BCX] Stuff"
+  # logger.tagged('BCX', "Jason") { |tagged_logger| tagged_logger.info 'Stuff' }  # Logs "[BCX] [Jason] Stuff"
+  # logger.tagged('BCX') { logger.tagged('Jason') { logger.info 'Stuff' } }       # Logs "[BCX] [Jason] Stuff"
+  # ```
   #
   # If called without a block, a new logger will be returned with applied tags:
   #
-  #   logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
-  #   logger.tagged("BCX").info "Stuff"                 # Logs "[BCX] Stuff"
-  #   logger.tagged("BCX", "Jason").info "Stuff"        # Logs "[BCX] [Jason] Stuff"
-  #   logger.tagged("BCX").tagged("Jason").info "Stuff" # Logs "[BCX] [Jason] Stuff"
+  # ```
+  # logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+  # logger.tagged("BCX").info "Stuff"                 # Logs "[BCX] Stuff"
+  # logger.tagged("BCX", "Jason").info "Stuff"        # Logs "[BCX] [Jason] Stuff"
+  # logger.tagged("BCX").tagged("Jason").info "Stuff" # Logs "[BCX] [Jason] Stuff"
+  # ```
   #
   # This is used by the default Rails.logger as configured by Railties to make
   # it easy to stamp log lines with subdomains, request ids, and anything else

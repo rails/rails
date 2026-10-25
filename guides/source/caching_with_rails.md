@@ -201,7 +201,7 @@ Rails.cache.fetch("super_admin_users", expires_in: 12.hours) do
 end
 ```
 
-In the example above, the instance of the `User`, representing `superusers`,
+In the example above, the instance of the `User`, representing `super_admins`,
 could change, and the attributes on it could differ, or the record could be
 deleted. In development, this also works unreliably with cache stores that
 reload code when you make changes.

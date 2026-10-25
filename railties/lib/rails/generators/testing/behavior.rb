@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/hash/reverse_merge"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/testing/stream"
@@ -13,7 +14,7 @@ module Rails
         include ActiveSupport::Testing::Stream
 
         included do
-          # Generators frequently change the current path using +FileUtils.cd+.
+          # Generators frequently change the current path using `FileUtils.cd`.
           # So we need to store the path at file load and revert back to it after each test.
           class_attribute :current_path, default: File.expand_path(Dir.pwd)
           class_attribute :default_arguments, default: []
@@ -24,7 +25,9 @@ module Rails
         module ClassMethods
           # Sets which generator should be tested:
           #
-          #   tests AppGenerator
+          # ```
+          # tests AppGenerator
+          # ```
           def tests(klass)
             self.generator_class = klass
           end
@@ -32,14 +35,18 @@ module Rails
           # Sets default arguments on generator invocation. This can be overwritten when
           # invoking it.
           #
-          #   arguments %w(app_name --skip-active-record)
+          # ```
+          # arguments %w(app_name --skip-active-record)
+          # ```
           def arguments(array)
             self.default_arguments = array
           end
 
           # Sets the destination of generator files:
           #
-          #   destination File.expand_path("../tmp", __dir__)
+          # ```
+          # destination File.expand_path("../tmp", __dir__)
+          # ```
           def destination(path)
             self.destination_root = path
           end
@@ -48,16 +55,20 @@ module Rails
         # Runs the generator configured for this class. The first argument is an array like
         # command line arguments:
         #
-        #   class AppGeneratorTest < Rails::Generators::TestCase
-        #     tests AppGenerator
-        #     destination File.expand_path("../tmp", __dir__)
-        #     setup :prepare_destination
-        #
-        #     test "database.yml is not created when skipping Active Record" do
-        #       run_generator %w(myapp --skip-active-record)
-        #       assert_no_file "config/database.yml"
-        #     end
+        # ```
+        # class AppGeneratorTest < Rails::Generators::TestCase
+        #   tests AppGenerator
+        #   setup do
+        #     self.class.destination Dir.mktmpdir("generators", Rails.root.join("tmp").to_s)
         #   end
+        #   teardown { FileUtils.remove_entry(destination_root) }
+        #
+        #   test "database.yml is not created when skipping Active Record" do
+        #     run_generator %w(myapp --skip-active-record)
+        #     assert_no_file "config/database.yml"
+        #   end
+        # end
+        # ```
         #
         # You can provide a configuration hash as second argument. This method returns the output
         # printed by the generator.
@@ -82,7 +93,9 @@ module Rails
         # Create a Rails::Generators::GeneratedAttribute by supplying the
         # attribute type and, optionally, the attribute name:
         #
-        #   create_generated_attribute(:string, "name")
+        # ```
+        # create_generated_attribute(:string, "name")
+        # ```
         def create_generated_attribute(attribute_type, name = "test", index = nil)
           Rails::Generators::GeneratedAttribute.parse([name, attribute_type, index].compact.join(":"))
         end

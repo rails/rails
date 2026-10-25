@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/big_decimal/conversions"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    # = Active Record Connection Adapters \Quoting
+    # Active Record Connection Adapters \Quoting
+    # ==========================================
     module Quoting
       extend ActiveSupport::Concern
 
@@ -12,8 +14,10 @@ module ActiveRecord
         # Regexp for column names (with or without a table name prefix).
         # Matches the following:
         #
-        #   "#{table_name}.#{column_name}"
-        #   "#{column_name}"
+        # ```
+        # "#{table_name}.#{column_name}"
+        # "#{column_name}"
+        # ```
         def column_name_matcher
           /
             \A
@@ -32,14 +36,16 @@ module ActiveRecord
         # Regexp for column names with order (with or without a table name prefix,
         # with or without various order modifiers). Matches the following:
         #
-        #   "#{table_name}.#{column_name}"
-        #   "#{table_name}.#{column_name} #{direction}"
-        #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
-        #   "#{table_name}.#{column_name} NULLS LAST"
-        #   "#{column_name}"
-        #   "#{column_name} #{direction}"
-        #   "#{column_name} #{direction} NULLS FIRST"
-        #   "#{column_name} NULLS LAST"
+        # ```
+        # "#{table_name}.#{column_name}"
+        # "#{table_name}.#{column_name} #{direction}"
+        # "#{table_name}.#{column_name} #{direction} NULLS FIRST"
+        # "#{table_name}.#{column_name} NULLS LAST"
+        # "#{column_name}"
+        # "#{column_name} #{direction}"
+        # "#{column_name} #{direction} NULLS FIRST"
+        # "#{column_name} NULLS LAST"
+        # ```
         def column_name_with_order_matcher
           /
             \A
@@ -68,7 +74,7 @@ module ActiveRecord
       end
 
       # Quotes the column value to help prevent
-      # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
+      # [SQL injection attacks](https://en.wikipedia.org/wiki/SQL_injection).
       def quote(value)
         case value
         when String, Symbol
@@ -88,7 +94,7 @@ module ActiveRecord
         end
       end
 
-      # Cast a +value+ to a type that the database understands. For example,
+      # Cast a `value` to a type that the database understands. For example,
       # SQLite does not understand dates, so this method will convert a Date
       # to a String.
       def type_cast(value)
@@ -209,7 +215,9 @@ module ActiveRecord
       end
 
       def type_casted_binds(binds) # :nodoc:
-        binds&.map do |value|
+        return binds if binds.nil? || binds.empty?
+
+        binds.map do |value|
           if ActiveModel::Attribute === value
             type_cast(value.value_for_database)
           else

@@ -31,9 +31,24 @@ module AbstractController
 
     DEFAULT_INTERNAL_METHODS = [:_run_process_action_callbacks].freeze # :nodoc:
 
+    # Implements call_direct so that before callbacks don't have to allocate
+    # a thunk per invocation (see ActiveSupport::Callbacks::Filters::Before).
+    class Terminator # :nodoc:
+      def call(controller, result_lambda)
+        result_lambda.call
+        controller.performed?
+      end
+
+      def call_direct(controller, user_callback, value)
+        user_callback.call(controller, value)
+        controller.performed?
+      end
+    end
+    TERMINATOR = Terminator.new.freeze # :nodoc:
+
     included do
       define_callbacks :process_action,
-                       terminator: ->(controller, result_lambda) { result_lambda.call; controller.performed? },
+                       terminator: TERMINATOR,
                        skip_after_callbacks_if_terminated: true
       class_attribute :raise_on_missing_callback_actions, instance_predicate: false, default: false
     end

@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/inspect_backport"
 
 module ActiveModel
-  # = Active \Model \Error
+  # Active \Model \Error
+  # ====================
   #
   # Represents one single error
   class Error
-    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict].freeze
+    CALLBACKS_OPTIONS = [:if, :unless, :on, :except_on, :allow_nil, :allow_blank, :strict].freeze
     MESSAGE_OPTIONS = [:message].freeze
 
     class_attribute :i18n_customize_full_message, default: false
@@ -16,7 +18,7 @@ module ActiveModel
       return message if attribute == :base
 
       base_class = base.class
-      attribute = attribute.to_s
+      attribute = attribute.is_a?(Symbol) ? attribute.name : attribute.to_s
 
       if i18n_customize_full_message && base_class.respond_to?(:i18n_scope)
         attribute = attribute.remove(/\[\d+\]/)
@@ -49,7 +51,11 @@ module ActiveModel
       defaults << :"errors.format"
       defaults << "%{attribute} %{message}"
 
-      attr_name = attribute.remove(/\.base\z/).tr(".", "_").humanize
+      attr_name = if attribute.include?(".")
+        attribute.remove(/\.base\z/).tr(".", "_").humanize
+      else
+        attribute.humanize
+      end
       attr_name = base_class.human_attribute_name(attribute, {
         default: attr_name,
         base: base,
@@ -73,12 +79,15 @@ module ActiveModel
       }.merge!(options)
 
       if base.class.respond_to?(:i18n_scope)
-        i18n_scope = base.class.i18n_scope.to_s
-        attribute = attribute.to_s.remove(/\[\d+\]/)
+        i18n_scope = base.class.i18n_scope
+        i18n_scope = i18n_scope.is_a?(Symbol) ? i18n_scope.name : i18n_scope.to_s
+        attribute = attribute.is_a?(Symbol) ? attribute.name : attribute.to_s
+        attribute = attribute.remove(/\[\d+\]/) if attribute.include?("[")
 
-        defaults = base.class.lookup_ancestors.flat_map do |klass|
-          [ :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
-            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
+        defaults = []
+        base.class.lookup_ancestors.each do |klass|
+          defaults << :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}"
+          defaults << :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}"
         end
         defaults << :"#{i18n_scope}.errors.messages.#{type}"
 
@@ -117,21 +126,23 @@ module ActiveModel
 
     # The object which the error belongs to
     attr_reader :base
-    # The attribute of +base+ which the error belongs to
+    # The attribute of `base` which the error belongs to
     attr_reader :attribute
-    # The type of error, defaults to +:invalid+ unless specified
+    # The type of error, defaults to `:invalid` unless specified
     attr_reader :type
     # The raw value provided as the second parameter when calling
-    # <tt>errors#add</tt>
+    # `errors#add`
     attr_reader :raw_type
-    # The options provided when calling <tt>errors#add</tt>
+    # The options provided when calling `errors#add`
     attr_reader :options
 
     # Returns the error message.
     #
-    #   error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
-    #   error.message
-    #   # => "is too short (minimum is 5 characters)"
+    # ```
+    # error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+    # error.message
+    # # => "is too short (minimum is 5 characters)"
+    # ```
     def message
       case raw_type
       when Symbol
@@ -143,9 +154,11 @@ module ActiveModel
 
     # Returns the error details.
     #
-    #   error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
-    #   error.details
-    #   # => { error: :too_short, count: 5 }
+    # ```
+    # error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+    # error.details
+    # # => { error: :too_short, count: 5 }
+    # ```
     def details
       { error: raw_type }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
     end
@@ -153,14 +166,16 @@ module ActiveModel
 
     # Returns the full error message.
     #
-    #   error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
-    #   error.full_message
-    #   # => "Name is too short (minimum is 5 characters)"
+    # ```
+    # error = ActiveModel::Error.new(person, :name, :too_short, count: 5)
+    # error.full_message
+    # # => "Name is too short (minimum is 5 characters)"
+    # ```
     def full_message
       self.class.full_message(attribute, message, @base)
     end
 
-    # See if error matches provided +attribute+, +type+, and +options+.
+    # See if error matches provided `attribute`, `type`, and `options`.
     #
     # Omitted params are not checked for a match.
     def match?(attribute, type = nil, **options)
@@ -177,7 +192,7 @@ module ActiveModel
       true
     end
 
-    # See if error matches provided +attribute+, +type+, and +options+ exactly.
+    # See if error matches provided `attribute`, `type`, and `options` exactly.
     #
     # All params must be equal to Error's own attributes to be considered a
     # strict match. Callback and message options are filtered from both sides.

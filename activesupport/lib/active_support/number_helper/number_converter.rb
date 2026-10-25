@@ -125,6 +125,10 @@ module ActiveSupport
         new(number, options).execute
       end
 
+      def self.i18n_format_key # :nodoc:
+        @i18n_format_key ||= :"number.#{namespace}.format"
+      end
+
       def initialize(number, options)
         @number = number
         @opts = options.symbolize_keys
@@ -142,12 +146,22 @@ module ActiveSupport
       end
 
       private
-        def options
-          @options ||= format_options.merge(opts)
-        end
+        EMPTY_FORMAT = {}.freeze
+        private_constant :EMPTY_FORMAT
 
-        def format_options
-          default_format_options.merge!(i18n_format_options)
+        # The format options, in increasing order of precedence: the defaults,
+        # the namespace's defaults, the locale's number.format, the locale's
+        # number.<namespace>.format, and the options given to the call. Built
+        # into a single Hash; the translations are only read, never copied.
+        def options
+          @options ||= begin
+            locale = opts[:locale]
+            options = DEFAULTS[:format].dup
+            options.merge!(DEFAULTS[namespace][:format]) if namespace
+            options.merge!(I18n.translate(:'number.format', locale: locale, default: EMPTY_FORMAT))
+            options.merge!(I18n.translate(self.class.i18n_format_key, locale: locale, default: EMPTY_FORMAT)) if namespace
+            options.merge!(opts)
+          end
         end
 
         def default_format_options
@@ -161,7 +175,7 @@ module ActiveSupport
           options = I18n.translate(:'number.format', locale: locale, default: {}).dup
 
           if namespace
-            options.merge!(I18n.translate(:"number.#{namespace}.format", locale: locale, default: {}))
+            options.merge!(I18n.translate(self.class.i18n_format_key, locale: locale, default: {}))
           end
 
           options

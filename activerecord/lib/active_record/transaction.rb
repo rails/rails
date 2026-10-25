@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/digest"
 
 module ActiveRecord
@@ -8,59 +9,70 @@ module ActiveRecord
   # It can either map to an actual transaction/savepoint, or represent the
   # absence of a transaction.
   #
-  # == State
+  # State
+  # -----
   #
-  # We say that a transaction is _finalized_ when it wraps a real transaction
+  # We say that a transaction is *finalized* when it wraps a real transaction
   # that has been either committed or rolled back.
   #
-  # A transaction is _open_ if it wraps a real transaction that is not finalized.
+  # A transaction is *open* if it wraps a real transaction that is not finalized.
   #
-  # On the other hand, a transaction is _closed_ when it is not open. That is,
+  # On the other hand, a transaction is *closed* when it is not open. That is,
   # when it represents absence of transaction, or it wraps a real but finalized
   # one.
   #
-  # You can check whether a transaction is open or closed with the +open?+ and
-  # +closed?+ predicates:
+  # You can check whether a transaction is open or closed with the `open?` and
+  # `closed?` predicates:
   #
-  #  if Article.current_transaction.open?
-  #    # We are inside a real and not finalized transaction.
-  #  end
+  # ```
+  # if Article.current_transaction.open?
+  #   # We are inside a real and not finalized transaction.
+  # end
+  # ```
   #
-  # Closed transactions are +blank?+ too.
+  # Closed transactions are `blank?` too.
   #
-  # == Callbacks
+  # Callbacks
+  # ---------
   #
   # After updating the database state, you may sometimes need to perform some extra work, or reflect these
   # changes in a remote system like clearing or updating a cache:
   #
-  #   def publish_article(article)
-  #     article.update!(published: true)
-  #     NotificationService.article_published(article)
-  #   end
+  # ```
+  # def publish_article(article)
+  #   article.update!(published: true)
+  #   NotificationService.article_published(article)
+  # end
+  # ```
   #
   # The above code works but has one important flaw, which is that it no longer works properly if called inside
   # a transaction, as it will interact with the remote system before the changes are persisted:
   #
-  #   Article.transaction do
-  #     article = create_article(article)
-  #     publish_article(article)
-  #   end
+  # ```
+  # Article.transaction do
+  #   article = create_article(article)
+  #   publish_article(article)
+  # end
+  # ```
   #
   # The callbacks offered by ActiveRecord::Transaction allow to rewriting this method in a way that is compatible
   # with transactions:
   #
-  #   def publish_article(article)
-  #     article.update!(published: true)
-  #     Article.current_transaction.after_commit do
-  #       NotificationService.article_published(article)
-  #     end
+  # ```
+  # def publish_article(article)
+  #   article.update!(published: true)
+  #   Article.current_transaction.after_commit do
+  #     NotificationService.article_published(article)
   #   end
+  # end
+  # ```
   #
-  # In the above example, if +publish_article+ is called inside a transaction, the callback will be invoked
+  # In the above example, if `publish_article` is called inside a transaction, the callback will be invoked
   # after the transaction is successfully committed, and if called outside a transaction, the callback will be invoked
   # immediately.
   #
-  # == Caveats
+  # Caveats
+  # -------
   #
   # When using after_commit callbacks, it is important to note that if the callback raises an error, the transaction
   # won't be rolled back as it was already committed. Relying solely on these to synchronize state between multiple
@@ -117,7 +129,7 @@ module ActiveRecord
 
     alias_method :blank?, :closed?
 
-    # Returns a UUID for this transaction or +nil+ if no transaction is open.
+    # Returns a UUID for this transaction or `nil` if no transaction is open.
     def uuid
       if @internal_transaction
         @uuid ||= Digest::UUID.uuid_v4

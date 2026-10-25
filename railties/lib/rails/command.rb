@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support"
 require "active_support/rails"
 require "active_support/core_ext/enumerable"
@@ -78,14 +79,18 @@ module Rails
 
       # Rails finds namespaces similar to Thor, it only adds one rule:
       #
-      # Command names must end with "_command.rb". This is required because Rails
+      # Command names must end with "\_command.rb". This is required because Rails
       # looks in load paths and loads the command just before it's going to be used.
       #
-      #   find_by_namespace :webrat, :integration
+      # ```
+      # find_by_namespace :webrat, :integration
+      # ```
       #
       # Will search for the following commands:
       #
-      #   "webrat", "webrat:integration", "rails:webrat", "rails:webrat:integration"
+      # ```
+      # "webrat", "webrat:integration", "rails:webrat", "rails:webrat:integration"
+      # ```
       #
       def find_by_namespace(namespace, command_name = nil) # :nodoc:
         lookups = [ namespace ]

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/object/duplicable"
+require "active_model/missing_attribute_error"
 
 module ActiveModel
   class Attribute # :nodoc:
@@ -38,8 +40,24 @@ module ActiveModel
       @value = value unless value.nil?
     end
 
-    def value(&)
+    def freezable?
+      true
+    end
+
+    def freeze
+      value.freeze
+      super
+    end
+
+    def value
       # `defined?` is cheaper than `||=` when we get back falsy values
+      @value = type_cast(value_before_type_cast) unless defined?(@value)
+      @value
+    end
+
+    # Like #value, but raises MissingAttributeError if the attribute is
+    # uninitialized.
+    def value! # :nodoc:
       @value = type_cast(value_before_type_cast) unless defined?(@value)
       @value
     end
@@ -248,6 +266,11 @@ module ActiveModel
       end
 
       class Uninitialized < Attribute # :nodoc:
+        UNINITIALIZED_ERROR = ActiveModel::MissingAttributeError.new("uninitialized attribute").tap do |error|
+          error.set_backtrace([].freeze)
+        end.freeze
+        private_constant :UNINITIALIZED_ERROR
+
         UNINITIALIZED_ORIGINAL_VALUE = Object.new.freeze
 
         def initialize(name, type)
@@ -258,6 +281,10 @@ module ActiveModel
           if block_given?
             yield name
           end
+        end
+
+        def value!
+          raise UNINITIALIZED_ERROR
         end
 
         def original_value

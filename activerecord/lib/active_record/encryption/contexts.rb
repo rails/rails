@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Encryption
     # ActiveRecord::Encryption uses encryption contexts to configure the different entities used to
     # encrypt/decrypt at a given moment in time.
     #
     # By default, the library uses a default encryption context. This is the Context that gets configured
-    # initially via +config.active_record.encryption+ options. Library users can define nested encryption contexts
+    # initially via `config.active_record.encryption` options. Library users can define nested encryption contexts
     # when running blocks of code.
     #
     # See Context.
@@ -21,13 +22,15 @@ module ActiveRecord
       class_methods do
         # Configures a custom encryption context to use when running the provided block of code.
         #
-        # It supports overriding all the properties defined in +Context+.
+        # It supports overriding all the properties defined in `Context`.
         #
         # Example:
         #
-        #     ActiveRecord::Encryption.with_encryption_context(encryptor: ActiveRecord::Encryption::NullEncryptor.new) do
-        #       ...
-        #     end
+        # ```
+        # ActiveRecord::Encryption.with_encryption_context(encryptor: ActiveRecord::Encryption::NullEncryptor.new) do
+        #   ...
+        # end
+        # ```
         #
         # Encryption contexts can be nested.
         def with_encryption_context(properties)

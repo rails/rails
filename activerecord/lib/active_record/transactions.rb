@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
@@ -14,7 +15,8 @@ module ActiveRecord
 
     attr_accessor :_new_record_before_last_commit, :_last_transaction_return_status # :nodoc:
 
-    # = Active Record \Transactions
+    # Active Record \Transactions
+    # ===========================
     #
     # \Transactions are protective blocks where SQL statements are only permanent
     # if they can all succeed as one atomic action. The classic example is a
@@ -26,73 +28,85 @@ module ActiveRecord
     #
     # For example:
     #
-    #   ActiveRecord::Base.transaction do
-    #     david.withdrawal(100)
-    #     mary.deposit(100)
-    #   end
+    # ```
+    # ActiveRecord::Base.transaction do
+    #   david.withdrawal(100)
+    #   mary.deposit(100)
+    # end
+    # ```
     #
     # This example will only take money from David and give it to Mary if neither
-    # +withdrawal+ nor +deposit+ raise an exception. Exceptions will force a
+    # `withdrawal` nor `deposit` raise an exception. Exceptions will force a
     # ROLLBACK that returns the database to the state before the transaction
-    # began. Be aware, though, that the objects will _not_ have their instance
+    # began. Be aware, though, that the objects will *not* have their instance
     # data returned to their pre-transactional state.
     #
-    # == Different Active Record classes in a single transaction
+    # Different Active Record classes in a single transaction
+    # -------------------------------------------------------
     #
     # Though the #transaction class method is called on some Active Record class,
     # the objects within the transaction block need not all be instances of
     # that class. This is because transactions are per-database connection, not
     # per-model.
     #
-    # In this example a +balance+ record is transactionally saved even
-    # though #transaction is called on the +Account+ class:
+    # In this example a `balance` record is transactionally saved even
+    # though #transaction is called on the `Account` class:
     #
-    #   Account.transaction do
-    #     balance.save!
-    #     account.save!
-    #   end
+    # ```
+    # Account.transaction do
+    #   balance.save!
+    #   account.save!
+    # end
+    # ```
     #
     # The #transaction method is also available as a model instance method.
     # For example, you can also do this:
     #
-    #   balance.transaction do
-    #     balance.save!
-    #     account.save!
-    #   end
+    # ```
+    # balance.transaction do
+    #   balance.save!
+    #   account.save!
+    # end
+    # ```
     #
-    # == Transactions are not distributed across database connections
+    # Transactions are not distributed across database connections
+    # ------------------------------------------------------------
     #
     # A transaction acts on a single database connection. If you have
     # multiple class-specific databases, the transaction will not protect
     # interaction among them. One workaround is to begin a transaction
     # on each class whose models you alter:
     #
-    #   Student.transaction do
-    #     Course.transaction do
-    #       course.enroll(student)
-    #       student.units += course.units
-    #     end
+    # ```
+    # Student.transaction do
+    #   Course.transaction do
+    #     course.enroll(student)
+    #     student.units += course.units
     #   end
+    # end
+    # ```
     #
     # This is a poor solution, but fully distributed transactions are beyond
     # the scope of Active Record.
     #
-    # == +save+ and +destroy+ are automatically wrapped in a transaction
+    # `save` and `destroy` are automatically wrapped in a transaction
+    # ---------------------------------------------------------------
     #
-    # Both {#save}[rdoc-ref:Persistence#save] and
-    # {#destroy}[rdoc-ref:Persistence#destroy] come wrapped in a transaction that ensures
+    # Both [#save](rdoc-ref:Persistence#save) and
+    # [#destroy](rdoc-ref:Persistence#destroy) come wrapped in a transaction that ensures
     # that whatever you do in validations or callbacks will happen under its
     # protected cover. So you can use validations to check for values that
     # the transaction depends on or you can raise exceptions in the callbacks
-    # to rollback, including <tt>after_*</tt> callbacks.
+    # to rollback, including `after_*` callbacks.
     #
     # As a consequence changes to the database are not seen outside your connection
     # until the operation is complete. For example, if you try to update the index
-    # of a search engine in +after_save+ the indexer won't see the updated record.
+    # of a search engine in `after_save` the indexer won't see the updated record.
     # The #after_commit callback is the only one that is triggered once the update
     # is committed. See below.
     #
-    # == Exception handling and rolling back
+    # Exception handling and rolling back
+    # -----------------------------------
     #
     # Also have in mind that exceptions thrown within a transaction block will
     # be propagated (after triggering the ROLLBACK), so you should be ready to
@@ -102,7 +116,7 @@ module ActiveRecord
     # a ROLLBACK when raised, but not be re-raised by the transaction block. Any
     # other exception will be re-raised.
     #
-    # *Warning*: one should not catch ActiveRecord::StatementInvalid exceptions
+    # **Warning**: one should not catch ActiveRecord::StatementInvalid exceptions
     # inside a transaction block. ActiveRecord::StatementInvalid exceptions indicate that an
     # error occurred at the database level, for example when a unique constraint
     # is violated. On some database systems, such as PostgreSQL, database errors
@@ -110,40 +124,45 @@ module ActiveRecord
     # until it's restarted from the beginning. Here is an example which
     # demonstrates the problem:
     #
-    #   # Suppose that we have a Number model with a unique column called 'i'.
-    #   Number.transaction do
+    # ```
+    # # Suppose that we have a Number model with a unique column called 'i'.
+    # Number.transaction do
+    #   Number.create(i: 0)
+    #   begin
+    #     # This will raise a unique constraint error...
     #     Number.create(i: 0)
-    #     begin
-    #       # This will raise a unique constraint error...
-    #       Number.create(i: 0)
-    #     rescue ActiveRecord::StatementInvalid
-    #       # ...which we ignore.
-    #     end
-    #
-    #     # On PostgreSQL, the transaction is now unusable. The following
-    #     # statement will cause a PostgreSQL error, even though the unique
-    #     # constraint is no longer violated:
-    #     Number.create(i: 1)
-    #     # => "PG::Error: ERROR:  current transaction is aborted, commands
-    #     #     ignored until end of transaction block"
+    #   rescue ActiveRecord::StatementInvalid
+    #     # ...which we ignore.
     #   end
+    #
+    #   # On PostgreSQL, the transaction is now unusable. The following
+    #   # statement will cause a PostgreSQL error, even though the unique
+    #   # constraint is no longer violated:
+    #   Number.create(i: 1)
+    #   # => "PG::Error: ERROR:  current transaction is aborted, commands
+    #   #     ignored until end of transaction block"
+    # end
+    # ```
     #
     # One should restart the entire transaction if an
     # ActiveRecord::StatementInvalid occurred.
     #
-    # == Nested transactions
+    # Nested transactions
+    # -------------------
     #
     # #transaction calls can be nested. By default, this makes all database
     # statements in the nested transaction block become part of the parent
     # transaction. For example, the following behavior may be surprising:
     #
+    # ```
+    # User.transaction do
+    #   User.create(username: 'Kotori')
     #   User.transaction do
-    #     User.create(username: 'Kotori')
-    #     User.transaction do
-    #       User.create(username: 'Nemu')
-    #       raise ActiveRecord::Rollback
-    #     end
+    #     User.create(username: 'Nemu')
+    #     raise ActiveRecord::Rollback
     #   end
+    # end
+    # ```
     #
     # creates both "Kotori" and "Nemu". Reason is the ActiveRecord::Rollback
     # exception in the nested block does not issue a ROLLBACK. Since these exceptions
@@ -151,17 +170,19 @@ module ActiveRecord
     # real transaction is committed.
     #
     # In order to get a ROLLBACK for the nested transaction you may ask for a real
-    # sub-transaction by passing <tt>requires_new: true</tt>. If anything goes wrong,
+    # sub-transaction by passing `requires_new: true`. If anything goes wrong,
     # the database rolls back to the beginning of the sub-transaction without rolling
     # back the parent transaction. If we add it to the previous example:
     #
-    #   User.transaction do
-    #     User.create(username: 'Kotori')
-    #     User.transaction(requires_new: true) do
-    #       User.create(username: 'Nemu')
-    #       raise ActiveRecord::Rollback
-    #     end
+    # ```
+    # User.transaction do
+    #   User.create(username: 'Kotori')
+    #   User.transaction(requires_new: true) do
+    #     User.create(username: 'Nemu')
+    #     raise ActiveRecord::Rollback
     #   end
+    # end
+    # ```
     #
     # only "Kotori" is created.
     #
@@ -172,10 +193,10 @@ module ActiveRecord
     # https://dev.mysql.com/doc/refman/en/savepoint.html
     # for more information about savepoints.
     #
-    # === \Callbacks
+    # ### \Callbacks
     #
-    # There are two types of callbacks associated with committing and rolling back transactions:
-    # #after_commit and #after_rollback.
+    # There are two types of callbacks associated with committing and rolling back transactions: #after_commit
+    # and #after_rollback.
     #
     # #after_commit callbacks are called on every record saved or destroyed within a
     # transaction immediately after the transaction is committed. #after_rollback callbacks
@@ -183,46 +204,54 @@ module ActiveRecord
     # transaction or savepoint is rolled back.
     #
     # These callbacks are useful for interacting with other systems since you will be guaranteed
-    # that the callback is only executed when the database is in a permanent state. For example,
-    # #after_commit is a good spot to put in a hook to clearing a cache since clearing it from
+    # that the callback is only executed when the database is in a permanent state. For example, #after_commit
+    # is a good spot to put in a hook to clearing a cache since clearing it from
     # within a transaction could trigger the cache to be regenerated before the database is updated.
     #
-    # ==== NOTE: Callbacks are deduplicated per callback by filter.
+    # #### NOTE: Callbacks are deduplicated per callback by filter.
     #
     # Trying to define multiple callbacks with the same filter will result in a single callback being run.
     #
     # For example:
     #
-    #   after_commit :do_something
-    #   after_commit :do_something # only the last one will be called
+    # ```
+    # after_commit :do_something
+    # after_commit :do_something # only the last one will be called
+    # ```
     #
-    # This applies to all variations of <tt>after_*_commit</tt> callbacks as well.
+    # This applies to all variations of `after_*_commit` callbacks as well.
     #
-    #   after_commit :do_something
-    #   after_create_commit :do_something
-    #   after_save_commit :do_something
+    # ```
+    # after_commit :do_something
+    # after_create_commit :do_something
+    # after_save_commit :do_something
+    # ```
     #
-    # It is recommended to use the +on:+ option to specify when the callback should be run.
+    # It is recommended to use the `on:` option to specify when the callback should be run.
     #
-    #   after_commit :do_something, on: [:create, :update]
+    # ```
+    # after_commit :do_something, on: [:create, :update]
+    # ```
     #
-    # This is equivalent to using +after_create_commit+ and +after_update_commit+, but will not be deduplicated.
+    # This is equivalent to using `after_create_commit` and `after_update_commit`, but will not be deduplicated.
     #
-    # === Caveats
+    # ### Caveats
     #
     # If you're on MySQL, then do not use Data Definition Language (DDL) operations in nested
     # transactions blocks that are emulated with savepoints. That is, do not execute statements
     # like 'CREATE TABLE' inside such blocks. This is because MySQL automatically
-    # releases all savepoints upon executing a DDL operation. When +transaction+
+    # releases all savepoints upon executing a DDL operation. When `transaction`
     # is finished and tries to release the savepoint it created earlier, a
     # database error will occur because the savepoint has already been
     # automatically released. The following example demonstrates the problem:
     #
-    #   Model.transaction do                           # BEGIN
-    #     Model.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
-    #       Model.lease_connection.create_table(...)   # active_record_1 now automatically released
-    #     end                                          # RELEASE SAVEPOINT active_record_1
-    #   end                                            # ^^^^ BOOM! database error!
+    # ```
+    # Model.transaction do                           # BEGIN
+    #   Model.transaction(requires_new: true) do     # CREATE SAVEPOINT active_record_1
+    #     Model.lease_connection.create_table(...)   # active_record_1 now automatically released
+    #   end                                          # RELEASE SAVEPOINT active_record_1
+    # end                                            # ^^^^ BOOM! database error!
+    # ```
     #
     # Note that "TRUNCATE" is also a MySQL DDL statement!
     module ClassMethods
@@ -257,7 +286,7 @@ module ActiveRecord
       # which can be a top level transaction, a savepoint, or the absence of a transaction.
       #
       # An object is always returned, whether or not a transaction is currently active.
-      # To check if a transaction was opened, use <tt>current_transaction.open?</tt>.
+      # To check if a transaction was opened, use `current_transaction.open?`.
       #
       # See the ActiveRecord::Transaction documentation for detailed behavior.
       def current_transaction
@@ -272,39 +301,41 @@ module ActiveRecord
       # This callback is called after a record has been created, updated, or destroyed.
       #
       # You can specify that the callback should only be fired by a certain action with
-      # the +:on+ option:
+      # the `:on` option:
       #
-      #   after_commit :do_foo, on: :create
-      #   after_commit :do_bar, on: :update
-      #   after_commit :do_baz, on: :destroy
+      # ```
+      # after_commit :do_foo, on: :create
+      # after_commit :do_bar, on: :update
+      # after_commit :do_baz, on: :destroy
       #
-      #   after_commit :do_foo_bar, on: [:create, :update]
-      #   after_commit :do_bar_baz, on: [:update, :destroy]
+      # after_commit :do_foo_bar, on: [:create, :update]
+      # after_commit :do_bar_baz, on: [:update, :destroy]
+      # ```
       #
       def after_commit(*args, &block)
         set_options_for_callbacks!(:after, args)
         set_callback(:commit, :after, *args, &block)
       end
 
-      # Shortcut for <tt>after_commit :hook, on: [ :create, :update ]</tt>.
+      # Shortcut for `after_commit :hook, on: [ :create, :update ]`.
       def after_save_commit(*args, &block)
         set_options_for_callbacks!(:after, args, on: [ :create, :update ])
         set_callback(:commit, :after, *args, &block)
       end
 
-      # Shortcut for <tt>after_commit :hook, on: :create</tt>.
+      # Shortcut for `after_commit :hook, on: :create`.
       def after_create_commit(*args, &block)
         set_options_for_callbacks!(:after, args, on: :create)
         set_callback(:commit, :after, *args, &block)
       end
 
-      # Shortcut for <tt>after_commit :hook, on: :update</tt>.
+      # Shortcut for `after_commit :hook, on: :update`.
       def after_update_commit(*args, &block)
         set_options_for_callbacks!(:after, args, on: :update)
         set_callback(:commit, :after, *args, &block)
       end
 
-      # Shortcut for <tt>after_commit :hook, on: :destroy</tt>.
+      # Shortcut for `after_commit :hook, on: :destroy`.
       def after_destroy_commit(*args, &block)
         set_options_for_callbacks!(:after, args, on: :destroy)
         set_callback(:commit, :after, *args, &block)
@@ -409,7 +440,7 @@ module ActiveRecord
       @_committed_already_called = @_trigger_update_callback = @_trigger_destroy_callback = false
     end
 
-    # Call the #after_rollback callbacks. The +force_restore_state+ argument indicates if the record
+    # Call the #after_rollback callbacks. The `force_restore_state` argument indicates if the record
     # state should be rolled back to the beginning or just to the last savepoint.
     def rolledback!(force_restore_state: false, should_run_callbacks: true) # :nodoc:
       if should_run_callbacks
@@ -567,29 +598,31 @@ module ActiveRecord
         !_rollback_callbacks.empty? || !_commit_callbacks.empty? || !_before_commit_callbacks.empty?
       end
 
-      # Method called to execute persistence method operations (+save+, +destroy+, +touch+),
-      # creating a transaction on the provided +connection+.
+      # Method called to execute persistence method operations (`save`, `destroy`, `touch`),
+      # creating a transaction on the provided `connection`.
       #
       # Override this method to customize transaction behavior, for example to set a specific
       # isolation level.
       #
-      # The +connection+ parameter provides access to the current database
+      # The `connection` parameter provides access to the current database
       # connection, allowing conditional logic based on connection state
       # (e.g., whether a transaction is already open).
-      # The +block+ parameter contains the persistence operation to be executed.
+      # The `block` parameter contains the persistence operation to be executed.
       #
       # Example skipping transaction creation if one is already open:
       #
-      #   class Account < ApplicationRecord
-      #     private
-      #       def implicit_persistence_transaction(connection, &block)
-      #         if connection.transaction_open?
-      #           yield
-      #         else
-      #           super
-      #         end
+      # ```
+      # class Account < ApplicationRecord
+      #   private
+      #     def implicit_persistence_transaction(connection, &block)
+      #       if connection.transaction_open?
+      #         yield
+      #       else
+      #         super
       #       end
-      #   end
+      #     end
+      # end
+      # ```
       #
       def implicit_persistence_transaction(connection, &block)
         connection.transaction(&block)

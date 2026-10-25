@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Type
     class Serialized < ActiveSupport::Delegation::DelegateClass(ActiveModel::Type::Value) # :nodoc:
@@ -38,12 +39,17 @@ module ActiveRecord
         return false if value.nil?
 
         if @comparable
-          old_value = deserialize(raw_old_value)
-          old_value != value
+          return deserialize(raw_old_value) != value
+        end
+
+        raw_new_value = encoded(value)
+
+        return true if raw_old_value.nil? != raw_new_value.nil?
+
+        if subtype.mutable?
+          subtype.changed_in_place?(raw_old_value, raw_new_value)
         else
-          raw_new_value = encoded(value)
-          raw_old_value.nil? != raw_new_value.nil? ||
-            subtype.changed_in_place?(raw_old_value, raw_new_value)
+          raw_old_value != subtype.serialize(raw_new_value)
         end
       end
 

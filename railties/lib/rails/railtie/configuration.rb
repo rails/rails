@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails/configuration"
 
 module Rails
@@ -55,7 +56,7 @@ module Rails
         ActiveSupport.on_load(:before_configuration, yield: true, &block)
       end
 
-      # Third configurable block to run. Does not run if +config.eager_load+
+      # Third configurable block to run. Does not run if `config.eager_load`
       # set to false.
       def before_eager_load(&block)
         ActiveSupport.on_load(:before_eager_load, yield: true, &block)

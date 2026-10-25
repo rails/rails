@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "monitor"
 
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionPool
-      # = Active Record Connection Pool \Queue
+      # Active Record Connection Pool \Queue
+      # ====================================
       #
       # Threadsafe, fair, LIFO queue.  Meant to be used by ConnectionPool
       # with which it shares a Monitor.
@@ -32,7 +34,7 @@ module ActiveRecord
           end
         end
 
-        # Add +element+ to the queue.  Never blocks.
+        # Add `element` to the queue.  Never blocks.
         def add(element)
           synchronize do
             @queue.push element
@@ -40,7 +42,7 @@ module ActiveRecord
           end
         end
 
-        # Add +element+ to the back of the queue.  Never blocks.
+        # Add `element` to the back of the queue.  Never blocks.
         def add_back(element)
           synchronize do
             @queue.unshift element
@@ -48,7 +50,7 @@ module ActiveRecord
           end
         end
 
-        # If +element+ is in the queue, remove and return it, or +nil+.
+        # If `element` is in the queue, remove and return it, or `nil`.
         def delete(element)
           synchronize do
             @queue.delete(element)
@@ -71,18 +73,20 @@ module ActiveRecord
 
         # Remove the head of the queue.
         #
-        # If +timeout+ is not given, remove and return the head of the
+        # If `timeout` is not given, remove and return the head of the
         # queue if the number of available elements is strictly
         # greater than the number of threads currently waiting (that
-        # is, don't jump ahead in line).  Otherwise, return +nil+.
+        # is, don't jump ahead in line).  Otherwise, return `nil`.
         #
-        # If +timeout+ is given, block if there is no element
-        # available, waiting up to +timeout+ seconds for an element to
+        # If `timeout` is given, block if there is no element
+        # available, waiting up to `timeout` seconds for an element to
         # become available.
         #
         # Raises:
-        # - ActiveRecord::ConnectionTimeoutError if +timeout+ is given and no element
-        # becomes available within +timeout+ seconds,
+        #
+        # - ActiveRecord::ConnectionTimeoutError if `timeout` is given and no element
+        #
+        # becomes available within `timeout` seconds,
         def poll(timeout = nil)
           synchronize { internal_poll(timeout) }
         end
@@ -109,19 +113,19 @@ module ActiveRecord
             @queue.size > @num_waiting
           end
 
-          # Removes and returns the head of the queue if possible, or +nil+.
+          # Removes and returns the head of the queue if possible, or `nil`.
           def remove
             @queue.pop
           end
 
           # Remove and return the head of the queue if the number of
           # available elements is strictly greater than the number of
-          # threads currently waiting.  Otherwise, return +nil+.
+          # threads currently waiting.  Otherwise, return `nil`.
           def no_wait_poll
             remove if can_remove_no_wait?
           end
 
-          # Waits on the queue up to +timeout+ seconds, then removes and
+          # Waits on the queue up to `timeout` seconds, then removes and
           # returns the head of the queue.
           def wait_poll(timeout)
             @num_waiting += 1
@@ -149,8 +153,8 @@ module ActiveRecord
       # biased to some thread.
       module BiasableQueue # :nodoc:
         class BiasedConditionVariable # :nodoc:
-          # semantics of condition variables guarantee that +broadcast+, +broadcast_on_biased+,
-          # +signal+ and +wait+ methods are only called while holding a lock
+          # semantics of condition variables guarantee that `broadcast`, `broadcast_on_biased`,
+          # `signal` and `wait` methods are only called while holding a lock
           def initialize(lock, other_cond, preferred_thread)
             @real_cond = lock.new_cond
             @other_cond = other_cond
@@ -204,9 +208,9 @@ module ActiveRecord
       end
 
       # Connections must be leased while holding the main pool mutex. This is
-      # an internal subclass that also +.leases+ returned connections while
+      # an internal subclass that also `.leases` returned connections while
       # still in queue's critical section (queue synchronizes with the same
-      # <tt>@lock</tt> as the main pool) so that a returned connection is already
+      # `@lock` as the main pool) so that a returned connection is already
       # leased and there is no need to re-enter synchronized block.
       class ConnectionLeasingQueue < Queue # :nodoc:
         include BiasableQueue

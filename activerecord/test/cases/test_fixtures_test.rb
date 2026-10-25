@@ -101,9 +101,10 @@ class TestFixturesTest < ActiveRecord::TestCase
     end
 
     def test_teardown_shared_connection_pool_disconnects_pool_configs_for_removed_roles
-      handler = ActiveRecord::Base.connection_handler
       db_config = ActiveRecord::Base.configurations.configs_for(env_name: "arunit", name: "primary")
-      pool_manager = handler.instance_variable_get(:@connection_name_to_pool_manager)["ActiveRecord::Base"]
+      pool_manager = without_ractor_proxy do
+        ActiveRecord::Base.connection_handler.send(:connection_name_to_pool_manager)["ActiveRecord::Base"]
+      end
       writing_pool_config = pool_manager.get_pool_config(:writing, :default)
       reading_pool_config = ActiveRecord::ConnectionAdapters::PoolConfig.new(ActiveRecord::Base, db_config, :reading, :default)
       pool_manager.set_pool_config(:reading, :default, reading_pool_config)

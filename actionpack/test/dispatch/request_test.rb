@@ -529,6 +529,63 @@ class RequestPath < BaseRequestTest
   end
 end
 
+class RequestControllerClass < BaseRequestTest
+  class WidgetsController < ActionController::Base; end
+  class GadgetsController < ActionController::Base; end
+
+  test "controller_class returns the controller named in the path parameters" do
+    request = stub_request
+    request.path_parameters = { controller: "request_controller_class/widgets", action: "index" }
+    assert_equal WidgetsController, request.controller_class
+  end
+
+  test "controller_class follows changes to the path parameters" do
+    request = stub_request
+    request.path_parameters = { controller: "request_controller_class/widgets", action: "index" }
+    assert_equal WidgetsController, request.controller_class
+
+    request.path_parameters = { controller: "request_controller_class/gadgets", action: "index" }
+    assert_equal GadgetsController, request.controller_class
+  end
+
+  test "controller_class raises MissingController when there is no controller in the path parameters" do
+    request = stub_request
+    error = assert_raises(ActionDispatch::MissingController) { request.controller_class }
+    assert_match(/No :controller in path parameters/, error.message)
+  end
+
+  test "controller_class_for resolves a controller defined after a failed lookup" do
+    request = stub_request
+    assert_raises(ActionDispatch::MissingController) { request.controller_class_for("defined_later") }
+
+    Object.const_set(:DefinedLaterController, Class.new(ActionController::Base))
+    assert_equal DefinedLaterController, request.controller_class_for("defined_later")
+    assert_equal DefinedLaterController, request.controller_class_for("defined_later")
+  ensure
+    Object.send(:remove_const, :DefinedLaterController) if Object.const_defined?(:DefinedLaterController)
+  end
+
+  test "controller_class_for resolves a redefined controller afresh" do
+    request = stub_request
+    Object.const_set(:RedefinedController, Class.new(ActionController::Base))
+    first = request.controller_class_for("redefined")
+    assert_equal RedefinedController, first
+
+    Object.send(:remove_const, :RedefinedController)
+    Object.const_set(:RedefinedController, Class.new(ActionController::Base))
+    assert_equal RedefinedController, request.controller_class_for("redefined")
+    assert_not_same first, request.controller_class_for("redefined")
+  ensure
+    Object.send(:remove_const, :RedefinedController) if Object.const_defined?(:RedefinedController)
+  end
+
+  test "controller_class raises MissingController when the controller does not exist" do
+    request = stub_request
+    request.path_parameters = { controller: "request_controller_class/nonexistent", action: "index" }
+    assert_raises(ActionDispatch::MissingController) { request.controller_class }
+  end
+end
+
 class RequestHost < BaseRequestTest
   test "host without specifying port" do
     request = stub_request "HTTP_HOST" => "rubyonrails.org"
@@ -563,6 +620,20 @@ class RequestHost < BaseRequestTest
   test "proxy request" do
     request = stub_request "HTTP_HOST" => "glu.ttono.us:80"
     assert_equal "glu.ttono.us", request.host_with_port
+  end
+
+  test "host strips a trailing port and nothing else" do
+    assert_equal "example.com", stub_request("HTTP_HOST" => "example.com").host
+    assert_equal "example.com", stub_request("HTTP_HOST" => "example.com:8080").host
+    assert_equal "[::1]", stub_request("HTTP_HOST" => "[::1]").host
+    assert_equal "[::1]", stub_request("HTTP_HOST" => "[::1]:3000").host
+    assert_equal "example.com", stub_request("HTTP_X_FORWARDED_HOST" => "example.com:8080", "HTTP_HOST" => "internal:3000").host
+  end
+
+  test "host is memoized per request" do
+    request = stub_request("HTTP_HOST" => "example.com:8080")
+    assert_same request.host, request.host
+    assert_same request.raw_host_with_port, request.raw_host_with_port
   end
 
   test "http host" do
@@ -665,6 +736,16 @@ class RequestCGI < BaseRequestTest
     assert_equal 8007, request.server_port
     assert_equal "HTTP/1.1", request.server_protocol
     assert_equal "lighttpd", request.server_software
+  end
+
+  test "each ENV_METHODS entry has a matching reader" do
+    headers = ActionDispatch::Request::ENV_METHODS.index_with { |name| "value for #{name}" }
+    request = ActionDispatch::Request.new(headers)
+
+    headers.each do |name, value|
+      reader = name.delete_prefix("HTTP_").downcase
+      assert_equal value, request.public_send(reader), "#{reader} should read #{name}"
+    end
   end
 end
 
@@ -1178,6 +1259,30 @@ class RequestMimeType < BaseRequestTest
     assert_equal("application/xml; charset=UTF-8", request.content_type)
   end
 
+  test "uppercase content type" do
+    request = stub_request("CONTENT_TYPE" => "APPLICATION/JSON; charset=utf-8")
+
+    assert_equal(Mime[:json], request.content_mime_type)
+  end
+
+  test "bare uppercase content type" do
+    request = stub_request("CONTENT_TYPE" => "APPLICATION/JSON")
+
+    assert_equal(Mime[:json], request.content_mime_type)
+  end
+
+  test "content type with surrounding whitespace" do
+    request = stub_request("CONTENT_TYPE" => " application/json ; charset=utf-8")
+
+    assert_equal(Mime[:json], request.content_mime_type)
+  end
+
+  test "content type with a comma" do
+    request = stub_request("CONTENT_TYPE" => "text/html, application/json")
+
+    assert_equal(Mime[:html], request.content_mime_type)
+  end
+
   test "user agent" do
     assert_equal "TestAgent", stub_request("HTTP_USER_AGENT" => "TestAgent").user_agent
   end
@@ -1381,6 +1486,19 @@ class RequestParameterFilter < BaseRequestTest
       path = request.filtered_path
       assert_equal %w(/authenticate?username=sikachu secret=[FILTERED] api_key=[FILTERED]).join(sep), path
     end
+  end
+
+  test "filtered_path passes the parameter to a proc filter as the original params" do
+    request = stub_request(
+      "QUERY_STRING" => "username=sikachu&secret=bd4f21f",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [
+        ->(key, value, original_params) { value.replace("[FILTERED]") if original_params[key] == "bd4f21f" }
+      ]
+    )
+
+    path = request.filtered_path
+    assert_equal request.script_name + "/authenticate?username=sikachu&secret=[FILTERED]", path
   end
 
   test "filtered_path should not unescape a genuine '[FILTERED]' value" do

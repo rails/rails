@@ -28,7 +28,7 @@ class CallbackDeveloper < ActiveRecord::Base
     end
   end
 
-  ActiveRecord::Callbacks::CALLBACKS.each do |callback_method|
+  ActiveRecord::Callbacks::DEPRECATED_CALLBACKS_LIST.each do |callback_method|
     next if callback_method.start_with?("around_")
     define_callback_method(callback_method)
     send(callback_method, callback_proc(callback_method))
@@ -498,5 +498,11 @@ class CallbacksTest < ActiveRecord::TestCase
       end
     end
     assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message
+  end
+
+  def test_callbacks_constant_is_deprecated
+    assert_deprecated(/ActiveRecord::Callbacks::CALLBACKS is deprecated/, ActiveRecord.deprecator) do
+      assert_equal ActiveRecord::Callbacks::DEPRECATED_CALLBACKS_LIST, ActiveRecord::Callbacks::CALLBACKS
+    end
   end
 end

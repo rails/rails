@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/hash/reverse_merge"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/symbol/starts_ends_with"
@@ -14,22 +15,24 @@ module ActiveModel
       #
       # Only the three basic JSON types are supported: boolean, integer, and string. No nesting either.
       # These types can either be set by referring to them by their symbol or by setting a default value.
-      # Default values are set when a new model is instantiated and on +before_save+ (if defined).
+      # Default values are set when a new model is instantiated and on `before_save` (if defined).
       #
       # Examples:
       #
-      #   class Account < ApplicationRecord
-      #     has_json :settings, restrict_creation_to_admins: true, max_invites: 10, greeting: "Hello!"
-      #     has_json :flags, beta: false, staff: :boolean
-      #   end
+      # ```
+      # class Account < ApplicationRecord
+      #   has_json :settings, restrict_creation_to_admins: true, max_invites: 10, greeting: "Hello!"
+      #   has_json :flags, beta: false, staff: :boolean
+      # end
       #
-      #   a = Account.new
-      #   a.settings.restrict_creation_to_admins? # => true
-      #   a.settings.max_invites = "100" # => Set to integer 100
-      #   a.settings = { "restrict_creation_to_admins" => "false", "max_invites" => "500", "greeting" => "goodbye" }
-      #   a.settings.greeting # => "goodbye"
-      #   a.flags.staff # => nil
-      #   a.flags.staff? # => false
+      # a = Account.new
+      # a.settings.restrict_creation_to_admins? # => true
+      # a.settings.max_invites = "100" # => Set to integer 100
+      # a.settings = { "restrict_creation_to_admins" => "false", "max_invites" => "500", "greeting" => "goodbye" }
+      # a.settings.greeting # => "goodbye"
+      # a.flags.staff # => nil
+      # a.flags.staff? # => false
+      # ```
       def has_json(attr, **schema)
         define_method(attr) do
           # Ensure the attribute is set if nil, so we can pass the reference to the accessor for defaults.
@@ -45,16 +48,18 @@ module ActiveModel
         before_save -> { send(attr) } if respond_to?(:before_save)
       end
 
-      # Like +has_json+ but each schema key also becomes its own set of accessor methods.
+      # Like `has_json` but each schema key also becomes its own set of accessor methods.
       #
-      #   class Account < ApplicationRecord
-      #     has_delegated_json :flags, beta: false, staff: :boolean
-      #   end
+      # ```
+      # class Account < ApplicationRecord
+      #   has_delegated_json :flags, beta: false, staff: :boolean
+      # end
       #
-      #   a = Account.new
-      #   a.beta? # => false
-      #   a.beta = true
-      #   a.beta # => true
+      # a = Account.new
+      # a.beta? # => false
+      # a.beta = true
+      # a.beta # => true
+      # ```
       def has_delegated_json(attr, **schema)
         has_json attr, **schema
 
@@ -79,7 +84,7 @@ module ActiveModel
 
       private
         def method_missing(method_name, *args, **kwargs)
-          key = method_name.to_s.remove(/(\?|=)/)
+          key = method_name.name.remove(/(\?|=)/)
 
           if @schema.key? key.to_sym
             if method_name.ends_with?("?")
@@ -95,7 +100,7 @@ module ActiveModel
         end
 
         def respond_to_missing?(method_name, include_private = false)
-          @schema.key?(method_name.to_s.remove(/[?=]/).to_sym) || super
+          @schema.key?(method_name.name.remove(/[?=]/).to_sym) || super
         end
 
         def lookup_schema_type_for(key)

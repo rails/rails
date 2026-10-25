@@ -34,6 +34,25 @@ class Reminder < ActiveRecord::Base; end
 class Thing < ActiveRecord::Base; end
 
 class MigrationTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy :test_migration_context_with_default_schema_migration,
+    :test_migrator_versions, :test_name_collision_across_dbs,
+    :test_migration_detection_without_schema_migration_table,
+    :test_create_table_raises_if_already_exists, :test_create_table_with_if_not_exists_true,
+    :test_create_table_raises_for_long_table_names,
+    :test_create_table_with_indexes_and_if_not_exists_true,
+    :test_create_table_with_force_true_does_not_drop_nonexisting_table,
+    :test_add_table_with_decimals, :test_internal_metadata_stores_environment,
+    :test_internal_metadata_stores_environment_when_migration_fails,
+    :test_internal_metadata_stores_environment_when_other_data_exists,
+    :test_internal_metadata_not_used_when_not_enabled,
+    :test_internal_metadata_create_table_wont_be_affected_by_schema_cache,
+    :test_schema_migration_create_table_wont_be_affected_by_schema_cache,
+    :test_rename_table_with_prefix_and_suffix, :test_add_drop_table_with_prefix_and_suffix,
+    :test_create_table_with_binary_column, :test_create_table_with_query,
+    :test_create_table_with_query_from_relation,
+    :test_allows_sqlite3_rollback_on_invalid_column_type,
+    :test_decimal_scale_without_precision_should_raise
+
   self.use_transactional_tests = false
 
   fixtures :people
@@ -748,9 +767,17 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_internal_metadata_not_used_when_not_enabled
     @internal_metadata.drop_table
-    original_config = @pool.db_config.instance_variable_get(:@configuration_hash)
+    original_db_config = @pool.db_config
+    original_config = original_db_config.instance_variable_get(:@configuration_hash)
     modified_config = original_config.dup.merge(use_metadata_table: false)
-    @pool.db_config.instance_variable_set(:@configuration_hash, modified_config)
+    if ractor_proxy?
+      # A proxied pool carries a frozen config snapshot; swap, don't mutate.
+      modified_db_config = original_db_config.dup
+      modified_db_config.instance_variable_set(:@configuration_hash, modified_config)
+      @pool.instance_variable_set(:@db_config, modified_db_config)
+    else
+      original_db_config.instance_variable_set(:@configuration_hash, modified_config)
+    end
 
     assert_not @internal_metadata.enabled?
     assert_not @internal_metadata.table_exists?
@@ -762,7 +789,11 @@ class MigrationTest < ActiveRecord::TestCase
     assert_not @internal_metadata[:environment]
     assert_not @internal_metadata.table_exists?
   ensure
-    @pool.db_config.instance_variable_set(:@configuration_hash, original_config)
+    if ractor_proxy? && original_db_config
+      @pool.instance_variable_set(:@db_config, original_db_config)
+    elsif original_config
+      original_db_config.instance_variable_set(:@configuration_hash, original_config)
+    end
     @internal_metadata.create_table
   end
 
@@ -1198,8 +1229,10 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     def clear_statement_cache(model)
-      model.connection_handler.each_connection_pool do |pool|
-        pool.connections.each(&:clear_cache!)
+      without_ractor_proxy do
+        model.connection_handler.each_connection_pool do |pool|
+          pool.connections.each(&:clear_cache!)
+        end
       end
     end
 
@@ -1231,6 +1264,8 @@ class MigrationTest < ActiveRecord::TestCase
 end
 
 class ReservedWordsMigrationTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   def test_drop_index_from_table_named_values
     connection = Person.lease_connection
     connection.create_table :values, force: true do |t|
@@ -1247,6 +1282,8 @@ class ReservedWordsMigrationTest < ActiveRecord::TestCase
 end
 
 class ExplicitlyNamedIndexMigrationTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   def test_drop_index_by_name
     connection = Person.lease_connection
     connection.create_table :values, force: true do |t|
@@ -1586,10 +1623,85 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
       assert index(:username_index).unique
     end
 
+    def test_adding_foreign_keys
+      with_bulk_change_table do |t|
+        t.bigint :author_id
+      end
+
+      assert_queries_count(1) do
+        with_bulk_change_table do |t|
+          t.bigint :reviewer_id
+          t.foreign_key :people, column: :author_id
+          t.foreign_key :people, column: :reviewer_id
+        end
+      end
+
+      assert_equal ["author_id", "reviewer_id"], foreign_keys.map(&:column).sort
+    end
+
+    def test_removing_foreign_key
+      with_bulk_change_table do |t|
+        t.bigint :author_id
+        t.foreign_key :people, column: :author_id
+      end
+
+      assert_equal 1, foreign_keys.size
+
+      assert_queries_count(1) do
+        with_bulk_change_table do |t|
+          t.remove_foreign_key :people, column: :author_id
+          t.string :title
+        end
+      end
+
+      assert_empty foreign_keys
+      assert column(:title)
+    end
+
+    def test_removing_foreign_key_and_its_column
+      with_bulk_change_table do |t|
+        t.bigint :author_id
+        t.foreign_key :people, column: :author_id
+      end
+
+      # The foreign key must only be dropped once even though MySQL's
+      # `remove_column` drops it along with the column.
+      assert_queries_count(1) do
+        with_bulk_change_table do |t|
+          t.remove_foreign_key :people, column: :author_id
+          t.remove :author_id
+        end
+      end
+
+      assert_empty foreign_keys
+      assert_not column(:author_id)
+    end
+
+    if ActiveRecord::Base.lease_connection.supports_check_constraints?
+      def test_adding_and_removing_check_constraints
+        with_bulk_change_table do |t|
+          t.integer :quantity
+          t.check_constraint "quantity > 0", name: "quantity_check"
+        end
+
+        assert_equal ["quantity_check"], check_constraints.map(&:name)
+
+        assert_queries_count(1) do
+          with_bulk_change_table do |t|
+            t.integer :price
+            t.check_constraint "price > 0", name: "price_check"
+            t.remove_check_constraint name: "quantity_check"
+          end
+        end
+
+        assert_equal ["price_check"], check_constraints.map(&:name)
+      end
+    end
+
     private
       def with_bulk_change_table(&block)
         # Reset columns/indexes cache as we're changing the table
-        @columns = @indexes = nil
+        @columns = @indexes = @foreign_keys = @check_constraints = nil
 
         Person.lease_connection.change_table(:delete_me, bulk: true, &block)
       end
@@ -1608,6 +1720,14 @@ if ActiveRecord::Base.lease_connection.supports_bulk_alter?
 
       def indexes
         @indexes ||= Person.lease_connection.indexes("delete_me")
+      end
+
+      def foreign_keys
+        @foreign_keys ||= Person.lease_connection.foreign_keys("delete_me")
+      end
+
+      def check_constraints
+        @check_constraints ||= Person.lease_connection.check_constraints("delete_me")
       end
   end # AlterTableMigrationsTest
 
@@ -1683,18 +1803,22 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   include ActiveSupport::Testing::Stream
 
   def setup
+    @tmpdir = Dir.mktmpdir
   end
 
-  def clear
+  def teardown
     ActiveRecord.timestamped_migrations = true
-    to_delete = Dir[@migrations_path + "/*.rb"] - @existing_migrations
-    File.delete(*to_delete)
+    FileUtils.rm_rf(@tmpdir)
+  end
+
+  def scratch_copy_of(migrations_dir)
+    FileUtils.cp_r(MIGRATIONS_ROOT + "/#{migrations_dir}", @tmpdir)
+    File.join(@tmpdir, migrations_dir)
   end
 
   def test_copying_migrations_without_timestamps
     ActiveRecord.timestamped_migrations = false
-    @migrations_path = MIGRATIONS_ROOT + "/valid"
-    @existing_migrations = Dir[@migrations_path + "/*.rb"]
+    @migrations_path = scratch_copy_of("valid")
 
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy")
     assert File.exist?(@migrations_path + "/4_people_have_hobbies.bukkits.rb")
@@ -1708,14 +1832,11 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy")
     assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
     assert_empty copied
-  ensure
-    clear
   end
 
   def test_copying_migrations_without_timestamps_from_2_sources
     ActiveRecord.timestamped_migrations = false
-    @migrations_path = MIGRATIONS_ROOT + "/valid"
-    @existing_migrations = Dir[@migrations_path + "/*.rb"]
+    @migrations_path = scratch_copy_of("valid")
 
     sources = {}
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy"
@@ -1729,13 +1850,10 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     files_count = Dir[@migrations_path + "/*.rb"].length
     ActiveRecord::Migration.copy(@migrations_path, sources)
     assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
-  ensure
-    clear
   end
 
   def test_copying_migrations_with_timestamps
-    @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
-    @existing_migrations = Dir[@migrations_path + "/*.rb"]
+    @migrations_path = scratch_copy_of("valid_with_timestamps")
 
     travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
       copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
@@ -1750,13 +1868,10 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
       assert_empty copied
     end
-  ensure
-    clear
   end
 
   def test_copying_migrations_with_timestamps_from_2_sources
-    @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
-    @existing_migrations = Dir[@migrations_path + "/*.rb"]
+    @migrations_path = scratch_copy_of("valid_with_timestamps")
 
     sources = {}
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
@@ -1774,13 +1889,10 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       ActiveRecord::Migration.copy(@migrations_path, sources)
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
     end
-  ensure
-    clear
   end
 
   def test_copying_migrations_with_timestamps_to_destination_with_timestamps_in_future
-    @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
-    @existing_migrations = Dir[@migrations_path + "/*.rb"]
+    @migrations_path = scratch_copy_of("valid_with_timestamps")
 
     travel_to(Time.utc(2010, 2, 20, 10, 10, 10)) do
       ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
@@ -1792,14 +1904,11 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
       assert_empty copied
     end
-  ensure
-    clear
   end
 
   def test_copying_migrations_preserving_magic_comments
     ActiveRecord.timestamped_migrations = false
-    @migrations_path = MIGRATIONS_ROOT + "/valid"
-    @existing_migrations = Dir[@migrations_path + "/*.rb"]
+    @migrations_path = scratch_copy_of("valid")
 
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/magic")
     assert File.exist?(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")
@@ -1812,13 +1921,10 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/magic")
     assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
     assert_empty copied
-  ensure
-    clear
   end
 
   def test_skipping_migrations
-    @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
-    @existing_migrations = Dir[@migrations_path + "/*.rb"]
+    @migrations_path = scratch_copy_of("valid_with_timestamps")
 
     sources = {}
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
@@ -1831,13 +1937,10 @@ class CopyMigrationsTest < ActiveRecord::TestCase
 
     assert_equal 1, skipped.length
     assert_equal ["omg PeopleHaveHobbies"], skipped
-  ensure
-    clear
   end
 
   def test_skip_is_not_called_if_migrations_are_from_the_same_plugin
-    @migrations_path = MIGRATIONS_ROOT + "/valid_with_timestamps"
-    @existing_migrations = Dir[@migrations_path + "/*.rb"]
+    @migrations_path = scratch_copy_of("valid_with_timestamps")
 
     sources = {}
     sources[:bukkits] = MIGRATIONS_ROOT + "/to_copy_with_timestamps"
@@ -1849,13 +1952,10 @@ class CopyMigrationsTest < ActiveRecord::TestCase
 
     assert_equal 2, copied.length
     assert_equal 0, skipped.length
-  ensure
-    clear
   end
 
   def test_copying_migrations_to_non_existing_directory
-    @migrations_path = MIGRATIONS_ROOT + "/non_existing"
-    @existing_migrations = []
+    @migrations_path = File.join(@tmpdir, "non_existing")
 
     travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
       copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
@@ -1863,14 +1963,10 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
       assert_equal 2, copied.length
     end
-  ensure
-    clear
-    Dir.delete(@migrations_path)
   end
 
   def test_copying_migrations_to_empty_directory
-    @migrations_path = MIGRATIONS_ROOT + "/empty"
-    @existing_migrations = []
+    @migrations_path = scratch_copy_of("empty")
 
     travel_to(Time.utc(2010, 7, 26, 10, 10, 10)) do
       copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
@@ -1878,8 +1974,6 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       assert File.exist?(@migrations_path + "/20100726101011_people_have_descriptions.bukkits.rb")
       assert_equal 2, copied.length
     end
-  ensure
-    clear
   end
 
   def test_check_pending_with_stdlib_logger
@@ -1904,11 +1998,13 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       ActiveRecord.validate_migration_timestamps = true
       ActiveRecord::Base.schema_cache.clear!
 
-      @migrations_path = MIGRATIONS_ROOT + "/temp"
+      @tmpdir = Dir.mktmpdir
+      @migrations_path = File.join(@tmpdir, "temp")
       @migrator = ActiveRecord::MigrationContext.new(@migrations_path, @schema_migration, @internal_metadata)
     end
 
     def teardown
+      FileUtils.rm_rf(@tmpdir)
       @schema_migration.create_table
       @schema_migration.delete_all_versions
       ActiveRecord.validate_migration_timestamps = @active_record_validate_timestamps_was
@@ -1969,8 +2065,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     end
 
     def test_copied_migrations_at_timestamp_boundary_are_valid
-      migrations_path_source = MIGRATIONS_ROOT + "/temp_source"
-      migrations_path_dest = MIGRATIONS_ROOT + "/temp_dest"
+      migrations_path_source = File.join(@tmpdir, "temp_source")
+      migrations_path_dest = File.join(@tmpdir, "temp_dest")
       migrations = ["20180101010101_test_migration.rb", "20180101010102_test_migration_two.rb", "20180101010103_test_migration_three.rb"]
 
       with_temp_migration_files(migrations, migrations_path_source) do
@@ -1990,9 +2086,6 @@ class CopyMigrationsTest < ActiveRecord::TestCase
           assert_not migrator.needs_migration?
         end
       end
-    ensure
-      File.delete(*Dir[migrations_path_dest + "/*.rb"])
-      Dir.rmdir(migrations_path_dest) if Dir.exist?(migrations_path_dest)
     end
 
     private
@@ -2023,6 +2116,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
   end
 
   class MigrationStrategyTest < ActiveRecord::TestCase
+    skip_under_ractor_proxy
+
     class TestStrategy < ActiveRecord::Migration::DefaultStrategy
       attr_reader :called
 

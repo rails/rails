@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -11,6 +12,15 @@ module ActiveRecord
           def initialize(subtype, type = :range)
             @subtype = subtype
             @type = type
+          end
+
+          def as_schema_json
+            { "subtype" => subtype, "type" => @type }
+          end
+
+          def init_from_schema_json(coder, references)
+            @subtype = references[coder["subtype"]]
+            @type = coder["type"]&.to_sym
           end
 
           def type_cast_for_schema(value)
@@ -134,6 +144,7 @@ module ActiveRecord
             # escaped. In input, PostgreSQL accepts multiple escape styles for "
             # (either \" or "") but in output always uses "".
             # See:
+            #
             # * https://www.postgresql.org/docs/current/rangetypes.html#RANGETYPES-IO
             # * https://www.postgresql.org/docs/current/rowtypes.html#ROWTYPES-IO-SYNTAX
             def unquote(value)

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActionController
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
     INTERNAL_PARAMS = %w(controller action format _method only_path).freeze
@@ -7,13 +8,15 @@ module ActionController
     class_attribute :_rescue_from_event_backtrace, instance_accessor: false, default: nil # :nodoc:
 
     def start_processing(event)
+      return unless emitting?("action_controller.request_started")
+
       payload = event.payload
       params = {}
       payload[:params].each_pair do |k, v|
         params[k] = v unless INTERNAL_PARAMS.include?(k)
       end
       format = payload[:format]
-      format = format.to_s.upcase if format.is_a?(Symbol)
+      format = format.name.upcase if format.is_a?(Symbol)
       format = "*/*" if format.nil?
 
       emit_event("action_controller.request_started",
@@ -25,6 +28,8 @@ module ActionController
     end
 
     def process_action(event)
+      return unless emitting?("action_controller.request_completed")
+
       payload = event.payload
       status = payload[:status]
 

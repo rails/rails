@@ -237,6 +237,7 @@ module Mime
       def lookup(string)
         lookup = Mime.lookup_by_string
         return lookup[string] if lookup.key?(string)
+        return WILDCARD if string == "*/*"
 
         # fallback to the media-type without parameters if it was not found
         string = string.split(";", 2)[0]&.rstrip
@@ -244,7 +245,7 @@ module Mime
       end
 
       def lookup_by_extension(extension)
-        Mime.lookup_by_extension[extension.to_s]
+        Mime.lookup_by_extension[extension.is_a?(Symbol) ? extension.name : extension.to_s]
       end
 
       # Registers an alias that's not used on MIME type lookup, but can be referenced
@@ -354,6 +355,12 @@ module Mime
       freeze
     end
 
+    # Returned when looking up `*/*`, the Accept header of most non-browser
+    # clients, instead of building an equal instance on each request. Unlike
+    # Mime::ALL, it's a plain unregistered type.
+    WILDCARD = new("*/*")
+    private_constant :WILDCARD
+
     def to_s
       @string
     end
@@ -380,9 +387,18 @@ module Mime
 
     def ==(mime_type)
       return false unless mime_type
-      (@synonyms + [ self ]).any? do |synonym|
-        synonym.to_s == mime_type.to_s || synonym.to_sym == mime_type.to_sym
+      if mime_type.is_a?(Symbol)
+        # `format == :json` is the common call. Compare the symbol directly, and
+        # use `Symbol#name` so that the string comparison doesn't allocate.
+        return true if @symbol == mime_type
+        mime_string = mime_type.name
+      else
+        mime_string = mime_type.to_s
       end
+      return true if @string == mime_string || @synonyms.include?(mime_string)
+
+      mime_symbol = mime_type.to_sym
+      @symbol == mime_symbol || @synonyms.any? { |synonym| synonym.to_sym == mime_symbol }
     end
 
     def eql?(other)

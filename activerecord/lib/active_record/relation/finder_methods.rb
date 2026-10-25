@@ -1,100 +1,115 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/string/filters"
 
 module ActiveRecord
   module FinderMethods
     ONE_AS_ONE = "1 AS one"
+    ONE_AS_ONE_LITERAL = Arel.sql(ONE_AS_ONE, retryable: true).freeze # :nodoc:
 
     # Find by id - This can either be a specific id (ID), a list of ids (ID, ID, ID), or an array of ids ([ID, ID, ID]).
-    # `ID` refers to an "identifier". For models with a single-column primary key, `ID` will be a single value,
+    # \`ID\` refers to an "identifier". For models with a single-column primary key, \`ID\` will be a single value,
     # and for models with a composite primary key, it will be an array of values.
     # If one or more records cannot be found for the requested ids, then ActiveRecord::RecordNotFound will be raised.
-    # If the primary key is an integer, find by id coerces its arguments by using +to_i+.
+    # If the primary key is an integer, find by id coerces its arguments by using `to_i`.
     #
-    #   Person.find(1)          # returns the object for ID = 1
-    #   Person.find("1")        # returns the object for ID = 1
-    #   Person.find("31-sarah") # returns the object for ID = 31
-    #   Person.find(1, 2, 6)    # returns an array for objects with IDs in (1, 2, 6)
-    #   Person.find([7, 17])    # returns an array for objects with IDs in (7, 17), or with composite primary key [7, 17]
-    #   Person.find([1])        # returns an array for the object with ID = 1
-    #   Person.where("administrator = 1").order("created_on DESC").find(1)
+    # ```
+    # Person.find(1)          # returns the object for ID = 1
+    # Person.find("1")        # returns the object for ID = 1
+    # Person.find("31-sarah") # returns the object for ID = 31
+    # Person.find(1, 2, 6)    # returns an array for objects with IDs in (1, 2, 6)
+    # Person.find([7, 17])    # returns an array for objects with IDs in (7, 17), or with composite primary key [7, 17]
+    # Person.find([1])        # returns an array for the object with ID = 1
+    # Person.where(administrator: 1).order(created_on: :desc).find(1)
+    # ```
     #
-    # ==== Find a record for a composite primary key model
-    #   TravelRoute.primary_key = [:origin, :destination]
+    # #### Find a record for a composite primary key model
     #
-    #   TravelRoute.find(["Ottawa", "London"])
-    #   # => #<TravelRoute origin: "Ottawa", destination: "London">
+    # ```
+    # TravelRoute.primary_key = [:origin, :destination]
     #
-    #   TravelRoute.find([["Paris", "Montreal"]])
-    #   # => [#<TravelRoute origin: "Paris", destination: "Montreal">]
+    # TravelRoute.find(["Ottawa", "London"])
+    # # => #<TravelRoute origin: "Ottawa", destination: "London">
     #
-    #   TravelRoute.find(["New York", "Las Vegas"], ["New York", "Portland"])
-    #   # => [
-    #   #      #<TravelRoute origin: "New York", destination: "Las Vegas">,
-    #   #      #<TravelRoute origin: "New York", destination: "Portland">
-    #   #    ]
+    # TravelRoute.find([["Paris", "Montreal"]])
+    # # => [#<TravelRoute origin: "Paris", destination: "Montreal">]
     #
-    #   TravelRoute.find([["Berlin", "London"], ["Barcelona", "Lisbon"]])
-    #   # => [
-    #   #      #<TravelRoute origin: "Berlin", destination: "London">,
-    #   #      #<TravelRoute origin: "Barcelona", destination: "Lisbon">
-    #   #    ]
+    # TravelRoute.find(["New York", "Las Vegas"], ["New York", "Portland"])
+    # # => [
+    # #      #<TravelRoute origin: "New York", destination: "Las Vegas">,
+    # #      #<TravelRoute origin: "New York", destination: "Portland">
+    # #    ]
+    #
+    # TravelRoute.find([["Berlin", "London"], ["Barcelona", "Lisbon"]])
+    # # => [
+    # #      #<TravelRoute origin: "Berlin", destination: "London">,
+    # #      #<TravelRoute origin: "Barcelona", destination: "Lisbon">
+    # #    ]
+    # ```
     #
     # NOTE: The returned records are in the same order as the ids you provide.
     # If you want the results to be sorted by database, you can use ActiveRecord::QueryMethods#where
     # method and provide an explicit ActiveRecord::QueryMethods#order option.
     # But ActiveRecord::QueryMethods#where method doesn't raise ActiveRecord::RecordNotFound.
     #
-    # ==== Find with lock
+    # #### Find with lock
     #
     # Example for find with a lock: Imagine two concurrent transactions:
-    # each will read <tt>person.visits == 2</tt>, add 1 to it, and save, resulting
-    # in two saves of <tt>person.visits = 3</tt>. By locking the row, the second
+    # each will read `person.visits == 2`, add 1 to it, and save, resulting
+    # in two saves of `person.visits = 3`. By locking the row, the second
     # transaction has to wait until the first is finished; we get the
-    # expected <tt>person.visits == 4</tt>.
+    # expected `person.visits == 4`.
     #
-    #   Person.transaction do
-    #     person = Person.lock(true).find(1)
-    #     person.visits += 1
-    #     person.save!
-    #   end
+    # ```
+    # Person.transaction do
+    #   person = Person.lock(true).find(1)
+    #   person.visits += 1
+    #   person.save!
+    # end
+    # ```
     #
-    # ==== Variations of #find
+    # #### Variations of #find
     #
-    #   Person.where(name: 'Spartacus', rating: 4)
-    #   # returns a chainable list (which can be empty).
+    # ```
+    # Person.where(name: 'Spartacus', rating: 4)
+    # # returns a chainable list (which can be empty).
     #
-    #   Person.find_by(name: 'Spartacus', rating: 4)
-    #   # returns the first item or nil.
+    # Person.find_by(name: 'Spartacus', rating: 4)
+    # # returns the first item or nil.
     #
-    #   Person.find_or_initialize_by(name: 'Spartacus', rating: 4)
-    #   # returns the first item or returns a new instance (requires you call .save to persist against the database).
+    # Person.find_or_initialize_by(name: 'Spartacus', rating: 4)
+    # # returns the first item or returns a new instance (requires you call .save to persist against the database).
     #
-    #   Person.find_or_create_by(name: 'Spartacus', rating: 4)
-    #   # returns the first item or creates it and returns it.
+    # Person.find_or_create_by(name: 'Spartacus', rating: 4)
+    # # returns the first item or creates it and returns it.
+    # ```
     #
-    # ==== Alternatives for #find
+    # #### Alternatives for #find
     #
-    #   Person.where(name: 'Spartacus', rating: 4).exists?(conditions = :none)
-    #   # returns a boolean indicating if any record with the given conditions exist.
+    # ```
+    # Person.where(name: 'Spartacus', rating: 4).exists?(conditions = :none)
+    # # returns a boolean indicating if any record with the given conditions exist.
     #
-    #   Person.where(name: 'Spartacus', rating: 4).select("field1, field2, field3")
-    #   # returns a chainable list of instances with only the mentioned fields.
+    # Person.where(name: 'Spartacus', rating: 4).select("field1, field2, field3")
+    # # returns a chainable list of instances with only the mentioned fields.
     #
-    #   Person.where(name: 'Spartacus', rating: 4).ids
-    #   # returns an Array of ids.
+    # Person.where(name: 'Spartacus', rating: 4).ids
+    # # returns an Array of ids.
     #
-    #   Person.where(name: 'Spartacus', rating: 4).pluck(:field1, :field2)
-    #   # returns an Array of the required fields.
+    # Person.where(name: 'Spartacus', rating: 4).pluck(:field1, :field2)
+    # # returns an Array of the required fields.
+    # ```
     #
-    # ==== Edge Cases
+    # #### Edge Cases
     #
-    #   Person.find(37)          # raises ActiveRecord::RecordNotFound exception if the record with the given ID does not exist.
-    #   Person.find([37])        # raises ActiveRecord::RecordNotFound exception if the record with the given ID in the input array does not exist.
-    #   Person.find(nil)         # raises ActiveRecord::RecordNotFound exception if the argument is nil.
-    #   Person.find([])          # returns an empty array if the argument is an empty array.
-    #   Person.find              # raises ActiveRecord::RecordNotFound exception if the argument is not provided.
+    # ```
+    # Person.find(37)          # raises ActiveRecord::RecordNotFound exception if the record with the given ID does not exist.
+    # Person.find([37])        # raises ActiveRecord::RecordNotFound exception if the record with the given ID in the input array does not exist.
+    # Person.find(nil)         # raises ActiveRecord::RecordNotFound exception if the argument is nil.
+    # Person.find([])          # returns an empty array if the argument is an empty array.
+    # Person.find              # raises ActiveRecord::RecordNotFound exception if the argument is not provided.
+    # ```
     def find(*args)
       return super if block_given?
       find_with_ids(*args)
@@ -104,10 +119,12 @@ module ActiveRecord
     # is no implied ordering so if order matters, you should specify it
     # yourself.
     #
-    # If no record is found, returns <tt>nil</tt>.
+    # If no record is found, returns `nil`.
     #
-    #   Post.find_by name: 'Spartacus', rating: 4
-    #   Post.find_by "published_at < ?", 2.weeks.ago
+    # ```
+    # Post.find_by name: 'Spartacus', rating: 4
+    # Post.find_by "published_at < ?", 2.weeks.ago
+    # ```
     def find_by(arg, *args)
       where(arg, *args).take
     end
@@ -122,9 +139,11 @@ module ActiveRecord
     # order. The order will depend on the database implementation.
     # If an order is supplied it will be respected.
     #
-    #   Person.take # returns an object fetched by SELECT * FROM people LIMIT 1
-    #   Person.take(5) # returns 5 objects fetched by SELECT * FROM people LIMIT 5
-    #   Person.where("name LIKE ?", "%#{name}").take
+    # ```
+    # Person.take # returns an object fetched by SELECT * FROM people LIMIT 1
+    # Person.take(5) # returns 5 objects fetched by SELECT * FROM people LIMIT 5
+    # Person.where("name LIKE ?", "%#{name}").take
+    # ```
     def take(limit = nil)
       limit ? find_take_with_limit(limit) : find_take
     end
@@ -139,7 +158,9 @@ module ActiveRecord
     # record is found. Raises ActiveRecord::SoleRecordExceeded if more than one
     # record is found.
     #
-    #   Product.where(["price = ?", price]).sole
+    # ```
+    # Product.where(["price = ?", price]).sole
+    # ```
     def sole
       found, undesired = take(2)
 
@@ -156,7 +177,9 @@ module ActiveRecord
     # record is found. Raises ActiveRecord::SoleRecordExceeded if more than one
     # record is found.
     #
-    #   Product.find_sole_by(["price = ?", price])
+    # ```
+    # Product.find_sole_by(["price = ?", price])
+    # ```
     def find_sole_by(arg, *args)
       where(arg, *args).sole
     end
@@ -164,10 +187,12 @@ module ActiveRecord
     # Find the first record (or first N records if a parameter is supplied).
     # If no order is defined it will order by primary key.
     #
-    #   Person.first # returns the first object fetched by SELECT * FROM people ORDER BY people.id LIMIT 1
-    #   Person.where(user_name: user_name).first
-    #   Person.order("created_on DESC").offset(5).first
-    #   Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
+    # ```
+    # Person.first # returns the first object fetched by SELECT * FROM people ORDER BY people.id LIMIT 1
+    # Person.where(user_name: user_name).first
+    # Person.order(created_on: :desc).offset(5).first
+    # Person.first(3) # returns the first three objects fetched by SELECT * FROM people ORDER BY people.id LIMIT 3
+    # ```
     #
     def first(limit = nil)
       if limit
@@ -186,18 +211,24 @@ module ActiveRecord
     # Find the last record (or last N records if a parameter is supplied).
     # If no order is defined it will order by primary key.
     #
-    #   Person.last # returns the last object fetched by SELECT * FROM people
-    #   Person.where(user_name: user_name).last
-    #   Person.order("created_on DESC").offset(5).last
-    #   Person.last(3) # returns the last three objects fetched by SELECT * FROM people.
+    # ```
+    # Person.last # returns the last object fetched by SELECT * FROM people
+    # Person.where(user_name: user_name).last
+    # Person.order(created_on: :desc).offset(5).last
+    # Person.last(3) # returns the last three objects fetched by SELECT * FROM people.
+    # ```
     #
     # Take note that in that last case, the results are sorted in ascending order:
     #
-    #   [#<Person id:2>, #<Person id:3>, #<Person id:4>]
+    # ```
+    # [#<Person id:2>, #<Person id:3>, #<Person id:4>]
+    # ```
     #
     # and not:
     #
-    #   [#<Person id:4>, #<Person id:3>, #<Person id:2>]
+    # ```
+    # [#<Person id:4>, #<Person id:3>, #<Person id:2>]
+    # ```
     def last(limit = nil)
       return find_last(limit) if loaded? || has_limit_or_offset?
 
@@ -216,9 +247,11 @@ module ActiveRecord
     # Find the second record.
     # If no order is defined it will order by primary key.
     #
-    #   Person.second # returns the second object fetched by SELECT * FROM people
-    #   Person.offset(3).second # returns the second object from OFFSET 3 (which is OFFSET 4)
-    #   Person.where(user_name: user_name).second
+    # ```
+    # Person.second # returns the second object fetched by SELECT * FROM people
+    # Person.offset(3).second # returns the second object from OFFSET 3 (which is OFFSET 4)
+    # Person.where(user_name: user_name).second
+    # ```
     def second
       find_nth 1
     end
@@ -232,9 +265,11 @@ module ActiveRecord
     # Find the third record.
     # If no order is defined it will order by primary key.
     #
-    #   Person.third # returns the third object fetched by SELECT * FROM people
-    #   Person.offset(3).third # returns the third object from OFFSET 3 (which is OFFSET 5)
-    #   Person.where(user_name: user_name).third
+    # ```
+    # Person.third # returns the third object fetched by SELECT * FROM people
+    # Person.offset(3).third # returns the third object from OFFSET 3 (which is OFFSET 5)
+    # Person.where(user_name: user_name).third
+    # ```
     def third
       find_nth 2
     end
@@ -248,9 +283,11 @@ module ActiveRecord
     # Find the fourth record.
     # If no order is defined it will order by primary key.
     #
-    #   Person.fourth # returns the fourth object fetched by SELECT * FROM people
-    #   Person.offset(3).fourth # returns the fourth object from OFFSET 3 (which is OFFSET 6)
-    #   Person.where(user_name: user_name).fourth
+    # ```
+    # Person.fourth # returns the fourth object fetched by SELECT * FROM people
+    # Person.offset(3).fourth # returns the fourth object from OFFSET 3 (which is OFFSET 6)
+    # Person.where(user_name: user_name).fourth
+    # ```
     def fourth
       find_nth 3
     end
@@ -264,9 +301,11 @@ module ActiveRecord
     # Find the fifth record.
     # If no order is defined it will order by primary key.
     #
-    #   Person.fifth # returns the fifth object fetched by SELECT * FROM people
-    #   Person.offset(3).fifth # returns the fifth object from OFFSET 3 (which is OFFSET 7)
-    #   Person.where(user_name: user_name).fifth
+    # ```
+    # Person.fifth # returns the fifth object fetched by SELECT * FROM people
+    # Person.offset(3).fifth # returns the fifth object from OFFSET 3 (which is OFFSET 7)
+    # Person.where(user_name: user_name).fifth
+    # ```
     def fifth
       find_nth 4
     end
@@ -280,9 +319,11 @@ module ActiveRecord
     # Find the forty-second record. Also known as accessing "the reddit".
     # If no order is defined it will order by primary key.
     #
-    #   Person.forty_two # returns the forty-second object fetched by SELECT * FROM people
-    #   Person.offset(3).forty_two # returns the forty-second object from OFFSET 3 (which is OFFSET 44)
-    #   Person.where(user_name: user_name).forty_two
+    # ```
+    # Person.forty_two # returns the forty-second object fetched by SELECT * FROM people
+    # Person.offset(3).forty_two # returns the forty-second object from OFFSET 3 (which is OFFSET 44)
+    # Person.where(user_name: user_name).forty_two
+    # ```
     def forty_two
       find_nth 41
     end
@@ -296,9 +337,11 @@ module ActiveRecord
     # Find the third-to-last record.
     # If no order is defined it will order by primary key.
     #
-    #   Person.third_to_last # returns the third-to-last object fetched by SELECT * FROM people
-    #   Person.offset(3).third_to_last # returns the third-to-last object from OFFSET 3
-    #   Person.where(user_name: user_name).third_to_last
+    # ```
+    # Person.third_to_last # returns the third-to-last object fetched by SELECT * FROM people
+    # Person.offset(3).third_to_last # returns the third-to-last object from OFFSET 3
+    # Person.where(user_name: user_name).third_to_last
+    # ```
     def third_to_last
       find_nth_from_last 3
     end
@@ -312,9 +355,11 @@ module ActiveRecord
     # Find the second-to-last record.
     # If no order is defined it will order by primary key.
     #
-    #   Person.second_to_last # returns the second-to-last object fetched by SELECT * FROM people
-    #   Person.offset(3).second_to_last # returns the second-to-last object from OFFSET 3
-    #   Person.where(user_name: user_name).second_to_last
+    # ```
+    # Person.second_to_last # returns the second-to-last object fetched by SELECT * FROM people
+    # Person.offset(3).second_to_last # returns the second-to-last object from OFFSET 3
+    # Person.where(user_name: user_name).second_to_last
+    # ```
     def second_to_last
       find_nth_from_last 2
     end
@@ -325,35 +370,37 @@ module ActiveRecord
       second_to_last || raise_record_not_found_exception!
     end
 
-    # Returns true if a record exists in the table that matches the +id+ or
+    # Returns true if a record exists in the table that matches the `id` or
     # conditions given, or false otherwise. The argument can take six forms:
     #
     # * Integer - Finds the record with this primary key.
     # * String - Finds the record with a primary key corresponding to this
-    #   string (such as <tt>'5'</tt>).
-    # * Array - Finds the record that matches these +where+-style conditions
-    #   (such as <tt>['name LIKE ?', "%#{query}%"]</tt>).
-    # * Hash - Finds the record that matches these +where+-style conditions
-    #   (such as <tt>{name: 'David'}</tt>).
-    # * +false+ - Returns always +false+.
-    # * No args - Returns +false+ if the relation is empty, +true+ otherwise.
+    #   string (such as `'5'`).
+    # * Array - Finds the record that matches these `where`-style conditions
+    #   (such as `['name LIKE ?', "%#{query}%"]`).
+    # * Hash - Finds the record that matches these `where`-style conditions
+    #   (such as `{name: 'David'}`).
+    # * `false` - Returns always `false`.
+    # * No args - Returns `false` if the relation is empty, `true` otherwise.
     #
     # For more information about specifying conditions as a hash or array,
     # see the Conditions section in the introduction to ActiveRecord::Base.
     #
     # Note: You can't pass in a condition as a string (like <tt>name =
     # 'Jamie'</tt>), since it would be sanitized and then queried against
-    # the primary key column, like <tt>id = 'name = \'Jamie\''</tt>.
+    # the primary key column, like `id = 'name = \'Jamie\''`.
     #
-    #   Person.exists?(5)
-    #   Person.exists?('5')
-    #   Person.exists?('name LIKE ?', "%#{query}%")
-    #   Person.exists?(['name LIKE ?', "%#{query}%"])
-    #   Person.exists?(id: [1, 4, 8])
-    #   Person.exists?(name: 'David')
-    #   Person.exists?(false)
-    #   Person.exists?
-    #   Person.where(name: 'Spartacus', rating: 4).exists?
+    # ```
+    # Person.exists?(5)
+    # Person.exists?('5')
+    # Person.exists?('name LIKE ?', "%#{query}%")
+    # Person.exists?(['name LIKE ?', "%#{query}%"])
+    # Person.exists?(id: [1, 4, 8])
+    # Person.exists?(name: 'David')
+    # Person.exists?(false)
+    # Person.exists?
+    # Person.where(name: 'Spartacus', rating: 4).exists?
+    # ```
     def exists?(conditions = :none)
       return false if @none
 
@@ -405,8 +452,8 @@ module ActiveRecord
     #
     # The error message is different depending on whether a single id or
     # multiple ids are provided. If multiple ids are provided, then the number
-    # of results obtained should be provided in the +result_size+ argument and
-    # the expected number of results should be provided in the +expected_size+
+    # of results obtained should be provided in the `result_size` argument and
+    # the expected number of results should be provided in the `expected_size`
     # argument.
     def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key, not_found_ids = nil) # :nodoc:
       conditions = " [#{arel.where_sql(model)}]" unless where_clause.empty?
@@ -436,7 +483,7 @@ module ActiveRecord
         if distinct_value && offset_value
           relation = except(:order).limit!(1)
         else
-          relation = except(:select, :distinct, :order)._select!(Arel.sql(ONE_AS_ONE, retryable: true)).limit!(1)
+          relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE_LITERAL).limit!(1)
         end
 
         case conditions
@@ -456,14 +503,7 @@ module ActiveRecord
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
         if eager_loading && has_limit_or_offset? && !(
-          using_limitable_reflections?(join_dependency.reflections) &&
-          using_limitable_reflections?(
-            construct_join_dependency(
-              select_association_list(joins_values).concat(
-                select_association_list(left_outer_joins_values)
-              ), nil
-            ).reflections
-          )
+          using_limitable_reflections?(join_dependency.reflections) && using_limitable_joins?
         )
           relation = skip_query_cache_if_necessary do
             model.with_connection do |c|
@@ -481,6 +521,23 @@ module ActiveRecord
 
       def using_limitable_reflections?(reflections)
         reflections.none?(&:collection?)
+      end
+
+      # Whether the joins of the relation itself keep it to one row per record,
+      # so that a limit can be applied to the query the eager load joins into.
+      def using_limitable_joins?
+        joins = classify_join_values(joins_values)
+        left_outer_joins = classify_join_values(left_outer_joins_values)
+
+        # A CTE is joined on the model's foreign key, so it can match many rows.
+        # It is not an association either, so it has no reflection to look at.
+        return false unless joins.cte_names.empty? && left_outer_joins.cte_names.empty?
+
+        using_limitable_reflections?(
+          construct_join_dependency(
+            joins.association_names + left_outer_joins.association_names, nil
+          ).reflections
+        )
       end
 
       def find_with_ids(*ids)
@@ -546,7 +603,7 @@ module ActiveRecord
         end
 
         relation = where(primary_key => ids)
-        relation = relation.select(table[primary_key]) unless select_values.empty?
+        relation = relation.select(model.primary_key_definition.arel_columns(table)) unless select_values.empty?
         result = relation.to_a
 
         if result.size == expected_size
@@ -562,7 +619,7 @@ module ActiveRecord
 
         relation = except(:limit, :offset)
         relation = relation.where(primary_key => ids)
-        relation = relation.select(table[primary_key]) unless select_values.empty?
+        relation = relation.select(model.primary_key_definition.arel_columns(table)) unless select_values.empty?
         result = relation.records
 
         if result.size == ids.size
@@ -640,8 +697,9 @@ module ActiveRecord
             return order(default_order_values)
           end
 
-          if !_order_columns.empty?
-            return order(_order_columns.map { |column| predicate_builder.predicate_attribute(table[column]).asc })
+          order_columns = _order_columns
+          if !order_columns.empty?
+            return order(order_columns.map { |column| predicate_builder.predicate_attribute(table[column]).asc })
           end
 
           if ActiveRecord.raise_on_missing_required_finder_order_columns

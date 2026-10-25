@@ -6,6 +6,8 @@ require "active_support/core_ext/hash/deep_merge"
 module ActiveRecord
   class Migration
     class PendingMigrationsTest < ActiveRecord::TestCase
+      skip_under_ractor_proxy
+
       if current_adapter?(:SQLite3Adapter) && !in_memory_db?
         self.use_transactional_tests = false
 

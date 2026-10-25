@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 #--
 # Copyright (c) David Heinemeier Hansson, 37signals LLC
 #
@@ -365,11 +366,14 @@ module ActiveStorage
   # options.
   mattr_accessor :routes_prefix, default: "/rails/active_storage"
   mattr_accessor :draw_routes, default: true
+  mattr_accessor :draw_direct_upload_route, default: true
   mattr_accessor :resolve_model_to_route, default: :rails_storage_redirect
 
   mattr_accessor :base_controller_parent, default: "::ActionController::Base"
 
   mattr_accessor :track_variants, default: false
+
+  mattr_accessor :s3_public_uploads_via_acl, default: true
 
   singleton_class.attr_accessor :checksum_implementation
   @checksum_implementation = OpenSSL::Digest::MD5

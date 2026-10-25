@@ -275,8 +275,83 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     k.primary_key = "foo"
     subclass = Class.new(k)
 
-    assert_equal "foo", k._primary_key_definition&.name
-    assert_equal "foo", subclass._primary_key_definition&.name
+    assert_equal "foo", k.primary_key
+    assert_equal "foo", subclass.primary_key
+  end
+
+  def test_primary_key_inherited_when_assigned_after_subclass_is_defined
+    k = Class.new(ActiveRecord::Base) { self.table_name = "topics" }
+    subclass = Class.new(k)
+    assert_equal "id", subclass.primary_key
+
+    k.primary_key = "title"
+    assert_equal "title", subclass.primary_key
+  end
+
+  def test_primary_key_assigned_on_subclass_is_not_overridden_by_parent
+    k = Class.new(ActiveRecord::Base) { self.table_name = "topics" }
+    subclass = Class.new(k) { self.primary_key = "title" }
+
+    k.primary_key = "author_name"
+    assert_equal "author_name", k.primary_key
+    assert_equal "title", subclass.primary_key
+  end
+
+  def test_primary_key_assignment_reloads_schema
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    context = klass.schema_context
+
+    klass.primary_key = ["title", "id"]
+
+    assert_not_same context, klass.schema_context
+    assert_equal ["title", "id"], klass.query_constraints_list
+    assert_equal ["title", "id"], klass.composite_query_constraints_list
+  end
+
+  def test_primary_key_assignment_reloads_descendant_schema
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      self.primary_key = "id"
+    end
+    child = Class.new(klass)
+    context = child.schema_context
+
+    klass.primary_key = ["title", "id"]
+
+    assert_not_same context, child.schema_context
+    assert_equal ["title", "id"], child.query_constraints_list
+    assert_equal ["title", "id"], child.composite_query_constraints_list
+  end
+
+  def test_attributes_builder_is_reused_until_the_schema_is_reloaded
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    builder = klass.attributes_builder
+
+    assert_same builder, klass.attributes_builder
+    assert builder.default_keys.include?("id")
+    assert_not builder.default_keys.include?("title")
+
+    klass.reset_column_information
+
+    assert_not_same builder, klass.attributes_builder
+  end
+
+  def test_primary_key_assignment_rebuilds_the_attributes_builder
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+    end
+    child = Class.new(klass)
+    builder = child.attributes_builder
+
+    klass.primary_key = "title"
+
+    assert_not_same builder, child.attributes_builder
+    assert child.attributes_builder.default_keys.include?("title")
+    assert_not child.attributes_builder.default_keys.include?("id")
   end
 
   def test_auto_detect_primary_key_from_schema
@@ -373,6 +448,8 @@ class PrimaryKeysTest < ActiveRecord::TestCase
 end
 
 class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   self.use_transactional_tests = false
 
   class AutoIncrement < ActiveRecord::Base
@@ -410,6 +487,8 @@ class PrimaryKeyWithAutoIncrementTest < ActiveRecord::TestCase
 end
 
 class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   include SchemaDumpingHelper
 
   class Barcode < ActiveRecord::Base
@@ -451,6 +530,8 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
 end
 
 class CompositePrimaryKeyTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   include SchemaDumpingHelper
 
   self.use_transactional_tests = false
@@ -592,6 +673,8 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
 end
 
 class PrimaryKeyIntegerNilDefaultTest < ActiveRecord::TestCase
+  skip_under_ractor_proxy
+
   include SchemaDumpingHelper
 
   def setup

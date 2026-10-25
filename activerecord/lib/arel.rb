@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/ractors"
 
 require "arel/errors"
@@ -34,23 +35,25 @@ module Arel
 
   # Wrap a known-safe SQL string for passing to query methods, e.g.
   #
-  #   Post.order(Arel.sql("REPLACE(title, 'misc', 'zzzz') asc")).pluck(:id)
+  # ```
+  # Post.order(Arel.sql("REPLACE(title, 'misc', 'zzzz') asc")).pluck(:id)
+  # ```
   #
   # Great caution should be taken to avoid SQL injection vulnerabilities.
   # This method should not be used with unsafe values such as request
   # parameters or model attributes.
   #
-  # Take a look at the {security guide}[https://guides.rubyonrails.org/security.html#sql-injection]
+  # Take a look at the [security guide](https://guides.rubyonrails.org/security.html#sql-injection)
   # for more information.
   #
   # To construct a more complex query fragment, including the possible
-  # use of user-provided values, the +sql_string+ may contain <tt>?</tt> and
-  # +:key+ placeholders, corresponding to the additional arguments. Note
+  # use of user-provided values, the `sql_string` may contain `?` and
+  # `:key` placeholders, corresponding to the additional arguments. Note
   # that this behavior only applies when bind value parameters are
   # supplied in the call; without them, the placeholder tokens have no
   # special meaning, and will be passed through to the query as-is.
   #
-  # The +:retryable+ option can be used to mark the SQL as safe to retry.
+  # The `:retryable` option can be used to mark the SQL as safe to retry.
   # Use this option only if the SQL is idempotent, as it could be executed
   # more than once.
   def self.sql(sql_string, *positional_binds, retryable: false, **named_binds)
@@ -63,8 +66,11 @@ module Arel
     end
   end
 
+  STAR = ActiveSupport::Ractors.make_shareable(Arel::Nodes::SqlLiteral.new("*", retryable: true).freeze) # :nodoc:
+  private_constant :STAR
+
   def self.star # :nodoc:
-    sql("*", retryable: true)
+    STAR
   end
 
   def self.arel_node?(value) # :nodoc:

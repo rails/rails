@@ -1,3 +1,4 @@
+# :markup: markdown
 # frozen_string_literal: true
 
 require "time"
@@ -10,16 +11,20 @@ require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/date_time/calculations"
 
 module ActiveSupport
-  # = \XmlMini
+  # \XmlMini
+  # ========
   #
   # To use the much faster libxml parser:
-  #   gem "libxml-ruby"
-  #   XmlMini.backend = 'LibXML'
+  #
+  # ```
+  # gem "libxml-ruby"
+  # XmlMini.backend = 'LibXML'
+  # ```
   module XmlMini
     extend self
 
     # This module decorates files deserialized using Hash.from_xml with
-    # the <tt>original_filename</tt> and <tt>content_type</tt> methods.
+    # the `original_filename` and `content_type` methods.
     module FileLike # :nodoc:
       attr_writer :original_filename, :content_type
 
@@ -200,9 +205,31 @@ module ActiveSupport
         IsolatedExecutionState[:xml_mini_backend] = name && cast_backend_name_to_module(name)
       end
 
+      # The backends Active Support ships, by the names +backend=+ takes; a
+      # name not among them loads +active_support/xml_mini/<name>+ and reads
+      # its +XmlMini_<name>+ module, as before.
       def cast_backend_name_to_module(name)
-        if name.is_a?(Module)
+        case name
+        when Module
           name
+        when "REXML"
+          require "active_support/xml_mini/rexml"
+          XmlMini_REXML
+        when "Nokogiri"
+          require "active_support/xml_mini/nokogiri"
+          XmlMini_Nokogiri
+        when "NokogiriSAX"
+          require "active_support/xml_mini/nokogirisax"
+          XmlMini_NokogiriSAX
+        when "LibXML"
+          require "active_support/xml_mini/libxml"
+          XmlMini_LibXML
+        when "LibXMLSAX"
+          require "active_support/xml_mini/libxmlsax"
+          XmlMini_LibXMLSAX
+        when "JDOM"
+          require "active_support/xml_mini/jdom"
+          XmlMini_JDOM
         else
           require "active_support/xml_mini/#{name.downcase}"
           ActiveSupport.const_get("XmlMini_#{name}")

@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/module/delegation"
 
-# = Active Storage \Attachment
+# Active Storage \Attachment
+# ==========================
 #
 # Attachments associate records with blobs. Usually that's a one record-many blobs relationship,
 # but it is possible to associate many different records with the same blob. A foreign-key constraint
@@ -12,11 +14,13 @@ require "active_support/core_ext/module/delegation"
 #
 # If you wish to preload attachments or blobs, you can use these scopes:
 #
-#   # preloads attachments, their corresponding blobs, and variant records (if using `ActiveStorage.track_variants`)
-#   User.all.with_attached_avatars
+# ```
+# # preloads attachments, their corresponding blobs, and variant records (if using `ActiveStorage.track_variants`)
+# User.all.with_attached_avatars
 #
-#   # preloads blobs and variant records (if using `ActiveStorage.track_variants`)
-#   User.first.avatars.with_all_variant_records
+# # preloads blobs and variant records (if using `ActiveStorage.track_variants`)
+# User.first.avatars.with_all_variant_records
+# ```
 class ActiveStorage::Attachment < ActiveStorage::Record
   define_model_callbacks :upload
 
@@ -55,7 +59,9 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   #
   # Eager load all variant records on an attachment at once.
   #
-  #   User.first.avatars.with_all_variant_records
+  # ```
+  # User.first.avatars.with_all_variant_records
+  # ```
   scope :with_all_variant_records, -> { includes(blob: {
     variant_records: { image_attachment: :blob },
     preview_image_attachment: { blob: { variant_records: { image_attachment: :blob } } }
@@ -86,7 +92,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     blob.local_io = nil
   end
 
-  # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
+  # Synchronously deletes the attachment and [purges the blob](rdoc-ref:ActiveStorage::Blob#purge).
   def purge
     transaction do
       delete
@@ -95,7 +101,7 @@ class ActiveStorage::Attachment < ActiveStorage::Record
     blob&.purge
   end
 
-  # Deletes the attachment and {enqueues a background job}[rdoc-ref:ActiveStorage::Blob#purge_later] to purge the blob.
+  # Deletes the attachment and [enqueues a background job](rdoc-ref:ActiveStorage::Blob#purge_later) to purge the blob.
   def purge_later
     transaction do
       delete
@@ -105,18 +111,22 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   end
 
   # Returns an ActiveStorage::Variant or ActiveStorage::VariantWithRecord
-  # instance for the attachment with the set of +transformations+ provided.
+  # instance for the attachment with the set of `transformations` provided.
   # Example:
   #
-  #   avatar.variant(resize_to_limit: [100, 100]).processed.url
+  # ```
+  # avatar.variant(resize_to_limit: [100, 100]).processed.url
+  # ```
   #
   # or if you are using pre-defined variants:
   #
-  #   avatar.variant(:thumb).processed.url
+  # ```
+  # avatar.variant(:thumb).processed.url
+  # ```
   #
   # See ActiveStorage::Blob::Representable#variant for more information.
   #
-  # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
+  # Raises an `ArgumentError` if `transformations` is a `Symbol` which is an
   # unknown pre-defined variant of the attachment.
   def variant(transformations)
     transformations = transformations_by_name(transformations)
@@ -124,18 +134,22 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   end
 
   # Returns an ActiveStorage::Preview instance for the attachment with the set
-  # of +transformations+ provided.
+  # of `transformations` provided.
   # Example:
   #
-  #   video.preview(resize_to_limit: [100, 100]).processed.url
+  # ```
+  # video.preview(resize_to_limit: [100, 100]).processed.url
+  # ```
   #
   # or if you are using pre-defined variants:
   #
-  #   video.preview(:thumb).processed.url
+  # ```
+  # video.preview(:thumb).processed.url
+  # ```
   #
   # See ActiveStorage::Blob::Representable#preview for more information.
   #
-  # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
+  # Raises an `ArgumentError` if `transformations` is a `Symbol` which is an
   # unknown pre-defined variant of the attachment.
   def preview(transformations)
     transformations = transformations_by_name(transformations)
@@ -143,18 +157,22 @@ class ActiveStorage::Attachment < ActiveStorage::Record
   end
 
   # Returns an ActiveStorage::Preview or an ActiveStorage::Variant for the
-  # attachment with set of +transformations+ provided.
+  # attachment with set of `transformations` provided.
   # Example:
   #
-  #   avatar.representation(resize_to_limit: [100, 100]).processed.url
+  # ```
+  # avatar.representation(resize_to_limit: [100, 100]).processed.url
+  # ```
   #
   # or if you are using pre-defined variants:
   #
-  #   avatar.representation(:thumb).processed.url
+  # ```
+  # avatar.representation(:thumb).processed.url
+  # ```
   #
   # See ActiveStorage::Blob::Representable#representation for more information.
   #
-  # Raises an +ArgumentError+ if +transformations+ is a +Symbol+ which is an
+  # Raises an `ArgumentError` if `transformations` is a `Symbol` which is an
   # unknown pre-defined variant of the attachment.
   def representation(transformations)
     transformations = transformations_by_name(transformations)

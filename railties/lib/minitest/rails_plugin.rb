@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/module/attribute_accessors"
 require "rails/test_unit/reporter"
 require "rails/test_unit/runner"
@@ -21,7 +22,7 @@ module Minitest
   class SuppressedSummaryReporter < SummaryReporter
     # Disable extra failure output after a run if output is inline.
     def aggregated_results(*)
-      super unless options[:output_inline]
+      super if !options[:output_inline] || options[:quiet]
     end
   end
 

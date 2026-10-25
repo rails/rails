@@ -202,7 +202,11 @@ module ActionDispatch
           end
 
           def build_host_url(host, port, protocol, options, path)
-            if match = host.match(HOST_REGEXP)
+            # Keep regexp encoding validation while avoiding captures for ordinary Strings.
+            if String === host && host.instance_of?(String) && !host.empty? && !host.match?(/[:\[]/)
+              host = host.dup
+              port = nil unless options.key?(:port)
+            elsif match = host.match(HOST_REGEXP)
               protocol_from_host = match[1] if protocol.nil?
               host               = match[2]
               port               = match[3] unless options.key? :port
@@ -230,6 +234,16 @@ module ActionDispatch
           end
 
           def normalize_protocol(protocol)
+            # Preserve the generic path's encoding behavior for other inputs.
+            if String === protocol && protocol.instance_of?(String) && protocol.encoding == Encoding::UTF_8
+              case protocol
+              when "http", "http:", "http://"
+                return "http://"
+              when "https", "https:", "https://"
+                return "https://"
+              end
+            end
+
             case protocol
             when nil
               secure_protocol ? "https://" : "http://"
@@ -248,11 +262,12 @@ module ActionDispatch
             tld_length = options[:tld_length] || self.tld_length
             subdomain  = options.fetch :subdomain, true
             domain     = options[:domain]
+            subdomain_from_host = subdomain == true
+
+            return _host if subdomain_from_host && domain.nil?
 
             host = +""
-            if subdomain == true
-              return _host if domain.nil?
-
+            if subdomain_from_host
               host << extract_subdomains_from(_host, tld_length).join(".")
             elsif subdomain
               host << subdomain.to_param
@@ -311,7 +326,7 @@ module ActionDispatch
       #     req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #     req.raw_host_with_port # => "example.com:8080"
       def raw_host_with_port
-        if forwarded = x_forwarded_host.presence
+        @raw_host_with_port ||= if forwarded = x_forwarded_host.presence
           forwarded.split(/,\s?/).last
         else
           get_header("HTTP_HOST") || "#{server_name}:#{get_header('SERVER_PORT')}"
@@ -323,7 +338,13 @@ module ActionDispatch
       #     req = ActionDispatch::Request.new 'HTTP_HOST' => 'example.com:8080'
       #     req.host # => "example.com"
       def host
-        raw_host_with_port.sub(/:\d+$/, "")
+        @host ||= begin
+          raw = raw_host_with_port
+          # Only strip a port when there could be one: a host without a colon
+          # is the common case in production, and the regexp substitution
+          # allocates a String and a MatchData even when nothing matches.
+          raw.include?(":") ? raw.sub(/:\d+$/, "") : raw
+        end
       end
 
       # Returns a host:port string for this request, such as "example.com" or

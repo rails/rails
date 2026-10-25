@@ -245,7 +245,7 @@ module ActionDispatch
         end
 
         def spot(exc)
-          if RubyVM::AbstractSyntaxTree.respond_to?(:node_id_for_backtrace_location) && __getobj__.is_a?(Thread::Backtrace::Location)
+          if defined?(::RubyVM::AbstractSyntaxTree) && RubyVM::AbstractSyntaxTree.respond_to?(:node_id_for_backtrace_location) && __getobj__.is_a?(Thread::Backtrace::Location)
             location = @template.spot(__getobj__)
           else
             location = super
@@ -340,7 +340,7 @@ module ActionDispatch
       def source_fragment(path, line)
         return unless Rails.respond_to?(:root) && Rails.root
         full_path = Rails.root.join(path)
-        if File.exist?(full_path)
+        if File.file?(full_path)
           File.open(full_path, "r") do |file|
             extract_source_fragment_lines(file.each_line, line)
           end

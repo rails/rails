@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord::Associations::Builder # :nodoc:
   class HasAndBelongsToMany # :nodoc:
     attr_reader :lhs_model, :association_name, :options
@@ -30,10 +31,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
           left_model.compute_type class_name
         end
 
-        def self.add_left_association(name, options)
-          belongs_to name, required: false, **options
-        end
-
         def self.add_right_association(name, options)
           rhs_name = name.to_s.singularize.to_sym
           belongs_to rhs_name, required: false, **options
@@ -49,7 +46,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
       join_model.table_name_resolver = -> { table_name }
       join_model.left_model          = lhs_model
 
-      join_model.add_left_association :left_side, anonymous_class: lhs_model
       join_model.add_right_association association_name, belongs_to_options(options)
       join_model
     end

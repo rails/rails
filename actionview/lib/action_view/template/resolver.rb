@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
@@ -7,7 +8,8 @@ require "action_view/template"
 require "concurrent/map"
 
 module ActionView
-  # = Action View Resolver
+  # Action View Resolver
+  # ====================
   class Resolver
     class PathParser # :nodoc:
       ParsedPath = Struct.new(:path, :details)
@@ -146,6 +148,12 @@ module ActionView
         filename.from(@path.size + 1).remove(/\.[^\/]*\z/)
       end.uniq.map do |filename|
         TemplatePath.parse(filename)
+      end
+    end
+
+    def all_unbound_templates # :nodoc:
+      template_glob("**/*").map do |template|
+        build_unbound_template(template)
       end
     end
 

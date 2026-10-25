@@ -1,3 +1,78 @@
+*   Keep route redirects from a string template on the request host.
+
+    For `redirect("/%{path}")`, the request `GET /old/%2Finjected.example` made
+    the target `//injected.example`, which browsers follow to another host. So did
+    a scheme in a param at the start of the template, as in `redirect("%{path}")`.
+    When interpolation would give the target a scheme or host that the template
+    lacks, the delimiter is now percent-encoded. Templates that name a scheme or
+    host, such as `redirect("//cdn.example.com/%{path}")`, are unchanged.
+
+    *Mike Dalessio*
+
+*   Deprecate the `ssl_default_redirect_status:` argument of `ActionDispatch::SSL`.
+
+    As of Rails 6.1, the default status is 308. This deprecates overriding it.
+    `ActionDispatch::SSL` used directly without the argument now also uses 308
+    instead of 307.
+
+    *Ben Sheldon*
+
+*   Short-circuit route matching for static paths.
+
+    The route set now precomputes an exact-match table from request method
+    and path to the route that is certain to be their first match: anchored
+    routes with a single request method, no extra request constraints, and
+    no dynamic segments outside trailing optional groups (so
+    `GET /posts(.:format)` is registered under `GET /posts`). Paths that an
+    earlier route could also match are excluded at build time, preserving
+    precedence, and anything not in the table takes the regular matcher.
+
+    Dispatching a request to such a route skips the simulator walk, the
+    pattern match, and parameter extraction: in a 193-route set, routing a
+    request to a static route takes ~0.8μs instead of 1.4–2.4μs, while
+    dynamic routes are unaffected. Matching behavior is unchanged.
+
+    *Akira Matsuda*
+
+*   Remove support for dynamic `:controller` and `:action` route segments.
+
+    A route may no longer read the controller or the action out of the URL:
+
+    ```ruby
+    get ":controller(/:action(/:id))"
+    ```
+
+    Drawing such a route raises an `ArgumentError`. Deprecated since Rails 5.0,
+    so write out the routes the application serves instead:
+
+    ```ruby
+    get "photos", to: "photos#index"
+    get "photos/:id", to: "photos#show"
+    ```
+
+    Passing a controller class without an action relied on the same mechanism,
+    so `get "show", to: PhotosController` now needs `action: "show"`, and a
+    `Regexp` for `:controller` or `:action` raises rather than drawing a route
+    that can never match.
+
+    `Request#controller_class` now raises `ActionDispatch::MissingController`
+    when the request has no `:controller` path parameter (for example, before
+    routing, or for a request routed to a Rack endpoint), instead of returning
+    a placeholder controller that responded with a 404.
+
+    *Aaron Patterson*
+
+*   Fix `Server-Timing` durations for nested same-name notifications.
+
+    Nested events such as `render_partial.action_view` report inclusive
+    durations, so summing them double-counted child work and could exceed
+    wall-clock / total request time. Server Timing now aggregates exclusive
+    time per event name.
+
+    Fixes #48375.
+
+    *Edil Talantbek uulu*
+
 *   Include default headers in `ActionController::Live` responses.
 
     Previously, responses from `ActionController::Live` controllers, including

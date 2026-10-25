@@ -1588,9 +1588,9 @@ require "test_helper"
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   setup do
-      Capybara.server_host = "0.0.0.0" # bind to all interfaces
-      Capybara.app_host = "http://#{IPSocket.getaddress(Socket.gethostname)}" if ENV["SELENIUM_REMOTE_URL"].present?
-    end
+    Capybara.server_host = "0.0.0.0" # bind to all interfaces
+    Capybara.app_host = "http://#{IPSocket.getaddress(Socket.gethostname)}" if ENV["SELENIUM_REMOTE_URL"].present?
+  end
   # ...
 end
 ```
@@ -2066,7 +2066,7 @@ end
 
 ### Testing View Partials
 
-[Partial](layouts_and_rendering.html#using-partials) templates - usually called
+[Partial](action_view_overview.html#partials) templates - usually called
 "partials" - can break the rendering process into more manageable chunks. With
 partials, you can extract sections of code from your views to separate files and
 reuse them in multiple places.

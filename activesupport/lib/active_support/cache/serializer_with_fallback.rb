@@ -2,13 +2,12 @@
 # frozen_string_literal: true
 
 require "zlib"
-require "active_support/core_ext/kernel/reporting"
 
 module ActiveSupport
   module Cache
     module SerializerWithFallback # :nodoc:
       def self.[](format)
-        if format.to_s.include?("message_pack") && !defined?(ActiveSupport::MessagePack)
+        if format.start_with?("message_pack") && !defined?(ActiveSupport::MessagePack)
           require "active_support/message_pack"
         end
 
@@ -141,7 +140,10 @@ module ActiveSupport
           private
             def available?
               return @available if defined?(@available)
-              silence_warnings { require "active_support/message_pack" }
+              # Check the dependency before loading the wrapper that warns if it is missing.
+              gem "msgpack", ">= 1.7.0"
+              require "msgpack"
+              require "active_support/message_pack"
               @available = true
             rescue LoadError
               @available = false

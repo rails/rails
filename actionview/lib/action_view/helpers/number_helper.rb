@@ -1,22 +1,24 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/output_safety"
 require "active_support/number_helper"
 
 module ActionView
   module Helpers # :nodoc:
-    # = Action View Number \Helpers
+    # Action View Number \Helpers
+    # ===========================
     #
     # Provides methods for converting numbers into formatted strings.
     # Methods are provided for phone numbers, currency, percentage,
     # precision, positional notation, file size, and pretty printing.
     #
-    # Most methods expect a +number+ argument, and will return it
+    # Most methods expect a `number` argument, and will return it
     # unchanged if can't be converted into a valid number.
     module NumberHelper
-      # Raised when argument +number+ param given to the helpers is invalid and
-      # the option +:raise+ is set to  +true+.
+      # Raised when argument `number` param given to the helpers is invalid and
+      # the option `:raise` is set to  `true`.
       class InvalidNumberError < StandardError
         attr_accessor :number
         def initialize(number)
@@ -26,13 +28,17 @@ module ActionView
 
       # Delegates to ActiveSupport::NumberHelper#number_to_phone.
       #
-      #   number_to_phone("1234567890")         # => "123-456-7890"
+      # ```
+      # number_to_phone("1234567890")         # => "123-456-7890"
+      # ```
       #
-      # Additionally, supports a +:raise+ option that will cause
-      # InvalidNumberError to be raised if +number+ is not a valid number:
+      # Additionally, supports a `:raise` option that will cause
+      # InvalidNumberError to be raised if `number` is not a valid number:
       #
-      #   number_to_phone("12x34")              # => "12x34"
-      #   number_to_phone("12x34", raise: true) # => InvalidNumberError
+      # ```
+      # number_to_phone("12x34")              # => "12x34"
+      # number_to_phone("12x34", raise: true) # => InvalidNumberError
+      # ```
       #
       def number_to_phone(number, options = {})
         return unless number
@@ -44,13 +50,17 @@ module ActionView
 
       # Delegates to ActiveSupport::NumberHelper#number_to_currency.
       #
-      #   number_to_currency("1234")               # => "$1234.00"
+      # ```
+      # number_to_currency("1234")               # => "$1234.00"
+      # ```
       #
-      # Additionally, supports a +:raise+ option that will cause
-      # InvalidNumberError to be raised if +number+ is not a valid number:
+      # Additionally, supports a `:raise` option that will cause
+      # InvalidNumberError to be raised if `number` is not a valid number:
       #
-      #   number_to_currency("12x34")              # => "$12x34"
-      #   number_to_currency("12x34", raise: true) # => InvalidNumberError
+      # ```
+      # number_to_currency("12x34")              # => "$12x34"
+      # number_to_currency("12x34", raise: true) # => InvalidNumberError
+      # ```
       #
       def number_to_currency(number, options = {})
         delegate_number_helper_method(:number_to_currency, number, options)
@@ -58,13 +68,17 @@ module ActionView
 
       # Delegates to ActiveSupport::NumberHelper#number_to_percentage.
       #
-      #   number_to_percentage("99")               # => "99.000%"
+      # ```
+      # number_to_percentage("99")               # => "99.000%"
+      # ```
       #
-      # Additionally, supports a +:raise+ option that will cause
-      # InvalidNumberError to be raised if +number+ is not a valid number:
+      # Additionally, supports a `:raise` option that will cause
+      # InvalidNumberError to be raised if `number` is not a valid number:
       #
-      #   number_to_percentage("99x")              # => "99x%"
-      #   number_to_percentage("99x", raise: true) # => InvalidNumberError
+      # ```
+      # number_to_percentage("99x")              # => "99x%"
+      # number_to_percentage("99x", raise: true) # => InvalidNumberError
+      # ```
       #
       def number_to_percentage(number, options = {})
         delegate_number_helper_method(:number_to_percentage, number, options)
@@ -72,13 +86,17 @@ module ActionView
 
       # Delegates to ActiveSupport::NumberHelper#number_to_delimited.
       #
-      #   number_with_delimiter("1234")               # => "1,234"
+      # ```
+      # number_with_delimiter("1234")               # => "1,234"
+      # ```
       #
-      # Additionally, supports a +:raise+ option that will cause
-      # InvalidNumberError to be raised if +number+ is not a valid number:
+      # Additionally, supports a `:raise` option that will cause
+      # InvalidNumberError to be raised if `number` is not a valid number:
       #
-      #   number_with_delimiter("12x34")              # => "12x34"
-      #   number_with_delimiter("12x34", raise: true) # => InvalidNumberError
+      # ```
+      # number_with_delimiter("12x34")              # => "12x34"
+      # number_with_delimiter("12x34", raise: true) # => InvalidNumberError
+      # ```
       #
       def number_with_delimiter(number, options = {})
         delegate_number_helper_method(:number_to_delimited, number, options)
@@ -86,13 +104,17 @@ module ActionView
 
       # Delegates to ActiveSupport::NumberHelper#number_to_rounded.
       #
-      #   number_with_precision("1234")               # => "1234.000"
+      # ```
+      # number_with_precision("1234")               # => "1234.000"
+      # ```
       #
-      # Additionally, supports a +:raise+ option that will cause
-      # InvalidNumberError to be raised if +number+ is not a valid number:
+      # Additionally, supports a `:raise` option that will cause
+      # InvalidNumberError to be raised if `number` is not a valid number:
       #
-      #   number_with_precision("12x34")              # => "12x34"
-      #   number_with_precision("12x34", raise: true) # => InvalidNumberError
+      # ```
+      # number_with_precision("12x34")              # => "12x34"
+      # number_with_precision("12x34", raise: true) # => InvalidNumberError
+      # ```
       #
       def number_with_precision(number, options = {})
         delegate_number_helper_method(:number_to_rounded, number, options)
@@ -100,13 +122,17 @@ module ActionView
 
       # Delegates to ActiveSupport::NumberHelper#number_to_human_size.
       #
-      #   number_to_human_size("1234")               # => "1.21 KB"
+      # ```
+      # number_to_human_size("1234")               # => "1.21 KB"
+      # ```
       #
-      # Additionally, supports a +:raise+ option that will cause
-      # InvalidNumberError to be raised if +number+ is not a valid number:
+      # Additionally, supports a `:raise` option that will cause
+      # InvalidNumberError to be raised if `number` is not a valid number:
       #
-      #   number_to_human_size("12x34")              # => "12x34"
-      #   number_to_human_size("12x34", raise: true) # => InvalidNumberError
+      # ```
+      # number_to_human_size("12x34")              # => "12x34"
+      # number_to_human_size("12x34", raise: true) # => InvalidNumberError
+      # ```
       #
       def number_to_human_size(number, options = {})
         delegate_number_helper_method(:number_to_human_size, number, options)
@@ -114,13 +140,17 @@ module ActionView
 
       # Delegates to ActiveSupport::NumberHelper#number_to_human.
       #
-      #   number_to_human("1234")               # => "1.23 Thousand"
+      # ```
+      # number_to_human("1234")               # => "1.23 Thousand"
+      # ```
       #
-      # Additionally, supports a +:raise+ option that will cause
-      # InvalidNumberError to be raised if +number+ is not a valid number:
+      # Additionally, supports a `:raise` option that will cause
+      # InvalidNumberError to be raised if `number` is not a valid number:
       #
-      #   number_to_human("12x34")              # => "12x34"
-      #   number_to_human("12x34", raise: true) # => InvalidNumberError
+      # ```
+      # number_to_human("12x34")              # => "12x34"
+      # number_to_human("12x34", raise: true) # => InvalidNumberError
+      # ```
       #
       def number_to_human(number, options = {})
         delegate_number_helper_method(:number_to_human, number, options)

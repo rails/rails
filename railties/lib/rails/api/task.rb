@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rdoc/task"
 require "rails/api/generator"
 
@@ -9,7 +10,7 @@ module Rails
       RDOC_FILES = {
         "activesupport" => {
           include: %w(
-            README.rdoc
+            README.md
             lib/active_support.rb
             lib/active_support/**/*.rb
           )
@@ -34,7 +35,7 @@ module Rails
 
         "actionpack" => {
           include: %w(
-            README.rdoc
+            README.md
             lib/abstract_controller/**/*.rb
             lib/action_controller.rb
             lib/action_controller/**/*.rb
@@ -45,7 +46,7 @@ module Rails
 
         "actionview" => {
           include: %w(
-            README.rdoc
+            README.md
             lib/action_view.rb
             lib/action_view/**/*.rb
           ),
@@ -54,7 +55,7 @@ module Rails
 
         "actionmailer" => {
           include: %w(
-            README.rdoc
+            README.md
             lib/action_mailer.rb
             lib/action_mailer/**/*.rb
           )
@@ -105,7 +106,7 @@ module Rails
 
         "railties" => {
           include: %w(
-            README.rdoc
+            README.md
             lib/**/*.rb
           ),
           exclude: %w(
@@ -140,6 +141,7 @@ module Rails
 
         options << "-m"  << api_main
         options << "-e"  << "UTF-8"
+        options << "--markup=markdown"
 
         options << "-f"  << "api"
         options << "-T"  << "rails"

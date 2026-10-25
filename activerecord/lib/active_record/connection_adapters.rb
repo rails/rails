@@ -1,26 +1,30 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/string/filters"
 
 module ActiveRecord
   module ConnectionAdapters
     extend ActiveSupport::Autoload
 
-    @adapters = {}
+    @adapters = {}.freeze
 
     class << self
       # Registers a custom database adapter.
       #
       # Can also be used to define aliases.
       #
-      # == Example
+      # Example
+      # -------
       #
-      #   ActiveRecord::ConnectionAdapters.register("megadb", "MegaDB::ActiveRecordAdapter", "mega_db/active_record_adapter")
+      # ```
+      # ActiveRecord::ConnectionAdapters.register("megadb", "MegaDB::ActiveRecordAdapter", "mega_db/active_record_adapter")
       #
-      #   ActiveRecord::ConnectionAdapters.register("mysql", "ActiveRecord::ConnectionAdapters::TrilogyAdapter", "active_record/connection_adapters/trilogy_adapter")
+      # ActiveRecord::ConnectionAdapters.register("mysql", "ActiveRecord::ConnectionAdapters::TrilogyAdapter", "active_record/connection_adapters/trilogy_adapter")
+      # ```
       #
       def register(name, class_name, path = class_name.underscore)
-        @adapters[name.to_s] = [class_name, path]
+        @adapters = ActiveSupport::Ractors.make_shareable(@adapters.merge(name.to_s => [class_name, path]))
       end
 
       def resolve(adapter_name) # :nodoc:
@@ -74,9 +78,11 @@ module ActiveRecord
     end
 
     autoload :Column
+    autoload :JSONSchemaCacheSerializer, "active_record/connection_adapters/schema_cache_serializer"
     autoload :PoolConfig
     autoload :PoolManager
     autoload :QueryIntent
+    autoload :RactorConnectionHandler, "active_record/connection_adapters/ractor_connection_handler"
     autoload :RetryBudget
     autoload :SchemaCache
     autoload :BoundSchemaReflection, "active_record/connection_adapters/schema_cache"

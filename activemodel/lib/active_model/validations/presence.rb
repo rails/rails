@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveModel
   module Validations
     class PresenceValidator < EachValidator # :nodoc:
@@ -12,24 +13,27 @@ module ActiveModel
       # Validates that the specified attributes are not blank (as defined by
       # Object#blank?).
       #
-      #   class Person < ActiveRecord::Base
-      #     validates_presence_of :first_name
-      #   end
+      # ```
+      # class Person < ActiveRecord::Base
+      #   validates_presence_of :first_name
+      # end
+      # ```
       #
       # The first_name attribute must be in the object and it cannot be blank.
       #
       # If you want to validate the presence of a boolean field (where the real
-      # values are +true+ and +false+), you will want to use
-      # <tt>validates_inclusion_of :field_name, in: [true, false]</tt>.
+      # values are `true` and `false`), you will want to use
+      # `validates_inclusion_of :field_name, in: [true, false]`.
       #
       # This is due to the way Object#blank? handles boolean values:
-      # <tt>false.blank? # => true</tt>.
+      # `false.blank? # => true`.
       #
       # Configuration options:
-      # * <tt>:message</tt> - A custom error message (default is: "can't be blank").
+      #
+      # * `:message` - A custom error message (default is: "can't be blank").
       #
       # There is also a list of default options supported by every validator:
-      # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
+      # `:if`, `:unless`, `:on`, `:allow_nil`, `:allow_blank`, and `:strict`.
       # See ActiveModel::Validations::ClassMethods#validates for more information.
       def validates_presence_of(*attr_names)
         validates_with PresenceValidator, _merge_attributes(attr_names)

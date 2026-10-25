@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "uri"
 require "active_record/database_configurations/database_config"
 require "active_record/database_configurations/hash_config"
@@ -7,13 +8,14 @@ require "active_record/database_configurations/url_config"
 require "active_record/database_configurations/connection_url_resolver"
 
 module ActiveRecord
-  # = Active Record Database Configurations
+  # Active Record Database Configurations
+  # =====================================
   #
-  # +ActiveRecord::DatabaseConfigurations+ returns an array of +DatabaseConfig+
+  # `ActiveRecord::DatabaseConfigurations` returns an array of `DatabaseConfig`
   # objects that are constructed from the application's database
   # configuration hash or URL string.
   #
-  # The array of +DatabaseConfig+ objects in an application default to either a
+  # The array of `DatabaseConfig` objects in an application default to either a
   # HashConfig or UrlConfig. You can retrieve your application's config by using
   # ActiveRecord::Base.configurations.
   #
@@ -33,33 +35,37 @@ module ActiveRecord
     # objects. This is useful for creating a custom handler that responds to
     # methods your application needs but Active Record doesn't implement. For
     # example if you are using Vitess, you may want your Vitess configurations
-    # to respond to `sharded?`. To implement this define the following in an
+    # to respond to \`sharded?\`. To implement this define the following in an
     # initializer:
     #
-    #   ActiveSupport.on_load(:active_record_database_configurations) do
-    #     ActiveRecord::DatabaseConfigurations.register_db_config_handler do |env_name, name, url, config|
-    #       next unless config.key?(:vitess)
-    #       VitessConfig.new(env_name, name, config)
-    #     end
+    # ```
+    # ActiveSupport.on_load(:active_record_database_configurations) do
+    #   ActiveRecord::DatabaseConfigurations.register_db_config_handler do |env_name, name, url, config|
+    #     next unless config.key?(:vitess)
+    #     VitessConfig.new(env_name, name, config)
     #   end
+    # end
+    # ```
     #
     # Note: applications must handle the condition in which custom config should be
     # created in your handler registration otherwise all objects will use the custom
     # handler.
     #
-    # Then define your +VitessConfig+ to respond to the methods your application
+    # Then define your `VitessConfig` to respond to the methods your application
     # needs. It is recommended that you inherit from one of the existing
     # database config classes to avoid having to reimplement all methods. Custom
     # config handlers should only implement methods Active Record does not.
     #
-    #   class VitessConfig < ActiveRecord::DatabaseConfigurations::UrlConfig
-    #     def sharded?
-    #       configuration_hash.fetch("sharded", false)
-    #     end
+    # ```
+    # class VitessConfig < ActiveRecord::DatabaseConfigurations::UrlConfig
+    #   def sharded?
+    #     configuration_hash.fetch("sharded", false)
     #   end
+    # end
+    # ```
     #
-    # For configs that have a +:vitess+ key, a +VitessConfig+ object will be
-    # created instead of a +UrlConfig+.
+    # For configs that have a `:vitess` key, a `VitessConfig` object will be
+    # created instead of a `UrlConfig`.
     def self.register_db_config_handler(&block)
       db_config_handlers << block
     end
@@ -77,26 +83,26 @@ module ActiveRecord
     end
 
     # Collects the configs for the environment and optionally the specification
-    # name passed in. To include replica configurations pass <tt>include_hidden: true</tt>.
+    # name passed in. To include replica configurations pass `include_hidden: true`.
     #
-    # If a name is provided a single +DatabaseConfig+ object will be
-    # returned, otherwise an array of +DatabaseConfig+ objects will be
+    # If a name is provided a single `DatabaseConfig` object will be
+    # returned, otherwise an array of `DatabaseConfig` objects will be
     # returned that corresponds with the environment and type requested.
     #
-    # ==== Options
+    # #### Options
     #
-    # * <tt>env_name:</tt> The environment name. Defaults to +nil+ which will collect
+    # * `env_name:` The environment name. Defaults to `nil` which will collect
     #   configs for all environments.
-    # * <tt>name:</tt> The db config name (i.e. primary, animals, etc.). Defaults
-    #   to +nil+. If no +env_name+ is specified the config for the default env and the
-    #   passed +name+ will be returned.
-    # * <tt>config_key:</tt> Selects configs that contain a particular key in the configuration
+    # * `name:` The db config name (i.e. primary, animals, etc.). Defaults
+    #   to `nil`. If no `env_name` is specified the config for the default env and the
+    #   passed `name` will be returned.
+    # * `config_key:` Selects configs that contain a particular key in the configuration
     #   hash. Useful for selecting configs that use a custom db config handler or finding
     #   configs with hashes that contain a particular key.
-    # * <tt>include_hidden:</tt> Determines whether to include replicas and configurations
-    #   hidden by <tt>database_tasks: false</tt> in the returned list. Most of the time we're only
+    # * `include_hidden:` Determines whether to include replicas and configurations
+    #   hidden by `database_tasks: false` in the returned list. Most of the time we're only
     #   iterating over the primary connections (i.e. migrations don't need to run for the
-    #   write and read connection). Defaults to +false+.
+    #   write and read connection). Defaults to `false`.
     def configs_for(env_name: nil, name: nil, config_key: nil, include_hidden: false)
       env_name ||= default_env if name
       configs = env_with_configs(env_name)
@@ -122,10 +128,10 @@ module ActiveRecord
       end
     end
 
-    # Returns a single +DatabaseConfig+ object based on the requested environment.
+    # Returns a single `DatabaseConfig` object based on the requested environment.
     #
-    # If the application has multiple databases +find_db_config+ will return
-    # the first +DatabaseConfig+ for the environment.
+    # If the application has multiple databases `find_db_config` will return
+    # the first `DatabaseConfig` for the environment.
     def find_db_config(env)
       env = env.to_s
       configurations.find do |db_config|
@@ -140,7 +146,7 @@ module ActiveRecord
     # as primary. This is used as the "default" configuration and is used
     # when the application needs to treat one configuration differently. For
     # example, when Rails dumps the schema, the primary configuration's schema
-    # file will be named `schema.rb` instead of `primary_schema.rb`.
+    # file will be named \`schema.rb\` instead of \`primary_schema.rb\`.
     def primary?(name) # :nodoc:
       return true if name == "primary"
 
@@ -157,22 +163,29 @@ module ActiveRecord
     # Returns fully resolved connection, accepts hash, string or symbol.
     # Always returns a DatabaseConfiguration::DatabaseConfig
     #
-    # == Examples
+    # Examples
+    # --------
     #
     # Symbol representing current environment.
     #
-    #   DatabaseConfigurations.new("production" => {}).resolve(:production)
-    #   # => DatabaseConfigurations::HashConfig.new(env_name: "production", config: {})
+    # ```
+    # DatabaseConfigurations.new("production" => {}).resolve(:production)
+    # # => DatabaseConfigurations::HashConfig.new(env_name: "production", config: {})
+    # ```
     #
     # One layer deep hash of connection values.
     #
-    #   DatabaseConfigurations.new({}).resolve("adapter" => "sqlite3")
-    #   # => DatabaseConfigurations::HashConfig.new(config: {"adapter" => "sqlite3"})
+    # ```
+    # DatabaseConfigurations.new({}).resolve("adapter" => "sqlite3")
+    # # => DatabaseConfigurations::HashConfig.new(config: {"adapter" => "sqlite3"})
+    # ```
     #
     # Connection URL.
     #
-    #   DatabaseConfigurations.new({}).resolve("postgresql://localhost/foo")
-    #   # => DatabaseConfigurations::UrlConfig.new(config: {"adapter" => "postgresql", "host" => "localhost", "database" => "foo"})
+    # ```
+    # DatabaseConfigurations.new({}).resolve("postgresql://localhost/foo")
+    # # => DatabaseConfigurations::UrlConfig.new(config: {"adapter" => "postgresql", "host" => "localhost", "database" => "foo"})
+    # ```
     def resolve(config) # :nodoc:
       return config if DatabaseConfigurations::DatabaseConfig === config
 

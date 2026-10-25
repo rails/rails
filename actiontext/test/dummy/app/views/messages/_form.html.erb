@@ -18,7 +18,9 @@
 
   <div class="field">
     <trix-toolbar id="toolbar">
-      <button type="button" tabindex="-1" data-trix-action="attachFiles">Attach Files</button>
+      <span data-trix-button-group="file-tools">
+        <button type="button" tabindex="-1" data-trix-action="attachFiles">Attach Files</button>
+      </span>
       <% Person.all.each do |person| %>
         <button type="button" tabindex="-1" data-trix-action="x-attach">
           Mention <%= person.name %>

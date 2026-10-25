@@ -19,6 +19,7 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         add_to_env_config "production", "config.public_file_server.enabled = false" # Requires release of https://github.com/rack/rack/pull/2469
         add_to_env_config "production", "config.cache_store = :null_store"
         add_to_env_config "production", "config.action_cable.mount_path = nil"
+        add_to_env_config "production", "config.active_job.queue_adapter = :inline" # the async adapter holds a thread pool
       end
 
       def teardown
@@ -36,6 +37,21 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_ractor_shareable Rails.backtrace_cleaner
       end
 
+      test "ractorize! runs before_ractorize load hooks with the application" do
+        app_file "config/initializers/before_ractorize.rb", <<~RUBY
+          $before_ractorize_calls = []
+          ActiveSupport.on_load(:before_ractorize) { $before_ractorize_calls << self }
+        RUBY
+
+        app "production"
+
+        assert_empty $before_ractorize_calls
+
+        ractorize!
+
+        assert_equal [Rails.application], $before_ractorize_calls
+      end
+
       test "ractorize! makes Rails.env shareable" do
         app "production"
 
@@ -51,6 +67,20 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
 
         assert_ractor_shareable ActionController::Base.config
         assert_ractor_shareable Rails::HealthController.config
+      end
+
+      test "ractorize! makes the params wrapper options shareable" do
+        app_file "app/controllers/posts_controller.rb", <<~RUBY
+          class PostsController < ApplicationController
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ActionController::Base._wrapper_options
+        assert_equal "post", on_ractor { PostsController._wrapper_options.name }
       end
 
       test "ractorize! makes Rails.logger shareable" do
@@ -74,12 +104,55 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         end
       end
 
+      test "jobs raise unhandled errors from a non-main Ractor" do
+        app_file "app/jobs/failing_job.rb", <<~RUBY
+          class FailingJob < ApplicationJob
+            def perform
+              raise ArgumentError, "unhandled"
+            end
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        raised = on_ractor do
+          FailingJob.perform_now
+        rescue => error
+          [error.class, error.message]
+        end
+
+        assert_equal [ArgumentError, "unhandled"], raised
+      end
+
       test "the application boots with unshareable_proc_action :raise" do
         add_to_env_config "production", "ActiveSupport::Ractors.unshareable_proc_action = :raise"
 
         app "production"
 
         assert_predicate Rails.application, :initialized?
+      end
+
+      test "deprecation warnings from jobs performed in a non-main Ractor reach the configured behavior" do
+        add_to_env_config "production", "config.active_support.report_deprecations = true"
+        add_to_env_config "production", "config.active_support.deprecation = :raise"
+        app_file "app/jobs/deprecated_job.rb", <<~RUBY
+          class DeprecatedJob < ApplicationJob
+            def perform
+              ActiveJob.deprecator.warn("DeprecatedJob is deprecated")
+            rescue ActiveSupport::DeprecationException => error
+              error.message
+            end
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_match "DeprecatedJob is deprecated", on_ractor { DeprecatedJob.perform_now }
+        assert_nil on_ractor { Rails.application.deprecators.silence { DeprecatedJob.perform_now } }
       end
 
       test "controller view paths are readable from a non-main Ractor" do
@@ -98,6 +171,70 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_equal main_size, on_ractor { GreetingsController._view_paths.size }
       end
 
+      test "controller names are readable from a non-main Ractor" do
+        app_file "app/controllers/greetings_controller.rb", <<~RUBY
+          class GreetingsController < ApplicationController
+          end
+        RUBY
+
+        app "production"
+
+        assert_equal "greetings", GreetingsController.instance_variable_get(:@controller_name), "computed on eager load"
+
+        ractorize!
+
+        assert_equal "greetings", on_ractor { GreetingsController.controller_name }
+      end
+
+      test "the configured queue name prefix and delimiter are readable from a non-main Ractor" do
+        add_to_env_config "production", 'config.active_job.queue_name_prefix = "app_#{Rails.env}"'
+        app_file "app/jobs/hello_job.rb", <<~RUBY
+          class HelloJob < ApplicationJob
+            self.queue_name_delimiter = "."
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ActiveJob::Base.queue_name_prefix
+        assert_ractor_shareable HelloJob.queue_name_delimiter
+        assert_equal "app_production.default", on_ractor { HelloJob.new.queue_name }
+      end
+
+      test "jobs are performed from a non-main Ractor" do
+        app_file "app/jobs/hello_job.rb", <<~RUBY
+          class HelloJob < ApplicationJob
+            def perform(name)
+              "Hello, \#{name}"
+            end
+          end
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ActiveJob::Base.queue_adapter
+        assert_equal "Hello, worker", on_ractor { HelloJob.perform_now("worker") }
+      end
+
+      test "silencing a request by path works from a non-main Ractor" do
+        app "production"
+
+        ractorize!
+
+        status = on_ractor do
+          env = {
+            "REQUEST_METHOD" => "GET", "PATH_INFO" => "/up", "SCRIPT_NAME" => "", "QUERY_STRING" => "",
+            "SERVER_NAME" => "localhost", "SERVER_PORT" => "80", "HTTP_HOST" => "localhost", "rack.url_scheme" => "http"
+          }
+          Rails::Rack::SilenceRequest.new(->(_env) { [200, {}, []] }, path: "/up").call(env).first
+        end
+        assert_equal 200, status
+      end
+
       test "error reporting works after the application is ractorized" do
         app "production"
 
@@ -106,6 +243,31 @@ if RUBY_VERSION >= "4.0" && ENV["RACK"] == "head"
         assert_nothing_raised do
           Rails.error.report(StandardError.new("test"))
         end
+      end
+
+      test "job arguments are serialized and deserialized from a non-main Ractor" do
+        app_file "config/initializers/money_serializer.rb", <<~RUBY
+          Money = Struct.new(:cents)
+
+          class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
+            def serialize(money) = super("cents" => money.cents)
+            def deserialize(hash) = Money.new(hash["cents"])
+            def klass = Money
+          end
+
+          Rails.application.config.active_job.custom_serializers << MoneySerializer
+        RUBY
+
+        app "production"
+
+        ractorize!
+
+        assert_ractor_shareable ActiveJob::Serializers.serializers
+        arguments = [Time.utc(2026, 10, 7), 5.minutes, :ractor, Money.new(100), { retries: 3 }]
+        round_tripped = on_ractor(arguments) do |arguments|
+          ActiveJob::Arguments.deserialize(ActiveJob::Arguments.serialize(arguments))
+        end
+        assert_equal arguments, round_tripped
       end
 
       test "ractorize! makes model reflections Ractor-shareable" do

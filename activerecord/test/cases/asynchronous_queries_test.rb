@@ -189,7 +189,9 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
 
   private
     def with_async_query_failures(failures, matching:, repeat_last: false)
-      adapter_class = @connection.class
+      # Under the Ractor proxy, queries are performed and retried by the
+      # main-side connection, so that's where we inject failures.
+      adapter_class = main_ractor_connection(@connection).class
       original_perform_query = adapter_class.instance_method(:perform_query)
       visibility = if adapter_class.private_instance_methods(false).include?(:perform_query)
         :private
@@ -200,6 +202,7 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
       end
       attempts = Concurrent::AtomicFixnum.new
 
+      adapter_class.silence_redefinition_of_method(:perform_query)
       adapter_class.send(:define_method, :perform_query) do |raw_connection, intent|
         if matching.call(intent)
           attempt = attempts.increment
@@ -215,6 +218,7 @@ class AsynchronousQueriesTest < ActiveRecord::TestCase
       yield attempts
     ensure
       if visibility
+        adapter_class.silence_redefinition_of_method(:perform_query)
         adapter_class.send(:define_method, :perform_query, original_perform_query)
         adapter_class.send(visibility, :perform_query)
       else

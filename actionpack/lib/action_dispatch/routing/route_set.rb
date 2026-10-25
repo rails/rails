@@ -37,10 +37,6 @@ module ActionDispatch
       alias inspect to_s
 
       class Dispatcher < Routing::Endpoint
-        def initialize(raise_on_name_error)
-          @raise_on_name_error = raise_on_name_error
-        end
-
         def dispatcher?; true; end
 
         def serve(req)
@@ -48,12 +44,6 @@ module ActionDispatch
           controller = controller req
           res        = controller.make_response! req
           dispatch(controller, params[:action], req, res)
-        rescue ActionController::RoutingError
-          if @raise_on_name_error
-            raise
-          else
-            [404, { Constants::X_CASCADE => "pass" }, []]
-          end
         end
 
         private
@@ -68,7 +58,6 @@ module ActionDispatch
 
       class StaticDispatcher < Dispatcher
         def initialize(controller_class)
-          super(false)
           @controller_class = controller_class
         end
 
@@ -203,19 +192,37 @@ module ActionDispatch
           attr_reader :route_name
 
           class OptimizedUrlHelper < UrlHelper
+            # Options the general path reads besides the route's segments and defaults.
+            GENERAL_PATH_OPTIONS = [:controller, :action, :params, :path_params, :_recall, :user, :password].freeze
+
             attr_reader :arg_size
 
             def initialize(route, options, route_name)
               super
               @required_parts = @route.required_parts
               @arg_size       = @required_parts.size
+              # The general path omits a format equal to the route's default, and fills
+              # optional segments before the format from the current request.
+              @format_optimizable = !route.defaults.key?(:format) && @segment_keys - @required_parts == [:format]
+              # With options, the general path assigns positional arguments to all
+              # segment keys in order, so an optional segment before a required one
+              # (as in <tt>scope "(:locale)"</tt>) would take the first argument.
+              @options_optimizable = @segment_keys.first(@arg_size) == @required_parts &&
+                !@segment_keys.intersect?(RESERVED_OPTIONS)
             end
 
             def call(t, method_name, args, inner_options, url_strategy)
-              if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
+              if args.size == arg_size && optimizable_options?(inner_options) && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
-                path = optimized_helper(args)
-                path << "/" if options[:trailing_slash] && !path.end_with?("/")
+                format = inner_options && inner_options[:format]
+                path = optimized_helper(args, format)
+                if path.nil?
+                  # With options, a missing argument raises the general path's error.
+                  return super if inner_options
+                  raise_generation_error(args)
+                end
+                merge_url_and_query_options!(options, inner_options) if inner_options && !sole_format?(inner_options)
+                path << "/" if options[:trailing_slash] && !format && !options[:format] && !path.end_with?("/")
                 options[:path] = path
 
                 original_script_name = options.delete(:original_script_name)
@@ -234,9 +241,44 @@ module ActionDispatch
             end
 
             private
-              def optimized_helper(args)
-                params = parameterize_args(args) do
-                  raise_generation_error(args)
+              def optimizable_options?(inner_options)
+                return true if inner_options.nil?
+                return false unless @options_optimizable
+                return @format_optimizable && inner_options[:format] if sole_format?(inner_options)
+
+                !inner_options.any? do |key, value|
+                  key == :format ? !(@format_optimizable && value) : general_path_option?(key)
+                end
+              end
+
+              def sole_format?(inner_options)
+                inner_options.size == 1 && inner_options.key?(:format)
+              end
+
+              def general_path_option?(key)
+                @segment_keys.include?(key) || @options.key?(key) || GENERAL_PATH_OPTIONS.include?(key)
+              end
+
+              # As in the general path, every other option becomes a query parameter.
+              def merge_url_and_query_options!(options, inner_options)
+                query_params = nil
+                inner_options.each do |key, value|
+                  if key == :format || RESERVED_OPTIONS.include?(key)
+                    options[key] = value
+                  else
+                    (query_params ||= {})[key] = value
+                  end
+                end
+                options[:params] = query_params if query_params
+              end
+
+              def optimized_helper(args, format = nil)
+                params = parameterize_args(args) { return }
+                if format
+                  # As in the general path, a blank format is dropped rather than
+                  # rendered as a trailing dot.
+                  format = format.to_param
+                  params[:format] = format if format.present?
                 end
 
                 @route.format params
@@ -414,6 +456,28 @@ module ActionDispatch
         routes.each(&:eager_load!)
         formatter.eager_load!
         nil
+      end
+
+      # Resolves the controller of every route that dispatches to one and returns
+      # a message for each route whose controller is missing, so that a broken
+      # route can be reported when the routes are loaded rather than on the first
+      # request that matches it.
+      def missing_controller_messages # :nodoc:
+        request = request_class.empty
+
+        routes.filter_map do |route|
+          next unless route.dispatcher?
+          next if StaticDispatcher === route.app
+
+          begin
+            request.controller_class_for(route.defaults[:controller])
+            nil
+          rescue MissingController => error
+            message = +"#{route.verb} #{route.path.spec} references a missing controller: #{error.message}"
+            message << " (defined at #{route.source_location})" if route.source_location
+            message
+          end
+        end
       end
 
       def relative_url_root
@@ -665,20 +729,6 @@ module ActionDispatch
         route = @set.add_route(name, mapping)
         named_routes[name] = route if name
 
-        if route.segment_keys.include?(:controller)
-          ActionDispatch.deprecator.warn(<<-MSG.squish)
-            Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 9.0.
-          MSG
-        end
-
-        if route.segment_keys.include?(:action)
-          ActionDispatch.deprecator.warn(<<-MSG.squish)
-            Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 9.0.
-          MSG
-        end
-
         route
       end
 
@@ -904,7 +954,10 @@ module ActionDispatch
 
       def call(env)
         req = make_request(env)
-        req.path_info = Journey::Router::Utils.normalize_path(req.path_info)
+        path_info = req.path_info
+        unless Journey::Router::Utils.normalized_path?(path_info)
+          req.path_info = Journey::Router::Utils.normalize_path(path_info)
+        end
         @router.serve(req)
       end
 

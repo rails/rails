@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "image_processing/mini_magick"
 
 module ActiveStorage

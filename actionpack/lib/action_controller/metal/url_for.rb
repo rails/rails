@@ -32,6 +32,7 @@ module ActionController
     def initialize(...)
       super
       @_url_options = nil
+      @_url_options_with_script_name = nil
     end
 
     def url_options
@@ -50,10 +51,18 @@ module ActionController
         if original_script_name
           { **@_url_options, original_script_name: original_script_name }.freeze
         else
-          if same_origin
-            script_name = request.script_name.empty? ? "" : request.script_name.dup
+          effective_script_name = same_origin ? request.script_name : script_name
+
+          # Memoized per script_name value, compared on every call: the
+          # script name only changes around engine dispatch, but a stale
+          # hash must never be served if it does.
+          cached = @_url_options_with_script_name
+          if cached && cached[:script_name] == effective_script_name
+            cached
+          else
+            script_name = effective_script_name.empty? ? "" : effective_script_name.dup
+            @_url_options_with_script_name = { **@_url_options, script_name: script_name }.freeze
           end
-          { **@_url_options, script_name: script_name }.freeze
         end
       else
         @_url_options

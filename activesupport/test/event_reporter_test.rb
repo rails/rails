@@ -53,6 +53,71 @@ module ActiveSupport
       end
     end
 
+    class MutatingSubscriber
+      def emit(event)
+        event[:name] = "changed"
+      end
+    end
+
+    class SilencedSubscriber < EventReporter::TestHelper::EventSubscriber
+      def consumes?(name)
+        false
+      end
+    end
+
+    class BrokenConsumesSubscriber < EventReporter::TestHelper::EventSubscriber
+      def consumes?(name)
+        raise StandardError, "consumes? blew up"
+      end
+    end
+
+    test "notify does not build the event when no subscriber consumes it" do
+      silenced = SilencedSubscriber.new
+      reporter = EventReporter.new(silenced, raise_on_error: true)
+      reporter.notify("silenced.event", id: 1)
+
+      assert_empty silenced.events
+    end
+
+    test "notify emits to every matching subscriber when at least one consumes the event" do
+      silenced = SilencedSubscriber.new
+      reporter = EventReporter.new(silenced, @subscriber, raise_on_error: true)
+
+      reporter.notify("consumed.event", id: 1)
+
+      assert_equal 1, @subscriber.events.size
+      assert_equal 1, silenced.events.size, "subscribers that do not consume still see the event when it is built"
+    end
+
+    test "subscribers without consumes? are assumed to consume everything" do
+      @reporter.notify("some.event")
+      assert_equal 1, @subscriber.events.size
+    end
+
+    test "a subscriber whose consumes? raises is treated as consuming" do
+      broken = BrokenConsumesSubscriber.new
+      reporter = EventReporter.new(broken, raise_on_error: true)
+
+      reporter.notify("some.event")
+
+      assert_equal 1, broken.events.size
+    end
+
+    test "emitting? reports whether any subscriber would consume the event" do
+      assert @reporter.emitting?("some.event")
+      assert @reporter.emitting?(:some_event)
+      assert_not EventReporter.new(raise_on_error: true).emitting?("some.event")
+      assert_not EventReporter.new(SilencedSubscriber.new, raise_on_error: true).emitting?("some.event")
+    end
+
+    test "emitting? honors subscription filters" do
+      reporter = EventReporter.new(raise_on_error: true)
+      reporter.subscribe(@subscriber) { |event| event[:name].start_with?("user.") }
+
+      assert reporter.emitting?("user.created")
+      assert_not reporter.emitting?("order.created")
+    end
+
     test "#subscribe" do
       reporter = ActiveSupport::EventReporter.new
       subscribers = reporter.subscribe(@subscriber)
@@ -127,6 +192,22 @@ module ActiveSupport
       end
     end
 
+    test "#notify emits to the subscribers whose filter passes, in subscription order" do
+      reporter = EventReporter.new(raise_on_error: true)
+      emitted = []
+      subscriber = ->(id) { Class.new { define_method(:emit) { |event| emitted << [id, event[:name]] } }.new }
+
+      reporter.subscribe(subscriber.(:first)) { |event| event[:name].start_with?("user_") }
+      reporter.subscribe(subscriber.(:second))
+      reporter.subscribe(subscriber.(:never)) { nil }
+      reporter.subscribe(subscriber.(:third)) { |event| event[:name] == "user_event" }
+
+      reporter.notify(:user_event)
+      reporter.notify(:test_event)
+
+      assert_equal [[:first, "user_event"], [:second, "user_event"], [:third, "user_event"], [:second, "test_event"]], emitted
+    end
+
     test "#notify with name and hash payload" do
       assert_called_with(@subscriber, :emit, [
         event_matcher(name: "test_event", payload: { key: "value" })
@@ -149,6 +230,12 @@ module ActiveSupport
       ]) do
         @reporter.notify(:test_event, { "key" => "value" })
       end
+    end
+
+    test "#notify symbolizes keys in kwargs" do
+      @reporter.notify(:test_event, **{ "key" => "value", other: 1 })
+
+      assert_equal({ key: "value", other: 1 }, @subscriber.events.last[:payload])
     end
 
     test "#notify with hash payload and kwargs raises" do
@@ -245,14 +332,44 @@ module ActiveSupport
       assert_equal "Uh oh!", error_report.error.message
     end
 
-    test "#notify raises subscriber errors when raise_on_error is true" do
-      @reporter.subscribe(ErrorSubscriber.new)
+    test "#notify prevents subscribers from mutating the event" do
+      @reporter = EventReporter.new(MutatingSubscriber.new, @subscriber, raise_on_error: false)
 
-      error = assert_raises(StandardError) do
-        @reporter.notify(:test_event)
+      assert_error_reported(FrozenError) do
+        @reporter.notify(:test_event, key: "value")
       end
 
-      assert_equal("Uh oh!", error.message)
+      event = @subscriber.events.last
+      assert_equal "test_event", event[:name]
+      assert_predicate event, :frozen?
+      assert_predicate event[:payload], :frozen?
+      assert_predicate event[:source_location], :frozen?
+    end
+
+    test "#notify raises when a subscriber mutates the event and raise_on_error is true" do
+      @reporter.subscribe(MutatingSubscriber.new)
+
+      assert_raises(FrozenError) do
+        @reporter.notify(:test_event)
+      end
+    end
+
+    test "#notify does not freeze the caller's payload" do
+      payload = { key: "value" }
+
+      @reporter.notify(:test_event, payload)
+      @reporter.notify(:test_event, payload, filter_payload: false)
+
+      assert_not_predicate payload, :frozen?
+      assert_predicate @subscriber.events.last[:payload], :frozen?
+    end
+
+    test "#notify does not freeze event objects" do
+      event = { key: "value" }
+
+      @reporter.notify(event)
+
+      assert_not_predicate event, :frozen?
     end
 
     test "#notify with filtered payloads" do

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_model/validations/comparability"
 require "active_model/validations/resolve_value"
 require "bigdecimal/util"
@@ -33,8 +34,10 @@ module ActiveModel
         end
       end
 
-      def validate_each(record, attr_name, value, precision: Float::DIG, scale: nil)
-        unless is_number?(value, precision, scale)
+      def validate_each(record, attr_name, value)
+        decimal_type = decimal_type_for(record, attr_name)
+
+        unless is_number?(value, decimal_type)
           record.errors.add(attr_name, :not_a_number, **filtered_options(value))
           return
         end
@@ -44,7 +47,7 @@ module ActiveModel
           return
         end
 
-        value = parse_as_number(value, precision, scale)
+        value = parse_as_number(value, decimal_type)
 
         options.slice(*RESERVED_OPTIONS).each do |option, option_value|
           if NUMBER_CHECKS.include?(option)
@@ -60,7 +63,7 @@ module ActiveModel
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
           elsif COMPARE_CHECKS.include?(option)
-            option_value = option_as_number(record, option_value, precision, scale)
+            option_value = parse_as_number(resolve_value(record, option_value), decimal_type, cast: false)
             unless value.public_send(COMPARE_CHECKS[option], option_value)
               record.errors.add(attr_name, option, **filtered_options(value).merge!(count: option_value))
             end
@@ -69,38 +72,39 @@ module ActiveModel
       end
 
     private
-      def option_as_number(record, option_value, precision, scale)
-        parse_as_number(resolve_value(record, option_value), precision, scale)
+      def decimal_type_for(record, attr_name)
+        type = record.class.try(:type_for_attribute, attr_name)
+        type if type&.type == :decimal
       end
 
-      def parse_as_number(raw_value, precision, scale)
-        if raw_value.is_a?(Float)
-          parse_float(raw_value, precision, scale)
-        elsif raw_value.is_a?(BigDecimal)
-          round(raw_value, scale)
-        elsif raw_value.is_a?(Numeric)
-          raw_value
+      def parse_as_number(raw_value, decimal_type, cast: true)
+        if raw_value.is_a?(Numeric)
+          cast_as_number(raw_value, decimal_type, cast)
         elsif is_integer?(raw_value)
           raw_value.to_i
         elsif !is_hexadecimal_literal?(raw_value)
-          parse_float(Kernel.Float(raw_value), precision, scale)
+          cast_as_number(Kernel.Float(raw_value), decimal_type, cast)
         end
       end
 
-      def parse_float(raw_value, precision, scale)
-        round(raw_value, scale).to_d(precision)
+      # The value is cast as the decimal attribute holds it, while an option
+      # value is taken as given. Floats otherwise keep the Float::DIG guarantee.
+      def cast_as_number(raw_value, decimal_type, cast)
+        if decimal_type
+          cast ? decimal_type.cast(raw_value) : raw_value
+        elsif raw_value.is_a?(Float)
+          raw_value.to_d(Float::DIG)
+        else
+          raw_value
+        end
       end
 
-      def round(raw_value, scale)
-        scale ? raw_value.round(scale) : raw_value
-      end
-
-      def is_number?(raw_value, precision, scale)
+      def is_number?(raw_value, decimal_type)
         if options[:only_numeric] && !raw_value.is_a?(Numeric)
           return false
         end
 
-        !parse_as_number(raw_value, precision, scale).nil?
+        !parse_as_number(raw_value, decimal_type).nil?
       rescue ArgumentError, TypeError
         false
       end
@@ -151,12 +155,14 @@ module ActiveModel
     end
 
     module HelperMethods
+      # :markup: rdoc
       # Validates whether the value of the specified attribute is numeric by
       # trying to convert it to a float with +Kernel.Float+ (if
       # <tt>only_integer</tt> is +false+) or applying it to the regular
       # expression <tt>/\A[\+\-]?\d+\z/</tt> (if <tt>only_integer</tt> is set to
       # +true+). Precision of +Kernel.Float+ values are guaranteed up to 15
-      # digits.
+      # digits, except on a decimal attribute, where the value is validated as
+      # the attribute's type casts it, honoring its +precision+ and +scale+.
       #
       #   class Person < ActiveRecord::Base
       #     validates_numericality_of :value, on: :create

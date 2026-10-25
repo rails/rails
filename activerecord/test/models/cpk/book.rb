@@ -53,6 +53,7 @@ module Cpk
   class BookWithOrderAgreements < Book
     has_many :order_agreements, through: :order
     has_one :order_agreement, through: :order, source: :order_agreements
+    has_many :no_joins_order_agreements, through: :order, source: :order_agreements, disable_joins: true
   end
 
   class BookWithRequiredOrder < ActiveRecord::Base

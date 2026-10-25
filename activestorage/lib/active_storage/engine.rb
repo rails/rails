@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails"
 require "action_controller/railtie"
 require "active_job/railtie"
@@ -143,6 +144,7 @@ module ActiveStorage
         ActiveStorage.paths             = app.config.active_storage.paths || {}
         ActiveStorage.routes_prefix     = app.config.active_storage.routes_prefix || "/rails/active_storage"
         ActiveStorage.draw_routes       = app.config.active_storage.draw_routes != false
+        ActiveStorage.draw_direct_upload_route = app.config.active_storage.draw_direct_upload_route != false
         ActiveStorage.resolve_model_to_route = app.config.active_storage.resolve_model_to_route || :rails_storage_redirect
 
         ActiveStorage.base_controller_parent = app.config.active_storage.base_controller_parent ||
@@ -178,6 +180,7 @@ module ActiveStorage
         ActiveStorage.video_preview_input_arguments = app.config.active_storage.video_preview_input_arguments || ""
         ActiveStorage.ffprobe_arguments = app.config.active_storage.ffprobe_arguments || ""
         ActiveStorage.track_variants = app.config.active_storage.track_variants || false
+        ActiveStorage.s3_public_uploads_via_acl = app.config.active_storage.s3_public_uploads_via_acl != false
         ActiveStorage.analyze = app.config.active_storage.analyze || :later
         ActiveStorage.streaming_chunk_max_size = app.config.active_storage.streaming_chunk_max_size || 100.megabytes
       end

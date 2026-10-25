@@ -66,10 +66,13 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.rescue_from_event_backtrace`](#config-action-controller-rescue-from-event-backtrace): `:array`
 - [`config.action_dispatch.default_headers`](#config-action-dispatch-default-headers): `{ "X-Frame-Options" => "SAMEORIGIN", "X-Content-Type-Options" => "nosniff", "X-Permitted-Cross-Domain-Policies" => "none", "Referrer-Policy" => "strict-origin-when-cross-origin" }`
 - [`config.action_dispatch.strict_accept_header`](#config-action-dispatch-strict-accept-header): `true`
+- [`config.action_view.erb_implementation`](#config-action-view-erb-implementation): `:herb`
 - [`config.active_job.enqueue_after_transaction_commit`](#config-active-job-enqueue-after-transaction-commit): `true`
 - [`config.active_record.postgresql_adapter_decode_bytea`](#config-active-record-postgresql-adapter-decode-bytea): `true`
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
+- [`config.active_storage.s3_public_uploads_via_acl`](#config-active-storage-s3-public-uploads-via-acl): `false`
+- [`config.active_support.message_serializer`](#config-active-support-message-serializer): `:json`
 
 #### Default Values for Target Version 8.1
 
@@ -183,6 +186,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
 - [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
 - [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
+- [`config.active_record.raise_on_assign_to_attr_readonly`](#config-active-record-raise-on-assign-to-attr-readonly): `false`
 - [`config.ssl_options`](#config-ssl-options): `{ hsts: { subdomains: true } }`
 
 ### Rails General Configuration
@@ -234,7 +238,7 @@ be set to `false` if application code is not thread safe. Defaults to `true`.
 
 #### `config.asset_host`
 
-Sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints built-in in browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.
+Sets the host for the assets. Useful when CDNs are used for hosting assets, or when you want to work around the concurrency constraints built into browsers using different domain aliases. Shorter version of `config.action_controller.asset_host`.
 
 #### `config.assume_ssl`
 
@@ -651,6 +655,17 @@ Additionally, you can pass a hash to configure YJIT options such as `{ stats: tr
 | (original)            | `false`              |
 | 7.2                   | `true`               |
 | 8.1                   | `!Rails.env.local?`  |
+
+#### `config.zjit`
+
+Enables ZJIT, available as of Ruby 4.0.
+
+This option is exclusive with `config.yjit`, only one JIT implementation can be enabled
+at a time. If both options are set, ZJIT takes precedence.
+
+NOTE: As of Ruby 4.0, ZJIT is experimental and Ruby advises against using it in production.
+
+The default value is `false`.
 
 ### Configuring Assets
 
@@ -1238,6 +1253,12 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.migration_strategy = CustomP
 
 By assigning to the adapter class, all migrations run through connections using that adapter will use the specified strategy.
 
+#### `config.active_record.migration_error`
+
+Specifies what happens when there are pending migrations. If set to `:page_load`, an `ActiveRecord::PendingMigrationError` is raised on page load.
+The generated `config/environments/development.rb` file contains this option with the value `:page_load`.
+By default, this option is not set.
+
 #### `config.active_record.schema_versions_formatter`
 
 Controls the formatter class used by schema dumper to format versions information. Custom class can be provided
@@ -1472,7 +1493,7 @@ Allows specifying the maximum number of records that will be destroyed in a back
 #### `config.active_record.queues.destroy`
 
 Allows specifying the Active Job queue to use for destroy jobs. When this option
-is `nil`, purge jobs are sent to the default Active Job queue (see
+is `nil`, destroy jobs are sent to the default Active Job queue (see
 [`config.active_job.default_queue_name`][]). It defaults to `nil`.
 
 #### `config.active_record.enumerate_columns_in_select_statements`
@@ -1500,6 +1521,8 @@ database.
 | --------------------- | -------------------- |
 | (original)            | `false`              |
 | 7.1                   | `true`               |
+
+Note: This configuration has been deprecated in Rails 8.2 and will be removed in 9.0.
 
 #### `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`
 
@@ -1732,6 +1755,30 @@ Defaults to `false`. Allows applications to opt into using `unsafe_load` on the 
 Defaults to `true`. Determines whether to raise an exception or not when
 the PostgreSQL adapter is provided an integer that is wider than signed
 64bit representation.
+
+#### `config.active_record.immutable_strings_by_default`
+
+Determines whether string columns cast their values to frozen strings. Defaults
+to `false`.
+
+Freezing lets Active Record skip the copy and the comparison that dirty tracking
+otherwise needs in order to detect in-place mutation of a string. In exchange,
+strings read from the database can no longer be mutated in place:
+
+```ruby
+book = Book.create!(title: "Hello")
+book.title.frozen?         # => true
+book.title << " world"     # raises FrozenError
+book.title = "Hello world" # assign a new string instead
+```
+
+It can also be enabled per model:
+
+```ruby
+class Book < ApplicationRecord
+  self.immutable_strings_by_default = true
+end
+```
 
 #### `config.active_record.generate_secure_token_on`
 
@@ -2362,7 +2409,7 @@ The default value depends on the `config.load_defaults` target version:
 | (original)            | <pre><code>{<br>  "X-Frame-Options" => "SAMEORIGIN",<br>  "X-XSS-Protection" => "1; mode=block",<br>  "X-Content-Type-Options" => "nosniff",<br>  "X-Download-Options" => "noopen",<br>  "X-Permitted-Cross-Domain-Policies" => "none",<br>  "Referrer-Policy" => "strict-origin-when-cross-origin"<br>}</code></pre> |
 | 7.0                   | <pre><code>{<br>  "X-Frame-Options" => "SAMEORIGIN",<br>  "X-XSS-Protection" => "0",<br>  "X-Content-Type-Options" => "nosniff",<br>  "X-Download-Options" => "noopen",<br>  "X-Permitted-Cross-Domain-Policies" => "none",<br>  "Referrer-Policy" => "strict-origin-when-cross-origin"<br>}</code></pre> |
 | 7.1                   | <pre><code>{<br>  "X-Frame-Options" => "SAMEORIGIN",<br>  "X-XSS-Protection" => "0",<br>  "X-Content-Type-Options" => "nosniff",<br>  "X-Permitted-Cross-Domain-Policies" => "none",<br>  "Referrer-Policy" => "strict-origin-when-cross-origin"<br>}</code></pre> |
-| 8.2                   | <pre><code>{<br>  "X-Frame-Options" => "SAMEORIGIN"<br>  "X-Content-Type-Options" => "nosniff",<br>  "X-Permitted-Cross-Domain-Policies" => "none",<br>  "Referrer-Policy" => "strict-origin-when-cross-origin"<br>}</code></pre> |
+| 8.2                   | <pre><code>{<br>  "X-Frame-Options" => "SAMEORIGIN",<br>  "X-Content-Type-Options" => "nosniff",<br>  "X-Permitted-Cross-Domain-Policies" => "none",<br>  "Referrer-Policy" => "strict-origin-when-cross-origin"<br>}</code></pre> |
 
 #### `config.action_dispatch.default_charset`
 
@@ -2697,7 +2744,14 @@ Controls if certain ERB syntax should trim. It defaults to `'-'`, which turns on
 
 #### `config.action_view.erb_implementation`
 
-Controls the default ERB implementation to use. It defaults to `Erubi`.
+Controls the ERB implementation used to compile templates. `:erubi` compiles every template through [Erubi](https://github.com/jeremyevans/erubi). `:herb` compiles templates with the HTML format through [Herb](https://github.com/marcoroth/herb) and every other format through Erubi. Herb reports structural problems, such as an unclosed tag, at compile time with their template location. Setting a class compiles every template through that class.
+
+The default value depends on the `config.load_defaults` target version:
+
+| Starting with version | The default value is                           |
+| --------------------- | ---------------------------------------------- |
+| (original)            | `ActionView::Template::Handlers::ERB::Erubi`   |
+| 8.2                   | `ActionView::Template::Handlers::ERB::Herb`    |
 
 #### `config.action_view.escape_ignore_list`
 
@@ -3215,6 +3269,7 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `:marshal`           |
 | 7.1                   | `:json_allow_marshal` |
+| 8.2                   | `:json`               |
 
 [`ActiveSupport::MessageEncryptor`]: https://api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html
 [`ActiveSupport::MessageVerifier`]: https://api.rubyonrails.org/classes/ActiveSupport/MessageVerifier.html
@@ -3790,6 +3845,13 @@ Determines the default expiry of URLs in the Rails application generated by Acti
 
 Directs ActiveStorage::Attachments to touch its corresponding record when updated. The default is true.
 
+#### `config.active_storage.s3_public_uploads_via_acl`
+
+Determines whether the S3 service sets the `public-read` ACL on uploads for services configured with
+`public: true`. Bucket owner enforced is now both the default and the recommended S3 object ownership setting,
+and rejects any request that specifies an ACL. Set this to `false` for such buckets, then grant public read
+access through a bucket policy. The default is true.
+
 #### `config.active_storage.routes_prefix`
 
 Can be used to set the route prefix for the routes served by Active Storage.
@@ -3822,6 +3884,17 @@ The default value depends on the `config.load_defaults` target version:
 #### `config.active_storage.draw_routes`
 
 Can be used to toggle Active Storage route generation. The default is `true`.
+
+#### `config.active_storage.draw_direct_upload_route`
+
+Can be used to toggle generation of the direct upload route, without
+affecting the other Active Storage routes. Has no effect if
+`config.active_storage.draw_routes` is `false`. The default is `true`.
+
+When set to `false`, Action Text's `rich_textarea` renders without a
+`data-direct-upload-url` unless one is passed explicitly, and a Trix editor
+without that attribute hides its attach button and ignores dropped or pasted
+files.
 
 #### `config.active_storage.resolve_model_to_route`
 
@@ -4092,11 +4165,11 @@ development:
   adapter: sqlite3
   extensions:
     - SQLean::UUID                     # module name responding to `.to_path`
-    - .sqlpkg/nalgeon/crypto/crypto.so # or a filesystem path
+    - lib/sqlite_extensions/crypto.so  # or a filesystem path
     - <%= AppExtensions.location %>    # or ruby code returning a path
 ```
 
-Many useful features can be added to SQLite through extensions. You may wish to browse the [SQLite extension hub](https://sqlpkg.org/) or use gems like [`sqlpkg-ruby`](https://github.com/fractaledmind/sqlpkg-ruby) and [`sqlean-ruby`](https://github.com/flavorjones/sqlean-ruby) that simplify extension management.
+Many useful features can be added to SQLite through extensions. You may wish to use gems like [`sqlean-ruby`](https://github.com/flavorjones/sqlean-ruby) that simplify extension management.
 
 Other configuration options are described in the [SQLite3Adapter documentation]( https://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SQLite3Adapter.html).
 
@@ -4112,12 +4185,10 @@ development:
   max_connections: 5
   username: root
   password:
-  socket: /tmp/mysql.sock
+  host: 127.0.0.1
 ```
 
 If your development database has a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the `development` section as appropriate.
-
-NOTE: If your MySQL version is 5.5 or 5.6 and want to use the `utf8mb4` character set by default, please configure your MySQL server to support the longer key prefix by enabling `innodb_large_prefix` system variable.
 
 Advisory Locks are enabled by default on MySQL and are used to make database migrations concurrent safe. You can disable advisory locks by setting `advisory_locks` to `false`:
 
@@ -4156,6 +4227,16 @@ production:
 ```
 
 The more prepared statements in use: the more memory your database will require. If your PostgreSQL database is hitting memory limits, try lowering `statement_limit` or disabling prepared statements.
+
+To create or drop the database, such as with `bin/rails db:create`, `db:drop` and `db:purge`, Active Record connects to the `postgres` database by default. If your PostgreSQL server does not have a `postgres` database, as with some managed PostgreSQL services, set `maintenance_database` to a database that you can connect to:
+
+```yaml
+production:
+  adapter: postgresql
+  maintenance_database: defaultdb
+```
+
+It can also be given in `DATABASE_URL`, such as `postgres://.../blog_production?maintenance_database=defaultdb`.
 
 #### Configuring an SQLite3 Database for JRuby Platform
 

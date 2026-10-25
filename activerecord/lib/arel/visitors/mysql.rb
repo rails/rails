@@ -1,8 +1,13 @@
 # frozen_string_literal: true
 
+# :markup: markdown
+require "arel/nodes/sql_literal"
+
 module Arel # :nodoc: all
   module Visitors
     class MySQL < Arel::Visitors::ToSql
+      DUAL = Nodes::SqlLiteral.new("DUAL", retryable: true).freeze
+
       private
         def visit_Arel_Nodes_Bin(o, collector)
           collector << "CAST("
@@ -27,7 +32,7 @@ module Arel # :nodoc: all
         end
 
         def visit_Arel_Nodes_SelectCore(o, collector)
-          o.froms ||= Arel.sql("DUAL", retryable: true)
+          o.froms ||= DUAL
           super
         end
 
@@ -97,7 +102,7 @@ module Arel # :nodoc: all
           # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
           unless has_limit_or_offset_or_orders?(subselect)
             core = subselect.cores.last
-            core.set_quantifier = Arel::Nodes::Distinct.new
+            core.set_quantifier = Arel::SelectManager::DISTINCT
           end
 
           Nodes::SelectStatement.new.tap do |stmt|

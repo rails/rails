@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -62,6 +63,17 @@ module ActiveRecord
           def type_cast_for_schema(value)
             return super unless value.is_a?(::Array)
             "[" + value.map { |v| subtype.type_cast_for_schema(v) }.join(", ") + "]"
+          end
+
+          def as_schema_json
+            { "subtype" => subtype, "delimiter" => delimiter }
+          end
+
+          def init_from_schema_json(coder, references)
+            @subtype = references[coder["subtype"]]
+            @delimiter = coder["delimiter"]
+            @pg_encoder = PG::TextEncoder::Array.new(name: "#{type}[]".dedup, delimiter: @delimiter).freeze
+            @pg_decoder = PG::TextDecoder::Array.new(name: "#{type}[]".dedup, delimiter: @delimiter).freeze
           end
 
           def map(value, &block)

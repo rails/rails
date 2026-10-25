@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_storage/log_subscriber"
 require "active_storage/structured_event_subscriber"
 require "action_dispatch"
@@ -7,39 +8,46 @@ require "action_dispatch/http/content_disposition"
 require "active_support/core_ext/string/filters"
 
 module ActiveStorage
-  # = Active Storage \Service
+  # Active Storage \Service
+  # =======================
   #
   # Abstract class serving as an interface for concrete services.
   #
   # The available services are:
   #
-  # * +Disk+, to manage attachments saved directly on the hard drive.
-  # * +GCS+, to manage attachments through Google Cloud Storage.
-  # * +S3+, to manage attachments through Amazon S3.
-  # * +Mirror+, to be able to use several services to manage attachments.
+  # * `Disk`, to manage attachments saved directly on the hard drive.
+  # * `GCS`, to manage attachments through Google Cloud Storage.
+  # * `S3`, to manage attachments through Amazon S3.
+  # * `Mirror`, to be able to use several services to manage attachments.
   #
   # Inside a \Rails application, you can set-up your services through the
-  # generated <tt>config/storage.yml</tt> file and reference one
-  # of the aforementioned constant under the +service+ key. For example:
+  # generated `config/storage.yml` file and reference one
+  # of the aforementioned constant under the `service` key. For example:
   #
-  #   local:
-  #     service: Disk
-  #     root: <%= Rails.root.join("storage") %>
+  # ```
+  # local:
+  #   service: Disk
+  #   root: <%= Rails.root.join("storage") %>
+  # ```
   #
   # You can checkout the service's constructor to know which keys are required.
   #
   # Then, in your application's configuration, you can specify the service to
   # use like this:
   #
-  #   config.active_storage.service = :local
+  # ```
+  # config.active_storage.service = :local
+  # ```
   #
   # If you are using Active Storage outside of a Ruby on \Rails application, you
   # can configure the service to use like this:
   #
-  #   ActiveStorage::Blob.service = ActiveStorage::Service.configure(
-  #     :local,
-  #     { local: {service: "Disk",  root: Pathname("/tmp/foo/storage") } }
-  #   )
+  # ```
+  # ActiveStorage::Blob.service = ActiveStorage::Service.configure(
+  #   :local,
+  #   { local: {service: "Disk",  root: Pathname("/tmp/foo/storage") } }
+  # )
+  # ```
   class Service
     extend ActiveSupport::Autoload
     autoload :Configurator
@@ -66,25 +74,25 @@ module ActiveStorage
       end
     end
 
-    # Upload the +io+ to the +key+ specified. If a +checksum+ is provided, the service will
+    # Upload the `io` to the `key` specified. If a `checksum` is provided, the service will
     # ensure a match when the upload has completed or raise an ActiveStorage::IntegrityError.
     def upload(key, io, checksum: nil, **options)
       raise NotImplementedError
     end
 
-    # Update metadata for the file identified by +key+ in the service.
+    # Update metadata for the file identified by `key` in the service.
     def update_metadata(key, **metadata)
       instrument :update_metadata, key: key, **metadata do
         update_metadata_for key, **metadata
       end
     end
 
-    # Return the content of the file at the +key+.
+    # Return the content of the file at the `key`.
     def download(key)
       raise NotImplementedError
     end
 
-    # Return the partial content in the byte +range+ of the file at the +key+.
+    # Return the partial content in the byte `range` of the file at the `key`.
     def download_chunk(key, range)
       raise NotImplementedError
     end
@@ -98,25 +106,25 @@ module ActiveStorage
       raise NotImplementedError
     end
 
-    # Delete the file at the +key+.
+    # Delete the file at the `key`.
     def delete(key)
       raise NotImplementedError
     end
 
-    # Delete files at keys starting with the +prefix+.
+    # Delete files at keys starting with the `prefix`.
     def delete_prefixed(prefix)
       raise NotImplementedError
     end
 
-    # Return +true+ if a file exists at the +key+.
+    # Return `true` if a file exists at the `key`.
     def exist?(key)
       raise NotImplementedError
     end
 
-    # Returns the URL for the file at the +key+. This returns a permanent URL for public files, and returns a
-    # short-lived URL for private files. For private files you can provide the +disposition+ (+:inline+ or +:attachment+),
-    # +filename+, and +content_type+ that you wish the file to be served with on request. Additionally, you can also provide
-    # the amount of seconds the URL will be valid for, specified in +expires_in+.
+    # Returns the URL for the file at the `key`. This returns a permanent URL for public files, and returns a
+    # short-lived URL for private files. For private files you can provide the `disposition` (`:inline` or `:attachment`),
+    # `filename`, and `content_type` that you wish the file to be served with on request. Additionally, you can also provide
+    # the amount of seconds the URL will be valid for, specified in `expires_in`.
     def url(key, **options)
       instrument :url, key: key do |payload|
         generated_url =
@@ -132,15 +140,15 @@ module ActiveStorage
       end
     end
 
-    # Returns a signed, temporary URL that a direct upload file can be PUT to on the +key+.
-    # The URL will be valid for the amount of seconds specified in +expires_in+.
-    # You must also provide the +content_type+, +content_length+, and +checksum+ of the file
+    # Returns a signed, temporary URL that a direct upload file can be PUT to on the `key`.
+    # The URL will be valid for the amount of seconds specified in `expires_in`.
+    # You must also provide the `content_type`, `content_length`, and `checksum` of the file
     # that will be uploaded. All these attributes will be validated by the service upon upload.
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:, custom_metadata: {})
       raise NotImplementedError
     end
 
-    # Returns a Hash of headers for +url_for_direct_upload+ requests.
+    # Returns a Hash of headers for `url_for_direct_upload` requests.
     def headers_for_direct_upload(key, filename:, content_type:, content_length:, checksum:, custom_metadata: {})
       {}
     end

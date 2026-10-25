@@ -21,6 +21,8 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
       end
 
       class ForeignKeyChangeColumnTest < ActiveRecord::TestCase
+        skip_under_ractor_proxy
+
         self.use_transactional_tests = false
 
         class Rocket < ActiveRecord::Base
@@ -167,6 +169,8 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
   module ActiveRecord
     class Migration
       class ForeignKeyTest < ActiveRecord::TestCase
+        skip_under_ractor_proxy
+
         include SchemaDumpingHelper
         include ActiveSupport::Testing::Stream
 
@@ -1143,6 +1147,8 @@ if ActiveRecord::Base.lease_connection.supports_foreign_keys?
       end
 
       class CompositeForeignKeyTest < ActiveRecord::TestCase
+        skip_under_ractor_proxy
+
         include SchemaDumpingHelper
 
         setup do

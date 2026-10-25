@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "rails/railtie/configuration"
 
 module Rails
@@ -11,31 +12,31 @@ module Rails
 
       # An array of custom autoload paths to be added to the ones defined
       # automatically by Rails. These won't be eager loaded, unless you push
-      # them to +eager_load_paths+ too, which is recommended.
+      # them to `eager_load_paths` too, which is recommended.
       #
-      # This collection is empty by default, it accepts strings and +Pathname+
+      # This collection is empty by default, it accepts strings and `Pathname`
       # objects.
       #
-      # If you'd like to add +lib+ to it, please see +autoload_lib+.
+      # If you'd like to add `lib` to it, please see `autoload_lib`.
       attr_reader :autoload_paths
 
       # An array of custom autoload once paths. These won't be eager loaded
-      # unless you push them to +eager_load_paths+ too, which is recommended.
+      # unless you push them to `eager_load_paths` too, which is recommended.
       #
-      # This collection is empty by default, it accepts strings and +Pathname+
+      # This collection is empty by default, it accepts strings and `Pathname`
       # objects.
       #
-      # If you'd like to add +lib+ to it, please see +autoload_lib_once+.
+      # If you'd like to add `lib` to it, please see `autoload_lib_once`.
       attr_reader :autoload_once_paths
 
       # An array of custom eager load paths to be added to the ones defined
       # automatically by Rails. Anything in this collection is considered to be
-      # an autoload path regardless of whether it was added to +autoload_paths+.
+      # an autoload path regardless of whether it was added to `autoload_paths`.
       #
-      # This collection is empty by default, it accepts strings and +Pathname+
+      # This collection is empty by default, it accepts strings and `Pathname`
       # objects.
       #
-      # If you'd like to add +lib+ to it, please see +autoload_lib+.
+      # If you'd like to add `lib` to it, please see `autoload_lib`.
       attr_reader :eager_load_paths
 
       def initialize(root = nil)
@@ -54,15 +55,19 @@ module Rails
 
       # Holds generators configuration:
       #
-      #   config.generators do |g|
-      #     g.orm             :data_mapper, migration: true
-      #     g.template_engine :haml
-      #     g.test_framework  :rspec
-      #   end
+      # ```
+      # config.generators do |g|
+      #   g.orm             :data_mapper, migration: true
+      #   g.template_engine :haml
+      #   g.test_framework  :rspec
+      # end
+      # ```
       #
       # If you want to disable color in console, do:
       #
-      #   config.generators.colorize_logging = false
+      # ```
+      # config.generators.colorize_logging = false
+      # ```
       #
       def generators
         @generators ||= Rails::Configuration::Generators.new
@@ -117,19 +122,19 @@ module Rails
       end
 
       # Private method that adds custom autoload paths to the ones defined by
-      # +paths+.
+      # `paths`.
       def all_autoload_paths # :nodoc:
         autoload_paths + paths.autoload_paths
       end
 
       # Private method that adds custom autoload once paths to the ones defined
-      # by +paths+.
+      # by `paths`.
       def all_autoload_once_paths # :nodoc:
         autoload_once_paths + paths.autoload_once
       end
 
       # Private method that adds custom eager load paths to the ones defined by
-      # +paths+.
+      # `paths`.
       def all_eager_load_paths # :nodoc:
         eager_load_paths + paths.eager_load
       end

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -12,7 +13,7 @@ module ActiveRecord
 
             begin
               transaction(requires_new: true) do
-                execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
+                execute(search_path_tables.collect { |name, _table| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
               end
             rescue ActiveRecord::ActiveRecordError => e
               original_exception = e
@@ -34,7 +35,7 @@ module ActiveRecord
             ensure
               begin
                 transaction(requires_new: true) do
-                  execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
+                  execute(search_path_tables.collect { |name, _table| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
                 end
               rescue ActiveRecord::ActiveRecordError
               end
@@ -52,7 +53,7 @@ module ActiveRecord
               BEGIN
               FOR r IN (
                 SELECT FORMAT(
-                  'UPDATE pg_catalog.pg_constraint SET convalidated=false WHERE conname = ''%1$I'' AND connamespace::regnamespace = ''%2$I''::regnamespace AND conrelid::regclass = ''%3$I''::regclass; ALTER TABLE %2$I.%3$I VALIDATE CONSTRAINT %1$I;',
+                  'UPDATE pg_catalog.pg_constraint SET convalidated=false WHERE conname = ''%1$I'' AND connamespace::regnamespace = ''%2$I''::regnamespace AND conrelid::regclass = ''%2$I.%3$I''::regclass; ALTER TABLE %2$I.%3$I VALIDATE CONSTRAINT %1$I;',
                   constraint_name,
                   table_schema,
                   table_name

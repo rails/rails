@@ -41,7 +41,7 @@ module ActionDispatch
           filtered_parts = parts.map do |part|
             if part.include?("=")
               key, value = part.split("=", 2)
-              request.parameter_filter.filter(key => value).first.join("=")
+              "#{key}=#{request.parameter_filter.filter_param(key, value)}"
             else
               part
             end

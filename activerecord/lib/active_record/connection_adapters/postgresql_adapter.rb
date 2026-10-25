@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 gem "pg", "~> 1.1"
 require "pg"
 
@@ -21,30 +22,33 @@ require "active_record/connection_adapters/postgresql/utils"
 
 module ActiveRecord
   module ConnectionAdapters
-    # = Active Record PostgreSQL Adapter
+    # Active Record PostgreSQL Adapter
+    # ================================
     #
     # The PostgreSQL adapter works with the native C (https://github.com/ged/ruby-pg) driver.
     #
-    # ==== Options
+    # #### Options
     #
-    # * <tt>:host</tt> - Defaults to a Unix-domain socket in /tmp. On machines without Unix-domain sockets,
+    # * `:host` - Defaults to a Unix-domain socket in /tmp. On machines without Unix-domain sockets,
     #   the default is to connect to localhost.
-    # * <tt>:port</tt> - Defaults to 5432.
-    # * <tt>:username</tt> - Defaults to be the same as the operating system name of the user running the application.
-    # * <tt>:password</tt> - Password to be used if the server demands password authentication.
-    # * <tt>:database</tt> - Defaults to be the same as the username.
-    # * <tt>:schema_search_path</tt> - An optional schema search path for the connection given
+    # * `:port` - Defaults to 5432.
+    # * `:username` - Defaults to be the same as the operating system name of the user running the application.
+    # * `:password` - Password to be used if the server demands password authentication.
+    # * `:database` - Defaults to be the same as the username.
+    # * `:maintenance_database` - The database to connect to when creating or dropping
+    #   the database, such as `bin/rails db:create`. Defaults to `postgres`.
+    # * `:schema_search_path` - An optional schema search path for the connection given
     #   as a string of comma-separated schema names.
-    # * <tt>:encoding</tt> - An optional client encoding that is used in a <tt>SET client_encoding TO
+    # * `:encoding` - An optional client encoding that is used in a <tt>SET client_encoding TO
     #   <encoding></tt> call on the connection.
-    # * <tt>:error_verbosity</tt> - An optional verbosity level (one of the <tt>PG::PQERRORS_*</tt>
-    #   constants) passed to libpq's <tt>PQsetErrorVerbosity</tt>, controlling whether the
-    #   <tt>DETAIL</tt>, <tt>HINT</tt>, and <tt>CONTEXT</tt> fields are included in raised error
+    # * `:error_verbosity` - An optional verbosity level (one of the `PG::PQERRORS_*`
+    #   constants) passed to libpq's `PQsetErrorVerbosity`, controlling whether the
+    #   `DETAIL`, `HINT`, and `CONTEXT` fields are included in raised error
     #   messages.
-    # * <tt>:min_messages</tt> - An optional client min messages that is used in a
-    #   <tt>SET client_min_messages TO <min_messages></tt> call on the connection.
-    # * <tt>:variables</tt> - An optional hash of additional parameters that
-    #   will be used in <tt>SET SESSION key = val</tt> calls on the connection.
+    # * `:min_messages` - An optional client min messages that is used in a
+    #   `SET client_min_messages TO <min_messages>` call on the connection.
+    # * `:variables` - An optional hash of additional parameters that
+    #   will be used in `SET SESSION key = val` calls on the connection.
     #
     # Any further options are used as connection parameters to libpq. See
     # https://www.postgresql.org/docs/current/static/libpq-connect.html for the
@@ -70,6 +74,10 @@ module ActiveRecord
           else
             raise ActiveRecord::ConnectionNotEstablished, error.message
           end
+        end
+
+        def ractor_connection_proxy_class # :nodoc:
+          RactorConnectionHandler::PostgreSQLProxyAdapter
         end
 
         def dbconsole(config, options = {})
@@ -106,54 +114,66 @@ module ActiveRecord
       # environments. If you would like all created tables to be unlogged in
       # the test environment you can add the following to your test.rb file:
       #
-      #   ActiveSupport.on_load(:active_record_postgresqladapter) do
-      #     self.create_unlogged_tables = true
-      #   end
+      # ```
+      # ActiveSupport.on_load(:active_record_postgresqladapter) do
+      #   self.create_unlogged_tables = true
+      # end
+      # ```
       class_attribute :create_unlogged_tables, default: false
 
       ##
       # :singleton-method:
-      # PostgreSQL supports multiple types for DateTimes. By default, if you use +datetime+
+      # PostgreSQL supports multiple types for DateTimes. By default, if you use `datetime`
       # in migrations, \Rails will translate this to a PostgreSQL "timestamp without time zone".
       # Change this in an initializer to use another NATIVE_DATABASE_TYPES. For example, to
       # store DateTimes as "timestamp with time zone":
       #
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type = :timestamptz
+      # ```
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type = :timestamptz
+      # ```
       #
       # Or if you are adding a custom type:
       #
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES[:my_custom_type] = { name: "my_custom_type_name" }
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type = :my_custom_type
+      # ```
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES[:my_custom_type] = { name: "my_custom_type_name" }
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.datetime_type = :my_custom_type
+      # ```
       #
-      # If you're using +:ruby+ as your +config.active_record.schema_format+ and you change this
-      # setting, you should immediately run <tt>bin/rails db:migrate</tt> to update the types in your schema.rb.
+      # If you're using `:ruby` as your `config.active_record.schema_format` and you change this
+      # setting, you should immediately run `bin/rails db:migrate` to update the types in your schema.rb.
       class_attribute :datetime_type, default: :timestamp
 
       ##
       # :singleton-method:
       # Toggles automatic decoding of date columns.
       #
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '2024-01-01'::date").class #=> String
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates = true
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '2024-01-01'::date").class #=> Date
+      # ```
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '2024-01-01'::date").class #=> String
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_dates = true
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '2024-01-01'::date").class #=> Date
+      # ```
       class_attribute :decode_dates, default: false
 
       ##
       # :singleton-method:
       # Toggles automatic decoding of money columns.
       #
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '12.34'::money").class #=> String
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_money = true
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '12.34'::money").class #=> BigDecimal
+      # ```
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '12.34'::money").class #=> String
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_money = true
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '12.34'::money").class #=> BigDecimal
+      # ```
       class_attribute :decode_money, default: false
 
       ##
       # :singleton-method:
       # Toggles automatic decoding of bytea columns.
       #
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '\\x48656c6c6f'::bytea").class #=> String
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_bytea = true
-      #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
+      # ```
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '\\x48656c6c6f'::bytea").class #=> String
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.decode_bytea = true
+      # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.select_value("select '\\x48656c6c6f'::bytea").encoding #=> Encoding::BINARY
+      # ```
       class_attribute :decode_bytea, default: false
 
       NATIVE_DATABASE_TYPES = { # rubocop:disable Style/MutableConstant
@@ -209,6 +229,14 @@ module ActiveRecord
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
+
+      def ractor_connection_capabilities # :nodoc:
+        super.merge(
+          supports_close_prepared?: supports_close_prepared?,
+          supports_force_drop_database?: supports_force_drop_database?,
+          supports_insert_on_conflict?: supports_insert_on_conflict?,
+        )
+      end
 
       def supports_bulk_alter?
         true
@@ -273,10 +301,6 @@ module ActiveRecord
         true
       end
 
-      def supports_datetime_with_precision?
-        true
-      end
-
       def supports_json?
         true
       end
@@ -309,16 +333,8 @@ module ActiveRecord
         database_version >= 12_00_00 # >= 12.0
       end
 
-      def supports_identity_columns? # :nodoc:
-        true
-      end
-
       def supports_nulls_not_distinct?
         database_version >= 15_00_00 # >= 15.0
-      end
-
-      def supports_native_partitioning? # :nodoc:
-        true
       end
 
       if PG::Connection.method_defined?(:close_prepared) # pg 1.6.0 & libpq 17
@@ -569,9 +585,9 @@ module ActiveRecord
 
       # Removes an extension from the database.
       #
-      # [<tt>:force</tt>]
-      #   Set to +:cascade+ to drop dependent objects as well.
-      #   Defaults to false.
+      # `:force`
+      # :   Set to `:cascade` to drop dependent objects as well.
+      # Defaults to false.
       def disable_extension(name, force: false)
         _schema, name = name.to_s.split(".").values_at(-2, -1)
         query_command("DROP EXTENSION IF EXISTS \"#{name}\"#{' CASCADE' if force == :cascade}")
@@ -590,14 +606,19 @@ module ActiveRecord
         query = <<~SQL
           SELECT
             pg_extension.extname,
-            n.nspname AS schema
+            n.nspname AS schema,
+            v.schema AS control_schema
           FROM pg_extension
           JOIN pg_namespace n ON pg_extension.extnamespace = n.oid
+          LEFT JOIN pg_available_extensions a ON a.name = pg_extension.extname
+          LEFT JOIN pg_available_extension_versions v
+            ON v.name = a.name AND v.version = a.default_version
         SQL
+        current = current_schema
 
         query_all(query).cast_values.map do |row|
-          name, schema = row[0], row[1]
-          schema = nil if schema == current_schema
+          name, schema, control_schema = row
+          schema = nil if control_schema || schema == current
           [schema, name].compact.join(".")
         end
       end
@@ -650,13 +671,13 @@ module ActiveRecord
 
       # Drops an enum type.
       #
-      # If the <tt>if_exists: true</tt> option is provided, the enum is dropped
+      # If the `if_exists: true` option is provided, the enum is dropped
       # only if it exists. Otherwise, if the enum doesn't exist, an error is
       # raised.
       #
-      # The +values+ parameter will be ignored if present. It can be helpful
-      # to provide this in a migration's +change+ method so it can be reverted.
-      # In that case, +values+ will be used by #create_enum.
+      # The `values` parameter will be ignored if present. It can be helpful
+      # to provide this in a migration's `change` method so it can be reverted.
+      # In that case, `values` will be used by #create_enum.
       def drop_enum(name, values = nil, **options)
         query = <<~SQL
           DROP TYPE#{' IF EXISTS' if options[:if_exists]} #{quote_table_name(name)};
@@ -835,11 +856,13 @@ module ActiveRecord
         # Registers a callback to extend the type map during initialization.
         # Useful for third-party gems that need to register custom SQL types.
         #
-        #   ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.register_type_mapping do |type_map|
-        #     type_map.register_type("geometry") do |oid, fmod, sql_type|
-        #       MyGeometryType.new(sql_type)
-        #     end
+        # ```
+        # ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.register_type_mapping do |type_map|
+        #   type_map.register_type("geometry") do |oid, fmod, sql_type|
+        #     MyGeometryType.new(sql_type)
         #   end
+        # end
+        # ```
         #
         def register_type_mapping(&block)
           raise ArgumentError, "block required" unless block_given?
@@ -1251,27 +1274,33 @@ module ActiveRecord
         # Returns the list of a table's column names, data types, and default values.
         #
         # The underlying query is roughly:
-        #  SELECT column.name, column.type, default.value, column.comment
-        #    FROM column LEFT JOIN default
-        #      ON column.table_id = default.table_id
-        #     AND column.num = default.column_num
-        #   WHERE column.table_id = get_table_id('table_name')
-        #     AND column.num > 0
-        #     AND NOT column.is_dropped
-        #   ORDER BY column.num
+        #
+        # ```
+        # SELECT column.name, column.type, default.value, column.comment
+        #   FROM column LEFT JOIN default
+        #     ON column.table_id = default.table_id
+        #    AND column.num = default.column_num
+        #  WHERE column.table_id = get_table_id('table_name')
+        #    AND column.num > 0
+        #    AND NOT column.is_dropped
+        #  ORDER BY column.num
+        # ```
         #
         # If the table name is not prefixed with a schema, the database will
         # take the first match from the schema search path.
         #
         # Query implementation notes:
-        #  - format_type includes the column size constraint, e.g. varchar(50)
-        #  - ::regclass is a function that gives the id for a table name
+        #
+        # ```
+        # - format_type includes the column size constraint, e.g. varchar(50)
+        # - ::regclass is a function that gives the id for a table name
+        # ```
         def column_definitions(table_name)
           query_rows(<<~SQL)
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment,
-                     #{supports_identity_columns? ? 'attidentity' : quote('')} AS identity,
+                     a.attidentity AS identity,
                      #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated
                 FROM pg_attribute a
                 LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
@@ -1289,7 +1318,7 @@ module ActiveRecord
               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
                      c.collname, col_description(a.attrelid, a.attnum) AS comment,
-                     #{supports_identity_columns? ? 'attidentity' : quote('')} AS identity,
+                     a.attidentity AS identity,
                      #{supports_virtual_columns? ? 'attgenerated' : quote('')} as attgenerated,
                      r.relname
               FROM (

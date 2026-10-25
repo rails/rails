@@ -25,13 +25,9 @@ module ActiveSupport
       @local = in? LOCAL_ENVIRONMENTS
     end
 
-    DEFAULT_ENVIRONMENTS.each do |env|
-      class_eval <<~RUBY, __FILE__, __LINE__ + 1
-        def #{env}?
-          @#{env}
-        end
-      RUBY
-    end
+    def development? = @development
+    def test? = @test
+    def production? = @production
 
     # Returns true if we're in the development or test environment.
     def local?

@@ -154,6 +154,17 @@ module ActionController
         end
       end
 
+      def freeze
+        return self if frozen?
+
+        if format.any?
+          name
+          include
+        end
+        @mutex = nil
+        super
+      end
+
       private
         # Determine the wrapper model from the controller's name. By convention, this
         # could be done by trying to find the defined model that has the same singular

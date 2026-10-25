@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Arel # :nodoc: all
   module Nodes
     class Extract < Arel::Nodes::Unary
@@ -11,7 +12,7 @@ module Arel # :nodoc: all
       end
 
       def hash
-        super ^ @field.hash
+        [super, @field].hash
       end
 
       def eql?(other)

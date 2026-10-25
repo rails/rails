@@ -134,9 +134,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_raise(ArgumentError) do
       draw do
         namespace :admin do
-          ActionDispatch.deprecator.silence do
-            get "/:controller(/:action(/:id(.:format)))"
-          end
+          get "/:controller(/:action(/:id(.:format)))"
         end
       end
     end
@@ -145,9 +143,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   def test_namespace_without_controller_segment
     draw do
       namespace :admin do
-        ActionDispatch.deprecator.silence do
-          get "hello/:controllers/:action"
-        end
+        get "hello/:controllers/new", action: "new"
       end
     end
     get "/admin/hello/foo/new"
@@ -259,6 +255,51 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get "/account/modulo/name"
     verify_redirect "http://www.example.com/names"
+  end
+
+  def test_redirect_modulo_with_encoded_slash_in_leading_param_stays_on_host
+    draw do
+      get ":locale/account", to: redirect("/%{locale}/myaccount")
+    end
+
+    get "/%2Finjected/account"
+    verify_redirect "http://www.example.com/%2Finjected/myaccount"
+  end
+
+  def test_redirect_modulo_with_encoded_slash_in_leading_glob_stays_on_host
+    draw do
+      get "old/*path", to: redirect("/%{path}")
+    end
+
+    get "/old/%2Finjected"
+    verify_redirect "http://www.example.com/%2Finjected"
+  end
+
+  def test_redirect_modulo_with_encoded_slash_in_unprefixed_param_stays_on_host
+    draw do
+      get "old/:path", to: redirect("%{path}")
+    end
+
+    get "/old/%2F%2Finjected"
+    verify_redirect "http://www.example.com/%2Finjected"
+  end
+
+  def test_redirect_modulo_with_scheme_in_unprefixed_param_stays_on_host
+    draw do
+      get "old/:path", to: redirect("%{path}")
+    end
+
+    get "/old/https:%2F%2Finjected"
+    assert_equal "www.example.com", URI.parse(@response.headers["Location"]).host
+  end
+
+  def test_redirect_modulo_with_protocol_relative_template
+    draw do
+      get "assets/:name", to: redirect("//cdn.example.com/%{name}")
+    end
+
+    get "/assets/logo"
+    verify_redirect "http://cdn.example.com/logo"
   end
 
   def test_redirect_proc
@@ -516,9 +557,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
         get "global/export",      action: :export, as: :export_request
         get "/export/:id/:file",  action: :export, as: :export_download, constraints: { file: /.*/ }
 
-        ActionDispatch.deprecator.silence do
-          get "global/:action"
-        end
+        get "global/dashboard"
       end
     end
 
@@ -541,9 +580,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
   def test_local
     draw do
-      ActionDispatch.deprecator.silence do
-        get "/local/:action", controller: "local"
-      end
+      get "/local/dashboard", controller: "local", action: "dashboard"
     end
 
     get "/local/dashboard"
@@ -1740,14 +1777,14 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   def test_not_matching_shorthand_with_dynamic_parameters
-    draw do
-      ActionDispatch.deprecator.silence do
-        get ":controller/:action/admin"
+    # Were the shorthand to apply here it would resolve to `finances#admin`.
+    error = assert_raises(ArgumentError) do
+      draw do
+        get "finances/:id/admin"
       end
     end
 
-    get "/finances/overview/admin"
-    assert_equal "finances#overview", @response.body
+    assert_match(/Missing :controller key/, error.message)
   end
 
   def test_controller_option_with_nesting_and_leading_slash
@@ -1774,23 +1811,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     assert_equal "/replies", replies_path
-  end
-
-  def test_scoped_controller_with_namespace_and_action
-    draw do
-      namespace :account do
-        ActionDispatch.deprecator.silence do
-          get ":action/callback", action: /twitter|github/, controller: "callbacks", as: :callback
-        end
-      end
-    end
-
-    assert_equal "/account/twitter/callback", account_callback_path("twitter")
-    get "/account/twitter/callback"
-    assert_equal "account/callbacks#twitter", @response.body
-
-    get "/account/whatever/callback"
-    assert_equal "Not Found", @response.body
   end
 
   def test_convention_match_nested_and_with_leading_slash
@@ -2108,40 +2128,6 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     get "/api/v3/admin/me"
     assert_equal "mes#show", @response.body
-  end
-
-  def test_url_generator_for_generic_route
-    draw do
-      ActionDispatch.deprecator.silence do
-        get "whatever/:controller(/:action(/:id))"
-      end
-    end
-
-    get "/whatever/foo/bar"
-    assert_equal "foo#bar", @response.body
-
-    assert_equal "http://www.example.com/whatever/foo/bar/1",
-      url_for(controller: "foo", action: "bar", id: 1)
-  end
-
-  def test_url_generator_for_namespaced_generic_route
-    draw do
-      ActionDispatch.deprecator.silence do
-        get "whatever/:controller(/:action(/:id))", id: /\d+/
-      end
-    end
-
-    get "/whatever/foo/bar/show"
-    assert_equal "foo/bar#show", @response.body
-
-    get "/whatever/foo/bar/show/1"
-    assert_equal "foo/bar#show", @response.body
-
-    assert_equal "http://www.example.com/whatever/foo/bar/show",
-      url_for(controller: "foo/bar", action: "show")
-
-    assert_equal "http://www.example.com/whatever/foo/bar/show/1",
-      url_for(controller: "foo/bar", action: "show", id: "1")
   end
 
   def test_resource_new_actions
@@ -4008,20 +3994,24 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/?id=1", root_path(params)
   end
 
-  def test_dynamic_controller_segments_are_deprecated
-    assert_deprecated(ActionDispatch.deprecator) do
+  def test_dynamic_controller_segments_are_not_supported
+    error = assert_raises(ArgumentError) do
       draw do
         get "/:controller", action: "index"
       end
     end
+
+    assert_match(/dynamic :controller segment/, error.message)
   end
 
-  def test_dynamic_action_segments_are_deprecated
-    assert_deprecated(ActionDispatch.deprecator) do
+  def test_dynamic_action_segments_are_not_supported
+    error = assert_raises(ArgumentError) do
       draw do
         get "/pages/:action", controller: "pages"
       end
     end
+
+    assert_match(/dynamic :action segment/, error.message)
   end
 
   def test_multiple_roots_raises_error
@@ -4639,14 +4629,17 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       ok = lambda { |env| [200, { "Content-Type" => "text/plain" }, []] }
       get "/foo" => ok, as: :foo
 
-      ActionDispatch.deprecator.silence do
-        get "/post(/:action(/:id))" => ok, as: :posts
-      end
+      get "/post(/:slug(/:id))" => ok, as: :posts
 
       get "/:foo/:foo_type/bars/:id" => ok, as: :bar
       get "/projects/:id.:format" => ok, as: :project
       get "/pages/:id" => ok, as: :page
       get "/wiki/*page" => ok, as: :wiki
+      get "/articles/:id(.:format)" => ok, as: :article
+      get "/reports/:id(.:format)" => ok, as: :report, defaults: { format: :json }
+      get "(/:locale)/products/:id(.:format)" => ok, as: :product
+      get "/things/:params" => ok, as: :thing
+      get "/items/:id(/:slug)(.:format)" => ok, as: :item
     end
   end
 
@@ -4699,6 +4692,121 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
   test "glob segments with slashes are not escaped" do
     assert_equal "/wiki/foo/bar", Routes.url_helpers.wiki_path("foo/bar")
     assert_equal "/wiki/foo/bar", wiki_path("foo/bar")
+  end
+
+  test "a sole format option is rendered by the optional format segment" do
+    assert_equal "/articles/1.json", Routes.url_helpers.article_path(1, format: :json)
+    assert_equal "/articles/1.json", article_path(1, format: :json)
+    assert_equal "/articles/1.json", article_path(1, format: "json")
+    assert_equal "/articles/1.js%20on", article_path(1, format: "js on")
+  end
+
+  test "a sole format option generates the same URL as the general path" do
+    [[1, { format: :json }], [1, { format: "" }], [1, { format: " " }], [1, { format: nil }],
+     [1, { format: :json, trailing_slash: true }], [1, { trailing_slash: true }]].each do |args|
+      expected = Routes.stub(:optimize_routes_generation?, false) { article_path(*args) }
+      assert_equal expected, article_path(*args), "article_path(#{args.map(&:inspect).join(", ")})"
+    end
+  end
+
+  test "a blank format option is dropped rather than rendered as a trailing dot" do
+    assert_equal "/articles/1", article_path(1, format: "")
+    assert_equal "/articles/1", article_path(1, format: " ")
+    assert_equal "/articles/1", article_path(1, format: nil)
+  end
+
+  test "a format option equal to the route default is omitted as in the general path" do
+    assert_equal "/reports/1", report_path(1, format: :json)
+    assert_equal "/reports/1.xml", report_path(1, format: :xml)
+    assert_equal "/reports/1", report_path(1)
+  end
+
+  test "options that do not shape the path generate the same URL as the general path" do
+    record = Struct.new(:to_param).new("42-hello-world")
+    [
+      { anchor: "comments" },
+      { host: "example.org", port: 8080, protocol: "https" },
+      { subdomain: "blog", host: "example.org" },
+      { domain: "example.net", host: "www.example.org" },
+      { only_path: true, host: "example.org" },
+      { script_name: "/blog", anchor: "x" },
+      { original_script_name: "/app", script_name: "/blog" },
+      { trailing_slash: true, anchor: "x" },
+      { format: :json, host: "example.org", anchor: "x" },
+      { anchor: nil },
+      {},
+      { page: 2 },
+      { page: nil, sort: "" },
+      { tags: ["foo bar", "baz"], filter: { name: "david", price: 100..200 } },
+      { q: "a b&c=d#e", record: record },
+      { "page" => 2, "host" => "example.org", "format" => "xml" },
+      { page: 2, anchor: "x", host: "example.org" },
+      { page: 2, format: :json },
+      { page: 2, trailing_slash: true },
+    ].product([:article_url, :article_path, :report_url, :report_path]).each do |options, helper|
+      call = "#{helper}(1, #{options.inspect})"
+      expected = Routes.stub(:optimize_routes_generation?, false) { public_send(helper, 1, **options) }
+      # The report route has a default format, which keeps a :format option on the general path.
+      general_path = helper.start_with?("report") ? Routes.method(:url_for) : ->(*) { flunk "#{call} called the general path" }
+      assert_equal expected, Routes.stub(:url_for, general_path) { public_send(helper, 1, **options) }, call
+    end
+  end
+
+  test "a format option on a route with another optional segment fills it from the request as the general path" do
+    stub(:url_options, { _recall: { slug: "hello-world" } }) do
+      [{ format: :json }, { format: :json, anchor: "x" }].each do |options|
+        expected = Routes.stub(:optimize_routes_generation?, false) { item_path(1, **options) }
+        assert_equal expected, item_path(1, **options), "item_path(1, #{options.inspect})"
+      end
+    end
+  end
+
+  test "a missing argument with options raises the general path's error" do
+    [{ anchor: "x" }, { host: "example.org" }, { format: :json }, { format: :json, anchor: "x" }, { page: 2 }].each do |options|
+      expected = Routes.stub(:optimize_routes_generation?, false) do
+        assert_raises(ActionController::UrlGenerationError) { article_path(nil, **options) }
+      end
+      error = assert_raises(ActionController::UrlGenerationError) { article_path(nil, **options) }
+      assert_equal expected.message, error.message, "article_path(nil, #{options.inspect})"
+    end
+  end
+
+  test "options on routes the general path generates differently behave as on the general path" do
+    generate = lambda do |helper, args, options|
+      public_send(helper, *args, **options)
+    rescue ActionController::UrlGenerationError => error
+      error.message
+    end
+
+    # A segment named like a reserved option, and an optional segment before a required one.
+    [
+      [:thing_path, [1], { anchor: "x" }],
+      [:product_path, [1], { anchor: "x" }],
+      [:product_path, [1], { format: :json }],
+      [:product_path, ["fr", 1], { anchor: "x" }],
+    ].each do |helper, args, options|
+      expected = Routes.stub(:optimize_routes_generation?, false) { generate.(helper, args, options) }
+      assert_equal expected, generate.(helper, args, options), "#{helper}(#{args.join(", ")}, #{options.inspect})"
+    end
+  end
+
+  test "options the general path reads keep it" do
+    [
+      { params: { page: 2 } },
+      { path_params: { id: 2 } },
+      { user: "david" },
+      { controller: "articles" },
+      { action: "show" },
+      { id: 2 },
+    ].each do |options|
+      expected = Routes.stub(:optimize_routes_generation?, false) { article_path(1, **options) }
+      general_path_calls = 0
+      url_for = Routes.method(:url_for)
+      Routes.stub(:url_for, ->(*args) { general_path_calls += 1; url_for.call(*args) }) do
+        assert_equal expected, article_path(1, **options)
+      end
+      assert_equal 1, general_path_calls, "article_path(1, #{options.inspect})"
+    end
   end
 end
 
@@ -4820,9 +4928,8 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
         ok = lambda { |env| [200, { "Content-Type" => "text/plain" }, []] }
         get "/foobar/:id", to: ok
 
-        ActionDispatch.deprecator.silence do
-          get "/:controller(/:action(/:id))"
-        end
+        get "/:first", to: ok
+        get "/:first/:second", to: ok
       end
 
       get "/%E2%EF%BF%BD%A6"
@@ -5302,10 +5409,6 @@ class TestPathParameters < ActionDispatch::IntegrationTest
           root to: "home#index"
           get "/about", to: "pages#about"
         end
-      end
-
-      ActionDispatch.deprecator.silence do
-        get ":controller(/:action/(:id))"
       end
     end
   end

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "fileutils"
 require "digest/md5"
 require "rails/version" unless defined?(Rails::VERSION)
@@ -211,24 +212,24 @@ module Rails
         skip_javascript:     [:skip_hotwire],
       }.freeze
 
-      # ==== Options
+      # #### Options
       #
-      # [+:meta_options+]
-      #   A list of generator options which only serve to trigger other options.
-      #   These options should have no other effects, and will be treated
-      #   transparently when revoking other options.
+      # `:meta_options`
+      # :   A list of generator options which only serve to trigger other options.
+      # These options should have no other effects, and will be treated
+      # transparently when revoking other options.
       #
-      #   For example: --minimal implies both --skip-active-job and
-      #   --skip-active-storage. Also, --skip-active-job by itself implies
-      #   --skip-active-storage. If --skip-active-job is explicitly
-      #   specified, --no-skip-active-storage should raise an error. But, if
-      #   only --minimal is specified, --no-skip-active-storage should "undo"
-      #   the implied --skip-active-job. This can be accomplished by passing
-      #   <tt>meta_options: [:minimal]</tt>.
+      # :   For example: --minimal implies both --skip-active-job and
+      # --skip-active-storage. Also, --skip-active-job by itself implies
+      # --skip-active-storage. If --skip-active-job is explicitly
+      # specified, --no-skip-active-storage should raise an error. But, if
+      # only --minimal is specified, --no-skip-active-storage should "undo"
+      # the implied --skip-active-job. This can be accomplished by passing
+      # `meta_options: [:minimal]`.
       #
-      #   In contrast, --api is not a meta option because it does other things
-      #   besides implying options such as --skip-asset-pipeline. (And so --api
-      #   with --no-skip-asset-pipeline should raise an error.)
+      # :   In contrast, --api is not a meta option because it does other things
+      # besides implying options such as --skip-asset-pipeline. (And so --api
+      # with --no-skip-asset-pipeline should raise an error.)
       def imply_options(option_implications = OPTION_IMPLICATIONS, meta_options: [])
         option_reasons = {}
         option_implications.each do |reason, implications|

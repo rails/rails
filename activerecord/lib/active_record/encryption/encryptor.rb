@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "openssl"
 require "active_support/core_ext/numeric"
 
@@ -14,40 +15,40 @@ module ActiveRecord
       # The compressor to use for compressing the payload.
       attr_reader :compressor
 
-      # ==== Options
+      # #### Options
       #
-      # [+:compress+]
-      #   Boolean indicating whether records should be compressed before
-      #   encryption. Defaults to +true+.
+      # `:compress`
+      # :   Boolean indicating whether records should be compressed before
+      # encryption. Defaults to `true`.
       #
-      # [+:compressor+]
-      #   The compressor to use. It must respond to +deflate+ and +inflate+.
-      #   If not provided, will default to +ActiveRecord::Encryption.config.compressor+,
-      #   which itself defaults to +Zlib+.
+      # `:compressor`
+      # :   The compressor to use. It must respond to `deflate` and `inflate`.
+      # If not provided, will default to `ActiveRecord::Encryption.config.compressor`,
+      # which itself defaults to `Zlib`.
       def initialize(compress: true, compressor: nil)
         @compress = compress
         @compressor = compressor || ActiveRecord::Encryption.config.compressor
       end
 
-      # Encrypts +clean_text+ and returns the encrypted result.
+      # Encrypts `clean_text` and returns the encrypted result.
       #
       # Internally, it will:
       #
       # 1. Create a new ActiveRecord::Encryption::Message.
-      # 2. Compress and encrypt +clean_text+ as the message payload.
-      # 3. Serialize it with +ActiveRecord::Encryption.message_serializer+
-      #    (+ActiveRecord::Encryption::SafeMarshal+ by default).
+      # 2. Compress and encrypt `clean_text` as the message payload.
+      # 3. Serialize it with `ActiveRecord::Encryption.message_serializer`
+      #    (`ActiveRecord::Encryption::SafeMarshal` by default).
       # 4. Encode the result with Base64.
       #
-      # ==== Options
+      # #### Options
       #
-      # [+:key_provider+]
-      #   Key provider to use for the encryption operation. It will default to
-      #   +ActiveRecord::Encryption.key_provider+ when not provided.
+      # `:key_provider`
+      # :   Key provider to use for the encryption operation. It will default to
+      # `ActiveRecord::Encryption.key_provider` when not provided.
       #
-      # [+:cipher_options+]
-      #   Cipher-specific options that will be passed to the Cipher configured in
-      #   +ActiveRecord::Encryption.cipher+.
+      # `:cipher_options`
+      # :   Cipher-specific options that will be passed to the Cipher configured in
+      # `ActiveRecord::Encryption.cipher`.
       def encrypt(clear_text, key_provider: default_key_provider, cipher_options: {})
         clear_text = force_encoding_if_needed(clear_text) if cipher_options[:deterministic]
 
@@ -55,17 +56,17 @@ module ActiveRecord
         serialize_message build_encrypted_message(clear_text, key_provider: key_provider, cipher_options: cipher_options)
       end
 
-      # Decrypts an +encrypted_text+ and returns the result as clean text.
+      # Decrypts an `encrypted_text` and returns the result as clean text.
       #
-      # ==== Options
+      # #### Options
       #
-      # [+:key_provider+]
-      #   Key provider to use for the encryption operation. It will default to
-      #   +ActiveRecord::Encryption.key_provider+ when not provided.
+      # `:key_provider`
+      # :   Key provider to use for the encryption operation. It will default to
+      # `ActiveRecord::Encryption.key_provider` when not provided.
       #
-      # [+:cipher_options+]
-      #   Cipher-specific options that will be passed to the Cipher configured in
-      #   +ActiveRecord::Encryption.cipher+.
+      # `:cipher_options`
+      # :   Cipher-specific options that will be passed to the Cipher configured in
+      # `ActiveRecord::Encryption.cipher`.
       def decrypt(encrypted_text, key_provider: default_key_provider, cipher_options: {})
         message = deserialize_message(encrypted_text)
         keys = key_provider.decryption_keys(message)
@@ -97,7 +98,7 @@ module ActiveRecord
 
         # This threshold cannot be changed.
         #
-        # Users can search for attributes encrypted with `deterministic: true`.
+        # Users can search for attributes encrypted with \`deterministic: true\`.
         # That is possible because we are able to generate the message for the
         # given clear text deterministically, and with that perform a regular
         # string lookup in SQL.

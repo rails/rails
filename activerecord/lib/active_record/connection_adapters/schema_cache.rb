@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/file/atomic"
 
 module ActiveRecord
@@ -223,7 +224,8 @@ module ActiveRecord
       end
     end
 
-    # = Active Record Connection Adapters Schema Cache
+    # Active Record Connection Adapters Schema Cache
+    # ==============================================
     class SchemaCache
       def self._load_from(filename) # :nodoc:
         return unless File.file?(filename)
@@ -231,6 +233,8 @@ module ActiveRecord
         read(filename) do |file|
           if filename.include?(".dump")
             Marshal.load(file, freeze: true)
+          elsif filename.include?(".json")
+            JSONSchemaCacheSerializer.load(file)
           else
             YAML.unsafe_load(file)
           end
@@ -287,6 +291,22 @@ module ActiveRecord
         end
       end
 
+      def as_schema_json
+        data = {}
+        encode_with(data)
+        data["data_sources"] = data["data_sources"].select { |_, exists| exists }.keys
+        data
+      end
+
+      def init_from_schema_json(coder, references)
+        @columns          = coder["columns"].transform_values { |columns| columns.map { |i| references[i] } }
+        @columns_hash     = @columns.transform_values { |columns| columns.index_by(&:name) }
+        @primary_keys     = coder["primary_keys"]
+        @data_sources     = coder["data_sources"].index_with { true }
+        @indexes          = (coder["indexes"] || {}).transform_values { |indexes| indexes.map { |i| references[i] } }
+        @version          = coder["version"]
+      end
+
       def cached?(table_name)
         @columns.key?(table_name)
       end
@@ -318,7 +338,7 @@ module ActiveRecord
         end
       end
 
-      # Add internal cache for table with +table_name+.
+      # Add internal cache for table with `table_name`.
       def add(pool, table_name)
         pool.with_connection do
           if data_source_exists?(pool, table_name)
@@ -380,7 +400,7 @@ module ActiveRecord
         [@columns, @columns_hash, @primary_keys, @data_sources].sum(&:size)
       end
 
-      # Clear out internal caches for the data source +name+.
+      # Clear out internal caches for the data source `name`.
       def clear_data_source_cache!(_connection, name)
         @columns.delete name
         @columns_hash.delete name
@@ -420,6 +440,8 @@ module ActiveRecord
         open(filename) { |f|
           if filename.include?(".dump")
             f.write(Marshal.dump(self))
+          elsif filename.include?(".json")
+            f.write(JSONSchemaCacheSerializer.dump(self))
           else
             f.write(YAML.dump(self))
           end

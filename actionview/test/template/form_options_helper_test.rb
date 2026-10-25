@@ -24,11 +24,11 @@ class FormOptionsHelperTest < ActionView::TestCase
 
   silence_warnings do
     Post        = Struct.new("Post", :title, :author_name, :body, :written_on, :category, :origin, :allow_comments) do
-                    private
-                      def secret
-                        "This is super secret: #{author_name} is not the real author of #{title}"
-                      end
-                  end
+      private
+        def secret
+          "This is super secret: #{author_name} is not the real author of #{title}"
+        end
+    end
     Continent   = Struct.new("Continent", :continent_name, :countries)
     Country     = Struct.new("Country", :country_id, :country_name)
     Album       = Struct.new("Album", :id, :title, :genre)
@@ -185,6 +185,26 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<option value=\"&lt;Denmark&gt;\">&lt;Denmark&gt;</option>\n<option value=\"USA\">USA</option>\n<option value=\"Sweden\">Sweden</option>",
       options_for_select([ "<Denmark>", "USA", "Sweden" ])
+    )
+  end
+
+  def test_array_options_for_select_markup
+    assert_equal(
+      "<option selected=\"selected\" disabled=\"disabled\" value=\"&quot;a&quot;\">&lt;A&gt;</option>\n" \
+      "<option value=\" \"> </option>\n" \
+      "<option class=\"c\" value=\"1\">C</option>",
+      options_for_select([ [ "<A>", '"a"' ], " ", [ "C", 1, { class: "c" } ] ], selected: '"a"', disabled: '"a"')
+    )
+  end
+
+  def test_array_options_for_select_is_html_safe
+    assert_predicate options_for_select([ "a", [ "b", { class: "b" } ] ]), :html_safe?
+  end
+
+  def test_array_options_for_select_does_not_escape_html_safe_text
+    assert_equal(
+      "<option value=\"&lt;b&gt;\"><b>bold</b></option>",
+      options_for_select([ [ "<b>bold</b>".html_safe, "<b>" ] ])
     )
   end
 

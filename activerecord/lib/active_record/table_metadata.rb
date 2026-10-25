@@ -1,10 +1,15 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   class TableMetadata # :nodoc:
     def initialize(klass, arel_table)
       @klass = klass
       @arel_table = arel_table
+    end
+
+    def model
+      klass
     end
 
     def primary_key

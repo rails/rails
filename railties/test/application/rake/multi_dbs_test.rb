@@ -263,13 +263,13 @@ module ApplicationTests
 
       def db_setup_namespaced(namespace, expected_database)
         Dir.chdir(app_path) do
-         rails "db:migrate"
-         rails "db:drop:#{namespace}"
-         output = rails("db:setup:#{namespace}")
-         assert_match(/Created database/, output)
-         assert_match_namespace(namespace, output)
-         assert File.exist?(expected_database)
-       end
+          rails "db:migrate"
+          rails "db:drop:#{namespace}"
+          output = rails("db:setup:#{namespace}")
+          assert_match(/Created database/, output)
+          assert_match_namespace(namespace, output)
+          assert File.exist?(expected_database)
+        end
       end
 
       def db_reset

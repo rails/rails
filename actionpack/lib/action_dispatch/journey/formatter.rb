@@ -59,9 +59,9 @@ module ActionDispatch
       end
 
       def generate(name, options, path_parameters)
-        original_options = options.dup
         path_params = options.delete(:path_params)
         if path_params.is_a?(Hash)
+          original_options = options
           options = path_params.merge(options)
         else
           path_params = nil
@@ -131,21 +131,18 @@ module ActionDispatch
         def extract_parameterized_parts(route, options, recall)
           parameterized_parts = recall.merge(options)
 
-          keys_to_keep = route.parts.reverse_each.drop_while { |part|
-            !(options.key?(part) || route.scope_options.key?(part)) || (options[part].nil? && recall[part].nil?)
-          } | route.required_parts
+          # Keep the prefix through the last supplied part, plus all required parts.
+          parts = route.parts
+          last_kept = parts.rindex { |part|
+            (options.key?(part) || route.scope_options.key?(part)) && !(options[part].nil? && recall[part].nil?)
+          } || -1
+          keys_to_keep = parts.take(last_kept + 1) | route.required_parts
 
           parameterized_parts.delete_if do |bad_key, _|
             !keys_to_keep.include?(bad_key)
           end
 
-          parameterized_parts.each do |k, v|
-            if k == :controller
-              parameterized_parts[k] = v
-            else
-              parameterized_parts[k] = v.to_param
-            end
-          end
+          parameterized_parts.transform_values!(&:to_param)
 
           parameterized_parts.compact!
           parameterized_parts
@@ -162,7 +159,7 @@ module ActionDispatch
             routes = non_recursive(cache, options)
 
             supplied_keys = options.each_with_object({}) do |(k, v), h|
-              h[k.to_s] = true if v
+              h[k.is_a?(Symbol) ? k.name : k.to_s] = true if v
             end
 
             hash = routes.group_by { |_, r| r.score(supplied_keys) }
