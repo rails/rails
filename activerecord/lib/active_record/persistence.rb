@@ -611,7 +611,7 @@ module ActiveRecord
       _raise_readonly_record_error if readonly?
 
       attributes = attributes.transform_keys do |key|
-        name = resolve_alias(key.to_s)
+        name = resolve_alias(key.is_a?(Symbol) ? key.name : key.to_s)
         verify_readonly_attribute(name) || name
       end
 
