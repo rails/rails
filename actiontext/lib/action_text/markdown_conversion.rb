@@ -225,7 +225,10 @@ module ActionText
       end
 
       def visit_ol(node, child_values)
-        items = list_item_lines(node, child_values, prefix: ->(i) { "#{i + 1}. " })
+        # CommonMark ordered list markers allow at most nine nonnegative digits.
+        start = Integer(node["start"], 10, exception: false)
+        start = 1 unless start&.between?(0, 999_999_999)
+        items = list_item_lines(node, child_values, prefix: ->(i) { "#{[ start + i, 999_999_999 ].min}. " })
         "#{items}\n\n"
       end
 
