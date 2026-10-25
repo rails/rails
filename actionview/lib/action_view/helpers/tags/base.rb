@@ -10,7 +10,8 @@ module ActionView
         attr_reader :object
 
         def initialize(object_name, method_name, template_object, options = {})
-          @object_name, @method_name = object_name.to_s, method_name.to_s
+          @object_name = object_name.is_a?(Symbol) ? object_name.name : object_name.to_s
+          @method_name = method_name.is_a?(Symbol) ? method_name.name : method_name.to_s
           @template_object = template_object
 
           if @object_name.include?("[]")
