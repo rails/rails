@@ -14,6 +14,10 @@ module RequestForgeryProtectionActions
     render inline: "<%= button_to('New', '/') %>"
   end
 
+  def show_button_with_token
+    render inline: "<%= button_to('New', '/', authenticity_token: true) %>"
+  end
+
   def unsafe
     render plain: "pwn"
   end
@@ -1783,6 +1787,48 @@ class HeaderOnlyProtectionControllerTest < ActionController::TestCase
     end
   end
 
+  test "does not render an authenticity token in forms" do
+    get :index
+    assert_select "form"
+    assert_no_match(/authenticity_token/, response.body)
+  end
+
+  test "does not render an authenticity token in button_to" do
+    get :show_button
+    assert_select "form.button_to"
+    assert_no_match(/authenticity_token/, response.body)
+  end
+
+  test "does not render csrf meta tags" do
+    get :meta
+    assert_equal "", response.body
+  end
+
+  test "does not generate a CSRF token when rendering a form" do
+    get :index
+    assert_nil @controller.request.env[ActionController::RequestForgeryProtection::CSRF_TOKEN]
+  end
+
+  test "renders an authenticity token when a form asks for one" do
+    get :form_with_local_with_token
+    assert_select "form>input[name=?]", "custom_authenticity_token"
+  end
+
+  test "renders an authenticity token when form_for asks for one" do
+    get :form_for_with_token
+    assert_select "form>input[name=?]", "custom_authenticity_token"
+  end
+
+  test "renders an authenticity token when button_to asks for one" do
+    get :show_button_with_token
+    assert_select "form>input[name=?]", "custom_authenticity_token"
+  end
+
+  test "renders an authenticity token passed to a form" do
+    get :form_with_remote_with_external_token
+    assert_select "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
+  end
+
   private
     def forgery_protection_origin_check
       old_setting = ActionController::Base.forgery_protection_origin_check
@@ -1822,6 +1868,20 @@ class HeaderOrLegacyTokenProtectionControllerTest < ActionController::TestCase
   test "allows HEAD requests" do
     head :index
     assert_response :success
+  end
+
+  test "renders an authenticity token in forms" do
+    @controller.stub :form_authenticity_token, @token do
+      get :index
+    end
+    assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+  end
+
+  test "renders csrf meta tags" do
+    @controller.stub :form_authenticity_token, @token do
+      get :meta
+    end
+    assert_select "meta[name=?][content=?]", "csrf-token", @token
   end
 
   test "allows POST with same-origin Sec-Fetch-Site" do

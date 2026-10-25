@@ -1118,10 +1118,6 @@ module ActionView
                html_options["authenticity_token"].blank?
               # The authenticity token is taken from the meta tag in this case
               html_options["authenticity_token"] = false
-            elsif html_options["authenticity_token"] == true
-              # Include the default authenticity_token, which is only generated when its set to nil,
-              # but we needed the true value to override the default of no authenticity_token on data-remote.
-              html_options["authenticity_token"] = nil
             end
           end
         end
