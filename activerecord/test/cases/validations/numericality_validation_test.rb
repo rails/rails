@@ -204,4 +204,10 @@ class NumericalityValidationTest < ActiveRecord::TestCase
     assert_nil subject.bank_balance
     assert_predicate subject, :valid?
   end
+
+  def test_active_record_numericality_validator_constant_is_deprecated
+    assert_deprecated(/ActiveRecord::Validations::NumericalityValidator is deprecated/, ActiveRecord.deprecator) do
+      assert_equal ActiveModel::Validations::NumericalityValidator, ActiveRecord::Validations::NumericalityValidator
+    end
+  end
 end

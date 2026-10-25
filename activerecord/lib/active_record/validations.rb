@@ -45,6 +45,13 @@ module ActiveRecord
   module Validations
     extend ActiveSupport::Concern
 
+    include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+
+    deprecate_constant :NumericalityValidator, "ActiveModel::Validations::NumericalityValidator",
+      deprecator: ActiveRecord.deprecator,
+      message: "ActiveRecord::Validations::NumericalityValidator is deprecated and will be removed in Rails 9.0. " \
+        "Use ActiveModel::Validations::NumericalityValidator instead."
+
     # The validation process on save can be skipped by passing `validate: false`.
     # The validation context can be changed by passing `context: context`.
     # The regular [ActiveRecord::Base#save](rdoc-ref:Persistence#save) method is replaced
