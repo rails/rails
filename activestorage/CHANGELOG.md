@@ -1,3 +1,14 @@
+*   Derive `ActiveStorage::Filename#base` and `#extension` from the sanitized
+    filename.
+
+    This prevents null bytes and invalid byte sequences in stored filename
+    metadata from raising when a blob is opened or represented. Existing blob
+    records are handled without a data migration.
+
+    [GHSA-p2pm-g2h6-7j5j]
+
+    *Jeremy Daer*
+
 *   Ship an ImageMagick security policy and apply it to every ImageMagick
     process MiniMagick spawns.
 
