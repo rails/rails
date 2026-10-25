@@ -1,3 +1,8 @@
+*   `Symbol#to_param` now returns `Symbol#name`, the symbol's interned frozen
+    String, instead of allocating a new one on every call before Ruby 4.1.
+
+    *Akira Matsuda*
+
 *   Fix `CurrentAttributes` defaults for attribute names given as strings.
 
     ```ruby
