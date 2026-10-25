@@ -150,6 +150,16 @@ class TagHelperTest < ActionView::TestCase
       tag.p(disabled: true, itemscope: true, multiple: true, readonly: true, allowfullscreen: true, seamless: true, typemustmatch: true, sortable: true, default: true, inert: true, truespeed: true, allowpaymentrequest: true, nomodule: true, playsinline: true)
   end
 
+  def test_tag_builder_options_converts_newer_html_boolean_options
+    assert_dom_equal '<template shadowrootmode="open" shadowrootclonable="shadowrootclonable" shadowrootcustomelementregistry="shadowrootcustomelementregistry"></template>',
+      tag.template(shadowrootmode: "open", shadowrootclonable: true, shadowrootcustomelementregistry: true, shadowrootdelegatesfocus: false, shadowrootserializable: false)
+    assert_dom_equal '<template shadowrootmode="open" shadowrootdelegatesfocus="shadowrootdelegatesfocus" shadowrootserializable="shadowrootserializable"></template>',
+      tag.template(shadowrootmode: "open", shadowrootdelegatesfocus: true, shadowrootserializable: true)
+    assert_dom_equal '<input type="color" alpha="alpha" />', tag.input(type: "color", alpha: true)
+    assert_dom_equal '<input type="color" />', tag.input(type: "color", alpha: false)
+    assert_dom_equal "<section></section>", tag.section(headingreset: false)
+  end
+
   def test_tag_builder_options_hidden_with_keyword_value
     assert_equal '<tr hidden="until-found"></tr>', tag.tr(hidden: "until-found")
     assert_equal '<tr hidden="until-found"></tr>', tag.tr(hidden: :"until-found")
