@@ -17,6 +17,14 @@ class Object
   end
 end
 
+class Symbol
+  # Returns the name of the symbol as a frozen String, the same object
+  # `Symbol#name` returns.
+  def to_param
+    name
+  end
+end
+
 class NilClass
   # Returns a CGI-escaped `key`.
   def to_query(key)
