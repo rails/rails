@@ -1756,6 +1756,30 @@ Defaults to `true`. Determines whether to raise an exception or not when
 the PostgreSQL adapter is provided an integer that is wider than signed
 64bit representation.
 
+#### `config.active_record.immutable_strings_by_default`
+
+Determines whether string columns cast their values to frozen strings. Defaults
+to `false`.
+
+Freezing lets Active Record skip the copy and the comparison that dirty tracking
+otherwise needs in order to detect in-place mutation of a string. In exchange,
+strings read from the database can no longer be mutated in place:
+
+```ruby
+book = Book.create!(title: "Hello")
+book.title.frozen?         # => true
+book.title << " world"     # raises FrozenError
+book.title = "Hello world" # assign a new string instead
+```
+
+It can also be enabled per model:
+
+```ruby
+class Book < ApplicationRecord
+  self.immutable_strings_by_default = true
+end
+```
+
 #### `config.active_record.generate_secure_token_on`
 
 Controls when to generate a value for `has_secure_token` declarations. By
