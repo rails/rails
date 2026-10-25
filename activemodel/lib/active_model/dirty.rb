@@ -344,21 +344,25 @@ module ActiveModel
 
     # Dispatch target for {*_changed?}[rdoc-ref:#*_changed?] attribute methods.
     def attribute_changed?(attr_name, **options)
+      attr_name = attr_name.name if attr_name.is_a?(Symbol)
       mutations_from_database.changed?(attr_name.to_s, **options)
     end
 
     # Dispatch target for {*_was}[rdoc-ref:#*_was] attribute methods.
     def attribute_was(attr_name)
+      attr_name = attr_name.name if attr_name.is_a?(Symbol)
       mutations_from_database.original_value(attr_name.to_s)
     end
 
     # Dispatch target for {*_previously_changed?}[rdoc-ref:#*_previously_changed?] attribute methods.
     def attribute_previously_changed?(attr_name, **options)
+      attr_name = attr_name.name if attr_name.is_a?(Symbol)
       mutations_before_last_save.changed?(attr_name.to_s, **options)
     end
 
     # Dispatch target for {*_previously_was}[rdoc-ref:#*_previously_was] attribute methods.
     def attribute_previously_was(attr_name)
+      attr_name = attr_name.name if attr_name.is_a?(Symbol)
       mutations_before_last_save.original_value(attr_name.to_s)
     end
 
@@ -417,6 +421,7 @@ module ActiveModel
     end
 
     def attribute_changed_in_place?(attr_name) # :nodoc:
+      attr_name = attr_name.name if attr_name.is_a?(Symbol)
       mutations_from_database.changed_in_place?(attr_name.to_s)
     end
 
@@ -428,6 +433,7 @@ module ActiveModel
       end
 
       def clear_attribute_change(attr_name)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_from_database.forget_change(attr_name.to_s)
       end
 
@@ -449,22 +455,25 @@ module ActiveModel
 
       # Dispatch target for `*_change` attribute methods.
       def attribute_change(attr_name)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_from_database.change_to_attribute(attr_name.to_s)
       end
 
       # Dispatch target for `*_previous_change` attribute methods.
       def attribute_previous_change(attr_name)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_before_last_save.change_to_attribute(attr_name.to_s)
       end
 
       # Dispatch target for `*_will_change!` attribute methods.
       def attribute_will_change!(attr_name)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_from_database.force_change(attr_name.to_s)
       end
 
       # Dispatch target for `restore_*!` attribute methods.
       def restore_attribute!(attr_name)
-        attr_name = attr_name.to_s
+        attr_name = attr_name.is_a?(Symbol) ? attr_name.name : attr_name.to_s
         if attribute_changed?(attr_name)
           __send__("#{attr_name}=", attribute_was(attr_name))
           clear_attribute_change(attr_name)

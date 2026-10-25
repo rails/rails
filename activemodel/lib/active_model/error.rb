@@ -18,7 +18,7 @@ module ActiveModel
       return message if attribute == :base
 
       base_class = base.class
-      attribute = attribute.to_s
+      attribute = attribute.is_a?(Symbol) ? attribute.name : attribute.to_s
 
       if i18n_customize_full_message && base_class.respond_to?(:i18n_scope)
         attribute = attribute.remove(/\[\d+\]/)
@@ -79,8 +79,9 @@ module ActiveModel
       }.merge!(options)
 
       if base.class.respond_to?(:i18n_scope)
-        i18n_scope = base.class.i18n_scope.to_s
-        attribute = attribute.to_s
+        i18n_scope = base.class.i18n_scope
+        i18n_scope = i18n_scope.is_a?(Symbol) ? i18n_scope.name : i18n_scope.to_s
+        attribute = attribute.is_a?(Symbol) ? attribute.name : attribute.to_s
         attribute = attribute.remove(/\[\d+\]/) if attribute.include?("[")
 
         defaults = []
