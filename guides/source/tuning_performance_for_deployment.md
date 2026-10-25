@@ -26,6 +26,16 @@ For general application configuration, see [Configuring Rails Applications](http
 
 NOTE: This guide covers standard Ruby, also known as CRuby or MRI. Run `ruby -v` to check your implementation. Some concurrency considerations differ for  `jruby` or `truffleruby`.
 
+Getting Started
+---------------
+
+Use this checklist to work through the guide with your application:
+
+1. [Set performance goals](#setting-performance-goals) for expected traffic, latency, and errors.
+2. [Review the configuration](#configuring-the-application), including CPU and memory limits, Puma workers and threads, and the database connection budget.
+3. [Measure a baseline](#measuring-performance) with a representative workload, allowing for warmup before recording results.
+4. [Compare configuration changes](#tuning-the-configuration) and keep those that meet your goals within your resource limits.
+
 Choosing an Application Server
 -----------------------------
 
@@ -254,6 +264,21 @@ Keep the workload and test conditions consistent while changing one setting at a
 Use the startup command shown earlier with the corresponding environment values. Ensure the database pool can accommodate each test and that the additional workers fit within the CPU and memory budget. If another setting must change, record it as part of the configuration being compared.
 
 Compare successful throughput, median and tail latency, errors, and resource usage across repeated runs. A throughput increase is useful only if latency and reliability remain acceptable. Small differences within normal test variation are not sufficient evidence of an improvement.
+
+### Example: Evaluating Additional Threads
+
+Suppose an application needs to handle at least 100 successful requests per second, with P95 latency below 300 milliseconds and fewer than 0.1% failed requests. The following results are illustrative, not benchmarks or recommended settings.
+
+Compare two workers with three threads each against two workers with five threads each. Keep the request mix, load-generator concurrency, test duration, and infrastructure the same. For this comparison, both configurations use a pool size of five per worker, within the database's connection budget. Warm up each configuration and repeat the measurements.
+
+| Configuration      | Successful requests per second | P95 latency | Failed requests |
+| ------------------ | -----------------------------: | ----------: | --------------: |
+| Three threads      |                            110 |      280 ms |           0.02% |
+| Five threads       |                            130 |      360 ms |           0.02% |
+
+Assume these differences persist across repeated runs and both configurations fit within CPU and memory limits. Five threads increase throughput, but exceed the latency target. Retain three threads for this workload and investigate the source of the additional latency before increasing concurrency again.
+
+This comparison does not establish how either configuration behaves at a specified arrival rate. Before deploying, test the expected peak traffic and the additional load needed to verify headroom, using the same performance targets.
 
 ### Investigating Constraints
 
