@@ -18,4 +18,11 @@ class SymbolStartsEndsWithTest < ActiveSupport::TestCase
     assert s.ends_with?("he", "lo")
     assert_not s.ends_with?("he", "ll")
   end
+
+  def test_to_s_returns_the_interned_frozen_name
+    assert_predicate :foo.to_s, :frozen?
+    assert_same :foo.name, :foo.to_s
+    assert_equal "foo", :foo.to_s
+    assert_equal "xfoo", "x#{:foo}"
+  end
 end
