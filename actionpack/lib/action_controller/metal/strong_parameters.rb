@@ -1421,7 +1421,7 @@ module ActionController
       #
       #     puts params.keys # => ["zipcode"]
       def permitted_scalar_filter(params, permitted_key)
-        permitted_key = permitted_key.to_s
+        permitted_key = permitted_key.is_a?(Symbol) ? permitted_key.name : permitted_key.to_s
 
         if has_key?(permitted_key) && permitted_scalar?(self[permitted_key])
           params[permitted_key] = self[permitted_key]
@@ -1443,7 +1443,7 @@ module ActionController
       EMPTY_HASH  = {}.freeze # :nodoc:
       def hash_filter(params, filter, on_unpermitted: self.class.action_on_unpermitted_parameters, explicit_arrays: false)
         filter.each_pair do |key, sub_filter|
-          key = key.to_s
+          key = key.is_a?(Symbol) ? key.name : key.to_s
           next unless has_key?(key)
           value = self[key]
           next unless value
