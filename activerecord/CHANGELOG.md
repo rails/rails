@@ -1,3 +1,11 @@
+*   Reduce deadlocks caused by deferred touches on chained associations.
+
+    Order pending touches by their loaded association depth, table name, and
+    primary key before commit. Preserve the positions of ordinary before-commit
+    callbacks and the enrollment order of after-commit callbacks.
+
+    *Masaki Ozawa*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one

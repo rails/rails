@@ -5,6 +5,41 @@ module ActiveRecord
   # Active Record Touch Later
   # =========================
   module TouchLater # :nodoc:
+    def self.order_records(records)
+      indexes = records.each_index.select do |index|
+        record = records[index]
+        record.is_a?(TouchLater) && record.persisted? && record.send(:has_defer_touch_attrs?)
+      end
+      return records if indexes.size < 2
+
+      depths = {}.compare_by_identity
+      touches = indexes.map { |index| records[index] }.sort_by do |record|
+        [-touch_depth(record, depths), record.class.table_name, record.id]
+      end
+
+      # Only deferred touches change positions. Ordinary before_commit callbacks
+      # retain their places, and after_commit callbacks keep enrollment order.
+      ordered = records.dup
+      indexes.zip(touches) { |index, record| ordered[index] = record }
+      ordered
+    end
+
+    def self.touch_depth(record, depths, stack = [])
+      return 0 if stack.include?(record)
+
+      # touch_later has already traversed these associations. Inspect their
+      # targets without loading records or caching model metadata across reloads.
+      depths.fetch(record) do
+        depths[record] = record.class.reflect_on_all_associations(:belongs_to).filter_map do |reflection|
+          next unless reflection.options[:touch] && record.association_cached?(reflection.name)
+
+          parent = record.association(reflection.name).target
+          touch_depth(parent, depths, stack + [record]) + 1 if parent&.persisted?
+        end.max || 0
+      end
+    end
+    private_class_method :touch_depth
+
     def before_committed!
       touch_deferred_attributes if has_defer_touch_attrs? && persisted?
       super
