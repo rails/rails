@@ -1,3 +1,25 @@
+*   Restore association `query_constraints` with additive, query-only semantics.
+
+    `query_constraints` adds columns to the foreign-key mapping used to load,
+    preload, join, and filter an association. The foreign key remains the only
+    writable reference, so assigning or clearing an association does not change
+    its query-constraint columns. Rails derives the conventional foreign key
+    when `foreign_key` is omitted.
+
+    ```ruby
+    # Reads and writes both columns as a composite foreign key.
+    belongs_to :post, foreign_key: [:account_id, :post_id]
+
+    # Reads with account_id and post_id, but writes only post_id.
+    belongs_to :post, query_constraints: :account_id
+    ```
+
+    Symbols and strings match same-named columns. Hashes map columns on the
+    declaring model to columns on the associated model and require an explicit
+    `foreign_key`.
+
+    *Nikita Vasilevsky* and *Adrianna Chang*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one

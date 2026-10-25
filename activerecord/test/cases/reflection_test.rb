@@ -760,6 +760,22 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "id", actual
   end
 
+  def test_implicit_composite_foreign_key_respects_custom_target_primary_key_getter
+    target = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      def self.primary_key = "title"
+    end
+    owner = Class.new(ActiveRecord::Base) do
+      self.table_name = "sharded_comments"
+      query_constraints :blog_id, :id
+      belongs_to :target, anonymous_class: target
+    end
+
+    reflection = owner.reflect_on_association(:target)
+
+    assert_equal "title", reflection.association_primary_key
+  end
+
   def test_through_reflection_association_primary_key_with_composite_key
     reflection = Sharded::Blog.reflect_on_association(:comments_via_posts)
     actual = reflection.association_primary_key
@@ -802,33 +818,51 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal ["blog_id", "tag_id"], reflection.association_foreign_key
   end
 
-  def test_using_query_constraints_warns_about_changing_behavior
-    has_many_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.has_many :clients` is not allowed.
-      To get the same behavior, use the `foreign_key` option instead.
-    MSG
+  def test_query_constraints_without_foreign_key_use_the_conventional_reference
+    reflection = ActiveRecord::Reflection.create(
+      :belongs_to, :blog_post, nil,
+      { class_name: "Sharded::BlogPost", query_constraints: :blog_id },
+      Sharded::Comment
+    )
+    route = reflection.association_route
 
-    assert_raises(ActiveRecord::ConfigurationError, match: has_many_expected_message) do
-      ActiveRecord::Reflection.create(:has_many, :clients, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
-    end
+    assert_equal "blog_post_id", reflection.foreign_key
+    assert_equal [["blog_id", "blog_id"], ["blog_post_id", "id"]], route.each_match.to_a
+    assert_equal [["blog_post_id", "id"]], route.each_reference.to_a
+  end
 
-    has_one_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.has_one :account` is not allowed.
-      To get the same behavior, use the `foreign_key` option instead.
-    MSG
+  def test_query_constraint_mappings_require_an_explicit_foreign_key
+    reflection = ActiveRecord::Reflection.create(
+      :belongs_to, :client, nil,
+      { query_constraints: { firm_id: :id } },
+      Firm
+    )
 
-    assert_raises(ActiveRecord::ConfigurationError, match: has_one_expected_message) do
-      ActiveRecord::Reflection.create(:has_one, :account, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
-    end
+    error = assert_raises(ArgumentError) { reflection.foreign_key }
+    assert_match "requires an explicit `foreign_key` option", error.message
+  end
 
-    belongs_to_expected_message = <<~MSG.squish
-      Setting `query_constraints:` option on `Firm.belongs_to :client` is not allowed.
-      To get the same behavior, use the `foreign_key` option instead.
-    MSG
+  def test_query_constraints_reject_non_column_values
+    reflection = ActiveRecord::Reflection.create(
+      :has_many, :clients, nil,
+      { class_name: "Client", foreign_key: :firm_id, query_constraints: [:firm_name, 42] },
+      Firm
+    )
 
-    assert_raises(ActiveRecord::ConfigurationError, match: belongs_to_expected_message) do
-      ActiveRecord::Reflection.create(:belongs_to, :client, nil, { query_constraints: [:firm_id, :firm_name] }, Firm)
-    end
+    error = assert_raises(ArgumentError) { reflection.check_validity! }
+    assert_equal "`query_constraints` on `Firm.has_many :clients` must contain column names or mappings.", error.message
+  end
+
+  def test_query_constraints_cannot_include_the_foreign_key
+    reflection = ActiveRecord::Reflection.create(
+      :has_many, :clients, nil,
+      { class_name: "Client", foreign_key: :firm_id, query_constraints: [:firm_name, :firm_id] },
+      Firm
+    )
+
+    error = assert_raises(ArgumentError) { reflection.check_validity! }
+    assert_equal "`query_constraints` on `Firm.has_many :clients` " \
+      "must not include the foreign key columns [\"firm_id\"].", error.message
   end
 
   def test_counter_cache_column_defaults_when_counter_cache_is_true

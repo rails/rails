@@ -64,6 +64,75 @@ class AssociationRouteTest < ActiveRecord::TestCase
       optional: true
   end
 
+  class DecoupledRoutePost < ActiveRecord::Base
+    self.table_name = "posts"
+    self.inheritance_column = nil
+
+    has_many :decoupled_comments,
+      class_name: "AssociationRouteTest::DecoupledRouteComment",
+      foreign_key: :post_id,
+      query_constraints: :author_id
+    has_many :body_matched_comments,
+      class_name: "AssociationRouteTest::DecoupledRouteComment",
+      foreign_key: :post_id,
+      query_constraints: { title: :body }
+  end
+
+  class DecoupledRouteComment < ActiveRecord::Base
+    self.table_name = "comments"
+    self.inheritance_column = nil
+
+    belongs_to :decoupled_post,
+      class_name: "AssociationRouteTest::DecoupledRoutePost",
+      foreign_key: :post_id,
+      query_constraints: :author_id,
+      optional: true
+    belongs_to :title_matched_post,
+      class_name: "AssociationRouteTest::DecoupledRoutePost",
+      foreign_key: :post_id,
+      query_constraints: { body: :title },
+      optional: true
+  end
+
+  def test_declared_query_constraints_extend_routes_without_becoming_references
+    belongs_to_route = DecoupledRouteComment.reflect_on_association(:decoupled_post).association_route
+    has_many_route = DecoupledRoutePost.reflect_on_association(:decoupled_comments).association_route
+
+    assert_equal [["author_id", "author_id"], ["post_id", "id"]], belongs_to_route.each_match.to_a
+    assert_equal [["post_id", "id"]], belongs_to_route.each_reference.to_a
+    assert_equal [["author_id", "author_id"]], belongs_to_route.each_constraint.to_a
+    assert_equal [["author_id", "author_id"], ["id", "post_id"]], has_many_route.each_match.to_a
+    assert_equal [["id", "post_id"]], has_many_route.each_reference.to_a
+    assert_equal [["author_id", "author_id"]], has_many_route.each_constraint.to_a
+  end
+
+  def test_declared_query_constraints_filter_association_reads
+    post = DecoupledRoutePost.create!(title: "Matched body", body: "Post body", author_id: 41)
+    matching = DecoupledRouteComment.create!(post_id: post.id, author_id: post.author_id, body: post.title)
+    wrong_author = DecoupledRouteComment.create!(post_id: post.id, author_id: 42, body: post.title)
+    wrong_body = DecoupledRouteComment.create!(post_id: post.id, author_id: post.author_id, body: "Other body")
+
+    assert_equal [matching, wrong_body], post.decoupled_comments.order(:id).to_a
+    assert_equal post, matching.decoupled_post
+    assert_nil wrong_author.decoupled_post
+    assert_equal [matching, wrong_author], post.body_matched_comments.order(:id).to_a
+    assert_equal post, matching.title_matched_post
+    assert_nil wrong_body.title_matched_post
+  end
+
+  def test_declared_query_constraints_are_not_written_with_the_foreign_key
+    post = DecoupledRoutePost.create!(title: "Write-only reference", body: "Post body", author_id: 41)
+    comment = DecoupledRouteComment.new(author_id: 42)
+
+    comment.decoupled_post = post
+    assert_equal post.id, comment.post_id
+    assert_equal 42, comment.author_id
+
+    comment.decoupled_post = nil
+    assert_nil comment.post_id
+    assert_equal 42, comment.author_id
+  end
+
   def test_constrained_routes_match_reference_and_query_constraint_columns_in_both_directions
     link = ActiveRecord::AssociationLink.new(
       reference: build_mapping(reference_key: :post_id, target_key: :id),
