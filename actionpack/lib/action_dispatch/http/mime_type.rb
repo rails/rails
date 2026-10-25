@@ -245,7 +245,7 @@ module Mime
       end
 
       def lookup_by_extension(extension)
-        Mime.lookup_by_extension[extension.to_s]
+        Mime.lookup_by_extension[extension.is_a?(Symbol) ? extension.name : extension.to_s]
       end
 
       # Registers an alias that's not used on MIME type lookup, but can be referenced
