@@ -3,6 +3,7 @@
 require "cases/helper"
 require "active_support/testing/ractors_assertions"
 require "active_support/core_ext/object/with"
+require "models/post"
 
 class OverloadedType < ActiveRecord::Base
   attribute :overloaded_float, :integer
@@ -432,6 +433,36 @@ module ActiveRecord
         OverloadedType.reset_column_information
         assert_equal 255, OverloadedType.type_for_attribute("inferred_string").limit
       end
+    end
+
+    test "immutable_strings_by_default only affects string columns" do
+      model = Class.new(Post) do
+        self.immutable_strings_by_default = true
+      end
+
+      assert_not_predicate model.type_for_attribute("title"), :mutable?
+
+      body = model.type_for_attribute("body")
+      assert_equal :text, body.type
+      assert_predicate body, :mutable?
+    end
+
+    test "immutable_strings_by_default leaves types that merely look like strings alone" do
+      # PostgreSQL's `xml`, `citext`, `macaddr` and friends subclass
+      # ActiveModel::Type::String, but carry their own #type along with their
+      # own serialization and comparison behavior.
+      type = Class.new(ActiveModel::Type::String) do
+        def type
+          :special_string
+        end
+      end.new
+      column = ActiveRecord::ConnectionAdapters::Column.new("special", type, nil)
+
+      model = Class.new(ActiveRecord::Base) do
+        self.immutable_strings_by_default = true
+      end
+
+      assert_same type, model.send(:type_for_column, column)
     end
 
     test "immutable_strings_by_default does not affect `attribute :foo, :string`" do

@@ -698,7 +698,8 @@ module ActiveRecord
         def type_for_column(column)
           type = column.cast_type
 
-          if immutable_strings_by_default && type.respond_to?(:to_immutable_string)
+          # `text`, `xml` and friends are string-backed, but aren't `:string`.
+          if immutable_strings_by_default && type.type == :string
             type = type.to_immutable_string
           end
 

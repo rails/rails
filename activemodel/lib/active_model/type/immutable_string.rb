@@ -52,6 +52,10 @@ module ActiveModel
         value
       end
 
+      def to_immutable_string # :nodoc:
+        self
+      end
+
       def as_schema_json
         super.merge!("true" => @true, "false" => @false)
       end
