@@ -17,17 +17,24 @@ module ActiveRecord
     def perform(
       owner_model_name: nil, owner_id: nil,
       association_class: nil, association_ids: nil, association_primary_key_column: nil,
-      ensuring_owner_was_method: nil, **_options
+      ensuring_owner_was_method: nil, association_scope_attributes: nil, **_options
     )
       association_model = association_class.constantize
-      owner_class = owner_model_name.constantize
-      owner = owner_class.find_by(owner_class.primary_key => [owner_id])
 
-      if !owner_destroyed?(owner, ensuring_owner_was_method)
-        raise DestroyAssociationAsyncError, "owner record not destroyed"
+      if association_scope_attributes
+        association_scope = association_model.where(association_scope_attributes)
+      else
+        owner_class = owner_model_name.constantize
+        owner = owner_class.find_by(owner_class.primary_key => [owner_id])
+
+        if !owner_destroyed?(owner, ensuring_owner_was_method)
+          raise DestroyAssociationAsyncError, "owner record not destroyed"
+        end
+
+        association_scope = association_model.all
       end
 
-      association_model.where(association_primary_key_column => association_ids).find_each do |r|
+      association_scope.where(association_primary_key_column => association_ids).find_each do |r|
         r.destroy
       end
     end
