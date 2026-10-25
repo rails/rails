@@ -192,17 +192,23 @@ module ActionDispatch
           attr_reader :route_name
 
           class OptimizedUrlHelper < UrlHelper
+            # Options the general path reads besides the route's segments and defaults.
+            GENERAL_PATH_OPTIONS = [:controller, :action, :params, :path_params, :_recall, :user, :password].freeze
+
             attr_reader :arg_size
 
             def initialize(route, options, route_name)
               super
               @required_parts = @route.required_parts
               @arg_size       = @required_parts.size
-              # A sole :format option can be rendered by the route's own optional
-              # format segment, unless the route has a default for it: the general
-              # path omits a format equal to the default, which the fast path
-              # cannot know about.
-              @format_optimizable = route.path.names.include?("format") && !route.defaults.key?(:format)
+              # The general path omits a format equal to the route's default, and fills
+              # optional segments before the format from the current request.
+              @format_optimizable = !route.defaults.key?(:format) && @segment_keys - @required_parts == [:format]
+              # With options, the general path assigns positional arguments to all
+              # segment keys in order, so an optional segment before a required one
+              # (as in <tt>scope "(:locale)"</tt>) would take the first argument.
+              @options_optimizable = @segment_keys.first(@arg_size) == @required_parts &&
+                !@segment_keys.intersect?(RESERVED_OPTIONS)
             end
 
             def call(t, method_name, args, inner_options, url_strategy)
@@ -210,7 +216,13 @@ module ActionDispatch
                 options = t.url_options.merge @options
                 format = inner_options && inner_options[:format]
                 path = optimized_helper(args, format)
-                path << "/" if options[:trailing_slash] && !format && !path.end_with?("/")
+                if path.nil?
+                  # With options, a missing argument raises the general path's error.
+                  return super if inner_options
+                  raise_generation_error(args)
+                end
+                merge_url_and_query_options!(options, inner_options) if inner_options && !sole_format?(inner_options)
+                path << "/" if options[:trailing_slash] && !format && !options[:format] && !path.end_with?("/")
                 options[:path] = path
 
                 original_script_name = options.delete(:original_script_name)
@@ -230,14 +242,38 @@ module ActionDispatch
 
             private
               def optimizable_options?(inner_options)
-                inner_options.nil? ||
-                  (@format_optimizable && inner_options.size == 1 && inner_options[:format])
+                return true if inner_options.nil?
+                return false unless @options_optimizable
+                return @format_optimizable && inner_options[:format] if sole_format?(inner_options)
+
+                !inner_options.any? do |key, value|
+                  key == :format ? !(@format_optimizable && value) : general_path_option?(key)
+                end
+              end
+
+              def sole_format?(inner_options)
+                inner_options.size == 1 && inner_options.key?(:format)
+              end
+
+              def general_path_option?(key)
+                @segment_keys.include?(key) || @options.key?(key) || GENERAL_PATH_OPTIONS.include?(key)
+              end
+
+              # As in the general path, every other option becomes a query parameter.
+              def merge_url_and_query_options!(options, inner_options)
+                query_params = nil
+                inner_options.each do |key, value|
+                  if key == :format || RESERVED_OPTIONS.include?(key)
+                    options[key] = value
+                  else
+                    (query_params ||= {})[key] = value
+                  end
+                end
+                options[:params] = query_params if query_params
               end
 
               def optimized_helper(args, format = nil)
-                params = parameterize_args(args) do
-                  raise_generation_error(args)
-                end
+                params = parameterize_args(args) { return }
                 if format
                   # As in the general path, a blank format is dropped rather than
                   # rendered as a trailing dot.

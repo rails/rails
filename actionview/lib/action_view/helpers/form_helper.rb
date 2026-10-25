@@ -3034,7 +3034,7 @@ module ActionView
             defaults << :"helpers.submit.#{object_name}.#{key}"
           end
           defaults << :"helpers.submit.#{key}"
-          defaults << "#{key.to_s.humanize} #{model}"
+          defaults << "#{key.name.humanize} #{model}"
 
           I18n.t(defaults.shift, model: model, default: defaults)
         end

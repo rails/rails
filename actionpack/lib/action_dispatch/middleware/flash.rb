@@ -95,14 +95,13 @@ module ActionDispatch
       end
 
       def []=(k, v)
-        k = k.to_s
         @flash[k] = v
         @flash.discard(k)
         v
       end
 
       def [](k)
-        @flash[k.to_s]
+        @flash[k]
       end
 
       # Convenience accessor for `flash.now[:alert]=`.
@@ -161,13 +160,13 @@ module ActionDispatch
       end
 
       def []=(k, v)
-        k = k.to_s
+        k = stringify_key(k)
         @discard.delete k
         @flashes[k] = v
       end
 
       def [](k)
-        @flashes[k.to_s]
+        @flashes[stringify_key(k)]
       end
 
       def update(h) # :nodoc:
@@ -181,13 +180,13 @@ module ActionDispatch
       end
 
       def key?(name)
-        @flashes.key? name.to_s
+        @flashes.key? stringify_key(name)
       end
 
       # Immediately deletes the single flash entry. Use this method when you want
       # remove the message within the current action. See also #discard.
       def delete(key)
-        key = key.to_s
+        key = stringify_key(key)
         @discard.delete key
         @flashes.delete key
         self
@@ -248,7 +247,7 @@ module ActionDispatch
       #     flash.keep            # keeps the entire flash
       #     flash.keep(:notice)   # keeps only the "notice" entry, the rest of the flash is discarded
       def keep(k = nil)
-        k = k.to_s if k
+        k = stringify_key(k) if k
         @discard.subtract Array(k || keys)
         k ? self[k] : self
       end
@@ -262,7 +261,7 @@ module ActionDispatch
       # Use this method when you want to display the message in the current action but
       # not in the next one. See also #delete.
       def discard(k = nil)
-        k = k.to_s if k
+        k = stringify_key(k) if k
         @discard.merge Array(k || keys)
         k ? self[k] : self
       end
@@ -304,8 +303,14 @@ module ActionDispatch
       private
         def stringify_array(array) # :doc:
           array.map do |item|
-            item.kind_of?(Symbol) ? item.to_s : item
+            item.kind_of?(Symbol) ? item.name : item
           end
+        end
+
+        # Flash keys are Symbols at nearly every call site. Symbol#name returns the
+        # interned frozen string where Symbol#to_s would allocate a new one.
+        def stringify_key(key)
+          key.is_a?(Symbol) ? key.name : key.to_s
         end
     end
 

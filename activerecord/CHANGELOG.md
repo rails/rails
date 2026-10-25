@@ -13,6 +13,48 @@
 
     *Alex Kholodniak*
 
+*   Fix `left_joins` and `eager_load` dropping an intermediate join when the
+    same through association is joined from different parent paths.
+
+    The second path reused the intermediate join of the first path, so it
+    silently returned values from the wrong records instead of raising an error:
+
+    ```ruby
+    # `current_location` and `storing_location` are both `Location`s, which
+    # `has_one :setting, through: :setting_association`.
+    Book.left_joins(current_location: :setting, library: { storing_location: :setting })
+    ```
+
+    *Masaki Ozawa*
+
+*   Deprecate `ActiveRecord::Validations::NumericalityValidator`.
+
+    Active Record now uses `ActiveModel::Validations::NumericalityValidator`
+    directly. The old constant still works, with a deprecation warning, so code
+    that checks the validators of a model keeps working:
+
+    ```ruby
+    case validator
+    when ActiveRecord::Validations::NumericalityValidator # Deprecated.
+    when ActiveModel::Validations::NumericalityValidator  # Use this instead.
+    end
+    ```
+
+    *Bruno Costanzo*
+
+*   Scope `immutable_strings_by_default` to string columns.
+
+    The setting applied to every column whose type happened to subclass
+    `ActiveModel::Type::String`, which was never the intent. `text` columns and
+    PostgreSQL's `xml`, `citext`, `ltree`, `tsvector` and `macaddr` columns were
+    therefore inferred as `:string`, losing their type, and in some cases their
+    own serialization and comparison behavior with it.
+
+    Only `:string` columns are inferred as `:immutable_string` now. Note that
+    `text` columns are no longer affected by the setting.
+
+    *Ryuta Kamizono*
+
 *   Fix `where` with an array of objects that delegate `#id`.
 
     Such objects were expanded to their ids only when passed alone or in a one

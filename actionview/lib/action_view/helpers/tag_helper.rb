@@ -19,15 +19,17 @@ module ActionView
       include CaptureHelper
       include OutputSafetyHelper
 
-      BOOLEAN_ATTRIBUTES = %w(allowfullscreen allowpaymentrequest async autofocus
-                              autoplay checked compact controls declare default
-                              defaultchecked defaultmuted defaultselected defer
-                              disabled enabled formnovalidate hidden indeterminate
-                              inert ismap itemscope loop multiple muted nohref
-                              nomodule noresize noshade novalidate nowrap open
-                              pauseonexit playsinline readonly required reversed
-                              scoped seamless selected sortable truespeed
-                              typemustmatch visible).to_set
+      BOOLEAN_ATTRIBUTES = %w(allowfullscreen allowpaymentrequest alpha async
+                              autofocus autoplay checked compact controls declare
+                              default defaultchecked defaultmuted defaultselected
+                              defer disabled enabled formnovalidate headingreset
+                              hidden indeterminate inert ismap itemscope loop
+                              multiple muted nohref nomodule noresize noshade
+                              novalidate nowrap open pauseonexit playsinline
+                              readonly required reversed scoped seamless selected
+                              shadowrootclonable shadowrootcustomelementregistry
+                              shadowrootdelegatesfocus shadowrootserializable
+                              sortable truespeed typemustmatch visible).to_set
 
       BOOLEAN_ATTRIBUTES.merge(BOOLEAN_ATTRIBUTES.map(&:to_sym))
       BOOLEAN_ATTRIBUTES.freeze
@@ -1563,7 +1565,7 @@ module ActionView
 
                   v = @view_context.safe_join(tokens, " ")
                 else
-                  v = v.to_s
+                  v = v.is_a?(Symbol) ? v.name : v.to_s
                 end
 
                 output << sep
@@ -1572,7 +1574,12 @@ module ActionView
             elsif type == :boolean
               if value
                 output << sep
-                append_boolean_tag_option(output, key)
+                if (String === value || Symbol === value) && (key == :hidden || key == "hidden")
+                  # hidden also takes a keyword, such as "until-found"
+                  append_tag_option(output, key, value, escape)
+                else
+                  append_boolean_tag_option(output, key)
+                end
               end
             elsif !value.nil?
               output << sep
@@ -1629,6 +1636,8 @@ module ActionView
               value = escape ? @view_context.safe_join(value, " ") : value.join(" ")
             when Regexp
               value = escape ? ERB::Util.unwrapped_html_escape(value.source) : value.source
+            when Symbol
+              value = escape ? ERB::Util.unwrapped_html_escape(value.name) : value.name
             else
               value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
             end
