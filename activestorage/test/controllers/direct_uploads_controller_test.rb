@@ -156,6 +156,23 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
     end
   end
 
+  test "creating a direct upload with a null byte in its filename" do
+    checksum = OpenSSL::Digest::MD5.base64digest("Hello")
+
+    post rails_direct_uploads_url, params: { blob: {
+      filename: "holiday\0.jpg", byte_size: 5, checksum: checksum, content_type: "image/jpeg" } }, as: :json
+
+    assert_response :success
+
+    details = response.parsed_body
+    blob = ActiveStorage::Blob.find(details["id"])
+
+    assert_equal "holiday\0.jpg", blob[:filename]
+    assert_equal "holiday-.jpg", details["filename"]
+    assert_equal "jpg", blob.filename.extension
+    assert_nothing_raised { blob.variant(resize_to_limit: [100, 100]) }
+  end
+
   test "creating new direct upload does not include root in json" do
     checksum = OpenSSL::Digest::MD5.base64digest("Hello")
     metadata = {
