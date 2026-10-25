@@ -196,7 +196,7 @@ module ActiveRecord
         #   device.network
         #   # => #<IPAddr: IPv4:192.168.0.0/255.255.255.0>
         #
-        # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/datatype-net-types.html]
+        # See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/datatype-net-types.html]
 
         ##
         # :method: circle
@@ -272,7 +272,7 @@ module ActiveRecord
         #   event.ends_at
         #   # => Thu, 13 Feb 2014
         #
-        # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/rangetypes.html] and {PostgreSQL range functions and operators}[https://www.postgresql.org/docs/current/static/functions-range.html]
+        # See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/rangetypes.html] and {PostgreSQL range functions and operators}[https://www.postgresql.org/docs/current/static/functions-range.html]
 
         ##
         # :method: enum
@@ -412,7 +412,7 @@ module ActiveRecord
         #
         #   Profile.where("settings -> 'color' = ?", "yellow")
         #
-        # 🔗 See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/hstore.html] and {Hstore functions and operators}[https://www.postgresql.org/docs/current/static/hstore.html#id-1.11.7.26.5]
+        # See also: {PostgreSQL type definition}[https://www.postgresql.org/docs/current/static/hstore.html] and {Hstore functions and operators}[https://www.postgresql.org/docs/current/static/hstore.html#id-1.11.7.26.5]
         #
         # ### When to use +hstore+ vs +jsonb+?
         #
@@ -543,7 +543,7 @@ module ActiveRecord
         #
         # **Tip:** Use +store_accessor+ to define typed accessors on +jsonb+ columns.
         #
-        # 🔗 See also: {PostgreSQL JSON/JSONB type definition}[https://www.postgresql.org/docs/current/static/datatype-json.html] and {PostgreSQL JSON functions and operators}[https://www.postgresql.org/docs/current/static/functions-json.html]
+        # See also: {PostgreSQL JSON/JSONB type definition}[https://www.postgresql.org/docs/current/static/datatype-json.html] and {PostgreSQL JSON functions and operators}[https://www.postgresql.org/docs/current/static/functions-json.html]
 
         ##
         # :method: line
@@ -603,7 +603,7 @@ module ActiveRecord
         #
         # This stores a path in a tree-like label hierarchy.
         #
-        # 🔗 See also: {PostgreSQL ltree documentation}[https://www.postgresql.org/docs/current/ltree.html]
+        # See also: {PostgreSQL ltree documentation}[https://www.postgresql.org/docs/current/ltree.html]
 
         ##
         # :method: macaddr
@@ -625,7 +625,7 @@ module ActiveRecord
         #   device.address
         #   # => "32:01:16:6d:05:ef"
         #
-        # 🔗 See also: {Ruby IPAddr documentation}[https://docs.ruby-lang.org/en/master/IPAddr.html]
+        # See also: {Ruby IPAddr documentation}[https://docs.ruby-lang.org/en/master/IPAddr.html]
 
         ##
         # :method: money
@@ -766,7 +766,7 @@ module ActiveRecord
         #     self.datetime_type = :timestamptz
         #   end
         #
-        # 🔗 See also: {PostgreSQL Date/Time Types}[https://www.postgresql.org/docs/current/datatype-datetime.html]
+        # See also: {PostgreSQL Date/Time Types}[https://www.postgresql.org/docs/current/datatype-datetime.html]
 
         ##
         # :method: tsrange
