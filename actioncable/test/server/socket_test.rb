@@ -26,6 +26,12 @@ class ActionCable::Server::SocketTest < ActionCable::TestCase
     end
   end
 
+  class ChatChannel < ActionCable::Channel::Base
+    def subscribed
+      stream_from "chat"
+    end
+  end
+
   setup do
     @server = TestServer.new
     @server.config.allowed_request_origins = %w( http://rubyonrails.com )
@@ -92,6 +98,28 @@ class ActionCable::Server::SocketTest < ActionCable::TestCase
       wait_for_async
 
       assert_equal({ "message" => "hello" }, socket.connection.last_message)
+    end
+  end
+
+  test "processing a connection's commands in the order they arrive" do
+    @server.config.connection_class = -> { ActionCable::Connection::Base }
+    @server.pubsub.unsubscribe_latency = 0.1
+    identifier = { channel: ChatChannel.name }.to_json
+
+    run_in_eventmachine do
+      socket = open_socket
+      socket.process
+      wait_for_async
+
+      socket.receive({ command: "subscribe", identifier: identifier }.to_json)
+      wait_for_async
+
+      # A page navigation unsubscribes and resubscribes to the same channel.
+      socket.receive({ command: "unsubscribe", identifier: identifier }.to_json)
+      socket.receive({ command: "subscribe", identifier: identifier }.to_json)
+      wait_for_async
+
+      assert_equal [ identifier ], socket.connection.send(:subscriptions).identifiers
     end
   end
 

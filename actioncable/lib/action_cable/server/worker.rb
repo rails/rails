@@ -5,6 +5,7 @@
 require "active_support/callbacks"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
 require "concurrent/executor/thread_pool_executor"
+require "concurrent/executor/serialized_execution_delegator"
 
 module ActionCable
   module Server
@@ -49,10 +50,16 @@ module ActionCable
         async_invoke receiver, :instance_exec, *args, connection: connection, &block
       end
 
-      def async_invoke(receiver, method, *args, connection: receiver, &block)
-        @executor.post do
+      def async_invoke(receiver, method, *args, connection: receiver, executor: @executor, &block)
+        executor.post do
           invoke(receiver, method, *args, connection: connection, &block)
         end
+      end
+
+      # Returns an executor that runs the work posted to it on this pool's threads,
+      # one job at a time, in the order it was posted.
+      def serial_executor
+        Concurrent::SerializedExecutionDelegator.new(@executor)
       end
 
       def invoke(receiver, method, *args, connection:, &block)
