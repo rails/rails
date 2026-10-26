@@ -1,3 +1,10 @@
+*   Fix execution context corruption when nesting is enabled during an execution.
+
+    Loading integration test helpers inside a running executor no longer masks
+    the original exception with a `NoMethodError` from the error reporter.
+
+    *lazerg, akasakariko*
+
 *   Fix `FrozenError` when using a frozen `ActiveSupport::MessageVerifier` or
     `ActiveSupport::MessageEncryptor` that had not verified or decrypted a
     message yet, as after `Ractor.make_shareable`, and when freezing an already
