@@ -1307,6 +1307,8 @@ module ActiveRecord
     # represent the same association, but that aren't matched by this. Also, we could have
     # nested hashes which partially match, e.g. <tt>{ a: :b } & { a: [:b, :c] }</tt>
     def joined_includes_values
+      return FROZEN_EMPTY_ARRAY if includes_values.empty? || joins_values.empty?
+
       includes_values & joins_values
     end
 
@@ -1538,6 +1540,11 @@ module ActiveRecord
       end
 
       def references_eager_loaded_tables?
+        return false if references_values.empty?
+
+        referenced_tables = references_values.map(&:to_s) - [table.name.downcase]
+        return false if referenced_tables.empty?
+
         joined_tables = build_joins([]).flat_map do |join|
           if join.is_a?(Arel::Nodes::StringJoin)
             tables_in_string(join.left)
@@ -1546,12 +1553,10 @@ module ActiveRecord
           end
         end
 
-        joined_tables << table.name
-
         # always convert table names to downcase as in Oracle quoted table names are in uppercase
         joined_tables.map!(&:downcase)
 
-        !(references_values.map(&:to_s) - joined_tables).empty?
+        !(referenced_tables - joined_tables).empty?
       end
 
       def tables_in_string(string)
