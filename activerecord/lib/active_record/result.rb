@@ -128,6 +128,7 @@ module ActiveRecord
       end
     end
 
+    #: () { (String, ActiveModel::Type::Value) -> void } -> void
     def each_pair
       if @column_types
         @columns.each_with_index do |name, index|
@@ -202,6 +203,7 @@ module ActiveRecord
 
     # Yields each row laid out for +column_map+, as an Array, with the
     # indexes it's laid out with (see RowLayout).
+    #: [T] (Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes) { (Array[untyped], Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes) -> T } -> Array[T]
     def map_rows(column_map) # :nodoc:
       layout = RowLayout.new(@columns, column_map, @column_types)
       indexes = layout.indexes
@@ -212,6 +214,7 @@ module ActiveRecord
     # +column_map_for+ returns for that row's value of +column_name+, and
     # that value is yielded with the row. +column_map_for+ is called once
     # for each distinct value.
+    #: [T] (String, ^(untyped) -> (Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes)) { (Array[untyped], Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes, untyped) -> T } -> Array[T]
     def map_rows_by(column_name, column_map_for) # :nodoc:
       index = @columns.index(column_name)
       layouts = {}
@@ -249,6 +252,7 @@ module ActiveRecord
 
       # +column_types+ are the types of +columns+, by position, if the
       # database gave them.
+      #: (Array[String], Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes, ?(Array[ActiveModel::Type::Value?] | Hash[Integer, ActiveModel::Type::Value])?) -> void
       def initialize(columns, column_map, column_types = nil)
         shuffle_lut = nil
         pending = nil
@@ -284,6 +288,7 @@ module ActiveRecord
       end
 
       # Returns +row+ laid out by #indexes, as an Array.
+      #: (Array[untyped]) -> Array[untyped]
       def build(row)
         return row unless @shuffle_lut
 

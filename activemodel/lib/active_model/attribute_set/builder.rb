@@ -14,6 +14,7 @@ module ActiveModel
         # +names+ are the attribute names by index, +types+ a Hash of types
         # by name, and +defaults+ the default attributes by index that
         # attributes a row doesn't have fall back to.
+        #: (Array[String], Hash[String, Type::Value], Array[Attribute?]) -> void
         def initialize(names, types, defaults)
           @names = names
           @types = names.map { |name| types[name] }.freeze
@@ -23,6 +24,7 @@ module ActiveModel
           freeze
         end
 
+        #: (Integer) -> bool?
         def type_key_at?(index)
           @type_keys_lut[index]
         end
@@ -31,6 +33,7 @@ module ActiveModel
         # +indexes+. Indexes after the model's are for names a row has that
         # the model doesn't, typed by the query that selected them (see
         # IndexedRow::ExtendedIndexes#type_at).
+        #: (Integer, Hash[String, Integer] | IndexedRow::ExtendedIndexes) -> Type::Value
         def type_at(index, indexes)
           if index < @types.size
             @types[index]
@@ -42,11 +45,13 @@ module ActiveModel
         end
 
         # The name of the attribute at +index+.
+        #: (Integer) -> String?
         def name_at(index)
           @names[index]
         end
 
         # The default attribute for the attribute at +index+, if any.
+        #: (Integer) -> Attribute?
         def default_at(index)
           @defaults[index]
         end
@@ -56,6 +61,7 @@ module ActiveModel
       # defaults in +default_keys+. Other attributes the row doesn't have
       # are missing.
       class FromDBContext < Context # :nodoc:
+        #: (Array[String], Hash[String, Type::Value], Array[Attribute?], untyped) -> void
         def initialize(names, types, defaults, default_keys)
           defaults = names.each_with_index.map do |name, index|
             defaults[index] if default_keys.include?(name)
@@ -72,6 +78,7 @@ module ActiveModel
 
       # +default_keys+ limits which of +default_attributes+ records loaded from
       # the database fall back to (anything responding to <tt>include?</tt>).
+      #: (Hash[String, Type::Value], AttributeSet, untyped) -> void
       def initialize(types, default_attributes, default_keys)
         @types = types
         @default_attributes = default_attributes
@@ -91,6 +98,7 @@ module ActiveModel
 
       # Only for backwards compatibility with gems that call this with
       # Hashes (like paquito). Don't use it; use #build_from_indexed_row.
+      #: (?Hash[String, untyped], ?Hash[String, Type::Value]) -> LazyIndexedAttributeSet
       def build_from_database(values = {}, additional_types = {})
         row = row_from_hash(values)
         return build_from_indexed_row(row) if additional_types.empty?
@@ -101,6 +109,7 @@ module ActiveModel
 
       # +values+ is an IndexedRow of raw values from the database. Use
       # #row_from_hash to build one from a Hash.
+      #: (IndexedRow) -> LazyIndexedAttributeSet
       def build_from_indexed_row(values)
         build_from_row(values.row, values.indexes)
       end
@@ -108,16 +117,19 @@ module ActiveModel
       # Like #build_from_indexed_row, but takes the row Array and the indexes
       # it's laid out with, which can type the names after the ones in
       # #indexes, such as aliases (see #typed_indexes).
+      #: (Array[untyped], Hash[String, Integer] | IndexedRow::ExtendedIndexes) -> LazyIndexedAttributeSet
       def build_from_row(row, indexes)
         LazyIndexedAttributeSet.new(row, indexes, @from_db_context)
       end
 
+      #: () -> LazyIndexedAttributeSet
       def build_from_initialize
         LazyIndexedAttributeSet.new(EMPTY_ROW, @indexes, @from_init_context)
       end
 
       # Lays +hash+ out like a row loaded from the database: each name at
       # its index in #indexes, and names it doesn't have after the last one.
+      #: (Hash[String, untyped]) -> IndexedRow::Mutable
       def row_from_hash(hash)
         row = IndexedRow::Mutable.new(@indexes)
         hash.each { |name, value| row[name] = value }
@@ -128,6 +140,7 @@ module ActiveModel
       # names, such as aliases, after them). Otherwise copies it into that
       # layout, as when a row laid out for an STI parent is loaded as a
       # subclass that declares attributes of its own.
+      #: (IndexedRow) -> IndexedRow
       def relayout(row)
         layout = row.indexes
         layout = layout.indexes if layout.is_a?(IndexedRow::ExtendedIndexes)
@@ -141,6 +154,7 @@ module ActiveModel
       # Copies the attributes of +attribute_set+, which may be laid out some
       # other way (as when decoded from YAML), into a set laid out with
       # #indexes, so it can be read by index.
+      #: (AttributeSet) -> AttributeSet
       def relayout_attributes(attribute_set)
         attributes = IndexedRow::Mutable.new(@indexes)
         attribute_set.each_value { |attribute| attributes[attribute.name] = attribute }
@@ -151,6 +165,7 @@ module ActiveModel
       # attributes it has, or this builder if +types+ has none of them.
       # The copy keeps the same #indexes, so rows laid out for this builder
       # work with it.
+      #: (Hash[String, Type::Value]) -> Builder
       def with_types(types)
         overrides = types.select { |name, _| @indexes.key?(name) }
         return self if overrides.empty?
@@ -164,6 +179,7 @@ module ActiveModel
       # Returns +indexes+ with the types in +column_types+ (a Hash of types
       # by name) for the names it has after the ones in #indexes, such as
       # aliases (see #build_from_row).
+      #: (Hash[String, Integer] | IndexedRow::ExtendedIndexes, Hash[String, Type::Value]) -> (Hash[String, Integer] | IndexedRow::ExtendedIndexes)
       def typed_indexes(indexes, column_types)
         return indexes if column_types.empty? || !indexes.is_a?(IndexedRow::ExtendedIndexes)
 
@@ -180,12 +196,14 @@ module ActiveModel
         attr_writer :types, :from_db_context
 
       private
+        #: (Hash[String, Integer] | IndexedRow::ExtendedIndexes) -> Array[String]
         def names_for(indexes)
           names = []
           indexes.each_key { |name| names[indexes[name]] = name }
           names.freeze
         end
 
+        #: (Hash[String, Type::Value], Hash[String, Integer] | IndexedRow::ExtendedIndexes) -> (Hash[String, Integer] | IndexedRow::ExtendedIndexes)
         def indexes_for(types, indexes)
           missing = types.each_key.reject { |name| indexes.key?(name) }
           return indexes if missing.empty?

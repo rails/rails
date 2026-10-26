@@ -115,6 +115,7 @@ module ActiveRecord
         end
       end
 
+      #: (Array[untyped]) -> ActiveRecord::Base
       def build_record(entry)
         class_name, attributes_hash, is_new_record, * = entry
         klass = ActiveSupport::MessagePack::Extensions.load_class(class_name)

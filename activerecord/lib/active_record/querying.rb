@@ -90,6 +90,7 @@ module ActiveRecord
       FutureResult.wrap(connection.select_all(arel, name, binds, async: async, **kwargs))
     end
 
+    #: (ActiveRecord::Result) ?{ (ActiveRecord::Base) -> void } -> Array[ActiveRecord::Base]
     def _load_from_sql(result_set, &block) # :nodoc:
       return [] if result_set.empty?
 

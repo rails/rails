@@ -40,6 +40,7 @@ module ActiveRecord
       end
       alias_method :marshal_dump, :_marshal_dump_7_1
 
+      #: (Array[untyped]) -> void
       def marshal_load(state)
         attributes_from_database, new_record, associations = state
 

@@ -521,6 +521,7 @@ module ActiveRecord
     # # Instantiates a single new object
     # User.new(first_name: 'Jamie')
     # ```
+    #: (?Hash[untyped, untyped]?) ?{ (self) -> void } -> void
     def initialize(attributes = nil)
       @new_record = true
       @attributes = self.class.attributes_builder.build_from_initialize
@@ -549,6 +550,7 @@ module ActiveRecord
     # post.init_with(coder)
     # post.title # => 'hello world'
     # ```
+    #: (Psych::Coder | Hash[String, untyped]) ?{ (self) -> void } -> self
     def init_with(coder, &block)
       coder = LegacyYamlAdapter.convert(coder)
       attributes = ActiveModel::AttributeSet::YAMLEncoder.decode(coder, self.class.attribute_types)
