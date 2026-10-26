@@ -29,6 +29,12 @@ Rails generally stays close to the latest released Ruby version when it's releas
 
 It's a good idea to upgrade Ruby and Rails separately. Upgrade to the latest Ruby you can first, and then upgrade Rails.
 
+#### Tested Ruby Versions
+
+As of October 26, 2026, the Rails 8.2 development branch is tested against Ruby 3.3, 3.4, and 4.0 in required CI jobs. Ruby 3.3 must meet the minimum patch version listed above.
+
+This list describes configured test coverage, not an upper bound on Ruby compatibility. CI coverage can change independently of Rails releases, so it may have changed since this guide was published.
+
 ### The Upgrade Process
 
 When changing Rails versions, it's best to move slowly, one minor version at a time, in order to make good use of the deprecation warnings. Rails version numbers are in the form Major.Minor.Patch. Major and Minor versions are allowed to make changes to the public API, so this may cause errors in your application. Patch versions only include bug fixes, and don't change any public API.
