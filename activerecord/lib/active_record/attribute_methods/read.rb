@@ -13,6 +13,7 @@ module ActiveRecord
         end
 
         private
+          #: (String, owner: ActiveSupport::CodeGenerator, ?as: String) -> void
           def define_method_attribute(canonical_name, owner:, as: canonical_name)
             slot = attributes_builder.indexes[canonical_name]
             unless slot
@@ -69,6 +70,7 @@ module ActiveRecord
       # Like #_read_attribute, but takes the attribute's +index+ (its slot)
       # instead of its name, and raises for uninitialized attributes. Called
       # by the generated reader methods.
+      #: (Integer) -> untyped
       def _read_attribute_at!(index) # :nodoc:
         @attributes.fetch_value_at!(index)
       rescue ActiveModel::MissingAttributeError

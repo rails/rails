@@ -110,6 +110,7 @@ module ActiveRecord
 
       # The model's columns as attributes, with its attribute declarations
       # applied. Read only unless some default can't be frozen.
+      #: () -> ActiveModel::AttributeSet
       def build_default_attributes # :nodoc:
         attributes = model_class.columns_hash.transform_values do |column|
           ActiveModel::Attribute.from_database(column.name, column.default, model_class.type_for_column(column))
@@ -130,6 +131,7 @@ module ActiveRecord
       # with adapters that don't set it) go after the last column. The
       # indexes are Integers rather than columns, so they can be shared
       # between Ractors.
+      #: (Hash[String, ActiveModel::Attribute]) -> ActiveModel::IndexedRow::Mutable
       def index_default_attributes(attributes) # :nodoc:
         columns_hash = model_class.columns_hash
         last_slot = columns_hash.each_value.filter_map(&:slot).max || -1
@@ -147,6 +149,7 @@ module ActiveRecord
       # An STI subclass that doesn't change its parent's layout shares the
       # parent's indexes, so rows laid out for the parent can be checked with
       # +equal?+ (see ActiveModel::AttributeSet::Builder#relayout).
+      #: (Hash[String, Integer]) -> (Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes)
       def inherited_indexes(indexes) # :nodoc:
         return indexes if model_class.base_class?
 

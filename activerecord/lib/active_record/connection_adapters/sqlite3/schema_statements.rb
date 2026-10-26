@@ -172,6 +172,7 @@ module ActiveRecord
             super unless internal
           end
 
+          #: (String, Hash[String, untyped], Array[Hash[String, untyped]], Integer) -> ActiveRecord::ConnectionAdapters::SQLite3::Column
           def new_column_from_field(table_name, field, definitions, slot)
             default = field["dflt_value"]
 

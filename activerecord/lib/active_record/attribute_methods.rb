@@ -81,6 +81,7 @@ module ActiveRecord
       # Person.where(nickname: "Bob")
       # # SELECT "people".* FROM "people" WHERE "people"."name" = "Bob"
       # ```
+      #: (Symbol | String, Symbol | String) -> void
       def alias_attribute(new_name, old_name)
         super
 
@@ -153,6 +154,7 @@ module ActiveRecord
       # Generated readers read by slot, and an abstract class has no slots,
       # so the aliases declared on abstract classes are generated in each
       # model that inherits them instead.
+      #: () -> void
       def generate_alias_attributes # :nodoc:
         superclass.generate_alias_attributes unless superclass == Base
 
@@ -181,12 +183,14 @@ module ActiveRecord
         @alias_attributes_mass_generated = true
       end
 
+      #: () -> bool?
       def alias_attributes_mass_generated? # :nodoc:
         @alias_attributes_mass_generated
       end
 
       # The abstract classes between this class and its closest ancestor that
       # isn't abstract, closest first. Their aliases are generated here.
+      #: () -> Array[singleton(ActiveRecord::Base)]
       def abstract_ancestors # :nodoc:
         ancestors = []
         klass = superclass
@@ -197,6 +201,7 @@ module ActiveRecord
         ancestors
       end
 
+      #: (Symbol | String, Symbol | String) -> void
       def generate_inherited_alias_attribute(new_name, old_name) # :nodoc:
         return unless has_attribute?(old_name)
 
