@@ -200,6 +200,59 @@ class HasManyThroughDisableJoinsAssociationsTest < ActiveRecord::TestCase
     assert_no_match(/LIMIT 1/, disable_joins_sql.last)
   end
 
+  def test_disable_joins_through_applies_limit_from_association_scope
+    expected = @author.comments_desc_limited.to_a
+    assert_equal 2, expected.size
+
+    assert_equal expected, @author.no_joins_comments_desc_limited.to_a
+  end
+
+  def test_disable_joins_through_applies_limit_and_offset_from_association_scope
+    expected = @author.comments_desc_limited_with_offset.to_a
+    assert_equal 2, expected.size
+
+    assert_equal expected, @author.no_joins_comments_desc_limited_with_offset.to_a
+  end
+
+  def test_disable_joins_through_applies_limit_from_association_scope_with_order_from_the_through_association
+    assert_equal [@member2], @author.limited_members.to_a
+    assert_equal [@member2], @author.no_joins_limited_members.to_a
+  end
+
+  def test_disable_joins_has_one_through_ignores_limit_from_association_scope
+    author = Author.create!(name: "Lisa")
+    comment = author.create_post!(title: "title", body: "body").comments.create!(body: "text")
+
+    assert_equal comment, author.comment_with_limit_zero
+    assert_equal comment, author.no_joins_comment_with_limit_zero
+  end
+
+  def test_disable_joins_through_applies_unscope_after_limit_from_association_scope
+    expected = @author.comments_desc_with_unscoped_limit.to_a
+    assert_equal 3, expected.size
+
+    assert_equal expected, @author.no_joins_comments_desc_with_unscoped_limit.to_a
+  end
+
+  def test_disable_joins_through_does_not_apply_limit_to_intermediate_records
+    author = Author.create!(name: "Lisa")
+    excluded = Member.create!(name: "excluded", member_type: @member_type)
+    included = Member.create!(name: "included", member_type: @member_type)
+    CommentWithDefaultLimit.create!(post: author.posts.create!(title: "title", body: "body"), body: "text", origin: excluded)
+    CommentWithDefaultLimit.create!(post: author.posts.create!(title: "title", body: "body"), body: "text", origin: included)
+
+    assert_equal [included], author.members_named_included.to_a
+    assert_equal [included], author.no_joins_members_named_included.to_a
+  end
+
+  def test_disable_joins_has_one_through_applies_offset_from_association_scope_with_order_from_the_through_association
+    author = Author.create!(name: "Lisa")
+    VerySpecialComment.create!(post: author.posts.create!(title: "title", body: "body"), body: "text")
+
+    assert_nil author.offset_very_special_comment
+    assert_nil author.no_joins_offset_very_special_comment
+  end
+
   def test_ordered_disable_joins_through_with_composite_primary_key_source
     author = Cpk::Author.create!(name: "Eddie")
     order1 = Cpk::Order.create!(shop_id: 1, status: "open")

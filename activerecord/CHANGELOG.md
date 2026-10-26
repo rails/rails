@@ -1,3 +1,18 @@
+*   Fix `disable_joins: true` associations ignoring `limit` and `offset` in their scope.
+
+    ```ruby
+    class Author < ActiveRecord::Base
+      has_many :recent_comments, -> { order(id: :desc).limit(2) },
+        through: :posts, source: :comments, disable_joins: true
+    end
+
+    author.recent_comments.to_a
+    # Before: all of the author's comments
+    # After:  the 2 most recent comments, as without `disable_joins`
+    ```
+
+    *Alex Kholodniak*
+
 *   Fix `left_joins` and `eager_load` dropping an intermediate join when the
     same through association is joined from different parent paths.
 
