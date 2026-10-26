@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support"
 require "active_support/test_case"
 require "active_support/core_ext/hash/indifferent_access"

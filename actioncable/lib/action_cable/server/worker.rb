@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/callbacks"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
 require "concurrent/executor/thread_pool_executor"

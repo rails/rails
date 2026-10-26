@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "concurrent/executor/thread_pool_executor"
 require "concurrent/timer_task"
 require "monitor"

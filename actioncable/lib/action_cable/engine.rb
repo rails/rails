@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "rails"
 require "action_cable"
 require "active_support/core_ext/hash/indifferent_access"
