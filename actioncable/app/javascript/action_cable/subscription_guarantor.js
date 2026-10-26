@@ -25,6 +25,10 @@ class SubscriptionGuarantor {
     this.pendingSubscriptions = (this.pendingSubscriptions.filter((s) => s !== subscription))
   }
 
+  isPending(subscription) {
+    return this.pendingSubscriptions.indexOf(subscription) !== -1
+  }
+
   startGuaranteeing() {
     this.stopGuaranteeing()
     this.retrySubscribing()
