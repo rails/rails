@@ -35,6 +35,12 @@ class ActiveStorage::Analyzer::AudioAnalyzerTest < ActiveSupport::TestCase
     end
   end
 
+  test "analyzing an audio file with duplicate tags from ffprobe" do
+    blob = create_file_blob(filename: "audio_with_duplicate_tags.wav", content_type: "audio/x-wav")
+    metadata = assert_nothing_raised { extract_metadata_from(blob) }
+    assert_equal 128000, metadata[:bit_rate]
+  end
+
   test "instrumenting analysis" do
     blob = create_file_blob(filename: "audio.mp3", content_type: "audio/mp3")
 

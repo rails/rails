@@ -104,6 +104,12 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     end
   end
 
+  test "analyzing a video file with duplicate tags from ffprobe" do
+    blob = create_file_blob(filename: "video_with_duplicate_tags.avi", content_type: "video/vnd.avi")
+    metadata = assert_nothing_raised { extract_metadata_from(blob) }
+    assert metadata[:video]
+  end
+
   test "instrumenting analysis" do
     blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
 
