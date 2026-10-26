@@ -17,6 +17,7 @@ module ActiveModel
         end
       end
 
+      #: (Psych::Coder, Hash[String, Type::Value]) -> AttributeSet
       def decode(coder, default_types)
         if coder["attributes"]
           coder["attributes"]

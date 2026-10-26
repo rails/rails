@@ -18,6 +18,7 @@ module ActiveRecord
       # `sql_type_metadata` is various information about the type of the column
       # `null` determines if this column allows `NULL` values.
       # `slot` is the column's position in the table, starting at 0.
+      #: (String, ActiveModel::Type::Value, untyped, ?untyped, ?bool, ?String?, ?collation: String?, ?comment: String?, ?slot: Integer?, **untyped) -> void
       def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, slot: nil, **)
         @name = name.freeze
         @cast_type = cast_type
@@ -49,6 +50,7 @@ module ActiveRecord
         Base.human_attribute_name(@name)
       end
 
+      #: (Psych::Coder | Hash[String, untyped]) -> void
       def init_with(coder)
         @name = coder["name"]
         @cast_type = coder["cast_type"]
@@ -61,6 +63,7 @@ module ActiveRecord
         @slot = coder["slot"]
       end
 
+      #: (Psych::Coder | Hash[String, untyped]) -> void
       def encode_with(coder)
         coder["name"] = @name
         coder["cast_type"] = @cast_type
@@ -103,6 +106,7 @@ module ActiveRecord
         virtual?
       end
 
+      #: (untyped) -> bool
       def ==(other)
         other.is_a?(Column) &&
           name == other.name &&
@@ -117,6 +121,7 @@ module ActiveRecord
       end
       alias :eql? :==
 
+      #: () -> Integer
       def hash
         [
           Column,
