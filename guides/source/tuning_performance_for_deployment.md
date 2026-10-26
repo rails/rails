@@ -54,7 +54,7 @@ Performance tuning involves balancing throughput, latency, and resource usage:
 
 Higher throughput can reduce the infrastructure needed to serve a workload. Lower latency makes the application more responsive. These goals can conflict: increasing concurrency may improve throughput while making individual requests wait longer for CPU time or other resources.
 
-Define acceptable performance before comparing configurations. For example, a goal might be to sustain an expected peak of 100 requests per second for a representative workload, with P95 latency below 300 milliseconds and fewer than 0.1% failed requests, including timeouts. These values are illustrative; choose targets that reflect your application's users and requirements. Specify the workload, measurement period, and whether the target applies to the whole application or particular endpoints.
+Define acceptable performance before comparing configurations. For example, a goal might be to sustain an expected peak of 100 requests per second for a representative workload, with P95 latency below 300 milliseconds (meaning 95% of requests complete in less than 300 milliseconds) and fewer than 0.1% failed requests, including timeouts. These values are an example; choose targets that reflect your application's users and requirements. Specify the workload, measurement period, and whether the target applies to the whole application or particular endpoints.
 
 Start with your application's existing configuration and a workload representative of production:
 
@@ -67,7 +67,7 @@ Start with your application's existing configuration and a workload representati
 Understanding Ruby's Concurrency Model
 -------------------------------------
 
-Puma handles requests using threads within a process. In cluster mode, it starts separate worker processes, each with its own thread pool and instance of the application.
+A process is a running program managed by the operating system, with its own memory space. Puma handles requests using threads within a process. In cluster mode, it starts separate worker processes, each with its own thread pool and instance of the application. In Puma, a "worker" refers to one of these processes.
 
 Two workers with a maximum of three request threads each provide up to six request-processing slots. This is a limit on concurrent request handling, not a guarantee that six requests can execute Ruby code simultaneously.
 
@@ -75,7 +75,7 @@ Two workers with a maximum of three request threads each provide up to six reque
 
 When all request threads are occupied, additional requests must wait for capacity or be rejected or time out, depending on the deployment. Waiting can occur at several points, including a reverse proxy, the operating system's connection backlog, or the application server. This queuing time contributes to the latency users experience even before Rails begins processing a request.
 
-If requests keep arriving faster than the deployment can complete them, queues grow until a limit is reached. Near this point of saturation, successful throughput may stop increasing while tail latency and timeouts rise. A deployment can also reach unacceptable latency before its maximum throughput is reached.
+If requests keep arriving faster than the deployment can complete them, queues grow until a limit is reached. As the deployment approaches saturation, it may be unable to complete more requests per second, even as more requests arrive. The slowest requests take longer, and more requests may time out. A deployment can also reach unacceptable latency before its maximum throughput is reached.
 
 Adding request threads can help if there is capacity available to do useful work. If the database is already saturated, however, allowing more requests to query it concurrently may increase contention and make each request slower. More workers or a larger connection pool can have the same effect. Tune concurrency against the capacity of the whole request path, including shared dependencies.
 
@@ -93,7 +93,7 @@ Garbage collection also affects latency. CRuby's garbage collector includes phas
 
 ### Worker Processes and Memory
 
-Each worker has its own GVL, so separate workers can execute Ruby code in parallel when CPU capacity is available. Adding workers generally consumes more memory than adding threads.
+Each worker process has its own GVL, so separate workers can execute Ruby code in parallel when CPU capacity is available. Adding workers generally consumes more memory than adding threads.
 
 On systems that support forking, workers can share memory pages through [copy-on-write](https://en.wikipedia.org/wiki/Copy-on-write). A shared page becomes private when a process modifies it. Loading the application before forking can increase sharing, but allocations, mutations, and garbage collection during normal operation affect how much memory remains shared.
 
@@ -101,7 +101,9 @@ Puma supports application preloading in cluster mode. Its defaults and lifecycle
 
 Grouping more workers on fewer hosts may reduce memory overhead per worker through copy-on-write sharing of preloaded application memory. The savings depend on how much memory remains shared under load. Compare the measured footprint with the capacity, availability, and deployment requirements of each arrangement.
 
-Measure memory after warmup and under sustained load. Summing process resident memory can count shared pages more than once; use container or host memory measurements to assess the deployment's total footprint. Leave capacity for the Puma master process, other services, and temporary increases during restarts.
+Measure memory after warmup and under sustained load. A process's resident memory is the memory it currently occupies in physical RAM, including pages shared with other processes. Adding up the resident memory of all Puma processes can therefore count the same shared pages more than once.
+
+To assess how much memory the deployment uses overall, check the memory usage reported for its container or host by your hosting platform or operating system. Compare this with the container's memory limit or the host's available RAM. Leave capacity for the Puma master process, other services, and temporary increases during restarts.
 
 ### Thread Safety
 
@@ -136,6 +138,18 @@ Start this example in production with:
 ```bash
 RAILS_ENV=production WEB_CONCURRENCY=2 RAILS_MAX_THREADS=3 bundle exec puma -C config/puma.rb
 ```
+
+Check Puma's startup output to confirm the settings took effect. For the example above, the relevant lines look like this (process IDs and other output are omitted):
+
+```text
+Puma starting in cluster mode...
+*  Min threads: 3
+*  Max threads: 3
+*  Environment: production
+*      Workers: 2
+```
+
+The thread counts apply to each worker, so this configuration provides up to six request-processing slots. If Puma reports `single mode` instead, it is running without cluster workers. The exact output varies by Puma version.
 
 These counts illustrate the configuration; they are not recommendations for every application. Incorporate the relevant settings into your existing configuration, preserving any deployment-specific hooks and plugins.
 
