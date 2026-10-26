@@ -1274,12 +1274,20 @@ class RoutingDefaultsTest < ActionController::TestCase
       def project
         render plain: request.fullpath
       end
+
+      def report
+        head :ok
+      end
     end.new
 
     @routes = ActionDispatch::Routing::RouteSet.new.tap do |r|
       r.draw do
         get "/posts/:id", to: "anonymous#post", bucket_type: "post"
         get "/projects/:id", to: "anonymous#project", defaults: { bucket_type: "project" }
+        match "/reports", to: "anonymous#report", via: [:get, :post], defaults: {
+          filters: { archived: true },
+          statuses: ["archived"]
+        }
       end
     end
   end
@@ -1292,5 +1300,33 @@ class RoutingDefaultsTest < ActionController::TestCase
   def test_route_default_is_not_required_for_building_request_uri
     get :project, params: { id: 2 }
     assert_equal "/projects/2", @response.body
+  end
+
+  def test_nested_query_parameters_with_route_default_names_are_not_converted_to_path_parameters
+    get :report, params: {
+      filters: { show_notes: true, organizations: [1] },
+      statuses: ["active"]
+    }
+
+    assert_equal({ "show_notes" => "true", "organizations" => ["1"] }, @request.query_parameters["filters"])
+    assert_equal ["active"], @request.query_parameters["statuses"]
+    assert_equal({ archived: true }, @request.path_parameters[:filters])
+    assert_equal ["archived"], @request.path_parameters[:statuses]
+    assert_equal true, @controller.params[:filters][:archived]
+    assert_equal ["archived"], @controller.params[:statuses]
+  end
+
+  def test_nested_body_parameters_with_route_default_names_are_not_converted_to_path_parameters
+    post :report, params: {
+      filters: { show_notes: true, organizations: [1] },
+      statuses: ["active"]
+    }
+
+    assert_equal({ "show_notes" => "true", "organizations" => ["1"] }, @request.request_parameters["filters"])
+    assert_equal ["active"], @request.request_parameters["statuses"]
+    assert_equal({ archived: true }, @request.path_parameters[:filters])
+    assert_equal ["archived"], @request.path_parameters[:statuses]
+    assert_equal true, @controller.params[:filters][:archived]
+    assert_equal ["archived"], @controller.params[:statuses]
   end
 end

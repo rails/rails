@@ -881,6 +881,11 @@ module ActionDispatch
       end
 
       def generate_extras(options, recall = {})
+        generated_path, extra_keys, = generate_extras_with_route(options, recall)
+        [generated_path, extra_keys]
+      end
+
+      def generate_extras_with_route(options, recall = {}) # :nodoc:
         if recall
           options = options.merge(_recall: recall)
         end
@@ -888,7 +893,7 @@ module ActionDispatch
         route_name = options.delete :use_route
         generator = generate(route_name, options, recall)
         path_info = path_for(options, route_name, [])
-        [URI(path_info).path, generator.params.except(:_recall).keys]
+        [URI(path_info).path, generator.params.except(:_recall).keys, generator.route]
       end
 
       def generate(route_name, options, recall = {})
