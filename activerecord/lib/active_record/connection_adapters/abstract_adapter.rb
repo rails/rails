@@ -110,6 +110,11 @@ module ActiveRecord
         raise ActiveRecordError, "#{name} does not support Ractor connections"
       end
 
+      # Returns optimizer hints as [outer query hints, subquery hints].
+      def self.partition_optimizer_hints(hints) # :nodoc:
+        [hints, []]
+      end
+
       def ractor_connection_profile # :nodoc:
         {
           proxy_class: self.class.ractor_connection_proxy_class,
