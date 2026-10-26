@@ -4,6 +4,8 @@ updates:
   directory: "/"
   schedule:
     interval: weekly
+  allow:
+    - dependency-type: "all"
   open-pull-requests-limit: 10
 - package-ecosystem: github-actions
   directory: "/"
