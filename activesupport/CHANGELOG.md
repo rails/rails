@@ -1,3 +1,10 @@
+*   Fix execution context corruption when nesting is enabled during an execution.
+
+    Loading integration test helpers inside a running executor no longer masks
+    the original exception with a `NoMethodError` from the error reporter.
+
+    *lazerg, akasakariko*
+
 *   Shift a local time in a DST spring-forward gap forward by the gap's length
     instead of one hour.
 
