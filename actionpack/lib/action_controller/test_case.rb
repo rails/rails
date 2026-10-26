@@ -154,11 +154,6 @@ module ActionController
       self.path_parameters = path_parameters
     end
 
-    private
-      def nested_parameter?(value)
-        value.is_a?(Hash) || value.is_a?(Array)
-      end
-
     ENCODER = Class.new do
       include Rack::Test::Utils
 
@@ -187,6 +182,10 @@ module ActionController
     end.new
 
     private
+      def nested_parameter?(value)
+        value.is_a?(Hash) || value.is_a?(Array)
+      end
+
       def params_parsers
         super.merge @custom_param_parsers
       end
