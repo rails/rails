@@ -818,7 +818,7 @@ You can exclude certain requests from Host Authorization checks by setting
 ```ruby
 # Exclude requests for the /healthcheck/ path from host checking
 Rails.application.config.host_authorization = {
-  exclude: ->(request) { request.path.include?("healthcheck") }
+  exclude: ->(request) { request.path.start_with?("/healthcheck") }
 }
 ```
 

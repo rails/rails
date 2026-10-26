@@ -11,7 +11,9 @@ module ActionDispatch
   #
   # Requests can opt-out of Host Authorization with `exclude`:
   #
-  #     config.host_authorization = { exclude: ->(request) { request.path =~ /healthcheck/ } }
+  #     config.host_authorization = {
+  #       exclude: ->(request) { request.path.start_with?("/healthcheck") }
+  #     }
   #
   # When a request comes to an unauthorized host, the `response_app` application
   # will be executed and rendered. If no `response_app` is given, a default one
