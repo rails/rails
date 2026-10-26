@@ -43,7 +43,7 @@ module ActiveRecord
         attributes_from_database, new_record, associations = state
 
         builder = self.class.attributes_builder
-        attributes = builder.build_from_database(builder.row_from_hash(attributes_from_database))
+        attributes = builder.build_from_indexed_row(builder.row_from_hash(attributes_from_database))
         init_with_attributes(attributes, new_record)
 
         if associations

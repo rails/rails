@@ -88,13 +88,23 @@ module ActiveModel
 
       EMPTY_ROW = [].freeze
 
+      # Only for backwards compatibility with gems that call this with
+      # Hashes (like paquito). Don't use it; use #build_from_indexed_row.
+      def build_from_database(values = {}, additional_types = {})
+        row = row_from_hash(values)
+        return build_from_indexed_row(row) if additional_types.empty?
+
+        builder = with_types(additional_types)
+        builder.build_from_row(row.row, builder.typed_indexes(row.indexes, additional_types))
+      end
+
       # +values+ is an IndexedRow of raw values from the database. Use
       # #row_from_hash to build one from a Hash.
-      def build_from_database(values)
+      def build_from_indexed_row(values)
         build_from_row(values.row, values.indexes)
       end
 
-      # Like #build_from_database, but takes the row Array and the indexes
+      # Like #build_from_indexed_row, but takes the row Array and the indexes
       # it's laid out with, which can type the names after the ones in
       # #indexes, such as aliases (see #typed_indexes).
       def build_from_row(row, indexes)
