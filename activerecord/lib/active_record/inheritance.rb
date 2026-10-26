@@ -246,7 +246,7 @@ module ActiveRecord
         other
       end
 
-      def initialize_clone(other) # :nodoc:
+      def initialize_clone(...) # :nodoc:
         super
         set_base_class
       end

@@ -161,7 +161,7 @@ module ActiveModel
       super
     end
 
-    def initialize_clone(_)
+    def initialize_clone(...)
       @attributes = @attributes.clone
       super
     end
