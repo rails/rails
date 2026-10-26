@@ -37,6 +37,7 @@ module ActiveModel
         reset_default_attributes
       end
 
+      #: () -> AttributeSet
       def _default_attributes # :nodoc:
         @default_attributes ||= AttributeSet.new(IndexedRow::Mutable[apply_pending_attribute_modifications({})])
       end

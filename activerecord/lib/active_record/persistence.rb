@@ -104,6 +104,7 @@ module ActiveRecord
       #
       # See `ActiveRecord::Inheritance#discriminate_class_for_record` to see
       # how this "single-table" inheritance mapping is implemented.
+      #: (Hash[String, untyped] | ActiveModel::IndexedRow, ?Hash[String, ActiveModel::Type::Value]) ?{ (ActiveRecord::Base) -> void } -> ActiveRecord::Base
       def instantiate(attributes, column_types = {}, &block)
         klass = discriminate_class_for_record(attributes)
         builder = klass.attributes_builder
@@ -292,6 +293,7 @@ module ActiveRecord
         # Given a class, a row Array and the indexes it's laid out with (see
         # Result#map_rows), `instantiate_instance_of` returns a new instance
         # of the class.
+        #: (singleton(ActiveRecord::Base), Array[untyped], Hash[String, Integer] | ActiveModel::IndexedRow::ExtendedIndexes) ?{ (ActiveRecord::Base) -> void } -> ActiveRecord::Base
         def instantiate_instance_of(klass, row, indexes, &block)
           attributes = klass.attributes_builder.build_from_row(row, indexes)
           klass.allocate.init_with_attributes(attributes, &block)
