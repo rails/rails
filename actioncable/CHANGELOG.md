@@ -1,3 +1,16 @@
+*   Allow configuring the Redis adapter's connection pool.
+
+    ```yaml
+    production:
+      adapter: redis
+      url: <%= ENV["REDIS_URL"] %>
+      pool:
+        size: 10
+        timeout: 5
+    ```
+
+    *Chris Oliver*
+
 *   Move `ActionCable::Server::Configuration` to `ActionCable::Configuration`.
 
     The old constant remains available as an alias.

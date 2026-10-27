@@ -15,7 +15,8 @@ module ActionCable
       # different Redis library than the redis gem. This is needed, for example, when
       # using Makara proxies for distributed Redis.
       cattr_accessor :redis_connector, default: ->(config) do
-        config = config.except(:adapter, :channel_prefix)
+        pool = config.fetch(:pool, {})
+        config = config.except(:adapter, :channel_prefix, :pool)
         config[:id] = "ActionCable-PID-#{$$}" unless config.key?(:id)
 
         redis_config = if config.key?(:sentinels)
@@ -23,7 +24,7 @@ module ActionCable
         else
           ::RedisClient.config(**config)
         end
-        redis_config.new_pool
+        redis_config.new_pool(**pool)
       end
 
       def initialize(*)

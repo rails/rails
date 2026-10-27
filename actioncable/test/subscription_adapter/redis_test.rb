@@ -195,6 +195,29 @@ class RedisAdapterTest::ConnectorWithExcluded < RedisAdapterTest::ConnectorDefau
   end
 end
 
+class RedisAdapterTest::ConnectorPool < RedisAdapterTest::ConnectorDefaultID
+  def cable_config
+    super.merge(pool: { size: 1, timeout: 0.1 })
+  end
+
+  test "sizes the connection pool from the config" do
+    assert_equal 1, @adapter.send(:redis_connection).size
+  end
+
+  test "waits for a connection as long as the configured timeout" do
+    pool = @adapter.send(:redis_connection)
+
+    pool.with do
+      assert_raises(RedisClient::CheckoutTimeoutError) do
+        Thread.new do
+          Thread.current.report_on_exception = false
+          pool.with { }
+        end.value
+      end
+    end
+  end
+end
+
 class RedisAdapterTest::SentinelConfigAsHash < ActionCable::TestCase
   def setup
     server = ActionCable::Server::Base.new
