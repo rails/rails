@@ -118,7 +118,7 @@ class ConnectionMonitor {
 
 }
 
-ConnectionMonitor.staleThreshold = 6 // Server::Connections::BEAT_INTERVAL * 2 (missed two pings)
+ConnectionMonitor.staleThreshold = 6 // config.action_cable.beat_interval * 2 (missed two pings)
 ConnectionMonitor.reconnectionBackoffRate = 0.15
 
 export default ConnectionMonitor
