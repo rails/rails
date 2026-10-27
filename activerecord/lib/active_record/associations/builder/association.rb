@@ -104,22 +104,14 @@ module ActiveRecord::Associations::Builder # :nodoc:
     def self.define_accessors(model, reflection)
       mixin = model.generated_association_methods
       name = reflection.name
-      define_readers(mixin, name)
-      define_writers(mixin, name)
-    end
 
-    def self.define_readers(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
           association = association(:#{name})
           deprecated_associations_api_guard(association, __method__)
           association.reader
         end
-      CODE
-    end
 
-    def self.define_writers(mixin, name)
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}=(value)
           association = association(:#{name})
           deprecated_associations_api_guard(association, __method__)
@@ -184,7 +176,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     private_class_method :build_scope, :macro, :valid_options, :validate_options, :define_extensions,
-      :define_callbacks, :define_accessors, :define_readers, :define_writers, :define_validations,
+      :define_callbacks, :define_accessors, :define_validations,
       :define_change_tracking_methods, :valid_dependent_options, :check_dependent_options,
       :add_destroy_callbacks, :add_after_commit_jobs_callback
   end
