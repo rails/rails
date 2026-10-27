@@ -1926,10 +1926,11 @@ module ActiveRecord
 
     protected
       def build_subquery(subquery_alias, select_value) # :nodoc:
-        subquery = except(:optimizer_hints).arel.as(subquery_alias)
+        global_hints, local_hints = model.adapter_class.partition_optimizer_hints(optimizer_hints_values)
+        subquery = except(:optimizer_hints).optimizer_hints!(*local_hints).arel.as(subquery_alias)
 
         Arel::SelectManager.new(subquery).project(select_value).tap do |arel|
-          arel.optimizer_hints(*optimizer_hints_values) unless optimizer_hints_values.empty?
+          arel.optimizer_hints(*global_hints) unless global_hints.empty?
         end
       end
 

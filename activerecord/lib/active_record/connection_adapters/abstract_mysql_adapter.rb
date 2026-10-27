@@ -77,9 +77,30 @@ module ActiveRecord
           end
       end
 
+      OPTIMIZER_HINT = /\s*(\w+\s*\((?:[^()'"`]|'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`[^`]*`)*\))/ # :nodoc:
+      OPTIMIZER_HINTS = /\A(?:#{OPTIMIZER_HINT})+\s*\z/ # :nodoc:
+      GLOBAL_OPTIMIZER_HINT = /\A(?:\s*\/\*\+)?\s*(?:MAX_EXECUTION_TIME|RESOURCE_GROUP|SET_VAR)\b/i # :nodoc:
+      private_constant :OPTIMIZER_HINT, :OPTIMIZER_HINTS, :GLOBAL_OPTIMIZER_HINT
+
       class << self
         def ractor_connection_proxy_class # :nodoc:
           RactorConnectionHandler::MysqlProxyAdapter
+        end
+
+        # See https://dev.mysql.com/doc/refman/en/optimizer-hints.html#optimizer-hints-overview
+        def partition_optimizer_hints(hints) # :nodoc:
+          hints.flat_map { |hint| split_optimizer_hint(hint) }.partition do |hint|
+            GLOBAL_OPTIMIZER_HINT.match?(hint)
+          end
+        end
+
+        def split_optimizer_hint(hint) # :nodoc:
+          body = hint.sub(%r{\A\s*/\*\+}, "").sub(%r{\*/\s*\z}, "")
+          return [hint] unless OPTIMIZER_HINTS.match?(body)
+
+          hints = body.scan(OPTIMIZER_HINT).flatten
+          hints.map! { |h| Arel.sql(h) } if Arel::Nodes::SqlLiteral === hint
+          hints
         end
 
         def cli_args(config) # :nodoc:
