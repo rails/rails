@@ -108,16 +108,16 @@ module ActiveModel
         end
 
         def apply_scale(value)
-          if scale.nil? || already_scaled?(value)
-            value
-          else
+          if scale && !already_scaled?(value)
             value.round(scale)
+          else
+            value
           end
         end
 
         # BigDecimal#round returns an Integer when scale is 0 or less.
         def already_scaled?(value)
-          scale.positive? && value.is_a?(::BigDecimal) && value.scale <= scale
+          scale.positive? && value.is_a?(::BigDecimal) && value.scale.between?(0, scale)
         end
     end
   end

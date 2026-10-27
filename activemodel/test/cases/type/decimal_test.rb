@@ -71,6 +71,23 @@ module ActiveModel
         assert_equal BigDecimal("1234.57"), type.cast(BigDecimal("1234.567"))
       end
 
+      def test_type_cast_big_decimal_whose_scale_overflows_rounds_it
+        type = Decimal.new(precision: 10, scale: 2)
+
+        assert_predicate type.cast(BigDecimal("1.5e-9223372036854775807")), :zero?
+      end
+
+      def test_type_cast_big_decimal_nan_raises_under_bigdecimal_exception_mode
+        nan = BigDecimal("NaN")
+
+        BigDecimal.save_exception_mode do
+          BigDecimal.mode(BigDecimal::EXCEPTION_NaN, true)
+
+          assert_raises(FloatDomainError) { Decimal.new.cast(nan) }
+          assert_raises(FloatDomainError) { Decimal.new(precision: 10, scale: 2).cast(nan) }
+        end
+      end
+
       def test_type_cast_big_decimal_with_zero_or_negative_scale_rounds_it_to_an_integer
         assert_equal 1234, Decimal.new(scale: 0).cast(BigDecimal("1234"))
         assert_equal 1200, Decimal.new(scale: -2).cast(BigDecimal("1234.5"))
