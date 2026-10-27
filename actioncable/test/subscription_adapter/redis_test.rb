@@ -103,6 +103,35 @@ class RedisAdapterTest < ActionCable::TestCase
     end
   end
 
+  # Records the commands each round trip to Redis carries: one for a command sent
+  # on its own, all of them for a pipeline.
+  module RecordRoundTrips
+    def call(command, redis_config)
+      redis_config.custom[:round_trips] << [command]
+      super
+    end
+
+    def call_pipelined(commands, redis_config)
+      redis_config.custom[:round_trips] << commands
+      super
+    end
+  end
+
+  def test_broadcast_batch_publishes_in_order_in_one_round_trip
+    round_trips = Queue.new
+    server = ActionCable::Server::Base.new(config: ActionCable::Server::Configuration.new)
+    server.config.cable = cable_config.merge(middlewares: [RecordRoundTrips], custom: { round_trips: }).with_indifferent_access
+    adapter = server.config.pubsub_adapter.new(server)
+
+    adapter.broadcast_batch([["channel", "one"], ["other channel", "two"], ["channel", "three"]])
+
+    recorded = Array.new(round_trips.size) { round_trips.pop }
+    publishes = recorded.select { |commands| commands.any? { |command| command.first == "publish" } }
+    assert_equal [[["publish", "channel", "one"], ["publish", "other channel", "two"], ["publish", "channel", "three"]]], publishes
+  ensure
+    adapter&.shutdown
+  end
+
   private
     def redis_conn
       @redis_conn ||= ::RedisClient.config(**cable_config.except(:adapter)).new_client

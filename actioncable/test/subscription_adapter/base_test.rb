@@ -65,4 +65,14 @@ class ActionCable::SubscriptionAdapter::BaseTest < ActionCable::TestCase
       SuccessAdapter.new(@server).unsubscribe("channel", callback)
     end
   end
+
+  test "#broadcast_batch broadcasts each pair in order by default" do
+    adapter = SuccessAdapter.new(@server)
+    sent = []
+    adapter.define_singleton_method(:broadcast) { |channel, payload| sent << [channel, payload] }
+
+    adapter.broadcast_batch([["channel", "one"], ["other", "two"], ["channel", "three"]])
+
+    assert_equal [["channel", "one"], ["other", "two"], ["channel", "three"]], sent
+  end
 end
