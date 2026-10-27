@@ -5,7 +5,6 @@
 require "active_support/callbacks"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
 require "concurrent/executor/thread_pool_executor"
-require "concurrent/executor/serialized_execution_delegator"
 
 module ActionCable
   module Server
@@ -28,8 +27,8 @@ module ActionCable
         )
       end
 
-      # Stop processing work: any work that has not already started running will be
-      # discarded from the queue
+      # Stop accepting work. Work posted after this is rejected. Work already queued,
+      # including work waiting behind a connection's earlier jobs, still runs.
       def halt
         @executor.shutdown
       end
@@ -54,12 +53,6 @@ module ActionCable
         executor.post do
           invoke(receiver, method, *args, connection: connection, &block)
         end
-      end
-
-      # Returns an executor that runs the work posted to it on this pool's threads,
-      # one job at a time, in the order it was posted.
-      def serial_executor
-        Concurrent::SerializedExecutionDelegator.new(@executor)
       end
 
       def invoke(receiver, method, *args, connection:, &block)
