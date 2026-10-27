@@ -1501,6 +1501,57 @@ class RequestParameterFilter < BaseRequestTest
     assert_equal request.script_name + "/authenticate?username=sikachu&secret=[FILTERED]", path
   end
 
+  test "filtered_path matches decoded query parameter names" do
+    [
+      ["%70assword", :password],
+      ["%70%61%73%73%77%6f%72%64", /\Apassword\z/],
+      ["user%5B%70assword%5D", :password],
+      ["access+token", "access token"],
+      ["access%20token", "access token"],
+      ["p%C3%A4ssword", "pässword"]
+    ].each do |key, filter|
+      request = stub_request(
+        "QUERY_STRING" => "#{key}=secret&visible=hello%20world&#{key}=another-secret",
+        "PATH_INFO" => "/authenticate",
+        "action_dispatch.parameter_filter" => [filter]
+      )
+
+      assert_equal "/authenticate?#{key}=[FILTERED]&visible=hello%20world&#{key}=[FILTERED]", request.filtered_path
+    end
+  end
+
+  test "filtered_path passes decoded query parameter names to proc filters" do
+    request = stub_request(
+      "QUERY_STRING" => "%70assword=secret&visible=hello%20world",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [
+        ->(key, value, original_params) { value.replace("[FILTERED]") if key == "password" && original_params[key] == "secret" }
+      ]
+    )
+
+    assert_equal "/authenticate?%70assword=[FILTERED]&visible=hello%20world", request.filtered_path
+  end
+
+  test "filtered_path decodes query parameter names only once" do
+    request = stub_request(
+      "QUERY_STRING" => "%2570assword=visible&password=secret",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [:password]
+    )
+
+    assert_equal "/authenticate?%2570assword=visible&password=[FILTERED]", request.filtered_path
+  end
+
+  test "filtered_path masks values of query parameter names that cannot be decoded" do
+    request = stub_request(
+      "QUERY_STRING" => "%=secret&%GG=secret&%FF=secret&password%=secret&%FFpassword=secret&visible=hello%20world",
+      "PATH_INFO" => "/authenticate",
+      "action_dispatch.parameter_filter" => [:password]
+    )
+
+    assert_equal "/authenticate?%=[FILTERED]&%GG=[FILTERED]&%FF=[FILTERED]&password%=[FILTERED]&%FFpassword=[FILTERED]&visible=hello%20world", request.filtered_path
+  end
+
   test "filtered_path should not unescape a genuine '[FILTERED]' value" do
     request = stub_request(
       "QUERY_STRING" => "secret=bd4f21f&genuine=%5BFILTERED%5D",

@@ -1,3 +1,11 @@
+*   Match URL-decoded query parameter names when filtering request and redirect logs.
+
+    A parameter such as `%70assword` is now matched by a `:password` filter.
+    Preserve the original URL encoding, parameter order, and duplicate keys in
+    the filtered URL. Actual redirect locations are unchanged.
+
+    *Basti*
+
 *   Keep route redirects from a string template on the request host.
 
     For `redirect("/%{path}")`, the request `GET /old/%2Finjected.example` made
