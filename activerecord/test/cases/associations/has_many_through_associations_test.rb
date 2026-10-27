@@ -1658,31 +1658,35 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_do_not_cache_association_reader_if_the_though_method_has_default_scopes
-    member = Member.create!
     club = Club.create!
-    TenantMembership.create!(
-      member: member,
-      club: club
-    )
+    member = Member.create!
+    other_member = Member.create!
+    TenantMembership.create!(member: member, club: club)
+    TenantMembership.create!(member: other_member, club: club)
 
     TenantMembership.current_member = member
+    assert_equal [member], club.tenant_members
 
-    tenant_clubs = member.tenant_clubs
-    assert_equal [club], tenant_clubs
-
-    TenantMembership.current_member = nil
-
-    other_member = Member.create!
-    other_club = Club.create!
-    TenantMembership.create!(
-      member: other_member,
-      club: other_club
-    )
-
-    tenant_clubs = other_member.tenant_clubs
-    assert_equal [other_club], tenant_clubs
+    TenantMembership.current_member = other_member
+    assert_equal [other_member], Club.find(club.id).tenant_members
   ensure
     TenantMembership.current_member = nil
+  end
+
+  def test_has_many_through_do_not_cache_association_reader_if_the_though_model_has_a_default_scope_method
+    member = Member.create!
+    favorite_club = Club.create!
+    other_club = Club.create!
+    MembershipWithDefaultScopeMethod.create!(member: member, club: favorite_club, favorite: true)
+    MembershipWithDefaultScopeMethod.create!(member: member, club: other_club, favorite: false)
+
+    MembershipWithDefaultScopeMethod.current_favorite = true
+    assert_equal [favorite_club], member.clubs_with_default_scope_method
+
+    MembershipWithDefaultScopeMethod.current_favorite = false
+    assert_equal [other_club], Member.find(member.id).clubs_with_default_scope_method
+  ensure
+    MembershipWithDefaultScopeMethod.current_favorite = nil
   end
 
   def test_has_many_through_with_scope_that_has_joined_same_table_with_parent_relation

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"].freeze

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "active_record/relation/batches/batch_enumerator"
 
 module ActiveRecord
@@ -259,7 +261,7 @@ module ActiveRecord
     def in_batches(of: 1000, start: nil, finish: nil, load: false, error_on_ignore: nil, cursor: primary_key, order: DEFAULT_ORDER, use_ranges: nil, &block)
       ensure_valid_options_for_batching!(cursor, start, finish, order)
 
-      if arel.orders.present?
+      if order_values.any?(&:present?) || default_order_values.any?(&:present?)
         act_on_ignored_order(error_on_ignore)
       end
 

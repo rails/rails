@@ -380,6 +380,14 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal topic.attributes, db_attributes
   end
 
+  test "attributes_for_database follows column order for attributes assigned on a new record" do
+    topic = Topic.new(content: "content", title: "title", author_name: "David")
+
+    assert_equal Topic.column_names, topic.attributes_for_database.keys
+    assert_equal Topic.column_names, topic.attributes_before_type_cast.keys
+    assert_equal Topic.column_names, Topic.instantiate(topic.attributes_for_database).attributes.keys
+  end
+
   test "read attributes after type cast on a date" do
     tz = "Pacific Time (US & Canada)"
 
@@ -534,6 +542,17 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_nothing_raised { computer[:no_column_exists] }
   end
 
+  test "generated reader raises from the caller when the attribute isn't selected" do
+    topic = Topic.select(:id).first
+
+    line = __LINE__ + 2
+    error = assert_raises(ActiveModel::MissingAttributeError, match: "missing attribute 'title' for Topic") do
+      topic.title
+    end
+
+    assert_includes error.backtrace.find { |frame| frame.start_with?(__FILE__) }, "#{__FILE__}:#{line}:in"
+  end
+
   test "generated reader preserves a missing attribute error raised by the type" do
     type = Class.new(ActiveRecord::Type::String) do
       def deserialize(value)
@@ -560,12 +579,31 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_nil topic.read_attr("no_column_exists")
   end
 
-  test "read_attr raises ActiveModel::MissingAttributeError when the attribute isn't selected" do
+  test "read_attr returns nil when the attribute isn't selected" do
     computer = Computer.select(:id, :extendedWarranty).first
-    assert_raises(ActiveModel::MissingAttributeError, match: /missing attribute 'developer'/) do
-      computer.read_attr("developer")
+
+    assert_nil computer.read_attr("developer")
+    assert_equal computer.extendedWarranty, computer.read_attr("extendedWarranty")
+  end
+
+  test "internal readers preserve a missing attribute error raised by the type" do
+    type = Class.new(ActiveRecord::Type::String) do
+      def deserialize(value)
+        raise ActiveModel::MissingAttributeError, "raised by the type" unless value.nil?
+        super
+      end
+    end.new
+
+    model = Class.new(ActiveRecord::Base) do
+      self.table_name = "topics"
+      attribute :title, type
+      alias_attribute :heading, :title
     end
-    assert_nothing_raised { computer.read_attr("extendedWarranty") }
+
+    record = model.instantiate("title" => "Hello")
+    assert_raises(ActiveModel::MissingAttributeError, match: "raised by the type") { record.read_attr("title") }
+    assert_raises(ActiveModel::MissingAttributeError, match: "raised by the type") { record.read_attr("heading") }
+    assert_raises(ActiveModel::MissingAttributeError, match: "raised by the type") { record._read_attribute("title") }
   end
 
   test "read_attribute when false" do

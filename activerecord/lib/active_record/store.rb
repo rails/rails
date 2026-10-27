@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
-  # = Active Record \Store
+  # Active Record \Store
+  # ====================
   #
   # Store gives you a thin wrapper around serialize for the purpose of storing hashes in a single column.
   # It's like a simple key/value store baked into your record when you don't care about being able to
@@ -13,86 +15,93 @@ module ActiveRecord
   # of the model. This is very helpful for easily exposing store keys to a form or elsewhere that's
   # already built around just accessing attributes on the model.
   #
-  # Every accessor comes with dirty tracking methods (+key_changed?+, +key_was+ and +key_change+) and
-  # methods to access the changes made during the last save (+saved_change_to_key?+, +saved_change_to_key+ and
-  # +key_before_last_save+).
+  # Every accessor comes with dirty tracking methods (`key_changed?`, `key_was` and `key_change`) and
+  # methods to access the changes made during the last save (`saved_change_to_key?`, `saved_change_to_key` and
+  # `key_before_last_save`).
   #
-  # NOTE: There is no +key_will_change!+ method for accessors, use +store_will_change!+ instead.
+  # NOTE: There is no `key_will_change!` method for accessors, use `store_will_change!` instead.
   #
   # Make sure that you declare the database column used for the serialized store as a text, so there's
   # plenty of room.
   #
   # You can set custom coder to encode/decode your serialized attributes to/from different formats.
-  # JSON, YAML, Marshal are supported out of the box. Generally it can be any wrapper that provides +load+ and +dump+.
+  # JSON, YAML, Marshal are supported out of the box. Generally it can be any wrapper that provides `load` and `dump`.
   #
-  # NOTE: If you are using structured database data types (e.g. PostgreSQL +hstore+/+json+, MySQL 5.7+
-  # +json+, or SQLite 3.38+ +json+) there is no need for the serialization provided by {.store}[rdoc-ref:rdoc-ref:ClassMethods#store].
-  # Simply use {.store_accessor}[rdoc-ref:ClassMethods#store_accessor] instead to generate
+  # NOTE: If you are using structured database data types (e.g. PostgreSQL `hstore`/`json`, MySQL 5.7+
+  # `json`, or SQLite 3.38+ `json`) there is no need for the serialization provided by [.store](rdoc-ref:rdoc-ref:ClassMethods#store).
+  # Simply use [.store_accessor](rdoc-ref:ClassMethods#store_accessor) instead to generate
   # the accessor methods. Be aware that these columns use a string keyed hash and do not allow access
   # using a symbol.
   #
-  # NOTE: The default validations with the exception of +uniqueness+ will work.
-  # For example, if you want to check for +uniqueness+ with +hstore+ you will
+  # NOTE: The default validations with the exception of `uniqueness` will work.
+  # For example, if you want to check for `uniqueness` with `hstore` you will
   # need to use a custom validation to handle it.
   #
   # Examples:
   #
-  #   class User < ActiveRecord::Base
-  #     store :settings, accessors: [ :color, :homepage ], coder: JSON
-  #     store :parent, accessors: [ :name ], coder: JSON, prefix: true
-  #     store :spouse, accessors: [ :name ], coder: JSON, prefix: :partner
-  #     store :settings, accessors: [ :two_factor_auth ], suffix: true
-  #     store :settings, accessors: [ :login_retry ], suffix: :config
-  #   end
+  # ```
+  # class User < ActiveRecord::Base
+  #   store :settings, accessors: [ :color, :homepage ], coder: JSON
+  #   store :parent, accessors: [ :name ], coder: JSON, prefix: true
+  #   store :spouse, accessors: [ :name ], coder: JSON, prefix: :partner
+  #   store :settings, accessors: [ :two_factor_auth ], suffix: true
+  #   store :settings, accessors: [ :login_retry ], suffix: :config
+  # end
   #
-  #   u = User.create!(color: 'black', homepage: '37signals.com', parent_name: 'Mary', partner_name: 'Lily')
-  #   u.color                          # Accessor stored attribute
-  #   u.parent_name                    # Accessor stored attribute with prefix
-  #   u.partner_name                   # Accessor stored attribute with custom prefix
-  #   u.two_factor_auth_settings       # Accessor stored attribute with suffix
-  #   u.login_retry_config             # Accessor stored attribute with custom suffix
-  #   u.settings[:country] = 'Denmark' # Any attribute, even if not specified with an accessor
+  # u = User.create!(color: 'black', homepage: '37signals.com', parent_name: 'Mary', partner_name: 'Lily')
+  # u.color                          # Accessor stored attribute
+  # u.parent_name                    # Accessor stored attribute with prefix
+  # u.partner_name                   # Accessor stored attribute with custom prefix
+  # u.two_factor_auth_settings       # Accessor stored attribute with suffix
+  # u.login_retry_config             # Accessor stored attribute with custom suffix
+  # u.settings[:country] = 'Denmark' # Any attribute, even if not specified with an accessor
   #
-  #   # There is no difference between strings and symbols for accessing custom attributes
-  #   u.settings[:country]  # => 'Denmark'
-  #   u.settings['country'] # => 'Denmark'
+  # # There is no difference between strings and symbols for accessing custom attributes
+  # u.settings[:country]  # => 'Denmark'
+  # u.settings['country'] # => 'Denmark'
   #
-  #   # Dirty tracking
-  #   u.color = 'green'
-  #   u.color_changed? # => true
-  #   u.color_was # => 'black'
-  #   u.color_change # => ['black', 'green']
+  # # Dirty tracking
+  # u.color = 'green'
+  # u.color_changed? # => true
+  # u.color_was # => 'black'
+  # u.color_change # => ['black', 'green']
   #
-  #   # Add additional accessors to an existing store through store_accessor
-  #   class SuperUser < User
-  #     store_accessor :settings, :privileges, :servants
-  #     store_accessor :parent, :birthday, prefix: true
-  #     store_accessor :settings, :secret_question, suffix: :config
-  #   end
+  # # Add additional accessors to an existing store through store_accessor
+  # class SuperUser < User
+  #   store_accessor :settings, :privileges, :servants
+  #   store_accessor :parent, :birthday, prefix: true
+  #   store_accessor :settings, :secret_question, suffix: :config
+  # end
+  # ```
   #
-  # The stored attribute names can be retrieved using {.stored_attributes}[rdoc-ref:rdoc-ref:ClassMethods#stored_attributes].
+  # The stored attribute names can be retrieved using [.stored_attributes](rdoc-ref:rdoc-ref:ClassMethods#stored_attributes).
   #
-  #   User.stored_attributes[:settings] # => [:color, :homepage, :two_factor_auth, :login_retry]
+  # ```
+  # User.stored_attributes[:settings] # => [:color, :homepage, :two_factor_auth, :login_retry]
+  # ```
   #
-  # == Overwriting default accessors
+  # Overwriting default accessors
+  # -----------------------------
   #
   # All stored values are automatically available through accessors on the Active Record
   # object, but sometimes you want to specialize this behavior. This can be done by overwriting
-  # the default accessors (using the same name as the attribute) and calling <tt>super</tt>
+  # the default accessors (using the same name as the attribute) and calling `super`
   # to actually change things.
   #
-  #   class Song < ActiveRecord::Base
-  #     # Uses a stored integer to hold the volume adjustment of the song
-  #     store :settings, accessors: [:volume_adjustment]
+  # ```
+  # class Song < ActiveRecord::Base
+  #   # Uses a stored integer to hold the volume adjustment of the song
+  #   store :settings, accessors: [:volume_adjustment]
   #
-  #     def volume_adjustment=(decibels)
-  #       super(decibels.to_i)
-  #     end
-  #
-  #     def volume_adjustment
-  #       super.to_i
-  #     end
+  #   def volume_adjustment=(decibels)
+  #     super(decibels.to_i)
   #   end
+  #
+  #   def volume_adjustment
+  #     super.to_i
+  #   end
+  # end
+  # ```
   module Store
     extend ActiveSupport::Concern
 

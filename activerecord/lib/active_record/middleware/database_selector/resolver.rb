@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_record/middleware/database_selector/resolver/session"
 require "active_support/core_ext/numeric/time"
 

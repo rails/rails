@@ -900,6 +900,59 @@ module ApplicationTests
       assert File.exist?(app_path("tmp/local_secret.txt"))
     end
 
+    unless Gem.win_platform?
+      test "generated local secret file is only readable by the owner" do
+        app_file "config/initializers/secret_token.rb", <<-RUBY
+          Rails.application.config.secret_key_base = nil
+        RUBY
+
+        with_umask(0o022) do
+          # The file must be private even when its permissions cannot be repaired.
+          File.stub(:chmod, ->(*) { raise Errno::EPERM }) do
+            app "development"
+          end
+        end
+
+        assert_not_nil app.secret_key_base
+        assert_equal 0o600, local_secret_file_mode
+      end
+
+      test "existing world-readable local secret file is tightened to owner-only" do
+        app_file "config/initializers/secret_token.rb", <<-RUBY
+          Rails.application.config.secret_key_base = nil
+        RUBY
+
+        secret = SecureRandom.hex(64)
+        app_dir("tmp")
+        File.binwrite(app_path("tmp/local_secret.txt"), secret)
+        File.chmod(0o644, app_path("tmp/local_secret.txt"))
+
+        app "development"
+
+        assert_equal secret, app.secret_key_base
+        assert_equal secret, File.binread(app_path("tmp/local_secret.txt"))
+        assert_equal 0o600, local_secret_file_mode
+      end
+
+      test "existing empty local secret file is regenerated as owner-only" do
+        app_file "config/initializers/secret_token.rb", <<-RUBY
+          Rails.application.config.secret_key_base = nil
+        RUBY
+
+        app_dir("tmp")
+        File.binwrite(app_path("tmp/local_secret.txt"), "")
+        File.chmod(0o644, app_path("tmp/local_secret.txt"))
+
+        with_umask(0o022) do
+          app "development"
+        end
+
+        assert_not_nil app.secret_key_base
+        assert_equal app.secret_key_base, File.binread(app_path("tmp/local_secret.txt"))
+        assert_equal 0o600, local_secret_file_mode
+      end
+    end
+
     test "application will generate secret_key_base in tmp file if blank in test" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.config.secret_key_base = nil
@@ -4661,7 +4714,16 @@ module ApplicationTests
       assert_equal true, Rails.application.config.rake_eager_load
     end
 
-    test "ActiveSupport::Messages::Codec.default_serializer is :json_allow_marshal by default for new apps" do
+    test "ActiveSupport::Messages::Codec.default_serializer is :json by default for new apps" do
+      app "development"
+
+      assert_equal :json, ActiveSupport::Messages::Codec.default_serializer
+    end
+
+    test "ActiveSupport::Messages::Codec.default_serializer is :json_allow_marshal for apps upgraded from 7.1" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "7.1"'
+
       app "development"
 
       assert_equal :json_allow_marshal, ActiveSupport::Messages::Codec.default_serializer
@@ -5594,6 +5656,17 @@ module ApplicationTests
     end
 
     private
+      def with_umask(umask)
+        old_umask = File.umask(umask)
+        yield
+      ensure
+        File.umask(old_umask)
+      end
+
+      def local_secret_file_mode
+        File.stat(app_path("tmp/local_secret.txt")).mode & 0o777
+      end
+
       def set_custom_config(contents, config_source = "custom".inspect)
         app_file "config/custom.yml", contents
 

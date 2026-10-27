@@ -407,6 +407,10 @@ module Rails
             active_job.enqueue_after_transaction_commit = true
           end
 
+          if respond_to?(:active_support)
+            active_support.message_serializer = :json
+          end
+
           ActiveSupport.raise_on_invalid_time_zone_parse = true
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -712,11 +716,19 @@ module Rails
             nil
           end
 
-          return random_key if random_key.present?
+          if random_key.blank?
+            random_key = SecureRandom.hex(64)
+            FileUtils.mkdir_p(key_file.dirname)
+            File.binwrite(key_file, random_key, perm: 0o600)
+          end
 
-          random_key = SecureRandom.hex(64)
-          FileUtils.mkdir_p(key_file.dirname)
-          File.binwrite(key_file, random_key)
+          unless Gem.win_platform?
+            begin
+              File.chmod(0o600, key_file) unless (File.stat(key_file).mode & 0o077).zero?
+            rescue SystemCallError
+            end
+          end
+
           random_key
         end
     end

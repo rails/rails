@@ -2165,6 +2165,19 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal books.map(&:id), Cpk::Book.find(string_ids).map(&:id)
   end
 
+  test "find with multiple sets of composite primary keys and select" do
+    books = [cpk_books(:cpk_great_author_first_book), cpk_books(:cpk_great_author_second_book)]
+    ids = books.map(&:id)
+
+    # Exercises find_some_ordered
+    found_books = Cpk::Book.select(:title).find(ids)
+    assert_equal books, found_books
+
+    # Exercises find_some (with explicit order)
+    found_books = Cpk::Book.select(:title).order(author_id: :asc, id: :asc).find(ids)
+    assert_equal books, found_books
+  end
+
   test "#find_by with composite primary key" do
     book = cpk_books(:cpk_book_with_generated_pk)
     assert_equal cpk_reviews(:first_book_review), Cpk::Review.find_by(book: book)

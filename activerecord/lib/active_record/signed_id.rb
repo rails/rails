@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
-  # = Active Record Signed Id
+  # Active Record Signed Id
+  # =======================
   module SignedId
     extend ActiveSupport::Concern
 
@@ -46,7 +48,7 @@ module ActiveRecord
       # a certain time period.
       #
       # You set the time period that the signed id is valid for during generation, using the instance method
-      # <tt>signed_id(expires_in: 15.minutes)</tt>. If the time has elapsed before a signed find is attempted,
+      # `signed_id(expires_in: 15.minutes)`. If the time has elapsed before a signed find is attempted,
       # the signed id will no longer be valid, and nil is returned.
       #
       # It's possible to further restrict the use of a signed id with a purpose. This helps when you have a
@@ -54,17 +56,19 @@ module ActiveRecord
       # or email verification. The purpose that was set during generation must match the purpose set when
       # finding. If there's a mismatch, nil is again returned.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   signed_id = User.first.signed_id expires_in: 15.minutes, purpose: :password_reset
+      # ```
+      # signed_id = User.first.signed_id expires_in: 15.minutes, purpose: :password_reset
       #
-      #   User.find_signed signed_id # => nil, since the purpose does not match
+      # User.find_signed signed_id # => nil, since the purpose does not match
       #
-      #   travel 16.minutes
-      #   User.find_signed signed_id, purpose: :password_reset # => nil, since the signed id has expired
+      # travel 16.minutes
+      # User.find_signed signed_id, purpose: :password_reset # => nil, since the signed id has expired
       #
-      #   travel_back
-      #   User.find_signed signed_id, purpose: :password_reset # => User.first
+      # travel_back
+      # User.find_signed signed_id, purpose: :password_reset # => User.first
+      # ```
       def find_signed(signed_id, purpose: nil, on_rotation: nil)
         raise UnknownPrimaryKey.new(self) if primary_key.nil?
 
@@ -75,17 +79,19 @@ module ActiveRecord
       end
 
       # Works like find_signed, but will raise an ActiveSupport::MessageVerifier::InvalidSignature
-      # exception if the +signed_id+ has either expired, has a purpose mismatch, is for another record,
+      # exception if the `signed_id` has either expired, has a purpose mismatch, is for another record,
       # or has been tampered with. It will also raise an ActiveRecord::RecordNotFound exception if
       # the valid signed id can't find a record.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   User.find_signed! "bad data" # => ActiveSupport::MessageVerifier::InvalidSignature
+      # ```
+      # User.find_signed! "bad data" # => ActiveSupport::MessageVerifier::InvalidSignature
       #
-      #   signed_id = User.first.signed_id
-      #   User.first.destroy
-      #   User.find_signed! signed_id # => ActiveRecord::RecordNotFound
+      # signed_id = User.first.signed_id
+      # User.first.destroy
+      # User.find_signed! signed_id # => ActiveRecord::RecordNotFound
+      # ```
       def find_signed!(signed_id, purpose: nil, on_rotation: nil)
         options = { on_rotation: on_rotation }.compact
         if id = signed_id_verifier.verify(signed_id, purpose: combine_signed_id_purposes(purpose), **options)
@@ -134,28 +140,30 @@ module ActiveRecord
     end
 
 
-    # Returns a signed id that's generated using a preconfigured +ActiveSupport::MessageVerifier+ instance.
+    # Returns a signed id that's generated using a preconfigured `ActiveSupport::MessageVerifier` instance.
     #
     # This signed id is tamper proof, so it's safe to send in an email or otherwise share with the outside world.
-    # However, as with any message signed with a +ActiveSupport::MessageVerifier+,
-    # {the signed id is not encrypted}[link:classes/ActiveSupport/MessageVerifier.html#class-ActiveSupport::MessageVerifier-label-Signing+is+not+encryption].
+    # However, as with any message signed with a `ActiveSupport::MessageVerifier`,
+    # [the signed id is not encrypted](link:classes/ActiveSupport/MessageVerifier.html#class-ActiveSupport::MessageVerifier-label-Signing+is+not+encryption).
     # It's just encoded and protected against tampering.
     #
     # This means that the ID can be decoded by anyone; however, if tampered with (so to point to a different ID),
     # the cryptographic signature will no longer match, and the signed id will be considered invalid and return nil
-    # when passed to +find_signed+ (or raise with +find_signed!+).
+    # when passed to `find_signed` (or raise with `find_signed!`).
     #
     # It can furthermore be set to expire (the default is not to expire), and scoped down with a specific purpose.
-    # If the expiration date has been exceeded before +find_signed+ is called, the id won't find the designated
+    # If the expiration date has been exceeded before `find_signed` is called, the id won't find the designated
     # record. If a purpose is set, this too must match.
     #
     # If you accidentally let a signed id out in the wild that you wish to retract sooner than its expiration date
     # (or maybe you forgot to set an expiration date while meaning to!), you can use the purpose to essentially
     # version the signed_id, like so:
     #
-    #   user.signed_id purpose: :v2
+    # ```
+    # user.signed_id purpose: :v2
+    # ```
     #
-    # And you then change your +find_signed+ calls to require this new purpose. Any old signed ids that were not
+    # And you then change your `find_signed` calls to require this new purpose. Any old signed ids that were not
     # created with the purpose will no longer find the record.
     def signed_id(expires_in: nil, expires_at: nil, purpose: nil)
       raise ArgumentError, "Cannot get a signed_id for a new record" if new_record?

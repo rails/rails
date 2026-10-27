@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "delegate"
 
 module ActionMailer
@@ -34,7 +33,7 @@ module ActionMailer
     end
 
     # Method calls are delegated to the Mail::Message that's ready to deliver.
-    def __getobj__ # :nodoc:
+    def __getobj__(&) # :nodoc:
       @mail_message ||= processed_mailer.message
     end
 

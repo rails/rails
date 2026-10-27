@@ -2,6 +2,7 @@
 
 # :markup: markdown
 require "active_support/core_ext/object/duplicable"
+require "active_model/missing_attribute_error"
 
 module ActiveModel
   class Attribute # :nodoc:
@@ -48,7 +49,7 @@ module ActiveModel
       super
     end
 
-    def value(&)
+    def value
       # `defined?` is cheaper than `||=` when we get back falsy values
       @value = type_cast(value_before_type_cast) unless defined?(@value)
       @value
@@ -265,6 +266,11 @@ module ActiveModel
       end
 
       class Uninitialized < Attribute # :nodoc:
+        UNINITIALIZED_ERROR = ActiveModel::MissingAttributeError.new("uninitialized attribute").tap do |error|
+          error.set_backtrace([].freeze)
+        end.freeze
+        private_constant :UNINITIALIZED_ERROR
+
         UNINITIALIZED_ORIGINAL_VALUE = Object.new.freeze
 
         def initialize(name, type)
@@ -278,7 +284,7 @@ module ActiveModel
         end
 
         def value!
-          raise ActiveModel::MissingAttributeError, "missing attribute '#{name}'"
+          raise UNINITIALIZED_ERROR
         end
 
         def original_value

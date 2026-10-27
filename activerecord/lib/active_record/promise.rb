@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   class Promise < BasicObject
     undef_method :==, :!, :!=
@@ -15,8 +16,8 @@ module ActiveRecord
     end
 
     # Returns the query result.
-    # If the query wasn't completed yet, accessing +#value+ will block until the query completes.
-    # If the query failed, +#value+ will raise the corresponding error.
+    # If the query wasn't completed yet, accessing `#value` will block until the query completes.
+    # If the query failed, `#value` will raise the corresponding error.
     def value
       return @value if defined? @value
 
@@ -28,11 +29,13 @@ module ActiveRecord
       end
     end
 
-    # Returns a new +ActiveRecord::Promise+ that will apply the passed block
+    # Returns a new `ActiveRecord::Promise` that will apply the passed block
     # when the value is accessed:
     #
-    #   Post.async_pick(:title).then { |title| title.upcase }.value
-    #   # => "POST TITLE"
+    # ```
+    # Post.async_pick(:title).then { |title| title.upcase }.value
+    # # => "POST TITLE"
+    # ```
     def then(&block)
       Promise.new(@future_result, @block ? @block >> block : block)
     end

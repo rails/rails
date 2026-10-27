@@ -23,22 +23,52 @@ module ActionController
         @controller = controller
       end
 
-      %w(unshift insert insert_before insert_after swap delete delete! move move_before move_after use).each do |method|
-        class_eval(<<~CODE, __FILE__, __LINE__ + 1)
-          def #{method}(...)
-            stack = middleware_stack.dup
-            result = stack.#{method}(...)
-            replace_middleware_stack(stack)
-            result
-          end
-        CODE
+      def unshift(...)
+        update_middleware_stack { |stack| stack.unshift(...) }
+      end
+
+      def insert(...)
+        update_middleware_stack { |stack| stack.insert(...) }
+      end
+
+      def insert_before(...)
+        update_middleware_stack { |stack| stack.insert_before(...) }
+      end
+
+      def insert_after(...)
+        update_middleware_stack { |stack| stack.insert_after(...) }
+      end
+
+      def swap(...)
+        update_middleware_stack { |stack| stack.swap(...) }
+      end
+
+      def delete(...)
+        update_middleware_stack { |stack| stack.delete(...) }
+      end
+
+      def delete!(...)
+        update_middleware_stack { |stack| stack.delete!(...) }
+      end
+
+      def move(...)
+        update_middleware_stack { |stack| stack.move(...) }
+      end
+
+      def move_before(...)
+        update_middleware_stack { |stack| stack.move_before(...) }
+      end
+
+      def move_after(...)
+        update_middleware_stack { |stack| stack.move_after(...) }
+      end
+
+      def use(...)
+        update_middleware_stack { |stack| stack.use(...) }
       end
 
       def middlewares=(middlewares)
-        stack = middleware_stack.dup
-        stack.middlewares = middlewares
-        replace_middleware_stack(stack)
-        middlewares
+        update_middleware_stack { |stack| stack.middlewares = middlewares }
       end
 
       private
@@ -46,8 +76,11 @@ module ActionController
           @controller.middleware_stack
         end
 
-        def replace_middleware_stack(stack)
+        def update_middleware_stack
+          stack = middleware_stack.dup
+          result = yield stack
           @controller.middleware_stack = ActiveSupport::Ractors.try_make_shareable(stack)
+          result
         end
     end
 

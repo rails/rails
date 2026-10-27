@@ -257,6 +257,51 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     verify_redirect "http://www.example.com/names"
   end
 
+  def test_redirect_modulo_with_encoded_slash_in_leading_param_stays_on_host
+    draw do
+      get ":locale/account", to: redirect("/%{locale}/myaccount")
+    end
+
+    get "/%2Finjected/account"
+    verify_redirect "http://www.example.com/%2Finjected/myaccount"
+  end
+
+  def test_redirect_modulo_with_encoded_slash_in_leading_glob_stays_on_host
+    draw do
+      get "old/*path", to: redirect("/%{path}")
+    end
+
+    get "/old/%2Finjected"
+    verify_redirect "http://www.example.com/%2Finjected"
+  end
+
+  def test_redirect_modulo_with_encoded_slash_in_unprefixed_param_stays_on_host
+    draw do
+      get "old/:path", to: redirect("%{path}")
+    end
+
+    get "/old/%2F%2Finjected"
+    verify_redirect "http://www.example.com/%2Finjected"
+  end
+
+  def test_redirect_modulo_with_scheme_in_unprefixed_param_stays_on_host
+    draw do
+      get "old/:path", to: redirect("%{path}")
+    end
+
+    get "/old/https:%2F%2Finjected"
+    assert_equal "www.example.com", URI.parse(@response.headers["Location"]).host
+  end
+
+  def test_redirect_modulo_with_protocol_relative_template
+    draw do
+      get "assets/:name", to: redirect("//cdn.example.com/%{name}")
+    end
+
+    get "/assets/logo"
+    verify_redirect "http://cdn.example.com/logo"
+  end
+
   def test_redirect_proc
     draw do
       get "account/proc/:name", to: redirect { |params, req| "/#{params[:name].pluralize}" }
@@ -4592,6 +4637,9 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
       get "/wiki/*page" => ok, as: :wiki
       get "/articles/:id(.:format)" => ok, as: :article
       get "/reports/:id(.:format)" => ok, as: :report, defaults: { format: :json }
+      get "(/:locale)/products/:id(.:format)" => ok, as: :product
+      get "/things/:params" => ok, as: :thing
+      get "/items/:id(/:slug)(.:format)" => ok, as: :item
     end
   end
 
@@ -4671,6 +4719,94 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
     assert_equal "/reports/1", report_path(1, format: :json)
     assert_equal "/reports/1.xml", report_path(1, format: :xml)
     assert_equal "/reports/1", report_path(1)
+  end
+
+  test "options that do not shape the path generate the same URL as the general path" do
+    record = Struct.new(:to_param).new("42-hello-world")
+    [
+      { anchor: "comments" },
+      { host: "example.org", port: 8080, protocol: "https" },
+      { subdomain: "blog", host: "example.org" },
+      { domain: "example.net", host: "www.example.org" },
+      { only_path: true, host: "example.org" },
+      { script_name: "/blog", anchor: "x" },
+      { original_script_name: "/app", script_name: "/blog" },
+      { trailing_slash: true, anchor: "x" },
+      { format: :json, host: "example.org", anchor: "x" },
+      { anchor: nil },
+      {},
+      { page: 2 },
+      { page: nil, sort: "" },
+      { tags: ["foo bar", "baz"], filter: { name: "david", price: 100..200 } },
+      { q: "a b&c=d#e", record: record },
+      { "page" => 2, "host" => "example.org", "format" => "xml" },
+      { page: 2, anchor: "x", host: "example.org" },
+      { page: 2, format: :json },
+      { page: 2, trailing_slash: true },
+    ].product([:article_url, :article_path, :report_url, :report_path]).each do |options, helper|
+      call = "#{helper}(1, #{options.inspect})"
+      expected = Routes.stub(:optimize_routes_generation?, false) { public_send(helper, 1, **options) }
+      # The report route has a default format, which keeps a :format option on the general path.
+      general_path = helper.start_with?("report") ? Routes.method(:url_for) : ->(*) { flunk "#{call} called the general path" }
+      assert_equal expected, Routes.stub(:url_for, general_path) { public_send(helper, 1, **options) }, call
+    end
+  end
+
+  test "a format option on a route with another optional segment fills it from the request as the general path" do
+    stub(:url_options, { _recall: { slug: "hello-world" } }) do
+      [{ format: :json }, { format: :json, anchor: "x" }].each do |options|
+        expected = Routes.stub(:optimize_routes_generation?, false) { item_path(1, **options) }
+        assert_equal expected, item_path(1, **options), "item_path(1, #{options.inspect})"
+      end
+    end
+  end
+
+  test "a missing argument with options raises the general path's error" do
+    [{ anchor: "x" }, { host: "example.org" }, { format: :json }, { format: :json, anchor: "x" }, { page: 2 }].each do |options|
+      expected = Routes.stub(:optimize_routes_generation?, false) do
+        assert_raises(ActionController::UrlGenerationError) { article_path(nil, **options) }
+      end
+      error = assert_raises(ActionController::UrlGenerationError) { article_path(nil, **options) }
+      assert_equal expected.message, error.message, "article_path(nil, #{options.inspect})"
+    end
+  end
+
+  test "options on routes the general path generates differently behave as on the general path" do
+    generate = lambda do |helper, args, options|
+      public_send(helper, *args, **options)
+    rescue ActionController::UrlGenerationError => error
+      error.message
+    end
+
+    # A segment named like a reserved option, and an optional segment before a required one.
+    [
+      [:thing_path, [1], { anchor: "x" }],
+      [:product_path, [1], { anchor: "x" }],
+      [:product_path, [1], { format: :json }],
+      [:product_path, ["fr", 1], { anchor: "x" }],
+    ].each do |helper, args, options|
+      expected = Routes.stub(:optimize_routes_generation?, false) { generate.(helper, args, options) }
+      assert_equal expected, generate.(helper, args, options), "#{helper}(#{args.join(", ")}, #{options.inspect})"
+    end
+  end
+
+  test "options the general path reads keep it" do
+    [
+      { params: { page: 2 } },
+      { path_params: { id: 2 } },
+      { user: "david" },
+      { controller: "articles" },
+      { action: "show" },
+      { id: 2 },
+    ].each do |options|
+      expected = Routes.stub(:optimize_routes_generation?, false) { article_path(1, **options) }
+      general_path_calls = 0
+      url_for = Routes.method(:url_for)
+      Routes.stub(:url_for, ->(*args) { general_path_calls += 1; url_for.call(*args) }) do
+        assert_equal expected, article_path(1, **options)
+      end
+      assert_equal 1, general_path_calls, "article_path(1, #{options.inspect})"
+    end
   end
 end
 

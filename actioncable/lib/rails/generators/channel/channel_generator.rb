@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "rails/generators/js_package_manager"
 
 module Rails

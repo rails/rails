@@ -50,6 +50,17 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     assert_predicate ratings_column, :array?
   end
 
+  def test_immutable_strings_by_default_does_not_affect_array_columns
+    new_klass = Class.new(PgArray) do
+      self.immutable_strings_by_default = true
+    end
+
+    type = new_klass.type_for_attribute("tags")
+    assert_instance_of ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Array, type
+    assert_equal :string, type.type
+    assert_equal ["red"], new_klass.new(tags: ["red"]).tags
+  end
+
   def test_not_compatible_with_serialize_array
     new_klass = Class.new(PgArray) do
       serialize :tags, type: Array

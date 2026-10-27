@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 # Provides asynchronous analysis of ActiveStorage::Blob records via ActiveStorage::Blob#analyze_later.
 class ActiveStorage::AnalyzeJob < ActiveStorage::BaseJob
   queue_as { ActiveStorage.queues[:analysis] }

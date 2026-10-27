@@ -195,6 +195,26 @@ class KeyTest < ActiveRecord::TestCase
     assert_equal 7, Topic.primary_key_definition.value_of(topic)
   end
 
+  def test_value_of_reads_an_unselected_attribute_as_nil
+    topic = Topic.instantiate("id" => 7)
+    key = Key.for(:title)
+
+    assert_nil key.value_of(topic)
+    assert_nil key._value_of(topic)
+    assert_equal "", key.value_of(topic, [:to_s.to_proc])
+    assert_equal "", key._value_of(topic, [:to_s.to_proc])
+  end
+
+  def test_composite_value_of_reads_unselected_attributes_as_nil
+    topic = Topic.instantiate("id" => 7)
+    key = Key.for([:id, :title])
+
+    assert_equal [7, nil], key.value_of(topic)
+    assert_equal [7, nil], key._value_of(topic)
+    assert_equal [7, ""], key.value_of(topic, [nil, :to_s.to_proc])
+    assert_equal [7, ""], key._value_of(topic, [nil, :to_s.to_proc])
+  end
+
   def test_value_of_applies_normalizers_by_column_position
     book = Cpk::Book.new(id: [1, 3])
     key = Cpk::Book.primary_key_definition

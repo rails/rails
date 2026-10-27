@@ -345,7 +345,7 @@ module ActionDispatch # :nodoc:
 
       def validate(directive, sources)
         sources.each do |source|
-          if source.include?(";") || source != source.gsub(/[[:space:]]/, "")
+          if source.include?(";") || source.match?(/[[:space:]]/)
             raise InvalidDirectiveError, <<~MSG.squish
               Invalid Content Security Policy #{directive}: "#{source}".
               Directive values must not contain whitespace or semicolons.

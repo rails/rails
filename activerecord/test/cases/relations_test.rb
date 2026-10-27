@@ -892,6 +892,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 1, Author.where(id: [decorator.new(author)]).to_a.length
   end
 
+  def test_where_id_with_list_of_delegated_ar_objects
+    decorator = Class.new(SimpleDelegator)
+    authors = Author.first(2)
+    assert_equal authors, Author.where(id: authors.map { |author| decorator.new(author) }).order(:id).to_a
+  end
+
   def test_where_relation_with_delegated_ar_object
     decorator = Class.new(SimpleDelegator)
     author = Post.last.author

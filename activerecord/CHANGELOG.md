@@ -1,3 +1,89 @@
+*   Keep query block scoped optimizer hints on the subquery for `count` with
+    `limit`/`offset`/`distinct` on MySQL.
+
+    Previously all optimizer hints were moved to the outer query, where table
+    level hints like `INDEX(posts idx)` could not resolve their tables and were
+    silently ignored. Now only statement level hints (`MAX_EXECUTION_TIME`,
+    `RESOURCE_GROUP`, and `SET_VAR`) are placed on the outer query, even when
+    multiple hints are given in one string.
+
+    The global scope hints are listed in
+    https://dev.mysql.com/doc/refman/en/optimizer-hints.html.
+
+    ```ruby
+    Post.optimizer_hints("MAX_EXECUTION_TIME(50000)", "NO_RANGE_OPTIMIZATION(posts idx)").limit(5).count
+    # SELECT /*+ MAX_EXECUTION_TIME(50000) */ COUNT(count_column) FROM
+    #   (SELECT /*+ NO_RANGE_OPTIMIZATION(posts idx) */ ... LIMIT 5) subquery_for_count
+    ```
+
+    *Ryuta Kamizono*
+
+*   Fix `left_joins` and `eager_load` dropping an intermediate join when the
+    same through association is joined from different parent paths.
+
+    The second path reused the intermediate join of the first path, so it
+    silently returned values from the wrong records instead of raising an error:
+
+    ```ruby
+    # `current_location` and `storing_location` are both `Location`s, which
+    # `has_one :setting, through: :setting_association`.
+    Book.left_joins(current_location: :setting, library: { storing_location: :setting })
+    ```
+
+    *Masaki Ozawa*
+
+*   Deprecate `ActiveRecord::Validations::NumericalityValidator`.
+
+    Active Record now uses `ActiveModel::Validations::NumericalityValidator`
+    directly. The old constant still works, with a deprecation warning, so code
+    that checks the validators of a model keeps working:
+
+    ```ruby
+    case validator
+    when ActiveRecord::Validations::NumericalityValidator # Deprecated.
+    when ActiveModel::Validations::NumericalityValidator  # Use this instead.
+    end
+    ```
+
+    *Bruno Costanzo*
+
+*   Scope `immutable_strings_by_default` to string columns.
+
+    The setting applied to every column whose type happened to subclass
+    `ActiveModel::Type::String`, which was never the intent. `text` columns and
+    PostgreSQL's `xml`, `citext`, `ltree`, `tsvector` and `macaddr` columns were
+    therefore inferred as `:string`, losing their type, and in some cases their
+    own serialization and comparison behavior with it.
+
+    Only `:string` columns are inferred as `:immutable_string` now. Note that
+    `text` columns are no longer affected by the setting.
+
+    *Ryuta Kamizono*
+
+*   Fix `where` with an array of objects that delegate `#id`.
+
+    Such objects were expanded to their ids only when passed alone or in a one
+    element array, so a longer array was compared against `NULL`:
+
+    ```ruby
+    Author.where(id: [decorator.new(author_one), decorator.new(author_two)])
+    # WHERE "authors"."id" IN (NULL)
+    ```
+
+    *Ryuta Kamizono*
+
+*   Allow Active Record objects in the tuple `where` syntax.
+
+    The single column syntax already accepts records, so the tuple syntax now
+    accepts them too, and a record is expanded to its primary key values.
+
+    ```ruby
+    Cpk::Book.where([:author_id, :id] => book)
+    Cpk::Book.where([:author_id, :id] => [book_one, book_two])
+    ```
+
+    *Ryuta Kamizono*
+
 *   Fix `in_order_of` returning no records for types whose serialized value
     changes when serialized again, like deterministic encryption, `json`
     columns and `serialize` coders.
@@ -64,13 +150,6 @@
     `after_rollback` callbacks run.
 
     *Cole Robertson*
-
-*   Deprecate `supports_native_partitioning?` on the PostgreSQL adapter.
-
-    It always returns `true` since the minimum PostgreSQL version became 10.0,
-    which supports native partitioning.
-
-    *Yasuo Honda*
 
 *   Dump `create_schema` with `if_not_exists: true` for every schema that holds
     a dumped extension.

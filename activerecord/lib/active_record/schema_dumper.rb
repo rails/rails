@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "stringio"
 
 module ActiveRecord
-  # = Active Record Schema Dumper
+  # Active Record Schema Dumper
+  # ===========================
   #
   # This class is used to dump the database schema for some connection to some
   # output format (i.e., ActiveRecord::Schema).

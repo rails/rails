@@ -84,6 +84,12 @@ module ActiveRecord
         end
 
         assert_equal "reading", relation.first.connection_role
+
+        relation = ActiveRecord::Base.connected_to_many(SecondaryBase, role: :secondary) do
+          MultiConnectionTestModel.where(connection_role: "reading")
+        end
+
+        assert_equal "reading", relation.first.connection_role
       end
 
       unless in_memory_db?

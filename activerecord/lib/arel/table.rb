@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Arel # :nodoc: all
   class Table
     include Arel::FactoryMethods
@@ -8,7 +9,6 @@ module Arel # :nodoc: all
     @engine = nil
     class << self; attr_accessor :engine; end
 
-    attr_writer :name
     attr_reader :table_alias, :klass
 
     def initialize(name: nil, as: nil, klass: nil, type_caster: klass&.type_caster)

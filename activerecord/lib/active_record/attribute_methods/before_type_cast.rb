@@ -71,7 +71,7 @@ module ActiveRecord
       # task.read_attribute_before_type_cast(:completed_on)  # => "2012-10-21"
       # ```
       def read_attribute_before_type_cast(attr_name)
-        name = resolve_alias(attr_name.to_s)
+        name = resolve_alias(attr_name.is_a?(Symbol) ? attr_name.name : attr_name.to_s)
 
         attribute_before_type_cast(name)
       end
@@ -89,7 +89,7 @@ module ActiveRecord
       # book.read_attribute_for_database(:status) # => 2
       # ```
       def read_attribute_for_database(attr_name)
-        name = resolve_alias(attr_name.to_s)
+        name = resolve_alias(attr_name.is_a?(Symbol) ? attr_name.name : attr_name.to_s)
 
         attribute_for_database(name)
       end

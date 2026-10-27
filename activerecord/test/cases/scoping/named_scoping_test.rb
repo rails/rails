@@ -650,4 +650,14 @@ class NamedScopingTest < ActiveRecord::TestCase
       assert_equal_unordered Topic.including_annotate_in_scope.to_a, Topic.all.to_a
     end
   end
+
+  def test_default_extensions_does_not_build_scope_without_default_scope
+    assert_not_called(Post, :scope_for_association) do
+      assert_equal [], Post.default_extensions
+    end
+  end
+
+  def test_default_extensions_with_default_scope
+    assert_equal [Comment::OopsExtension], Comment.default_extensions
+  end
 end

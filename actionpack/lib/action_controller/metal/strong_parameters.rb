@@ -1182,6 +1182,7 @@ module ActionController
       def each_nested_attribute(&block)
         hash = self.class.new
         self.each { |k, v| hash[k] = yield v if Parameters.nested_attribute?(k, v) }
+        hash.permitted = true
         hash
       end
 
@@ -1202,7 +1203,8 @@ module ActionController
 
         unpermitted_parameters!(params, on_unpermitted:)
 
-        params.permit!
+        params.permitted = true
+        params
       end
 
     private
@@ -1419,14 +1421,14 @@ module ActionController
       #
       #     puts params.keys # => ["zipcode"]
       def permitted_scalar_filter(params, permitted_key)
-        permitted_key = permitted_key.to_s
+        permitted_key = permitted_key.is_a?(Symbol) ? permitted_key.name : permitted_key.to_s
 
         if has_key?(permitted_key) && permitted_scalar?(self[permitted_key])
           params[permitted_key] = self[permitted_key]
         end
 
         each_key do |key|
-          next unless key =~ /\(\d+[if]?\)\z/
+          next unless key.end_with?(")") && key =~ /\(\d+[if]?\)\z/
           next unless $~.pre_match == permitted_key
 
           params[key] = self[key] if permitted_scalar?(self[key])
@@ -1440,13 +1442,13 @@ module ActionController
       EMPTY_ARRAY = [].freeze # :nodoc:
       EMPTY_HASH  = {}.freeze # :nodoc:
       def hash_filter(params, filter, on_unpermitted: self.class.action_on_unpermitted_parameters, explicit_arrays: false)
-        filter = filter.with_indifferent_access
-
-        # Slicing filters out non-declared keys.
-        slice(*filter.keys).each do |key, value|
+        filter.each_pair do |key, sub_filter|
+          key = key.is_a?(Symbol) ? key.name : key.to_s
+          next unless has_key?(key)
+          value = self[key]
           next unless value
-          next unless has_key? key
-          result = permit_value(value, filter[key], on_unpermitted:, explicit_arrays:)
+
+          result = permit_value(value, sub_filter, on_unpermitted:, explicit_arrays:)
           params[key] = result unless result.nil?
         end
       end
@@ -1504,6 +1506,7 @@ module ActionController
               # Filter this one out.
             end
           end
+          sanitized.permitted = true
         end
       end
 

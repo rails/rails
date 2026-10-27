@@ -1118,17 +1118,14 @@ module ActionView
                html_options["authenticity_token"].blank?
               # The authenticity token is taken from the meta tag in this case
               html_options["authenticity_token"] = false
-            elsif html_options["authenticity_token"] == true
-              # Include the default authenticity_token, which is only generated when its set to nil,
-              # but we needed the true value to override the default of no authenticity_token on data-remote.
-              html_options["authenticity_token"] = nil
             end
           end
         end
 
         def extra_tags_for_form(html_options)
           authenticity_token = html_options.delete("authenticity_token")
-          method = html_options.delete("method").to_s.downcase
+          method = html_options.delete("method")
+          method = (method.is_a?(Symbol) ? method.name : method.to_s).downcase
 
           method_tag = \
             case method

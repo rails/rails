@@ -21,6 +21,9 @@ class Club < ActiveRecord::Base
   has_many :simple_memberships, class_name: "Membership"
   has_many :simple_members, through: :simple_memberships, foreign_key: "member_id"
 
+  has_many :tenant_memberships
+  has_many :tenant_members, through: :tenant_memberships, source: :member
+
   accepts_nested_attributes_for :membership
 
   private

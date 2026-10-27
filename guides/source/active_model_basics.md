@@ -42,7 +42,7 @@ Some of these modules are explained below.
 
 [`ActiveModel::API`](https://api.rubyonrails.org/classes/ActiveModel/API.html)
 adds the ability for a class to work with [Action
-Pack](https://api.rubyonrails.org/files/actionpack/README_rdoc.html) and [Action
+Pack](https://api.rubyonrails.org/files/actionpack/README_md.html) and [Action
 View](action_view_overview.html) right out of the box.
 
 When including `ActiveModel::API`, other modules are included by default which

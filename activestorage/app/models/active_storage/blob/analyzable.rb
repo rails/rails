@@ -1,28 +1,32 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_storage/analyzer/null_analyzer"
 
-# = Active Storage \Blob \Analyzable
+# Active Storage \Blob \Analyzable
+# ================================
 module ActiveStorage::Blob::Analyzable
   # Extracts and stores metadata from the file associated with this blob using a relevant analyzer. Active Storage comes
   # with built-in analyzers for images and videos. See ActiveStorage::Analyzer::ImageAnalyzer and
   # ActiveStorage::Analyzer::VideoAnalyzer for information about the specific attributes they extract and the third-party
   # libraries they require.
   #
-  # To choose the analyzer for a blob, Active Storage calls +accept?+ on each registered analyzer in order. It uses the
-  # first analyzer for which +accept?+ returns true when given the blob. If no registered analyzer accepts the blob, no
+  # To choose the analyzer for a blob, Active Storage calls `accept?` on each registered analyzer in order. It uses the
+  # first analyzer for which `accept?` returns true when given the blob. If no registered analyzer accepts the blob, no
   # metadata is extracted from it.
   #
-  # In a \Rails application, add or remove analyzers by manipulating +Rails.application.config.active_storage.analyzers+
+  # In a \Rails application, add or remove analyzers by manipulating `Rails.application.config.active_storage.analyzers`
   # in an initializer:
   #
-  #   # Add a custom analyzer for Microsoft Office documents:
-  #   Rails.application.config.active_storage.analyzers.append DOCXAnalyzer
+  # ```
+  # # Add a custom analyzer for Microsoft Office documents:
+  # Rails.application.config.active_storage.analyzers.append DOCXAnalyzer
   #
-  #   # Remove the built-in video analyzer:
-  #   Rails.application.config.active_storage.analyzers.delete ActiveStorage::Analyzer::VideoAnalyzer
+  # # Remove the built-in video analyzer:
+  # Rails.application.config.active_storage.analyzers.delete ActiveStorage::Analyzer::VideoAnalyzer
+  # ```
   #
-  # Outside of a \Rails application, manipulate +ActiveStorage.analyzers+ instead.
+  # Outside of a \Rails application, manipulate `ActiveStorage.analyzers` instead.
   #
   # You won't ordinarily need to call this method from a \Rails application. New blobs are automatically and asynchronously
   # analyzed via #analyze_later when they're attached for the first time.

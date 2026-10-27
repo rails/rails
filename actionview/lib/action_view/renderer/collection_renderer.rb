@@ -214,7 +214,7 @@ module ActionView
           locals[counter]   = index
           locals[iteration] = partial_iteration
 
-          _template = (cache[path] ||= (template || find_template(path, @locals.keys + [as, counter, iteration])))
+          _template, implicit_locals = (cache[path] ||= [template || find_template(path, @locals.keys + [as, counter, iteration]), [counter, iteration]])
 
           if buffer
             buffer.safe_concat(spacer_body) unless spacer_body.empty?
@@ -223,7 +223,7 @@ module ActionView
             first_template = _template
           end
 
-          _template.render(view, locals, buffer, implicit_locals: [counter, iteration], &block)
+          _template.render(view, locals, buffer, implicit_locals: implicit_locals, &block)
           partial_iteration.iterate!
         end
 
@@ -247,9 +247,9 @@ module ActionView
           locals[counter]   = index
           locals[iteration] = partial_iteration
 
-          _template = (cache[path] ||= (template || find_template(path, @locals.keys + [as, counter, iteration])))
+          _template, implicit_locals = (cache[path] ||= [template || find_template(path, @locals.keys + [as, counter, iteration]), [counter, iteration]])
 
-          content = _template.render(view, locals, implicit_locals: [counter, iteration], &block)
+          content = _template.render(view, locals, implicit_locals: implicit_locals, &block)
           content = layout.render(view, locals) { content } if layout
           partial_iteration.iterate!
           build_rendered_template(content, _template)

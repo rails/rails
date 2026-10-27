@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "active_support/core_ext/array/extract"
 
 module ActiveRecord
@@ -12,6 +13,9 @@ module ActiveRecord
       end
 
       def +(other)
+        return other if empty?
+        return self if other.empty?
+
         WhereClause.new(predicates + other.predicates)
       end
 

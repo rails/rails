@@ -211,6 +211,11 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_filtered_out permitted[:preferences][:dubious][0], :b
     assert_filtered_out permitted[:preferences], :injected
     assert_filtered_out permitted, :hacked
+
+    assert_predicate permitted[:preferences], :permitted?
+    assert_predicate permitted[:preferences][:font], :permitted?
+    assert_predicate permitted[:preferences][:dubious][0], :permitted?
+    assert_equal "Source Code Pro", permitted.to_h.dig("preferences", "font", "name")
   end
 
   test "fetch raises ParameterMissing exception" do

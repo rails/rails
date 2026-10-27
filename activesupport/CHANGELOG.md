@@ -7,6 +7,39 @@
 
     *Andrew Quinn*
 
+*   `Symbol#to_param` now returns `Symbol#name`, the symbol's interned frozen
+    String, instead of allocating a new one on every call before Ruby 4.1.
+
+    *Akira Matsuda*
+
+*   Fix `CurrentAttributes` defaults for attribute names given as strings.
+
+    ```ruby
+    class Current < ActiveSupport::CurrentAttributes
+      attribute "currency", default: "USD"
+    end
+
+    Current.currency # => "USD" (was nil)
+    ```
+
+    *Ryuta Kamizono*
+
+*   `ActiveSupport::Deprecation::DeprecatedObjectProxy` and
+    `DeprecatedInstanceVariableProxy` now inherit from `BasicObject`, so methods
+    added to `Object` after Active Support loads (such as `to_json`, `to_param`,
+    `blank?` or `in?`) are forwarded to the deprecated object with a warning
+    instead of running against the proxy itself.
+
+    *Akira Matsuda*
+
+*   Default `config.active_support.message_serializer` to `:json` for new apps.
+
+    With `config.load_defaults 8.2`, messages from `MessageVerifier` and
+    `MessageEncryptor` (signed IDs, signed GlobalIDs, Active Storage keys, etc.)
+    no longer fall back to deserializing `Marshal` payloads.
+
+    *Ben Sheldon*
+
 *   `ActiveSupport::ParameterFilter#filter_param` now passes `{ key => value }` to
     `Proc` filters as their third argument, the same hash `filter` would pass for that
     single pair, instead of `nil`.

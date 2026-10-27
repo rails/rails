@@ -25,7 +25,7 @@ module ActiveModel
         true
       end
 
-      def to_immutable_string
+      def to_immutable_string # :nodoc:
         ImmutableString.new(
           true: @true,
           false: @false,

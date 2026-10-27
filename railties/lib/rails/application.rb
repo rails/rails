@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "yaml"
 require "active_support/core_ext/hash/keys"
 require "active_support/key_generator"

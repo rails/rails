@@ -133,7 +133,7 @@ module ActionView
         integrity = options["integrity"]
         rel = options["type"] == "module" || options["type"] == :module ? "modulepreload" : "preload"
 
-        sources_tags = sources.uniq.map { |source|
+        sources_tags = sources.uniq.map! { |source|
           href = path_to_javascript(source, path_options)
           if use_preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:")
             preload_link = "<#{href}>; rel=#{rel}; as=script"
@@ -226,7 +226,7 @@ module ActionView
         nopush = options["nopush"].nil? || options.delete("nopush")
         integrity = options["integrity"]
 
-        sources_tags = sources.uniq.map { |source|
+        sources_tags = sources.uniq.map! { |source|
           href = path_to_stylesheet(source, path_options)
           if use_preload_links_header && href.present? && !href.start_with?("data:")
             preload_link = "<#{href}>; rel=preload; as=style"

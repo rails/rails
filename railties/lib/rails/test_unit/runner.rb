@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 require "shellwords"
 require "rake/file_list"
 require "active_support"

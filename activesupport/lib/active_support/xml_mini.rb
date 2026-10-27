@@ -205,9 +205,31 @@ module ActiveSupport
         IsolatedExecutionState[:xml_mini_backend] = name && cast_backend_name_to_module(name)
       end
 
+      # The backends Active Support ships, by the names +backend=+ takes; a
+      # name not among them loads +active_support/xml_mini/<name>+ and reads
+      # its +XmlMini_<name>+ module, as before.
       def cast_backend_name_to_module(name)
-        if name.is_a?(Module)
+        case name
+        when Module
           name
+        when "REXML"
+          require "active_support/xml_mini/rexml"
+          XmlMini_REXML
+        when "Nokogiri"
+          require "active_support/xml_mini/nokogiri"
+          XmlMini_Nokogiri
+        when "NokogiriSAX"
+          require "active_support/xml_mini/nokogirisax"
+          XmlMini_NokogiriSAX
+        when "LibXML"
+          require "active_support/xml_mini/libxml"
+          XmlMini_LibXML
+        when "LibXMLSAX"
+          require "active_support/xml_mini/libxmlsax"
+          XmlMini_LibXMLSAX
+        when "JDOM"
+          require "active_support/xml_mini/jdom"
+          XmlMini_JDOM
         else
           require "active_support/xml_mini/#{name.downcase}"
           ActiveSupport.const_get("XmlMini_#{name}")

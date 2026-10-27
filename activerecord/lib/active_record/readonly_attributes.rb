@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   class ReadonlyAttributeError < ActiveRecordError
   end
@@ -15,18 +16,20 @@ module ActiveRecord
       # Attributes listed as readonly will be used to create a new record.
       # Assigning a new value to a readonly attribute on a persisted record raises an error.
       #
-      # By setting +config.active_record.raise_on_assign_to_attr_readonly+ to +false+, it will
-      # not raise. The value will change in memory, but will not be persisted on +save+.
+      # By setting `config.active_record.raise_on_assign_to_attr_readonly` to `false`, it will
+      # not raise. The value will change in memory, but will not be persisted on `save`.
       #
-      # ==== Examples
+      # #### Examples
       #
-      #   class Post < ActiveRecord::Base
-      #     attr_readonly :title
-      #   end
+      # ```
+      # class Post < ActiveRecord::Base
+      #   attr_readonly :title
+      # end
       #
-      #   post = Post.create!(title: "Introducing Ruby on Rails!")
-      #   post.title = "a different title" # raises ActiveRecord::ReadonlyAttributeError
-      #   post.update(title: "a different title") # raises ActiveRecord::ReadonlyAttributeError
+      # post = Post.create!(title: "Introducing Ruby on Rails!")
+      # post.title = "a different title" # raises ActiveRecord::ReadonlyAttributeError
+      # post.update(title: "a different title") # raises ActiveRecord::ReadonlyAttributeError
+      # ```
       def attr_readonly(*attributes)
         self._attr_readonly = ActiveSupport::Ractors.make_shareable(_attr_readonly | attributes.map(&:to_s))
 

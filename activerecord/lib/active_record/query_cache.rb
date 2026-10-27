@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
-  # = Active Record Query Cache
+  # Active Record Query Cache
+  # =========================
   class QueryCache
     # ActiveRecord::Base extends this module, so these methods are available in models.
     module ClassMethods
@@ -26,7 +28,7 @@ module ActiveRecord
       # If the query cache was enabled before the block was executed, it is
       # enabled again after it.
       #
-      # Set <tt>dirties: false</tt> to prevent query caches on all connections
+      # Set `dirties: false` to prevent query caches on all connections
       # from being cleared by write operations. (By default, write operations
       # dirty all connections' query caches in case they are replicas whose
       # cache would now be outdated.)

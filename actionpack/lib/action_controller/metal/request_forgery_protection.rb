@@ -137,6 +137,7 @@ module ActionController # :nodoc:
 
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
+      helper_method :embed_authenticity_token?
     end
 
     module ClassMethods
@@ -247,7 +248,9 @@ module ActionController # :nodoc:
       #         approach does not require authenticity tokens but only works with
       #         browsers that support the Fetch Metadata Request Headers. Requests
       #         without a valid `Sec-Fetch-Site` header will be rejected. This is
-      #         the default.
+      #         the default. Forms and `csrf_meta_tags` don't render a token under
+      #         this strategy; a form that posts to a controller still checking
+      #         tokens can ask for one with `authenticity_token: true`.
       #
       #     *   `:header_or_legacy_token` - A hybrid approach that first checks the
       #         `Sec-Fetch-Site` header. If the header indicates same-site or
@@ -860,6 +863,14 @@ module ActionController # :nodoc:
       # Checks if the controller allows forgery protection.
       def protect_against_forgery? # :doc:
         allow_forgery_protection && (!session.respond_to?(:enabled?) || session.enabled?)
+      end
+
+      # Checks if the forms and `csrf_meta_tags` this controller renders carry an
+      # authenticity token. Under the `:header_only` verification strategy no
+      # request is checked against a token, so none is rendered unless a form asks
+      # for one with `authenticity_token: true`.
+      def embed_authenticity_token? # :doc:
+        protect_against_forgery? && !using_header_only_for_forgery_protection?
       end
 
       NULL_ORIGIN_MESSAGE = <<~MSG

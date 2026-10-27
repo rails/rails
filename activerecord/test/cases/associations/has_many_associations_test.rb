@@ -1425,6 +1425,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, blog_post.comments.size
   end
 
+  def test_loading_has_many_without_selecting_the_owner_key
+    firm = Firm.select(:id).find(companies(:first_firm).id)
+
+    assert_equal Client.where(firm_name: nil).order(:id).to_a, firm.clients_using_primary_key.order(:id).to_a
+  end
+
+  def test_size_without_selecting_the_cached_counter
+    topic = Topic.select(:id).find(topics(:first).id)
+
+    assert_no_queries { assert_equal 0, topic.replies.size }
+  end
+
   def test_has_many_without_counter_cache_option
     # Ship has a conventionally named `treasures_count` column, but the counter_cache
     # option is not given on the association.

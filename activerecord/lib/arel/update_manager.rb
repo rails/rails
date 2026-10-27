@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module Arel # :nodoc: all
   class UpdateManager < Arel::TreeManager
     include TreeManager::StatementMethods
@@ -11,7 +12,7 @@ module Arel # :nodoc: all
     end
 
     ###
-    # UPDATE +table+
+    # UPDATE `table`
     def table(table)
       @ast.relation = table
       self
@@ -35,7 +36,7 @@ module Arel # :nodoc: all
     def group(columns)
       columns.each do |column|
         column = Nodes::SqlLiteral.new(column) if String === column
-        column = Nodes::SqlLiteral.new(column.to_s) if Symbol === column
+        column = Nodes::SqlLiteral.new(column.name) if Symbol === column
 
         @ast.groups.push Nodes::Group.new column
       end

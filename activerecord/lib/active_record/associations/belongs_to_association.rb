@@ -120,7 +120,7 @@ module ActiveRecord
           origin_columns = route._origin_key.columns
           reference_destination_key = route._reference_destination_key
           route._destination_key.map_value.with_index do |destination_column, index|
-            origin_value = owner._read_attr(origin_columns[index])
+            origin_value = owner._read_attribute!(origin_columns[index])
             if target._has_attribute?(destination_column)
               destination_value = target.attribute_in_database(destination_column)
               # An unselected primary key can be present as nil. Use the owner's
@@ -206,7 +206,7 @@ module ActiveRecord
         end
 
         def foreign_key_present?
-          foreign_key.all? { |fk| owner._read_attr(fk) }
+          foreign_key.all? { |fk| owner._read_attribute(fk) }
         end
 
         def invertible_for?(record)
@@ -216,7 +216,7 @@ module ActiveRecord
 
         def stale_state
           value = foreign_key.map_value do |fk|
-            owner._read_attr(fk)
+            owner._read_attribute!(fk)
           end
           foreign_key.composite? ? (value if value.any?) : value
         end

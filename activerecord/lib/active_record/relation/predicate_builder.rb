@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   class PredicateBuilder # :nodoc:
     NO_MATCH = Arel.sql("1=0", retryable: true).freeze
@@ -71,20 +72,22 @@ module ActiveRecord
       references
     end
 
-    # Define how a class is converted to Arel nodes when passed to +where+.
-    # The handler can be any object that responds to +call+, and will be used
-    # for any value that <tt>===</tt> the class given. For example:
+    # Define how a class is converted to Arel nodes when passed to `where`.
+    # The handler can be any object that responds to `call`, and will be used
+    # for any value that `===` the class given. For example:
     #
-    #     MyCustomDateRange = Struct.new(:start, :end)
-    #     handler = proc do |column, range|
-    #       Arel::Nodes::Between.new(column,
-    #         Arel::Nodes::And.new([range.start, range.end])
-    #       )
-    #     end
-    #     ActiveRecord::PredicateBuilder.new("users").register_handler(MyCustomDateRange, handler)
+    # ```
+    # MyCustomDateRange = Struct.new(:start, :end)
+    # handler = proc do |column, range|
+    #   Arel::Nodes::Between.new(column,
+    #     Arel::Nodes::And.new([range.start, range.end])
+    #   )
+    # end
+    # ActiveRecord::PredicateBuilder.new("users").register_handler(MyCustomDateRange, handler)
+    # ```
     #
-    # The column exposes its effective type through +type_caster+. Call
-    # <tt>fetch_attribute { |attribute| ... }</tt> to access the underlying
+    # The column exposes its effective type through `type_caster`. Call
+    # `fetch_attribute { |attribute| ... }` to access the underlying
     # logical Arel attribute when a type supplies a comparison expression. The
     # handler is responsible for constructing its right-hand side.
     def register_handler(klass, handler)
@@ -149,6 +152,7 @@ module ActiveRecord
 
         if key.is_a?(Array)
           queries = Array(value).map do |ids_set|
+            ids_set = ids_set.id if ids_set.respond_to?(:id)
             raise ArgumentError, "Expected corresponding value for #{key} to be an Array" unless ids_set.is_a?(Array)
             build_from_hash(key.zip(ids_set).to_h, &block)
           end

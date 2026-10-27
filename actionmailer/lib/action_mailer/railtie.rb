@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "rails"
 require "active_job/railtie"
 require "action_mailer"
