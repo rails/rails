@@ -62,13 +62,13 @@ module ActiveModel
 
         assert_same value, Decimal.new.cast(value)
         assert_same value, Decimal.new(precision: 10, scale: 2).cast(value)
+        assert_same value, Decimal.new(precision: 10, scale: 1).cast(value)
       end
 
       def test_type_cast_big_decimal_beyond_scale_rounds_it
         type = Decimal.new(precision: 10, scale: 2)
 
         assert_equal BigDecimal("1234.57"), type.cast(BigDecimal("1234.567"))
-        assert_equal BigDecimal("1.25"), type.cast(BigDecimal("1.25"))
       end
 
       def test_type_cast_big_decimal_with_zero_or_negative_scale_rounds_it_to_an_integer
