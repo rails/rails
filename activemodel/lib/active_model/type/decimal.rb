@@ -69,6 +69,9 @@ module ActiveModel
             case value
             when ::Float
               convert_float_to_big_decimal(value)
+            when ::BigDecimal
+              # Returns value itself, raising like a copy would under BigDecimal.mode.
+              BigDecimal(value)
             when ::Numeric
               BigDecimal(value, precision || BIGDECIMAL_PRECISION)
             when ::String
@@ -105,11 +108,16 @@ module ActiveModel
         end
 
         def apply_scale(value)
-          if scale
-            value.round(scale)
-          else
+          if scale.nil? || already_scaled?(value)
             value
+          else
+            value.round(scale)
           end
+        end
+
+        # BigDecimal#round returns an Integer when scale is 0 or less.
+        def already_scaled?(value)
+          scale.positive? && value.is_a?(::BigDecimal) && value.scale <= scale
         end
     end
   end

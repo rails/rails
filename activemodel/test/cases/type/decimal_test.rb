@@ -57,6 +57,26 @@ module ActiveModel
         assert_equal BigDecimal("1"), type.cast(value)
       end
 
+      def test_type_cast_big_decimal_within_scale_returns_it_as_is
+        value = BigDecimal("1234.5")
+
+        assert_same value, Decimal.new.cast(value)
+        assert_same value, Decimal.new(precision: 10, scale: 2).cast(value)
+      end
+
+      def test_type_cast_big_decimal_beyond_scale_rounds_it
+        type = Decimal.new(precision: 10, scale: 2)
+
+        assert_equal BigDecimal("1234.57"), type.cast(BigDecimal("1234.567"))
+        assert_equal BigDecimal("1.25"), type.cast(BigDecimal("1.25"))
+      end
+
+      def test_type_cast_big_decimal_with_zero_or_negative_scale_rounds_it_to_an_integer
+        assert_equal 1234, Decimal.new(scale: 0).cast(BigDecimal("1234"))
+        assert_equal 1200, Decimal.new(scale: -2).cast(BigDecimal("1234.5"))
+        assert_kind_of ::Integer, Decimal.new(scale: 0).cast(BigDecimal("1234"))
+      end
+
       def test_changed?
         type = Decimal.new
 
