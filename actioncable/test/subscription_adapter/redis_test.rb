@@ -292,4 +292,47 @@ class RedisAdapterTest::ListenerReconnection < ActionCable::TestCase
   ensure
     listener.instance_variable_get(:@thread)&.kill
   end
+
+  test "every confirmation pending across a reconnect runs on the resubscribe acknowledgement" do
+    events = Queue.new
+    listener = ActionCable::SubscriptionAdapter::Redis::Listener.new(
+      FakeAdapter.new(FakeConnection.new(FakePubSub.new(events))), {}, InlineExecutor.new
+    )
+    first, second = Concurrent::Event.new, Concurrent::Event.new
+    removed, added = ->(_message) { }, ->(_message) { }
+    listener.add_subscriber("channel", removed, -> { first.set })
+    listener.remove_subscriber("channel", removed)
+    listener.add_subscriber("channel", added, -> { second.set })
+
+    events << :drop
+    events << ["subscribe", "channel", 1]
+
+    assert first.wait(2)
+    assert second.wait(2), "the re-added subscription was never confirmed"
+  ensure
+    listener.instance_variable_get(:@thread)&.kill
+  end
+
+  test "a confirmation for a channel dropped before a reconnect does not consume a later subscribe acknowledgement" do
+    events = Queue.new
+    listener = ActionCable::SubscriptionAdapter::Redis::Listener.new(
+      FakeAdapter.new(FakeConnection.new(FakePubSub.new(events))), {}, InlineExecutor.new
+    )
+    stale, fresh = Concurrent::Event.new, Concurrent::Event.new
+    old_subscriber, new_subscriber = ->(_message) { }, ->(_message) { }
+    listener.add_subscriber("channel", old_subscriber, -> { stale.set })
+    listener.remove_subscriber("channel", old_subscriber)
+
+    events << :drop
+
+    # The channel has no subscribers when the connection drops, so its pending
+    # confirmation must not linger and swallow the acknowledgement of the
+    # subscription below.
+    listener.add_subscriber("channel", new_subscriber, -> { fresh.set })
+    events << ["subscribe", "channel", 1]
+
+    assert fresh.wait(2), "the new subscription was never confirmed"
+  ensure
+    listener.instance_variable_get(:@thread)&.kill
+  end
 end

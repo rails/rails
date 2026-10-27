@@ -1,3 +1,16 @@
+*   Fix Redis adapter confirmations kept across a reconnect being consumed by
+    the wrong subscription.
+
+    When the connection dropped, `Listener#reset` kept every pending subscribe
+    confirmation while `resubscribe` sent only one SUBSCRIBE per channel, so a
+    re-added subscription's confirmation could wait forever and a stale
+    confirmation could swallow the acknowledgement of a later subscribe.
+    Confirmations for channels without subscribers are now dropped on reset,
+    and each remaining channel's pending confirmations are merged so the
+    single resubscribe acknowledgement runs them all.
+
+    *Azmi Muwahid*
+
 *   Move `ActionCable::Server::Configuration` to `ActionCable::Configuration`.
 
     The old constant remains available as an alias.
