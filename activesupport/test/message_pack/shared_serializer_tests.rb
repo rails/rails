@@ -98,6 +98,14 @@ module MessagePackSharedSerializerTests
       assert_roundtrip Time.current
     end
 
+    test "roundtrips ActiveSupport::TimeWithZone whose UTC time was moved to another offset" do
+      utc = Time.utc(2024, 6, 1, 12)
+      time_with_zone = utc.in_time_zone("Europe/Paris")
+      utc.localtime("+09:00")
+
+      assert_roundtrip time_with_zone
+    end
+
     test "roundtrips ActiveSupport::TimeZone" do
       assert_roundtrip ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     end
