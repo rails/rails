@@ -37,4 +37,15 @@ class Rails::CredentialsTest < ActiveSupport::TestCase
       assert_equal "revealed", Rails.application.credentials.mystery
     end
   end
+
+  test "reads credentials using customized environment variable key" do
+    write_credentials_override(:production, with_key: false)
+    add_to_env_config("production", "config.credentials.env_key = 'RAILS_MASTER_KEY_ALT'")
+
+    switch_env("RAILS_MASTER_KEY_ALT", credentials_key) do
+      app("production")
+
+      assert_equal "revealed", Rails.application.credentials.mystery
+    end
+  end
 end
