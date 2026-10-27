@@ -1,3 +1,13 @@
+*   Filter complete semicolon-containing values for name-based query filters in logs.
+
+    Default request parsing uses `&` as the query separator. For
+    `?password=one;other=two`, it treats `one;other=two` as the password
+    value, so a `:password` filter now masks the complete value in request
+    and redirect logs. Proc callbacks keep their existing semicolon-segment
+    order, even when a full name match supersedes their output.
+
+    *@nuclearspike*
+
 *   Reset the parsed HTML document after `options` in integration tests.
 
     `options` was the only request helper that the integration test runner

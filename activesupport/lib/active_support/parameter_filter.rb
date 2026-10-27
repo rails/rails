@@ -108,6 +108,15 @@ module ActiveSupport
       @no_filters ? value : value_for_key(key, value, nil, @blocks && { key => value })
     end
 
+    def filter_key_without_procs(key) # :nodoc:
+      return [false, nil] if @no_filters
+
+      # A unique value distinguishes an unmatched key from a mask with equal contents.
+      original = Object.new
+      filtered = value_for_key(key, original, nil, nil, false)
+      original.equal?(filtered) ? [false, nil] : [true, filtered]
+    end
+
   private
     def compile_filters!(filters)
       @no_filters = filters.empty?
@@ -182,7 +191,7 @@ module ActiveSupport
       filtered_params
     end
 
-    def value_for_key(key, value, full_parent_key = nil, original_params = nil)
+    def value_for_key(key, value, full_parent_key = nil, original_params = nil, run_procs = true)
       key_s = key.to_s
 
       if @deep_regexps
@@ -204,7 +213,7 @@ module ActiveSupport
         value = call(value, full_key, original_params)
       elsif value.is_a?(Array)
         value = value.map { |v| value_for_key(key, v, full_parent_key, original_params) }
-      elsif @blocks
+      elsif @blocks && run_procs
         key = key.dup if key.duplicable?
         value = value.dup if value.duplicable?
         @blocks.each { |b| b.arity == 2 ? b.call(key, value) : b.call(key, value, original_params) }

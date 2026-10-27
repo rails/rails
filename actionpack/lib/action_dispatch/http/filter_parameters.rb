@@ -37,17 +37,40 @@ module ActionDispatch
         end
 
         def filter_query_string(query_string, parameter_filter) # :nodoc:
-          query_string.split(/([&;])/).map do |part|
+          query_string.split(/(&)/).map do |part|
+            if part.include?(";")
+              # Segment filtering runs first because Proc callbacks may have
+              # stateful effects even when a full-key mask supersedes the result.
+              filtered_segments = part.split(/(;)/).map { |segment| filter_query_part(segment, parameter_filter) }.join
+              filter_complete_query_part(part, parameter_filter) || filtered_segments
+            else
+              filter_query_part(part, parameter_filter)
+            end
+          end.join("")
+        end
+
+        private
+          def filter_complete_query_part(part, parameter_filter)
+            return unless part.include?("=")
+
+            key, = part.split("=", 2)
+            if (decoded_key = decoded_query_key(key))
+              matched, mask = parameter_filter.filter_key_without_procs(decoded_key)
+              "#{key}=#{mask}" if matched
+            else
+              "#{key}=#{ActiveSupport::ParameterFilter::FILTERED}"
+            end
+          end
+
+          def filter_query_part(part, parameter_filter)
             if part.include?("=")
               key, value = part.split("=", 2)
               "#{key}=#{filter_query_value(key, value, parameter_filter)}"
             else
               part
             end
-          end.join("")
-        end
+          end
 
-        private
           def filter_query_value(key, value, parameter_filter)
             if (decoded_key = decoded_query_key(key))
               parameter_filter.filter_param(decoded_key, value)
