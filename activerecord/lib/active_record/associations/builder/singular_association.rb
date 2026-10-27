@@ -19,13 +19,13 @@ module ActiveRecord::Associations::Builder # :nodoc:
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def reload_#{name}
           association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
+          deprecated_associations_api_guard(association, :reload_#{name})
           association.force_reload_reader
         end
 
         def reset_#{name}
           association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
+          deprecated_associations_api_guard(association, :reset_#{name})
           association.reset
         end
       CODE
@@ -36,19 +36,19 @@ module ActiveRecord::Associations::Builder # :nodoc:
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def build_#{name}(*args, &block)
           association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
+          deprecated_associations_api_guard(association, :build_#{name})
           association.build(*args, &block)
         end
 
         def create_#{name}(*args, &block)
           association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
+          deprecated_associations_api_guard(association, :create_#{name})
           association.create(*args, &block)
         end
 
         def create_#{name}!(*args, &block)
           association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
+          deprecated_associations_api_guard(association, :create_#{name}!)
           association.create!(*args, &block)
         end
       CODE

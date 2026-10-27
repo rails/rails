@@ -65,13 +65,13 @@ module ActiveRecord::Associations::Builder # :nodoc:
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{singular}_ids
           association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
+          deprecated_associations_api_guard(association, :#{singular}_ids)
           association.ids_reader
         end
 
         def #{singular}_ids=(ids)
           association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
+          deprecated_associations_api_guard(association, :#{singular}_ids=)
           association.ids_writer(ids)
         end
       CODE
