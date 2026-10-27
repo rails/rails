@@ -56,25 +56,30 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     # Defines the setter and getter methods for the collection_singular_ids.
-    def self.define_accessors(model, reflection)
+    def self.define_accessors(model, reflection, mixin)
       super
-      mixin = model.generated_association_methods
       name = reflection.name
       singular = name.to_s.singularize
 
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{singular}_ids
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, :#{singular}_ids)
-          association.ids_reader
-        end
+      mixin.define_cached_method(:"_#{name}_ids", as: :"#{singular}_ids", namespace: :association_ids) do |batch|
+        batch << <<~RUBY
+          def _#{name}_ids
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :#{singular}_ids)
+            association.ids_reader
+          end
+        RUBY
+      end
 
-        def #{singular}_ids=(ids)
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, :#{singular}_ids=)
-          association.ids_writer(ids)
-        end
-      CODE
+      mixin.define_cached_method(:"_#{name}_ids=", as: :"#{singular}_ids=", namespace: :association_ids) do |batch|
+        batch << <<~RUBY
+          def _#{name}_ids=(ids)
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :#{singular}_ids=)
+            association.ids_writer(ids)
+          end
+        RUBY
+      end
     end
 
     private_class_method :valid_options, :define_callback, :define_extensions, :define_accessors

@@ -34,10 +34,12 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
 
       reflection = create_reflection(model, name, scope, options, &block)
-      define_accessors(model, reflection)
+      ActiveSupport::CodeGenerator.batch(model.generated_association_methods, __FILE__, __LINE__) do |mixin|
+        define_accessors(model, reflection, mixin)
+        define_change_tracking_methods(model, reflection, mixin)
+      end
       define_callbacks(model, reflection)
       define_validations(model, reflection)
-      define_change_tracking_methods(model, reflection)
       reflection
     end
 
@@ -101,30 +103,35 @@ module ActiveRecord::Associations::Builder # :nodoc:
     # end
     #
     # Post.first.comments and Post.first.comments= methods are defined by this method...
-    def self.define_accessors(model, reflection)
-      mixin = model.generated_association_methods
+    def self.define_accessors(model, reflection, mixin)
       name = reflection.name
 
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, :#{name})
-          association.reader
-        end
+      mixin.define_cached_method(name, namespace: :association_reader) do |batch|
+        batch << <<~RUBY
+          def #{name}
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :#{name})
+            association.reader
+          end
+        RUBY
+      end
 
-        def #{name}=(value)
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, :#{name}=)
-          association.writer(value)
-        end
-      CODE
+      mixin.define_cached_method(:"#{name}=", namespace: :association_writer) do |batch|
+        batch << <<~RUBY
+          def #{name}=(value)
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :#{name}=)
+            association.writer(value)
+          end
+        RUBY
+      end
     end
 
     def self.define_validations(model, reflection)
       # noop
     end
 
-    def self.define_change_tracking_methods(model, reflection)
+    def self.define_change_tracking_methods(model, reflection, mixin)
       # noop
     end
 

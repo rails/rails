@@ -166,20 +166,28 @@ module ActiveRecord::Associations::Builder # :nodoc:
       end
     end
 
-    def self.define_change_tracking_methods(model, reflection)
-      model.generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{reflection.name}_changed?
-          association = association(:#{reflection.name})
-          deprecated_associations_api_guard(association, :#{reflection.name}_changed?)
-          association.target_changed?
-        end
+    def self.define_change_tracking_methods(model, reflection, mixin)
+      name = reflection.name
 
-        def #{reflection.name}_previously_changed?
-          association = association(:#{reflection.name})
-          deprecated_associations_api_guard(association, :#{reflection.name}_previously_changed?)
-          association.target_previously_changed?
-        end
-      CODE
+      mixin.define_cached_method(:"#{name}_changed?", namespace: :association_changed) do |batch|
+        batch << <<~RUBY
+          def #{name}_changed?
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :#{name}_changed?)
+            association.target_changed?
+          end
+        RUBY
+      end
+
+      mixin.define_cached_method(:"#{name}_previously_changed?", namespace: :association_previously_changed) do |batch|
+        batch << <<~RUBY
+          def #{name}_previously_changed?
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :#{name}_previously_changed?)
+            association.target_previously_changed?
+          end
+        RUBY
+      end
     end
 
     private_class_method :macro, :valid_options, :valid_dependent_options, :define_callbacks,

@@ -128,6 +128,33 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     Client.destroyed_client_ids.clear
   end
 
+  def test_ids_methods_for_associations_whose_names_singularize_to_the_same_word
+    contact = Person.create!(first_name: "Contact")
+    agent = Person.create!(first_name: "Agent", primary_contact_id: contact.id)
+
+    with_people = Class.new(ActiveRecord::Base) do
+      def self.name; "PersonWithPeople"; end
+      self.table_name = "people"
+      has_many :people, class_name: "Person", foreign_key: :primary_contact_id, inverse_of: false
+    end
+    with_persons = Class.new(ActiveRecord::Base) do
+      def self.name; "PersonWithPersons"; end
+      self.table_name = "people"
+      has_many :persons, class_name: "Person", foreign_key: :primary_contact_id, inverse_of: false
+    end
+
+    assert_equal [agent.id], with_people.find(contact.id).person_ids
+    assert_equal [agent.id], with_persons.find(contact.id).person_ids
+
+    record = with_persons.find(contact.id)
+    record.person_ids = []
+    assert_empty record.reload.person_ids
+
+    record = with_people.find(contact.id)
+    record.person_ids = [agent.id]
+    assert_equal [agent.id], record.reload.person_ids
+  end
+
   def test_sti_subselect_count
     tag = Tag.first
     len = Post.tagged_with(tag.id).limit(10).size
