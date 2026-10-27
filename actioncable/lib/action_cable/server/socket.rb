@@ -10,7 +10,7 @@ module ActionCable
     # This connection object is also responsible for handling encoding and decoding of messages, so the user-level
     # connection object shouldn't know about such details.
     class Socket
-      attr_reader :server, :env, :protocol, :logger, :connection
+      attr_reader :server, :env, :protocol, :extensions, :logger, :connection
       private attr_reader :worker_pool
 
       delegate :event_loop, :pubsub, :config, to: :server
@@ -25,6 +25,8 @@ module ActionCable
         @message_buffer = MessageBuffer.new(self)
 
         @protocol = nil
+        @extensions = []
+        @last_message_received_at = Time.now
         @connection = config.connection_class.call.new(server, self)
       end
 
@@ -51,6 +53,17 @@ module ActionCable
       # Close the WebSocket connection.
       def close(...)
         websocket.close(...) if websocket.alive?
+      end
+
+      # Close the WebSocket connection without waiting for the client to acknowledge it.
+      # Use it when the client is presumed unreachable (e.g., it stopped responding to pings).
+      def close!(code = nil, reason = nil)
+        websocket.close(code, reason, force: true)
+      end
+
+      # Whether the client hasn't been heard from for longer than Connections::PONG_TIMEOUT.
+      def unresponsive?
+        extensions.include?("pong") && Time.now - @last_message_received_at > Connections::PONG_TIMEOUT
       end
 
       # Invoke a method on the connection asynchronously through the pool of thread workers.
@@ -91,6 +104,7 @@ module ActionCable
       end
 
       def on_message(message) # :nodoc:
+        @last_message_received_at = Time.now
         message_buffer.append message
       end
 
@@ -123,6 +137,8 @@ module ActionCable
 
         def handle_open
           @protocol = websocket.protocol
+          @extensions = negotiate_extensions
+          @last_message_received_at = Time.now
 
           @connection.handle_open
 
@@ -135,6 +151,12 @@ module ActionCable
 
           server.remove_connection(@connection)
           @connection.handle_close
+        end
+
+        # Extensions are requested by offering their subprotocols along with the main one.
+        def negotiate_extensions
+          offered = env["HTTP_SEC_WEBSOCKET_PROTOCOL"].to_s.split(/ *, */)
+          ActionCable::INTERNAL[:extensions].filter_map { |name, subprotocol| name.to_s if offered.include?(subprotocol) }
         end
 
         def respond_to_successful_request
