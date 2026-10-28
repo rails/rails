@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionMailbox
   # Command class for carrying out the actual incineration of the `InboundMail` that's been scheduled
   # for removal. Before the incineration – which really is just a call to `#destroy!` – is run, we verify

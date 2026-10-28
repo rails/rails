@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module Rails
   # TODO: Move this to Rails::Conductor gem
   class Conductor::BaseController < ActionController::Base

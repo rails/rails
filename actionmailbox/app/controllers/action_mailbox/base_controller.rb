@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionMailbox
   # The base class for all Action Mailbox ingress controllers.
   class BaseController < ActionController::Base
