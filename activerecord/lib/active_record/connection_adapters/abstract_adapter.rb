@@ -1264,7 +1264,8 @@ module ActiveRecord
           # We definitely can't retry if we were inside an invalidated transaction.
           return false if current_transaction.invalidated?
 
-          exception.is_a?(Deadlocked) || exception.is_a?(LockWaitTimeout)
+          exception.is_a?(Deadlocked) || exception.is_a?(SerializationFailure) ||
+            exception.is_a?(LockWaitTimeout)
         end
 
         def build_retry_budget(allow_retry:, reconnectable:)

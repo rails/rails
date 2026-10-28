@@ -1,3 +1,11 @@
+*   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
+
+    A serialization failure rolls back whatever the statement was part of, so a
+    statement that was not part of an open transaction can be re-run on the same
+    connection, exactly as `ActiveRecord::Deadlocked` already is.
+
+    *Adrianna Chang*
+
 *   Deprecate the option accessors on `ColumnDefinition`.
 
     Use `options` instead, for example `column.options[:limit]` instead of
