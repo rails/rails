@@ -1,3 +1,11 @@
+*   Retry `ActiveRecord::SerializationFailure` on queries that opted into retries.
+
+    A serialization failure rolls back whatever the statement was part of, so a
+    statement that was not part of an open transaction can be re-run on the same
+    connection, exactly as `ActiveRecord::Deadlocked` already is.
+
+    *Adrianna Chang*
+
 *   Fix `in_order_of` modifying the receiver relation.
 
     `in_order_of` added the referenced table to the receiver's
