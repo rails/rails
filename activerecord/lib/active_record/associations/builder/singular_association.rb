@@ -9,49 +9,64 @@ module ActiveRecord::Associations::Builder # :nodoc:
       super + [:required, :touch]
     end
 
-    def self.define_accessors(model, reflection)
+    def self.define_accessors(model, reflection, mixin)
       super
-      mixin = model.generated_association_methods
       name = reflection.name
 
       define_constructors(mixin, name) unless reflection.polymorphic?
 
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def reload_#{name}
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.force_reload_reader
-        end
+      mixin.define_cached_method(:"reload_#{name}", namespace: :association_reload) do |batch|
+        batch << <<~RUBY
+          def reload_#{name}
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :reload_#{name})
+            association.force_reload_reader
+          end
+        RUBY
+      end
 
-        def reset_#{name}
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.reset
-        end
-      CODE
+      mixin.define_cached_method(:"reset_#{name}", namespace: :association_reset) do |batch|
+        batch << <<~RUBY
+          def reset_#{name}
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :reset_#{name})
+            association.reset
+          end
+        RUBY
+      end
     end
 
     # Defines the (build|create)\_association methods for belongs_to or has_one association
     def self.define_constructors(mixin, name)
-      mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def build_#{name}(*args, &block)
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.build(*args, &block)
-        end
+      mixin.define_cached_method(:"build_#{name}", namespace: :association_build) do |batch|
+        batch << <<~RUBY
+          def build_#{name}(*args, &block)
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :build_#{name})
+            association.build(*args, &block)
+          end
+        RUBY
+      end
 
-        def create_#{name}(*args, &block)
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.create(*args, &block)
-        end
+      mixin.define_cached_method(:"create_#{name}", namespace: :association_create) do |batch|
+        batch << <<~RUBY
+          def create_#{name}(*args, &block)
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :create_#{name})
+            association.create(*args, &block)
+          end
+        RUBY
+      end
 
-        def create_#{name}!(*args, &block)
-          association = association(:#{name})
-          deprecated_associations_api_guard(association, __method__)
-          association.create!(*args, &block)
-        end
-      CODE
+      mixin.define_cached_method(:"create_#{name}!", namespace: :association_create_bang) do |batch|
+        batch << <<~RUBY
+          def create_#{name}!(*args, &block)
+            association = association(:#{name})
+            deprecated_associations_api_guard(association, :create_#{name}!)
+            association.create!(*args, &block)
+          end
+        RUBY
+      end
     end
 
     def self.define_callbacks(model, reflection)

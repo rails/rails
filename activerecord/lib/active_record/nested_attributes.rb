@@ -437,7 +437,7 @@ module ActiveRecord
             silence_redefinition_of_method :#{association_name}_attributes=
             def #{association_name}_attributes=(attributes)
               association = association(:#{association_name})
-              deprecated_associations_api_guard(association, __method__)
+              deprecated_associations_api_guard(association, :#{association_name}_attributes=)
               assign_nested_attributes_for_#{type}_association(:#{association_name}, attributes)
             end
           eoruby
