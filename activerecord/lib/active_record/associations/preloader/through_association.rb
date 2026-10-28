@@ -15,7 +15,7 @@ module ActiveRecord
         end
 
         def preloaded_records
-          @preloaded_records ||= source_preloaders.flat_map(&:preloaded_records)
+          @preloaded_records ||= owners_all_loaded? ? owners.flat_map { |owner| target_for(owner) } : source_preloaders.flat_map(&:preloaded_records)
         end
 
         def records_by_owner
@@ -77,8 +77,12 @@ module ActiveRecord
           end
 
           def data_available?
-            owners.all? { |owner| loaded?(owner) } ||
+            owners_all_loaded? ||
               through_preloaders.all?(&:run?) && source_preloaders.all?(&:run?)
+          end
+
+          def owners_all_loaded?
+            owners.all? { |owner| loaded?(owner) }
           end
 
           def source_preloaders
@@ -86,7 +90,7 @@ module ActiveRecord
           end
 
           def middle_records
-            through_records_by_owner.values.flatten
+            through_preloaders.flat_map(&:preloaded_records)
           end
 
           def through_preloaders
