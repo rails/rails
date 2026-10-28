@@ -153,8 +153,16 @@ module ActiveSupport
       # Replace accented chars with their ASCII equivalents.
       parameterized_string = transliterate(string, locale: locale)
 
-      # Turn unwanted chars into the separator.
-      parameterized_string.gsub!(/[^a-z0-9\-_]+/i, separator)
+      # Turn unwanted chars into the separator. tr_s! does it in place, squeezing each
+      # run into one separator, without a MatchData and a replacement String per run;
+      # match? spares it building its table when there is nothing to replace. tr_s!
+      # leaves chars above U+00FF untouched, which a custom transliteration rule can
+      # return, hence the regexp for those strings.
+      if separator.length == 1 && separator.ascii_only? && parameterized_string.ascii_only?
+        parameterized_string.tr_s!("^a-zA-Z0-9\\-_", separator) unless parameterized_string.match?(/\A[a-z0-9\-_]*\z/i)
+      else
+        parameterized_string.gsub!(/[^a-z0-9\-_]+/i, separator)
+      end
 
       unless separator.empty?
         # No more than one of the separator in a row.
