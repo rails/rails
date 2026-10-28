@@ -71,11 +71,6 @@ module ActionDispatch
         match_route(name, constraints) do |route|
           parameterized_parts = extract_parameterized_parts(route, options, path_parameters)
 
-          # Skip this route unless a name has been provided or it is a standard Rails
-          # route since we can't determine whether an options hash passed to url_for
-          # matches a Rack application or a redirect.
-          next unless name || route.dispatcher?
-
           missing_keys = missing_keys(route, parameterized_parts)
           next if missing_keys && !missing_keys.empty?
           params = options.delete_if do |key, _|
@@ -154,7 +149,7 @@ module ActionDispatch
           if named_routes.key?(name)
             yield named_routes[name]
           else
-            routes = non_recursive(cache, options)
+            routes = non_recursive(cache, options, dispatchers_only: !name)
 
             supplied_keys = options.each_with_object({}) do |(k, v), h|
               h[k.is_a?(Symbol) ? k.name : k.to_s] = true if v
@@ -172,13 +167,14 @@ module ActionDispatch
           end
         end
 
-        def non_recursive(cache, options)
+        def non_recursive(cache, options, dispatchers_only:)
           routes = []
           queue  = [cache]
 
           while queue.any?
             c = queue.shift
             routes.concat(c[:___routes]) if c.key?(:___routes)
+            routes.concat(c[:___non_dispatchers]) if !dispatchers_only && c.key?(:___non_dispatchers)
 
             options.each do |pair|
               queue << c[pair] if c.key?(pair)
@@ -209,21 +205,17 @@ module ActionDispatch
           missing_keys
         end
 
-        def possibles(cache, options, depth = 0)
-          cache.fetch(:___routes) { [] } + options.find_all { |pair|
-            cache.key?(pair)
-          }.flat_map { |pair|
-            possibles(cache[pair], options, depth + 1)
-          }
-        end
-
         def build_cache
           root = { ___routes: [] }
           routes.routes.each_with_index do |route, i|
             leaf = route.required_defaults.inject(root) do |h, tuple|
               h[tuple] ||= {}
             end
-            (leaf[:___routes] ||= []) << [i, route]
+            # Rack applications and redirects are only candidates when a route name is
+            # given, since we can't determine whether an options hash passed to url_for
+            # matches them.
+            bucket = route.dispatcher? ? :___routes : :___non_dispatchers
+            (leaf[bucket] ||= []) << [i, route]
           end
           root
         end
