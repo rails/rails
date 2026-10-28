@@ -638,6 +638,29 @@ class CookiesTest < ActionController::TestCase
     assert_equal verifier.generate(45), controller_cookies[:user_id]
   end
 
+  def test_signed_cookie_verifier_is_shared_across_requests_with_the_same_configuration
+    verifier_for = ->(env) { ActionDispatch::Request.new(env).cookie_jar.signed.instance_variable_get(:@verifier) }
+    verifier = verifier_for.(@request.env.dup)
+
+    assert_same verifier, verifier_for.(@request.env.dup)
+
+    assert_not_same verifier, verifier_for.(@request.env.merge("action_dispatch.signed_cookie_digest" => "SHA256"))
+    assert_not_same verifier, verifier_for.(@request.env.merge("action_dispatch.cookies_rotations" => ActiveSupport::Messages::RotationConfiguration.new))
+    assert_not_same verifier, verifier_for.(@request.env.merge("action_dispatch.key_generator" => ActiveSupport::KeyGenerator.new(SECRET_KEY_BASE, iterations: 2)))
+  end
+
+  def test_encrypted_cookie_encryptor_is_shared_across_requests_with_the_same_configuration
+    encryptor_for = ->(env) { ActionDispatch::Request.new(env).cookie_jar.encrypted.instance_variable_get(:@encryptor) }
+    encryptor = encryptor_for.(@request.env.dup)
+
+    assert_same encryptor, encryptor_for.(@request.env.dup)
+
+    assert_not_same encryptor, encryptor_for.(@request.env.merge("action_dispatch.encrypted_cookie_cipher" => "aes-128-gcm"))
+    assert_not_same encryptor, encryptor_for.(@request.env.merge("action_dispatch.use_authenticated_cookie_encryption" => false))
+    assert_not_same encryptor, encryptor_for.(@request.env.merge("action_dispatch.cookies_rotations" => ActiveSupport::Messages::RotationConfiguration.new))
+    assert_not_same encryptor, encryptor_for.(@request.env.merge("action_dispatch.key_generator" => ActiveSupport::KeyGenerator.new(SECRET_KEY_BASE, iterations: 2)))
+  end
+
   def test_signed_cookie_rotating_secret_and_digest
     secret = "b3c631c314c0bbca50c1b2843150fe33"
 
