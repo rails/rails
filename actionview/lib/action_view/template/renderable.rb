@@ -15,10 +15,13 @@ module ActionView
         @renderable.class.name
       end
 
+      KERNEL_METHOD = Kernel.instance_method(:method)
+      private_constant :KERNEL_METHOD
+
       def render(context, locals)
         @renderable.render_in(context, locals: locals, &@block)
       rescue ArgumentError
-        render_in_method = Kernel.instance_method(:method).bind_call(@renderable, :render_in)
+        render_in_method = KERNEL_METHOD.bind_call(@renderable, :render_in)
 
         if render_in_method.arity == 1
           ActionView.deprecator.warn <<~WARN
