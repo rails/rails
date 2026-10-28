@@ -473,7 +473,7 @@ module ActiveSupport
       if parts[:offset]
         TimeWithZone.new(time.utc, self)
       else
-        TimeWithZone.new(nil, self, time)
+        TimeWithZone.new(nil, self, time.utc)
       end
 
     rescue Date::Error, KeyError
@@ -692,7 +692,7 @@ module ActiveSupport
         if parts[:offset] || parts[:seconds]
           TimeWithZone.new(time.utc, self)
         else
-          TimeWithZone.new(nil, self, time)
+          TimeWithZone.new(nil, self, time.utc)
         end
       end
 
