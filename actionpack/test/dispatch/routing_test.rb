@@ -5211,6 +5211,18 @@ class TestRedirectRouteGeneration < ActionDispatch::IntegrationTest
       assert_equal "/de/account?controller=products", url_for(controller: "products", action: "index", locale: "de", only_path: true)
     end
   end
+
+  def test_redirects_are_not_scored_for_unnamed_route
+    account, localized_account = Routes.routes.to_a
+
+    assert_not_called(account, :score) do
+      assert_not_called(localized_account, :score) do
+        assert_raise(ActionController::UrlGenerationError) do
+          url_for(controller: "products", action: "index", only_path: true)
+        end
+      end
+    end
+  end
 end
 
 class TestUrlGenerationErrors < ActionDispatch::IntegrationTest
