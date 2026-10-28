@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "concurrent/map"
 require "uri"
 require "active_support/parameter_filter"

@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "singleton"
 require "action_dispatch/deprecator"
 require "active_support/core_ext/string/filters"

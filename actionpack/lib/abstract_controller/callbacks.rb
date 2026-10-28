@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module AbstractController
   # # Abstract Controller Callbacks
   #

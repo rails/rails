@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "abstract_controller/error"
 require "active_support/descendants_tracker"
 require "active_support/inspect_backport"

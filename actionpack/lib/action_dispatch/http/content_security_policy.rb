@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/object/deep_dup"
 require "active_support/core_ext/array/wrap"
 
