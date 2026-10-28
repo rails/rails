@@ -359,6 +359,26 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "updating an existing record to keep one of several previously-attached blobs" do
+    blobs = [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg"), create_blob(filename: "racecar.jpg") ]
+    @user.highlights.attach blobs.reverse
+    attachment_id = @user.highlights_attachments.find { |attachment| attachment.blob_id == blobs.first.id }.id
+
+    @user.update! highlights: [ create_blob(filename: "video.mp4"), blobs.first ]
+
+    assert_equal %w[ funky.jpg video.mp4 ], @user.reload.highlights.map { |attachment| attachment.filename.to_s }.sort
+    assert_equal attachment_id, @user.highlights_attachments.find_by!(blob: blobs.first).id
+  end
+
+  test "assigning new blobs to an existing record does not load its attachments" do
+    @user.highlights.attach create_blob(filename: "funky.jpg")
+    @user.reload
+
+    @user.highlights = [ fixture_file_upload("racecar.jpg") ]
+
+    assert_not_predicate @user.highlights_attachments, :loaded?
+  end
+
   test "updating an existing record to remove dependent attachments" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs
