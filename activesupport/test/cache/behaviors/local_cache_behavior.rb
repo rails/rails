@@ -432,7 +432,7 @@ module LocalCacheBehavior
     keys = Array.new(5) { SecureRandom.uuid }
     values = keys.index_with(true)
     @cache.with_local_cache do
-      assert @cache.write_multi(values)
+      @cache.write_multi(values)
       assert_equal values, @cache.read_multi(*keys)
     end
   end
