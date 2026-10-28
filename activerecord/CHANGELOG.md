@@ -1,3 +1,16 @@
+*   Decode and encode PostgreSQL `integer[]` and `bigint[]` columns in C.
+
+    `OID::Array` now gives pg `PG::TextDecoder::Integer` and
+    `PG::TextEncoder::Integer` as element coders, so reading or writing an
+    integer array no longer allocates one String per element.
+
+    An empty or whitespace-only element now deserializes to `0` instead of
+    `nil`. PostgreSQL never returns one for an integer array column, so this
+    only affects an integer array attribute declared over a text array column
+    holding such elements.
+
+    *Clément Joubert*
+
 *   Deprecate the option accessors on `ColumnDefinition`.
 
     Use `options` instead, for example `column.options[:limit]` instead of

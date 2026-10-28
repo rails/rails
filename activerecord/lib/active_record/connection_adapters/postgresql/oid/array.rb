@@ -10,21 +10,26 @@ module ActiveRecord
 
           Data = Struct.new(:encoder, :values) # :nodoc:
 
+          # Subtypes whose serialize only returns integers or nil: subclasses may return anything.
+          INTEGER_SUBTYPES = [Type::Integer, Type::BigInteger].freeze # :nodoc:
+
           attr_reader :subtype, :delimiter
           delegate :type, :user_input_in_time_zone, :limit, :precision, :scale, to: :subtype
 
           def initialize(subtype, delimiter = ",")
             @subtype = subtype
             @delimiter = delimiter
-
-            @pg_encoder = PG::TextEncoder::Array.new(name: "#{type}[]".freeze, delimiter: delimiter).freeze
-            @pg_decoder = PG::TextDecoder::Array.new(name: "#{type}[]".freeze, delimiter: delimiter).freeze
+            build_pg_coders
           end
 
           def deserialize(value)
             case value
             when ::String
-              type_cast_array(@pg_decoder.decode(value), :deserialize)
+              if @pg_integer_decoder
+                @pg_integer_decoder.decode(value)
+              else
+                type_cast_array(@pg_decoder.decode(value), :deserialize)
+              end
             when Data
               type_cast_array(value.values, :deserialize)
             else
@@ -72,8 +77,7 @@ module ActiveRecord
           def init_from_schema_json(coder, references)
             @subtype = references[coder["subtype"]]
             @delimiter = coder["delimiter"]
-            @pg_encoder = PG::TextEncoder::Array.new(name: "#{type}[]".dedup, delimiter: @delimiter).freeze
-            @pg_decoder = PG::TextDecoder::Array.new(name: "#{type}[]".dedup, delimiter: @delimiter).freeze
+            build_pg_coders
           end
 
           def map(value, &block)
@@ -89,6 +93,21 @@ module ActiveRecord
           end
 
           private
+            def build_pg_coders
+              name = "#{type}[]".dedup
+              @pg_decoder = PG::TextDecoder::Array.new(name: name, delimiter: @delimiter).freeze
+
+              if INTEGER_SUBTYPES.include?(@subtype.class)
+                # pg converts the elements in C, with no String per element. Only deserialize uses
+                # the integer decoder: user input given to cast keeps going through the subtype.
+                @pg_encoder = PG::TextEncoder::Array.new(name: name, delimiter: @delimiter, elements_type: PG::TextEncoder::Integer.new).freeze
+                @pg_integer_decoder = PG::TextDecoder::Array.new(name: name, delimiter: @delimiter, elements_type: PG::TextDecoder::Integer.new).freeze
+              else
+                @pg_encoder = PG::TextEncoder::Array.new(name: name, delimiter: @delimiter).freeze
+                @pg_integer_decoder = nil
+              end
+            end
+
             def type_cast_array(value, method)
               if value.is_a?(::Array)
                 value.map { |item| type_cast_array(item, method) }
