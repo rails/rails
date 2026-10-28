@@ -151,7 +151,10 @@ module ActionView
           end
         else
           if options.respond_to?(:render_in)
-            view_renderer.render(self, renderable: options, locals: locals, &block)
+            renderable = Template::Renderable.new(options, &block)
+            ActiveSupport::Notifications.instrument("render_template.action_view", identifier: renderable.identifier, layout: nil, locals: locals) do
+              renderable.render(self, locals)
+            end
           else
             view_renderer.render_partial(self, partial: options, locals: locals, &block)
           end

@@ -488,6 +488,12 @@ module RenderTestCases
     assert_equal "<h1>Goodbye, Block!</h1>", @view.render(renderable: TestRenderable.new) { @view.tag.h1 "Goodbye, Block!" }
   end
 
+  def test_render_renderable_instruments_render_template
+    assert_notification("render_template.action_view", identifier: "TestRenderable", layout: nil, locals: { name: "Renderable" }) do
+      @view.render(TestRenderable.new, name: "Renderable")
+    end
+  end
+
   def test_render_renderable_render_in_excludes_renderable_key
     renderable = Object.new
     def renderable.render_in(view_context, **options)
