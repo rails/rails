@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   class PredicateBuilder # :nodoc:
     NO_MATCH = Arel.sql("1=0", retryable: true).freeze
@@ -22,34 +23,71 @@ module ActiveRecord
     end
 
     def build_from_hash(attributes, &block)
-      attributes = convert_dot_notation_to_hash(attributes)
-      expand_from_hash(attributes, &block)
+      expand_from_hash(convert_dot_notation_to_hash(attributes), &block)
     end
 
-    def self.references(attributes)
-      attributes.each_with_object([]) do |(key, value), result|
+    # Normalizes "topics.title" => "Rails" into "topics" => { "title" => "Rails" },
+    # returning attributes itself when there is nothing to normalize.
+    def convert_dot_notation_to_hash(attributes)
+      return attributes unless attributes.any? { |key, value| value.is_a?(Hash) || (key.is_a?(String) && key.include?(".")) }
+
+      attributes.each_with_object({}) do |(key, value), converted|
         if value.is_a?(Hash)
-          result << Arel.sql(key, retryable: true)
+          if (existing = converted[key])
+            existing.merge!(value)
+          else
+            converted[key] = value.dup
+          end
         elsif (idx = key.rindex("."))
-          result << Arel.sql(key[0, idx], retryable: true)
+          table_name, column_name = key[0, idx], key[idx + 1, key.length]
+
+          if (existing = converted[table_name])
+            existing[column_name] = value
+          else
+            converted[table_name] = { column_name => value }
+          end
+        else
+          converted[key] = value
         end
       end
     end
 
-    # Define how a class is converted to Arel nodes when passed to +where+.
-    # The handler can be any object that responds to +call+, and will be used
-    # for any value that <tt>===</tt> the class given. For example:
+    # Returns the tables referenced by normalized attributes, or nil for none.
+    # Tuple keys are normalized only when expanded, so parse their dot notation here.
+    def self.references(attributes)
+      references = nil
+
+      attributes.each do |key, value|
+        if value.is_a?(Hash)
+          (references ||= []) << Arel.sql(key, retryable: true)
+        elsif key.is_a?(Array)
+          key.each do |column|
+            if (idx = column.rindex("."))
+              (references ||= []) << Arel.sql(column[0, idx], retryable: true)
+            end
+          end
+        end
+      end
+
+      references
+    end
+
+    # Define how a class is converted to Arel nodes when passed to `where`.
+    # The handler can be any object that responds to `call`, and will be used
+    # for any value that `===` the class given. For example:
     #
-    #     MyCustomDateRange = Struct.new(:start, :end)
-    #     handler = proc do |column, range|
-    #       Arel::Nodes::Between.new(column,
-    #         Arel::Nodes::And.new([range.start, range.end])
-    #       )
-    #     end
-    #     ActiveRecord::PredicateBuilder.new("users").register_handler(MyCustomDateRange, handler)
+    # ```
+    # MyCustomDateRange = Struct.new(:start, :end)
+    # handler = proc do |column, range|
+    #   Arel::Nodes::Between.new(column,
+    #     Arel::Nodes::And.new([range.start, range.end])
+    #   )
+    # end
+    # ActiveRecord::PredicateBuilder.new("users").register_handler(MyCustomDateRange, handler)
+    # ```
     #
-    # The column exposes its effective type through +type_caster+. Call
-    # <tt>fetch_attribute { |attribute| ... }</tt> to access the underlying
+    # The column exposes its effective type through `type_caster`. Call
+    # `fetch_attribute { |attribute| ... }` to access the underlying
     # logical Arel attribute when a type supplies a comparison expression. The
     # handler is responsible for constructing its right-hand side.
     def register_handler(klass, handler)
@@ -103,6 +141,83 @@ module ActiveRecord
       other
     end
 
+    def expand_from_hash(attributes, &block)
+      return [NO_MATCH] if attributes.empty?
+
+      attributes.flat_map do |key, value|
+        if key.is_a?(Array) && key.size == 1
+          key = key.first
+          value = value.flatten
+        end
+
+        if key.is_a?(Array)
+          queries = Array(value).map do |ids_set|
+            ids_set = ids_set.id if ids_set.respond_to?(:id)
+            raise ArgumentError, "Expected corresponding value for #{key} to be an Array" unless ids_set.is_a?(Array)
+            build_from_hash(key.zip(ids_set).to_h, &block)
+          end
+          grouping_queries(queries)
+        elsif value.is_a?(Hash) && !table.has_column?(key)
+          table.associated_table(key, &block)
+            .predicate_builder.expand_from_hash(value.stringify_keys, &block)
+        elsif (associated_reflection = table.associated_with(key))
+          # Find the foreign key when using queries such as:
+          # Post.where(author: author)
+          #
+          # For polymorphic relationships, find the foreign key and type:
+          # PriceEstimate.where(estimate_of: treasure)
+
+          if associated_reflection.polymorphic?
+            value = [value] unless value.is_a?(Array)
+            query_value = PolymorphicArrayValue.new(associated_reflection, value, table.model)
+          elsif associated_reflection.through_reflection?
+            associated_table = table.associated_table(key)
+
+            next associated_table.predicate_builder.expand_from_hash(
+              associated_table.primary_key => value
+            )
+          end
+
+          query_value ||= AssociationQueryValue.new(associated_reflection, value, table.model)
+          queries = query_value.queries.map! do |query|
+            # If the query produced is identical to attributes don't go any deeper.
+            # Prevents stack level too deep errors when association and foreign_key are identical.
+            query == attributes ? self[key, value] : expand_from_hash(query)
+          end
+
+          grouping_queries(queries)
+        elsif table.aggregated_with?(key)
+          mapping = table.reflect_on_aggregation(key).mapping
+          values = value.nil? ? [nil] : Array.wrap(value)
+          if mapping.length == 1 || values.empty?
+            column_name, aggr_attr = mapping.first
+            values = values.map do |object|
+              if object.is_a?(Range)
+                range_begin = aggregate_attribute_value(object.begin, aggr_attr)
+                range_end = aggregate_attribute_value(object.end, aggr_attr)
+
+                Range.new(range_begin, range_end, object.exclude_end?)
+              else
+                aggregate_attribute_value(object, aggr_attr)
+              end
+            end
+
+            self[column_name, values]
+          else
+            queries = values.map do |object|
+              mapping.map do |field_attr, aggregate_attr|
+                self[field_attr, object.try!(aggregate_attr)]
+              end
+            end
+
+            grouping_queries(queries)
+          end
+        else
+          self[key, value]
+        end
+      end
+    end
+
     protected
       attr_writer :table
 
@@ -112,82 +227,6 @@ module ActiveRecord
         register_handler(Relation, RelationHandler.new)
         register_handler(Array, ArrayHandler.new(self))
         register_handler(Set, ArrayHandler.new(self))
-      end
-
-      def expand_from_hash(attributes, &block)
-        return [NO_MATCH] if attributes.empty?
-
-        attributes.flat_map do |key, value|
-          if key.is_a?(Array) && key.size == 1
-            key = key.first
-            value = value.flatten
-          end
-
-          if key.is_a?(Array)
-            queries = Array(value).map do |ids_set|
-              raise ArgumentError, "Expected corresponding value for #{key} to be an Array" unless ids_set.is_a?(Array)
-              expand_from_hash(convert_dot_notation_to_hash(key.zip(ids_set).to_h))
-            end
-            grouping_queries(queries)
-          elsif value.is_a?(Hash) && !table.has_column?(key)
-            table.associated_table(key, &block)
-              .predicate_builder.expand_from_hash(value.stringify_keys)
-          elsif (associated_reflection = table.associated_with(key))
-            # Find the foreign key when using queries such as:
-            # Post.where(author: author)
-            #
-            # For polymorphic relationships, find the foreign key and type:
-            # PriceEstimate.where(estimate_of: treasure)
-
-            if associated_reflection.polymorphic?
-              value = [value] unless value.is_a?(Array)
-              query_value = PolymorphicArrayValue.new(associated_reflection, value, table.model)
-            elsif associated_reflection.through_reflection?
-              associated_table = table.associated_table(key)
-
-              next associated_table.predicate_builder.expand_from_hash(
-                associated_table.primary_key => value
-              )
-            end
-
-            query_value ||= AssociationQueryValue.new(associated_reflection, value, table.model)
-            queries = query_value.queries.map! do |query|
-              # If the query produced is identical to attributes don't go any deeper.
-              # Prevents stack level too deep errors when association and foreign_key are identical.
-              query == attributes ? self[key, value] : expand_from_hash(query)
-            end
-
-            grouping_queries(queries)
-          elsif table.aggregated_with?(key)
-            mapping = table.reflect_on_aggregation(key).mapping
-            values = value.nil? ? [nil] : Array.wrap(value)
-            if mapping.length == 1 || values.empty?
-              column_name, aggr_attr = mapping.first
-              values = values.map do |object|
-                if object.is_a?(Range)
-                  range_begin = aggregate_attribute_value(object.begin, aggr_attr)
-                  range_end = aggregate_attribute_value(object.end, aggr_attr)
-
-                  Range.new(range_begin, range_end, object.exclude_end?)
-                else
-                  aggregate_attribute_value(object, aggr_attr)
-                end
-              end
-
-              self[column_name, values]
-            else
-              queries = values.map do |object|
-                mapping.map do |field_attr, aggregate_attr|
-                  self[field_attr, object.try!(aggregate_attr)]
-                end
-              end
-
-              grouping_queries(queries)
-            end
-          else
-            self[key, value]
-          end
-        end
       end
 
     private
@@ -206,30 +245,6 @@ module ActiveRecord
           }
           queries = Arel::Nodes::Or.new(queries)
           Arel::Nodes::Grouping.new(queries)
-        end
-      end
-
-      def convert_dot_notation_to_hash(attributes)
-        return attributes unless attributes.any? { |key, value| value.is_a?(Hash) || (key.is_a?(String) && key.include?(".")) }
-
-        attributes.each_with_object({}) do |(key, value), converted|
-          if value.is_a?(Hash)
-            if (existing = converted[key])
-              existing.merge!(value)
-            else
-              converted[key] = value.dup
-            end
-          elsif (idx = key.rindex("."))
-            table_name, column_name = key[0, idx], key[idx + 1, key.length]
-
-            if (existing = converted[table_name])
-              existing[column_name] = value
-            else
-              converted[table_name] = { column_name => value }
-            end
-          else
-            converted[key] = value
-          end
         end
       end
 

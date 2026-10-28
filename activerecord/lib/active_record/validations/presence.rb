@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Validations
     class PresenceValidator < ActiveModel::Validations::PresenceValidator # :nodoc:
@@ -16,10 +17,12 @@ module ActiveRecord
       # Object#blank?). If the attribute is an association, the associated object
       # is also considered blank if it is marked for destruction.
       #
-      #   class Person < ActiveRecord::Base
-      #     has_one :face
-      #     validates_presence_of :face
-      #   end
+      # ```
+      # class Person < ActiveRecord::Base
+      #   has_one :face
+      #   validates_presence_of :face
+      # end
+      # ```
       #
       # The face attribute must be in the object and it cannot be blank or marked
       # for destruction.
@@ -36,7 +39,7 @@ module ActiveRecord
       # NOTE: This validation will not fail while using it with an association
       # if the latter was assigned but not valid. If you want to ensure that
       # it is both present and valid, you also need to use
-      # {validates_associated}[rdoc-ref:Validations::ClassMethods#validates_associated].
+      # [validates_associated](rdoc-ref:Validations::ClassMethods#validates_associated).
       def validates_presence_of(*attr_names)
         validates_with PresenceValidator, _merge_attributes(attr_names)
       end

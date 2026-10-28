@@ -2,7 +2,6 @@
 
 # :markup: markdown
 require "action_view/path_set"
-require "action_view/render_parser"
 
 module ActionView
   # Action View Dependency Tracker

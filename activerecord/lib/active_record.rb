@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 #--
 # Copyright (c) David Heinemeier Hansson
 #
@@ -37,6 +38,7 @@ require "active_record/deprecator"
 require "active_model/attribute_set"
 require "active_record/errors"
 
+# :markup: rdoc
 # :include: ../README.rdoc
 module ActiveRecord
   extend ActiveSupport::Autoload
@@ -197,7 +199,7 @@ module ActiveRecord
   ##
   # :singleton-method: protected_environments
   # The array of names of environments where destructive actions should be
-  # prohibited. By default, the value is <tt>["production"]</tt>.
+  # prohibited. By default, the value is `["production"]`.
   singleton_class.attr_reader :protected_environments
 
   # Sets an array of names of environments where destructive actions should be
@@ -232,12 +234,12 @@ module ActiveRecord
   ##
   # :singleton-method: schema_ignored_tables
   # A list of tables or regex's to match tables to ignore when dumping the
-  # schema cache and the schema file. For example if this is set to +[/^_/]+
+  # schema cache and the schema file. For example if this is set to +[/^\_/]+
   # tables named with an underscore are dumped to neither.
   singleton_class.attr_accessor :schema_ignored_tables
   self.schema_ignored_tables = []
 
-  #   ActiveRecord.schema_ignored_table?(:developers)
+  # ActiveRecord.schema_ignored_table?(:developers)
   def self.schema_ignored_table?(table_name)
     schema_ignored_tables.any? { |ignored| ignored === table_name }
   end
@@ -301,7 +303,9 @@ module ActiveRecord
   # Specify allowlist of database warnings.
   # Can be a string, regular expression, or an error code from the database.
   #
-  #   ActiveRecord::Base.db_warnings_ignore = [/`SHOW WARNINGS` did not return the warnings/, "01000"]
+  # ```
+  # ActiveRecord::Base.db_warnings_ignore = [/`SHOW WARNINGS` did not return the warnings/, "01000"]
+  # ```
   singleton_class.attr_accessor :db_warnings_ignore
   self.db_warnings_ignore = []
 
@@ -314,15 +318,17 @@ module ActiveRecord
   ##
   # :singleton-method: async_query_executor
   # Sets the async_query_executor for an application. By default the thread pool executor
-  # set to +nil+ which will not run queries in the background. Applications must configure
+  # set to `nil` which will not run queries in the background. Applications must configure
   # a thread pool executor to use this feature. Options are:
   #
-  #   * nil - Does not initialize a thread pool executor. Any async calls will be
-  #   run in the foreground.
-  #   * :global_thread_pool - Initializes a single +Concurrent::ThreadPoolExecutor+
-  #   that uses the +async_query_concurrency+ for the +max_threads+ value.
-  #   * :multi_thread_pool - Initializes a +Concurrent::ThreadPoolExecutor+ for each
-  #   database connection. The initializer values are defined in the configuration hash.
+  # ```
+  # * nil - Does not initialize a thread pool executor. Any async calls will be
+  # run in the foreground.
+  # * :global_thread_pool - Initializes a single +Concurrent::ThreadPoolExecutor+
+  # that uses the +async_query_concurrency+ for the +max_threads+ value.
+  # * :multi_thread_pool - Initializes a +Concurrent::ThreadPoolExecutor+ for each
+  # database connection. The initializer values are defined in the configuration hash.
+  # ```
   singleton_class.attr_accessor :async_query_executor
   self.async_query_executor = nil
 
@@ -337,7 +343,7 @@ module ActiveRecord
     )
   end
 
-  # Set the +global_executor_concurrency+. This configuration value can only be used
+  # Set the `global_executor_concurrency`. This configuration value can only be used
   # with the global thread pool async query executor.
   def self.global_executor_concurrency=(global_executor_concurrency)
     if self.async_query_executor.nil? || self.async_query_executor == :multi_thread_pool
@@ -354,7 +360,7 @@ module ActiveRecord
   @permanent_connection_checkout = true
   singleton_class.attr_reader :permanent_connection_checkout
 
-  # Defines whether +ActiveRecord::Base.connection+ is allowed, deprecated, or entirely disallowed.
+  # Defines whether `ActiveRecord::Base.connection` is allowed, deprecated, or entirely disallowed.
   def self.permanent_connection_checkout=(value)
     unless [true, :deprecated, :disallowed].include?(value)
       raise ArgumentError, "permanent_connection_checkout must be one of: `true`, `:deprecated` or `:disallowed`"
@@ -383,8 +389,15 @@ module ActiveRecord
   singleton_class.attr_accessor :maintain_test_schema
   self.maintain_test_schema = nil
 
-  singleton_class.attr_accessor :raise_on_assign_to_attr_readonly
-  self.raise_on_assign_to_attr_readonly = false
+  singleton_class.attr_accessor :_raise_on_assign_to_attr_readonly # :nodoc:
+  self._raise_on_assign_to_attr_readonly = true
+
+  def self.raise_on_assign_to_attr_readonly=(value)
+    deprecator.warn(<<~MSG)
+     `config.active_record.raise_on_assign_to_attr_readonly` is deprecated and will be removed in Rails 9.0.
+    MSG
+    @_raise_on_assign_to_attr_readonly = value
+  end
 
   singleton_class.attr_accessor :belongs_to_required_validates_foreign_key
   self.belongs_to_required_validates_foreign_key = true
@@ -400,7 +413,7 @@ module ActiveRecord
 
   ##
   # :singleton-method: shuffle_unordered_selects
-  # Shuffles the rows of every +SELECT+ Active Record generates that has no
+  # Shuffles the rows of every `SELECT` Active Record generates that has no
   # +ORDER BY+ clause.
   #
   # The order of such a query is not specified, and databases are free to
@@ -457,7 +470,7 @@ module ActiveRecord
   # :singleton-method: validate_migration_timestamps
   # Specify whether or not to validate migration timestamps. When set, an error
   # will be raised if a timestamp is more than a day ahead of the timestamp
-  # associated with the current time. +timestamped_migrations+ must be set to true.
+  # associated with the current time. `timestamped_migrations` must be set to true.
   singleton_class.attr_accessor :validate_migration_timestamps
   self.validate_migration_timestamps = false
 
@@ -495,15 +508,15 @@ module ActiveRecord
 
   ##
   # :singleton-method: dump_schema_migrations
-  # Specifies whether to dump the +schema_migrations+ table when dumping
-  # the database schema in the +:ruby+ format.
+  # Specifies whether to dump the `schema_migrations` table when dumping
+  # the database schema in the `:ruby` format.
   singleton_class.attr_accessor :dump_schema_migrations
   self.dump_schema_migrations = false
 
   ##
   # :singleton-method: dump_schema_migrations_sort_by
-  # Specifies the proc used to order versions when dumping the +schema_migrations+
-  # table in the +:ruby+ format.
+  # Specifies the proc used to order versions when dumping the `schema_migrations`
+  # table in the `:ruby` format.
   singleton_class.attr_accessor :dump_schema_migrations_sort_by
   self.dump_schema_migrations_sort_by = :reverse
 
@@ -543,8 +556,8 @@ module ActiveRecord
 
   ##
   # :singleton-method: generate_secure_token_on
-  # Controls when to generate a value for <tt>has_secure_token</tt>
-  # declarations. Defaults to <tt>:create</tt>.
+  # Controls when to generate a value for `has_secure_token`
+  # declarations. Defaults to `:create`.
   singleton_class.attr_accessor :generate_secure_token_on
   self.generate_secure_token_on = :create
 
@@ -583,18 +596,23 @@ module ActiveRecord
   # :singleton-method: protocol_adapters
   # Provides a mapping between database protocols/DBMSs and the
   # underlying database adapter to be used. This is used only by the
-  # <tt>DATABASE_URL</tt> environment variable.
+  # `DATABASE_URL` environment variable.
   #
-  # == Example
+  # Example
+  # -------
   #
-  #   DATABASE_URL="mysql://myuser:mypass@localhost/somedatabase"
+  # ```
+  # DATABASE_URL="mysql://myuser:mypass@localhost/somedatabase"
+  # ```
   #
   # The above URL specifies that MySQL is the desired protocol/DBMS, and the
   # application configuration can then decide which adapter to use. For this example
-  # the default mapping is from <tt>mysql</tt> to <tt>mysql2</tt>, but <tt>:trilogy</tt>
+  # the default mapping is from `mysql` to `mysql2`, but `:trilogy`
   # is also supported.
   #
-  #   ActiveRecord.protocol_adapters.mysql = "mysql2"
+  # ```
+  # ActiveRecord.protocol_adapters.mysql = "mysql2"
+  # ```
   #
   # The protocols names are arbitrary, and external database adapters can be
   # registered and set here.
@@ -611,7 +629,7 @@ module ActiveRecord
   # :singleton-method: message_verifiers
   #
   # ActiveSupport::MessageVerifiers instance for Active Record. If you are using
-  # Rails, this will be set to +Rails.application.message_verifiers+.
+  # Rails, this will be set to `Rails.application.message_verifiers`.
   singleton_class.attr_accessor :message_verifiers
 
   def self.eager_load!

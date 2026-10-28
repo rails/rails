@@ -122,6 +122,7 @@ module Rails
           end
 
           if respond_to?(:active_record)
+            active_record.raise_on_assign_to_attr_readonly = false
             active_record.belongs_to_required_by_default = true
           end
 
@@ -286,6 +287,7 @@ module Rails
             active_record.sqlite3_adapter_strict_strings_by_default = true
             active_record.query_log_tags_format = :sqlcommenter
             active_record.raise_on_assign_to_attr_readonly = true
+            active_record.delete(:raise_on_assign_to_attr_readonly)
             active_record.belongs_to_required_validates_foreign_key = false
             active_record.before_committed_on_all_records = true
             active_record.default_column_serializer = nil
@@ -403,6 +405,10 @@ module Rails
 
           if respond_to?(:active_job)
             active_job.enqueue_after_transaction_commit = true
+          end
+
+          if respond_to?(:active_support)
+            active_support.message_serializer = :json
           end
 
           ActiveSupport.raise_on_invalid_time_zone_parse = true
@@ -710,11 +716,19 @@ module Rails
             nil
           end
 
-          return random_key if random_key.present?
+          if random_key.blank?
+            random_key = SecureRandom.hex(64)
+            FileUtils.mkdir_p(key_file.dirname)
+            File.binwrite(key_file, random_key, perm: 0o600)
+          end
 
-          random_key = SecureRandom.hex(64)
-          FileUtils.mkdir_p(key_file.dirname)
-          File.binwrite(key_file, random_key)
+          unless Gem.win_platform?
+            begin
+              File.chmod(0o600, key_file) unless (File.stat(key_file).mode & 0o077).zero?
+            rescue SystemCallError
+            end
+          end
+
           random_key
         end
     end

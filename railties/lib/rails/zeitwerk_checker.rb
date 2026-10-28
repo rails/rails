@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 # The actual (private) implementation of the Rake task zeitwerk:check.
 class Rails::ZeitwerkChecker # :nodoc:
   def self.check

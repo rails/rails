@@ -242,6 +242,8 @@ module ActionView
     attr_reader :variable, :format, :variant, :virtual_path
 
     NONE = Object.new.freeze
+    NO_IMPLICIT_LOCALS = [].freeze
+    private_constant :NO_IMPLICIT_LOCALS
 
     def initialize(source, identifier, handler, locals:, format: nil, variant: nil, virtual_path: nil)
       @source            = source.dup
@@ -322,7 +324,7 @@ module ActionView
     # This method is instrumented as "!render_template.action_view". Notice that
     # we use a bang in this instrumentation because you don't want to
     # consume this in production. This is only slow if it's being listened to.
-    def render(view, locals, buffer = nil, implicit_locals: [], add_to_stack: true, &block)
+    def render(view, locals, buffer = nil, implicit_locals: NO_IMPLICIT_LOCALS, add_to_stack: true, &block)
       instrument_render_template do
         compile!(view)
 

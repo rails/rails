@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "marcel"
 
 module ActiveStorage::Blob::Representable

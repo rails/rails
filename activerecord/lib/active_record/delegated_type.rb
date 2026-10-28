@@ -278,6 +278,7 @@ module ActiveRecord
         primary_key = options[:primary_key] || "id"
         role_type = options[:foreign_type] || "#{role}_type"
         role_id   = options[:foreign_key] || "#{role}_id"
+        role_class = :"#{role}_class"
 
         define_singleton_method "#{role}_types" do
           types.map(&:to_s)
@@ -288,11 +289,11 @@ module ActiveRecord
         end
 
         define_method "#{role}_name" do
-          public_send("#{role}_class").model_name.singular.inquiry
+          public_send(role_class).model_name.singular.inquiry
         end
 
         define_method "build_#{role}" do |*params|
-          public_send("#{role}=", public_send("#{role}_class").new(*params))
+          public_send("#{role}=", public_send(role_class).new(*params))
         end
 
         types.each do |type|

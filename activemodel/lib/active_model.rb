@@ -62,7 +62,7 @@ module ActiveModel
   eager_autoload do
     autoload :Errors
     autoload :Error
-    autoload :MissingAttributeError, "active_model/attribute_methods"
+    autoload :MissingAttributeError
     autoload :RangeError, "active_model/errors"
     autoload :StrictValidationFailed, "active_model/errors"
     autoload :UnknownAttributeError, "active_model/errors"

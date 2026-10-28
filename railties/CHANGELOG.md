@@ -1,3 +1,17 @@
+*   Create the local development/test secret file (`tmp/local_secret.txt`) with
+    owner-only permissions (`0600`) instead of inheriting the process umask,
+    and tighten the permissions of an existing file on read on non-Windows
+    platforms.
+
+    The file holds the `secret_key_base` used in development and test to derive
+    keys for signing and encrypting cookies. With a common umask of `022` it was
+    created world-readable, so other local users able to access the application's
+    directory could read it and forge signed or encrypted cookies.
+    This brings it in line with how `config/master.key` and the other
+    credentials key files are created.
+
+    *Sebastian Stange*
+
 *   Add `config.zjit` to enable ZJIT after the application has booted.
 
     Like `config.yjit`, it enables the JIT once boot is done, so it doesn't

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   # This class is used to create a table that keeps track of which migrations
   # have been applied to a given database. When a migration is run, its schema

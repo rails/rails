@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Scoping
     class DefaultScope # :nodoc:
@@ -23,42 +24,52 @@ module ActiveRecord
       module ClassMethods
         # Returns a scope for the model without the previously set scopes.
         #
-        #   class Post < ActiveRecord::Base
-        #     belongs_to :user
+        # ```
+        # class Post < ActiveRecord::Base
+        #   belongs_to :user
         #
-        #     def self.default_scope
-        #       where(published: true)
-        #     end
+        #   def self.default_scope
+        #     where(published: true)
         #   end
+        # end
         #
-        #   class User < ActiveRecord::Base
-        #     has_many :posts
-        #   end
+        # class User < ActiveRecord::Base
+        #   has_many :posts
+        # end
         #
-        #   Post.all                                  # Fires "SELECT * FROM posts WHERE published = true"
-        #   Post.unscoped.all                         # Fires "SELECT * FROM posts"
-        #   Post.where(published: false).unscoped.all # Fires "SELECT * FROM posts"
-        #   User.find(1).posts                        # Fires "SELECT * FROM posts WHERE published = true AND posts.user_id = 1"
-        #   User.find(1).posts.unscoped               # Fires "SELECT * FROM posts"
+        # Post.all                                  # Fires "SELECT * FROM posts WHERE published = true"
+        # Post.unscoped.all                         # Fires "SELECT * FROM posts"
+        # Post.where(published: false).unscoped.all # Fires "SELECT * FROM posts"
+        # User.find(1).posts                        # Fires "SELECT * FROM posts WHERE published = true AND posts.user_id = 1"
+        # User.find(1).posts.unscoped               # Fires "SELECT * FROM posts"
+        # ```
         #
         # This method also accepts a block. All queries inside the block will
         # not use the previously set scopes.
         #
-        #   Post.unscoped {
-        #     Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"
-        #   }
+        # ```
+        # Post.unscoped {
+        #   Post.limit(10) # Fires "SELECT * FROM posts LIMIT 10"
+        # }
+        # ```
         def unscoped(&block)
           block_given? ? relation.scoping(&block) : relation
         end
 
         # Are there attributes associated with this scope?
         def scope_attributes? # :nodoc:
-          super || default_scopes.any? || respond_to?(:default_scope)
+          super || has_default_scope?
+        end
+
+        # Whether the model has a default scope, either declared with
+        # `default_scope` or by overriding the `default_scope` method.
+        def has_default_scope? # :nodoc:
+          default_scopes.any? || !Base.is_a?(method(:default_scope).owner)
         end
 
         # Checks if the model has any default scopes. If all_queries
         # is set to true, the method will check if there are any
-        # default_scopes for the model  where +all_queries+ is true.
+        # default_scopes for the model  where `all_queries` is true.
         def default_scopes?(all_queries: false)
           if all_queries
             self.default_scopes.any?(&:all_queries)
@@ -71,48 +82,58 @@ module ActiveRecord
           # Use this macro in your model to set a default scope for all operations on
           # the model.
           #
-          #   class Article < ActiveRecord::Base
-          #     default_scope { where(published: true) }
-          #   end
+          # ```
+          # class Article < ActiveRecord::Base
+          #   default_scope { where(published: true) }
+          # end
           #
-          #   Article.all
-          #   # SELECT * FROM articles WHERE published = true
+          # Article.all
+          # # SELECT * FROM articles WHERE published = true
+          # ```
           #
           # The #default_scope is also applied while creating/building a record.
           # It is not applied while updating or deleting a record.
           #
-          #   Article.new.published    # => true
-          #   Article.create.published # => true
+          # ```
+          # Article.new.published    # => true
+          # Article.create.published # => true
+          # ```
           #
           # To apply a #default_scope when updating or deleting a record, add
-          # <tt>all_queries: true</tt>:
+          # `all_queries: true`:
           #
-          #   class Article < ActiveRecord::Base
-          #     default_scope -> { where(blog_id: 1) }, all_queries: true
-          #   end
+          # ```
+          # class Article < ActiveRecord::Base
+          #   default_scope -> { where(blog_id: 1) }, all_queries: true
+          # end
+          # ```
           #
           # Applying a default scope to all queries will ensure that records
           # are always queried by the additional conditions. Note that only
           # where clauses apply, as it does not make sense to add order to
           # queries that return a single object by primary key.
           #
-          #   Article.find(1).destroy
-          #   # DELETE ... FROM `articles` where ID = 1 AND blog_id = 1;
+          # ```
+          # Article.find(1).destroy
+          # # DELETE ... FROM `articles` where ID = 1 AND blog_id = 1;
+          # ```
           #
-          # (You can also pass any object which responds to +call+ to the
-          # +default_scope+ macro, and it will be called when building the
+          # (You can also pass any object which responds to `call` to the
+          # `default_scope` macro, and it will be called when building the
           # default scope.)
           #
           # If you use multiple #default_scope declarations in your model then
           # they will be merged together:
           #
-          #   class Article < ActiveRecord::Base
-          #     default_scope { where(published: true) }
-          #     default_scope { where(rating: 'G') }
-          #   end
+          # ```
+          # class Article < ActiveRecord::Base
+          #   default_scope { where(published: true) }
+          #   default_scope { where(rating: 'G') }
+          # end
           #
-          #   Article.all
-          #   # SELECT * FROM articles WHERE published = true AND rating = 'G'
+          # Article.all
+          # # SELECT * FROM articles WHERE published = true AND rating = 'G'
+          # ```
           #
           # This is also the case with inheritance and module includes where the
           # parent or module defines a #default_scope and the child or including
@@ -121,11 +142,13 @@ module ActiveRecord
           # If you need to do more complex things with a default scope, you can
           # alternatively define it as a class method:
           #
-          #   class Article < ActiveRecord::Base
-          #     def self.default_scope
-          #       # Should return a scope, you can call 'super' here etc.
-          #     end
+          # ```
+          # class Article < ActiveRecord::Base
+          #   def self.default_scope
+          #     # Should return a scope, you can call 'super' here etc.
           #   end
+          # end
+          # ```
           def default_scope(scope = nil, all_queries: nil, &block) # :doc:
             scope = block if block_given?
 

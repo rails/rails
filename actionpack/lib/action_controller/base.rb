@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_view"
 require "action_controller/log_subscriber"
 require "action_controller/structured_event_subscriber"
@@ -321,7 +319,7 @@ module ActionController
       @_action_has_layout @_view_context_class
       @_view_renderer @_lookup_context @_routes @_view_runtime @_db_runtime @_helper_proxy
       @_marked_for_same_origin_verification @_verify_authenticity_token_ran @_rendered_format
-      @_real_csrf_token_source @_real_csrf_token
+      @_real_csrf_token_source @_real_csrf_token @_csrf_token_hmac
     )).freeze
 
     def _protected_ivars

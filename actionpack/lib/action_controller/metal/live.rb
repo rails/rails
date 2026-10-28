@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_dispatch/http/response"
 require "delegate"
 require "active_support/json"

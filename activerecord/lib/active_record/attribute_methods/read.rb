@@ -33,22 +33,25 @@ module ActiveRecord
       # to `Date.new(2004, 12, 12)`. (For information about specific type
       # casting behavior, see the types under ActiveModel::Type.)
       def read_attribute(attr_name, &block)
-        name = resolve_alias(attr_name.to_s)
+        name = resolve_alias(attr_name.is_a?(Symbol) ? attr_name.name : attr_name.to_s)
 
         @attributes.fetch_value(name, &block)
       end
 
-      # Like #read_attribute, but +attr_name+ must be a String, and a missing
-      # attribute raises ActiveModel::MissingAttributeError.
-      # We assume that attribute name is a string.  This is an internal method,
-      # don't call it!
+      # Like #read_attribute, but +attr_name+ must be a String and no block is
+      # forwarded. An uninitialized attribute returns nil.
       def read_attr(attr_name) # :nodoc:
-        @attributes.fetch_value!(resolve_alias(attr_name))
+        attr_name = resolve_alias(attr_name)
+        @attributes.fetch_value!(attr_name)
+      rescue ActiveModel::MissingAttributeError
+        raise if @attributes.key?(attr_name)
       end
 
       # Internal read without alias resolution. An uninitialized attribute returns nil.
       def _read_attribute(attr_name) # :nodoc:
-        @attributes.fetch_value(attr_name)
+        @attributes.fetch_value!(attr_name)
+      rescue ActiveModel::MissingAttributeError
+        raise if @attributes.key?(attr_name)
       end
 
       # Internal read without alias resolution that raises for uninitialized attributes.
@@ -57,12 +60,6 @@ module ActiveRecord
       rescue ActiveModel::MissingAttributeError
         raise if @attributes.key?(attr_name)
         missing_attribute(attr_name, RUBY_VERSION >= "3.4" ? caller_locations : caller)
-      end
-
-      # Like #_read_attribute, but a missing attribute raises
-      # ActiveModel::MissingAttributeError.
-      def _read_attr(attr_name) # :nodoc:
-        @attributes.fetch_value!(attr_name)
       end
 
       alias :attribute :_read_attribute

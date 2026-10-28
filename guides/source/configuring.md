@@ -72,6 +72,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.active_record.postgresql_adapter_decode_money`](#config-active-record-postgresql-adapter-decode-money): `true`
 - [`config.active_storage.analyze`](#config-active-storage-analyze): `:immediately`
 - [`config.active_storage.s3_public_uploads_via_acl`](#config-active-storage-s3-public-uploads-via-acl): `false`
+- [`config.active_support.message_serializer`](#config-active-support-message-serializer): `:json`
 
 #### Default Values for Target Version 8.1
 
@@ -185,6 +186,7 @@ Below are the default values associated with each target version. In cases of co
 - [`config.action_controller.forgery_protection_origin_check`](#config-action-controller-forgery-protection-origin-check): `true`
 - [`config.action_controller.per_form_csrf_tokens`](#config-action-controller-per-form-csrf-tokens): `true`
 - [`config.active_record.belongs_to_required_by_default`](#config-active-record-belongs-to-required-by-default): `true`
+- [`config.active_record.raise_on_assign_to_attr_readonly`](#config-active-record-raise-on-assign-to-attr-readonly): `false`
 - [`config.ssl_options`](#config-ssl-options): `{ hsts: { subdomains: true } }`
 
 ### Rails General Configuration
@@ -816,7 +818,7 @@ You can exclude certain requests from Host Authorization checks by setting
 ```ruby
 # Exclude requests for the /healthcheck/ path from host checking
 Rails.application.config.host_authorization = {
-  exclude: ->(request) { request.path.include?("healthcheck") }
+  exclude: ->(request) { request.path.start_with?("/healthcheck") }
 }
 ```
 
@@ -1520,6 +1522,8 @@ database.
 | (original)            | `false`              |
 | 7.1                   | `true`               |
 
+Note: This configuration has been deprecated in Rails 8.2 and will be removed in 9.0.
+
 #### `config.active_record.run_commit_callbacks_on_first_saved_instances_in_transaction`
 
 When multiple Active Record instances change the same record within a transaction, Rails runs `after_commit` or `after_rollback` callbacks for only one of them. This option specifies how Rails chooses which instance receives the callbacks.
@@ -1751,6 +1755,30 @@ Defaults to `false`. Allows applications to opt into using `unsafe_load` on the 
 Defaults to `true`. Determines whether to raise an exception or not when
 the PostgreSQL adapter is provided an integer that is wider than signed
 64bit representation.
+
+#### `config.active_record.immutable_strings_by_default`
+
+Determines whether string columns cast their values to frozen strings. Defaults
+to `false`.
+
+Freezing lets Active Record skip the copy and the comparison that dirty tracking
+otherwise needs in order to detect in-place mutation of a string. In exchange,
+strings read from the database can no longer be mutated in place:
+
+```ruby
+book = Book.create!(title: "Hello")
+book.title.frozen?         # => true
+book.title << " world"     # raises FrozenError
+book.title = "Hello world" # assign a new string instead
+```
+
+It can also be enabled per model:
+
+```ruby
+class Book < ApplicationRecord
+  self.immutable_strings_by_default = true
+end
+```
 
 #### `config.active_record.generate_secure_token_on`
 
@@ -3241,6 +3269,7 @@ The default value depends on the `config.load_defaults` target version:
 | --------------------- | -------------------- |
 | (original)            | `:marshal`           |
 | 7.1                   | `:json_allow_marshal` |
+| 8.2                   | `:json`               |
 
 [`ActiveSupport::MessageEncryptor`]: https://api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html
 [`ActiveSupport::MessageVerifier`]: https://api.rubyonrails.org/classes/ActiveSupport/MessageVerifier.html

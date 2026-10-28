@@ -1,32 +1,38 @@
 # frozen_string_literal: true
 
-# = Active Storage \Variant
+# :markup: markdown
+# Active Storage \Variant
+# =======================
 #
 # Image blobs can have variants that are the result of a set of transformations applied to the original.
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
 # original.
 #
-# The built-in transformers rely on the {ImageProcessing}[https://github.com/janko/image_processing] gem for
-# the actual transformations of the file, so you must add <tt>gem "image_processing"</tt> to your Gemfile to use
-# them. By default, images will be processed with {libvips}[http://libvips.github.io/libvips/] using the
-# {ruby-vips}[https://github.com/libvips/ruby-vips] gem, but you can also switch to the
-# {ImageMagick}[http://imagemagick.org] processor operated by the {MiniMagick}[https://github.com/minimagick/minimagick]
-# gem). You'll need to add either <tt>gem "ruby-vips"</tt> or <tt>gem "mini_magick"</tt> to your Gemfile.
+# The built-in transformers rely on the [ImageProcessing](https://github.com/janko/image_processing) gem for
+# the actual transformations of the file, so you must add `gem "image_processing"` to your Gemfile to use
+# them. By default, images will be processed with [libvips](http://libvips.github.io/libvips/) using the
+# [ruby-vips](https://github.com/libvips/ruby-vips) gem, but you can also switch to the
+# [ImageMagick](http://imagemagick.org) processor operated by the [MiniMagick](https://github.com/minimagick/minimagick)
+# gem). You'll need to add either `gem "ruby-vips"` or `gem "mini_magick"` to your Gemfile.
 #
-#   Rails.application.config.active_storage.variant_processor
-#   # => :vips
+# ```
+# Rails.application.config.active_storage.variant_processor
+# # => :vips
 #
-#   Rails.application.config.active_storage.variant_processor = :mini_magick
-#   # => :mini_magick
+# Rails.application.config.active_storage.variant_processor = :mini_magick
+# # => :mini_magick
+# ```
 #
-# You can also set +variant_processor+ to a class. The class must implement the interface defined by
+# You can also set `variant_processor` to a class. The class must implement the interface defined by
 # ActiveStorage::Transformers::Transformer. Active Storage then uses it for variant processing.
 #
-#   Rails.application.config.active_storage.variant_processor = CustomTransformer
+# ```
+# Rails.application.config.active_storage.variant_processor = CustomTransformer
+# ```
 #
-# Note that the built-in image analyzers accept a blob only when +variant_processor+ is
-# <tt>:vips</tt> or <tt>:mini_magick</tt>, so setting this configuration to a custom class requires
-# adding a custom analyzer to +config.active_storage.analyzers+ as well. See
+# Note that the built-in image analyzers accept a blob only when `variant_processor` is
+# `:vips` or `:mini_magick`, so setting this configuration to a custom class requires
+# adding a custom analyzer to `config.active_storage.analyzers` as well. See
 # ActiveStorage::Blob::Analyzable#analyze.
 #
 # Also note that to create a variant it's necessary to download the entire blob file from the
@@ -39,31 +45,37 @@
 # To refer to such a delayed on-demand variant, simply link to the variant through the resolved route provided
 # by Active Storage like so:
 #
-#   <%= image_tag Current.user.avatar.variant(resize_to_limit: [100, 100]) %>
+# ```
+# <%= image_tag Current.user.avatar.variant(resize_to_limit: [100, 100]) %>
+# ```
 #
 # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::Representations::ProxyController
 # or ActiveStorage::Representations::RedirectController can then produce on-demand.
 #
-# When you do want to actually produce the variant needed, call +processed+. This will check that the variant
+# When you do want to actually produce the variant needed, call `processed`. This will check that the variant
 # has already been processed and uploaded to the service, and, if so, just return that. Otherwise it will perform
 # the transformations, upload the variant to the service, and return itself again. Example:
 #
-#   avatar.variant(resize_to_limit: [100, 100]).processed.url
+# ```
+# avatar.variant(resize_to_limit: [100, 100]).processed.url
+# ```
 #
 # This will create and process a variant of the avatar blob that's constrained to a height and width of 100.
 # Then it'll upload said variant to the service according to a derivative key of the blob and the transformations.
 #
 # You can combine any number of ImageMagick/libvips operations into a variant, as well as any macros provided by the
-# ImageProcessing gem (such as +resize_to_limit+):
+# ImageProcessing gem (such as `resize_to_limit`):
 #
-#   avatar.variant(resize_to_limit: [800, 800], colourspace: "b-w", rotate: "-90")
+# ```
+# avatar.variant(resize_to_limit: [800, 800], colourspace: "b-w", rotate: "-90")
+# ```
 #
 # Visit the following links for a list of available ImageProcessing commands and ImageMagick/libvips operations:
 #
-# * {ImageProcessing::MiniMagick}[https://github.com/janko/image_processing/blob/master/doc/minimagick.md#methods]
-# * {ImageMagick reference}[https://www.imagemagick.org/script/mogrify.php]
-# * {ImageProcessing::Vips}[https://github.com/janko/image_processing/blob/master/doc/vips.md#methods]
-# * {ruby-vips reference}[http://www.rubydoc.info/gems/ruby-vips/Vips/Image]
+# * [ImageProcessing::MiniMagick](https://github.com/janko/image_processing/blob/master/doc/minimagick.md#methods)
+# * [ImageMagick reference](https://www.imagemagick.org/script/mogrify.php)
+# * [ImageProcessing::Vips](https://github.com/janko/image_processing/blob/master/doc/vips.md#methods)
+# * [ruby-vips reference](http://www.rubydoc.info/gems/ruby-vips/Vips/Image)
 class ActiveStorage::Variant
   include ActiveStorage::Blob::Servable
 
@@ -88,9 +100,9 @@ class ActiveStorage::Variant
 
   # Returns the URL of the blob variant on the service. See ActiveStorage::Blob#url for details.
   #
-  # Use <tt>url_for(variant)</tt> (or the implied form, like <tt>link_to variant</tt> or <tt>redirect_to variant</tt>) to get the stable URL
+  # Use `url_for(variant)` (or the implied form, like `link_to variant` or `redirect_to variant`) to get the stable URL
   # for a variant that points to the ActiveStorage::Representations::ProxyController or ActiveStorage::Representations::RedirectController,
-  # which in turn will use this +url+ method for its redirection.
+  # which in turn will use this `url` method for its redirection.
   def url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionMailer
   module Callbacks
     extend ActiveSupport::Concern

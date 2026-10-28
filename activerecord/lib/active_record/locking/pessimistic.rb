@@ -1,68 +1,79 @@
 # frozen_string_literal: true
 
+# :markup: markdown
 module ActiveRecord
   module Locking
-    # = \Pessimistic \Locking
+    # \Pessimistic \Locking
+    # =====================
     #
     # Locking::Pessimistic provides support for row-level locking using
     # SELECT ... FOR UPDATE and other lock types.
     #
-    # Chain <tt>ActiveRecord::Base#find</tt> to ActiveRecord::QueryMethods#lock to obtain an exclusive
+    # Chain `ActiveRecord::Base#find` to ActiveRecord::QueryMethods#lock to obtain an exclusive
     # lock on the selected rows:
-    #   # select * from accounts where id=1 for update
-    #   Account.lock.find(1)
     #
-    # Call <tt>lock('some locking clause')</tt> to use a database-specific locking clause
+    # ```
+    # # select * from accounts where id=1 for update
+    # Account.lock.find(1)
+    # ```
+    #
+    # Call `lock('some locking clause')` to use a database-specific locking clause
     # of your own such as 'LOCK IN SHARE MODE' or 'FOR UPDATE NOWAIT'. Example:
     #
-    #   Account.transaction do
-    #     # select * from accounts where name = 'shugo' limit 1 for update nowait
-    #     shugo = Account.lock("FOR UPDATE NOWAIT").find_by(name: "shugo")
-    #     yuko = Account.lock("FOR UPDATE NOWAIT").find_by(name: "yuko")
-    #     shugo.balance -= 100
-    #     shugo.save!
-    #     yuko.balance += 100
-    #     yuko.save!
-    #   end
+    # ```
+    # Account.transaction do
+    #   # select * from accounts where name = 'shugo' limit 1 for update nowait
+    #   shugo = Account.lock("FOR UPDATE NOWAIT").find_by(name: "shugo")
+    #   yuko = Account.lock("FOR UPDATE NOWAIT").find_by(name: "yuko")
+    #   shugo.balance -= 100
+    #   shugo.save!
+    #   yuko.balance += 100
+    #   yuko.save!
+    # end
+    # ```
     #
-    # You can also use <tt>ActiveRecord::Base#lock!</tt> method to lock one record by id.
+    # You can also use `ActiveRecord::Base#lock!` method to lock one record by id.
     # This may be better if you don't need to lock every row. Example:
     #
-    #   Account.transaction do
-    #     # select * from accounts where ...
-    #     accounts = Account.where(...)
-    #     account1 = accounts.detect { |account| ... }
-    #     account2 = accounts.detect { |account| ... }
-    #     # select * from accounts where id=? for update
-    #     account1.lock!
-    #     account2.lock!
-    #     account1.balance -= 100
-    #     account1.save!
-    #     account2.balance += 100
-    #     account2.save!
-    #   end
+    # ```
+    # Account.transaction do
+    #   # select * from accounts where ...
+    #   accounts = Account.where(...)
+    #   account1 = accounts.detect { |account| ... }
+    #   account2 = accounts.detect { |account| ... }
+    #   # select * from accounts where id=? for update
+    #   account1.lock!
+    #   account2.lock!
+    #   account1.balance -= 100
+    #   account1.save!
+    #   account2.balance += 100
+    #   account2.save!
+    # end
+    # ```
     #
     # You can start a transaction and acquire the lock in one go by calling
-    # <tt>with_lock</tt> with a block. The block is called from within
+    # `with_lock` with a block. The block is called from within
     # a transaction, the object is already locked, and the transaction is
     # yielded so you can register callbacks. Example:
     #
-    #   account = Account.first
-    #   account.with_lock do |transaction|
-    #     # This block is called within a transaction,
-    #     # account is already locked.
-    #     transaction.after_commit { puts "hello" }
-    #     account.balance -= 100
-    #     account.save!
-    #   end
+    # ```
+    # account = Account.first
+    # account.with_lock do |transaction|
+    #   # This block is called within a transaction,
+    #   # account is already locked.
+    #   transaction.after_commit { puts "hello" }
+    #   account.balance -= 100
+    #   account.save!
+    # end
+    # ```
     #
     # Database-specific information on row locking:
     #
-    # [MySQL]
-    #   https://dev.mysql.com/doc/refman/en/innodb-locking-reads.html
+    # MySQL
+    # :   https://dev.mysql.com/doc/refman/en/innodb-locking-reads.html
     #
-    # [PostgreSQL]
-    #   https://www.postgresql.org/docs/current/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
+    # PostgreSQL
+    # :   https://www.postgresql.org/docs/current/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
     module Pessimistic
       # Obtain a row lock on this record. Reloads the record to obtain the requested
       # lock. Pass an SQL locking clause to append the end of the SELECT statement
@@ -94,8 +105,8 @@ module ActiveRecord
       # register callbacks. You can pass the SQL locking clause
       # as an optional argument (see #lock!).
       #
-      # You can also pass options like <tt>requires_new:</tt>, <tt>isolation:</tt>,
-      # and <tt>joinable:</tt> to the wrapping transaction (see
+      # You can also pass options like `requires_new:`, `isolation:`,
+      # and `joinable:` to the wrapping transaction (see
       # ActiveRecord::ConnectionAdapters::DatabaseStatements#transaction).
       def with_lock(*args)
         transaction_opts = args.extract_options!

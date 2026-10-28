@@ -14,6 +14,10 @@ module RequestForgeryProtectionActions
     render inline: "<%= button_to('New', '/') %>"
   end
 
+  def show_button_with_token
+    render inline: "<%= button_to('New', '/', authenticity_token: true) %>"
+  end
+
   def unsafe
     render plain: "pwn"
   end
@@ -1035,6 +1039,56 @@ class PerFormTokensControllerTest < ActionController::TestCase
     assert_equal Base64.urlsafe_decode64(@request.env["action_controller.csrf_token"]), @controller.send(:real_csrf_token)
   end
 
+  def test_csrf_token_hmac_matches_an_hmac_of_the_real_token
+    get :index
+
+    2.times do
+      ["/posts/1#delete", "/posts/2#patch", "!real_csrf_token"].each do |identifier|
+        expected = OpenSSL::HMAC.digest("SHA256", @controller.send(:real_csrf_token), identifier)
+        assert_equal expected, @controller.send(:csrf_token_hmac, nil, identifier), identifier
+      end
+    end
+
+    @controller.reset_csrf_token(@request)
+    ["/posts/1#delete", "/posts/2#patch"].each do |identifier|
+      expected = OpenSSL::HMAC.digest("SHA256", @controller.send(:real_csrf_token), identifier)
+      assert_equal expected, @controller.send(:csrf_token_hmac, nil, identifier), identifier
+    end
+  end
+
+  def test_csrf_token_hmac_is_keyed_once_per_real_token
+    get :index
+    @controller.reset_csrf_token(@request)
+    real_csrf_token = @controller.send(:real_csrf_token)
+    hmac = OpenSSL::HMAC.new(real_csrf_token, "SHA256")
+
+    assert_called_with(OpenSSL::HMAC, :new, [real_csrf_token, "SHA256"], returns: hmac) do
+      @controller.send(:per_form_csrf_token, nil, "/posts/1", "delete")
+      @controller.send(:per_form_csrf_token, nil, "/posts/2", "delete")
+      @controller.send(:global_csrf_token)
+    end
+  end
+
+  def test_csrf_token_hmac_keying_that_fails_does_not_keep_the_previous_key
+    get :index
+    @controller.reset_csrf_token(@request)
+
+    OpenSSL::HMAC.stub(:new, ->(*) { raise OpenSSL::HMACError }) do
+      assert_raises(OpenSSL::HMACError) { @controller.send(:csrf_token_hmac, nil, "/posts/1#delete") }
+    end
+
+    expected = OpenSSL::HMAC.digest("SHA256", @controller.send(:real_csrf_token), "/posts/1#delete")
+    assert_equal expected, @controller.send(:csrf_token_hmac, nil, "/posts/1#delete")
+  end
+
+  def test_csrf_token_memos_are_not_passed_to_the_view
+    get :index
+
+    csrf_ivars = @controller.instance_variables.grep(/csrf/).map { |name| name.to_s.delete_prefix("@") }
+    assert_includes csrf_ivars, "_csrf_token_hmac"
+    assert_empty csrf_ivars & @controller.view_assigns.keys
+  end
+
   def test_per_form_token_is_same_size_as_global_token
     get :index
     expected = ActionController::RequestForgeryProtection::AUTHENTICITY_TOKEN_LENGTH
@@ -1733,6 +1787,48 @@ class HeaderOnlyProtectionControllerTest < ActionController::TestCase
     end
   end
 
+  test "does not render an authenticity token in forms" do
+    get :index
+    assert_select "form"
+    assert_no_match(/authenticity_token/, response.body)
+  end
+
+  test "does not render an authenticity token in button_to" do
+    get :show_button
+    assert_select "form.button_to"
+    assert_no_match(/authenticity_token/, response.body)
+  end
+
+  test "does not render csrf meta tags" do
+    get :meta
+    assert_equal "", response.body
+  end
+
+  test "does not generate a CSRF token when rendering a form" do
+    get :index
+    assert_nil @controller.request.env[ActionController::RequestForgeryProtection::CSRF_TOKEN]
+  end
+
+  test "renders an authenticity token when a form asks for one" do
+    get :form_with_local_with_token
+    assert_select "form>input[name=?]", "custom_authenticity_token"
+  end
+
+  test "renders an authenticity token when form_for asks for one" do
+    get :form_for_with_token
+    assert_select "form>input[name=?]", "custom_authenticity_token"
+  end
+
+  test "renders an authenticity token when button_to asks for one" do
+    get :show_button_with_token
+    assert_select "form>input[name=?]", "custom_authenticity_token"
+  end
+
+  test "renders an authenticity token passed to a form" do
+    get :form_with_remote_with_external_token
+    assert_select "form>input[name=?][value=?]", "custom_authenticity_token", "external_token"
+  end
+
   private
     def forgery_protection_origin_check
       old_setting = ActionController::Base.forgery_protection_origin_check
@@ -1772,6 +1868,20 @@ class HeaderOrLegacyTokenProtectionControllerTest < ActionController::TestCase
   test "allows HEAD requests" do
     head :index
     assert_response :success
+  end
+
+  test "renders an authenticity token in forms" do
+    @controller.stub :form_authenticity_token, @token do
+      get :index
+    end
+    assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+  end
+
+  test "renders csrf meta tags" do
+    @controller.stub :form_authenticity_token, @token do
+      get :meta
+    end
+    assert_select "meta[name=?][content=?]", "csrf-token", @token
   end
 
   test "allows POST with same-origin Sec-Fetch-Site" do

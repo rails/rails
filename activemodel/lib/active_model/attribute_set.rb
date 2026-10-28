@@ -289,8 +289,18 @@ module ActiveModel
     protected
       def attributes
         unless @materialized
-          values.each_key { |key| self[key] }
-          types.each_key { |key| self[key] }
+          if @attributes.empty?
+            values.each_key { |key| self[key] }
+            types.each_key { |key| self[key] }
+          else
+            assigned_attributes = @attributes
+            @attributes = {}
+
+            (values.keys | types.keys | assigned_attributes.keys).each do |key|
+              @attributes[key] = assigned_attributes[key] || self[key]
+            end
+          end
+
           @materialized = true
         end
         @attributes

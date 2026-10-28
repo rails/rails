@@ -240,6 +240,14 @@ module Arel
       }, node.to_sql
     end
 
+    test "union raises on an unknown operation" do
+      table = Table.new name: :users
+      m1 = Arel::SelectManager.new table
+      m2 = Arel::SelectManager.new table
+
+      error = assert_raises(ArgumentError) { m1.union :distinct, m2 }
+      assert_equal "Unknown union operation: :distinct", error.message
+    end
 
     test "intersect should intersect two managers" do
       table = Table.new name: :users
@@ -321,6 +329,14 @@ module Arel
         )
         SELECT * FROM "replies"
       }, sql
+    end
+
+    test "with raises on an unknown operation" do
+      users    = Table.new(name: :users)
+      users_as = Arel::Nodes::As.new(Table.new(name: :users_top), users.project(users[:id]))
+
+      error = assert_raises(ArgumentError) { Arel::SelectManager.new.with(:materialized, users_as) }
+      assert_equal "Unknown with operation: :materialized", error.message
     end
 
     test "ast should return the ast" do

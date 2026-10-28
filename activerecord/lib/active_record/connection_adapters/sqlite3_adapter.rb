@@ -434,7 +434,7 @@ module ActiveRecord
         default = extract_new_default_value(default_or_changes)
 
         alter_table(table_name) do |definition|
-          definition[column_name].default = default
+          definition[column_name].options[:default] = default
         end
       end
 
@@ -445,7 +445,7 @@ module ActiveRecord
           query_command("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
         alter_table(table_name) do |definition|
-          definition[column_name].null = null
+          definition[column_name].options[:null] = null
         end
       end
 
@@ -457,7 +457,9 @@ module ActiveRecord
 
       def rename_column(table_name, column_name, new_column_name) # :nodoc:
         column = column_for(table_name, column_name)
-        alter_table(table_name, rename: { column.name => new_column_name.to_s })
+        at = build_alter_table_definition(table_name)
+        at.rename_column(column.name, new_column_name)
+        execute_alter_table(at)
         rename_column_indexes(table_name, column.name, new_column_name)
       end
 
@@ -689,17 +691,12 @@ module ActiveRecord
         def alter_table(
           table_name,
           foreign_keys = foreign_keys(table_name),
-          check_constraints = check_constraints(table_name),
-          **options
+          check_constraints = check_constraints(table_name)
         )
           altered_table_name = "a#{table_name}"
 
           caller = lambda do |definition|
-            rename = options[:rename] || {}
             foreign_keys.each do |fk|
-              if column = rename[fk.options[:column]]
-                fk.options[:column] = column
-              end
               to_table = strip_table_name_prefix_and_suffix(fk.to_table)
               definition.foreign_key(to_table, **fk.options)
             end
@@ -713,7 +710,7 @@ module ActiveRecord
 
           disable_referential_integrity do
             transaction do
-              move_table(table_name, altered_table_name, options.merge(temporary: true))
+              move_table(table_name, altered_table_name, temporary: true)
               move_table(altered_table_name, table_name, &caller)
             end
           end
@@ -734,17 +731,12 @@ module ActiveRecord
             end
 
             columns(from).each do |column|
-              column_name = options[:rename] ?
-                (options[:rename][column.name] ||
-                 options[:rename][column.name.to_sym] ||
-                 column.name) : column.name
-
               column_options = {
                 limit: column.limit,
                 precision: column.precision,
                 scale: column.scale,
                 collation: column.collation,
-                primary_key: column_name == from_primary_key
+                primary_key: column.name == from_primary_key
               }
 
               # column.null is true unless there is an explicit NOT NULL
@@ -755,7 +747,7 @@ module ActiveRecord
               #
               # We always add a NOT NULL constraint for PKs, and `null: true` is
               # invalid for them. That is why we skip in that case.
-              column_options[:null] = column.null unless column_name == from_primary_key
+              column_options[:null] = column.null unless column.name == from_primary_key
 
               if column.virtual?
                 column_options[:as] = column.default_function
@@ -771,20 +763,18 @@ module ActiveRecord
               end
 
               column_type = column.virtual? ? :virtual : (column.bigint? ? :bigint : column.type)
-              @definition.column(column_name, column_type, **column_options)
+              @definition.column(column.name, column_type, **column_options)
             end
 
             yield @definition if block_given?
           end
-          copy_table_indexes(from, to, options[:rename] || {})
+          copy_table_indexes(from, to)
 
           columns_to_copy = @definition.columns.reject { |col| col.options.key?(:as) }.map(&:name)
-          copy_table_contents(from, to,
-            columns_to_copy,
-            options[:rename] || {})
+          copy_table_contents(from, to, columns_to_copy)
         end
 
-        def copy_table_indexes(from, to, rename = {})
+        def copy_table_indexes(from, to)
           indexes(from).each do |index|
             name = index.name
             if to == "a#{from}"
@@ -796,9 +786,7 @@ module ActiveRecord
             columns = index.columns
             if columns.is_a?(Array)
               to_column_names = columns(to).map(&:name)
-              columns = columns.map { |c| rename[c] || c }.select do |column|
-                to_column_names.include?(column)
-              end
+              columns = columns.select { |column| to_column_names.include?(column) }
             end
 
             unless columns.empty?
@@ -812,17 +800,13 @@ module ActiveRecord
           end
         end
 
-        def copy_table_contents(from, to, columns, rename = {})
-          column_mappings = Hash[columns.map { |name| [name, name] }]
-          rename.each { |a| column_mappings[a.last] = a.first }
+        def copy_table_contents(from, to, columns)
           from_columns = columns(from).collect(&:name)
-          columns = columns.find_all { |col| from_columns.include?(column_mappings[col]) }
-          from_columns_to_copy = columns.map { |col| column_mappings[col] }
+          columns = columns.find_all { |col| from_columns.include?(col) }
           quoted_columns = columns.map { |col| quote_column_name(col) } * ","
-          quoted_from_columns = from_columns_to_copy.map { |col| quote_column_name(col) } * ","
 
           query_command("INSERT INTO #{quote_table_name(to)} (#{quoted_columns})
-                     SELECT #{quoted_from_columns} FROM #{quote_table_name(from)}")
+                     SELECT #{quoted_columns} FROM #{quote_table_name(from)}")
         end
 
         def translate_exception(exception, message:, sql:, binds:)

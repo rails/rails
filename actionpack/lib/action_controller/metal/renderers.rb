@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionController
   # See Renderers.add
   def self.add_renderer(key, &block)

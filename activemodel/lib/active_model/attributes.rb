@@ -177,5 +177,9 @@ module ActiveModel
       def attribute(attr_name)
         @attributes.fetch_value(attr_name)
       end
+
+      def attribute_method?(attr_name)
+        @attributes&.key?(attr_name)
+      end
   end
 end

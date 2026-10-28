@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "base64"
 
 module ActionMailer

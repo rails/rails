@@ -246,7 +246,7 @@ module ActiveRecord
       # Person.attribute_method?(:nothing) # => false
       # ```
       def attribute_method?(attribute)
-        super || (table_exists? && column_names.include?(attribute.to_s.delete_suffix("=")))
+        super || (table_exists? && column_names.include?((attribute.is_a?(Symbol) ? attribute.name : attribute.to_s).delete_suffix("=")))
       end
 
       # Returns an array of column names as strings if it's not an abstract class and
@@ -280,7 +280,7 @@ module ActiveRecord
       # Person.has_attribute?(:nothing)   # => false
       # ```
       def has_attribute?(attr_name)
-        attr_name = attr_name.to_s
+        attr_name = attr_name.is_a?(Symbol) ? attr_name.name : attr_name.to_s
         attr_name = attribute_aliases[attr_name] || attr_name
         attribute_types.key?(attr_name)
       end
@@ -299,16 +299,22 @@ module ActiveRecord
           end
         end
 
-        # Composite primary key models get a real alias, which makes
-        # +where(id_value: ...)+ work. Other models get a plain reader, so
-        # they don't take the alias resolution slow path.
+        # Composite primary key models get a real alias. Other models get a
+        # plain reader and writer, so they don't take the alias resolution
+        # slow path, and an entry in +attribute_aliases+ so that queries such
+        # as +where(id_value: ...)+ still resolve to the +id+ column.
         def define_id_value
           if composite_primary_key?
             alias_attribute :id_value, :id
-          elsif !attribute_alias?("id_value")
+          else
+            target = attribute_alias("id_value")
+            return unless target.nil? || target == "id"
+
             ActiveSupport::CodeGenerator.batch(generated_attribute_methods, __FILE__, __LINE__) do |owner|
               define_method_attribute("id", owner: owner, as: "id_value")
+              send(:"define_method_attribute=", "id", owner: owner, as: "id_value")
             end
+            self.attribute_aliases = attribute_aliases.merge("id_value" => "id").freeze unless target
           end
         end
     end
@@ -358,7 +364,7 @@ module ActiveRecord
     # person.has_attribute?(:nothing)  # => false
     # ```
     def has_attribute?(attr_name)
-      attr_name = resolve_alias(attr_name.to_s)
+      attr_name = resolve_alias(attr_name.is_a?(Symbol) ? attr_name.name : attr_name.to_s)
       @attributes.key?(attr_name)
     end
 
@@ -412,7 +418,7 @@ module ActiveRecord
     # # => "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]"
     # ```
     def attribute_for_inspect(attr_name)
-      attr_name = attr_name.to_s
+      attr_name = attr_name.is_a?(Symbol) ? attr_name.name : attr_name.to_s
       attr_name = self.class.attribute_aliases[attr_name] || attr_name
       value = _read_attribute(attr_name)
       format_for_inspect(attr_name, value)

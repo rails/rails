@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 module ActionDispatch
   module Http
     module Parameters
@@ -66,13 +64,17 @@ module ActionDispatch
 
       def path_parameters=(parameters) # :nodoc:
         @env.delete("action_dispatch.request.parameters")
+        @env.delete("action_dispatch.request.controller_class")
 
-        parameters = Utils.set_binary_encoding(self, parameters, parameters[:controller], parameters[:action])
+        controller_class = controller_class_for_path_parameters(parameters)
+        parameters = Utils.set_binary_encoding(parameters, controller_class, parameters[:action])
         # If any of the path parameters has an invalid encoding then raise since it's
         # likely to trigger errors further on.
         Utils.check_param_encoding(parameters)
 
         @env[PARAMETERS_KEY] = parameters
+        # Keep the class so `controller_class` does not look it up again.
+        @env["action_dispatch.request.controller_class"] = controller_class if controller_class
       rescue Rack::Utils::ParameterTypeError, Rack::Utils::InvalidParameterError => e
         raise ActionController::BadRequest.new("Invalid path parameters: #{e.message}")
       end
@@ -86,6 +88,13 @@ module ActionDispatch
       end
 
       private
+        def controller_class_for_path_parameters(parameters)
+          controller = parameters[:controller]
+          controller_class_for(controller) if controller&.valid_encoding?
+        rescue MissingController
+          nil
+        end
+
         def parse_formatted_parameters(parsers)
           return yield if content_length.zero? || content_mime_type.nil?
 

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionDispatch
   class ParamError < ActionDispatch::Http::Parameters::ParseError
     def initialize(message = nil)

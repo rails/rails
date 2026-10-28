@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 module ActiveSupport
   # = Number Helper
   #

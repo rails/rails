@@ -9,9 +9,27 @@ module ActiveSupport
   module LoggerSilence
     extend ActiveSupport::Concern
 
+    @silencer = true
+
+    class << self
+      attr_accessor :silencer
+    end
+
+    module ClassMethods
+      def silencer = LoggerSilence.silencer
+      def silencer=(value)
+        LoggerSilence.silencer = value
+      end
+    end
+
     included do
-      cattr_accessor :silencer, default: true
       include ActiveSupport::LoggerThreadSafeLevel
+    end
+
+    def silencer = LoggerSilence.silencer
+
+    def silencer=(value)
+      LoggerSilence.silencer = value
     end
 
     # Silences the logger for the duration of the block.

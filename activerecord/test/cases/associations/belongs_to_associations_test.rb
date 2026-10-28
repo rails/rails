@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "support/deprecated_associations_test_helpers"
 require "models/attachment"
 require "models/developer"
@@ -43,6 +44,7 @@ require "models/shipment"
 require "models/adjustment"
 require "models/dats"
 require "models/human"
+require "models/face"
 
 class BelongsToContainedKeyChapter < Cpk::Chapter
   self.primary_key = [:author_id, :book_id, :id]
@@ -142,7 +144,25 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_missing_attribute_error_is_raised_when_no_foreign_key_attribute
-    assert_raises(ActiveModel::MissingAttributeError) { Client.select(:id).first.firm }
+    assert_raises(ActiveModel::MissingAttributeError, match: /missing attribute 'client_of' for Client/) do
+      Client.select(:id).first.firm
+    end
+  end
+
+  def test_assigning_a_record_without_selecting_its_association_primary_key
+    firm = Firm.select(:id).find(companies(:first_firm).id)
+    client = Client.new(firm_name: "Previous firm")
+
+    client.firm_with_primary_key = firm
+
+    assert_nil client.firm_name
+    assert_same firm, client.firm_with_primary_key
+  end
+
+  def test_reading_a_polymorphic_association_without_selecting_its_type
+    face = Face.instantiate("id" => 1, "polymorphic_human_id" => 2)
+
+    assert_no_queries { assert_nil face.polymorphic_human }
   end
 
   def test_belongs_to_does_not_use_order_by
@@ -230,6 +250,23 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_operator original.reload.updated_at, :>, time
     assert_operator replacement.reload.updated_at, :>, time
     assert_equal time.to_i, decoy.reload.updated_at.to_i
+  end
+
+  def test_required_validation_without_selecting_the_polymorphic_type
+    ActiveRecord.with(belongs_to_required_validates_foreign_key: false) do
+      model = Class.new(ActiveRecord::Base) do
+        self.table_name = "faces"
+
+        def self.name; "RequiredPolymorphicFace"; end
+
+        belongs_to :polymorphic_human, polymorphic: true, required: true
+      end
+
+      face = model.instantiate("id" => 1, "polymorphic_human_id" => 2)
+
+      assert_not_predicate face, :valid?
+      assert_includes face.errors[:polymorphic_human], "must exist"
+    end
   end
 
   def test_belongs_to_required_validation_with_alias_attribute_foreign_key

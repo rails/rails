@@ -21,7 +21,7 @@ module ActiveRecord
               owner.define_cached_method(temp_method_name, as: "#{as}=", namespace: :active_record) do |batch|
                 batch <<
                   "def #{temp_method_name}(value)" <<
-                  "  _write_attribute(#{attr_name_expr}, value)" <<
+                  "  @attributes.write_from_user(#{attr_name_expr}, value)" <<
                   "end"
               end
             end
@@ -31,7 +31,7 @@ module ActiveRecord
       # Updates the attribute identified by `attr_name` using the specified
       # `value`. The attribute value will be type cast upon being read.
       def write_attribute(attr_name, value)
-        name = resolve_alias(attr_name.to_s)
+        name = resolve_alias(attr_name.is_a?(Symbol) ? attr_name.name : attr_name.to_s)
 
         return @attributes.write_from_user(name, value) unless name == "id" && @primary_key
 

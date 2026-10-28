@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/class/attribute"
 require "action_dispatch/http/filter_redirect"
 require "action_dispatch/http/cache"

@@ -14,8 +14,9 @@ module ActionText
 
     private
       def plain_text_for_node(node, child_values)
-        if respond_to?(plain_text_method_for_node(node), true)
-          send(plain_text_method_for_node(node), node, child_values)
+        method = plain_text_method_for_node(node)
+        if respond_to?(method, true)
+          send(method, node, child_values)
         else
           plain_text_for_child_values(child_values)
         end

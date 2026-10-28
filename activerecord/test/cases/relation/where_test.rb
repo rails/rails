@@ -141,6 +141,24 @@ module ActiveRecord
       assert_empty Cpk::Book.where([:author_id, :id] => [[1, 4], [3, 2]])
     end
 
+    def test_where_with_tuple_syntax_and_composite_records
+      book_one = Cpk::Book.create!(id: [1, 2])
+      book_two = Cpk::Book.create!(id: [3, 4])
+
+      assert_equal [book_one], Cpk::Book.where([:author_id, :id] => book_one)
+      assert_equal [book_one, book_two].sort, Cpk::Book.where(Cpk::Book.primary_key => [book_one, book_two]).sort
+      assert_equal [book_one, book_two].sort, Cpk::Book.where([:author_id, :id] => [book_one, [3, 4]]).sort
+    end
+
+    def test_where_with_tuple_syntax_and_delegated_composite_records
+      book_one = Cpk::Book.create!(id: [1, 2])
+      book_two = Cpk::Book.create!(id: [3, 4])
+      decorator = Class.new(SimpleDelegator)
+
+      assert_equal [book_one, book_two].sort,
+        Cpk::Book.where([:author_id, :id] => [book_one, book_two].map { |book| decorator.new(book) }).sort
+    end
+
     def test_where_with_tuple_syntax_and_no_values
       assert_no_queries do
         assert_empty Cpk::Book.where([:author_id, :id] => []).to_a
@@ -204,6 +222,21 @@ module ActiveRecord
       ]
 
       assert_equal [categorization], Categorization.joins(:author).where(key => conditions)
+    end
+
+    def test_where_with_tuple_syntax_referencing_another_table_with_includes
+      categorization = categorizations(:mary_thinking_general)
+
+      key = [:category_id, "authors.name"]
+
+      conditions = [
+        [categorization.category_id, categorization.author.name],
+      ]
+
+      relation = Categorization.includes(:author).where(key => conditions)
+
+      assert_equal %w{authors}, relation.references_values
+      assert_equal [categorization], relation
     end
 
     def test_where_with_nil_cpk_association

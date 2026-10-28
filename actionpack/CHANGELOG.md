@@ -1,3 +1,33 @@
+*   Don't render authenticity tokens under the `:header_only` CSRF strategy.
+
+    `:header_only` verifies requests by their `Sec-Fetch-Site` header and never
+    reads a token, yet forms, `button_to` and `csrf_meta_tags` still minted a
+    masked one on every render, and the session stored the token behind it.
+    Under `:header_only` they now render none, so a page's bytes no longer
+    change from one request to the next. A form that posts to a controller still
+    checking tokens can ask for one with `authenticity_token: true`.
+
+    *Sam Ruby*
+
+*   Match URL-decoded query parameter names when filtering request and redirect logs.
+
+    A parameter such as `%70assword` is now matched by a `:password` filter.
+    Preserve the original URL encoding, parameter order, and duplicate keys in
+    the filtered URL. Actual redirect locations are unchanged.
+
+    *Basti*
+
+*   Keep route redirects from a string template on the request host.
+
+    For `redirect("/%{path}")`, the request `GET /old/%2Finjected.example` made
+    the target `//injected.example`, which browsers follow to another host. So did
+    a scheme in a param at the start of the template, as in `redirect("%{path}")`.
+    When interpolation would give the target a scheme or host that the template
+    lacks, the delimiter is now percent-encoded. Templates that name a scheme or
+    host, such as `redirect("//cdn.example.com/%{path}")`, are unchanged.
+
+    *Mike Dalessio*
+
 *   Deprecate the `ssl_default_redirect_status:` argument of `ActionDispatch::SSL`.
 
     As of Rails 6.1, the default status is 308. This deprecates overriding it.

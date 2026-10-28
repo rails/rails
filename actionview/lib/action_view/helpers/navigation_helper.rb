@@ -646,7 +646,8 @@ module ActionView
         end
 
         def token_tag(token = nil, form_options: {})
-          if token != false && defined?(protect_against_forgery?) && protect_against_forgery?
+          if token != false && defined?(protect_against_forgery?) && protect_against_forgery? &&
+              (token || !defined?(embed_authenticity_token?) || embed_authenticity_token?)
             token = form_authenticity_token(form_options: form_options) if token == true || token.nil?
             options = { type: "hidden", name: request_forgery_protection_token.to_s, value: token }
             options[:autocomplete] = "off" unless ActionView::Base.remove_hidden_field_autocomplete

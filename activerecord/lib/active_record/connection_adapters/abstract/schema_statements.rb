@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# :markup: rdoc
+
 require "active_support/core_ext/string/access"
 require "active_support/core_ext/string/filters"
 require "openssl"
@@ -340,7 +342,9 @@ module ActiveRecord
           end
 
           td.columns.each do |column|
-            statements << change_column_comment_sql(table_name, column.name, column.comment) if column.comment.present?
+            if column_comment = column.options[:comment].presence
+              statements << change_column_comment_sql(table_name, column.name, column_comment)
+            end
           end
         end
 

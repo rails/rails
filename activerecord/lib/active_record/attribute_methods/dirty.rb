@@ -92,6 +92,7 @@ module ActiveRecord
       # :   When specified, this method will return false unless the value will be
       # changed to the given value.
       def saved_change_to_attribute?(attr_name, **options)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_before_last_save.changed?(attr_name.to_s, **options)
       end
 
@@ -104,6 +105,7 @@ module ActiveRecord
       # invoked as `saved_change_to_name` instead of
       # `saved_change_to_attribute("name")`.
       def saved_change_to_attribute(attr_name)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_before_last_save.change_to_attribute(attr_name.to_s)
       end
 
@@ -114,6 +116,7 @@ module ActiveRecord
       # invoked as `name_before_last_save` instead of
       # `attribute_before_last_save("name")`.
       def attribute_before_last_save(attr_name)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_before_last_save.original_value(attr_name.to_s)
       end
 
@@ -144,6 +147,7 @@ module ActiveRecord
       # :   When specified, this method will return false unless the value will be
       # changed to the given value.
       def will_save_change_to_attribute?(attr_name, **options)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_from_database.changed?(attr_name.to_s, **options)
       end
 
@@ -158,6 +162,7 @@ module ActiveRecord
       # If the attribute will change, the result will be an array containing the
       # original value and the new value about to be saved.
       def attribute_change_to_be_saved(attr_name)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_from_database.change_to_attribute(attr_name.to_s)
       end
 
@@ -170,6 +175,7 @@ module ActiveRecord
       # saved. It can be invoked as `name_in_database` instead of
       # `attribute_in_database("name")`.
       def attribute_in_database(attr_name)
+        attr_name = attr_name.name if attr_name.is_a?(Symbol)
         mutations_from_database.original_value(attr_name.to_s)
       end
 

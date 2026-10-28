@@ -583,6 +583,42 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_not_predicate topic, :changed?
   end
 
+  def test_mutation_detection_with_immutable_string
+    model = Class.new(Topic) do
+      attribute :content, ActiveModel::Type::ImmutableString.new
+      serialize :content, coder: JSON
+    end
+    topic = model.create!(content: { "foo" => "bar" })
+    assert_not_predicate topic, :changed?
+
+    topic.content["foo"] = "plop"
+    assert_predicate topic, :changed?
+  end
+
+  def test_mutation_detection_with_immutable_strings_by_default
+    model = Class.new(Topic) do
+      self.immutable_strings_by_default = true
+      serialize :content, coder: JSON
+    end
+    topic = model.create!(content: { "foo" => "bar" })
+    assert_not_predicate topic, :changed?
+
+    topic.content["foo"] = "plop"
+    assert_predicate topic, :changed?
+  end
+
+  def test_mutation_detection_with_immutable_string_on_array
+    model = Class.new(Topic) do
+      attribute :content, ActiveModel::Type::ImmutableString.new
+      serialize :content, type: Array, coder: YAML
+    end
+    topic = model.create!(content: ["first"])
+    assert_not_predicate topic, :changed?
+
+    topic.content << "second"
+    assert_predicate topic, :changed?
+  end
+
   def test_serialized_attribute_works_under_concurrent_initial_access
     model = Class.new(Topic)
 

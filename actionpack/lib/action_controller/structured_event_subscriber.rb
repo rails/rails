@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionController
   class StructuredEventSubscriber < ActiveSupport::StructuredEventSubscriber # :nodoc:
     INTERNAL_PARAMS = %w(controller action format _method only_path).freeze
@@ -16,7 +15,7 @@ module ActionController
         params[k] = v unless INTERNAL_PARAMS.include?(k)
       end
       format = payload[:format]
-      format = format.to_s.upcase if format.is_a?(Symbol)
+      format = format.name.upcase if format.is_a?(Symbol)
       format = "*/*" if format.nil?
 
       emit_event("action_controller.request_started",
