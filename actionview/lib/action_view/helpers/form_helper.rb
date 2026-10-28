@@ -2283,16 +2283,23 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
 
-      ActiveSupport::CodeGenerator.batch(self, __FILE__, __LINE__) do |code_generator|
-        (field_helpers - [:label, :checkbox, :radio_button, :fields_for, :fields, :hidden_field, :file_field]).each do |selector|
-          code_generator.class_eval do |batch|
-            batch <<
-              "def #{selector}(method, options = {})" <<
-              "  @template.#{selector}(@object_name, method, objectify_options(options))" <<
-              "end"
-          end
-        end
-      end
+      def text_field(method, options = {}) = @template.text_field(@object_name, method, objectify_options(options))
+      def password_field(method, options = {}) = @template.password_field(@object_name, method, objectify_options(options))
+      def textarea(method, options = {}) = @template.textarea(@object_name, method, objectify_options(options))
+      def color_field(method, options = {}) = @template.color_field(@object_name, method, objectify_options(options))
+      def search_field(method, options = {}) = @template.search_field(@object_name, method, objectify_options(options))
+      def telephone_field(method, options = {}) = @template.telephone_field(@object_name, method, objectify_options(options))
+      def phone_field(method, options = {}) = @template.phone_field(@object_name, method, objectify_options(options))
+      def date_field(method, options = {}) = @template.date_field(@object_name, method, objectify_options(options))
+      def time_field(method, options = {}) = @template.time_field(@object_name, method, objectify_options(options))
+      def datetime_field(method, options = {}) = @template.datetime_field(@object_name, method, objectify_options(options))
+      def datetime_local_field(method, options = {}) = @template.datetime_local_field(@object_name, method, objectify_options(options))
+      def month_field(method, options = {}) = @template.month_field(@object_name, method, objectify_options(options))
+      def week_field(method, options = {}) = @template.week_field(@object_name, method, objectify_options(options))
+      def url_field(method, options = {}) = @template.url_field(@object_name, method, objectify_options(options))
+      def email_field(method, options = {}) = @template.email_field(@object_name, method, objectify_options(options))
+      def number_field(method, options = {}) = @template.number_field(@object_name, method, objectify_options(options))
+      def range_field(method, options = {}) = @template.range_field(@object_name, method, objectify_options(options))
       alias_method :text_area, :textarea
 
       # Creates a scope around a specific model object like #form_with, but
