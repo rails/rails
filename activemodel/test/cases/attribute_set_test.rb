@@ -79,6 +79,12 @@ module ActiveModel
       assert_not_predicate attributes, :frozen?
     end
 
+    test "cloning accepts freeze option" do
+      attributes = AttributeSet.new({})
+
+      assert_not_predicate attributes.clone(freeze: false), :frozen?
+    end
+
     test "to_hash returns a hash of the type cast values" do
       builder = AttributeSet::Builder.new({ foo: Type::Integer.new, bar: Type::Float.new }, {}, nil)
       attributes = builder.build_from_database(foo: "1.1", bar: "2.2")
