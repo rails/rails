@@ -16,6 +16,8 @@ module ActionView
       end
 
       def render(context, locals)
+        @renderable.render_in(context, locals: locals, &@block)
+      rescue ArgumentError
         render_in_method = Kernel.instance_method(:method).bind_call(@renderable, :render_in)
 
         if render_in_method.arity == 1
@@ -27,7 +29,7 @@ module ActionView
 
           @renderable.render_in(context, &@block)
         else
-          @renderable.render_in(context, locals: locals, &@block)
+          raise
         end
       rescue NameError
         if !@renderable.respond_to?(:render_in)
