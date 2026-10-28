@@ -138,17 +138,72 @@ module ActiveRecord
         options[:primary_key]
       end
 
-      (self::OPTION_NAMES - [:primary_key]).each do |option_name|
-        module_eval <<-CODE, __FILE__, __LINE__ + 1
-          def #{option_name}
-            options[:#{option_name}]
-          end
-
-          def #{option_name}=(value)
-            options[:#{option_name}] = value
-          end
-        CODE
+      def limit = options[:limit]
+      def limit=(value)
+        options[:limit] = value
       end
+
+      def precision = options[:precision]
+      def precision=(value)
+        options[:precision] = value
+      end
+
+      def scale = options[:scale]
+      def scale=(value)
+        options[:scale] = value
+      end
+
+      def default = options[:default]
+      def default=(value)
+        options[:default] = value
+      end
+
+      def null = options[:null]
+      def null=(value)
+        options[:null] = value
+      end
+
+      def collation = options[:collation]
+      def collation=(value)
+        options[:collation] = value
+      end
+
+      def comment = options[:comment]
+      def comment=(value)
+        options[:comment] = value
+      end
+
+      def if_exists = options[:if_exists]
+      def if_exists=(value)
+        options[:if_exists] = value
+      end
+
+      def if_not_exists = options[:if_not_exists]
+      def if_not_exists=(value)
+        options[:if_not_exists] = value
+      end
+
+      deprecate(
+        limit: "use options[:limit] instead",
+        "limit=": "use options[:limit]= instead",
+        precision: "use options[:precision] instead",
+        "precision=": "use options[:precision]= instead",
+        scale: "use options[:scale] instead",
+        "scale=": "use options[:scale]= instead",
+        default: "use options[:default] instead",
+        "default=": "use options[:default]= instead",
+        null: "use options[:null] instead",
+        "null=": "use options[:null]= instead",
+        collation: "use options[:collation] instead",
+        "collation=": "use options[:collation]= instead",
+        comment: "use options[:comment] instead",
+        "comment=": "use options[:comment]= instead",
+        if_exists: "use options[:if_exists] instead",
+        "if_exists=": "use options[:if_exists]= instead",
+        if_not_exists: "use options[:if_not_exists] instead",
+        "if_not_exists=": "use options[:if_not_exists]= instead",
+        deprecator: ActiveRecord.deprecator
+      )
 
       def aliased_types(name, fallback)
         "timestamp" == name ? :datetime : fallback

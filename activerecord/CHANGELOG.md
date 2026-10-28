@@ -1,3 +1,10 @@
+*   Deprecate the option accessors on `ColumnDefinition`.
+
+    Use `options` instead, for example `column.options[:limit]` instead of
+    `column.limit`.
+
+    *Sampo Kuokkanen*
+
 *   Keep query block scoped optimizer hints on the subquery for `count` with
     `limit`/`offset`/`distinct` on MySQL.
 
