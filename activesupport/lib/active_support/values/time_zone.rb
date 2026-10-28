@@ -679,9 +679,9 @@ module ActiveSupport
           time = Time.at(parts[:seconds] + parts.fetch(:sec_fraction, 0))
         else
           time = Time.new(
-            parts.fetch(:year, now.year),
-            parts.fetch(:mon, now.month),
-            parts.fetch(:mday, parts[:year] || parts[:mon] ? 1 : now.day),
+            parts.fetch(:year) { now.year },
+            parts.fetch(:mon) { now.month },
+            parts.fetch(:mday) { parts[:year] || parts[:mon] ? 1 : now.day },
             parts.fetch(:hour, 0),
             parts.fetch(:min, 0),
             parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
