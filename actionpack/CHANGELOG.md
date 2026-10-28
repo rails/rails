@@ -1,3 +1,11 @@
+*   Reset the parsed HTML document after `options` in integration tests.
+
+    `options` was the only request helper that the integration test runner
+    did not define, so it reached the session through `method_missing` and left
+    `html_document` (and so `assert_select`) reading the previous response.
+
+    *Tagami Daiki*
+
 *   Don't render authenticity tokens under the `:header_only` CSRF strategy.
 
     `:header_only` verifies requests by their `Sec-Fetch-Site` header and never
