@@ -3,6 +3,40 @@
 require "abstract_unit"
 
 class CacheStoreTest < ActionDispatch::IntegrationTest
+  singleton_class.attr_accessor :app_under_test
+
+  class LocallyCachedStore < ActiveSupport::Cache::Store
+    prepend ActiveSupport::Cache::Strategy::LocalCache
+
+    def initialize
+      super
+      @data = {}
+    end
+
+    private
+      def read_entry(key, **options)
+        deserialize_entry(read_serialized_entry(key, **options), **options)
+      end
+
+      def read_serialized_entry(key, **)
+        @data[key]
+      end
+
+      def write_entry(key, entry, **options)
+        @data[key] = serialize_entry(entry, **options)
+        true
+      end
+
+      def delete_entry(key, **)
+        !!@data.delete(key)
+      end
+  end
+
+  def self.log_out(request)
+    cookie = request.get_header("HTTP_COOKIE")
+    Thread.new { Rack::MockRequest.new(app_under_test).get("/call_reset_session", "HTTP_COOKIE" => cookie) }.join
+  end
+
   class TestController < ActionController::Base
     def no_session_access
       head :ok
@@ -24,6 +58,23 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
 
     def get_session_id
       render plain: "#{request.session.id.public_id}"
+    end
+
+    def read_session_while_another_request_logs_out
+      session[:foo]
+      CacheStoreTest.log_out(request)
+      head :ok
+    end
+
+    def write_session_while_another_request_logs_out
+      session[:foo]
+      CacheStoreTest.log_out(request)
+      session[:foo] = "baz"
+      head :ok
+    end
+
+    def get_reset_session_value
+      render plain: "bar: #{session[:bar].inspect}"
     end
 
     def call_reset_session
@@ -70,6 +121,67 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
       get "/get_session_value"
       assert_response :success
       assert_equal "foo: nil", response.body, "data for this session should have been obliterated from cache"
+    end
+  end
+
+  def test_session_logged_out_during_a_request_stays_logged_out
+    @cache = LocallyCachedStore.new
+
+    with_test_route_set do
+      get "/set_session_value"
+      session_cookie = cookies.get_cookie("_session_id")
+
+      get "/read_session_while_another_request_logs_out"
+      assert_response :success
+
+      cookies << session_cookie
+
+      get "/get_session_value"
+      assert_equal "foo: nil", response.body
+    end
+  end
+
+  def test_session_logged_out_during_a_writing_request_stays_logged_out
+    @cache = LocallyCachedStore.new
+
+    with_test_route_set do
+      get "/set_session_value"
+      session_cookie = cookies.get_cookie("_session_id")
+
+      get "/write_session_while_another_request_logs_out"
+      assert_response :success
+
+      cookies << session_cookie
+
+      get "/get_session_value"
+      assert_equal "foo: nil", response.body
+    end
+  end
+
+  def test_session_logged_out_during_a_request_does_not_resend_its_cookie
+    @cache = LocallyCachedStore.new
+    cache_store_options(expire_after: 1.hour)
+
+    with_test_route_set do
+      get "/set_session_value"
+
+      get "/read_session_while_another_request_logs_out"
+      assert_response :success
+      assert_nil headers["Set-Cookie"]
+    end
+  end
+
+  def test_session_reset_by_the_request_is_saved_under_the_new_id
+    with_test_route_set do
+      get "/set_session_value"
+      old_session_id = cookies["_session_id"]
+
+      get "/call_reset_session"
+      assert_response :success
+      assert_not_equal old_session_id, cookies["_session_id"]
+
+      get "/get_reset_session_value"
+      assert_equal 'bar: "baz"', response.body
     end
   end
 
@@ -183,6 +295,18 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_session_read_by_legacy_id_is_saved_under_private_id
+    with_test_route_set do
+      get "/set_session_value"
+      sid = Rack::Session::SessionId.new(cookies["_session_id"])
+      @cache.write("_session_id:#{sid.public_id}", @cache.read("_session_id:#{sid.private_id}"))
+      @cache.delete("_session_id:#{sid.private_id}")
+
+      get "/get_session_value"
+      assert_equal({ "foo" => "bar" }, @cache.read("_session_id:#{sid.private_id}"))
+    end
+  end
+
   def test_drop_session_in_the_legacy_id_as_well
     with_test_route_set do
       get "/set_session_value"
@@ -257,8 +381,9 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
     end
 
     def app
-      @app ||= self.class.build_app do |middleware|
-        @cache = ActiveSupport::Cache::MemoryStore.new
+      @app ||= CacheStoreTest.app_under_test = self.class.build_app do |middleware|
+        @cache ||= ActiveSupport::Cache::MemoryStore.new
+        middleware.use @cache.middleware
         middleware.use ActionDispatch::Session::CacheStore, key: "_session_id", cache: @cache, **cache_store_options
         middleware.delete ActionDispatch::ShowExceptions
       end
