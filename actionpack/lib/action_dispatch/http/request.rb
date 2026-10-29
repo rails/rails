@@ -212,6 +212,7 @@ module ActionDispatch
     # Returns true if the request has a header matching the given key parameter.
     #
     #     request.key? :ip_spoofing_check # => true
+    #: (String | Symbol) -> bool
     def key?(key)
       has_header? key
     end
@@ -341,6 +342,7 @@ module ActionDispatch
     # Provides access to the request's HTTP headers, for example:
     #
     #     request.headers["Content-Type"] # => "text/plain"
+    #: () -> ActionDispatch::Http::Headers
     def headers
       @headers ||= Http::Headers.new(self)
     end
@@ -369,6 +371,7 @@ module ActionDispatch
     #
     #     # get '/foo?bar'
     #     request.original_fullpath # => '/foo?bar'
+    #: () -> String
     def original_fullpath
       @original_fullpath ||= (get_header("ORIGINAL_FULLPATH") || fullpath)
     end
@@ -380,6 +383,7 @@ module ActionDispatch
     #
     #     # get "/articles?page=2"
     #     request.fullpath # => "/articles?page=2"
+    #: () -> String
     def fullpath
       @fullpath ||= super
     end
@@ -388,6 +392,7 @@ module ActionDispatch
     #
     #     # get "/articles?page=2"
     #     request.original_url # => "http://www.example.com/articles?page=2"
+    #: () -> String
     def original_url
       base_url + original_fullpath
     end
@@ -396,11 +401,13 @@ module ActionDispatch
     #
     #     # post "/articles", params: { title: "Rails" }
     #     request.media_type # => "application/x-www-form-urlencoded"
+    #: () -> String?
     def media_type
       content_mime_type&.to_s
     end
 
     # Returns the content length of the request as an integer.
+    #: () -> Integer
     def content_length
       return raw_post.bytesize if has_header?(TRANSFER_ENCODING)
       super.to_i
@@ -415,12 +422,14 @@ module ActionDispatch
     alias :xhr? :xml_http_request?
 
     # Returns the IP address of client as a `String`.
+    #: () -> String?
     def ip
       @ip ||= super
     end
 
     # Returns the IP address of client as a `String`, usually set by the RemoteIp
     # middleware.
+    #: () -> String
     def remote_ip
       @remote_ip ||= (get_header("action_dispatch.remote_ip") || ip).to_s
     end
@@ -440,6 +449,7 @@ module ActionDispatch
     # This unique ID is useful for tracing a request from end-to-end as part of
     # logging or debugging. This relies on the Rack variable set by the
     # ActionDispatch::RequestId middleware.
+    #: () -> String?
     def request_id
       get_header ACTION_DISPATCH_REQUEST_ID
     end
@@ -593,6 +603,7 @@ module ActionDispatch
     end
 
     # True if the request came from localhost, 127.0.0.1, or ::1.
+    #: () -> bool
     def local?
       LOCALHOST.match?(remote_addr) && LOCALHOST.match?(remote_ip)
     end
