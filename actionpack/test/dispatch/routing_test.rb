@@ -5066,6 +5066,15 @@ class TestFormatConstraints < ActionDispatch::IntegrationTest
       get "/regexp",  to: ok, constraints: { format: /json/ }
       get "/json_only", to: ok, format: true, constraints: { format: /json/ }
       get "/xml_only", to: ok, format: "xml"
+      get "/symbol", to: ok, format: :json
+      get "/people", to: "users#index", format: :json
+
+      scope format: :json do
+        get "/scoped", to: ok
+        get "/scoped_people", to: "users#index"
+      end
+
+      resources :accounts, format: :json, only: :index
     end
   end
 
@@ -5114,6 +5123,56 @@ class TestFormatConstraints < ActionDispatch::IntegrationTest
     assert_response :success
 
     get "http://www.example.com/xml_only.json"
+    assert_response :not_found
+  end
+
+  def test_format_option_with_symbol
+    recognized = Routes.recognize_path("/people")
+    assert_equal "json", recognized[:format]
+    assert_instance_of String, recognized[:format]
+    assert_equal "json", Routes.recognize_path("/people.json")[:format]
+    assert_raises(ActionController::RoutingError) { Routes.recognize_path("/people.xml") }
+
+    get "http://www.example.com/symbol.json"
+    assert_response :success
+
+    get "http://www.example.com/symbol"
+    assert_response :success
+    assert_equal "json", @request.params[:format]
+    assert_instance_of String, @request.params[:format]
+
+    get "http://www.example.com/symbol.xml"
+    assert_response :not_found
+  end
+
+  def test_scope_format_option_with_symbol
+    recognized = Routes.recognize_path("/scoped_people")
+    assert_equal "json", recognized[:format]
+    assert_instance_of String, recognized[:format]
+    assert_raises(ActionController::RoutingError) { Routes.recognize_path("/scoped_people.xml") }
+
+    get "http://www.example.com/scoped"
+    assert_response :success
+    assert_equal "json", @request.params[:format]
+    assert_instance_of String, @request.params[:format]
+
+    get "http://www.example.com/scoped.html"
+    assert_response :not_found
+  end
+
+  def test_resources_format_option_with_symbol
+    recognized = Routes.recognize_path("/accounts")
+    assert_equal "accounts", recognized[:controller]
+    assert_equal "index", recognized[:action]
+    assert_equal "json", recognized[:format]
+    assert_instance_of String, recognized[:format]
+    assert_raises(ActionController::RoutingError) { Routes.recognize_path("/accounts.xml") }
+
+    get "http://www.example.com/accounts"
+    assert_response :success
+    assert_equal "json", @request.params[:format]
+
+    get "http://www.example.com/accounts.xml"
     assert_response :not_found
   end
 end
