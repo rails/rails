@@ -26,7 +26,7 @@ module ActiveSupport
         exponent = calculate_exponent(units)
         @number = number / (10**exponent)
 
-        rounded_number = NumberToRoundedConverter.convert(number, options)
+        rounded_number = NumberToRoundedConverter.convert_with_resolved_options(number, options)
         unit = determine_unit(units, exponent)
         format.gsub("%n", rounded_number).gsub("%u", unit).strip
       end

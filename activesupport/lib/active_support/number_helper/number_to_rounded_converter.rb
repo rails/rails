@@ -48,7 +48,7 @@ module ActiveSupport
           formatted_string = rounded_number
         end
 
-        delimited_number = NumberToDelimitedConverter.convert(formatted_string, options)
+        delimited_number = NumberToDelimitedConverter.convert_with_resolved_options(formatted_string, options)
         format_number(delimited_number)
       end
 

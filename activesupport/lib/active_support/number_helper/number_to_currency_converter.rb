@@ -17,7 +17,7 @@ module ActiveSupport
             number_d = number_d.abs
             format = options[:negative_format] if options[:precision].nil? || (number_d * 10**options[:precision]) >= 0.5
           end
-          number_s = NumberToRoundedConverter.convert(number_d, options)
+          number_s = NumberToRoundedConverter.convert_with_resolved_options(number_d, options)
         else
           number_s = number.to_s.strip
           format = options[:negative_format] if number_s.sub!(/^-/, "")
