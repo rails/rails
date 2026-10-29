@@ -594,7 +594,8 @@ module ActiveSupport
 
     # Returns the current date in this time zone.
     def today
-      tzinfo.now.to_date
+      time = time_now
+      time.getlocal(tzinfo.period_for(time).observed_utc_offset).to_date
     end
 
     # Returns the next date in this time zone.

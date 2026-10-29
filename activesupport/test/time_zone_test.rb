@@ -150,6 +150,16 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Date.new(2000, 1, 2), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].today
   end
 
+  def test_today_agrees_with_now
+    zone = ActiveSupport::TimeZone["Australia/Lord_Howe"].dup
+    def zone.time_now
+      Time.new(2024, 4, 7, 0, 15, 0, "+11:00") # still Apr 6 at the standard offset (+10:30)
+    end
+
+    assert_equal Date.new(2024, 4, 7), zone.now.to_date
+    assert_equal Date.new(2024, 4, 7), zone.today
+  end
+
   def test_tomorrow
     travel_to(Time.utc(2000, 1, 1, 4, 59, 59)) # 1 sec before midnight Jan 1 EST
     assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].tomorrow
