@@ -36,6 +36,7 @@ module ActiveJob
     attr_accessor :continuation # :nodoc:
 
     # Start a new continuation step
+    #: (Symbol, ?start: untyped, ?isolated: bool) ?{ (ActiveJob::Continuation::Step) -> void } -> void
     def step(step_name, start: nil, isolated: false, &block)
       unless block_given?
         step_method = method(step_name)
