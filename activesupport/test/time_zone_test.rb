@@ -160,6 +160,17 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Date.new(2024, 4, 7), zone.today
   end
 
+  def test_today_in_utc_zone_agrees_with_now
+    time = Time.new(2024, 4, 7, 0, 15, 0, "+11:00") # still Apr 6 in UTC
+    zone = ActiveSupport::TimeZone["UTC"].dup
+    zone.define_singleton_method(:time_now) { time }
+
+    assert_equal Date.new(2024, 4, 6), zone.now.to_date
+    assert_equal Date.new(2024, 4, 6), zone.today
+    assert_equal Date.new(2024, 4, 7), zone.tomorrow
+    assert_equal Date.new(2024, 4, 5), zone.yesterday
+  end
+
   def test_tomorrow
     travel_to(Time.utc(2000, 1, 1, 4, 59, 59)) # 1 sec before midnight Jan 1 EST
     assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].tomorrow
