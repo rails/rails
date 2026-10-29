@@ -125,14 +125,26 @@ module ActiveSupport
         new(number, options).execute
       end
 
+      # Used by a converter delegating to another one: the options it passes
+      # already hold every key of the defaults and of the locale's
+      # number.format, so only this converter's namespace is resolved again.
+      def self.convert_with_resolved_options(number, options)
+        new(number, options, resolved: true).execute
+      end
+
       def self.i18n_format_key # :nodoc:
         @i18n_format_key ||= :"number.#{namespace}.format"
       end
 
-      def initialize(number, options)
+      def initialize(number, options, resolved: false)
         @number = number
-        @opts = options.symbolize_keys
-        @options = nil
+        if resolved
+          @opts = options
+          @options = namespace ? namespace_format_options.merge!(options) : options
+        else
+          @opts = options.symbolize_keys
+          @options = nil
+        end
       end
 
       def execute
@@ -162,6 +174,11 @@ module ActiveSupport
             options.merge!(I18n.translate(self.class.i18n_format_key, locale: locale, default: EMPTY_FORMAT)) if namespace
             options.merge!(opts)
           end
+        end
+
+        def namespace_format_options
+          options = DEFAULTS[namespace][:format].dup
+          options.merge!(I18n.translate(self.class.i18n_format_key, locale: opts[:locale], default: EMPTY_FORMAT))
         end
 
         def default_format_options
