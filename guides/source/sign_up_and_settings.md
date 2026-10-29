@@ -393,7 +393,7 @@ end
 ```
 
 This will generate a route for `/settings/password` for editing the current
-user's password which is separate from the password resets routes at
+user's password, which is separate from the password reset routes at
 `/password`.
 
 The namespace also keeps the new controller from conflicting with the
