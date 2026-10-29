@@ -1,3 +1,21 @@
+*   Fix `ActiveSupport::TimeZone#parse` and `#strptime` to resolve ordinal
+    (day-of-year) dates instead of silently discarding them.
+
+    Strings that only yield a day-of-year, such as the `"087"` extracted from
+    otherwise unparseable input, were dropped by `parts_to_time`, so the
+    returned time silently fell back to the current day instead of the day
+    implied by the string. `TimeZone#parse` now converts the day-of-year into
+    a month and day via `Date.ordinal`, matching the behavior already used by
+    `TimeZone#iso8601`, and raises `ArgumentError` when the day-of-year is out
+    of range instead of returning today's date:
+
+    ```ruby
+    Time.zone.parse("2021-087") # => Sun, 28 Mar 2021 00:00:00 UTC +00:00 (was today's date)
+    Time.zone.parse("2021-999") # => ArgumentError: invalid date (was today's date)
+    ```
+
+    *Bittu Choudhary*
+
 *   `Symbol#to_param` now returns `Symbol#name`, the symbol's interned frozen
     String, instead of allocating a new one on every call before Ruby 4.1.
 

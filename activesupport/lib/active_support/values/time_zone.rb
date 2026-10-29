@@ -503,6 +503,14 @@ module ActiveSupport
     # Time.zone.parse('Mar 2000') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
     # ```
     #
+    # Ordinal (day-of-year) dates are also recognized, resolving to the
+    # corresponding month and day in the current year:
+    #
+    # ```
+    # Time.zone.now           # => Wed, 01 Jan 2020 00:00:00 HST -10:00
+    # Time.zone.parse('060')  # => Fri, 29 Feb 2020 00:00:00 HST -10:00
+    # ```
+    #
     # Strings with no recognizable date information return `nil`, while strings
     # with out-of-range components raise `ArgumentError`:
     #
@@ -678,10 +686,21 @@ module ActiveSupport
         if parts[:seconds]
           time = Time.at(parts[:seconds] + parts.fetch(:sec_fraction, 0))
         else
+          year = parts.fetch(:year) { now.year }
+
+          if parts.key?(:yday)
+            ordinal_date = Date.ordinal(year, parts.fetch(:yday))
+            mon = ordinal_date.month
+            mday = ordinal_date.day
+          else
+            mon = parts.fetch(:mon) { now.month }
+            mday = parts.fetch(:mday) { parts[:year] || parts[:mon] ? 1 : now.day }
+          end
+
           time = Time.new(
-            parts.fetch(:year) { now.year },
-            parts.fetch(:mon) { now.month },
-            parts.fetch(:mday) { parts[:year] || parts[:mon] ? 1 : now.day },
+            year,
+            mon,
+            mday,
             parts.fetch(:hour, 0),
             parts.fetch(:min, 0),
             parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
@@ -694,6 +713,8 @@ module ActiveSupport
         else
           TimeWithZone.new(nil, self, time.utc)
         end
+      rescue Date::Error
+        raise ArgumentError, "invalid date"
       end
 
       def time_now

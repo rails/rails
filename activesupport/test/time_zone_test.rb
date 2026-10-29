@@ -505,6 +505,74 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "argument out of range", exception.message
   end
 
+  def test_parse_with_ordinal_date_value
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    twz = zone.parse("060", Time.utc(2020, 1, 1))
+    assert_equal Time.utc(2020, 2, 29), twz.time
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_parse_with_ordinal_date_value_and_year
+    zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
+
+    twz = zone.parse("2021-087")
+    assert_equal Time.utc(2021, 3, 28), twz.time
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_parse_with_ordinal_date_value_in_leap_year
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    # 2024 is a leap year, so day 366 is valid (Dec 31).
+    twz = zone.parse("366", Time.utc(2024, 1, 1))
+    assert_equal Time.utc(2024, 12, 31), twz.time
+  end
+
+  def test_parse_with_ordinal_date_value_does_not_default_to_now
+    zone = ActiveSupport::TimeZone["UTC"].dup
+    # Regression test: strings that only resolve to a `:yday` (e.g. parsed
+    # out of otherwise unparseable garbage such as "202sfd6") used to be
+    # silently treated as having no date information at all, so `parse`
+    # discarded the extracted day-of-year and returned `TimeZone#now`
+    # instead of the date implied by the string.
+    zone.stub(:now, zone.local(1999, 12, 31, 12, 59, 59)) do
+      twz = zone.parse("202sfd6")
+      assert_equal Time.utc(1999, 7, 21), twz.time
+      assert_not_equal zone.now.to_date, twz.to_date
+    end
+  end
+
+  def test_parse_with_out_of_range_ordinal_date_value
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.parse("999", Time.utc(2021, 1, 1))
+    end
+
+    assert_equal "invalid date", exception.message
+  end
+
+  def test_parse_with_out_of_range_ordinal_date_value_in_non_leap_year
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    # 2021 is not a leap year, so day 366 is out of range.
+    exception = assert_raises(ArgumentError) do
+      zone.parse("366", Time.utc(2021, 1, 1))
+    end
+
+    assert_equal "invalid date", exception.message
+  end
+
+  def test_parse_raises_invalid_date_for_out_of_range_ordinal_date_when_strict
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    ActiveSupport.with(raise_on_invalid_time_zone_parse: true) do
+      exception = assert_raises(ArgumentError) { zone.parse("999", Time.utc(2021, 1, 1)) }
+      assert_equal "invalid date", exception.message
+    end
+  end
+
   def test_parse_raises_on_unparseable_string_when_strict
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
 
@@ -740,6 +808,23 @@ class TimeZoneTest < ActiveSupport::TestCase
       assert_equal 123456789, time.nsec
       assert_equal Time.strptime("1470272280.123456789", "%s.%N"), time
     end
+  end
+
+  def test_strptime_with_ordinal_date_value
+    zone = ActiveSupport::TimeZone["UTC"]
+    twz = zone.strptime("2021-087", "%Y-%j")
+    assert_equal Time.utc(2021, 3, 28), twz.time
+    assert_equal zone, twz.time_zone
+  end
+
+  def test_strptime_with_out_of_range_ordinal_date_value
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.strptime("2021-999", "%Y-%j")
+    end
+
+    assert_equal "invalid date", exception.message
   end
 
   def test_strptime_with_ambiguous_time
