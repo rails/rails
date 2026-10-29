@@ -36,4 +36,20 @@ class MultiParameterAttributesTest < ActiveSupport::TestCase
     assert_nil permitted[:book]["published_at(2i)"]
     assert_nil permitted[:book]["published_at(3i)"]
   end
+
+  test "permitted multi-parameter attribute keys at the top level, after a hash filter" do
+    params = ActionController::Parameters.new(
+      "tags" => ["a"],
+      "name" => "Jane",
+      "birthday(1i)" => "1990",
+      "birthday(2i)" => "5",
+      "birthday(3i)" => "12",
+      "anniversary(1i)" => "2010",
+      "birthday(i)" => "invalid"
+    )
+
+    permitted = params.permit({ tags: [] }, :name, :birthday)
+
+    assert_equal ["tags", "name", "birthday(1i)", "birthday(2i)", "birthday(3i)"], permitted.keys
+  end
 end
