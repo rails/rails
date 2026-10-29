@@ -900,15 +900,26 @@ module ActiveRecord
       # ```
       def stat
         synchronize do
-          {
+          statistics = {
             size: size,
             connections: @connections.size,
-            busy: @connections.count { |c| c.in_use? && c.owner.alive? },
-            dead: @connections.count { |c| c.in_use? && !c.owner.alive? },
-            idle: @connections.count { |c| !c.in_use? },
+            busy: 0,
+            dead: 0,
+            idle: 0,
             waiting: num_waiting_in_queue,
             checkout_timeout: checkout_timeout
           }
+
+          @connections.each do |connection|
+            status = if connection.in_use?
+              connection.owner.alive? ? :busy : :dead
+            else
+              :idle
+            end
+            statistics[status] += 1
+          end
+
+          statistics
         end
       end
 
