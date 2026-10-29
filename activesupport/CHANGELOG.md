@@ -1,3 +1,15 @@
+*   `ActiveSupport::MessagePack` no longer deserializes an unsafe
+    `ActiveSupport::SafeBuffer` as `html_safe`.
+
+    A `SafeBuffer` that was no longer `html_safe?`, for example after an
+    in-place `gsub!`, was deserialized as an `html_safe` `SafeBuffer`. It is now
+    serialized with an unsafe marker and deserialized as a `String`. Earlier
+    versions of Rails cannot read an unsafe buffer serialized this way.
+
+    [GHSA-2w9f-fxwj-w2qf]
+
+    *Jean Boussier*
+
 *   `ActiveSupport::Inflector#safe_constantize` matches the constant name in a
     `LoadError` message as a literal string instead of building a `Regexp`
     from it.
