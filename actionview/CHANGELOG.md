@@ -1,11 +1,13 @@
 *   Leave preload links out of the `Link` header and Early Hints when the URL
-    does not parse as a URI, or when an option value contains whitespace,
-    `;` or `,`.
+    does not parse as a URI, or when an option value contains `;`, `,` or
+    whitespace other than between `integrity` hashes.
 
     `preload_link_tag`, `stylesheet_link_tag` and `javascript_include_tag`
     wrote these values into the header as is, so a value such as
     `https://example.com/a>, <https://other.example/b` added a second link.
-    The HTML tag is still rendered.
+    The HTML tag is still rendered. Non-ASCII characters in the URL are now
+    percent-encoded in the header, and an `integrity` value with several
+    hashes is sent as a quoted string.
 
     *Mike Dalessio*
 

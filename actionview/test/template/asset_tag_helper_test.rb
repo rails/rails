@@ -816,6 +816,30 @@ class AssetTagHelperTest < ActionView::TestCase
     end
   end
 
+  def test_should_set_preload_links_with_non_ascii_uri
+    with_preload_links_header do
+      stylesheet_link_tag("http://example.com/スタイル.css")
+      javascript_include_tag("http://example.com/スクリプト.js")
+      preload_link_tag("http://example.com/フォント.woff2", as: "font")
+      expected = "<http://example.com/%E3%82%B9%E3%82%BF%E3%82%A4%E3%83%AB.css>; rel=preload; as=style; nopush," \
+        "<http://example.com/%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%97%E3%83%88.js>; rel=preload; as=script; nopush," \
+        "<http://example.com/%E3%83%95%E3%82%A9%E3%83%B3%E3%83%88.woff2>; rel=preload; as=font; type=font/woff2; crossorigin=anonymous"
+      assert_equal expected, @response.headers["link"]
+    end
+  end
+
+  def test_should_set_preload_links_with_multiple_integrity_hashes
+    with_preload_links_header do
+      stylesheet_link_tag("http://example.com/style.css", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC")
+      javascript_include_tag("http://example.com/all.js", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC")
+      preload_link_tag("http://example.com/hero.jpg", integrity: "sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC")
+      expected = %(<http://example.com/style.css>; rel=preload; as=style; integrity="sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC"; nopush,) +
+        %(<http://example.com/all.js>; rel=preload; as=script; integrity="sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC"; nopush,) +
+        %(<http://example.com/hero.jpg>; rel=preload; as=image; type=image/jpeg; integrity="sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC")
+      assert_equal expected, @response.headers["link"]
+    end
+  end
+
   def test_should_not_set_preload_links_for_invalid_uri
     with_preload_links_header do
       stylesheet_link_tag("http://example.com/style.css>, <http://evil.example/a")
@@ -829,6 +853,16 @@ class AssetTagHelperTest < ActionView::TestCase
     with_preload_links_header do
       stylesheet_link_tag("http://example.com/style.css", "http://example.com/other.css>, <http://evil.example/a")
       expected = "<http://example.com/style.css>; rel=preload; as=style; nopush"
+      assert_equal expected, @response.headers["link"]
+    end
+  end
+
+  def test_should_strip_whitespace_around_a_single_integrity_hash_in_preload_links
+    with_preload_links_header do
+      stylesheet_link_tag("http://example.com/style.css", integrity: "\r\nLink:<http://evil.example/a>")
+      javascript_include_tag("http://example.com/all.js", integrity: " sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs\n")
+      expected = "<http://example.com/style.css>; rel=preload; as=style; integrity=Link:<http://evil.example/a>; nopush," \
+        "<http://example.com/all.js>; rel=preload; as=script; integrity=sha256-AbpHGcgLb+kRsJGnwFEktk7uzpZOCcBY74+YBdrKVGs; nopush"
       assert_equal expected, @response.headers["link"]
     end
   end
