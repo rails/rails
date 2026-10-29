@@ -173,6 +173,43 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_not_predicate unsafe_buffer, :html_safe?
   end
 
+  test "Should preserve html_safe? status on encode" do
+    safe_buffer = "<br />".html_safe.encode("UTF-8")
+    assert_instance_of ActiveSupport::SafeBuffer, safe_buffer
+    assert_predicate safe_buffer, :html_safe?
+
+    @buffer.gsub!("", "<>")
+    assert_not_predicate @buffer, :html_safe?
+    unsafe_buffer = @buffer.encode("UTF-8")
+    assert_instance_of ActiveSupport::SafeBuffer, unsafe_buffer
+    assert_not_predicate unsafe_buffer, :html_safe?
+    assert_not_predicate @buffer.encode("UTF-16LE"), :html_safe?
+  end
+
+  test "Should preserve html_safe? status on dedup" do
+    assert_predicate(-"<br />".html_safe, :html_safe?)
+    assert_predicate "<br />".html_safe.dedup, :html_safe?
+
+    @buffer.gsub!("", "<>")
+    assert_not_predicate(-@buffer, :html_safe?)
+    assert_not_predicate @buffer.dedup, :html_safe?
+    assert_not_predicate(-@buffer.dup.freeze, :html_safe?)
+    assert_not_predicate @buffer.dup.freeze.dedup, :html_safe?
+  end
+
+  test "Should preserve html_safe? status on unary plus of a frozen buffer" do
+    assert_predicate(+"<br />".html_safe.freeze, :html_safe?)
+
+    safe_buffer = "<br />".html_safe
+    assert_same safe_buffer, +safe_buffer
+
+    @buffer.gsub!("", "<>")
+    unsafe_buffer = +@buffer.dup.freeze
+    assert_not_predicate unsafe_buffer, :html_safe?
+    assert_not_predicate unsafe_buffer, :frozen?
+    assert_not_predicate(+@buffer, :html_safe?)
+  end
+
   test "Should concat as a normal string when safe" do
     clean = "hello".html_safe
     @buffer.gsub!("", "<>")
