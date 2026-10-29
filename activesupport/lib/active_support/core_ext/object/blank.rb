@@ -20,6 +20,7 @@ class Object
   # ```
   #
   # @return [true, false]
+  #: () -> bool
   def blank?
     respond_to?(:empty?) ? !!empty? : false
   end
@@ -27,6 +28,7 @@ class Object
   # An object is present if it's not blank.
   #
   # @return [true, false]
+  #: () -> bool
   def present?
     !blank?
   end
@@ -53,6 +55,7 @@ class Object
   # ```
   #
   # @return [Object]
+  #: () -> self?
   def presence
     self if present?
   end
@@ -66,6 +69,7 @@ class NilClass
   # ```
   #
   # @return [true]
+  #: () -> true
   def blank?
     true
   end
@@ -83,6 +87,7 @@ class FalseClass
   # ```
   #
   # @return [true]
+  #: () -> true
   def blank?
     true
   end
@@ -100,6 +105,7 @@ class TrueClass
   # ```
   #
   # @return [false]
+  #: () -> false
   def blank?
     false
   end
@@ -177,6 +183,7 @@ class String
   # ```
   #
   # @return [true, false]
+  #: () -> bool
   def blank?
     return true if empty?
 
