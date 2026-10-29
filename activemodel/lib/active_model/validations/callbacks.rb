@@ -58,6 +58,37 @@ module ActiveModel
         # person.valid? # => true
         # person.name   # => "bob"
         # ```
+        #
+        # #### Options
+        #
+        # * `:on` - Specifies the contexts where this callback is active.
+        #   Runs in all validation contexts by default `nil`. You can pass a symbol
+        #   or an array of symbols. (e.g. `on: :create` or
+        #   `on: :custom_validation_context` or
+        #   `on: [:create, :custom_validation_context]`)
+        # * `:except_on` - Specifies the contexts where this callback is not active.
+        #   Runs in all validation contexts by default `nil`. You can pass a symbol
+        #   or an array of symbols. (e.g. `except_on: :create` or
+        #   `except_on: :custom_validation_context` or
+        #   `except_on: [:create, :custom_validation_context]`)
+        # * `:if` - Specifies a symbol naming an instance method, or a proc or
+        #   lambda, to call to determine if the callback should occur
+        #   (e.g. `if: :allow_validation`, or
+        #   `if: Proc.new { |user| user.signup_step > 2 }`). It should return or
+        #   evaluate to a `true` or `false` value. Several of them can be passed
+        #   as an array to check multiple conditions, all of which must pass for
+        #   the callback to run
+        #   (e.g. `if: [:allow_validation, Proc.new { |user| user.signup_step > 2 }]`)
+        # * `:unless` - Specifies a symbol naming an instance method, or a proc or
+        #   lambda, to call to determine if the callback should not occur
+        #   (e.g. `unless: :skip_validation`, or
+        #   `unless: Proc.new { |user| user.signup_step <= 2 }`). It should return
+        #   or evaluate to a `true` or `false` value. Several of them can be
+        #   passed as an array, and any one of them answering `true` keeps the
+        #   callback from running
+        #   (e.g. `unless: [:skip_validation, Proc.new { |user| user.signup_step <= 2 }]`)
+        # * `:prepend` - If `true`, the callback runs before the ones already
+        #   defined rather than after them.
         def before_validation(*args, &block)
           options = args.extract_options!
 
@@ -93,6 +124,38 @@ module ActiveModel
         # person.valid? # => true
         # person.status # => true
         # ```
+        #
+        # #### Options
+        #
+        # * `:on` - Specifies the contexts where this callback is active.
+        #   Runs in all validation contexts by default `nil`. You can pass a symbol
+        #   or an array of symbols. (e.g. `on: :create` or
+        #   `on: :custom_validation_context` or
+        #   `on: [:create, :custom_validation_context]`)
+        # * `:except_on` - Specifies the contexts where this callback is not active.
+        #   Runs in all validation contexts by default `nil`. You can pass a symbol
+        #   or an array of symbols. (e.g. `except_on: :create` or
+        #   `except_on: :custom_validation_context` or
+        #   `except_on: [:create, :custom_validation_context]`)
+        # * `:if` - Specifies a symbol naming an instance method, or a proc or
+        #   lambda, to call to determine if the callback should occur
+        #   (e.g. `if: :allow_validation`, or
+        #   `if: Proc.new { |user| user.signup_step > 2 }`). It should return or
+        #   evaluate to a `true` or `false` value. Several of them can be passed
+        #   as an array to check multiple conditions, all of which must pass for
+        #   the callback to run
+        #   (e.g. `if: [:allow_validation, Proc.new { |user| user.signup_step > 2 }]`)
+        # * `:unless` - Specifies a symbol naming an instance method, or a proc or
+        #   lambda, to call to determine if the callback should not occur
+        #   (e.g. `unless: :skip_validation`, or
+        #   `unless: Proc.new { |user| user.signup_step <= 2 }`). It should return
+        #   or evaluate to a `true` or `false` value. Several of them can be
+        #   passed as an array, and any one of them answering `true` keeps the
+        #   callback from running
+        #   (e.g. `unless: [:skip_validation, Proc.new { |user| user.signup_step <= 2 }]`)
+        #
+        # These callbacks run in the order they are defined, so `:prepend` is set
+        # for them and a value passed for it is ignored.
         def after_validation(*args, &block)
           options = args.extract_options!
           options = options.dup
