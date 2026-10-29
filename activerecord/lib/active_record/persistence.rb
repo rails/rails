@@ -317,6 +317,7 @@ module ActiveRecord
 
     # Returns true if this object hasn't been saved yet -- that is, a record
     # for the object doesn't exist in the database yet; otherwise, returns false.
+    #: () -> bool
     def new_record?
       @new_record
     end
@@ -324,22 +325,26 @@ module ActiveRecord
     # Returns true if this object was just created -- that is, prior to the last
     # update or delete, the object didn't exist in the database and new_record? would have
     # returned true.
+    #: () -> bool
     def previously_new_record?
       @previously_new_record
     end
 
     # Returns true if this object was previously persisted but now it has been deleted.
+    #: () -> bool
     def previously_persisted?
       !new_record? && destroyed?
     end
 
     # Returns true if this object has been destroyed, otherwise returns false.
+    #: () -> bool
     def destroyed?
       @destroyed
     end
 
     # Returns true if the record is persisted, i.e. it's not a new record and it was
     # not destroyed, otherwise returns false.
+    #: () -> bool
     def persisted?
       !(@new_record || @destroyed)
     end
@@ -466,6 +471,7 @@ module ActiveRecord
     # This includes any attribute initialization done by the new instance.
     #
     # If you want to change the STI column as well, use #becomes! instead.
+    #: [Klass] (Class[Klass]) -> Klass
     def becomes(klass)
       return clone if self.class == klass
 
@@ -491,6 +497,7 @@ module ActiveRecord
     #
     # Note: The old instance's STI column value will be changed too, as both objects
     # share the same set of attributes.
+    #: [Klass] (Class[Klass]) -> Klass
     def becomes!(klass)
       became = becomes(klass)
       sti_type = nil

@@ -259,6 +259,7 @@ module ActiveRecord
       # Person.attribute_names
       # # => ["id", "created_at", "updated_at", "name", "age"]
       # ```
+      #: () -> Array[String]
       def attribute_names
         @attribute_names ||= if !abstract_class? && table_exists?
           attribute_types.keys

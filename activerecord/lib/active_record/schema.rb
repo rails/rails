@@ -52,6 +52,7 @@ module ActiveRecord
         #   ...
         # end
         # ```
+        #: (?Hash[untyped, untyped]) { (ActiveRecord::Migration) [self: ActiveRecord::Migration] -> void } -> void
         def define(info = {}, &block)
           new.define(info, &block)
         end

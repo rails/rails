@@ -1332,6 +1332,7 @@ module ActiveRecord
     end
 
     # Returns true if relation is blank.
+    #: () -> bool
     def blank?
       records.blank?
     end

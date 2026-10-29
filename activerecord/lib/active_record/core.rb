@@ -688,6 +688,7 @@ module ActiveRecord
     #
     # Note also that destroying a record preserves its ID in the model instance, so deleted
     # models are still comparable.
+    #: (top) -> bool
     def ==(comparison_object)
       super ||
         comparison_object.instance_of?(self.class) &&
