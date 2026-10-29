@@ -2,6 +2,7 @@
 
 # :markup: markdown
 require "active_record/database_configurations"
+require "active_support/core_ext/file/atomic"
 
 module ActiveRecord
   module Tasks # :nodoc:
@@ -465,7 +466,7 @@ module ActiveRecord
           FileUtils.mkdir_p(db_dir)
           case format.to_sym
           when :ruby
-            File.open(filename, "w:utf-8") do |file|
+            File.atomic_write(filename) do |file|
               ActiveRecord::SchemaDumper.dump(pool, file)
             end
           when :sql
