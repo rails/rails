@@ -481,9 +481,9 @@ module ActiveRecord
         conditions = sanitize_forbidden_attributes(conditions)
 
         if distinct_value && offset_value
-          relation = except(:order).limit!(1)
+          relation = except(:order, :default_order).limit!(1)
         else
-          relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE_LITERAL).limit!(1)
+          relation = except(:select, :distinct, :order, :default_order)._select!(ONE_AS_ONE_LITERAL).limit!(1)
         end
 
         case conditions
