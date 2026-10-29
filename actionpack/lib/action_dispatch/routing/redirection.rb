@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/array/extract_options"
 require "rack/utils"
 require "action_controller/metal/exceptions"

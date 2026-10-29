@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/inflector/methods"
 require "active_support/dependencies"
 

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionDispatch
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new

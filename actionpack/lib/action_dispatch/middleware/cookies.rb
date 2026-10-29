@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/integer/time"
 require "active_support/key_generator"

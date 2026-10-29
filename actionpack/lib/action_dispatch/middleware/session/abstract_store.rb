@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "rack/utils"
 require "rack/request"
 require "rack/session/abstract/id"

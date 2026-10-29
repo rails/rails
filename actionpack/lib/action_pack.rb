@@ -22,6 +22,4 @@
 # SOFTWARE.
 #++
 
-# :markup: markdown
-
 require "action_pack/version"

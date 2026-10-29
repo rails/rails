@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
-
 require "action_dispatch/middleware/exception_wrapper"
 require "action_dispatch/routing/inspector"
 
