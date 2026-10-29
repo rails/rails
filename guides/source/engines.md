@@ -965,13 +965,11 @@ database by specifying the `DATABASE` option:
 $ bin/rails railties:install:migrations DATABASE=animals
 ```
 
-NOTE: These tasks are provided by
-[`ActiveRecord::Railtie`](https://api.rubyonrails.org/classes/Rails/Railtie.html),
-the Rails component responsible for managing how Active Record integrates into
-an application. When run, it looks through all loaded engines and copies any
-exposed migrations into the host application's `db/migrate` folder, saving you
-from having to run a separate `install:migrations` task for each engine
-individually.
+NOTE: These tasks are provided by `ActiveRecord::Railtie`, the Rails component
+responsible for managing how Active Record integrates into an application.
+When run, it looks through all loaded engines and copies any exposed migrations
+into the host application's `db/migrate` folder, saving you from having to run
+a separate `install:migrations` task for each engine individually.
 
 #### Running Migrations
 
