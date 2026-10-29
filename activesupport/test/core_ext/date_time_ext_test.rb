@@ -418,6 +418,17 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_this_month_quarter_and_year_with_offset
+    Date.stub(:current, Date.new(2000, 12, 15)) do
+      assert_equal true,  DateTime.civil(2000, 12, 31, 23, 59, 59, Rational(-18000, 86400)).this_month?
+      assert_equal true,  DateTime.civil(2000, 12, 31, 23, 59, 59, Rational(-18000, 86400)).this_quarter?
+      assert_equal true,  DateTime.civil(2000, 12, 31, 23, 59, 59, Rational(-18000, 86400)).this_year?
+      assert_equal false, DateTime.civil(2000, 12, 1, 0, 0, 0, Rational(18000, 86400)).new_offset(0).this_month?
+      assert_equal false, DateTime.civil(2000, 10, 1, 0, 0, 0, Rational(18000, 86400)).new_offset(0).this_quarter?
+      assert_equal false, DateTime.civil(2000, 1, 1, 0, 0, 0, Rational(18000, 86400)).new_offset(0).this_year?
+    end
+  end
+
   def test_current_returns_date_today_when_zone_is_not_set
     with_env_tz "US/Eastern" do
       Time.stub(:now, Time.local(1999, 12, 31, 23, 59, 59)) do

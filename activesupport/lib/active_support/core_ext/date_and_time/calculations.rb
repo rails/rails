@@ -73,17 +73,22 @@ module DateAndTime
 
     # Returns true if the date/time falls within the current month.
     def this_month?
-      ::Date.current.all_month.cover?(to_date)
+      current = ::Date.current
+      date = to_date_in_calendar_of(current)
+      date.year == current.year && date.month == current.month
     end
 
     # Returns true if the date/time falls within the current quarter.
     def this_quarter?
-      ::Date.current.all_quarter.cover?(to_date)
+      current = ::Date.current
+      date = to_date_in_calendar_of(current)
+      date.year == current.year && date.quarter == current.quarter
     end
 
     # Returns true if the date/time falls within the current year.
     def this_year?
-      ::Date.current.all_year.cover?(to_date)
+      current = ::Date.current
+      to_date_in_calendar_of(current).year == current.year
     end
 
     # Returns true if the date/time falls before `date_or_time`.
@@ -416,6 +421,11 @@ module DateAndTime
 
       def days_span(day)
         (DAYS_INTO_WEEK.fetch(day) - DAYS_INTO_WEEK.fetch(Date.beginning_of_week)) % 7
+      end
+
+      def to_date_in_calendar_of(current)
+        date = to_date
+        date.start == current.start ? date : date.new_start(current.start)
       end
 
       def copy_time_to(other)

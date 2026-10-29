@@ -362,6 +362,49 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_this_month
+    Date.stub(:current, Date.new(2000, 2, 15)) do
+      assert_equal false, Date.new(2000, 1, 31).this_month?
+      assert_equal true,  Date.new(2000, 2, 1).this_month?
+      assert_equal true,  Date.new(2000, 2, 29).this_month?
+      assert_equal false, Date.new(2000, 3, 1).this_month?
+      assert_equal false, Date.new(2001, 2, 15).this_month?
+    end
+  end
+
+  def test_this_quarter
+    Date.stub(:current, Date.new(2000, 5, 15)) do
+      assert_equal false, Date.new(2000, 3, 31).this_quarter?
+      assert_equal true,  Date.new(2000, 4, 1).this_quarter?
+      assert_equal true,  Date.new(2000, 6, 30).this_quarter?
+      assert_equal false, Date.new(2000, 7, 1).this_quarter?
+      assert_equal false, Date.new(2001, 5, 15).this_quarter?
+    end
+  end
+
+  def test_this_year
+    Date.stub(:current, Date.new(2000, 6, 30)) do
+      assert_equal false, Date.new(1999, 12, 31).this_year?
+      assert_equal true,  Date.new(2000, 1, 1).this_year?
+      assert_equal true,  Date.new(2000, 12, 31).this_year?
+      assert_equal false, Date.new(2001, 1, 1).this_year?
+    end
+  end
+
+  def test_this_month_quarter_and_year_with_julian_calendar_date
+    Date.stub(:current, Date.new(2000, 1, 15)) do
+      assert_equal true,  Date.new(1999, 12, 23, Date::JULIAN).this_month?   # Gregorian 2000-01-05
+      assert_equal true,  Date.new(1999, 12, 23, Date::JULIAN).this_quarter?
+      assert_equal true,  Date.new(1999, 12, 23, Date::JULIAN).this_year?
+      assert_equal false, Date.new(2000, 1, 25, Date::JULIAN).this_month?    # Gregorian 2000-02-07
+    end
+
+    Date.stub(:current, Date.new(2000, 12, 15)) do
+      assert_equal false, Date.new(2000, 12, 20, Date::JULIAN).this_quarter? # Gregorian 2001-01-02
+      assert_equal false, Date.new(2000, 12, 20, Date::JULIAN).this_year?
+    end
+  end
+
   def test_current_returns_date_today_when_zone_not_set
     with_env_tz "US/Central" do
       Time.stub(:now, Time.local(1999, 12, 31, 23)) do

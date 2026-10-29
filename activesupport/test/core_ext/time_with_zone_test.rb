@@ -306,6 +306,34 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_this_month
+    Date.stub(:current, Date.new(2000, 1, 15)) do
+      assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 23, 59, 59)).this_month?
+      assert_equal true,  ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 1, 0)).this_month?
+      assert_equal true,  ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 31, 23, 59, 59)).this_month?
+      assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 2, 1, 0)).this_month?
+      assert_equal true,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 2, 1, 4, 59, 59), @time_zone).this_month?
+    end
+  end
+
+  def test_this_quarter
+    Date.stub(:current, Date.new(2000, 2, 15)) do
+      assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 23, 59, 59)).this_quarter?
+      assert_equal true,  ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 1, 0)).this_quarter?
+      assert_equal true,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 4, 1, 4, 59, 59), @time_zone).this_quarter?
+      assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 4, 1, 0)).this_quarter?
+    end
+  end
+
+  def test_this_year
+    Date.stub(:current, Date.new(2000, 6, 30)) do
+      assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 23, 59, 59)).this_year?
+      assert_equal true,  ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2000, 1, 1, 0)).this_year?
+      assert_equal true,  ActiveSupport::TimeWithZone.new(Time.utc(2001, 1, 1, 4, 59, 59), @time_zone).this_year?
+      assert_equal false, ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(2001, 1, 1, 0)).this_year?
+    end
+  end
+
   def test_yesterday?
     Date.stub(:current, Date.new(2000, 1, 1)) do
       assert_equal true,  ActiveSupport::TimeWithZone.new(nil, @time_zone, Time.utc(1999, 12, 31, 23, 59, 59)).yesterday?
