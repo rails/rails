@@ -225,14 +225,14 @@ module ActiveRecord
       #   attribute is `nil` (default is `false`).
       # * `:allow_blank` - If set to `true`, skips this validation if the
       #   attribute is blank (default is `false`).
-      # * `:if` - Specifies a method, proc, or string to call to determine
+      # * `:if` - Specifies a method, proc, or lambda to call to determine
       #   if the validation should occur (e.g. `if: :allow_validation`,
       #   or `if: Proc.new { |user| user.signup_step > 2 }`). The method,
-      #   proc or string should return or evaluate to a `true` or `false` value.
-      # * `:unless` - Specifies a method, proc, or string to call to
+      #   proc or lambda should return or evaluate to a `true` or `false` value.
+      # * `:unless` - Specifies a method, proc, or lambda to call to
       #   determine if the validation should not occur (e.g. `unless: :skip_validation`,
       #   or `unless: Proc.new { |user| user.signup_step <= 2 }`). The
-      #   method, proc, or string should return or evaluate to a `true` or `false`
+      #   method, proc, or lambda should return or evaluate to a `true` or `false`
       #   value.
       #
       # ### Concurrency and integrity
