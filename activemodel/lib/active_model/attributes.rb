@@ -83,6 +83,7 @@ module ActiveModel
       #
       # Person.attribute_names # => ["name", "age"]
       # ```
+      #: () -> Array[String]
       def attribute_names
         attribute_types.keys
       end
@@ -142,6 +143,7 @@ module ActiveModel
     #
     # person.attributes # => { "name" => "Francesco", "age" => 22}
     # ```
+    #: () -> Hash[String, untyped]
     def attributes
       @attributes.to_hash
     end
@@ -159,6 +161,7 @@ module ActiveModel
     # person = Person.new
     # person.attribute_names # => ["name", "age"]
     # ```
+    #: () -> Array[String]
     def attribute_names
       @attributes.keys
     end
