@@ -1,3 +1,14 @@
+*   Skip writing a `CacheStore` session that another request deleted while this
+    one ran.
+
+    A request that loaded a session from `ActionDispatch::Session::CacheStore`
+    wrote it back when it finished, even after a concurrent `reset_session` or a
+    server-side delete had removed it, so the old session ID worked again.
+
+    [GHSA-2586-8ghr-69fj]
+
+    *Mike Dalessio*
+
 *   Don't write upgraded cookies to a response that skips the session.
 
     Reading a signed or encrypted cookie written under a rotated secret, or in
