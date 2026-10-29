@@ -14,7 +14,7 @@ class PostgresqlExtensionSchemaDumpTest < ActiveRecord::PostgreSQLTestCase
     @connection.disable_extension("hstore", force: :cascade)
     @connection.create_schema("extension_schema")
     # hstore is relocatable: its control file does not fix the schema.
-    @connection.enable_extension("extension_schema.hstore")
+    @connection.enable_extension("hstore", schema: "extension_schema")
   end
 
   def teardown
@@ -26,8 +26,8 @@ class PostgresqlExtensionSchemaDumpTest < ActiveRecord::PostgreSQLTestCase
     output = ActiveRecord.with(dump_schemas: "public") { dump_all_table_schema }
 
     assert_includes output, 'create_schema "extension_schema", if_not_exists: true'
-    assert_includes output, 'enable_extension "extension_schema.hstore"'
-    assert_operator output.index("create_schema"), :<, output.index('enable_extension "extension_schema.hstore"')
+    assert_includes output, 'enable_extension "hstore", schema: "extension_schema"'
+    assert_operator output.index("create_schema"), :<, output.index('enable_extension "hstore", schema: "extension_schema"')
   end
 
   def test_dumps_schema_once_when_dump_schemas_includes_it
@@ -38,11 +38,11 @@ class PostgresqlExtensionSchemaDumpTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_does_not_dump_system_schemas
-    @connection.enable_extension("pg_catalog.btree_gin")
+    @connection.enable_extension("btree_gin", schema: "pg_catalog")
 
     output = ActiveRecord.with(dump_schemas: "public") { dump_all_table_schema }
 
-    assert_includes output, 'enable_extension "pg_catalog.btree_gin"'
+    assert_includes output, 'enable_extension "btree_gin", schema: "pg_catalog"'
     assert_no_match(/create_schema "pg_/, output)
   ensure
     @connection.disable_extension("btree_gin")

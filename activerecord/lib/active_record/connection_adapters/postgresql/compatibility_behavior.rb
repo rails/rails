@@ -8,7 +8,27 @@ module ActiveRecord
       module CompatibilityBehavior # :nodoc: all
         extend Migration::CompatibilityBehavior::Resolver
 
-        class V7_0 < Migration::CompatibilityBehavior
+        class V8_1 < Migration::CompatibilityBehavior
+          def enable_extension(name, **options)
+            schema, name = split_schema_qualified_extension_name(name)
+            options[:schema] ||= schema if schema
+            super(name, **options)
+          end
+
+          def disable_extension(name, **options)
+            schema, name = split_schema_qualified_extension_name(name)
+            options[:schema] ||= schema if schema
+            super(name, **options)
+          end
+
+          private
+            def split_schema_qualified_extension_name(name)
+              schema, _, name = name.to_s.rpartition(".")
+              [schema.presence, name]
+            end
+        end
+
+        class V7_0 < V8_1
           def disable_extension(name, **options)
             options[:force] = :cascade unless options.key?(:force)
             super

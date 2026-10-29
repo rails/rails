@@ -848,7 +848,7 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
 
   def test_opclass_class_parsing_from_another_schema
     @connection.create_schema("test_schema")
-    @connection.enable_extension("test_schema.pg_trgm")
+    @connection.enable_extension("pg_trgm", schema: "test_schema")
     @connection.execute "CREATE INDEX trains_position ON trains USING gin(position test_schema.gin_trgm_ops)"
 
     with_dump_schemas(:schema_search_path) do

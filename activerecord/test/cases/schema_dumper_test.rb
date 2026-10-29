@@ -476,31 +476,41 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_includes_extensions
       connection = ActiveRecord::Base.lease_connection
 
-      connection.stub(:extensions, ["hstore"]) do
+      connection.stub(:extensions_with_schemas, [["hstore", nil]]) do
         output = dump_all_table_schema(/./)
         assert_match "# These are extensions that must be enabled", output
         assert_match %r{enable_extension "hstore"}, output
       end
 
-      connection.stub(:extensions, []) do
+      connection.stub(:extensions_with_schemas, []) do
         output = dump_all_table_schema(/./)
         assert_no_match "# These are extensions that must be enabled", output
         assert_no_match %r{enable_extension}, output
       end
     end
 
+    def test_schema_dump_includes_extension_schema
+      connection = ActiveRecord::Base.lease_connection
+
+      connection.stub(:extensions_with_schemas, [["hstore", "custom_schema"], ["pgcrypto", nil]]) do
+        output = dump_all_table_schema(/./)
+        assert_match %r{^  enable_extension "hstore", schema: "custom_schema"$}, output
+        assert_match %r{^  enable_extension "pgcrypto"$}, output
+      end
+    end
+
     def test_schema_dump_includes_extensions_in_alphabetic_order
       connection = ActiveRecord::Base.lease_connection
 
-      connection.stub(:extensions, ["hstore", "uuid-ossp", "xml2"]) do
+      connection.stub(:extensions_with_schemas, [["hstore", nil], ["uuid-ossp", nil], ["xml2", nil]]) do
         output = dump_all_table_schema(/./)
-        enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
+        enabled_extensions = output.scan(%r{enable_extension "([^"]+)"}).flatten
         assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
       end
 
-      connection.stub(:extensions, ["uuid-ossp", "xml2", "hstore"]) do
+      connection.stub(:extensions_with_schemas, [["uuid-ossp", nil], ["xml2", "custom_schema"], ["hstore", nil]]) do
         output = dump_all_table_schema(/./)
-        enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
+        enabled_extensions = output.scan(%r{enable_extension "([^"]+)"}).flatten
         assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
       end
     end

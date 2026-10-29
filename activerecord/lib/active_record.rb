@@ -502,7 +502,8 @@ module ActiveRecord
   # If the value is :schema_search_path (the default), any schemas listed in
   # schema_search_path are dumped. Use :all to dump all schemas regardless
   # of schema_search_path, or a string of comma separated schemas for a
-  # custom list.
+  # custom list. PostgreSQL extensions, and the schemas their member objects
+  # were installed in, are dumped regardless of this setting.
   singleton_class.attr_accessor :dump_schemas
   self.dump_schemas = :schema_search_path
 
