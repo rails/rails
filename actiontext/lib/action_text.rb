@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support"
 require "active_support/rails"
 
@@ -9,7 +8,6 @@ require "action_text/deprecator"
 
 require "nokogiri"
 
-# :markup: markdown
 # :include: ../README.md
 module ActionText
   extend ActiveSupport::Autoload

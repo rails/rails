@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "uri"
-
-# :markup: markdown
 
 module ActionText
   # # Action Text Markdown Conversion

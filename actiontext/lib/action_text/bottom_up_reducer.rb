@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionText
   class BottomUpReducer # :nodoc:
     def initialize(node)
