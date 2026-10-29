@@ -955,6 +955,12 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_days_in_month_without_year_arg_reads_the_current_year_only_for_feb
+    assert_not_called(Time, :current) do
+      assert_equal [31, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31], [1, *3..12].map { |month| Time.days_in_month(month) }
+    end
+  end
+
   def test_days_in_year_with_year
     assert_equal 365, Time.days_in_year(2005)
     assert_equal 366, Time.days_in_year(2004)

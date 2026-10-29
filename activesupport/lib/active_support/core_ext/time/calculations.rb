@@ -15,6 +15,8 @@ class Time
   include DateAndTime::Calculations
 
   COMMON_YEAR_DAYS_IN_MONTH = [nil, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31].freeze
+  NOT_GIVEN = Object.new.freeze
+  private_constant :NOT_GIVEN
 
   class << self
     # Overriding case equality method so that it returns true for ActiveSupport::TimeWithZone instances
@@ -24,8 +26,8 @@ class Time
 
     # Returns the number of days in the given month.
     # If no year is specified, it will use the current year.
-    def days_in_month(month, year = current.year)
-      if month == 2 && ::Date.gregorian_leap?(year)
+    def days_in_month(month, year = NOT_GIVEN)
+      if month == 2 && ::Date.gregorian_leap?(NOT_GIVEN.equal?(year) ? current.year : year)
         29
       else
         COMMON_YEAR_DAYS_IN_MONTH[month]
