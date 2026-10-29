@@ -1,3 +1,10 @@
+*   Exclude `default_order` in `Relation#exists?`.
+
+    Previously, `exists?` only excluded explicit `order` values, causing
+    `default_order` to be retained in the query.
+
+    *Kengo Johira*
+
 *   Decode and encode PostgreSQL `integer[]` and `bigint[]` columns in C.
 
     `OID::Array` now gives pg `PG::TextDecoder::Integer` and
