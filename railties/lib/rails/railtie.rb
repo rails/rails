@@ -172,6 +172,7 @@ module Rails
         super.reject(&:abstract_railtie?).sort
       end
 
+      #: () ?{ (Rails::Application) [self: Rake::DSL] -> void } -> void
       def rake_tasks(&blk)
         register_block_for(:rake_tasks, &blk)
       end
