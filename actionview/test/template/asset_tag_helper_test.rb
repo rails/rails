@@ -816,6 +816,32 @@ class AssetTagHelperTest < ActionView::TestCase
     end
   end
 
+  def test_should_not_set_preload_links_for_invalid_uri
+    with_preload_links_header do
+      stylesheet_link_tag("http://example.com/style.css>, <http://evil.example/a")
+      javascript_include_tag("http://example.com/all.js>, <http://evil.example/b")
+      preload_link_tag("http://example.com/font.woff2>, <http://evil.example/c", as: "font")
+      assert_nil @response.headers["link"]
+    end
+  end
+
+  def test_should_set_preload_links_for_valid_sources_alongside_invalid_ones
+    with_preload_links_header do
+      stylesheet_link_tag("http://example.com/style.css", "http://example.com/other.css>, <http://evil.example/a")
+      expected = "<http://example.com/style.css>; rel=preload; as=style; nopush"
+      assert_equal expected, @response.headers["link"]
+    end
+  end
+
+  def test_should_not_set_preload_links_for_parameters_with_delimiters
+    with_preload_links_header do
+      stylesheet_link_tag("http://example.com/style.css", integrity: "sha256-x, <http://evil.example/a>")
+      javascript_include_tag("http://example.com/all.js", crossorigin: "anonymous; rel=stylesheet")
+      preload_link_tag("http://example.com/hero.jpg", fetchpriority: "high low")
+      assert_nil @response.headers["link"]
+    end
+  end
+
   def test_image_path
     ImagePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end

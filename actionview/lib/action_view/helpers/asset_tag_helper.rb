@@ -135,7 +135,7 @@ module ActionView
 
         sources_tags = sources.uniq.map! { |source|
           href = path_to_javascript(source, path_options)
-          if use_preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:")
+          if use_preload_links_header && !options["defer"] && href.present? && !href.start_with?("data:") && header_safe_preload_link?(href, crossorigin, integrity)
             preload_link = "<#{href}>; rel=#{rel}; as=script"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
@@ -228,7 +228,7 @@ module ActionView
 
         sources_tags = sources.uniq.map! { |source|
           href = path_to_stylesheet(source, path_options)
-          if use_preload_links_header && href.present? && !href.start_with?("data:")
+          if use_preload_links_header && href.present? && !href.start_with?("data:") && header_safe_preload_link?(href, crossorigin, integrity)
             preload_link = "<#{href}>; rel=preload; as=style"
             preload_link += "; crossorigin=#{crossorigin}" unless crossorigin.nil?
             preload_link += "; integrity=#{integrity}" unless integrity.nil?
@@ -416,7 +416,9 @@ module ActionView
         preload_link += "; nonce=#{content_security_policy_nonce}" if add_nonce
         preload_link += "; nopush" if nopush
 
-        send_preload_links_header([preload_link])
+        if header_safe_preload_link?(href, as_type, mime_type, crossorigin, fetchpriority, integrity)
+          send_preload_links_header([preload_link])
+        end
 
         link_tag
       end
@@ -705,6 +707,13 @@ module ActionView
         # Some HTTP client and proxies have a 4kiB header limit, but more importantly
         # including preload links has diminishing returns so it's best to not go overboard
         MAX_HEADER_SIZE = 1_000 # :nodoc:
+
+        def header_safe_preload_link?(href, *parameters)
+          URI.parse(href)
+          parameters.none? { |parameter| parameter.to_s.match?(/[[:space:];,]/) }
+        rescue URI::Error
+          false
+        end
 
         def send_preload_links_header(preload_links, max_header_size: MAX_HEADER_SIZE)
           return if preload_links.empty?

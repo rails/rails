@@ -1,3 +1,14 @@
+*   Leave preload links out of the `Link` header and Early Hints when the URL
+    does not parse as a URI, or when an option value contains whitespace,
+    `;` or `,`.
+
+    `preload_link_tag`, `stylesheet_link_tag` and `javascript_include_tag`
+    wrote these values into the header as is, so a value such as
+    `https://example.com/a>, <https://other.example/b` added a second link.
+    The HTML tag is still rendered.
+
+    *Mike Dalessio*
+
 *   Treat `alpha`, `headingreset`, `shadowrootclonable`,
     `shadowrootcustomelementregistry`, `shadowrootdelegatesfocus` and
     `shadowrootserializable` as boolean attributes in the tag helpers.
