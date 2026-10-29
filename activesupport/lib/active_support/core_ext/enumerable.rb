@@ -124,6 +124,7 @@ module Enumerable
 
   # The negative of the `Enumerable#include?`. Returns `true` if the
   # collection does not include the object.
+  #: (BasicObject) -> bool
   def exclude?(object)
     !include?(object)
   end
@@ -200,6 +201,7 @@ module Enumerable
   # { a: "", b: 1, c: nil, d: [], e: false, f: true }.compact_blank
   # # => { b: 1, f: true }
   # ```
+  #: () -> Array[Elem]
   def compact_blank
     reject(&:blank?)
   end
@@ -231,6 +233,7 @@ module Enumerable
   # Set.new.sole        # => Enumerable::SoleItemExpectedError: no item found
   # { a: 1, b: 2 }.sole # => Enumerable::SoleItemExpectedError: multiple items found
   # ```
+  #: () -> Elem
   def sole
     result = nil
     found = false

@@ -92,6 +92,7 @@ module ActiveSupport
       # assert_equal :warning, report.severity
       # assert_predicate report, :handled?
       # ```
+      #: (?singleton(Exception)) { () -> void } -> ActiveSupport::Testing::ErrorReporterAssertions::ErrorCollector::Report
       def assert_error_reported(error_class = StandardError, &block)
         reports = ErrorCollector.record do
           _assert_nothing_raised_or_warn("assert_error_reported", &block)
@@ -124,6 +125,7 @@ module ActiveSupport
       # assert_equal "Oops", reports.first.error.message
       # assert_equal "Oh no", reports.last.error.message
       # ```
+      #: (?singleton(Exception)) { () -> void } -> Array[ActiveSupport::Testing::ErrorReporterAssertions::ErrorCollector::Report]
       def capture_error_reports(error_class = StandardError, &block)
         reports = ErrorCollector.record(&block)
         reports.select { |r| error_class === r.error }

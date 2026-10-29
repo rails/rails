@@ -31,6 +31,7 @@ class String
   # str.at("lo") # => "lo"
   # str.at("ol") # => nil
   # ```
+  #: (Integer | Range[Integer] | Regexp | String) -> String?
   def at(position)
     self[position]
   end
@@ -52,6 +53,7 @@ class String
   # str.from(0).to(-1) # => "hello"
   # str.from(1).to(-2) # => "ell"
   # ```
+  #: (Integer) -> String?
   def from(position)
     self[position, length]
   end
@@ -73,6 +75,7 @@ class String
   # str.from(0).to(-1) # => "hello"
   # str.from(1).to(-2) # => "ell"
   # ```
+  #: (Integer) -> String
   def to(position)
     position += size if position < 0
     self[0, position + 1] || +""
@@ -90,6 +93,7 @@ class String
   # str.first(0) # => ""
   # str.first(6) # => "hello"
   # ```
+  #: (?Integer) -> String
   def first(limit = 1)
     self[0, limit] || raise(ArgumentError, "negative limit")
   end
@@ -106,6 +110,7 @@ class String
   # str.last(0) # => ""
   # str.last(6) # => "hello"
   # ```
+  #: (?Integer) -> String
   def last(limit = 1)
     self[[length - limit, 0].max, limit] || raise(ArgumentError, "negative limit")
   end

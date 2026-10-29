@@ -54,6 +54,7 @@ module ActiveSupport
       # ```
       #
       # Exceptions raised inside exception handlers are not propagated up.
+      #: (*(Module | String), ?with: (Symbol | Proc)?) ?{ (untyped) -> void } -> void
       def rescue_from(*klasses, with: nil, &block)
         unless with
           if block_given?

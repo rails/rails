@@ -147,6 +147,7 @@ module ActiveSupport
     #       # ...
     #     end
     #
+    #: (Exception | String, ?severity: Symbol?, ?context: Hash[Symbol, untyped], ?source: String?) -> void
     def unexpected(error, severity: :warning, context: {}, source: DEFAULT_SOURCE)
       error = RuntimeError.new(error) if error.is_a?(String)
 
@@ -234,6 +235,7 @@ module ActiveSupport
     #
     # Otherwise you can use #unexpected to report an error which does accept a
     # string argument.
+    #: (Exception, ?handled: bool, ?severity: Symbol?, ?context: Hash[Symbol, untyped], ?source: String?) -> void
     def report(error, handled: true, severity: handled ? :warning : :error, context: {}, source: DEFAULT_SOURCE)
       return if error.instance_variable_defined?(:@__rails_error_reported)
       raise ArgumentError, "Reported error must be an Exception, got: #{error.inspect}" unless error.is_a?(Exception)

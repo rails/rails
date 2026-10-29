@@ -73,6 +73,7 @@ module ActiveSupport
       true
     end
 
+    #: () -> ActiveSupport::HashWithIndifferentAccess
     def with_indifferent_access
       dup
     end

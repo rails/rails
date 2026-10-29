@@ -13,6 +13,7 @@ class String
   #    string }.squish                   # => "Multi-line string"
   # " foo   bar    \n   \t   boo".squish # => "foo bar boo"
   # ```
+  #: () -> String
   def squish
     dup.squish!
   end
@@ -24,6 +25,7 @@ class String
   # str.squish!                         # => "foo bar boo"
   # str                                 # => "foo bar boo"
   # ```
+  #: () -> String
   def squish!
     # Search for two or more `[[:space:]]` OR a single
     # [[:space:]] that isn't `" "`.
@@ -40,6 +42,7 @@ class String
   # str.remove(" test", /bar/)          # => "foo "
   # str                                 # => "foo bar test"
   # ```
+  #: (*String | Regexp) -> String
   def remove(*patterns)
     dup.remove!(*patterns)
   end
@@ -51,6 +54,7 @@ class String
   # str.remove!(" test", /bar/)         # => "foo "
   # str                                 # => "foo "
   # ```
+  #: (*String | Regexp) -> String
   def remove!(*patterns)
     patterns.each do |pattern|
       gsub! pattern, ""
@@ -87,6 +91,7 @@ class String
   # 'And they found that many people were sleeping better.'.truncate(4, omission: '... (continued)')
   # # => "... (continued)"
   # ```
+  #: (Integer, ?Hash[Symbol, top]) -> String
   def truncate(truncate_to, options = {})
     return dup unless length > truncate_to
 
@@ -125,6 +130,7 @@ class String
   # to "…", for a total length not exceeding `truncate_to`.
   #
   # Raises `ArgumentError` when the bytesize of `:omission` exceeds `truncate_to`.
+  #: (Integer, ?omission: String?) -> String
   def truncate_bytes(truncate_to, omission: "…")
     omission ||= ""
 
@@ -172,6 +178,7 @@ class String
   # 'And they found that many people were sleeping better.'.truncate_words(5, omission: '... (continued)')
   # # => "And they found that many... (continued)"
   # ```
+  #: (Integer, ?Hash[Symbol, top]) -> String
   def truncate_words(words_count, options = {})
     sep = options[:separator] || /\s+/
     sep = Regexp.escape(sep.to_s) unless Regexp === sep

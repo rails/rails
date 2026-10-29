@@ -41,6 +41,7 @@ class Time
     end
 
     # Returns `Time.zone.now` when `Time.zone` or `config.time_zone` are set, otherwise just returns `Time.now`.
+    #: () -> (ActiveSupport::TimeWithZone | ::Time)
     def current
       ::Time.zone ? ::Time.zone.now : ::Time.now
     end

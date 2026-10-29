@@ -7,6 +7,7 @@ class Hash
   # true to declare themselves as extractable. If a Hash
   # is extractable, `Array#extract_options!` pops it from
   # the Array when it is the last element of the Array.
+  #: () -> bool
   def extractable_options?
     instance_of?(Hash)
   end
@@ -24,6 +25,7 @@ class Array
   # options(1, 2)        # => {}
   # options(1, 2, a: :b) # => {:a=>:b}
   # ```
+  #: () -> Hash[untyped, untyped]
   def extract_options!
     if last.is_a?(Hash) && last.extractable_options?
       pop

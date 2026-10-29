@@ -22,6 +22,7 @@ class Array
   # ["3", "4"]
   # ["5"]
   # ```
+  #: [FillType] (Integer | Float, ?FillType) ?{ (Array[Elem | FillType | nil]) -> void } -> (Array[Elem | FillType | nil] | Array[Array[Elem | FillType | nil]])
   def in_groups_of(number, fill_with = nil, &block)
     if number.to_i <= 0
       raise ArgumentError,
@@ -64,6 +65,7 @@ class Array
   # ["4", "5"]
   # ["6", "7"]
   # ```
+  #: [FillType] (Integer | Float, ?FillType) ?{ (Array[Elem | FillType | nil]) -> void } -> Array[Array[Elem | FillType | nil]]
   def in_groups(number, fill_with = nil, &block)
     if number.to_i <= 0
       raise ArgumentError,
@@ -103,6 +105,7 @@ class Array
   # [1, 2, 3, 4, 5].split(3)              # => [[1, 2], [4, 5]]
   # (1..10).to_a.split { |i| i % 3 == 0 } # => [[1, 2], [4, 5], [7, 8], [10]]
   # ```
+  #: (?untyped) ?{ (Elem) -> untyped } -> Array[Array[Elem]]
   def split(value = nil, &block)
     arr = dup
     result = []

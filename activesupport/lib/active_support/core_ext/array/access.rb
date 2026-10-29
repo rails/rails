@@ -12,6 +12,7 @@ class Array
   # %w( a b c d ).from(-2) # => ["c", "d"]
   # %w( a b c ).from(-10)  # => []
   # ```
+  #: (Integer) -> Array[Elem]
   def from(position)
     self[position, length] || []
   end
@@ -26,6 +27,7 @@ class Array
   # %w( a b c d ).to(-2) # => ["a", "b", "c"]
   # %w( a b c ).to(-10)  # => []
   # ```
+  #: (Integer) -> Array[Elem]
   def to(position)
     if position >= 0
       take position + 1
@@ -40,6 +42,7 @@ class Array
   # [ 1, 2, 3 ].including(4, 5) # => [ 1, 2, 3, 4, 5 ]
   # [ [ 0, 1 ] ].including([ [ 1, 0 ] ]) # => [ [ 0, 1 ], [ 1, 0 ] ]
   # ```
+  #: (*untyped) -> Array[untyped]
   def including(*elements)
     self + elements.flatten(1)
   end
@@ -53,6 +56,7 @@ class Array
   #
   # Note: This is an optimization of `Enumerable#excluding` that uses `Array#-`
   # instead of `Array#reject` for performance reasons.
+  #: (*untyped) -> Array[Elem]
   def excluding(*elements)
     self - elements.flatten(1)
   end
@@ -63,6 +67,7 @@ class Array
   # ```
   # %w( a b c d e ).second # => "b"
   # ```
+  #: () -> Elem?
   def second
     self[1]
   end
@@ -72,6 +77,7 @@ class Array
   # ```
   # %w( a b c d e ).third # => "c"
   # ```
+  #: () -> Elem?
   def third
     self[2]
   end
@@ -81,6 +87,7 @@ class Array
   # ```
   # %w( a b c d e ).fourth # => "d"
   # ```
+  #: () -> Elem?
   def fourth
     self[3]
   end
@@ -90,6 +97,7 @@ class Array
   # ```
   # %w( a b c d e ).fifth # => "e"
   # ```
+  #: () -> Elem?
   def fifth
     self[4]
   end
@@ -99,6 +107,7 @@ class Array
   # ```
   # (1..42).to_a.forty_two # => 42
   # ```
+  #: () -> Elem?
   def forty_two
     self[41]
   end
@@ -108,6 +117,7 @@ class Array
   # ```
   # %w( a b c d e ).third_to_last # => "c"
   # ```
+  #: () -> Elem?
   def third_to_last
     self[-3]
   end
@@ -117,6 +127,7 @@ class Array
   # ```
   # %w( a b c d e ).second_to_last # => "d"
   # ```
+  #: () -> Elem?
   def second_to_last
     self[-2]
   end

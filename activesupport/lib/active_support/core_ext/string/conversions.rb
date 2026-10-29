@@ -22,6 +22,7 @@ class String
   # "12/13/2012".to_time               # => ArgumentError: argument out of range
   # "1604326192".to_time               # => ArgumentError: argument out of range
   # ```
+  #: (?Symbol?) -> Time?
   def to_time(form = :local)
     parts = Date._parse(self, false)
     used_keys = %i(year mon mday hour min sec sec_fraction offset)
@@ -49,6 +50,7 @@ class String
   # "2012-12-13".to_date # => Thu, 13 Dec 2012
   # "12/13/2012".to_date # => ArgumentError: invalid date
   # ```
+  #: () -> ::Date?
   def to_date
     ::Date.parse(self, false) unless blank?
   end
@@ -61,6 +63,7 @@ class String
   # "2012-12-13 12:50".to_datetime    # => Thu, 13 Dec 2012 12:50:00 +0000
   # "12/13/2012".to_datetime          # => ArgumentError: invalid date
   # ```
+  #: () -> ::DateTime?
   def to_datetime
     ::DateTime.parse(self, false) unless blank?
   end
