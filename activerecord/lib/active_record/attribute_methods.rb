@@ -551,6 +551,7 @@ module ActiveRecord
         attribute_names &= self.class.column_names
         attribute_names.delete_if do |name|
           (pk_attribute?(name) && id.nil?) ||
+            (self.class.counter_cache_column?(name) && !attribute_changed?(name)) ||
             column_for_attribute(name).virtual?
         end
       end

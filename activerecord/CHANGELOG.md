@@ -1,3 +1,8 @@
+*   Fix counter caches being incremented twice when creating a new record with
+    a `has_many :through` association and `partial_inserts` disabled.
+
+    *Masaki Ozawa*
+
 *   Exclude `default_order` in `Relation#exists?`.
 
     Previously, `exists?` only excluded explicit `order` values, causing
