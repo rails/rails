@@ -774,6 +774,14 @@ module ActionController
     #     permitted.is_a?(Array)    # => true
     #     permitted.size            # => 2
     #
+    # If not all nested keys are required then the following `.expect.permit`
+    # pattern may be used:
+    #
+    #     params = ActionController::Parameters.new({ person: { name: "Francesco", age: 22, admin: true } })
+    #     permitted = params.expect(person: {}).permit(:name, :age)
+    #     permitted         # => #<ActionController::Parameters {"name" => "Francesco", "age" => 22} permitted: true>
+    #     permitted[:admin] # => nil
+    #
     def expect(*filters)
       params = permit_filters(filters)
       keys = filters.flatten.flat_map { |f| f.is_a?(Hash) ? f.keys : f }
