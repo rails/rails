@@ -1,3 +1,12 @@
+*   Fix `save` and `destroy` returning a truthy value when a `before_commit`
+    callback rolls the transaction back with `ActiveRecord::Rollback`.
+
+    The rollback was swallowed after the persistence call had captured its
+    return status, so `save` returned `true` and `destroy!` did not raise
+    although nothing was committed.
+
+    *Andy Wang*
+
 *   Fix subclasses missing `enum` definitions added to their parent class later.
 
     `defined_enums` on a subclass that already existed did not include an enum
