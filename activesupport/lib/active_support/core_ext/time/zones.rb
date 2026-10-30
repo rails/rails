@@ -12,6 +12,7 @@ class Time
 
     # Returns the TimeZone for the current request, if this has been set (via Time.zone=).
     # If `Time.zone` has not been set for the current request, returns the TimeZone specified in `config.time_zone`.
+    #: () -> (ActiveSupport::TimeZone | false | nil)
     def zone
       ::ActiveSupport::IsolatedExecutionState[:time_zone] || zone_default
     end

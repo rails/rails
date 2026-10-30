@@ -28,6 +28,7 @@ class String
   #
   # Technically, it looks for the least indented non-empty line
   # in the whole string, and removes that amount of leading whitespace.
+  #: () -> String
   def strip_heredoc
     scanner = StringScanner.new("")
 

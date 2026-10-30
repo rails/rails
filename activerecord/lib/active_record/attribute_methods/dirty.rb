@@ -121,11 +121,13 @@ module ActiveRecord
       end
 
       # Did the last call to `save` have any changes to change?
+      #: () -> bool
       def saved_changes?
         mutations_before_last_save.any_changes?
       end
 
       # Returns a hash containing all the changes that were just saved.
+      #: () -> (ActiveSupport::HashWithIndifferentAccess | Hash[String, [ untyped, untyped ]])
       def saved_changes
         mutations_before_last_save.changes
       end
@@ -180,18 +182,21 @@ module ActiveRecord
       end
 
       # Will the next call to `save` have any changes to persist?
+      #: () -> bool
       def has_changes_to_save?
         mutations_from_database.any_changes?
       end
 
       # Returns a hash containing all the changes that will be persisted during
       # the next save.
+      #: () -> ActiveSupport::HashWithIndifferentAccess
       def changes_to_save
         mutations_from_database.changes
       end
 
       # Returns an array of the names of any attributes that will change when
       # the record is next saved.
+      #: () -> Array[String]
       def changed_attribute_names_to_save
         mutations_from_database.changed_attribute_names
       end
@@ -202,6 +207,7 @@ module ActiveRecord
       # The hash keys are the attribute names, and the hash values are the
       # original attribute values in the database (as opposed to the in-memory
       # values about to be saved).
+      #: () -> ActiveSupport::HashWithIndifferentAccess
       def attributes_in_database
         mutations_from_database.changed_values
       end

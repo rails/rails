@@ -5,12 +5,14 @@ require "active_support/core_ext/erb/util"
 require "active_support/multibyte/unicode"
 
 class Object
+  #: () -> false
   def html_safe?
     false
   end
 end
 
 class Numeric
+  #: () -> true
   def html_safe?
     true
   end
@@ -239,6 +241,7 @@ class String
   # string contains no malicious content. This method is equivalent to the
   # `raw` helper in views. It is recommended that you use `sanitize` instead of
   # this method. It should never be called on user input.
+  #: () -> ActiveSupport::SafeBuffer
   def html_safe
     ActiveSupport::SafeBuffer.new(self)
   end

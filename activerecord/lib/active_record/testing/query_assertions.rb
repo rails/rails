@@ -26,6 +26,7 @@ module ActiveRecord
       # assert_queries_count(1, include_schema: true) { Post.columns }
       # ```
       #
+      #: [R] (?Integer?, ?include_schema: bool) { () -> R } -> R
       def assert_queries_count(count = nil, include_schema: false, &block)
         ActiveRecord::Base.lease_connection.materialize_transactions unless include_schema
 
@@ -54,6 +55,7 @@ module ActiveRecord
       # assert_no_queries(include_schema: true) { Post.columns }
       # ```
       #
+      #: [R] (?include_schema: bool) { () -> R } -> R
       def assert_no_queries(include_schema: false, &block)
         assert_queries_count(0, include_schema: include_schema, &block)
       end
@@ -75,6 +77,7 @@ module ActiveRecord
       # assert_queries_match(/FROM pg_attribute/i, include_schema: true) { Post.columns }
       # ```
       #
+      #: [R] (String | Regexp, ?count: Integer?, ?include_schema: bool) { () -> R } -> R
       def assert_queries_match(match, count: nil, include_schema: false, &block)
         ActiveRecord::Base.lease_connection.materialize_transactions
 
@@ -107,6 +110,7 @@ module ActiveRecord
       # assert_no_queries_match(/FROM pg_attribute/i, include_schema: true) { Post.columns }
       # ```
       #
+      #: [R] (String | Regexp, ?include_schema: bool) { () -> R } -> R
       def assert_no_queries_match(match, include_schema: false, &block)
         assert_queries_match(match, count: 0, include_schema: include_schema, &block)
       end

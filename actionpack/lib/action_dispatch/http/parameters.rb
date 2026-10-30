@@ -47,6 +47,7 @@ module ActionDispatch
       end
 
       # Returns both GET and POST parameters in a single hash.
+      #: () -> ActiveSupport::HashWithIndifferentAccess
       def parameters
         params = get_header("action_dispatch.request.parameters")
         return params if params

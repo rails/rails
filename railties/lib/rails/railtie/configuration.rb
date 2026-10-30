@@ -84,6 +84,7 @@ module Rails
 
       # Defines generic callbacks to run before #after_initialize. Useful for
       # Rails::Railtie subclasses.
+      #: () ?{ () [self: ActiveSupport::Reloader] -> void } -> void
       def to_prepare(&blk)
         to_prepare_blocks << blk if blk
       end

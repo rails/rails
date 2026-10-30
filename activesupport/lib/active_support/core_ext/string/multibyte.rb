@@ -11,6 +11,7 @@ class String
   # utf_8_str.is_utf8? # => true
   # iso_str.is_utf8?   # => false
   # ```
+  #: () -> bool
   def is_utf8?
     case encoding
     when Encoding::UTF_8, Encoding::US_ASCII

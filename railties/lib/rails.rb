@@ -42,6 +42,7 @@ module Rails
   class << self
     attr_writer :application
     attr_accessor :app_class, :cache, :logger
+    #: () -> Rails::Application?
     def application
       @application ||= (app_class.instance if app_class)
     end
@@ -54,6 +55,7 @@ module Rails
       application.config
     end
 
+    #: () -> ActiveSupport::BacktraceCleaner
     def backtrace_cleaner
       @backtrace_cleaner ||= Rails::BacktraceCleaner.new
     end
@@ -65,6 +67,7 @@ module Rails
     # Rails.root
     #   # => #<Pathname:/Users/someuser/some/path/project>
     # ```
+    #: () -> Pathname?
     def root
       application && application.config.root
     end
@@ -77,6 +80,7 @@ module Rails
     # Rails.env.production? # => false
     # Rails.env.local? # => true              true for "development" and "test", false for anything else
     # ```
+    #: () -> ActiveSupport::EnvironmentInquirer
     def env
       @_env ||= ActiveSupport::EnvironmentInquirer.new(ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "development")
     end
@@ -99,6 +103,7 @@ module Rails
     # end
     # Rails.error.report(error)
     # ```
+    #: () -> ActiveSupport::ErrorReporter
     def error
       ActiveSupport.error_reporter
     end
@@ -109,6 +114,7 @@ module Rails
     # ```
     # Rails.event.notify("my_event", { message: "Hello, world!" })
     # ```
+    #: () -> ActiveSupport::EventReporter
     def event
       ActiveSupport.event_reporter
     end
@@ -209,6 +215,7 @@ module Rails
     # Constants}[https://guides.rubyonrails.org/autoloading_and_reloading_constants.html]
     # guide and the documentation of [Zeitwerk](https://github.com/fxn/zeitwerk)
     # itself for more details and usage patterns.
+    #: () -> Rails::Autoloaders?
     def autoloaders
       application.autoloaders
     end

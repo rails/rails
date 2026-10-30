@@ -43,6 +43,7 @@ module ActionView
       # * `path` - If a String is provided, it gets converted into
       #   the default view path. You may also provide a custom view path
       #   (see ActionView::PathSet for more information)
+      #: ((String | Array[String])) -> ActionView::PathSet
       def append_view_path(path)
         self._view_paths = view_paths + _build_view_paths(path)
       end

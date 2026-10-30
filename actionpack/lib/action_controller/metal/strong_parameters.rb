@@ -298,6 +298,7 @@ module ActionController
 
     # Returns true if another `Parameters` object contains the same content and
     # permitted flag.
+    #: (untyped) -> bool
     def ==(other)
       if other.respond_to?(:permitted?)
         permitted? == other.permitted? && parameters == other.parameters
@@ -333,6 +334,7 @@ module ActionController
     #
     #     safe_params = params.permit(:name)
     #     safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
+    #: () ?{ (untyped, untyped) -> [ untyped, untyped ] } -> ActiveSupport::HashWithIndifferentAccess
     def to_h(&block)
       if permitted?
         convert_parameters_to_hashes(@parameters, :to_h, &block)
@@ -353,6 +355,7 @@ module ActionController
     #
     #     safe_params = params.permit(:name)
     #     safe_params.to_hash # => {"name"=>"Senjougahara Hitagi"}
+    #: () -> Hash[untyped, untyped]
     def to_hash
       to_h.to_hash
     end
@@ -383,6 +386,7 @@ module ActionController
     #
     # The string pairs `"key=value"` that conform the query string are sorted
     # lexicographically in ascending order.
+    #: (*String?) -> String
     def to_query(*args)
       to_h.to_query(*args)
     end
@@ -397,6 +401,7 @@ module ActionController
     #     })
     #     params.to_unsafe_h
     #     # => {"name"=>"Senjougahara Hitagi", "oddity" => "Heavy stone crab"}
+    #: () -> ActiveSupport::HashWithIndifferentAccess
     def to_unsafe_h
       convert_parameters_to_hashes(@parameters, :to_unsafe_h)
     end
@@ -404,6 +409,7 @@ module ActionController
 
     # Convert all hashes in values into parameters, then yield each pair in the same
     # way as `Hash#each_pair`.
+    #: () ?{ ([untyped, untyped]) -> void } -> (self | Enumerator[[untyped, untyped], self])
     def each_pair(&block)
       return to_enum(__callee__) unless block_given?
       @parameters.each_pair do |key, value|
@@ -447,6 +453,7 @@ module ActionController
     #     params.permitted? # => false
     #     params.permit!
     #     params.permitted? # => true
+    #: () -> bool
     def permitted?
       @permitted
     end
@@ -463,6 +470,7 @@ module ActionController
     #     params.permit!
     #     params.permitted?  # => true
     #     Person.new(params) # => #<Person id: nil, name: "Francesco">
+    #: () -> self
     def permit!
       each_pair do |key, value|
         Array.wrap(value).flatten.each do |v|
@@ -521,6 +529,7 @@ module ActionController
     #       params.expect(person: :name).require(:name)
     #     end
     #
+    #: (String | Symbol | Array[String | Symbol]) -> untyped
     def require(key)
       return key.map { |k| require(k) } if key.is_a?(Array)
       value = self[key]
@@ -670,6 +679,7 @@ module ActionController
     #     })
     #     params.permit(person: { '0': [:email], '1': [:phone]}).to_h
     #     # => {"person"=>{"0"=>{"email"=>"none@test.com"}, "1"=>{"phone"=>"555-6789"}}}
+    #: (*untyped) -> self
     def permit(*filters)
       permit_filters(filters, on_unpermitted: self.class.action_on_unpermitted_parameters, explicit_arrays: false)
     end
@@ -799,12 +809,14 @@ module ActionController
     #     params = ActionController::Parameters.new(person: { name: "Francesco" })
     #     params[:person] # => #<ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #     params[:none]   # => nil
+    #: (String | Symbol) -> untyped
     def [](key)
       convert_hashes_to_parameters(key, @parameters[key])
     end
 
     # Assigns a value to a given `key`. The given key may still get filtered out
     # when #permit is called.
+    #: [V] (String | Symbol, V) -> V
     def []=(key, value)
       @parameters[key] = value
     end
@@ -822,6 +834,7 @@ module ActionController
     #     params.fetch(:none, {})             # => #<ActionController::Parameters {} permitted: false>
     #     params.fetch(:none, "Francesco")    # => "Francesco"
     #     params.fetch(:none) { |key| "Francesco" } # => "Francesco"
+    #: (String | Symbol, *untyped) ?{ (String | Symbol) -> untyped } -> untyped
     def fetch(key, *args, &block)
       convert_value_to_parameters(
         @parameters.fetch(key) {
@@ -865,6 +878,7 @@ module ActionController
     #
     #     params2 = ActionController::Parameters.new(foo: [10, 11, 12])
     #     params2.dig(:foo, 1) # => 11
+    #: (*(String | Symbol | Integer)) -> untyped
     def dig(*keys)
       convert_hashes_to_parameters(keys.first, @parameters[keys.first])
       @parameters.dig(*keys)
@@ -876,12 +890,14 @@ module ActionController
     #     params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
     #     params.slice(:a, :b) # => #<ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
     #     params.slice(:d)     # => #<ActionController::Parameters {} permitted: false>
+    #: (*String | Symbol) -> self
     def slice(*keys)
       new_instance_with_inherited_permitted_status(@parameters.slice(*keys))
     end
 
     # Returns the current `ActionController::Parameters` instance which contains
     # only the given `keys`.
+    #: (*String | Symbol) -> self
     def slice!(*keys)
       @parameters.slice!(*keys)
       self
@@ -893,6 +909,7 @@ module ActionController
     #     params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
     #     params.except(:a, :b) # => #<ActionController::Parameters {"c"=>3} permitted: false>
     #     params.except(:d)     # => #<ActionController::Parameters {"a"=>1, "b"=>2, "c"=>3} permitted: false>
+    #: (*String | Symbol) -> self
     def except(*keys)
       new_instance_with_inherited_permitted_status(@parameters.except(*keys))
     end
@@ -903,6 +920,7 @@ module ActionController
     #     params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
     #     params.extract!(:a, :b) # => #<ActionController::Parameters {"a"=>1, "b"=>2} permitted: false>
     #     params                  # => #<ActionController::Parameters {"c"=>3} permitted: false>
+    #: (*String | Symbol) -> self
     def extract!(*keys)
       new_instance_with_inherited_permitted_status(@parameters.extract!(*keys))
     end
@@ -913,6 +931,7 @@ module ActionController
     #     params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
     #     params.transform_values { |x| x * 2 }
     #     # => #<ActionController::Parameters {"a"=>2, "b"=>4, "c"=>6} permitted: false>
+    #: () ?{ (untyped) -> untyped } -> (self | Enumerator[untyped, self])
     def transform_values(&block)
       return to_enum(:transform_values) unless block_given?
       new_instance_with_inherited_permitted_status(
@@ -922,6 +941,7 @@ module ActionController
 
     # Performs values transformation and returns the altered
     # `ActionController::Parameters` instance.
+    #: () ?{ (untyped) -> untyped } -> (self | Enumerator[untyped, self])
     def transform_values!(&block)
       return to_enum(:transform_values!) unless block_given?
       @parameters.transform_values! { |v| yield convert_value_to_parameters(v) }
@@ -930,6 +950,7 @@ module ActionController
 
     # Returns a new `ActionController::Parameters` instance with the results of
     # running `block` once for every key. The values are unchanged.
+    #: () ?{ (untyped) -> untyped } -> (self | Enumerator[untyped, self])
     def transform_keys(&block)
       return to_enum(:transform_keys) unless block_given?
       new_instance_with_inherited_permitted_status(
@@ -939,6 +960,7 @@ module ActionController
 
     # Performs keys transformation and returns the altered
     # `ActionController::Parameters` instance.
+    #: () ?{ (untyped) -> untyped } -> (self | Enumerator[untyped, self])
     def transform_keys!(&block)
       return to_enum(:transform_keys!) unless block_given?
       @parameters.transform_keys!(&block)
@@ -994,18 +1016,21 @@ module ActionController
     # not found, returns `nil` (or, with optional code block, yields `key` and
     # returns the result). This method is similar to #extract!, which returns the
     # corresponding `ActionController::Parameters` object.
+    #: (String | Symbol) ?{ (String) -> untyped } -> untyped
     def delete(key, &block)
       convert_value_to_parameters(@parameters.delete(key, &block))
     end
 
     # Returns a new `ActionController::Parameters` instance with only items that the
     # block evaluates to true.
+    #: () ?{ (untyped, untyped) -> untyped } -> (self | Enumerator[[untyped, untyped], self])
     def select(&block)
       return to_enum(:select) unless block_given?
       new_instance_with_inherited_permitted_status(@parameters.select(&block))
     end
 
     # Equivalent to Hash#keep_if, but returns `nil` if no changes were made.
+    #: () ?{ (untyped, untyped) -> untyped } -> self
     def select!(&block)
       @parameters.select!(&block)
       self
@@ -1014,12 +1039,14 @@ module ActionController
 
     # Returns a new `ActionController::Parameters` instance with items that the
     # block evaluates to true removed.
+    #: () ?{ (untyped, untyped) -> untyped } -> (self | Enumerator[[untyped, untyped], self])
     def reject(&block)
       return to_enum(:reject) unless block_given?
       new_instance_with_inherited_permitted_status(@parameters.reject(&block))
     end
 
     # Removes items that the block evaluates to true and returns self.
+    #: () ?{ (untyped, untyped) -> untyped } -> self
     def reject!(&block)
       @parameters.reject!(&block)
       self
@@ -1059,12 +1086,14 @@ module ActionController
 
     # Returns values that were assigned to the given `keys`. Note that all the
     # `Hash` objects will be converted to `ActionController::Parameters`.
+    #: (*String | Symbol) -> Array[untyped]
     def values_at(*keys)
       convert_value_to_parameters(@parameters.values_at(*keys))
     end
 
     # Returns a new `ActionController::Parameters` instance with all keys from
     # `other_hashes` merged into current hash.
+    #: (*untyped) ?{ (untyped, untyped, untyped) -> untyped } -> self
     def merge(*other_hashes, &block)
       new_instance_with_inherited_permitted_status(
         @parameters.merge(*other_hashes.map!(&:to_h), &block)
@@ -1076,6 +1105,7 @@ module ActionController
     #
     # Returns the current `ActionController::Parameters` instance with `other_hashes`
     # merged into current hash.
+    #: (*untyped) ?{ (untyped, untyped, untyped) -> untyped } -> self
     def merge!(*other_hashes, &block)
       @parameters.merge!(*other_hashes.map!(&:to_h), &block)
       self
@@ -1087,6 +1117,7 @@ module ActionController
 
     # Returns a new `ActionController::Parameters` instance with all keys from
     # current hash merged into `other_hash`.
+    #: (untyped) -> self
     def reverse_merge(other_hash)
       new_instance_with_inherited_permitted_status(
         other_hash.to_h.merge(@parameters)
@@ -1096,6 +1127,7 @@ module ActionController
 
     # Returns the current `ActionController::Parameters` instance with current hash
     # merged into `other_hash`.
+    #: (untyped) -> self
     def reverse_merge!(other_hash)
       @parameters.merge!(other_hash.to_h) { |key, left, right| left }
       self
@@ -1109,6 +1141,7 @@ module ActionController
       dup
     end
 
+    #: () -> String
     def inspect
       "#<#{self.class} #{@parameters} permitted: #{@permitted}>"
     end
@@ -1146,6 +1179,7 @@ module ActionController
 
     # Returns a duplicate `ActionController::Parameters` instance with the same
     # permitted parameters.
+    #: () -> self
     def deep_dup
       self.class.new(@parameters.deep_dup, @logging_context).tap do |duplicate|
         duplicate.permitted = @permitted
@@ -1604,6 +1638,7 @@ module ActionController
   module StrongParameters
     # Returns a new ActionController::Parameters object that has been instantiated
     # with the `request.parameters`.
+    #: () -> ActionController::Parameters
     def params
       @_params ||= begin
         context = {

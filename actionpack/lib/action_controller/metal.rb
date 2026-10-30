@@ -285,6 +285,7 @@ module ActionController
       super
     end
 
+    #: () -> ActiveSupport::HashWithIndifferentAccess
     def params
       @_params ||= request.parameters
     end

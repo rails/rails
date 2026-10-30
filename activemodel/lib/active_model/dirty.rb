@@ -327,6 +327,7 @@ module ActiveModel
     # person.name = 'bob'
     # person.changed? # => true
     # ```
+    #: () -> bool
     def changed?
       mutations_from_database.any_changes?
     end
@@ -338,6 +339,7 @@ module ActiveModel
     # person.name = 'bob'
     # person.changed # => ["name"]
     # ```
+    #: () -> Array[String]
     def changed
       mutations_from_database.changed_attribute_names
     end
@@ -392,6 +394,7 @@ module ActiveModel
     # person.name = 'robert'
     # person.changed_attributes # => {"name" => "bob"}
     # ```
+    #: () -> ActiveSupport::HashWithIndifferentAccess
     def changed_attributes
       mutations_from_database.changed_values
     end
@@ -404,6 +407,7 @@ module ActiveModel
     # person.name = 'bob'
     # person.changes # => { "name" => ["bill", "bob"] }
     # ```
+    #: () -> ActiveSupport::HashWithIndifferentAccess
     def changes
       mutations_from_database.changes
     end
@@ -416,6 +420,7 @@ module ActiveModel
     # person.save
     # person.previous_changes # => {"name" => ["bob", "robert"]}
     # ```
+    #: () -> (ActiveSupport::HashWithIndifferentAccess | Hash[String, [ untyped, untyped ]])
     def previous_changes
       mutations_before_last_save.changes
     end

@@ -9,6 +9,7 @@ class Hash
   # ```
   # { a: 1 }.with_indifferent_access['a'] # => 1
   # ```
+  #: () -> ActiveSupport::HashWithIndifferentAccess
   def with_indifferent_access
     ActiveSupport::HashWithIndifferentAccess.new(self)
   end

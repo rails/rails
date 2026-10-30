@@ -62,6 +62,7 @@ class Array
   # ['uno', 'dos', 'tres'].to_sentence(locale: :es)
   # # => "uno o dos o al menos tres"
   # ```
+  #: (?Hash[untyped, untyped]) -> String
   def to_sentence(options = {})
     options.assert_valid_keys(:words_connector, :two_words_connector, :last_word_connector, :locale)
 
@@ -98,6 +99,7 @@ class Array
   # Blog.none.to_fs(:db) # => "null"
   # [1,2].to_fs          # => "[1, 2]"
   # ```
+  #: (?Symbol) -> String
   def to_fs(format = :default)
     case format
     when :db

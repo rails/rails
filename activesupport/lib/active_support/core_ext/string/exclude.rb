@@ -10,6 +10,7 @@ class String
   # "hello".exclude? "ol" # => true
   # "hello".exclude? ?h   # => false
   # ```
+  #: (String) -> bool
   def exclude?(string)
     !include?(string)
   end

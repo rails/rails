@@ -586,6 +586,7 @@ module ActiveSupport
     alias_method :kind_of?, :is_a?
 
     # An instance of ActiveSupport::TimeWithZone is never blank
+    #: () -> false
     def blank?
       false
     end

@@ -5,6 +5,7 @@ class String
   # Same as `indent`, except it indents the receiver in-place.
   #
   # Returns the indented string, or `nil` if there was nothing to indent.
+  #: (Integer, ?String?, ?bool) -> String?
   def indent!(amount, indent_string = nil, indent_empty_lines = false)
     indent_string = indent_string || self[/^[ \t]/] || " "
     re = indent_empty_lines ? /^/ : /^(?!$)/
@@ -46,6 +47,7 @@ class String
   # "foo\n\nbar".indent(2, nil, true) # => "  foo\n  \n  bar"
   # ```
   #
+  #: (Integer, ?String?, ?bool) -> String
   def indent(amount, indent_string = nil, indent_empty_lines = false)
     dup.tap { |_| _.indent!(amount, indent_string, indent_empty_lines) }
   end

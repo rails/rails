@@ -877,6 +877,7 @@ module ActionMailer
     #     format.html
     #   end
     #
+    #: (?Hash[untyped, untyped]) ?{ (ActionMailer::Collector) -> void } -> Mail::Message
     def mail(headers = {}, &block)
       return message if @_mail_was_called && headers.blank? && !block
 

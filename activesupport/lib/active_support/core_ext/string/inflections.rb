@@ -37,6 +37,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.pluralize.
+  #: (?(Integer | Symbol)?, ?Symbol?) -> String
   def pluralize(count = nil, locale = :en)
     locale = count if count.is_a?(Symbol)
     if count == 1
@@ -64,6 +65,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.singularize.
+  #: (?Symbol) -> String
   def singularize(locale = :en)
     ActiveSupport::Inflector.singularize(self, locale)
   end
@@ -111,6 +113,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.camelize.
+  #: (?Symbol) -> String
   def camelize(first_letter = :upper)
     case first_letter
     when :upper
@@ -138,6 +141,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.titleize.
+  #: (?keep_id_suffix: bool) -> String
   def titleize(keep_id_suffix: false)
     ActiveSupport::Inflector.titleize(self, keep_id_suffix: keep_id_suffix)
   end
@@ -153,6 +157,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.underscore.
+  #: () -> String
   def underscore
     ActiveSupport::Inflector.underscore(self)
   end
@@ -164,6 +169,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.dasherize.
+  #: () -> String
   def dasherize
     ActiveSupport::Inflector.dasherize(self)
   end
@@ -180,6 +186,7 @@ class String
   # See ActiveSupport::Inflector.demodulize.
   #
   # See also `deconstantize`.
+  #: () -> String
   def demodulize
     ActiveSupport::Inflector.demodulize(self)
   end
@@ -197,6 +204,7 @@ class String
   # See ActiveSupport::Inflector.deconstantize.
   #
   # See also `demodulize`.
+  #: () -> String
   def deconstantize
     ActiveSupport::Inflector.deconstantize(self)
   end
@@ -239,6 +247,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.parameterize.
+  #: (?separator: String?, ?preserve_case: bool, ?locale: Symbol?) -> String
   def parameterize(separator: "-", preserve_case: false, locale: nil)
     ActiveSupport::Inflector.parameterize(self, separator: separator, preserve_case: preserve_case, locale: locale)
   end
@@ -253,6 +262,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.tableize.
+  #: () -> String
   def tableize
     ActiveSupport::Inflector.tableize(self)
   end
@@ -267,6 +277,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.classify.
+  #: () -> String
   def classify
     ActiveSupport::Inflector.classify(self)
   end
@@ -292,6 +303,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.humanize.
+  #: (?capitalize: bool, ?keep_id_suffix: bool) -> String
   def humanize(capitalize: true, keep_id_suffix: false)
     ActiveSupport::Inflector.humanize(self, capitalize: capitalize, keep_id_suffix: keep_id_suffix)
   end
@@ -305,6 +317,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.upcase_first.
+  #: () -> String
   def upcase_first
     ActiveSupport::Inflector.upcase_first(self)
   end
@@ -318,6 +331,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.downcase_first.
+  #: () -> String
   def downcase_first
     ActiveSupport::Inflector.downcase_first(self)
   end
@@ -333,6 +347,7 @@ class String
   # ```
   #
   # See ActiveSupport::Inflector.foreign_key.
+  #: (?bool) -> String
   def foreign_key(separate_class_name_and_id_with_underscore = true)
     ActiveSupport::Inflector.foreign_key(self, separate_class_name_and_id_with_underscore)
   end
