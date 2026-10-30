@@ -53,6 +53,7 @@ module ActiveStorage
   mattr_accessor :variant_processor, default: :mini_magick
 
   mattr_accessor :variant_transformer
+  mattr_accessor :default_variant_format, default: :png
 
   mattr_accessor :queues, default: {}
 
