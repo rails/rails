@@ -18,6 +18,7 @@ module ActiveModel
         end
       end
 
+      #: (Psych::Coder, Hash[String, Type::Value]) -> AttributeSet
       def decode(coder, default_types)
         if coder["attributes"]
           coder["attributes"]
@@ -28,7 +29,7 @@ module ActiveModel
             end
             [attr.name, attr]
           end]
-          AttributeSet.new(attributes_hash)
+          AttributeSet.new(IndexedRow::Mutable[attributes_hash])
         end
       end
     end

@@ -521,11 +521,10 @@ module ActiveRecord
     # # Instantiates a single new object
     # User.new(first_name: 'Jamie')
     # ```
+    #: (?Hash[untyped, untyped]?) ?{ (self) -> void } -> void
     def initialize(attributes = nil)
       @new_record = true
-      @attributes = self.class.attributes_builder.build_from_initialize(
-        self.class._default_attributes
-      )
+      @attributes = self.class.attributes_builder.build_from_initialize
 
       init_internals
       initialize_internals_callback
@@ -551,9 +550,11 @@ module ActiveRecord
     # post.init_with(coder)
     # post.title # => 'hello world'
     # ```
+    #: (Psych::Coder | Hash[String, untyped]) ?{ (self) -> void } -> self
     def init_with(coder, &block)
       coder = LegacyYamlAdapter.convert(coder)
       attributes = ActiveModel::AttributeSet::YAMLEncoder.decode(coder, self.class.attribute_types)
+      attributes = self.class.attributes_builder.relayout_attributes(attributes)
       init_with_attributes(attributes, coder["new_record"], &block)
     end
 

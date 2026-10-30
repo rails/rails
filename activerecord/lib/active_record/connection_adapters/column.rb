@@ -8,7 +8,7 @@ module ActiveRecord
     class Column
       include Deduplicable
 
-      attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment, :cast_type
+      attr_reader :name, :default, :sql_type_metadata, :null, :default_function, :collation, :comment, :cast_type, :slot
 
       delegate :precision, :scale, :limit, :type, :sql_type, to: :sql_type_metadata, allow_nil: true
 
@@ -18,7 +18,9 @@ module ActiveRecord
       # `default` is the type-casted default value, such as `new` in `sales_stage varchar(20) default 'new'`.
       # `sql_type_metadata` is various information about the type of the column
       # `null` determines if this column allows `NULL` values.
-      def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, **)
+      # `slot` is the column's position in the table, starting at 0.
+      #: (String, ActiveModel::Type::Value, untyped, ?untyped, ?bool, ?String?, ?collation: String?, ?comment: String?, ?slot: Integer?, **untyped) -> void
+      def initialize(name, cast_type, default, sql_type_metadata = nil, null = true, default_function = nil, collation: nil, comment: nil, slot: nil, **)
         @name = name.freeze
         @cast_type = cast_type
         @sql_type_metadata = sql_type_metadata
@@ -27,6 +29,7 @@ module ActiveRecord
         @default_function = default_function
         @collation = collation
         @comment = comment
+        @slot = slot
       end
 
       def has_default?
@@ -48,6 +51,7 @@ module ActiveRecord
         Base.human_attribute_name(@name)
       end
 
+      #: (Psych::Coder | Hash[String, untyped]) -> void
       def init_with(coder)
         @name = coder["name"]
         @cast_type = coder["cast_type"]
@@ -57,8 +61,10 @@ module ActiveRecord
         @default_function = coder["default_function"]
         @collation = coder["collation"]
         @comment = coder["comment"]
+        @slot = coder["slot"]
       end
 
+      #: (Psych::Coder | Hash[String, untyped]) -> void
       def encode_with(coder)
         coder["name"] = @name
         coder["cast_type"] = @cast_type
@@ -68,6 +74,7 @@ module ActiveRecord
         coder["default_function"] = @default_function
         coder["collation"] = @collation
         coder["comment"] = @comment
+        coder["slot"] = @slot
       end
 
       def as_schema_json
@@ -100,6 +107,7 @@ module ActiveRecord
         virtual?
       end
 
+      #: (untyped) -> bool
       def ==(other)
         other.is_a?(Column) &&
           name == other.name &&
@@ -109,10 +117,12 @@ module ActiveRecord
           null == other.null &&
           default_function == other.default_function &&
           collation == other.collation &&
-          comment == other.comment
+          comment == other.comment &&
+          slot == other.slot
       end
       alias :eql? :==
 
+      #: () -> Integer
       def hash
         [
           Column,
@@ -125,6 +135,7 @@ module ActiveRecord
           @default_function,
           @collation,
           @comment,
+          @slot,
         ].hash
       end
 

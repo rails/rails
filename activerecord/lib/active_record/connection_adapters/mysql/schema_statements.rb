@@ -194,7 +194,8 @@ module ActiveRecord
             MySQL::AlterTable.new create_table_definition(name)
           end
 
-          def new_column_from_field(table_name, field, _definitions)
+          #: (String, Hash[String, untyped], Array[Hash[String, untyped]], Integer) -> ActiveRecord::ConnectionAdapters::MySQL::Column
+          def new_column_from_field(table_name, field, _definitions, slot)
             type_metadata = fetch_type_metadata(field["Type"], field["Extra"])
             default, default_function = field["Default"], nil
 
@@ -222,7 +223,8 @@ module ActiveRecord
               field["Null"] == "YES",
               default_function,
               collation: field["Collation"],
-              comment: field["Comment"].presence
+              comment: field["Comment"].presence,
+              slot: slot
             )
           end
 

@@ -116,9 +116,10 @@ module ActiveRecord
 
       # Returns an array of +Column+ objects for the given table, or a Hash of them
       # keyed by table name when given an Array of tables.
+      #: (String | Symbol | Array[String | Symbol]) -> (Array[ActiveRecord::ConnectionAdapters::Column] | Hash[String, Array[ActiveRecord::ConnectionAdapters::Column]])
       def columns(table_name)
         result = fetch_column_definitions(Array(table_name).map(&:to_s)).to_h do |table, definitions|
-          [table, definitions.map { |field| new_column_from_field(table, field, definitions) }]
+          [table, definitions.each_with_index.map { |field, slot| new_column_from_field(table, field, definitions, slot) }]
         end
 
         table_name.is_a?(Array) ? result : result[table_name.to_s]

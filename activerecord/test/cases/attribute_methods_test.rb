@@ -1320,10 +1320,22 @@ class AttributeMethodsTest < ActiveRecord::TestCase
 
   test "define_attribute_method works with both symbol and string" do
     klass = Class.new(ActiveRecord::Base)
-    klass.table_name = "foo"
+    klass.table_name = "topics"
 
-    assert_nothing_raised { klass.define_attribute_method(:foo) }
-    assert_nothing_raised { klass.define_attribute_method("bar") }
+    assert_nothing_raised { klass.define_attribute_method(:title) }
+    assert_nothing_raised { klass.define_attribute_method("content") }
+
+    topic = klass.new(title: "a", content: "b")
+    assert_equal "a", topic.title
+    assert_equal "b", topic.content
+  end
+
+  test "define_attribute_method raises for a name that isn't an attribute" do
+    klass = Class.new(ActiveRecord::Base)
+    klass.table_name = "topics"
+
+    error = assert_raises(ArgumentError) { klass.define_attribute_method(:not_an_attribute) }
+    assert_match(/no attribute `not_an_attribute`/, error.message)
   end
 
   test "read_attribute with nil should not asplode" do
@@ -1594,6 +1606,40 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     object = subclass.build(id: 123_456)
 
     assert_equal 123_456, object.id_value
+  end
+
+  test "#alias_attribute on an abstract class reads the right slot in each subclass" do
+    superclass = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      alias_attribute :heading, :title
+    end
+    topic_class = Class.new(superclass) { self.table_name = "topics" }
+    post_class = Class.new(superclass) { self.table_name = "posts" }
+    assert_not_equal topic_class.columns_hash["title"].slot, post_class.columns_hash["title"].slot
+
+    assert_equal "a topic", topic_class.new(title: "a topic").heading
+    assert_equal "a post", post_class.new(title: "a post", body: "").heading
+  end
+
+  test "#alias_attribute on an abstract class after a subclass generated its methods" do
+    superclass = Class.new(ActiveRecord::Base) { self.abstract_class = true }
+    subclass = Class.new(superclass) { self.table_name = "topics" }
+    subclass.new.title
+
+    superclass.alias_attribute :heading, :title
+
+    assert_equal "hey", subclass.new(title: "hey").heading
+  end
+
+  test "#alias_attribute on an abstract class skips subclasses without the attribute" do
+    superclass = Class.new(ActiveRecord::Base) do
+      self.abstract_class = true
+      alias_attribute :heading, :title
+    end
+    subclass = Class.new(superclass) { self.table_name = "authors" }
+
+    assert_nothing_raised { subclass.define_attribute_methods }
+    assert_not_respond_to subclass.new, :heading
   end
 
   test "#alias_attribute with an _in_database method issues raises an error" do
