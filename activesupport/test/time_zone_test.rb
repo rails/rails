@@ -907,6 +907,33 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_eager_load_loads_the_data_of_every_mapped_zone
+    ActiveSupport::TimeZone.clear
+    ActiveSupport::TimeZone.eager_load!
+
+    loaded = TZInfo::DataSource.get.instance_variable_get(:@timezones)
+    ActiveSupport::TimeZone.all.each do |zone|
+      assert loaded.key?(zone.tzinfo.identifier), "expected the data of #{zone.name} to be loaded"
+    end
+  end
+
+  def test_eager_load_loads_every_zone_with_tzinfo_data
+    assert eager_loads_tzinfo_with?(TZInfo::DataSources::RubyDataSource)
+  end
+
+  def test_eager_load_doesnt_load_every_zone_with_zoneinfo
+    assert_not eager_loads_tzinfo_with?(TZInfo::DataSources::ZoneinfoDataSource)
+  end
+
+  def test_eager_load_doesnt_raise_exception_with_missing_tzinfo_data
+    with_tz_mappings("Puerto Rico" => "America/Unknown", "Pittsburgh" => "America/New_York") do
+      assert_nothing_raised do
+        ActiveSupport::TimeZone.eager_load!
+      end
+      assert_equal ["Pittsburgh"], ActiveSupport::TimeZone.all.map(&:name)
+    end
+  end
+
   def test_index
     assert_nil ActiveSupport::TimeZone["bogus"]
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone["Central Time (US & Canada)"]
@@ -1088,6 +1115,17 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_includes ca_zones, ActiveSupport::TimeZone["Northwest Territories"]
     assert_not_includes ca_zones.map(&:name), "America/Inuvik"
   end
+
+  private
+    def eager_loads_tzinfo_with?(data_source_class)
+      eager_loaded = false
+      TZInfo::DataSource.stub(:get, data_source_class.allocate) do
+        TZInfo.stub(:eager_load!, -> { eager_loaded = true }) do
+          ActiveSupport::TimeZone.stub(:all, []) { ActiveSupport::TimeZone.eager_load! }
+        end
+      end
+      eager_loaded
+    end
 end
 
 class TimeZoneRactorTest < ActiveSupport::TestCase

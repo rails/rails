@@ -119,7 +119,9 @@ module ActiveSupport
       end
       require "active_support/core_ext/time/zones"
       Time.zone_default = Time.find_zone!(app.config.time_zone)
-      config.eager_load_namespaces << TZInfo
+      # Rather than TZInfo, which with the system's zoneinfo parses every zone on
+      # the system and keeps none of them.
+      config.eager_load_namespaces << ActiveSupport::TimeZone
     end
 
     # Sets the default week start

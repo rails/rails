@@ -1,3 +1,16 @@
+*   Eager load the time zones in `ActiveSupport::TimeZone::MAPPING`, rather
+    than parsing every zone on the system without keeping any.
+
+    With the system's zoneinfo, the default without the `tzinfo-data` gem,
+    eager loading parsed every zone TZInfo knows about, around 500 to 600
+    depending on the system, and kept none of them: it made up about a quarter
+    of the objects allocated while booting a new application, and forked
+    workers still loaded each zone they used. It now loads and keeps the zones
+    `ActiveSupport::TimeZone.all` returns. With `tzinfo-data`, every zone is
+    still eager loaded as well.
+
+    *Lawrence Lin*
+
 *   Add `Northwest Territories` to `ActiveSupport::TimeZone::MAPPING`.
 
     The Northwest Territories no longer shares winter clocks with US Mountain

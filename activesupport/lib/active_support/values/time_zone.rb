@@ -236,6 +236,15 @@ module ActiveSupport
         @zones ||= zones_map.values.sort
       end
 
+      # Loads the zones in `MAPPING`, the ones `all` returns, ahead of their first
+      # use. With the tzinfo-data gem, also loads every other zone TZInfo knows
+      # about. With the system's zoneinfo, TZInfo.eager_load! would parse every
+      # file and keep none of them, so the other zones are loaded when first used.
+      def eager_load! # :nodoc:
+        TZInfo.eager_load! if TZInfo::DataSource.get.is_a?(TZInfo::DataSources::RubyDataSource)
+        all
+      end
+
       # Locate a specific time zone object. If the argument is a string, it
       # is interpreted to mean the name of the timezone to locate. If it is a
       # numeric value it is either the hour offset, or the second offset, of the

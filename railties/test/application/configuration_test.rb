@@ -538,6 +538,38 @@ module ApplicationTests
       assert_includes Rails.application.config.eager_load_namespaces, AppTemplate::Application
     end
 
+    test "eager loading loads the time zones Rails maps, and the others when first used" do
+      add_to_config <<~RUBY
+        config.enable_reloading = false
+        config.eager_load = true
+      RUBY
+
+      app "production"
+
+      assert_includes Rails.application.config.eager_load_namespaces, ActiveSupport::TimeZone
+      assert_not_includes Rails.application.config.eager_load_namespaces, TZInfo
+
+      loaded = TZInfo::DataSource.get.instance_variable_get(:@timezones)
+      assert loaded.key?("America/New_York")
+      assert_not loaded.key?("America/Argentina/Ushuaia")
+
+      assert_equal(-3.hours, Time.find_zone!("America/Argentina/Ushuaia").utc_offset)
+      assert loaded.key?("America/Argentina/Ushuaia")
+    end
+
+    test "eager loading keeps a configured time zone that Rails doesn't map" do
+      add_to_config <<~RUBY
+        config.enable_reloading = false
+        config.eager_load = true
+        config.time_zone = "America/Argentina/Ushuaia"
+      RUBY
+
+      app "production"
+
+      assert_equal "America/Argentina/Ushuaia", Time.zone.tzinfo.identifier
+      assert_equal(-3.hours, Time.zone.now.utc_offset)
+    end
+
     test "load_defaults 8.1 registers RubyTracker for erb under eager_load" do
       add_to_config <<~RUBY
         config.enable_reloading = false
