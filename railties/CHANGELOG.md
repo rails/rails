@@ -1,3 +1,14 @@
+*   Don't load Capybara and Selenium on boot in new applications.
+
+    The generated `Gemfile` now declares `capybara` and `selenium-webdriver`
+    with `require: false`. `ActionDispatch::SystemTestCase` already requires
+    both when a system test is loaded, so `Bundler.require` no longer loads
+    them into test processes that don't run system tests. Code that uses
+    Capybara outside of system tests, such as `Capybara.string` in a view
+    test, needs to `require "capybara"` itself.
+
+    *Mick Zijdel*
+
 *   Create the local development/test secret file (`tmp/local_secret.txt`) with
     owner-only permissions (`0600`) instead of inheriting the process umask,
     and tighten the permissions of an existing file on read on non-Windows
