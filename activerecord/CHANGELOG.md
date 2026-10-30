@@ -1,3 +1,12 @@
+*   Fix `save` and `destroy` returning a truthy value when a `before_commit`
+    callback rolls the transaction back with `ActiveRecord::Rollback`.
+
+    The rollback was swallowed after the persistence call had captured its
+    return status, so `save` returned `true` and `destroy!` did not raise
+    although nothing was committed.
+
+    *Andy Wang*
+
 *   Exclude `default_order` from aggregate calculations.
 
     Calculations such as `count` and `sum` now remove default ordering where they
