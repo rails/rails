@@ -1,3 +1,10 @@
+*   Allow unscoping and clearing `default_order` with `reorder` and `unscope`.
+
+    Calling `reorder(nil)` now removes `default_order` as well as explicit ordering.
+    In addition, `unscope(:default_order)` is now supported to unscope default ordering.
+
+    *Kengo Johira*
+
 *   Exclude `default_order` in `Relation#exists?`.
 
     Previously, `exists?` only excluded explicit `order` values, causing

@@ -2,6 +2,7 @@
 
 require "pp"
 require "cases/helper"
+require "active_support/core_ext/object/with"
 require "support/deprecated_associations_test_helpers.rb"
 require "models/tag"
 require "models/tagging"
@@ -2071,6 +2072,99 @@ class RelationTest < ActiveRecord::TestCase
 
     relation = Post.default_order("title ASC").reverse_order
     assert_match(/ORDER BY title DESC/, relation.to_sql)
+  end
+
+  def test_reorder_nil_with_default_order
+    relation = Post.default_order(:title).reorder(nil)
+    assert_empty relation.default_order_values
+    assert_no_match(/ORDER BY/, relation.to_sql)
+  end
+
+  def test_reorder_with_default_order
+    relation = Post.default_order(:title).reorder(:body)
+    assert_empty relation.default_order_values
+    assert_equal [Post.arel_table[:body].asc], relation.order_values
+    column = "#{Post.connection.quote_table_name('posts')}.#{Post.connection.quote_column_name('body')}"
+    assert_match(/ORDER BY #{Regexp.escape(column)} ASC/, relation.to_sql)
+  end
+
+  def test_reorder_with_hash_and_default_order
+    relation = Post.default_order(:title).reorder(body: :desc)
+    assert_empty relation.default_order_values
+    assert_equal [Post.arel_table[:body].desc], relation.order_values
+    column = "#{Post.connection.quote_table_name('posts')}.#{Post.connection.quote_column_name('body')}"
+    assert_match(/ORDER BY #{Regexp.escape(column)} DESC/, relation.to_sql)
+  end
+
+  def test_merge_with_reorder_nil_and_default_order
+    scope = Post.reorder(nil).default_order(:title)
+    merged = Post.all.merge(scope)
+    assert_equal scope.default_order_values, merged.default_order_values
+    column = "#{Post.connection.quote_table_name('posts')}.#{Post.connection.quote_column_name('title')}"
+    assert_match(/ORDER BY #{Regexp.escape(column)} ASC/, merged.to_sql)
+  end
+
+  def test_merge_with_unscope_default_order_and_default_order
+    right = Post.unscope(:default_order).default_order(:title)
+    merged = Post.all.merge(right)
+
+    assert_equal right.default_order_values, merged.default_order_values
+    column = "#{Post.connection.quote_table_name('posts')}.#{Post.connection.quote_column_name('title')}"
+    assert_match(/ORDER BY #{Regexp.escape(column)} ASC/, merged.to_sql)
+  end
+
+  def test_merge_default_order_overwrites_left_hand_default_order
+    left = Post.default_order(:title)
+    right = Post.default_order(:id)
+    merged = left.merge(right)
+
+    assert_equal right.default_order_values, merged.default_order_values
+    column = "#{Post.connection.quote_table_name('posts')}.#{Post.connection.quote_column_name('id')}"
+    assert_match(/ORDER BY #{Regexp.escape(column)} ASC/, merged.to_sql)
+  end
+
+  def test_merge_with_reorder_nil_clears_left_hand_default_order
+    left = Post.default_order(:title)
+    right = Post.reorder(nil)
+    merged = left.merge(right)
+
+    assert_empty merged.default_order_values
+    assert_no_match(/ORDER BY/, merged.to_sql)
+  end
+
+  def test_unscope_default_order
+    relation = Post.default_order("title ASC").unscope(:default_order)
+    assert_empty relation.default_order_values
+    assert_no_match(/ORDER BY/, relation.to_sql)
+
+    relation_with_both = Post.order("id DESC").default_order("title ASC").unscope(:default_order)
+    assert_empty relation_with_both.default_order_values
+    assert_equal ["id DESC"], relation_with_both.order_values
+    assert_match(/ORDER BY id DESC/, relation_with_both.to_sql)
+  end
+
+  def test_unscope_order_preserves_default_order
+    relation = Post.order("id DESC").default_order("title ASC").unscope(:order)
+    assert_empty relation.order_values
+    assert_equal ["title ASC"], relation.default_order_values
+    assert_match(/ORDER BY title ASC/, relation.to_sql)
+  end
+
+  def test_unscope_order_and_default_order
+    relation = Post.order("id DESC").default_order("title ASC").unscope(:order, :default_order)
+    assert_empty relation.order_values
+    assert_empty relation.default_order_values
+    assert_no_match(/ORDER BY/, relation.to_sql)
+  end
+
+  def test_cache_version_with_default_order_does_not_include_order
+    ActiveRecord::Base.with(collection_cache_versioning: true) do
+      queries = capture_sql do
+        assert_predicate Developer.default_order(:name).cache_version, :present?
+      end
+      assert_predicate queries, :any?
+      assert_empty queries.grep(/ORDER BY/i)
+    end
   end
 
   def test_reorder_with_first
