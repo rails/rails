@@ -80,7 +80,12 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     stores.each do |store|
       # Eagerly closing Dalli connection avoid file descriptor exhaustion.
       # Otherwise the test suite is flaky when ran repeatedly
-      store.instance_variable_get(:@data).close
+      data = store.instance_variable_get(:@data)
+      if data.is_a?(ActiveSupport::ConnectionPool)
+        data.shutdown(&:close)
+      else
+        data.close
+      end
     end
   end
 
@@ -390,7 +395,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_falls_back_to_default_value_when_client_raises_connection_pool_timeout_error
     cache = lookup_store
     client = cache.instance_variable_get(:@data)
-    client.stub(:get_multi, lambda { |*_args| raise ConnectionPool::TimeoutError.new("test error") }) do
+    client.stub(:get_multi, lambda { |*_args| raise ActiveSupport::ConnectionPool::TimeoutError.new("test error") }) do
       assert_equal({}, cache.read_multi("key1", "key2"))
     end
   end
@@ -398,25 +403,33 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_falls_back_to_default_value_when_client_raises_connection_pool_error
     cache = lookup_store
     client = cache.instance_variable_get(:@data)
-    client.stub(:get_multi, lambda { |*_args| raise ConnectionPool::Error.new("test error") }) do
+    client.stub(:get_multi, lambda { |*_args| raise ActiveSupport::ConnectionPool::Error.new("test error") }) do
       assert_equal({}, cache.read_multi("key1", "key2"))
     end
   end
 
-  def test_pool_options_work
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool: { size: 2, timeout: 1 })
-    pool = cache.instance_variable_get(:@data) # loads 'connection_pool' gem
-    assert_kind_of ::ConnectionPool, pool
-    assert_equal 2, pool.size
-    assert_equal 1, pool.instance_variable_get(:@timeout)
-  end
-
-  def test_connection_pooling_by_default
-    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+  def test_pool_exhaustion_returns_a_miss_and_recovers
+    cache = lookup_store(pool: { size: 1, timeout: 0 })
+    cache.write("pool-key", "pool-value")
     pool = cache.instance_variable_get(:@data)
-    assert_kind_of ::ConnectionPool, pool
-    assert_equal 5, pool.size
-    assert_equal 5, pool.instance_variable_get(:@timeout)
+    ready = Queue.new
+    release = Queue.new
+
+    holder = Thread.new do
+      pool.with do
+        ready << true
+        release.pop
+      end
+    end
+
+    ready.pop
+    assert_nil cache.read("pool-key")
+    release << true
+    holder.join
+    assert_equal "pool-value", cache.read("pool-key")
+  ensure
+    release << true if release && holder&.alive?
+    holder&.join
   end
 
   private
