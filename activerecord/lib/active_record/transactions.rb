@@ -472,8 +472,6 @@ module ActiveRecord
             status = yield
             raise ActiveRecord::Rollback unless status
           end
-          # A +before_commit+ callback can still roll the transaction back by
-          # raising ActiveRecord::Rollback, which is silently swallowed.
           status = nil if status && transaction.state&.rolledback?
           @_last_transaction_return_status = status
           status
