@@ -1,3 +1,13 @@
+*   Fix `ActionText::Content#to_markdown` generating malformed Markdown tables
+    when a table cell contains a `<br>` or a row has no cells.
+
+    A `<br>` inside a `<td>` or `<th>` previously leaked a literal newline into
+    the Markdown table row, breaking the table. Cell content is now flattened
+    to a single line. Empty `<tr>` elements are skipped, matching how empty
+    `<li>` elements are handled.
+
+    *Azmi Muwahid*
+
 *   Add alternative text to Action Text attachments.
 
     Attachments could only be described by their caption, which is always shown

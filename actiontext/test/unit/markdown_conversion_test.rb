@@ -544,6 +544,22 @@ class ActionText::MarkdownConversionTest < ActiveSupport::TestCase
     assert_converted_to("| `\\|x\\|\\|y\\|` |", "<table><tr><td><code>|x||y|</code></td></tr></table>")
   end
 
+  test "<br> inside a table cell is flattened into a space" do
+    assert_converted_to("| a b |", "<table><tr><td>a<br>b</td></tr></table>")
+  end
+
+  test "<br> inside a table cell keeps the other cells in the same row" do
+    assert_converted_to("| a b | c |", "<table><tr><td>a<br>b</td><td>c</td></tr></table>")
+  end
+
+  test "<br> inside a table header cell is flattened and still yields a header row" do
+    assert_converted_to("| a b |\n| --- |", "<table><tr><th>a<br>b</th></tr></table>")
+  end
+
+  test "empty <tr> tags are skipped" do
+    assert_converted_to("| a |", "<table><tr></tr><tr><td>a</td></tr></table>")
+  end
+
   test "<code> containing a pipe outside a table does not escape it" do
     assert_converted_to("`x|y`", "<code>x|y</code>")
   end
