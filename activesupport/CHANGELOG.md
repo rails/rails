@@ -1,3 +1,10 @@
+*   Fix execution context corruption when nesting is enabled during an execution.
+
+    Loading integration test helpers inside a running executor no longer masks
+    the original exception with a `NoMethodError` from the error reporter.
+
+    *lazerg, akasakariko*
+
 *   `Symbol#to_param` now returns `Symbol#name`, the symbol's interned frozen
     String, instead of allocating a new one on every call before Ruby 4.1.
 
