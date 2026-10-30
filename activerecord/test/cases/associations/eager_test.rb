@@ -1206,6 +1206,45 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal posts(:welcome, :thinking), posts
   end
 
+  def test_preload_unscoped_and_scoped_has_many_through_on_the_same_through_association
+    author = Author.create!(name: "Preload Test")
+    Categorization.create!(author: author, post: posts(:thinking), category: categories(:general))
+    Categorization.create!(author: author, post: posts(:welcome), category: categories(:technology))
+    Categorization.create!(author: author, post: posts(:welcome), category: categories(:cooking))
+
+    author_with_preloads = Author.preload(:categories, :categories_like_general).find(author.id)
+    assert_equal 3, author_with_preloads.categories.size
+    assert_equal [categories(:general)], author_with_preloads.categories_like_general
+
+    author_with_preloads = Author.preload(:categories_like_general, :categories).find(author.id)
+    assert_equal [categories(:general)], author_with_preloads.categories_like_general
+    assert_equal 3, author_with_preloads.categories.size
+  end
+
+  def test_preload_scoped_has_many_through_reuses_eager_loaded_source_records
+    author = Author.create!(name: "Preload Test")
+    Categorization.create!(author: author, post: posts(:thinking), category: categories(:general))
+
+    author_with_preloads = assert_queries_count(2) do
+      Author.preload(:categories_like_general).find(author.id)
+    end
+    assert_no_queries do
+      assert_equal [categories(:general)], author_with_preloads.categories_like_general
+    end
+  end
+
+  def test_preload_scoped_has_many_through_without_conditions_reuses_loaded_source_records
+    author = authors(:david)
+    expected = author.unique_categorized_posts.to_a
+
+    author_with_preloads = assert_queries_count(3) do
+      Author.preload(:categorized_posts, :unique_categorized_posts).find(author.id)
+    end
+    assert_no_queries do
+      assert_equal expected, author_with_preloads.unique_categorized_posts
+    end
+  end
+
   def test_preload_has_many_through_with_source_type_ignores_other_types_in_loaded_through_records
     tag = tags(:general)
     expected = tag.tagged_posts.to_a
