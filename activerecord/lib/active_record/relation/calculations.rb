@@ -242,7 +242,10 @@ module ActiveRecord
             relation.select_values = Array(model.primary_key || table[Arel.star])
           end
           # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
-          relation.order_values = [] if group_values.empty?
+          if group_values.empty?
+            relation.order_values = []
+            relation.default_order_values = []
+          end
         end
 
         relation.calculate(operation, column_name)
@@ -471,7 +474,7 @@ module ActiveRecord
           query_builder = build_count_subquery(spawn, column_name, distinct)
         else
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
-          relation = unscope(:order).distinct!(false)
+          relation = except(:order, :default_order).distinct!(false)
 
           column = relation.aggregate_column(column_name)
           select_value = operation_over_aggregate_column(column, operation, distinct)
@@ -679,7 +682,7 @@ module ActiveRecord
         if column_name == :all
           column_alias = Arel.star
           relation.select_values = [ FinderMethods::ONE_AS_ONE_LITERAL ] unless distinct
-          relation.unscope!(:order)
+          relation = relation.except(:order, :default_order)
         else
           column_alias = COUNT_COLUMN_ALIAS
           relation.select_values = [ relation.aggregate_column(column_name).as(column_alias) ]
