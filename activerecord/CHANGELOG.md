@@ -1,3 +1,23 @@
+*   Pass the association's human name unchanged to `restrict_with_error` messages.
+
+    The `restrict_dependent_destroy` messages interpolate `%{record}`, which is
+    always downcased. That reads well in English, but locales that capitalize
+    nouns, like German, end up with "abhängige firmen". The untouched name is now
+    also available as `%{association_name}`:
+
+    ```yaml
+    de:
+      activerecord:
+        errors:
+          messages:
+            restrict_dependent_destroy:
+              has_many: "Datensatz kann nicht gelöscht werden, da abhängige %{association_name} existieren"
+    ```
+
+    Fixes #21064.
+
+    *Jason Lee*
+
 *   Fix subclasses missing associations added to their parent class later.
 
     A subclass that defined an association of its own kept a copy of the
