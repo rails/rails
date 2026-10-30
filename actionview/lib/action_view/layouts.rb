@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "action_view/rendering"
 require "active_support/core_ext/module/redefine_method"
 

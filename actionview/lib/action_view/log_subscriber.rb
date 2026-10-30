@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionView
   class LogSubscriber < ActiveSupport::EventReporter::LogSubscriber # :nodoc:
     VIEWS_PATTERN = /^app\/views\//

@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionView
   class TemplateRenderer < AbstractRenderer # :nodoc:
     def render(context, options, &block)

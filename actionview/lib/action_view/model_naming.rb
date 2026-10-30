@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionView
   module ModelNaming # :nodoc:
     # Converts the given object to an Active Model compliant one.

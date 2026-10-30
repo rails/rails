@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "concurrent/map"
 require "active_support/core_ext/module/attribute_accessors"
 require "action_view/template/resolver"

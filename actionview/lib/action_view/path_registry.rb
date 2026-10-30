@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionView # :nodoc:
   module PathRegistry # :nodoc:
     @view_paths_by_class = {}

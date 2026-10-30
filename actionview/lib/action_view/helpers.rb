@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/benchmarkable"
 require "action_view/helpers/capture_helper"
 require "action_view/helpers/output_safety_helper"

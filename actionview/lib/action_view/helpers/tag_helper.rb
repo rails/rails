@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "active_support/code_generator"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/output_safety"

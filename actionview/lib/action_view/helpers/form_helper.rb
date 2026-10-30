@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "action_view/helpers/date_helper"
 require "action_view/helpers/url_helper"
 require "action_view/helpers/form_tag_helper"

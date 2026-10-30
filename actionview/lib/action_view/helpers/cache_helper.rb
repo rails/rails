@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 module ActionView
   module Helpers # :nodoc:
     # Action View Cache \Helpers

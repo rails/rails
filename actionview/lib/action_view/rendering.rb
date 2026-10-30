@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-# :markup: markdown
 require "action_view/view_paths"
 require "active_support/core_ext/module/attr_internal"
 
