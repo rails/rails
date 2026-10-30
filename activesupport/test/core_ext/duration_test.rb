@@ -702,6 +702,22 @@ class DurationTest < ActiveSupport::TestCase
     end
   end
 
+  def test_iso8601_output_carries_fractions_into_smaller_parts
+    expectations = [
+      ["PT1H40M",   (1.5).hours + 10.minutes  ],
+      ["PT71M33S",  (71.5).minutes + 3.seconds],
+      ["P1DT14H",   (1.5).days + 2.hours      ],
+      ["P10DT13H",  (1.5).weeks + 1.hour      ],
+      ["PT-1H-20M", (-1.5).hours + 10.minutes ],
+      ["PT1.5H",    (1.5).hours               ],
+      ["P1.5W",     (1.5).weeks               ],
+    ]
+    expectations.each do |expected_output, duration|
+      assert_equal expected_output, duration.iso8601, expected_output.inspect
+      assert_equal duration, ActiveSupport::Duration.parse(duration.iso8601), expected_output.inspect
+    end
+  end
+
   def test_iso8601_parsing_across_spring_dst_boundary
     with_env_tz eastern_time_zone do
       with_tz_default "Eastern Time (US & Canada)" do
