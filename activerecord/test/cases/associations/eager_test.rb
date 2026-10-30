@@ -1269,6 +1269,28 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_preload_has_many_through_with_source_type_and_conditions_ignores_loaded_source_records
+    tag = tags(:blue)
+    expected = tag.tagged_posts_by_bob.to_a
+    assert_not_equal tag.tagged_posts.to_a, expected
+
+    tag_with_preloads = Tag.preload(taggings: :taggable).preload(:tagged_posts_by_bob).find(tag.id)
+    assert_no_queries do
+      assert_equal expected, tag_with_preloads.tagged_posts_by_bob
+    end
+  end
+
+  def test_preload_has_many_through_with_disable_joins_and_conditions_ignores_loaded_source_records
+    author = authors(:david)
+    expected = author.no_joins_good_ratings.to_a
+    assert_not_equal author.ratings.to_a, expected
+
+    author_with_preloads = Author.preload(comments: :ratings).preload(:no_joins_good_ratings).find(author.id)
+    assert_no_queries do
+      assert_equal expected, author_with_preloads.no_joins_good_ratings
+    end
+  end
+
   def test_preload_has_many_with_association_condition_and_default_scope
     post = Post.create!(title: "Beaches", body: "I like beaches!")
     Reader.create! person: people(:david), post: post
