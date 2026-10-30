@@ -111,55 +111,6 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     end
   end
 
-  def test_save_returns_falsy_when_before_commit_rolls_back_create
-    topic = TopicWithCallbacks.new(title: "rolled back")
-    topic.before_commit_block { raise ActiveRecord::Rollback }
-
-    assert_not topic.save
-    assert_not_predicate topic, :persisted?
-    assert_not TopicWithCallbacks.exists?(title: "rolled back")
-  end
-
-  def test_save_returns_falsy_when_before_commit_rolls_back_update
-    @first.before_commit_block { raise ActiveRecord::Rollback }
-    @first.title = "rolled back"
-
-    assert_not @first.save
-    assert_not_equal "rolled back", @first.reload.title
-  end
-
-  def test_destroy_returns_falsy_when_before_commit_rolls_back
-    @first.before_commit_block { raise ActiveRecord::Rollback }
-
-    assert_not @first.destroy
-    assert TopicWithCallbacks.exists?(@first.id)
-  end
-
-  def test_destroy_bang_raises_when_before_commit_rolls_back
-    @first.before_commit_block { raise ActiveRecord::Rollback }
-
-    assert_raises(ActiveRecord::RecordNotDestroyed) { @first.destroy! }
-    assert TopicWithCallbacks.exists?(@first.id)
-  end
-
-  def test_save_returns_false_when_aborted_with_before_commit_callbacks
-    @first.abort_before_update = true
-    @first.title = "aborted"
-
-    assert_equal false, @first.save
-  end
-
-  def test_save_in_explicit_transaction_returns_true_when_before_commit_rolls_back
-    @first.before_commit_block { raise ActiveRecord::Rollback }
-    @first.title = "rolled back"
-
-    TopicWithCallbacks.transaction do
-      assert @first.save
-    end
-
-    assert_not_equal "rolled back", @first.reload.title
-  end
-
   def test_call_after_commit_after_transaction_commits
     @first.after_commit_block { |r| r.history << :after_commit }
     @first.after_rollback_block { |r| r.history << :after_rollback }
@@ -691,6 +642,67 @@ class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
 
     assert_equal "before commit title", topic.title
     assert_equal "before commit title", topic.reload.title
+  end
+end
+
+class BeforeCommitRollbackTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+  fixtures :topics
+
+  class TopicWithBeforeCommitRollback < ActiveRecord::Base
+    self.table_name = :topics
+
+    attr_accessor :abort_before_update, :rollback_before_commit
+
+    before_update { throw :abort if abort_before_update }
+    before_commit { raise ActiveRecord::Rollback if rollback_before_commit }
+  end
+
+  def setup
+    @topic = TopicWithBeforeCommitRollback.find(1)
+    @topic.rollback_before_commit = true
+  end
+
+  def test_save_returns_falsy_when_before_commit_rolls_back_create
+    topic = TopicWithBeforeCommitRollback.new(title: "rolled back", rollback_before_commit: true)
+
+    assert_not topic.save
+    assert_not_predicate topic, :persisted?
+    assert_not TopicWithBeforeCommitRollback.exists?(title: "rolled back")
+  end
+
+  def test_save_returns_falsy_when_before_commit_rolls_back_update
+    @topic.title = "rolled back"
+
+    assert_not @topic.save
+    assert_not_equal "rolled back", @topic.reload.title
+  end
+
+  def test_destroy_returns_falsy_when_before_commit_rolls_back
+    assert_not @topic.destroy
+    assert TopicWithBeforeCommitRollback.exists?(@topic.id)
+  end
+
+  def test_destroy_bang_raises_when_before_commit_rolls_back
+    assert_raises(ActiveRecord::RecordNotDestroyed) { @topic.destroy! }
+    assert TopicWithBeforeCommitRollback.exists?(@topic.id)
+  end
+
+  def test_save_returns_false_when_aborted_with_before_commit_callbacks
+    @topic.abort_before_update = true
+    @topic.title = "aborted"
+
+    assert_equal false, @topic.save
+  end
+
+  def test_save_in_explicit_transaction_returns_true_when_before_commit_rolls_back
+    @topic.title = "rolled back"
+
+    TopicWithBeforeCommitRollback.transaction do
+      assert @topic.save
+    end
+
+    assert_not_equal "rolled back", @topic.reload.title
   end
 end
 
