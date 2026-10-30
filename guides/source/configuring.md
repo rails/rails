@@ -474,7 +474,7 @@ Defines the formatter of the Rails logger. This option defaults to an instance o
 
 #### `config.log_level`
 
-Defines the verbosity of the Rails logger. This option defaults to `:debug` for all environments except production, where it defaults to `:info`. The available log levels are: `:debug`, `:info`, `:warn`, `:error`, `:fatal`, and `:unknown`.
+Defines the verbosity of the Rails logger. This option defaults to `:debug` for all environments except production and test, where it defaults to `:info`. The available log levels are: `:debug`, `:info`, `:warn`, `:error`, `:fatal`, and `:unknown`.
 
 #### `config.log_tags`
 
