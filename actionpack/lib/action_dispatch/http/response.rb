@@ -485,18 +485,33 @@ module ActionDispatch # :nodoc:
     ContentTypeHeader = Struct.new :mime_type, :charset
     NullContentTypeHeader = ContentTypeHeader.new(nil, nil).freeze
 
+    # Match control characters that are illegal in HTTP header field values
+    # (same set as ActionController::Redirecting::ILLEGAL_HEADER_VALUE_REGEX).
+    ILLEGAL_HEADER_VALUE_REGEX = /[\x00-\x08\x0A-\x1F]/ # :nodoc:
+
+    # mime_type must not capture trailing whitespace/CRLF: a previous \s* inside
+    # the capture allowed values like "text/html\r\nX-Evil: 1" to inject headers.
     CONTENT_TYPE_PARSER = /
       \A
-      (?<mime_type>[^;\s]+\s*(?:;\s*(?:(?!charset)[^;\s])+)*)?
+      (?<mime_type>[^;\s]+(?:\s*;\s*(?:(?!charset)[^;\s]+))*)?
+      \s*
       (?:;\s*charset=(?<quote>"?)(?<charset>[^;\s]+)\k<quote>)?
     /x # :nodoc:
 
     def parse_content_type(content_type)
       if content_type && match = CONTENT_TYPE_PARSER.match(content_type)
-        ContentTypeHeader.new(match[:mime_type], match[:charset])
+        ContentTypeHeader.new(
+          sanitize_header_value(match[:mime_type]),
+          sanitize_header_value(match[:charset])
+        )
       else
         NullContentTypeHeader
       end
+    end
+
+    def sanitize_header_value(value)
+      return unless value
+      value.gsub(ILLEGAL_HEADER_VALUE_REGEX, "")
     end
 
     # Small internal convenience method to get the parsed version of the current
